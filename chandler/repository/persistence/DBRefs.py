@@ -46,11 +46,12 @@ class PersistentRefs(object):
 
         return self.view.repository.store._refs
 
-    def _copy_(self, target):
+    def _copy_(self, orig):
 
-        target._changedRefs.clear()
-        target._changedRefs.update(self._changedRefs)
-        target._count = self._count
+        self._changedRefs.clear()
+        if isinstance(orig, PersistentRefs):
+            self._changedRefs.update(orig._changedRefs)
+        self._count = len(orig)
 
     def _setItem(self, item):
 
@@ -322,10 +323,10 @@ class DBRefList(RefList, PersistentRefs):
 
         return super(DBRefList, self)._createIndex(indexType, **kwds)
 
-    def _copy_(self, target):
+    def _copy_(self, orig):
 
-        RefList._copy_(self, target)
-        PersistentRefs._copy_(self, target)
+        RefList._copy_(self, orig)
+        PersistentRefs._copy_(self, orig)
 
     def _clear_(self):
 
@@ -343,7 +344,7 @@ class DBRefList(RefList, PersistentRefs):
 
         target._original = self
 
-        self._copy_(target)
+        target._copy_(self)
         self._item._references[self._name] = target
 
         try:
@@ -555,6 +556,10 @@ class DBChildren(Children, PersistentRefs):
         super(DBChildren, self).linkChanged(link, key)
         self._changeRef(key, link)
 
+    def _unloadChild(self, child):
+
+        self._unloadRef(child)
+    
     def __delitem__(self, key):
 
         link = super(DBChildren, self).__delitem__(key)
@@ -626,10 +631,10 @@ class DBChildren(Children, PersistentRefs):
         self._flags &= ~LinkedMap.NEW
         PersistentRefs._clearDirties(self)
 
-    def _copy_(self, target):
+    def _copy_(self, orig):
 
-        Children._copy_(self, target)
-        PersistentRefs._copy_(self, target)
+        Children._copy_(self, orig)
+        PersistentRefs._copy_(self, orig)
 
     def _clear_(self):
 
@@ -654,7 +659,7 @@ class DBChildren(Children, PersistentRefs):
 
         target = self.view._createChildren(self._item, False)
         target._original = self
-        self._copy_(target)
+        target._copy_(self)
         self._item._setChildren(target)
 
         PersistentRefs._mergeChanges(target, oldVersion, toVersion)

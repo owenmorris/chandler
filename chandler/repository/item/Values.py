@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
+from repository.util.Lob import Lob
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
@@ -75,6 +76,14 @@ class Values(dict):
 
             else:
                 self[name] = value
+
+            self._copyFlags(orig, name)
+
+    def _copyFlags(self, orig, name):
+
+        flags = orig._getFlags(name, 0) & Values.COPYMASK
+        if flags != 0:
+            self._setFlags(name, flags)
 
     def __setitem__(self, key, value):
 
@@ -344,6 +353,14 @@ class Values(dict):
 
         return result
 
+    def _import(self, view):
+
+        item = self._item
+        if type(view) is not type(item.itsView):
+            for key, value in self.iteritems():
+                if isinstance(value, Lob):
+                    item.setAttributeValue(key, value.copy(view), self)
+
     
     READONLY  = 0x0001         # value is read-only
 
@@ -351,7 +368,8 @@ class Values(dict):
     TRANSIENT = 0x0200         # value is transient
     NOINHERIT = 0x0400         # no schema for inheriting a value
     SAVEMASK  = 0x00ff         # save these flags
-
+    COPYMASK  = READONLY | TRANSIENT | NOINHERIT
+    
 
 class References(Values):
 
@@ -365,7 +383,9 @@ class References(Values):
         if other is not None:
             view = self._item.itsView
             otherView = other.itsView
-            if otherView is not view:
+            if not (otherView is view or
+                    self._item._isImporting() or
+                    other._isImporting()):
                 if otherView._isNullView() or view._isNullView():
                     view.importItem(other)
                 else:
@@ -561,6 +581,7 @@ class References(Values):
                 value._copy(item, name, policy, copyFn)
             else:
                 orig._copyRef(item, name, value, policy, copyFn)
+            self._copyFlags(orig, name)
 
     def _unload(self):
 
@@ -755,6 +776,11 @@ class References(Values):
                              other, self._item.itsPath, name)
                 return False
 
+            if other.itsView is not self._item.itsView:
+                logger.error("views don't match: %s at %s.%s",
+                             other, self._item.itsPath, name)
+                return False
+
         otherName = self._item._kind.getOtherName(name, default=None)
         if otherName is None:
             logger.error('otherName is None for attribute %s.%s',
@@ -818,7 +844,51 @@ class References(Values):
             result = result and check
 
         return result
-        
+
+    def _import(self, view, items, replace):
+
+        item = self._item
+        itemView = item.itsView
+        sameType = type(view) is type(itemView)
+
+        for key, value in self.items():
+            if value is not None:
+                if value._isRefList():
+                    if sameType or value._isTransient():
+                        previous = None
+                        for other in value:
+                            if other not in items:
+                                alias = value.getAlias(other)
+                                value.remove(other)
+                                localOther = other.findMatch(view, replace)
+                                if localOther is not None:
+                                    value.insertItem(localOther, previous)
+                                    if alias is not None:
+                                        value.setAlias(other, alias)
+                    else:
+                        localValue = view._createRefList(item, value._name, value._otherName, True, False, True, UUID())
+                        value._copyIndexes(localValue)
+                        for other in value:
+                            if other in items:
+                                localValue._setRef(other, load=True,
+                                                   alias=value.getAlias(other),
+                                                   noMonitors=True)
+                            else:
+                                value.remove(other)
+                                localOther = other.findMatch(view, replace)
+                                if localOther is not None:
+                                    localValue.append(localOther,
+                                                      value.getAlias(other))
+                        item._references[key] = localValue
+                else:
+                    if value._isUUID():
+                        value = itemView.find(value)
+                    if value not in items:
+                        localOther = value.findMatch(view, replace)
+                        item.removeAttributeValue(key)
+                        if localOther is not None:
+                            item.setAttributeValue(key, localOther)
+
 
 class ItemValue(object):
     'A superclass for values that are owned by an item.'

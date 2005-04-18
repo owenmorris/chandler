@@ -3,33 +3,33 @@
 <items>
 
   <item>
-    <name>Attribute</name>
+    <name>Struct</name>
     <kind type="path">//Schema/Core/Cloud</kind>
 
     <ref name="endpoints">
       <!-- 
          - plus local endpoints below:
-         -     type
+         -     fields
         -->
     </ref>
 
     <ref name="kind" otherAlias="export"
-         type="path">//Schema/Core/Attribute</ref>
+         type="path">//Schema/Core/Struct</ref>
   </item>
 
   <item>
-    <name>type</name>
+    <name>fields</name>
     <kind type="path">//Schema/Core/Endpoint</kind>
-    <parent type="path">//Schema/Core/Clouds/Attribute</parent>
+    <parent type="path">//Schema/Core/Clouds/Struct</parent>
 
     <ref name="clouds">
       <ref otherAlias="type" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">
-      <value>type</value>
+      <value>fields</value>
     </attribute>
-    <attribute name="includePolicy">byCloud</attribute>
+    <attribute name="includePolicy">byValue</attribute>
   </item>
 
 </items>

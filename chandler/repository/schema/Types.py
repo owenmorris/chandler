@@ -25,12 +25,26 @@ from repository.util.ClassLoader import ClassLoader
 
 class TypeKind(Kind):
 
-    def _fillItem(self, name, parent, kind, **kwds):
+    def onItemLoad(self, view):
 
-        super(TypeKind, self)._fillItem(name, parent, kind, **kwds)
+        TypeHandler.typeHandlers[view][None] = self
 
-        typeHandlers = TypeHandler.typeHandlers[self.itsView]
-        typeHandlers[None] = self
+    def onItemCopy(self, view):
+
+        TypeHandler.typeHandlers[view][None] = self
+
+    def onItemImport(self, view):
+
+        if view is not self.itsView:
+            try:
+                del TypeHandler.typeHandlers[self.itsView][None]
+            except KeyError:
+                pass
+            TypeHandler.typeHandlers[view][None] = self
+
+    def onViewClose(self, view):
+
+        TypeHandler.clear(view)
 
     def findTypes(self, value):
         """Return a list of types recognizing value.
@@ -58,21 +72,37 @@ class Type(Item):
         super(Type, self)._fillItem(name, parent, kind, **kwds)
         self._status |= Item.SCHEMA | Item.PINNED
 
-    def _registerTypeHandler(self, implementationType):
+    def _registerTypeHandler(self, implementationType, view):
 
         if implementationType is not None:
             try:
-                typeHandlers = TypeHandler.typeHandlers[self.itsView]
+                typeHandlers = TypeHandler.typeHandlers[view]
             except KeyError:
-                typeHandlers = TypeHandler.typeHandlers[self.itsView] = {}
+                typeHandlers = TypeHandler.typeHandlers[view] = {}
 
             if implementationType in typeHandlers:
                 typeHandlers[implementationType].append(self)
             else:
                 typeHandlers[implementationType] = [ self ]
 
+    def _unregisterTypeHandler(self, implementationType, view):
+
+        if implementationType is not None:
+            try:
+                TypeHandler.typeHandlers[view][implementationType].remove(self)
+            except KeyError:
+                return
+            except ValueError:
+                return
+
     def onItemLoad(self, view):
-        self._registerTypeHandler(self.getImplementationType())
+        self._registerTypeHandler(self.getImplementationType(), view)
+
+    def onItemImport(self, view):
+        if view is not self.itsView:
+            implementationType = self.getImplementationType()
+            self._unregisterTypeHandler(implementationType, self.itsView)
+            self._registerTypeHandler(implementationType, view)
 
     def getImplementationType(self):
         return self.getAttributeValue('implementationTypes',
@@ -128,10 +158,17 @@ class Type(Item):
 
 class String(Type):
 
-    def _fillItem(self, name, parent, kind, **kwds):
+    def onItemLoad(self, view):
 
-        super(String, self)._fillItem(name, parent, kind, **kwds)
-        self._registerTypeHandler(str)
+        super(String, self).onItemLoad(view)
+        self._registerTypeHandler(str, view)
+
+    def onItemImport(self, view):
+
+        super(String, self).onItemImport(view)
+        if view is not self.itsView:
+            self._unregisterTypeHandler(str, self.itsView)
+            self._registerTypeHandler(str, view)
 
     def getImplementationType(self):
 

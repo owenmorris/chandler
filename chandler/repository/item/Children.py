@@ -41,7 +41,11 @@ class Children(LinkedMap):
 
     def _unloadChild(self, child):
 
-        self._unloadRef(child)
+        raise NotImplementedError, "%s._unloadChild" %(type(self))
+
+    def _append(self, child):
+
+        self.__setitem__(child._uuid, child, None, None, child._name)
     
     def __repr__(self):
 

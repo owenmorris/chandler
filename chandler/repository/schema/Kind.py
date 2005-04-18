@@ -46,7 +46,7 @@ class Kind(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
-        if not kwds['update']:
+        if not kwds.get('update'):
             self.__init()
 
     def onItemLoad(self, view):

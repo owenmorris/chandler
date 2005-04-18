@@ -16,12 +16,20 @@ class Monitors(Item):
 
     def onItemImport(self, view):
 
+        if view is not self.itsView:
+            try:
+                del Monitors.instances[self.itsView]
+            except KeyError:
+                pass
+            self.setPinned()
+            Monitors.instances[view] = self
+
+    def onViewClose(self, view):
+
         try:
-            del Monitors.instances[self.itsView]
+            del Monitors.instances[view]
         except KeyError:
             pass
-        
-        Monitors.instances[view] = self
 
     def getInstance(cls, view):
 
@@ -39,6 +47,9 @@ class Monitors(Item):
         try:
             monitors = cls.getInstance(item.itsView).monitoring[op][attribute]
         except KeyError:
+            return
+        except AttributeError:
+            print 'no monitor singleton'
             return
 
         for monitorItem, method, args, kwds in monitors:

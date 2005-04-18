@@ -13,7 +13,7 @@
         -->
     </ref>
 
-    <ref name="kind" otherAlias="remote"
+    <ref name="kind" otherAlias="export"
          type="path">//Schema/Core/Kind</ref>
   </item>
 
@@ -30,8 +30,6 @@
       <value>attributes</value>
     </attribute>
     <attribute name="includePolicy">byCloud</attribute>
-
-    <ref name="cloud" type="path">//Schema/Core/Clouds/Attribute</ref>
   </item>
 
   <item>
@@ -40,15 +38,28 @@
     <parent type="path">//Schema/Core/Clouds/Kind</parent>
 
     <ref name="clouds">
-      <ref otherAlias="inheritedAttributes" type="path">..</ref>
+      <ref otherAlias="attributes" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">
       <value>inheritedAttributes</value>
     </attribute>
     <attribute name="includePolicy">byCloud</attribute>
+  </item>
 
-    <ref name="cloud" type="path">//Schema/Core/Clouds/Attribute</ref>
+  <item>
+    <name>superKinds</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Kind</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="inheritedAttributes" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>superKinds</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
   </item>
 
 </items>

@@ -9,7 +9,7 @@
     <ref name="endpoints">
     </ref>
 
-    <ref name="kind" otherAlias="remote"
+    <ref name="kind" otherAlias="export"
          type="path">//Schema/Core/Item</ref>
   </item>
 

@@ -95,8 +95,11 @@ class RefList(LinkedMap):
         for key in self.iterkeys():
             link = self._get(key)
             copyOther = copyFn(copyItem, link.getValue(self), policy)
-            if copyOther is not copyItem.Nil and copyOther not in refList:
-                refList.append(copyOther, link._alias)
+            if copyOther is not copyItem.Nil:
+                if copyOther not in refList:
+                    refList.append(copyOther, link._alias)
+                elif link._alias is not None:
+                    refList.setAlias(copyOther, link._alias)
 
         return refList
 
@@ -533,6 +536,10 @@ class RefList(LinkedMap):
         """
 
         return self._get(item._uuid)._alias
+
+    def setAlias(self, item, alias):
+
+        return super(RefList, self).setAlias(item._uuid, alias)
 
     def getByIndex(self, indexName, position):
         """

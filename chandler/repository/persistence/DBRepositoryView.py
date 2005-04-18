@@ -94,7 +94,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         store = self.repository.store
         results = []
         docs = store.searchItems(self._version, query)
-        for (uuid, (ver, attribute)) in docs.iteritems():
+        for uuid, (ver, attribute) in docs.iteritems():
             if not uuid in self._deletedRegistry:
                 item = self.find(uuid, load=load)
                 if item is not None:

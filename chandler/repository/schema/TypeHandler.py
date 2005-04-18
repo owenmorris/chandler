@@ -39,10 +39,18 @@ class TypeHandler(object):
 
         return cls.typeHandler(view, value).makeString(value)
 
+    def clear(cls, view):
+
+        try:
+            cls.typeHandlers[view].clear()
+        except KeyError:
+            pass
+
 
     typeHandler = classmethod(typeHandler)
     makeString = classmethod(makeString)
     makeValue = classmethod(makeValue)
+    clear = classmethod(clear)
 
     typeHandlers = {}
     typeDispatch = {

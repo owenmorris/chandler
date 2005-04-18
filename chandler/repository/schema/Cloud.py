@@ -214,6 +214,49 @@ class Cloud(Item):
         for item in deleting:
             deleteItem(item)
 
+    def exportItems(self, item, view, cloudAlias, matches):
+
+        items = {}
+        references = {}
+        copies = {}
+
+        exporting = self.getItems(item, cloudAlias, items, references)
+
+        def exportOther(copy, other, policy):
+            if other is None:
+                return None
+
+            uuid = other._uuid
+            if uuid in items or uuid in references:
+                match = other.findMatch(view, matches)
+                if match is not None:
+                    return match
+
+                elif other._isCopyExport():
+                    otherParent = other.itsParent
+                    parent = otherParent.findMatch(view, matches)
+                    if parent is None:
+                        parent = exportOther(None, otherParent, None)
+                        if parent is None or parent is Item.Nil:
+                            raise ValueError, 'export parent (%s) not found while exporting %s: %s' %(otherParent.itsPath, other.itsPath, parent)
+                    otherKind = other.itsKind
+                    kind = otherKind.findMatch(view, matches)
+                    if kind is None:
+                        kind = exportOther(None, otherKind, None)
+                    match = other.copy(other._name, parent,
+                                       copies, 'remove', None, exportOther,
+                                       kind)
+                    matches[other] = match
+                    return match
+
+                else:
+                    return other
+
+            return Item.Nil
+
+        for item in exporting:
+            exportOther(None, item, None)
+
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 
         endpoints = []
@@ -363,7 +406,6 @@ class Endpoint(Item):
             references[item._uuid] = item
 
         elif policy == 'byCloud':
-
             def getItems(cloud):
                 results.extend(cloud.getItems(item, cloudAlias,
                                               items, references, trace))
@@ -383,11 +425,11 @@ class Endpoint(Item):
                     getItems(cloud)
 
         elif policy == 'byMethod':
-            method = self.getAttributeValue('method', default=None,
-                                            _attrDict=self._values)
-            if method is not None:
-                results.extend(getattr(item, method)(items, references,
-                                                     cloudAlias))
+            results.extend(getattr(item, self.method)(items, references,
+                                                      cloudAlias))
+
+        elif policy == 'none':
+            pass
 
         else:
             raise NotImplementedError, policy
@@ -447,7 +489,7 @@ class Endpoint(Item):
                 if isinstance(value, Item) or isinstance(value, RefList):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
-                    values.append(value._getItems())
+                    values.append(value._iterItems())
                 else:
                     raise TypeError, type(value)
 
@@ -455,7 +497,7 @@ class Endpoint(Item):
         for name in self.attribute:
             if isinstance(value, PersistentCollection):
                 values = []
-                for v in value._getItems():
+                for v in value._iterItems():
                     append(values, v.getAttributeValue(name, default=None))
                 value = values
             elif isinstance(value, RefList):
@@ -486,6 +528,9 @@ class Endpoint(Item):
 
         if isinstance(value, Item):
             return [value]
+
+        if isinstance(value, PersistentCollection):
+            return value._iterItems()
 
         return value
 

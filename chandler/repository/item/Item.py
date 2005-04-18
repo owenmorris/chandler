@@ -715,6 +715,10 @@ class Item(CItem):
 
         kind = self._kind
         if kind is not None:
+            if kind.itsView is not self.itsView:
+                self.itsView.logger.error("kind %s for item %s is in view %s, not in item's view %s", kind.itsPath, self.itsPath, kind.itsView, self.itsView)
+                return False
+                
             for name, desc in kind._getDescriptors(type(self)).iteritems():
                 attrDict, required = desc.isValueRequired(self)
                 if required and name not in attrDict:
@@ -1275,7 +1279,7 @@ class Item(CItem):
         return items.values()
 
     def copy(self, name=None, parent=None, copies=None,
-             copyPolicy=None, cloudAlias=None, copyFn=None):
+             copyPolicy=None, cloudAlias=None, copyFn=None, kind=None):
         """
         Copy this item.
 
@@ -1325,8 +1329,12 @@ class Item(CItem):
             
         cls = type(self)
         item = cls.__new__(cls)
-        item._fillItem(name, parent or self.itsParent, self._kind,
-                       uuid = UUID(), version = self._version,
+        if kind is None:
+            kind = self._kind
+        if kind is not None:
+            kind._setupClass(cls)
+        item._fillItem(name, parent or self.itsParent, kind,
+                       uuid = UUID(), version = 0,
                        values = Values(item), references = References(item))
         item._status |= Item.NEW
         copies[self._uuid] = item
@@ -1446,10 +1454,25 @@ class Item(CItem):
             self._status &= ~Item.DELETING
 
             for other in others:
-                if other.refCount(counted=True) == 0:
-                    other.delete(recursive=recursive, deletePolicy=deletePolicy)
+                if other.refCount(True) == 0:
+                    other.delete(recursive, deletePolicy)
 
             self._kind = None
+
+    def _copyExport(self, view, cloudAlias, matches):
+
+        if not self in matches:
+            kind = self._kind
+            if kind is None:
+                parent = self.itsParent.findMatch(view, matches)
+                if parent is None:
+                    raise ValueError, 'match for parent (%s) not found' %(self.itsParent.itsPath)
+                matches[self] = self.copy(self._name, parent)
+            else:
+                for cloud in kind.getClouds(cloudAlias):
+                    cloud.exportItems(self, view, cloudAlias, matches)
+
+        return matches[self]
             
     def __getName(self):
 
@@ -2114,6 +2137,22 @@ class Item(CItem):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
 
         return self.getRepositoryView().find(uuid, load)
+
+    def findMatch(self, view, matches=None):
+
+        if matches is not None:
+            match = matches.get(self)
+        else:
+            match = None
+            
+        if match is None:
+            match = view.find(self._uuid)
+            if match is None and self._name is not None:
+                match = view.find(self.itsPath)
+                if not (match is None or matches is None):
+                    matches[self] = match
+
+        return match
 
     def _unloadItem(self, reloadable):
 

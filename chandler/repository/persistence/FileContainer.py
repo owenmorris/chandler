@@ -430,10 +430,6 @@ class IndexContainer(FileContainer):
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
 
-    def close(self):
-
-        super(IndexContainer, self).close()
-
     def getIndexWriter(self):
 
         writer = IndexWriter(DbDirectory(self.store.txn,
@@ -467,21 +463,15 @@ class IndexContainer(FileContainer):
                                 self._flags)
         searcher = IndexSearcher(directory)
         query = QueryParser.parse(query, "contents", StandardAnalyzer())
-        hits = searcher.search(query)
-        len = hits.length()
 
         docs = {}
-        i = 0
-
-        while i < len:
-            hit = hits.doc(i)
-            ver = long(hit.get('version'))
+        for i, doc in searcher.search(query):
+            ver = long(doc['version'])
             if ver <= version:
-                uuid = UUID(hit.get('owner'))
+                uuid = UUID(doc['owner'])
                 dv = docs.get(uuid, None)
-                if dv is None or dv is not None and dv[0] < ver:
-                    docs[uuid] = (ver, hit.get('attribute'))
-            i += 1
+                if dv is None or dv[0] < ver:
+                    docs[uuid] = (ver, doc['attribute'])
 
         searcher.close()
 

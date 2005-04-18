@@ -4,18 +4,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import logging, heapq, sys, gc
-
-from threading import currentThread, Thread
+import logging, heapq, sys, gc, threading
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import CItem
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.util.Lob import Lob
-from repository.persistence.RepositoryError \
-     import RepositoryError, VersionConflictError, \
-            RecursiveLoadItemError, ItemImportError
+from repository.persistence.RepositoryError import *
 from repository.item.Children import Children
 from repository.item.RefCollections import TransientRefList
 
@@ -44,7 +40,7 @@ class RepositoryView(object):
             raise RepositoryError, "Repository is not open"
 
         self.repository = repository
-        self.name = name or currentThread().getName()
+        self.name = name or threading.currentThread().getName()
 
         self.openView()
         
@@ -154,6 +150,8 @@ class RepositoryView(object):
             repository._openViews.remove(self)
         
         for item in self._registry.itervalues():
+            if hasattr(type(item), 'onViewClose'):
+                item.onViewClose(self)
             item._setStale()
 
         self._registry.clear()
@@ -363,6 +361,10 @@ class RepositoryView(object):
 
         return self.find(uuid, load)
 
+    def findMatch(self, view, matches=None):
+
+        return view
+    
     def _findKind(self, spec, withSchema):
 
         return self.find(spec)
@@ -791,90 +793,83 @@ class RepositoryView(object):
 
     def importItem(self, item):
 
-        if self.find(item._uuid) is not None:
-            raise ItemImportError, (item, self, "item already exists")
-
         items = set()
         view = item.itsView
         if view is self:
             return items
 
-        item._collectItems(items,
-                           lambda _item: (_item.isNew() or
-                                          self.find(_item._uuid) is None))
-                           
-        sameType = type(self) is type(view)
+        replace = {}
 
-        for _item in items:
-            kind = _item._kind
-            if not (kind is None or kind in items):
-                localKind = self.find(kind._uuid)
-                if localKind is None:
-                    raise ItemImportError, (_item, self,
-                                            "Kind %s not found" %(kind.itsPath))
-                item._kind = kind
+        def filterItem(_item):
+            if _item.findMatch(self, replace):
+                return False
 
-            for key, value in _item._values.iteritems():
-                if not sameType and isinstance(value, Lob):
-                    _item._values[key] = value.copy(self)
+            if _item._isCopyExport():
+                _item._copyExport(self, 'export', replace)
+                return False
 
-            for key, value in _item._references.items():
-                if value is not None:
-                    if value._isRefList():
-                        if sameType or value._isTransient():
-                            previous = None
-                            for other in value:
-                                if other not in items:
-                                    value.remove(other)
-                                    other = self.find(other._uuid)
-                                    value.insertItem(other, previous)
-                        else:
-                            localValue = self._createRefList(_item, value._name, value._otherName, True, False, True, UUID())
-                            value._copyIndexes(localValue)
-                            for other in value:
-                                if other in items:
-                                    localValue._setRef(other, load=True,
-                                                       noMonitors=True)
-                                else:
-                                    value.remove(other)
-                                    path = other.itsPath
-                                    other = self.find(other._uuid)
-                                    localValue.append(other)
-                            localValue._aliases = value._aliases
-                            _item._references[key] = localValue
-                    else:
-                        if value._isUUID():
-                            value = self.find(value)
-                        if value not in items:
-                            _item.removeAttributeValue(key)
-                            _item.setAttributeValue(key, value)
+            return True
 
-        for _item in items:
-            parent = _item.itsParent
-            if hasattr(type(_item), 'onItemImport'):
-                _item.onItemImport(self)
-            if not parent in items:
-                if parent is view:
-                    localParent = self
-                else:
-                    localParent = self.find(parent._uuid)
-                if localParent is not parent:
-                    def setRoot(root, __item):
-                        view._unregisterItem(__item, False)
-                        self._registerItem(__item)
-                        __item._root = root
-                        for child in __item.iterChildren():
-                            setRoot(root, child)
-                    if _item.isNew():
-                        parent._removeItem(_item)
-                    else:
-                        parent._unloadChild(_item)
-                    root = localParent._addItem(_item)
-                    _item._parent = localParent
-                    setRoot(root, _item)
+        item._collectItems(items, filterItem)
+        self._importValues(items, replace, view)
+        self._importItems(items, replace, view)
 
         return items
 
+    def _importValues(self, items, replace, view):
+
+        sameType = type(self) is type(view)
+
+        for item in items:
+            kind = item._kind
+            if not (kind is None or kind in items):
+                localKind = replace.get(kind)
+                if localKind is None:
+                    localKind = self.find(kind._uuid)
+                    if localKind is None:
+                        raise ImportKindError, (kind, item)
+                item._kind = localKind
+                localKind._setupClass(type(item))
+
+            try:
+                item._status |= CItem.IMPORTING
+                item._values._import(self)
+                item._references._import(self, items, replace)
+            finally:
+                item._status &= ~CItem.IMPORTING
+    
+    def _importItems(self, items, replace, view):
+
+        sameType = type(self) is type(view)
+
+        def setRoot(root, _item):
+            view._unregisterItem(_item, False)
+            self._registerItem(_item)
+            _item._root = root
+            for child in _item.iterChildren():
+                setRoot(root, child)
+
+        for item in items:
+            if hasattr(type(item), 'onItemImport'):
+                item.onItemImport(self)
+            if not sameType and item.hasChildren():
+                children = self._createChildren(item, True)
+                for child in item.iterChildren():
+                    children._append(child)
+                item._children = children
+            parent = item.itsParent
+            if not parent in items:
+                localParent = parent.findMatch(self, replace)
+                if localParent is None:
+                    raise ImportParentError, (parent, item)
+                if localParent is not parent:
+                    if item.isNew():
+                        parent._removeItem(item)
+                    else:
+                        parent._unloadChild(item)
+                    root = localParent._addItem(item)
+                    item._parent = localParent
+                    setRoot(root, item)
 
     itsUUID = property(__getUUID)
     itsName = property(__getName)

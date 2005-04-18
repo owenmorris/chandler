@@ -19,7 +19,7 @@ endif
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-6.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-7.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.27-1.tar.gz \
          $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-2.tar.gz \
@@ -27,7 +27,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-3.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-0.12-9.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-2.tar.gz \
-         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.8-1.tar.gz \
+         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.8-188-1.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4-2.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-2.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r11303-4.tar.gz \

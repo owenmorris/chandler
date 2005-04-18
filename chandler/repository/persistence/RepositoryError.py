@@ -103,3 +103,16 @@ class ItemImportError(RepositoryError):
 
     def __str__(self):
         return self.__doc__ %(self.args[0], self.args[1], self.args[2])
+
+
+class ImportParentError(ItemImportError):
+    "No matching import parent %s for %s found"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0].itsPath, self.args[1]._repr_())
+
+class ImportKindError(ItemImportError):
+    "No matching import kind %s for %s found"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0].itsPath, self.args[1]._repr_())
