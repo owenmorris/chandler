@@ -1343,7 +1343,7 @@ long			resultV;
 
 	if (m_BUseGenericRenderer)
 	{
-	wxClientDC	dc( this );
+	wxPaintDC	dc( this );
 	long			i;
 
 		dc.SetFont( m_Font );
@@ -1372,7 +1372,7 @@ long			resultV;
 		if (m_BVisibleSelection && (m_ItemSelected >= 0))
 			if (GetItemBounds( m_ItemSelected, &boundsR ))
 			{
-			wxClientDC		dc( this );
+			wxPaintDC		dc( this );
 
 				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
 			}
@@ -1381,7 +1381,7 @@ long			resultV;
 #elif defined(__WXMAC__)
 	if (! m_BUseGenericRenderer)
 	{
-	wxClientDC	dc( this );
+	wxPaintDC	dc( this );
 	long			i;
 
 		dc.SetFont( m_Font );
@@ -1433,7 +1433,7 @@ long		originX, i;
 }
 
 wxSize wxColumnHeader::GetLabelTextExtent(
-	wxClientDC			*dc,
+	wxDC				*dc,
 	const wxString			&targetStr )
 {
 wxSize		resultV;
@@ -1945,7 +1945,7 @@ long		targetX, resultV;
 #if defined(__WXMAC__)
 long wxColumnHeaderItem::MacDrawItem(
 	wxWindow		*parentW,
-	wxClientDC		*dc,
+	wxDC			*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
 	bool				bVisibleSelection )
@@ -2068,7 +2068,7 @@ OSStatus				errStatus;
 
 long wxColumnHeaderItem::GenericDrawItem(
 	wxWindow		*parentW,
-	wxClientDC		*dc,
+	wxDC			*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
 	bool				bVisibleSelection )
@@ -2247,7 +2247,7 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 }
 
 long wxColumnHeaderItem::CalculateTextExtent(
-	wxClientDC		*dc,
+	wxDC			*dc,
 	bool				bForceRecalc )
 {
 wxCoord		targetWidth, targetHeight;
@@ -2323,7 +2323,7 @@ OSStatus			errStatus;
 
 // static
 void wxColumnHeaderItem::GenericDrawSelection(
-	wxClientDC			*dc,
+	wxDC				*dc,
 	const wxRect			*boundsR,
 	const wxColour			*targetColour,
 	long					drawStyle )
@@ -2426,7 +2426,7 @@ int		sizeX, sizeY, insetX;
 
 // static
 void wxColumnHeaderItem::GenericDrawSortArrow(
-	wxClientDC			*dc,
+	wxDC				*dc,
 	const wxRect			*boundsR,
 	bool					bSortAscending )
 {

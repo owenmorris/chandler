@@ -93,7 +93,7 @@ public:
 
 	long GenericDrawItem(
 		wxWindow		*parentW,
-		wxClientDC		*dc,
+		wxDC			*dc,
 		const wxRect		*boundsR,
 		bool				bUseUnicode,
 		bool				bVisibleSelection );
@@ -101,7 +101,7 @@ public:
 #if defined(__WXMAC__)
 	long MacDrawItem(
 		wxWindow		*parentW,
-		wxClientDC		*dc,
+		wxDC			*dc,
 		const wxRect		*boundsR,
 		bool				bUseUnicode,
 		bool				bVisibleSelection );
@@ -113,19 +113,19 @@ public:
 		long				maxWidth,
 		long				&charCount );
 	long CalculateTextExtent(
-		wxClientDC		*dc,
+		wxDC			*dc,
 		bool				bForceRecalc );
 	void InvalidateTextExtent( void );
 
 public:
 	static void GenericDrawSelection(
-		wxClientDC		*dc,
+		wxDC			*dc,
 		const wxRect		*boundsR,
 		const wxColour		*targetColour,
 		long				drawStyle );
 
 	static void GenericDrawSortArrow(
-		wxClientDC		*dc,
+		wxDC			*dc,
 		const wxRect		*boundsR,
 		bool				bSortAscending );
 	static void GenericGetSortArrowBounds(
@@ -316,7 +316,7 @@ protected:
 		long				itemIndex );
 
 	wxSize GetLabelTextExtent(
-		wxClientDC			*dc,
+		wxDC				*dc,
 		const wxString			&targetStr );
 
 	void DisposeItemList( void );
