@@ -5,6 +5,9 @@ import wx
 class SizeType(object):
     __slots__ = 'width', 'height'
     
+    def __repr__(self):
+        return "(%sw, %sh)" % (self.width, self.height)
+    
 class SizeStruct(CoreTypes.Struct):
 
     def makeValue(Struct, data):
@@ -18,6 +21,9 @@ class SizeStruct(CoreTypes.Struct):
 class PositionType(object):
     __slots__ = 'x', 'y'
     
+    def __repr__(self):
+        return "(%sx, %sy)" % (self.x, self.y)
+    
 class PositionStruct(CoreTypes.Struct):
 
     def makeValue(Struct, data):
@@ -30,6 +36,9 @@ class PositionStruct(CoreTypes.Struct):
 
 class RectType(object):
     __slots__ = 'top', 'left', 'bottom', 'right'
+
+    def __repr__(self):
+        return "(%st, %sl, %sb, %sr)" % (self.top, self.left, self.bottom, self.right)
 
 class RectStruct(CoreTypes.Struct):
 
@@ -48,6 +57,9 @@ class ColorType(object):
     def wxColor(self):
         # Make a wx color
         return wx.Color(self.red, self.green, self.blue)
+
+    def __repr__(self):
+        return "(%sr, %sg, %sb, %sa)" % (self.red, self.green, self.blue, self.alpha)
 
 class ColorStruct(CoreTypes.Struct):
 

@@ -10,6 +10,8 @@ import wx
 import logging
 import hotshot
 
+logger = logging.getLogger('cpia')
+logger.setLevel(logging.INFO)
 
 class Block(Item):
     def post (self, event, arguments):
@@ -483,15 +485,13 @@ class Block(Item):
             except AttributeError:
                 result = False
             else:
-                """
-                  Comment in this code to see which events are dispatched -- DJA
-                  ... to which blocks -- BJS
-                try:
-                    blockName = block.blockName
-                except AttributeError:
-                    blockName = "None"
-                print "Calling method: %s, blockName: %s; block: %s" % (methodName, blockName, block)
-                """
+                if __debug__ and not methodName.endswith("UpdateUI"):
+                    # show dispatched events
+                    logger.debug("Calling %s on %s (%s): %s" % \
+                                 (methodName, getattr(block, "blockName", "?"),
+                                  block, getattr(event, "arguments", 
+                                                 "(no arguments)")))
+
                 result = member (block, event)
                 if result is None:
                     result = True
@@ -638,8 +638,8 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
         # Map from the alignmentEnum string to wx constant(s)
         flag = _wxFlagMappings[block.alignmentEnum]
 
-        # @@@ Temporary solution to allow for borders on a single side
-        numBordersSpecified = 0
+        # Each border can be 0 or not, but all the nonzero borders must be equal
+        # (The assert in CalculateWXBorder above checks this)
         if block.border.top != 0:
             flag |= wx.TOP
             numBordersSpecified += 1

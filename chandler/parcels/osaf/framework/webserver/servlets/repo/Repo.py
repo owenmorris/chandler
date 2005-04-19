@@ -4,6 +4,7 @@ from twisted.web import resource
 # import application.Globals as Globals
 import repository
 import application
+import re
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
@@ -82,9 +83,47 @@ class RepoResource(resource.Resource):
                     name = item.itsName
                     if name is None:
                         name = str(item.itsUUID)
-                    result += "<div class='path'>%s &gt; <span class='itemname'><a href=%s>%s</a></span></div>" % (path, toLink(item.itsPath), name)
+                    result += "<div class='path'>%s &gt; <span class='itemname'><a href=%s>%s</a></span> | <a href=%s>Render attributes</a></div>" % (path, toLink(item.itsPath), name, toLink(item.itsPath))
 
                     result += RenderBlock(repoView, item)
+
+                elif mode == "object":
+                    fields = []
+                    item = None
+                    itemPath = path
+                    # The path is like: //path/to/item/field/field
+                    # Separate out the fields until we find the item.
+                    while True:
+                        item = repoView.findPath(itemPath)
+                        if item is None:
+                            lastSlash = itemPath.rfind('/')
+                            if (lastSlash == -1):
+                                break;
+                            field = itemPath[(lastSlash + 1):]
+                            fields.insert(0, field)
+                            itemPath = itemPath[:lastSlash]
+                        else:
+                            break
+                        
+                    if item is None:
+                        result += "<h3>Item not found: %s</h3>" % clean(path)
+                        return str(result)
+
+                    if len(fields) == 0:
+                        # No fields - just go render the item.
+                        return RenderItem(repoView, item)
+                    
+                    # Drill down to the field we want
+                    theValue = item
+                    for f in fields:
+                        try:
+                            theValue = _getObjectValue(theValue, f)
+                        except:
+                            result += "<h3>Unable to get %s on %s</h3>" % (clean(f), clean(theValue))
+                            return str(result)
+                    result += "<div>"
+                    result += RenderObject(repoView, theValue, path)
+                    result += "</div>"
 
                 elif mode == "inheritance":
                     result += RenderInheritance(repoView)
@@ -835,6 +874,14 @@ def RenderItem(repoView, item):
             count += 1
     result += "</table>\n"
 
+    if isBlock:
+        try:
+            widget = item.widget
+        except:
+            pass
+        else:
+            result += RenderObject(repoView, widget, "%s/%s" % (item.itsPath, "widget"), "Widget")
+            
     if isKind:
 
         # Cloud info
@@ -842,6 +889,93 @@ def RenderItem(repoView, item):
         result += RenderClouds(repoView, item)
 
 
+    return result
+
+indexRE = re.compile(r"(.*)\[(\d+)\]")
+
+def _getObjectValue(theObject, name):
+    """ 
+    Given an object and a name, get the value.
+    If the name ends with "[\d+]", strip that off and save the index, then:
+    If it's a regular attribute (not callable), get its value.
+    If it's callable, call it and get the resulting value (we call twice if necessary: once with
+    no parameters, once with the object as a parameter).
+    Once we've got a value: if we'd gotten an index
+    """
+    index = None
+    global indexRE
+    m = indexRE.match(name)
+    if m is not None:
+        (name, index) = m.groups(1)
+    attr = getattr(theObject, name, None)
+    if attr is None or not callable(attr):
+        return attr
+    value = None
+    try:
+        value = attr(theObject)
+    except:
+        try:
+            value = attr()
+        except:
+            pass
+    if index is not None:
+        value = value[int(index)]
+    return value
+
+def RenderObject(repoView, theObject, objectPath, label="Object"):
+    result = "&nbsp;<br><table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td colspan=2><b>%s: %s</b></td>\n" % (clean(label), clean(theObject))
+    result += "</tr>\n"
+    result += "<tr class='headingsrow'>\n"
+    result += "<td valign=top><b>Attribute</b></td>\n"
+    result += "<td valign=top><b>Value</b></td>\n"
+    result += "</tr>\n"
+    count = 0
+    
+    displayedAttrs = { }
+    for name in dir(theObject):
+        if name is None or name.endswith("Tuple") or not (name.startswith('Get') or name.startswith('Has') or name.startswith('Is')):
+            continue
+        displayName = name.startswith("Get") and name[3:] or name
+        value = _getObjectValue(theObject, name)
+        if value is not None:
+            displayedAttrs[displayName] = (name, value)
+
+    keys = displayedAttrs.keys()
+    keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
+    for displayName in keys:
+        (name, value) = displayedAttrs[displayName]
+
+        result += oddEvenRow(count)
+        result += "<td valign=top>"
+        result += "%s" % displayName
+        result += "</td><td valign=top>"
+        try:
+            theType = TypeHandler.typeHandler(repoView, value)
+            typeName = theType.getImplementationType().__name__
+            result += "<b>(%s)</b> " % typeName
+        except:
+            result += "<b>(%s)</b> " % value.__class__.__name__
+
+        if isinstance(value, list):
+            results = []
+            for i in range(len(value)-1):
+                v = value[i]
+                if str(v).find("; proxy of C++ ") != -1:
+                    results.append("<a href=%s?mode=object>%s</a>" % (toLink("%s/%s[%d]" % (objectPath[1:], name, i)), clean(v)))
+                else:
+                    results.append("%s" % (clean(v)))
+            result += ", ".join(results) + "<br>"
+        else:            
+            if str(value).find("; proxy of C++ ") != -1:
+                result += "<a href=%s?mode=object>%s</a><br>" % (toLink("%s/%s" % (objectPath[1:], name)), clean(value))
+            else:
+                result += "%s<br>" % (clean(value))    
+        result += "</td></tr>\n"
+        count += 1
+
+    result += "</table>\n"
     return result
 
 def getItemName(item):

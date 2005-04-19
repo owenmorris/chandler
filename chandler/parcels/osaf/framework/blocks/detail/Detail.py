@@ -28,11 +28,15 @@ import repository.item.Query as Query
 import mx.DateTime as DateTime
 import wx
 import sets
+import logging
 
 """
 Detail.py
 Classes for the ContentItem Detail View
 """
+
+logger = logging.getLogger("detail")
+logger.setLevel(logging.INFO)
 
 class DetailRoot (ControlBlocks.ContentItemDetail):
     """
@@ -487,10 +491,6 @@ class StaticRedirectAttributeLabel (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
-    def shouldShow (self, item):
-        return not (item is None or
-                    item.isItemOf (Contacts.Contact.getKind (self.itsView)))
-
     def staticTextLabelValue (self, item):
         redirectAttr = GetRedirectAttribute(item, self.whichAttribute ())
         # lookup better names for display of some attributes
@@ -504,21 +504,12 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
         * a label (e.g. a StaticText with "Title:")
         * an attribute value (e.g. in an EditText with the value of item.title)
       it also handles visibility of the block, depending on if the attribute
-      exists on the item or not (with a special case for contacts, which is 
-      always hidden)
+      exists on the item or not
     """ 
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
-        contactKind = Contacts.Contact.getKind (self.itsView)
-        if item is None or item.isItemOf (contactKind):
-            self.isShown = False
-        else:
-            self.isShown = item.itsKind.hasAttribute(whichAttr)
+        self.isShown = item is not None and item.itsKind.hasAttribute(whichAttr)
         self.synchronizeWidget()
-
-    def shouldShow (self, item):
-        return not (item is None or
-                    item.isItemOf (Contacts.Contact.getKind (self.itsView)))
 
 class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     pass
@@ -913,60 +904,6 @@ class EditRedirectAttribute (EditTextAttribute):
         if widget.GetValue() != value:
             widget.SetValue(value)
 
-class EditHeadlineRedirectAttribute (EditRedirectAttribute):
-    """
-    An attribute-based edit field
-    Doesn't show for contacts.
-    """
-    def shouldShow (self, item):
-        # don't show if the item is a Contact
-        contactKind = Contacts.Contact.getKind (self.itsView)
-        shouldShow = not item.isItemOf (contactKind)
-        return shouldShow
-
-"""
-Classes to support Contact details
-"""
-
-class ContactFullNameEditField (EditRedirectAttribute):
-    """
-    An attribute-based edit field for contactName:fullName
-    The actual value is stored in an contactName object.
-    """
-    def saveAttributeFromWidget(self, item, widget, validate):
-        contactName = item.getAttributeValue (self.whichAttribute())
-        widgetString = widget.GetValue()
-        contactName.fullName = widgetString
-        if validate:
-            names = widgetString.split (' ')
-            if len (names) > 0:
-                contactName.firstName = names[0]
-            if len (names) > 1:
-                contactName.lastName = names[-1]
-            # put the fullName into any emailAddress objects connected to this item.
-            try:
-                item.homeSection.fullName = widgetString
-                item.homeSection.emailAddress.fullName = widgetString
-            except AttributeError:
-                pass
-            try:
-                item.workSection.fullName = widgetString
-                item.workSection.emailAddress.fullName = widgetString
-            except AttributeError:
-                pass
-
-
-    def loadAttributeIntoWidget(self, item, widget):
-        value = ''
-        try:
-            contactName = item.getAttributeValue (self.whichAttribute())
-            value = contactName.getAttributeValue ('emailAddress')
-        except AttributeError:
-            pass
-        if value == '':
-            value = item.ItemWhoString ()
-        widget.SetValue(value)
-
 class StaticEmailAddressAttribute (StaticRedirectAttributeLabel):
     """
       Static Text that displays the name of the selected item's Attribute.
@@ -1042,7 +979,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
                 pass
             else:
                 showIt = True
-        # print "AcceptShareButton.shouldShow = %s" % showIt
+        # logger.debug("AcceptShareButton.shouldShow = %s" % showIt)
         return showIt
     
     def onAcceptShareEvent(self, event):

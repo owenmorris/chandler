@@ -40,7 +40,6 @@
 
   <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontStyle>bold</fontStyle>
     <fontSize>10</fontSize>
   </CharacterStyle>
   
@@ -157,14 +156,7 @@
     <rootBlocks itemref="doc:SharingActiveArea"/>
     <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
-
-  <!-- Contact -->
-  <doc:DetailTrunkSubtree itsName="ContactSubtree">
-    <key itemref="contact:Contact"/>
-    <rootBlocks itemref="doc:ContactFullNameArea"/>    
-    <rootBlocks itemref="doc:EmailAddressArea"/>
-  </doc:DetailTrunkSubtree>
-
+  
   <!--
   The subtree blocks
   -->
@@ -181,7 +173,6 @@
     <childrenBlocks itemref="doc:PrivateSwitchButton"/>
     <!-- Attributes -->
     <position>0.0</position>
-    <colorStyle itemref="doc:GrayBackground"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>16</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
@@ -251,20 +242,8 @@
     <position>0.1</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 5, 0, 5</border>
   </ContentItemDetail>
-
-  <Button itsName="AcceptShareButton"
-                     itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
-    <blockName value="AcceptShareButton"/>
-    <title>Accept this sharing invitation</title>
-    <buttonKind>Text</buttonKind>
-    <position>0.88</position>
-    <stretchFactor>0.0</stretchFactor>
-    <size>80,30</size>
-    <minimumSize>220,24</minimumSize>
-    <alignmentEnum>alignCenter</alignmentEnum>
-    <event itemref="doc:AcceptShare"/>
-  </Button>
 
   <StaticText itsName="FromString">
     <blockName value="FromString"/>
@@ -272,7 +251,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -286,14 +265,29 @@
     <minimumSize>100, 24</minimumSize>
   </EditText>
 
+  <Button itsName="AcceptShareButton"
+                     itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
+    <blockName value="AcceptShareButton"/>
+    <title>Accept this sharing invitation</title>
+    <buttonKind>Text</buttonKind>
+    <position>0.88</position>
+    <stretchFactor>0.0</stretchFactor>
+    <size>80,30</size>
+    <minimumSize>220,24</minimumSize>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <event itemref="doc:AcceptShare"/>
+    <border>5, 5, 0, 5</border>
+  </Button>
+
   <ContentItemDetail itsName="AttachmentArea"
                      itemClass="osaf.framework.blocks.detail.Detail.AttachmentArea">
     <blockName value="AttachmentArea"/>
     <childrenBlocks itemref="doc:AttachmentString"/>
     <childrenBlocks itemref="doc:AttachmentTextField"/>
     <!-- Attributes -->
-    <position>0.95</position>
+    <position>0.85</position>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 5, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="AttachmentString">
@@ -302,8 +296,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>90, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <EditText itsName="AttachmentTextField"
@@ -316,37 +310,6 @@
     <minimumSize>100, 48</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="ContactFullNameArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName value="ContactFullNameArea"/>
-    <childrenBlocks itemref="doc:ContactFullNameString"/>
-    <childrenBlocks itemref="doc:ContactFullNameEditField"/>
-    <!-- Attributes -->
-    <position>0.4</position>
-    <selectedItemsAttribute>contactName</selectedItemsAttribute>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
-
-  <StaticText itsName="ContactFullNameString">
-    <blockName value="ContactFullNameString"/>
-    <title>Full Name</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="ContactFullNameEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameEditField">
-    <blockName value="ContactFullNameEditField"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
-
   <ContentItemDetail itsName="ToMailArea"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ToArea"/>
@@ -356,6 +319,7 @@
     <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 5, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="ToString">
@@ -364,8 +328,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <EditText itsName="ToMailEditField"
@@ -387,6 +351,7 @@
     <position>0.3</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 5, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="ParticipantsString">
@@ -395,8 +360,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <EditText itsName="ParticipantsTextField"
@@ -418,6 +383,7 @@
     <position>0.3</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 5, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="InviteString">
@@ -426,8 +392,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <EditText itsName="InviteEditField"
@@ -440,10 +406,9 @@
     <minimumSize>100, 24</minimumSize>
   </EditText>
 
-
   <ContentItemDetail itsName="SharingActiveArea"
                      itemClass="osaf.framework.blocks.detail.Detail.SharingArea">
-    <blockName value="FromArea"/>
+    <blockName value="SharingActiveArea"/>
     <childrenBlocks itemref="doc:SharingActiveString"/>
     <childrenBlocks itemref="doc:EditSharingActive"/>
     <!-- Attributes -->
@@ -457,7 +422,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -484,6 +449,7 @@
     <selectedItemsAttribute>about</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="StaticHeadline"
@@ -493,12 +459,12 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditHeadline"
-            itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
+            itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
     <blockName value="EditHeadline"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
@@ -526,39 +492,6 @@
     <viewAttribute value="about"/>
   </AEBlock>
 
-  <ContentItemDetail itsName="EmailAddressArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <blockName value="EmailAddressArea"/>
-    <childrenBlocks itemref="doc:StaticEmailAddress"/>
-    <childrenBlocks itemref="doc:EditEmailAddress"/>
-    <!-- Attributes -->
-    <position>0.6</position>
-    <selectedItemsAttribute>homeSection</selectedItemsAttribute>
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticEmailAddress"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticEmailAddressAttribute">
-    <blockName value="StaticEmailAddress"/>
-    <title>email address</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="EditEmailAddress"
-            itemClass="osaf.framework.blocks.detail.Detail.EditEmailAddressAttribute">
-    <blockName value="EditEmailAddress"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
-  
   <ContentItemDetail itsName="CalendarStartTime"
                      itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
     <blockName value="CalendarStartTime"/>
@@ -568,6 +501,7 @@
     <selectedItemsAttribute>startTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarStartTime">
@@ -576,7 +510,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -590,30 +524,42 @@
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
-  <PresentationStyle itsName="DurationPresentation">
-    <label>OnLeft</label>
-    <labelWidth>70</labelWidth>
-    <labelBorder>5</labelBorder>
-    <labelDisplayName>duration</labelDisplayName>
-  </PresentationStyle>
+  <ContentItemDetail itsName="CalendarDurationArea"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarDurationArea"/>
+    <childrenBlocks itemref="doc:CalendarDurationLabel"/>
+    <childrenBlocks itemref="doc:CalendarDuration"/>
+    <!-- Attributes -->
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <border>5, 5, 0, 5</border>
+  </ContentItemDetail>
+
+  <StaticText itsName="CalendarDurationLabel">
+    <blockName value="CalendarDurationLabel"/>
+    <title>duration</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
+  </StaticText>
 
   <AEBlock itsName="CalendarDuration"
            itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
     <blockName value="AECalendarDuration"/>
     <characterStyle itemref="doc:LabelStyle"/>
     <readOnly>False</readOnly>
-    <stretchFactor>0.0</stretchFactor>
+    <stretchFactor>1</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>0, 5, 0, 0</border>
-    <presentationStyle itemref="doc:DurationPresentation"/>
     <viewAttribute value="duration"/>
   </AEBlock>
 
   <ContentItemDetail itsName="CalendarDetails">
     <blockName value="CalendarDetails"/>
-    <childrenBlocks itemref="doc:CalendarLocation"/>
+    <childrenBlocks itemref="doc:CalendarLocationArea"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
-    <childrenBlocks itemref="doc:CalendarDuration"/>
+    <childrenBlocks itemref="doc:CalendarDurationArea"/>
     <childrenBlocks itemref="doc:CalendarAllDayArea"/>
     <childrenBlocks itemref="doc:CalendarReminderArea"/>
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
@@ -623,13 +569,27 @@
     <position>0.8</position>
   </ContentItemDetail>
   
-  <PresentationStyle itsName="LocationPresentation">
-    <label>OnLeft</label>
-    <labelWidth>70</labelWidth>
-    <labelBorder>5</labelBorder>
-    <labelDisplayName>duration</labelDisplayName>
-  </PresentationStyle>
+  <ContentItemDetail itsName="CalendarLocationArea"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarLocationArea"/>
+    <childrenBlocks itemref="doc:CalendarLocationLabel"/>
+    <childrenBlocks itemref="doc:CalendarLocation"/>
+    <!-- Attributes -->
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <border>5, 5, 0, 5</border>
+  </ContentItemDetail>
 
+  <StaticText itsName="CalendarLocationLabel">
+    <blockName value="CalendarLocationLabel"/>
+    <title>location</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
+  </StaticText>
+  
   <AEBlock itsName="CalendarLocation"
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="AECalendarLocation"/>
@@ -637,8 +597,6 @@
     <readOnly>False</readOnly>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>0, 5, 0, 0</border>
-    <presentationStyle itemref="doc:LocationPresentation"/>
     <viewAttribute value="location"/>
   </AEBlock>
 
@@ -650,6 +608,7 @@
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
   
   <StaticText itsName="CalDetailsAllDayLabel">
@@ -658,7 +617,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
@@ -683,6 +642,7 @@
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalDetailsReminderLabel">
@@ -691,7 +651,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
@@ -718,6 +678,7 @@
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalDetailsTransparencyLabel">
@@ -726,7 +687,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
+    <minimumSize>80, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
@@ -754,6 +715,7 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>3</stretchFactor>
     <minimumSize>300, 80</minimumSize>
+    <border>5, 0, 0, 0</border>
   </EditText>
 
 </core:Parcel>
