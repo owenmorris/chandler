@@ -642,18 +642,12 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
         # (The assert in CalculateWXBorder above checks this)
         if block.border.top != 0:
             flag |= wx.TOP
-            numBordersSpecified += 1
         if block.border.left != 0:
             flag |= wx.LEFT
-            numBordersSpecified += 1
         if block.border.bottom != 0:
             flag |= wx.BOTTOM
-            numBordersSpecified += 1
         if block.border.right != 0:
             flag |= wx.RIGHT
-            numBordersSpecified += 1
-        if numBordersSpecified > 1:
-            flag |= wx.ALL
 
         return flag
     CalculateWXFlag = classmethod(CalculateWXFlag)    
