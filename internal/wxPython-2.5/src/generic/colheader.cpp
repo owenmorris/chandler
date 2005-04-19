@@ -1860,15 +1860,16 @@ void wxColumnHeaderItem::SetUIExtent(
 // || InsetX || label text or bitmap || InsetX || sort arrow || InsetX ||
 //
 void wxColumnHeaderItem::GetTextUIExtent(
+	long				&startX,
 	long				&originX,
 	long				&extentX ) const
 {
-long		leftInsetX, rightInsetX;
+long		leftDeltaX, leftInsetX, rightInsetX;
 
 	rightInsetX =
 		(m_BSortEnabled
 		? (2 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX
-		: wxCH_kMetricInsetX );
+		: wxCH_kMetricInsetX);
 
 	switch (m_TextJust)
 	{
@@ -1877,6 +1878,9 @@ long		leftInsetX, rightInsetX;
 		break;
 
 	case CH_JUST_Right:
+		leftInsetX = wxCH_kMetricInsetX;
+		break;
+
 	case CH_JUST_Left:
 	default:
 		leftInsetX = wxCH_kMetricInsetX;
@@ -1884,14 +1888,35 @@ long		leftInsetX, rightInsetX;
 	}
 
 	originX = m_OriginX + leftInsetX;
-	extentX = m_ExtentX - (leftInsetX + rightInsetX);
-
 	if (originX > m_OriginX + m_ExtentX)
 		originX = m_OriginX + m_ExtentX;
-	if (extentX > m_ExtentX - originX)
-		extentX = m_ExtentX - originX;
+
+	extentX = m_ExtentX - (leftInsetX + rightInsetX);
 	if (extentX < 0)
 		extentX = 0;
+
+	// determine left side text origin
+	leftDeltaX = 0;
+	switch (m_TextJust)
+	{
+	case CH_JUST_Right:
+		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
+			leftDeltaX = extentX - m_LabelTextExtent.x;
+		break;
+
+	case CH_JUST_Center:
+		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
+			leftDeltaX = (extentX - m_LabelTextExtent.x) / 2;
+		break;
+
+	case CH_JUST_Left:
+	default:
+		break;
+	}
+
+	startX = originX;
+	if (leftDeltaX > 0)
+		startX += leftDeltaX;
 }
 
 bool wxColumnHeaderItem::GetAttribute(
@@ -2041,16 +2066,19 @@ OSStatus				errStatus;
 	// end of the dead attempt to tinge the background
 //	errStatus = RestoreTheme( origCol, newCol );
 
-	// exclude button adornment areas from further drawing consideration
-	qdBoundsR.top += 1;
-	qdBoundsR.left += wxCH_kMetricInsetX;
-	qdBoundsR.right -= (m_BSortEnabled ? wxCH_kMetricArrowSizeX + wxCH_kMetricInsetX : wxCH_kMetricInsetX);
-
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
 	// render the label text as/if specified
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
+	long		startX, originX, maxExtentX;
+
+		GetTextUIExtent( startX, originX, maxExtentX );
+		qdBoundsR.left = startX;
+		qdBoundsR.right = qdBoundsR.left + maxExtentX;
+		qdBoundsR.top = boundsR->y + 1;
+		qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
+
 		nativeFontID = dc->GetFont().MacGetThemeFontID();
 
 		if (bUseUnicode)
@@ -2102,7 +2130,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 	bool				bVisibleSelection )
 {
 wxRect		localBoundsR, subItemBoundsR;
-long			originX, maxExtentX;
+long			startX, originX, maxExtentX;
 bool			bSelected, bHasIcon;
 
 	wxUnusedVar( bUseUnicode );
@@ -2141,8 +2169,8 @@ bool			bSelected, bHasIcon;
 		}
 
 		// FIXME: need to clip long text items
-		GetTextUIExtent( originX, maxExtentX );
-		dc->DrawText( m_LabelTextRef.c_str(), originX, localBoundsR.y + 1 );
+		GetTextUIExtent( startX, originX, maxExtentX );
+		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + 1 );
 	}
 
 	// render the bitmap, should one be present
@@ -2376,20 +2404,20 @@ wxPoint		triPt[3];
 
 	if (bSortAscending)
 	{
-		triPt[0].x = boundsR->width / 2;
-		triPt[0].y = 0;
-		triPt[1].x = boundsR->width;
-		triPt[1].y = boundsR->height;
-		triPt[2].x = 0;
-		triPt[2].y = boundsR->height;
-	}
-	else
-	{
 		triPt[0].x = 0;
 		triPt[0].y = 0;
 		triPt[1].x = boundsR->width;
 		triPt[1].y = 0;
 		triPt[2].x = boundsR->width / 2;
+		triPt[2].y = boundsR->height;
+	}
+	else
+	{
+		triPt[0].x = boundsR->width / 2;
+		triPt[0].y = 0;
+		triPt[1].x = boundsR->width;
+		triPt[1].y = boundsR->height;
+		triPt[2].x = 0;
 		triPt[2].y = boundsR->height;
 	}
 

@@ -71,18 +71,19 @@ public:
 
 	long GetLabelJustification( void ) const;
 	void SetLabelJustification(
-		long			textJust );
+		long				textJust );
 
 	void GetUIExtent(
-		long			&originX,
-		long			&extentX ) const;
+		long				&originX,
+		long				&extentX ) const;
 	void SetUIExtent(
-		long			originX,
-		long			extentX );
+		long				originX,
+		long				extentX );
 
 	void GetTextUIExtent(
-		long			&originX,
-		long			&extentX ) const;
+		long				&startX,
+		long				&originX,
+		long				&extentX ) const;
 
 	bool GetAttribute(
 		wxColumnHeaderItemAttribute	flagEnum ) const;
