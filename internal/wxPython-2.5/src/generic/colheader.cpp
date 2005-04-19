@@ -1341,6 +1341,10 @@ long			resultV;
 
 	resultV = 0;
 
+#if 0
+	wxLogDebug( _T("wxColumnHeader::Draw - entered") );
+#endif
+
 	if (m_BUseGenericRenderer)
 	{
 	wxPaintDC	dc( this );
@@ -1357,9 +1361,11 @@ long			resultV;
 				resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 				if (m_BVisibleSelection && (i == m_ItemSelected))
 					wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
-			}
 
-		dc.DestroyClippingRegion();
+				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
+				// on Mac (and perhaps other platforms) this limitation doesn't apply
+				dc.DestroyClippingRegion();
+			}
 	}
 
 #if defined(__WXMSW__)
