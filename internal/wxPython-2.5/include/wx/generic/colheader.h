@@ -112,6 +112,10 @@ public:
 		wxString			&targetStr,
 		long				maxWidth,
 		long				&charCount );
+	long CalculateTextExtent(
+		wxClientDC		*dc,
+		bool				bForceRecalc );
+	void InvalidateTextExtent( void );
 
 public:
 	static void GenericDrawSelection(

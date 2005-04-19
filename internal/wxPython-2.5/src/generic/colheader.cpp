@@ -642,7 +642,12 @@ bool			bResult;
 #if defined(__WXMSW__) || defined(__WXMAC__)
 		if (m_BUseGenericRenderer != bFlagValue)
 		{
+		long		i;
+
 			m_BUseGenericRenderer = bFlagValue;
+
+			for (i=0; i<m_ItemCount; i++)
+				m_ItemList[i]->InvalidateTextExtent();
 			SetViewDirty();
 		}
 #endif
@@ -1363,7 +1368,7 @@ long			resultV;
 		// render native control window
 		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
-		// MSW case - add selection indicator - no native mechanism exists
+		// MSW case - add selection indicator - no appropriate native adornment exists
 		if (m_BVisibleSelection && (m_ItemSelected >= 0))
 			if (GetItemBounds( m_ItemSelected, &boundsR ))
 			{
@@ -1691,8 +1696,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
-	m_LabelTextExtent.x =
-	m_LabelTextExtent.y = (-1);
+	InvalidateTextExtent();
 }
 
 wxColumnHeaderItem::wxColumnHeaderItem(
@@ -1708,8 +1712,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_BSortAscending( FALSE )
 	, m_BFixedWidth( FALSE )
 {
-	m_LabelTextExtent.x =
-	m_LabelTextExtent.y = (-1);
+	InvalidateTextExtent();
 	SetItemData( info );
 }
 
@@ -1817,9 +1820,8 @@ void wxColumnHeaderItem::GetLabelText(
 void wxColumnHeaderItem::SetLabelText(
 	const wxString		&textBuffer )
 {
-	m_LabelTextExtent.x =
-	m_LabelTextExtent.y = (-1);
 	m_LabelTextRef = textBuffer;
+	InvalidateTextExtent();
 }
 
 long wxColumnHeaderItem::GetLabelJustification( void ) const
@@ -1853,70 +1855,6 @@ void wxColumnHeaderItem::SetUIExtent(
 
 	if ((extentX >= 0) && (m_ExtentX != extentX))
 		m_ExtentX = extentX;
-}
-
-// NB: horizontal item layout is one of the following:
-// || InsetX || label text or bitmap || InsetX ||
-// || InsetX || label text or bitmap || InsetX || sort arrow || InsetX ||
-//
-void wxColumnHeaderItem::GetTextUIExtent(
-	long				&startX,
-	long				&originX,
-	long				&extentX ) const
-{
-long		leftDeltaX, leftInsetX, rightInsetX;
-
-	rightInsetX =
-		(m_BSortEnabled
-		? (2 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX
-		: wxCH_kMetricInsetX);
-
-	switch (m_TextJust)
-	{
-	case CH_JUST_Center:
-		leftInsetX = rightInsetX;
-		break;
-
-	case CH_JUST_Right:
-		leftInsetX = wxCH_kMetricInsetX;
-		break;
-
-	case CH_JUST_Left:
-	default:
-		leftInsetX = wxCH_kMetricInsetX;
-		break;
-	}
-
-	originX = m_OriginX + leftInsetX;
-	if (originX > m_OriginX + m_ExtentX)
-		originX = m_OriginX + m_ExtentX;
-
-	extentX = m_ExtentX - (leftInsetX + rightInsetX);
-	if (extentX < 0)
-		extentX = 0;
-
-	// determine left side text origin
-	leftDeltaX = 0;
-	switch (m_TextJust)
-	{
-	case CH_JUST_Right:
-		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
-			leftDeltaX = extentX - m_LabelTextExtent.x;
-		break;
-
-	case CH_JUST_Center:
-		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
-			leftDeltaX = (extentX - m_LabelTextExtent.x) / 2;
-		break;
-
-	case CH_JUST_Left:
-	default:
-		break;
-	}
-
-	startX = originX;
-	if (leftDeltaX > 0)
-		startX += leftDeltaX;
 }
 
 bool wxColumnHeaderItem::GetAttribute(
@@ -2048,7 +1986,7 @@ OSStatus				errStatus;
 	// zero draws w/o theme background shading
 	drawInfo.value = (SInt32)m_BSelected && bVisibleSelection;
 
-	drawInfo.adornment = (m_BSortAscending ? kThemeAdornmentNone : kThemeAdornmentArrowDoubleArrow);
+	drawInfo.adornment = (m_BSortAscending ? kThemeAdornmentArrowDoubleArrow : kThemeAdornmentNone);
 //	drawInfo.adornment = kThemeAdornmentNone;					// doesn't work - draws down arrow !!
 //	drawInfo.adornment = kThemeAdornmentDefault;				// doesn't work - draws down arrow !!
 //	drawInfo.adornment = kThemeAdornmentHeaderButtonShadowOnly;	// doesn't work - draws down arrow !!
@@ -2078,6 +2016,12 @@ OSStatus				errStatus;
 		qdBoundsR.right = qdBoundsR.left + maxExtentX;
 		qdBoundsR.top = boundsR->y + 1;
 		qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
+
+#if 0
+		wxLogDebug(
+			_T("MacDrawItem (J - x,O,S - w,E): [%ld - %ld, %ld, %ld - %ld, %ld]"),
+			m_TextJust, boundsR->x, originX, startX, boundsR->width, maxExtentX );
+#endif
 
 		nativeFontID = dc->GetFont().MacGetThemeFontID();
 
@@ -2155,21 +2099,17 @@ bool			bSelected, bHasIcon;
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
 		// calculate and cache text extent
-		if ((m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
-		{
-		wxCoord		targetWidth, targetHeight;
-
-			dc->GetTextExtent(
-				m_LabelTextRef,
-				&targetWidth, &targetHeight,
-				NULL, NULL, NULL );
-
-			m_LabelTextExtent.x = targetWidth;
-			m_LabelTextExtent.y = targetHeight;
-		}
+		CalculateTextExtent( dc, false );
 
 		// FIXME: need to clip long text items
 		GetTextUIExtent( startX, originX, maxExtentX );
+
+#if 0
+		wxLogDebug(
+			_T("GenericDrawItem (J - x,O,S - w,E): [%ld - %ld, %ld, %ld - %ld, %ld]"),
+			m_TextJust, boundsR->x, originX, startX, boundsR->width, maxExtentX );
+#endif
+
 		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + 1 );
 	}
 
@@ -2240,6 +2180,99 @@ bool			bContinue;
 	}
 
 	return (long)targetWidth;
+}
+
+// NB: horizontal item layout is one of the following:
+// || InsetX || label text or bitmap || InsetX ||
+// || InsetX || label text or bitmap || InsetX || sort arrow || InsetX ||
+//
+void wxColumnHeaderItem::GetTextUIExtent(
+	long				&startX,
+	long				&originX,
+	long				&extentX ) const
+{
+long		leftDeltaX, leftInsetX, rightInsetX;
+
+	rightInsetX =
+		(m_BSortEnabled
+		? (2 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX
+		: wxCH_kMetricInsetX);
+
+	switch (m_TextJust)
+	{
+	case CH_JUST_Center:
+		leftInsetX = rightInsetX;
+		break;
+
+	case CH_JUST_Right:
+		leftInsetX = wxCH_kMetricInsetX;
+		break;
+
+	case CH_JUST_Left:
+	default:
+		leftInsetX = wxCH_kMetricInsetX;
+		break;
+	}
+
+	originX = m_OriginX + leftInsetX;
+	if (originX > m_OriginX + m_ExtentX)
+		originX = m_OriginX + m_ExtentX;
+
+	extentX = m_ExtentX - (leftInsetX + rightInsetX);
+	if (extentX < 0)
+		extentX = 0;
+
+	// determine left side text origin
+	leftDeltaX = 0;
+	switch (m_TextJust)
+	{
+	case CH_JUST_Right:
+		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
+			leftDeltaX = extentX - m_LabelTextExtent.x;
+		break;
+
+	case CH_JUST_Center:
+		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
+			leftDeltaX = (extentX - m_LabelTextExtent.x) / 2;
+		break;
+
+	case CH_JUST_Left:
+	default:
+		break;
+	}
+
+	startX = originX;
+	if (leftDeltaX > 0)
+		startX += leftDeltaX;
+}
+
+long wxColumnHeaderItem::CalculateTextExtent(
+	wxClientDC		*dc,
+	bool				bForceRecalc )
+{
+wxCoord		targetWidth, targetHeight;
+
+	if (dc == NULL)
+		return (-1);
+
+	if (bForceRecalc || (m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
+	{
+		dc->GetTextExtent(
+			m_LabelTextRef,
+			&targetWidth, &targetHeight,
+			NULL, NULL, NULL );
+
+		m_LabelTextExtent.x = targetWidth;
+		m_LabelTextExtent.y = targetHeight;
+	}
+
+	return m_LabelTextExtent.x;
+}
+
+void wxColumnHeaderItem::InvalidateTextExtent( void )
+{
+	m_LabelTextExtent.x =
+	m_LabelTextExtent.y = (-1);
 }
 
 // ================
@@ -2404,20 +2437,20 @@ wxPoint		triPt[3];
 
 	if (bSortAscending)
 	{
-		triPt[0].x = 0;
-		triPt[0].y = 0;
-		triPt[1].x = boundsR->width;
-		triPt[1].y = 0;
-		triPt[2].x = boundsR->width / 2;
-		triPt[2].y = boundsR->height;
-	}
-	else
-	{
 		triPt[0].x = boundsR->width / 2;
 		triPt[0].y = 0;
 		triPt[1].x = boundsR->width;
 		triPt[1].y = boundsR->height;
 		triPt[2].x = 0;
+		triPt[2].y = boundsR->height;
+	}
+	else
+	{
+		triPt[0].x = 0;
+		triPt[0].y = 0;
+		triPt[1].x = boundsR->width;
+		triPt[1].y = 0;
+		triPt[2].x = boundsR->width / 2;
 		triPt[2].y = boundsR->height;
 	}
 
