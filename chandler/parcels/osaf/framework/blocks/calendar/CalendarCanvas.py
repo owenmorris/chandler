@@ -632,8 +632,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         calDataKind = CalendarData.getKind(view=self.itsView)
         for coll in containingCollections:
 
-            # really, this should be checking "everying except the All collection"
-            if (coll is not self.contents.source) and \
+            if not hasattr(coll, 'outOfTheBoxCollection') and \
                 coll.isItemOf(calDataKind):
                 return coll.calendarColor
         return None
