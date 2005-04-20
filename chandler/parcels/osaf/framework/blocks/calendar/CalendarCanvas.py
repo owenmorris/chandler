@@ -916,6 +916,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         super (wxWeekHeaderCanvas, self).OnInit()
         
         self.SetMinSize((-1,20))
+        self.size = self.GetSize()
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
                     
