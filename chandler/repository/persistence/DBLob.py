@@ -56,6 +56,7 @@ class DBLob(Lob, ItemValue):
                                            self._getItem().itsUUID,
                                            self._getAttribute(),
                                            self.getVersion())
+                reader.close()
             
             self._dirty = False
 

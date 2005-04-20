@@ -25,7 +25,7 @@ from repository.util.LinkedMap import LinkedMap
 class Item(CItem):
     'The root class for all items.'
     
-    def __init__(self, name=None, parent=None, kind=None, _uuid=None):
+    def __init__(self, name=None, parent=None, kind=None, _uuid=None, **values):
         """
         Construct an Item.
 
@@ -46,6 +46,9 @@ class Item(CItem):
         attributes and the Chandler attributes. When an item is persisted
         only the Chandler attributes are saved.
         @type kind: an item
+        @param values: extra keyword arguments to set values on the item
+        after being constructed.
+        @type values: C{name=value} pairs
         """
 
         super(Item, self).__init__()
@@ -76,6 +79,9 @@ class Item(CItem):
             kind.getInitialValues(self, self._values, self._references)
 
         self.setDirty(Item.NDIRTY)
+
+        for name, value in values.iteritems():
+            self.setAttributeValue(name, value)
 
     def _fillItem(self, name, parent, kind, **kwds):
 

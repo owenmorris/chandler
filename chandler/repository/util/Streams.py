@@ -441,7 +441,7 @@ class RijndaelInputStream(BlockInputStream):
     def close(self):
 
         super(RijndaelInputStream, self).close()
-        del self.r
+        self.r = None
 
 
 class Base64InputStream(BlockInputStream):
