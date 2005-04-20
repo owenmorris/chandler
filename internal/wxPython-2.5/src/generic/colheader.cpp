@@ -1399,9 +1399,12 @@ long			resultV;
 
 				// MacOS case - selection indicator is drawn as needed
 				resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
-			}
 
-		dc.DestroyClippingRegion();
+				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
+				// on Mac (and perhaps other platforms) this limitation doesn't apply, but it's used
+				// by a tenuous argument of "balance" with the generic version
+				dc.DestroyClippingRegion();
+			}
 	}
 #endif
 
@@ -2080,7 +2083,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 	bool				bVisibleSelection )
 {
 wxRect		localBoundsR, subItemBoundsR;
-long			startX, originX, maxExtentX;
+long			startX, originX, maxExtentX, descentY;
 bool			bSelected, bHasIcon;
 
 	wxUnusedVar( bUseUnicode );
@@ -2116,7 +2119,10 @@ bool			bSelected, bHasIcon;
 			m_TextJust, boundsR->x, originX, startX, boundsR->width, maxExtentX );
 #endif
 
-		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + 1 );
+		descentY = 1;
+		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
+			descentY = ((localBoundsR.height - m_LabelTextExtent.y) / 2) - 1;
+		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + descentY );
 	}
 
 	// render the bitmap, should one be present
