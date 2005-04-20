@@ -1,6 +1,6 @@
 
-VERSION=r11303
-RELVER=$(VERSION)-4
+VERSION=Sumo2.0
+RELVER=$(VERSION)-5
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
 
@@ -8,29 +8,22 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-# Temporary until integrated into Twisted
-applysmtp:
-	patch -Nup0 < smtp-patches; echo ok
-
-applyimap4:
-	patch -Nup0 < imap4-patches; echo ok
-
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: expand apply applysmtp applyimap4
+build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-Twisted-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz.md5
+Twisted-$(VERSION).tar.bz2:
+	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.bz2
+	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.bz2.md5
 
-sources: Twisted-$(VERSION).tar.gz
+sources: Twisted-$(VERSION).tar.bz2
 
-Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
-	tar xvzf Twisted-$(VERSION).tar.gz
+Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.bz2
+	tar xvjf Twisted-$(VERSION).tar.bz2
 	touch Twisted-$(VERSION)-expanded
 
 expand: Twisted-$(VERSION)-expanded
