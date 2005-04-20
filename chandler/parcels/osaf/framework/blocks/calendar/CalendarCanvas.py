@@ -798,14 +798,14 @@ class wxWeekHeaderWidgets(wx.Panel):
         self.weekHeader = wx.colheader.ColumnHeader(self)
         
         # turn this off for now, because our sizing needs to be exact
-        self.weekHeader.SetFlagProportionalResizing(False)
+        self.weekHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
         headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", "+"]
         for header in headerLabels:
-            self.weekHeader.AppendItem(header, wx.colheader.COLUMNHEADER_JUST_Center, 5, bSortEnabled=False)
+            self.weekHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekHeader)
 
         # set up initial selection
-        self.weekHeader.SetFlagVisibleSelection(True)
+        self.weekHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,True)
         self.UpdateHeader()
         sizer.Add(self.weekHeader, 0, wx.EXPAND)
         
@@ -1027,7 +1027,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
-            width = self.size.width
+            width = self.GetSize().width
         else:
             startDay = self.parent.blockItem.rangeStart
             width = self.parent.dayWidth
