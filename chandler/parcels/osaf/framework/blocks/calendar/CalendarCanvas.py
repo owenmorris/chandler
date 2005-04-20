@@ -16,10 +16,22 @@ import osaf.contentmodel.ContentModel as ContentModel
 
 import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.Styles as Style
+import osaf.framework.blocks.Styles as Styles
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
 import copy
+
+def color2rgb(r,g,b):
+    return (r*1.0)/255, (g*1.0)/255, (b*1.0)/255
+    
+def rgb2color(r,g,b):
+    return r*255,g*255,b*255
+    
+def get_outline_color(r,g,b):
+    from colorsys import *
+    hsv = rgb_to_hsv(r,g,b)
+    newhsv = (hsv[0], min(hsv[1]+.1,1), max(hsv[2] - .2,0))
+    return hsv_to_rgb(*newhsv)
 
 class CalendarData(ContentModel.ContentItem):
     myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
@@ -68,12 +80,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def GetStatusPen(self, styles):
         # probably should use styles to determine a good pen color
         item = self.GetItem()
+        color = styles.blockItem.getEventOutlineColor(item)
         if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 4)
+            pen = wx.Pen(color, 4)
         elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 4)
+            pen = wx.Pen(color, 4)
         elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 4, wx.DOT)
+            pen = wx.Pen(color, 4, wx.DOT)
         return pen
         
     # Drawing utility -- scaffolding, we'll try using editor/renderers
@@ -132,7 +145,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         child._parentConflicts.append(self)
         self._childConflicts.append(child)
         
-    def FindFirstGapInSequence(self, seq):
+    @staticmethod
+    def FindFirstGapInSequence(seq):
         """
         Look for the first gap in a sequence - for instance
          0,2,3: choose 1
@@ -318,10 +332,13 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()
         if not cwidth == cheight == 0:
             clipRect = wx.Rect(x,y,width,height)
-            
+
+        # save the current pen, we'll need it
+        drawingPen = dc.GetPen()
+        
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
-            dc.SetPen(wx.Pen(styles.eventDrawingColor))
+            dc.SetPen(drawingPen)
 
             # properly round the corners - first and last
             # boundsRect gets some rounding, and they
@@ -595,12 +612,68 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Lazily stamp the data
         """
-        caldata = self.contents
+        caldata = self.contents.source
         if not isinstance(caldata, CalendarData):
-            caldata.StampKind('add', CalendarData.getKind(caldata.itsView))
+            caldata.StampKind('add', CalendarData.getKind(view=caldata.itsView))
+            
+            colorstyle = Styles.ColorStyle(view=self.itsView)
+            # make copies, because initialValue ends up being shared, because
+            # it is isn't immutable
+            colorstyle.foregroundColor = copy.copy(colorstyle.foregroundColor)
+            colorstyle.backgroundColor = copy.copy(colorstyle.backgroundColor)
+            
+            caldata.calendarColor = colorstyle
         return caldata
                             
+    calendarData = property(getCalendarData)
+    
+    def getEventColorStyle(self, event):
+        containingCollections = event.itemCollectionInclusions
+        calDataKind = CalendarData.getKind(view=self.itsView)
+        for coll in containingCollections:
 
+            # really, this should be checking "everying except the All collection"
+            if (coll is not self.contents.source) and \
+                coll.isItemOf(calDataKind):
+                return coll.calendarColor
+        return None
+    
+    def getEventBackgroundColor(self, event):
+        colorStyle = self.getEventColorStyle(event)
+        if colorStyle: 
+            return colorStyle.backgroundColor.wxColor()
+        return self.getEventsBackgroundColor()
+            
+    def getEventOutlineColor(self, event):
+        colorStyle = self.getEventColorStyle(event)
+        if colorStyle:
+            return colorStyle.foregroundColor.wxColor()
+        return self.getEventsOutlineColor()
+        
+    def getEventsBackgroundColor(self):
+        # avoid copy-on-write if possible, until I make self.calendarData copy-on-write
+        if not isinstance(self.contents.source, CalendarData):
+            return wx.WHITE
+        return self.calendarData.calendarColor.backgroundColor.wxColor()
+        return wx.Color(bc.red, bc.green, bc.blue)
+        
+    def getEventsOutlineColor(self):
+        if not isinstance(self.contents.source, CalendarData):
+            return wx.Color(102, 102, 102)
+        fc = self.calendarData.calendarColor.foregroundColor
+        return wx.Color(fc.red, fc.green, fc.blue)
+        
+    def setEventsColor(self, color):
+        # just need to set attributes on these two locals
+        bc = self.calendarData.calendarColor.backgroundColor
+        fc = self.calendarData.calendarColor.foregroundColor
+
+        c = color.Get()
+        (bc.red, bc.green, bc.blue) = c
+        
+        fc_rgb = get_outline_color(*color2rgb(*c))
+        (fc.red, fc.green, fc.blue) = rgb2color(*fc_rgb)
+        
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
@@ -687,8 +760,8 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.majorLinePen = wx.Pen(wx.Colour(204, 204, 204))
         self.minorLinePen = wx.Pen(wx.Colour(229, 229, 229))
         self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
+        self.selectionPen = wx.Pen(wx.Colour(102,102,102))
 
-        self.eventDrawingColor = wx.Colour(102,102,102)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         
     def _doDrawingCalculations(self):
@@ -715,6 +788,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         event.Skip()
 
     def wxSynchronizeWidget(self):
+        
         self._doDrawingCalculations()
         #self.Layout()
         self.headerWidgets.wxSynchronizeWidget()
@@ -746,7 +820,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.Layout()
         
     def OnSelectColor(self, event):
-        self.eventDrawingColor = event.GetValue()
+        self.blockItem.setEventsColor(event.GetValue())
 
 class wxWeekHeaderWidgets(wx.Panel):
 
@@ -766,9 +840,9 @@ class wxWeekHeaderWidgets(wx.Panel):
         sizer.Add((3,3), 0, wx.EXPAND)
 
         # beginnings of  in the calendar
-        #self.colorSelect = colourselect.ColourSelect(self, -1)
-        #self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
-        #navigationRow.Add(self.colorSelect, 0, wx.EXPAND)
+        self.colorSelect = colourselect.ColourSelect(self, -1)
+        self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
+        navigationRow.Add(self.colorSelect, 0, wx.EXPAND)
 
         today = DateTime.today()
         styles = self.parent
@@ -850,7 +924,10 @@ class wxWeekHeaderWidgets(wx.Panel):
         if (selectedDate == self.currentSelectedDate and
             startDate == self.currentStartDate):
             return
-           
+
+        # update the calendar with the calender's color
+        self.colorSelect.SetColour(self.parent.blockItem.getEventsBackgroundColor())
+
         # Update the month button given the selected date
         lastDate = startDate + DateTime.RelativeDateTime(days=6)
         if (startDate.month == lastDate.month):
@@ -999,14 +1076,15 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
             dc.SetPen(wx.TRANSPARENT_PEN)
             # save the selected box to be drawn last
-            if self.parent.blockItem.selection is canvasItem.GetItem():
+            item = canvasItem.GetItem()
+            if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
                 canvasItem.Draw(dc, styles)
         
         if selectedBox:
             dc.SetBrush(styles.selectionBrush)
-            dc.SetPen(wx.Pen(styles.eventDrawingColor))
+            dc.SetPen(wx.Pen(styles.blockItem.getEventOutlineColor(selectedBox.GetItem())))
 
             selectedBox.Draw(dc, styles)
 
@@ -1028,7 +1106,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
-            width = self.GetSize().width
+            width = self.size.width
         else:
             startDay = self.parent.blockItem.rangeStart
             width = self.parent.dayWidth
@@ -1331,14 +1409,22 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
         for canvasItem in self.canvasItemList:
 
+            item = canvasItem.GetItem()
+            drawingPen = wx.Pen(styles.blockItem.getEventOutlineColor(item))
+            drawingBrush = wx.Brush(styles.blockItem.getEventBackgroundColor(item))
+            dc.SetPen(drawingPen)
+            dc.SetBrush(drawingBrush)
+            
             # save the selected box to be drawn last
-            if self.parent.blockItem.selection is canvasItem.GetItem():
+            if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
                 canvasItem.Draw(dc, boundingRect, styles)
             
         # now draw the current item on top of everything else
         if selectedBox:
+            item = selectedBox.GetItem()
+            dc.SetPen(wx.Pen(styles.blockItem.getEventOutlineColor(item)))
             dc.SetBrush(styles.selectionBrush)
             selectedBox.Draw(dc, boundingRect, styles)
             

@@ -8,6 +8,7 @@
 <Parcel itsName="calendar"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
         xmlns:calBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
 
   <description>calendar blocks</description>
@@ -44,6 +45,14 @@
   <Kind itsName="MiniCalendar">
     <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.MiniCalendar</classes>
     <superKinds itemref="blocks:RectangularChild"/>
+  </Kind>
+  
+  <Kind itsName="CalendarData">
+    <superKinds itemref="cm:ContentItem"/>
+    <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.CalendarData</classes>
+    <Attribute itsName="calendarColor">
+        <type itemref="blocks:ColorStyle"/>
+    </Attribute>
   </Kind>
 
 </Parcel>

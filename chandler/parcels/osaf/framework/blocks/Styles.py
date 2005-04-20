@@ -4,11 +4,12 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
+from osaf.contentmodel.ContentModel import ContentItem
 import application.Globals as Globals
 import wx
 
 
-class Style(Item):
+class Style(ContentItem):
 
     def __init__(self, *arguments, **keywords):
         super (Style, self).__init__ ( *arguments, **keywords)
@@ -24,6 +25,11 @@ class ColorStyle(Style):
     Class for Color Style
     Attributes for backgroundColor and foregroundColor
     """
+    myKindPath = "//parcels/osaf/framework/blocks/ColorStyle"
+    myKindID = None
+    def __init__(self, *arguments, **keywords):
+        super (ColorStyle, self).__init__(*arguments, **keywords)
+        
     def synchronizeColor(self, block):
         widget = block.widget
         if widget:
