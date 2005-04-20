@@ -320,9 +320,9 @@ class DBRepository(OnDemandRepository):
                 os.remove(self._openFile)
                 self._openFile = None
 
-    def createView(self, name=None):
+    def createView(self, name=None, version=None):
 
-        return DBRepositoryView(self, name)
+        return DBRepositoryView(self, name, version)
 
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD

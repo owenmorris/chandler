@@ -164,7 +164,7 @@ class Repository(object):
 
         self.view.openView()
 
-    def createView(self, name=None):
+    def createView(self, name=None, version=None):
         """
         Create a repository view.
 
@@ -178,7 +178,7 @@ class Repository(object):
         @type name: a string
         """
 
-        return RepositoryView(self, name)
+        return RepositoryView(self, name, version)
 
     def commit(self, mergeFn=None):
         """
@@ -497,9 +497,9 @@ class OnDemandRepository(Repository):
     An abstract repository for on-demand loaded items.
     """
 
-    def createView(self, name=None):
+    def createView(self, name=None, version=None):
 
-        return OnDemandRepositoryView(self, name)
+        return OnDemandRepositoryView(self, name, version)
 
 
 class Store(object):

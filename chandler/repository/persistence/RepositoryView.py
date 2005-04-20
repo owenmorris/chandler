@@ -24,7 +24,7 @@ class RepositoryView(object):
     views until the view is refreshed during a L{commit}.
     """
     
-    def __init__(self, repository, name):
+    def __init__(self, repository, name, version):
         """
         Initializes a repository view.
 
@@ -895,13 +895,17 @@ class RepositoryView(object):
 
 class OnDemandRepositoryView(RepositoryView):
 
-    def __init__(self, repository, name):
+    def __init__(self, repository, name, version):
 
-        self._version = repository.store.getVersion()
+        if version is not None:
+            self._version = version
+        else:
+            self._version = repository.store.getVersion()
+
         self._exclusive = ThreadSemaphore()
         self._hooks = []
         
-        super(OnDemandRepositoryView, self).__init__(repository, name)
+        super(OnDemandRepositoryView, self).__init__(repository, name, version)
 
     def isNew(self):
 
@@ -1037,7 +1041,7 @@ class NullRepositoryView(RepositoryView):
 
     def __init__(self):
 
-        super(NullRepositoryView, self).__init__(None, "null view")
+        super(NullRepositoryView, self).__init__(None, "null view", 0)
 
         self._logger = logging.getLogger('repository')
         self._logger.addHandler(logging.StreamHandler())

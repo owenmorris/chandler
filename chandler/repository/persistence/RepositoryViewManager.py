@@ -12,7 +12,7 @@ from repository.persistence.Repository import RepositoryThread
 
 class AbstractRepositoryViewManager(object):
 
-    def __init__(self, repository, viewName = None):
+    def __init__(self, repository, viewName=None, version=None):
         """
         Base Class for View Context Management.
 
@@ -27,7 +27,7 @@ class AbstractRepositoryViewManager(object):
             raise RepositoryError, "Repository Instance is None"
 
         self.repository = repository
-        self.view = self.repository.createView(viewName)
+        self.view = self.repository.createView(viewName, version)
         self.prevView = None
         self.callChain = False
         self.log = self._getLog()
