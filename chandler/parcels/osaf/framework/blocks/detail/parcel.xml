@@ -43,10 +43,6 @@
     <fontSize>10</fontSize>
   </CharacterStyle>
   
-  <ColorStyle itsName="GrayBackground">
-    <backgroundColor>204,204,204,204</backgroundColor>
-  </ColorStyle>
-      
   <ColorStyle itsName="WhiteBackground">
     <backgroundColor>255,255,255,0</backgroundColor>
   </ColorStyle>
@@ -185,7 +181,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Send as message</title>
-    <bitmap>application/images/MarkupBarMail.png</bitmap>
+    <bitmap>MarkupBarMail.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Send this item as a mail message</helpString>
@@ -196,7 +192,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Put on Taskpad</title>
-    <bitmap>application/images/MarkupBarTask.png</bitmap>
+    <bitmap>MarkupBarTask.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Taskpad</helpString>
@@ -207,7 +203,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Put on Calendar</title>
-    <bitmap>application/images/MarkupBarEvent.png</bitmap>
+    <bitmap>MarkupBarEvent.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>
@@ -223,7 +219,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.PrivateSwitchButton">
     <blockName>PrivateSwitchButton</blockName>
     <title>Never share this item</title>
-    <bitmap>application/images/MarkupBarPrivate.png</bitmap>
+    <bitmap>MarkupBarPrivate.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Never share this item</helpString>

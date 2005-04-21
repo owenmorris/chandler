@@ -11,6 +11,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
 import osaf.framework.blocks.Styles as Styles
 import repository.query.Query as Query
+import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 class IAttributeEditor (object):
     """ CPIA Attribute Editor base class """
@@ -152,7 +153,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         dc.SetBackgroundMode (wx.SOLID)
         dc.SetPen (wx.TRANSPARENT_PEN)
 
-        dc.DrawRectangle (rect.x, rect.y, rect.width, rect.height)
+        dc.DrawRectangleRect (rect)
 
         """
           Draw the text in the box
@@ -162,25 +163,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         rect.Inflate (-1, -1)
         dc.SetClippingRect (rect)
 
-        x = rect.x + 1
-        y = rect.y + 1
-
-        string = self.GetAttributeValue (item, attributeName)
-        for line in str (string).split (os.linesep):
-            dc.DrawText (line, x, y)
-            lineWidth, lineHeight = dc.GetTextExtent (line)
-            # If the text doesn't fit within the box we want to clip it and
-            # put '...' at the end.  This method may chop a character in half,
-            # but is a lot faster than doing the proper calculation of where
-            # to cut off the text.  Eventually we will want a solution that
-            # doesn't chop chars, but that will come along with multiline 
-            # wrapping and hopefully won't be done at the python level.
-            if lineWidth > rect.width - 2:
-                width, height = dc.GetTextExtent('...')
-                x = rect.x+1 + rect.width-2 - width
-                dc.DrawRectangle(x, rect.y+1, width+1, height)
-                dc.DrawText('...', x, rect.y+1)
-            y += lineHeight
+        DrawingUtilities.DrawWrappedText (dc,
+                                          self.GetAttributeValue (item, attributeName),
+                                          rect)
         dc.DestroyClippingRegion()
 
     def Create (self, parent, id):
@@ -393,7 +378,7 @@ class LabeledAttributeEditor (StringAttributeEditor):
         dc.SetBackgroundMode (wx.SOLID)
         dc.SetPen (wx.TRANSPARENT_PEN)
 
-        dc.DrawRectangle (rect.x, rect.y, rect.width, rect.height)
+        dc.DrawRectangleRect (rect)
 
         """
           Draw the text in the box
@@ -429,23 +414,11 @@ class LabeledAttributeEditor (StringAttributeEditor):
             
         # if not selected there's no edit control, so we need to draw the value text.
         if not isSelected:
-            string = self.GetAttributeValue (item, attributeName)
-            for line in str (string).split (os.linesep):
-                dc.DrawText (line, x, y)
-                lineWidth, lineHeight = dc.GetTextExtent (line)
-                # If the text doesn't fit within the box we want to clip it and
-                # put '...' at the end.  This method may chop a character in half,
-                # but is a lot faster than doing the proper calculation of where
-                # to cut off the text.  Eventually we will want a solution that
-                # doesn't chop chars, but that will come along with multiline 
-                # wrapping and hopefully won't be done at the python level.
-                if lineWidth > rect.width - 2:
-                    width, height = dc.GetTextExtent('...')
-                    x = rect.x+1 + rect.width-2 - width
-                    dc.DrawRectangle(x, rect.y+1, width+1, height)
-                    dc.DrawText('...', x, rect.y+1)
-                y += lineHeight
-            dc.DestroyClippingRegion()
+            textRectangle = wx.Rect (x, y, rect.GetRight() - x, rect.GetBottom() - y)
+            DrawingUtilities.DrawWrappedText (dc,
+                                              self.GetAttributeValue (item, attributeName),
+                                              textRectangle)
+        dc.DestroyClippingRegion()
     
     def Create (self, parent, id):
         parentRect = parent.GetRect()
@@ -643,25 +616,12 @@ class IconAttributeEditor (BaseAttributeEditor):
     def Draw (self, dc, rect, item, attributeName, isSelected):
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName)
-        if imageName != '':
-            image = wx.GetApp().GetImage(imageName)
-            if image:
-                offscreenBuffer = wx.MemoryDC()
-                offscreenBuffer.SelectObject (image)
-                dc.SetBackgroundMode (wx.SOLID)
-     
-                width, height = image.GetWidth(), image.GetHeight()
-                if width > rect.width - 2:
-                    width = rect.width - 2
-                if height > rect.height - 2:
-                    height = rect.height - 2
-                    
-                dc.Blit (rect.x + 1, rect.y + 1,
-                         width, height, 
-                         offscreenBuffer,
-                         0, 0,
-                         wx.COPY,
-                         True)
+        image = wx.GetApp().GetImage(imageName)
+        if image is not None:
+            x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
+            y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+            dc.DrawBitmap (image, x, y, True)
+
 
 class EnumAttributeEditor (IconAttributeEditor):
     """

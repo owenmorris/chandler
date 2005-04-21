@@ -1199,9 +1199,8 @@
       <type itemref="String"/>
     </Attribute>
     
-    <Attribute itsName="selectedBitmap">
+    <Attribute itsName="disabledBitmap">
       <type itemref="String"/>
-      <initialValue type="String"/>
     </Attribute>
     
     <Enumeration itsName="toolbarItemKindEnumType">
@@ -1265,6 +1264,21 @@
     <Attribute itsName="filterKind">
       <type itemref="Kind"/>
       <initialValue itemref="None"/>
+    </Attribute>
+
+    <!-- A dictionary of display names of items that don't show as Calendar Views -->
+    <Attribute itsName="dontShowCalendarForItemsWithName">
+      <type itemref="Boolean"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <!-- A dictionary mapping a name,kindpathComponent string to a new name.
+         It would be much nicer if the key could be a (name, kindItem) tuple, but
+         that's not possible with current parcel XML
+    -->
+    <Attribute itsName="nameAlternatives">
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
     </Attribute>
 
     <Cloud itsName="DefaultCloud">

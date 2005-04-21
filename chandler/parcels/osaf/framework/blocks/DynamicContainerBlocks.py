@@ -8,7 +8,6 @@ import Block as Block
 import logging
 import wx
 from repository.item.Item import Item
-import sys
 import os
 
 
@@ -830,17 +829,16 @@ class ToolbarItem (Block.Block, DynamicChild):
       Under construction
     """
     def instantiateWidget (self):
-        def getBitmapPath (path):
-            """
-              wxWidgets on Mac can only display ugly icons (e.g. one bit alpha) so
-              we'll look up the ugly alternatives.
-            """
-            root, extension = os.path.splitext (path)
-            platformAlternatePath = root + "-" + sys.platform + extension
-            if os.path.isfile (platformAlternatePath):
-                path = platformAlternatePath
-            return path
-        
+        def getBitmaps (self):
+            bitmap = wx.GetApp().GetImage (self.bitmap)
+            try:
+                disabledBitmapName = self.disabledBitmap
+            except AttributeError:
+                disabledBitmap = wx.NullBitmap
+            else:
+                disabledBitmap = wx.GetApp().GetImage (disabledBitmapName)
+            return bitmap, disabledBitmap
+
         # can't instantiate ourself without a toolbar
         try:
             theToolbar = self.dynamicParent.widget
@@ -852,8 +850,8 @@ class ToolbarItem (Block.Block, DynamicChild):
         self.toolID = id
         if (self.toolbarItemKind == 'Button' or
             self.toolbarItemKind == 'Radio'):
-            bitmap = wx.Image (getBitmapPath (self.bitmap), 
-                               wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+
+            bitmap, disabledBitmap = getBitmaps (self)
             if self.toggle:
                 theKind = wx.ITEM_CHECK
             elif self.toolbarItemKind == 'Radio':
@@ -864,7 +862,7 @@ class ToolbarItem (Block.Block, DynamicChild):
             tool = theToolbar.DoAddTool (id,
                                         self.label,
                                         bitmap,
-                                        wx.NullBitmap,
+                                        disabledBitmap,
                                         kind = theKind,
                                         shortHelp=self.title,
                                         longHelp=self.helpString)
@@ -874,12 +872,11 @@ class ToolbarItem (Block.Block, DynamicChild):
             theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
             theKind = wx.ITEM_CHECK
-            bitmap = wx.Image (getBitmapPath (self.bitmap), 
-                               wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            bitmap, disabledBitmap = getBitmaps (self)
             tool = theToolbar.DoAddTool (id,
                                         self.label,
                                         bitmap,
-                                        wx.NullBitmap,
+                                        disabledBitmap,
                                         kind = theKind,
                                         shortHelp=self.title,
                                         longHelp=self.helpString)

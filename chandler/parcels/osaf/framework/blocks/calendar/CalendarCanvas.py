@@ -855,8 +855,8 @@ class wxWeekHeaderWidgets(wx.Panel):
         
         # 
         # top row - left/right buttons, anchored to the right
-        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
-        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
+        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
+        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
 

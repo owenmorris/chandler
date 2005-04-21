@@ -254,13 +254,6 @@ class MainView(View):
             if not inviteeContact in share.sharees:
                 share.sharees.append(inviteeContact)
 
-        # change the name to include "Shared", but first record the
-        # original name in case webdav publishing fails and we need to
-        # restore it
-        originalName = itemCollection.displayName
-        if not itemCollection.displayName.endswith(_(" (Shared)")):
-            itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
-
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
         try:
@@ -274,9 +267,6 @@ class MainView(View):
             msg = "Couldn't share collection:\n%s" % err.message
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                         "Error", msg)
-
-            # An error occurred during webdav; restore the collection's name
-            itemCollection.displayName = originalName
 
             if isNewShare:
                 share.conduit.delete()

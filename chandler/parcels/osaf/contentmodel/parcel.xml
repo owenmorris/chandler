@@ -325,7 +325,7 @@
       <initialValue type="String">__adhoc__</initialValue>
     </Attribute>
 
-    <Attribute itsName="outOfTheBoxCollection">
+    <Attribute itsName="renameable">
       <type itemref="Boolean"/>
     </Attribute>
 

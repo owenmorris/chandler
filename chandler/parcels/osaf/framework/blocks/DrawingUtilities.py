@@ -13,16 +13,6 @@ def SetTextColorsAndFont (grid, attr, dc, isSelected):
     if grid.IsEnabled():
         if isSelected:
             background = grid.GetSelectionBackground()
-            focus = wx.Window_FindFocus()
-            """
-              If we don't have the focus mix the background color with
-            equal parts of white
-            """
-            if (focus is None or
-                focus.GetParent() is not grid):
-                background.Set ((background.Red() + 255) / 2,
-                                (background.Green() + 255) / 2,
-                                (background.Blue() + 255) / 2)
             foreground = grid.GetSelectionForeground()
         else:
             background = attr.GetBackgroundColour()
@@ -35,6 +25,7 @@ def SetTextColorsAndFont (grid, attr, dc, isSelected):
     dc.SetBrush (wx.Brush (background, wx.SOLID))
 
     dc.SetFont (attr.GetFont())
+
 
 def DrawWrappedText (dc, string, rect):
     x = rect.x + 1

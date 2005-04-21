@@ -19,6 +19,7 @@ from osaf.framework.attributeEditors.AttributeEditors import IAttributeEditor
 from repository.schema.Types import DateTime
 from repository.schema.Types import RelativeDateTime
 import mx.DateTime
+import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 class Button(RectangularChild):
     def instantiateWidget(self):
@@ -31,9 +32,7 @@ class Button(RectangularChild):
                                 wx.DefaultPosition,
                                 (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            image = wx.Image(self.icon, 
-                             wx.BITMAP_TYPE_PNG)
-            bitmap = image.ConvertToBitmap()
+            bitmap = wx.GetApp().GetImage (self.icon)
             button = wx.BitmapButton (parentWidget,
                                       id,
                                       bitmap,
@@ -400,7 +399,7 @@ class List(RectangularChild):
         self.widget.GoToItem (self.selection)
 
 
-class wxTableData(wx.grid.PyGridTableBase):
+class wxTableData (wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
         self.defaultRWAttribute = wx.grid.GridCellAttr()
@@ -417,13 +416,13 @@ class wxTableData(wx.grid.PyGridTableBase):
         GetNumberCols before wiring up the view instance variable
         """
         view = self.GetView()
-        if view:
+        if view is not None:
             return view.GetElementCount()
         return 1
 
     def GetNumberCols (self):
         view = self.GetView()
-        if view:
+        if view is not None:
             return view.GetColumnCount()
         return 1
 
@@ -449,7 +448,7 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetAttr (self, row, column, kind):
         attribute = self.base_GetAttr (row, column, kind)
-        if not attribute:
+        if attribute is None:
             type = self.GetTypeName (row, column)
             delegate = IAttributeEditor.GetAttributeEditorSingleton (type)
             attribute = self.defaultROAttribute
@@ -493,22 +492,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         of the scrollbar so the scroll bars won't show. Instead we should consider modifying
         grid adding a new style for not showing scrollbars.  Bug #2375
         """
-        self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
-                        0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
+        self.SetMargins(-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
+                        -wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         """
           Don't draw cursor outline on selected cells
         """
         self.SetCellHighlightPenWidth (0)
         self.SetCellHighlightROPenWidth (0)
-
-        defaultName = "_default"
-        self.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
-        for key in map.editorString.keys():
-            if key != defaultName:
-                self.RegisterDataType (key,
-                                       GridCellAttributeRenderer (key),
-                                       GridCellAttributeEditor (key))
+        background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
+        self.SetLightSelectionBackground()
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
@@ -517,6 +509,33 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
+
+    def OnGainFocus (self, event):
+        self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
+        self.InvalidateSelection ()
+
+    def OnLoseFocus (self, event):
+        self.SetLightSelectionBackground()
+        self.InvalidateSelection ()
+
+    def SetLightSelectionBackground (self):
+        background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
+        background.Set ((background.Red() + 255) / 2,
+                        (background.Green() + 255) / 2,
+                         (background.Blue() + 255) / 2)
+        self.SetSelectionBackground (background)
+
+    def InvalidateSelection (self):
+        for range in self.blockItem.selection:
+            dirtyRect = wx.Rect()
+            dirtyRect.SetTopLeft (self.CellToRect (range[0], 0).GetTopLeft())
+            dirtyRect.SetBottomRight (self.CellToRect (range[1], self.GetNumberCols() - 1).GetBottomRight())
+            dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
+            self.RefreshRect (dirtyRect)
 
     def OnKeyDown(self, event):
         """
@@ -783,31 +802,12 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         super (GridCellAttributeRenderer, self).__init__ ()
         self.delegate = IAttributeEditor.GetAttributeEditorSingleton (type)
 
-    def SetTextColorsAndFont (self, grid, attr, dc, isSelected):
-        """
-          Set the text foreground, text background, brush and font into the dc
-        """
-        if grid.IsEnabled():
-            if isSelected:
-                background = grid.GetSelectionBackground()
-                foreground = grid.GetSelectionForeground()
-            else:
-                background = attr.GetBackgroundColour()
-                foreground = attr.GetTextColour()
-        else:
-            background = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
-            foreground = wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT)
-        dc.SetTextBackground (background)
-        dc.SetTextForeground (foreground)
-        dc.SetBrush (wx.Brush (background, wx.SOLID))
-
-        dc.SetFont (attr.GetFont())
 
     def Draw (self, grid, attr, dc, rect, row, column, isSelected):
         """
           Currently only handles left justified multiline text
         """
-        self.SetTextColorsAndFont (grid, attr, dc, isSelected)
+        DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
         item, attributeName = grid.GetElementValue (row, column)
         self.delegate.Draw (dc, rect, item, attributeName, isSelected)
 
@@ -865,48 +865,22 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         return self.delegate.GetControlValue (self.control)
 
 
-class ImageRenderer (wx.grid.PyGridCellRenderer):
-    def Draw (self, grid, attr, dc, rect, row, col, isSelected):
-        imageName = grid.GetTable().GetValue (row, col)
-        image = wx.GetApp().GetImage (imageName)
-
-        if image:
-            offscreenBuffer = wx.MemoryDC()
-    
-            offscreenBuffer.SelectObject (image)
-    
-            dc.SetBackgroundMode (wx.SOLID)
-    
-            if isSelected:
-                dc.SetBrush (wx.Brush (grid.GetSelectionBackground(), wx.SOLID))
-                dc.SetPen (wx.Pen (grid.GetSelectionBackground(), 1, wx.SOLID))
-            else:
-                dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
-                dc.SetPen (wx.Pen (attr.GetBackgroundColour(), 1, wx.SOLID))
-     
-            dc.DrawRectangleRect(rect)
-    
-            width, height = image.GetWidth(), image.GetHeight()
-    
-            if width > rect.width - 2:
-                width = rect.width - 2
-    
-            if height > rect.height - 2:
-                height = rect.height - 2
-    
-            dc.Blit ((rect.x + 1, rect.y + 1),
-                     (width, height),
-                     offscreenBuffer,
-                     (0, 0),
-                     wx.COPY,
-                     True)
-
 class Table (RectangularChild):
     def __init__(self, *arguments, **keywords):
         super (Table, self).__init__ (*arguments, **keywords)
 
     def instantiateWidget (self):
-        return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
+        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self))
+        defaultName = "_default"
+        widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
+        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+        for key in map.editorString.keys():
+            if key != defaultName:
+                widget.RegisterDataType (key,
+                                         GridCellAttributeRenderer (key),
+                                         GridCellAttributeEditor (key))
+        return widget
+
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']

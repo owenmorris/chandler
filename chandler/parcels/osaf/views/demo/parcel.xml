@@ -193,7 +193,7 @@
     <location>ApplicationBar</location>
     <title>Block Demo</title>
     <label>Cycle Tabs</label>
-    <bitmap>application/images/forwardto.png</bitmap>
+    <bitmap>forwardto.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the next tab in block demo</helpString>
     <event itemref="doc:CycleTabs"/>
@@ -278,7 +278,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
   <Button itsName="ImageButton">
     <!-- Attributes -->
     <buttonKind>Image</buttonKind>
-    <icon>application/images/reply.png</icon>
+    <icon>reply.png</icon>
 
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>

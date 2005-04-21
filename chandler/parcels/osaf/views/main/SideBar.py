@@ -8,21 +8,40 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
 import osaf.contentmodel.ItemCollection as ItemCollection
 import wx
+import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+import os
 
 
-class SidebarAttributeDelegate (ControlBlocks.AttributeDelegate):
+def GetRenderEditorTextRect (rect):
+    image = wx.GetApp().GetImage ("SidebarAll.png")
+    width = image.GetWidth() + 2
+    return wx.Rect (rect.GetLeft() + width,
+                    rect.GetTop(),
+                    rect.GetWidth() - (2 * width),
+                    rect.GetHeight())
+
+
+class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def ReadOnly (self, row, column):
         """
           Second argument should be True if all cells have the first value
         """
         (item, attribute) = self.GetElementValue (row, column)
         try:
-            readOnly = getattr (item, 'outOfTheBoxCollection')
+            readOnly = not item.renameable
         except AttributeError:
             readOnly = False
         return readOnly, False
 
+    def GetElementType (self, row, column):
+        return "Item"
+
+    def GetElementValue (self, row, column):
+        return self.blockItem.contents [row], self.blockItem.columnData [column]
+
+
 class wxSidebar(ControlBlocks.wxTable):
+
     def OnRequestDrop(self, x, y):
         self.dropRow = self.YToRow(y)
         if self.dropRow == wx.NOT_FOUND:
@@ -64,29 +83,88 @@ class wxSidebar(ControlBlocks.wxTable):
             self.SetCellBackgroundColour(row, 0, wx.WHITE)
         # Just invalidate the changed rect
         rect = self.CellToRect(row, 0)
+        rect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
         self.RefreshRect(rect)
         self.Update()
-    
+
+class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
+    """
+      Super specialized Sidebar Renderer, is so specialized that it works in
+    only one context -- Mimi's Sidebar.
+    """
+    def Draw (self, grid, attr, dc, rect, row, col, isSelected):
+        DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
+
+        dc.SetBackgroundMode (wx.SOLID)
+        dc.SetPen (wx.TRANSPARENT_PEN)
+
+        dc.DrawRectangleRect(rect)
+
+        dc.SetBackgroundMode (wx.TRANSPARENT)
+        item, attribute = grid.GetTable().GetValue (row, col)
+        name = getattr (item, attribute)
+
+        if isinstance (item, ItemCollection.ItemCollection):
+            if len (item) == 0:
+                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+
+            numberOfShares = len (item.shares)
+            if numberOfShares > 0:
+                sharer = item.shares.first().sharer
+                if numberOfShares == 1 and str(sharer.itsPath) == "//userdata/me":
+                    imageName = "SidebarOut.png"
+                else:
+                    imageName = "SidebarIn.png"
+                image = wx.GetApp().GetImage (imageName)
+                x = rect.GetRight() -image.GetWidth() - 1
+                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+                dc.DrawBitmap (image, x, y, True)
+
+            if not getattr (item, "renameable", True):
+                key = name
+                sidebar = grid.blockItem
+                if sidebar.filterKind is not None:
+                    key += os.path.basename (unicode (sidebar.filterKind.itsPath))
+                try:
+                    name = sidebar.nameAlternatives [key]
+                except KeyError:
+                    imageSuffix = name
+                else:
+                    imageSuffix = key
+                image = wx.GetApp().GetImage ("Sidebar" + imageSuffix + ".png")
+        
+                if image is not None:
+                    x = rect.GetLeft() + 1
+                    y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+                    dc.DrawBitmap (image, x, y, True)
+
+        textRect = GetRenderEditorTextRect (rect)
+        textRect.Inflate (-1, -1)
+        dc.SetClippingRect (textRect)
+        DrawingUtilities.DrawWrappedText (dc, name, textRect)
+        dc.DestroyClippingRegion()
+
+
+class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
+    """
+      Super specialized Sidebar Editor, is so specialized that it works in
+    only one context -- Mimi's Sidebar.
+    """
+
+    def SetSize(self, rect):
+        textRect = GetRenderEditorTextRect (rect)
+        self.control.SetRect (textRect);
+
+
 class Sidebar (ControlBlocks.Table):
     def instantiateWidget (self):
-        return wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
+        widget = wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
+        widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
+        return widget
 
-    def onKindParameterizedEvent (self, event):
-        # @@@ Temporary hack until we have persistence in the toolbar.
-        # Whenever you get an event to select a kind of filter make sure that
-        # the toolbar click state is in sync with the desired filter
-        toolbar = Block.Block.findBlockByName('ApplicationBar')
-        for childBlock in toolbar.dynamicChildren:
-            try:
-                childBlock.event
-            except AttributeError:
-                pass
-            else:
-                if childBlock.event == event:
-                    if not childBlock.widget.IsToggled():
-                        toolbar.widget.ToggleTool(childBlock.toolID, True)
-                
+    def onKindParameterizedEvent (self, event):                
         self.filterKind = event.kindParameter
+        self.widget.Refresh()
         self.postEventByName("SelectItemBroadcast", {'item':self.selectedItemToView})
 
     def onRequestSelectSidebarItemEvent (self, event):
@@ -137,24 +215,17 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
-            """ 
-              This test is a temporary place holder for a better, more complicated solution
-            to the problem if figuring out when to show the calendar view. We also use
-            a single calendar view for all item collections and a separate table for
-            each item collection.
-              Bryan argued that the better solution shouldn't be implmented until we decide
-            the UI is final since he thinks the UI is too confusing so will likely change
-            """
-            if (sidebar.filterKind is self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin") and
-                keyItem.displayName != u"In filtered by Calendar Event Mixin Kind" and
-                keyItem.displayName != u"Out filtered by Calendar Event Mixin Kind"):
-                trunk = self.findPath (self.calendarTemplatePath)
-                keyUUID = trunk.itsUUID
-                try:
-                    trunk = self.keyUUIDToTrunk[keyUUID]
-                except KeyError:
-                    trunk = self._copyItem(trunk, onlyIfReadOnly=True)
-                    self.keyUUIDToTrunk[keyUUID] = trunk
+            filterKind = sidebar.filterKind
+            if (filterKind is not None and
+                unicode (filterKind.itsPath) == "//parcels/osaf/contentmodel/calendar/CalendarEventMixin" and
+                keyItem.displayName not in sidebar.dontShowCalendarForItemsWithName):
+                    trunk = self.findPath (self.calendarTemplatePath)
+                    keyUUID = trunk.itsUUID
+                    try:
+                        trunk = self.keyUUIDToTrunk[keyUUID]
+                    except KeyError:
+                        trunk = self._copyItem(trunk, onlyIfReadOnly=True)
+                        self.keyUUIDToTrunk[keyUUID] = trunk
             else:
                 trunk = self.findPath (self.tableTemplatePath)
         else:

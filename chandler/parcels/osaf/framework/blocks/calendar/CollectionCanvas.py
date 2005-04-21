@@ -144,17 +144,17 @@ class CanvasBitmapButton(wx.BitmapButton):
         a button with no border. 
     """
     
-    def __init__(self, parent, path):
+    def __init__(self, parent, name):
         """
 
         @param parent: like all controls, requires a parent window
         @type parent: wx.Window
-        @param path: path to a png file
-        @type path: string
+        @param name: name of an image file
+        @type name: string
         """
         self.forcedBorder = GetPlatformBorder()
         
-        bitmap = wx.Image(path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        bitmap = wx.GetApp().GetImage (name)
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.NO_BORDER)
 

@@ -988,7 +988,7 @@
     <blockName>ApplicationBarAllButton</blockName>
     <title>All</title>
     <label>All</label>
-    <bitmap>application/images/ApplicationBarAll.png</bitmap>
+    <bitmap>ApplicationBarAll.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarAll"/>
     <helpString>No Filter</helpString>
@@ -1007,7 +1007,7 @@
     <blockName>ApplicationBarMailButton</blockName>
     <title>Messages</title>
     <label>Mail</label>
-    <bitmap>application/images/ApplicationBarMail.png</bitmap>
+    <bitmap>ApplicationBarMail.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarMail"/>
     <helpString>Mail Messages Filter</helpString>
@@ -1025,7 +1025,7 @@
     <blockName>ApplicationBarTaskButton</blockName>
     <title>Taskpad</title>
     <label>Tasks</label>
-    <bitmap>application/images/ApplicationBarTask.png</bitmap>
+    <bitmap>ApplicationBarTask.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarTask"/>
     <helpString>Tasks Filter</helpString>
@@ -1043,7 +1043,7 @@
     <blockName>ApplicationBarEventButton</blockName>
     <title>Calendar</title>
     <label>Calendar</label>
-    <bitmap>application/images/ApplicationBarEvent.png</bitmap>
+    <bitmap>ApplicationBarEvent.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarEvent"/>
     <helpString>Calendar Events Filter</helpString>
@@ -1066,7 +1066,7 @@
     <blockName>ApplicationBarSyncButton</blockName>
     <title>Sync</title>
     <label>Sync All</label>
-    <bitmap>application/images/ApplicationBarSync.png</bitmap>
+    <bitmap>ApplicationBarSync.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Get new Mail and synchronize with other Chandler users</helpString>
     <event itemref="doc:SyncAll"/>
@@ -1076,7 +1076,7 @@
     <blockName>ApplicationBarNewButton</blockName>
     <title>New</title>
     <label>New</label>
-    <bitmap>application/images/ApplicationBarNew.png</bitmap>
+    <bitmap>ApplicationBarNew.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
     <event itemref="doc:NewNote"/>
@@ -1091,7 +1091,7 @@
     <blockName>ApplicationBarSendButton</blockName>
     <title>Send</title>
     <label>Send</label>
-    <bitmap>application/images/ApplicationBarSend.png</bitmap>
+    <bitmap>ApplicationBarSend.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Send the selected Item</helpString>
     <event itemref="events:SendShareItem"/>
@@ -1143,19 +1143,19 @@
 
   <contentModel:ItemCollection itsName="allItemCollection">
     <displayName>All</displayName>
-    <outOfTheBoxCollection>True</outOfTheBoxCollection>
+    <renameable>False</renameable>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="inItemCollection">
     <displayName>In</displayName>
-    <outOfTheBoxCollection>True</outOfTheBoxCollection>
+    <renameable>False</renameable>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="outItemCollection">
     <displayName>Out</displayName>
-    <outOfTheBoxCollection>True</outOfTheBoxCollection>
+    <renameable>False</renameable>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
@@ -1246,7 +1246,7 @@
   <Sidebar itsName="Sidebar">
     <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
-    <elementDelegate>osaf.views.main.SideBar.SidebarAttributeDelegate</elementDelegate>
+    <elementDelegate>osaf.views.main.SideBar.SidebarElementDelegate</elementDelegate>
     <selectedItemToView itemref="doc:allItemCollection"/>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
@@ -1259,6 +1259,12 @@
       <core:Integer value="0"/>
     </selection>
     <border>0,0,4,0</border>
+    <dontShowCalendarForItemsWithName key="In filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
+    <dontShowCalendarForItemsWithName key="Out filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
+    <nameAlternatives key="All" value="All my Items"></nameAlternatives>
+    <nameAlternatives key="AllMailMessageMixin" value="All my Mail"></nameAlternatives>
+    <nameAlternatives key="AllCalendarEventMixin" value="All my Events"></nameAlternatives>
+    <nameAlternatives key="AllTaskMixin" value="All my Tasks"></nameAlternatives>
   </Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
@@ -1443,8 +1449,7 @@
   <ToolbarItem itsName="ListViewButton">
     <blockName>ListViewButton1</blockName>
     <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <bitmap>list.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in list mode</helpString>
     <event itemref="doc:ChangeLayout"/>
@@ -1453,8 +1458,7 @@
   <ToolbarItem itsName="WeekViewButton">
     <blockName>WeekViewButton1</blockName>
     <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <bitmap>week.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in week mode</helpString>
     <event itemref="doc:ChangeLayout"/>
@@ -1463,8 +1467,7 @@
   <ToolbarItem itsName="DayViewButton">
     <blockName>DayViewButton1</blockName>
     <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <bitmap>day.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <helpString>Display the view in day mode</helpString>
     <event itemref="doc:ChangeLayout"/>

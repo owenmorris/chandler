@@ -14,6 +14,7 @@ from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError
 from crypto import Crypto
 import logging as logging
+import cStringIO
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
@@ -22,7 +23,7 @@ logger.setLevel(logging.INFO)
 import tools.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "6"
+SCHEMA_VERSION = "8"
 
 """
   Event used to post callbacks on the UI thread
@@ -194,7 +195,7 @@ class wxApplication (wx.App):
         """
         splash = None
         if not (__debug__ and application.Globals.options.nocatch):
-            splashBitmap = self.GetImage ("splash")
+            splashBitmap = self.GetImage ("splash.png")
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
             wx.Yield() #let the splash screen render itself
@@ -417,7 +418,24 @@ class wxApplication (wx.App):
                         self.PrintTree (window, indent + "  ")
         
     def GetImage (self, name):
-        return wx.Image("application/images/" + name + ".png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        """
+          Return None if image isn't found, otherwise loading an image
+        will log an error, puting up a dialog telling the user that some
+        file couldn't be found. The dialog is inappropriate for normal users.
+          Also look first for platform specific icons.
+        """
+        root, extension = os.path.splitext (name)
+        root = "application/images/" + root
+        try:
+            file = open(root + "-" + sys.platform + extension, "rb")
+        except IOError:
+            try:
+                file = open(root + extension, "rb")
+            except IOError:
+                return None
+        stream = cStringIO.StringIO (file.read())
+        return wx.BitmapFromImage (wx.ImageFromStream (stream))
+
 
     def OnCommand(self, event):
         """
