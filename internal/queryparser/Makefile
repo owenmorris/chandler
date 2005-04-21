@@ -24,8 +24,8 @@ build: $(PYTHON) $(SRC)/QueryParser.g
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
-	$(MD5) QueryParser-$(SNAP)-$(RELVER).tar.gz > QueryParser-$(SNAP)-$(RELVER).tar.gz.md5
+	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(QP)/$(MANIFEST)
+	$(MD5) $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz > $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	rm -f $(SRC)/QueryParser.py $(MANIFEST)
