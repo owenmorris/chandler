@@ -1360,7 +1360,9 @@ long			resultV;
 				// generic case - add selection indicator
 				resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 				if (m_BVisibleSelection && (i == m_ItemSelected))
-					wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
+					wxColumnHeaderItem::GenericDrawSelection(
+						&dc, &boundsR,
+						&m_SelectionColour, m_SelectionDrawStyle );
 
 				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
 				// on Mac (and perhaps other platforms) this limitation doesn't apply
@@ -1375,12 +1377,15 @@ long			resultV;
 		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
 		// MSW case - add selection indicator - no appropriate native adornment exists
+		// FIXME: the DC has to be a wxClientDC instead of a wxPaintDC - why?
 		if (m_BVisibleSelection && (m_ItemSelected >= 0))
 			if (GetItemBounds( m_ItemSelected, &boundsR ))
 			{
-			wxPaintDC		dc( this );
+			wxClientDC		dc( this );
 
-				wxColumnHeaderItem::GenericDrawSelection( &dc, &boundsR, &m_SelectionColour, m_SelectionDrawStyle );
+				wxColumnHeaderItem::GenericDrawSelection(
+					&dc, &boundsR,
+					&m_SelectionColour, m_SelectionDrawStyle );
 			}
 	}
 
@@ -2026,12 +2031,6 @@ OSStatus				errStatus;
 		qdBoundsR.top = boundsR->y + 1;
 		qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
-#if 0
-		wxLogDebug(
-			_T("MacDrawItem (J - x,O,S - w,E): [%ld - %ld, %ld, %ld - %ld, %ld]"),
-			m_TextJust, boundsR->x, originX, startX, boundsR->width, maxExtentX );
-#endif
-
 		nativeFontID = dc->GetFont().MacGetThemeFontID();
 
 		if (bUseUnicode)
@@ -2110,18 +2109,13 @@ bool			bSelected, bHasIcon;
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
 
-		// FIXME: need to clip long text items
 		GetTextUIExtent( startX, originX, maxExtentX );
-
-#if 0
-		wxLogDebug(
-			_T("GenericDrawItem (J - x,O,S - w,E): [%ld - %ld, %ld, %ld - %ld, %ld]"),
-			m_TextJust, boundsR->x, originX, startX, boundsR->width, maxExtentX );
-#endif
 
 		descentY = 1;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
-			descentY = ((localBoundsR.height - m_LabelTextExtent.y) / 2) - 1;
+			descentY = ((localBoundsR.height - m_LabelTextExtent.y) / 2);
+
+		// FIXME: need to clip long text items
 		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + descentY );
 	}
 
