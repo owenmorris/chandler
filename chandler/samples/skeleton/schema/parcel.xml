@@ -2,9 +2,10 @@
 
 <!-- the doc namespace refers to the current document -->
 <Parcel xmlns="http://osafoundation.org/parcels/core"
-        xmlns:doc="http://osafoundation.org/parcels/skeleton/schema"
+        xmlns:doc="http://osafoundation.org/samples/skeleton/schema"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
 
+  <namespace value="http://osafoundation.org/samples/skeleton/schema"/>
   <displayName>Start Here Example</displayName>
   <description>This is a skeleton parcel for writing schemas</description>
 
@@ -39,6 +40,7 @@
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
+    <attributes itemref="doc:Kind1/attr2"/>
   
     <!-- pulling in attributes from elsewhere in this file -->
     <attributes itemref="doc:attr1"/>
