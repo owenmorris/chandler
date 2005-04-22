@@ -82,7 +82,7 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
-        styleList = ['None', 'Native', 'BoldLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
+        styleList = ['None', 'Native', 'BoldLabel', 'ColourLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
         wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 75), (150, -1) )
         choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 95), choices = styleList )
         choice.SetSelection( ch1.GetSelectionDrawStyle() )

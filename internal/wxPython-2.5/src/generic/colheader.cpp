@@ -709,7 +709,7 @@ bool wxColumnHeader::RescaleToFit(
 	long				newWidth )
 {
 long		scaleItemCount, scaleItemAmount, i;
-long		deltaX, summerX, originX, incX;
+long		deltaX, summerX, resultX, originX, incX;
 
 	if ((newWidth <= 0) || (m_ItemList == NULL))
 		return false;
@@ -749,7 +749,13 @@ long		deltaX, summerX, originX, incX;
 				incX = (deltaX * m_ItemList[i]->m_ExtentX) / scaleItemAmount;
 			else
 				incX = summerX;
-			m_ItemList[i]->m_ExtentX += incX;
+
+			if (incX != 0)
+			{
+				resultX = m_ItemList[i]->m_ExtentX + incX;
+				m_ItemList[i]->ResizeToWidth( resultX );
+			}
+			
 
 			summerX -= incX;
 		}
@@ -1745,6 +1751,7 @@ void wxColumnHeaderItem::GetItemData(
 
 	info->m_TextJust = m_TextJust;
 	info->m_LabelTextExtent = m_LabelTextExtent;
+	info->m_LabelTextVisibleCharCount = m_LabelTextVisibleCharCount;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
 	info->m_BEnabled = m_BEnabled;
@@ -1768,6 +1775,7 @@ void wxColumnHeaderItem::SetItemData(
 
 	m_TextJust = info->m_TextJust;
 	m_LabelTextExtent = info->m_LabelTextExtent;
+	m_LabelTextVisibleCharCount = info->m_LabelTextVisibleCharCount;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
 	m_BEnabled = info->m_BEnabled;
@@ -1867,6 +1875,12 @@ void wxColumnHeaderItem::SetUIExtent(
 //	if ((originX >= 0) && (m_OriginX != originX))
 //		m_OriginX = originX;
 
+	ResizeToWidth( extentX );
+}
+
+void wxColumnHeaderItem::ResizeToWidth(
+	long				extentX )
+{
 	if ((extentX >= 0) && (m_ExtentX != extentX))
 		m_ExtentX = extentX;
 }
@@ -2113,7 +2127,7 @@ bool			bSelected, bHasIcon;
 
 		descentY = 1;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
-			descentY = ((localBoundsR.height - m_LabelTextExtent.y) / 2);
+			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
 
 		// FIXME: need to clip long text items
 		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + descentY );
@@ -2135,6 +2149,46 @@ bool			bSelected, bHasIcon;
 	}
 
 	return 0;
+}
+
+long wxColumnHeaderItem::CalculateTextExtent(
+	wxDC			*dc,
+	bool				bForceRecalc )
+{
+wxCoord		targetWidth, targetHeight;
+long			startX, originX, maxExtentX;
+long			charCount;
+
+	if (dc == NULL)
+		return (-1);
+
+	if (bForceRecalc || (m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
+	{
+		charCount = m_LabelTextRef.length();
+		if (charCount > 0)
+		{
+			dc->GetTextExtent(
+				m_LabelTextRef,
+				&targetWidth, &targetHeight,
+				NULL, NULL, NULL );
+
+			m_LabelTextExtent.x = targetWidth;
+			m_LabelTextExtent.y = targetHeight;
+		}
+		else
+		{
+			m_LabelTextExtent.x =
+			m_LabelTextExtent.y = 0;
+		}
+
+		m_LabelTextVisibleCharCount = charCount;
+
+		GetTextUIExtent( startX, originX, maxExtentX );
+		if (m_LabelTextExtent.x > maxExtentX)
+			m_LabelTextVisibleCharCount = (-m_LabelTextVisibleCharCount);
+	}
+
+	return m_LabelTextExtent.x;
 }
 
 long wxColumnHeaderItem::TruncateLabelText(
@@ -2252,33 +2306,12 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 		startX += leftDeltaX;
 }
 
-long wxColumnHeaderItem::CalculateTextExtent(
-	wxDC			*dc,
-	bool				bForceRecalc )
-{
-wxCoord		targetWidth, targetHeight;
-
-	if (dc == NULL)
-		return (-1);
-
-	if (bForceRecalc || (m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
-	{
-		dc->GetTextExtent(
-			m_LabelTextRef,
-			&targetWidth, &targetHeight,
-			NULL, NULL, NULL );
-
-		m_LabelTextExtent.x = targetWidth;
-		m_LabelTextExtent.y = targetHeight;
-	}
-
-	return m_LabelTextExtent.x;
-}
-
 void wxColumnHeaderItem::InvalidateTextExtent( void )
 {
 	m_LabelTextExtent.x =
 	m_LabelTextExtent.y = (-1);
+
+	m_LabelTextVisibleCharCount = (-1);
 }
 
 // ================
@@ -2358,6 +2391,7 @@ long			borderWidth, offsetY;
 		// performed elsewheres or not at all
 		break;
 
+	case CH_SELECTIONDRAWSTYLE_ColourLabel:
 	case CH_SELECTIONDRAWSTYLE_Grey:
 	case CH_SELECTIONDRAWSTYLE_InvertBevel:
 	case CH_SELECTIONDRAWSTYLE_Bullet:

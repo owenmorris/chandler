@@ -24,8 +24,8 @@
 
 
 // forward decls
-// class wxColumnHeaderItem;
 // class wxBitmap;
+class wxColumnHeaderItem;
 
 // ----------------------------------------------------------------------------
 // private data definitions
@@ -41,128 +41,6 @@ typedef enum
 	wxCH_kMetricBitmapSizeY		= 12
 }
 wxColumnHeaderMetric;
-
-class wxColumnHeaderItem
-{
-public:
-	wxColumnHeaderItem(
-		const wxColumnHeaderItem		*info );
-	wxColumnHeaderItem();
-	virtual ~wxColumnHeaderItem();
-
-	long HitTest(
-		const wxPoint		&locationPt ) const;
-
-	void GetItemData(
-		wxColumnHeaderItem				*info ) const;
-	void SetItemData(
-		const wxColumnHeaderItem		*info );
-
-	void GetBitmapRef(
-		wxBitmap			&bitmapRef ) const;
-	void SetBitmapRef(
-		wxBitmap			&bitmapRef,
-		const wxRect		*boundsR );
-
-	void GetLabelText(
-		wxString			&textBuffer ) const;
-	void SetLabelText(
-		const wxString		&textBuffer );
-
-	long GetLabelJustification( void ) const;
-	void SetLabelJustification(
-		long				textJust );
-
-	void GetUIExtent(
-		long				&originX,
-		long				&extentX ) const;
-	void SetUIExtent(
-		long				originX,
-		long				extentX );
-
-	void GetTextUIExtent(
-		long				&startX,
-		long				&originX,
-		long				&extentX ) const;
-
-	bool GetAttribute(
-		wxColumnHeaderItemAttribute	flagEnum ) const;
-	bool SetAttribute(
-		wxColumnHeaderItemAttribute	flagEnum,
-		bool						bFlagValue );
-
-	long GenericDrawItem(
-		wxWindow		*parentW,
-		wxDC			*dc,
-		const wxRect		*boundsR,
-		bool				bUseUnicode,
-		bool				bVisibleSelection );
-
-#if defined(__WXMAC__)
-	long MacDrawItem(
-		wxWindow		*parentW,
-		wxDC			*dc,
-		const wxRect		*boundsR,
-		bool				bUseUnicode,
-		bool				bVisibleSelection );
-#endif
-
-	long TruncateLabelText(
-		wxDC			*dc,
-		wxString			&targetStr,
-		long				maxWidth,
-		long				&charCount );
-	long CalculateTextExtent(
-		wxDC			*dc,
-		bool				bForceRecalc );
-	void InvalidateTextExtent( void );
-
-public:
-	static void GenericDrawSelection(
-		wxDC			*dc,
-		const wxRect		*boundsR,
-		const wxColour		*targetColour,
-		long				drawStyle );
-
-	static void GenericDrawSortArrow(
-		wxDC			*dc,
-		const wxRect		*boundsR,
-		bool				bSortAscending );
-	static void GenericGetSortArrowBounds(
-		const wxRect		*itemBoundsR,
-		wxRect			*targetBoundsR );
-	static void GenericGetBitmapItemBounds(
-		const wxRect		*itemBoundsR,
-		long				targetJustification,
-		const wxBitmap	*targetBitmap,
-		wxRect			*targetBoundsR );
-
-#if defined(__WXMAC__)
-	static void MacDrawThemeBackgroundNoArrows(
-		const void			*boundsR,
-		bool				bSelected );
-#endif
-
-	static bool HasValidBitmapRef(
-		const wxBitmap	*bitmapRef );
-
-	static long ConvertJustification(
-		long				sourceEnum,
-		bool				bToNative );
-
-public:
-	wxString				m_LabelTextRef;
-	wxSize				m_LabelTextExtent;
-	long					m_TextJust;
-	wxBitmap				*m_BitmapRef;
-	long					m_OriginX;
-	long					m_ExtentX;
-	bool					m_BEnabled;
-	bool					m_BSelected;
-	bool					m_BSortEnabled;
-	bool					m_BSortAscending;
-	bool					m_BFixedWidth;
-};
 
 class WXDLLIMPEXP_ADV wxColumnHeader : public wxControl
 {
@@ -376,6 +254,132 @@ protected:
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
 	DECLARE_EVENT_TABLE()
 	DECLARE_NO_COPY_CLASS(wxColumnHeader)
+};
+
+class wxColumnHeaderItem
+{
+friend class wxColumnHeader;
+
+public:
+	wxColumnHeaderItem(
+		const wxColumnHeaderItem		*info );
+	wxColumnHeaderItem();
+	virtual ~wxColumnHeaderItem();
+
+	long HitTest(
+		const wxPoint		&locationPt ) const;
+
+	void GetItemData(
+		wxColumnHeaderItem				*info ) const;
+	void SetItemData(
+		const wxColumnHeaderItem		*info );
+
+	void GetBitmapRef(
+		wxBitmap			&bitmapRef ) const;
+	void SetBitmapRef(
+		wxBitmap			&bitmapRef,
+		const wxRect		*boundsR );
+
+	void GetLabelText(
+		wxString			&textBuffer ) const;
+	void SetLabelText(
+		const wxString		&textBuffer );
+
+	long GetLabelJustification( void ) const;
+	void SetLabelJustification(
+		long				textJust );
+
+	void GetUIExtent(
+		long				&originX,
+		long				&extentX ) const;
+	void SetUIExtent(
+		long				originX,
+		long				extentX );
+
+	bool GetAttribute(
+		wxColumnHeaderItemAttribute	flagEnum ) const;
+	bool SetAttribute(
+		wxColumnHeaderItemAttribute	flagEnum,
+		bool						bFlagValue );
+
+	long GenericDrawItem(
+		wxWindow		*parentW,
+		wxDC			*dc,
+		const wxRect		*boundsR,
+		bool				bUseUnicode,
+		bool				bVisibleSelection );
+
+#if defined(__WXMAC__)
+	long MacDrawItem(
+		wxWindow		*parentW,
+		wxDC			*dc,
+		const wxRect		*boundsR,
+		bool				bUseUnicode,
+		bool				bVisibleSelection );
+#endif
+
+	void ResizeToWidth(
+		long				extentX );
+	void GetTextUIExtent(
+		long				&startX,
+		long				&originX,
+		long				&extentX ) const;
+	long TruncateLabelText(
+		wxDC			*dc,
+		wxString			&targetStr,
+		long				maxWidth,
+		long				&charCount );
+	long CalculateTextExtent(
+		wxDC			*dc,
+		bool				bForceRecalc );
+	void InvalidateTextExtent( void );
+
+public:
+	static void GenericDrawSelection(
+		wxDC			*dc,
+		const wxRect		*boundsR,
+		const wxColour		*targetColour,
+		long				drawStyle );
+
+	static void GenericDrawSortArrow(
+		wxDC			*dc,
+		const wxRect		*boundsR,
+		bool				bSortAscending );
+	static void GenericGetSortArrowBounds(
+		const wxRect		*itemBoundsR,
+		wxRect			*targetBoundsR );
+	static void GenericGetBitmapItemBounds(
+		const wxRect		*itemBoundsR,
+		long				targetJustification,
+		const wxBitmap	*targetBitmap,
+		wxRect			*targetBoundsR );
+
+#if defined(__WXMAC__)
+	static void MacDrawThemeBackgroundNoArrows(
+		const void			*boundsR,
+		bool				bSelected );
+#endif
+
+	static bool HasValidBitmapRef(
+		const wxBitmap	*bitmapRef );
+
+	static long ConvertJustification(
+		long				sourceEnum,
+		bool				bToNative );
+
+protected:
+	wxString				m_LabelTextRef;
+	wxSize				m_LabelTextExtent;
+	long					m_LabelTextVisibleCharCount;
+	long					m_TextJust;
+	wxBitmap				*m_BitmapRef;
+	long					m_OriginX;
+	long					m_ExtentX;
+	bool					m_BEnabled;
+	bool					m_BSelected;
+	bool					m_BSortEnabled;
+	bool					m_BSortAscending;
+	bool					m_BFixedWidth;
 };
 
 #endif // _WX_GENERIC_COLUMNHEADER_H
