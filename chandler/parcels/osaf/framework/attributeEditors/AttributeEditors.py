@@ -615,7 +615,7 @@ class IconAttributeEditor (BaseAttributeEditor):
     
     def Draw (self, dc, rect, item, attributeName, isSelected):
         dc.DrawRectangleRect(rect) # always draw the background
-        imageName = self.GetAttributeValue(item, attributeName)
+        imageName = self.GetAttributeValue(item, attributeName) + ".png"
         image = wx.GetApp().GetImage(imageName)
         if image is not None:
             x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
