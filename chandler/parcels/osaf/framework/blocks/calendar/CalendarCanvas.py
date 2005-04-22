@@ -820,6 +820,9 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
     def OnSelectColor(self, event):
         self.blockItem.setEventsColor(event.GetValue())
+        
+        # just cause a repaint - hopefully this cascades to child windows?
+        self.Refresh()
 
 class wxWeekHeaderWidgets(wx.Panel):
 
