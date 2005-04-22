@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel xmlns="http://osafoundation.org/parcels/core">
+<core:Parcel
+    xmlns:core="http://osafoundation.org/parcels/core"    
+    xmlns="http://osafoundation.org/parcels/osaf/framework/blocks">
     
-    <namespace value="http://osafoundation.org/samples/skeleton/views"/>
     
-</Parcel>
+</core:Parcel>
