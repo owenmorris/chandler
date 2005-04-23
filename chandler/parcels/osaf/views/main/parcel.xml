@@ -1097,18 +1097,82 @@
     <event itemref="events:SendShareItem"/>
   </ToolbarItem>
 
-  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
-  <Toolbar itsName="ApplicationBar">
-    <blockName>ApplicationBar</blockName>
-    <childrenBlocks itemref="doc:ApplicationBarAllButton"/>
-    <childrenBlocks itemref="doc:ApplicationBarMailButton"/>
-    <childrenBlocks itemref="doc:ApplicationBarEventButton"/>
-    <childrenBlocks itemref="doc:ApplicationBarTaskButton"/>
-    <toolSize>24,24</toolSize>
-    <separatorWidth>20</separatorWidth>
-    <stretchFactor>0</stretchFactor>
-  </Toolbar>
+  <!--
+    The Sidebar is so super specialized that it's not a CPIA block
+    useful outside Chandler, so we'll define it and its delegates
+    outside of the normal CPIA blocks.
   -->
+  <core:Kind itsName="Sidebar">
+    <classes key="python">osaf.views.main.SideBar.Sidebar</classes>
+    <superKinds itemref="Table"/>
+
+    <core:Attribute itsName="filterKind">
+      <type itemref="core:Kind"/>
+      <initialValue itemref="core:None"/>
+    </core:Attribute>
+
+    <!-- A dictionary of display names of items that don't show as Calendar Views -->
+    <core:Attribute itsName="dontShowCalendarForItemsWithName">
+      <type itemref="core:Boolean"/>
+      <cardinality>dict</cardinality>
+    </core:Attribute>
+
+    <!-- A dictionary mapping a name,kindpathComponent string to a new name.
+         It would be much nicer if the key could be a (name, kindItem) tuple, but
+         that's not possible with current parcel XML
+    -->
+    <core:Attribute itsName="nameAlternatives">
+      <type itemref="core:String"/>
+      <cardinality>dict</cardinality>
+    </core:Attribute>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="filterKind">
+            <attribute value="filterKind"/>
+            <includePolicy value="byRef"/>
+        </core:Endpoint>
+        <endpoints itemref="doc:Sidebar/DefaultCloud/filterKind"/>
+    </core:Cloud>
+    <clouds alias="default" itemref="doc:Sidebar/DefaultCloud"/>
+  </core:Kind>
+
+  <core:Kind itsName="SidebarTrunkDelegate">
+    <classes key="python">osaf.views.main.SideBar.SidebarTrunkDelegate</classes>
+    <superKinds itemref="TrunkDelegate"/>
+
+    <core:Attribute itsName="tableTemplatePath">
+      <type itemref="core:String"/>
+    </core:Attribute>
+
+    <core:Attribute itsName="calendarTemplatePath">
+      <type itemref="core:String"/>
+    </core:Attribute>
+
+    <core:Attribute itsName="itemTupleKeyToCacheKey">
+      <type itemref="core:Item"/>
+      <cardinality>dict</cardinality>
+      <initialValue/>
+    </core:Attribute>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="itemTupleKeyToCacheKey">
+            <attribute value="itemTupleKeyToCacheKey"/>
+            <includePolicy value="byRef"/>
+            <cloudAlias value="default"/>
+        </core:Endpoint>
+        <endpoints itemref="doc:SidebarTrunkDelegate/DefaultCloud/itemTupleKeyToCacheKey"/>
+    </core:Cloud>
+    <clouds alias="default" itemref="doc:SidebarTrunkDelegate/DefaultCloud"/>
+  </core:Kind>
+
+  <core:Kind itsName="CPIATestSidebarTrunkDelegate">
+    <classes key="python">osaf.views.main.SideBar.CPIATestSidebarTrunkDelegate</classes>
+    <superKinds itemref="TrunkDelegate"/>
+
+    <core:Attribute itsName="templatePath">
+      <type itemref="core:String"/>
+    </core:Attribute>
+  </core:Kind>
 
   <!--
     Status Bar
@@ -1219,15 +1283,6 @@
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
-
-  <BoxContainer itsName="ApplicationBarContainer">
-    <childrenBlocks itemref="doc:ApplicationBar"/>
-    <childrenBlocks itemref="doc:ApplicationBar"/>
-    <stretchFactor>0</stretchFactor>
-  </BoxContainer>
-  -->
-
   <BoxContainer itsName="SidebarContainerContainer">
     <childrenBlocks itemref="doc:SidebarContainer"/>
     <childrenBlocks itemref="doc:SidebarTPB"/>
@@ -1236,14 +1291,14 @@
   
   <BoxContainer itsName="SidebarContainer">
     <blockName>SidebarContainer</blockName>
-    <childrenBlocks itemref="doc:Sidebar"/>
+    <childrenBlocks itemref="doc:SidebarInstance"/>
     <childrenBlocks itemref="doc:MiniCalendar"/>
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0</stretchFactor>
     <border>0,0,0,4.0</border>    
   </BoxContainer>
 
-  <Sidebar itsName="Sidebar">
+  <doc:Sidebar itsName="SidebarInstance">
     <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
     <elementDelegate>osaf.views.main.SideBar.SidebarElementDelegate</elementDelegate>
@@ -1265,7 +1320,7 @@
     <nameAlternatives key="AllMailMessageMixin" value="All my Mail"></nameAlternatives>
     <nameAlternatives key="AllCalendarEventMixin" value="All my Events"></nameAlternatives>
     <nameAlternatives key="AllTaskMixin" value="All my Tasks"></nameAlternatives>
-  </Sidebar>
+  </doc:Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
     <stretchFactor>0</stretchFactor>
@@ -1274,13 +1329,13 @@
   <TrunkParentBlock itsName="SidebarTPB">
     <blockName value="SidebarTPB"/>
     <detailItem itemref="doc:allItemCollection"/>
-    <trunkDelegate itemref="doc:SidebarTrunkDelegate"/>
+    <trunkDelegate itemref="doc:SidebarTrunkDelegateInstance"/>
   </TrunkParentBlock>
 
-  <SidebarTrunkDelegate itsName="SidebarTrunkDelegate">
+  <doc:SidebarTrunkDelegate itsName="SidebarTrunkDelegateInstance">
     <tableTemplatePath>//parcels/osaf/views/main/TableSummaryViewTemplate</tableTemplatePath>
     <calendarTemplatePath>//parcels/osaf/views/main/CalendarSummaryViewTemplate</calendarTemplatePath>
-  </SidebarTrunkDelegate>
+  </doc:SidebarTrunkDelegate>
 
   <SplitterWindow itsName="TableSummaryViewTemplate">
     <blockName>TableSummaryView</blockName>
@@ -1396,7 +1451,7 @@
   
   <BoxContainer itsName="CPIATestSidebarContainer">
     <blockName>SidebarContainer</blockName>
-    <childrenBlocks itemref="doc:Sidebar" copy="CPIATestSidebar"/>
+    <childrenBlocks itemref="doc:SidebarInstance" copy="CPIATestSidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar" copy="CPIATestMiniCalendar"/>
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0</stretchFactor>
@@ -1410,12 +1465,12 @@
   <TrunkParentBlock itsName="CPIATestSidebarDetailView">
     <blockName>CPIATestSidebarDetailView</blockName>
     <detailItem itemref="doc:allItemCollection"/>
-    <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegate"/>
+    <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegateInstance"/>
   </TrunkParentBlock>
 
-  <CPIATestSidebarTrunkDelegate itsName="CPIATestSidebarTrunkDelegate">
+  <doc:CPIATestSidebarTrunkDelegate itsName="CPIATestSidebarTrunkDelegateInstance">
     <templatePath>//parcels/osaf/views/main/CPIATestTableSummaryViewTemplate</templatePath>
-  </CPIATestSidebarTrunkDelegate>
+  </doc:CPIATestSidebarTrunkDelegate>
 
   <SplitterWindow itsName="CPIATestTableSummaryViewTemplate">
     <blockName>SidebarDetailView</blockName>

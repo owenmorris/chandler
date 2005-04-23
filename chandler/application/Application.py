@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 import tools.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "8"
+SCHEMA_VERSION = "9"
 
 """
   Event used to post callbacks on the UI thread
