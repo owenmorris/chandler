@@ -2334,7 +2334,7 @@ void wxColumnHeaderItem::TruncateLabelText(
 {
 wxString		truncStr;
 
-	if ((cutoffCharCount > 0) && (cutoffCharCount <= targetStr.length()))
+	if ((cutoffCharCount > 0) && (cutoffCharCount <= (long)(targetStr.length())))
 	{
 		truncStr = targetStr.Left( cutoffCharCount );
 		targetStr = truncStr + wxString( wxT("...") );
