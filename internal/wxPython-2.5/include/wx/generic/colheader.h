@@ -320,18 +320,21 @@ public:
 
 	void ResizeToWidth(
 		long				extentX );
+	void CalculateTextExtent(
+		wxDC			*dc,
+		bool				bForceRecalc );
+	long MeasureLabelText(
+		wxDC			*dc,
+		const wxString		&targetStr,
+		long				maxWidth,
+		long				&charCount );
 	void GetTextUIExtent(
 		long				&startX,
 		long				&originX,
 		long				&extentX ) const;
-	long TruncateLabelText(
-		wxDC			*dc,
+	void TruncateLabelText(
 		wxString			&targetStr,
-		long				maxWidth,
-		long				&charCount );
-	long CalculateTextExtent(
-		wxDC			*dc,
-		bool				bForceRecalc );
+		long				cutoffCharCount );
 	void InvalidateTextExtent( void );
 
 public:

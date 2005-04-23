@@ -495,7 +495,7 @@ long		itemIndex;
 		else
 		{
 			// unknown message - unhandled - fall through
-			//wxLogDebug( _T("wxColumnHeader::OnClick - unknown hittest code") );
+			//wxLogDebug( wxT("wxColumnHeader::OnClick - unknown hittest code") );
 		}
 
 	case CH_HITTEST_NoPart:
@@ -755,7 +755,6 @@ long		deltaX, summerX, resultX, originX, incX;
 				resultX = m_ItemList[i]->m_ExtentX + incX;
 				m_ItemList[i]->ResizeToWidth( resultX );
 			}
-			
 
 			summerX -= incX;
 		}
@@ -792,7 +791,7 @@ bool wxColumnHeader::ResizeDivision(
 	long				originX )
 {
 wxColumnHeaderItem		*itemRef1, *itemRef2;
-long						deltaV;
+long						deltaV, newExtent1, newExtent2;
 
 	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
 		return false;
@@ -806,10 +805,12 @@ long						deltaV;
 		return false;
 
 	deltaV = itemRef2->m_OriginX - originX;
+	newExtent1 = itemRef1->m_ExtentX - deltaV;
+	newExtent2 = itemRef2->m_ExtentX + deltaV;
 
-	itemRef1->m_ExtentX -= deltaV;
-	itemRef2->m_ExtentX += deltaV;
-	itemRef2->m_OriginX = itemRef1->m_OriginX + itemRef1->m_ExtentX;
+	itemRef2->m_OriginX = itemRef1->m_OriginX + newExtent1;
+	itemRef1->ResizeToWidth( newExtent1 );
+	itemRef2->ResizeToWidth( newExtent2 );
 
 	RefreshItem( itemIndex - 1 );
 	RefreshItem( itemIndex );
@@ -1170,7 +1171,7 @@ bool					bResultV;
 	}
 	else
 	{
-		textBuffer = _T("");
+		textBuffer = wxT("");
 	}
 
 	return textBuffer;
@@ -1310,7 +1311,7 @@ long			itemCount, i;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( wxT("targetViewRef = GetHwnd failed (NULL)") );
 		return resultV;
 	}
 
@@ -1348,7 +1349,7 @@ long			resultV;
 	resultV = 0;
 
 #if 0
-	wxLogDebug( _T("wxColumnHeader::Draw - entered") );
+	wxLogDebug( wxT("wxColumnHeader::Draw - entered") );
 #endif
 
 	if (m_BUseGenericRenderer)
@@ -1389,9 +1390,13 @@ long			resultV;
 			{
 			wxClientDC		dc( this );
 
+				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
+
 				wxColumnHeaderItem::GenericDrawSelection(
 					&dc, &boundsR,
 					&m_SelectionColour, m_SelectionDrawStyle );
+
+				dc.DestroyClippingRegion();
 			}
 	}
 
@@ -1550,11 +1555,11 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("MSWItemInsert - GetHwnd failed (NULL)") );
+		//wxLogDebug( wxT("MSWItemInsert - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
-//	wxLogDebug( _T("MSWItemInsert - item text [%s]"), (const TCHAR*)titleText );
+//	wxLogDebug( wxT("MSWItemInsert - item text [%s]"), (const TCHAR*)titleText );
 
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
@@ -1570,7 +1575,7 @@ long		resultV;
 //	resultV = (long)SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
 	if (resultV < 0)
-		wxLogDebug( _T("MSWItemInsert - SendMessage failed") );
+		wxLogDebug( wxT("MSWItemInsert - SendMessage failed") );
 
 	return resultV;
 }
@@ -1584,14 +1589,14 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("MSWItemDelete - GetHwnd failed (NULL)") );
+		//wxLogDebug( wxT("MSWItemDelete - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
 	resultV = (long)Header_DeleteItem( targetViewRef, itemIndex );
 
 	if (resultV == 0)
-		wxLogDebug( _T("MSWItemDelete - SendMessage failed") );
+		wxLogDebug( wxT("MSWItemDelete - SendMessage failed") );
 
 	return resultV;
 }
@@ -1613,7 +1618,7 @@ long					resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("MSWItemRefresh - GetHwnd failed (NULL)") );
+		//wxLogDebug( wxT("MSWItemRefresh - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -1658,7 +1663,7 @@ long					resultV;
 		resultV = 1;
 
 	if (resultV == 0)
-		wxLogDebug( _T("MSWItemRefresh - SendMessage failed") );
+		wxLogDebug( wxT("MSWItemRefresh - SendMessage failed") );
 
 	return resultV;
 }
@@ -1829,7 +1834,7 @@ wxRect			targetBoundsR;
 	else
 	{
 		// this case is OK - can be used to clear an existing bitmap
-		// wxLogDebug( _T("wxColumnHeaderItem::SetBitmapRef failed") );
+		// wxLogDebug( wxT("wxColumnHeaderItem::SetBitmapRef failed") );
 	}
 }
 
@@ -1882,7 +1887,10 @@ void wxColumnHeaderItem::ResizeToWidth(
 	long				extentX )
 {
 	if ((extentX >= 0) && (m_ExtentX != extentX))
+	{
 		m_ExtentX = extentX;
+		InvalidateTextExtent();
+	}
 }
 
 bool wxColumnHeaderItem::GetAttribute(
@@ -2037,19 +2045,27 @@ OSStatus				errStatus;
 	// render the label text as/if specified
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
-	long		startX, originX, maxExtentX;
+	wxString		targetStr;
+	long			startX, originX, maxExtentX;
 
+		// calculate and cache text extent
+		CalculateTextExtent( dc, false );
 		GetTextUIExtent( startX, originX, maxExtentX );
-		qdBoundsR.left = startX;
+
+		qdBoundsR.left = originX;
 		qdBoundsR.right = qdBoundsR.left + maxExtentX;
 		qdBoundsR.top = boundsR->y + 1;
 		qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
 		nativeFontID = dc->GetFont().MacGetThemeFontID();
 
+		targetStr = m_LabelTextRef;
+		if (m_LabelTextExtent.x > maxExtentX)
+			TruncateLabelText( targetStr, m_LabelTextVisibleCharCount );
+
 		if (bUseUnicode)
 		{
-		wxMacCFStringHolder	localCFSHolder( m_LabelTextRef, wxFONTENCODING_UNICODE );
+		wxMacCFStringHolder	localCFSHolder( targetStr, wxFONTENCODING_UNICODE );
 
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
@@ -2061,7 +2077,7 @@ OSStatus				errStatus;
 		{
 		CFStringRef			cfLabelText;
 
-			cfLabelText = CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.c_str()), kCFStringEncodingMacRoman );
+			cfLabelText = CFStringCreateWithCString( NULL, (const char*)(targetStr.c_str()), kCFStringEncodingMacRoman );
 			if (cfLabelText != NULL)
 			{
 				errStatus =
@@ -2122,15 +2138,24 @@ bool			bSelected, bHasIcon;
 	{
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
-
 		GetTextUIExtent( startX, originX, maxExtentX );
 
 		descentY = 1;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
 
-		// FIXME: need to clip long text items
-		dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + descentY );
+		if (m_LabelTextExtent.x <= maxExtentX)
+		{
+			dc->DrawText( m_LabelTextRef.c_str(), startX, localBoundsR.y + descentY );
+		}
+		else
+		{
+		wxString		truncStr;
+
+			truncStr = m_LabelTextRef;
+			TruncateLabelText( truncStr, m_LabelTextVisibleCharCount );
+			dc->DrawText( truncStr.c_str(), startX, localBoundsR.y + descentY );
+		}
 	}
 
 	// render the bitmap, should one be present
@@ -2151,7 +2176,7 @@ bool			bSelected, bHasIcon;
 	return 0;
 }
 
-long wxColumnHeaderItem::CalculateTextExtent(
+void wxColumnHeaderItem::CalculateTextExtent(
 	wxDC			*dc,
 	bool				bForceRecalc )
 {
@@ -2160,7 +2185,7 @@ long			startX, originX, maxExtentX;
 long			charCount;
 
 	if (dc == NULL)
-		return (-1);
+		return;
 
 	if (bForceRecalc || (m_LabelTextExtent.x < 0) || (m_LabelTextExtent.y < 0))
 	{
@@ -2185,15 +2210,13 @@ long			charCount;
 
 		GetTextUIExtent( startX, originX, maxExtentX );
 		if (m_LabelTextExtent.x > maxExtentX)
-			m_LabelTextVisibleCharCount = (-m_LabelTextVisibleCharCount);
+			(void)MeasureLabelText( dc, m_LabelTextRef, maxExtentX, m_LabelTextVisibleCharCount );
 	}
-
-	return m_LabelTextExtent.x;
 }
 
-long wxColumnHeaderItem::TruncateLabelText(
+long wxColumnHeaderItem::MeasureLabelText(
 	wxDC			*dc,
-	wxString			&targetStr,
+	const wxString		&targetStr,
 	long				maxWidth,
 	long				&charCount )
 {
@@ -2212,13 +2235,16 @@ bool			bContinue;
 	ellipsisStr = wxString( wxT("...") );
 	dc->GetTextExtent( ellipsisStr, &ellipsisWidth, &targetHeight );
 	if (ellipsisWidth > maxWidth)
+	{
+		charCount = 0;
 		return 0;
+	}
 
 	// determine if the string can fit inside the current width
 	dc->GetTextExtent( targetStr, &targetWidth, &targetHeight );
-	bContinue = (targetWidth > maxWidth);
 
-	if (bContinue)
+	bContinue = (targetWidth > maxWidth);
+	while (bContinue)
 	{
 		charCount--;
 
@@ -2227,13 +2253,9 @@ bool			bContinue;
 			truncStr = targetStr.Left( charCount );
 			dc->GetTextExtent( truncStr, &targetWidth, &targetHeight );
 			bContinue = (targetWidth + ellipsisWidth > maxWidth);
-
-			if (! bContinue)
-				targetStr = truncStr + ellipsisStr;
 		}
 		else
 		{
-			targetStr = ellipsisStr;
 			targetWidth = ellipsisWidth;
 			bContinue = false;
 		}
@@ -2304,6 +2326,23 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 	startX = originX;
 	if (leftDeltaX > 0)
 		startX += leftDeltaX;
+}
+
+void wxColumnHeaderItem::TruncateLabelText(
+	wxString			&targetStr,
+	long				cutoffCharCount )
+{
+wxString		truncStr;
+
+	if ((cutoffCharCount > 0) && (cutoffCharCount <= targetStr.length()))
+	{
+		truncStr = targetStr.Left( cutoffCharCount );
+		targetStr = truncStr + wxString( wxT("...") );
+	}
+	else
+	{
+		targetStr = wxString( wxT("...") );
+	}
 }
 
 void wxColumnHeaderItem::InvalidateTextExtent( void )
@@ -2379,7 +2418,7 @@ long			borderWidth, offsetY;
 
 #if 0
 	wxLogDebug(
-		_T("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
+		wxT("GenericDrawSelection: [%ld, %ld, %ld, %ld]"),
 		boundsR->x, boundsR->y, boundsR->width, boundsR->height );
 #endif
 
