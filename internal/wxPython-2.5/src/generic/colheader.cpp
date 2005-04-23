@@ -2277,8 +2277,8 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 
 	rightInsetX =
 		(m_BSortEnabled
-		? (2 * wxCH_kMetricInsetX) + wxCH_kMetricArrowSizeX
-		: wxCH_kMetricInsetX);
+		? wxCH_kMetricInsetX + wxCH_kMetricArrowSizeX
+		: wxCH_kMetricInsetX / 2);
 
 	switch (m_TextJust)
 	{
@@ -2287,9 +2287,6 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 		break;
 
 	case CH_JUST_Right:
-		leftInsetX = wxCH_kMetricInsetX;
-		break;
-
 	case CH_JUST_Left:
 	default:
 		leftInsetX = wxCH_kMetricInsetX;
@@ -2309,13 +2306,13 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 	switch (m_TextJust)
 	{
 	case CH_JUST_Right:
-		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
-			leftDeltaX = extentX - m_LabelTextExtent.x;
-		break;
-
 	case CH_JUST_Center:
-		if ((m_LabelTextExtent.x >= 0) && (extentX > m_LabelTextExtent.x))
-			leftDeltaX = (extentX - m_LabelTextExtent.x) / 2;
+		if ((m_LabelTextExtent.x >= 0) && (m_LabelTextExtent.x < extentX))
+		{
+			leftDeltaX = extentX - m_LabelTextExtent.x;
+			if (m_TextJust == CH_JUST_Center)
+				leftDeltaX /= 2;
+		}
 		break;
 
 	case CH_JUST_Left:
