@@ -363,8 +363,10 @@ public:
 		bool				bSelected );
 #endif
 
-	static bool HasValidBitmapRef(
+	static bool ValidBitmapRef(
 		const wxBitmap	*bitmapRef );
+
+	static wxChar * GetEllipsesString( void );
 
 	static long ConvertJustification(
 		long				sourceEnum,

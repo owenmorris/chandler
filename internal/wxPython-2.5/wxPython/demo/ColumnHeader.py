@@ -225,7 +225,7 @@ overview = """<html><body>
 
 <p>Selections, bitmaps and sort arrows are optional</p>
 
-<p>NB: not all of the selection styles are functional</p>
+<p>NB: not all of the selection styles are implemented</p>
 
 <p>A limitation: text and bitmaps are mutually exclusive.</p>
 

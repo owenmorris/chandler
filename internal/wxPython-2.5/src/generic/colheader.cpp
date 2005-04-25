@@ -1639,7 +1639,7 @@ long					resultV;
 		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	// NB: should sort arrows and bitmaps be MutEx?
-	if (itemRef->HasValidBitmapRef( itemRef->m_BitmapRef ))
+	if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
 	{
 		// add bitmap reference
 		newFmt |= HDF_BITMAP;
@@ -1813,7 +1813,7 @@ wxRect			targetBoundsR;
 	delete m_BitmapRef;
 	m_BitmapRef = NULL;
 
-	if ((boundsR != NULL) && HasValidBitmapRef( &bitmapRef ))
+	if ((boundsR != NULL) && ValidBitmapRef( &bitmapRef ))
 	{
 		GenericGetBitmapItemBounds( boundsR, m_TextJust, NULL, &targetBoundsR );
 		if ((bitmapRef.GetWidth() > targetBoundsR.width) || (bitmapRef.GetHeight() > targetBoundsR.height))
@@ -2006,7 +2006,7 @@ OSStatus				errStatus;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
+	bHasIcon = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -2126,7 +2126,7 @@ bool			bSelected, bHasIcon;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
+	bHasIcon = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
@@ -2232,7 +2232,7 @@ bool			bContinue;
 		return 0;
 
 	// determine the minimum width
-	ellipsisStr = wxString( wxT("...") );
+	ellipsisStr = wxString( GetEllipsesString() );
 	dc->GetTextExtent( ellipsisStr, &ellipsisWidth, &targetHeight );
 	if (ellipsisWidth > maxWidth)
 	{
@@ -2274,11 +2274,16 @@ void wxColumnHeaderItem::GetTextUIExtent(
 	long				&extentX ) const
 {
 long		leftDeltaX, leftInsetX, rightInsetX;
+long		insetX;
+
+	insetX = wxCH_kMetricInsetX;
+	if (m_TextJust == CH_JUST_Center)
+		insetX /= 2;
 
 	rightInsetX =
 		(m_BSortEnabled
-		? wxCH_kMetricInsetX + wxCH_kMetricArrowSizeX
-		: wxCH_kMetricInsetX / 2);
+		? (2 * insetX) + wxCH_kMetricArrowSizeX
+		: insetX);
 
 	switch (m_TextJust)
 	{
@@ -2289,7 +2294,7 @@ long		leftDeltaX, leftInsetX, rightInsetX;
 	case CH_JUST_Right:
 	case CH_JUST_Left:
 	default:
-		leftInsetX = wxCH_kMetricInsetX;
+		leftInsetX = insetX;
 		break;
 	}
 
@@ -2334,11 +2339,11 @@ wxString		truncStr;
 	if ((cutoffCharCount > 0) && (cutoffCharCount <= (long)(targetStr.length())))
 	{
 		truncStr = targetStr.Left( cutoffCharCount );
-		targetStr = truncStr + wxString( wxT("...") );
+		targetStr = truncStr + wxString( GetEllipsesString() );
 	}
 	else
 	{
-		targetStr = wxString( wxT("...") );
+		targetStr = wxString( GetEllipsesString() );
 	}
 }
 
@@ -2606,7 +2611,7 @@ int		sizeX, sizeY, insetX;
 }
 
 // static
-bool wxColumnHeaderItem::HasValidBitmapRef(
+bool wxColumnHeaderItem::ValidBitmapRef(
 	const wxBitmap		*bitmapRef )
 {
 bool		bResultV;
@@ -2614,6 +2619,12 @@ bool		bResultV;
 	bResultV = ((bitmapRef != NULL) && bitmapRef->Ok());
 
 	return bResultV;
+}
+
+// static
+wxChar * wxColumnHeaderItem::GetEllipsesString( void )
+{
+	return wxT("...");
 }
 
 // static
