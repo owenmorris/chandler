@@ -8,8 +8,7 @@
 <core:Parcel itsName="repositoryviewer"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/repositoryviewer">
 
   <core:version>0.3</core:version>
 

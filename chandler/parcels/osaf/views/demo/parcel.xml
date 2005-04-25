@@ -9,7 +9,6 @@
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:version>0.3</core:version>

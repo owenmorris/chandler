@@ -15,13 +15,6 @@
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail">
 
-  <!--   
-       Warning - Adding this line to the includes above causes trouble!
-       The problem probably has something to do with defining a template
-       and including it in the same set of XML files.
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-  -->
-
   <core:version>0.3</core:version>
   
   <!--

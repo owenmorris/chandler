@@ -6,7 +6,6 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="main"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/main"
@@ -506,7 +505,7 @@
   <MenuItem itsName="PrintPreviewItem">
     <blockName>PrintPreviewItem</blockName>
     <title>Print Preview</title>
-    <event itemref="events:PrintPreview"/>
+    <event itemref="PrintPreview"/>
   </MenuItem>
   
   <MenuItem itsName="PrintItem">
@@ -514,7 +513,7 @@
     <title>Print...</title>
     <accel>Ctrl+P</accel>
     <helpString>Print the current calendar</helpString>
-    <event itemref="events:Print"/>
+    <event itemref="Print"/>
   </MenuItem>
  
   <MenuItem itsName="FileSeparator1">
@@ -587,14 +586,14 @@
     <title>Quit</title>
     <accel>Ctrl+Q</accel>
     <helpString value="Quit Chandler"/>
-    <event itemref="events:Quit"/>
+    <event itemref="Quit"/>
   </MenuItem>
   
   <MenuItem itsName="UndoItem">
     <blockName>UndoItem</blockName>
     <title>Undo</title>
     <accel>Ctrl+Z</accel>
-    <event itemref="events:Undo"/>
+    <event itemref="Undo"/>
     <helpString value="Can't Undo"/>
   </MenuItem>
 
@@ -602,7 +601,7 @@
     <blockName>RedoItem</blockName>
     <title>Redo</title>
     <accel>Ctrl+Y</accel>
-    <event itemref="events:Redo"/>
+    <event itemref="Redo"/>
     <helpString value="Can't Redo"/>
   </MenuItem>
 
@@ -615,28 +614,28 @@
     <blockName>CutItem</blockName>
     <title>Cut</title>
     <accel>Ctrl+X</accel>
-    <event itemref="events:Cut"/>
+    <event itemref="Cut"/>
   </MenuItem>
 
   <MenuItem itsName="CopyItem">
     <blockName>CopyItem</blockName>
     <title>Copy</title>
     <accel>Ctrl+C</accel>
-    <event itemref="events:Copy"/>
+    <event itemref="Copy"/>
   </MenuItem>
 
   <MenuItem itsName="PasteItem">
     <blockName>PasteItem</blockName>
     <title>Paste</title>
     <accel>Ctrl+V</accel>
-    <event itemref="events:Paste"/>
+    <event itemref="Paste"/>
   </MenuItem>
   
   <MenuItem itsName="RemoveItem">
     <blockName>RemoveItem</blockName>
     <title>Remove</title>
     <accel>DELETE</accel>
-    <event itemref="events:Remove"/>
+    <event itemref="Remove"/>
     <helpString value="Remove the selection"/>
   </MenuItem>
   
@@ -907,7 +906,7 @@
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
-    <event itemref="events:About"/>
+    <event itemref="About"/>
     <helpString>About Chandler...</helpString>
   </MenuItem>
 
@@ -956,12 +955,12 @@
   
   <ContextMenuItem itsName="OpenTabContextItem">
     <title>Open in New Tab</title>
-    <event itemref="events:Open"/>
+    <event itemref="Open"/>
   </ContextMenuItem>
 
   <ContextMenuItem itsName="CloseTabContextItem">
     <title>Close Tab</title>
-    <event itemref="events:Close"/>
+    <event itemref="Close"/>
   </ContextMenuItem>
 
   <!--
@@ -1094,7 +1093,7 @@
     <bitmap>ApplicationBarSend.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Send the selected Item</helpString>
-    <event itemref="events:SendShareItem"/>
+    <event itemref="SendShareItem"/>
   </ToolbarItem>
 
   <!--

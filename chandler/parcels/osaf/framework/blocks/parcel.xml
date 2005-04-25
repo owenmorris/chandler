@@ -328,6 +328,144 @@
   </Kind>
 
   <!--
+    Block Events instances.  Applicaiton specific events should not be located here. 
+    Instead put them in a View in your application. Also don't put any references to 
+    application specific parcels here.
+ -->
+
+  <!-- Block Events dispatched by name -->
+  <docSchema:EventList itsName="GlobalEvents">
+    <!-- Don't add any events here unless your proposed event has been reviewed -->
+    <eventsForNamedDispatch itemref="docSchema:About"/>    
+    <eventsForNamedDispatch itemref="docSchema:Close"/>
+    <eventsForNamedDispatch itemref="docSchema:PrintPreview"/>
+    <eventsForNamedDispatch itemref="docSchema:Print"/>
+    <eventsForNamedDispatch itemref="docSchema:Copy"/>
+    <eventsForNamedDispatch itemref="docSchema:Cut"/>
+    <eventsForNamedDispatch itemref="docSchema:Remove"/>
+    <eventsForNamedDispatch itemref="docSchema:New"/>
+    <eventsForNamedDispatch itemref="docSchema:Open"/>
+    <eventsForNamedDispatch itemref="docSchema:Paste"/>
+    <eventsForNamedDispatch itemref="docSchema:Preferences"/>
+    <eventsForNamedDispatch itemref="docSchema:Quit"/>
+    <eventsForNamedDispatch itemref="docSchema:Redo"/>
+    <eventsForNamedDispatch itemref="docSchema:SelectedDateChanged"/>
+    <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcast"/>
+    <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcastInsideActiveView"/>
+    <eventsForNamedDispatch itemref="docSchema:SetContents"/>
+    <eventsForNamedDispatch itemref="docSchema:Undo"/>
+
+    <eventsForNamedDispatch itemref="docSchema:EnterPressed"/>
+  </docSchema:EventList>
+
+  <docSchema:BlockEvent itsName="About">
+    <blockName>About</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Close">
+    <blockName>Close</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="PrintPreview">
+    <blockName>PrintPreview</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Print">
+    <blockName>Print</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Copy">
+    <blockName>Copy</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Cut">
+    <blockName>Cut</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Remove">
+    <blockName>Remove</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="New">
+    <blockName>New</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Open">
+    <blockName>Open</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Paste">
+    <blockName>Paste</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Preferences">
+    <blockName>Preferences</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Quit">
+    <blockName>Quit</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Redo">
+    <blockName>Redo</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SelectedDateChanged">
+    <blockName>SelectedDateChanged</blockName>
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SelectItemBroadcast">
+    <blockName>SelectItemBroadcast</blockName>
+    <methodName>onSelectItemEvent</methodName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SelectItemBroadcastInsideActiveView">
+    <blockName>SelectItemBroadcastInsideActiveView</blockName>
+    <methodName>onSelectItemEvent</methodName>
+    <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SetContents">
+    <blockName>SetContents</blockName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="Undo">
+    <blockName>Undo</blockName>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="EnterPressed">
+    <blockName>EnterPressed</blockName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SendShareItem">
+    <blockName>SendShareItem</blockName>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <!--
     Block
   -->
 

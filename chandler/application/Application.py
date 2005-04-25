@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 import tools.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "9"
+SCHEMA_VERSION = "10"
 
 """
   Event used to post callbacks on the UI thread
@@ -309,7 +309,7 @@ class wxApplication (wx.App):
           Register to some global events for name lookup.
         """
         if splash: splash.updateGauge('globalevents')
-        globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
+        globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/GlobalEvents')
         from osaf.framework.blocks.Block import Block
         Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
                                              Block.eventNameToItemUUID)
