@@ -15,11 +15,12 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
-from osaf.framework.attributeEditors.AttributeEditors import IAttributeEditor
+import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
+import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+
 from repository.schema.Types import DateTime
 from repository.schema.Types import RelativeDateTime
 import mx.DateTime
-import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 class Button(RectangularChild):
     def instantiateWidget(self):
@@ -399,7 +400,7 @@ class List(RectangularChild):
         self.widget.GoToItem (self.selection)
 
 
-class wxTableData (wx.grid.PyGridTableBase):
+class wxTableData(wx.grid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
         self.defaultRWAttribute = wx.grid.GridCellAttr()
@@ -450,7 +451,7 @@ class wxTableData (wx.grid.PyGridTableBase):
         attribute = self.base_GetAttr (row, column, kind)
         if attribute is None:
             type = self.GetTypeName (row, column)
-            delegate = IAttributeEditor.GetAttributeEditorSingleton (type)
+            delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             """
               An apparent bug in table asks for an attribute even when
@@ -502,17 +503,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
 
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
-        self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
-        self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
 
     def OnGainFocus (self, event):
         self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
@@ -800,28 +799,26 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()
-        self.delegate = IAttributeEditor.GetAttributeEditorSingleton (type)
+        self.delegate = AttributeEditors.getSingleton (type)
 
-
-    def Draw (self, grid, attr, dc, rect, row, column, isSelected):
+    def Draw (self, grid, attr, dc, rect, row, column, isInSelection):
         """
           Currently only handles left justified multiline text
         """
-        DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
+        DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         item, attributeName = grid.GetElementValue (row, column)
-        self.delegate.Draw (dc, rect, item, attributeName, isSelected)
-
+        self.delegate.Draw (dc, rect, item, attributeName, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
     def __init__(self, type):
         super (GridCellAttributeEditor, self).__init__ ()
-        self.delegate = IAttributeEditor.GetAttributeEditorSingleton (type)
+        self.delegate = AttributeEditors.getSingleton (type)
 
     def Create (self, parent, id, evtHandler):
         """
           Create an edit control to edit the text
         """
-        self.control = self.delegate.Create (parent, id) # create Attribute Editor control
+        self.control = self.delegate.CreateControl(parent, id)
         self.SetControl (self.control)
         if evtHandler:
             self.control.PushEventHandler (evtHandler)
@@ -833,11 +830,18 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         pass
 
     def BeginEdit (self, row,  column, grid):
+        assert getattr(self, 'editingCell', None) is None
+        self.editingCell = (row, column)
+        
         item, attributeName = grid.GetElementValue (row, column)
         self.initialValue = self.delegate.GetAttributeValue (item, attributeName)
-        self.delegate.BeginControlEdit (self.control, self.initialValue)
+        self.delegate.BeginControlEdit (item, attributeName, self.control)
+        self.control.SetFocus()
 
     def EndEdit (self, row, column, grid):
+        assert self.editingCell == (row, column)
+        self.editingCell = None
+
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
         if value == self.initialValue:
@@ -862,8 +866,8 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         self.delegate.SetControlValue (self.control, self.initialValue)
 
     def GetValue (self):
+        assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
-
 
 class Table (RectangularChild):
     def __init__(self, *arguments, **keywords):
@@ -875,12 +879,11 @@ class Table (RectangularChild):
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
         map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
         for key in map.editorString.keys():
-            if key != defaultName:
+            if key != defaultName and not '+' in key:
                 widget.RegisterDataType (key,
                                          GridCellAttributeRenderer (key),
                                          GridCellAttributeEditor (key))
         return widget
-
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
@@ -948,6 +951,9 @@ class StaticText(RectangularChild):
             style = wx.ALIGN_CENTRE
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
+            
+        # @@@BJS For my own debugging
+        # style |= wx.SIMPLE_BORDER
 
         staticText = wxStaticText (self.parentBlock.widget,
                                    -1,
@@ -1383,122 +1389,153 @@ class wxAEBlock(wxRectangularChild):
         # superclass sync will handle shown-ness
         super(wxAEBlock, self).wxSynchronizeWidget()
 
+        # Make sure we've got the appropriate editor. (We could do the lookup 
+        # at init time, but then value-based lookups won't be right.)
         block = self.blockItem
-        if not block.isShown:
+        newEditor = block.isShown and self.blockItem.lookupEditor(self.editor) or None
+        if self.editor is not newEditor:
             self.destroyControl()
-            return
-
-        # lookup the appropriate editor
-        # could do the lookup at init time, but then value-based lookups won't be right.
-        editor = self.blockItem.lookupEditor(self.editor)
-        if editor is not self.editor:
-            self.destroyControl()
-            self.editor = editor
+            self.editor = newEditor
+            
+            if newEditor is None:
+                return
+            
+            # Give the editor a chance to create its control early
+            if self.editor.UsePermanentControl():
+                self.createControl()
+                self.editor.BeginControlEdit(self.blockItem.getItem(), 
+                                             self.blockItem.getAttributeName(),
+                                             self.control)
 
         # redraw
-        self.redrawAEBlock()
+        self.Refresh()
 
     def onClick(self, event):
         """
           A click has occured.  Prepare to edit the value, if editable.
         """
-        # if already created a control, then return
-        if self.control is not None:
-            return
+        editor = self.editor
+        assert editor is not None
+        
+        block = self.blockItem
+        item = block.getItem()
+        attributeName = block.getAttributeName()
+
+        if self.control is None:
+            # Create the control
+            # return if editing is not allowed
+            if block.readOnly:  # the block could be readOnly
+                logger.debug("wxAEBlock.onClick: ignoring: block is readonly.")
+                return
+            if editor.ReadOnly ((item, attributeName)):  # The editor might not allow editing
+                logger.debug("wxAEBlock.onClick: ignoring: editor is readonly.")
+                return
+    
+            # create the control to use for editing
+            logger.debug("wxAEBlock.onClick: creating control.")
+            self.createControl()
+        else:
+            # Show the control we've already got
+            assert not self.control.IsShown()
+            self.control.Show()
+            logger.debug("wxAEBlock.onClick: showing existing control.")
+
+        # Begin editing
+        editor.BeginControlEdit(item, attributeName, self.control)
+        self.control.SetFocus()
 
         # consume the event
-        event.Skip()
-
-        # return if editing is not allowed
-        block = self.blockItem
-        if block.readOnly:  # the block could be readOnly
-            return
-        editor = self.editor
-        item = block.getItem()
-        attribute = block.getAttributeName()
-        if editor.ReadOnly ((item, attribute)):  # The editor might not allow editing
-            return
-
-        # create the control to use for editing
-        self.createControl()
-
-        # begin editing
-        curValue = editor.GetAttributeValue(item, attribute)
-        editor.BeginControlEdit(self.control, curValue)
+        # @@@BJS: might not want to do this, if that allows first-clicks to 
+        # go into the textbox and place the insertion point...
+        # event.Skip()
 
         # redraw
-        self.redrawAEBlock()
+        # @@@BJS: needed? was: self.drawAEBlock()
+        # if not, refactor drawAEBlock into OnPaint
 
     def OnPaint(self, paintEvent):
         """
           Need to update a portion of ourself.  Ask the control to draw in the update region.
         """
-        paintDC = wx.PaintDC(self)
-        paintDC.SetBrush (wx.TRANSPARENT_BRUSH)
-        self.drawAEBlock(paintDC)
+        if self.editor is not None: # Ignore paints until we've been sync'd.
+            self.drawAEBlock(wx.PaintDC(self))
 
-    def redrawAEBlock(self):
+    def drawAEBlock(self, dc=None):
         """
-          Redraw the control.  
-
-        If editable, a control exists, and it will redraw itself.  
-        Otherwise we call the Attribute Editor to do the drawing.
+        Draw ourself.
         """
-        clientDC = wx.ClientDC(self)
-        clientDC.SetBrush (wx.TRANSPARENT_BRUSH)
-        self.drawAEBlock(clientDC)
-
-    def drawAEBlock(self, dc):
+        assert self.editor is not None
+        
         block = self.blockItem
-        if block.isShown: 
+        if block.isShown:
             item = block.getItem ()
             if item is not None:
                 blockRect = self.GetRect() # use the rect of the AE Block
                 rect = wx.Rect(0, 0, blockRect.width, blockRect.height)
                 attributeName = block.getAttributeName()
-                isSelected = self.control is not None
-                self.ensureEditor()
+                
+                if dc is None:
+                    dc = wx.ClientDC(self)
+                    
                 font = self.GetFont()
                 dc.SetFont(font)
-                self.editor.Draw(dc, rect, item, attributeName, isSelected)
-
-    def ensureEditor(self):
-        if self.editor is None:
-            self.editor = self.blockItem.lookupEditor()
+                dc.SetBrush(wx.TRANSPARENT_BRUSH)
+                self.editor.Draw(dc, rect, item, attributeName)
 
     def createControl(self):
         # create the control to use for editing
-        control = self.editor.Create(self.blockItem.widget, -1)
-        control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromControl)
-        control.Bind(wx.EVT_KEY_UP, self.OnKeyPressedFromControl)
-        self.control = control # remember the widget created (aka the control)
+        assert self.control is None
+        self.control = self.editor.CreateControl(self, -1)
+        
+        # @@@BJS: Todo: get the editor's control to handle both these events, and notify us
+        self.control.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromControl)
+        self.control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromControl)
+        self.control.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromControl)
 
     def destroyControl(self):
+        if self.editor is None:
+            assert self.control is None
+            return
+        
         if self.control is None:
             return
-
-        wx.CallAfter(self.control.Destroy) # destroy this control next idle.
+        
+        wx.CallAfter(self.control.Destroy)
         self.control = None
+
+    def onGainFocusFromControl(self, event):
+        """
+          The control got the focus
+        """
+        logger.debug("wxAEBlock: control gained focus")
 
     def onLoseFocusFromControl(self, event):
         """
           The control lost focus - we're finishing editing in the control.
         """
-        # return if there's no control
+        logger.debug("wxAEBlock: control lost focus")
+        
+        # @@@BJS: needed? return if there's no control
+        assert self.control
         if self.control is None:
             return
 
         item = self.blockItem.getItem()
         attributeName = self.blockItem.getAttributeName()
         self.editor.EndControlEdit(item, attributeName, self.control)
-        self.destroyControl()
+        if not self.editor.UsePermanentControl():
+            self.control.Hide()
 
-        self.wxSynchronizeWidget() #resync, so we'll draw without the control.
         event.Skip()
 
-    def OnKeyPressedFromControl(self, event):
+    def OnKeyUpFromControl(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
+            # @@@ On PC, Hide causes loss of focus. On Mac, it doesn't
+            # Do the extra EndControlEdit here.
             self.editor.EndControlEdit(self.blockItem.getItem(), self.blockItem.getAttributeName(), self.control)
+            if not self.editor.UsePermanentControl():
+                self.control.Hide()
+            # @@@ Should do the tab thing
         else:
             event.Skip()
 
@@ -1519,7 +1556,12 @@ class AEBlock(RectangularChild):
                             -1,
                             wx.DefaultPosition,
                             (self.minimumSize.width, self.minimumSize.height))
-        widget.SetFont(Font (self.characterStyle))
+        try:
+            charStyle = self.characterStyle
+        except AttributeError:
+            pass
+        else:
+            widget.SetFont(Font (charStyle))
         return widget
 
     def lookupEditor(self, oldEditor):
@@ -1527,31 +1569,26 @@ class AEBlock(RectangularChild):
         typeName = self.getItemAttributeTypeName()
         item = self.getItem()
         attributeName = self.getAttributeName()
-        try:
-            presentationStyle = self.presentationStyle
-        except AttributeError:
-            presentationStyle = None
-            
+        
+        presentationStyle = getattr(self, 'presentationStyle', None)            
         if (oldEditor is not None) and (oldEditor.typeName == typeName) and \
            (oldEditor.attributeName == attributeName) and \
            (oldEditor.presentationStyle is presentationStyle):
+            assert oldEditor.item is item # this shouldn't've changed.
             return oldEditor
         
-        selectedEditor = IAttributeEditor.GetAttributeEditorInstance (typeName, 
-                                        item, attributeName, presentationStyle)
+        selectedEditor = AttributeEditors.getInstance\
+                       (typeName, item, attributeName, presentationStyle)
 
         return selectedEditor
 
-    def getItem(self):
-        # Get the Item connected to this block
-        try:
-            item = self.contents
-        except AttributeError:
-            try:
-                item = self.detailRoot().selectedItem() # @@@DLD fix Detail-View specific code
-            except AttributeError:
-                item = None
-        return item
+    def onSetContentsEvent (self, event):
+        newContents = event.arguments['item']
+        if getattr(self, 'contents', None) is not newContents:
+            self.contents = newContents
+
+    def getItem(self):        
+        return getattr(self, 'contents', None)
 
     def getAttributeName(self):
         attributeName = self.viewAttribute
@@ -1563,19 +1600,21 @@ class AEBlock(RectangularChild):
         if item is None:
             return None
 
-        # if the attribute has a value, use it's type's name
+        # Ask the schema for the attribute's type first
         attributeName = self.getAttributeName()
         try:
-            attrValue = getattr(item, attributeName)
-            typeName = type(attrValue).__name__
+            theType = item.getAttributeAspect(attributeName, "type")
         except:
-
-            # if the attribute has no value, we must use the schema to determine type
+            # If the repository doesn't know about it (it might be a property),
+            # get its value and use its type
             try:
-                theType = item.getAttributeAspect(attributeName, "type")
+                attrValue = getattr(item, attributeName)
             except:
                 typeName = "_default"
             else:
-                typeName = theType.itsName
+                typeName = type(attrValue).__name__
+        else:
+            typeName = theType.itsName
+        
         return typeName
 

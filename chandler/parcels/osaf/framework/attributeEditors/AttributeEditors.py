@@ -9,15 +9,62 @@ import mx.DateTime as DateTime
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
-import osaf.framework.blocks.Styles as Styles
+import repository.item.Query as ItemQuery
 import repository.query.Query as Query
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+import osaf.framework.blocks.Styles as Styles
+import logging
+from operator import itemgetter
 
-class IAttributeEditor (object):
-    """ CPIA Attribute Editor base class """
-    _TypeToEditorInstances = {}
+logger = logging.getLogger('ae')
+logger.setLevel(logging.INFO)
 
-    def __init__(self, isShared, presentationStyle=None):
+_TypeToEditorInstances = {}
+
+def getSingleton (typeName):
+    """ Get (and cache) a single shared Attribute Editor for this type. """
+    try:
+        instance = _TypeToEditorInstances [typeName]
+    except KeyError:
+        aeClass = _getAEClass (typeName)
+        instance = aeClass (True, typeName, item=None, attributeName=None, presentationStyle=None)
+        _TypeToEditorInstances [typeName] = instance
+    return instance
+
+def getInstance (typeName, item, attributeName, presentationStyle):
+    """ Get a new unshared instance of the Attribute Editor for this type (and optionally, format). """
+    try:
+        format = presentationStyle.format
+    except AttributeError:
+        format = None
+    aeClass = _getAEClass(typeName, format)
+    logger.debug("getAEClass(%s [%s, %s]) --> %s" % (attributeName, typeName, format, aeClass))    
+    instance = aeClass (False, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)        
+    return instance
+
+def _getAEClass (type, format=None):
+    """ Return the attribute editor class for this type """
+    map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+    # If we have a format specified, try to find a specific 
+    # editor for type+form. If we don't, just use the type, 
+    # and if we don't have a type-specific one, use the "_default".
+    classPath = ((format is not None) and map.editorString.get("%s+%s" % (type, format), None)) \
+              or map.editorString.get(type, None)
+    if classPath is None: # do this separately for now so I can set a breakpoint
+        classPath = map.editorString.get("_default", None)
+    assert classPath is not None, "Default attribute editor doesn't exist ('_default')"
+
+    parts = classPath.split (".")
+    assert len(parts) >= 2, " %s isn't a module and class" % classPath
+    className = parts.pop ()
+    module = __import__ ('.'.join(parts), globals(), locals(), className)
+    assert module.__dict__[className], "Class %s doesn't exist" % classPath
+    aeClass = module.__dict__[className]
+    return aeClass
+
+class BaseAttributeEditor (object):
+    """ Base class for Attribute Editors. """
+    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
         """ 
         Create a shared, or unshared instance of an Attribute Editor. 
         
@@ -25,165 +72,316 @@ class IAttributeEditor (object):
                   several values (e.g. Grid uses a single AE for a whole
                   column).
         @type isShared: boolean
+        @param typeName: the string name of this type
+        @type typeName: str
         @param presentationStyle: gives style information to the AE
         @type presentationStyle: reference to PresentationStyle item, or
                   None when isShared is True (default presentation).
         Unshared instances may store data in attributes of self, but
         that may cause trouble for shared Attribute Editors instances.
         """
+        self.isShared = isShared
+        
+        # Note the characteristics that made us pick this editor
+        self.typeName = typeName
+        self.attributeName = attributeName
+        self.presentationStyle = presentationStyle
+        
+        # And the item we're editing, if we have it
+        self.item = item
 
     def ReadOnly (self, (item, attribute)):
         """ Return True if this Attribute Editor refuses to edit """
-        
-    def Draw (self, dc, rect, item, attributeName, isSelected):
+        # By default, everything's editable.
+        return False
+
+    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """ Draw the value of the attribute in the specified rect of the dc """
-        
-    def Create (self, parent, id):
-        """ Create and return a control to use for editing the attribute value. """
-
-    def BeginControlEdit (self, control, value):
-        """ Begin editing the value """
-        
-    def EndControlEdit (self, item, attributeName, control):
+        raise NotImplementedError
+    
+    def UsePermanentControl(self):
         """ 
-        End editing the value.  
-
-        Called before destroying the control created in Create(). 
+        Does this attribute editor use a permanent control (or
+        will the control be created when the user clicks)? 
         """
-        
+        return False
+
+    def CreateControl (self, parent, id):
+        """ 
+        Create and return a control to use for editing the attribute value. 
+        """
+        raise NotImplementedError
+    
+    def DestroyControl (self, control, losingFocus=False):
+        """ 
+        Destroy the control at next idle, by default.
+        Return True if we did, or False if we did nothing because we were just
+        losing focus.
+        """
+        wx.CallAfter(control.Destroy)
+        return True
+ 
+    def BeginControlEdit (self, item, attributeName, control):
+        """ 
+        Load this attribute into the editing control. 
+        """
+        pass # do nothing by default
+
+    def EndControlEdit (self, item, attributeName, control):
+        """ Save the control's value into this attribute. """
+        # Do nothing by default.
+        pass        
+    
     def GetControlValue (self, control):
         """ Get the value from the control. """
+        value = control.GetValue()
+        # @@@ BJS For now, make sure the strings we return are Unicode.
+        # This'll go away when we build wx with the "unicode" flag.
+        if isinstance(value, str): value = unicode(value)
+        assert not isinstance(value, str)
+        return value
 
     def SetControlValue (self, control, value):
         """ Set the value in the control. """
-
-    def GetAttributeValue (self, item, attributeName):
-        """ Get the value from the specified attribute of the item. """
-        
-    def SetAttributeValue (self, item, attributeName, value):
-        """ Set the value of the attribute given by the value. """
-
-    """ Informal conventions """
-    def onKeyPressed(self, event):
-        """ Handle a Key pressed in the control. """
-
-    """ Class Methods """
-    def GetAttributeEditorSingleton (theClass, type):
-        """ Get (and cache) a single shared Attribute Editor for this type. """
-        try:
-            instance = theClass._TypeToEditorInstances [type]
-        except KeyError:
-            aeClass = theClass._GetAttributeEditorClass (type)
-            # init the attribute editor, letting it know it's shared
-            instance = aeClass (isShared=True)
-            # remember it in our cache
-            theClass._TypeToEditorInstances [type] = instance
-        return instance
-
-    GetAttributeEditorSingleton = classmethod (GetAttributeEditorSingleton)
-
-    def GetAttributeEditorInstance (theClass, type, item, attributeName, presentationStyle):
-        """ Get a new unshared instance of the Attribute Editor for this type. """
-        aeClass = theClass._GetAttributeEditorClass (type)
-        # init the attribute editor, letting it know it's not shared (can use instance data)
-        instance = aeClass (isShared=False, presentationStyle=presentationStyle)
-        
-        # Note the characteristics that made us pick this editor
-        instance.typeName = type
-        instance.attributeName = attributeName
-        instance.presentationStyle = presentationStyle
-        
-        return instance
-    GetAttributeEditorInstance = classmethod (GetAttributeEditorInstance)
-
-    def _GetAttributeEditorClass (theClass, type):
-        """ Return the attribute editor class for this type """
-        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
-        try:
-            classPath = map.editorString [type]
-        except KeyError:
-            assert map.editorString ["_default"], "Default attribute editor doesn't exist ('_default')"
-            classPath = map.editorString ["_default"]
-        parts = classPath.split (".")
-        assert len(parts) >= 2, " %s isn't a module and class" % classPath
-        className = parts.pop ()
-        module = __import__ ('.'.join(parts), globals(), locals(), className)
-        assert module.__dict__[className], "Class %s doesn't exist" % classPath
-        aeClass = module.__dict__[className]
-        return aeClass
-    _GetAttributeEditorClass = classmethod (_GetAttributeEditorClass)
-
-class BaseAttributeEditor (IAttributeEditor):
-    """ Base class for many Attribute Editors. """
-    def __init__(self, isShared, *args, **keys):
-        self.isShared = isShared
-
-    def ReadOnly (self, (item, attribute)):
-        return False # @@@BJS for now, don't. Was: not str(item.itsPath).startswith('//userdata')
-
-    def Draw (self, dc, rect, item, attributeName, isSelected):
-        """ You must override Draw. """
-        raise NotImplementedError
-    
-    def Create (self, parent, id):
-        """ You must override Create. """
-        raise NotImplementedError
-
-    def BeginControlEdit (self, control, value):
-        """ Do nothing by default. """
-
-    def GetControlValue (self, control):
-        return control.GetValue()
-
-    def SetControlValue (self, control, value):
+        # @@@BJS For now, make sure the strings we put in the controls 
+        # are Unicode.
+        assert not isinstance(value, str)
         control.SetValue (value)
 
     def GetAttributeValue (self, item, attributeName):
-        """ You must override GetAttributeValue. """
-        raise NotImplementedError
+        """ Get the value from the specified attribute of the item. """
+        value = getattr(item, attributeName, None)
+        # @@@BJS For now, make sure the strings we put in the content model 
+        # are Unicode. This'll go away when we build wx with the unicode flag.
+        assert not isinstance(value, str)
+        return value
+
+    def SetAttributeValue (self, item, attributeName, value):
+        """ Set the value of the attribute given by the value. """
+        if not self.ReadOnly((item, attributeName)):
+            # @@@BJS For now, make sure the strings we put in the content model 
+            # are Unicode. This'll go away when we build wx with the 
+            # "unicode" flag.
+            # if isinstance(value, str): value = unicode(value)
+            assert not isinstance(value, str)
+            setattr(item, attributeName, value)
+
+class myTextCtrl(wx.TextCtrl):
+    def Destroy(self):
+        # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
+        # (in which case we're a PyDeadObject)
+        if isinstance(self, wx.TextCtrl):
+            super(myTextCtrl, self).Destroy()
+        else:
+            pass # (give me a place to set a breakpoint)
 
 class StringAttributeEditor (BaseAttributeEditor):
-    """ Uses a Text Control to edit attributes in string form. """
+    """ 
+    Uses a Text Control to edit attributes in string form. 
+    Supports sample text.
+    """
     
-    def Draw (self, dc, rect, item, attributeName, isSelected):
+    def UsePermanentControl(self):
+        try:
+            uc = self.presentationStyle.useControl
+        except AttributeError:
+            uc = False
+        return uc
+
+    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """
           Currently only handles left justified single line text.
         """
+        
+        # If we have a control, it'll do the drawing.
+        if self.UsePermanentControl():
+            return
+        
+        if False:
+            logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
+                         self.isShared and "shared" or "dv",
+                         attributeName, item,
+                         isInSelection and "is" or "not")
+
         # Erase the bounding box
         dc.SetBackgroundMode (wx.SOLID)
         dc.SetPen (wx.TRANSPARENT_PEN)
 
         dc.DrawRectangleRect (rect)
 
-        """
-          Draw the text in the box
-        """
+        # Get the text we'll display, and note whether it's the sample text.
+        theText = None # assume that we won't use the sample.
+        if not self.HasValue(item, attributeName):
+            # Consider using the sample text
+            theText = self.GetSampleText(item, attributeName)
+        if theText is None:
+            # No sample text, or we have a value. Use the value.
+            theText = self.GetAttributeValue(item, attributeName)
+            # style = wx.NORMAL
+            # textColor = wx.SystemSettings.GetColour (wx.SYS_COLOUR_BTNTEXT)
+        elif len(theText) > 0:
+            # theText is the sample text - switch to gray
+            # (not italic; was...) style = wx.ITALIC
+            textColor = wx.Colour(153, 153, 153)
+            dc.SetTextForeground (textColor)
+            font = dc.GetFont ()
+            #font.SetStyle (style)
+            dc.SetFont (font)
 
-        dc.SetBackgroundMode (wx.TRANSPARENT)
-        rect.Inflate (-1, -1)
-        dc.SetClippingRect (rect)
-
-        DrawingUtilities.DrawWrappedText (dc,
-                                          self.GetAttributeValue (item, attributeName),
-                                          rect)
-        dc.DestroyClippingRegion()
-
-    def Create (self, parent, id):
+        if len(theText) > 0:
+            # Draw inside the lines.
+            dc.SetBackgroundMode (wx.TRANSPARENT)
+            rect.Inflate (-1, -1)
+            dc.SetClippingRect (rect)
+            
+            DrawingUtilities.DrawWrappedText (dc, theText, rect)
+                
+            dc.DestroyClippingRegion()
+        
+    def CreateControl (self, parent, id):
         # create a text control for editing the string value
-        return wx.TextCtrl (parent, id)
+        logger.debug("StringAE.CreateControl")
+        
+        control = myTextCtrl(parent, id, '', wx.DefaultPosition, 
+                             wx.DefaultSize,
+                             wx.TE_PROCESS_TAB | wx.TE_AUTO_SCROLL)
+        control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        control.Bind(wx.EVT_TEXT, self.onTextChanged)
+        control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        
+        if not self.isShared:
+            # Inflate us to our parent's size
+            parentRect = parent.GetRect()
+            control.SetSizeHints(minW=parentRect.width, minH=parentRect.height)
+            controlSize = wx.Rect(wx.DefaultPosition[0], wx.DefaultPosition[0], parentRect.width, parentRect.height)
+            logger.debug("StringAE.CreateControl: created; control size is %s", controlSize)    
+            control.SetRect(controlSize)
 
-    def BeginControlEdit (self, control, value):
-        # set up the value and move the selection to the end
-        control.SetValue (value)
-        control.SetInsertionPointEnd ()
+        return control
+
+    def BeginControlEdit (self, item, attributeName, control):
+        self.sampleText = self.GetSampleText(item, attributeName)
+        self.item = item
+        self.attributeName = attributeName
+        logger.debug("BeginControlEdit: context for %s.%s is '%s'", item, attributeName, self.sampleText)
+
+        # set up the value (which may be the sample!) and select all the text
+        value = self.GetAttributeValue(item, attributeName)
+        if self.sampleText is not None and len(value) == 0:
+            self.__setSampleText(control, self.sampleText)
+        else:
+            self.showingSample = False
+            self.__changeTextQuietly(control, value)
+            control.SetSelection (-1,-1)
+            # @@@BJS is this necessary?: control.SetInsertionPointEnd ()
+
+        logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
+
+    def EndControlEdit (self, item, attributeName, control):
+        # update the item attribute value, from the latest control value.
+        if item is not None:
+            logger.debug("EndControlEdit: %s is '%s' on %s", attributeName, self.GetControlValue(control), item)
+            self.SetAttributeValue (item, attributeName, self.GetControlValue (control))
+
+    def GetControlValue (self, control):
+        # return the empty string, if we're showing the sample value.
+        if self.showingSample:
+            value = u""
+        else:
+            value = super(StringAttributeEditor, self).GetControlValue(control)
+        return value
+    
+    def SetControlValue(self, control, value):
+        if len(value) != 0 or self.sampleText is None:
+            self.showingSample = False
+            self.__changeTextQuietly(control, value)
+        else:
+            self.__setSampleText(control, self.sampleText)
+
+    def onTextChanged(self, event):
+        if not getattr(self, "ignoreTextChanged", False):
+            control = event.GetEventObject()
+            if self.sampleText is not None:
+                logger.debug("StringAE.onTextChanged: not ignoring.")                    
+                currentText = control.GetValue()
+                if self.showingSample:
+                    logger.debug("onTextChanged: removing sample")
+                    if currentText != self.sampleText:
+                        self.showingSample = False
+                elif len(currentText) == 0:
+                    self.__setSampleText(control, self.sampleText)
+            else:
+                logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
+        else:
+            logger.debug("StringAE.onTextChanged: ignoring (self-changed)")
+
+    def __changeTextQuietly(self, control, text):
+        self.ignoreTextChanged = True
+        logger.debug("__changeTextQuietly: to '%s'", text)
+        control.SetValue(text)
+        del self.ignoreTextChanged
+        
+    def __setSampleText(self, control, sampleText):
+        logger.debug("__setSampleText: installing sampletext")
+        self.showingSample = True
+        self.__changeTextQuietly(control, sampleText)
         control.SetSelection (-1,-1)
-        control.SetFocus()
+        control.SetStyle(0, len(sampleText), wx.TextAttr(wx.Colour(153, 153, 153)))
 
-    def GetAttributeValue (self, item, attributeName):
+    def onKeyDown(self, event):
+        """ Note whether the sample's been replaced. """
+        # If we're showing sample text and this key would only change the 
+        # selection, ignore it.
+        if self.showingSample and event.GetKeyCode() in \
+            (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_BACK):
+             logger.debug("onKeyDown: Ignoring selection-changer %s (%s) while showing the sample text", event.GetKeyCode(), wx.WXK_LEFT)
+             return # skip out without calling event.Skip()
+
+        logger.debug("onKeyDown: processing %s (%s)", event.GetKeyCode(), wx.WXK_LEFT)
+        event.Skip()
+        
+    def onClick(self, event):
+        """ Ignore clicks if we're showing the sample """
+        control = event.GetEventObject()
+        if self.showingSample and control == wx.Control.FindFocus():
+            logger.debug("onClick: ignoring click because we're showing the sample.")
+        else:
+            event.Skip()
+        if self.showingSample:
+            control.SetSelection(-1, -1) # Make sure the whole thing's still selected
+            
+    def GetSampleText(self, item, attributeName):
+        """ Return this attribute's sample text, or None if there isn't any. """
         try:
-            value = getattr (item, attributeName) # getattr will work with properties
+            sampleText = self.presentationStyle.sampleText
         except AttributeError:
-            value = ""
+            return None
+
+        # Yep, there's supposed to be sample text.
+        if len(sampleText) == 0:
+            # Empty sample text was specified: this means use the attribute's displayName,
+            # or the attribute name itself if no displayName is present. Redirect if 
+            # necessary first.
+            sampleText = item.getAttributeAspect(attributeName, 'redirectTo');
+            if sampleText is None:
+                sampleText = attributeName
+            if item.hasAttributeAspect (sampleText, 'displayName'):
+                sampleText = item.getAttributeAspect (sampleText, 'displayName')                  
+        return sampleText
+    
+    def HasValue(self, item, attributeName):
+        """ 
+        Return True if a non-default value has been set for this attribute, 
+        or False if this value is the default and deserves the sample text 
+        (if any) instead. (Can be overridden.) """
+        return len(unicode(getattr(item, attributeName, u""))) > 0
+
+    def GetAttributeValue(self, item, attributeName):
+        """ Get the attribute's current value, converted to a (unicode) string """
+        try:
+            valueString = unicode(getattr(item, attributeName))
+        except AttributeError:
+            valueString = u""
         else:
             try:
                 cardinality = item.getAttributeAspect (attributeName, "cardinality")
@@ -191,16 +389,16 @@ class StringAttributeEditor (BaseAttributeEditor):
                 pass
             else:
                 if  cardinality == "list":
-                    value = ', '.join([part.getItemDisplayName() for part in value])
-        return value
+                    valueString = u", ".join([part.getItemDisplayName() for part in value])
+        return valueString
 
-    def SetAttributeValue (self, item, attributeName, valueString):
+    def SetAttributeValue(self, item, attributeName, valueString):            
         try:
             cardinality = item.getAttributeAspect (attributeName, "cardinality")
         except AttributeError:
             pass
         else:
-            if  cardinality == "single":
+            if cardinality == "single":
                 setattr (item, attributeName, valueString)
 
 class DateTimeAttributeEditor (StringAttributeEditor):
@@ -274,250 +472,65 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         value = attrType.makeValue (valueString)
         setattr (item, attributeName, value)
 
-class myTextCtrl(wx.TextCtrl):
-    def Destroy(self):
-        # @@@ Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
-        # (in which case we're a PyDeadObject)
-        if isinstance(self, wx.TextCtrl):
-            super(myTextCtrl, self).Destroy()
-
-class LabeledAttributeEditor (StringAttributeEditor):
-    """ Attribute Editor that shows a Label for the attribute in addition to the value. """
-    def __init__(self, isShared, presentationStyle=None):
-        super (LabeledAttributeEditor, self).__init__(isShared,
-                                                         presentationStyle)
-
-        """ set up internal state for this item/attribute combination """
-        try:
-            labelStyle = presentationStyle.label
-            self.presentationStyle = presentationStyle
-        except AttributeError:
-            labelStyle = 'None'
-        # attributes that share an Attribute Editor will all use the same label style
-        self.labelStyle = labelStyle
-
-    def _IsAttributeLabel (self, item, attributeName):
-        """ return True if this value is the "default" value
-        for the attribute """
-        return not hasattr (item, attributeName)
-
-    def _GetAttributeLabel (self, item, attributeName):
-        try:
-            return item.getAttributeAspect (attributeName, 'displayName')
-        except:
-            try:
-                return self.presentationStyle.labelDisplayName
-            except AttributeError:
-                pass
-            
-        raise NotImplementedError, "Can't display name of property '%s' for item of type %s" \
-                           %  (attributeName, item.itsKind.displayName)
-
-    def _SetLabelStyle (self, item, attributeName, dc):
-        if self.labelStyle == 'OnLeft':
-            """ 
-              For Label-On-Left collect label layout information:
-            self.editOffset - offset of the edit area
-            self.labelOffset - offset of the label area
-            """
-            assert not self.isShared, "Label on Left presentationStyle not allowed for shared Attribute Editors"
-            try:
-                editOffset = self.editOffset # cached value?
-            except AttributeError:
-                label = self._GetAttributeLabel (item, attributeName)
-                lineWidth, lineHeight = dc.GetTextExtent (label)
-                # editOffset - where to put the edit text
-                try:
-                    editOffset = self.presentationStyle.labelWidth
-                except AttributeError:
-                    # not supplied: use the width of the label for the offset
-                    editOffset = lineWidth
-                try:
-                    # border is extra space next to label
-                    border = self.presentationStyle.labelBorder
-                except AttributeError:
-                    border = 0
-                try:
-                    # label alignment: Left, Center, or Right
-                    alignment = self.presentationStyle.labelTextAlignmentEnum
-                except AttributeError:
-                    alignment = "Right"
-                self.editOffset = editOffset
-                self.border = border
-                self.alignment = alignment
-                self.label = label
-
-                # figure out the label offset
-                if self.alignment == "Left":
-                    labelOffset = self.border
-                else:
-                    if self.alignment == "Right":
-                        scaleFactor = 1
-                    elif self.alignment == "Center":
-                        scaleFactor = 2
-                    else:
-                        assert False, "invalid labelTextAlignmentEnum detected"
-                    labelOffset = editOffset - (lineWidth + self.border) / scaleFactor
-                self.labelOffset = labelOffset
-
-        elif self.labelStyle == 'InPlace':
-            drawItalic = self._IsAttributeLabel (item, attributeName)
-            if drawItalic:
-                style = wx.ITALIC
-                textColor = wx.Colour(64, 64, 64)
-            else:
-                style = wx.NORMAL
-                textColor = wx.SystemSettings.GetColour (wx.SYS_COLOUR_BTNTEXT)
-            dc.SetTextForeground (textColor)
-            font = dc.GetFont ()
-            font.SetStyle (style)
-            dc.SetFont (font)
-
-    def Draw (self, dc, rect, item, attributeName, isSelected):
-        # always setup for drawing
-        dc.SetBackgroundMode (wx.SOLID)
-        dc.SetPen (wx.TRANSPARENT_PEN)
-
-        dc.DrawRectangleRect (rect)
-
-        """
-          Draw the text in the box
-        """
-
-        dc.SetBackgroundMode (wx.TRANSPARENT)
-        rect.Inflate (-1, -1)
-        dc.SetClippingRect (rect)
-
-        x = rect.x + 1
-        y = rect.y + 1
-
-        # set up our label style information
-        self._SetLabelStyle (item, attributeName, dc)
-
-        # Label OnLeft?  
-        if self.labelStyle == 'OnLeft':
-            # Draw label first, then move to the right.
-            label = self._GetAttributeLabel (item, attributeName)
-            dc.DrawText (label, x + self.labelOffset, y)
-            x += self.editOffset
-            rect.width -= self.editOffset
-            
-            # draw an area that looks editable on the right
-            dc.SetBackgroundMode (wx.SOLID)
-            oldBrush = dc.GetBrush()
-            dc.SetBrush (wx.WHITE_BRUSH)
-            dc.DrawRectangle (x-1, y-1, rect.width, rect.height)
-            dc.SetPen (wx.LIGHT_GREY_PEN)
-            dc.DrawLine (x-1, y-1, x-1, y+rect.height)
-            dc.DrawLine (x-1, y-1, x+rect.width, y-1)
-            dc.SetBrush (oldBrush)
-            
-        # if not selected there's no edit control, so we need to draw the value text.
-        if not isSelected:
-            textRectangle = wx.Rect (x, y, rect.GetRight() - x, rect.GetBottom() - y)
-            DrawingUtilities.DrawWrappedText (dc,
-                                              self.GetAttributeValue (item, attributeName),
-                                              textRectangle)
-        dc.DestroyClippingRegion()
-    
-    def Create (self, parent, id):
-        parentRect = parent.GetRect()
-        controlPosition = wx.DefaultPosition
-        controlSize = [parentRect.width, parentRect.height]
-        
-        # if the label belongs on the left, the control needs to be on the right.
-        if self.labelStyle == "OnLeft":
-            controlPosition = (self.editOffset, -1)
-            
-        # create the edit control
-        control = myTextCtrl (parent, id, '', controlPosition)
-        
-        # get size hints based on the parent
-        control.SetSizeHints(minW=controlSize[0], minH=controlSize[1])
-        controlRect = wx.Rect(controlPosition[0], controlPosition[1], controlSize[0], controlSize[1])
-        control.SetRect(controlRect)
-        
-        # bind to a key handler, if it exits, to process keystrokes e.g. completion
-        try:
-            keyHandler = self.onKeyPressed
-        except AttributeError:
-            pass
-        else:
-            control.Bind (wx.EVT_KEY_UP, keyHandler)
-        return control
-        
-    def EndControlEdit (self, item, attributeName, control):
-        # update the item attribute value, from the latest control value.
-        controlValue = self.GetControlValue (control)
-        if item is not None:
-            self.SetAttributeValue (item, attributeName, controlValue)
-
-class LocationAttributeEditor (LabeledAttributeEditor):
+class LocationAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is a Location. """
-    def GetAttributeValue (self, item, attributeName):
-        # get the value, and if it doesn't exist, use the label
-        try:
-            value = getattr (item, attributeName)
-        except:
-            valueString = "" # @@@BJS: for now, don't hint. was: self._GetAttributeLabel (item, attributeName)
-            # self.isLabelValue = True
-        else:
-            valueString = str (value)
-        self.showingTheLabel = False # @@@ BJS: was self._IsAttributeLabel (item, attributeName) # remember if we're showing the label value
-        return valueString
-
-    import osaf.contentmodel.calendar.Calendar as Calendar
-
     def SetAttributeValue (self, item, attributeName, valueString):
-        # if the value has changed, create a location for it.
-        if not valueString or self.showingTheLabel: # no value, or still showing the label
+        if not valueString:
+            # @@@BJS There's a repository bug that makes this hasattr necessary;
+            # once it's fixed, replace this with try: delattr(item, attributeName) except AttributeError: pass
+            #if hasattr(item, attributeName):
+            #    delattr (item, attributeName)
             try:
-                delattr (item, attributeName)
+                delattr(item, attributeName)
             except AttributeError:
                 pass
         else:
             # lookup an existing item by name, if we can find it, 
             value = Calendar.Location.getLocation (item.itsView, valueString)
-            setattr (item, attributeName, value)
+            if getattr(item, attributeName, None) is not value:
+                setattr (item, attributeName, value)
 
-    def onKeyPressed(self, event):
+    def CreateControl (self, parent, id):
+        control = super(LocationAttributeEditor, self).CreateControl(parent, id)
+        control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+        return control
+
+    def onKeyUp(self, event):
         """
           Handle a Key pressed in the control.
         """
-        event.Skip()
-        self.showingTheLabel = False # remember we've edited the value
+        logger.debug("LocationAttrEditor: onKeyUp")
+        
         control = event.GetEventObject()
         controlValue = self.GetControlValue (control)
         keysTyped = len(controlValue)
         isDelete = event.m_keyCode == wx.WXK_DELETE or event.m_keyCode == wx.WXK_BACK
         if keysTyped > 1 and not isDelete:
-            # get all Location objects whose displayName contains the current string
-            # @@@DLD is there a way to get values whose displayName *starts* with the string?
-            queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
-                          where contains(i.displayName, $0)'
+            # See if there's exactly one existing Location object whose 
+            # displayName starts with the current string; if so, we'll complete
+            # on it.
             view = wx.GetApp().UIRepositoryView
-            queryName = 'locationAttributeEditorQuery'
-            locQuery = view.findPath('//Queries/'+queryName)
-            if locQuery is None:
-                p = view.findPath('//Queries')
-                k = view.findPath('//Schema/Core/Query')
-                locQuery = Query.Query (queryName, p, k, queryString)
-                locQuery.args["$0"] = ( controlValue, )
-    
-            # build a list of matches here
-            candidates = []
-            for aLoc in locQuery:
+            locationKind = view.findPath(Calendar.Location.myKindPath)
+            allLocations = ItemQuery.KindQuery().run([locationKind])
+            existingLocation = None
+            for aLoc in allLocations:
                 if aLoc.displayName[0:keysTyped] == controlValue:
-                    candidates.append (aLoc)
-
-            # for now, we perform competion only when exactly one match was found.
-            if len (candidates) == 1:
-                completion = candidates[0].displayName
+                    if existingLocation is None:
+                        existingLocation = aLoc
+                        logger.debug("LocationAE.onKeyUp: '%s' completes!", aLoc.displayName)
+                    else:
+                        # We found a second candidate - we won't complete
+                        logger.debug("LocationAE.onKeyUp: ... but so does '%s'", aLoc.displayName)
+                        existingLocation = None
+                        break
+                
+            if existingLocation is not None:
+                completion = existingLocation.displayName
                 self.SetControlValue (control, completion)
+                logger.debug("LocationAE.onKeyUp: completing with '%s'", completion[keysTyped:])
                 control.SetSelection (keysTyped, len (completion))
 
-
-class DateTimeDeltaAttributeEditor (LabeledAttributeEditor):
+class DateTimeDeltaAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is DateTimeDelta. """
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
@@ -601,6 +614,150 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
                 value = addresses.emailAddress
         return value
 
+class BasePermanentAttributeEditor (BaseAttributeEditor):
+    """ Base class for editors that always need controls """
+    def UsePermanentControl(self):
+        return True
+    
+class CheckboxAttributeEditor (BasePermanentAttributeEditor):
+    """ A checkbox control. """
+    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
+        super(CheckboxAttributeEditor, self).__init__(isShared, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)
+        
+    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+        # We have to implement Draw, but we don't need to do anything
+        # because we've always got a control to do it for us.
+        pass
+
+    def CreateControl (self, parent, id):
+        control = wx.CheckBox(parent, id)
+        control.Bind(wx.EVT_CHECKBOX, self.onChecked)
+        return control
+        
+    def DestroyControl (self, control, losingFocus=False):
+        # Only destroy the control if we're not just losing focus
+        if losingFocus:
+            return False # we didn't destroy the control
+        
+        wx.CallAfter(control.Destroy)
+        return True
+    
+    def onChecked(self, event):
+        logger.debug("CheckboxAE.onChecked: new choice is %s",
+                     self.GetControlValue(event.GetEventObject()))
+        control = event.GetEventObject()
+        self.SetAttributeValue(self.item, self.attributeName, \
+                               self.GetControlValue(control))
+
+    def GetControlValue (self, control):
+        """ Are we checked? """
+        return control.IsChecked()
+
+    def SetControlValue (self, control, value):
+        """ Set our state """
+        control.SetValue(value)
+
+class ChoiceAttributeEditor (BasePermanentAttributeEditor):
+    """ A pop-up control. The list of choices comes from presentationStyle.choices """
+    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
+        super(ChoiceAttributeEditor, self).__init__(isShared, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)
+        
+    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+        # We have to implement Draw, but we don't need to do anything
+        # because we've always got a control to do it for us.
+        pass
+
+    def CreateControl (self, parent, id):
+        control = wx.Choice(parent, id)
+        control.Bind(wx.EVT_CHOICE, self.onChoice)
+        return control
+        
+    def DestroyControl (self, control, losingFocus=False):
+        # Only destroy the control if we're not just losing focus
+        if losingFocus:
+            return False # we didn't destroy the control
+        
+        wx.CallAfter(control.Destroy)
+        return True
+    
+    def onChoice(self, event):
+        logger.debug("ChoiceAE.onChoice: new choice is %s",
+                     self.GetControlValue(event.GetEventObject()))
+        control = event.GetEventObject()
+        self.SetAttributeValue(self.item, self.attributeName, \
+                               self.GetControlValue(control))
+
+    def GetChoices(self):
+        """ Get the choices we're presenting """
+        return self.presentationStyle.choices
+
+    def GetControlValue (self, control):
+        """ Get the selected choice's text """
+        choiceIndex = control.GetSelection()
+        value = self.item.getAttributeAspect(self.attributeName, 'type').values[choiceIndex]
+        if isinstance(value, str): value = unicode(value) # @@@BJS Make sure we return unicode!
+        return value
+
+    def SetControlValue (self, control, value):
+        """ Select the choice with the given text """
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+        
+            try:
+                choiceIndex = self.item.getAttributeAspect(self.attributeName, 'type').values.index(value)
+            except AttributeError:
+                choiceIndex = 0
+            control.Select(choiceIndex)
+
+class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
+    def GetControlValue (self, control):
+        """ Get the reminder delta value for the current selection """
+        
+        # @@@ For now, assumes that the menu will be a number of minutes, 
+        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
+        # that doesn't match this (eg, "None") for no-alarm.
+        value = control.GetStringSelection()
+        try:
+            minuteCount = int(value.split(u" ")[0])
+        except ValueError:
+            # "None"
+            value = Calendar.CalendarEventMixin.NoReminderDelta
+        else:
+            value = DateTime.DateTimeDeltaFrom(minutes=-minuteCount)
+        return value
+
+    def SetControlValue (self, control, value):
+        """ Select the choice that matches this delta value"""
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value or control.GetCount() == 0:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+
+            if value == Calendar.CalendarEventMixin.NoReminderDelta:
+                choiceIndex = 0 # the "None" choice
+            else:
+                reminderChoice = (value.minutes == 1) and _("1 minute") or (_("%i minutes") % value.minutes)
+                choiceIndex = control.FindString(reminderChoice)
+                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
+                if choiceIndex == -1:
+                    choiceIndex = 0 # the "None" choice
+            control.Select(choiceIndex)
+        
+    def SetAttributeValue (self, item, attributeName, value):
+        if value is None and hasattr(item, attributeName):
+            delattr(item, attributeName)
+        else:
+            super(ReminderDeltaAttributeEditor, \
+                  self).SetAttributeValue(item, attributeName, value)
+
 class IconAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True # The Icon editor doesn't support editing.
@@ -613,7 +770,7 @@ class IconAttributeEditor (BaseAttributeEditor):
             value = ""
         return value
     
-    def Draw (self, dc, rect, item, attributeName, isSelected):
+    def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName) + ".png"
         image = wx.GetApp().GetImage(imageName)
@@ -621,7 +778,6 @@ class IconAttributeEditor (BaseAttributeEditor):
             x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
             y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
             dc.DrawBitmap (image, x, y, True)
-
 
 class EnumAttributeEditor (IconAttributeEditor):
     """

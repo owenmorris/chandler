@@ -46,6 +46,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
     # code related to selection down the block tree - we'll revisit it all in 0.6
 
     def onSetContentsEvent (self, event):
+        logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
         self.__changeSelection(event.arguments['item'])
 
     def onSelectItemEvent (self, event):
@@ -53,6 +54,8 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
           A DetailTrunk is an event boundary; this keeps all the events 
         sent between blocks of the Detail View to ourselves.
         """
+        logger.debug("DetailRoot.onSelectItemEvent: %s", event.arguments['item'])
+        
         # Finish changes to previous selected item 
         self.finishSelectionChanges () 
         
@@ -276,7 +279,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         inconsistent state.)
         """
         if not getattr(self, "ignoreCollectionChangedWhileStamping", False):
-            # Block.logger.debug("DetailRoot: onCollectionChanged")
+            # logger.debug("DetailRoot: onCollectionChanged")
             self.synchronizeWidget()
     
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
@@ -524,6 +527,16 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
         if self.isShown:
             self.synchronizeWidget()
 
+    def saveTextValue (self, validate=False):
+        # Tell the AE to save itself
+        item = self.selectedItem()
+        try:
+            widget = self.widget
+        except AttributeError:
+            widget = None
+        if item is not None and widget is not None:
+            widget.onLoseFocusFromControl(None)
+
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
@@ -728,8 +741,9 @@ class NoteBody (EditTextAttribute):
                 #     and will not address issues related to internationalization
                 if not isinstance(widgetText, unicode):
                     widgetText = unicode(widgetText, 'utf-8', 'ignore')
-                text = widgetText.encode('ascii', 'ignore')
-                item.body = textType.makeValue(text, encoding='ascii', indexed=True)
+                asciiText = widgetText.encode('ascii', 'ignore')
+                if item.ItemBodyString() != asciiText: # only put back if it's changed.
+                    item.body = textType.makeValue(asciiText, encoding='ascii', indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
         attributeName = GetRedirectAttribute(item, 'body');
@@ -979,7 +993,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
                 pass
             else:
                 showIt = True
-        # logger.debug("AcceptShareButton.shouldShow = %s" % showIt)
+        # logger.debug("AcceptShareButton.shouldShow = %s", showIt)
         return showIt
     
     def onAcceptShareEvent(self, event):
@@ -1101,6 +1115,10 @@ class EditTimeAttribute (EditRedirectAttribute):
             format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
             value = dateTime.strftime (format)
         widget.SetValue (value)
+
+class CalendarDurationArea (CalendarEventBlock):
+    def shouldShow (self, item):
+        return not item.allDay
 
 class EditDurationAttribute (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):

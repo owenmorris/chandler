@@ -3,7 +3,7 @@ __date__ = "$Date: 2005/04/07 01:01:02 $"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import wx, os
+import wx, os, random
 
 def SetTextColorsAndFont (grid, attr, dc, isSelected):
     """
@@ -31,6 +31,9 @@ def DrawWrappedText (dc, string, rect):
     x = rect.x + 1
     y = rect.y + 1
     for line in str (string).split (os.linesep):
+        # test for flicker by drawing a random character first each time we draw
+        # line = chr(ord('a') + random.randint(0,25)) + line
+        
         dc.DrawText (line, x, y)
         lineWidth, lineHeight = dc.GetTextExtent (line)
         # If the text doesn't fit within the box we want to clip it and

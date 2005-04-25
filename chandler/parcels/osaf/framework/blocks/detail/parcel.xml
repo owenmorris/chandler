@@ -27,7 +27,7 @@
 
   <CharacterStyle itsName="BigTextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>10</fontSize>
+    <fontSize>12</fontSize>
     <fontStyle>bold</fontStyle>
   </CharacterStyle>
 
@@ -117,7 +117,7 @@
   <doc:DetailTrunkSubtree itsName="NoteSubtree">
     <key itemref="content:Note"/>
     <rootBlocks itemref="doc:MarkupBar"/>
-    <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:HeadlineBlock"/>
     <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
 
@@ -141,7 +141,7 @@
     <key itemref="content:ItemCollection"/>
     <rootBlocks itemref="doc:ParticipantsArea"/>
     <rootBlocks itemref="doc:InviteArea"/>
-    <rootBlocks itemref="doc:HeadlineArea"/>
+    <rootBlocks itemref="doc:HeadlineBlock"/>
     <rootBlocks itemref="doc:SharingActiveArea"/>
     <rootBlocks itemref="doc:NotesArea"/>
   </doc:DetailTrunkSubtree>
@@ -231,7 +231,7 @@
     <position>0.1</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="FromString">
@@ -276,7 +276,7 @@
     <!-- Attributes -->
     <position>0.85</position>
     <stretchFactor>0.0</stretchFactor>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="AttachmentString">
@@ -308,7 +308,7 @@
     <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="ToString">
@@ -340,7 +340,7 @@
     <position>0.3</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
  
   <StaticText itsName="ParticipantsString">
@@ -372,7 +372,7 @@
     <position>0.3</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="InviteString">
@@ -464,19 +464,18 @@
   </EditText>
 
   <PresentationStyle itsName="HeadlinePresentation">
-    <label>InPlace</label>
+    <sampleText></sampleText><!-- empty sample means "use displayname" -->
   </PresentationStyle>
 
   <!-- Headline area done as an AE Block -->
   <AEBlock itsName="HeadlineBlock"
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="HeadlineBlock"/>
-    <characterStyle itemref="doc:LabelStyle"/>
+    <characterStyle itemref="doc:BigTextStyle"/>
     <position>0.5</position>
-    <readOnly>False</readOnly>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>0, 5, 0, 0</border>
+    <border>5, 5, 0, 5</border>
     <presentationStyle itemref="doc:HeadlinePresentation"/>
     <viewAttribute value="about"/>
   </AEBlock>
@@ -508,20 +507,18 @@
     <blockName value="EditCalendarStartTime"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="CalendarDurationArea"
-                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.CalendarDurationArea">
     <blockName value="CalendarDurationArea"/>
     <childrenBlocks itemref="doc:CalendarDurationLabel"/>
-    <childrenBlocks itemref="doc:CalendarDuration"/>
-    <!-- Attributes -->
+    <childrenBlocks itemref="doc:EditCalendarDuration"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalendarDurationLabel">
@@ -533,12 +530,17 @@
     <minimumSize>80, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
+  
+  <PresentationStyle itsName="DurationPresentation">
+    <sampleText>HH:MM</sampleText>
+    <useControl>True</useControl>
+  </PresentationStyle>
 
-  <AEBlock itsName="CalendarDuration"
+  <AEBlock itsName="EditCalendarDuration"
            itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
-    <blockName value="AECalendarDuration"/>
+    <blockName value="EditCalendarDuration"/>
     <characterStyle itemref="doc:LabelStyle"/>
-    <readOnly>False</readOnly>
+    <presentationStyle itemref="doc:DurationPresentation"/>
     <stretchFactor>1</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <viewAttribute value="duration"/>
@@ -546,7 +548,7 @@
 
   <ContentItemDetail itsName="CalendarDetails">
     <blockName value="CalendarDetails"/>
-    <childrenBlocks itemref="doc:CalendarLocationArea"/>
+    <childrenBlocks itemref="doc:CalendarLocation"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
     <childrenBlocks itemref="doc:CalendarDurationArea"/>
     <childrenBlocks itemref="doc:CalendarAllDayArea"/>
@@ -558,15 +560,15 @@
     <position>0.8</position>
   </ContentItemDetail>
   
+  <!--
   <ContentItemDetail itsName="CalendarLocationArea"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
     <blockName value="CalendarLocationArea"/>
     <childrenBlocks itemref="doc:CalendarLocationLabel"/>
     <childrenBlocks itemref="doc:CalendarLocation"/>
-    <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>5, 5, 0, 5</border>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalendarLocationLabel">
@@ -578,14 +580,20 @@
     <minimumSize>80, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
-  
+  -->
+
+  <PresentationStyle itsName="LocationPresentation">
+    <sampleText></sampleText>
+  </PresentationStyle>
+
   <AEBlock itsName="CalendarLocation"
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="AECalendarLocation"/>
     <characterStyle itemref="doc:LabelStyle"/>
-    <readOnly>False</readOnly>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
+    <border>0, 5, 0, 5</border>
+    <presentationStyle itemref="doc:LocationPresentation"/>
     <viewAttribute value="location"/>
   </AEBlock>
 
@@ -613,11 +621,9 @@
   <CheckBox itsName="EditAllDay"
             itemClass="osaf.framework.blocks.detail.Detail.AllDayCheckBox">
     <blockName value="EditAllDay"/>
-    <!-- Attributes -->
     <title></title>
     <size>30,24</size>
     <minimumSize>30,24</minimumSize>
-    <!--<border>0.0, 10.0, 0.0, 0.0</border>-->
     <event itemref="doc:ToggleAllDay"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -661,7 +667,7 @@
 
   <ContentItemDetail itsName="CalendarTransparencyArea"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarAllDayAndReminder"/>
+    <blockName value="CalendarTransparencyArea"/>
     <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
     <childrenBlocks itemref="doc:EditTransparency"/>
     <!-- Attributes -->
@@ -682,7 +688,7 @@
 
   <Choice itsName="EditTransparency"
             itemClass="osaf.framework.blocks.detail.Detail.EditTransparency">
-    <blockName value="EditReminder"/>
+    <blockName value="EditTransparency"/>
     <issues>It'd be nice to not maintain the transparency choices separately from the enum values; currently, the choices must match the enum's items and ordering.</issues>
     <choices>Confirmed</choices>
     <choices>Tentative</choices>
@@ -700,7 +706,6 @@
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>RichText</textStyleEnum>
-    <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <stretchFactor>3</stretchFactor>
     <minimumSize>300, 80</minimumSize>

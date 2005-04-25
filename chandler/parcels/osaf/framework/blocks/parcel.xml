@@ -96,6 +96,11 @@
     <initialValue type="docSchema:orientationEnumType">Horizontal</initialValue>
   </Attribute>
 
+  <Attribute itsName="readOnly">
+    <type itemref="Boolean"/>
+    <initialValue type="Boolean">False</initialValue>
+  </Attribute>
+
   <Attribute itsName="columnHeadings">
     <type itemref="String"/>
     <cardinality>list</cardinality>
@@ -961,10 +966,7 @@
       <initialValue type="docSchema:EditText/textStyleEnumType" value="PlainText"/>
     </Attribute>
 
-    <Attribute itsName="readOnly">
-      <type itemref="Boolean"/>
-    </Attribute>
-
+    <attributes itemref="docSchema:readOnly"/>
     <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:characterStyle"/>
 
@@ -1583,76 +1585,48 @@
   <Kind itsName="PresentationStyle">
     <displayName itsValue="Presentation Style"/>
 
-    <Enumeration itsName="LabelEnum">
-      <values>OnLeft</values>
-      <values>InPlace</values>
-    </Enumeration>
-
-    <Enumeration itsName="FormEnum">
-      <values>Text</values>
-      <values>Graphic</values>
-    </Enumeration>
-
-    <Attribute itsName="label">
-      <description>If you want the block to show a label, tell the AE where to put it</description>
-      <type itemref="docSchema:PresentationStyle/LabelEnum"/>
-    </Attribute>
-    <Attribute itsName="labelWidth">
-      <description>OnLeft label needs a width to use for the label portion</description>
-      <type itemref="Integer"/>
-      <initialValue type="Integer" value="0"/>
-    </Attribute>
-    <Attribute itsName="labelBorder">
-      <description>Border to use between the label and left or right edge</description>
-      <type itemref="Integer"/>
-      <initialValue type="Integer" value="0"/>
-    </Attribute>
-    <Attribute itsName="labelTextAlignmentEnum">
-      <description>Text alignment enum for the label</description>
-      <type itemref="docSchema:textAlignmentEnumType"/>
-      <initialValue type="docSchema:textAlignmentEnumType" value="Right"/>
-    </Attribute>
-    <Attribute itsName="labelDisplayName">
-      <description>Localized display name to use for the label</description>
+    <Attribute itsName="sampleText">
+      <description>Localized in-place sample text (optional); if "", will use the attr's displayName.</description>
       <type itemref="String"/>
     </Attribute>
-    <Attribute itsName="form">
-      <description>Overall selector for text form versus graphic form</description>
-      <issues>Currently unused</issues>
-      <type itemref="docSchema:PresentationStyle/FormEnum"/>
+
+    <Attribute itsName="format">
+      <description>customization of presentation format</description>
+      <type itemref="String"/>
     </Attribute>
     
+    <Attribute itsName="choices">
+      <description>options for multiple-choice values</description>
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+    
+    <Attribute itsName="useControl">
+      <description>True if we should always present the control (instead of waiting for a click to look editable)</description>
+      <type itemref="Boolean"/>
+    </Attribute>
+
     <Cloud itsName="DefaultCloud">
-      <Endpoint itsName="label">
-          <attribute value="label"/>
+      <Endpoint itsName="sampleText">
+          <attribute value="sampleText"/>
           <includePolicy value="byValue"/>
       </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/label"/>
-      <Endpoint itsName="labelWidth">
-          <attribute value="labelWidth"/>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/sampleText"/>
+      <Endpoint itsName="format">
+          <attribute value="format"/>
           <includePolicy value="byValue"/>
       </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelWidth"/>
-      <Endpoint itsName="labelBorder">
-          <attribute value="labelBorder"/>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/format"/>
+      <Endpoint itsName="choices">
+          <attribute value="choices"/>
           <includePolicy value="byValue"/>
       </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelBorder"/>
-      <Endpoint itsName="labelTextAlignmentEnum">
-          <attribute value="labelTextAlignmentEnum"/>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/choices"/>
+      <Endpoint itsName="useControl">
+          <attribute value="useControl"/>
           <includePolicy value="byValue"/>
       </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelTextAlignmentEnum"/>
-      <Endpoint itsName="labelDisplayName">
-          <attribute value="labelDisplayName"/>
-          <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelDisplayName"/>
-      <Endpoint itsName="form">
-          <attribute value="form"/>
-          <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/form"/>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/useControl"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:PresentationStyle/DefaultCloud"/>
 
@@ -1670,7 +1644,7 @@
     </Attribute>
 
     <attributes itemref="docSchema:characterStyle"/>
-    <attributes itemref="docSchema:EditText/readOnly"/>
+    <attributes itemref="docSchema:readOnly"/>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">

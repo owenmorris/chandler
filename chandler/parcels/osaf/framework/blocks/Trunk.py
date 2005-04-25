@@ -8,6 +8,7 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from repository.item.Item import Item
 import osaf.contentmodel.ContentModel as ContentModel
+import logging
 
 """
 Trunk.py - Classes for dynamically substituting child trees-of-blocks.
@@ -18,6 +19,9 @@ class; whenever wxSynchronizeWidget happens, the appropriate set of child blocks
 mechanism is managed by a TrunkDelegate object, which can be subclassed and/or configured from parcel XML
 to customize its behavior.
 """
+
+logger = logging.getLogger('trunk')
+logger.setLevel(logging.INFO)
 
 class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     """ 
@@ -72,8 +76,14 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
             
         oldView = self.childrenBlocks.first()
-        if (newView is not  oldView) or ('rerenderHint' in keywords):
+        if (newView is not oldView) or ('rerenderHint' in keywords):
+            logger.debug("changing tree to display %s", detailItem)
             if not oldView is None:
+                """
+                oldFocus = self.widget.FindFocus()
+                if oldFocus is not None:
+                    logger.debug("unrendering the focused block!")
+                """
                 oldView.unRender()
 
             self.childrenBlocks = []
@@ -86,6 +96,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 assert newView.eventBoundary
                 self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
                 newView.render()
+        else:
+            logger.debug("NOT changing tree to display %s", detailItem)
+
 
     def synchronizeColor (self):
         # if there's a color style defined, synchronize the color

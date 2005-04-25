@@ -63,6 +63,7 @@
     <childrenBlocks itemref="doc:LinkLabel"/>
     <childrenBlocks itemref="doc:LinkAttribute"/>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <CharacterStyle itsName="LinkStyle">
@@ -81,8 +82,8 @@
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="LinkAttribute" itemClass="osaf.examples.zaobao.blocks.LinkDetail">
@@ -101,6 +102,7 @@
     <childrenBlocks itemref="doc:CategoryLabel"/>
     <childrenBlocks itemref="doc:CategoryAttribute"/>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
   <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
@@ -108,8 +110,8 @@
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="CategoryAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
@@ -121,11 +123,12 @@
   
   <!-- Author area -->
   <ContentItemDetail itsName="AuthorArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
-    <position>0.0</position>
+    <position>0.19</position>
     <selectedItemsAttribute>author</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
     <childrenBlocks itemref="doc:AuthorAttribute"/>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
   
   <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
@@ -133,8 +136,8 @@
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="AuthorAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
@@ -151,22 +154,23 @@
     <childrenBlocks itemref="doc:DateLabel"/>
     <childrenBlocks itemref="doc:DateAttribute"/>
     <stretchFactor>0.0</stretchFactor>
+    <border>5, 0, 0, 5</border>
   </ContentItemDetail>
 
-  <StaticText itsName="DateAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
-    <title>date</title>
-    <characterStyle itemref="detail:LabelStyle"/>
-    <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-  </StaticText>
-  
   <StaticText itsName="DateLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>date</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
+    <minimumSize>80, 24</minimumSize>
+    <border>0, 0, 0, 5</border>
+  </StaticText>
+  
+  <StaticText itsName="DateAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <title>date</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
   </StaticText>
   
 </core:Parcel>
