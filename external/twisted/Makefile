@@ -16,14 +16,14 @@ build: expand apply
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-Twisted-$(VERSION).tar.bz2:
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.bz2
-	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.bz2.md5
+Twisted-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/Twisted-$(VERSION).tar.gz.md5
 
-sources: Twisted-$(VERSION).tar.bz2
+sources: Twisted-$(VERSION).tar.gz
 
-Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.bz2
-	tar xvjf Twisted-$(VERSION).tar.bz2
+Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
+	tar xvzf Twisted-$(VERSION).tar.gz
 	touch Twisted-$(VERSION)-expanded
 
 expand: Twisted-$(VERSION)-expanded
