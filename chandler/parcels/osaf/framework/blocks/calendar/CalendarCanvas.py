@@ -632,7 +632,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         calDataKind = CalendarData.getKind(view=self.itsView)
         for coll in containingCollections:
 
-            if not hasattr(coll, 'outOfTheBoxCollection') and \
+            # hack alert! The out-of-the-box collections aren't renameable, so
+            # we'll rely on that to make sure we don't get 'All's color
+            if (not hasattr(coll, 'renameable') or coll.renameable) and \
                 coll.isItemOf(calDataKind):
                 return coll.calendarColor
         return None
