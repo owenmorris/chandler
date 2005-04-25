@@ -597,7 +597,11 @@ class Manager(Item):
 
             self.__parcelsWithData = None
             
-            for (reference, copyName, item, attributeName) in self.__copyOperations:
+            for (reference, copyName, item, attributeName, file, line) in self.__copyOperations:
+                # Make sure that any ParcelException we raise here reports
+                # the correct parcel.xml line / file
+                self.saveState(file, line)
+                
                 # We may be reloading, so if the copy is already there,
                 # remove it and re-copy
                 existingCopy = item.findPath(copyName)
@@ -607,7 +611,15 @@ class Manager(Item):
                 # (either) Copy the item using cloud-copy:
                 copy = reference.copy(name=copyName, parent=item, 
                  cloudAlias="default")
-        
+                 
+                if copy == None:
+                    explanation = \
+                        ("Unable to make copy named '%s' for attribute '%s'. " + 
+                        "Maybe the original was moved/deleted?") % \
+                        (copyName, attributeName)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+
                 # (or) Copy the item using attribute-copy:
                 # copy = reference.copy(name=copyName, parent=item)
         
@@ -654,8 +666,8 @@ class Manager(Item):
             
         return result
 
-    def addCopyOperation(self, reference, copyName, item, attributeName):
-        self.__copyOperations.append((reference, copyName, item, attributeName))
+    def addCopyOperation(self, reference, copyName, item, attributeName, file, line):
+        self.__copyOperations.append((reference, copyName, item, attributeName, file, line))
         
     def resetState(self):
         self.currentXMLFile = None
@@ -1438,7 +1450,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     # @@@ Special cases to resolve
                     if copyName:
                         self.manager.addCopyOperation(reference, copyName,
-                                                      item, attributeName)
+                                                      item, attributeName,
+                                                      file, line)
 
                     elif attributeName == 'inverseAttribute':
                         item.addValue('otherName', reference.itsName)
