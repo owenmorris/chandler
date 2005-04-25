@@ -569,7 +569,7 @@ class Manager(Item):
             self.log.info("...done")
             
             self.__parcelsWithData = []
-            self.__copyOperations = []
+            self.__delayedOperations = []
 
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
@@ -597,35 +597,19 @@ class Manager(Item):
 
             self.__parcelsWithData = None
             
-            for (reference, copyName, item, attributeName, file, line) in self.__copyOperations:
-                # Make sure that any ParcelException we raise here reports
-                # the correct parcel.xml line / file
-                self.saveState(file, line)
-                
-                # We may be reloading, so if the copy is already there,
-                # remove it and re-copy
-                existingCopy = item.findPath(copyName)
-                if existingCopy is not None:
-                    existingCopy.delete(recursive=True)
-        
-                # (either) Copy the item using cloud-copy:
-                copy = reference.copy(name=copyName, parent=item, 
-                 cloudAlias="default")
-                 
-                if copy == None:
-                    explanation = \
-                        ("Unable to make copy named '%s' for attribute '%s'. " + 
-                        "Maybe the original was moved/deleted?") % \
-                        (copyName, attributeName)
+            for (item, file, line, call, arguments, keywords) in self.__delayedOperations:
+                try:
+                    if keywords == None:
+                        call(*arguments)
+                    else:
+                        call(*arguments, **keywords)
+                except Exception, e:
+                    self.saveState(file, line)
+                    explanation = "Unable to perform assignment: %s" % e
                     self.saveExplanation(explanation)
                     raise ParcelException(explanation)
 
-                # (or) Copy the item using attribute-copy:
-                # copy = reference.copy(name=copyName, parent=item)
-        
-                item.addValue(attributeName, copy)
-        
-            self.__copyOperations = None
+            self.__delayedOperations = None
             
             self.resetState()
             self.log.info("Starting parcels...")
@@ -665,9 +649,32 @@ class Manager(Item):
             self.__parcelsWithData.append(handler.namespace)
             
         return result
+        
+    def addDelayedCall(self, item, file, line, call, args, keywords):
+        self.__delayedOperations.append((item, file, line, call, args, keywords))
 
-    def addCopyOperation(self, reference, copyName, item, attributeName, file, line):
-        self.__copyOperations.append((reference, copyName, item, attributeName, file, line))
+    def performCopyOperation(self, reference, copyName, item, attributeName):
+        # We may be reloading, so if the copy is already there,
+        # remove it and re-copy
+        existingCopy = item.findPath(copyName)
+        if existingCopy is not None:
+            existingCopy.delete(recursive=True)
+
+        # (either) Copy the item using cloud-copy:
+
+        copy = reference.copy(name=copyName, parent=item, cloudAlias="default")
+
+        # (or) Copy the item using attribute-copy:
+        # copy = reference.copy(name=copyName, parent=item)
+        if copy == None:
+            explanation = \
+                ("Unable to make copy named '%s' for attribute '%s'. " + 
+                "Maybe the original was moved/deleted?") % \
+                (copyName, attributeName)
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
+
+        item.addValue(attributeName, copy)
         
     def resetState(self):
         self.currentXMLFile = None
@@ -1393,8 +1400,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         """ Perform all the delayed attribute assignments for an item """
 
         (old, new) = ValueSet.getValueSets(item)
+        copiedAnAssignment = False
 
         for assignment in assignments:
+            assignmentCallable = None
+            assignmentArgs = None
+            assignmentKeywords = None
 
             attributeName = str(assignment["attrName"])
             reloading = assignment["reloading"]
@@ -1449,23 +1460,24 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                     # @@@ Special cases to resolve
                     if copyName:
-                        self.manager.addCopyOperation(reference, copyName,
-                                                      item, attributeName,
-                                                      file, line)
-
+                        copiedAnAssignment = True
+                        assignmentCallable = self.manager.performCopyOperation
+                        assignmentArgs = (reference, copyName, item, attributeName,)
                     elif attributeName == 'inverseAttribute':
-                        item.addValue('otherName', reference.itsName)
+                        assignmentCallable = item.addValue
+                        assignmentArgs = ('otherName', reference.itsName, )
                     elif attributeName == 'displayAttribute':
-                        item.addValue('displayAttribute', reference.itsName)
+                        assignmentCallable = item.addValue
+                        assignmentArgs = ('displayAttribute', reference.itsName, )
                     elif attributeName == 'attributes':
-                        item.addValue('attributes', reference,
-                                      alias=reference.itsName)
+                        assignmentCallable = item.addValue
+                        assignmentArgs = ('attributes', reference, )
+                        assignmentKeywords = { 'alias' : reference.itsName }
                     else:
+                        assignmentCallable = item.addValue
+                        assignmentArgs = (attributeName, reference, )
                         if aliasName:
-                            item.addValue(attributeName, reference,
-                             alias=aliasName)
-                        else:
-                            item.addValue(attributeName, reference)
+                             assignmentKeywords = { 'alias': aliasName }
 
                     if reloading:
                         if reference is None:
@@ -1502,8 +1514,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 else:
                     # This assignment doesn't appear in the previous version
                     # of XML, so let's apply it to the item.
-
-                    item.addValue(attributeName, reference.itsUUID)
+                    
+                    assignmentCallable = item.addValue
+                    assignmentArgs = (attributeName, reference.itsUUID, )
 
                     if reloading:
                         print "Reload: item %s, assigning %s = UUID of %s" % \
@@ -1559,26 +1572,36 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     # This assignment doesn't appear in the previous version
                     # of XML, so let's apply it to the item.
 
-                    try:
-                        if key is not None:
-                            item.setValue(attributeName, value, key)
-                            if reloading:
-                                print "Reload: item %s, assigning %s[%s] = " \
-                                 "'%s'" % \
-                                 (item.itsPath, attributeName, key, value)
-                        else:
-                            item.addValue(attributeName, value)
-                            if reloading:
-                                print "Reload: item %s, assigning %s = '%s'" % \
-                                 (item.itsPath, attributeName, value)
+                    if key is not None:
+                        assignmentCallable = item.setValue
+                        assignmentArgs = (attributeName, value, key, )
+                        if reloading:
+                            print "Reload: item %s, assigning %s[%s] = " \
+                             "'%s'" % \
+                             (item.itsPath, attributeName, key, value)
+                    else:
+                        assignmentCallable = item.addValue
+                        assignmentArgs = (attributeName, value, )
+                        if reloading:
+                            print "Reload: item %s, assigning %s = '%s'" % \
+                             (item.itsPath, attributeName, value)
 
+                # Record this assignment in the new set of assignments
+                new.addAssignment(assignmentTuple)
+                
+            if assignmentCallable is not None:
+                if copiedAnAssignment:
+                    self.manager.addDelayedCall(item, file, line, assignmentCallable, assignmentArgs, assignmentKeywords)
+                else:
+                    try:
+                        if assignmentKeywords is not None:
+                            assignmentCallable(*assignmentArgs, **assignmentKeywords)
+                        else:
+                            assignmentCallable(*assignmentArgs)
                     except Exception, e:
                         explanation = "Couldn't add value to item (%s)" % e
                         self.saveExplanation(explanation)
                         raise ParcelException(explanation)
-
-                # Record this assignment in the new set of assignments
-                new.addAssignment(assignmentTuple)
 
             #@@@Temporary testing tool written by Morgen -- DJA
             if timing: tools.timing.end("Attribute assignments")

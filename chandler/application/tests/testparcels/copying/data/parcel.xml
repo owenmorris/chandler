@@ -30,11 +30,16 @@
     <cp:TestKind itsName="templateChild2">
     </cp:TestKind>
 
-
     <!-- An item which will make use of the template:  -->
 
     <cp:TestKind itsName="realParent">
         <myChildren itemref="me:templateParent" copy="copiedChild"/>
+    </cp:TestKind>
+
+    <!-- An item to test Bug:2520 (order of copied items...) -->
+    <cp:TestKind itsName="copyOrderTest">
+        <myChildren itemref="me:templateChild1" copy="anotherCopiedChild"/>
+        <myChildren itemref="me:templateChild0"/>
     </cp:TestKind>
 
 

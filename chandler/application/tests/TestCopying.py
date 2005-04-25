@@ -10,25 +10,42 @@ import ParcelLoaderTestCase, os, sys, unittest
 from application.Parcel import PrintItem
 
 class CopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
+    COPYING = "http://testparcels.org/copying"
+    DATA = "%s/data" % COPYING
+
+    def setUp(self):
+        super(CopyingTestCase, self).setUp()
+        sys.path.append(os.path.join(self.testdir, 'testparcels'))
+        self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
+        self.loadParcels([self.COPYING, self.DATA])
+        self.dataParcel = self.manager.lookup(self.DATA)
+
+        
 
     def testCopying(self):
 
-        COPYING = "http://testparcels.org/copying"
-        DATA = "%s/data" % COPYING
-        sys.path.append(os.path.join(self.testdir, 'testparcels'))
-        self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
-        self.loadParcels([COPYING, DATA])
-
         # PrintItem("//parcels/copying/data", self.rep, recursive=True)
 
-        data = self.manager.lookup(DATA)
-        parent = data.lookup("realParent")
+        parent = self.dataParcel.lookup("realParent")
         self.assert_(parent is not None)
         self.assert_(len(parent.myChildren) == 1)
         child = parent.myChildren.first()
         self.assertEquals(parent, child.myParent.first())
         grandChild = child.myChildren.first()
         self.assertEquals(child, grandChild.myParent.first())
+        
+        
+    def testCopyOrder(self):
+        orderTestItem = self.dataParcel.lookup("copyOrderTest")
+        self.assert_(orderTestItem != None)
+        orderedChildren = orderTestItem.myChildren
+        self.assert_(len(orderedChildren) == 2)
+        self.assertEquals(orderedChildren.first().itsName, "anotherCopiedChild")
+        self.assertEquals(
+                orderTestItem.myChildren.last(),
+                self.dataParcel.lookup("templateChild0")
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
