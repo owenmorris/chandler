@@ -1,7 +1,7 @@
 import wx
 import os, urlparse, urllib
 import application.Globals as Globals
-import Sharing
+import Sharing, ICalendar
 import WebDAV
 from repository.item.Query import KindQuery
 
@@ -19,17 +19,16 @@ class PublishCollectionDialog(wx.Dialog):
         
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         
-        self.share = Sharing.getShare(self.collection)
+        self.shareXML = Sharing.getShare(self.collection)
         
-        if self.share is None:
+        if self.shareXML is None:
             self.ShowPublishPanel()
         else:
             self.ShowManagePanel()
 
-        self.statusPanel = self.resources.LoadPanel(self, "ScrollStatusPanel")
+        self.statusPanel = self.resources.LoadPanel(self, "StatusPanel")
         self.statusPanel.Hide()
-        self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_SCROLLSTATUS")        
-
+        self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
        
         self.mySizer.Add(self.mainPanel, 0, wx.GROW|wx.ALL, 5)
         self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)        
@@ -57,25 +56,47 @@ class PublishCollectionDialog(wx.Dialog):
             self.accountsControl.SetClientData(newIndex, account)
             if account is self.currentAccount:
                 self.accountsControl.SetSelection(newIndex)
-            
+        self.Bind(wx.EVT_CHOICE, self.OnChangeAccount,
+                  id=wx.xrc.XRCID("CHOICE_ACCOUNT"))    
+                  
         self.existingControl = wx.xrc.XRCCTRL(self, "LISTBOX_EXISTING")
         self._refreshExisting()
-        
-        self.publishNameControl = wx.xrc.XRCCTRL(self, "TEXTCTRL_NAME")
-        name = self.collection.displayName
-        
-        counter = 1
-        while name in self.existing:
-            name = "%s-%d" % (self.collection.displayName, counter)
-            counter += 1
-            
-        self.publishNameControl.SetValue(name)
-        self.publishNameControl.SetFocus()
-        self.publishNameControl.SetSelection(-1, -1)
+        self._suggestName()
+
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
         wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
         wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)        
-       
+    
+    def OnChangeAccount(self, evt):
+        accountIndex = self.accountsControl.GetSelection()
+        account = self.accountsControl.GetClientData(accountIndex)
+        self.currentAccount = account
+        self._refreshExisting()
+        self._suggestName()
+        
+    def _suggestName(self):
+        collectionName = self.collection.displayName
+        try:
+            username = self.currentAccount.username
+        except:
+            username = ""
+        if not username:
+            username = "User"
+        basename = "%s's %s" % (username, collectionName)
+        name = basename
+        
+        counter = 1
+        while name in self.existing:
+            name = "%s-%d" % (basename, counter)
+            counter += 1
+        
+        self.publishNameControl = wx.xrc.XRCCTRL(self, "TEXTCTRL_NAME")
+            
+        self.publishNameControl.SetValue(name)
+        self.publishNameControl.SetFocus()
+        self.publishNameControl.SetSelection(-1, -1)            
+        
+        
     def ShowManagePanel(self):
         self.mainPanel = self.resources.LoadPanel(self, "ManageCollection")
         self.buttonPanel = self.resources.LoadPanel(self, 
@@ -87,7 +108,9 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(self.collection.displayName)
-        wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(self.share.conduit.account.displayName)
+        wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(self.shareXML.conduit.account.displayName)
+        wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(self.shareXML.conduit.getLocation())
+        wx.xrc.XRCCTRL(self, "TEXT_SHARINGNAME").SetLabel(self.shareXML.displayName)
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
         wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
         wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
@@ -99,7 +122,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Detach(self.buttonPanel)
         self.buttonPanel = self.resources.LoadPanel(self, 
                                                     "PublishingButtonsPanel")
-        self.mySizer.Insert(1, self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
+        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
         publishingButton = wx.xrc.XRCCTRL(self, "BUTTON_PUBLISHING")
         publishingButton.Enable(False)
         
@@ -109,36 +132,49 @@ class PublishCollectionDialog(wx.Dialog):
         
         shareName = self.publishNameControl.GetValue()
         shareNameSafe = urllib.quote_plus(shareName)
-        share = Sharing.newOutboundShare(self.view, self.collection,
-                                         shareName=shareNameSafe,
-                                         account=self.currentAccount)
-        self.share = share
         
-        share.displayName = shareName
-
-        if not share.exists():
+        accountIndex = self.accountsControl.GetSelection()
+        account = self.accountsControl.GetClientData(accountIndex)
+        
+        shareXML = Sharing.newOutboundShare(self.view, self.collection,
+                                            shareName=shareNameSafe,
+                                            account=account)
+        self.shareXML = shareXML
+        shareXML.displayName = shareName
+        
+        iCalName = "%s.ics" % shareNameSafe
+        shareICal = Sharing.newOutboundShare(self.view, self.collection,
+                                             shareName=iCalName,
+                                             account=account)
+        self.shareICal = shareICal
+        shareICal.displayName = "%s.ics" % shareName
+        
+        format = ICalendar.ICalendarFormat(view=self.view)
+        shareICal.mode = "put"
+        shareICal.format = format
+        shareICal.hidden = True
+        
+        self._showStatus("Wait for Sharing URL...\n")
+        if not shareXML.exists():
             self._showStatus("Creating collection on server...")
-            share.create()
+            shareXML.create()
             self._showStatus(" done.\n")
             
         self._showStatus("Publishing collection to server...")
-        share.put()
+        shareXML.put()
         self._showStatus(" done.\n")
 
-        self._showStatus("URL of collection:\n")
-        self._showStatus("%s\n" % share.getLocation())
+        self._showStatus("Publishing calendar file to server...")
+        shareICal.put()
+        self._showStatus(" done.\n")
+        
+        self._showStatus("%s" % shareXML.getLocation())
 
-        gotClipboard = wx.TheClipboard.Open()
-        if gotClipboard:
-            wx.TheClipboard.SetData(wx.TextDataObject(share.getLocation()))
-            wx.TheClipboard.Close()
-            self._showStatus("(URL copied to clipboard)\n")
- 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
         self.buttonPanel = self.resources.LoadPanel(self, 
                                                     "PublishedButtonsPanel")
-        self.mySizer.Insert(1, self.buttonPanel, 0, wx.GROW|wx.ALL, 5)  
+        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)  
         
         self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCopy, 
@@ -154,30 +190,27 @@ class PublishCollectionDialog(wx.Dialog):
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()        
         if gotClipboard:
-            wx.TheClipboard.SetData(wx.TextDataObject(self.share.getLocation()))
+            wx.TheClipboard.SetData(wx.TextDataObject(str(self.shareXML.getLocation())))
             wx.TheClipboard.Close()
-            self._showStatus("URL copied to clipboard\n")
-        else:
-            self._showStatus("Couldn't copy URL to clipboard\n")
-            
                 
     def _clearStatus(self):
-            self.textStatus.SetValue("")
+            self.textStatus.SetLabel("")
             
     def _showStatus(self, msg):
         if not self.statusPanel.IsShown():
-            self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
+            self.mySizer.Insert(1, self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
-        self.textStatus.SetValue("%s%s" % (self.textStatus.GetValue(), msg))
-        self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
+        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
+        # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
         wx.Yield()
 
     def _hideStatus(self):
         if self.statusPanel.IsShown():
             self.statusPanel.Hide()
-            self.mySizer.Detach(self.statusPanel)
+            # self.mySizer.Detach(self.statusPanel)
             self._resize()
+        pass
             
     def _resize(self):
         self.mySizer.Layout()

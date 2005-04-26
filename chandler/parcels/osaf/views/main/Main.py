@@ -430,22 +430,19 @@ class MainView(View):
         theApp.RenderMainView ()
 
     def onSharingSubscribeToCollectionEvent(self, event):
-        # Triggered from "Tests | Subscribe to collection..."
-        Sharing.manualSubscribeToCollection(self.itsView)
+        # Triggered from "Collection | Subscribe to collection..."
+
+        import osaf.framework.sharing.SubscribeDialog
+
+        # @@@MOR Handy during development:
+        reload(osaf.framework.sharing.SubscribeDialog)
+
+        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onSharingImportDemoCalendarEvent(self, event):
         # Triggered from "Tests | Import demo calendar..."
         Sharing.loadDemoCalendar(self.itsView)
 
-    def onSharingSubscribeToICalendarEvent(self, event):
-
-        # Triggered from "Tests | Subscribe to ICalendar..."
-        import osaf.framework.sharing.ICalendarSubscribeDialog
-
-        # @@@MOR Handy during development:
-        reload(osaf.framework.sharing.ICalendarSubscribeDialog)
-
-        osaf.framework.sharing.ICalendarSubscribeDialog.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onEditCollectionRuleEvent(self, event):
         # Triggered from "Tests | Edit collection rule..."
@@ -508,6 +505,9 @@ class MainView(View):
         The "Collection | Share collection " menu item
         """
     
+        self.onShareCollectionEvent(event)
+        return
+    
         # Make sure we have all the accounts; returns False if the user cancels out and we don't.
         if not Sharing.ensureAccountSetUp(self.itsView):
             return
@@ -538,9 +538,9 @@ class MainView(View):
         
         if collection is not None:
             # event.arguments['Enable'] = True
-            menuTitle = _('%s "%s" collection') % (verb, collection.displayName)
+            menuTitle = _('%s "%s" collection...') % (verb, collection.displayName)
         else:
-            menuTitle = _('%s a collection') % verb
+            menuTitle = _('%s a collection...') % verb
             
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = collection is not None and (doManage == Sharing.isShared(collection))
@@ -557,9 +557,9 @@ class MainView(View):
         self.itsView.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            share = Sharing.getShare(collection)
-            if share is not None:
-                Sharing.syncShare(share)
+            for share in collection.shares:
+                if share.active:
+                    Sharing.syncShare(share)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
@@ -577,6 +577,26 @@ class MainView(View):
             menuTitle = _('Sync a collection')
         event.arguments ['Text'] = menuTitle
 
+    def onCopyCollectionURLEvent(self, event):
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            share = Sharing.getShare(collection)
+            if share is not None:
+                url = str(share.getLocation())
+                gotClipboard = wx.TheClipboard.Open()        
+                if gotClipboard:
+                    wx.TheClipboard.SetData(wx.TextDataObject(url))
+                    wx.TheClipboard.Close()
+
+    def onCopyCollectionURLEventUpdateUI(self, event):
+        enable = False
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            share = Sharing.getShare(collection)
+            if share is not None:
+                enable = True
+        event.arguments['Enable'] = enable
+        
     def onSyncWebDAVEvent (self, event):
         """
           Synchronize WebDAV sharing.

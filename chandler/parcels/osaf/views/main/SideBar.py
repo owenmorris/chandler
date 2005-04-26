@@ -10,6 +10,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
+import osaf.framework.sharing.Sharing as Sharing
 
 
 def GetRenderEditorTextRect (rect):
@@ -108,10 +109,10 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             if len (item) == 0:
                 dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
-            numberOfShares = len (item.shares)
-            if numberOfShares > 0:
-                sharer = item.shares.first().sharer
-                if numberOfShares == 1 and str(sharer.itsPath) == "//userdata/me":
+            share = Sharing.getShare(item)
+            if share is not None:
+                if hasattr(share, 'sharer') and share.sharer is not None and \
+                   str(share.sharer.itsPath) == "//userdata/me":
                     imageName = "SidebarOut.png"
                 else:
                     imageName = "SidebarIn.png"

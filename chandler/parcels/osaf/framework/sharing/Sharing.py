@@ -247,6 +247,7 @@ class ShareConduit(ContentModel.ContentItem):
 
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
+        
         self.__resetSeen()
 
         itemPath = self._getItemPath(self.share)
@@ -394,6 +395,7 @@ class ShareConduit(ContentModel.ContentItem):
             if not value['seen']:
                 yield path
 
+
     def connect(self):
         pass
 
@@ -458,17 +460,17 @@ class FileSystemConduit(ShareConduit):
                 fileName = self.SHAREFILE
             else:
                 fileName = "%s.%s" % (item.itsUUID, extension)
-            return os.path.join(self.getLocation(), fileName)
+            return fileName
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            return self.getLocation()
+            return self.shareName
 
         else:
             print "@@@MOR Raise an exception here"
 
     def _putItem(self, item): # must implement
-        path = self._getItemPath(item)
-
+        path = self.__getItemFullPath(self._getItemPath(item))
+        
         try:
             text = self.share.format.exportProcess(item)
         except Exception, e:
@@ -483,13 +485,17 @@ class FileSystemConduit(ShareConduit):
         return stat.st_mtime
 
     def _deleteItem(self, itemPath): # must implement
-        logger.info("...removing from disk: %s" % itemPath)
-        os.remove(itemPath)
+        path = self.__getItemFullPath(itemPath)
+
+        logger.info("...removing from disk: %s" % path)
+        os.remove(path)
 
     def _getItem(self, itemPath, into=None): # must implement
         # logger.info("Getting item: %s" % itemPath)
-        extension = os.path.splitext(itemPath)[1].strip(os.path.extsep)
-        text = file(itemPath).read()
+        path = self.__getItemFullPath(itemPath)
+
+        extension = os.path.splitext(path)[1].strip(os.path.extsep)
+        text = file(path).read()
 
         try:
             item = self.share.format.importProcess(text, extension=extension,
@@ -497,7 +503,7 @@ class FileSystemConduit(ShareConduit):
         except Exception, e:
             raise TransformationFailed(message=str(e))
 
-        stat = os.stat(itemPath)
+        stat = os.stat(path)
         return (item, stat.st_mtime)
 
     def _getResourceList(self, location):
@@ -508,18 +514,27 @@ class FileSystemConduit(ShareConduit):
             for filename in os.listdir(location):
                 fullPath = os.path.join(location, filename)
                 stat = os.stat(fullPath)
-                fileList[fullPath] = { 'data' : stat.st_mtime }
+                fileList[filename] = { 'data' : stat.st_mtime }
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             stat = os.stat(location)
-            fileList[location] = { 'data' : stat.st_mtime }
+            fileList[self.shareName] = { 'data' : stat.st_mtime }
 
         else:
             print "@@@MOR Raise an exception here"
 
         return fileList
 
+    def __getItemFullPath(self, path):
+        style = self.share.format.fileStyle()
+        if style == ImportExportFormat.STYLE_DIRECTORY:
+            path = os.path.join(self.sharePath, self.shareName, path)
+        elif style == ImportExportFormat.STYLE_SINGLE:
+            path = os.path.join(self.sharePath, self.shareName)
+        return path
 
+        
+        
     def exists(self):
         super(FileSystemConduit, self).exists()
 
@@ -646,28 +661,19 @@ class WebDAVConduit(ShareConduit):
         """ Return the path (not the full url) of an item given its external
         UUID """
 
-        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
+        # (host, port, sharePath, username, password, useSSL) = self.__getSettings()
         extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
             if isinstance(item, Share):
-                path = "/"
-                if sharePath:
-                    path += "%s/" % sharePath
-                path += "%s/share.xml" % self.shareName
+                path = "share.xml"
                 return path
             else:
-                path = "/"
-                if sharePath:
-                    path += "%s/" % sharePath
-                path += "%s/%s.%s" % (self.shareName, item.itsUUID, extension)
+                path = "%s.%s" % (item.itsUUID, extension)
                 return path
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            path = "/"
-            if sharePath:
-                path += "%s/" % sharePath
-            path += self.shareName
+            path = self.shareName
             return path
 
         else:
@@ -675,18 +681,23 @@ class WebDAVConduit(ShareConduit):
 
     def __getItemURL(self, item):
         """ Return the full url of an item """
-        path = self._getItemPath(item)
-        return self.__URLFromPath(path)
-
-    def __URLFromPath(self, path):
-        # @@@MOR need to handle https
-
-        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
-        if port == 80:
-            url = "http://%s%s" % (host, path)
+        url = self.getLocation()
+        
+        style = self.share.format.fileStyle()
+        if style == ImportExportFormat.STYLE_DIRECTORY:
+            return "%s/%s" % (url, self._getItemPath(item))
         else:
-            url = "http://%s:%s%s" % (host, port, path)
-        return url
+            return url
+        
+    def __URLFromPath(self, path):
+        url = self.getLocation()
+        
+        style = self.share.format.fileStyle()
+        if style == ImportExportFormat.STYLE_DIRECTORY:
+            return "%s/%s" % (url, path)
+        else:
+            return url
+      
 
     def exists(self):
         super(WebDAVConduit, self).exists()
@@ -872,6 +883,7 @@ class WebDAVConduit(ShareConduit):
                 raise
 
             for (path, etag) in resources:
+                path = path.split("/")[-1]
                 etag = self.__cleanEtag(etag)
                 resourceList[path] = { 'data' : etag }
 
@@ -894,6 +906,7 @@ class WebDAVConduit(ShareConduit):
             etag = resp.getheader('ETag', None)
             etag = self.__cleanEtag(etag)
             path = urlparse.urlparse(location)[2]
+            path = path.split("/")[-1]
             resourceList[path] = { 'data' : etag }
 
         return resourceList

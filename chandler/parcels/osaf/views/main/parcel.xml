@@ -308,15 +308,15 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
-
-  <BlockEvent itsName="SharingImportDemoCalendar">
-    <blockName>SharingImportDemoCalendar</blockName>
+  
+  <BlockEvent itsName="CopyCollectionURL">
+    <blockName>CopyCollectionURL</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
-  <BlockEvent itsName="SharingSubscribeToICalendar">
-    <blockName>SharingSubscribeToICalendar</blockName>
+  <BlockEvent itsName="SharingImportDemoCalendar">
+    <blockName>SharingImportDemoCalendar</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
@@ -400,6 +400,9 @@
     <title>&amp;Collection</title>
     <childrenBlocks itemref="doc:ShareSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:ManageSidebarCollectionItem"/>
+    <childrenBlocks itemref="doc:CopyCollectionURLItem"/>
+    <childrenBlocks itemref="doc:SyncCollectionItem"/>
+    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:RenameItem"/>
   </Menu>
   
@@ -745,20 +748,9 @@
     <blockName>ShareMenu</blockName>
     <title>Share</title>
     <helpString>Sharing-related test commands</helpString>
-    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
-    <childrenBlocks itemref="doc:SharingSubscribeToICalendarItem"/>
     <childrenBlocks itemref="doc:SharingImportDemoCalendarItem"/>
-    <childrenBlocks itemref="doc:ShareCollectionItem"/>
-    <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:ShareToolItem"/>
   </Menu>
-
-  <MenuItem itsName="ShareCollectionItem">
-    <blockName>ShareCollectionItem</blockName>
-    <title>Share collection</title>
-    <event itemref="doc:ShareCollection"/>
-    <helpString>Enable sharing a collection</helpString>
-  </MenuItem>
 
   <MenuItem itsName="ShareToolItem">
     <blockName>ShareToolItem</blockName>
@@ -776,9 +768,9 @@
 
   <MenuItem itsName="SharingSubscribeToCollectionItem">
     <blockName>SharingSubscribeToCollectionItem</blockName>
-    <title>Subscribe to Collection...</title>
+    <title>Subscribe to collection...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
-    <helpString>Subscribe to a published item collection</helpString>
+    <helpString>Subscribe to a published collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="SharingImportDemoCalendarItem">
@@ -786,13 +778,6 @@
     <title>Import demo calendar</title>
     <event itemref="doc:SharingImportDemoCalendar"/>
     <helpString>Import a demo iCalendar file from osafoundation.org</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="SharingSubscribeToICalendarItem">
-    <blockName>SharingSubscribeToICalendarItem</blockName>
-    <title>Subscribe to remote iCalendar... (experimental dialog)</title>
-    <event itemref="doc:SharingSubscribeToICalendar"/>
-    <helpString>Subscribe to a remote iCalendar (.ics) file</helpString>
   </MenuItem>
 
   <MenuItem itsName="EditCollectionRuleItem">
@@ -946,6 +931,13 @@
     <title>Manage</title>
     <event itemref="doc:ManageSidebarCollection"/>
     <helpString>Manage the selected collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="CopyCollectionURLItem">
+    <blockName>CopyCollectionURLItem</blockName>
+    <title>Copy URL to clipboard</title>
+    <event itemref="doc:CopyCollectionURL"/>
+    <helpString>Copy the selected collection's URL to the clipboard</helpString>
   </MenuItem>
 
   <ContextMenu itsName="sidebarContextMenu">
