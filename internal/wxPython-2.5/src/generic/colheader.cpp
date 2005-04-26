@@ -1530,9 +1530,12 @@ WXDWORD		msStyle;
 
 	style = (style & ~wxBORDER_MASK) | wxBORDER_NONE;
 
-	// FIXME: is WS_CLIPSIBLINGS necessary ???
 	msStyle = wxControl::MSWGetStyle( style, exstyle );
+
+	// NB: no HDS_DRAGDROP, HDS_FILTERBAR, HDS_FULLDRAG, HDS_HOTTRACK
 	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
+
+	// FIXME: is WS_CLIPSIBLINGS necessary ???
 	msStyle |= WS_CLIPSIBLINGS;
 
 	return msStyle;
@@ -1561,6 +1564,10 @@ long		resultV;
 
 //	wxLogDebug( wxT("MSWItemInsert - item text [%s]"), (const TCHAR*)titleText );
 
+	// FIXME: the first item lines up short, so hack-fix it
+	if (iInsertAfter <= 0)
+		nWidth += 2;
+
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = (LPTSTR)titleText;
@@ -1571,6 +1578,7 @@ long		resultV;
 	if (bSelected && bSortEnabled)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
+	// NB: wxUSE_UNICODE, _UNICODE, itemRef->m_BTextUnicode must agree or SendMessage must be used
 	resultV = (long)Header_InsertItem( targetViewRef, (int)iInsertAfter, &itemData );
 //	resultV = (long)SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
@@ -1609,7 +1617,7 @@ wxColumnHeaderItem		*itemRef;
 HDITEM					itemData;
 HWND					targetViewRef;
 LONG						newFmt;
-long					resultV;
+long					resultV, nWidth;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef == NULL)
@@ -1622,6 +1630,11 @@ long					resultV;
 		return (-1L);
 	}
 
+	// FIXME: the first item lines up short, so hack-fix it
+	nWidth = itemRef->m_ExtentX;
+	if (itemIndex <= 0)
+		nWidth += 2;
+
 	// FIXME: protect against HBMP leaks?
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_FORMAT | HDI_WIDTH;
@@ -1629,7 +1642,7 @@ long					resultV;
 
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
 	itemData.pszText = NULL;
-	itemData.cxy = (int)(itemRef->m_ExtentX);
+	itemData.cxy = (int)nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 
@@ -1655,6 +1668,7 @@ long					resultV;
 
 	if (! bCheckChanged || (itemData.fmt != newFmt))
 	{
+		// NB: wxUSE_UNICODE, _UNICODE, itemRef->m_BTextUnicode must agree or SendMessage must be used
 		itemData.fmt = newFmt;
 		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
 //		resultV = (long)SendMessage( mViewRef, itemRef->m_BTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
