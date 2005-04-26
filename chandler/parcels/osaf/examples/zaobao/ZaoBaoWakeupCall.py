@@ -39,4 +39,4 @@ class WakeupCall(WakeupCaller.WakeupCall):
             except Exception, e:
                 logging.exception('zaobao failed to parse %s' % item.url)
 
-        view.commit()
+            view.commit()
