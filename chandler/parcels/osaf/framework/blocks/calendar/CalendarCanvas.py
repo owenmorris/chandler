@@ -19,26 +19,121 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Styles as Styles
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
+from colorsys import *
 import copy
 
+# from ASPN, this is frange4
+def frange(end,start=0,inc=0,precision=1):
+    """A range function that accepts float increments."""
+    import math
+
+    if not start:
+        start = end + 0.0
+        end = 0.0
+    else: end += 0.0
+
+    if not inc:
+        inc = 1.0
+    count = int(math.ceil((start - end) / inc))
+
+    L = [None] * count
+
+    L[0] = end
+    for i in (xrange(1,count)):
+        L[i] = L[i-1] + inc
+    return L
+
+# 'color' is 0..255 based
+# 'rgb' is 0..1.0 based
 def color2rgb(r,g,b):
     return (r*1.0)/255, (g*1.0)/255, (b*1.0)/255
     
 def rgb2color(r,g,b):
     return r*255,g*255,b*255
     
-def get_outline_color(r,g,b):
-    from colorsys import *
-    hsv = rgb_to_hsv(r,g,b)
-    newhsv = (hsv[0], min(hsv[1]+.1,1), max(hsv[2] - .2,0))
-    return hsv_to_rgb(*newhsv)
+# from ASPN/Python Cookbook
+class CachedAttribute(object):
+    def __init__(self, method):
+        self.method = method
+        self.name = method.__name__
+        
+    def __get__(self, inst, cls):
+        if inst is None:
+            return self
+        result = self.method(inst)
+        setattr(inst, self.name, result)
+        return result
 
 class CalendarData(ContentModel.ContentItem):
     myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
     myKindID = None
     def __init__(self, *args, **keywords):
         super(CalendarData, self).__init__(*args, **keywords)
-        self.calendarColor = Styles.ColorStyle(self.itsView)
+
+    # need to convert hues from 0..360 to 0..1.0 range
+    hueList = [k/360.0 for k in [210, 120, 60, 0, 240, 90, 330, 30, 180, 270]]
+    
+    @classmethod
+    def getNextHue(cls, oldhue):
+        """
+        returns the next hue following the one passed in
+        For example,
+        f.hue = nextHue(f.hue)
+        """
+        found = False
+        for hue in cls.hueList:
+            if found: return hue
+            if hue == oldhue:
+                found = True
+        return cls.hueList[0]
+    
+    def _setEventColor(self, color):
+        self.calendarColor.backgroundColor = color
+
+        # clear cached values
+        try:
+            del self.eventHue
+        except AttributeError:
+            pass
+        
+    def _getEventColor(self):
+        return self.calendarColor.backgroundColor
+        
+    # this is the actual RGB value for eventColor
+    eventColor = property(_getEventColor, _setEventColor)
+    
+    @CachedAttribute
+    def eventHue(self):
+        c = self.eventColor
+        rgbvalues = (c.red, c.green, c.blue)
+        hsv = rgb_to_hsv(*color2rgb(*rgbvalues))
+        return hsv[0]
+    
+    # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
+    # takes HSV 'S' and 'V' and returns an color based tuple property
+    def tintedColor(saturation, value = 1.0):
+        def getSaturatedColor(self):
+            hsv = (self.eventHue, saturation, value)
+            return rgb2color(*hsv_to_rgb(*hsv))
+        return property(getSaturatedColor)
+            
+    # these are all for when this calendar is the 'current' one
+    gradientLeft = tintedColor(0.4)
+    gradientRight = tintedColor(0.2)
+    outlineColor = tintedColor(0.5)
+    textColor = tintedColor(0.67, 0.6)
+    
+    # when a user selects a calendar event, use these
+    selectedGradientLeft = tintedColor(0.15)
+    selectedGradientRight = tintedColor(0.05)
+    selectedOutlineColor = tintedColor(0.5)
+    selectedTextColor = tintedColor(0.67, 0.6)
+    
+    # 'visible' means that its not the 'current' calendar, but is still visible
+    visibleGradientLeft = tintedColor(0.4)
+    visibleGradientRight = tintedColor(0.4)
+    visibleOutlineColor = tintedColor(0.3)
+    visibleTextColor = tintedColor(0.5)
         
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
@@ -80,11 +175,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def GetStatusPen(self, styles):
         # probably should use styles to determine a good pen color
         item = self.GetItem()
-        color = styles.blockItem.getEventOutlineColor(item)
+        eventColors = styles.blockItem.getEventColors(item)
+        color = eventColors.outlineColor
         if (item.transparency == "confirmed"):
             pen = wx.Pen(color, 4)
         elif (item.transparency == "fyi"):
-            pen = wx.Pen(color, 4)
+            pen = wx.Pen(color, 1)
         elif (item.transparency == "tentative"):
             pen = wx.Pen(color, 4, wx.DOT)
         return pen
@@ -607,7 +703,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             startDay = self.rangeStart
             endDay = startDay + self.rangeIncrement
         return (startDay, endDay)
-        
+
+    #
+    # Color stuff
+    #
     def getCalendarData(self):
         """
         Lazily stamp the data
@@ -616,6 +715,8 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         if not isinstance(caldata, CalendarData):
             caldata.StampKind('add', CalendarData.getKind(view=caldata.itsView))
             
+            # XXX really, the object should be lazily creating this.
+            
             colorstyle = Styles.ColorStyle(view=self.itsView)
             # make copies, because initialValue ends up being shared, because
             # it is isn't immutable
@@ -623,11 +724,24 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             colorstyle.backgroundColor = copy.copy(colorstyle.backgroundColor)
             
             caldata.calendarColor = colorstyle
+
+            self.setupNextHue()
+            
         return caldata
                             
     calendarData = property(getCalendarData)
-    
-    def getEventColorStyle(self, event):
+
+    def setupNextHue(self):
+        c = self.contents.source.calendarColor.backgroundColor
+        self.lastHue = CalendarData.getNextHue(self.lastHue)
+        (c.red, c.green, c.blue) = rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
+        
+    def getEventColors(self, event):
+        """
+        Get the eventColors object which contains all the right color tints
+        for the given event. If the given event doesn't have color data,
+        then we return the default one associated with the view
+        """
         containingCollections = event.itemCollectionInclusions
         calDataKind = CalendarData.getKind(view=self.itsView)
         for coll in containingCollections:
@@ -636,45 +750,18 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             # we'll rely on that to make sure we don't get 'All's color
             if (not hasattr(coll, 'renameable') or coll.renameable) and \
                 coll.isItemOf(calDataKind):
-                return coll.calendarColor
-        return None
-    
-    def getEventBackgroundColor(self, event):
-        colorStyle = self.getEventColorStyle(event)
-        if colorStyle: 
-            return colorStyle.backgroundColor.wxColor()
-        return self.getEventsBackgroundColor()
-            
-    def getEventOutlineColor(self, event):
-        colorStyle = self.getEventColorStyle(event)
-        if colorStyle:
-            return colorStyle.foregroundColor.wxColor()
-        return self.getEventsOutlineColor()
-        
-    def getEventsBackgroundColor(self):
-        # avoid copy-on-write if possible, until I make self.calendarData copy-on-write
-        if not isinstance(self.contents.source, CalendarData):
-            return wx.WHITE
-        return self.calendarData.calendarColor.backgroundColor.wxColor()
-        return wx.Color(bc.red, bc.green, bc.blue)
-        
-    def getEventsOutlineColor(self):
-        if not isinstance(self.contents.source, CalendarData):
-            return wx.Color(102, 102, 102)
-        fc = self.calendarData.calendarColor.foregroundColor
-        return wx.Color(fc.red, fc.green, fc.blue)
-        
-    def setEventsColor(self, color):
-        # just need to set attributes on these two locals
-        bc = self.calendarData.calendarColor.backgroundColor
-        fc = self.calendarData.calendarColor.foregroundColor
+                return coll
+        return self.calendarData
 
-        c = color.Get()
-        (bc.red, bc.green, bc.blue) = c
-        
-        fc_rgb = get_outline_color(*color2rgb(*c))
-        (fc.red, fc.green, fc.blue) = rgb2color(*fc_rgb)
-        
+    def setCalendarColor(self, color):
+        """
+        Set the base color from which all tints are determined. Note that
+        this will lazily stamp the selected collection
+        """
+        ec = copy.copy(self.calendarData.eventColor)
+        (ec.red, ec.green, ec.blue) = color
+        self.calendarData.eventColor = ec
+                        
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
@@ -765,11 +852,26 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         
+        # gradient cache
+        self._gradientCache = {}
+        
     def _doDrawingCalculations(self):
         self.size = self.GetSize()
         
         self.xOffset = (self.size.width - self.scrollbarWidth) / 8
+        
+        try:
+            oldDayWidth = self.dayWidth
+        except AttributeError:
+            oldDayWidth = -1
+            
         self.dayWidth = (self.size.width - self.scrollbarWidth - self.xOffset) / self.blockItem.daysPerView
+
+        # the gradient brushes are based on dayWidth, so blow it away
+        # when dayWidth changes
+        if oldDayWidth != self.dayWidth:
+            self._gradientCache = {}
+        
         if self.blockItem.dayMode:
             self.columns = 1
         else:
@@ -821,10 +923,62 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.Layout()
         
     def OnSelectColor(self, event):
-        self.blockItem.setEventsColor(event.GetValue())
+        c = event.GetValue().Get()
+        self.blockItem.setCalendarColor(c)
         
         # just cause a repaint - hopefully this cascades to child windows?
         self.Refresh()
+        
+    def MakeGradientBrush(self, leftColor, rightColor):
+        """
+        Creates a gradient brush from leftColor to rightColor, specified
+        as color tuples (r,g,b)
+        The brush is a bitmap, width of self.dayWidth, height 1. The color 
+        gradient is made by varying the color saturation from leftColor to 
+        rightColor. This means that the Hue and Value should be the same, 
+        or the resulting color on the right won't match rightColor
+        """
+        
+        # There is probably a nicer way to do this, without:
+        # - going through wxImage
+        # - individually setting each RGB pixel
+        image = wx.EmptyImage(self.dayWidth, 1)
+        leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
+        rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
+        
+        # make sure they are the same hue
+        # this doesn't quite work, because sometimes division issues
+        # cause numbers to be very close, but not quite the same
+        #assert leftHSV[0] == rightHSV[0]
+        #assert leftHSV[2] == rightHSV[2]
+        
+        hue = leftHSV[0]
+        value = leftHSV[2]
+        satRange = rightHSV[1] - leftHSV[1]
+        
+        # assign a sliding scale of floating point values from left to right
+        # in the bitmap
+        for x, sat in enumerate(frange(leftHSV[1], rightHSV[1], satRange/self.dayWidth)):
+            newColor = rgb2color(*hsv_to_rgb(hue, sat, value))
+            image.SetRGB(x,0,*newColor)
+        
+        # and now we have to go from Image -> Bitmap. Yuck.
+        bitmap = wx.BitmapFromImage(image)
+        brush = wx.Brush(leftColor)
+        brush.SetStipple(bitmap)
+        return brush
+        
+    def GetGradientBrush(self, leftColor, rightColor):
+        """
+        Gets an appropriately sized gradient brush from the cache, 
+        or creates one if necessary
+        """
+        brush = self._gradientCache.get((leftColor, rightColor), None)
+        if not brush:
+            brush = self.MakeGradientBrush(leftColor, rightColor)
+            self._gradientCache[(leftColor, rightColor)] = brush
+        return brush
+        
 
 class wxWeekHeaderWidgets(wx.Panel):
 
@@ -930,7 +1084,7 @@ class wxWeekHeaderWidgets(wx.Panel):
             return
 
         # update the calendar with the calender's color
-        self.colorSelect.SetColour(self.parent.blockItem.getEventsBackgroundColor())
+        self.colorSelect.SetColour(self.parent.blockItem.calendarData.eventColor.wxColor())
 
         # Update the month button given the selected date
         lastDate = startDate + DateTime.RelativeDateTime(days=6)
@@ -1052,25 +1206,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         
     def DrawCells(self, dc):
-        """
-        import traceback
-        print "\nDrawCells!"
-        
-        def PrintStackEntry(entry):
-            print "    " + entry[2] + " @ " + entry[0][30:] + ":" + str(entry[1])
-
-        stack = traceback.extract_stack()
-        #PrintStackEntry(stack[-1])
-        #PrintStackEntry(stack[-2])
-        PrintStackEntry(stack[-3])
-        PrintStackEntry(stack[-4])
-        PrintStackEntry(stack[-5])
-        PrintStackEntry(stack[-6])
-        """
         
         styles = self.parent
 
-        dc.SetTextForeground(styles.eventLabelColor)
+        #dc.SetTextForeground(styles.eventLabelColor)
         dc.SetFont(styles.eventLabelFont)
         dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetBrush(wx.WHITE_BRUSH)
@@ -1084,11 +1223,19 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
+                eventColors = styles.blockItem.getEventColors(item)
+                #dc.SetPen(wx.Pen(eventColors.outlineColor))
+                #dc.SetBrush(wx.Brush(eventColors.gradientLeft))
+                dc.SetTextForeground(eventColors.textColor)
                 canvasItem.Draw(dc, styles)
         
         if selectedBox:
-            dc.SetBrush(styles.selectionBrush)
-            dc.SetPen(wx.Pen(styles.blockItem.getEventOutlineColor(selectedBox.GetItem())))
+            eventColors = styles.blockItem.getEventColors(selectedBox.GetItem())
+            dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
+            brush = styles.GetGradientBrush(eventColors.selectedGradientLeft,
+                                            eventColors.selectedGradientRight)
+            dc.SetBrush(brush)
+            dc.SetTextForeground(eventColors.selectedTextColor)
 
             selectedBox.Draw(dc, styles)
 
@@ -1414,22 +1561,28 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         for canvasItem in self.canvasItemList:
 
             item = canvasItem.GetItem()
-            drawingPen = wx.Pen(styles.blockItem.getEventOutlineColor(item))
-            drawingBrush = wx.Brush(styles.blockItem.getEventBackgroundColor(item))
-            dc.SetPen(drawingPen)
-            dc.SetBrush(drawingBrush)
             
             # save the selected box to be drawn last
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
+                eventColors = styles.blockItem.getEventColors(item)
+                dc.SetPen(wx.Pen(eventColors.outlineColor))
+                dc.SetBrush(styles.GetGradientBrush(eventColors.gradientLeft, 
+                                                    eventColors.gradientRight))
+                dc.SetTextForeground(eventColors.textColor)
+                
                 canvasItem.Draw(dc, boundingRect, styles)
             
         # now draw the current item on top of everything else
         if selectedBox:
             item = selectedBox.GetItem()
-            dc.SetPen(wx.Pen(styles.blockItem.getEventOutlineColor(item)))
-            dc.SetBrush(styles.selectionBrush)
+            eventColors = styles.blockItem.getEventColors(item)
+            dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
+            brush = styles.GetGradientBrush(eventColors.selectedGradientLeft,
+                                            eventColors.selectedGradientRight)
+            dc.SetBrush(brush)
+            dc.SetTextForeground(eventColors.selectedTextColor)
             selectedBox.Draw(dc, boundingRect, styles)
             
 
