@@ -450,7 +450,7 @@ def RenderClouds(repoView, kind):
          cloud.iterEndpoints(cloudAlias=cloudAlias):
             result += "<a href=%s>%s</a> in cloud %s: " % (toLink(endpoint.itsPath), endpoint.itsName, foundInCloud.itsPath)
             if alias:
-                result += " (alias '%s')" %  cloud.endpoints.getAlias(endpoint)
+                result += " (alias '%s')" % alias
             result += " policy '%s'" % endpoint.includePolicy
             if endpoint.includePolicy == "byCloud":
                 if endpoint.getAttributeValue('cloud', default=None) is not \
