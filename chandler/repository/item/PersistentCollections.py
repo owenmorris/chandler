@@ -174,6 +174,33 @@ class PersistentList(list, PersistentCollection):
 
         return copy
 
+    def __contains__(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        return super(PersistentList, self).__contains__(value)
+
+    def index(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        return super(PersistentList, self).index(value)
+
+    def count(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        return super(PersistentList, self).count(value)
+
     def __setitem__(self, index, value):
 
         self._storeValue(value)
@@ -238,7 +265,11 @@ class PersistentList(list, PersistentCollection):
 
     def remove(self, value):
 
-        value = self._prepareValue(value)
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
         super(PersistentList, self).remove(value)
         self._setDirty()
 
