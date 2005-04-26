@@ -1,5 +1,5 @@
---- Twisted-20050426/twisted/topfiles/setup.py	Tue Mar 22 06:14:03 2005
-+++ Twisted-20050426-patched/twisted/topfiles/setup.py	Wed Apr 20 12:14:36 2005
+--- Twisted-r13651/twisted/topfiles/setup.py	Tue Mar 22 06:14:03 2005
++++ Twisted-r13651-patched/twisted/topfiles/setup.py	Wed Apr 20 12:14:36 2005
 @@ -96,19 +96,15 @@
  
      # build stuff
