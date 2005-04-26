@@ -83,9 +83,9 @@ public:
 		long				originX );
 
 	void GetSelectionColour(
-		wxColor			&targetColour ) const;
+		wxColour			&targetColour ) const;
 	void SetSelectionColour(
-		const wxColor		&targetColour );
+		const wxColour		&targetColour );
 	long GetSelectionDrawStyle( void ) const;
 	void SetSelectionDrawStyle(
 		long				styleValue );

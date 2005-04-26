@@ -554,13 +554,13 @@ wxVisualAttributes wxColumnHeader::GetClassDefaultAttributes(
 #endif
 
 void wxColumnHeader::GetSelectionColour(
-	wxColor			&targetColour ) const
+	wxColour			&targetColour ) const
 {
 	targetColour = m_SelectionColour;
 }
 
 void wxColumnHeader::SetSelectionColour(
-	const wxColor		&targetColour )
+	const wxColour		&targetColour )
 {
 	m_SelectionColour = targetColour;
 }

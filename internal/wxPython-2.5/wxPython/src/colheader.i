@@ -103,6 +103,9 @@ MustHaveApp(wxColumnHeader);
 class wxColumnHeader : public wxControl
 {
 public:
+        %pythonAppend wxColumnHeader      "self._setOORInfo(self)"
+        %pythonAppend wxColumnHeader()    ""
+
     // wxColumnHeader();
     // ~wxColumnHeader();
 
@@ -132,9 +135,9 @@ public:
         long            originX );
 
     void GetSelectionColour(
-        wxColor            &targetColour ) const;
+        wxColour            &targetColour ) const;
     void SetSelectionColour(
-        const wxColor        &targetColour );
+        const wxColour        &targetColour );
     long GetSelectionDrawStyle( void ) const;
     void SetSelectionDrawStyle(
         long                styleValue );
