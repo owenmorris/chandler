@@ -22,27 +22,6 @@ import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 from colorsys import *
 import copy
 
-# from ASPN, this is frange4
-def frange(end,start=0,inc=0,precision=1):
-    """A range function that accepts float increments."""
-    import math
-
-    if not start:
-        start = end + 0.0
-        end = 0.0
-    else: end += 0.0
-
-    if not inc:
-        inc = 1.0
-    count = int(math.ceil((start - end) / inc))
-
-    L = [None] * count
-
-    L[0] = end
-    for i in (xrange(1,count)):
-        L[i] = L[i-1] + inc
-    return L
-
 # 'color' is 0..255 based
 # 'rgb' is 0..1.0 based
 def color2rgb(r,g,b):
@@ -410,10 +389,6 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         duration = (endTime - startTime).hours
         (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(duration * calendarCanvas.hourHeight))
         
-        # Now handle indentation based on conflicts -
-        # we really need a way to proportionally size
-        # items, so that the right side of the rectangle
-        # shrinks as well
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
     def Draw(self, dc, boundingRect, styles):
@@ -431,9 +406,15 @@ class ColumnarCanvasItem(CalendarCanvasItem):
 
         # save the current pen, we'll need it
         drawingPen = dc.GetPen()
+        origin = dc.GetDeviceOrigin()
+        newOrigin = copy.copy(origin)
         
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
+            newOrigin.x += itemRect.x
+            dc.SetDeviceOriginPoint(newOrigin)
+            itemRect = copy.copy(itemRect)
+            itemRect.x = 0
             dc.SetPen(drawingPen)
 
             # properly round the corners - first and last
@@ -444,7 +425,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             if rectIndex == 0:
                 hasTopRightRounded = True
                 drawTime = True
-            if itemRect == lastRect:
+            if rectIndex == len(self._boundsRects)-1:
                 hasBottomRightRounded = True
 
             self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
@@ -486,6 +467,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DestroyClippingRegion()
         if clipRect:
             dc.SetClippingRect(clipRect)
+        dc.SetDeviceOriginPoint(origin)
 
     def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):
         """
@@ -929,7 +911,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # just cause a repaint - hopefully this cascades to child windows?
         self.Refresh()
         
-    def MakeGradientBrush(self, leftColor, rightColor):
+    def MakeGradientBrush(self, width, leftColor, rightColor):
         """
         Creates a gradient brush from leftColor to rightColor, specified
         as color tuples (r,g,b)
@@ -942,7 +924,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # There is probably a nicer way to do this, without:
         # - going through wxImage
         # - individually setting each RGB pixel
-        image = wx.EmptyImage(self.dayWidth, 1)
+        image = wx.EmptyImage(width, 1)
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
         
@@ -954,11 +936,14 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
         hue = leftHSV[0]
         value = leftHSV[2]
-        satRange = rightHSV[1] - leftHSV[1]
+        satStart = leftHSV[1]
+        satDelta = rightHSV[1] - leftHSV[1]
+        satStep = satDelta / width
         
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
-        for x, sat in enumerate(frange(leftHSV[1], rightHSV[1], satRange/self.dayWidth)):
+        for x in xrange(width):
+            sat = satStart + satStep*x
             newColor = rgb2color(*hsv_to_rgb(hue, sat, value))
             image.SetRGB(x,0,*newColor)
         
@@ -968,15 +953,16 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         brush.SetStipple(bitmap)
         return brush
         
-    def GetGradientBrush(self, leftColor, rightColor):
+    def GetGradientBrush(self, width, leftColor, rightColor):
         """
         Gets an appropriately sized gradient brush from the cache, 
         or creates one if necessary
         """
-        brush = self._gradientCache.get((leftColor, rightColor), None)
+        key = (width, leftColor, rightColor)
+        brush = self._gradientCache.get(key, None)
         if not brush:
-            brush = self.MakeGradientBrush(leftColor, rightColor)
-            self._gradientCache[(leftColor, rightColor)] = brush
+            brush = self.MakeGradientBrush(*key)
+            self._gradientCache[key] = brush
         return brush
         
 
@@ -1232,7 +1218,8 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         if selectedBox:
             eventColors = styles.blockItem.getEventColors(selectedBox.GetItem())
             dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
-            brush = styles.GetGradientBrush(eventColors.selectedGradientLeft,
+            brush = styles.GetGradientBrush(self.dayWidth,
+                                            eventColors.selectedGradientLeft,
                                             eventColors.selectedGradientRight)
             dc.SetBrush(brush)
             dc.SetTextForeground(eventColors.selectedTextColor)
@@ -1568,7 +1555,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             else:
                 eventColors = styles.blockItem.getEventColors(item)
                 dc.SetPen(wx.Pen(eventColors.outlineColor))
-                dc.SetBrush(styles.GetGradientBrush(eventColors.gradientLeft, 
+                dc.SetBrush(styles.GetGradientBrush(self.dayWidth, eventColors.gradientLeft, 
                                                     eventColors.gradientRight))
                 dc.SetTextForeground(eventColors.textColor)
                 
@@ -1579,13 +1566,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             item = selectedBox.GetItem()
             eventColors = styles.blockItem.getEventColors(item)
             dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
-            brush = styles.GetGradientBrush(eventColors.selectedGradientLeft,
+            brush = styles.GetGradientBrush(self.dayWidth, eventColors.selectedGradientLeft,
                                             eventColors.selectedGradientRight)
             dc.SetBrush(brush)
             dc.SetTextForeground(eventColors.selectedTextColor)
             selectedBox.Draw(dc, boundingRect, styles)
-            
-
+        
     def CheckConflicts(self):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
             # since these are sorted, we only have to check the items 
