@@ -45,6 +45,7 @@
 %name(ssl_ctx_remove_session) extern int SSL_CTX_remove_session(SSL_CTX *, SSL_SESSION *);
 %name(ssl_ctx_set_session_timeout) extern long SSL_CTX_set_timeout(SSL_CTX *, long);
 %name(ssl_ctx_get_session_timeout) extern long SSL_CTX_get_timeout(SSL_CTX *);
+%name(ssl_ctx_get_cert_store) extern X509_STORE *SSL_CTX_get_cert_store(SSL_CTX *);
 
 %name(bio_new_ssl) extern BIO *BIO_new_ssl(SSL_CTX *, int);
 
@@ -168,6 +169,7 @@ int ssl_ctx_use_cert_chain(SSL_CTX *ctx, char *file) {
     }
     return i;
 }
+
 
 int ssl_ctx_use_privkey(SSL_CTX *ctx, char *file) {
     int i;
