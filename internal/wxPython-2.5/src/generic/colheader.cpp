@@ -2156,7 +2156,12 @@ bool			bSelected, bHasIcon;
 
 		descentY = 1;
 		if ((m_LabelTextExtent.y > 0) && (m_LabelTextExtent.y < localBoundsR.height))
+		{
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
+
+			// FIXME: why is this needed? The previous calculation should be exact.
+			descentY--;
+		}
 
 		if (m_LabelTextExtent.x <= maxExtentX)
 		{
@@ -2506,9 +2511,13 @@ int		sizeX, sizeY, insetX;
 		insetX = wxCH_kMetricInsetX;
 
 		targetBoundsR->x = itemBoundsR->x + itemBoundsR->width - (sizeX + insetX);
-		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
+		targetBoundsR->y = itemBoundsR->y + ((itemBoundsR->height - sizeY) / 2);
 		targetBoundsR->width = sizeX;
 		targetBoundsR->height = sizeY;
+
+		// FIXME: why is this needed? The previous calculations should be exact.
+		targetBoundsR->x--;
+		targetBoundsR->y--;
 	}
 	else
 	{
