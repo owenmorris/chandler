@@ -415,7 +415,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             dc.SetDeviceOriginPoint(newOrigin)
             itemRect = copy.copy(itemRect)
             itemRect.x = 0
-            brush = wx.Brush(wx.WHITE)
+            brush = wx.Brush(wx.WHITE,wx.STIPPLE)
             brush.SetStipple(bitmapBrush)
             dc.SetBrush(brush)
             dc.SetPen(drawingPen)
@@ -1221,7 +1221,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             bitmap = styles.GetGradientBitmap(self.parent.dayWidth,
                                               eventColors.selectedGradientLeft,
                                               eventColors.selectedGradientRight)
-            brush = wx.Brush(wx.WHITE)
+            brush = wx.Brush(wx.WHITE,wx.STIPPLE)
             brush.SetStipple(bitmap)
             dc.SetBrush(brush)
             dc.SetTextForeground(eventColors.selectedTextColor)
