@@ -21,6 +21,7 @@ import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
 from colorsys import *
 import copy
+import math
 
 # 'color' is 0..255 based
 # 'rgb' is 0..1.0 based
@@ -923,11 +924,14 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         rightColor. This means that the Hue and Value should be the same, 
         or the resulting color on the right won't match rightColor
         """
-        
+        # mac requires bitmaps to have a height and width that are powers of 2
+        # use frexp to round up to the nearest power of 2
+        # (frexp(x) returns (m,e) where x = m * 2**e, and we just want e)
+        bitmapWidth = 2**math.frexp(width-1)[1]
         # There is probably a nicer way to do this, without:
         # - going through wxImage
         # - individually setting each RGB pixel
-        image = wx.EmptyImage(width, 1)
+        image = wx.EmptyImage(bitmapWidth, 1)
         leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
         rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
         
@@ -945,11 +949,12 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
-        for x in xrange(width):
-            sat = satStart + satStep*x
+        bits = ""
+        for x in xrange(bitmapWidth):
+            pixel = x % width
+            sat = satStart + satStep*pixel
             newColor = rgb2color(*hsv_to_rgb(hue, sat, value))
             image.SetRGB(x,0,*newColor)
-        
         # and now we have to go from Image -> Bitmap. Yuck.
         return wx.BitmapFromImage(image)
         
