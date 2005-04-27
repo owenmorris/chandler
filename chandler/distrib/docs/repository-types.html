@@ -1,0 +1,203 @@
+<html>
+<head>
+<link rel=StyleSheet href="osaf.css" type="text/css"/>
+<title>Chandler Repository Types</title>
+</head>
+<body>
+<h1>Types in the Chandler repository</h1>
+<p>This document describes the types that you can use when you are working with parcel.xml.  These types are provided by the Chandler repository and are the basic building blocks for Chandler Items.  You can use them by supplying the name of the type as the value of the <code>itemref</code> attribute on the <code>&lt;type&gt;</code> element used in parcel.xml.</p>
+
+<table border="1" cellspacing="0">
+<thead>
+<tr>
+<th>Repository type name</th>
+<th>Description</th>
+<th>Parcel.xml Declaration Syntax</th>
+<th>Parcel.xml Value syntax</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Boolean</td>
+<td>A Python boolean</td>
+<td><code>&lt;type itemref="Boolean"&gt;</code></td>
+<td><code>True</code> or <code>False</code></td>
+</tr>
+  
+   
+<tr>
+<td>Class</td>
+<td>a Python class</td>
+<td><code>&lt;type itemref="Class"&gt;</code></td>
+<td>The fully qualified name of the class as a string</td>
+</tr>
+
+<tr>
+<td>Complex</td>
+<td>a Python complex number</td>
+<td><code>&lt;type itemref="Complex" /&gt;</code></td>
+<td>a Python complex number literal</td>
+</tr>
+
+<tr>
+<td>DateTime</td>
+<td>a mxDateTime.DateTime</td>
+<td><code>&lt;type itemref="DateTime"&gt;</code></td>
+<td>An ISO8601 date/time string</td>
+</tr>
+
+<tr>
+<td>DateTimeDelta</td>
+<td>a mxDateTime.DateTimeDelta
+</td>
+<td><code>&lt;type itemref="DateTimeDelta"&gt;</code></td>
+<td>use mxDateTime.DateTimeDelta's DateTimeDeltaFrom constructor</td>
+</tr>
+
+<tr>
+<td>Dictionary</td>
+<td>A Python dictionary</td>
+<td><code>&lt;type itemref="Dictionary"&gt;</code></td>
+<td>A string containing key value pairs: "key1:value1, ..., keyn:valuen"</td>
+</tr>
+
+<tr>
+<td>Enumeration</td>
+<td>one of a number of string values - string1, ..., stringn</td>
+<td><code>&lt;Enumeration itsName="fontFamilyEnumType"&gt;<br />
+    &lt;values&gt;DefaultUIFont&lt;/values&gt;<br />
+    &lt;values&gt;SerifFont&lt;/values&gt;<br />
+    &lt;values&gt;SansSerifFont&lt;/values&gt;<br />
+    &lt;values&gt;FixedPitchFont&lt;/values&gt;<br />
+  &lt;/Enumeration&gt;<br />
+   <br />
+  &lt;Attribute itsName="fontFamily"&gt;<br />
+    &lt;type itemref="docSchema:fontFamilyEnumType"/&gt;<br />
+    &lt;initialValue type="docSchema:fontFamilyEnumType"&gt;DefaultUIFont&lt;/initialValue&gt;<br />
+  &lt;/Attribute&gt;
+  </code>
+</td>
+<td>One of the string values defined by the enumeration type</td>
+</tr>
+
+<tr>
+<td>Float</td>
+<td>A Python float</td>
+<td><code>&lt;type itemref="Float"/&gt;</code></td>
+<td>a Python floating point literal</td>
+</tr>
+
+<tr>
+<td>Integer</td>
+<td>A Python int</td>
+<td><code>&lt;type itemref="Integer"/&gt;</code></td>
+<td>a Python integer literal</td>
+</tr>
+
+<tr>
+<td>List</td>
+<td>A list of values</td>
+<td><code>&lt;type itemref="List"/&gt;</code></td>
+<td>A string containing a list of values: "value1, ... , valuen"</td>
+</tr>
+
+<tr>
+<td>Lob</td>
+<td>A binary object</td>
+<td><code>&lt;type itemref="Lob" /&gt;</code></td>
+<td>A MIME encoded binary value</td>
+</tr>
+
+<tr>
+<td>Long</td>
+<td>A Python long</td>
+<td><code>&lt;type itemref="Long" /&gt;</code></td>
+<td>a Python long literal</td>
+</tr>
+<!--
+<tr>
+<td>None</td>
+<td>The Python value 'None' -- None
+</td>
+<td></td>
+</tr>
+
+<tr>
+<td>Path</td>
+<td>Repository path (to an Item) -- path as a string</td>
+<td></td>
+</tr>
+-->
+<tr>
+<td>RelativeDateTime</td>
+<td>a mxDateTime.RelativeDateTime</td>
+<td><code>&lt;type itemref="RelativeDateTime" /&gt;</code></td>
+<td>use mxDateTime.RelativeDateTime's RelativeDateTimeFrom constructor</td>
+</tr>
+
+<tr>
+<td>SingleRef</td>
+<td>A uni-directional reference to an Item</td>
+<td><code>&lt;type itemref="SingleRef"/&gt;</code></td>
+<td>The string representation of a UUID, which is the UUID of the item to reference</td>
+</tr>
+
+<tr>
+<td>String</td>
+<td>A Unicode string</td>
+<td><code>&lt;type itemref="String"/&gt;</code></td>
+<td>A Python unicode string literal</td>
+</tr>
+
+<tr>
+<td>Struct</td>
+<td>A collection of named fields</td>
+<td><code>&lt;Struct itsName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct"&gt;<br />
+    &lt;fields key="red"&gt;&lt;/fields&gt; <br />
+    &lt;fields key="green"&gt;&lt;/fields&gt; <br />
+    &lt;fields key="blue"&gt;&lt;/fields&gt; <br />
+    &lt;fields key="alpha"&gt;&lt;/fields&gt; <br />
+    &lt;implementationTypes key="python"&gt;osaf.framework.blocks.DocumentTypes.ColorType&lt;/implementationTypes&gt; <br />
+  &lt;/Struct&gt; <br />
+<br />
+  &lt;Attribute itsName="foregroundColor"&gt; <br />
+    &lt;type itemref="docSchema:ColorType"/&gt; <br />
+    &lt;initialValue type="docSchema:ColorType"&gt;0,0,0,255&lt;/initialValue&gt; <br />
+  &lt;/Attribute&gt;</td>
+<td>Use Python to assigne values to the appropriate fields of the Struct.</td>
+</tr>
+
+<!--
+<tr>
+<td>Symbol</td>
+<td>A Unicode string whose values are limited to [a-zA-Z0-9_]*</td>
+<td></td>
+</tr>
+-->
+
+<tr>
+<td>Tuple</td>
+<td>A tuple of values</td>
+<td><code>&lt;type itemref="Tuple"/&gt;</code></td>
+<td>A string containing comma  separated values: "value1, ... , valuen"</td>
+</tr>
+
+
+<tr>
+<td>URL</td>
+<td>A URL - a URL string</td>
+<td><code>&lt;type itemref="URL"/&gt;</code></td>
+<td>A string containing a valid URL</td>
+</tr>
+
+<tr>
+<td>UUID</td>
+<td>A UUID</td>
+<td><code>&lt;type itemref="UUID"/&gt;</code></td>
+<td>The string form of a UUID>
+</tr>
+
+</tbody>
+</table>
+</body>
