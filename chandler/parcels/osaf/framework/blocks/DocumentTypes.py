@@ -60,7 +60,7 @@ class ColorType(object):
 
     def __repr__(self):
         return "(%sr, %sg, %sb, %sa)" % (self.red, self.green, self.blue, self.alpha)
-
+        
 class ColorStruct(CoreTypes.Struct):
 
     def makeValue(Struct, data):
@@ -71,3 +71,8 @@ class ColorStruct(CoreTypes.Struct):
         setattr (color, 'blue', int(blue))
         setattr (color, 'alpha', int(alpha))
         return color
+
+    def makeString(self, value):
+        return "%d,%d,%d,%d" % (int(value.red), int(value.green), 
+                                int(value.blue), int(value.alpha))
+    

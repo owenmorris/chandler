@@ -46,7 +46,7 @@ recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
 parcels
-tools
+util
 
 glob=*
 repository

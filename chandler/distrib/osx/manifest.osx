@@ -56,7 +56,7 @@ application
 exclude=CVS,*.pyo,*.pyc
 parcels
 exclude=CVS,tests,*.pyo,*.pyc
-tools
+util
 
 glob=*
 repository

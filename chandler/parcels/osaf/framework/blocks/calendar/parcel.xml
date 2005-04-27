@@ -57,6 +57,13 @@
     <Attribute itsName="calendarColor">
         <type itemref="blocks:ColorStyle"/>
     </Attribute>
+    <Cloud itsName="SharingCloud">
+        <Endpoint itsName="calendarColor">
+            <attribute value="calendarColor"/>
+        </Endpoint>
+        <endpoints alias="calendarColor" itemref="doc:CalendarData/SharingCloud/calendarColor"/>
+    </Cloud>
+    <clouds alias="sharing" itemref="doc:CalendarData/SharingCloud"/>
   </Kind>
 
 </Parcel>

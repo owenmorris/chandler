@@ -6,7 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import QueryParser
 import repository.item.Item as Item
-import tools.timing
 import sets
 import mx.DateTime.ISO
 from chandlerdb.util.uuid import UUID

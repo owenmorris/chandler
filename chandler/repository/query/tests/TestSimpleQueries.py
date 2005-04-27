@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, unittest
 import repository.query.tests.QueryTestCase as QueryTestCase
-import tools.timing
+import util.timing
 
 class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
@@ -29,12 +29,12 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
-        tools.timing.reset()
-        tools.timing.begin("repository.query.tests.TestSimpleQueries.testKindQuery")
+        util.timing.reset()
+        util.timing.begin("repository.query.tests.TestSimpleQueries.testKindQuery")
         results = self._compileQuery('testKindQuery','for i in "//Schema/Core/Kind" where True')
         self._checkQuery(lambda i: False, results)
-        tools.timing.end("repository.query.tests.TestSimpleQueries.testKindQuery")
-        tools.timing.results(verbose=False)
+        util.timing.end("repository.query.tests.TestSimpleQueries.testKindQuery")
+        util.timing.results(verbose=False)
 
     def testFunctionKindQuery(self):
         """ Test calling a function in the query predicate """

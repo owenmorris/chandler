@@ -9,7 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import ParcelLoaderTestCase, os, sys, unittest
 
 import application
-import tools.timing
+import util.timing
 
 class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -18,12 +18,12 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         Test to ensure all parcels load
         """
-        tools.timing.begin("application.TestAllParcels")
+        util.timing.begin("application.TestAllParcels")
 
         self.loadParcels()
         
-        tools.timing.end("application.TestAllParcels")
-        tools.timing.results(verbose=False)
+        util.timing.end("application.TestAllParcels")
+        util.timing.results(verbose=False)
 
         self.assert_( self.rep.check(), "Repository check failed -- see chandler.log" )
 

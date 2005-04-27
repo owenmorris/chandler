@@ -25,7 +25,7 @@ CPIA = "%s/osaf/framework/blocks" % NS_ROOT
 
 #@@@Temporary testing tool written by Morgen -- DJA
 timing = False
-if timing: import tools.timing
+if timing: import util.timing
 
 class Manager(Item):
     """
@@ -266,7 +266,7 @@ class Manager(Item):
         Also check files for XML correctness (mismatched tags, etc).
         """
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.begin("Scan XML for namespaces")
+        if timing: util.timing.begin("Scan XML for namespaces")
 
         class MappingHandler(xml.sax.ContentHandler):
             """ A SAX2 handler for parsing namespace information """
@@ -391,7 +391,7 @@ class Manager(Item):
             raise
 
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.end("Scan XML for namespaces")
+        if timing: util.timing.end("Scan XML for namespaces")
 
     def __walkParcels(self, rootParcel):
         """
@@ -560,7 +560,7 @@ class Manager(Item):
         globalDepth = 0
 
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.begin("Load parcels")
+        if timing: util.timing.begin("Load parcels")
 
         try:
             self.resetState()
@@ -624,7 +624,7 @@ class Manager(Item):
             raise
 
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.end("Load parcels")
+        if timing: util.timing.end("Load parcels")
         
     def handleKind(self, handler, kind):
         """
@@ -1370,7 +1370,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         """
 
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.begin("Creating items")
+        if timing: util.timing.begin("Creating items")
         
         try:
             if className:
@@ -1385,7 +1385,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             raise
 
         #@@@Temporary testing tool written by Morgen -- DJA
-        if timing: tools.timing.end("Creating items")
+        if timing: util.timing.end("Creating items")
 
         if item is None:
             explanation = "Item not created"
@@ -1419,7 +1419,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.saveState(line=line, file=file)
 
             #@@@Temporary testing tool written by Morgen -- DJA
-            if timing: tools.timing.begin("Attribute assignments")
+            if timing: util.timing.begin("Attribute assignments")
             
             if assignment["assignType"] == self._DELAYED_REFERENCE:
 
@@ -1604,7 +1604,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         raise ParcelException(explanation)
 
             #@@@Temporary testing tool written by Morgen -- DJA
-            if timing: tools.timing.end("Attribute assignments")
+            if timing: util.timing.end("Attribute assignments")
 
         # Remove any assignments still remaining in the old value set, since
         # we didn't see them in the new XML

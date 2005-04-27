@@ -17,6 +17,7 @@ import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
 from repository.util.Lob import Lob
 from repository.item.Item import Item
+from repository.schema.Types import Type
 import repository.query.Query as Query
 import repository
 import logging
@@ -852,7 +853,7 @@ class WebDAVConduit(ShareConduit):
         try:
             item = self.share.format.importProcess(text, item=into)
         except Exception, e:
-            raise TransformationFailed(message=str(e))
+            raise TransformationFailed(message="%s:%s" % (str(e), text))
 
         return (item, etag)
 
@@ -1077,8 +1078,17 @@ class CloudXMLFormat(ImportExportFormat):
         attributes = self.__collectAttributes(item)
 
         result = indent * depth
+        
+        if item.itsKind.isMixin():
+            kindsList = []
+            for kind in item.itsKind.superKinds:
+                kindsList.append(str(kind.itsPath))
+            kinds = ",".join(kindsList)
+        else:
+            kinds = str(item.itsKind.itsPath)
+        
         result += "<%s kind='%s' uuid='%s'>\n" % (item.itsKind.itsName,
-                                                  item.itsKind.itsPath,
+                                                  kinds,
                                                   item.itsUUID)
 
         depth += 1
@@ -1093,6 +1103,7 @@ class CloudXMLFormat(ImportExportFormat):
 
             otherName = item.itsKind.getOtherName(attrName, None, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
+            type = item.getAttributeAspect(attrName, 'type')
 
             if otherName: # it's a bidiref
                 result += "\n"
@@ -1125,14 +1136,19 @@ class CloudXMLFormat(ImportExportFormat):
                         # For 0.6, we should handle encoding properly.
                         uStr = value.getReader().read()
                         value = uStr.encode('ascii', 'replace')
-                    result += "<![CDATA[" + str(value) + "]]>"
+                        
+                    if isinstance(value, Item):
+                        result += "\n"
+                        result += self.exportProcess(value, depth+1)
+                    else:
+                        result += "<![CDATA[" + type.makeString(value) + "]]>"
 
                 elif cardinality == 'list':
                     depth += 1
                     result += "\n"
                     for value in item.getAttributeValue(attrName):
                         result += indent * depth
-                        result += "<value>%s</value>\n" % value
+                        result += "<value>%s</value>\n" % type.makeString(value)
                     depth -= 1
 
                     result += indent * depth
@@ -1151,6 +1167,7 @@ class CloudXMLFormat(ImportExportFormat):
 
     def __collectAttributes(self, item):
         attributes = {}
+        skip = {}
         for cloud in item.itsKind.getClouds(self.cloudAlias):
             for (alias, endpoint, inCloud) in cloud.iterEndpoints(self.cloudAlias):
                 # @@@MOR for now, don't support endpoint attribute 'chains'
@@ -1158,8 +1175,14 @@ class CloudXMLFormat(ImportExportFormat):
                 
                 # An includePolicy of 'none' is how we override an inherited
                 # endpoint
-                if endpoint.includePolicy != 'none':
-                    attributes[attrName] = endpoint
+                if endpoint.includePolicy == 'none':
+                    skip[attrName] = 1
+                    
+                attributes[attrName] = endpoint
+
+        for attrName in skip.iterkeys():
+            del attributes[attrName]
+            
         return attributes
 
 
@@ -1197,28 +1220,37 @@ class CloudXMLFormat(ImportExportFormat):
     def __importNode(self, node, item=None):
 
         kind = None
-        kindPath = None
+        kinds = []
 
         kindNode = node.hasProp('kind')
         if kindNode:
-            kindPath = kindNode.content
-            kind = self.itsView.findPath(kindNode.content)
-
-        if kind is None:
-            # No kind provided, or we don't have that kind in repository
-            if kindPath:
-                logger.info("No kind found for %s" % kindPath)
-            else:
-                logger.info("Can't import an item without a kind provided")
+            kindPathList = kindNode.content.split(",")
+            for kindPath in kindPathList:
+                kind = self.itsView.findPath(kindPath)
+                if kind is not None:
+                    kinds.append(kind)
+        else:
+            logger.info("No kinds provided")
             return None
 
+        if len(kinds) == 0:
+            # we don't have any of the kinds provided
+            logger.info("No kinds found locally for %s" % kindPathList)
+            return None
+        elif len(kinds) == 1:
+            kind = kinds[0]
+        else: # time to mixin
+            kind = kinds[0].mixin(kinds[1:])
 
         if item is None:
 
             uuidNode = node.hasProp('uuid')
             if uuidNode:
-                uuid = UUID(uuidNode.content)
-                item = self.itsView.findUUID(uuid)
+                try:
+                    uuid = UUID(uuidNode.content)
+                    item = self.itsView.findUUID(uuid)
+                except Exception, e:
+                    print e
             else:
                 uuid = None
 
@@ -1250,7 +1282,9 @@ class CloudXMLFormat(ImportExportFormat):
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
             type = item.getAttributeAspect(attrName, 'type')
 
-            if otherName: # it's a bidiref
+            # @@@MOR What's the right way to tell if this is a single ref -- checking type for non-type items is a kludge:
+
+            if otherName or (isinstance(type, Item) and not isinstance(type, Type)): # it's a ref
 
                 if cardinality == 'single':
                     valueNode = attrNode.children
@@ -1274,7 +1308,7 @@ class CloudXMLFormat(ImportExportFormat):
                 elif cardinality == 'dict':
                     pass
 
-            else: # it's a literal (could be SingleRef though)
+            else: # it's a literal
 
                 if cardinality == 'single':
                     value = type.makeValue(attrNode.content)

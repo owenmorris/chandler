@@ -11,7 +11,7 @@ import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.util.Path import Path
-import tools.timing
+import util.timing
 
 
 class TestDelete(RepositoryTestCase):
@@ -28,15 +28,15 @@ class TestDelete(RepositoryTestCase):
 
     def testDeleteItemsInCollection(self):
 
-        tools.timing.reset()
+        util.timing.reset()
 
         self._reopenRepository()
         k = self.rep.findPath('//CineGuide/KHepburn')
-        tools.timing.reset()
+        util.timing.reset()
         for m in k.movies:
-            tools.timing.begin("repository.tests.TestDelete.testDeleteItemsInCollection")
+            util.timing.begin("repository.tests.TestDelete.testDeleteItemsInCollection")
             m.delete()
-            tools.timing.end("repository.tests.TestDelete.testDeleteItemsInCollection")
+            util.timing.end("repository.tests.TestDelete.testDeleteItemsInCollection")
 
         self.assert_(len(k.movies) == 0)
         self.assert_(self.rep.check())
@@ -44,22 +44,22 @@ class TestDelete(RepositoryTestCase):
         self._reopenRepository()
         self.assert_(self.rep.check())
 
-        tools.timing.results(verbose=False)
+        util.timing.results(verbose=False)
 
     def testCloudDelete(self):
 
-        tools.timing.reset()
+        util.timing.reset()
 
         k = self.rep.findPath('//CineGuide/KHepburn')
-        tools.timing.begin("repository.tests.TestDelete.testCloudDelete")
+        util.timing.begin("repository.tests.TestDelete.testCloudDelete")
         k.delete(cloudAlias='remote')
-        tools.timing.end("repository.tests.TestDelete.testCloudDelete")
+        util.timing.end("repository.tests.TestDelete.testCloudDelete")
         self.rep.commit()
         self.rep.check()
         self._reopenRepository()
         self.rep.check()
 
-        tools.timing.results(verbose=False)
+        util.timing.results(verbose=False)
         
 
 if __name__ == "__main__":

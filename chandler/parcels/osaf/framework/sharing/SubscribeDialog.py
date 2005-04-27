@@ -93,6 +93,7 @@ class SubscribeDialog(wx.Dialog):
             share.delete()
         except Sharing.SharingError, err:
             self.__showStatus("Sharing Error:\n%s" % err.message)
+            self.__showStatus("Exception:\n%s" % traceback.format_exc(10))
             share.conduit.delete()
             share.format.delete()
             share.delete()

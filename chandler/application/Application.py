@@ -20,7 +20,7 @@ logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
 
 #@@@Temporary testing tool written by Morgen -- DJA
-import tools.timing
+import util.timing
 
 # Increment this constant whenever you change the schema:
 SCHEMA_VERSION = "10"
@@ -128,7 +128,7 @@ class wxApplication (wx.App):
     PARCEL_IMPORT = 'parcels'
 
     def OnInit(self):
-        tools.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+        util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
         """
           Main application initialization.
         """
@@ -346,7 +346,7 @@ class wxApplication (wx.App):
         Globals.wakeupCaller = WakeupCaller(self.UIRepositoryView.repository)
         Globals.wakeupCaller.startup()
 
-        tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+        util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
 
         return True                     #indicates we succeeded with initialization
