@@ -984,14 +984,15 @@ class wxWeekHeaderWidgets(wx.Panel):
         
         navigationRow = wx.BoxSizer(wx.HORIZONTAL)
         
-        sizer.Add((3,3), 0, wx.EXPAND)
+        sizer.Add((5,5), 0, wx.EXPAND)
         sizer.Add(navigationRow, 0, wx.EXPAND)
-        sizer.Add((3,3), 0, wx.EXPAND)
+        sizer.Add((5,5), 0, wx.EXPAND)
 
         # beginnings of  in the calendar
-        self.colorSelect = colourselect.ColourSelect(self, -1)
+        self.colorSelect = colourselect.ColourSelect(self, -1, size=wx.Size(30,15))
         self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
-        navigationRow.Add(self.colorSelect, 0, wx.EXPAND)
+        navigationRow.Add((5,5), 0, wx.EXPAND)
+        navigationRow.Add(self.colorSelect, 0, wx.CENTER)
 
         today = DateTime.today()
         styles = self.parent
@@ -1011,9 +1012,9 @@ class wxWeekHeaderWidgets(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
 
         #navigationRow.Add((0,0), 1, wx.EXPAND)
-        navigationRow.Add(self.prevButton, 0, wx.EXPAND)
+        navigationRow.Add(self.prevButton, 0, wx.CENTER)
         navigationRow.Add((5,5), 0)
-        navigationRow.Add(self.nextButton, 0, wx.EXPAND)
+        navigationRow.Add(self.nextButton, 0, wx.CENTER)
         navigationRow.Add((5,5), 0)
         
         #
