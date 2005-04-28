@@ -258,12 +258,12 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr + clean + "install\n"
-    log.write("Doing make " + dbgStr + clean + "install\n")
+    print "Doing make " + dbgStr + clean + "install strip\n"
+    log.write("Doing make " + dbgStr + clean + "install strip\n")
 
     try:
         outputList = hardhatutil.executeCommandReturnOutput(
-          [buildenv['make'], dbgStr, clean, "install" ])
+          [buildenv['make'], dbgStr, clean, "install", "strip" ])
         hardhatutil.dumpOutputList(outputList, log)
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"

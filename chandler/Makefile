@@ -128,6 +128,22 @@ checkout:
 
 install: $(ARCHIVES) $(ARCHIVES_INST)
 
+ifeq ($(OS),Cygwin)
+strip:
+else
+ifeq ($(DEBUG),1)
+strip:
+else
+ifeq ($(OS),Darwin)
+STRIP_OPTIONS=-S
+else
+STRIP_OPTIONS=
+endif
+strip:
+	find $(CHANDLERBIN)/release -name "*.so" |xargs -r strip $(STRIP_OPTIONS)
+endif
+endif
+
 clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
 	rm -f chandler.log randpool.dat

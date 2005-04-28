@@ -46,6 +46,22 @@ $(SYSTEMS):
 
 all: env sources $(SYSTEMS)
 
+ifeq ($(OS),Cygwin)
+strip:
+else
+ifeq ($(DEBUG),1)
+strip:
+else
+ifeq ($(OS),Darwin)
+STRIP_OPTIONS=-S
+else
+STRIP_OPTIONS=
+endif
+strip:
+	find release -name "*.so" |xargs -r strip $(STRIP_OPTIONS)
+endif
+endif
+
 world: all binaries install
 	make -C ../internal DEBUG=$(DEBUG) world
 
