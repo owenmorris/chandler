@@ -143,7 +143,11 @@ class TestPerfWithRSS(RepositoryTestCase):
 
     def tearDown(self):
         self.rep.close()
-        self.rep.delete()
+        if os.path.exists(self.rep.dbHome):
+            self.rep.delete()
+        else:
+            self.rep.logger.warn("no repository at %s", self.rep.dbHome)
+        
 
 if __name__ == "__main__":
 #    import hotshot
