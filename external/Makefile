@@ -58,7 +58,7 @@ else
 STRIP_OPTIONS=
 endif
 strip:
-	find release -name "*.so" |xargs -r strip $(STRIP_OPTIONS)
+	find release -name "*.so" |xargs strip $(STRIP_OPTIONS)
 endif
 endif
 
