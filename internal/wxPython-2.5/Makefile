@@ -4,7 +4,7 @@ include ../Makefile.inc
 RELVER=2.6.0.0-1
 SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
-WXMAJORVERSIONCOMPACT=260
+WXMAJORVERSIONCOMPACT=26
 UNICODE_SUFFIX=u
 
 ifeq ($(DEBUG),1)
@@ -32,8 +32,8 @@ ifeq ($(OS),Cygwin)
 
 wxWidgets:
 	cd $(SRC); \
-        export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
-	devenv.com build/msw/msw.sln /build $(Snap)
+        	export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
+		devenv.com build/msw/msw.sln /build $(SNAP)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
@@ -57,7 +57,7 @@ MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)*
-	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
+	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(SNAP)
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \
@@ -71,14 +71,14 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_OPT) \
-                     --enable-monolithic \
-                     --enable-unicode \
-                     --enable-geometry \
-                     --enable-sound \
-                     --enable-display \
-                     --with-sdl \
-                     --with-libpng \
-                     --with-mac
+		--enable-monolithic \
+		--enable-unicode \
+		--enable-geometry \
+		--enable-sound \
+		--enable-display \
+		--with-sdl \
+		--with-libpng \
+		--with-mac
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -108,15 +108,15 @@ else
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
-                     --enable-monolithic \
-                     --enable-unicode \
-                     --enable-geometry \
-                     --enable-sound \
-                     --enable-display \
-                     --with-sdl \
-                     --with-libpng \
-                     --with-gtk \
-                     --enable-gtk2
+		--enable-monolithic \
+		--enable-unicode \
+		--enable-geometry \
+		--enable-sound \
+		--enable-display \
+		--with-sdl \
+		--with-libpng \
+		--with-gtk \
+		--enable-gtk2
 
 wxPython:
 	cd $(SRC)/wxPython; \
