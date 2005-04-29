@@ -138,7 +138,7 @@ public:
     bool IsSplit() const { return (m_windowTwo != NULL); }
 
     // Sets the sash size
-    void SetSashSize(int WXUNUSED(width)) { }
+    void SetSashSize(int width) { m_sashSize = width; }
 
     // Sets the border size
     void SetBorderSize(int WXUNUSED(width)) { }
@@ -154,6 +154,12 @@ public:
 
     // Gets the sash position
     int GetSashPosition() const { return m_sashPosition; }
+
+    // Set the sash gravity
+    void SetSashGravity(double gravity);
+
+    // Gets the sash gravity
+    double GetSashGravity() const { return m_sashGravity; }
 
     // If this is zero, we can remove panes by dragging the sash.
     void SetMinimumPaneSize(int min);
@@ -213,8 +219,9 @@ public:
     bool GetNeedUpdating() const { return m_needUpdating ; }
 
 #ifdef __WXMAC__
-	virtual bool MacClipGrandChildren() const { return true ; }
+    virtual bool MacClipGrandChildren() const { return true ; }
 #endif
+
 protected:
     // event handlers
 #if defined(__WXMSW__) || defined(__WXMAC__)
@@ -225,7 +232,6 @@ protected:
     // by the user code
     inline bool DoSendEvent(wxSplitterEvent& event);
 
-protected:
     // common part of all ctors
     void Init();
 
@@ -264,6 +270,11 @@ protected:
     // redraw the splitter if its "hotness" changed if necessary
     void RedrawIfHotSensitive(bool isHot);
 
+    // return the best size of the splitter equal to best sizes of its
+    // subwindows
+    virtual wxSize DoGetBestSize() const;
+
+
     wxSplitMode m_splitMode;
     wxWindow*   m_windowOne;
     wxWindow*   m_windowTwo;
@@ -271,6 +282,9 @@ protected:
     int         m_oldX;
     int         m_oldY;
     int         m_sashPosition; // Number of pixels from left or top
+    double      m_sashGravity;
+    int         m_sashSize;
+    wxSize      m_lastSize;
     int         m_requestedSashPosition;
     int         m_sashPositionCurrent; // while dragging
     int         m_firstX;
@@ -375,40 +389,22 @@ private:
 
 typedef void (wxEvtHandler::*wxSplitterEventFunction)(wxSplitterEvent&);
 
-#define EVT_SPLITTER_SASH_POS_CHANGED(id, fn)                               \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,                                \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define wxSplitterEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxSplitterEventFunction, &func)
 
-#define EVT_SPLITTER_SASH_POS_CHANGING(id, fn)                              \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING,                               \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define wx__DECLARE_SPLITTEREVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_SPLITTER_ ## evt, id, wxSplitterEventHandler(fn))
 
-#define EVT_SPLITTER_DCLICK(id, fn)                                         \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_SPLITTER_DOUBLECLICKED,                                   \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define EVT_SPLITTER_SASH_POS_CHANGED(id, fn) \
+    wx__DECLARE_SPLITTEREVT(SASH_POS_CHANGED, id, fn)
 
-#define EVT_SPLITTER_UNSPLIT(id, fn)                                        \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_SPLITTER_UNSPLIT,                                         \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxSplitterEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define EVT_SPLITTER_SASH_POS_CHANGING(id, fn) \
+    wx__DECLARE_SPLITTEREVT(SASH_POS_CHANGING, id, fn)
+
+#define EVT_SPLITTER_DCLICK(id, fn) \
+    wx__DECLARE_SPLITTEREVT(DOUBLECLICKED, id, fn)
+
+#define EVT_SPLITTER_UNSPLIT(id, fn) \
+    wx__DECLARE_SPLITTEREVT(UNSPLIT, id, fn)
 
 #endif // __SPLITTERH_G__

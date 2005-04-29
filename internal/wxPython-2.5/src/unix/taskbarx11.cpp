@@ -131,6 +131,10 @@ wxTaskBarIconArea::wxTaskBarIconArea(wxTaskBarIcon *icon, const wxBitmap &bmp)
                    _T("using legacy KDE1,2 and GNOME 1.2 methods"));
         SetLegacyWMProperties();
     }
+
+#if defined(__WXGTK20__) && defined(TASKBAR_ICON_AREA_BASE_INCLUDED)
+    m_invokingWindow = icon;
+#endif
    
     // Set initial size to bitmap size (tray manager may and often will
     // change it):

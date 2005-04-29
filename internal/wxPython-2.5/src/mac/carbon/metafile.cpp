@@ -9,7 +9,7 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "metafile.h"
 #endif
 
@@ -18,10 +18,6 @@
 
 #ifdef __BORLANDC__
 #pragma hdrstop
-#endif
-
-#ifndef WX_PRECOMP
-#include "wx/setup.h"
 #endif
 
 #if wxUSE_METAFILE
@@ -46,6 +42,21 @@ IMPLEMENT_DYNAMIC_CLASS(wxMetafile, wxObject)
 IMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC)
 #endif
 
+class wxMetafileRefData: public wxGDIRefData
+{
+    friend class WXDLLEXPORT wxMetafile;
+public:
+    wxMetafileRefData(void);
+    ~wxMetafileRefData(void);
+
+private:
+    PicHandle m_metafile;
+#if wxMAC_USE_CORE_GRAPHICS
+    QDPictRef m_qdPictRef ;
+#endif
+};
+
+
 /*
  * Metafiles
  * Currently, the only purpose for making a metafile is to put
@@ -55,6 +66,9 @@ IMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC)
 wxMetafileRefData::wxMetafileRefData(void)
 {
     m_metafile = 0;
+#if wxMAC_USE_CORE_GRAPHICS
+    m_qdPictRef = NULL ;
+#endif
 }
 
 wxMetafileRefData::~wxMetafileRefData(void)
@@ -63,13 +77,16 @@ wxMetafileRefData::~wxMetafileRefData(void)
     {
         KillPicture( (PicHandle) m_metafile ) ;
         m_metafile = 0;
+#if wxMAC_USE_CORE_GRAPHICS
+        QDPictRelease( m_qdPictRef ) ;
+        m_qdPictRef = NULL ;
+#endif
     }
 }
 
 wxMetaFile::wxMetaFile(const wxString& file)
 {
     m_refData = new wxMetafileRefData;
-
 
     M_METAFILEDATA->m_metafile = 0;
     wxASSERT_MSG( file.IsEmpty() , wxT("no file based metafile support yet") ) ;
@@ -81,6 +98,16 @@ wxMetaFile::wxMetaFile(const wxString& file)
 
 wxMetaFile::~wxMetaFile()
 {
+}
+
+bool wxMetaFile::Ok() const 
+{ 
+    return (M_METAFILEDATA && (M_METAFILEDATA->m_metafile != 0)); 
+}
+
+WXHMETAFILE wxMetaFile::GetHMETAFILE() const 
+{ 
+    return (WXHMETAFILE) M_METAFILEDATA->m_metafile; 
 }
 
 bool wxMetaFile::SetClipboard(int width, int height)
@@ -108,12 +135,26 @@ bool wxMetaFile::SetClipboard(int width, int height)
 
 void wxMetafile::SetHMETAFILE(WXHMETAFILE mf)
 {
-    if (!m_refData)
-        m_refData = new wxMetafileRefData;
-    if ( M_METAFILEDATA->m_metafile )
-        KillPicture( (PicHandle) M_METAFILEDATA->m_metafile ) ;
+    UnRef() ;
+    
+    m_refData = new wxMetafileRefData;
 
-    M_METAFILEDATA->m_metafile = mf;
+    M_METAFILEDATA->m_metafile = (PicHandle) mf;
+#if wxMAC_USE_CORE_GRAPHICS
+    size_t sz = GetHandleSize( (Handle) M_METAFILEDATA->m_metafile ) ;
+    wxMemoryBuffer* membuf = new wxMemoryBuffer( sz ) ;
+    void * data = membuf->GetWriteBuf(sz) ;
+    memcpy( data , *M_METAFILEDATA->m_metafile , sz ) ;
+    membuf->UngetWriteBuf(sz) ;
+    CGDataProviderRef provider = CGDataProviderCreateWithData( membuf , data , sz ,
+        wxMacMemoryBufferReleaseProc ) ;
+    M_METAFILEDATA->m_qdPictRef = NULL ;
+    if ( provider != NULL )
+    {
+        M_METAFILEDATA->m_qdPictRef = QDPictCreateWithProvider( provider ) ;
+        CGDataProviderRelease( provider ) ;
+    }
+#endif
 }
 
 bool wxMetaFile::Play(wxDC *dc)
@@ -125,9 +166,21 @@ bool wxMetaFile::Play(wxDC *dc)
         return FALSE;
         
     {
-        wxMacPortSetter helper( dc ) ;
+#if wxMAC_USE_CORE_GRAPHICS
+        QDPictRef cgPictRef = M_METAFILEDATA->m_qdPictRef ;
+        CGContextRef cg = ((wxMacCGContext*)(dc->GetGraphicContext()))->GetNativeContext() ;
+        CGRect bounds = QDPictGetBounds( cgPictRef ) ;
+
+        CGContextSaveGState(cg);    
+        CGContextTranslateCTM(cg, 0 , bounds.size.width );
+        CGContextScaleCTM(cg, 1, -1);
+        QDPictDrawToCGContext( cg , bounds , cgPictRef ) ;
+        CGContextRestoreGState( cg ) ;
+#else
         PicHandle pict = (PicHandle) GetHMETAFILE() ;
+        wxMacPortSetter helper( dc ) ;
         DrawPicture( pict , &(**pict).picFrame ) ;
+#endif
     }
     return TRUE;
 }
@@ -162,15 +215,17 @@ wxMetaFileDC::wxMetaFileDC(const wxString& filename ,
     wxASSERT_MSG( filename.IsEmpty() , _T("no file based metafile support yet")) ;
     
     m_metaFile = new wxMetaFile(filename) ;
+#if wxMAC_USE_CORE_GRAPHICS
+#else
     Rect r={0,0,height,width} ;
     
     RectRgn( (RgnHandle) m_macBoundaryClipRgn , &r ) ;
     CopyRgn( (RgnHandle) m_macBoundaryClipRgn , (RgnHandle) m_macCurrentClipRgn ) ;
 
-    m_metaFile->SetHMETAFILE( OpenPicture( &r ) ) ;
+    m_metaFile->SetHMETAFILE( (WXHMETAFILE) OpenPicture( &r ) ) ;
     ::GetPort( (GrafPtr*) &m_macPort ) ;    
     m_ok = TRUE ;
-    
+#endif
     SetMapMode(wxMM_TEXT); 
 }
 
@@ -211,7 +266,7 @@ bool wxMetafileDataObject::SetData(size_t len, const void *buf)
     Handle handle = NewHandle( len ) ;
     SetHandleSize( handle , len ) ;
     memcpy( *handle , buf , len ) ;
-    m_metafile.SetHMETAFILE( handle ) ;
+    m_metafile.SetHMETAFILE( (WXHMETAFILE) handle ) ;
     return true ;
 }
 #endif

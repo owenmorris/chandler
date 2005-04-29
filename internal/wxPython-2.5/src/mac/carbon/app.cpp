@@ -9,11 +9,11 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "app.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #include "wx/window.h"
 #include "wx/frame.h"
@@ -59,8 +59,6 @@
 #  if defined(WXMAKINGDLL_CORE)
 #    include <mach-o/dyld.h>
 #  endif
-// include hid keyboard
-#  include "wx/mac/carbon/private/hid.h"
 #else
 #  include <Sound.h>
 #  include <Threads.h>
@@ -120,10 +118,6 @@ long      wxApp::s_macAboutMenuItemId = wxID_ABOUT ;
 long      wxApp::s_macPreferencesMenuItemId = wxID_PREFERENCES ;
 long      wxApp::s_macExitMenuItemId = wxID_EXIT ;
 wxString  wxApp::s_macHelpMenuTitleName = wxT("&Help") ;
-
-#ifdef __DARWIN__
-    wxHIDKeyboard* wxApp::s_macHIDKeyboard = NULL;
-#endif
 
 // Normally we're not a plugin
 bool      wxApp::sm_isEmbedded = false;
@@ -272,19 +266,26 @@ short wxApp::MacHandleAERApp(const WXEVENTREF WXUNUSED(event) , WXEVENTREF WXUNU
 }
 
 
+
 //----------------------------------------------------------------------
 // Support Routines linking the Mac...File Calls to the Document Manager
 //----------------------------------------------------------------------
 
 void wxApp::MacOpenFile(const wxString & fileName )
 {
+#if wxUSE_DOC_VIEW_ARCHITECTURE
     wxDocManager* dm = wxDocManager::GetDocumentManager() ;
     if ( dm )
         dm->CreateDocument(fileName , wxDOC_SILENT ) ;
+#endif
 }
+
 
 void wxApp::MacPrintFile(const wxString & fileName )
 {
+#if wxUSE_DOC_VIEW_ARCHITECTURE
+
+#if wxUSE_PRINTING_ARCHITECTURE
     wxDocManager* dm = wxDocManager::GetDocumentManager() ;
     if ( dm )
     {
@@ -309,7 +310,12 @@ void wxApp::MacPrintFile(const wxString & fileName )
             }
         }
     }
+#endif //print
+
+#endif //docview
 }
+
+
 
 void wxApp::MacNewFile()
 {
@@ -601,6 +607,16 @@ pascal static void wxMacAssertOutputHandler(OSType componentSignature, UInt32 op
 
 #endif //__WXDEBUG__
 
+#ifdef __WXMAC_OSX__
+extern "C" {
+   /* m_macEventPosted run loop source callback: */
+   void macPostedEventCallback(void *unused);
+}
+
+void macPostedEventCallback(void *unused) {
+    wxTheApp->ProcessPendingEvents(); }
+#endif
+
 bool wxApp::Initialize(int& argc, wxChar **argv)
 {
     // Mac-specific
@@ -668,6 +684,15 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 
     wxMacCreateNotifierTable() ;
 
+#ifdef __WXMAC_OSX__
+    /* connect posted events to common-mode run loop so that wxPostEvent events
+       are handled even while we're in the menu or on a scrollbar */
+    CFRunLoopSourceContext event_posted_context = {0};
+    event_posted_context.perform = macPostedEventCallback;
+    m_macEventPosted = CFRunLoopSourceCreate(NULL,0,&event_posted_context);
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), m_macEventPosted, kCFRunLoopCommonModes);
+#endif
+
     UMAShowArrowCursor() ;
 
     return true;
@@ -711,7 +736,17 @@ bool wxApp::OnInitGui()
 
 void wxApp::CleanUp()
 {
+#if wxUSE_TOOLTIPS
     wxToolTip::RemoveToolTips() ;
+#endif
+
+#ifdef __WXMAC_OSX__
+    if (m_macEventPosted)
+    {
+        CFRelease(m_macEventPosted);
+    }
+    m_macEventPosted = NULL;
+#endif
 
     // One last chance for pending objects to be cleaned up
     wxTheApp->DeletePendingObjects();
@@ -723,12 +758,6 @@ void wxApp::CleanUp()
     ProfilerDump( (StringPtr)"\papp.prof" ) ;
     ProfilerTerm() ;
 #  endif
-#endif
-
-#ifdef __DARWIN__
-    // clean up HID Keyboard
-    if (s_macHIDKeyboard)
-        delete s_macHIDKeyboard;
 #endif
 
     UMACleanupToolbox() ;
@@ -851,10 +880,13 @@ bool wxMacConvertEventToRecord( EventRef event , EventRecord *rec)
 
 wxApp::wxApp()
 {
-  m_printMode = wxPRINT_WINDOWS;
+    m_printMode = wxPRINT_WINDOWS;
 
-  m_macCurrentEvent = NULL ;
-  m_macCurrentEventHandlerCallRef = NULL ;
+    m_macCurrentEvent = NULL ;
+    m_macCurrentEventHandlerCallRef = NULL ;
+#ifdef __WXMAC_OSX__
+    m_macEventPosted = NULL ;
+#endif
 }
 
 int wxApp::MainLoop()
@@ -911,6 +943,12 @@ void wxApp::OnIdle(wxIdleEvent& event)
 
 void wxApp::WakeUpIdle()
 {
+#ifdef __WXMAC_OSX__
+    if (m_macEventPosted)
+    {
+        CFRunLoopSourceSignal(m_macEventPosted);
+    }
+#endif
     wxMacWakeUp() ;
 }
 
@@ -1179,18 +1217,12 @@ int wxMacKeyCodeToModifier(wxKeyCode key)
     }
 }
 
+#ifndef __DARWIN__
 bool wxGetKeyState(wxKeyCode key) //virtual key code if < 10.2.x, else see below
 {
-#ifdef __DARWIN__
-    // Startup HID keyboard for getting key codes on DARWIN
-    if (!wxApp::s_macHIDKeyboard)
-    {
-        wxApp::s_macHIDKeyboard = new wxHIDKeyboard();
-        wxApp::s_macHIDKeyboard->Create();
-    }
+    wxASSERT_MSG(key != WXK_LBUTTON && key != WXK_RBUTTON && key !=
+        WXK_MBUTTON, wxT("can't use wxGetKeyState() for mouse buttons"));
 
-	return wxApp::s_macHIDKeyboard->IsActive(key);
-#else
 //if OS X > 10.2 (i.e. 10.2.x)
 //a known apple bug prevents the system from determining led
 //states with GetKeys... can only determine caps lock led
@@ -1199,11 +1231,11 @@ bool wxGetKeyState(wxKeyCode key) //virtual key code if < 10.2.x, else see below
 //  KeyMapByteArray keymap; 
 //  GetKeys((BigEndianLong*)keymap);
 //  return !!(BitTst(keymap, (sizeof(KeyMapByteArray)*8) - iKey));
-#endif
 }
+#endif
 
 
-bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifiers , long when , short wherex , short wherey )
+bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifiers , long when , short wherex , short wherey , wxChar uniChar  )
 {
     if ( !focus )
         return false ;
@@ -1238,10 +1270,13 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
     event.m_altDown = modifiers & optionKey;
     event.m_metaDown = modifiers & cmdKey;
     event.m_keyCode = keyval ;
+#if wxUSE_UNICODE
+    event.m_uniChar = uniChar ;
+#endif
 
     event.m_x = wherex;
     event.m_y = wherey;
-    event.m_timeStamp = when;
+    event.SetTimestamp(when);
     event.SetEventObject(focus);
     handled = focus->GetEventHandler()->ProcessEvent( event ) ;
     if ( handled && event.GetSkipped() )
@@ -1270,6 +1305,23 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
     }
     if (!handled)
     {
+        wxTopLevelWindowMac *tlw = focus->MacGetTopLevelWindow() ;
+
+        if (tlw)
+        {
+            event.Skip( FALSE ) ;
+            event.SetEventType( wxEVT_CHAR_HOOK );
+            // raw value again
+            event.m_keyCode = realkeyval ;
+
+            handled = tlw->GetEventHandler()->ProcessEvent( event );
+            if ( handled && event.GetSkipped() )
+                handled = false ;
+        }
+    }
+    
+    if ( !handled )
+    {        
         event.Skip( FALSE ) ;
         event.SetEventType( wxEVT_CHAR ) ;
         // raw value again
@@ -1331,7 +1383,7 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
     return handled ;
 }
 
-bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifiers , long when , short wherex , short wherey )
+bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifiers , long when , short wherex , short wherey , wxChar uniChar  )
 {
     if ( !focus )
         return false ;
@@ -1363,10 +1415,13 @@ bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifier
     event.m_altDown = modifiers & optionKey;
     event.m_metaDown = modifiers & cmdKey;
     event.m_keyCode = keyval ;
+#if wxUSE_UNICODE
+    event.m_uniChar = uniChar ;
+#endif
 
     event.m_x = wherex;
     event.m_y = wherey;
-    event.m_timeStamp = when;
+    event.SetTimestamp(when);
     event.SetEventObject(focus);
     handled = focus->GetEventHandler()->ProcessEvent( event ) ;
 

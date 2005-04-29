@@ -7,6 +7,7 @@
 %rename(BU_TOP)                             wxBU_TOP;
 %rename(BU_RIGHT)                           wxBU_RIGHT;
 %rename(BU_BOTTOM)                          wxBU_BOTTOM;
+%rename(BU_ALIGN_MASK)                      wxBU_ALIGN_MASK;
 %rename(BU_EXACTFIT)                        wxBU_EXACTFIT;
 %rename(BU_AUTODRAW)                        wxBU_AUTODRAW;
 %rename(Button)                             wxButton;
@@ -46,9 +47,12 @@
 %rename(TE_AUTO_URL)                        wxTE_AUTO_URL;
 %rename(TE_NOHIDESEL)                       wxTE_NOHIDESEL;
 %rename(TE_DONTWRAP)                        wxTE_DONTWRAP;
-%rename(TE_LINEWRAP)                        wxTE_LINEWRAP;
+%rename(TE_CHARWRAP)                        wxTE_CHARWRAP;
 %rename(TE_WORDWRAP)                        wxTE_WORDWRAP;
+%rename(TE_BESTWRAP)                        wxTE_BESTWRAP;
+%rename(TE_LINEWRAP)                        wxTE_LINEWRAP;
 %rename(TE_RICH2)                           wxTE_RICH2;
+%rename(TE_CAPITALIZE)                      wxTE_CAPITALIZE;
 %rename(TEXT_ALIGNMENT_DEFAULT)             wxTEXT_ALIGNMENT_DEFAULT;
 %rename(TEXT_ALIGNMENT_LEFT)                wxTEXT_ALIGNMENT_LEFT;
 %rename(TEXT_ALIGNMENT_CENTRE)              wxTEXT_ALIGNMENT_CENTRE;
@@ -72,6 +76,8 @@
 %rename(TE_HT_ON_TEXT)                      wxTE_HT_ON_TEXT;
 %rename(TE_HT_BELOW)                        wxTE_HT_BELOW;
 %rename(TE_HT_BEYOND)                       wxTE_HT_BEYOND;
+%rename(OutOfRangeTextCoord)                wxOutOfRangeTextCoord;
+%rename(InvalidTextCoord)                   wxInvalidTextCoord;
 %rename(TextAttr)                           wxTextAttr;
 %rename(TextCtrl)                           wxTextCtrl;
 %rename(TextUrlEvent)                       wxTextUrlEvent;
@@ -85,16 +91,29 @@
 %rename(SpinEvent)                          wxSpinEvent;
 %rename(RadioBox)                           wxRadioBox;
 %rename(RadioButton)                        wxRadioButton;
+%rename(SL_HORIZONTAL)                      wxSL_HORIZONTAL;
+%rename(SL_VERTICAL)                        wxSL_VERTICAL;
+%rename(SL_TICKS)                           wxSL_TICKS;
+%rename(SL_AUTOTICKS)                       wxSL_AUTOTICKS;
+%rename(SL_LABELS)                          wxSL_LABELS;
+%rename(SL_LEFT)                            wxSL_LEFT;
+%rename(SL_TOP)                             wxSL_TOP;
+%rename(SL_RIGHT)                           wxSL_RIGHT;
+%rename(SL_BOTTOM)                          wxSL_BOTTOM;
+%rename(SL_BOTH)                            wxSL_BOTH;
+%rename(SL_SELRANGE)                        wxSL_SELRANGE;
+%rename(SL_INVERSE)                         wxSL_INVERSE;
 %rename(Slider)                             wxSlider;
 %rename(ToggleButton)                       wxToggleButton;
-%rename(BookCtrl)                           wxBookCtrl;
-%rename(BookCtrlEvent)                      wxBookCtrlEvent;
+%rename(BookCtrlBase)                       wxBookCtrlBase;
+%rename(BookCtrlBaseEvent)                  wxBookCtrlBaseEvent;
 %rename(NB_FIXEDWIDTH)                      wxNB_FIXEDWIDTH;
 %rename(NB_TOP)                             wxNB_TOP;
 %rename(NB_LEFT)                            wxNB_LEFT;
 %rename(NB_RIGHT)                           wxNB_RIGHT;
 %rename(NB_BOTTOM)                          wxNB_BOTTOM;
 %rename(NB_MULTILINE)                       wxNB_MULTILINE;
+%rename(NB_NOPAGETHEME)                     wxNB_NOPAGETHEME;
 %rename(NB_HITTEST_NOWHERE)                 wxNB_HITTEST_NOWHERE;
 %rename(NB_HITTEST_ONICON)                  wxNB_HITTEST_ONICON;
 %rename(NB_HITTEST_ONLABEL)                 wxNB_HITTEST_ONLABEL;
@@ -260,5 +279,11 @@
 %rename(ContextHelpButton)                  wxContextHelpButton;
 %rename(HelpProvider)                       wxHelpProvider;
 %rename(SimpleHelpProvider)                 wxSimpleHelpProvider;
+%rename(DP_DEFAULT)                         wxDP_DEFAULT;
+%rename(DP_SPIN)                            wxDP_SPIN;
+%rename(DP_DROPDOWN)                        wxDP_DROPDOWN;
+%rename(DP_SHOWCENTURY)                     wxDP_SHOWCENTURY;
+%rename(DP_ALLOWNONE)                       wxDP_ALLOWNONE;
+%rename(DatePickerCtrl)                     wxDatePickerCtrl;
 
 #endif

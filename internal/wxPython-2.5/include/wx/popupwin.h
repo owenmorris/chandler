@@ -16,9 +16,12 @@
     #pragma interface "popupwinbase.h"
 #endif
 
-#include "wx/window.h"
+#include "wx/defs.h"
 
 #if wxUSE_POPUPWIN
+
+#include "wx/window.h"
+
 // ----------------------------------------------------------------------------
 // wxPopupWindow: a special kind of top level window used for popup menus,
 // combobox popups and such.
@@ -104,6 +107,9 @@ public:
     // in dismissing it if the mouse is cilcked outside it)
     virtual bool ProcessLeftDown(wxMouseEvent& event);
 
+    // Overridden to grab the input on some plaforms
+    virtual bool Show( bool show = true );
+
 protected:
     // common part of all ctors
     void Init();
@@ -118,6 +124,14 @@ protected:
     // remove our event handlers
     void PopHandlers();
 
+    // get alerted when child gets deleted from under us
+    void OnDestroy(wxWindowDestroyEvent& event);
+
+#ifdef __WXMSW__
+    // check if the mouse needs captured or released
+    void OnIdle(wxIdleEvent& event);
+#endif
+    
     // the child of this popup if any
     wxWindow *m_child;
 
@@ -132,6 +146,7 @@ protected:
     wxPopupWindowHandler *m_handlerPopup;
     wxPopupFocusHandler  *m_handlerFocus;
 
+    DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxPopupTransientWindow)
     DECLARE_NO_COPY_CLASS(wxPopupTransientWindow)
 };

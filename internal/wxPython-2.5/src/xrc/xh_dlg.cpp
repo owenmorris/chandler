@@ -8,7 +8,7 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "xh_dlg.h"
 #endif
 
@@ -23,6 +23,7 @@
 
 #include "wx/xrc/xh_dlg.h"
 #include "wx/dialog.h"
+#include "wx/frame.h"
 #include "wx/log.h"
 #include "wx/intl.h"
 
@@ -45,8 +46,10 @@ wxDialogXmlHandler::wxDialogXmlHandler() : wxXmlResourceHandler()
     XRC_ADD_STYLE(wxNO_3D);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
+    XRC_ADD_STYLE(wxDIALOG_EX_METAL);
     XRC_ADD_STYLE(wxMAXIMIZE_BOX);
     XRC_ADD_STYLE(wxMINIMIZE_BOX);
+    XRC_ADD_STYLE(wxFRAME_SHAPED);
 
     AddWindowStyles();
 }
@@ -63,9 +66,11 @@ wxObject *wxDialogXmlHandler::DoCreateResource()
                 GetName());
 
     if (HasParam(wxT("size")))
-        dlg->SetClientSize(GetSize());
+        dlg->SetClientSize(GetSize(wxT("size"), dlg));
     if (HasParam(wxT("pos")))
         dlg->Move(GetPosition());
+    if (HasParam(wxT("icon")))
+        dlg->SetIcon(GetIcon(wxT("icon"), wxART_FRAME_ICON));
 
     SetupWindow(dlg);
 

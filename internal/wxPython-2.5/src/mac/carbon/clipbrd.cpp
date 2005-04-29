@@ -9,9 +9,13 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "clipbrd.h"
 #endif
+
+#include "wx/wxprec.h"
+
+#if wxUSE_CLIPBOARD
 
 #include "wx/app.h"
 #include "wx/frame.h"
@@ -247,6 +251,7 @@ bool wxClipboard::AddData( wxDataObject *data )
                case wxDF_TEXT:
                case wxDF_OEMTEXT:
                     mactype = kScrapFlavorTypeText ;
+                    sz -= 1;
                break ;
     #if wxUSE_UNICODE
                case wxDF_UNICODETEXT :
@@ -256,6 +261,7 @@ bool wxClipboard::AddData( wxDataObject *data )
     #if wxUSE_DRAG_AND_DROP
             case wxDF_METAFILE:
                     mactype = kScrapFlavorTypePicture ;
+                    sz -= 2;
                break ;
     #endif
                case wxDF_BITMAP:
@@ -399,3 +405,5 @@ bool wxClipboard::GetData( wxDataObject& data )
     delete[] array ;
     return transferred ;
 }
+
+#endif

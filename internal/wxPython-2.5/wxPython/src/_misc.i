@@ -43,8 +43,16 @@ MustHaveApp(wxCaret);
 class wxCaret {
 public:
     wxCaret(wxWindow* window, const wxSize& size);
-    ~wxCaret();
+//    ~wxCaret(); Window takes ownership
 
+    %extend {
+        DocStr(Destroy,
+               "Deletes the C++ object this Python object is a proxy for.", "");
+        void Destroy() {
+            delete self;
+        }
+    }
+    
     bool IsOk();
     bool IsVisible();
 
@@ -62,25 +70,19 @@ public:
     
 
     wxWindow *GetWindow();
-    %name(MoveXY)void Move(int x, int y);
+    %Rename(MoveXY, void, Move(int x, int y));
     void Move(const wxPoint& pt);
-    %name(SetSizeWH) void SetSize(int width, int height);
+    %Rename(SetSizeWH,  void, SetSize(int width, int height));
     void SetSize(const wxSize& size);
     void Show(int show = true);
     void Hide();
 
     %pythoncode { def __nonzero__(self): return self.IsOk() }
+
+    static int GetBlinkTime();
+    static void SetBlinkTime(int milliseconds);
 };
 
-%inline %{
-    int wxCaret_GetBlinkTime() {
-        return wxCaret::GetBlinkTime();
-    }
-
-    void wxCaret_SetBlinkTime(int milliseconds) {
-        wxCaret::SetBlinkTime(milliseconds);
-    }
-%}
 
 //---------------------------------------------------------------------------
 
@@ -159,7 +161,7 @@ public:
     void Save(wxConfigBase& config);
 
     void AddFilesToMenu();
-    %name(AddFilesToThisMenu)void AddFilesToMenu(wxMenu* menu);
+    %Rename(AddFilesToThisMenu, void, AddFilesToMenu(wxMenu* menu));
 
     // Accessors
     wxString GetHistoryFile(int i) const;
@@ -184,7 +186,7 @@ public:
                             const wxString& path = wxPyEmptyString);
 
     // default ctor, use Create() after it
-    %name(PreSingleInstanceChecker) wxSingleInstanceChecker();
+    %RenameCtor(PreSingleInstanceChecker,  wxSingleInstanceChecker());
 
     ~wxSingleInstanceChecker();
 
@@ -207,8 +209,6 @@ public:
 //---------------------------------------------------------------------------
 // Experimental...
 
-
-
 %{
 #ifdef __WXMSW__
 #include <wx/msw/private.h>
@@ -219,10 +219,14 @@ public:
 
 %inline %{
 
-void wxDrawWindowOnDC(wxWindow* window, const wxDC& dc, int method)
+bool wxDrawWindowOnDC(wxWindow* window, const wxDC& dc
+#if 0
+                      , int method
+#endif
+    )
 {
 #ifdef __WXMSW__
-
+#if 0
     switch (method)
     {
         case 1:
@@ -234,11 +238,14 @@ void wxDrawWindowOnDC(wxWindow* window, const wxDC& dc, int method)
             break;
 
         case 2:
-            // This one works much better, except for on XP.  On Win2k nearly
-            // all widgets and their children are captured correctly[**].  On
-            // XP with Themes activated most native widgets draw only
-            // partially, if at all.  Without themes it works just like on
-            // Win2k.
+#endif
+            // This one works much better, nearly all widgets and their
+            // children are captured correctly[**].  Prior to the big
+            // background erase changes that Vadim did in 2004-2005 this
+            // method failed badly on XP with Themes activated, most native
+            // widgets draw only partially, if at all.  Without themes it
+            // worked just like on Win2k.  After those changes this method
+            // works very well.
             //
             // ** For example the radio buttons in a wxRadioBox are not its
             // children by default, but you can capture it via the panel
@@ -246,6 +253,8 @@ void wxDrawWindowOnDC(wxWindow* window, const wxDC& dc, int method)
             ::SendMessage(GetHwndOf(window), WM_PRINT, (long)GetHdcOf(dc),
                           PRF_CLIENT | PRF_NONCLIENT | PRF_CHILDREN |
                           PRF_ERASEBKGND | PRF_OWNED );
+            return true;
+#if 0
             break;
 
         case 3:
@@ -279,20 +288,25 @@ void wxDrawWindowOnDC(wxWindow* window, const wxDC& dc, int method)
             }
             if (pfnPrintWindow)
             {
-                printf("Using PrintWindow\n");
+                //printf("Using PrintWindow\n");
                 pfnPrintWindow(GetHwndOf(window), GetHdcOf(dc), 0);
             }
             else
             {
-                printf("Using WM_PRINT\n");
+                //printf("Using WM_PRINT\n");
                 ::SendMessage(GetHwndOf(window), WM_PRINT, (long)GetHdcOf(dc),
-                              PRF_CLIENT | PRF_NONCLIENT | PRF_CHILDREN | PRF_ERASEBKGND | PRF_OWNED );
+                              PRF_CLIENT | PRF_NONCLIENT | PRF_CHILDREN |
+                              PRF_ERASEBKGND | PRF_OWNED );
             }
     }
-#endif
+#endif  // 0
+#else
+    return false;
+#endif  // __WXMSW__    
 }
 
 %}
+
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------

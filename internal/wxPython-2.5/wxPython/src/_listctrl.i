@@ -19,7 +19,7 @@
 #include <wx/listctrl.h>
 %}
 
-MAKE_CONST_WXSTRING2(ListCtrlNameStr, _T("wxListCtrl"));
+MAKE_CONST_WXSTRING(ListCtrlNameStr);
 
 //---------------------------------------------------------------------------
 %newgroup
@@ -288,8 +288,6 @@ public:
 %constant wxEventType wxEVT_COMMAND_LIST_END_LABEL_EDIT;
 %constant wxEventType wxEVT_COMMAND_LIST_DELETE_ITEM;
 %constant wxEventType wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS;
-%constant wxEventType wxEVT_COMMAND_LIST_GET_INFO;
-%constant wxEventType wxEVT_COMMAND_LIST_SET_INFO;
 %constant wxEventType wxEVT_COMMAND_LIST_ITEM_SELECTED;
 %constant wxEventType wxEVT_COMMAND_LIST_ITEM_DESELECTED;
 %constant wxEventType wxEVT_COMMAND_LIST_KEY_DOWN;
@@ -305,6 +303,9 @@ public:
 %constant wxEventType wxEVT_COMMAND_LIST_COL_END_DRAG;
 %constant wxEventType wxEVT_COMMAND_LIST_ITEM_FOCUSED;
 
+// WXWIN_COMPATIBILITY_2_4
+%constant wxEventType wxEVT_COMMAND_LIST_GET_INFO;
+%constant wxEventType wxEVT_COMMAND_LIST_SET_INFO;
 
 
 %pythoncode {
@@ -344,7 +345,7 @@ EVT_LIST_SET_INFO = wx._deprecated(EVT_LIST_SET_INFO)
     static int wxCALLBACK wxPyListCtrl_SortItems(long item1, long item2, long funcPtr) {
         int retval = 0;
         PyObject* func = (PyObject*)funcPtr;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
 
         PyObject* args = Py_BuildValue("(ii)", item1, item2);
         PyObject* result = PyEval_CallObject(func, args);
@@ -406,7 +407,8 @@ IMP_PYCALLBACK_INT_LONG_virtual(wxPyListCtrl, wxListCtrl, OnGetItemImage);
 
 MustHaveApp(wxPyListCtrl);
 
-%name(ListCtrl)class wxPyListCtrl : public wxControl {
+%rename(ListCtrl) wxPyListCtrl;
+class wxPyListCtrl : public wxControl {
 public:
 
     %pythonAppend wxPyListCtrl         "self._setOORInfo(self);self._setCallbackInfo(self, ListCtrl)"
@@ -418,7 +420,7 @@ public:
                  long style = wxLC_ICON,
                  const wxValidator& validator = wxDefaultValidator,
                  const wxString& name = wxPyListCtrlNameStr);
-    %name(PreListCtrl)wxPyListCtrl();
+    %RenameCtor(PreListCtrl, wxPyListCtrl());
 
     bool Create(wxWindow* parent, wxWindowID id = -1,
                  const wxPoint& pos = wxDefaultPosition,
@@ -494,7 +496,7 @@ public:
     bool SetItem(wxListItem& info) ;
 
     // Sets a string field at a particular column
-    %name(SetStringItem)long SetItem(long index, int col, const wxString& label, int imageId = -1);
+    %Rename(SetStringItem, long, SetItem(long index, int col, const wxString& label, int imageId = -1));
 
     // Gets the item state
     int  GetItemState(long item, long stateMask) const ;
@@ -637,34 +639,35 @@ public:
 
     // Find an item whose data matches this data, starting from the item after 'start'
     // or the beginning if 'start' is -1.
-    %name(FindItemData) long FindItem(long start, long data);
+    %Rename(FindItemData,  long, FindItem(long start, long data));
 
     // Find an item nearest this position in the specified direction, starting from
     // the item after 'start' or the beginning if 'start' is -1.
-    %name(FindItemAtPos) long FindItem(long start, const wxPoint& pt, int direction);
+    %Rename(FindItemAtPos,  long, FindItem(long start, const wxPoint& pt, int direction));
 
 
     DocDeclAStr(
         long, HitTest(const wxPoint& point, int& OUTPUT),
         "HitTest(Point point) -> (item, where)",
         "Determines which item (if any) is at the specified point, giving
-details in the second return value (see wxLIST_HITTEST_... flags.)", "");
+details in the second return value (see wx.LIST_HITTEST flags.)", "");
 
     // Inserts an item, returning the index of the new item if successful,
     // -1 otherwise.
     long InsertItem(wxListItem& info);
 
     // Insert a string item
-    %name(InsertStringItem) long InsertItem(long index, const wxString& label);
+    %Rename(InsertStringItem,  long, InsertItem(long index, const wxString& label));
 
     // Insert an image item
-    %name(InsertImageItem) long InsertItem(long index, int imageIndex);
+    %Rename(InsertImageItem,  long, InsertItem(long index, int imageIndex));
 
     // Insert an image/string item
-    %name(InsertImageStringItem) long InsertItem(long index, const wxString& label, int imageIndex);
+    %Rename(InsertImageStringItem,  long, InsertItem(long index, const wxString& label, int imageIndex));
 
     // For list view mode (only), inserts a column.
-    %name(InsertColumnInfo) long InsertColumn(long col, wxListItem& info);
+    %Rename(InsertColumnItem,  long, InsertColumn(long col, wxListItem& info));
+    %pythoncode { InsertColumnInfo = InsertColumnItem }
 
     long InsertColumn(long col,
                       const wxString& heading,
@@ -715,7 +718,7 @@ details in the second return value (see wxLIST_HITTEST_... flags.)", "");
 
     def IsSelected(self, idx):
         '''return True if the item is selected'''
-        return self.GetItemState(idx, wx.LIST_STATE_SELECTED) != 0
+        return (self.GetItemState(idx, wx.LIST_STATE_SELECTED) & wx.LIST_STATE_SELECTED) != 0
 
     def SetColumnImage(self, col, image):
         item = self.GetColumn(col)
@@ -802,7 +805,7 @@ public:
                 long style = wxLC_REPORT,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxPyListCtrlNameStr);
-    %name(PreListView)wxListView();
+    %RenameCtor(PreListView, wxListView());
 
     bool Create( wxWindow *parent,
                 wxWindowID id = -1,

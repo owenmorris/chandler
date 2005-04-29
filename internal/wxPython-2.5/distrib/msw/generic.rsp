@@ -24,6 +24,14 @@ build/bakefiles/formats/*.bkl
 build/bakefiles/formats/*.empy
 build/bakefiles/formats/README
 build/bakefiles/formats/*.bkmanifest
+build/bakefiles/wxpresets/*.bkl
+build/bakefiles/wxpresets/*.txt
+build/bakefiles/wxpresets/presets/*.bkl
+build/bakefiles/wxpresets/sample/*.bkl
+build/bakefiles/wxpresets/sample/*.in
+build/bakefiles/wxpresets/sample/*.cpp
+build/bakefiles/wxpresets/*.bkl
+build/update-setup-h
 
 distrib/msw/*.rsp
 distrib/msw/*.bat
@@ -150,9 +158,6 @@ include/wx/html/msw/*.rc
 lib/dummy
 
 tools/gettext/*.*
-
-misc/afm/*.afm
-misc/gs_afm/*.afm
 
 utils/*.bkl
 utils/make*.*
@@ -325,6 +330,19 @@ samples/db/*.rc
 samples/db/*.wav
 samples/db/*.pro
 samples/db/*.bkl
+
+samples/debugrpt/*.cpp
+samples/debugrpt/*.h
+samples/debugrpt/*.def
+samples/debugrpt/makefile*
+samples/debugrpt/*.xbm
+samples/debugrpt/*.xpm
+samples/debugrpt/*.txt
+samples/debugrpt/*.ico
+samples/debugrpt/*.bmp
+samples/debugrpt/*.rc
+samples/debugrpt/*.pro
+samples/debugrpt/*.bkl
 
 samples/dnd/*.cpp
 samples/dnd/*.h
@@ -842,6 +860,16 @@ samples/mdi/bitmaps/*.xpm
 samples/mdi/bitmaps/*.xbm
 samples/mdi/*.bkl
 
+samples/mediaplayer/*.cpp
+samples/mediaplayer/*.h
+samples/mediaplayer/*.def
+samples/mediaplayer/makefile*
+samples/mediaplayer/*.xbm
+samples/mediaplayer/*.xpm
+samples/mediaplayer/*.ico
+samples/mediaplayer/*.rc
+samples/mediaplayer/*.bkl
+
 samples/menu/*.cpp
 samples/menu/*.h
 samples/menu/makefile*
@@ -900,11 +928,13 @@ samples/mobile/styles/*.cpp
 samples/mobile/styles/*.h
 samples/mobile/styles/*.xpm
 samples/mobile/styles/*.jpg
+samples/mobile/styles/*.bkl
+samples/mobile/styles/makefile.*
 samples/mobile/wxedit/*.cpp
 samples/mobile/wxedit/*.h
 samples/mobile/wxedit/*.xpm
-samples/mobile/styles/*.bkl
 samples/mobile/wxedit/*.bkl
+samples/mobile/wxedit/makefile.*
 samples/mobile/make*
 samples/mobile/*.bkl
 
@@ -996,6 +1026,19 @@ samples/png/*.png
 samples/png/*.pro
 samples/png/*.bkl
 
+samples/popup/*.cpp
+samples/popup/*.h
+samples/popup/makefile*
+samples/popup/*.rc
+samples/popup/*.def
+samples/popup/*.bmp
+samples/popup/*.xpm
+samples/popup/*.ico
+samples/popup/*.txt
+samples/popup/*.png
+samples/popup/*.pro
+samples/popup/*.bkl
+
 samples/printing/*.cpp
 samples/printing/*.h
 samples/printing/*.def
@@ -1033,6 +1076,20 @@ samples/render/*.bmp
 samples/render/*.rc
 samples/render/*.pro
 samples/render/*.bkl
+
+samples/richedit/*.cpp
+samples/richedit/*.h
+samples/richedit/*.def
+samples/richedit/makefile*
+samples/richedit/*.xbm
+samples/richedit/*.xpm
+samples/richedit/*.ico
+samples/richedit/*.bmp
+samples/richedit/*.rc
+samples/richedit/*.pro
+samples/richedit/*.bkl
+samples/richedit/README
+samples/richedit/TODO
 
 samples/rotate/*.cpp
 samples/rotate/*.h
@@ -1111,6 +1168,7 @@ samples/splash/*.txt
 samples/splash/*.ico
 samples/splash/*.bmp
 samples/splash/*.png
+samples/splash/*.mpg
 samples/splash/*.pro
 samples/splash/*.bkl
 
@@ -1414,18 +1472,22 @@ demos/dbbrowse/*.bkl
 
 tests/*.bkl
 tests/makefile*.*
-tests/test.dsp
-tests/test.dsw
 tests/*.cpp
 tests/*.fc
 
+tests/archive/*.cpp
+tests/archive/*.h
 tests/arrays/*.cpp
 tests/datetime/*.cpp
+tests/fileconf/*.cpp
+tests/filekind/*.cpp
 tests/filename/*.cpp
 tests/filesys/*.cpp
 tests/fontmap/*.cpp
 tests/formatconverter/*.cpp
+tests/geometry/*.cpp
 tests/hashes/*.cpp
+tests/lists/*.cpp
 tests/longlong/*.cpp
 tests/mbconv/*.cpp
 
@@ -1438,4 +1500,6 @@ tests/streams/*.cpp
 tests/streams/*.h
 
 tests/strings/*.cpp
+
+tests/uris/*.cpp
 

@@ -17,22 +17,25 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
   #pragma implementation "dataobj.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
+#if wxUSE_DATAOBJ
+
 #ifndef WX_PRECOMP
 #include "wx/intl.h"
 #endif
-#include "wx/defs.h"
 
 #include "wx/log.h"
 #include "wx/dataobj.h"
+#include "wx/dcmemory.h"
 #include "wx/mstream.h"
 #include "wx/image.h"
+#include "wx/metafile.h"
 #include "wx/mac/private.h"
 #include <Scrap.h>
 
@@ -251,7 +254,8 @@ wxBitmapDataObject::wxBitmapDataObject(
     Init();
     if ( m_bitmap.Ok() )
     {
-        m_pictHandle = m_bitmap.GetPict( &m_pictCreated ) ;
+        m_pictHandle = m_bitmap.GetBitmapData()->GetPictHandle() ;
+        m_pictCreated = false ;
     }
 }
 
@@ -268,7 +272,8 @@ void wxBitmapDataObject::SetBitmap(
     wxBitmapDataObjectBase::SetBitmap(rBitmap);
     if ( m_bitmap.Ok() )
     {
-        m_pictHandle = m_bitmap.GetPict( &m_pictCreated ) ;
+        m_pictHandle = m_bitmap.GetBitmapData()->GetPictHandle() ;
+        m_pictCreated = false ;
     }
 }
 
@@ -314,11 +319,19 @@ bool wxBitmapDataObject::SetData(
     PicHandle picHandle = (PicHandle) NewHandle( nSize ) ;
     memcpy( *picHandle , pBuf , nSize ) ;
     m_pictHandle = picHandle ;
+    // ownership is transferred to the bitmap
     m_pictCreated = false ;
     Rect frame = (**picHandle).picFrame ;
     
-    m_bitmap.SetPict( picHandle ) ;
-    m_bitmap.SetWidth( frame.right - frame.left ) ;
-    m_bitmap.SetHeight( frame.bottom - frame.top ) ;
+    wxMetafile mf ;
+    mf.SetHMETAFILE( (WXHMETAFILE) m_pictHandle ) ;
+    wxMemoryDC mdc ;
+    m_bitmap.Create( frame.right - frame.left ,frame.bottom - frame.top ) ;
+    mdc.SelectObject(m_bitmap ) ;
+    mf.Play( &mdc ) ;
+    mdc.SelectObject( wxNullBitmap ) ;
+    
     return m_bitmap.Ok();
 }
+
+#endif

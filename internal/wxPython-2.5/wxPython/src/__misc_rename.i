@@ -163,8 +163,6 @@
 %rename(Thread_IsMain)                      wxThread_IsMain;
 %rename(ToolTip)                            wxToolTip;
 %rename(Caret)                              wxCaret;
-%rename(Caret_GetBlinkTime)                 wxCaret_GetBlinkTime;
-%rename(Caret_SetBlinkTime)                 wxCaret_SetBlinkTime;
 %rename(BusyCursor)                         wxBusyCursor;
 %rename(WindowDisabler)                     wxWindowDisabler;
 %rename(BusyInfo)                           wxBusyInfo;
@@ -209,18 +207,6 @@
 %rename(LogChain)                           wxLogChain;
 %rename(SysErrorCode)                       wxSysErrorCode;
 %rename(SysErrorMsg)                        wxSysErrorMsg;
-%rename(LogFatalError)                      wxLogFatalError;
-%rename(LogError)                           wxLogError;
-%rename(LogWarning)                         wxLogWarning;
-%rename(LogMessage)                         wxLogMessage;
-%rename(LogInfo)                            wxLogInfo;
-%rename(LogDebug)                           wxLogDebug;
-%rename(LogVerbose)                         wxLogVerbose;
-%rename(LogStatus)                          wxLogStatus;
-%rename(LogSysError)                        wxLogSysError;
-%rename(LogTrace)                           wxLogTrace;
-%rename(LogTrace)                           wxLogTrace;
-%rename(LogGeneric)                         wxLogGeneric;
 %rename(SafeShowMessage)                    wxSafeShowMessage;
 %rename(LogNull)                            wxLogNull;
 %rename(PyLog)                              wxPyLog;
@@ -231,6 +217,8 @@
 %rename(KILL_ACCESS_DENIED)                 wxKILL_ACCESS_DENIED;
 %rename(KILL_NO_PROCESS)                    wxKILL_NO_PROCESS;
 %rename(KILL_ERROR)                         wxKILL_ERROR;
+%rename(KILL_NOCHILDREN)                    wxKILL_NOCHILDREN;
+%rename(KILL_CHILDREN)                      wxKILL_CHILDREN;
 %rename(SIGNONE)                            wxSIGNONE;
 %rename(SIGHUP)                             wxSIGHUP;
 %rename(SIGINT)                             wxSIGINT;
@@ -253,7 +241,9 @@
 %rename(EXEC_SYNC)                          wxEXEC_SYNC;
 %rename(EXEC_NOHIDE)                        wxEXEC_NOHIDE;
 %rename(EXEC_MAKE_GROUP_LEADER)             wxEXEC_MAKE_GROUP_LEADER;
+%rename(EXEC_NODISABLE)                     wxEXEC_NODISABLE;
 %rename(Execute)                            wxExecute;
+%rename(Kill)                               wxKill;
 %rename(JOYSTICK1)                          wxJOYSTICK1;
 %rename(JOYSTICK2)                          wxJOYSTICK2;
 %rename(JOY_BUTTON_ANY)                     wxJOY_BUTTON_ANY;
@@ -342,5 +332,6 @@
 %rename(VideoMode)                          wxVideoMode;
 %rename(DefaultVideoMode)                   wxDefaultVideoMode;
 %rename(Display)                            wxDisplay;
+%rename(StandardPaths)                      wxStandardPaths;
 
 #endif

@@ -9,9 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "sound.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/object.h"
 #include "wx/string.h"
@@ -420,8 +422,10 @@ bool wxSound::DoPlay(unsigned flags) const
                 int nError;
                 if ((nError = NativePathNameToFSSpec ((char*) m_sndname.c_str(), &sfFile, 0)) != noErr)
                 {
+/*
                     wxLogSysError(wxString::Format(wxT("File:%s does not exist\nError:%i"),
                                     m_sndname.c_str(), nError));
+*/
                     return false;
                 }
 #endif

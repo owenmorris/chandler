@@ -10,7 +10,7 @@
 // Licence:	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "thread.h"
 #endif
 
@@ -40,7 +40,7 @@
 #else
 #include <DriverServices.h>
 #include <Multiprocessing.h>
-#include <math.h>
+#include "wx/math.h"
 #endif
 #include "wx/mac/uma.h"
 #endif
@@ -974,7 +974,7 @@ void wxThreadInternal::Wait()
             			 kDurationForever);
             if ( err)
             {
-                wxLogSysError( _( "Cannot wait on thread to exit."));
+                wxLogSysError( _( "Cannot wait for thread termination."));
                 rc = (void*) -1;
             }
 

@@ -26,8 +26,6 @@
 
 class WXDLLIMPEXP_BASE wxObject;
 
-#if wxUSE_DYNAMIC_CLASSES
-
 #ifndef wxUSE_EXTENDED_RTTI
 #define wxUSE_EXTENDED_RTTI 0
 #endif
@@ -158,48 +156,59 @@ inline void wxClassInfo::CleanUpClasses() {}
 // Dynamic class macros
 // ----------------------------------------------------------------------------
 
-#define DECLARE_DYNAMIC_CLASS(name)           \
- public:                                      \
-  static wxClassInfo ms_classInfo;            \
-  static wxObject* wxCreateObject();          \
-  virtual wxClassInfo *GetClassInfo() const   \
-   { return &name::ms_classInfo; }
+#define DECLARE_ABSTRACT_CLASS(name)                                          \
+    public:                                                                   \
+        static wxClassInfo ms_classInfo;                                      \
+        virtual wxClassInfo *GetClassInfo() const;
 
-#define DECLARE_DYNAMIC_CLASS_NO_ASSIGN(name)   \
-    DECLARE_NO_ASSIGN_CLASS(name)               \
+#define DECLARE_DYNAMIC_CLASS_NO_ASSIGN(name)                                 \
+    DECLARE_NO_ASSIGN_CLASS(name)                                             \
     DECLARE_DYNAMIC_CLASS(name)
 
-#define DECLARE_DYNAMIC_CLASS_NO_COPY(name)   \
-    DECLARE_NO_COPY_CLASS(name)               \
+#define DECLARE_DYNAMIC_CLASS_NO_COPY(name)                                   \
+    DECLARE_NO_COPY_CLASS(name)                                               \
     DECLARE_DYNAMIC_CLASS(name)
 
-#define DECLARE_ABSTRACT_CLASS(name) DECLARE_DYNAMIC_CLASS(name)
+#define DECLARE_DYNAMIC_CLASS(name)                                           \
+    DECLARE_ABSTRACT_CLASS(name)                                              \
+    static wxObject* wxCreateObject();
+
 #define DECLARE_CLASS(name) DECLARE_DYNAMIC_CLASS(name)
+
+
+// common part of the macros below
+#define wxIMPLEMENT_CLASS_COMMON(name, basename, baseclsinfo2, func)          \
+    wxClassInfo name::ms_classInfo(wxT(#name),                                \
+            &basename::ms_classInfo,                                          \
+            baseclsinfo2,                                                     \
+            (int) sizeof(name),                                               \
+            (wxObjectConstructorFn) func);                                    \
+                                                                              \
+    wxClassInfo *name::GetClassInfo() const                                   \
+        { return &name::ms_classInfo; }
+
+#define wxIMPLEMENT_CLASS_COMMON1(name, basename, func)                       \
+    wxIMPLEMENT_CLASS_COMMON(name, basename, NULL, func)
+
+#define wxIMPLEMENT_CLASS_COMMON2(name, basename1, basename2, func)           \
+    wxIMPLEMENT_CLASS_COMMON(name, basename1, &basename2::ms_classInfo)
 
 // -----------------------------------
 // for concrete classes
 // -----------------------------------
 
     // Single inheritance with one base class
-
-#define IMPLEMENT_DYNAMIC_CLASS(name, basename)                 \
- wxObject* name::wxCreateObject()                             \
-  { return new name; }                                          \
- wxClassInfo name::ms_classInfo(wxT(#name),                     \
-            &basename::ms_classInfo, NULL,                      \
-            (int) sizeof(name),                                 \
-            (wxObjectConstructorFn) name::wxCreateObject);
+#define IMPLEMENT_DYNAMIC_CLASS(name, basename)                               \
+    wxIMPLEMENT_CLASS_COMMON1(name, basename, name::wxCreateObject)           \
+    wxObject* name::wxCreateObject()                                          \
+        { return new name; }
 
     // Multiple inheritance with two base classes
-
-#define IMPLEMENT_DYNAMIC_CLASS2(name, basename1, basename2)    \
- wxObject* name::wxCreateObject()                             \
-  { return new name; }                                          \
- wxClassInfo name::ms_classInfo(wxT(#name),                     \
-            &basename1::ms_classInfo,                           \
-            &basename2::ms_classInfo,                           \
-            wxT(#basename2), (int) sizeof(name),                \
-            (wxObjectConstructorFn) name::wxCreateObject);
+#define IMPLEMENT_DYNAMIC_CLASS2(name, basename1, basename2)                  \
+    wxIMPLEMENT_CLASS_COMMON2(name, basename1, basename2,                     \
+                              name::wxCreateObject)                           \
+    wxObject* name::wxCreateObject()                                          \
+        { return new name; }
 
 // -----------------------------------
 // for abstract classes
@@ -207,19 +216,13 @@ inline void wxClassInfo::CleanUpClasses() {}
 
     // Single inheritance with one base class
 
-#define IMPLEMENT_ABSTRACT_CLASS(name, basename)                \
- wxClassInfo name::ms_classInfo(wxT(#name),                     \
-            &basename::ms_classInfo, NULL,                      \
-            (int) sizeof(name), (wxObjectConstructorFn) 0);
+#define IMPLEMENT_ABSTRACT_CLASS(name, basename)                              \
+    wxIMPLEMENT_CLASS_COMMON1(name, basename, NULL)
 
     // Multiple inheritance with two base classes
 
-#define IMPLEMENT_ABSTRACT_CLASS2(name, basename1, basename2)   \
- wxClassInfo name::ms_classInfo(wxT(#name),                     \
-            &basename1::ms_classInfo,                           \
-            &basename2::ms_classInfo,                           \
-            (int) sizeof(name),                                 \
-            (wxObjectConstructorFn) 0);
+#define IMPLEMENT_ABSTRACT_CLASS2(name, basename1, basename2)                 \
+    wxIMPLEMENT_CLASS_COMMON2(name, basename1, basename2, NULL)
 
 #define IMPLEMENT_CLASS IMPLEMENT_ABSTRACT_CLASS
 #define IMPLEMENT_CLASS2 IMPLEMENT_ABSTRACT_CLASS2
@@ -296,42 +299,16 @@ name##PluginSentinel  m_pluginsentinel;
 
 #define CLASSINFO(name) (&name::ms_classInfo)
 
-#else // !wxUSE_DYNAMIC_CLASSES
-
-    // No dynamic class system: so stub out the macros
-
-#define DECLARE_DYNAMIC_CLASS(name)
-#define DECLARE_ABSTRACT_CLASS(name)
-#define DECLARE_CLASS(name)
-#define IMPLEMENT_DYNAMIC_CLASS(name, basename)
-#define IMPLEMENT_DYNAMIC_CLASS2(name, basename1, basename2)
-#define IMPLEMENT_ABSTRACT_CLASS(name, basename)
-#define IMPLEMENT_ABSTRACT_CLASS2(name, basename1, basename2)
-#define IMPLEMENT_CLASS IMPLEMENT_ABSTRACT_CLASS
-#define IMPLEMENT_CLASS2 IMPLEMENT_ABSTRACT_CLASS2
-
-#define DECLARE_PLUGGABLE_CLASS(name)
-#define DECLARE_ABSTRACT_PLUGGABLE_CLASS(name)
-#define IMPLEMENT_PLUGGABLE_CLASS(name, basename)
-#define IMPLEMENT_PLUGGABLE_CLASS2(name, basename1, basename2)
-#define IMPLEMENT_ABSTRACT_PLUGGABLE_CLASS(name, basename)
-#define IMPLEMENT_ABSTRACT_PLUGGABLE_CLASS2(name, basename1, basename2)
-
-#define DECLARE_USER_EXPORTED_PLUGGABLE_CLASS(name, usergoo)
-#define DECLARE_USER_EXPORTED_ABSTRACT_PLUGGABLE_CLASS(name, usergoo)
-#define IMPLEMENT_USER_EXPORTED_PLUGGABLE_CLASS(name, basename)
-#define IMPLEMENT_USER_EXPORTED_PLUGGABLE_CLASS2(name, basename1, basename2)
-#define IMPLEMENT_USER_EXPORTED_ABSTRACT_PLUGGABLE_CLASS(name, basename)
-#define IMPLEMENT_USER_EXPORTED_ABSTRACT_PLUGGABLE_CLASS2(name, basename1, basename2)
-
-#endif // wxUSE_DYNAMIC_CLASSES
-
 #define wxIS_KIND_OF(obj, className) obj->IsKindOf(&className::ms_classInfo)
 
 // Just seems a bit nicer-looking (pretend it's not a macro)
 #define wxIsKindOf(obj, className) obj->IsKindOf(&className::ms_classInfo)
 
-// to be replaced by dynamic_cast<> in the future
+// this cast does some more checks at compile time as it uses static_cast
+// internally
+//
+// note that it still has different semantics from dynamic_cast<> and so can't
+// be replaced by it as long as there are any compilers not supporting it
 #define wxDynamicCast(obj, className) \
     ((className *) wxCheckDynamicCast( \
         wx_const_cast(wxObject *, wx_static_cast(const wxObject *, \
@@ -341,7 +318,7 @@ name##PluginSentinel  m_pluginsentinel;
 // The 'this' pointer is always true, so use this version
 // to cast the this pointer and avoid compiler warnings.
 #define wxDynamicCastThis(className) \
- (IsKindOf(&className::ms_classInfo) ? (className *)(this) : (className *)0)
+     (IsKindOf(&className::ms_classInfo) ? (className *)(this) : (className *)0)
 
 #ifdef __WXDEBUG__
 inline void* wxCheckCast(void *ptr)
@@ -353,7 +330,8 @@ inline void* wxCheckCast(void *ptr)
  ((className *)wxCheckCast(wxDynamicCast(obj, className)))
 
 #else  // !__WXDEBUG__
-#define wxStaticCast(obj, className) ((className *)(obj))
+#define wxStaticCast(obj, className) \
+    wx_const_cast(className *, wx_static_cast(const className *, obj))
 
 #endif  // __WXDEBUG__
 
@@ -413,7 +391,7 @@ inline void* wxCheckCast(void *ptr)
 
 #endif // wxUSE_ARRAY_MEMORY_OPERATORS
 
-#endif // WXDEBUG && wxUSE_MEMORY_TRACING
+#endif // __WXDEBUG__ && wxUSE_MEMORY_TRACING
 
 // ----------------------------------------------------------------------------
 // wxObject: the root class of wxWidgets object hierarchy
@@ -489,6 +467,18 @@ public:
 
     // destroy a reference
     void UnRef();
+
+
+    // Reserved for future use
+    virtual void ReservedObjectFunc1() {}
+    virtual void ReservedObjectFunc2() {}
+    virtual void ReservedObjectFunc3() {}
+    virtual void ReservedObjectFunc4() {}
+    virtual void ReservedObjectFunc5() {}
+    virtual void ReservedObjectFunc6() {}
+    virtual void ReservedObjectFunc7() {}
+    virtual void ReservedObjectFunc8() {}
+    virtual void ReservedObjectFunc9() {}
 
 protected:
     // ensure that our data is not shared with anybody else: if we have no
@@ -590,6 +580,9 @@ private :
 
 #if defined(__WXDEBUG__) && wxUSE_GLOBAL_MEMORY_OPERATORS && wxUSE_DEBUG_NEW_ALWAYS
     #define new new(__TFILE__,__LINE__)
+#elif (defined(__WXDEBUG__) && defined(__VISUALC__) && !wxUSE_GLOBAL_MEMORY_OPERATORS && wxUSE_DEBUG_NEW_ALWAYS)
+    // Including this file redefines new and allows leak reports to contain line numbers
+    #include "wx/msw/msvcrt.h"
 #endif
 
 #endif  // _WX_OBJECTH__

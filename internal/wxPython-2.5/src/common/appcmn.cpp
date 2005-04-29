@@ -48,7 +48,7 @@
 #include "wx/ptr_scpd.h"
 
 #if defined(__WXMSW__)
-  #include  "wx/msw/private.h"  // includes windows.h for LOGFONT
+    #include  "wx/msw/private.h"  // includes windows.h for LOGFONT
 #endif
 
 #if wxUSE_FONTMAP
@@ -184,7 +184,7 @@ void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
 #ifdef __WXUNIVERSAL__
         {
             wxCMD_LINE_OPTION,
-            _T(""),
+            wxEmptyString,
             OPTION_THEME,
             gettext_noop("specify the theme to use"),
             wxCMD_LINE_VAL_STRING,
@@ -198,7 +198,7 @@ void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
         //     and not mgl/app.cpp
         {
             wxCMD_LINE_OPTION,
-            _T(""),
+            wxEmptyString,
             OPTION_MODE,
             gettext_noop("specify display mode to use (e.g. 640x480-16)"),
             wxCMD_LINE_VAL_STRING,
@@ -209,9 +209,9 @@ void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
         // terminator
         {
             wxCMD_LINE_NONE,
-            _T(""),
-            _T(""),
-            _T(""),
+            wxEmptyString,
+            wxEmptyString,
+            wxEmptyString,
             wxCMD_LINE_VAL_NONE,
             0x0
         }
@@ -478,7 +478,7 @@ wxLog *wxGUIAppTraitsBase::CreateLogTarget()
 #if wxUSE_LOGGUI
     return new wxLogGui;
 #else
-    // wem ust have something!
+    // we must have something!
     return new wxLogStderr;
 #endif
 }
@@ -580,10 +580,10 @@ void wxGUIAppTraitsBase::RemoveFromPendingDelete(wxObject *object)
 
 #if wxUSE_SOCKETS
 
-#if defined(__UNIX__) || defined(__DARWIN__) || defined(__OS2__)
-    #include "wx/unix/gsockunx.h"
-#elif defined(__WINDOWS__)
+#if defined(__WINDOWS__)
     #include "wx/msw/gsockmsw.h"
+#elif defined(__UNIX__) || defined(__DARWIN__) || defined(__OS2__)
+    #include "wx/unix/gsockunx.h"
 #elif defined(__WXMAC__)
   #include <MacHeaders.c>
   #define OTUNIXERRORS 1

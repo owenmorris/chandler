@@ -26,7 +26,7 @@
 
 #include "wx/window.h"      // base class
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxControlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxControlNameStr;
 
 // ----------------------------------------------------------------------------
 // wxControl is the base class for all controls
@@ -66,6 +66,17 @@ public:
     virtual void SetLabel( const wxString &label );
     virtual bool SetFont(const wxFont& font);
 
+    // Reserved for future use
+    virtual void ReservedControlFunc1() {}
+    virtual void ReservedControlFunc2() {}
+    virtual void ReservedControlFunc3() {}
+    virtual void ReservedControlFunc4() {}
+    virtual void ReservedControlFunc5() {}
+    virtual void ReservedControlFunc6() {}
+    virtual void ReservedControlFunc7() {}
+    virtual void ReservedControlFunc8() {}
+    virtual void ReservedControlFunc9() {}
+
 protected:
     // creates the control (calls wxWindowBase::CreateBase inside) and adds it
     // to the list of parents children
@@ -100,6 +111,8 @@ protected:
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/control.h"
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/control.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/control.h"
 #elif defined(__WXMOTIF__)

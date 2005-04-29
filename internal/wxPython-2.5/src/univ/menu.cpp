@@ -136,7 +136,7 @@ public:
     virtual void OnDismiss();
 
     // called when a submenu is dismissed
-    void OnSubmenuDismiss() { m_hasOpenSubMenu = false; }
+    void OnSubmenuDismiss(bool dismissParent);
 
     // get the currently selected item (may be NULL)
     wxMenuItem *GetCurrentItem() const
@@ -358,7 +358,7 @@ void wxPopupMenuWindow::ChangeCurrent(wxMenuItemList::compatibility_iterator nod
             if ( item->IsSubMenu() && item->GetSubMenu()->IsShown() )
             {
                 item->GetSubMenu()->Dismiss();
-                OnSubmenuDismiss();
+                OnSubmenuDismiss( false );
             }
 
             RefreshItem(item);
@@ -463,7 +463,7 @@ void wxPopupMenuWindow::Dismiss()
         wxCHECK_RET( win, _T("opened submenu is not opened?") );
 
         win->Dismiss();
-        OnSubmenuDismiss();
+        OnSubmenuDismiss( false );
     }
 
     wxPopupTransientWindow::Dismiss();
@@ -474,6 +474,15 @@ void wxPopupMenuWindow::OnDismiss()
     // when we are dismissed because the user clicked elsewhere or we lost
     // focus in any other way, hide the parent menu as well
     HandleDismiss(true);
+}
+
+void wxPopupMenuWindow::OnSubmenuDismiss(bool dismissParent)
+{
+    m_hasOpenSubMenu = false;
+
+    // we are closing whole menu so remove current highlight
+    if ( dismissParent )
+        ResetCurrent();
 }
 
 void wxPopupMenuWindow::HandleDismiss(bool dismissParent)
@@ -958,7 +967,7 @@ bool wxPopupMenuWindow::ProcessKeyDown(int key)
 
         default:
             // look for the menu item starting with this letter
-            if ( wxIsalnum(key) )
+            if ( wxIsalnum((wxChar)key) )
             {
                 // we want to start from the item after this one because
                 // if we're already on the item with the given accel we want to
@@ -969,7 +978,7 @@ bool wxPopupMenuWindow::ProcessKeyDown(int key)
                 bool notUnique = false;
 
                 // translate everything to lower case before comparing
-                wxChar chAccel = wxTolower(key);
+                wxChar chAccel = (wxChar)wxTolower(key);
 
                 // loop through all items searching for the item with this
                 // accel
@@ -1307,7 +1316,7 @@ void wxMenu::OnDismiss(bool dismissParent)
         wxPopupMenuWindow *win = m_menuParent->m_popupMenu;
         if ( win )
         {
-            win->OnSubmenuDismiss();
+            win->OnSubmenuDismiss( true );
         }
         else
         {
@@ -1669,6 +1678,14 @@ void wxMenuBar::Init()
     m_shouldShowMenu = false;
 }
 
+wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long WXUNUSED(style))
+{
+    Init();
+
+    for (size_t i = 0; i < n; ++i )
+        Append(menus[i], titles[i]);
+}
+
 void wxMenuBar::Attach(wxFrame *frame)
 {
     // maybe you really wanted to call Detach()?
@@ -1823,7 +1840,7 @@ void wxMenuBar::SetLabelTop(size_t pos, const wxString& label)
 
 wxString wxMenuBar::GetLabelTop(size_t pos) const
 {
-    wxCHECK_MSG( pos < GetCount(), _T(""), _T("invalid index in GetLabelTop") );
+    wxCHECK_MSG( pos < GetCount(), wxEmptyString, _T("invalid index in GetLabelTop") );
 
     return m_menuInfos[pos].GetLabel();
 }
@@ -2129,6 +2146,9 @@ bool wxMenuBar::ProcessMouseEvent(const wxPoint& pt)
         return false;
     }
 
+    // FIXME: temporary workaround for crash, to be fixed
+    // in a later version.
+#if 0
     // select the new active item
     DoSelectMenu(currentNew);
 
@@ -2139,6 +2159,7 @@ bool wxMenuBar::ProcessMouseEvent(const wxPoint& pt)
         // open the new menu if the old one we closed had been opened
         PopupCurrentMenu(false /* don't select first item - as Windows does */);
     }
+#endif
 
     return true;
 }
@@ -2176,7 +2197,7 @@ void wxMenuBar::OnKeyDown(wxKeyEvent& event)
     // the menu when up/down one is
     switch ( key )
     {
-        case WXK_MENU:
+        case WXK_ALT:
             // Alt must be processed at wxWindow level too
             event.Skip();
             // fall through
@@ -2284,7 +2305,7 @@ void wxMenuBar::OnKeyDown(wxKeyEvent& event)
 
 int wxMenuBar::FindNextItemForAccel(int idxStart, int key, bool *unique) const
 {
-    if ( !wxIsalnum(key) )
+    if ( !wxIsalnum((wxChar)key) )
     {
         // we only support letters/digits as accels
         return -1;
@@ -2295,7 +2316,7 @@ int wxMenuBar::FindNextItemForAccel(int idxStart, int key, bool *unique) const
         *unique = true;
 
     // translate everything to lower case before comparing
-    wxChar chAccel = wxTolower(key);
+    wxChar chAccel = (wxChar)wxTolower(key);
 
     // the index of the item with this accel
     int idxFound = -1;
@@ -2506,7 +2527,7 @@ bool wxWindow::DoPopupMenu(wxMenu *menu, int x, int y)
 
     // wxLogDebug( "Name of invoking window %s", menu->GetInvokingWindow()->GetName().c_str() );
 
-    menu->Popup(ClientToScreen(wxPoint(x, y)), wxSize(0, 0));
+    menu->Popup(ClientToScreen(wxPoint(x, y)), wxSize(0,0));
 
     // this is not very useful if the menu was popped up because of the mouse
     // click but I think it is nice to do when it appears because of a key

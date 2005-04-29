@@ -390,7 +390,7 @@ void wxListBox::Free()
     }
 }
 
-void wxListBox::SetSelection(int N, bool select)
+void wxListBox::DoSetSelection(int N, bool select)
 {
     wxCHECK_RET( N == wxNOT_FOUND ||
                     (N >= 0 && N < m_noItems),
@@ -507,13 +507,13 @@ int wxListBox::GetSelection() const
 wxString wxListBox::GetString(int N) const
 {
     wxCHECK_MSG( N >= 0 && N < m_noItems, wxEmptyString,
-                 wxT("invalid index in wxListBox::GetClientData") );
+                 wxT("invalid index in wxListBox::GetString") );
 
     int len = ListBox_GetTextLen(GetHwnd(), N);
 
     // +1 for terminating NUL
     wxString result;
-    ListBox_GetText(GetHwnd(), N, wxStringBuffer(result, len + 1));
+    ListBox_GetText(GetHwnd(), N, (wxChar*)wxStringBuffer(result, len + 1));
 
     return result;
 }
@@ -616,12 +616,12 @@ void wxListBox::SetHorizontalExtent(const wxString& s)
         return;
     TEXTMETRIC lpTextMetric;
 
-    if ( !s.IsEmpty() )
+    if ( !s.empty() )
     {
         int existingExtent = (int)SendMessage(GetHwnd(), LB_GETHORIZONTALEXTENT, 0, 0L);
         HDC dc = GetWindowDC(GetHwnd());
         HFONT oldFont = 0;
-        if (GetFont().Ok() && GetFont().GetResourceHandle())
+        if (GetFont().Ok() && GetFont().GetResourceHandle() != 0)
             oldFont = (HFONT) ::SelectObject(dc, (HFONT) GetFont().GetResourceHandle());
 
         GetTextMetrics(dc, &lpTextMetric);
@@ -641,19 +641,16 @@ void wxListBox::SetHorizontalExtent(const wxString& s)
         int largestExtent = 0;
         HDC dc = GetWindowDC(GetHwnd());
         HFONT oldFont = 0;
-        if (GetFont().Ok() && GetFont().GetResourceHandle())
+        if (GetFont().Ok() && GetFont().GetResourceHandle() != 0)
             oldFont = (HFONT) ::SelectObject(dc, (HFONT) GetFont().GetResourceHandle());
 
         GetTextMetrics(dc, &lpTextMetric);
 
-        // FIXME: buffer overflow!!
-        wxChar buf[1024];
         for (int i = 0; i < m_noItems; i++)
         {
-            int len = (int)SendMessage(GetHwnd(), LB_GETTEXT, i, (LPARAM)buf);
-            buf[len] = 0;
+            wxString str = GetString(i);
             SIZE extentXY;
-            ::GetTextExtentPoint(dc, buf, len, &extentXY);
+            ::GetTextExtentPoint(dc, str.c_str(), str.length(), &extentXY);
             int extentX = (int)(extentXY.cx + lpTextMetric.tmAveCharWidth);
             if (extentX > largestExtent)
                 largestExtent = extentX;
@@ -689,6 +686,9 @@ wxSize wxListBox::DoGetBestSize() const
     wxGetCharSize(GetHWND(), &cx, &cy, GetFont());
 
     wListbox += 3*cx;
+
+    // Add room for the scrollbar
+    wListbox += wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
 
     // don't make the listbox too tall (limit height to 10 items) but don't
     // make it too small neither
@@ -735,7 +735,7 @@ bool wxListBox::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
         event.SetExtraLong( HasMultipleSelection() ? IsSelected(n) : true );
     }
 
-    event.m_commandInt = n;
+    event.SetInt(n);
 
     return GetEventHandler()->ProcessEvent(event);
 }
@@ -805,8 +805,9 @@ bool wxListBox::MSWOnDraw(WXDRAWITEMSTRUCT *item)
     wxListBoxItem *pItem = (wxListBoxItem *)data;
 
     wxDCTemp dc((WXHDC)pStruct->hDC);
-    wxRect rect(wxPoint(pStruct->rcItem.left, pStruct->rcItem.top),
-                wxPoint(pStruct->rcItem.right, pStruct->rcItem.bottom));
+    wxPoint pt1(pStruct->rcItem.left, pStruct->rcItem.top);
+    wxPoint pt2(pStruct->rcItem.right, pStruct->rcItem.bottom);
+    wxRect rect(pt1, pt2);
 
     return pItem->OnDrawItem(dc, rect,
                              (wxOwnerDrawn::wxODAction)pStruct->itemAction,

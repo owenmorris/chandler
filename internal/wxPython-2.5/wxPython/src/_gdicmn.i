@@ -113,15 +113,15 @@ enum wxStockCursor
 
 DocStr( wxSize,
 "wx.Size is a useful data structure used to represent the size of
-something.  It simply contians integer width and height proprtites.
-In most places in wxPython where a wx.Size is expected a
-(width,height) tuple can be used instead.", "");
+something.  It simply contians integer width and height
+proprtites.  In most places in wxPython where a wx.Size is
+expected a (width, height) tuple can be used instead.", "");
 
 class wxSize
 {
 public:
-    %name(width) int x;
-    %name(height)int y;
+    %Rename(width, int,  x);
+    %Rename(height,int,  y);
     %pythoncode { x = width; y = height }
     
     DocCtorStr(
@@ -191,7 +191,7 @@ of this object (i.e. equal to -1) with those of the other.", "");
                "Get() -> (width,height)",
                "Returns the width and height properties as a tuple.", "");
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->x));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->y));
@@ -264,7 +264,7 @@ public:
                "Get() -> (x,y)",
                "Return the x and y properties as a tuple. ", "");
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyFloat_FromDouble(self->x));
             PyTuple_SET_ITEM(tup, 1, PyFloat_FromDouble(self->y));
@@ -377,7 +377,7 @@ public:
                "Get() -> (x,y)",
                "Return the x and y properties as a tuple. ", "");
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->x));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->y));
@@ -427,7 +427,12 @@ public:
         wxRect(const wxPoint& pos, const wxSize& size),
         "Create a new Rect from a position and size.", "",
          RectPS);
-    
+
+    DocCtorStrName(
+        wxRect(const wxSize& size),
+        "Create a new Rect from a size only.", "",
+         RectS);
+
     ~wxRect();
 
     int GetX() const;
@@ -448,6 +453,8 @@ public:
     wxSize GetSize() const;
     void SetSize( const wxSize &s );
 
+    bool IsEmpty() const;
+    
     wxPoint GetTopLeft() const;
     void SetTopLeft(const wxPoint &p);
     wxPoint GetBottomRight() const;
@@ -479,15 +486,51 @@ public:
 
     DocDeclStr(
         wxRect&, Inflate(wxCoord dx, wxCoord dy),
-        "Increase the rectangle size by dx in x direction and dy in y
-direction. Both or one of) parameters may be negative to decrease the
-rectangle size.", "");
+        "Increases the size of the rectangle.
+
+The left border is moved farther left and the right border is moved
+farther right by ``dx``. The upper border is moved farther up and the
+bottom border is moved farther down by ``dy``. (Note the the width and
+height of the rectangle thus change by ``2*dx`` and ``2*dy``,
+respectively.) If one or both of ``dx`` and ``dy`` are negative, the
+opposite happens: the rectangle size decreases in the respective
+direction.
+
+The change is made to the rectangle inplace, if instead you need a
+copy that is inflated, preserving the original then make the copy
+first::
+
+    copy = wx.Rect(*original)
+    copy.Inflate(10,15)
+
+", "
+Inflating and deflating behaves *naturally*. Defined more precisely,
+that means:
+
+    * Real inflates (that is, ``dx`` and/or ``dy`` >= 0) are not
+      constrained. Thus inflating a rectangle can cause its upper left
+      corner to move into the negative numbers. (The versions prior to
+      2.5.4 forced the top left coordinate to not fall below (0, 0),
+      which implied a forced move of the rectangle.)
+
+    * Deflates are clamped to not reduce the width or height of the
+      rectangle below zero. In such cases, the top-left corner is
+      nonetheless handled properly. For example, a rectangle at (10,
+      10) with size (20, 40) that is inflated by (-15, -15) will
+      become located at (20, 25) at size (0, 10). Finally, observe
+      that the width and height are treated independently. In the
+      above example, the width is reduced by 20, whereas the height is
+      reduced by the full 30 (rather than also stopping at 20, when
+      the width reached zero).
+
+:see: `Deflate`
+");
 
     DocDeclStr(
         wxRect&, Deflate(wxCoord dx, wxCoord dy),
-        "Decrease the rectangle size by dx in x direction and dy in y
-direction. Both or one of) parameters may be negative to increase the
-rectngle size. This method is the opposite of Inflate.", "");
+        "Decrease the rectangle size. This method is the opposite of `Inflate`
+in that Deflate(a,b) is equivalent to Inflate(-a,-b).  Please refer to
+`Inflate` for a full description.", "");
 
     DocDeclStrName(
         void, Offset(wxCoord dx, wxCoord dy),
@@ -501,9 +544,14 @@ bottom, otherwise it is moved to the left or top respectively.", "",
         "Same as OffsetXY but uses dx,dy from Point", "");
 
     DocDeclStr(
-        wxRect&, Intersect(const wxRect& rect),
-        "Return the intersectsion of this rectangle and rect.", "");
+        wxRect, Intersect(const wxRect& rect),
+        "Returns the intersectsion of this rectangle and rect.", "");
 
+    DocDeclStr(
+        wxRect , Union(const wxRect& rect),
+        "Returns the union of this rectangle and rect.", "");
+    
+    
     DocDeclStr(
         wxRect, operator+(const wxRect& rect) const,
         "Add the properties of rect to this rectangle and return the result.", "");
@@ -522,7 +570,7 @@ bottom, otherwise it is moved to the left or top respectively.", "",
 
     
     DocStr( Inside, "Return True if the point is (not strcitly) inside the rect.", "");
-    %name(InsideXY)bool Inside(int x, int y) const;
+    %Rename(InsideXY, bool, Inside(int x, int y) const);
     bool Inside(const wxPoint& pt) const;
 
     DocDeclStr(    
@@ -546,7 +594,7 @@ bottom, otherwise it is moved to the left or top respectively.", "",
                "Get() -> (x,y,width,height)",
                "Return the rectangle properties as a tuple.", "");
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(4);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->x));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->y));
@@ -592,7 +640,7 @@ DocAStr(wxIntersectRect,
         dest = reg1.GetBox();
 
         if (dest != wxRect(0,0,0,0)) {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             wxRect* newRect = new wxRect(dest);
             obj = wxPyConstructObject((void*)newRect, wxT("wxRect"), true);
             wxPyEndBlockThreads(blocked);
@@ -616,8 +664,8 @@ class wxPoint2D
 public:
     DocStr(wxPoint2D, "Create a w.Point2D object.", "");
     wxPoint2D( double x=0.0 , double y=0.0 );
-    %name(Point2DCopy) wxPoint2D( const wxPoint2D &pt );
-    %name(Point2DFromPoint) wxPoint2D( const wxPoint &pt );
+    %RenameCtor(Point2DCopy, wxPoint2D( const wxPoint2D &pt ));
+    %RenameCtor(Point2DFromPoint, wxPoint2D( const wxPoint &pt ));
 
     DocDeclAStr(
         void, GetFloor( int *OUTPUT , int *OUTPUT ) const,
@@ -667,8 +715,8 @@ public:
         bool, operator!=(const wxPoint2D& pt) const,
         "Test for inequality", "");
 
-    %name(x)double m_x;
-    %name(y)double m_y;
+    %Rename(x, double,  m_x);
+    %Rename(y, double,  m_y);
 
     %extend {
         void Set( double x=0 , double y=0 ) {
@@ -680,7 +728,7 @@ public:
                "Get() -> (x,y)",
                "Return x and y properties as a tuple.", "");               
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyFloat_FromDouble(self->m_x));
             PyTuple_SET_ITEM(tup, 1, PyFloat_FromDouble(self->m_y));

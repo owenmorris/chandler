@@ -26,6 +26,7 @@ copy /s %WXWIN%\contrib\include\wx\stc       %BASE%\include\wx\stc
 copy /s %WXWIN%\wxPython\include\wx\*        %BASE%\include\wx
 mkdir %BASE%\include\wx\wxPython\i_files
 copy  %WXWIN%\wxPython\src\*.i               %BASE%\include\wx\wxPython\i_files
+copy  %WXWIN%\wxPython\src\*.py              %BASE%\include\wx\wxPython\i_files
 
 mkdir %BASE%\lib
 mkdir %BASE%\lib\vc_dll
@@ -66,9 +67,9 @@ rem del /sxzy @del-dirs
 rm del-files
 rm del-dirs
 
-rem *** bundle it all up  TODO: don't hard-code the 2.5
-tar cvf ../dist/wxPython2.5-win32-devel-%1.tar wxPython-%1
-gzip -9 ../dist/wxPython2.5-win32-devel-%1.tar
+rem *** bundle it all up  TODO: don't hard-code the 2.6
+tar cvf ../dist/wxPython2.6-win32-devel-%1.tar wxPython-%1
+gzip -9 ../dist/wxPython2.6-win32-devel-%1.tar
 
 rem *** cleanup
 cd ..

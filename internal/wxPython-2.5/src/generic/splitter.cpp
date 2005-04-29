@@ -96,6 +96,14 @@ bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
 
     m_permitUnsplitAlways = (style & wxSP_PERMIT_UNSPLIT) != 0;
 
+    // FIXME: with this line the background is not erased at all under GTK1,
+    //        so temporary avoid it there
+#if !defined(__WXGTK__) || defined(__WXGTK20__)
+    // don't erase the splitter background, it's pointless as we overwrite it
+    // anyhow
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+#endif
+
     return true;
 }
 
@@ -113,6 +121,9 @@ void wxSplitterWindow::Init()
     m_firstX = 0;
     m_firstY = 0;
     m_sashPosition = m_requestedSashPosition = 0;
+    m_sashGravity = 0.0;
+    m_sashSize = -1; // -1 means use the native sash size
+    m_lastSize = wxSize(0,0);
     m_checkRequestedSashPosition = false;
     m_minimumPaneSize = 0;
     m_sashCursorWE = wxCursor(wxCURSOR_SIZEWE);
@@ -372,7 +383,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
         }
         else
         {
-            SetSashPositionAndNotify(posSashNew);
+            DoSetSashPosition(posSashNew);
             m_needUpdating = true;
         }
     }
@@ -404,6 +415,8 @@ void wxSplitterWindow::OnSize(wxSizeEvent& event)
 
     if ( iconized )
     {
+        m_lastSize = wxSize(0,0);
+
         event.Skip();
 
         return;
@@ -415,11 +428,34 @@ void wxSplitterWindow::OnSize(wxSizeEvent& event)
         GetClientSize(&w, &h);
 
         int size = m_splitMode == wxSPLIT_VERTICAL ? w : h;
+
+        int old_size = m_splitMode == wxSPLIT_VERTICAL ? m_lastSize.x : m_lastSize.y;
+        if ( old_size != 0 )
+        {
+            int delta = (int) ( (size - old_size)*m_sashGravity );
+            if ( delta != 0 )
+            {
+                int newPosition = m_sashPosition + delta;
+                if( newPosition < m_minimumPaneSize )
+                    newPosition = m_minimumPaneSize;
+                SetSashPositionAndNotify(newPosition);
+            }
+        }
+
         if ( m_sashPosition >= size - 5 )
             SetSashPositionAndNotify(wxMax(10, size - 40));
+        m_lastSize = wxSize(w,h);
     }
 
     SizeWindows();
+}
+
+void wxSplitterWindow::SetSashGravity(double gravity)
+{
+    wxCHECK_RET( gravity >= 0. && gravity <= 1.,
+                    _T("invalid gravity value") );
+
+    m_sashGravity = gravity;
 }
 
 bool wxSplitterWindow::SashHitTest(int x, int y, int tolerance)
@@ -436,7 +472,7 @@ bool wxSplitterWindow::SashHitTest(int x, int y, int tolerance)
 
 int wxSplitterWindow::GetSashSize() const
 {
-    return wxRendererNative::Get().GetSplitterParams(this).widthSash;
+    return m_sashSize > -1 ? m_sashSize : wxRendererNative::Get().GetSplitterParams(this).widthSash;
 }
 
 int wxSplitterWindow::GetBorderSize() const
@@ -471,7 +507,7 @@ void wxSplitterWindow::DrawSash(wxDC& dc)
                                 m_sashPosition,
                                 m_splitMode == wxSPLIT_VERTICAL ? wxVERTICAL
                                                                 : wxHORIZONTAL,
-                                m_isHot ? wxCONTROL_CURRENT : 0
+                                m_isHot ? (int)wxCONTROL_CURRENT : 0
                             );
 }
 
@@ -591,17 +627,19 @@ void wxSplitterWindow::SetSashPositionAndNotify(int sashPos)
 {
     // we must reset the request here, otherwise the sash would be stuck at
     // old position if the user attempted to move the sash after invalid
-    // (e.g. smaller than minsize) sash position was requested using 
+    // (e.g. smaller than minsize) sash position was requested using
     // SetSashPosition():
     m_requestedSashPosition = INT_MAX;
 
-    if ( DoSetSashPosition(sashPos) )
-    {
-        wxSplitterEvent event(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, this);
-        event.m_data.pos = m_sashPosition;
+    // note that we must send the event in any case, i.e. even if the sash
+    // position hasn't changed and DoSetSashPosition() returns false because we
+    // must generate a CHANGED event at the end of resizing
+    DoSetSashPosition(sashPos);
 
-        (void)DoSendEvent(event);
-    }
+    wxSplitterEvent event(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, this);
+    event.m_data.pos = m_sashPosition;
+
+    (void)DoSendEvent(event);
 }
 
 // Position and size subwindows.
@@ -678,6 +716,9 @@ void wxSplitterWindow::Initialize(wxWindow *window)
     wxASSERT_MSG( (!window || (window && window->GetParent() == this)),
                   _T("windows in the splitter should have it as parent!") );
 
+    if (window && !window->IsShown())
+        window->Show();
+
     m_windowOne = window;
     m_windowTwo = (wxWindow *) NULL;
     DoSetSashPosition(0);
@@ -698,6 +739,11 @@ bool wxSplitterWindow::DoSplit(wxSplitMode mode,
 
     wxCHECK_MSG( window1->GetParent() == this && window2->GetParent() == this, false,
                   _T("windows in the splitter should have it as parent!") );
+
+    if (! window1->IsShown())
+        window1->Show();
+    if (! window2->IsShown())
+        window2->Show();
 
     m_splitMode = mode;
     m_windowOne = window1;
@@ -827,6 +873,46 @@ void wxSplitterWindow::UpdateSize()
 bool wxSplitterWindow::DoSendEvent(wxSplitterEvent& event)
 {
     return !GetEventHandler()->ProcessEvent(event) || event.IsAllowed();
+}
+
+wxSize wxSplitterWindow::DoGetBestSize() const
+{
+    // get best sizes of subwindows
+    wxSize size1, size2;
+    if ( m_windowOne )
+        size1 = m_windowOne->GetAdjustedBestSize();
+    if ( m_windowTwo )
+        size2 = m_windowTwo->GetAdjustedBestSize();
+
+    // sum them
+    //
+    // pSash points to the size component to which sash size must be added
+    int *pSash;
+    wxSize sizeBest;
+    if ( m_splitMode == wxSPLIT_VERTICAL )
+    {
+        sizeBest.y = wxMax(size1.y, size2.y);
+        sizeBest.x = wxMax(size1.x, m_minimumPaneSize) +
+                        wxMax(size2.x, m_minimumPaneSize);
+
+        pSash = &sizeBest.x;
+    }
+    else // wxSPLIT_HORIZONTAL
+    {
+        sizeBest.x = wxMax(size1.x, size2.x);
+        sizeBest.y = wxMax(size1.y, m_minimumPaneSize) +
+                        wxMax(size2.y, m_minimumPaneSize);
+
+        pSash = &sizeBest.y;
+    }
+
+    // account for the border and the sash
+    int border = 2*GetBorderSize();
+    *pSash += GetSashSize();
+    sizeBest.x += border;
+    sizeBest.y += border;
+
+    return sizeBest;
 }
 
 // ---------------------------------------------------------------------------

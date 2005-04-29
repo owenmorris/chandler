@@ -38,13 +38,10 @@
 #include <string.h>
 
 #ifdef __WXMSW__
-#include "wx/msw/wrapwin.h"
-#include <commdlg.h>
-
-#ifndef __WIN32__
-#include <print.h>
-#endif
-
+    #include "wx/msw/wrapcdlg.h"
+    #ifndef __WIN32__
+        #include <print.h>
+    #endif
 #endif
  // End __WXMSW__
 
@@ -59,7 +56,7 @@ wxPrintPaperType::wxPrintPaperType()
 {
     m_paperId = wxPAPER_NONE;
     m_platformId = 0;
-    m_paperName = wxT("");
+    m_paperName = wxEmptyString;
     m_width = 0;
     m_height = 0;
 }
@@ -283,7 +280,7 @@ wxSize wxPrintPaperDatabase::GetSize(wxPaperSize paperId)
     if (type)
         return type->GetSize();
     else
-        return wxSize(0, 0);
+        return wxSize(0,0);
 }
 
 // Get the paper size

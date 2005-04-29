@@ -19,7 +19,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_HELP && !defined(__WXWINCE__)
+#if wxUSE_HELP && !defined(__WXWINCE__) && (!defined(__WXMAC__) || defined(__WXMAC_OSX__))
 
 #ifndef WX_PRECOMP
     #include "wx/setup.h"
@@ -45,6 +45,7 @@
 
 #ifdef __WXMSW__
 #include <windows.h>
+#include "wx/msw/winundef.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -231,7 +232,7 @@ bool wxExtHelpController::LoadFile(const wxString& ifile)
 
    wxBusyCursor b; // display a busy cursor
 
-   if(! ifile.IsEmpty())
+   if(! ifile.empty())
    {
       file = ifile;
       if(! wxIsAbsolutePath(file))
@@ -254,7 +255,7 @@ bool wxExtHelpController::LoadFile(const wxString& ifile)
       // set to be "de", then look in "/usr/local/myapp/help/de/"
       // first and fall back to "/usr/local/myapp/help" if that
       // doesn't exist.
-      if(wxGetLocale() && !wxGetLocale()->GetName().IsEmpty())
+      if(wxGetLocale() && !wxGetLocale()->GetName().empty())
       {
          wxString newfile;
          newfile << WXEXTHELP_SEPARATOR << wxGetLocale()->GetName();
@@ -401,7 +402,7 @@ wxExtHelpController::KeywordSearch(const wxString& k,
 
    int          idx = 0, j;
    bool         rc;
-   bool         showAll = k.IsEmpty();
+   bool         showAll = k.empty();
    wxList::compatibility_iterator node = m_MapList->GetFirst();
    wxExtHelpMapEntry *entry;
 
@@ -412,12 +413,12 @@ wxExtHelpController::KeywordSearch(const wxString& k,
       {
          entry = (wxExtHelpMapEntry *)node->GetData();
          compB = entry->doc; compB.LowerCase();
-         if((showAll || compB.Contains(k)) && ! compB.IsEmpty())
+         if((showAll || compB.Contains(k)) && ! compB.empty())
          {
             urls[idx] = entry->url;
             // doesn't work:
             // choices[idx] = (**i).doc.Contains((**i).doc.Before(WXEXTHELP_COMMENTCHAR));
-            //if(choices[idx].IsEmpty()) // didn't contain the ';'
+            //if(choices[idx].empty()) // didn't contain the ';'
             //   choices[idx] = (**i).doc;
             choices[idx] = wxEmptyString;
             for(j=0;entry->doc.c_str()[j]

@@ -16,8 +16,7 @@ cross platform (wxGTK,etc)
 */
 
 #ifdef __GNUG__
-#pragma implementation "rc2xml.cpp"
-#pragma interface "rc2xml.cpp"
+#pragma implementation "rc2xml.h"
 #endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
@@ -146,22 +145,22 @@ microsoft reuses the keyword DIALOG for other things
 
     while ((token!=_T("BEGIN"))&(token!=_T("{")))
     {
-    if (token==_T("CAPTION"))
+        if (token==_T("CAPTION"))
         {
-        title=GetQuoteField();
+            title=GetQuoteField();
         }
 
 //TODO fix face name so that it is cross platform name
 //  FONT 8, "MS Sans Serif"
     if (token==_T("FONT"))
-        {
+    {
         ptsize=GetToken();
         face=GetQuoteField();
         m_xmlfile.Write(_T("\t\t<font>\n"));
         m_xmlfile.Write(_T("\t\t\t<size>")+ptsize+_T("</size>\n"));
         m_xmlfile.Write(_T("\t\t\t<face>")+face+_T("</face>\n"));
         m_xmlfile.Write(_T("\t\t</font>\n"));
-        }
+    }
 
     token=GetToken();
     }
@@ -350,10 +349,10 @@ bool rc2xml::Seperator(int ch)
         return true;
 
     if (ch==EOF)
-        {
+    {
         m_done=true;
         return true;
-        }
+    }
 
     return false;
 }
@@ -438,17 +437,35 @@ wxString rc2xml::GetQuoteField()
     wxString phrase;
     //ASCII code 34 "
     int ch=0;
+    int ch1=0;
+
     ReadChar(ch);
+
+    // !! Changed by MS, 15th/11/04. Can now read strings such as
+    // """Catapult"" - blah blah", ...
 
     while (ch!=34)
         ReadChar(ch);
-    ReadChar(ch);
 
-    while (ch!=34)
+    // found first '"'
+    while (true)
     {
-    phrase+=(char)ch;
-    ReadChar(ch);
+        ReadChar(ch);
+        if (ch == 34)
+        {
+            // another quote?
+            ReadChar(ch1);
+            if (ch1 != 34)
+            {
+                // real end of string..
+                break;
+            }
+
+            // add a single quote - fall through
+        }
+        phrase+=(char)ch;
     }
+
     return phrase;
 }
 
@@ -459,23 +476,24 @@ wxString rc2xml::GetStringQuote()
     wxString phrase;
     //ASCII code 34 "
     bool done=false;
-    int p,ch=0,lastch=0;
+    int ch=0,lastch=0;
     ReadChar(ch);
 
     while (ch!=34)
         ReadChar(ch);
+
     ReadChar(ch);
     while (done==false)
-        {
+    {
         if ((ch==34)&&(lastch!='\\'))
-            {
-            p=m_rc.Tell();
+        {
+            wxFileOffset p = m_rc.Tell();
             ReadChar(ch);
-// RC supports "", for embedded quote, as well as  \"
+            // RC supports "", for embedded quote, as well as  \"
             if (ch==34)
                 phrase+='\\';
             else
-    {
+            {
                 m_rc.Seek(p);
                 done = true;
                 }
@@ -487,9 +505,10 @@ wxString rc2xml::GetStringQuote()
          if ((ch=='\n')&&(lastch=='\\'))      // lastch <should> be this
              phrase+='n';                     // escape
          else
-    phrase+=(char)ch;
+             phrase+=(char)ch;
+
          lastch=ch;
-    ReadChar(ch);
+         ReadChar(ch);
     }
 
     return phrase;
@@ -497,15 +516,14 @@ wxString rc2xml::GetStringQuote()
 
 void rc2xml::ReadChar(int &ch)
 {
-    int result;
-    result=m_rc.Tell();
+    wxFileOffset result = m_rc.Tell();
 
     if((result>=m_filesize))
         m_done=true;
 
-    result=m_rc.Read(&ch,1);
+    result = m_rc.Read(&ch,1);
 
-    if((result==-1))
+    if( result == wxInvalidOffset )
         m_done=true;
 
     if(ch==EOF)
@@ -602,25 +620,22 @@ void rc2xml::ParsePopupMenu()
 
 wxString rc2xml::PeekToken()
 {
-    wxString token;
-    int p;
-    p=m_rc.Tell();
-    token=GetToken();
+    wxFileOffset p = m_rc.Tell();
+    wxString token=GetToken();
 
     m_rc.Seek(p);
     return token;
 }
+
 //MS Windows pain in the butt CONTROL
 void rc2xml::ParseControlMS()
 {
-    wxString label,varname,kindctrl,token;
-    token=PeekToken();
+    wxString token = PeekToken();
 
     if (token.Contains(_T("\"")))
         ParseNormalMSControl();
     else
         ParseWeirdMSControl();
-
 }
 
 /*    CONTROL         "Slider1",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH |
@@ -687,15 +702,14 @@ bool rc2xml::ReadOrs(wxString & orstring)
 void rc2xml::ParseCtrlButton(wxString label, wxString varname)
 {
     wxString token;
-    int p;
-    p=m_rc.Tell();
+    wxFileOffset p = m_rc.Tell();
     ReadOrs(token);
     m_rc.Seek(p);
 
     if (token.Find(_T("BS_AUTOCHECKBOX"))!=wxNOT_FOUND)
         ParseCheckBox(label, varname);
     else if ((token.Find(_T("BS_AUTORADIOBUTTON"))!=wxNOT_FOUND)||
-                  (token.Find(_T("BS_RADIOBUTTON"))!=wxNOT_FOUND))
+             (token.Find(_T("BS_RADIOBUTTON"))!=wxNOT_FOUND))
         ParseRadioButton(label, varname);
     else if (token.Find(_T("BS_GROUPBOX"))!=wxNOT_FOUND)
         ParseGroupBox(label, varname);
@@ -777,6 +791,9 @@ name=LookUpId(name);
 void rc2xml::WriteLabel(wxString label)
 {
     label.Replace(_T("&"),_T("$"));
+    // changes by MS, handle '<' '>' characters within a label.
+    label.Replace(_T("<"),_T("&lt;"));
+    label.Replace(_T(">"),_T("&gt;"));
     m_xmlfile.Write(_T("\t\t\t<label>")+label+_T("</label>\n"));
 }
 
@@ -821,7 +838,7 @@ void rc2xml::ParseListBox(wxString varname)
     CONTROL         "",IDC_RICHEDIT1,"RICHEDIT",ES_AUTOHSCROLL | WS_BORDER |
                     WS_TABSTOP,103,110,40,14
 */
-void rc2xml::ParseRichEdit(wxString label, wxString varname)
+void rc2xml::ParseRichEdit(wxString WXUNUSED(label), wxString varname)
 {
     wxString token;
     //while (ReadOrs(token));
@@ -880,7 +897,8 @@ void rc2xml::FirstPass()
 
 void rc2xml::ParseBitmap(wxString varname)
 {
-    wxString token,*bitmapfile;
+    wxString token;
+    wxString *bitmapfile;
 
     token=PeekToken();
     //Microsoft notation?
@@ -992,7 +1010,7 @@ void rc2xml::WriteToolButton(wxString name,int index, int width, int height, wxB
     little.SaveFile(m_targetpath+name,wxBITMAP_TYPE_BMP);
 }
 
-void rc2xml::ParseStringTable(wxString varname)
+void rc2xml::ParseStringTable(wxString WXUNUSED(varname))
 {
     wxString token;
     token=GetToken();
@@ -1002,13 +1020,12 @@ void rc2xml::ParseStringTable(wxString varname)
     wxString *msg;
 
     while ((token!=_T("END"))&(token!=_T("}")))
-        {
+    {
         msg=new wxString;
         *msg=GetStringQuote();
         m_stringtable->Append(token,msg);
         token=GetToken();
-        }
-
+    }
 }
 
 bool rc2xml::LookUpString(wxString strid,wxString & st)
@@ -1118,7 +1135,8 @@ void rc2xml::ParseIconStatic()
 //IDR_MAINFRAME           ICON    DISCARDABLE     "res\\mfcexample.ico"
 void rc2xml::ParseIcon(wxString varname)
 {
-    wxString token,*iconfile;
+    wxString token;
+    wxString *iconfile;
     iconfile=new wxString;
     token=PeekToken();
 
@@ -1162,70 +1180,63 @@ void rc2xml::ParseStaticBitmap(wxString bitmapname, wxString varname)
 
 void rc2xml::ParseNormalMSControl()
 {
-wxString label,varname,kindctrl;
-
-label=GetQuoteField();
-varname=GetToken();
-kindctrl=GetQuoteField();
-kindctrl.MakeUpper();
+    wxString label=GetQuoteField();
+    wxString varname=GetToken();
+    wxString kindctrl=GetQuoteField();
+    kindctrl.MakeUpper();
 
     if (kindctrl==_T("MSCTLS_UPDOWN32"))
         ParseSpinCtrl(label,varname);
-    if (kindctrl==_T("MSCTLS_TRACKBAR32"))
+    else if (kindctrl==_T("MSCTLS_TRACKBAR32"))
         ParseSlider(label,varname);
-    if (kindctrl==_T("MSCTLS_PROGRESS32"))
+    else if (kindctrl==_T("MSCTLS_PROGRESS32"))
         ParseProgressBar(label,varname);
-    if (kindctrl==_T("SYSTREEVIEW32"))
+    else if (kindctrl==_T("SYSTREEVIEW32"))
         ParseTreeCtrl(label,varname);
-    if (kindctrl==_T("SYSMONTHCAL32"))
+    else if (kindctrl==_T("SYSMONTHCAL32"))
         ParseCalendar(label,varname);
-    if (kindctrl==_T("SYSLISTVIEW32"))
+    else if (kindctrl==_T("SYSLISTVIEW32"))
         ParseListCtrl(label,varname);
-    if (kindctrl==_T("BUTTON"))
+    else if (kindctrl==_T("BUTTON"))
         ParseCtrlButton(label,varname);
-    if (kindctrl==_T("RICHEDIT"))
+    else if (kindctrl==_T("RICHEDIT"))
         ParseRichEdit(label,varname);
-    if (kindctrl==_T("STATIC"))
-        {
+    else if (kindctrl==_T("STATIC"))
+    {
         wxString token;
-        int p=m_rc.Tell();
+        wxFileOffset p = m_rc.Tell();
         ReadOrs(token);
         m_rc.Seek(p);
         if (token.Find(_T("SS_BITMAP"))!=wxNOT_FOUND)
             ParseStaticBitmap(label,varname);
         else
             ParseStaticText(label,varname);
-        }
-    if (kindctrl==_T("EDIT"))
+    }
+    else if (kindctrl==_T("EDIT"))
         ParseTextCtrl(varname);
-    if (kindctrl==_T("LISTBOX"))
+    else if (kindctrl==_T("LISTBOX"))
         ParseListBox(varname);
-    if (kindctrl==_T("COMBOBOX"))
+    else if (kindctrl==_T("COMBOBOX"))
         ParseComboBox(varname);
-
 }
 
 void rc2xml::ParseWeirdMSControl()
 {
-    wxString kindctrl;
-    wxString varname;
-    wxString id;
-    id=GetToken();
-    varname=GetToken();
-    kindctrl=GetQuoteField();
+    wxString id = GetToken();
+    wxString varname = GetToken();
+    wxString kindctrl = GetQuoteField();
     kindctrl.MakeUpper();
 //    CONTROL         IDB_FACE,IDC_STATIC,"Static",SS_BITMAP,26,62,32,30
     if (kindctrl==_T("STATIC"))
-        {
+    {
         if (PeekToken()==_T("SS_BITMAP"))
             ParseStaticBitmap(id,varname);
         else
             wxLogError(_T("Unknown MS Control Static token"));
-        }
-
+    }
 }
-//SCROLLBAR       IDC_SCROLLBAR1,219,56,10,40,SBS_VERT
 
+//SCROLLBAR       IDC_SCROLLBAR1,219,56,10,40,SBS_VERT
 void rc2xml::ParseScrollBar()
 {
     wxString token;

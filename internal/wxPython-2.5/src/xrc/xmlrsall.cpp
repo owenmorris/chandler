@@ -9,7 +9,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 // -- Already done in xmlres.cpp
-//#ifdef __GNUG__
+//#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 //#pragma implementation "xmlres.h"
 //#endif
 
@@ -34,6 +34,7 @@ void wxXmlResource::InitAllHandlers()
     AddHandler(new wxDialogXmlHandler);
     AddHandler(new wxPanelXmlHandler);
     AddHandler(new wxSizerXmlHandler);
+    AddHandler(new wxStdDialogButtonSizerXmlHandler);
     AddHandler(new wxButtonXmlHandler);
     AddHandler(new wxBitmapButtonXmlHandler);
     AddHandler(new wxStaticTextXmlHandler);
@@ -84,6 +85,12 @@ void wxXmlResource::InitAllHandlers()
 #if wxUSE_NOTEBOOK
     AddHandler(new wxNotebookXmlHandler);
 #endif
+#if wxUSE_LISTBOOK
+    AddHandler(new wxListbookXmlHandler);
+#endif
+#if wxUSE_CHOICEBOOK
+    AddHandler(new wxChoicebookXmlHandler);
+#endif
     AddHandler(new wxTextCtrlXmlHandler);
 #if wxUSE_LISTBOX
     AddHandler(new wxListBoxXmlHandler);
@@ -106,6 +113,12 @@ void wxXmlResource::InitAllHandlers()
 #endif
 #if wxUSE_STATUSBAR
     AddHandler(new wxStatusBarXmlHandler);
+#endif
+#if wxUSE_DATEPICKCTRL
+    AddHandler(new wxDateCtrlXmlHandler);
+#endif
+#if wxUSE_MDI
+    AddHandler(new wxMdiXmlHandler);
 #endif
 }
 

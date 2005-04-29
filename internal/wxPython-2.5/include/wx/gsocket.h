@@ -12,8 +12,7 @@
 #define __GSOCKET_H
 
 #ifndef __GSOCKET_STANDALONE__
-#include "wx/setup.h"
-#include "wx/platform.h"
+#include "wx/defs.h"
 
 #include "wx/dlimpexp.h" /* for WXDLLIMPEXP_NET */
 
@@ -100,6 +99,8 @@ typedef void (*GSocketCallback)(GSocket *socket, GSocketEvent event,
 class GSocketGUIFunctionsTable
 {
 public:
+    // needed since this class declares virtual members
+    virtual ~GSocketGUIFunctionsTable() { }
     virtual bool OnInit() = 0;
     virtual void OnExit() = 0;
     virtual bool CanUseEventLoop() = 0;

@@ -9,9 +9,13 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "stattext.h"
 #endif
+
+#include "wx/wxprec.h"
+
+#if wxUSE_STATTEXT
 
 #include "wx/app.h"
 #include "wx/stattext.h"
@@ -49,7 +53,7 @@ bool wxStaticText::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
     wxMacCFStringHolder str(m_label,m_font.GetEncoding() ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr(CreateStaticTextControl(MAC_WXHWND(parent->MacGetTopLevelWindowRef()),&bounds, str , 
         NULL , m_peer->GetControlRefAddr() ) ) ;  
 
@@ -117,3 +121,6 @@ bool wxStaticText::SetFont(const wxFont& font)
 
     return ret;
 }
+
+#endif //if wxUSE_STATTEXT
+

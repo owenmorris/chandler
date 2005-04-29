@@ -44,14 +44,6 @@
 // Recommended setting: 0 (please update your code)
 #define WXWIN_COMPATIBILITY_2_4 1
 
-// Define as 1 for font size to be backward compatible to 1.63 and earlier.
-// 1.64 and later define point sizes to be compatible with Windows.
-//
-// Default is 0
-//
-// Recommended setting: 0
-#define wxFONT_SIZE_COMPATIBILITY 0
-
 // Set to 0 for accurate dialog units, else 1 to be as per 2.1.16 and before.
 // If migrating between versions, your dialogs may seem to shrink.
 //
@@ -300,6 +292,14 @@
 // Recommended setting: 1 (but may be safely disabled if you don't use it)
 #define wxUSE_FSVOLUME 1
 
+// Use wxStandardPaths class which allows to retrieve some standard locations
+// in the file system
+//
+// Default is 1
+//
+// Recommended setting: 1 (may be disabled to save space, but not much)
+#define wxUSE_STDPATHS      1
+
 // use wxTextBuffer class: required by wxTextFile
 #define wxUSE_TEXTBUFFER 1
 
@@ -420,6 +420,9 @@
 // Set to 1 to enable virtual ZIP filesystem (requires wxUSE_FILESYSTEM)
 #define wxUSE_FS_ZIP 1
 
+// wxArchive classes for accessing archives such as zip and tar
+#define wxUSE_ARCHIVE_STREAMS 1
+
 // Set to 1 to compile wxZipInput/OutputStream classes.
 #define wxUSE_ZIPSTREAM 1
 
@@ -483,6 +486,27 @@
 
 // wxSound class
 #define wxUSE_SOUND 1
+
+// Use wxMediaCtrl
+//
+// Default is 1.
+//
+// Recommended setting: 1 
+#define wxUSE_MEDIACTRL     1
+
+// Use QuickTime
+//
+// Default is 0
+//
+// Recommended setting: 1 if you have the QT SDK installed and you need it, else 0
+#define wxUSE_QUICKTIME     0
+
+// Use DirectShow
+//
+// Default is 0
+//
+// Recommended setting: 1 if the DirectX 7 SDK is installed (highly recommended), else 0
+#define wxUSE_DIRECTSHOW    0
 
 // Use wxWidget's XRC XML-based resource system.  Recommended.
 //
@@ -554,6 +578,7 @@
 #define wxUSE_CHECKLISTBOX 1    // wxCheckListBox
 #define wxUSE_CHOICE       1    // wxChoice
 #define wxUSE_COMBOBOX     1    // wxComboBox
+#define wxUSE_DATEPICKCTRL 1    // wxDatePickerCtrl
 #define wxUSE_GAUGE        1    // wxGauge
 #define wxUSE_LISTBOX      1    // wxListBox
 #define wxUSE_LISTCTRL     1    // wxListCtrl
@@ -847,10 +872,11 @@
 #define wxUSE_DOC_VIEW_ARCHITECTURE 1
 
 // Set to 0 to disable MDI document/view architecture
+//
+// Requires wxUSE_MDI && wxUSE_DOC_VIEW_ARCHITECTURE
 #define wxUSE_MDI_ARCHITECTURE 1
 
 // Set to 0 to disable print/preview architecture code
-//
 #define wxUSE_PRINTING_ARCHITECTURE 1
 
 // wxHTML sublibrary allows to display HTML in wxWindow programs and much,
@@ -978,14 +1004,6 @@
 // Set to 1 to use font metric files in GetTextExtent
 #define wxUSE_AFM_FOR_POSTSCRIPT 1
 
-// Set to 0 to disable PostScript print/preview architecture code under Windows
-// (just use Windows printing).
-#if defined(__WIN32__)
-    #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 1
-#else
-    #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 0
-#endif
-
 // ----------------------------------------------------------------------------
 // database classes
 // ----------------------------------------------------------------------------
@@ -1100,13 +1118,13 @@
 // Recommended setting: 1 for WIN32
     #define wxUSE_OLE 1
 
-// Set this to 1 to use Microsoft CTL3D library for "3D-look" under Win16 or NT
-// 3.x. This setting is ignored under Win9x and NT 4.0+.
-//
-// Default is 0 for (most) Win32 (systems), 1 for Win16
-//
-// Recommended setting: 0
-#define wxUSE_CTL3D 0
+// Set to 0 to disable PostScript print/preview architecture code under Windows
+// (just use Windows printing).
+#if defined(__WIN32__)
+    #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 1
+#else
+    #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 0
+#endif
 
 // Define as 1 to use Microsoft's ItsyBitsy small title bar library, for
 // wxMiniFrame. This setting is only used for Win3.1; Win9x and NT use native

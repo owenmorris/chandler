@@ -71,10 +71,10 @@ void wxPolygonShape::Create(wxList *the_points)
   else
   {
       m_originalPoints = the_points;
-      
+
       // Duplicate the list of points
       m_points = new wxList;
-      
+
       wxObjectList::compatibility_iterator node = the_points->GetFirst();
       while (node)
       {
@@ -1298,7 +1298,7 @@ void wxShape::OnSizingDragLeft(wxControlPoint* pt, bool WXUNUSED(draw), double x
 
   dc.SetLogicalFunction(OGLRBLF);
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush((* wxTRANSPARENT_BRUSH));
 
@@ -1433,7 +1433,7 @@ void wxShape::OnSizingBeginDragLeft(wxControlPoint* pt, double x, double y, int 
   pt->sm_controlPointDragStartWidth = bound_x;
   pt->sm_controlPointDragStartHeight = bound_y;
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush((* wxTRANSPARENT_BRUSH));
 
@@ -1633,7 +1633,7 @@ void wxPolygonShape::OnSizingDragLeft(wxControlPoint* pt, bool WXUNUSED(draw), d
 
   dc.SetLogicalFunction(OGLRBLF);
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush((* wxTRANSPARENT_BRUSH));
 
@@ -1685,7 +1685,7 @@ void wxPolygonShape::OnSizingBeginDragLeft(wxControlPoint* pt, double x, double 
 
   if (ppt->m_originalDistance == 0.0) ppt->m_originalDistance = (double) 0.0001;
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush((* wxTRANSPARENT_BRUSH));
 
@@ -1774,7 +1774,7 @@ wxShapeRegion::wxShapeRegion()
   m_actualPenObject = NULL;
 }
 
-wxShapeRegion::wxShapeRegion(wxShapeRegion& region)
+wxShapeRegion::wxShapeRegion(wxShapeRegion& region):wxObject()
 {
   m_regionText = region.m_regionText;
   m_regionName = region.m_regionName;

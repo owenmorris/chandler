@@ -80,7 +80,7 @@ class AnalogClockWindow(wx.PyWindow):
         self.tickMarkHoursPen = wx.Pen((0, 0, 0), 1, wx.SOLID)
         self.tickMarkHoursBrush = wx.Brush((0, 0, 0), wx.SOLID)
         self.markSizeHour = 10
-        self.tickMarkHoursFont = wx.Font(0, wx.SWISS, wx.NORMAL, wx.BOLD)
+        self.tickMarkHoursFont = wx.Font(1, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.tickMarkHoursFont.SetPointSize(self.markSizeHour)
 
         self.tickMarkMinutesPen = wx.Pen((0, 0, 0), 1, wx.SOLID)
@@ -456,17 +456,17 @@ class AnalogClockWindow(wx.PyWindow):
         drawDC.DrawPolygon(points)
 
 
-    def _pol2rect(self, r, w, deg=1):                # radian if deg=0; degree if deg=1
+    def _pol2rect(self, r, w, deg=1):        # radian if deg=0; degree if deg=1
         if deg:
-                 w = math.pi * w / 180.0
+             w = math.pi * w / 180.0
         return r * math.cos(w), r * math.sin(w)
 
 
-    def _rect2pol(self, x, y, deg=1):                # radian if deg=0; degree if deg=1
+    def _rect2pol(self, x, y, deg=1):        # radian if deg=0; degree if deg=1
         if deg:
-                return math.hypot(x, y), 180.0 * math.atan2(y, x) / math.pi
+            return math.hypot(x, y), 180.0 * math.atan2(y, x) / math.pi
         else:
-                return math.hypot(x, y), math.atan2(y, x)
+            return math.hypot(x, y), math.atan2(y, x)
 
 
     def _center2corner(self, x, y, tipo, drawDC=None):

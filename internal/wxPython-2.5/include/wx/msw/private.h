@@ -33,19 +33,6 @@ class WXDLLEXPORT wxWindow;
 // private constants
 // ---------------------------------------------------------------------------
 
-// Conversion
-static const double METRIC_CONVERSION_CONSTANT = 0.0393700787;
-
-// Scaling factors for various unit conversions
-static const double mm2inches = (METRIC_CONVERSION_CONSTANT);
-static const double inches2mm = (1/METRIC_CONVERSION_CONSTANT);
-
-static const double mm2twips = (METRIC_CONVERSION_CONSTANT*1440);
-static const double twips2mm = (1/(METRIC_CONVERSION_CONSTANT*1440));
-
-static const double mm2pt = (METRIC_CONVERSION_CONSTANT*72);
-static const double pt2mm = (1/(METRIC_CONVERSION_CONSTANT*72));
-
 // 260 was taken from windef.h
 #ifndef MAX_PATH
     #define MAX_PATH  260
@@ -57,15 +44,21 @@ static const double pt2mm = (1/(METRIC_CONVERSION_CONSTANT*72));
 
 #if wxUSE_GUI
 
-WXDLLEXPORT_DATA(extern HICON) wxSTD_FRAME_ICON;
-WXDLLEXPORT_DATA(extern HICON) wxSTD_MDIPARENTFRAME_ICON;
-WXDLLEXPORT_DATA(extern HICON) wxSTD_MDICHILDFRAME_ICON;
-WXDLLEXPORT_DATA(extern HICON) wxDEFAULT_FRAME_ICON;
-WXDLLEXPORT_DATA(extern HICON) wxDEFAULT_MDIPARENTFRAME_ICON;
-WXDLLEXPORT_DATA(extern HICON) wxDEFAULT_MDICHILDFRAME_ICON;
-WXDLLEXPORT_DATA(extern HFONT) wxSTATUS_LINE_FONT;
+extern WXDLLEXPORT_DATA(HICON) wxSTD_FRAME_ICON;
+extern WXDLLEXPORT_DATA(HICON) wxSTD_MDIPARENTFRAME_ICON;
+extern WXDLLEXPORT_DATA(HICON) wxSTD_MDICHILDFRAME_ICON;
+extern WXDLLEXPORT_DATA(HICON) wxDEFAULT_FRAME_ICON;
+extern WXDLLEXPORT_DATA(HICON) wxDEFAULT_MDIPARENTFRAME_ICON;
+extern WXDLLEXPORT_DATA(HICON) wxDEFAULT_MDICHILDFRAME_ICON;
+extern WXDLLEXPORT_DATA(HFONT) wxSTATUS_LINE_FONT;
 
 #endif // wxUSE_GUI
+
+// ---------------------------------------------------------------------------
+// global data
+// ---------------------------------------------------------------------------
+
+extern WXDLLIMPEXP_DATA_BASE(HINSTANCE) wxhInstance;
 
 // ---------------------------------------------------------------------------
 // define things missing from some compilers' headers
@@ -130,10 +123,6 @@ WXDLLEXPORT_DATA(extern HFONT) wxSTATUS_LINE_FONT;
     VOID    WINAPI ibAdjustWindowRect( HWND hWnd, LPRECT lprc ) ;
 #endif // wxUSE_ITSY_BITSY
 
-#if wxUSE_CTL3D
-    #include "wx/msw/ctl3d/ctl3d.h"
-#endif // wxUSE_CTL3D
-
 /*
  * Decide what window classes we're going to use
  * for this combination of CTl3D/FAFA settings
@@ -183,6 +172,24 @@ extern LONG APIENTRY _EXPORT
 #define wxZeroMemory(obj)   ::ZeroMemory(&obj, sizeof(obj))
 #else
 #define wxZeroMemory(obj)   memset((void*) & obj, 0, sizeof(obj))
+#endif
+
+// This one is a macro so that it can be tested with #ifdef, it will be
+// undefined if it cannot be implemented for a given compiler.
+// Vc++, bcc, dmc, ow, mingw, codewarrior (and rsxnt) have _get_osfhandle.
+// Cygwin has get_osfhandle. Others are currently unknown, e.g. Salford,
+// Intel, Visual Age.
+#if defined(__WXWINCE__)
+    #define wxGetOSFHandle(fd) ((HANDLE)fd)
+#elif defined(__CYGWIN__)
+    #define wxGetOSFHandle(fd) ((HANDLE)get_osfhandle(fd))
+#elif defined(__VISUALC__) \
+   || defined(__BORLANDC__) \
+   || defined(__DMC__) \
+   || defined(__WATCOMC__) \
+   || (defined(__GNUWIN32__) || defined(__MINGW32__)) \
+   || (defined(__MWERKS__) && defined(__MSL__))
+    #define wxGetOSFHandle(fd) ((HANDLE)_get_osfhandle(fd))
 #endif
 
 #if wxUSE_GUI
@@ -236,13 +243,27 @@ struct WXDLLEXPORT wxCOLORMAP
 // this function is implemented in src/msw/window.cpp
 extern wxCOLORMAP *wxGetStdColourMap();
 
-// copy Windows RECT to our wxRect
-inline void wxCopyRECTToRect(const RECT& r, wxRect& rect)
+// create a wxRect from Windows RECT
+inline wxRect wxRectFromRECT(const RECT& rc)
 {
-    rect.y = r.top;
-    rect.x = r.left;
-    rect.width = r.right - r.left;
-    rect.height = r.bottom - r.top;
+    return wxRect(rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top);
+}
+
+// copy Windows RECT to our wxRect
+inline void wxCopyRECTToRect(const RECT& rc, wxRect& rect)
+{
+    rect = wxRectFromRECT(rc);
+}
+
+// and vice versa
+inline void wxCopyRectToRECT(const wxRect& rect, RECT& rc)
+{
+    // note that we don't use wxRect::GetRight() as it is one of compared to
+    // wxRectFromRECT() above
+    rc.top = rect.y;
+    rc.left = rect.x;
+    rc.right = rect.x + rect.width;
+    rc.bottom = rect.y + rect.height;
 }
 
 // translations between HIMETRIC units (which OLE likes) and pixels (which are
@@ -405,6 +426,62 @@ private:
    DECLARE_NO_COPY_CLASS(SelectInHDC)
 };
 
+// a class which cleans up any GDI object
+class AutoGDIObject
+{
+protected:
+    AutoGDIObject(HGDIOBJ gdiobj) : m_gdiobj(gdiobj) { }
+    ~AutoGDIObject() { if ( m_gdiobj ) ::DeleteObject(m_gdiobj); }
+
+    HGDIOBJ GetObject() const { return m_gdiobj; }
+
+private:
+    HGDIOBJ m_gdiobj;
+};
+
+// a class for temporary bitmaps
+class CompatibleBitmap : private AutoGDIObject
+{
+public:
+    CompatibleBitmap(HDC hdc, int w, int h)
+        : AutoGDIObject(::CreateCompatibleBitmap(hdc, w, h))
+    {
+    }
+
+    operator HBITMAP() const { return (HBITMAP)GetObject(); }
+};
+
+// class automatically destroys the region object
+class AutoHRGN : private AutoGDIObject
+{
+public:
+    AutoHRGN(HRGN hrgn) : AutoGDIObject(hrgn) { }
+
+    operator HRGN() const { return (HRGN)GetObject(); }
+};
+
+// class sets the specified clipping region during its life time
+class HDCClipper
+{
+public:
+    HDCClipper(HDC hdc, HRGN hrgn)
+        : m_hdc(hdc)
+    {
+        if ( !::SelectClipRgn(hdc, hrgn) )
+            wxLogLastError(_T("SelectClipRgn"));
+    }
+
+    ~HDCClipper()
+    {
+        ::SelectClipRgn(m_hdc, NULL);
+    }
+
+private:
+    HDC m_hdc;
+
+    DECLARE_NO_COPY_CLASS(HDCClipper)
+};
+
 // when working with global pointers (which is unfortunately still necessary
 // sometimes, e.g. for clipboard) it is important to unlock them exactly as
 // many times as we lock them which just asks for using a "smart lock" class
@@ -444,6 +521,64 @@ private:
     DECLARE_NO_COPY_CLASS(GlobalPtr)
 };
 
+// register the class when it is first needed and unregister it in dtor
+class ClassRegistrar
+{
+public:
+    // ctor doesn't register the class, call Initialize() for this
+    ClassRegistrar() { m_registered = -1; }
+
+    // return true if the class is already registered
+    bool IsInitialized() const { return m_registered != -1; }
+
+    // return true if the class had been already registered
+    bool IsRegistered() const { return m_registered == 1; }
+
+    // try to register the class if not done yet, return true on success
+    bool Register(const WNDCLASS& wc)
+    {
+        // we should only be called if we hadn't been initialized yet
+        wxASSERT_MSG( m_registered == -1,
+                        _T("calling ClassRegistrar::Register() twice?") );
+
+        m_registered = ::RegisterClass(&wc) ? 1 : 0;
+        if ( !IsRegistered() )
+        {
+            wxLogLastError(_T("RegisterClassEx()"));
+        }
+        else
+        {
+            m_clsname = wc.lpszClassName;
+        }
+
+        return m_registered == 1;
+    }
+
+    // get the name of the registered class (returns empty string if not
+    // registered)
+    const wxString& GetName() const { return m_clsname; }
+
+    // unregister the class if it had been registered
+    ~ClassRegistrar()
+    {
+        if ( IsRegistered() )
+        {
+            if ( !::UnregisterClass(m_clsname, wxhInstance) )
+            {
+                wxLogLastError(_T("UnregisterClass"));
+            }
+        }
+    }
+
+private:
+    // initial value is -1 which means that we hadn't tried registering the
+    // class yet, it becomes true or false (1 or 0) when Initialize() is called
+    int m_registered;
+
+    // the name of the class, only non empty if it had been registered
+    wxString m_clsname;
+};
+
 // ---------------------------------------------------------------------------
 // macros to make casting between WXFOO and FOO a bit easier: the GetFoo()
 // returns Foo cast to the Windows type for oruselves, while GetFooOf() takes
@@ -468,8 +603,8 @@ private:
 #define GetHaccel()             ((HACCEL)GetHACCEL())
 #define GetHaccelOf(table)      ((HACCEL)((table).GetHACCEL()))
 
-#define GetHbrush()             ((HPEN)GetResourceHandle())
-#define GetHbrushOf(brush)      ((HPEN)(brush).GetResourceHandle())
+#define GetHbrush()             ((HBRUSH)GetResourceHandle())
+#define GetHbrushOf(brush)      ((HBRUSH)(brush).GetResourceHandle())
 
 #define GetHmenu()              ((HMENU)GetHMenu())
 #define GetHmenuOf(menu)        ((HMENU)menu->GetHMenu())
@@ -479,6 +614,9 @@ private:
 
 #define GetHfont()              ((HFONT)GetHFONT())
 #define GetHfontOf(font)        ((HFONT)(font).GetHFONT())
+
+#define GetHimagelist()         ((HIMAGELIST)GetHIMAGELIST())
+#define GetHimagelistOf(imgl)   ((HIMAGELIST)imgl->GetHIMAGELIST())
 
 #define GetHpalette()           ((HPALETTE)GetHPALETTE())
 #define GetHpaletteOf(pal)      ((HPALETTE)(pal).GetHPALETTE())
@@ -492,12 +630,6 @@ private:
 #endif // wxUSE_GUI
 
 // ---------------------------------------------------------------------------
-// global data
-// ---------------------------------------------------------------------------
-
-WXDLLIMPEXP_DATA_BASE(extern HINSTANCE) wxhInstance;
-
-// ---------------------------------------------------------------------------
 // global functions
 // ---------------------------------------------------------------------------
 
@@ -508,13 +640,13 @@ extern "C"
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
-// return the full name of the program file
-inline wxString wxGetFullModuleName()
+// return the full path of the given module
+inline wxString wxGetFullModuleName(HMODULE hmod)
 {
     wxString fullname;
     if ( !::GetModuleFileName
             (
-                (HMODULE)wxGetInstance(),
+                hmod,
                 wxStringBuffer(fullname, MAX_PATH),
                 MAX_PATH
             ) )
@@ -523,6 +655,12 @@ inline wxString wxGetFullModuleName()
     }
 
     return fullname;
+}
+
+// return the full path of the program file
+inline wxString wxGetFullModuleName()
+{
+    return wxGetFullModuleName((HMODULE)wxGetInstance());
 }
 
 #if wxUSE_GUI
@@ -540,21 +678,21 @@ WXDLLEXPORT void wxSliderEvent(WXHWND control, WXWORD wParam, WXWORD pos);
 WXDLLEXPORT void wxScrollBarEvent(WXHWND hbar, WXWORD wParam, WXWORD pos);
 
 // Find maximum size of window/rectangle
-WXDLLEXPORT extern void wxFindMaxSize(WXHWND hwnd, RECT *rect);
+extern WXDLLEXPORT void wxFindMaxSize(WXHWND hwnd, RECT *rect);
 
 // Safely get the window text (i.e. without using fixed size buffer)
-WXDLLEXPORT extern wxString wxGetWindowText(WXHWND hWnd);
+extern WXDLLEXPORT wxString wxGetWindowText(WXHWND hWnd);
 
 // get the window class name
-WXDLLEXPORT extern wxString wxGetWindowClass(WXHWND hWnd);
+extern WXDLLEXPORT wxString wxGetWindowClass(WXHWND hWnd);
 
 // get the window id (should be unsigned, hence this is not wxWindowID which
 // is, for mainly historical reasons, signed)
-WXDLLEXPORT extern WXWORD wxGetWindowId(WXHWND hWnd);
+extern WXDLLEXPORT WXWORD wxGetWindowId(WXHWND hWnd);
 
 // check if hWnd's WNDPROC is wndProc. Return true if yes, false if they are
 // different
-WXDLLEXPORT extern bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc);
+extern WXDLLEXPORT bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc);
 
 // Does this window style specify any border?
 inline bool wxStyleHasBorder(long style)
@@ -569,20 +707,28 @@ inline bool wxStyleHasBorder(long style)
 
 // this function simply checks whether the given hWnd corresponds to a wxWindow
 // and returns either that window if it does or NULL otherwise
-WXDLLEXPORT extern wxWindow* wxFindWinFromHandle(WXHWND hWnd);
+extern WXDLLEXPORT wxWindow* wxFindWinFromHandle(WXHWND hWnd);
 
 // find the window for HWND which is part of some wxWindow, i.e. unlike
 // wxFindWinFromHandle() above it will also work for "sub controls" of a
 // wxWindow.
 //
 // returns the wxWindow corresponding to the given HWND or NULL.
-WXDLLEXPORT extern wxWindow *wxGetWindowFromHWND(WXHWND hwnd);
+extern WXDLLEXPORT wxWindow *wxGetWindowFromHWND(WXHWND hwnd);
 
 // Get the size of an icon
-WXDLLEXPORT extern wxSize wxGetHiconSize(HICON hicon);
+extern WXDLLEXPORT wxSize wxGetHiconSize(HICON hicon);
 
 // Lines are drawn differently for WinCE and regular WIN32
 WXDLLEXPORT void wxDrawLine(HDC hdc, int x1, int y1, int x2, int y2);
+
+// fill the client rect of the given window on the provided dc using this brush
+inline void wxFillRect(HWND hwnd, HDC hdc, HBRUSH hbr)
+{
+    RECT rc;
+    ::GetClientRect(hwnd, &rc);
+    ::FillRect(hdc, &rc, hbr);
+}
 
 // ----------------------------------------------------------------------------
 // 32/64 bit helpers
@@ -648,5 +794,4 @@ inline void *wxSetWindowUserData(HWND hwnd, void *data)
 
 #endif // wxUSE_GUI
 
-#endif
-    // _WX_PRIVATE_H_
+#endif // _WX_PRIVATE_H_

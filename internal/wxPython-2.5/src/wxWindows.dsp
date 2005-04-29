@@ -309,6 +309,10 @@ SOURCE=.\common\appcmn.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\common\archive.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\common\artprov.cpp
 # End Source File
 # Begin Source File
@@ -394,6 +398,10 @@ SOURCE=.\common\dbtable.cpp
 # Begin Source File
 
 SOURCE=.\common\dcbase.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\common\debugrpt.cpp
 # End Source File
 # Begin Source File
 
@@ -646,6 +654,10 @@ SOURCE=.\common\matrix.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\common\mediactrlcmn.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\common\memory.cpp
 # End Source File
 # Begin Source File
@@ -754,6 +766,10 @@ SOURCE=.\common\statbar.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\common\stdpbase.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\common\stockitem.cpp
 # End Source File
 # Begin Source File
@@ -818,8 +834,7 @@ SOURCE=.\common\txtstrm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\common\unzip.c
-# SUBTRACT CPP /YX /Yc /Yu
+SOURCE=.\common\uri.cpp
 # End Source File
 # Begin Source File
 
@@ -903,6 +918,14 @@ SOURCE=.\generic\choicdgg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\generic\datectlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\generic\dbgrptg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\generic\dcpsg.cpp
 # End Source File
 # Begin Source File
@@ -964,6 +987,10 @@ SOURCE=.\generic\prntdlgg.cpp
 # Begin Source File
 
 SOURCE=.\generic\progdlgg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\generic\propdlg.cpp
 # End Source File
 # Begin Source File
 
@@ -1191,6 +1218,10 @@ SOURCE=.\msw\data.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\msw\datectrl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\msw\dc.cpp
 # End Source File
 # Begin Source File
@@ -1215,6 +1246,10 @@ SOURCE=.\msw\dde.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\msw\debughlp.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\msw\dialog.cpp
 # End Source File
 # Begin Source File
@@ -1236,6 +1271,10 @@ SOURCE=.\msw\dirdlg.cpp
 # Begin Source File
 
 SOURCE=.\msw\display.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\msw\dlmsw.cpp
 # End Source File
 # Begin Source File
 
@@ -1349,6 +1388,10 @@ SOURCE=.\msw\main.cpp
 # Begin Source File
 
 SOURCE=.\msw\mdi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\msw\mediactrl.cpp
 # End Source File
 # Begin Source File
 
@@ -1492,6 +1535,10 @@ SOURCE=.\msw\spinctrl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\msw\stackwalk.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\msw\statbmp.cpp
 # End Source File
 # Begin Source File
@@ -1509,6 +1556,10 @@ SOURCE=.\msw\statline.cpp
 # Begin Source File
 
 SOURCE=.\msw\stattext.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\msw\stdpaths.cpp
 # End Source File
 # Begin Source File
 
@@ -1616,7 +1667,15 @@ SOURCE=.\xrc\xh_choic.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\xrc\xh_choicbk.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\xrc\xh_combo.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\xrc\xh_datectrl.cpp
 # End Source File
 # Begin Source File
 
@@ -1644,7 +1703,15 @@ SOURCE=.\xrc\xh_listb.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\xrc\xh_listbk.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\xrc\xh_listc.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\xrc\xh_mdi.cpp
 # End Source File
 # Begin Source File
 
@@ -1872,6 +1939,10 @@ SOURCE=..\include\wx\apptrait.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\archive.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\arrstr.h
 # End Source File
 # Begin Source File
@@ -2012,6 +2083,14 @@ SOURCE=..\include\wx\dataobj.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\datectrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\dateevt.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\datetime.h
 # End Source File
 # Begin Source File
@@ -2073,6 +2152,10 @@ SOURCE=..\include\wx\dde.h
 # Begin Source File
 
 SOURCE=..\include\wx\debug.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\debugrpt.h
 # End Source File
 # Begin Source File
 
@@ -2448,6 +2531,10 @@ SOURCE=..\include\wx\mdi.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\mediactrl.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\memconf.h
 # End Source File
 # Begin Source File
@@ -2557,6 +2644,10 @@ SOURCE=..\include\wx\process.h
 # Begin Source File
 
 SOURCE=..\include\wx\progdlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\propdlg.h
 # End Source File
 # Begin Source File
 
@@ -2700,6 +2791,10 @@ SOURCE=..\include\wx\stack.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\stackwalk.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\statbmp.h
 # End Source File
 # Begin Source File
@@ -2717,6 +2812,10 @@ SOURCE=..\include\wx\stattext.h
 # Begin Source File
 
 SOURCE=..\include\wx\statusbr.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\stdpaths.h
 # End Source File
 # Begin Source File
 
@@ -2825,6 +2924,10 @@ SOURCE=..\include\wx\txtstrm.h
 # Begin Source File
 
 SOURCE=..\include\wx\types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\uri.h
 # End Source File
 # Begin Source File
 
@@ -2956,7 +3059,15 @@ SOURCE=..\include\wx\xrc\xh_choic.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\xrc\xh_choicbk.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\xrc\xh_combo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\xrc\xh_datectrl.h
 # End Source File
 # Begin Source File
 
@@ -2984,7 +3095,15 @@ SOURCE=..\include\wx\xrc\xh_listb.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\xrc\xh_listbk.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\xrc\xh_listc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\xrc\xh_mdi.h
 # End Source File
 # Begin Source File
 
@@ -3184,6 +3303,10 @@ SOURCE=..\include\wx\msw\cursor.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\msw\datectrl.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\msw\dc.h
 # End Source File
 # Begin Source File
@@ -3205,6 +3328,10 @@ SOURCE=..\include\wx\msw\dcscreen.h
 # Begin Source File
 
 SOURCE=..\include\wx\msw\dde.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\msw\debughlp.h
 # End Source File
 # Begin Source File
 
@@ -3281,6 +3408,14 @@ SOURCE=..\include\wx\msw\gsockmsw.h
 # Begin Source File
 
 SOURCE=..\include\wx\msw\helpbest.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\msw\helpchm.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\msw\helpwin.h
 # End Source File
 # Begin Source File
 
@@ -3396,6 +3531,10 @@ SOURCE=..\include\wx\msw\pen.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\msw\popupwin.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\msw\printdlg.h
 # End Source File
 # Begin Source File
@@ -3440,10 +3579,6 @@ SOURCE=..\include\wx\msw\slider95.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\wx\msw\slidrmsw.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\include\wx\msw\sound.h
 # End Source File
 # Begin Source File
@@ -3453,6 +3588,10 @@ SOURCE=..\include\wx\msw\spinbutt.h
 # Begin Source File
 
 SOURCE=..\include\wx\msw\spinctrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\msw\stackwalk.h
 # End Source File
 # Begin Source File
 
@@ -3516,6 +3655,10 @@ SOURCE=..\include\wx\msw\treectrl.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\wx\msw\uxtheme.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\wx\msw\window.h
 # End Source File
 # Begin Source File
@@ -3525,6 +3668,10 @@ SOURCE=..\include\wx\msw\winundef.h
 # Begin Source File
 
 SOURCE=..\include\wx\msw\wrapcctl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\msw\wrapcdlg.h
 # End Source File
 # Begin Source File
 
@@ -3549,6 +3696,10 @@ SOURCE=..\include\wx\generic\choicdgg.h
 # Begin Source File
 
 SOURCE=..\include\wx\generic\colrdlgg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\generic\datectrl.h
 # End Source File
 # Begin Source File
 
@@ -3625,6 +3776,10 @@ SOURCE=..\include\wx\generic\prntdlgg.h
 # Begin Source File
 
 SOURCE=..\include\wx\generic\progdlgg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\generic\propdlg.h
 # End Source File
 # Begin Source File
 

@@ -48,8 +48,8 @@ class wxPyApp : public wxEvtHandler {
 public:
 
     %pythonAppend wxPyApp
-       "self._setCallbackInfo(self, PyApp)
-        self._setOORInfo(self)";
+       "self._setCallbackInfo(self, PyApp, False)
+        self._setOORInfo(self, False)";
     %typemap(out) wxPyApp*;    // turn off this typemap
 
     DocStr(wxPyApp,
@@ -67,7 +67,7 @@ public:
     %typemap(out) wxPyApp* { $result = wxPyMake_wxObject($1, $owner); }
 
 
-    void _setCallbackInfo(PyObject* self, PyObject* _class);
+    void _setCallbackInfo(PyObject* self, PyObject* _class, bool incref);
 
 
     DocDeclStr(
@@ -353,6 +353,27 @@ DocDeclStrName(
     wxPyApp* wxPyGetApp() { return (wxPyApp*)wxTheApp; }
 %}
 
+
+
+
+
+DocDeclAStr(
+    void , wxSetDefaultPyEncoding(const char* encoding),
+    "SetDefaultPyEncoding(string encoding)",
+    "Sets the encoding that wxPython will use when it needs to convert a
+Python string or unicode object to or from a wxString.
+
+The default encoding is the value of ``locale.getdefaultlocale()[1]``
+but please be aware that the default encoding within the same locale
+may be slightly different on different platforms.  For example, please
+see http://www.alanwood.net/demos/charsetdiffs.html for differences
+between the common latin/roman encodings.", "");
+
+DocDeclAStr(
+    const char* , wxGetDefaultPyEncoding(),
+    "GetDefaultPyEncoding() -> string",
+    "Gets the current encoding that wxPython will use when it needs to
+convert a Python string or unicode object to or from a wxString.", "");
 
 
 //---------------------------------------------------------------------------

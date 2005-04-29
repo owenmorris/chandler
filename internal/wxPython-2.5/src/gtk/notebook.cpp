@@ -90,6 +90,7 @@ WX_DEFINE_LIST(wxGtkNotebookPagesList);
 // "switch_page"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_notebook_page_change_callback(GtkNotebook *WXUNUSED(widget),
                                               GtkNotebookPage *WXUNUSED(page),
                                               gint page,
@@ -132,11 +133,13 @@ static void gtk_notebook_page_change_callback(GtkNotebook *WXUNUSED(widget),
 
     notebook->m_inSwitchPage = FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "size_allocate"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_page_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation* alloc, wxWindow *win )
 {
     if (g_isIdle)
@@ -163,11 +166,13 @@ static void gtk_page_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation* 
         gtk_widget_size_allocate( win->m_wxwindow, alloc );
     }
 }
+}
 
 //-----------------------------------------------------------------------------
 // "realize" from m_widget
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint
 gtk_notebook_realized_callback( GtkWidget * WXUNUSED(widget), wxWindow *win )
 {
@@ -180,11 +185,13 @@ gtk_notebook_realized_callback( GtkWidget * WXUNUSED(widget), wxWindow *win )
 
     return FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "key_press_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_notebook_key_press_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxNotebook *notebook )
 {
     if (g_isIdle)
@@ -249,6 +256,7 @@ static gint gtk_notebook_key_press_callback( GtkWidget *widget, GdkEventKey *gdk
     }
 
     return FALSE;
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -499,7 +507,7 @@ bool wxNotebook::SetPageImage( size_t page, int image )
     wxASSERT( m_imageList != NULL ); /* Just in case */
 
     /* Construct the new pixmap */
-    const wxBitmap *bmp = m_imageList->GetBitmap(image);
+    const wxBitmap *bmp = m_imageList->GetBitmapPtr(image);
     GdkPixmap *pixmap = bmp->GetPixmap();
     GdkBitmap *mask = (GdkBitmap*) NULL;
     if ( bmp->GetMask() )
@@ -673,7 +681,7 @@ bool wxNotebook::InsertPage( size_t position,
     {
         wxASSERT( m_imageList != NULL );
 
-        const wxBitmap *bmp = m_imageList->GetBitmap(imageId);
+        const wxBitmap *bmp = m_imageList->GetBitmapPtr(imageId);
         GdkPixmap *pixmap = bmp->GetPixmap();
         GdkBitmap *mask = (GdkBitmap*) NULL;
         if ( bmp->GetMask() )

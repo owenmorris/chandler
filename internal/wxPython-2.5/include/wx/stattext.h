@@ -1,11 +1,24 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        stattext.h
+// Purpose:     wxStaticText base header
+// Author:      wxWidgets Team
+// Modified by:
+// Created:
+// Copyright:   (c) wxWidgets Team
+// RCS-ID:      $Id$
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _WX_STATTEXT_H_BASE_
 #define _WX_STATTEXT_H_BASE_
+
+#include "wx/defs.h"
 
 #if wxUSE_STATTEXT
 
 #include "wx/control.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxStaticTextNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxStaticTextNameStr;
 
 class WXDLLEXPORT wxStaticTextBase : public wxControl
 {
@@ -14,8 +27,7 @@ public:
 
     // overriden base virtuals
     virtual bool AcceptsFocus() const { return false; }
-    virtual void ApplyParentThemeBackground(const wxColour& bg)
-        { SetBackgroundColour(bg); }
+    virtual bool HasTransparentBackground() { return true; }
 
 private:
     DECLARE_NO_COPY_CLASS(wxStaticTextBase)
@@ -35,6 +47,8 @@ private:
     #include "wx/cocoa/stattext.h"
 #elif defined(__WXPM__)
     #include "wx/os2/stattext.h"
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/stattext.h"
 #endif
 
 #endif // wxUSE_STATTEXT

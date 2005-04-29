@@ -164,7 +164,7 @@ update the display.", "");
         void , Initialize(wxWindow *window),
         "Initializes the splitter window to have one pane.  This should be
 called if you wish to initially view only a single pane in the
-splitter window.", "");
+splitter window.  The child window is shown if it is currently hidden.", "");
     
 
     // Associates the given window with window 2, drawing the appropriate sash
@@ -178,13 +178,14 @@ splitter window.", "");
         virtual bool , SplitVertically(wxWindow *window1,
                                        wxWindow *window2,
                                        int sashPosition = 0),
-        "Initializes the left and right panes of the splitter window.",
-        "
+        "Initializes the left and right panes of the splitter window.  The
+child windows are shown if they are currently hidden.","
+
     :param window1:       The left pane.
     :param window2:       The right pane.
     :param sashPosition:  The initial position of the sash. If this
                   value is positive, it specifies the size of the left
-                  pane. If it is negative, it is absolute value gives
+                  pane. If it is negative, its absolute value gives
                   the size of the right pane. Finally, specify 0
                   (default) to choose the default position (half of
                   the total window width).
@@ -195,7 +196,7 @@ split).
 SplitVertically should be called if you wish to initially view two
 panes. It can also be called at any subsequent time, but the
 application should check that the window is not currently split using
-IsSplit.
+`IsSplit`.
 ");
     
 
@@ -203,13 +204,14 @@ IsSplit.
         virtual bool , SplitHorizontally(wxWindow *window1,
                                          wxWindow *window2,
                                          int sashPosition = 0),
-        "Initializes the top and bottom panes of the splitter window.",
-        "
+        "Initializes the top and bottom panes of the splitter window.  The
+child windows are shown if they are currently hidden.","
+
     :param window1:       The top pane.
     :param window2:       The bottom pane.
     :param sashPosition:  The initial position of the sash. If this
                   value is positive, it specifies the size of the
-                  upper pane. If it is negative, it is absolute value
+                  upper pane. If it is negative, its absolute value
                   gives the size of the lower pane. Finally, specify 0
                   (default) to choose the default position (half of
                   the total window height).
@@ -220,7 +222,7 @@ split).
 SplitHorizontally should be called if you wish to initially view two
 panes. It can also be called at any subsequent time, but the
 application should check that the window is not currently split using
-IsSplit.
+`IsSplit`.
 ");
 
     
@@ -274,12 +276,12 @@ showing the top-level window.", "");
 
     DocDeclStr(
         void , SetSashSize(int width),
-        "Sets the sash size", "");
+        "Sets the sash size.", "");
     
 
     DocDeclStr(
         void , SetBorderSize(int width),
-        "Sets the border size", "");
+        "Sets the border size. Currently a NOP.", "");
     
 
     DocDeclStr(
@@ -301,6 +303,34 @@ are resized and the sash and border are redrawn.", "");
     DocDeclStr(
         int , GetSashPosition() const,
         "Returns the surrent sash position.", "");
+    
+
+    DocDeclStr(
+        void , SetSashGravity(double gravity),
+        "Set the sash gravity.  Gravity is a floating-point factor between 0.0
+and 1.0 which controls position of sash while resizing the
+`wx.SplitterWindow`.  The gravity specifies how much the left/top
+window will grow while resizing.","
+
+Example values:
+
+    ======= =======================================
+    0.0      Only the bottom or right window is
+             automaticaly resized.
+    0.5      Both windows grow equally.
+    1.0      Only left/top window grows.
+    ======= =======================================
+
+The default value of sash gravity is 0.0. That value is compatible
+with the previous (before gravity was introduced) behaviour of the 
+`wx.SplitterWindow`.");
+
+    DocDeclStr(
+        double , GetSashGravity() const,
+        "Gets the sash gravity.
+
+:see: `SetSashGravity`
+", "");
     
 
     DocDeclStr(
@@ -350,7 +380,7 @@ public:
 
     DocDeclStr(
         void , SetSashPosition(int pos),
-        "This funciton is only meaningful during EVT_SPLITTER_SASH_POS_CHANGING
+        "This function is only meaningful during EVT_SPLITTER_SASH_POS_CHANGING
 and EVT_SPLITTER_SASH_POS_CHANGED events.  In the case of _CHANGED
 events, sets the the new sash position. In the case of _CHANGING
 events, sets the new tracking bar position so visual feedback during

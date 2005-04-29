@@ -16,7 +16,6 @@
 #pragma interface "combobox.h"
 #endif
 
-#include "wx/textctrl.h"
 #include "wx/choice.h"
 
 WXDLLEXPORT_DATA(extern const wxChar*) wxComboBoxNameStr;
@@ -39,8 +38,8 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
     virtual void DoMoveWindow(int x, int y, int width, int height);
 
     // forward these functions to all subcontrols
-    virtual bool Enable(bool enable = TRUE);
-    virtual bool Show(bool show = TRUE);
+    virtual bool Enable(bool enable = true);
+    virtual bool Show(bool show = true);
     virtual void SetFocus();
 
     // callback functions
@@ -93,12 +92,10 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
 
     virtual int GetSelection() const ;
     virtual void SetSelection(int n);
-    virtual void Select(int n) { SetSelection(n) ; }
     virtual int FindString(const wxString& s) const;
     virtual wxString GetString(int n) const ;
     virtual wxString GetStringSelection() const ;
     virtual void SetString(int n, const wxString& s) ;
-    virtual bool SetStringSelection(const wxString& sel);
 
     // Text field functions
     virtual wxString GetValue() const ;
@@ -111,12 +108,25 @@ class WXDLLEXPORT wxComboBox : public wxControl, public wxComboBoxBase
     virtual void SetInsertionPoint(long pos);
     virtual void SetInsertionPointEnd();
     virtual long GetInsertionPoint() const ;
-    virtual long GetLastPosition() const ;
+    virtual wxTextPos GetLastPosition() const ;
     virtual void Replace(long from, long to, const wxString& value);
     virtual void Remove(long from, long to);
     virtual void SetSelection(long from, long to);
     virtual void SetEditable(bool editable);
     virtual int GetCount() const ;
+
+    virtual bool IsEditable() const ;
+
+    virtual void Undo() ;
+    virtual void Redo() ;
+    virtual void SelectAll() ;
+
+    virtual bool CanCopy() const ;
+    virtual bool CanCut() const ;
+    virtual bool CanPaste() const ;
+    virtual bool CanUndo() const ;
+    virtual bool CanRedo() const ;
+
     wxInt32 MacControlHit( WXEVENTHANDLERREF handler , WXEVENTREF event ) ;
 
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST

@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------------
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "numdlgg.cpp"
+    #pragma implementation "numdlgg.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -105,15 +105,20 @@ wxNumberEntryDialog::wxNumberEntryDialog(wxWindow *parent,
     wxBeginBusyCursor();
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
-
+#if wxUSE_STATTEXT
     // 1) text message
     topsizer->Add( CreateTextSizer( message ), 0, wxALL, 10 );
+#endif        
 
     // 2) prompt and text ctrl
     wxBoxSizer *inputsizer = new wxBoxSizer( wxHORIZONTAL );
+
+#if wxUSE_STATTEXT
     // prompt if any
     if (!prompt.IsEmpty())
         inputsizer->Add( new wxStaticText( this, wxID_ANY, prompt ), 0, wxCENTER | wxLEFT, 10 );
+#endif
+        
     // spin ctrl
     wxString valStr;
     valStr.Printf(wxT("%ld"), m_value);
@@ -138,17 +143,19 @@ wxNumberEntryDialog::wxNumberEntryDialog(wxWindow *parent,
 #endif
 
     // 4) buttons
-    topsizer->Add( CreateButtonSizer( wxOK|wxCANCEL ), 0, wxCENTRE | wxALL, 10 );
+    topsizer->Add( CreateButtonSizer( wxOK|wxCANCEL ), 0, wxEXPAND | wxALL, 10 );
 
 #endif // !__SMARTPHONE__
 
     SetSizer( topsizer );
     SetAutoLayout( true );
 
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
 
     Centre( wxBOTH );
+#endif
 
     m_spinctrl->SetSelection(-1, -1);
     m_spinctrl->SetFocus();
@@ -169,6 +176,7 @@ void wxNumberEntryDialog::OnOK(wxCommandEvent& WXUNUSED(event))
     if ( m_value < m_min || m_value > m_max )
     {
         // not a number or out of range
+        m_value = -1;
         EndModal(wxID_CANCEL);
     }
 
@@ -198,7 +206,7 @@ long wxGetNumberFromUser(const wxString& msg,
     wxNumberEntryDialog dialog(parent, msg, prompt, title,
                                value, min, max, pos);
     if (dialog.ShowModal() == wxID_OK)
-    return dialog.GetValue();
+        return dialog.GetValue();
 
     return -1;
 }

@@ -57,6 +57,7 @@
 
 #ifdef __WXMSW__
 #include <windows.h>
+#include "wx/msw/winundef.h"
 
 // FIXME - Mingw32 1.0 has both _getdrive() and _chdrive(). For now, let's assume
 //         older releases don't, but it should be verified and the checks modified
@@ -201,18 +202,18 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
 
     ItemCount volumeIndex = 1;
     OSErr err = noErr ;
-    
+
     while( noErr == err )
     {
         HFSUniStr255 volumeName ;
         FSRef fsRef ;
         FSVolumeInfo volumeInfo ;
-		err = FSGetVolumeInfo(0, volumeIndex, NULL, kFSVolInfoFlags , &volumeInfo , &volumeName, &fsRef);
-		if( noErr == err )
-		{
-		    wxString path = wxMacFSRefToPath( &fsRef ) ;
+        err = FSGetVolumeInfo(0, volumeIndex, NULL, kFSVolInfoFlags , &volumeInfo , &volumeName, &fsRef);
+        if( noErr == err )
+        {
+            wxString path = wxMacFSRefToPath( &fsRef ) ;
             wxString name = wxMacHFSUniStrToString( &volumeName ) ;
-            
+
             if ( (volumeInfo.flags & kFSVolFlagSoftwareLockedMask) || (volumeInfo.flags & kFSVolFlagHardwareLockedMask) )
             {
                 icon_ids.Add(wxFileIconsTable::cdrom);
@@ -222,11 +223,11 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
                 icon_ids.Add(wxFileIconsTable::drive);
             }
             // todo other removable
-            
+
             paths.Add(path);
             names.Add(name);
             volumeIndex++ ;
-		}
+        }
     }
 
 #elif defined(__UNIX__)
@@ -258,7 +259,7 @@ bool wxIsDriveAvailable(const wxString& dirName)
         //     like it when MS-DOS app accesses empty floppy drive
         return (dirNameLower[0u] == wxT('a') ||
                 dirNameLower[0u] == wxT('b') ||
-                wxPathExists(dirNameLower));
+                wxDirExists(dirNameLower));
     }
     else
 #endif
@@ -317,7 +318,7 @@ bool wxIsDriveAvailable(const wxString& dirName)
     {
         wxString dirNameLower(dirName.Lower());
 #if defined(__GNUWIN32__) && !(defined(__MINGW32_MAJOR_VERSION) && __MINGW32_MAJOR_VERSION >= 1)
-        success = wxPathExists(dirNameLower);
+        success = wxDirExists(dirNameLower);
 #else
         #if defined(__OS2__)
         // Avoid changing to drive since no media may be inserted.
@@ -375,10 +376,6 @@ wxDirItemData::wxDirItemData(const wxString& path, const wxString& name,
     m_isDir = isDir;
 }
 
-wxDirItemData::~wxDirItemData()
-{
-}
-
 void wxDirItemData::SetNewDirName(const wxString& path)
 {
     m_path = path;
@@ -387,7 +384,7 @@ void wxDirItemData::SetNewDirName(const wxString& path)
 
 bool wxDirItemData::HasSubDirs() const
 {
-    if (m_path.IsEmpty())
+    if (m_path.empty())
         return false;
 
     wxDir dir;
@@ -402,7 +399,7 @@ bool wxDirItemData::HasSubDirs() const
 
 bool wxDirItemData::HasFiles(const wxString& WXUNUSED(spec)) const
 {
-    if (m_path.IsEmpty())
+    if (m_path.empty())
         return false;
 
     wxDir dir;
@@ -490,6 +487,26 @@ wxGenericDirCtrl::wxGenericDirCtrl(void)
     Init();
 }
 
+void wxGenericDirCtrl::ExpandRoot()
+{
+    ExpandDir(m_rootId); // automatically expand first level
+
+    // Expand and select the default path
+    if (!m_defaultPath.empty())
+    {
+        ExpandPath(m_defaultPath);
+    }
+#ifdef __UNIX__
+    else
+    {
+        // On Unix, there's only one node under the (hidden) root node. It
+        // represents the / path, so the user would always have to expand it;
+        // let's do it ourselves
+        ExpandPath( wxT("/") );
+    }
+#endif
+}
+
 bool wxGenericDirCtrl::Create(wxWindow *parent,
                               const wxWindowID id,
                               const wxString& dir,
@@ -507,7 +524,17 @@ bool wxGenericDirCtrl::Create(wxWindow *parent,
 
     Init();
 
-    long treeStyle = wxTR_HAS_BUTTONS | wxTR_HIDE_ROOT;
+    long treeStyle = wxTR_HAS_BUTTONS;
+
+    // On Windows CE, if you hide the root, you get a crash when
+    // attempting to access data for children of the root item.
+#ifndef __WXWINCE__
+    treeStyle |= wxTR_HIDE_ROOT;
+#endif
+
+#ifdef __WXGTK20__
+    treeStyle |= wxTR_NO_LINES;
+#endif
 
     if (style & wxDIRCTRL_EDIT_LABELS)
         treeStyle |= wxTR_EDIT_LABELS;
@@ -523,14 +550,21 @@ bool wxGenericDirCtrl::Create(wxWindow *parent,
     else
         filterStyle |= wxBORDER_SUNKEN;
 
-    m_treeCtrl = new wxTreeCtrl(this, wxID_TREECTRL,
+    m_treeCtrl = CreateTreeCtrl(this, wxID_TREECTRL,
                                 wxPoint(0,0), GetClientSize(), treeStyle);
 
-    if (!filter.IsEmpty() && (style & wxDIRCTRL_SHOW_FILTERS))
+    if (!filter.empty() && (style & wxDIRCTRL_SHOW_FILTERS))
         m_filterListCtrl = new wxDirFilterListCtrl(this, wxID_FILTERLISTCTRL, wxDefaultPosition, wxDefaultSize, filterStyle);
 
     m_defaultPath = dir;
     m_filter = filter;
+
+    if (m_filter.empty())
+#ifdef __UNIX__
+        m_filter = wxT("*");
+#else
+        m_filter = wxT("*.*");
+#endif
 
     SetFilterIndex(defaultFilter);
 
@@ -552,11 +586,8 @@ bool wxGenericDirCtrl::Create(wxWindow *parent,
 
     m_rootId = m_treeCtrl->AddRoot( rootName, 3, -1, rootData);
     m_treeCtrl->SetItemHasChildren(m_rootId);
-    ExpandDir(m_rootId); // automatically expand first level
 
-    // Expand and select the default path
-    if (!m_defaultPath.IsEmpty())
-        ExpandPath(m_defaultPath);
+    ExpandRoot();
 
     SetBestSize(size);
     DoResize();
@@ -575,6 +606,11 @@ void wxGenericDirCtrl::Init()
     m_currentFilterStr = wxEmptyString; // Default: any file
     m_treeCtrl = NULL;
     m_filterListCtrl = NULL;
+}
+
+wxTreeCtrl* wxGenericDirCtrl::CreateTreeCtrl(wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long treeStyle)
+{
+    return new wxTreeCtrl(parent, id, pos, size, treeStyle);
 }
 
 void wxGenericDirCtrl::ShowHidden( bool show )
@@ -605,10 +641,15 @@ void wxGenericDirCtrl::SetupSections()
 
     size_t n, count = wxGetAvailableDrives(paths, names, icons);
 
+#ifdef __WXGTK20__
+    wxString home = wxGetHomeDir();
+    AddSection( home, _("Home directory"), 1);
+    home += wxT("/Desktop");
+    AddSection( home, _("Desktop"), 1);
+#endif
+
     for (n = 0; n < count; n++)
-    {
         AddSection(paths[n], names[n], icons[n]);
-    }
 }
 
 void wxGenericDirCtrl::OnBeginEditItem(wxTreeEvent &event)
@@ -630,7 +671,7 @@ void wxGenericDirCtrl::OnBeginEditItem(wxTreeEvent &event)
 
 void wxGenericDirCtrl::OnEndEditItem(wxTreeEvent &event)
 {
-    if ((event.GetLabel().IsEmpty()) ||
+    if ((event.GetLabel().empty()) ||
         (event.GetLabel() == _(".")) ||
         (event.GetLabel() == _("..")) ||
         (event.GetLabel().Find(wxT('/')) != wxNOT_FOUND) ||
@@ -711,6 +752,8 @@ void wxGenericDirCtrl::CollapseDir(wxTreeItemId parentId)
          * handle disappearing children! */
         child = m_treeCtrl->GetFirstChild(parentId, cookie);
     }
+    if (parentId != m_treeCtrl->GetRootItem())
+        m_treeCtrl->Collapse(parentId);
 }
 
 void wxGenericDirCtrl::ExpandDir(wxTreeItemId parentId)
@@ -734,7 +777,7 @@ void wxGenericDirCtrl::ExpandDir(wxTreeItemId parentId)
 
     wxString dirName(data->m_path);
 
-#if defined(__WINDOWS__) || defined(__DOS__) || defined(__OS2__)
+#if (defined(__WINDOWS__) && !defined(__WXWINCE__)) || defined(__DOS__) || defined(__OS2__)
     // Check if this is a root directory and if so,
     // whether the drive is avaiable.
     if (!wxIsDriveAvailable(dirName))
@@ -798,7 +841,7 @@ void wxGenericDirCtrl::ExpandDir(wxTreeItemId parentId)
             while(strTok.HasMoreTokens())
             {
                 curFilter = strTok.GetNextToken();
-                if (d.GetFirst(& eachFilename, m_currentFilterStr, style))
+                if (d.GetFirst(& eachFilename, curFilter, style))
                 {
                     do
                     {
@@ -865,7 +908,18 @@ void wxGenericDirCtrl::ExpandDir(wxTreeItemId parentId)
 void wxGenericDirCtrl::ReCreateTree()
 {
     CollapseDir(m_treeCtrl->GetRootItem());
-    ExpandDir(m_treeCtrl->GetRootItem());
+    ExpandRoot();
+}
+
+void wxGenericDirCtrl::CollapseTree()
+{
+    wxTreeItemIdValue cookie;
+    wxTreeItemId child = m_treeCtrl->GetFirstChild(m_rootId, cookie);
+    while (child.IsOk())
+    {
+        CollapseDir(child);
+        child = m_treeCtrl->GetNextChild(m_rootId, cookie);
+    }
 }
 
 // Find the child that matches the first part of 'path'.
@@ -893,7 +947,7 @@ wxTreeItemId wxGenericDirCtrl::FindChild(wxTreeItemId parentId, const wxString& 
     {
         wxDirItemData* data = (wxDirItemData*) m_treeCtrl->GetItemData(childId);
 
-        if (data && !data->m_path.IsEmpty())
+        if (data && !data->m_path.empty())
         {
             wxString childPath(data->m_path);
             if (!wxEndsWithPathSeparator(childPath))
@@ -1068,7 +1122,11 @@ void wxGenericDirCtrl::SetFilterIndex(int n)
     if (ExtractWildcard(m_filter, n, f, d))
         m_currentFilterStr = f;
     else
+#ifdef __UNIX__
+        m_currentFilterStr = wxT("*");
+#else
         m_currentFilterStr = wxT("*.*");
+#endif
 }
 
 void wxGenericDirCtrl::SetFilter(const wxString& filter)
@@ -1079,7 +1137,11 @@ void wxGenericDirCtrl::SetFilter(const wxString& filter)
     if (ExtractWildcard(m_filter, m_currentFilter, f, d))
         m_currentFilterStr = f;
     else
+#ifdef __UNIX__
+        m_currentFilterStr = wxT("*");
+#else
         m_currentFilterStr = wxT("*.*");
+#endif
 }
 
 // Extract description and actual filter from overall filter string
@@ -1215,7 +1277,7 @@ void wxDirFilterListCtrl::FillFilterList(const wxString& filter, int defaultFilt
 {
     Clear();
     wxArrayString descriptions, filters;
-    size_t n = (size_t) wxParseCommonDialogsFilter(filter, filters, descriptions);
+    size_t n = (size_t) wxParseCommonDialogsFilter(filter, descriptions, filters);
 
     if (n > 0 && defaultFilter < (int) n)
     {
@@ -1232,35 +1294,7 @@ void wxDirFilterListCtrl::FillFilterList(const wxString& filter, int defaultFilt
 // wxFileIconsTable icons
 // ----------------------------------------------------------------------------
 
-/* Open folder */
-static const char * file_icons_tbl_folder_open_xpm[] = {
-/* width height ncolors chars_per_pixel */
-"16 16 6 1",
-/* colors */
-"   s None  c None",
-".  c #000000",
-"+  c #c0c0c0",
-"@  c #808080",
-"#  c #ffff00",
-"$  c #ffffff",
-/* pixels */
-"                ",
-"   @@@@@        ",
-"  @$$$$$@       ",
-" @$#+#+#$@@@@@@ ",
-" @$+#+#+$$$$$$@.",
-" @$#+#+#+#+#+#@.",
-"@@@@@@@@@@@@@#@.",
-"@$$$$$$$$$$@@+@.",
-"@$#+#+#+#+##.@@.",
-" @$#+#+#+#+#+.@.",
-" @$+#+#+#+#+#.@.",
-"  @$+#+#+#+##@..",
-"  @@@@@@@@@@@@@.",
-"   .............",
-"                ",
-"                "};
-
+#ifndef __WXGTK24__
 /* Computer */
 static const char * file_icons_tbl_computer_xpm[] = {
 "16 16 7 1",
@@ -1287,117 +1321,7 @@ static const char * file_icons_tbl_computer_xpm[] = {
 " .oXoXoXoXoXo.o ",
 ".XOXXXXXXXXX.o  ",
 "............o   "};
-
-/* Drive */
-static const char * file_icons_tbl_drive_xpm[] = {
-"16 16 7 1",
-"     s None    c None",
-".    c #808080",
-"X    c #c0c0c0",
-"o    c Black",
-"O    c Gray100",
-"+    c Green",
-"@    c #008000",
-"                ",
-"                ",
-"                ",
-"                ",
-"  ............. ",
-" .XXXXXXXXXXXX.o",
-".OOOOOOOOOOOO..o",
-".XXXXXXXXX+@X..o",
-".XXXXXXXXXXXX..o",
-".X..........X..o",
-".XOOOOOOOOOOX..o",
-"..............o ",
-" ooooooooooooo  ",
-"                ",
-"                ",
-"                "};
-
-/* CD-ROM */
-static const char *file_icons_tbl_cdrom_xpm[] = {
-"16 16 10 1",
-"     s None    c None",
-".    c #808080",
-"X    c #c0c0c0",
-"o    c Yellow",
-"O    c Blue",
-"+    c Black",
-"@    c Gray100",
-"#    c #008080",
-"$    c Green",
-"%    c #008000",
-"        ...     ",
-"      ..XoX..   ",
-"     .O.XoXXX+  ",
-"    ...O.oXXXX+ ",
-"    .O..X.XXXX+ ",
-"   ....X.+..XXX+",
-"   .XXX.+@+.XXX+",
-"   .X@XX.+.X@@X+",
-" .....X...#XX@+ ",
-".@@@...XXo.O@X+ ",
-".@XXX..XXoXOO+  ",
-".@++++..XoX+++  ",
-".@$%@@XX+++X.+  ",
-".............+  ",
-" ++++++++++++   ",
-"                "};
-
-/* Floppy */
-static const char * file_icons_tbl_floppy_xpm[] = {
-"16 16 7 1",
-"     s None    c None",
-".    c #808080",
-"X    c Gray100",
-"o    c #c0c0c0",
-"O    c Black",
-"+    c Cyan",
-"@    c Red",
-"         ......X",
-"        .ooooooO",
-"        .+++++OO",
-"        .++++++O",
-"        .++++++O",
-"        .ooooooO",
-"  .......o....oO",
-" .oooooo.o.O.XoO",
-".XXXXXXXXOOOOOO ",
-".ooooooooo@o..O ",
-".ooo....oooo..O ",
-".o..OOOO...o..O ",
-".oooXXXXoooo..O ",
-".............O  ",
-" OOOOOOOOOOOO   ",
-"                "};
-
-/* Removeable */
-static const char * file_icons_tbl_removeable_xpm[] = {
-"16 16 7 1",
-"     s None    c None",
-".    c #808080",
-"X    c #c0c0c0",
-"o    c Black",
-"O    c Gray100",
-"+    c Red",
-"@    c #800000",
-"                ",
-"                ",
-"                ",
-"  ............. ",
-" .XXXXXXXXXXXX.o",
-".OOOOOOOOOOOO..o",
-".OXXXXXXXXXXX..o",
-".O+@.oooooo.X..o",
-".OXXOooooooOX..o",
-".OXXXOOOOOOXX..o",
-".OXXXXXXXXXXX..o",
-".O............o ",
-" ooooooooooooo  ",
-"                ",
-"                ",
-"                "};
+#endif // GTK+ < 2.4
 
 // ----------------------------------------------------------------------------
 // wxFileIconsTable & friends
@@ -1462,17 +1386,34 @@ void wxFileIconsTable::Create()
                                                    wxART_CMN_DIALOG,
                                                    wxSize(16, 16)));
     // folder_open
-    m_smallImageList->Add(wxIcon(file_icons_tbl_folder_open_xpm));
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_FOLDER_OPEN,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
     // computer
+#ifdef __WXGTK24__
+    // GTK24 uses this icon in the file open dialog
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_HARDDISK,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
+#else
     m_smallImageList->Add(wxIcon(file_icons_tbl_computer_xpm));
+#endif
     // drive
-    m_smallImageList->Add(wxIcon(file_icons_tbl_drive_xpm));
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_HARDDISK,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
     // cdrom
-    m_smallImageList->Add(wxIcon(file_icons_tbl_cdrom_xpm));
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_CDROM,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
     // floppy
-    m_smallImageList->Add(wxIcon(file_icons_tbl_floppy_xpm));
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_FLOPPY,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
     // removeable
-    m_smallImageList->Add(wxIcon(file_icons_tbl_removeable_xpm));
+    m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_REMOVABLE,
+                                                   wxART_CMN_DIALOG,
+                                                   wxSize(16, 16)));
     // file
     m_smallImageList->Add(wxArtProvider::GetBitmap(wxART_NORMAL_FILE,
                                                    wxART_CMN_DIALOG,
@@ -1545,7 +1486,11 @@ static wxBitmap CreateAntialiasedBitmap(const wxImage& img)
             if (smask > 2)
                 ps[0] = ps[1] = ps[2] = mr;
             else
-                ps[0] = sr >> 2, ps[1] = sg >> 2, ps[2] = sb >> 2;
+            {
+                ps[0] = (unsigned char)(sr >> 2);
+                ps[1] = (unsigned char)(sg >> 2);
+                ps[2] = (unsigned char)(sb >> 2);
+            }
             ps += 3;
         }
         p1 += size*2 * 3, p2 += size*2 * 3;
@@ -1609,13 +1554,13 @@ int wxFileIconsTable::GetIconID(const wxString& extension, const wxString& mime)
         Create();
 
 #if wxUSE_MIMETYPE
-    if (!extension.IsEmpty())
+    if (!extension.empty())
     {
         wxFileIconEntry *entry = (wxFileIconEntry*) m_HashTable->Get(extension);
         if (entry) return (entry -> id);
     }
 
-    wxFileType *ft = (mime.IsEmpty()) ?
+    wxFileType *ft = (mime.empty()) ?
                    wxTheMimeTypesManager -> GetFileTypeFromExtension(extension) :
                    wxTheMimeTypesManager -> GetFileTypeFromMimeType(mime);
 
@@ -1626,7 +1571,7 @@ int wxFileIconsTable::GetIconID(const wxString& extension, const wxString& mime)
         wxLogNull logNull;
         if ( ft && ft->GetIcon(&iconLoc) )
         {
-            ic = wxIcon( iconLoc.GetFileName() );
+            ic = wxIcon( iconLoc );
         }
     }
 

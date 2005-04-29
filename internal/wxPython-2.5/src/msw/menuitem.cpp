@@ -162,18 +162,22 @@ void wxMenuItem::Init()
     m_isRadioGroupStart = false;
 
 #if  wxUSE_OWNER_DRAWN
-    // set default menu colors
-    #define SYS_COLOR(c) (wxSystemSettings::GetColour(wxSYS_COLOUR_##c))
 
-    SetTextColour(SYS_COLOR(MENUTEXT));
-    SetBackgroundColour(SYS_COLOR(MENU));
+    // when the color is not valid, wxOwnerDraw takes the default ones.
+    // If we set the colors here and they are changed by the user during
+    // the execution, then the colors are not updated until the application
+    // is restarted and our menus look bad
+    SetTextColour(wxNullColour);
+    SetBackgroundColour(wxNullColour);
 
-    #undef  SYS_COLOR
-
-    // we don't want normal items be owner-drawn
+    // setting default colors switched ownerdraw on: switch it off again
     ResetOwnerDrawn();
 
-    // tell the owner drawing code to to show the accel string as well
+    //  switch ownerdraw back on if using a non default margin
+    if ( GetId() != wxID_SEPARATOR )
+        SetMarginWidth(GetMarginWidth());
+
+    // tell the owner drawing code to show the accel string as well
     SetAccelString(m_text.AfterFirst(_T('\t')));
 #endif // wxUSE_OWNER_DRAWN
 }

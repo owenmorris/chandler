@@ -352,8 +352,9 @@ void wxSimpleHelpProvider::AddHelp(wxWindowBase *window, const wxString& text)
 
 void wxSimpleHelpProvider::AddHelp(wxWindowID id, const wxString& text)
 {
-    m_hashIds.erase((long)id);
-    m_hashIds[id] = text;
+    wxLongToStringHashMap::key_type key = (wxLongToStringHashMap::key_type)id;
+    m_hashIds.erase(key);
+    m_hashIds[key] = text;
 }
 
 // removes the association
@@ -383,6 +384,8 @@ bool wxSimpleHelpProvider::ShowHelp(wxWindowBase *window)
 
         return true;
     }
+#else
+    wxUnusedVar(window);
 #endif // wxUSE_TIPWINDOW
 
     return false;

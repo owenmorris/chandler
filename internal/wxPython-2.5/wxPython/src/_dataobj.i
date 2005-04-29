@@ -71,7 +71,7 @@ The standard format IDs are:
                         Windows and non-unicode builds
     ================    =====================================
 
-Aside the standard formats, the application may also use custom
+Besies the standard formats, the application may also use custom
 formats which are identified by their names (strings) and not numeric
 identifiers. Although internally custom format must be created (or
 registered) first, you shouldn\'t care about it because it is done
@@ -243,7 +243,7 @@ in the given direction.", "");
             wxDataFormat* formats = new wxDataFormat[count];
             self->GetAllFormats(formats, dir);
 
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* list = PyList_New(count);
             for (size_t i=0; i<count; i++) {
                 wxDataFormat* format = new wxDataFormat(formats[i]);
@@ -272,7 +272,7 @@ in the given direction.", "");
         PyObject* GetDataHere(const wxDataFormat& format) {
             PyObject* rval = NULL;
             size_t size = self->GetDataSize(format);            
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (size) {
                 char* buf = new char[size];
                 if (self->GetDataHere(format, buf)) 
@@ -301,7 +301,7 @@ in the given direction.", "");
     %extend {
         bool SetData(const wxDataFormat& format, PyObject* data) {
             bool rval;
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (PyString_Check(data)) {
                 rval = self->SetData(format, PyString_Size(data), PyString_AsString(data));
             }
@@ -363,7 +363,7 @@ supports rendering its data.", "");
         PyObject* GetDataHere() {
             PyObject* rval = NULL;
             size_t size = self->GetDataSize();            
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (size) {
                 char* buf = new char[size];
                 if (self->GetDataHere(buf)) 
@@ -388,7 +388,7 @@ derived class if the object supports setting its data.
     %extend {
         bool SetData(PyObject* data) {
             bool rval;
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (PyString_Check(data)) {
                 rval = self->SetData(PyString_Size(data), PyString_AsString(data));
             }
@@ -428,7 +428,7 @@ bool wxPyDataObjectSimple::GetDataHere(void *buf) const {
     // C++ version.
 
     bool rval = false;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if (wxPyCBH_findCallback(m_myInst, "GetDataHere")) {
         PyObject* ro;
         ro = wxPyCBH_callCallbackObj(m_myInst, Py_BuildValue("()"));
@@ -447,7 +447,7 @@ bool wxPyDataObjectSimple::SetData(size_t len, const void *buf) const{
     // For this one we simply need to make a string from buf and len
     // and send it to the Python method.
     bool rval = false;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if (wxPyCBH_findCallback(m_myInst, "SetData")) {
         PyObject* data = PyString_FromStringAndSize((char*)buf, len);
         rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", data));
@@ -665,7 +665,7 @@ public:
 
 wxBitmap wxPyBitmapDataObject::GetBitmap() const {
     wxBitmap* rval = &wxNullBitmap;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if (wxPyCBH_findCallback(m_myInst, "GetBitmap")) {
         PyObject* ro;
         wxBitmap* ptr;
@@ -681,7 +681,7 @@ wxBitmap wxPyBitmapDataObject::GetBitmap() const {
 }
  
 void wxPyBitmapDataObject::SetBitmap(const wxBitmap& bitmap) {
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if (wxPyCBH_findCallback(m_myInst, "SetBitmap")) {
         PyObject* bo = wxPyConstructObject((void*)&bitmap, wxT("wxBitmap"), false);
         wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", bo));
@@ -717,13 +717,7 @@ file names. The program works with it just as if it were a list of
 absolute file names, but internally it uses the same format as
 Explorer and other compatible programs under Windows or GNOME/KDE
 filemanager under Unix which makes it possible to receive files from
-them using this class.
-
-:Warning: Under all non-Windows platforms this class is currently
-    \"input-only\", i.e. you can receive the files from another
-    application, but copying (or dragging) file(s) from a wxWidgets
-    application is not currently supported.
-", "");
+them using this class.", "");
 
 class wxFileDataObject : public wxDataObjectSimple
 {
@@ -754,8 +748,15 @@ data object.", "");
 
 class wxCustomDataObject : public wxDataObjectSimple {
 public:
-    wxCustomDataObject(const wxDataFormat& format = wxFormatInvalid);
-
+    %nokwargs wxCustomDataObject;
+    wxCustomDataObject(const wxDataFormat& format);
+    %extend {
+        wxCustomDataObject(const wxString& formatName) {
+            return new wxCustomDataObject(wxDataFormat(formatName));
+        }
+    }
+    wxCustomDataObject();
+    
     
     DocAStr(SetData,
             "SetData(self, String data) -> bool",
@@ -763,7 +764,7 @@ public:
     %extend {
         bool SetData(PyObject* data) {
             bool rval;
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (PyString_Check(data)) {
                 rval = self->SetData(PyString_Size(data), PyString_AsString(data));
             }
@@ -789,7 +790,7 @@ public:
     %extend {
         PyObject* GetData() {
             PyObject* obj;
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             obj = PyString_FromStringAndSize((char*)self->GetData(), self->GetSize());
             wxPyEndBlockThreads(blocked);
             return obj;

@@ -23,7 +23,7 @@
 
 #if wxUSE_CALENDARCTRL
 
-#include "wx/datetime.h"
+#include "wx/dateevt.h"
 #include "wx/colour.h"
 #include "wx/font.h"
 
@@ -161,23 +161,23 @@ private:
 
 class WXDLLIMPEXP_ADV wxCalendarCtrl;
 
-class WXDLLIMPEXP_ADV wxCalendarEvent : public wxCommandEvent
+class WXDLLIMPEXP_ADV wxCalendarEvent : public wxDateEvent
 {
 friend class wxCalendarCtrl;
 public:
     wxCalendarEvent() { Init(); }
     wxCalendarEvent(wxCalendarCtrl *cal, wxEventType type);
 
-    const wxDateTime& GetDate() const { return m_date; }
-    void SetDate(const wxDateTime &date) { m_date = date; }
     void SetWeekDay(const wxDateTime::WeekDay wd) { m_wday = wd; }
     wxDateTime::WeekDay GetWeekDay() const { return m_wday; }
 
 protected:
-    void Init();
+    void Init()
+    {
+        m_wday = wxDateTime::Inv_WeekDay;
+    }
 
 private:
-    wxDateTime m_date;
     wxDateTime::WeekDay m_wday;
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxCalendarEvent)
@@ -189,6 +189,14 @@ private:
 
 // so far we only have a generic version, so keep it simple
 #include "wx/generic/calctrl.h"
+
+
+// now we can define the inline ctor using wxCalendarCtrl
+inline
+wxCalendarEvent::wxCalendarEvent(wxCalendarCtrl *cal, wxEventType type)
+               : wxDateEvent(cal, cal->GetDate(), type)
+{
+}
 
 // ----------------------------------------------------------------------------
 // calendar event types and macros for handling them
@@ -205,12 +213,18 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxCalendarEventFunction)(wxCalendarEvent&);
 
-#define EVT_CALENDAR(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_DOUBLECLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
-#define EVT_CALENDAR_SEL_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_SEL_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
-#define EVT_CALENDAR_DAY(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_DAY_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
-#define EVT_CALENDAR_MONTH(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_MONTH_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
-#define EVT_CALENDAR_YEAR(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_YEAR_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
-#define EVT_CALENDAR_WEEKDAY_CLICKED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_CALENDAR_WEEKDAY_CLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxCalendarEventFunction, & fn ), (wxObject *) NULL),
+#define wxCalendarEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxCalendarEventFunction, &func)
+
+#define wx__DECLARE_CALEVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_CALENDAR_ ## evt, id, wxCalendarEventHandler(fn))
+
+#define EVT_CALENDAR(id, fn) wx__DECLARE_CALEVT(DOUBLECLICKED, id, fn)
+#define EVT_CALENDAR_SEL_CHANGED(id, fn) wx__DECLARE_CALEVT(SEL_CHANGED, id, fn)
+#define EVT_CALENDAR_DAY(id, fn) wx__DECLARE_CALEVT(DAY_CHANGED, id, fn)
+#define EVT_CALENDAR_MONTH(id, fn) wx__DECLARE_CALEVT(MONTH_CHANGED, id, fn)
+#define EVT_CALENDAR_YEAR(id, fn) wx__DECLARE_CALEVT(YEAR_CHANGED, id, fn)
+#define EVT_CALENDAR_WEEKDAY_CLICKED(id, fn) wx__DECLARE_CALEVT(WEEKDAY_CLICKED, id, fn)
 
 #endif // wxUSE_CALENDARCTRL
 

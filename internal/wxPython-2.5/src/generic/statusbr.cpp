@@ -66,10 +66,6 @@ void wxStatusBarGeneric::Init()
 
 wxStatusBarGeneric::~wxStatusBarGeneric()
 {
-    // VZ: what is this for? please comment...
-#ifdef __WXMSW__
-    SetFont(wxNullFont);
-#endif // MSW
 }
 
 bool wxStatusBarGeneric::Create(wxWindow *parent,
@@ -85,10 +81,6 @@ bool wxStatusBarGeneric::Create(wxWindow *parent,
   // The status bar should have a themed background
   SetThemeEnabled( true );
 
-  // Don't wish this to be found as a child
-#ifndef __WXMAC__
-  parent->GetChildren().DeleteObject(this);
-#endif
   InitColours();
   
 #ifdef __WXPM__

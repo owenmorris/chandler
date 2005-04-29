@@ -22,6 +22,8 @@
 #include "wx/bitmap.h"
 #include "wx/image.h"
 
+#include "wx/gizmos/gizmos.h"
+
 enum
 {
     wxSCALE_HORIZONTAL = 0x1,
@@ -30,10 +32,9 @@ enum
     wxSCALE_CUSTOM     = 0x8
 };
 
-//WXDLLEXPORT_DATA(extern const wxChar*) wxStaticBitmapNameStr;
-extern const wxChar* wxStaticPictureNameStr;
+WXDLLIMPEXP_GIZMOS extern const wxChar* wxStaticPictureNameStr;
 
-class /*WXDLLEXPORT*/ wxStaticPicture : public wxControl
+class WXDLLIMPEXP_GIZMOS wxStaticPicture : public wxControl
 {
     DECLARE_DYNAMIC_CLASS(wxStaticPicture)
 

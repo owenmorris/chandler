@@ -122,6 +122,14 @@ enum wxSeekMode
   wxFromEnd
 };
 
+enum wxFileKind
+{
+  wxFILE_KIND_UNKNOWN,
+  wxFILE_KIND_DISK,     // a file supporting seeking to arbitrary offsets
+  wxFILE_KIND_TERMINAL, // a tty
+  wxFILE_KIND_PIPE      // a pipe
+};
+
 // ----------------------------------------------------------------------------
 // declare our versions of low level file functions: some compilers prepend
 // underscores to the usual names, some also have Unicode versions of them
@@ -143,25 +151,10 @@ enum wxSeekMode
     #define wxLSeek wxSeek
     wxFileOffset wxTell(int fd);
 
-    #if wxUSE_UNICODE
-        #if wxUSE_UNICODE_MSLU
-            #define   wxMkDir      wxMSLU__wmkdir
-            #define   wxRmDir      wxMSLU__wrmdir
-            #define   wxStat       wxMSLU__wstat
-        #else
-            #define   wxMkDir      _wmkdir
-            #define   wxRmDir      _wrmdir
-            #define   wxStat       _wstat
-        #endif
-    #else // !wxUSE_UNICODE
-        #define   wxMkDir      _mkdir
-        #ifdef __WATCOMC__
-            #define   wxRmDir      rmdir
-        #else
-            #define   wxRmDir      _rmdir
-        #endif
-        #define   wxStat       _stat
-    #endif
+    // always Unicode under WinCE
+    #define   wxMkDir      _wmkdir
+    #define   wxRmDir      _wrmdir
+    #define   wxStat       _wstat
     #define   wxStructStat struct _stat
 
 // Microsoft compiler loves underscores, feed them to it
@@ -173,7 +166,9 @@ enum wxSeekMode
 
     // detect compilers which have support for huge files (currently only
     // Digital Mars doesn't)
+    #ifndef __WXPALMOS__
     #include "wx/msw/private.h"
+    #endif
 
     #undef wxHAS_HUGE_FILES
     #if defined(__MINGW32__)
@@ -198,7 +193,6 @@ enum wxSeekMode
         #define wxFileOffsetFmtSpec wxLongLongFmtSpec
     #else
         typedef off_t wxFileOffset;
-        #define wxFileOffsetFmtSpec _("")
     #endif
 
     #define   wxClose      _close
@@ -298,7 +292,7 @@ enum wxSeekMode
     #endif
 
     // constants (unless already defined by the user code)
-    #if !defined(__BORLANDC__) && !defined(__WATCOMC__)
+    #if !defined(__BORLANDC__) && !defined(__WATCOMC__) && !defined(__WXPALMOS__)
         #ifndef O_RDONLY
             #define   O_RDONLY    _O_RDONLY
             #define   O_WRONLY    _O_WRONLY
@@ -321,6 +315,8 @@ enum wxSeekMode
     typedef off_t wxFileOffset;
     #ifdef _LARGE_FILES
         #define wxFileOffsetFmtSpec wxLongLongFmtSpec
+        wxCOMPILE_TIME_ASSERT( sizeof(off_t) == sizeof(wxLongLong_t),
+                                BadFileSizeType );
     #else
         #define wxFileOffsetFmtSpec _T("")
     #endif
@@ -360,9 +356,9 @@ enum wxSeekMode
 // VisualAge C++ V4.0 cannot have any external linkage const decs
 // in headers included by more than one primary source
 //
-extern const wxFileOffset wxInvalidOffset;
+extern const int wxInvalidOffset;
 #else
-const wxFileOffset wxInvalidOffset = (wxFileOffset)-1;
+const int wxInvalidOffset = -1;
 #endif
 
 // ----------------------------------------------------------------------------
@@ -371,7 +367,7 @@ const wxFileOffset wxInvalidOffset = (wxFileOffset)-1;
 WXDLLIMPEXP_BASE bool wxFileExists(const wxString& filename);
 
 // does the path exist? (may have or not '/' or '\\' at the end)
-WXDLLIMPEXP_BASE bool wxPathExists(const wxChar *pszPathName);
+WXDLLIMPEXP_BASE bool wxDirExists(const wxChar *pszPathName);
 
 WXDLLIMPEXP_BASE bool wxIsAbsolutePath(const wxString& filename);
 
@@ -461,8 +457,19 @@ WXDLLIMPEXP_BASE bool wxMkdir(const wxString& dir, int perm = 0777);
 // Remove directory. Flags reserved for future use.
 WXDLLIMPEXP_BASE bool wxRmdir(const wxString& dir, int flags = 0);
 
+// Return the type of an open file
+WXDLLIMPEXP_BASE wxFileKind wxGetFileKind(int fd);
+WXDLLIMPEXP_BASE wxFileKind wxGetFileKind(FILE *fp);
+
 // compatibility defines, don't use in new code
-#define wxDirExists wxPathExists
+// consider removal droping 2.4 compatibility
+// #if WXWIN_COMPATIBILITY_2_4
+wxDEPRECATED( inline bool wxPathExists(const wxChar *pszPathName) );
+inline bool wxPathExists(const wxChar *pszPathName)
+{
+    return wxDirExists(pszPathName);
+}
+// #endif //WXWIN_COMPATIBILITY_2_4
 
 // ----------------------------------------------------------------------------
 // separators in file names

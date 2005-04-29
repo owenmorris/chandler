@@ -74,7 +74,7 @@ public:
     virtual wxMDIClientWindow *OnCreateClient();
 
     virtual void Cascade() {}
-    virtual void Tile() {}
+    virtual void Tile(wxOrientation WXUNUSED(orient) = wxHORIZONTAL) {}
     virtual void ArrangeIcons() {}
     virtual void ActivateNext();
     virtual void ActivatePrevious();
@@ -152,27 +152,32 @@ public:
                                int WXUNUSED(incH) = -1) {}
 
 #if wxUSE_TOOLBAR
-    // no toolbar bars
+    // no toolbar
     virtual wxToolBar* CreateToolBar( long WXUNUSED(style),
                                        wxWindowID WXUNUSED(id),
                                        const wxString& WXUNUSED(name) )
         { return (wxToolBar*)NULL; }
     virtual wxToolBar *GetToolBar() const { return (wxToolBar*)NULL; }
-#endif
+#endif // wxUSE_TOOLBAR
 
     // no icon
-    void SetIcon( const wxIcon &icon ) { m_icons = wxIconBundle( icon ); }
-    void SetIcons( const wxIconBundle &icons ) { m_icons = icons; }
+    virtual void SetIcon(const wxIcon& icon)
+        { wxTopLevelWindowBase::SetIcon(icon); }
+    virtual void SetIcons(const wxIconBundle& icons )
+        { wxTopLevelWindowBase::SetIcons(icons); }
 
     // no title
     void SetTitle( const wxString &title );
     wxString GetTitle() const { return m_title; }
 
     // no maximize etc
-    virtual void Maximize( bool WXUNUSED(maximize) ) {}
+    virtual void Maximize( bool WXUNUSED(maximize) = true ) { }
+    virtual bool IsMaximized() const { return true; }
+    virtual void Iconize(bool WXUNUSED(iconize) = true) { }
+    virtual bool IsIconized() const { return false; }
     virtual void Restore() {}
 
-    virtual bool IsTopLevel() const { return FALSE; }
+    virtual bool IsTopLevel() const { return false; }
 
     void OnActivate( wxActivateEvent& event );
     void OnMenuHighlight( wxMenuEvent& event );

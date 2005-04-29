@@ -659,7 +659,7 @@ bool wxTreeCtrl::Create(wxWindow *parent,
 
     if ( m_windowStyle & wxTR_FULL_ROW_HIGHLIGHT )
     {
-        if ( wxTheApp->GetComCtl32Version() >= 471 )
+        if ( wxApp::GetComCtl32Version() >= 471 )
             wstyle |= TVS_FULLROWSELECT;
     }
 
@@ -716,8 +716,8 @@ bool wxTreeCtrl::Create(wxWindow *parent,
         HDC hdcMem = CreateCompatibleDC(NULL);
 
         // create a mono bitmap of the standard size
-        int x = GetSystemMetrics(SM_CXMENUCHECK);
-        int y = GetSystemMetrics(SM_CYMENUCHECK);
+        int x = ::GetSystemMetrics(SM_CXMENUCHECK);
+        int y = ::GetSystemMetrics(SM_CYMENUCHECK);
         wxImageList imagelistCheckboxes(x, y, false, 2);
         HBITMAP hbmpCheck = CreateBitmap(x, y,   // bitmap size
                                          1,      // # of color planes
@@ -926,7 +926,7 @@ bool wxTreeCtrl::SetForegroundColour(const wxColour &colour)
 
 wxString wxTreeCtrl::GetItemText(const wxTreeItemId& item) const
 {
-    wxCHECK_MSG( item.IsOk(), wxT(""), wxT("invalid tree item") );
+    wxCHECK_MSG( item.IsOk(), wxEmptyString, wxT("invalid tree item") );
 
     wxChar buf[512];  // the size is arbitrary...
 
@@ -1497,8 +1497,14 @@ wxTreeItemId wxTreeCtrl::GetFirstChild(const wxTreeItemId& item,
 wxTreeItemId wxTreeCtrl::GetNextChild(const wxTreeItemId& WXUNUSED(item),
                                       wxTreeItemIdValue& cookie) const
 {
-    wxTreeItemId item(TreeView_GetNextSibling(GetHwnd(),
-                                              HITEM(wxTreeItemId(cookie))));
+    wxTreeItemId fromCookie(cookie);
+
+    HTREEITEM hitem = HITEM(fromCookie);
+
+    hitem = TreeView_GetNextSibling(GetHwnd(), hitem);
+
+    wxTreeItemId item(hitem);
+
     cookie = item.m_pItem;
 
     return item;
@@ -1519,11 +1525,14 @@ wxTreeItemId wxTreeCtrl::GetFirstChild(const wxTreeItemId& item,
 wxTreeItemId wxTreeCtrl::GetNextChild(const wxTreeItemId& WXUNUSED(item),
                                       long& cookie) const
 {
-    wxTreeItemId item(TreeView_GetNextSibling
-                      (
-                        GetHwnd(),
-                        HITEM(wxTreeItemId((void *)cookie)
-                      )));
+    wxTreeItemId fromCookie((void *)cookie);
+
+    HTREEITEM hitem = HITEM(fromCookie);
+
+    hitem = TreeView_GetNextSibling(GetHwnd(), hitem);
+
+    wxTreeItemId item(hitem);
+
     cookie = (long)item.m_pItem;
 
     return item;
@@ -1646,7 +1655,7 @@ wxTreeItemId wxTreeCtrl::DoInsertItem(const wxTreeItemId& parent,
     }
 
     UINT mask = 0;
-    if ( !text.IsEmpty() )
+    if ( !text.empty() )
     {
         mask |= TVIF_TEXT;
         tvIns.item.pszText = (wxChar *)text.c_str();  // cast is ok
@@ -1708,6 +1717,26 @@ wxTreeItemId wxTreeCtrl::InsertItem(const wxTreeItemId& parent,
 {
     return DoInsertItem(parent, wxTreeItemId((void *)insertAfter), text,
                         image, selImage, NULL);
+}
+
+wxImageList *wxTreeCtrl::GetImageList(int) const
+{
+    return GetImageList();
+}
+
+void wxTreeCtrl::SetImageList(wxImageList *imageList, int)
+{
+    SetImageList(imageList);
+}
+
+int wxTreeCtrl::GetItemSelectedImage(const wxTreeItemId& item) const
+{
+    return GetItemImage(item, wxTreeItemIcon_Selected);
+}
+
+void wxTreeCtrl::SetItemSelectedImage(const wxTreeItemId& item, int image)
+{
+    SetItemImage(item, image, wxTreeItemIcon_Selected);
 }
 
 #endif // WXWIN_COMPATIBILITY_2_4
@@ -1891,10 +1920,12 @@ void wxTreeCtrl::Toggle(const wxTreeItemId& item)
 }
 
 #if WXWIN_COMPATIBILITY_2_4
+
 void wxTreeCtrl::ExpandItem(const wxTreeItemId& item, int action)
 {
     DoExpand(item, action);
 }
+
 #endif
 
 void wxTreeCtrl::Unselect()
@@ -1920,6 +1951,8 @@ void wxTreeCtrl::UnselectAll()
             ::UnselectItem(GetHwnd(), HITEM_PTR(selections[n]));
 #endif // wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE/!wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE
         }
+
+        m_htSelStart.Unset();
     }
     else
     {
@@ -2044,7 +2077,7 @@ wxTextCtrl* wxTreeCtrl::EditLabel(const wxTreeItemId& item,
 }
 
 // End label editing, optionally cancelling the edit
-void wxTreeCtrl::EndEditLabel(const wxTreeItemId& WXUNUSED(item), bool discardChanges)
+void wxTreeCtrl::DoEndEditLabel(bool discardChanges)
 {
     TreeView_EndEditLabelNow(GetHwnd(), discardChanges);
 
@@ -2208,9 +2241,21 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 {
     bool processed = false;
     WXLRESULT rc = 0;
-    bool isMultiple = (GetWindowStyle() & wxTR_MULTIPLE) != 0;
+    bool isMultiple = HasFlag(wxTR_MULTIPLE);
 
-    if ( (nMsg >= WM_MOUSEFIRST) && (nMsg <= WM_MOUSELAST) )
+    if ( nMsg == WM_CONTEXTMENU )
+    {
+        wxTreeEvent event( wxEVT_COMMAND_TREE_ITEM_MENU, GetId() );
+
+        // can't use GetSelection() here as it would assert in multiselect mode
+        event.m_item = wxTreeItemId(TreeView_GetSelection(GetHwnd()));
+        event.SetEventObject( this );
+
+        if ( GetEventHandler()->ProcessEvent(event) )
+            processed = true;
+        //else: continue with generating wxEVT_CONTEXT_MENU in base class code
+    }
+    else if ( (nMsg >= WM_MOUSEFIRST) && (nMsg <= WM_MOUSELAST) )
     {
         // we only process mouse messages here and these parameters have the
         // same meaning for all of them
@@ -2383,9 +2428,9 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
             // TreeView_GetItemRect() will return false if item is not visible,
             // which may happen perfectly well
             if ( TreeView_GetItemRect(GetHwnd(), HITEM_PTR(selections[n]),
-                                      &rect, true) )
+                                      &rect, TRUE) )
             {
-                ::InvalidateRect(GetHwnd(), &rect, false);
+                ::InvalidateRect(GetHwnd(), &rect, FALSE);
             }
         }
     }
@@ -2394,77 +2439,98 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
         bool bCtrl = wxIsCtrlDown(),
              bShift = wxIsShiftDown();
 
-        // we handle.arrows and space, but not page up/down and home/end: the
-        // latter should be easy, but not the former
-
         HTREEITEM htSel = (HTREEITEM)TreeView_GetSelection(GetHwnd());
-        if ( !m_htSelStart )
+        switch ( wParam )
         {
-            m_htSelStart = htSel;
-        }
-
-        if ( wParam == VK_SPACE )
-        {
-            if ( bCtrl )
-            {
-                ::ToggleItemSelection(GetHwnd(), htSel);
-            }
-            else
-            {
-                UnselectAll();
-
-                ::SelectItem(GetHwnd(), htSel);
-            }
-
-            processed = true;
-        }
-        else if ( wParam == VK_UP || wParam == VK_DOWN )
-        {
-            if ( !bCtrl && !bShift )
-            {
-                // no modifiers, just clear selection and then let the default
-                // processing to take place
-                UnselectAll();
-            }
-            else if ( htSel )
-            {
-                (void)wxControl::MSWWindowProc(nMsg, wParam, lParam);
-
-                HTREEITEM htNext = (HTREEITEM)(wParam == VK_UP
-                                    ? TreeView_GetPrevVisible(GetHwnd(), htSel)
-                                    : TreeView_GetNextVisible(GetHwnd(), htSel));
-
-                if ( !htNext )
+            case VK_SPACE:
+                if ( bCtrl )
                 {
-                    // at the top/bottom
-                    htNext = htSel;
+                    ::ToggleItemSelection(GetHwnd(), htSel);
                 }
+                else
+                {
+                    UnselectAll();
 
-                if ( bShift )
-                {
-                    SelectRange(GetHwnd(), HITEM(m_htSelStart), htNext);
-                }
-                else // bCtrl
-                {
-                    // without changing selection
-                    ::SetFocus(GetHwnd(), htNext);
+                    ::SelectItem(GetHwnd(), htSel);
                 }
 
                 processed = true;
-            }
+                break;
+
+            case VK_UP:
+            case VK_DOWN:
+                if ( !bCtrl && !bShift )
+                {
+                    // no modifiers, just clear selection and then let the default
+                    // processing to take place
+                    UnselectAll();
+                }
+                else if ( htSel )
+                {
+                    (void)wxControl::MSWWindowProc(nMsg, wParam, lParam);
+
+                    HTREEITEM htNext = (HTREEITEM)
+                        TreeView_GetNextItem
+                        (
+                            GetHwnd(),
+                            htSel,
+                            wParam == VK_UP ? TVGN_PREVIOUSVISIBLE
+                                            : TVGN_NEXTVISIBLE
+                        );
+
+                    if ( !htNext )
+                    {
+                        // at the top/bottom
+                        htNext = htSel;
+                    }
+
+                    if ( bShift )
+                    {
+                        if ( !m_htSelStart )
+                            m_htSelStart = htSel;
+
+                        SelectRange(GetHwnd(), HITEM(m_htSelStart), htNext);
+                    }
+                    else // bCtrl
+                    {
+                        // without changing selection
+                        ::SetFocus(GetHwnd(), htNext);
+                    }
+
+                    processed = true;
+                }
+                break;
+
+            case VK_HOME:
+            case VK_END:
+            case VK_PRIOR:
+            case VK_NEXT:
+                // TODO: handle Shift/Ctrl with these keys
+                if ( !bCtrl && !bShift )
+                {
+                    UnselectAll();
+
+                    m_htSelStart.Unset();
+                }
         }
     }
 #endif // !wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE
-    else if ( nMsg == WM_CHAR )
+    else if ( nMsg == WM_COMMAND )
     {
-        // don't let the control process Space and Return keys because it
-        // doesn't do anything useful with them anyhow but always beeps
-        // annoyingly when it receives them and there is no way to turn it off
-        // simply if you just process TREEITEM_ACTIVATED event to which Space
-        // and Enter presses are mapped in your code
-        if ( wParam == VK_SPACE || wParam == VK_RETURN )
+        // if we receive a EN_KILLFOCUS command from the in-place edit control
+        // used for label editing, make sure to end editing
+        WORD id, cmd;
+        WXHWND hwnd;
+        UnpackCommand(wParam, lParam, &id, &hwnd, &cmd);
+
+        if ( cmd == EN_KILLFOCUS )
         {
-            processed = true;
+            if ( m_textCtrl && m_textCtrl->GetHandle() == hwnd )
+            {
+                DoEndEditLabel();
+
+                processed = true;
+            }
         }
     }
 
@@ -2472,6 +2538,46 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
         rc = wxControl::MSWWindowProc(nMsg, wParam, lParam);
 
     return rc;
+}
+
+WXLRESULT
+wxTreeCtrl::MSWDefWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    // default WM_RBUTTONDOWN handler enters modal loop inside DefWindowProc()
+    // waiting for WM_RBUTTONUP and then sends the resulting WM_CONTEXTMENU to
+    // the parent window, not us, which completely breaks everything so simply
+    // don't let it see this message at all
+    if ( nMsg == WM_RBUTTONDOWN )
+        return 0;
+
+    // but because of the above we don't get NM_RCLICK which is normally
+    // generated by tree window proc when the modal loop mentioned above ends
+    // because the mouse is released -- synthesize it ourselves instead
+    if ( nMsg == WM_RBUTTONUP )
+    {
+        NMHDR hdr;
+        hdr.hwndFrom = GetHwnd();
+        hdr.idFrom = GetId();
+        hdr.code = NM_RCLICK;
+
+        WXLPARAM rc;
+        MSWOnNotify(GetId(), (LPARAM)&hdr, &rc);
+
+        // continue as usual
+    }
+
+    if ( nMsg == WM_CHAR )
+    {
+        // also don't let the control process Space and Return keys because it
+        // doesn't do anything useful with them anyhow but always beeps
+        // annoyingly when it receives them and there is no way to turn it off
+        // simply if you just process TREEITEM_ACTIVATED event to which Space
+        // and Enter presses are mapped in your code
+        if ( wParam == VK_SPACE || wParam == VK_RETURN )
+            return 0;
+    }
+
+    return wxControl::MSWDefWindowProc(nMsg, wParam, lParam);
 }
 
 // process WM_NOTIFY Windows message
@@ -2510,6 +2616,10 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 eventType = wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT;
                 TV_DISPINFO *info = (TV_DISPINFO *)lParam;
 
+                // although the user event handler may still veto it, it is
+                // important to set it now so that calls to SetItemText() from
+                // the event handler would change the text controls contents
+                m_idEdited =
                 event.m_item = info->item.hItem;
                 event.m_label = info->item.pszText;
                 event.m_editCancelled = false;
@@ -2842,7 +2952,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 wxASSERT_MSG( !m_dragImage, _T("starting to drag once again?") );
 
                 m_dragImage = new wxDragImage(*this, event.m_item);
-                m_dragImage->BeginDrag(wxPoint(0, 0), this);
+                m_dragImage->BeginDrag(wxPoint(0,0), this);
                 m_dragImage->Show();
             }
             break;
@@ -2875,8 +2985,9 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         case TVN_BEGINLABELEDIT:
             // return true to cancel label editing
             *result = !event.IsAllowed();
+
             // set ES_WANTRETURN ( like we do in BeginLabelEdit )
-            if(event.IsAllowed())
+            if ( event.IsAllowed() )
             {
                 HWND hText = TreeView_GetEditControl(GetHwnd());
                 if(hText != NULL)
@@ -2900,6 +3011,10 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                     m_textCtrl->SetWindowStyle(m_textCtrl->GetWindowStyle()
                                                | wxTE_PROCESS_ENTER);
                 }
+            }
+            else // we had set m_idEdited before
+            {
+                m_idEdited.Unset();
             }
             break;
 
@@ -3029,6 +3144,15 @@ int wxTreeCtrl::GetState(const wxTreeItemId& node)
 
     return STATEIMAGEMASKTOINDEX(tvi.state);
 }
+
+#if WXWIN_COMPATIBILITY_2_2
+
+wxTreeItemId wxTreeCtrl::GetParent(const wxTreeItemId& item) const
+{
+    return GetItemParent( item );
+}
+
+#endif  // WXWIN_COMPATIBILITY_2_2
 
 #endif // wxUSE_TREECTRL
 

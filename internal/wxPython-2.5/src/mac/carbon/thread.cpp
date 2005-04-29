@@ -10,7 +10,7 @@
 // Licence:	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "thread.h"
 #endif
 
@@ -40,7 +40,7 @@
 #else
 #include <DriverServices.h>
 #include <Multiprocessing.h>
-#include <math.h>
+#include "wx/math.h"
 #endif
 #include "wx/mac/uma.h"
 #endif
@@ -1171,7 +1171,7 @@ void wxThreadInternal::Wait()
             			 kDurationForever);
             if ( err)
             {
-                wxLogSysError( _( "Cannot wait on thread to exit."));
+                wxLogSysError( _( "Cannot wait for thread termination."));
                 rc = (void*) -1;
             }
 
@@ -1638,7 +1638,7 @@ bool wxThreadModule::OnInit()
 	
 	verify_noerr( MPAllocateTaskStorageIndex( &gs_tlsForWXThread ) ) ;
 	// main thread's This() is NULL
-	verify_noerr( MPSetTaskStorageValue( gs_tlsForWXThread , NULL ) ) ;
+	verify_noerr( MPSetTaskStorageValue( gs_tlsForWXThread , 0 ) ) ;
 
 	gs_idMainThread = wxThread::GetCurrentId() ;
 	
@@ -1721,6 +1721,9 @@ void WXDLLIMPEXP_BASE wxMutexGuiLeaveOrEnter()
     wxASSERT_MSG( wxThread::IsMain(),
                   wxT("only main thread may call wxMutexGuiLeaveOrEnter()!") );
 
+    if( !gs_critsectWaitingForGui )
+        return;
+        
     wxCriticalSectionLocker enter(*gs_critsectWaitingForGui);
 
     if ( gs_nWaitingForGui == 0 )

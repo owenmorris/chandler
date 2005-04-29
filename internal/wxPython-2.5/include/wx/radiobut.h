@@ -12,6 +12,8 @@
 #ifndef _WX_RADIOBUT_H_BASE_
 #define _WX_RADIOBUT_H_BASE_
 
+#include "wx/defs.h"
+
 #if wxUSE_RADIOBTN
 
 /*
@@ -31,7 +33,7 @@
 
 #include "wx/control.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxRadioButtonNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxRadioButtonNameStr;
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/radiobut.h"
@@ -47,6 +49,8 @@ WXDLLEXPORT_DATA(extern const wxChar*) wxRadioButtonNameStr;
     #include "wx/cocoa/radiobut.h"
 #elif defined(__WXPM__)
     #include "wx/os2/radiobut.h"
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/radiobut.h"
 #endif
 
 #endif // wxUSE_RADIOBTN

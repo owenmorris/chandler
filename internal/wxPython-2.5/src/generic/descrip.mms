@@ -43,9 +43,11 @@ OBJECTS = \
 		caret.obj,\
 		choicdgg.obj,\
 		colrdlgg.obj,\
+		datectlg.obj,\
 		dcpsg.obj,\
 		dirctrlg.obj,\
 		dirdlgg.obj,\
+		fdrepdlg.obj,\
 		fontdlgg.obj,\
 		grid.obj,\
 		gridctrl.obj,\
@@ -60,6 +62,7 @@ OBJECTS = \
 		panelg.obj,\
 		printps.obj,\
 		prntdlgg.obj,\
+		propdlg.obj,\
 		progdlgg.obj,\
 		renderg.obj,\
 		sashwin.obj,\
@@ -79,10 +82,12 @@ SOURCES = \
 		caret.cpp,\
 		choicdgg.cpp,\
 		colrdlgg.cpp,\
+		datectlg.cpp,\
 		dcpsg.cpp,\
 		dirctrlg.cpp,\
 		dirdlgg.cpp,\
 		filedlgg.cpp,\
+		fdrepdlg.cpp,\
 		fontdlgg.cpp,\
 		grid.cpp,\
 		gridctrl.cpp,\
@@ -99,6 +104,7 @@ SOURCES = \
 		panelg.cpp,\
 		printps.cpp,\
 		prntdlgg.cpp,\
+		propdlg.cpp,\
 		progdlgg.cpp,\
 		renderg.cpp,\
 		sashwin.cpp,\
@@ -156,11 +162,13 @@ calctrl.obj : calctrl.cpp
 caret.obj : caret.cpp
 choicdgg.obj : choicdgg.cpp
 colrdlgg.obj : colrdlgg.cpp
+datectlg.obj : datectlg.cpp
 dcpsg.obj : dcpsg.cpp
 dirctrlg.obj : dirctrlg.cpp
 dirdlgg.obj : dirdlgg.cpp
 filedlgg.obj : filedlgg.cpp
 fontdlgg.obj : fontdlgg.cpp
+fdrepdlg.obj : fdrepdlg.cpp
 grid.obj : grid.cpp
 gridctrl.obj : gridctrl.cpp
 gridsel.obj : gridsel.cpp
@@ -177,6 +185,7 @@ panelg.obj : panelg.cpp
 printps.obj : printps.cpp
 prntdlgg.obj : prntdlgg.cpp
 progdlgg.obj : progdlgg.cpp
+propdlg.obj : propdlg.cpp
 scrlwing.obj : scrlwing.cpp
 spinctlg.obj : spinctlg.cpp
 renderg.obj : renderg.cpp

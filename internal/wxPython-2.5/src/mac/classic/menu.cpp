@@ -463,13 +463,13 @@ wxMenuBar::wxMenuBar( long WXUNUSED(style) )
 }
 
 
-wxMenuBar::wxMenuBar(int count, wxMenu *menus[], const wxString titles[])
+wxMenuBar::wxMenuBar(size_t count, wxMenu *menus[], const wxString titles[], long WXUNUSED(style))
 {
     Init();
 
     m_titles.Alloc(count);
 
-    for ( int i = 0; i < count; i++ )
+    for ( size_t i = 0; i < count; i++ )
     {
         m_menus.Append(menus[i]);
         m_titles.Add(titles[i]);

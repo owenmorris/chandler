@@ -95,14 +95,17 @@ public:
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& label);
 
-    virtual void Enable(int n, bool enable = true);
-    virtual void Show(int n, bool show = true);
+    virtual bool Enable(int n, bool enable = true);
+    virtual bool Show(int n, bool show = true);
 
     // we also override the wxControl methods to avoid virtual function hiding
     virtual bool Enable(bool enable = true);
     virtual bool Show(bool show = true);
     virtual wxString GetLabel() const;
     virtual void SetLabel(const wxString& label);
+
+    // we inherit a version returning false from wxStaticBox, override it again
+    virtual bool AcceptsFocus() const { return true; }
 
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip( wxToolTip *tip );
@@ -128,9 +131,6 @@ protected:
 
     // common part of all ctors
     void Init();
-
-    // check that the index is valid
-    bool IsValid(int n) const { return n >= 0 && n < GetCount(); }
 
     // sets m_majorDim and calculate m_numCols and m_numRows
     void SetMajorDim(int majorDim);

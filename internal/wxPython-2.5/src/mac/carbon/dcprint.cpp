@@ -9,12 +9,14 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "dcprint.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
+
+#if wxUSE_PRINTING_ARCHITECTURE
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -25,7 +27,7 @@
 
 #include "wx/dcprint.h"
 #include "wx/msgdlg.h"
-#include <math.h>
+#include "wx/math.h"
 #include "wx/mac/uma.h"
 #include "wx/mac/private/print.h"
 
@@ -51,8 +53,6 @@ public :
     static wxNativePrinterDC* Create(wxPrintData* data) ;
 } ;
 
-#if TARGET_CARBON
-
 class wxMacCarbonPrinterDC : public wxNativePrinterDC
 {
 public :
@@ -77,7 +77,7 @@ wxMacCarbonPrinterDC::wxMacCarbonPrinterDC( wxPrintData* data )
     ::GetPort( & m_macPrintFormerPort ) ;
 
     m_err = noErr ;
-    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) data->m_nativePrintData ;
+    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) data->GetNativeData() ;
 
     PMRect rPage;
     m_err = PMGetAdjustedPageRect(native->m_macPageFormat, &rPage);
@@ -104,7 +104,16 @@ bool wxMacCarbonPrinterDC::StartDoc(  wxPrinterDC* dc , const wxString& WXUNUSED
     if ( m_err )
         return false ;
 
-    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().m_nativePrintData ;
+    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().GetNativeData() ;
+
+#if wxMAC_USE_CORE_GRAPHICS
+    {
+        CFStringRef s[1] = { kPMGraphicsContextCoreGraphics };
+        CFArrayRef  graphicsContextsArray = CFArrayCreate(NULL, (const void**)s, 1, &kCFTypeArrayCallBacks);
+        PMSessionSetDocumentFormatGeneration(native->m_macPrintSession, kPMDocumentFormatPDF, graphicsContextsArray, NULL);
+        CFRelease(graphicsContextsArray);
+    }
+#endif
 
     m_err = PMSessionBeginDocument(native->m_macPrintSession,
               native->m_macPrintSettings,
@@ -127,7 +136,7 @@ void wxMacCarbonPrinterDC::EndDoc( wxPrinterDC* dc )
     if ( m_err )
         return ;
 
-    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().m_nativePrintData ;
+    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().GetNativeData() ;
 
     m_err = PMSessionEndDocument(native->m_macPrintSession);
 }
@@ -137,17 +146,27 @@ void wxMacCarbonPrinterDC::StartPage( wxPrinterDC* dc )
     if ( m_err )
         return ;
 
-    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().m_nativePrintData ;
+    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().GetNativeData() ;
 
     m_err = PMSessionBeginPage(native->m_macPrintSession,
                  native->m_macPageFormat,
                  nil);
 
+#if wxMAC_USE_CORE_GRAPHICS
+    CGContextRef pageContext;
+#endif
     if ( m_err == noErr )
     {
+#if wxMAC_USE_CORE_GRAPHICS
         m_err = PMSessionGetGraphicsContext(native->m_macPrintSession,
-                                            nil,
+                                            kPMGraphicsContextCoreGraphics,
+                                            (void**) &pageContext );
+        dc->MacSetCGContext(pageContext) ;
+#else
+        m_err = PMSessionGetGraphicsContext(native->m_macPrintSession,
+                                            kPMGraphicsContextQuickdraw,
                                             (void**) &dc->m_macPort );
+#endif
     }
 
     if ( m_err != noErr )
@@ -162,8 +181,13 @@ void wxMacCarbonPrinterDC::StartPage( wxPrinterDC* dc )
         m_err = PMGetAdjustedPageRect(native->m_macPageFormat, &rPage);
         if ( !m_err )
         {
+#if wxMAC_USE_CORE_GRAPHICS
+            CGContextTranslateCTM( pageContext , 0 , rPage.bottom - rPage.top ) ;
+            CGContextScaleCTM( pageContext , 1 , -1 ) ;
+#else
             dc->m_macLocalOrigin.x = (int) rPage.left;
             dc->m_macLocalOrigin.y = (int) rPage.top;
+#endif
         }
         // since this is a non-critical error, we set the flag back
         m_err = noErr ;
@@ -175,7 +199,7 @@ void wxMacCarbonPrinterDC::EndPage( wxPrinterDC* dc )
     if ( m_err )
         return ;
 
-    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().m_nativePrintData ;
+    wxMacCarbonPrintData *native = (wxMacCarbonPrintData*) dc->GetPrintData().GetNativeData() ;
 
     m_err = PMSessionEndPage(native->m_macPrintSession);
     if ( m_err != noErr )
@@ -183,126 +207,6 @@ void wxMacCarbonPrinterDC::EndPage( wxPrinterDC* dc )
         PMSessionEndDocument(native->m_macPrintSession);
     }
 }
-
-#else
-
-class wxMacClassicPrinterDC : public wxNativePrinterDC
-{
-public :
-    wxMacClassicPrinterDC( wxPrintData* data ) ;
-    ~wxMacClassicPrinterDC() ;
-    virtual bool StartDoc(  wxPrinterDC* dc , const wxString& message ) ;
-    virtual void EndDoc( wxPrinterDC* dc ) ;
-    virtual void StartPage( wxPrinterDC* dc ) ;
-    virtual void EndPage( wxPrinterDC* dc ) ;
-    virtual wxCoord GetMaxX() const { return m_maxX ; }
-    virtual wxCoord GetMaxY() const { return m_maxY ; }
-    virtual wxUint32 GetStatus() const { return m_err ; }
-private :
-    GrafPtr m_macPrintFormerPort ;
-    TPPrPort m_macPrintingPort ;
-    OSErr m_err ;
-    long m_maxX ;
-    long m_maxY ;
-} ;
-
-wxNativePrinterDC* wxNativePrinterDC::Create(wxPrintData* data)
-{
-    return new wxMacClassicPrinterDC(data) ;
-}
-
-wxMacClassicPrinterDC::wxMacClassicPrinterDC(wxPrintData* data)
-{
-    ::GetPort( &m_macPrintFormerPort ) ;
-    m_err = noErr ;
-    ::UMAPrOpen() ;
-    m_err = PrError() ;
-    if ( m_err != noErr )
-        return;
-
-    wxMacClassicPrintData *native = (wxMacClassicPrintData*) data->m_nativePrintData ;
-
-    if ( ::PrValidate( native->m_macPrintSettings ) )
-    {
-        // the driver has changed in the mean time, should we pop up a page setup dialog ?
-        if ( !::PrStlDialog( native->m_macPrintSettings ) )
-        {
-            m_err = -1 ;
-            return;
-        }
-    }
-    m_err = PrError() ;
-
-    if ( m_err == noErr )
-    {
-        m_maxX = (**native->m_macPrintSettings).prInfo.rPage.right - (**native->m_macPrintSettings).prInfo.rPage.left ;
-        m_maxY = (**native->m_macPrintSettings).prInfo.rPage.bottom - (**native->m_macPrintSettings).prInfo.rPage.top ;
-    }
-}
-
-wxMacClassicPrinterDC::~wxMacClassicPrinterDC()
-{
-    ::UMAPrClose() ;
-    ::SetPort( LMGetWMgrPort() ) ;
-}
-
-bool wxMacClassicPrinterDC::StartDoc(  wxPrinterDC* dc , const wxString& WXUNUSED(message)  )
-{
-    if ( m_err )
-        return false ;
-
-    wxMacClassicPrintData *native = (wxMacClassicPrintData*) dc->GetPrintData().m_nativePrintData ;
-    m_macPrintingPort = ::PrOpenDoc( native->m_macPrintSettings , NULL , NULL ) ;
-    m_err = PrError() ;
-    if ( m_err )
-        return false ;
-
-    // sets current port
-    dc->m_macPort = (GrafPtr ) m_macPrintingPort ;
-    m_maxX = (**native->m_macPrintSettings).prInfo.rPage.right - (**native->m_macPrintSettings).prInfo.rPage.left ;
-    m_maxY = (**native->m_macPrintSettings).prInfo.rPage.bottom - (**native->m_macPrintSettings).prInfo.rPage.top ;
-    return true ;
-}
-
-void wxMacClassicPrinterDC::EndDoc( wxPrinterDC* dc )
-{
-    if ( m_err )
-        return ;
-
-    PrCloseDoc( m_macPrintingPort ) ;
-    m_err = PrError() ;
-}
-
-void wxMacClassicPrinterDC::StartPage( wxPrinterDC* dc )
-{
-    if ( m_err )
-        return ;
-
-    wxMacClassicPrintData *native = (wxMacClassicPrintData*) dc->GetPrintData().m_nativePrintData ;
-
-    PrOpenPage( m_macPrintingPort , NULL ) ;
-    dc->m_macLocalOrigin.x =  (**native->m_macPrintSettings).rPaper.left ;
-    dc->m_macLocalOrigin.y =  (**native->m_macPrintSettings).rPaper.top ;
-    // m_macPrintingPort is now the current port
-    Rect clip = { -32000 , -32000 , 32000 , 32000 } ;
-    ::ClipRect( &clip ) ;
-    m_err = PrError() ;
-    if ( m_err != noErr )
-        ::PrCloseDoc( m_macPrintingPort ) ;
-}
-
-void wxMacClassicPrinterDC::EndPage( wxPrinterDC* dc )
-{
-    if ( m_err )
-        return ;
-
-    PrClosePage( m_macPrintingPort ) ;
-    m_err = PrError() ;
-    if ( m_err != noErr )
-        ::PrCloseDoc( m_macPrintingPort  ) ;
-}
-
-#endif
 
 wxPrinterDC::wxPrinterDC(const wxPrintData& printdata)
 {
@@ -313,7 +217,6 @@ wxPrinterDC::wxPrinterDC(const wxPrintData& printdata)
     if ( m_nativePrinterDC )
     {
         m_ok = m_nativePrinterDC->Ok() ;
-
         if ( !m_ok )
         {
             wxString message ;
@@ -321,6 +224,10 @@ wxPrinterDC::wxPrinterDC(const wxPrintData& printdata)
             wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
             dialog.ShowModal();
         }
+#if wxMAC_USE_CORE_GRAPHICS
+        // the cgContext will only be handed over page by page
+        m_graphicContext = new wxMacCGContext() ;
+#endif
     }
 }
 
@@ -329,6 +236,14 @@ wxPrinterDC::~wxPrinterDC(void)
     delete m_nativePrinterDC ;
 }
 
+#if wxMAC_USE_CORE_GRAPHICS
+void wxPrinterDC::MacSetCGContext( void * cg ) 
+{
+    ((wxMacCGContext*)(m_graphicContext))->SetNativeContext( (CGContextRef) cg ) ;
+    m_graphicContext->SetPen( m_pen ) ;
+    m_graphicContext->SetBrush( m_brush ) ;
+}
+#endif
 bool wxPrinterDC::StartDoc( const wxString& message )
 {
     wxASSERT_MSG( Ok() , wxT("Called wxPrinterDC::StartDoc from an invalid object") ) ;
@@ -384,10 +299,11 @@ void wxPrinterDC::StartPage(void)
     m_font = *wxNORMAL_FONT;
     m_brush = *wxTRANSPARENT_BRUSH;
     m_backgroundBrush = *wxWHITE_BRUSH;
-
+#if !wxMAC_USE_CORE_GRAPHICS
     m_macFontInstalled = false ;
     m_macBrushInstalled = false ;
     m_macPenInstalled = false ;
+#endif
 
     m_nativePrinterDC->StartPage(this) ;
     m_ok = m_nativePrinterDC->Ok() ;
@@ -413,4 +329,4 @@ void wxPrinterDC::DoGetSize(int *width, int *height) const
         * height = m_nativePrinterDC->GetMaxY() ;
 }
 
-
+#endif

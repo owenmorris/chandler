@@ -2032,7 +2032,7 @@ class FloatCanvas(wx.Panel):
             self.BoundingBox = None
             self.ViewPortCenter= array( (0,0), Float)
             self.TransformVector = array( (1,-1), Float)
-            self.MapProjectionVector = array( (1,1), Float)
+            self.MapProjectionVector = array( (1,1), Float)                     
             self.Scale = 1        
         self.BoundingBoxDirty = False
 

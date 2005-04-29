@@ -141,7 +141,7 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
             }
         }
 
-        if ( current.IsEmpty() ) {
+        if ( current.empty() ) {
             wxLogDebug(wxT("No accel key found, accel string ignored."));
         }
         else {
@@ -160,10 +160,7 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
                 if ( current[0U] == 'f' && wxIsdigit(current[1U]) &&
                      (current.Len() == 2 ||
                      (current.Len() == 3 && wxIsdigit(current[2U]))) ) {
-                    int n;
-                    wxSscanf(current.c_str() + 1, wxT("%d"), &n);
-
-                    keyCode = WXK_F1 + n - 1;
+                    keyCode = WXK_F1 + wxAtoi(current.c_str() + 1) - 1;
                 }
                 else {
                     // several special cases
@@ -206,6 +203,7 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
                     {
                         wxLogDebug(wxT("Unrecognized accel key '%s', accel string ignored."),
                                    current.c_str());
+                        return NULL;
                     }
                 }
             }
@@ -705,7 +703,7 @@ wxString wxMenuBase::GetLabel( int id ) const
 {
     wxMenuItem *item = FindItem(id);
 
-    wxCHECK_MSG( item, wxT(""), wxT("wxMenu::GetLabel: no such item") );
+    wxCHECK_MSG( item, wxEmptyString, wxT("wxMenu::GetLabel: no such item") );
 
     return item->GetText();
 }
@@ -723,7 +721,7 @@ wxString wxMenuBase::GetHelpString( int id ) const
 {
     wxMenuItem *item = FindItem(id);
 
-    wxCHECK_MSG( item, wxT(""), wxT("wxMenu::GetHelpString: no such item") );
+    wxCHECK_MSG( item, wxEmptyString, wxT("wxMenu::GetHelpString: no such item") );
 
     return item->GetHelp();
 }

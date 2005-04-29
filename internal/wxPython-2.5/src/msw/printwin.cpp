@@ -52,10 +52,7 @@
 
 #include <stdlib.h>
 
-#include "wx/msw/private.h"
-
-#include <commdlg.h>
-
+#include "wx/msw/wrapcdlg.h"
 #ifndef __WIN32__
     #include <print.h>
 #endif
@@ -185,7 +182,7 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
     wxWindow *win = CreateAbortWindow(parent, printout);
     wxYield();
 
-#if defined(__BORLANDC__) || defined(__GNUWIN32__) || defined(__SALFORDC__) || !defined(__WIN32__)
+#if defined(__WATCOMC__) || defined(__BORLANDC__) || defined(__GNUWIN32__) || defined(__SALFORDC__) || !defined(__WIN32__)
 #ifdef STRICT
     ::SetAbortProc((HDC) dc->GetHDC(), (ABORTPROC) m_lpAbortProc);
 #else
@@ -210,6 +207,7 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
         sm_lastError = wxPRINTER_ERROR;
 
         delete dc;
+        return false;
     }
     sm_abortWindow = win;
     sm_abortWindow->Show();
@@ -281,7 +279,7 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
 
     delete dc;
 
-    return (sm_lastError == wxPRINTER_NO_ERROR);
+    return sm_lastError == wxPRINTER_NO_ERROR;
 }
 
 wxDC* wxWindowsPrinter::PrintDialog(wxWindow *parent)
@@ -306,8 +304,10 @@ wxDC* wxWindowsPrinter::PrintDialog(wxWindow *parent)
     return dc;
 }
 
-bool wxWindowsPrinter::Setup(wxWindow *parent)
+bool wxWindowsPrinter::Setup(wxWindow *WXUNUSED(parent))
 {
+#if 0
+    // We no longer expose that dialog
     wxPrintDialog dialog(parent, & m_printDialogData);
     dialog.GetPrintDialogData().SetSetupDialog(true);
 
@@ -319,6 +319,9 @@ bool wxWindowsPrinter::Setup(wxWindow *parent)
     }
 
     return (ret == wxID_OK);
+#else
+    return false;
+#endif
 }
 
 /*
@@ -423,9 +426,9 @@ LONG APIENTRY _EXPORT wxAbortProc(HDC WXUNUSED(hPr), int WXUNUSED(Code))
             DispatchMessage(&msg);
         }
 
-        /* bAbort is TRUE (return is FALSE) if the user has aborted */
+    /* bAbort is TRUE (return is FALSE) if the user has aborted */
 
-        return (!wxPrinterBase::sm_abortIt);
+    return !wxPrinterBase::sm_abortIt;
 }
 
 #endif

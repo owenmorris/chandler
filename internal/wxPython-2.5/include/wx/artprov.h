@@ -31,7 +31,7 @@ class wxArtProviderModule;
 typedef wxString wxArtClient;
 typedef wxString wxArtID;
 
-#define wxART_MAKE_CLIENT_ID_FROM_STR(id)  (wxString(id)+_T("_C"))
+#define wxART_MAKE_CLIENT_ID_FROM_STR(id)  (id + _T("_C"))
 #define wxART_MAKE_CLIENT_ID(id)           _T(#id) _T("_C")
 #define wxART_MAKE_ART_ID_FROM_STR(id)     (id)
 #define wxART_MAKE_ART_ID(id)              _T(#id)
@@ -69,13 +69,20 @@ typedef wxString wxArtID;
 #define wxART_GO_TO_PARENT         wxART_MAKE_ART_ID(wxART_GO_TO_PARENT)
 #define wxART_GO_HOME              wxART_MAKE_ART_ID(wxART_GO_HOME)
 #define wxART_FILE_OPEN            wxART_MAKE_ART_ID(wxART_FILE_OPEN)
+#define wxART_FILE_SAVE            wxART_MAKE_ART_ID(wxART_FILE_SAVE)
+#define wxART_FILE_SAVE_AS         wxART_MAKE_ART_ID(wxART_FILE_SAVE_AS)
 #define wxART_PRINT                wxART_MAKE_ART_ID(wxART_PRINT)
 #define wxART_HELP                 wxART_MAKE_ART_ID(wxART_HELP)
 #define wxART_TIP                  wxART_MAKE_ART_ID(wxART_TIP)
 #define wxART_REPORT_VIEW          wxART_MAKE_ART_ID(wxART_REPORT_VIEW)
 #define wxART_LIST_VIEW            wxART_MAKE_ART_ID(wxART_LIST_VIEW)
 #define wxART_NEW_DIR              wxART_MAKE_ART_ID(wxART_NEW_DIR)
+#define wxART_HARDDISK             wxART_MAKE_ART_ID(wxART_HARDDISK)
+#define wxART_FLOPPY               wxART_MAKE_ART_ID(wxART_FLOPPY)
+#define wxART_CDROM                wxART_MAKE_ART_ID(wxART_CDROM)
+#define wxART_REMOVABLE            wxART_MAKE_ART_ID(wxART_REMOVABLE)
 #define wxART_FOLDER               wxART_MAKE_ART_ID(wxART_FOLDER)
+#define wxART_FOLDER_OPEN          wxART_MAKE_ART_ID(wxART_FOLDER_OPEN)
 #define wxART_GO_DIR_UP            wxART_MAKE_ART_ID(wxART_GO_DIR_UP)
 #define wxART_EXECUTABLE_FILE      wxART_MAKE_ART_ID(wxART_EXECUTABLE_FILE)
 #define wxART_NORMAL_FILE          wxART_MAKE_ART_ID(wxART_NORMAL_FILE)
@@ -86,6 +93,20 @@ typedef wxString wxArtID;
 #define wxART_WARNING              wxART_MAKE_ART_ID(wxART_WARNING)
 #define wxART_INFORMATION          wxART_MAKE_ART_ID(wxART_INFORMATION)
 #define wxART_MISSING_IMAGE        wxART_MAKE_ART_ID(wxART_MISSING_IMAGE)
+
+#define wxART_COPY                 wxART_MAKE_ART_ID(wxART_COPY)
+#define wxART_CUT                  wxART_MAKE_ART_ID(wxART_CUT)
+#define wxART_PASTE                wxART_MAKE_ART_ID(wxART_PASTE)
+#define wxART_DELETE               wxART_MAKE_ART_ID(wxART_DELETE)
+
+#define wxART_UNDO                 wxART_MAKE_ART_ID(wxART_UNDO)
+#define wxART_REDO                 wxART_MAKE_ART_ID(wxART_REDO)
+
+#define wxART_QUIT                 wxART_MAKE_ART_ID(wxART_QUIT)
+
+#define wxART_FIND                 wxART_MAKE_ART_ID(wxART_FIND)
+#define wxART_FIND_AND_REPLACE     wxART_MAKE_ART_ID(wxART_FIND_AND_REPLACE)
+
 
 // ----------------------------------------------------------------------------
 // wxArtProvider class
@@ -116,6 +137,10 @@ public:
                           const wxArtClient& client = wxART_OTHER,
                           const wxSize& size = wxDefaultSize);
 
+    // Get the size hint of an icon from a specific wxArtClient, queries 
+    // the topmost provider if platform_dependent = false
+    static wxSize GetSizeHint(const wxArtClient& client, bool platform_dependent = false);
+
 protected:
     friend class wxArtProviderModule;
     // Initializes default provider
@@ -125,6 +150,12 @@ protected:
     // Destroy caches & all providers
     static void CleanUpProviders();
 
+    // Get the default size of an icon for a specific client
+    virtual wxSize DoGetSizeHint(const wxArtClient& client) 
+    {
+        return GetSizeHint(client, true);
+    }
+                             
     // Derived classes must override this method to create requested
     // art resource. This method is called only once per instance's
     // lifetime for each requested wxArtID.

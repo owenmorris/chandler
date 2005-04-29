@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        msgdlgg.cpp
+// Name:        src/generic/msgdlgg.cpp
 // Purpose:     wxGenericMessageDialog
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
@@ -38,7 +38,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "wx/generic/msgdlgg.h"
+#define __WX_COMPILING_MSGDLGG_CPP__ 1
+#include "wx/msgdlg.h"
 #include "wx/artprov.h"
 #include "wx/settings.h"
 
@@ -65,7 +66,7 @@ wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
                                                 const wxPoint& pos)
                       : wxDialog( parent, wxID_ANY, caption, pos, wxDefaultSize, wxDEFAULT_DIALOG_STYLE )
 {
-    m_dialogStyle = style;
+    SetMessageDialogStyle(style);
 
     bool is_pda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
 
@@ -107,7 +108,7 @@ wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
     }
 
     // 2) text
-    icon_text->Add( CreateTextSizer( message ), 0, wxCENTER | wxLEFT, 10 );
+    icon_text->Add( CreateTextSizer( message ), 0, wxALIGN_CENTER | wxLEFT, 10 );
 
     topsizer->Add( icon_text, 1, wxCENTER | wxLEFT|wxRIGHT|wxTOP, 10 );
 
@@ -117,8 +118,10 @@ wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
 #endif // wxUSE_STATLINE
 
     // 4) buttons
+    int center_flag = wxEXPAND;
+    if (style & wxYES_NO) center_flag = wxALIGN_CENTRE;
     topsizer->Add( CreateButtonSizer( style & (wxOK|wxCANCEL|wxYES_NO|wxYES_DEFAULT|wxNO_DEFAULT) ),
-                   0, wxCENTRE | wxALL, 10 );
+                   0, center_flag | wxALL, 10 );
 
     SetAutoLayout( true );
     SetSizer( topsizer );
@@ -149,7 +152,8 @@ void wxGenericMessageDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
     // Allow cancellation via ESC/Close button except if
     // only YES and NO are specified.
-    if ( (m_dialogStyle & wxYES_NO) != wxYES_NO || (m_dialogStyle & wxCANCEL) )
+    const long style = GetMessageDialogStyle();
+    if ( (style & wxYES_NO) != wxYES_NO || (style & wxCANCEL) )
     {
         EndModal( wxID_CANCEL );
     }

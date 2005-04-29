@@ -69,7 +69,7 @@ public:
     wxMenu* CreatePopupMenu() {
         wxMenu *rval = NULL;
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "CreatePopupMenu"))) {
             PyObject* ro;
             wxMenu* ptr;
@@ -97,7 +97,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyTaskBarIcon, wxTaskBarIcon);
 
 MustHaveApp(wxPyTaskBarIcon);
 
-%name(TaskBarIcon)class wxPyTaskBarIcon : public wxEvtHandler
+%rename(TaskBarIcon) wxPyTaskBarIcon;
+class wxPyTaskBarIcon : public wxEvtHandler
 {
 public:
     %pythonAppend wxPyTaskBarIcon   "self._setCallbackInfo(self, TaskBarIcon, 0)"

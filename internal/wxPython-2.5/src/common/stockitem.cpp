@@ -30,7 +30,7 @@
 
 #include "wx/stockitem.h"
 #include "wx/intl.h"
-
+#include "wx/utils.h" // for wxStripMenuCodes()
 
 bool wxIsStockID(wxWindowID id)
 {
@@ -93,11 +93,14 @@ bool wxIsStockID(wxWindowID id)
     };
 }
 
-wxString wxGetStockLabel(wxWindowID id)
+wxString wxGetStockLabel(wxWindowID id, bool withCodes, wxString accelerator)
 {
+    wxString stockLabel;
+
     #define STOCKITEM(stockid, label) \
         case stockid:                 \
-            return label;
+            stockLabel = label;       \
+            break;
 
     switch (id)
     {
@@ -159,7 +162,17 @@ wxString wxGetStockLabel(wxWindowID id)
 
     #undef STOCKITEM
 
-    return wxEmptyString;
+    if(!withCodes)
+    {
+        stockLabel = wxStripMenuCodes( stockLabel );
+    }
+    else if (!stockLabel.empty() && !accelerator.empty())
+    {
+        stockLabel += _T("\t");
+        stockLabel += accelerator;
+    }
+
+    return stockLabel;
 }
 
 bool wxIsStockLabel(wxWindowID id, const wxString& label)

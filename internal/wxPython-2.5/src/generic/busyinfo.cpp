@@ -105,20 +105,14 @@ wxBusyInfo::wxBusyInfo(const wxString& message, wxWindow *parent)
 {
     m_InfoFrame = new wxInfoFrame( parent, message);
     m_InfoFrame->Show(true);
-#ifdef __WXMAC__
-    m_InfoFrame->Update() ;
-#else
-    wxYield();
     m_InfoFrame->Refresh();
-    wxYield();
-#endif
+    m_InfoFrame->Update();
 }
 
 wxBusyInfo::~wxBusyInfo()
 {
     m_InfoFrame->Show(false);
     m_InfoFrame->Close();
-    wxYield();
 }
 
 #endif

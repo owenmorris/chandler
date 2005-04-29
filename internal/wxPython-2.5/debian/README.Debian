@@ -5,7 +5,7 @@ The following packages are built from the wxWidgets CVS source.
 
 libwxgtk		wxGTK runtime shared libraries, including selected
 			contrib libs.
-libwxgtk-dev		extra files and static libs for building wxGTK apps
+libwxgtk-dev		extra files required for building wxGTK apps
 libwxgtk-dbg		wxGTK libraries built with -g and __WXDEBUG__
 
 libwxgtk-python		Python binding to wxGTK  (from 2.2.3 onward, this
@@ -18,15 +18,20 @@ wx-examples		wxWidgets and wxPython demos and samples (source)
 wx-i18n			message catalogs for native language support
 
 
+	Note that static libraries are no longer supplied in these
+	packages.  Please read, or have understood:
+	http://people.redhat.com/drepper/no_static_linking.html
+	among others before reporting this as a bug.
+
 	The following binaries can be built from the source package
 	with the mingw32 cross compiler, but are not currently
 	distributed by Debian.  If you feel that should change,
-	please file a bug against the wxwidgets2.5 package, or
+	please file a bug against the wxwidgets2.6 package, or
 	append your views to a report already there if you're not
 	the first to do so.
 
 	[ you can check the current state of affairs at:
-	  http://bugs.debian.org/cgi-bin/pkgreport.cgi?pkg=wxwidgets2.5 ]
+	  http://bugs.debian.org/cgi-bin/pkgreport.cgi?pkg=wxwidgets2.6 ]
 
 	Oh and, please do *not* file bug reports for these packages
 	to the Debian bts.  But do feel free to email me personally

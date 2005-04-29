@@ -41,13 +41,17 @@ enum
 
 typedef wxWindow wxNotebookPage;  // so far, any window can be a page
 
-#define wxNOTEBOOK_NAME _T("notebook")
+extern WXDLLEXPORT_DATA(const wxChar*) wxNotebookNameStr;
+
+#if WXWIN_COMPATIBILITY_2_4
+    #define wxNOTEBOOK_NAME wxNotebookNameStr
+#endif
 
 // ----------------------------------------------------------------------------
 // wxNotebookBase: define wxNotebook interface
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxNotebookBase : public wxBookCtrl
+class WXDLLEXPORT wxNotebookBase : public wxBookCtrlBase
 {
 public:
     // ctors
@@ -60,10 +64,10 @@ public:
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long style = 0,
-                   const wxString& name = wxNOTEBOOK_NAME) ;
+                   const wxString& name = wxNotebookNameStr) ;
 
-    // wxNotebook-specific additions to wxBookCtrl interface
-    // -----------------------------------------------------
+    // wxNotebook-specific additions to wxBookCtrlBase interface
+    // ---------------------------------------------------------
 
     // get the number of rows for a control with wxNB_MULTILINE style (not all
     // versions support it - they will always return 1 then)
@@ -87,6 +91,17 @@ public:
     // implement some base class functions
     virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const;
 
+    // On platforms that support it, get the theme page background colour, else invalid colour
+    virtual wxColour GetThemeBackgroundColour() const { return wxNullColour; }
+
+
+    // Reserved for future use
+    virtual void ReservedNotebookFunc1() {}
+    virtual void ReservedNotebookFunc2() {}
+    virtual void ReservedNotebookFunc3() {}
+    virtual void ReservedNotebookFunc4() {}
+    virtual void ReservedNotebookFunc5() {}
+
 protected:
     DECLARE_NO_COPY_CLASS(wxNotebookBase)
 };
@@ -95,12 +110,12 @@ protected:
 // notebook event class and related stuff
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxNotebookEvent : public wxBookCtrlEvent
+class WXDLLEXPORT wxNotebookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxNotebookEvent(wxEventType commandType = wxEVT_NULL, int winid = 0,
                     int nSel = -1, int nOldSel = -1)
-        : wxBookCtrlEvent(commandType, winid, nSel, nOldSel)
+        : wxBookCtrlBaseEvent(commandType, winid, nSel, nOldSel)
     {
     }
 
@@ -115,23 +130,14 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxNotebookEventFunction)(wxNotebookEvent&);
 
-#define EVT_NOTEBOOK_PAGE_CHANGED(winid, fn)                                   \
-  DECLARE_EVENT_TABLE_ENTRY(                                                   \
-    wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,                                       \
-    winid,                                                                     \
-    wxID_ANY,                                                                  \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxNotebookEventFunction, &fn ),  \
-    NULL                                                                       \
-  ),
+#define wxNotebookEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxNotebookEventFunction, &func)
 
-#define EVT_NOTEBOOK_PAGE_CHANGING(winid, fn)                                  \
-  DECLARE_EVENT_TABLE_ENTRY(                                                   \
-    wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING,                                      \
-    winid,                                                                     \
-    wxID_ANY,                                                                  \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxNotebookEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define EVT_NOTEBOOK_PAGE_CHANGED(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, winid, wxNotebookEventHandler(fn))
+
+#define EVT_NOTEBOOK_PAGE_CHANGING(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, winid, wxNotebookEventHandler(fn))
 
 // ----------------------------------------------------------------------------
 // wxNotebook class itself

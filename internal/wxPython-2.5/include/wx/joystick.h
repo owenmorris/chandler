@@ -1,5 +1,18 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        joystick.h
+// Purpose:     wxJoystick base header
+// Author:      wxWidgets Team
+// Modified by:
+// Created:
+// Copyright:   (c) wxWidgets Team
+// RCS-ID:      $Id$
+// Licence:     wxWindows licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _WX_JOYSTICK_H_BASE_
 #define _WX_JOYSTICK_H_BASE_
+
+#include "wx/defs.h"
 
 #if wxUSE_JOYSTICK
 
@@ -11,6 +24,8 @@
 #include "wx/unix/joystick.h"
 #elif defined(__WXX11__)
 #include "wx/unix/joystick.h"
+#elif defined(__DARWIN__)
+#include "wx/mac/corefoundation/joystick.h"
 #elif defined(__WXMAC__)
 #include "wx/mac/joystick.h"
 #elif defined(__WXPM__)

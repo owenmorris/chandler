@@ -36,10 +36,10 @@
 #endif
 
 // ============================================================================
-// implementation
+// wxItemContainerImmutable implementation
 // ============================================================================
 
-wxItemContainer::~wxItemContainer()
+wxItemContainerImmutable::~wxItemContainerImmutable()
 {
     // this destructor is required for Darwin
 }
@@ -48,7 +48,7 @@ wxItemContainer::~wxItemContainer()
 // selection
 // ----------------------------------------------------------------------------
 
-wxString wxItemContainer::GetStringSelection() const
+wxString wxItemContainerImmutable::GetStringSelection() const
 {
     wxString s;
     int sel = GetSelection();
@@ -58,13 +58,36 @@ wxString wxItemContainer::GetStringSelection() const
     return s;
 }
 
-wxArrayString wxItemContainer::GetStrings() const
+bool wxItemContainerImmutable::SetStringSelection(const wxString& s)
 {
-    wxArrayString result ;
-    size_t count = GetCount() ;
-    for ( size_t n = 0 ; n < count ; n++ )
+    const int sel = FindString(s);
+    if ( sel == wxNOT_FOUND )
+        return false;
+
+    SetSelection(sel);
+
+    return true;
+}
+
+wxArrayString wxItemContainerImmutable::GetStrings() const
+{
+    wxArrayString result;
+
+    const size_t count = GetCount();
+    result.Alloc(count);
+    for ( size_t n = 0; n < count; n++ )
         result.Add(GetString(n));
-    return result ;
+
+    return result;
+}
+
+// ============================================================================
+// wxItemContainer implementation
+// ============================================================================
+
+wxItemContainer::~wxItemContainer()
+{
+    // this destructor is required for Darwin
 }
 
 // ----------------------------------------------------------------------------

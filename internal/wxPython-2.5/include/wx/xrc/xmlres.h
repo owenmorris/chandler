@@ -11,7 +11,7 @@
 #ifndef _WX_XMLRES_H_
 #define _WX_XMLRES_H_
 
-#if defined(__GNUG__) && !defined(__APPLE__)
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma interface "xmlres.h"
 #endif
 
@@ -58,10 +58,10 @@ class wxXmlResourceModule;
 //       - reset revision to 0 unless the first three are same as before,
 //         in which case you should increase revision by one
 #define WX_XMLRES_CURRENT_VERSION_MAJOR            2
-#define WX_XMLRES_CURRENT_VERSION_MINOR            3
-#define WX_XMLRES_CURRENT_VERSION_RELEASE          0
-#define WX_XMLRES_CURRENT_VERSION_REVISION         1
-#define WX_XMLRES_CURRENT_VERSION_STRING       _T("2.3.0.1")
+#define WX_XMLRES_CURRENT_VERSION_MINOR            5
+#define WX_XMLRES_CURRENT_VERSION_RELEASE          3
+#define WX_XMLRES_CURRENT_VERSION_REVISION         0
+#define WX_XMLRES_CURRENT_VERSION_STRING       _T("2.5.3.0")
 
 #define WX_XMLRES_CURRENT_VERSION \
                 (WX_XMLRES_CURRENT_VERSION_MAJOR * 256*256*256 + \
@@ -291,13 +291,8 @@ private:
 //    wxXmlResource::Get()->LoadDialog(&dlg, mainFrame, "my_dialog");
 //    XRCCTRL(dlg, "my_textctrl", wxTextCtrl)->SetValue(wxT("default value"));
 
-#ifdef __WXDEBUG__
 #define XRCCTRL(window, id, type) \
-    (wxDynamicCast((window).FindWindow(XRCID(id)), type))
-#else
-#define XRCCTRL(window, id, type) \
-    ((type*)((window).FindWindow(XRCID(id))))
-#endif
+    (wxStaticCast((window).FindWindow(XRCID(id)), type))
 
 // wxXmlResourceHandler is an abstract base class for resource handlers
 // capable of creating a control from an XML node.
@@ -341,7 +336,7 @@ protected:
     wxXmlNode *m_node;
     wxString m_class;
     wxObject *m_parent, *m_instance;
-    wxWindow *m_parentAsWindow, *m_instanceAsWindow;
+    wxWindow *m_parentAsWindow;
 
     // --- Handy methods:
 
@@ -374,7 +369,7 @@ protected:
     void AddWindowStyles();
 
     // Gets style flags from text in form "flag | flag2| flag3 |..."
-    // Only understads flags added with AddStyle
+    // Only understands flags added with AddStyle
     int GetStyle(const wxString& param = wxT("style"), int defaults = 0);
 
     // Gets text from param and does some conversions:
@@ -392,20 +387,25 @@ protected:
     // Gets a bool flag (1, t, yes, on, true are true, everything else is false).
     bool GetBool(const wxString& param, bool defaultv = false);
 
-    // Gets the integer value from the parameter.
-    long GetLong( const wxString& param, long defaultv = 0 );
+    // Gets an integer value from the parameter.
+    long GetLong(const wxString& param, long defaultv = 0);
+
+    // Gets a float value from the parameter.
+    float GetFloat(const wxString& param, float defaultv = 0);
 
     // Gets colour in HTML syntax (#RRGGBB).
     wxColour GetColour(const wxString& param);
 
     // Gets the size (may be in dialog units).
-    wxSize GetSize(const wxString& param = wxT("size"));
+    wxSize GetSize(const wxString& param = wxT("size"),
+                   wxWindow *windowToUse = NULL);
 
     // Gets the position (may be in dialog units).
     wxPoint GetPosition(const wxString& param = wxT("pos"));
 
     // Gets a dimension (may be in dialog units).
-    wxCoord GetDimension(const wxString& param, wxCoord defaultv = 0);
+    wxCoord GetDimension(const wxString& param, wxCoord defaultv = 0,
+                         wxWindow *windowToUse = NULL);
 
     // Gets a bitmap.
     wxBitmap GetBitmap(const wxString& param = wxT("bitmap"),

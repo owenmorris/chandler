@@ -38,10 +38,6 @@ wxDataInputStream::wxDataInputStream(wxInputStream& s)
 {
 }
 
-wxDataInputStream::~wxDataInputStream()
-{
-}
-
 wxUint64 wxDataInputStream::Read64()
 {
   wxUint64 i64;
@@ -277,10 +273,6 @@ wxDataOutputStream::wxDataOutputStream(wxOutputStream& s)
 {
 }
 
-wxDataOutputStream::~wxDataOutputStream()
-{
-}
-
 void wxDataOutputStream::Write64(wxUint64 i)
 {
   wxUint64 i64;
@@ -343,7 +335,7 @@ void wxDataOutputStream::WriteDouble(double d)
 #if wxUSE_APPLE_IEEE
   ConvertToIeeeExtended(d, (unsigned char *)buf);
 #else
-#ifndef __VMS__
+#if !defined(__VMS__) && !defined(__GNUG__)
 # pragma warning "wxDataOutputStream::WriteDouble() not using IeeeExtended - will not work!"
 #endif
    buf[0] = '\0';

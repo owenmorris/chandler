@@ -28,11 +28,8 @@
     #pragma hdrstop
 #endif
 
-#ifndef WX_PRECOMP
-#endif //WX_PRECOMP
-
-#include "wx/app.h"
 #include "wx/evtloop.h"
+#include "wx/app.h"
 
 #include <gtk/gtk.h>
 
@@ -104,17 +101,13 @@ void wxEventLoop::Exit(int rc)
 // wxEventLoop message processing dispatching
 // ----------------------------------------------------------------------------
 
-extern bool g_isIdle;
-
 bool wxEventLoop::Pending() const
 {
-    if (wxTheApp && !g_isIdle)
+    if (wxTheApp)
     {
         // We need to remove idle callbacks or gtk_events_pending will
         // never return false.
-        gtk_idle_remove( wxTheApp->m_idleTag );
-        wxTheApp->m_idleTag = 0;
-        g_isIdle = TRUE;
+        wxTheApp->RemoveIdleTag();
     }
 
     return gtk_events_pending();

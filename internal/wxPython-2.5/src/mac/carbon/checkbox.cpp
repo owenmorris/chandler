@@ -9,11 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "checkbox.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
+
+#if wxUSE_CHECKBOX
 
 #include "wx/checkbox.h"
 
@@ -43,7 +45,7 @@ bool wxCheckBox::Create(wxWindow *parent, wxWindowID id, const wxString& label,
         maxValue = 2 /* kControlCheckboxMixedValue */;
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr( CreateCheckBoxControl(MAC_WXHWND(parent->MacGetTopLevelWindowRef()), &bounds ,
         CFSTR("") , 0 , false , m_peer->GetControlRefAddr() ) );
     
@@ -178,4 +180,4 @@ bool wxBitmapCheckBox::GetValue() const
     return FALSE;
 }
 
-
+#endif

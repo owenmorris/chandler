@@ -117,7 +117,8 @@ public:
 // Python code should rarely be neccessary.  Just use the GetItemPyData and
 // SetItemPyData tree methods instead of the GetItemData and SetItemData
 // methods.
-%name(TreeItemData) class wxPyTreeItemData {
+%rename(TreeItemData) wxPyTreeItemData;
+class wxPyTreeItemData {
 public:
     wxPyTreeItemData(PyObject* obj = NULL);
 
@@ -188,10 +189,9 @@ public:
 %constant wxEventType wxEVT_COMMAND_TREE_END_DRAG;
 %constant wxEventType wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK;
 %constant wxEventType wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP;
-
+%constant wxEventType wxEVT_COMMAND_TREE_ITEM_MENU;
 
 %pythoncode {
-
 EVT_TREE_BEGIN_DRAG        = wx.PyEventBinder(wxEVT_COMMAND_TREE_BEGIN_DRAG       , 1)
 EVT_TREE_BEGIN_RDRAG       = wx.PyEventBinder(wxEVT_COMMAND_TREE_BEGIN_RDRAG      , 1)
 EVT_TREE_BEGIN_LABEL_EDIT  = wx.PyEventBinder(wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT , 1)
@@ -212,6 +212,7 @@ EVT_TREE_ITEM_MIDDLE_CLICK = wx.PyEventBinder(wxEVT_COMMAND_TREE_ITEM_MIDDLE_CLI
 EVT_TREE_END_DRAG          = wx.PyEventBinder(wxEVT_COMMAND_TREE_END_DRAG         , 1)
 EVT_TREE_STATE_IMAGE_CLICK = wx.PyEventBinder(wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK, 1)
 EVT_TREE_ITEM_GETTOOLTIP   = wx.PyEventBinder(wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP,   1)
+EVT_TREE_ITEM_MENU        = wx.PyEventBinder(wxEVT_COMMAND_TREE_ITEM_MENU,         1)
 }
 
 
@@ -254,6 +255,7 @@ public:
 
         // Set the tooltip for the item (for EVT_TREE_ITEM_GETTOOLTIP events)
     void SetToolTip(const wxString& toolTip);
+    wxString GetToolTip();
 };
 
 //---------------------------------------------------------------------------
@@ -286,7 +288,7 @@ public:
                        const wxTreeItemId& item2) {
         int rval = 0;
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "OnCompareItems"))) {
             PyObject *o1 = wxPyConstructObject((void*)&item1, wxT("wxTreeItemId"), false);
             PyObject *o2 = wxPyConstructObject((void*)&item2, wxT("wxTreeItemId"), false);
@@ -311,7 +313,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyTreeCtrl, wxTreeCtrl);
  
 MustHaveApp(wxPyTreeCtrl);
 
-%name(TreeCtrl)class wxPyTreeCtrl : public wxControl {
+%rename(TreeCtrl) wxPyTreeCtrl;
+class wxPyTreeCtrl : public wxControl {
 public:
     %pythonAppend wxPyTreeCtrl         "self._setOORInfo(self);self._setCallbackInfo(self, TreeCtrl)"
     %pythonAppend wxPyTreeCtrl()       ""
@@ -323,7 +326,7 @@ public:
                  long style = wxTR_DEFAULT_STYLE,
                  const wxValidator& validator = wxDefaultValidator,
                  const wxString& name = wxPyTreeCtrlNameStr);
-    %name(PreTreeCtrl)wxPyTreeCtrl();
+    %RenameCtor(PreTreeCtrl, wxPyTreeCtrl());
 
     // Turn it back on again
     %typemap(out) wxPyTreeCtrl* { $result = wxPyMake_wxObject($1, $owner); }
@@ -455,10 +458,8 @@ public:
     // the item will be shown in bold
     void SetItemBold(const wxTreeItemId& item, bool bold = true);
 
-#ifdef __WXMSW__
     // the item will be shown with a drop highlight
     void SetItemDropHighlight(const wxTreeItemId& item, bool highlight = true);
-#endif
     
     // set the items text colour
     void SetItemTextColour(const wxTreeItemId& item, const wxColour& col);
@@ -507,7 +508,7 @@ public:
         // NB: this operation is expensive and can take a long time for a
         //     control with a lot of items (~ O(number of items)).
         PyObject* GetSelections() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject*           rval = PyList_New(0);
             wxArrayTreeItemIds  array;
             size_t              num, x;
@@ -537,7 +538,7 @@ public:
         PyObject* GetFirstChild(const wxTreeItemId& item) {
             void* cookie = 0;
             wxTreeItemId* ritem = new wxTreeItemId(self->GetFirstChild(item, cookie));
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, wxPyConstructObject(ritem, wxT("wxTreeItemId"), true));
             PyTuple_SET_ITEM(tup, 1, wxPyMakeSwigPtr(cookie, wxT("void")));
@@ -552,7 +553,7 @@ public:
         // passed to GetNextChild in order to continue the search.
         PyObject* GetNextChild(const wxTreeItemId& item, void* cookie) {
             wxTreeItemId* ritem = new wxTreeItemId(self->GetNextChild(item, cookie));
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, wxPyConstructObject(ritem, wxT("wxTreeItemId"), true));
             PyTuple_SET_ITEM(tup, 1, wxPyMakeSwigPtr(cookie, wxT("void")));
@@ -601,12 +602,12 @@ public:
                             wxPyTreeItemData *data = NULL);
 
     // insert a new item before the one with the given index
-    %name(InsertItemBefore)
-    wxTreeItemId InsertItem(const wxTreeItemId& parent,
+    %Rename(InsertItemBefore, 
+    wxTreeItemId, InsertItem(const wxTreeItemId& parent,
                             size_t index,
                             const wxString& text,
                             int image = -1, int selectedImage = -1,
-                            wxPyTreeItemData *data = NULL);
+                            wxPyTreeItemData *data = NULL));
 
         // insert a new item in as the last child of the parent
     wxTreeItemId AppendItem(const wxTreeItemId& parent,
@@ -705,7 +706,7 @@ value is set to a bitmask of wxTREE_HITTEST_xxx constants.
         PyObject* GetBoundingRect(const wxTreeItemId& item,  bool textOnly = false) {
              wxRect rect;
             if (self->GetBoundingRect(item, rect, textOnly)) {
-                bool blocked = wxPyBeginBlockThreads();
+                wxPyBlock_t blocked = wxPyBeginBlockThreads();
                 wxRect* r = new wxRect(rect);
                 PyObject* val = wxPyConstructObject((void*)r, wxT("wxRect"), true);
                 wxPyEndBlockThreads(blocked);

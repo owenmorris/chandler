@@ -9,11 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "scrolbar.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
@@ -31,8 +31,6 @@ END_EVENT_TABLE()
 
 #endif
 
-extern ControlActionUPP wxMacLiveScrollbarActionUPP ;
-
 // Scrollbar
 bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
            const wxPoint& pos,
@@ -47,9 +45,9 @@ bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
 
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr ( CreateScrollBarControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , 
-    0 , 0 , 100 , 1 , true /* liveTracking */ , wxMacLiveScrollbarActionUPP , m_peer->GetControlRefAddr() ) );
+    0 , 0 , 100 , 1 , true /* liveTracking */ , GetwxMacLiveScrollbarActionProc() , m_peer->GetControlRefAddr() ) );
     
 
     MacPostControlCreate(pos,size) ;
@@ -84,15 +82,12 @@ void wxScrollBar::SetScrollbar(int position, int thumbSize, int range, int pageS
     m_peer->SetMinimum( 0 ) ;
     m_peer->SetValue( position ) ;
     m_peer->SetViewSize( m_viewSize ) ;
-
-    if ( refresh )
-      MacRedrawControl() ;
 }
 
 
 void wxScrollBar::Command(wxCommandEvent& event)
 {
-    SetThumbPosition(event.m_commandInt);
+    SetThumbPosition(event.GetInt());
     ProcessCommand(event);
 }
 

@@ -39,12 +39,12 @@
     #include "wx/event.h"
     #include "wx/gauge.h"
     #include "wx/intl.h"
-    #include "wx/settings.h"
     #include "wx/dcclient.h"
     #include "wx/timer.h"
 #endif
 
 #include "wx/generic/progdlgg.h"
+#include "wx/settings.h"
 
 // ---------------------------------------------------------------------------
 // macros
@@ -66,6 +66,8 @@
 
 #define LAYOUT_MARGIN wxLARGESMALL(8,2)
 
+static const int wxID_SKIP = 32000;  // whatever
+
 // ----------------------------------------------------------------------------
 // private functions
 // ----------------------------------------------------------------------------
@@ -79,6 +81,7 @@ static void SetTimeLabel(unsigned long val, wxStaticText *label);
 
 BEGIN_EVENT_TABLE(wxProgressDialog, wxDialog)
     EVT_BUTTON(wxID_CANCEL, wxProgressDialog::OnCancel)
+    EVT_BUTTON(wxID_SKIP, wxProgressDialog::OnSkip)
 
     EVT_CLOSE(wxProgressDialog::OnClose)
 END_EVENT_TABLE()
@@ -99,21 +102,26 @@ wxProgressDialog::wxProgressDialog(wxString const &title,
                                    wxWindow *parent,
                                    int style)
                 : wxDialog(parent, wxID_ANY, title),
-                  m_delay(3)
+                  m_skip(false),
+                  m_delay(3),
+                  m_hasAbortButton(false),
+                  m_hasSkipButton(false)
 {
     // we may disappear at any moment, let the others know about it
     SetExtraStyle(GetExtraStyle() | wxWS_EX_TRANSIENT);
-
     m_windowStyle |= style;
 
-    bool hasAbortButton = (style & wxPD_CAN_ABORT) != 0;
+    m_hasAbortButton = (style & wxPD_CAN_ABORT) != 0;
+    m_hasSkipButton = (style & wxPD_CAN_SKIP) != 0;
+
+    bool isPda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
 
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     // we have to remove the "Close" button from the title bar then as it is
     // confusing to have it - it doesn't work anyhow
     //
     // FIXME: should probably have a (extended?) window style for this
-    if ( !hasAbortButton )
+    if ( !m_hasAbortButton )
     {
         EnableCloseButton(false);
     }
@@ -123,7 +131,7 @@ wxProgressDialog::wxProgressDialog(wxString const &title,
     SetLeftMenu();
 #endif
 
-    m_state = hasAbortButton ? Continue : Uncancelable;
+    m_state = m_hasAbortButton ? Continue : Uncancelable;
     m_maximum = maximum;
 
 #if defined(__WXMSW__) || defined(__WXPM__)
@@ -151,12 +159,12 @@ wxProgressDialog::wxProgressDialog(wxString const &title,
 
     if ( maximum > 0 )
     {
-        // note that we can't use wxGA_SMOOTH because it happens to
-        // cause the dialog to be modal. Have an extra
-        // style argument to wxProgressDialog, perhaps.
+        int gauge_style = wxGA_HORIZONTAL;
+        if ( ( style & wxPD_SMOOTH ) == wxPD_SMOOTH )
+            gauge_style |= wxGA_SMOOTH;
         m_gauge = new wxGauge(this, wxID_ANY, m_maximum,
                               wxDefaultPosition, wxDefaultSize,
-                              wxGA_HORIZONTAL);
+                              gauge_style );
 
         sizer->Add(m_gauge, 0, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 2*LAYOUT_MARGIN);
         m_gauge->SetValue(0);
@@ -209,37 +217,59 @@ wxProgressDialog::wxProgressDialog(wxString const &title,
         sizeDlg.y += nTimeLabels * (label->GetSize().y + LAYOUT_MARGIN);
     }
 
-    if ( hasAbortButton )
-    {
 #if defined(__SMARTPHONE__)
-        SetLeftMenu(wxID_CANCEL, _("Cancel"));
-    }
+    if ( m_hasSkipButton )
+        SetRightMenu(wxID_SKIP, _("Skip"));
+    if ( m_hasAbortButton )
+        SetLeftMenu(wxID_CANCEL);
 #else
+    m_btnAbort = m_btnSkip = (wxButton *)NULL;
+    bool sizeDlgModified = false;
+    wxBoxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    const int sizerFlags =
+#if defined(__WXMSW__) || defined(__WXPM__)
+                           wxALIGN_RIGHT | wxALL
+#else // !MSW
+                           wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP
+#endif // MSW/!MSW
+                           ;
+
+    if ( m_hasSkipButton )
+    {
+        m_btnSkip = new wxButton(this, wxID_SKIP, _("Skip"));
+
+        // Windows dialogs usually have buttons in the lower right corner
+        buttonSizer->Add(m_btnSkip, 0, sizerFlags, LAYOUT_MARGIN);
+        sizeDlg.y += 2*LAYOUT_MARGIN + wxButton::GetDefaultSize().y;
+        sizeDlgModified = true;
+    }
+
+    if ( m_hasAbortButton )
+    {
         m_btnAbort = new wxButton(this, wxID_CANCEL);
 
         // Windows dialogs usually have buttons in the lower right corner
-#if defined(__WXMSW__) || defined(__WXPM__)
-        sizer->Add(m_btnAbort, 0, wxALIGN_RIGHT | wxALL, 2*LAYOUT_MARGIN);
-#else // !MSW
-        sizer->Add(m_btnAbort, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM | wxTOP, 2*LAYOUT_MARGIN);
-#endif // MSW/!MSW
-        sizeDlg.y += 2*LAYOUT_MARGIN + wxButton::GetDefaultSize().y;
+        buttonSizer->Add(m_btnAbort, 0, sizerFlags, LAYOUT_MARGIN);
+        if(!sizeDlgModified)
+            sizeDlg.y += 2*LAYOUT_MARGIN + wxButton::GetDefaultSize().y;
     }
-    else // no "Cancel" button
+
+    sizer->Add(buttonSizer, 0, sizerFlags, LAYOUT_MARGIN );
 #endif // __SMARTPHONE__/!__SMARTPHONE__
-    {
-        m_btnAbort = (wxButton *)NULL;
-    }
 
     SetSizerAndFit(sizer);
 
-    sizeDlg.y += 2*LAYOUT_MARGIN;
+    if (!isPda)
+    {
+        sizeDlg.y += 2*LAYOUT_MARGIN;
 
-    // try to make the dialog not square but rectangular of reasonabel width
-    sizeDlg.x = (wxCoord)wxMax(widthText, 4*sizeDlg.y/3);
-    sizeDlg.x *= 3;
-    sizeDlg.x /= 2;
-    SetClientSize(sizeDlg);
+        // try to make the dialog not square but rectangular of reasonable width
+        sizeDlg.x = (wxCoord)wxMax(widthText, 4*sizeDlg.y/3);
+        sizeDlg.x *= 3;
+        sizeDlg.x /= 2;
+        SetClientSize(sizeDlg);
+    }
 
     Centre(wxCENTER_FRAME | wxBOTH);
 
@@ -302,7 +332,7 @@ wxStaticText *wxProgressDialog::CreateLabel(const wxString& text,
 // ----------------------------------------------------------------------------
 
 bool
-wxProgressDialog::Update(int value, const wxString& newmsg)
+wxProgressDialog::Update(int value, const wxString& newmsg, bool *skip)
 {
     wxASSERT_MSG( value == -1 || m_gauge, wxT("cannot update non existent dialog") );
 
@@ -319,7 +349,7 @@ wxProgressDialog::Update(int value, const wxString& newmsg)
         m_gauge->SetValue(value == m_maximum ? value : value + 1);
     }
 
-    if ( !newmsg.IsEmpty() )
+    if ( !newmsg.empty() && newmsg != m_msg->GetLabel() )
     {
         m_msg->SetLabel(newmsg);
 
@@ -391,22 +421,13 @@ wxProgressDialog::Update(int value, const wxString& newmsg)
         m_state = Finished;
         if( !(GetWindowStyle() & wxPD_AUTO_HIDE) )
         {
-#if defined(__SMARTPHONE__)
-            SetLeftMenu(wxID_CANCEL, _("Close"));
-#endif
-            if ( m_btnAbort )
-            {
-                // tell the user what he should do...
-                m_btnAbort->SetLabel(_("Close"));
-            }
+            EnableClose();
+            DisableSkip();
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
-            else // enable the button to give the user a way to close the dlg
-            {
-                EnableCloseButton();
-            }
+            EnableCloseButton();
 #endif // __WXMSW__
 
-            if ( !newmsg )
+            if ( newmsg.empty() )
             {
                 // also provide the finishing message if the application didn't
                 m_msg->SetLabel(_("Done."));
@@ -429,8 +450,15 @@ wxProgressDialog::Update(int value, const wxString& newmsg)
     else
     {
         // we have to yield because not only we want to update the display but
-        // also to process the clicks on the cancel button
+        // also to process the clicks on the cancel and skip buttons
         wxYieldIfNeeded() ;
+
+        if ( (m_skip) && (skip != NULL) && (*skip == false) )
+        {
+            *skip = true;
+            m_skip = false;
+            EnableSkip();
+        }
     }
 
     // update the display in case yielding above didn't do it
@@ -445,13 +473,9 @@ void wxProgressDialog::Resume()
     m_ctdelay = m_delay; // force an update of the elapsed/estimated/remaining time
     m_break += wxGetCurrentTime()-m_timeStop;
 
-    // it may have been disabled by OnCancel(), so enable it back to let the
-    // user interrupt us again if needed
-    if(m_btnAbort)
-        m_btnAbort->Enable();
-#if defined(__SMARTPHONE__)
-    SetLeftMenu(wxID_CANCEL, _("Cancel"));
-#endif
+    EnableAbort();
+    EnableSkip();
+    m_skip = false;
 }
 
 bool wxProgressDialog::Show( bool show )
@@ -483,18 +507,20 @@ void wxProgressDialog::OnCancel(wxCommandEvent& event)
         // will handle it
         m_state = Canceled;
 
-        // update the button state immediately so that the user knows that the
+        // update the buttons state immediately so that the user knows that the
         // request has been noticed
-        if(m_btnAbort)
-            m_btnAbort->Disable();
-
-#if defined(__SMARTPHONE__)
-        SetLeftMenu();
-#endif
+        DisableAbort();
+        DisableSkip();
 
         // save the time when the dialog was stopped
         m_timeStop = wxGetCurrentTime();
     }
+}
+
+void wxProgressDialog::OnSkip(wxCommandEvent& WXUNUSED(event))
+{
+    DisableSkip();
+    m_skip = true;
 }
 
 void wxProgressDialog::OnClose(wxCloseEvent& event)
@@ -513,11 +539,9 @@ void wxProgressDialog::OnClose(wxCloseEvent& event)
     {
         // next Update() will notice it
         m_state = Canceled;
-        if(m_btnAbort)
-            m_btnAbort->Disable();
-#if defined(__SMARTPHONE__)
-        SetLeftMenu();
-#endif
+        DisableAbort();
+        DisableSkip();
+
         m_timeStop = wxGetCurrentTime();
     }
 }
@@ -562,6 +586,54 @@ static void SetTimeLabel(unsigned long val, wxStaticText *label)
 
         if ( s != label->GetLabel() )
             label->SetLabel(s);
+    }
+}
+
+void wxProgressDialog::EnableSkip(bool enable)
+{
+    if(m_hasSkipButton)
+    {
+#ifdef __SMARTPHONE__
+        if(enable)
+            SetRightMenu(wxID_SKIP, _("Skip"));
+        else
+            SetRightMenu();
+#else
+        if(m_btnSkip)
+            m_btnSkip->Enable(enable);
+#endif
+    }
+}
+
+void wxProgressDialog::EnableAbort(bool enable)
+{
+    if(m_hasAbortButton)
+    {
+#ifdef __SMARTPHONE__
+        if(enable)
+            SetLeftMenu(wxID_CANCEL); // stock buttons makes Cancel label
+        else
+            SetLeftMenu();
+#else
+        if(m_btnAbort)
+            m_btnAbort->Enable(enable);
+#endif
+    }
+}
+
+void wxProgressDialog::EnableClose()
+{
+    if(m_hasAbortButton)
+    {
+#ifdef __SMARTPHONE__
+        SetLeftMenu(wxID_CANCEL, _("Close"));
+#else
+        if(m_btnAbort)
+        {
+            m_btnAbort->Enable();
+            m_btnAbort->SetLabel(_("Close"));
+        }
+#endif
     }
 }
 

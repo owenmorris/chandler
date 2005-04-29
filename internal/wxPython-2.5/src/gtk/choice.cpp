@@ -38,6 +38,7 @@ extern bool   g_blockEventsOnDrag;
 // "activate"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_choice_clicked_callback( GtkWidget *WXUNUSED(widget), wxChoice *choice )
 {
     if (g_isIdle)
@@ -46,6 +47,29 @@ static void gtk_choice_clicked_callback( GtkWidget *WXUNUSED(widget), wxChoice *
     if (!choice->m_hasVMT) return;
 
     if (g_blockEventsOnDrag) return;
+
+    int selection = wxNOT_FOUND;
+
+#ifdef __WXGTK20__
+    selection = gtk_option_menu_get_history( GTK_OPTION_MENU(choice->GetHandle()) );
+#else
+    GtkMenuShell *menu_shell = GTK_MENU_SHELL( gtk_option_menu_get_menu( GTK_OPTION_MENU(choice->GetHandle()) ) );
+    int count = 0;
+
+    GList *child = menu_shell->children;
+    while (child)
+    {
+        GtkBin *bin = GTK_BIN( child->data );
+        if (!bin->child)
+        {
+            selection = count;
+            break;
+        }
+        child = child->next;
+        count++;
+    }
+#endif
+    choice->m_selection_hack = selection;
 
     wxCommandEvent event(wxEVT_COMMAND_CHOICE_SELECTED, choice->GetId() );
     int n = choice->GetSelection();
@@ -60,6 +84,7 @@ static void gtk_choice_clicked_callback( GtkWidget *WXUNUSED(widget), wxChoice *
         event.SetClientData( choice->GetClientData(n) );
 
     choice->GetEventHandler()->ProcessEvent(event);
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -111,6 +136,9 @@ bool wxChoice::Create( wxWindow *parent, wxWindowID id,
         m_strings = new wxSortedArrayString;
     }
 
+    // begin with no selection
+    m_selection_hack = wxNOT_FOUND;
+
     GtkWidget *menu = gtk_menu_new();
 
     for (int i = 0; i < n; i++)
@@ -153,6 +181,13 @@ int wxChoice::DoInsert( const wxString &item, int pos )
         return DoAppend(item);
 
     GtkWidget *menu = gtk_option_menu_get_menu( GTK_OPTION_MENU(m_widget) );
+
+    // if the item to insert is at or before the selection, and the selection is valid
+    if ((pos <= m_selection_hack) && (m_selection_hack != wxNOT_FOUND))
+    {
+        // move the selection forward one
+        m_selection_hack++;
+    }
 
     return GtkAddHelper(menu, pos, item);
 }
@@ -224,6 +259,9 @@ void wxChoice::Clear()
 
     if ( m_strings )
         m_strings->Clear();
+
+    // begin with no selection
+    m_selection_hack = wxNOT_FOUND;
 }
 
 void wxChoice::Delete( int n )
@@ -236,6 +274,18 @@ void wxChoice::Delete( int n )
         count = GetCount();
 
     wxCHECK_RET( n >= 0 && n < count, _T("invalid index in wxChoice::Delete") );
+
+    // if the item to delete is before the selection, and the selection is valid
+    if ((n < m_selection_hack) && (m_selection_hack != wxNOT_FOUND))
+    {
+        // move the selection back one
+        m_selection_hack--;
+    }
+    else if (n == m_selection_hack)
+    {
+        // invalidate the selection
+        m_selection_hack = wxNOT_FOUND;
+    }
 
     const bool hasClientData = m_clientDataItemsType != wxClientData_None;
     const bool hasObjectData = m_clientDataItemsType == wxClientData_Object;
@@ -329,25 +379,8 @@ int wxChoice::GetSelection() const
 {
     wxCHECK_MSG( m_widget != NULL, -1, wxT("invalid choice") );
 
-#ifdef __WXGTK20__
+    return m_selection_hack;
 
-    return gtk_option_menu_get_history( GTK_OPTION_MENU(m_widget) );
-
-#else
-    GtkMenuShell *menu_shell = GTK_MENU_SHELL( gtk_option_menu_get_menu( GTK_OPTION_MENU(m_widget) ) );
-    int count = 0;
-
-    GList *child = menu_shell->children;
-    while (child)
-    {
-        GtkBin *bin = GTK_BIN( child->data );
-        if (!bin->child) return count;
-        child = child->next;
-        count++;
-    }
-
-    return -1;
-#endif
 }
 
 void wxChoice::SetString( int n, const wxString& str )
@@ -435,6 +468,24 @@ void wxChoice::SetSelection( int n )
 
     int tmp = n;
     gtk_option_menu_set_history( GTK_OPTION_MENU(m_widget), (gint)tmp );
+
+    // set the local selection variable manually
+    if ((n >= 0) && (n < GetCount()))
+    {
+        // a valid selection has been made
+        m_selection_hack = n;
+    }
+    else if ((n == wxNOT_FOUND) || (GetCount() == 0))
+    {
+        // invalidates the selection if there are no items
+        // or if it is specifically set to wxNOT_FOUND
+        m_selection_hack = wxNOT_FOUND;
+    }
+    else
+    {
+        // this selects the first item by default if the selection is out of bounds
+        m_selection_hack = 0;
+    }
 }
 
 void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
@@ -514,7 +565,13 @@ int wxChoice::GtkAddHelper(GtkWidget *menu, int pos, const wxString& item)
         ApplyWidgetStyle();
     }
 
-    gtk_signal_connect( GTK_OBJECT( menu_item ), "activate",
+    // The best size of a wxChoice should probably
+    // be changed everytime the control has been
+    // changed, but at least after adding an item
+    // it has to change. Adapted from Matt Ownby.
+    InvalidateBestSize();
+    
+    gtk_signal_connect_after( GTK_OBJECT( menu_item ), "activate",
       GTK_SIGNAL_FUNC(gtk_choice_clicked_callback), (gpointer*)this );
 
     gtk_widget_show( menu_item );

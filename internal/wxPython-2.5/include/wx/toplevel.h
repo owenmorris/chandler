@@ -26,7 +26,7 @@
 #include "wx/iconbndl.h"
 
 // the default names for various classs
-WXDLLEXPORT_DATA(extern const wxChar*) wxFrameNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxFrameNameStr;
 
 class WXDLLEXPORT wxTopLevelWindowBase;
 
@@ -71,7 +71,7 @@ class WXDLLEXPORT wxTopLevelWindowBase;
     #elif defined(__WINCE_STANDARDSDK__)
         #define wxDEFAULT_FRAME_STYLE (wxMAXIMIZE|wxCLOSE_BOX)
     #else
-        #define wxDEFAULT_FRAME_STYLE (0)
+        #define wxDEFAULT_FRAME_STYLE (wxNO_BORDER)
     #endif
 #else // !__WXWINCE__
     #define wxDEFAULT_FRAME_STYLE \
@@ -196,12 +196,26 @@ public:
     void OnCloseWindow(wxCloseEvent& event);
     void OnSize(wxSizeEvent& WXUNUSED(event)) { DoLayout(); }
 
+    // Get rect to be used to center top-level children
+    virtual void GetRectForTopLevelChildren(int *x, int *y, int *w, int *h);
+
     // this should go away, but for now it's called from docview.cpp,
     // so should be there for all platforms
     void OnActivate(wxActivateEvent &WXUNUSED(event)) { }
 
     // do the window-specific processing after processing the update event
     virtual void DoUpdateWindowUI(wxUpdateUIEvent& event) ;
+
+    // Reserved for future use
+    virtual void ReservedTopLevelWindowFunc1() {}
+    virtual void ReservedTopLevelWindowFunc2() {}
+    virtual void ReservedTopLevelWindowFunc3() {}
+    virtual void ReservedTopLevelWindowFunc4() {}
+    virtual void ReservedTopLevelWindowFunc5() {}
+    virtual void ReservedTopLevelWindowFunc6() {}
+    virtual void ReservedTopLevelWindowFunc7() {}
+    virtual void ReservedTopLevelWindowFunc8() {}
+    virtual void ReservedTopLevelWindowFunc9() {}
 
 protected:
     // the frame client to screen translation should take account of the
@@ -241,7 +255,10 @@ protected:
 
 
 // include the real class declaration
-#if defined(__WXMSW__)
+#if defined(__WXPALMOS__)
+    #include "wx/palmos/toplevel.h"
+    #define wxTopLevelWindowNative wxTopLevelWindowPalm
+#elif defined(__WXMSW__)
     #include "wx/msw/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowMSW
 #elif defined(__WXGTK__)

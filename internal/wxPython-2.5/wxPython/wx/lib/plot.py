@@ -556,7 +556,7 @@ class PlotCanvas(wx.Window):
                 self.pageSetupData.SetMarginBottomRight(data.GetMarginBottomRight())
                 self.pageSetupData.SetMarginTopLeft(data.GetMarginTopLeft())
                 self.pageSetupData.SetPrintData(data.GetPrintData())
-                self.print_data=data.GetPrintData() # updates print_data
+                self.print_data=wx.PrintData(data.GetPrintData()) # updates print_data
         finally:
             dlg.Destroy()
                 
@@ -570,7 +570,7 @@ class PlotCanvas(wx.Window):
         out = PlotPrintout(self)
         print_ok = printer.Print(self.parent, out)
         if print_ok:
-            self.print_data = printer.GetPrintDialogData().GetPrintData()
+            self.print_data = wx.PrintData(printer.GetPrintDialogData().GetPrintData())
         out.Destroy()
 
     def PrintPreview(self):
@@ -630,8 +630,8 @@ class PlotCanvas(wx.Window):
 
     def SetEnableGrid(self, value):
         """Set True to enable grid."""
-        if value not in [True,False]:
-            raise TypeError, "Value should be True or False"
+        if value not in [True,False,'Horizontal','Vertical']:
+            raise TypeError, "Value should be True, False, Horizontal or Vertical"
         self._gridEnabled= value
         self.Redraw()
 
@@ -1228,8 +1228,15 @@ class PlotCanvas(wx.Window):
         # set length of tick marks--long ones make grid
         if self._gridEnabled:
             x,y,width,height= self._point2ClientCoord(p1,p2)
-            yTickLength= width/2.0 +1
-            xTickLength= height/2.0 +1
+            if self._gridEnabled == 'Horizontal':
+                yTickLength= width/2.0 +1
+                xTickLength= 3 * self.printerScale
+            elif self._gridEnabled == 'Vertical':
+                yTickLength= 3 * self.printerScale
+                xTickLength= height/2.0 +1
+            else:
+                yTickLength= width/2.0 +1
+                xTickLength= height/2.0 +1
         else:
             yTickLength= 3 * self.printerScale  # lengthens lines for printing
             xTickLength= 3 * self.printerScale

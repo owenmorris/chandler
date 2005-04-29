@@ -19,9 +19,7 @@
 #if wxUSE_SLIDER
 
 #include "wx/utils.h"
-
-#include <math.h>
-
+#include "wx/math.h"
 #include "wx/gtk/private.h"
 
 //-----------------------------------------------------------------------------
@@ -43,6 +41,7 @@ static const float sensitivity = 0.02;
 // "value_changed"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_slider_callback( GtkAdjustment *adjust,
                                  SCROLLBAR_CBACK_ARG
                                  wxSlider *win )
@@ -73,6 +72,7 @@ static void gtk_slider_callback( GtkAdjustment *adjust,
     cevent.SetEventObject( win );
     cevent.SetInt( value );
     win->GetEventHandler()->ProcessEvent( cevent );
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -133,6 +133,11 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
         gtk_scale_set_draw_value( GTK_SCALE( m_widget ), FALSE );
 
     m_adjust = gtk_range_get_adjustment( GTK_RANGE(m_widget) );
+
+#ifdef __WXGTK20__
+    if (style & wxSL_INVERSE)
+        gtk_range_set_inverted( GTK_RANGE(m_widget), TRUE );
+#endif
 
     GtkEnableEvents();
 

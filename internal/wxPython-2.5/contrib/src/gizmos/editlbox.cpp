@@ -41,7 +41,7 @@ public:
                   const wxSize &size = wxDefaultSize,
                   long style = wxLC_ICON,
                   const wxValidator& validator = wxDefaultValidator,
-                  const wxString &name = _T("listctrl"))
+                  const wxString &name = wxListCtrlNameStr)
          : wxListCtrl(parent, id, pos, size, style, validator, name)
     {
         CreateColumns();
@@ -85,21 +85,18 @@ END_EVENT_TABLE()
 
 IMPLEMENT_CLASS(wxEditableListBox, wxPanel)
 
-enum
-{
-    // ID value doesn't matter, it won't propagate out of wxEditableListBox
-    // instance
-    wxID_ELB_DELETE = wxID_HIGHEST + 1,
-    wxID_ELB_NEW,
-    wxID_ELB_UP,
-    wxID_ELB_DOWN,
-    wxID_ELB_EDIT,
-    wxID_ELD_LISTCTRL
-};
+// NB: generate the IDs at runtime to avoid conflict with XRCID values,
+//     they could cause XRCCTRL() failures in XRC-based dialogs
+const int wxID_ELB_DELETE = wxNewId();
+const int wxID_ELB_EDIT = wxNewId();
+const int wxID_ELB_NEW = wxNewId();
+const int wxID_ELB_UP = wxNewId();
+const int wxID_ELB_DOWN = wxNewId();
+const int wxID_ELB_LISTCTRL = wxNewId();
 
 BEGIN_EVENT_TABLE(wxEditableListBox, wxPanel)
-    EVT_LIST_ITEM_SELECTED(wxID_ELD_LISTCTRL, wxEditableListBox::OnItemSelected)
-    EVT_LIST_END_LABEL_EDIT(wxID_ELD_LISTCTRL, wxEditableListBox::OnEndLabelEdit)
+    EVT_LIST_ITEM_SELECTED(wxID_ELB_LISTCTRL, wxEditableListBox::OnItemSelected)
+    EVT_LIST_END_LABEL_EDIT(wxID_ELB_LISTCTRL, wxEditableListBox::OnEndLabelEdit)
     EVT_BUTTON(wxID_ELB_NEW, wxEditableListBox::OnNewItem)
     EVT_BUTTON(wxID_ELB_UP, wxEditableListBox::OnUpItem)
     EVT_BUTTON(wxID_ELB_DOWN, wxEditableListBox::OnDownItem)
@@ -173,7 +170,7 @@ wxEditableListBox::wxEditableListBox(wxWindow *parent, wxWindowID id,
     long st = wxLC_REPORT | wxLC_NO_HEADER | wxLC_SINGLE_SEL | wxSUNKEN_BORDER;
     if ( style & wxEL_ALLOW_EDIT )
          st |= wxLC_EDIT_LABELS;
-    m_listCtrl = new CleverListCtrl(this, wxID_ELD_LISTCTRL,
+    m_listCtrl = new CleverListCtrl(this, wxID_ELB_LISTCTRL,
                                     wxDefaultPosition, wxDefaultSize, st);
     wxArrayString empty_ar;
     SetStrings(empty_ar);
@@ -225,7 +222,7 @@ void wxEditableListBox::OnNewItem(wxCommandEvent& WXUNUSED(event))
 void wxEditableListBox::OnEndLabelEdit(wxListEvent& event)
 {
     if ( event.GetIndex() == m_listCtrl->GetItemCount()-1 &&
-         !event.GetText().IsEmpty() )
+         !event.GetText().empty() )
     {
         // The user edited last (empty) line, i.e. added new entry. We have to
         // add new empty line here so that adding one more line is still

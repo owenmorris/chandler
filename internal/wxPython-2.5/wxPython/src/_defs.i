@@ -82,14 +82,16 @@ typedef unsigned long   wxUIntPtr;
 %define MAKE_CONST_WXSTRING(strname)
     %{ static const wxString wxPy##strname(wx##strname); %}
     %immutable;
-    %name(strname) const wxString wxPy##strname;
+    %rename(strname) wxPy##strname;
+    const wxString wxPy##strname;
     %mutable;
 %enddef
 
 %define MAKE_CONST_WXSTRING2(strname, val)
     %{ static const wxString wxPy##strname(val); %}
     %immutable;
-    %name(strname) const wxString wxPy##strname;
+    %rename(strname) wxPy##strname;
+    const wxString wxPy##strname;
     %mutable;
 %enddef
 
@@ -163,12 +165,14 @@ typedef unsigned long   wxUIntPtr;
 #ifdef _DO_FULL_DOCS
     %define DocDeclStrName(type, decl, docstr, details, newname)
         %feature("docstring") decl docstr details;
-        %name(newname) type decl
+        %rename(newname) decl;
+        type decl
     %enddef
 #else
     %define DocDeclStrName(type, decl, docstr, details, newname)
         %feature("docstring") decl docstr;
-        %name(newname) type decl
+        %rename(newname) decl;
+        type decl
     %enddef
 #endif
         
@@ -183,7 +187,8 @@ typedef unsigned long   wxUIntPtr;
 // As above, but also give the decl a new %name    
 %define DocDeclAName(type, decl, astr, newname)
     %feature("autodoc") decl astr;
-    %name(newname) type decl
+    %rename(newname) decl;
+    type decl
 %enddef
 
 
@@ -210,13 +215,15 @@ typedef unsigned long   wxUIntPtr;
     %define DocDeclAStrName(type, decl, astr, docstr, details, newname)
         %feature("autodoc") decl astr;
         %feature("docstring") decl docstr details;
-        %name(newname) type decl
+        %rename(newname) decl;
+        type decl
     %enddef
 #else
     %define DocDeclAStrName(type, decl, astr, docstr, details, newname)
         %feature("autodoc") decl astr;
         %feature("docstring") decl docstr;
-        %name(newname) type decl
+        %rename(newname) decl;
+        type decl
     %enddef
 #endif
 
@@ -241,15 +248,16 @@ typedef unsigned long   wxUIntPtr;
 #ifdef _DO_FULL_DOCS
     %define DocCtorStrName(decl, docstr, details, newname)
         %feature("docstring") decl docstr details;
-        %name(newname) decl
+        %rename(newname) decl;
+        decl
     %enddef
 #else
     %define DocCtorStrName(decl, docstr, details, newname)
         %feature("docstring") decl docstr;
-        %name(newname) decl
+        %rename(newname) decl;
+        decl
     %enddef
 #endif
-
 
         
 // Set the autodoc string for a constructor decl and then define the decl too.
@@ -262,7 +270,8 @@ typedef unsigned long   wxUIntPtr;
 // As above, but also give the decl a new %name    
 %define DocCtorAName(decl, astr, newname)
     %feature("autodoc") decl astr;
-    %name(newname) decl
+    %rename(newname) decl;
+    decl
 %enddef
 
 
@@ -290,13 +299,15 @@ typedef unsigned long   wxUIntPtr;
     %define DocCtorAStrName(decl, astr, docstr, details, newname)
         %feature("autodoc") decl astr;
         %feature("docstring") decl docstr details;
-        %name(newname) decl
+        %rename(newname) decl;
+        decl
     %enddef
 #else
     %define DocCtorAStrName(decl, astr, docstr, details, newname)
         %feature("autodoc") decl astr;
         %feature("docstring") decl docstr;
-        %name(newname) decl
+        %rename(newname) decl;
+        decl
     %enddef
 #endif
 
@@ -307,6 +318,33 @@ typedef unsigned long   wxUIntPtr;
 %#---------------------------------------------------------------------------
 }
 %enddef
+
+
+// A set of macros to make using %rename easier, since %name has been
+// deprecated...
+%define %Rename(newname, type, decl)
+    %rename(newname) decl;
+    type decl
+%enddef
+
+%define %RenameCtor(newname, decl)
+    %rename(newname) decl;
+    decl
+%enddef
+
+#ifdef _DO_FULL_DOCS
+    %define %RenameDocCtor(newname, docstr, details, decl)
+        %feature("docstring") decl docstr details;
+        %rename(newname) decl;
+        decl
+    %enddef
+#else
+    %define %RenameDocCtor(newname, docstr, details, decl)
+        %feature("docstring") decl docstr;
+        %rename(newname) decl;
+        decl
+    %enddef
+#endif
 
 //---------------------------------------------------------------------------
 // Forward declarations and %renames for some classes, so the autodoc strings
@@ -344,6 +382,13 @@ FORWARD_DECLARE(wxStaticBox,      StaticBox);
 
 //---------------------------------------------------------------------------
 
+%{
+#if !WXWIN_COMPATIBILITY_2_4
+    #define wxHIDE_READONLY  0
+#endif
+%}    
+
+
 // General numeric #define's and etc.  Making them all enums makes SWIG use the
 // real macro when making the Python Int
 
@@ -365,19 +410,15 @@ enum {
     wxSTATIC_BORDER,
     wxTRANSPARENT_WINDOW,
     wxNO_BORDER,
-
+    wxDEFAULT_CONTROL_BORDER,
+    wxDEFAULT_STATUSBAR_STYLE,
+    
     wxTAB_TRAVERSAL,
     wxWANTS_CHARS,
     wxPOPUP_WINDOW,
     wxCENTER_FRAME,
     wxCENTRE_ON_SCREEN,
     wxCENTER_ON_SCREEN,
-
-    wxED_CLIENT_MARGIN,
-    wxED_BUTTONS_BOTTOM,
-    wxED_BUTTONS_RIGHT,
-    wxED_STATIC_LINE,
-    wxEXT_DIALOG_STYLE,
 
     wxCLIP_CHILDREN,
     wxCLIP_SIBLINGS,
@@ -409,20 +450,12 @@ enum {
     wxRA_VERTICAL,
     wxRA_SPECIFY_ROWS,
     wxRA_SPECIFY_COLS,
+    wxRA_USE_CHECKBOX,
     wxRB_GROUP,
     wxRB_SINGLE,
-    wxSL_HORIZONTAL,
-    wxSL_VERTICAL,
-    wxSL_AUTOTICKS,
-    wxSL_LABELS,
-    wxSL_LEFT,
-    wxSL_TOP,
-    wxSL_RIGHT,
-    wxSL_BOTTOM,
-    wxSL_BOTH,
-    wxSL_SELRANGE,
     wxSB_HORIZONTAL,
     wxSB_VERTICAL,
+    wxRB_USE_CHECKBOX,
     wxST_SIZEGRIP,
     wxST_NO_AUTORESIZE,
 
@@ -594,6 +627,8 @@ enum {
     wxPD_ELAPSED_TIME,
     wxPD_ESTIMATED_TIME,
     wxPD_REMAINING_TIME,
+    wxPD_SMOOTH,
+    wxPD_CAN_SKIP,
 
     wxDD_NEW_DIR_BUTTON,
     wxDD_DEFAULT_STYLE,
@@ -640,13 +675,6 @@ enum {
 //     wxTC_OWNERDRAW,
 
 };
-
-
-#ifdef __WXGTK__
-#define wxDEFAULT_STATUSBAR_STYLE wxST_SIZEGRIP|wxFULL_REPAINT_ON_RESIZE
-#else
-#define wxDEFAULT_STATUSBAR_STYLE wxST_SIZEGRIP
-#endif
 
 
 
@@ -793,116 +821,139 @@ typedef enum {
 } form_ops_t;
 
 enum wxKeyCode {
-  WXK_BACK    =    8,
-  WXK_TAB     =    9,
-  WXK_RETURN  =    13,
-  WXK_ESCAPE  =    27,
-  WXK_SPACE   =    32,
-  WXK_DELETE  =    127,
+    WXK_BACK    =    8,
+    WXK_TAB     =    9,
+    WXK_RETURN  =    13,
+    WXK_ESCAPE  =    27,
+    WXK_SPACE   =    32,
+    WXK_DELETE  =    127,
 
-  WXK_START   = 300,
-  WXK_LBUTTON,
-  WXK_RBUTTON,
-  WXK_CANCEL,
-  WXK_MBUTTON,
-  WXK_CLEAR,
-  WXK_SHIFT,
-  WXK_ALT,
-  WXK_CONTROL,
-  WXK_MENU,
-  WXK_PAUSE,
-  WXK_CAPITAL,
-  WXK_PRIOR,  /* Page up */
-  WXK_NEXT,   /* Page down */
-  WXK_END,
-  WXK_HOME,
-  WXK_LEFT,
-  WXK_UP,
-  WXK_RIGHT,
-  WXK_DOWN,
-  WXK_SELECT,
-  WXK_PRINT,
-  WXK_EXECUTE,
-  WXK_SNAPSHOT,
-  WXK_INSERT,
-  WXK_HELP,
-  WXK_NUMPAD0,
-  WXK_NUMPAD1,
-  WXK_NUMPAD2,
-  WXK_NUMPAD3,
-  WXK_NUMPAD4,
-  WXK_NUMPAD5,
-  WXK_NUMPAD6,
-  WXK_NUMPAD7,
-  WXK_NUMPAD8,
-  WXK_NUMPAD9,
-  WXK_MULTIPLY,
-  WXK_ADD,
-  WXK_SEPARATOR,
-  WXK_SUBTRACT,
-  WXK_DECIMAL,
-  WXK_DIVIDE,
-  WXK_F1,
-  WXK_F2,
-  WXK_F3,
-  WXK_F4,
-  WXK_F5,
-  WXK_F6,
-  WXK_F7,
-  WXK_F8,
-  WXK_F9,
-  WXK_F10,
-  WXK_F11,
-  WXK_F12,
-  WXK_F13,
-  WXK_F14,
-  WXK_F15,
-  WXK_F16,
-  WXK_F17,
-  WXK_F18,
-  WXK_F19,
-  WXK_F20,
-  WXK_F21,
-  WXK_F22,
-  WXK_F23,
-  WXK_F24,
-  WXK_NUMLOCK,
-  WXK_SCROLL,
-  WXK_PAGEUP,
-  WXK_PAGEDOWN,
+    WXK_START   = 300,
+    WXK_LBUTTON,
+    WXK_RBUTTON,
+    WXK_CANCEL,
+    WXK_MBUTTON,
+    WXK_CLEAR,
+    WXK_SHIFT,
+    WXK_ALT,
+    WXK_CONTROL,
+    WXK_MENU,
+    WXK_PAUSE,
+    WXK_CAPITAL,
+    WXK_PRIOR,  /* Page up */
+    WXK_NEXT,   /* Page down */
+    WXK_END,
+    WXK_HOME,
+    WXK_LEFT,
+    WXK_UP,
+    WXK_RIGHT,
+    WXK_DOWN,
+    WXK_SELECT,
+    WXK_PRINT,
+    WXK_EXECUTE,
+    WXK_SNAPSHOT,
+    WXK_INSERT,
+    WXK_HELP,
+    WXK_NUMPAD0,
+    WXK_NUMPAD1,
+    WXK_NUMPAD2,
+    WXK_NUMPAD3,
+    WXK_NUMPAD4,
+    WXK_NUMPAD5,
+    WXK_NUMPAD6,
+    WXK_NUMPAD7,
+    WXK_NUMPAD8,
+    WXK_NUMPAD9,
+    WXK_MULTIPLY,
+    WXK_ADD,
+    WXK_SEPARATOR,
+    WXK_SUBTRACT,
+    WXK_DECIMAL,
+    WXK_DIVIDE,
+    WXK_F1,
+    WXK_F2,
+    WXK_F3,
+    WXK_F4,
+    WXK_F5,
+    WXK_F6,
+    WXK_F7,
+    WXK_F8,
+    WXK_F9,
+    WXK_F10,
+    WXK_F11,
+    WXK_F12,
+    WXK_F13,
+    WXK_F14,
+    WXK_F15,
+    WXK_F16,
+    WXK_F17,
+    WXK_F18,
+    WXK_F19,
+    WXK_F20,
+    WXK_F21,
+    WXK_F22,
+    WXK_F23,
+    WXK_F24,
+    WXK_NUMLOCK,
+    WXK_SCROLL,
+    WXK_PAGEUP,
+    WXK_PAGEDOWN,
 
-  WXK_NUMPAD_SPACE,
-  WXK_NUMPAD_TAB,
-  WXK_NUMPAD_ENTER,
-  WXK_NUMPAD_F1,
-  WXK_NUMPAD_F2,
-  WXK_NUMPAD_F3,
-  WXK_NUMPAD_F4,
-  WXK_NUMPAD_HOME,
-  WXK_NUMPAD_LEFT,
-  WXK_NUMPAD_UP,
-  WXK_NUMPAD_RIGHT,
-  WXK_NUMPAD_DOWN,
-  WXK_NUMPAD_PRIOR,
-  WXK_NUMPAD_PAGEUP,
-  WXK_NUMPAD_NEXT,
-  WXK_NUMPAD_PAGEDOWN,
-  WXK_NUMPAD_END,
-  WXK_NUMPAD_BEGIN,
-  WXK_NUMPAD_INSERT,
-  WXK_NUMPAD_DELETE,
-  WXK_NUMPAD_EQUAL,
-  WXK_NUMPAD_MULTIPLY,
-  WXK_NUMPAD_ADD,
-  WXK_NUMPAD_SEPARATOR,
-  WXK_NUMPAD_SUBTRACT,
-  WXK_NUMPAD_DECIMAL,
-  WXK_NUMPAD_DIVIDE,
+    WXK_NUMPAD_SPACE,
+    WXK_NUMPAD_TAB,
+    WXK_NUMPAD_ENTER,
+    WXK_NUMPAD_F1,
+    WXK_NUMPAD_F2,
+    WXK_NUMPAD_F3,
+    WXK_NUMPAD_F4,
+    WXK_NUMPAD_HOME,
+    WXK_NUMPAD_LEFT,
+    WXK_NUMPAD_UP,
+    WXK_NUMPAD_RIGHT,
+    WXK_NUMPAD_DOWN,
+    WXK_NUMPAD_PRIOR,
+    WXK_NUMPAD_PAGEUP,
+    WXK_NUMPAD_NEXT,
+    WXK_NUMPAD_PAGEDOWN,
+    WXK_NUMPAD_END,
+    WXK_NUMPAD_BEGIN,
+    WXK_NUMPAD_INSERT,
+    WXK_NUMPAD_DELETE,
+    WXK_NUMPAD_EQUAL,
+    WXK_NUMPAD_MULTIPLY,
+    WXK_NUMPAD_ADD,
+    WXK_NUMPAD_SEPARATOR,
+    WXK_NUMPAD_SUBTRACT,
+    WXK_NUMPAD_DECIMAL,
+    WXK_NUMPAD_DIVIDE,
 
-  WXK_WINDOWS_LEFT,
-  WXK_WINDOWS_RIGHT,
-  WXK_WINDOWS_MENU
+    WXK_WINDOWS_LEFT,
+    WXK_WINDOWS_RIGHT,
+    WXK_WINDOWS_MENU,
 
+    WXK_COMMAND,
+
+    // Hardware-specific buttons
+    WXK_SPECIAL1 = 193,
+    WXK_SPECIAL2,
+    WXK_SPECIAL3,
+    WXK_SPECIAL4,
+    WXK_SPECIAL5,
+    WXK_SPECIAL6,
+    WXK_SPECIAL7,
+    WXK_SPECIAL8,
+    WXK_SPECIAL9,
+    WXK_SPECIAL10,
+    WXK_SPECIAL11,
+    WXK_SPECIAL12,
+    WXK_SPECIAL13,
+    WXK_SPECIAL14,
+    WXK_SPECIAL15,
+    WXK_SPECIAL16,
+    WXK_SPECIAL17,
+    WXK_SPECIAL18,
+    WXK_SPECIAL19,
+    WXK_SPECIAL20
 };
 
 

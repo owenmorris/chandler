@@ -12,6 +12,10 @@
 #ifndef _WX_SPINCTRL_H_
 #define _WX_SPINCTRL_H_
 
+#include "wx/defs.h"
+
+#if wxUSE_SPINCTRL
+
 #include "wx/spinbutt.h"        // should make wxSpinEvent visible to the app
 
 // ----------------------------------------------------------------------------
@@ -70,7 +74,8 @@ protected:
 #endif // platform
 
 #define EVT_SPINCTRL(id, fn) \
-    DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_SPINCTRL_UPDATED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxSpinEventFunction, & fn ), (wxObject *) NULL ),
+    wx__DECLARE_EVT1(wxEVT_COMMAND_SPINCTRL_UPDATED, id, wxSpinEventHandler(fn))
+
+#endif // wxUSE_SPINCTRL
 
 #endif // _WX_SPINCTRL_H_
-

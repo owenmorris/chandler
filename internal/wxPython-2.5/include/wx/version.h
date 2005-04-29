@@ -20,17 +20,20 @@
 /*  NB: this file is parsed by Perl code in tmake templates in distrib/msw/tmake */
 /*      so don't change its format too much or they could break */
 #define wxMAJOR_VERSION      2
-#define wxMINOR_VERSION      5
-#define wxRELEASE_NUMBER     3
-#define wxSUBRELEASE_NUMBER  1
-#define wxVERSION_STRING   _T("wxWidgets 2.5.3")
+#define wxMINOR_VERSION      6
+#define wxRELEASE_NUMBER     0
+#define wxSUBRELEASE_NUMBER  0
+#define wxVERSION_STRING   _T("wxWidgets 2.6.0")
 
 /*  nothing to update below this line when updating the version */
 /*  ---------------------------------------------------------------------------- */
 
 /*  helpers for wxVERSION_NUM_XXX */
-#define wxMAKE_VERSION_STRING(x, y, z) #x #y #z
-#define wxMAKE_VERSION_DOT_STRING(x, y, z) #x "." #y "." #z
+#define wxSTRINGIZE(x)  #x
+#define wxMAKE_VERSION_STRING(x, y, z) \
+    wxSTRINGIZE(x) wxSTRINGIZE(y) wxSTRINGIZE(z)
+#define wxMAKE_VERSION_DOT_STRING(x, y, z) \
+    wxSTRINGIZE(x) "." wxSTRINGIZE(y) "." wxSTRINGIZE(z)
 
 /*  these are used by src/msw/version.rc and should always be ASCII, not Unicode */
 #define wxVERSION_NUM_STRING \

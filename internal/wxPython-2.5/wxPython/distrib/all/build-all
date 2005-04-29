@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -u
 #----------------------------------------------------------------------
 # Name:        build-all.py
 # Purpose:     Master build script for building all the installers and
@@ -60,11 +60,10 @@ config.LINUX_BUILD = "/tmp/BUILD"
 # Upload server locations
 config.UPLOAD_HOST = "starship.python.net"
 config.UPLOAD_DAILY_ROOT = "/home/crew/robind/public_html/wxPython/daily"
-config.UPLOAD_PREVIEW_ROOT = "/home/crew/robind/public_html/wxPython/preview"
+config.UPLOAD_PREVIEW_ROOT = "/home/crew/robind/public_html/wxPython/rc"
 
 # defaults for build options
 config.KIND = "dryrun"
-config.PYVER = "2.3"
 config.skipsource = "no"
 config.onlysource = "no"
 config.skipdocs = "no"
@@ -74,7 +73,7 @@ config.skiplinux = "no"
 config.skipclean = "no"
 config.skipupload = "no"
 config.skipnewdocs = "no"
-
+config.startcohost = "yes"
 
 #----------------------------------------------------------------------
 # Define all the build tasks
@@ -92,26 +91,39 @@ initialTask = Task([ Job("", ["distrib/all/build-setup", CFGFILE]),
                      ])
 
 # Build tasks.  Anything that can be done in parallel (depends greatly
-# on the nature of the build machine configurations...) is a separate
+# on the nature of the build machines configurations...) is a separate
 # task.
-windowsTask = Task( Job("beast", ["distrib/all/build-windows", CFGFILE]) )
 
-jaguarTask =  Task( Job(config.OSX_HOST_jaguar,
-                        ["distrib/all/build-osx", CFGFILE, config.OSX_HOST_jaguar, "jaguar"]) )
+jaguarTask =  Task( Job("whopper.23",
+                        ["distrib/all/build-osx", CFGFILE, config.OSX_HOST_jaguar, "jaguar", "2.3"]) )
 
-pantherTask =  Task( Job(config.OSX_HOST_panther,
-                         ["distrib/all/build-osx", CFGFILE, config.OSX_HOST_panther, "panther"]) )
+pantherTask =  Task([ Job("bigmac.23", 
+                          ["distrib/all/build-osx", CFGFILE, config.OSX_HOST_panther, "panther", "2.3"]),
+                      Job("bigmac.24",
+                          ["distrib/all/build-osx", CFGFILE, config.OSX_HOST_panther, "panther", "2.4"])
+                     ])
 
-rpmTask = Task([ Job("co-rh9",    ["distrib/all/build-rpm", CFGFILE, "beast", "co-rh9",   "rh9",   "config"]),
-                 Job("co-fc2",    ["distrib/all/build-rpm", CFGFILE, "beast", "co-fc2",   "fc2",   "2.3"]),
-                 Job("co-mdk92",  ["distrib/all/build-rpm", CFGFILE, "beast", "co-mdk92", "mdk92", "2.3"]),
-                 Job("co-mdk101", ["distrib/all/build-rpm", CFGFILE, "beast", "co-mdk101","mdk101","2.3"]),
-                 ])
+beastTask1 = Task([ Job("beast.23",     ["distrib/all/build-windows", CFGFILE, "2.3"]),
+                    Job("beast.24",     ["distrib/all/build-windows", CFGFILE, "2.4"]),
+                    ])
 
-buildTasks = [ windowsTask,
-               jaguarTask,
+beastTask2 = Task([ Job("co-mdk101.23", ["distrib/all/build-rpm", CFGFILE, "beast", "co-mdk101","mdk101","2.3"]),
+                    Job("co-fc2.23",    ["distrib/all/build-rpm", CFGFILE, "beast", "co-fc2",   "fc2",   "2.3"]),
+                    Job("co-mdk101.24", ["distrib/all/build-rpm", CFGFILE, "beast", "co-mdk101","mdk101","2.4"]),
+                    Job("co-fc2.24",    ["distrib/all/build-rpm", CFGFILE, "beast", "co-fc2",   "fc2",   "2.4"]),
+                    ])
+
+cyclopsTask = Task([ Job("co-mdk92.23",  ["distrib/all/build-rpm", CFGFILE, "cyclops", "co-mdk92", "mdk92", "2.3"]),
+                     Job("co-rh9.23",    ["distrib/all/build-rpm", CFGFILE, "cyclops", "co-rh9",   "rh9",   "2.3"]),
+                     Job("co-mdk92.24",  ["distrib/all/build-rpm", CFGFILE, "cyclops", "co-mdk92", "mdk92", "2.4"]),
+                     Job("co-rh9.24",    ["distrib/all/build-rpm", CFGFILE, "cyclops", "co-rh9",   "rh9",   "2.4"]),
+                     ])
+
+buildTasks = [ jaguarTask,
                pantherTask,
-               rpmTask,
+               beastTask1,
+               beastTask2,
+               cyclopsTask,
                ]
 
 # Finalization.  This is for things that must wait until all the
@@ -132,10 +144,6 @@ def usage():
     print "   release      Do a normal release (cantidate) build, copy to starship"
     print ""
     print "optional command flags:"
-    print "   2.2          Build for Python 2.2 (default=off)"
-    print "   2.3          Build for Python 2.3 (default=on)"
-    print "   all          Build for all supported Python versions"
-    print ""
     print "   skipsource   Don't build the source archives, use the ones"
     print "                already in the staging dir."
     print "   onlysource   Exit after building the source and docs archives"
@@ -145,6 +153,9 @@ def usage():
     print "   skiplinux    Don't do the remote Linux build"
     print "   skipclean    Don't do the cleanup step on the remote builds"
     print "   skipupload   Don't upload the builds to starship"
+    print ""
+    print "   nocohost     Don't start the coLinux sessions if they are"
+    print "                not already online"
     print ""
     
 
@@ -162,11 +173,6 @@ def main(args):
     for flag in args:
         if flag in ["dryrun", "daily", "release"]:
             config.KIND = flag
-
-        elif flag in ["2.2", "2.3"]:
-            config.PYVER = flag
-        elif flag == "all":
-            config.PYVER = "2.2 2.3"
 
         elif flag == "skipsource":
             config.skipsource = "yes"
@@ -194,6 +200,9 @@ def main(args):
             
         elif flag == "skipupload":
             config.skipupload = "yes"
+
+        elif flag == "nocohost":
+            config.startcohost = "no"
             
         else:
             print 'Unknown flag: "%s"' % flag

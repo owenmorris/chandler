@@ -20,6 +20,8 @@
 // headers
 // ----------------------------------------------------------------------------
 
+#include "wx/defs.h"
+
 #if wxUSE_TREECTRL
 
 #include "wx/window.h"  // for wxClientData
@@ -61,8 +63,8 @@ public:
 
 #if WXWIN_COMPATIBILITY_2_4
     // deprecated: only for compatibility, don't work on 64 bit archs
-    wxTreeItemId(long item) { m_pItem = (wxTreeItemIdValue)item; }
-    operator long() const { return (long)m_pItem; }
+    wxTreeItemId(long item) { m_pItem = wxUIntToPtr(item); }
+    operator long() const { return (long)wxPtrToUInt(m_pItem); }
 #else // !WXWIN_COMPATIBILITY_2_4
     operator bool() const { return IsOk(); }
 #endif // WXWIN_COMPATIBILITY_2_4/!WXWIN_COMPATIBILITY_2_4
@@ -158,7 +160,11 @@ enum wxTreeItemIcon
 
 #define wxTR_FULL_ROW_HIGHLIGHT      0x2000     // highlight full horz space
 
+#ifdef __WXGTK20__
+#define wxTR_DEFAULT_STYLE           (wxTR_HAS_BUTTONS | wxTR_NO_LINES)
+#else
 #define wxTR_DEFAULT_STYLE           (wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT)
+#endif
 
 // deprecated, don't use
 #define wxTR_MAC_BUTTONS             0
@@ -197,7 +203,7 @@ static const int wxTREE_HITTEST_ONITEM  = wxTREE_HITTEST_ONITEMICON |
                                           wxTREE_HITTEST_ONITEMLABEL;
 
 // tree ctrl default name
-WXDLLEXPORT_DATA(extern const wxChar*) wxTreeCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxTreeCtrlNameStr;
 
 // ----------------------------------------------------------------------------
 // wxTreeItemAttr: a structure containing the visual attributes of an item
@@ -244,6 +250,9 @@ class WXDLLEXPORT wxTreeEvent : public wxNotifyEvent
 {
 public:
     wxTreeEvent(wxEventType commandType = wxEVT_NULL, int id = 0);
+    wxTreeEvent(const wxTreeEvent & event);
+
+    virtual wxEvent *Clone() const { return new wxTreeEvent(*this); }
 
     // accessors
         // get the item on which the operation was performed or the newly
@@ -276,10 +285,11 @@ public:
 
         // Set the tooltip for the item (for EVT\_TREE\_ITEM\_GETTOOLTIP events)
     void SetToolTip(const wxString& toolTip) { m_label = toolTip; }
+    wxString GetToolTip() { return m_label; }
 
 #if WXWIN_COMPATIBILITY_2_2
     // for compatibility only, don't use
-    int GetCode() const { return m_evtKey.GetKeyCode(); }
+    wxDEPRECATED( int GetCode() const);
 #endif // WXWIN_COMPATIBILITY_2_2
 
 private:
@@ -294,7 +304,7 @@ private:
     friend class WXDLLEXPORT wxTreeCtrl;
     friend class WXDLLEXPORT wxGenericTreeCtrl;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTreeEvent)
+    DECLARE_DYNAMIC_CLASS(wxTreeEvent)
 };
 
 typedef void (wxEvtHandler::*wxTreeEventFunction)(wxTreeEvent&);
@@ -324,63 +334,73 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_TREE_END_DRAG, 617)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK, 618)
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP, 619)
+    DECLARE_EVENT_TYPE(wxEVT_COMMAND_TREE_ITEM_MENU, 620)
 END_DECLARE_EVENT_TYPES()
+
+#define wxTreeEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxTreeEventFunction, &func)
+
+#define wx__DECLARE_TREEEVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_TREE_ ## evt, id, wxTreeEventHandler(fn))
 
 // GetItem() returns the item being dragged, GetPoint() the mouse coords
 //
 // if you call event.Allow(), the drag operation will start and a
 // EVT_TREE_END_DRAG event will be sent when the drag is over.
-#define EVT_TREE_BEGIN_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_BEGIN_DRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_BEGIN_RDRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_BEGIN_RDRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_BEGIN_DRAG(id, fn) wx__DECLARE_TREEEVT(BEGIN_DRAG, id, fn)
+#define EVT_TREE_BEGIN_RDRAG(id, fn) wx__DECLARE_TREEEVT(BEGIN_RDRAG, id, fn)
 
 // GetItem() is the item on which the drop occured (if any) and GetPoint() the
 // current mouse coords
-#define EVT_TREE_END_DRAG(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_END_DRAG, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_END_DRAG(id, fn) wx__DECLARE_TREEEVT(END_DRAG, id, fn)
 
 // GetItem() returns the itme whose label is being edited, GetLabel() returns
 // the current item label for BEGIN and the would be new one for END.
 //
 // Vetoing BEGIN event means that label editing won't happen at all,
 // vetoing END means that the new value is discarded and the old one kept
-#define EVT_TREE_BEGIN_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_END_LABEL_EDIT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_END_LABEL_EDIT, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_BEGIN_LABEL_EDIT(id, fn) wx__DECLARE_TREEEVT(BEGIN_LABEL_EDIT, id, fn)
+#define EVT_TREE_END_LABEL_EDIT(id, fn) wx__DECLARE_TREEEVT(END_LABEL_EDIT, id, fn)
 
 // provide/update information about GetItem() item
-#define EVT_TREE_GET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_GET_INFO, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_SET_INFO(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_SET_INFO, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_GET_INFO(id, fn) wx__DECLARE_TREEEVT(GET_INFO, id, fn)
+#define EVT_TREE_SET_INFO(id, fn) wx__DECLARE_TREEEVT(SET_INFO, id, fn)
 
 // GetItem() is the item being expanded/collapsed, the "ING" versions can use
-#define EVT_TREE_ITEM_EXPANDED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_EXPANDED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_ITEM_EXPANDING(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_EXPANDING, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_ITEM_COLLAPSED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_COLLAPSED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TREE_ITEM_COLLAPSING(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_COLLAPSING, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_ITEM_EXPANDED(id, fn) wx__DECLARE_TREEEVT(ITEM_EXPANDED, id, fn)
+#define EVT_TREE_ITEM_EXPANDING(id, fn) wx__DECLARE_TREEEVT(ITEM_EXPANDING, id, fn)
+#define EVT_TREE_ITEM_COLLAPSED(id, fn) wx__DECLARE_TREEEVT(ITEM_COLLAPSED, id, fn)
+#define EVT_TREE_ITEM_COLLAPSING(id, fn) wx__DECLARE_TREEEVT(ITEM_COLLAPSING, id, fn)
 
 // GetOldItem() is the item which had the selection previously, GetItem() is
 // the item which acquires selection
-#define EVT_TREE_SEL_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_SEL_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
-#define EVT_TREE_SEL_CHANGING(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_SEL_CHANGING, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_SEL_CHANGED(id, fn) wx__DECLARE_TREEEVT(SEL_CHANGED, id, fn)
+#define EVT_TREE_SEL_CHANGING(id, fn) wx__DECLARE_TREEEVT(SEL_CHANGING, id, fn)
 
 // GetKeyCode() returns the key code
 // NB: this is the only message for which GetItem() is invalid (you may get the
 //     item from GetSelection())
-#define EVT_TREE_KEY_DOWN(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_KEY_DOWN, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_KEY_DOWN(id, fn) wx__DECLARE_TREEEVT(KEY_DOWN, id, fn)
 
 // GetItem() returns the item being deleted, the associated data (if any) will
 // be deleted just after the return of this event handler (if any)
-#define EVT_TREE_DELETE_ITEM(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_DELETE_ITEM, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_DELETE_ITEM(id, fn) wx__DECLARE_TREEEVT(DELETE_ITEM, id, fn)
 
 // GetItem() returns the item that was activated (double click, enter, space)
-#define EVT_TREE_ITEM_ACTIVATED(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_ACTIVATED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_ITEM_ACTIVATED(id, fn) wx__DECLARE_TREEEVT(ITEM_ACTIVATED, id, fn)
+
+// GetItem() returns the item for which the context menu shall be shown
+#define EVT_TREE_ITEM_MENU(id, fn) wx__DECLARE_TREEEVT(ITEM_MENU, id, fn)
 
 // GetItem() returns the item that was clicked on
-#define EVT_TREE_ITEM_RIGHT_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
-#define EVT_TREE_ITEM_MIDDLE_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_MIDDLE_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_ITEM_RIGHT_CLICK(id, fn) wx__DECLARE_TREEEVT(ITEM_RIGHT_CLICK, id, fn)
+#define EVT_TREE_ITEM_MIDDLE_CLICK(id, fn) wx__DECLARE_TREEEVT(ITEM_MIDDLE_CLICK, id, fn)
 
 // GetItem() returns the item whose state image was clicked on
-#define EVT_TREE_STATE_IMAGE_CLICK(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_STATE_IMAGE_CLICK, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), NULL ),
+#define EVT_TREE_STATE_IMAGE_CLICK(id, fn) wx__DECLARE_TREEEVT(STATE_IMAGE_CLICK, id, fn)
 
 // GetItem() is the item for which the tooltip is being requested
-#define EVT_TREE_ITEM_GETTOOLTIP(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTreeEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TREE_ITEM_GETTOOLTIP(id, fn) wx__DECLARE_TREEEVT(ITEM_GETTOOLTIP, id, fn)
 
 #endif // wxUSE_TREECTRL
 

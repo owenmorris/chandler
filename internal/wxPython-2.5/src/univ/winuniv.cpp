@@ -122,13 +122,13 @@ bool wxWindow::Create(wxWindow *parent,
                       const wxString& name)
 {
     long actualStyle = style;
-    
+
     // FIXME: may need this on other platforms
 #ifdef __WXMSW__
     actualStyle &= ~wxVSCROLL;
     actualStyle &= ~wxHSCROLL;
-#endif    
-    
+#endif
+
     // we add wxCLIP_CHILDREN to get the same ("natural") behaviour under MSW
     // as under the other platforms
     if ( !wxWindowNative::Create(parent, id, pos, size,
@@ -169,7 +169,7 @@ bool wxWindow::Create(wxWindow *parent,
         SetInsertIntoMain( false );
 #endif
     }
-    
+
     if (m_scrollbarHorz || m_scrollbarVert)
     {
         // position it/them
@@ -177,6 +177,18 @@ bool wxWindow::Create(wxWindow *parent,
     }
 
     return true;
+}
+
+wxWindow::~wxWindow()
+{
+    m_isBeingDeleted = true;
+
+    // we have to destroy our children before we're destroyed because our
+    // children suppose that we're of type wxWindow, not just wxWindowNative,
+    // and so bad things may happen if they're deleted from the base class dtor
+    // as by then we're not a wxWindow any longer and wxUniv-specific virtual
+    // functions can't be called
+    DestroyChildren();
 }
 
 // ----------------------------------------------------------------------------
@@ -304,7 +316,7 @@ bool wxWindow::DoDrawBackground(wxDC& dc)
     rect.height = size.y;
 
     wxWindow * const parent = GetParent();
-    if ( HasTransparentBackground() && parent && parent->ProvidesBackground() )
+    if ( HasTransparentBackground() && parent )
     {
         wxASSERT( !IsTopLevel() );
 
@@ -426,11 +438,11 @@ void wxWindow::Refresh(bool eraseBackground, const wxRect *rectClient)
     while ( node )
     {
         wxWindow *win = node->GetData();
-        // Only refresh sub controls when it is visible 
+        // Only refresh sub controls when it is visible
         // and when it is in the update region.
         if(!win->IsKindOf(CLASSINFO(wxTopLevelWindow)) && win->IsShown() && wxRegion(rectWin).Contains(win->GetRect()) != wxOutRegion)
             win->Refresh(eraseBackground, &rectWin);
-            
+
         node = node->GetNext();
     }
 }
@@ -1100,12 +1112,12 @@ wxRect wxWindow::ScrollNoRefresh(int dx, int dy, const wxRect *rectTotal)
         wxMemoryDC dcMem;
         dcMem.SelectObject(bmp);
 
-        dcMem.Blit(wxPoint(0, 0), size, &dc, ptSource
+        dcMem.Blit(wxPoint(0,0), size, &dc, ptSource
 #if defined(__WXGTK__) && !defined(wxHAS_WORKING_GTK_DC_BLIT)
                 + GetClientAreaOrigin()
 #endif // broken wxGTK wxDC::Blit
                   );
-        dc.Blit(ptDest, size, &dcMem, wxPoint(0, 0));
+        dc.Blit(ptDest, size, &dcMem, wxPoint(0,0));
 
         wxLogTrace(_T("scroll"),
                    _T("Blit: (%d, %d) of size %dx%d -> (%d, %d)"),
@@ -1189,7 +1201,7 @@ void wxWindow::OnKeyDown(wxKeyEvent& event)
 {
 #if wxUSE_MENUS
     int key = event.GetKeyCode();
-    if ( !event.ControlDown() && (key == WXK_MENU || key == WXK_F10) )
+    if ( !event.ControlDown() && (key == WXK_ALT || key == WXK_F10) )
     {
         ms_winLastAltPress = this;
 
@@ -1306,7 +1318,7 @@ void wxWindow::OnChar(wxKeyEvent& event)
 void wxWindow::OnKeyUp(wxKeyEvent& event)
 {
     int key = event.GetKeyCode();
-    if ( !event.HasModifiers() && (key == WXK_MENU || key == WXK_F10) )
+    if ( !event.HasModifiers() && (key == WXK_ALT || key == WXK_F10) )
     {
         // only process Alt release specially if there were no other key
         // presses since Alt had been pressed and if both events happened in

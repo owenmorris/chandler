@@ -165,7 +165,7 @@ public:
     static wxFont GetFont(wxSystemFont index);
 
     // get a system-dependent metric
-    static int GetMetric(wxSystemMetric index);
+    static int GetMetric(wxSystemMetric index, wxWindow* win=NULL);
 
     // return True if the port has certain feature
     static bool HasFeature(wxSystemFeature index);
@@ -195,10 +195,11 @@ public:
     // to implement SetSystemColour/Font/Metric
 
     static void SetOption(const wxString& name, const wxString& value);
-    %name(SetOptionInt) static void SetOption(const wxString& name, int value);
+    %Rename(SetOptionInt,  static void, SetOption(const wxString& name, int value));
     static wxString GetOption(const wxString& name) ;
     static int GetOptionInt(const wxString& name) ;
     static bool HasOption(const wxString& name) ;
+    static bool IsFalse(const wxString& name);
 };
 
 

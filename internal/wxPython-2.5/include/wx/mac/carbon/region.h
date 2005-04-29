@@ -37,7 +37,7 @@ wxRGN_XOR           // Creates the union of two combined regions except for any 
 };
 
 class WXDLLEXPORT wxRegion : public wxGDIObject {
-DECLARE_DYNAMIC_CLASS(wxRegion);
+DECLARE_DYNAMIC_CLASS(wxRegion)
     friend class WXDLLEXPORT wxRegionIterator;
 public:
     wxRegion(long x, long y, long w, long h);
@@ -68,6 +68,9 @@ public:
     //# Modify region
     // Clear current region
     void Clear();
+
+    // Move the region
+    bool Offset(wxCoord x, wxCoord y);
 
     // Union rectangle or region with this.
     bool Union(long x, long y, long width, long height)

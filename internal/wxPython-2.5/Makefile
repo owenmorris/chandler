@@ -1,10 +1,10 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.3.1-20
+RELVER=2.6.0.0-1
 SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
-WXMAJORVERSIONCOMPACT=253
+WXMAJORVERSIONCOMPACT=260
 UNICODE_SUFFIX=u
 
 ifeq ($(DEBUG),1)
@@ -78,8 +78,7 @@ $(SRC)/$(BUILD)/Makefile:
                      --enable-display \
                      --with-sdl \
                      --with-libpng \
-                     --with-mac \
-                     --with-opengl
+                     --with-mac
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -149,12 +148,11 @@ endif
 wxWidgets: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/gizmos
-	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/ogl \
-                CXXFLAGS="-DwxUSE_DEPRECATED=0"
+	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/animate
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc
 	$(MAKE) -C $(SRC)/$(BUILD) install
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/gizmos install
-	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/ogl install
+	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/animate install
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc install
 
 clean:

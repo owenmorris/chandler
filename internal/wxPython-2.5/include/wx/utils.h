@@ -61,13 +61,25 @@ class WXDLLIMPEXP_CORE wxPoint;
 #define wxMax(a,b)            (((a) > (b)) ? (a) : (b))
 #define wxMin(a,b)            (((a) < (b)) ? (a) : (b))
 
+// wxGetFreeMemory can return huge amount of memory on 64-bit platforms
+// define wxMemorySize according to the type which best fits your platform
+#if wxUSE_LONGLONG && defined(__WIN64__)
+    // 64 bit Windowses have sizeof(long) only 32 bit long
+    // we need to use wxLongLong to express memory sizes
+    #define wxMemorySize wxLongLong
+#else
+    // 64 bit UNIX has sizeof(long) = 64
+    // assume 32 bit platforms cannnot return more than 32bits of
+    #define wxMemorySize long
+#endif
+
 // ----------------------------------------------------------------------------
 // String functions (deprecated, use wxString)
 // ----------------------------------------------------------------------------
 
 // Make a copy of this string using 'new'
 #if WXWIN_COMPATIBILITY_2_4
-WXDLLIMPEXP_BASE wxChar* copystring(const wxChar *s);
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* copystring(const wxChar *s) );
 #endif
 
 // A shorter way of using strcmp
@@ -131,17 +143,17 @@ WXDLLEXPORT long wxGetCurrentId();
 // these functions are deprecated, use wxString methods instead!
 #if WXWIN_COMPATIBILITY_2_4
 
-WXDLLIMPEXP_DATA_BASE(extern const wxChar*) wxFloatToStringStr;
-WXDLLIMPEXP_DATA_BASE(extern const wxChar*) wxDoubleToStringStr;
+extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxFloatToStringStr;
+extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxDoubleToStringStr;
 
-WXDLLIMPEXP_BASE void StringToFloat(const wxChar *s, float *number);
-WXDLLIMPEXP_BASE wxChar* FloatToString(float number, const wxChar *fmt = wxFloatToStringStr);
-WXDLLIMPEXP_BASE void StringToDouble(const wxChar *s, double *number);
-WXDLLIMPEXP_BASE wxChar* DoubleToString(double number, const wxChar *fmt = wxDoubleToStringStr);
-WXDLLIMPEXP_BASE void StringToInt(const wxChar *s, int *number);
-WXDLLIMPEXP_BASE void StringToLong(const wxChar *s, long *number);
-WXDLLIMPEXP_BASE wxChar* IntToString(int number);
-WXDLLIMPEXP_BASE wxChar* LongToString(long number);
+wxDEPRECATED( WXDLLIMPEXP_BASE void StringToFloat(const wxChar *s, float *number) );
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* FloatToString(float number, const wxChar *fmt = wxFloatToStringStr) );
+wxDEPRECATED( WXDLLIMPEXP_BASE void StringToDouble(const wxChar *s, double *number) );
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* DoubleToString(double number, const wxChar *fmt = wxDoubleToStringStr) );
+wxDEPRECATED( WXDLLIMPEXP_BASE void StringToInt(const wxChar *s, int *number) );
+wxDEPRECATED( WXDLLIMPEXP_BASE void StringToLong(const wxChar *s, long *number) );
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* IntToString(int number) );
+wxDEPRECATED( WXDLLIMPEXP_BASE wxChar* LongToString(long number) );
 
 #endif // WXWIN_COMPATIBILITY_2_4
 
@@ -156,7 +168,7 @@ WXDLLIMPEXP_BASE wxString wxDecToHex(int dec);
 // Process management
 // ----------------------------------------------------------------------------
 
-// NB: for backwars compatibility reasons the values of wxEXEC_[A]SYNC *must*
+// NB: for backwards compatibility reasons the values of wxEXEC_[A]SYNC *must*
 //     be 0 and 1, don't change!
 
 enum
@@ -171,9 +183,14 @@ enum
     // is done by default)
     wxEXEC_NOHIDE   = 2,
 
-    // under Unix, if the process is the group leader then killing -pid kills
-    // all children as well as pid
-    wxEXEC_MAKE_GROUP_LEADER = 4
+    // under Unix, if the process is the group leader then passing wxKILL_CHILDREN to wxKill
+    // kills all children as well as pid
+    wxEXEC_MAKE_GROUP_LEADER = 4,
+
+    // by default synchronous execution disables all program windows to avoid
+    // that the user interacts with the program while the child process is
+    // running, you can use this flag to prevent this from happening
+    wxEXEC_NODISABLE = 8
 };
 
 // Execute another program.
@@ -189,12 +206,14 @@ WXDLLIMPEXP_BASE long wxExecute(const wxString& command, int flags = wxEXEC_ASYN
 // execute the command capturing its output into an array line by line, this is
 // always synchronous
 WXDLLIMPEXP_BASE long wxExecute(const wxString& command,
-                           wxArrayString& output);
+                                wxArrayString& output,
+                                int flags = 0);
 
 // also capture stderr (also synchronous)
 WXDLLIMPEXP_BASE long wxExecute(const wxString& command,
-                           wxArrayString& output,
-                           wxArrayString& error);
+                                wxArrayString& output,
+                                wxArrayString& error,
+                                int flags = 0);
 
 enum wxSignal
 {
@@ -228,6 +247,12 @@ enum wxKillError
     wxKILL_ERROR            // another, unspecified error
 };
 
+enum wxKillFlags
+{
+    wxKILL_NOCHILDREN = 0,  // don't kill children
+    wxKILL_CHILDREN = 1     // kill children
+};
+
 enum wxShutdownFlags
 {
     wxSHUTDOWN_POWEROFF,    // power off the computer
@@ -237,13 +262,34 @@ enum wxShutdownFlags
 // Shutdown or reboot the PC
 WXDLLIMPEXP_BASE bool wxShutdown(wxShutdownFlags wFlags);
 
+enum wxPowerType
+{
+    wxPOWER_SOCKET,
+    wxPOWER_BATTERY,
+    wxPOWER_UNKNOWN
+};
+
+WXDLLIMPEXP_BASE wxPowerType wxGetPowerType();
+
+enum wxBatteryState
+{
+    wxBATTERY_NORMAL_STATE,    // system is fully usable
+    wxBATTERY_LOW_STATE,       // start to worry
+    wxBATTERY_CRITICAL_STATE,  // save quickly
+    wxBATTERY_SHUTDOWN_STATE,  // too late
+    wxBATTERY_UNKNOWN_STATE
+};
+
+WXDLLIMPEXP_BASE wxBatteryState wxGetBatteryState();
+
 // send the given signal to the process (only NONE and KILL are supported under
 // Windows, all others mean TERM), return 0 if ok and -1 on error
 //
 // return detailed error in rc if not NULL
 WXDLLIMPEXP_BASE int wxKill(long pid,
                        wxSignal sig = wxSIGTERM,
-                       wxKillError *rc = NULL);
+                       wxKillError *rc = NULL,
+                       int flags = wxKILL_NOCHILDREN);
 
 // Execute a command in an interactive shell window (always synchronously)
 // If no command then just the shell
@@ -269,10 +315,14 @@ wxDEPRECATED( WXDLLIMPEXP_BASE void wxUsleep(unsigned long milliseconds) );
 WXDLLIMPEXP_BASE unsigned long wxGetProcessId();
 
 // Get free memory in bytes, or -1 if cannot determine amount (e.g. on UNIX)
-WXDLLIMPEXP_BASE long wxGetFreeMemory();
+WXDLLIMPEXP_BASE wxMemorySize wxGetFreeMemory();
+
+#if wxUSE_ON_FATAL_EXCEPTION
 
 // should wxApp::OnFatalException() be called?
 WXDLLIMPEXP_BASE bool wxHandleFatalExceptions(bool doit = true);
+
+#endif // wxUSE_ON_FATAL_EXCEPTION
 
 // ----------------------------------------------------------------------------
 // Environment variables
@@ -406,7 +456,7 @@ private:
 
 // Set the cursor to the busy cursor for all windows
 class WXDLLEXPORT wxCursor;
-WXDLLEXPORT_DATA(extern wxCursor*) wxHOURGLASS_CURSOR;
+extern WXDLLEXPORT_DATA(wxCursor*) wxHOURGLASS_CURSOR;
 WXDLLEXPORT void wxBeginBusyCursor(wxCursor *cursor = wxHOURGLASS_CURSOR);
 
 // Restore cursor to normal
@@ -455,7 +505,7 @@ void WXDLLEXPORT wxGetMousePosition( int* x, int* y );
 // MSW only: get user-defined resource from the .res file.
 // Returns NULL or newly-allocated memory, so use delete[] to clean up.
 #ifdef __WXMSW__
-    WXDLLEXPORT extern const wxChar* wxUserResourceStr;
+    extern WXDLLEXPORT const wxChar* wxUserResourceStr;
     WXDLLEXPORT wxChar* wxLoadUserResource(const wxString& resourceName, const wxString& resourceType = wxUserResourceStr);
 #endif // MSW
 
@@ -506,15 +556,15 @@ WXDLLIMPEXP_BASE bool wxYieldIfNeeded();
 
 // Format a message on the standard error (UNIX) or the debugging
 // stream (Windows)
-WXDLLIMPEXP_BASE void wxDebugMsg(const wxChar *fmt ...) ATTRIBUTE_PRINTF_1;
+wxDEPRECATED( WXDLLIMPEXP_BASE void wxDebugMsg(const wxChar *fmt ...) ATTRIBUTE_PRINTF_1 );
 
 // Non-fatal error (continues)
-WXDLLIMPEXP_DATA_BASE(extern const wxChar*) wxInternalErrorStr;
-WXDLLIMPEXP_BASE void wxError(const wxString& msg, const wxString& title = wxInternalErrorStr);
+extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxInternalErrorStr;
+wxDEPRECATED( WXDLLIMPEXP_BASE void wxError(const wxString& msg, const wxString& title = wxInternalErrorStr) );
 
 // Fatal error (exits)
-WXDLLIMPEXP_DATA_BASE(extern const wxChar*) wxFatalErrorStr;
-WXDLLIMPEXP_BASE void wxFatalError(const wxString& msg, const wxString& title = wxFatalErrorStr);
+extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxFatalErrorStr;
+wxDEPRECATED( WXDLLIMPEXP_BASE void wxFatalError(const wxString& msg, const wxString& title = wxFatalErrorStr) );
 
 #endif // WXWIN_COMPATIBILITY_2_2
 

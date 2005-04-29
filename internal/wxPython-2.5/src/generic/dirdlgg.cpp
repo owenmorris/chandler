@@ -154,7 +154,7 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
     // 1) dir ctrl
     m_dirCtrl = NULL; // this is neccessary, event handler called from
                       // wxGenericDirCtrl would crash otherwise!
-    long dirStyle = wxDIRCTRL_DIR_ONLY|wxSUNKEN_BORDER;
+    long dirStyle = wxDIRCTRL_DIR_ONLY | wxDEFAULT_CONTROL_BORDER;
 
 #ifdef __WXMSW__
     if (style & wxDD_NEW_DIR_BUTTON)
@@ -190,29 +190,21 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
 #endif
 
     // 4) Buttons
-    buttonsizer = new wxBoxSizer( wxHORIZONTAL );
-
-    // OK and Cancel button should be at the right bottom
-    wxButton* okButton = new wxButton(this, wxID_OK);
-    buttonsizer->Add( okButton, 0, wxLEFT|wxRIGHT, 10 );
-    wxButton* cancelButton = new wxButton(this, wxID_CANCEL);
-    buttonsizer->Add( cancelButton, 0, wxLEFT|wxRIGHT, 10 );
-
-    topsizer->Add( buttonsizer, 0, wxLEFT|wxTOP|wxBOTTOM | wxALIGN_RIGHT, 10 );
-
-    okButton->SetDefault();
+    topsizer->Add( CreateButtonSizer( wxOK|wxCANCEL ), 0, wxEXPAND | wxALL, 10 );
 
 #endif // !__SMARTPHONE__
 
-    m_dirCtrl->SetFocus();
+    m_input->SetFocus();
 
     SetAutoLayout( true );
     SetSizer( topsizer );
 
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
 
     Centre( wxBOTH );
+#endif
 }
 
 void wxGenericDirDialog::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
@@ -224,7 +216,7 @@ void wxGenericDirDialog::OnOK(wxCommandEvent& WXUNUSED(event))
 {
     m_path = m_input->GetValue();
     // Does the path exist? (User may have typed anything in m_input)
-    if (wxPathExists(m_path)) {
+    if (wxDirExists(m_path)) {
         // OK, path exists, we're done.
         EndModal(wxID_OK);
         return;
@@ -278,7 +270,13 @@ void wxGenericDirDialog::OnTreeSelected( wxTreeEvent &event )
     if (!m_dirCtrl)
         return;
 
-    wxDirItemData *data = (wxDirItemData*)m_dirCtrl->GetTreeCtrl()->GetItemData(event.GetItem());
+    wxTreeItemId item = event.GetItem();
+
+    wxDirItemData *data = NULL;
+
+    if(item.IsOk())
+        data = (wxDirItemData*)m_dirCtrl->GetTreeCtrl()->GetItemData(item);
+
     if (data)
        m_input->SetValue( data->m_path );
 };
@@ -322,7 +320,7 @@ void wxGenericDirDialog::OnNew( wxCommandEvent& WXUNUSED(event) )
     if (!wxEndsWithPathSeparator(path))
         path += wxFILE_SEP_PATH;
     path += new_name;
-    if (wxFileExists(path))
+    if (wxDirExists(path))
     {
         // try NewName0, NewName1 etc.
         int i = 0;
@@ -337,7 +335,7 @@ void wxGenericDirDialog::OnNew( wxCommandEvent& WXUNUSED(event) )
                 path += wxFILE_SEP_PATH;
             path += new_name;
             i++;
-        } while (wxFileExists(path));
+        } while (wxDirExists(path));
     }
 
     wxLogNull log;

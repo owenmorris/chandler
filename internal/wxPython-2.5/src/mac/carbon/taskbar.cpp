@@ -11,8 +11,6 @@
 
 #include "wx/wxprec.h"
 
-#include "wx/defs.h"
-
 #ifdef wxHAS_TASK_BAR_ICON
 
 #include "wx/mac/private.h"
@@ -145,6 +143,8 @@ wxTaskBarIcon::wxTaskBarIcon(const wxTaskBarIconType& nType)
             this, (&(EventHandlerRef&)m_pEventHandlerRef));
             
     wxASSERT(err == noErr);
+    
+    Connect(wxEVT_TASKBAR_RIGHT_DOWN, wxTaskBarIconEventHandler(wxTaskBarIcon::OnRightDown));
 }
 
 wxTaskBarIcon::~wxTaskBarIcon()
@@ -178,39 +178,46 @@ wxMenu* wxTaskBarIcon::DoCreatePopupMenu()
 // Operations:
 bool wxTaskBarIcon::SetIcon(const wxIcon& icon, const wxString& tooltip)
 {
-    wxMask* mask = icon.GetMask();
-    if (!mask)
+    wxBitmap bmp( icon ) ;
+    OSStatus err = noErr ;
+
+    CGImageRef pImage;
+    
+#if 0 // is always available under OSX now -- crashes on 10.2 in CFRetain() - RN
+    pImage = (CGImageRef) bmp.CGImageCreate() ;
+#else
+    WXHBITMAP iconport ;
+    WXHBITMAP maskport ;
+    iconport = bmp.GetHBITMAP( &maskport ) ;
+
+    if (!maskport)
     {
         // Make a mask with no transparent pixels
-        wxBitmap   bmp(icon.GetWidth(), icon.GetHeight());
+        wxBitmap   mbmp(icon.GetWidth(), icon.GetHeight());
         wxMemoryDC dc;
-        dc.SelectObject(bmp);
+        dc.SelectObject(mbmp);
         dc.SetBackground(*wxBLACK_BRUSH);
         dc.Clear();
         dc.SelectObject(wxNullBitmap);
-        mask = new wxMask(bmp, *wxWHITE);
+        bmp.SetMask( new wxMask(mbmp, *wxWHITE) ) ;
+        iconport = bmp.GetHBITMAP( &maskport ) ;
     } 
-        
-    CGImageRef pImage;
     
     //create the icon from the bitmap and mask bitmap contained within
-    OSStatus err = CreateCGImageFromPixMaps(
-        GetGWorldPixMap(MAC_WXHBITMAP(icon.GetHBITMAP())),
-        GetGWorldPixMap(MAC_WXHBITMAP(mask->GetMaskBitmap())),
-        &pImage
-        );
-        
+    err = CreateCGImageFromPixMaps(
+                                            GetGWorldPixMap(MAC_WXHBITMAP(iconport)),
+                                            GetGWorldPixMap(MAC_WXHBITMAP(maskport)),
+                                            &pImage
+                                            );    
     wxASSERT(err == 0);
-    
+#endif
+    wxASSERT(pImage != NULL );
     err = SetApplicationDockTileImage(pImage);
-        
+    
     wxASSERT(err == 0);
     
     if (pImage != NULL)
         CGImageRelease(pImage);
-
-    if (!icon.GetMask())
-        delete mask;
     
     return m_iconAdded = err == noErr;
 }
@@ -282,6 +289,12 @@ bool wxTaskBarIcon::PopupMenu(wxMenu *menu)
     
     m_pMenu->SetEventHandler(this);
     return true;
+}
+
+//Skip the event so that popupmenu isn't called in parent, avoiding double-creation of the menus
+void wxTaskBarIcon::OnRightDown(wxTaskBarIconEvent& evt)
+{
+    evt.Skip();
 }
 
 #endif //wxHAS_TASK_BAR_ICON

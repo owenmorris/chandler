@@ -580,7 +580,9 @@ wxFileOffset wxStreamBuffer::Seek(wxFileOffset pos, wxSeekMode mode)
         }
         if (diff < 0 || diff > last_access)
             return wxInvalidOffset;
-        SetIntPosition(diff);
+        size_t int_diff = (size_t)diff;
+        wxCHECK_MSG( (wxFileOffset)int_diff == diff, wxInvalidOffset, wxT("huge file not supported") );
+        SetIntPosition(int_diff);
         return diff;
     }
 
@@ -605,7 +607,9 @@ wxFileOffset wxStreamBuffer::Seek(wxFileOffset pos, wxSeekMode mode)
             }
             else
             {
-                SetIntPosition(diff);
+                size_t int_diff = (size_t)diff;
+                wxCHECK_MSG( (wxFileOffset)int_diff == diff, wxInvalidOffset, wxT("huge file not supported") );
+                SetIntPosition(int_diff);
                 return pos;
             }
 
@@ -657,6 +661,12 @@ wxStreamBase::~wxStreamBase()
 {
 }
 
+size_t wxStreamBase::GetSize() const
+{
+    wxFileOffset length = GetLength();
+    return length == wxInvalidOffset ? 0 : (size_t)length;
+}
+
 wxFileOffset wxStreamBase::OnSysSeek(wxFileOffset WXUNUSED(seek), wxSeekMode WXUNUSED(mode))
 {
     return wxInvalidOffset;
@@ -666,6 +676,20 @@ wxFileOffset wxStreamBase::OnSysTell() const
 {
     return wxInvalidOffset;
 }
+
+#if WXWIN_COMPATIBILITY_2_2
+
+wxStreamError wxStreamBase::LastError() const
+{
+    return m_lasterror;
+}
+
+size_t wxStreamBase::StreamSize() const
+{
+    return GetSize();
+}
+
+#endif // WXWIN_COMPATIBILITY_2_2
 
 // ----------------------------------------------------------------------------
 // wxInputStream
@@ -957,7 +981,7 @@ wxCountingOutputStream::wxCountingOutputStream ()
      m_currentPos = 0;
 }
 
-size_t wxCountingOutputStream::GetSize() const
+wxFileOffset wxCountingOutputStream::GetLength() const
 {
     return m_lastcount;
 }
@@ -974,24 +998,30 @@ size_t wxCountingOutputStream::OnSysWrite(const void *WXUNUSED(buffer),
 
 wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
 {
+    ssize_t new_pos = (ssize_t)pos;
+
     switch ( mode )
     {
         case wxFromStart:
-            m_currentPos = pos;
+            wxCHECK_MSG( (wxFileOffset)new_pos == pos, wxInvalidOffset, wxT("huge position not supported") );
             break;
 
         case wxFromEnd:
-            m_currentPos = m_lastcount + pos;
+            new_pos = m_lastcount + new_pos;
+            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_lastcount + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
         case wxFromCurrent:
-            m_currentPos += pos;
+            new_pos = m_currentPos + new_pos;
+            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_currentPos + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
         default:
             wxFAIL_MSG( _T("invalid seek mode") );
             return wxInvalidOffset;
     }
+
+    m_currentPos = new_pos;
 
     if (m_currentPos > m_lastcount)
         m_lastcount = m_currentPos;
@@ -1179,6 +1209,13 @@ wxBufferedOutputStream::~wxBufferedOutputStream()
     delete m_o_streambuf;
 }
 
+bool wxBufferedOutputStream::Close()
+{
+    Sync();
+    return IsOk();
+}
+
+
 wxOutputStream& wxBufferedOutputStream::Write(const void *buffer, size_t size)
 {
     m_lastcount = 0;
@@ -1218,9 +1255,9 @@ wxFileOffset wxBufferedOutputStream::OnSysTell() const
     return m_parent_o_stream->TellO();
 }
 
-size_t wxBufferedOutputStream::GetSize() const
+wxFileOffset wxBufferedOutputStream::GetLength() const
 {
-   return m_parent_o_stream->GetSize() + m_o_streambuf->GetIntPosition();
+   return m_parent_o_stream->GetLength() + m_o_streambuf->GetIntPosition();
 }
 
 void wxBufferedOutputStream::SetOutputStreamBuffer(wxStreamBuffer *buffer)

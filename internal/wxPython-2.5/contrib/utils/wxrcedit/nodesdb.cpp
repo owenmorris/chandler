@@ -40,7 +40,7 @@ void NodeInfo::Read(const wxString& filename, wxPathList& list)
     NodeClass.Empty();
 
     wxString path = list.FindValidPath(filename);
-    if (path.IsEmpty()) return;
+    if (path.empty()) return;
 
     wxTextFile tf;
     tf.Open(path);
@@ -49,7 +49,7 @@ void NodeInfo::Read(const wxString& filename, wxPathList& list)
 
     for (size_t i = 0; i < tf.GetLineCount(); i++)
     {
-        if (tf[i].IsEmpty() || tf[i][0u] == _T('#')) continue;
+        if (tf[i].empty() || tf[i][0u] == _T('#')) continue;
         wxStringTokenizer tkn(tf[i], _T(' '));
         wxString s = tkn.GetNextToken();
         if (s == _T("node"))
@@ -98,9 +98,9 @@ void NodeInfo::Read(const wxString& filename, wxPathList& list)
         }
     }
 
-    if (!nd.IsEmpty()) NodeClass = nd;
-    if (!cht.IsEmpty()) ChildType = cht;
-    if (!!tp) Type = tp;
+    if (!nd.empty()) NodeClass = nd;
+    if (!cht.empty()) ChildType = cht;
+    if (!tp.empty()) Type = tp;
     if (icn != -1) Icon = icn;
     Abstract = ab;
 }

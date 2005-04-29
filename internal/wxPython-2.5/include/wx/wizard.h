@@ -17,6 +17,8 @@
 #ifndef _WX_WIZARD_H_
 #define _WX_WIZARD_H_
 
+#include "wx/defs.h"
+
 #if wxUSE_WIZARDDLG
 
 // ----------------------------------------------------------------------------
@@ -221,12 +223,12 @@ public:
 
     // wxWizard should be created using "new wxWizard" now, not with Create()
 #if WXWIN_COMPATIBILITY_2_2
-    static wxWizard *Create(wxWindow *parent,
-                            int id = wxID_ANY,
-                            const wxString& title = wxEmptyString,
-                            const wxBitmap& bitmap = wxNullBitmap,
-                            const wxPoint& pos = wxDefaultPosition,
-                            const wxSize& size = wxDefaultSize);
+    wxDEPRECATED( static wxWizard *Create(wxWindow *parent,
+                                          int id = wxID_ANY,
+                                          const wxString& title = wxEmptyString,
+                                          const wxBitmap& bitmap = wxNullBitmap,
+                                          const wxPoint& pos = wxDefaultPosition,
+                                          const wxSize& size = wxDefaultSize) );
 #endif // WXWIN_COMPATIBILITY_2_2
 
     // the methods below may be overridden by the derived classes to provide
@@ -296,22 +298,28 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxWizardEventFunction)(wxWizardEvent&);
 
+#define wxWizardEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxWizardEventFunction, &func)
+
+#define wx__DECLARE_WIZARDEVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_WIZARD_ ## evt, id, wxWizardEventHandler(fn))
+
 // notifies that the page has just been changed (can't be vetoed)
-#define EVT_WIZARD_PAGE_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_WIZARD_PAGE_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxWizardEventFunction, & fn ), (wxObject *)NULL),
+#define EVT_WIZARD_PAGE_CHANGED(id, fn) wx__DECLARE_WIZARDEVT(PAGE_CHANGED, id, fn)
 
 // the user pressed "<Back" or "Next>" button and the page is going to be
 // changed - unless the event handler vetoes the event
-#define EVT_WIZARD_PAGE_CHANGING(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_WIZARD_PAGE_CHANGING, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxWizardEventFunction, & fn ), (wxObject *)NULL),
+#define EVT_WIZARD_PAGE_CHANGING(id, fn) wx__DECLARE_WIZARDEVT(PAGE_CHANGING, id, fn)
 
 // the user pressed "Cancel" button and the wizard is going to be dismissed -
 // unless the event handler vetoes the event
-#define EVT_WIZARD_CANCEL(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_WIZARD_CANCEL, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxWizardEventFunction, & fn ), (wxObject *)NULL),
+#define EVT_WIZARD_CANCEL(id, fn) wx__DECLARE_WIZARDEVT(CANCEL, id, fn)
 
 // the user pressed "Finish" button and the wizard is going to be dismissed -
-#define EVT_WIZARD_FINISHED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_WIZARD_FINISHED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxWizardEventFunction, & fn ), (wxObject *)NULL),
+#define EVT_WIZARD_FINISHED(id, fn) wx__DECLARE_WIZARDEVT(FINISHED, id, fn)
 
 // the user pressed "Help" button
-#define EVT_WIZARD_HELP(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_WIZARD_HELP, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxWizardEventFunction, & fn ), (wxObject *)NULL),
+#define EVT_WIZARD_HELP(id, fn) wx__DECLARE_WIZARDEVT(HELP, id, fn)
 
 #endif // wxUSE_WIZARDDLG
 

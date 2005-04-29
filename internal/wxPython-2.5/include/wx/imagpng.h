@@ -14,13 +14,26 @@
 #pragma interface "imagpng.h"
 #endif
 
-#include "wx/image.h"
+#include "wx/defs.h"
 
 //-----------------------------------------------------------------------------
 // wxPNGHandler
 //-----------------------------------------------------------------------------
 
 #if wxUSE_LIBPNG
+
+#include "wx/image.h"
+
+#define wxIMAGE_OPTION_PNG_FORMAT    wxT("PngFormat")
+#define wxIMAGE_OPTION_PNG_BITDEPTH  wxT("PngBitDepth")
+
+enum
+{
+    wxPNG_TYPE_COLOUR = 0,
+    wxPNG_TYPE_GREY = 2,
+    wxPNG_TYPE_GREY_RED = 3
+};
+
 class WXDLLEXPORT wxPNGHandler: public wxImageHandler
 {
 public:
@@ -41,8 +54,9 @@ public:
 private:
     DECLARE_DYNAMIC_CLASS(wxPNGHandler)
 };
-#endif
 
+#endif
+  // wxUSE_LIBPNG
 
 #endif
   // _WX_IMAGPNG_H_

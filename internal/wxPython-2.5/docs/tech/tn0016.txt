@@ -83,11 +83,11 @@ All files used by main libraries are listed in files.bkl. The file is
 organized into variables for toolkits, platforms and libraries. The variables
 come in pairs: there's always FOO_SRC for source files and FOO_HDR for header
 files. Platform or toolkit specific files are grouped together in variable
-with platform or tookit name in them, e.g. BASE_WIN32_SRC, BASE_UNIX_SRC,
+with platform or toolkit name in them, e.g. BASE_WIN32_SRC, BASE_UNIX_SRC,
 GTK_SRC, MOTIF_SRC.
 
 Note: A side effect of this toolkit-centric organization is that one file may
-      be present several times in files.bkl in different contenxt.
+      be present several times in files.bkl in different contexts.
 
 When you are adding a file, you must put it into appropriate variable. This is
 easy if you are adding the file to library that is always built from same
@@ -174,19 +174,20 @@ a) Add files to files.bkl:
 b) Modify bakefile system in build/bakefiles/ to recognize wxFoo:
    * Add 'foo' to MAIN_LIBS and LIBS_NOGUI or LIBS_GUI (depending on whether
      the library depends on wxCore or not) to wxwin.py file.
-   * Add the library to DEPS_TABLE in wxwin.py
+   * Add extra libraries needed by wxFoo (if any) to EXTRALIBS in wxwin.py
    * Add WXLIB_FOO definition to common.bkl (into the "Names of component
      libraries" section). It looks like this:
        <set var="WXLIB_FOO">
           <if cond="MONOLITHIC=='0'">$(mk.evalExpr(wxwin.mkLibName('foo')))</if>
        </set>
 
-c) Add files to monolithic build: it's enough to add FOO_SRC to MONOLIB_GUI_SRC
-   or MONOLIB_SRC, depending on whether wxFoo uses GUI or not.
+c) Modify monolithic.bkl to add files to monolithic build: it's enough to add
+   FOO_SRC to MONOLIB_GUI_SRC or MONOLIB_SRC, depending on whether wxFoo uses
+   GUI or not.
 
-d) Add files to multilib build: add foolib and foodll targets. Don't use
-   wxBase targets as the template, use e.g. wxXML or wxHTML. Make sure
-   WXMAKINGDLL_FOO is defined in foodll.
+d) Modify multilib.bkl to add files to multilib build: add foolib and foodll
+   targets. Don't use wxBase targets as the template, use e.g. wxXML or wxHTML.
+   Make sure WXMAKINGDLL_FOO is defined in foodll.
 
 e) Regenerate all makefiles (don't forget to run autoconf)
 
@@ -194,7 +195,7 @@ f) Update configure.in and wx-config.in to contain information about
    the library and needed linker flags:
    * Add "foo" to either CORE_BASE_LIBS or CORE_GUI_LIBS in configure.in so
      that wxFoo is not treated as contrib library in monolithic build.
-   * If wxFoo links against additional libraries, add neccessary linker
+   * If wxFoo links against additional libraries, add necessary linker
      flags and libraries to ldflags_foo and ldlibs_foo variables in
      wx-config.in (both are optional).
 
@@ -220,7 +221,8 @@ h) Add this code to one of wxFoo's files (the more often used, the better):
       WX_CHECK_BUILD_OPTIONS("wxFoo")
 
 i) Add information about wxFoo to the manual ("Libraries list" section
-   in libs.tex).
+   in libs.tex) and update docs/latex/wx/libs.dia (you need Dia for this)
+   to show the dependencies of the new library.
 
 
 === EOF ===

@@ -8,9 +8,11 @@
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "region.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/region.h"
 #include "wx/gdicmn.h"
@@ -127,6 +129,22 @@ void wxRegion::Clear()
 {
     UnRef();
 }
+
+// Move the region
+bool wxRegion::Offset(wxCoord x, wxCoord y)
+{
+    wxCHECK_MSG( M_REGION, false, _T("invalid wxRegion") );
+
+    if ( !x && !y )
+    {
+        // nothing to do
+        return true;
+    }
+
+    OffsetRgn( M_REGION , x , y ) ;
+    return true ;
+}
+
 
 //! Combine rectangle (x, y, w, h) with this.
 bool wxRegion::Combine(long x, long y, long width, long height, wxRegionOp op)
@@ -381,6 +399,40 @@ wxRegionIterator::wxRegionIterator(const wxRegion& region)
 /*!
  * Reset iterator for a new /e region.
  */
+ 
+OSStatus wxMacRegionToRectsCounterCallback (
+    UInt16 message, RgnHandle region, const Rect *rect, void *data)
+{
+    long *m_numRects = (long*) data ;
+    if ( message == kQDRegionToRectsMsgInit )
+    {
+        (*m_numRects) = 0 ;
+    }
+    else if (message == kQDRegionToRectsMsgParse)
+    {
+        (*m_numRects) += 1 ;
+    }
+    return noErr;
+}
+ 
+class RegionToRectsCallbackData 
+{
+public :
+    wxRect* m_rects ;
+    long m_current ;
+} ;
+
+OSStatus wxMacRegionToRectsSetterCallback (
+    UInt16 message, RgnHandle region, const Rect *rect, void *data)
+{
+    if (message == kQDRegionToRectsMsgParse)
+    {
+        RegionToRectsCallbackData *cb = (RegionToRectsCallbackData*) data ;
+        cb->m_rects[cb->m_current] = wxRect( rect->left , rect->top , rect->right - rect->left , rect->bottom - rect->top ) ;
+    }
+    return noErr;
+}
+
 void wxRegionIterator::Reset(const wxRegion& region)
 {
     m_current = 0;
@@ -395,15 +447,25 @@ void wxRegionIterator::Reset(const wxRegion& region)
         m_numRects = 0;
     else
     {
-        // we cannot dissolve it into rects on mac
-        m_rects = new wxRect[1];
-        Rect rect ;
-        GetRegionBounds( OTHER_M_REGION( region ) , &rect ) ;
-        m_rects[0].x = rect.left;
-        m_rects[0].y = rect.top;
-        m_rects[0].width = rect.right - rect.left;
-        m_rects[0].height = rect.bottom - rect.top;
-        m_numRects = 1;
+        RegionToRectsUPP proc = NewRegionToRectsUPP (wxMacRegionToRectsCounterCallback);
+
+        OSStatus err = noErr;
+        err = QDRegionToRects (OTHER_M_REGION( region ) , kQDParseRegionFromTopLeft, proc, (void*)&m_numRects); 
+        if (err == noErr) 
+        {
+            DisposeRegionToRectsUPP (proc);
+            proc = NewRegionToRectsUPP (wxMacRegionToRectsSetterCallback);
+            m_rects = new wxRect[m_numRects];
+            RegionToRectsCallbackData data ;
+            data.m_rects = m_rects ;
+            data.m_current = 0 ;
+            QDRegionToRects (OTHER_M_REGION( region ) , kQDParseRegionFromTopLeft, proc, (void*)&data); 
+        }
+        else 
+        {
+            m_numRects = 0 ;
+        }
+        DisposeRegionToRectsUPP (proc);
     }
 }
 

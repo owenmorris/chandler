@@ -23,7 +23,7 @@
 #include "wx/window.h"
 #include "wx/panel.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxPanelNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxPanelNameStr;
 
 // default scrolled window style
 #ifndef wxScrolledWindowStyle
@@ -71,9 +71,14 @@ public:
 
     virtual void DoSetVirtualSize(int x, int y);
 
-#ifdef __WXMAC__
-	virtual bool MacClipChildren() const { return true ; }
-#endif
+    // wxWindow's GetBestVirtualSize returns the actual window size,
+    // whereas we want to return the virtual size
+    virtual wxSize GetBestVirtualSize() const;
+
+    // Return the size best suited for the current window
+    // (this isn't a virtual size, this is a sensible size for the window)
+    virtual wxSize DoGetBestSize() const;
+
 protected:
     // this is needed for wxEVT_PAINT processing hack described in
     // wxScrollHelperEvtHandler::ProcessEvent()

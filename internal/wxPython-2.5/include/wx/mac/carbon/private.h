@@ -28,6 +28,7 @@
 #    include <ControlDefinitions.h>
 #    include <LowMem.h>
 #    include <Gestalt.h>
+#    include <FixMath.h>
 #endif
 
 #if UNIVERSAL_INTERFACES_VERSION < 0x0340
@@ -38,9 +39,32 @@
     #define MAC_OS_X_VERSION_10_3 1030
 #endif
 
+#ifndef MAC_OS_X_VERSION_10_4
+    #define MAC_OS_X_VERSION_10_4 1040
+#endif
+
+#ifdef __WXMAC_CARBON__
+#include "wx/mac/corefoundation/cfstring.h"
+#endif
+
+#ifndef FixedToInt
+// as macro in FixMath.h for 10.3
+inline Fixed    IntToFixed( int inInt )
+{
+    return (((SInt32) inInt) << 16);
+}
+
+inline int    FixedToInt( Fixed inFixed )
+{
+    return (((SInt32) inFixed) >> 16);
+}
+#endif
+
 #if wxUSE_GUI
 
+#include "wx/dc.h"
 #include "wx/window.h"
+#include "wx/toplevel.h"
 
 class wxMacPortStateHelper 
 {
@@ -126,6 +150,26 @@ private:
     ThemeDrawingState m_themeDrawingState ;
 } ;
 
+#if wxMAC_USE_CORE_GRAPHICS
+class WXDLLEXPORT wxMacCGContextStateSaver 
+{
+    DECLARE_NO_COPY_CLASS(wxMacCGContextStateSaver)
+        
+public:
+    wxMacCGContextStateSaver( CGContextRef cg ) 
+    {
+        m_cg = cg ;
+        CGContextSaveGState( cg ) ;
+    }
+    ~wxMacCGContextStateSaver() 
+    {
+        CGContextRestoreGState( m_cg ) ;
+    }
+private:
+    CGContextRef m_cg ;
+} ;
+
+#endif
 /*
 class wxMacDrawingHelper
 {
@@ -162,43 +206,6 @@ WXDLLEXPORT wxString wxMacFindFolder(short vRefNum,
                                      OSType folderType,
                                      Boolean createFolder);
 
-#if wxUSE_GUI
-
-GWorldPtr         wxMacCreateGWorld( int width , int height , int depth ) ;
-void                 wxMacDestroyGWorld( GWorldPtr gw ) ;
-PicHandle         wxMacCreatePict( GWorldPtr gw , GWorldPtr mask = NULL ) ;
-CIconHandle     wxMacCreateCIcon(GWorldPtr image , GWorldPtr mask , short dstDepth , short iconSize  ) ;
-void                 wxMacSetColorTableEntry( CTabHandle newColors , int index , int red , int green ,  int blue ) ;
-CTabHandle         wxMacCreateColorTable( int numColors ) ;
-void wxMacCreateBitmapButton( ControlButtonContentInfo*info , const wxBitmap& bitmap , int forceType = 0 ) ;
-
-#define MAC_WXCOLORREF(a) (*((RGBColor*)&(a)))
-#define MAC_WXHBITMAP(a) (GWorldPtr(a))
-#define MAC_WXHMETAFILE(a) (PicHandle(a))
-#define MAC_WXHICON(a) (CIconHandle(a))
-#define MAC_WXHCURSOR(a) (CursHandle(a))
-#define MAC_WXHRGN(a) (RgnHandle(a))
-#define MAC_WXHWND(a) (WindowPtr(a))
-#define MAC_WXRECPTR(a) ((Rect*)a)
-#define MAC_WXPOINTPTR(a) ((Point*)a)
-#define MAC_WXHMENU(a) ((MenuHandle)a)
-
-struct wxOpaqueWindowRef
-{
-    wxOpaqueWindowRef( WindowRef ref ) { m_data = ref ; }
-    operator WindowRef() { return m_data ; } 
-private :
-    WindowRef m_data ;
-} ;
-
-wxWindow *              wxFindControlFromMacControl(ControlRef inControl ) ;
-wxTopLevelWindowMac*    wxFindWinFromMacWindow( WindowRef inWindow ) ;
-wxMenu*                 wxFindMenuFromMacMenu(MenuRef inMenuRef) ;
-
-extern wxWindow* g_MacLastWindow ;
-pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , EventRef event , void *data ) ;
-Rect wxMacGetBoundsForControl( wxWindow* window , const wxPoint& pos , const wxSize &size , bool adjustForOrigin = true ) ;
-
 template<typename T> EventParamType wxMacGetEventParamType() { wxFAIL_MSG( wxT("Unknown Param Type") ) ; return 0 ; }
 template<> inline EventParamType wxMacGetEventParamType<RgnHandle>() { return typeQDRgnHandle ; }
 template<> inline EventParamType wxMacGetEventParamType<ControlRef>() { return typeControlRef ; }
@@ -218,32 +225,56 @@ template<> inline EventParamType wxMacGetEventParamType<void*>() { return typeVo
 template<> inline EventParamType wxMacGetEventParamType<Collection>() { return typeCollection ; }
 template<> inline EventParamType wxMacGetEventParamType<CGContextRef>() { return typeCGContextRef ; }
 /*
-These are ambiguous
-template<> EventParamType wxMacGetEventParamType<GrafPtr>() { return typeGrafPtr ; }
-template<> EventParamType wxMacGetEventParamType<OSStatus>() { return typeOSStatus ; }
-template<> EventParamType wxMacGetEventParamType<CFIndex>() { return typeCFIndex ; }
-template<> EventParamType wxMacGetEventParamType<GWorldPtr>() { return typeGWorldPtr ; }
-*/
+ These are ambiguous
+ template<> EventParamType wxMacGetEventParamType<GrafPtr>() { return typeGrafPtr ; }
+ template<> EventParamType wxMacGetEventParamType<OSStatus>() { return typeOSStatus ; }
+ template<> EventParamType wxMacGetEventParamType<CFIndex>() { return typeCFIndex ; }
+ template<> EventParamType wxMacGetEventParamType<GWorldPtr>() { return typeGWorldPtr ; }
+ */
 
 class wxMacCarbonEvent
 {
     
 public :
+    wxMacCarbonEvent()
+    {
+        m_eventRef = 0 ;
+        m_release = false ;
+    }
+    
     wxMacCarbonEvent( EventRef event , bool release = false ) 
     {
         m_eventRef = event ;
         m_release = release ;
     }
+    
     wxMacCarbonEvent(UInt32 inClassID,UInt32 inKind,EventTime inWhen = 0 /*now*/,EventAttributes inAttributes=kEventAttributeNone) 
     {
         m_eventRef = NULL ;
         verify_noerr( MacCreateEvent( NULL , inClassID, inKind,inWhen,inAttributes,&m_eventRef) ) ;
         m_release = true ;
     }
+    
     ~wxMacCarbonEvent()
     {
         if ( m_release )
             ReleaseEvent( m_eventRef ) ;
+    }
+    
+    OSStatus Create(UInt32 inClassID,UInt32 inKind,EventTime inWhen = 0 /*now*/,EventAttributes inAttributes=kEventAttributeNone) 
+    {
+        verify( (m_eventRef == NULL) || m_release ) ;
+        if ( m_eventRef && m_release )
+        {
+            ReleaseEvent( m_eventRef ) ;
+            m_release = false ;
+            m_eventRef = NULL ;
+            
+        }
+        OSStatus err = MacCreateEvent( NULL , inClassID, inKind,inWhen,inAttributes,&m_eventRef) ;
+        if ( err == noErr )
+            m_release = true ;
+        return err ;
     }
     
     OSStatus GetParameter( EventParamName inName, EventParamType inDesiredType, UInt32 inBufferSize, void * outData) ;
@@ -269,7 +300,7 @@ public :
         verify_noerr( GetParameter<T>( inName, inDesiredType , &value ) ) ;
         return value ;
     }
-
+    
     OSStatus SetParameter( EventParamName inName, EventParamType inType, UInt32 inSize, const void * inData) ;
     template <typename T> OSStatus SetParameter( EventParamName inName, EventParamType inDesiredType , const T *data )
     {
@@ -303,31 +334,97 @@ public :
     {
         return EventTimeToTicks( GetTime() ) ;
     }
-    operator EventRef () { return m_eventRef; }   
+    OSStatus SetTime( EventTime inWhen = 0 /*now*/ ) 
+    {
+        return ::SetEventTime( m_eventRef , inWhen ? inWhen : GetCurrentEventTime() ) ;
+    }
+    operator EventRef () { return m_eventRef; }
+    
+    bool IsValid() { return m_eventRef != 0 ; }  
 protected :
     EventRef m_eventRef ;
     bool     m_release ;
 } ;
 
+//
+// helper class for allocating and deallocating Universal Proc Ptrs
+//
+
+template <typename procType, typename uppType , uppType (*newUPP)(procType) , void (*disposeUPP)(uppType) > class wxMacUPP
+{
+public :
+    wxMacUPP( procType proc )
+    {
+        m_upp = NULL ;
+        m_upp = (*newUPP)( NULL ) ;
+    }
+    ~wxMacUPP()
+    {
+        if ( m_upp )
+            disposeUPP( m_upp ) ;
+    }
+    operator uppType() { return m_upp ; }
+private :
+    uppType m_upp ;
+} ;
+
+typedef wxMacUPP<NMProcPtr,NMUPP,NewNMUPP,DisposeNMUPP> wxMacNMUPP ;
+
+#if wxUSE_GUI
+/*
+GWorldPtr         wxMacCreateGWorld( int width , int height , int depth ) ;
+void                 wxMacDestroyGWorld( GWorldPtr gw ) ;
+PicHandle         wxMacCreatePict( GWorldPtr gw , GWorldPtr mask = NULL ) ;
+CIconHandle     wxMacCreateCIcon(GWorldPtr image , GWorldPtr mask , short dstDepth , short iconSize  ) ;
+void                 wxMacSetColorTableEntry( CTabHandle newColors , int index , int red , int green ,  int blue ) ;
+CTabHandle         wxMacCreateColorTable( int numColors ) ;
+*/
+void wxMacCreateBitmapButton( ControlButtonContentInfo*info , const wxBitmap& bitmap , int forceType = 0 ) ;
+void wxMacReleaseBitmapButton( ControlButtonContentInfo*info ) ;
+
+#define MAC_WXCOLORREF(a) (*((RGBColor*)&(a)))
+#define MAC_WXHBITMAP(a) (GWorldPtr(a))
+#define MAC_WXHMETAFILE(a) (PicHandle(a))
+#define MAC_WXHICON(a) (IconRef(a))
+#define MAC_WXHCURSOR(a) (CursHandle(a))
+#define MAC_WXHRGN(a) (RgnHandle(a))
+#define MAC_WXHWND(a) (WindowPtr(a))
+#define MAC_WXRECPTR(a) ((Rect*)a)
+#define MAC_WXPOINTPTR(a) ((Point*)a)
+#define MAC_WXHMENU(a) ((MenuHandle)a)
+
+struct wxOpaqueWindowRef
+{
+    wxOpaqueWindowRef( WindowRef ref ) { m_data = ref ; }
+    operator WindowRef() { return m_data ; } 
+private :
+    WindowRef m_data ;
+} ;
+
+void wxMacRectToNative( const wxRect *wx , Rect *n ) ;
+void wxMacNativeToRect( const Rect *n , wxRect* wx ) ;
+void wxMacPointToNative( const wxPoint* wx , Point *n ) ;
+void wxMacNativeToPoint( const Point *n , wxPoint* wx ) ;
+
+wxWindow *              wxFindControlFromMacControl(ControlRef inControl ) ;
+wxTopLevelWindowMac*    wxFindWinFromMacWindow( WindowRef inWindow ) ;
+wxMenu*                 wxFindMenuFromMacMenu(MenuRef inMenuRef) ;
+
+extern wxWindow* g_MacLastWindow ;
+pascal OSStatus wxMacTopLevelMouseEventHandler( EventHandlerCallRef handler , EventRef event , void *data ) ;
+Rect wxMacGetBoundsForControl( wxWindow* window , const wxPoint& pos , const wxSize &size , bool adjustForOrigin = true ) ;
+
+ControlActionUPP GetwxMacLiveScrollbarActionProc() ;
+
 class wxMacControl
 {
 public :
-    wxMacControl()
-    {
-        m_controlRef = NULL ;
-    }
+    wxMacControl( wxWindow* peer , bool isRootControl = false ) ;    
+    wxMacControl( wxWindow* peer , ControlRef control ) ;
+    wxMacControl( wxWindow* peer , WXWidget control ) ;
+    virtual ~wxMacControl() ;
     
-    wxMacControl( ControlRef control ) 
-    {
-        m_controlRef = control ;
-    }
-    wxMacControl( WXWidget control )
-    {
-        m_controlRef = (ControlRef) control ;
-    }
-    virtual ~wxMacControl()
-    {
-    }
+    void Init() ;
     
     virtual void Dispose() ;
 
@@ -366,6 +463,7 @@ public :
     virtual OSStatus SetFocus( ControlFocusPart focusPart ) ;
     virtual bool HasFocus() const ;
     virtual bool NeedsFocusRect() const ;
+    virtual void SetNeedsFocusRect( bool needs ) ;
     
     // templated helpers
 
@@ -397,7 +495,11 @@ public :
        
     // Flash the control for the specified amount of time
     virtual void Flash( ControlPartCode part , UInt32 ticks = 8 ) ;
+
     virtual void VisibilityChanged( bool shown ) ;
+    virtual void SuperChangedPosition() ;
+
+
     virtual void SetFont( const wxFont & font , const wxColour& foreground , long windowStyle ) ;
     virtual void SetBackground( const wxBrush &brush ) ;
     virtual ControlPartCode HandleKey(  SInt16 keyCode,  SInt16 charCode, EventModifiers modifiers ) ;
@@ -414,13 +516,23 @@ public :
     // invalidates this control and all children
     virtual void InvalidateWithChildren() ;
     virtual void SetDrawingEnabled( bool enable ) ;
+#ifdef __WXMAC_OSX__
     virtual bool GetNeedsDisplay() const ;
-    virtual void SetNeedsDisplay( bool needsDisplay , RgnHandle where = NULL ) ;
+#endif
+    // where is in native window relative coordinates
+    virtual void SetNeedsDisplay( RgnHandle where ) ;
+    // where is in native window relative coordinates
+    virtual void SetNeedsDisplay( Rect* where = NULL ) ;
 
-    virtual void ScrollRect( const wxRect &rect , int dx , int dy ) ;
+	// if rect = NULL, entire view
+    virtual void ScrollRect( wxRect *rect , int dx , int dy ) ;
 
+    // in native parent window relative coordinates
     virtual void GetRect( Rect *r ) ;
+
+    // in native parent window relative coordinates
     virtual void SetRect( Rect *r ) ;
+
     virtual void GetRectInWindowCoords( Rect *r ) ;
     virtual void GetBestRect( Rect *r ) ;
     virtual void SetTitle( const wxString &title ) ;
@@ -453,6 +565,7 @@ public :
     virtual OSStatus RevealItem( DataBrowserItemID item,
             DataBrowserPropertyID propertyID,
             DataBrowserRevealOptions options ) ;
+    virtual OSStatus GetSelectionAnchor( DataBrowserItemID * first, DataBrowserItemID * last ) ;
     virtual bool IsItemSelected( DataBrowserItemID item ) ;
     virtual OSStatus SetSelectedItems(UInt32 numItems,
             const DataBrowserItemID * items,
@@ -461,13 +574,195 @@ public :
     // to be moved into a tab control class
     
     virtual OSStatus SetTabEnabled( SInt16 tabNo , bool enable ) ;
+    bool    IsCompositing() { return m_isCompositing ; }
+    bool    IsRootControl() { return m_isRootControl ; }
 protected :
     ControlRef  m_controlRef ;
     wxFont      m_font ;
     long        m_windowStyle ; 
+    wxWindow*   m_peer ;
+    bool        m_needsFocusRect ;
+    bool        m_isCompositing ;
+    bool        m_isRootControl ;
 } ;
 
+#if wxMAC_USE_CORE_GRAPHICS
+
+class WXDLLEXPORT wxMacCGPath : public wxGraphicPath 
+{
+    DECLARE_NO_COPY_CLASS(wxMacCGPath)
+public :
+    wxMacCGPath() ;
+    ~wxMacCGPath() ;
+    
+    //  Starts a new subpath at
+    void MoveToPoint( wxCoord x1 , wxCoord y1 ) ;
+    void AddLineToPoint( wxCoord x1 , wxCoord y1 ) ;
+    void AddRectangle( wxCoord x, wxCoord y, wxCoord w, wxCoord h ) ;
+    void AddCircle( wxCoord x, wxCoord y , wxCoord r ) ;
+    
+    // closes the current subpath
+    void CloseSubpath() ;
+    
+    CGPathRef GetPath() const ;
+private :
+    CGMutablePathRef m_path ;
+} ;
+
+class WXDLLEXPORT wxMacCGContext : public wxGraphicContext
+{
+    DECLARE_NO_COPY_CLASS(wxMacCGContext)
+        
+public:
+    wxMacCGContext( CGrafPtr port ) ;
+    wxMacCGContext( CGContextRef cgcontext ) ;
+    wxMacCGContext() ;
+    ~wxMacCGContext() ;
+
+    virtual void Clip( const wxRegion &region ) ;
+    virtual void StrokePath( const wxGraphicPath *p ) ;
+    virtual void DrawPath( const wxGraphicPath *p , int fillStyle = wxWINDING_RULE ) ;
+    virtual void FillPath( const wxGraphicPath *p , const wxColor &fillColor , int fillStyle = wxWINDING_RULE ) ;
+     
+    virtual wxGraphicPath* CreatePath() ;
+    virtual void SetPen( const wxPen &pen )  ;    
+    virtual void SetBrush( const wxBrush &brush ) ;
+    CGContextRef GetNativeContext() ;
+    void SetNativeContext( CGContextRef cg ) ;
+    CGPathDrawingMode GetDrawingMode() const { return m_mode ; }
+private:
+    CGContextRef m_cgContext ;
+    CGrafPtr m_qdPort ;
+    CGPathDrawingMode m_mode ;
+    wxPen m_pen ;
+    wxBrush m_brush ;
+} ;
+
+#endif // wxMAC_USE_CORE_GRAPHICS
+
+#ifdef __WXMAC_OSX__
+
+CGColorSpaceRef wxMacGetGenericRGBColorSpace(void) ;
+void wxMacMemoryBufferReleaseProc(void *info, const void *data, size_t size) ;
+
+#endif
+
+class WXDLLEXPORT wxBitmapRefData: public wxGDIRefData
+{
+    DECLARE_NO_COPY_CLASS(wxBitmapRefData)
+        
+    friend class WXDLLEXPORT wxIcon;
+    friend class WXDLLEXPORT wxCursor;
+public:
+    wxBitmapRefData(int width , int height , int depth);
+    wxBitmapRefData();
+    ~wxBitmapRefData();
+
+    void Free() ;
+    bool Ok() const { return m_ok ; }
+    void SetOk( bool isOk) { m_ok = isOk ; }
+    
+    void SetWidth( int width ) { m_width = width ; }
+    void SetHeight( int height ) { m_height = height ; }
+    void SetDepth( int depth ) { m_depth = depth ; }
+
+    int GetWidth() const { return m_width ; }
+    int GetHeight() const { return m_height ; }
+    int GetDepth() const { return m_depth ; }
+    
+    void *GetRawAccess() const ;
+    void *BeginRawAccess() ;
+    void EndRawAccess() ;
+
+    bool HasAlpha() const { return m_hasAlpha ; }
+    void UseAlpha( bool useAlpha ) ;
+
+public:
+#if wxUSE_PALETTE
+    wxPalette     m_bitmapPalette;
+#endif // wxUSE_PALETTE
+    
+    wxMask *      m_bitmapMask; // Optional mask
+#ifdef __WXMAC_OSX__
+    CGImageRef    CGImageCreate() const ;
+#endif
+     
+    // returns true if the bitmap has a size that
+    // can be natively transferred into a true icon
+    // if no is returned GetIconRef will still produce
+    // an icon but it will be generated via a PICT and
+    // rescaled to 16 x 16   
+    bool          HasNativeSize() ;
+    
+    // caller should increase ref count if needed longer
+    // than the bitmap exists
+    IconRef       GetIconRef() ;
+    
+    // returns a Pict from the bitmap content
+    PicHandle     GetPictHandle() ;
+    GWorldPtr     GetHBITMAP(GWorldPtr * mask = NULL ) const ;
+    void          UpdateAlphaMask() const ;
+
+private :
+    bool Create(int width , int height , int depth) ;
+    void Init() ;
+
+    int           m_width;
+    int           m_height;
+    int           m_bytesPerRow ;
+    int           m_depth;
+    bool          m_hasAlpha;
+    wxMemoryBuffer m_memBuf ;
+    int           m_rawAccessCount ;
+    bool          m_ok;
+#ifdef __WXMAC_OSX__
+    mutable CGImageRef    m_cgImageRef ;
+#endif
+    IconRef       m_iconRef ;
+    PicHandle     m_pictHandle ;
+    GWorldPtr     m_hBitmap;
+    GWorldPtr     m_hMaskBitmap ;
+    wxMemoryBuffer m_maskMemBuf ;
+    int            m_maskBytesPerRow ;
+};
+
+class WXDLLEXPORT wxIconRefData : public wxGDIRefData
+{
+public:
+    wxIconRefData() ;
+    wxIconRefData( WXHICON ) ;
+    virtual ~wxIconRefData() { Free(); }
+
+    void Init() ;
+    virtual void Free();
+
+    void SetWidth( int width ) { m_width = width ; }
+    void SetHeight( int height ) { m_height = height ; }
+
+    int GetWidth() const { return m_width ; }
+    int GetHeight() const { return m_height ; }
+
+    WXHICON GetHICON() const { return (WXHICON) m_iconRef ; }
+private :
+    IconRef m_iconRef ;
+    int m_width ;
+    int m_height ;
+};
+
+// toplevel.cpp
+
+ControlRef wxMacFindControlUnderMouse( wxTopLevelWindowMac* toplevelWindow, Point location , WindowRef window , ControlPartCode *outPart ) ;
+
 #endif // wxUSE_GUI
+
+#define wxMAC_DEFINE_PROC_GETTER( UPP , x ) \
+UPP Get##x()                                \
+{                                           \
+    static UPP sHandler = NULL;             \
+    if ( sHandler == NULL )                 \
+        sHandler = New##UPP( x );           \
+    return sHandler;                        \
+}
 
 //---------------------------------------------------------------------------
 // wxMac string conversions
@@ -478,83 +773,6 @@ void wxMacCleanupConverters() ;
 
 void wxMacStringToPascal( const wxString&from , StringPtr to ) ;
 wxString wxMacMakeStringFromPascal( ConstStringPtr from ) ;
-
-void wxMacConvertNewlines13To10( char * data ) ;
-void wxMacConvertNewlines10To13( char * data ) ;
-void wxMacConvertNewlines13To10( wxString *data ) ;
-void wxMacConvertNewlines10To13( wxString *data ) ;
-
-#if wxUSE_UNICODE
-void wxMacConvertNewlines13To10( wxChar * data ) ;
-void wxMacConvertNewlines10To13( wxChar * data ) ;
-#endif
-
-#if TARGET_CARBON
-
-class wxMacCFStringHolder                                                             
-{                                                                           
-public:      
-	wxMacCFStringHolder()
-	{
-    	m_cfs = NULL ;
-    	m_release = false ;                                                                 
-	}
-	                                                               
-    wxMacCFStringHolder(const wxString &str , wxFontEncoding encoding )                                          
-    {      
-    	m_cfs = NULL ;
-    	m_release = false ;  
-    	Assign( str , encoding ) ;
-    }                                                                       
-                                                                            
-    wxMacCFStringHolder(CFStringRef ref , bool release = true )                                                   
-    {                                                                       
-        m_cfs = ref ;
-        m_release = release ;                                           
-    }                                                                       
-                                                                            
-    ~wxMacCFStringHolder() 
-    { 
-    	Release() ;
-    }                                           
-
-    CFStringRef Detach()
-    {
-    	CFStringRef retval = m_cfs ;
-    	m_release = false ;
-    	m_cfs = NULL ;
-    	return retval ;
-    }         
-                                                                   
-    void Release()
-    {
-    	if ( m_release && m_cfs)
-    		CFRelease( m_cfs ) ;
-    	m_cfs = NULL ;
-    }         
-
-	void Assign( const wxString &str , wxFontEncoding encoding ) ;
-
-    operator CFStringRef () { return m_cfs; }   
-    wxString AsString( wxFontEncoding encoding = wxFONTENCODING_DEFAULT ) ;
-             
-private:             
-    	                                                       
-    CFStringRef m_cfs;
-    bool m_release ;                                                        
-} ;
-
-#endif
-
-// utils.cpp
-
-wxUint32 wxMacGetSystemEncFromFontEnc(wxFontEncoding encoding) ;
-wxFontEncoding wxMacGetFontEncFromSystemEnc(wxUint32 encoding) ;
-void wxMacWakeUp() ;
-
-// toplevel.cpp
-
-ControlRef wxMacFindControlUnderMouse( Point location , WindowRef window , ControlPartCode *outPart ) ;
 
 // filefn.cpp
 

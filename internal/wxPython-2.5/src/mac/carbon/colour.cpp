@@ -9,9 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "colour.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/gdicmn.h"
 #include "wx/colour.h"
@@ -52,16 +54,6 @@ wxColour::wxColour (const wxColour& col)
     m_isInit = col.m_isInit;
 
     memcpy( &m_pixel , &col.m_pixel , 6 ) ;
-}
-
-wxColour::wxColour (const wxColour* col)
-{
-    m_red = col->m_red;
-    m_green = col->m_green;
-    m_blue = col->m_blue;
-    m_isInit = col->m_isInit;
-
-    memcpy( &m_pixel , &col->m_pixel , 6 ) ;
 }
 
 wxColour& wxColour::operator =(const wxColour& col)

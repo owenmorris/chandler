@@ -12,6 +12,7 @@ import inspect
 import sys
 import tokenize
 import types
+import wx
 
 def getAutoCompleteList(command='', locals=None, includeMagic=1, 
                         includeSingle=1, includeDouble=1):
@@ -39,18 +40,33 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
     attributes = []
     dict = {}
     if not hasattrAlwaysReturnsTrue(object):
-        # Add some attributes that don't always get picked up.  If
-        # they don't apply, they'll get filtered out at the end.
-        attributes += ['__bases__', '__class__', '__dict__', '__name__', 
-                       'func_closure', 'func_code', 'func_defaults', 
-                       'func_dict', 'func_doc', 'func_globals', 'func_name']
+        # Add some attributes that don't always get picked up.
+        special_attrs = ['__bases__', '__class__', '__dict__', '__name__',
+                         'func_closure', 'func_code', 'func_defaults',
+                         'func_dict', 'func_doc', 'func_globals', 'func_name']
+        attributes += [attr for attr in special_attrs \
+                       if hasattr(object, attr)]
     if includeMagic:
         try: attributes += object._getAttributeNames()
         except: pass
     # Get all attribute names.
-    attrdict = getAllAttributeNames(object)
-    for attrlist in attrdict.values():
-        attributes += attrlist
+    str_type = str(type(object))
+    if str_type == "<type 'array'>":
+        attributes += dir(object)
+    else:
+        attrdict = getAllAttributeNames(object)
+        # Store the object's dir.
+        object_dir = dir(object)
+        for (obj_type_name, technique, count), attrlist in attrdict.items():
+            # This complexity is necessary to avoid accessing all the
+            # attributes of the object.  This is very handy for objects
+            # whose attributes are lazily evaluated.
+            if type(object).__name__ == obj_type_name and technique == 'dir':
+                attributes += attrlist
+            else:
+                attributes += [attr for attr in attrlist \
+                               if attr not in object_dir and hasattr(object, attr)]
+            
     # Remove duplicates from the attribute list.
     for item in attributes:
         dict[item] = None
@@ -65,9 +81,6 @@ def getAttributeNames(object, includeMagic=1, includeSingle=1,
                             or item[1]=='_', attributes)
     if not includeDouble:
         attributes = filter(lambda item: item[:2]!='__', attributes)
-    # Make sure we haven't picked up any bogus attributes somehow.
-    attributes = [attribute for attribute in attributes \
-                  if hasattr(object, attribute)]
     return attributes
 
 def hasattrAlwaysReturnsTrue(object):
@@ -85,10 +98,9 @@ def getAllAttributeNames(object):
     # They always return true for hasattr().
     # !!!
     try:
-        # Yes, this can fail if object is an instance of a class with
-        # __str__ (or __repr__) having a bug or raising an
-        # exception. :-(
-        key = str(object)
+        # This could(?) fail if the type is poorly defined without
+        # even a name.
+        key = type(object).__name__
     except:
         key = 'anonymous'
     # Wake up sleepy objects - a hack for ZODB objects in "ghost" state.
@@ -280,7 +292,14 @@ def getRoot(command, terminator=None):
 
 def getTokens(command):
     """Return list of token tuples for command."""
-    command = str(command)  # In case the command is unicode, which fails.
+
+    # In case the command is unicode try encoding it
+    if type(command) == unicode:
+        try:
+            command = command.encode(wx.GetDefaultPyEncoding())
+        except UnicodeEncodeError:
+            pass # otherwise leave it alone
+                
     f = cStringIO.StringIO(command)
     # tokens is a list of token tuples, each looking like: 
     # (type, string, (srow, scol), (erow, ecol), line)

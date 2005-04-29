@@ -18,6 +18,8 @@
 
 #include "wx/spinbutt.h"    // the base class
 
+#if wxUSE_SPINCTRL
+
 #include "wx/dynarray.h"
 
 class WXDLLEXPORT wxSpinCtrl;
@@ -94,6 +96,9 @@ protected:
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual wxSize DoGetBestSize() const;
     virtual void DoGetSize(int *width, int *height) const;
+#if wxUSE_TOOLTIPS
+    virtual void DoSetToolTip( wxToolTip *tip );
+#endif // wxUSE_TOOLTIPS
 
     // the handler for wxSpinButton events
     void OnSpinChange(wxSpinEvent& event);
@@ -115,6 +120,8 @@ private:
     DECLARE_EVENT_TABLE()
     DECLARE_NO_COPY_CLASS(wxSpinCtrl)
 };
+
+#endif // wxUSE_SPINCTRL
 
 #endif // _WX_MSW_SPINCTRL_H_
 

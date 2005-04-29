@@ -16,7 +16,7 @@
 #pragma interface "progdlgg.h"
 #endif
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 
 #if wxUSE_PROGRESSDLG
 
@@ -55,7 +55,7 @@ public:
        @param newmsg if used, new message to display
        @returns true if ABORT button has not been pressed
    */
-   virtual bool Update(int value, const wxString& newmsg = wxEmptyString);
+   virtual bool Update(int value, const wxString& newmsg = wxEmptyString, bool *skip = NULL);
 
    /* Can be called to continue after the cancel button has been pressed, but
        the program decided to continue the operation (e.g., user didn't
@@ -63,11 +63,14 @@ public:
    */
    void Resume();
 
-   bool Show( bool show = true );
+   virtual bool Show( bool show = true );
 
 protected:
    // callback for optional abort button
    void OnCancel(wxCommandEvent& event);
+
+   // callback for optional skip button
+   void OnSkip(wxCommandEvent& event);
 
    // callback to disable "hard" window closing
    void OnClose(wxCloseEvent& event);
@@ -80,6 +83,13 @@ private:
    // create the label with given text and another one to show the time nearby
    // as the next windows in the sizer, returns the created control
    wxStaticText *CreateLabel(const wxString& text, wxSizer *sizer);
+
+   // shortcuts for enabling buttons
+   void EnableClose();
+   void EnableSkip(bool enable=true);
+   void EnableAbort(bool enable=true);
+   inline void DisableSkip() { EnableSkip(false); }
+   inline void DisableAbort() { EnableAbort(false); }
 
    // the status bar
    wxGauge *m_gauge;
@@ -99,49 +109,58 @@ private:
    // parent top level window (may be NULL)
    wxWindow *m_parentTop;
 
-   // continue processing or not (return value for Update())
-   enum
-   {
-      Uncancelable = -1,   // dialog can't be canceled
-      Canceled,            // can be cancelled and, in fact, was
-      Continue,            // can be cancelled but wasn't
-      Finished             // finished, waiting to be removed from screen
-   } m_state;
+    // continue processing or not (return value for Update())
+    enum
+    {
+        Uncancelable = -1,   // dialog can't be canceled
+        Canceled,            // can be cancelled and, in fact, was
+        Continue,            // can be cancelled but wasn't
+        Finished             // finished, waiting to be removed from screen
+    } m_state;
 
-   // the abort button (or NULL if none)
-   wxButton *m_btnAbort;
+    // skip some portion
+    bool m_skip;
 
-   // the maximum value
-   int m_maximum;
+#if !defined(__SMARTPHONE__)
+    // the abort and skip buttons (or NULL if none)
+    wxButton *m_btnAbort;
+    wxButton *m_btnSkip;
+#endif
 
-   // saves the time when elapsed time was updated so there is only one
-   // update per second
-   unsigned long m_last_timeupdate;
-   // tells how often a change of the estimated time has to be confirmed
-   // before it is actually displayed - this reduces the frequence of updates
-   // of estimated and remaining time
-   const int m_delay;
-   // counts the confirmations
-   int m_ctdelay;
-   unsigned long m_display_estimated;
+    // the maximum value
+    int m_maximum;
+
+    // saves the time when elapsed time was updated so there is only one
+    // update per second
+    unsigned long m_last_timeupdate;
+    // tells how often a change of the estimated time has to be confirmed
+    // before it is actually displayed - this reduces the frequence of updates
+    // of estimated and remaining time
+    const int m_delay;
+    // counts the confirmations
+    int m_ctdelay;
+    unsigned long m_display_estimated;
+
+    bool m_hasAbortButton,
+         m_hasSkipButton;
 
 #if defined(__WXMSW__ ) || defined(__WXPM__)
-   // the factor we use to always keep the value in 16 bit range as the native
-   // control only supports ranges from 0 to 65,535
-   size_t m_factor;
+    // the factor we use to always keep the value in 16 bit range as the native
+    // control only supports ranges from 0 to 65,535
+    size_t m_factor;
 #endif // __WXMSW__
 
-   // for wxPD_APP_MODAL case
-   class WXDLLEXPORT wxWindowDisabler *m_winDisabler;
+    // for wxPD_APP_MODAL case
+    class WXDLLEXPORT wxWindowDisabler *m_winDisabler;
 
-   DECLARE_EVENT_TABLE()
+    DECLARE_EVENT_TABLE()
 private:
     // Virtual function hiding supression
     virtual void Update() { wxDialog::Update(); }
 
     DECLARE_NO_COPY_CLASS(wxProgressDialog)
 };
-#endif
 
-#endif
-    // __PROGDLGH_G__
+#endif // wxUSE_PROGRESSDLG
+
+#endif // __PROGDLGH_G__

@@ -26,7 +26,7 @@ from wx.lib.masked import *
 # be a good place to implement the 2.3 logger class
 from wx.tools.dbg import Logger
 ##dbg = Logger()
-##dbg(enable=0)
+##dbg(enable=1)
 
 ## ---------- ---------- ---------- ---------- ---------- ---------- ----------
 ## Because calling SetSelection programmatically does not fire EVT_COMBOBOX
@@ -197,6 +197,7 @@ class BaseMaskedComboBox( wx.ComboBox, MaskedEditMixin ):
         Allow mixin to get the text selection of this control.
         REQUIRED by any class derived from MaskedEditMixin.
         """
+##        dbg('MaskedComboBox::_GetSelection()')
         return self.GetMark()
 
     def _SetSelection(self, sel_start, sel_to):
@@ -204,13 +205,22 @@ class BaseMaskedComboBox( wx.ComboBox, MaskedEditMixin ):
         Allow mixin to set the text selection of this control.
         REQUIRED by any class derived from MaskedEditMixin.
         """
+##        dbg('MaskedComboBox::_SetSelection: setting mark to (%d, %d)' % (sel_start, sel_to))
         return self.SetMark( sel_start, sel_to )
 
 
     def _GetInsertionPoint(self):
-        return self.GetInsertionPoint()
+##        dbg('MaskedComboBox::_GetInsertionPoint()', indent=1)
+##        ret = self.GetInsertionPoint()
+        # work around new bug in 2.5, in which the insertion point
+        # returned is always at the right side of the selection,
+        # rather than the start, as is the case with TextCtrl.
+        ret = self.GetMark()[0]
+##        dbg('returned', ret, indent=0)
+        return ret
 
     def _SetInsertionPoint(self, pos):
+##        dbg('MaskedComboBox::_SetInsertionPoint(%d)' % pos)
         self.SetInsertionPoint(pos)
 
 
@@ -443,41 +453,51 @@ class BaseMaskedComboBox( wx.ComboBox, MaskedEditMixin ):
                 wx.ComboBox.Append( self, choice )
 
 
-    def GetMark(self):
-        """
-        This function is a hack to make up for the fact that wx.ComboBox has no
-        method for returning the selected portion of its edit control.  It
-        works, but has the nasty side effect of generating lots of intermediate
-        events.
-        """
-##        dbg(suspend=1)  # turn off debugging around this function
-##        dbg('MaskedComboBox::GetMark', indent=1)
-        if self.__readonly:
-##            dbg(indent=0)
-            return 0, 0 # no selection possible for editing
-##        sel_start, sel_to = wxComboBox.GetMark(self)        # what I'd *like* to have!
-        sel_start = sel_to = self.GetInsertionPoint()
-##        dbg("current sel_start:", sel_start)
-        value = self.GetValue()
-##        dbg('value: "%s"' % value)
+    # Not all wx platform implementations have .GetMark, so we make the following test,
+    # and fall back to our old hack if they don't...
+    #
+    if not hasattr(wx.ComboBox, 'GetMark'):
+        def GetMark(self):
+            """
+            This function is a hack to make up for the fact that wx.ComboBox has no
+            method for returning the selected portion of its edit control.  It
+            works, but has the nasty side effect of generating lots of intermediate
+            events.
+            """
+##            dbg(suspend=1)  # turn off debugging around this function
+##            dbg('MaskedComboBox::GetMark', indent=1)
+            if self.__readonly:
+##                dbg(indent=0)
+                return 0, 0 # no selection possible for editing
+##            sel_start, sel_to = wxComboBox.GetMark(self)        # what I'd *like* to have!
+            sel_start = sel_to = self.GetInsertionPoint()
+##            dbg("current sel_start:", sel_start)
+            value = self.GetValue()
+##            dbg('value: "%s"' % value)
 
-        self._ignoreChange = True               # tell _OnTextChange() to ignore next event (if any)
+            self._ignoreChange = True               # tell _OnTextChange() to ignore next event (if any)
 
-        wx.ComboBox.Cut(self)
-        newvalue = self.GetValue()
-##        dbg("value after Cut operation:", newvalue)
+            wx.ComboBox.Cut(self)
+            newvalue = self.GetValue()
+##            dbg("value after Cut operation:", newvalue)
 
-        if newvalue != value:                   # something was selected; calculate extent
-##            dbg("something selected")
-            sel_to = sel_start + len(value) - len(newvalue)
-            wx.ComboBox.SetValue(self, value)    # restore original value and selection (still ignoring change)
-            wx.ComboBox.SetInsertionPoint(self, sel_start)
-            wx.ComboBox.SetMark(self, sel_start, sel_to)
+            if newvalue != value:                   # something was selected; calculate extent
+##                dbg("something selected")
+                sel_to = sel_start + len(value) - len(newvalue)
+                wx.ComboBox.SetValue(self, value)    # restore original value and selection (still ignoring change)
+                wx.ComboBox.SetInsertionPoint(self, sel_start)
+                wx.ComboBox.SetMark(self, sel_start, sel_to)
 
-        self._ignoreChange = False              # tell _OnTextChange() to pay attn again
+            self._ignoreChange = False              # tell _OnTextChange() to pay attn again
 
-##        dbg('computed selection:', sel_start, sel_to, indent=0, suspend=0)
-        return sel_start, sel_to
+##            dbg('computed selection:', sel_start, sel_to, indent=0, suspend=0)
+            return sel_start, sel_to
+    else:
+        def GetMark(self):
+##            dbg('MaskedComboBox::GetMark()', indent = 1)
+            ret = wx.ComboBox.GetMark(self)
+##            dbg('returned', ret, indent=0)
+            return ret
 
 
     def SetSelection(self, index):
@@ -635,6 +655,11 @@ class PreMaskedComboBox( BaseMaskedComboBox, MaskedEditAccessorsMixin ):
 __i = 0
 ## CHANGELOG:
 ## ====================
+##  Version 1.3
+##  1. Made definition of "hack" GetMark conditional on base class not
+##     implementing it properly, to allow for migration in wx code base
+##     while taking advantage of improvements therein for some platforms.
+##
 ##  Version 1.2
 ##  1. Converted docstrings to reST format, added doc for ePyDoc.
 ##  2. Renamed helper functions, vars etc. not intended to be visible in public

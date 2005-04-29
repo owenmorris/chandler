@@ -176,11 +176,24 @@ class ListCtrlAutoWidthMixin:
     def __init__(self):
         """ Standard initialiser.
         """
-        self._lastColMinWidth = None
-
+        self._resizeColMinWidth = None
+        self._resizeColStyle = "LAST"
+        self._resizeCol = 0
         self.Bind(wx.EVT_SIZE, self._onResize)
         self.Bind(wx.EVT_LIST_COL_END_DRAG, self._onResize, self)
 
+
+    def setResizeColumn(self, col):
+        """
+        Specify which column that should be autosized.  Pass either
+        'LAST' or the column number.  Default is 'LAST'.
+        """
+        if col == "LAST":
+            self._resizeColStyle = "LAST"
+        else:
+            self._resizeColStyle = "COL"
+            self._resizeCol = col
+        
 
     def resizeLastColumn(self, minWidth):
         """ Resize the last column appropriately.
@@ -196,8 +209,13 @@ class ListCtrlAutoWidthMixin:
 
             'minWidth' is the preferred minimum width for the last column.
         """
-        self._lastColMinWidth = minWidth
+        self.resizeColumn(minWidth)
+
+
+    def resizeColumn(self, minWidth):
+        self._resizeColMinWidth = minWidth
         self._doResize()
+        
 
     # =====================
     # == Private Methods ==
@@ -231,8 +249,13 @@ class ListCtrlAutoWidthMixin:
         numCols = self.GetColumnCount()
         if numCols == 0: return # Nothing to resize.
 
-        if self._lastColMinWidth == None:
-            self._lastColMinWidth = self.GetColumnWidth(numCols - 1)
+        if(self._resizeColStyle == "LAST"):
+            resizeCol = self.GetColumnCount()
+        else:
+            resizeCol = self._resizeCol
+
+        if self._resizeColMinWidth == None:
+            self._resizeColMinWidth = self.GetColumnWidth(resizeCol - 1)
 
         # We're showing the vertical scrollbar -> allow for scrollbar width
         # NOTE: on GTK, the scrollbar is included in the client size, but on
@@ -244,21 +267,23 @@ class ListCtrlAutoWidthMixin:
                 listWidth = listWidth - scrollWidth
 
         totColWidth = 0 # Width of all columns except last one.
-        for col in range(numCols-1):
-            totColWidth = totColWidth + self.GetColumnWidth(col)
+        for col in range(numCols):
+            if col != (resizeCol-1):
+                totColWidth = totColWidth + self.GetColumnWidth(col)
 
-        lastColWidth = self.GetColumnWidth(numCols - 1)
+        resizeColWidth = self.GetColumnWidth(resizeCol - 1)
 
-        if totColWidth + self._lastColMinWidth > listWidth:
+        if totColWidth + self._resizeColMinWidth > listWidth:
             # We haven't got the width to show the last column at its minimum
             # width -> set it to its minimum width and allow the horizontal
             # scrollbar to show.
-            self.SetColumnWidth(numCols-1, self._lastColMinWidth)
+            self.SetColumnWidth(resizeCol-1, self._resizeColMinWidth)
             return
 
         # Resize the last column to take up the remaining available space.
 
-        self.SetColumnWidth(numCols-1, listWidth - totColWidth)
+        self.SetColumnWidth(resizeCol-1, listWidth - totColWidth)
+
 
 
 
@@ -358,8 +383,8 @@ from bisect import bisect
 
 
 class TextEditMixin:
-    """
-    A mixin class that handles enables any text in any column of a
+    """    
+    A mixin class that enables any text in any column of a
     multi-column listctrl to be edited by clicking on the given row
     and column.  You close the text editor by hitting the ENTER key or
     clicking somewhere else on the listctrl. You switch to the next
@@ -368,15 +393,18 @@ class TextEditMixin:
     To use the mixin you have to include it in the class definition
     and call the __init__ function::
 
-        class TestListCtrl(wx.ListCtrl, TextEdit):
+        class TestListCtrl(wx.ListCtrl, TextEditMixin):
             def __init__(self, parent, ID, pos=wx.DefaultPosition,
                          size=wx.DefaultSize, style=0):
                 wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-                TextEdit.__init__(self) 
+                TextEditMixin.__init__(self) 
 
 
     Authors:     Steve Zatz, Pim Van Heuven (pim@think-wize.com)
     """
+
+    editorBgColour = wx.Colour(255,255,175) # Yellow
+    editorFgColour = wx.Colour(0,0,0)       # black
         
     def __init__(self):
         #editor = wx.TextCtrl(self, -1, pos=(-1,-1), size=(-1,-1),
@@ -394,10 +422,14 @@ class TextEditMixin:
         editor = wx.PreTextCtrl()
         
         style =wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB|wx.TE_RICH2
-        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT, wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT, wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE}[col_style]
+        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT,
+                  wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT,
+                  wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE
+                  }[col_style]
         
         editor.Create(self, -1, style=style)
-        editor.SetBackgroundColour(wx.Colour(red=255,green=255,blue=175)) #Yellow
+        editor.SetBackgroundColour(self.editorBgColour)
+        editor.SetForegroundColour(self.editorFgColour)
         font = self.GetFont()
         editor.SetFont(font)
 
@@ -493,7 +525,7 @@ class TextEditMixin:
 
         scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
 
-        # scroll foreward
+        # scroll forward
         if x0+x1-scrolloffset > self.GetSize()[0]:
             if wx.Platform == "__WXMSW__":
                 # don't start scrolling unless we really need to
@@ -512,6 +544,9 @@ class TextEditMixin:
                 # Since we can not programmatically scroll the ListCtrl
                 # close the editor so the user can scroll and open the editor
                 # again
+                self.editor.SetValue(self.GetItem(row, col).GetText())
+                self.curRow = row
+                self.curCol = col
                 self.CloseEditor()
                 return
 
@@ -530,16 +565,33 @@ class TextEditMixin:
         self.curCol = col
 
     
+    # FIXME: this function is usually called twice - second time because
+    # it is binded to wx.EVT_KILL_FOCUS. Can it be avoided? (MW)
     def CloseEditor(self, evt=None):
         ''' Close the editor and save the new value to the ListCtrl. '''
         text = self.editor.GetValue()
         self.editor.Hide()
-        if self.IsVirtual():
-            # replace by whather you use to populate the virtual ListCtrl
-            # data source
-            self.SetVirtualData(self.curRow, self.curCol, text)
-        else:
-            self.SetStringItem(self.curRow, self.curCol, text)
+        self.SetFocus()
+        
+        # post wxEVT_COMMAND_LIST_END_LABEL_EDIT
+        # Event can be vetoed. It doesn't has SetEditCanceled(), what would 
+        # require passing extra argument to CloseEditor() 
+        evt = wx.ListEvent(wx.wxEVT_COMMAND_LIST_END_LABEL_EDIT, self.GetId())
+        evt.m_itemIndex = self.curRow
+        evt.m_col = self.curCol
+        item = self.GetItem(self.curRow, self.curCol)
+        evt.m_item.SetId(item.GetId()) 
+        evt.m_item.SetColumn(item.GetColumn()) 
+        evt.m_item.SetData(item.GetData()) 
+        evt.m_item.SetText(text) #should be empty string if editor was canceled
+        ret = self.GetEventHandler().ProcessEvent(evt)
+        if not ret or evt.IsAllowed():
+            if self.IsVirtual():
+                # replace by whather you use to populate the virtual ListCtrl
+                # data source
+                self.SetVirtualData(self.curRow, self.curCol, text)
+            else:
+                self.SetStringItem(self.curRow, self.curCol, text)
         self.RefreshItem(self.curRow)
 
     def _SelectIndex(self, row):

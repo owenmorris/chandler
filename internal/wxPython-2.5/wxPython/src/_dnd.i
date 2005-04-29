@@ -55,7 +55,8 @@ IMP_PYCALLBACK_BOOL_DR(wxPyDropSource, wxDropSource, GiveFeedback);
 %}
 
 
-%name(DropSource) class wxPyDropSource {
+%rename(DropSource) wxPyDropSource;
+class wxPyDropSource {
 public:
     %pythonAppend wxPyDropSource "self._setCallbackInfo(self, DropSource, 0)"
 #ifndef __WXGTK__
@@ -115,7 +116,8 @@ IMP_PYCALLBACK_BOOL_INTINT(wxPyDropTarget, wxDropTarget, OnDrop);
 %}
 
 
-%name(DropTarget) class wxPyDropTarget // : public wxDropTarget
+%rename(DropTarget) wxPyDropTarget;
+class wxPyDropTarget // : public wxDropTarget
 {
 public:
     %pythonAppend wxPyDropTarget
@@ -142,6 +144,15 @@ public:
     // with the data from the drop source if it returns True
     bool GetData();
 
+    // sets the default action for drag and drop:
+    // use wxDragMove or wxDragCopy to set deafult action to move or copy
+    // and use wxDragNone (default) to set default action specified by
+    // initialization of draging (see wxDropSourceBase::DoDragDrop())
+    void SetDefaultAction(wxDragResult action);
+
+    // returns default action for drag and drop or
+    // wxDragNone if this not specified
+    wxDragResult GetDefaultAction();
 };
 
 
@@ -178,7 +189,8 @@ IMP_PYCALLBACK_BOOL_INTINT(wxPyTextDropTarget, wxTextDropTarget, OnDrop);
 
 %}
 
-%name(TextDropTarget) class wxPyTextDropTarget : public wxPyDropTarget {
+%rename(TextDropTarget) wxPyTextDropTarget;
+class wxPyTextDropTarget : public wxPyDropTarget {
 public:
     %pythonAppend wxPyTextDropTarget   "self._setCallbackInfo(self, TextDropTarget)"
 
@@ -217,7 +229,7 @@ public:
 bool wxPyFileDropTarget::OnDropFiles(wxCoord x, wxCoord y,
                                      const wxArrayString& filenames) {
     bool rval = false;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if (wxPyCBH_findCallback(m_myInst, "OnDropFiles")) {
         PyObject* list = wxArrayString2PyList_helper(filenames);
         rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iiO)",x,y,list));
@@ -238,7 +250,8 @@ IMP_PYCALLBACK_BOOL_INTINT(wxPyFileDropTarget, wxFileDropTarget, OnDrop);
 %}
 
 
-%name(FileDropTarget) class wxPyFileDropTarget : public wxPyDropTarget
+%rename(FileDropTarget) wxPyFileDropTarget;
+class wxPyFileDropTarget : public wxPyDropTarget
 {
 public:
     %pythonAppend wxPyFileDropTarget   "self._setCallbackInfo(self, FileDropTarget)"

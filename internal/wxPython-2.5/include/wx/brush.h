@@ -1,7 +1,25 @@
 #ifndef _WX_BRUSH_H_BASE_
 #define _WX_BRUSH_H_BASE_
 
-#if defined(__WXMSW__)
+#include "wx/defs.h"
+#include "wx/object.h"
+#include "wx/gdiobj.h"
+
+// wxBrushBase
+class WXDLLEXPORT wxBrushBase: public wxGDIObject
+{
+public:
+    virtual ~wxBrushBase() { }
+
+    virtual int GetStyle() const = 0;
+
+    virtual bool IsHatch() const
+        { return (GetStyle()>=wxFIRST_HATCH) && (GetStyle()<=wxLAST_HATCH); }
+};
+
+#if defined(__WXPALMOS__)
+    #include "wx/palmos/brush.h"
+#elif defined(__WXMSW__)
     #include "wx/msw/brush.h"
 #elif defined(__WXMOTIF__) || defined(__WXX11__)
     #include "wx/x11/brush.h"

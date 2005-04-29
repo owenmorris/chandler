@@ -13,20 +13,16 @@
 #define _WX_GEOMETRY_H_
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "geometry.cpp"
+    #pragma interface "geometry.h"
 #endif
 
 #include "wx/defs.h"
-
-#ifndef wxUSE_GEOMETRY
-    #define wxUSE_GEOMETRY 0
-#endif
 
 #if wxUSE_GEOMETRY
 
 #include "wx/utils.h"
 #include "wx/gdicmn.h"
-#include <math.h>
+#include "wx/math.h"
 
 #ifdef __WXMSW__
     #define wxMulDivInt32( a , b , c ) ::MulDiv( a , b , c )
@@ -789,6 +785,7 @@ inline bool wxRect2DInt::operator != (const wxRect2DInt& rect) const
 class wxTransform2D
 {
 public :
+    virtual ~wxTransform2D() { }
     virtual void                    Transform( wxPoint2DInt* pt )const  = 0;
     virtual void                    Transform( wxRect2DInt* r ) const;
     virtual wxPoint2DInt    Transform( const wxPoint2DInt &pt ) const;

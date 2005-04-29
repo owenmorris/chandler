@@ -46,7 +46,7 @@ class WXDLLIMPEXP_BASE wxZlibInputStream: public wxFilterInputStream {
   virtual ~wxZlibInputStream();
 
   char Peek() { return wxInputStream::Peek(); }
-  size_t GetSize() const { return wxInputStream::GetSize(); }
+  wxFileOffset GetLength() const { return wxInputStream::GetLength(); }
 
   static bool CanHandleGZip();
 
@@ -69,10 +69,11 @@ class WXDLLIMPEXP_BASE wxZlibInputStream: public wxFilterInputStream {
 class WXDLLIMPEXP_BASE wxZlibOutputStream: public wxFilterOutputStream {
  public:
   wxZlibOutputStream(wxOutputStream& stream, int level = -1, int flags = wxZLIB_ZLIB);
-  virtual ~wxZlibOutputStream();
+  virtual ~wxZlibOutputStream() { Close(); }
 
   void Sync() { DoFlush(false); }
-  size_t GetSize() const { return (size_t)m_pos; }
+  bool Close();
+  wxFileOffset GetLength() const { return m_pos; }
 
   static bool CanHandleGZip();
 

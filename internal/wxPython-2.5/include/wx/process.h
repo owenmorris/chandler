@@ -43,7 +43,7 @@ class WXDLLIMPEXP_BASE wxProcess : public wxEvtHandler
 {
 public:
     // kill the process with the given PID
-    static wxKillError Kill(int pid, wxSignal sig = wxSIGTERM);
+    static wxKillError Kill(int pid, wxSignal sig = wxSIGTERM, int flags = wxKILL_NOCHILDREN);
 
     // test if the given process exists
     static bool Exists(int pid);
@@ -107,8 +107,7 @@ public:
 
     // for backwards compatibility only, don't use
 #if WXWIN_COMPATIBILITY_2_2
-    wxProcess(wxEvtHandler *parent, bool redirect)
-        { Init(parent, wxID_ANY, redirect ? wxPROCESS_REDIRECT : wxPROCESS_DEFAULT); }
+    wxDEPRECATED( wxProcess(wxEvtHandler *parent, bool redirect) );
 #endif // WXWIN_COMPATIBILITY_2_2
 
 protected:
@@ -168,10 +167,10 @@ public:
 
 typedef void (wxEvtHandler::*wxProcessEventFunction)(wxProcessEvent&);
 
-#define EVT_END_PROCESS(id, func) \
-   DECLARE_EVENT_TABLE_ENTRY( \
-           wxEVT_END_PROCESS, id, wxID_ANY, \
-           (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxProcessEventFunction, & func ), NULL),
+#define wxProcessEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxProcessEventFunction, &func)
 
-#endif
-    // _WX_PROCESSH__
+#define EVT_END_PROCESS(id, func) \
+   wx__DECLARE_EVT1(wxEVT_END_PROCESS, id, wxProcessEventHandler(func))
+
+#endif // _WX_PROCESSH__

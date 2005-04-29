@@ -176,6 +176,15 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
     return pt;
 }
 
+
+void wxFrameBase::SendSizeEvent()
+{
+    wxSizeEvent event( GetSize(), GetId() );
+    event.SetEventObject( this );
+    GetEventHandler()->AddPendingEvent( event );
+}
+
+
 // ----------------------------------------------------------------------------
 // misc
 // ----------------------------------------------------------------------------
@@ -267,7 +276,7 @@ void wxFrameBase::OnMenuOpen(wxMenuEvent& WXUNUSED(event))
 void wxFrameBase::OnMenuClose(wxMenuEvent& WXUNUSED(event))
 {
     // do we have real status text to restore?
-    if ( m_oldStatusText.length() > 1 || m_oldStatusText[0u] )
+    if ( !m_oldStatusText.empty() )
     {
         if ( m_statusBarPane >= 0 )
         {
@@ -378,7 +387,7 @@ bool wxFrameBase::ShowMenuHelp(wxStatusBar *WXUNUSED(statbar), int menuId)
 
     DoGiveHelp(helpString, show);
 
-    return !helpString.IsEmpty();
+    return !helpString.empty();
 #else // !wxUSE_MENUS
     return false;
 #endif // wxUSE_MENUS/!wxUSE_MENUS
@@ -480,9 +489,15 @@ wxToolBar* wxFrameBase::OnCreateToolBar(long style,
                                         wxWindowID id,
                                         const wxString& name)
 {
+#if defined(__WXWINCE__) && defined(__POCKETPC__)
+    return new wxToolMenuBar(this, id,
+                         wxDefaultPosition, wxDefaultSize,
+                         style, name);
+#else
     return new wxToolBar(this, id,
                          wxDefaultPosition, wxDefaultSize,
                          style, name);
+#endif
 }
 
 void wxFrameBase::SetToolBar(wxToolBar *toolbar)
@@ -554,3 +569,12 @@ void wxFrameBase::SetMenuBar(wxMenuBar *menubar)
 }
 
 #endif // wxUSE_MENUS
+
+#if WXWIN_COMPATIBILITY_2_2
+
+bool wxFrameBase::Command(int winid)
+{
+    return ProcessCommand(winid);
+}
+
+#endif // WXWIN_COMPATIBILITY_2_2

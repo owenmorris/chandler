@@ -94,7 +94,7 @@ public:
         }
         
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->GetRow()));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->GetCol()));
@@ -163,7 +163,7 @@ cell in each direction.", "");
         }
         
         PyObject* Get() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(self->GetRowspan()));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(self->GetColspan()));
@@ -221,16 +221,17 @@ are created automatically when the sizer's Add method is called.", "");
     %extend {
         DocStr(wxGBSizerItem( wxWindow *window, const wxGBPosition& pos,const wxGBSpan& span,int flag,int border,PyObject* userData=NULL ),
                "Construct a `wx.GBSizerItem` for a window.", "");
-        %name(GBSizerItemWindow) wxGBSizerItem( wxWindow *window,
-                                                const wxGBPosition& pos,
-                                                const wxGBSpan& span,
-                                                int flag,
-                                                int border,
-                                                PyObject* userData=NULL )
+        
+        %RenameCtor(GBSizerItemWindow, wxGBSizerItem( wxWindow *window,
+                                                      const wxGBPosition& pos,
+                                                      const wxGBSpan& span,
+                                                      int flag,
+                                                      int border,
+                                                      PyObject* userData=NULL ))
             {
                 wxPyUserData* data = NULL;
                 if ( userData ) {
-                    bool blocked = wxPyBeginBlockThreads();
+                    wxPyBlock_t blocked = wxPyBeginBlockThreads();
                     data = new wxPyUserData(userData);
                     wxPyEndBlockThreads(blocked);
                 }
@@ -240,16 +241,16 @@ are created automatically when the sizer's Add method is called.", "");
 
         DocStr(wxGBSizerItem( wxSizer *sizer,const wxGBPosition& pos,const wxGBSpan& span,int flag,int border,PyObject* userData=NULL ),
                "Construct a `wx.GBSizerItem` for a sizer", "");
-        %name(GBSizerItemSizer) wxGBSizerItem( wxSizer *sizer,
-                                               const wxGBPosition& pos,
-                                               const wxGBSpan& span,
-                                               int flag,
-                                               int border,
-                                               PyObject* userData=NULL )
+        %RenameCtor(GBSizerItemSizer, wxGBSizerItem( wxSizer *sizer,
+                                                     const wxGBPosition& pos,
+                                                     const wxGBSpan& span,
+                                                     int flag,
+                                                     int border,
+                                                     PyObject* userData=NULL ))
             {
                 wxPyUserData* data = NULL;
                 if ( userData ) {
-                    bool blocked = wxPyBeginBlockThreads();
+                    wxPyBlock_t blocked = wxPyBeginBlockThreads();
                     data = new wxPyUserData(userData);
                     wxPyEndBlockThreads(blocked);
                 }
@@ -259,17 +260,17 @@ are created automatically when the sizer's Add method is called.", "");
              
         DocStr(wxGBSizerItem( int width,int height,const wxGBPosition& pos,const wxGBSpan& span,int flag,int border,PyObject* userData=NULL),
                "Construct a `wx.GBSizerItem` for a spacer.", "");
-        %name(GBSizerItemSpacer) wxGBSizerItem( int width,
-                                                int height,
-                                                const wxGBPosition& pos,
-                                                const wxGBSpan& span,
-                                                int flag,
-                                                int border,
-                                                PyObject* userData=NULL)
+        %RenameCtor(GBSizerItemSpacer, wxGBSizerItem( int width,
+                                                      int height,
+                                                      const wxGBPosition& pos,
+                                                      const wxGBSpan& span,
+                                                      int flag,
+                                                      int border,
+                                                      PyObject* userData=NULL))
             {
                 wxPyUserData* data = NULL;
                 if ( userData ) {
-                    bool blocked = wxPyBeginBlockThreads();
+                    wxPyBlock_t blocked = wxPyBeginBlockThreads();
                     data = new wxPyUserData(userData);
                     wxPyEndBlockThreads(blocked);
                 }
@@ -359,6 +360,8 @@ positioned at, adjusted for spanning.
 class wxGridBagSizer : public wxFlexGridSizer
 {
 public:
+    %pythonAppend wxGridBagSizer "self._setOORInfo(self)"
+
     DocCtorStr(
         wxGridBagSizer(int vgap = 0, int hgap = 0 ),
         "Constructor, with optional parameters to specify the gap between the
@@ -368,7 +371,7 @@ rows and columns.", "");
     %extend {
         DocAStr(Add,
                 "Add(self, item, GBPosition pos, GBSpan span=DefaultSpan, int flag=0,
-int border=0, userData=None)",
+int border=0, userData=None) -> wx.GBSizerItem",
                 
                 "Adds an item to the sizer at the grid cell *pos*, optionally spanning
 more than one row or column as specified with *span*.  The remaining
@@ -377,15 +380,15 @@ args behave similarly to `wx.Sizer.Add`.
 Returns True if the item was successfully placed at the given cell
 position, False if something was already there.
 ", "");
-        bool Add( PyObject* item,
-                  const wxGBPosition& pos,
-                  const wxGBSpan& span = wxDefaultSpan,
-                  int flag = 0,
-                  int border = 0,
-                  PyObject* userData = NULL ) {
+        wxGBSizerItem* Add( PyObject* item,
+                            const wxGBPosition& pos,
+                            const wxGBSpan& span = wxDefaultSpan,
+                            int flag = 0,
+                            int border = 0,
+                            PyObject* userData = NULL ) {
 
             wxPyUserData* data = NULL;
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             wxPySizerItemInfo info = wxPySizerItemTypeHelper(item, true, false);
             if ( userData && (info.window || info.sizer || info.gotSize) )
                 data = new wxPyUserData(userData);
@@ -393,19 +396,19 @@ position, False if something was already there.
             
             // Now call the real Add method if a valid item type was found
             if ( info.window )
-                return self->Add(info.window, pos, span, flag, border, data);
+                return (wxGBSizerItem*)self->Add(info.window, pos, span, flag, border, data);
             else if ( info.sizer )
-                return self->Add(info.sizer, pos, span, flag, border, data);
+                return (wxGBSizerItem*)self->Add(info.sizer, pos, span, flag, border, data);
             else if (info.gotSize)
-                return self->Add(info.size.GetWidth(), info.size.GetHeight(),
-                                 pos, span, flag, border, data);
-            return false;
+                return (wxGBSizerItem*)self->Add(info.size.GetWidth(), info.size.GetHeight(),
+                                                 pos, span, flag, border, data);
+            return NULL;
         }
     }
     
     DocDeclAStrName(
-        bool , Add( wxGBSizerItem *item ),
-        "Add(self, GBSizerItem item) -> bool",
+        wxGBSizerItem* , Add( wxGBSizerItem *item ),
+        "Add(self, GBSizerItem item) -> wx.GBSizerItem",
         "Add an item to the sizer using a `wx.GBSizerItem`.  Returns True if
 the item was successfully placed at its given cell position, False if
 something was already there.", "",

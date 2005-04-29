@@ -37,16 +37,12 @@
 #endif
 
 #include "wx/fontdlg.h"
-#include "wx/msw/private.h"
-
-#if !defined(__WIN32__) || defined(__WXWINCE__)
-#include <commdlg.h>
-#endif
+#include "wx/msw/wrapcdlg.h"
 
 #include "wx/cmndata.h"
 #include "wx/log.h"
+#include "wx/math.h"
 
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,7 +62,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
 
 int wxFontDialog::ShowModal()
 {
-    DWORD flags = CF_SCREENFONTS | CF_NOSIMULATIONS;
+    // It should be OK to always use GDI simulations
+    DWORD flags = CF_SCREENFONTS /* | CF_NOSIMULATIONS */ ;
 
     LOGFONT logFont;
 
@@ -87,9 +84,6 @@ int wxFontDialog::ShowModal()
     if ( m_fontData.m_fontColour.Ok() )
     {
         chooseFontStruct.rgbColors = wxColourToRGB(m_fontData.m_fontColour);
-
-        // need this for the colour to be taken into account
-        flags |= CF_EFFECTS;
     }
 
     // CF_ANSIONLY flag is obsolete for Win32

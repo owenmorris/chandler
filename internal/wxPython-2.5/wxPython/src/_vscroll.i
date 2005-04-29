@@ -127,7 +127,8 @@ IMP_PYCALLBACK_COORD_const          (wxPyVScrolledWindow, wxVScrolledWindow, Est
 
 MustHaveApp(wxPyVScrolledWindow);
 
-%name(VScrolledWindow) class wxPyVScrolledWindow : public wxPanel
+%rename(VScrolledWindow) wxPyVScrolledWindow;
+class wxPyVScrolledWindow : public wxPanel
 {
 public:
     %pythonAppend wxPyVScrolledWindow         "self._setOORInfo(self); self._setCallbackInfo(self, VScrolledWindow)"
@@ -141,7 +142,7 @@ public:
                         long style = 0,
                         const wxString& name = wxPyPanelNameStr);
 
-    %name(PreVScrolledWindow)wxPyVScrolledWindow();
+    %RenameCtor(PreVScrolledWindow, wxPyVScrolledWindow());
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -176,7 +177,7 @@ public:
 
     // return the item at the specified (in physical coordinates) position or
     // wxNOT_FOUND if none, i.e. if it is below the last item
-    %name(HitTestXY) int HitTest(wxCoord x, wxCoord y) const;
+    %Rename(HitTestXY, int, HitTest(wxCoord x, wxCoord y) const);
     int HitTest(const wxPoint& pt) const;
 
     // recalculate all our parameters and redisplay all lines
@@ -188,13 +189,24 @@ public:
     size_t GetLineCount() const;
 
     // get the first currently visible line
-    size_t GetFirstVisibleLine() const;
+    size_t GetVisibleBegin() const;
 
     // get the last currently visible line
-    size_t GetLastVisibleLine() const;
+    size_t GetVisibleEnd() const;
 
     // is this line currently visible?
     bool IsVisible(size_t line) const;
+
+    // this is the same as GetVisibleBegin(), exists to match
+    // GetLastVisibleLine() and for backwards compatibility only
+    size_t GetFirstVisibleLine() const;
+
+    // get the last currently visible line
+    //
+    // this function is unsafe as it returns (size_t)-1 (i.e. a huge positive
+    // number) if the control is empty, use GetVisibleEnd() instead, this one
+    // is kept for backwards compatibility
+    size_t GetLastVisibleLine() const;
 
 };
 
@@ -286,7 +298,8 @@ IMP_PYCALLBACK__DCRECTSIZET_const    (wxPyVListBox, wxVListBox, OnDrawBackground
  */
 MustHaveApp(wxPyVListBox);
 
-%name(VListBox) class wxPyVListBox : public wxPyVScrolledWindow
+%rename(VListBox) wxPyVListBox;
+class wxPyVListBox : public wxPyVScrolledWindow
 {
 public:
     %pythonAppend wxPyVListBox         "self._setOORInfo(self);self._setCallbackInfo(self, VListBox)"
@@ -300,7 +313,7 @@ public:
                  long style = 0,
                  const wxString& name = wxPyVListBoxNameStr);
 
-    %name(PreVListBox) wxPyVListBox();
+    %RenameCtor(PreVListBox,  wxPyVListBox());
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -344,7 +357,7 @@ public:
         PyObject* GetFirstSelected() {
             unsigned long cookie = 0;
             int selected = self->GetFirstSelected(cookie);
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(selected));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(cookie));
@@ -361,7 +374,7 @@ public:
         // int GetNextSelected(unsigned long& cookie) const;
         PyObject* GetNextSelected(unsigned long cookie) {
             int selected = self->GetNextSelected(cookie);
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, PyInt_FromLong(selected));
             PyTuple_SET_ITEM(tup, 1, PyInt_FromLong(cookie));
@@ -431,7 +444,7 @@ public:
     //
     // by default both margins are 0
     void SetMargins(const wxPoint& pt);
-    %name(SetMarginsXY) void SetMargins(wxCoord x, wxCoord y);
+    %Rename(SetMarginsXY, void, SetMargins(wxCoord x, wxCoord y));
 
     // change the background colour of the selected cells
     void SetSelectionBackground(const wxColour& col);
@@ -505,7 +518,8 @@ IMP_PYCALLBACK_STRING_SIZET     (wxPyHtmlListBox, wxHtmlListBox, OnGetItemMarkup
 
 // wxHtmlListBox is a listbox whose items are wxHtmlCells
 MustHaveApp(wxPyHtmlListBox);
-%name(HtmlListBox) class wxPyHtmlListBox : public wxPyVListBox
+%rename(HtmlListBox) wxPyHtmlListBox;
+class wxPyHtmlListBox : public wxPyVListBox
 {
 public:
     %pythonAppend wxPyHtmlListBox         "self._setOORInfo(self);self._setCallbackInfo(self, HtmlListBox)"
@@ -520,7 +534,7 @@ public:
                     long style = 0,
                     const wxString& name = wxPyVListBoxNameStr);
 
-    %name(PreHtmlListBox) wxPyHtmlListBox();
+    %RenameCtor(PreHtmlListBox,  wxPyHtmlListBox());
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 

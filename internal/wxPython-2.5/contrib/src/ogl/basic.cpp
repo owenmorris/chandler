@@ -34,7 +34,6 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <math.h>
 
 #include "wx/ogl/ogl.h"
 
@@ -1313,7 +1312,7 @@ void wxShape::OnDragLeft(bool draw, double x, double y, int keys, int attachment
 
   dc.SetLogicalFunction(OGLRBLF);
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush(* wxTRANSPARENT_BRUSH);
 
@@ -1358,7 +1357,7 @@ void wxShape::OnBeginDragLeft(double x, double y, int keys, int attachment)
 //  m_xpos = xx; m_ypos = yy;
   dc.SetLogicalFunction(OGLRBLF);
 
-  wxPen dottedPen(wxColour(0, 0, 0), 1, wxDOT);
+  wxPen dottedPen(*wxBLACK, 1, wxDOT);
   dc.SetPen(dottedPen);
   dc.SetBrush((* wxTRANSPARENT_BRUSH));
 
@@ -1370,6 +1369,8 @@ void wxShape::OnBeginDragLeft(double x, double y, int keys, int attachment)
 
 void wxShape::OnEndDragLeft(double x, double y, int keys, int attachment)
 {
+  if (!m_draggable)
+    return;
   m_canvas->ReleaseMouse();
   if ((m_sensitivity & OP_DRAG_LEFT) != OP_DRAG_LEFT)
   {
@@ -2712,7 +2713,9 @@ bool wxShape::GetAttachmentPosition(int attachment, double *x, double *y,
             double left = (double)(m_xpos - w/2.0);
             double right = (double)(m_xpos + w/2.0);
 
+#if 0
             /* bool isEnd = */ (line && line->IsEnd(this));
+#endif
 
             int physicalAttachment = LogicalToPhysicalAttachment(attachment);
 
@@ -3190,7 +3193,7 @@ bool wxShape::GetAttachmentPositionEdge(int attachment, double *x, double *y,
 // to logical (0 -> 1 if rotated by 90 degrees)
 int wxShape::PhysicalToLogicalAttachment(int physicalAttachment) const
 {
-    const double pi = 3.1415926535897932384626433832795 ;
+    const double pi = M_PI ;
     int i;
     if (oglRoughlyEqual(GetRotation(), 0.0))
     {
@@ -3222,7 +3225,7 @@ int wxShape::PhysicalToLogicalAttachment(int physicalAttachment) const
 // to physical (0 is always North)
 int wxShape::LogicalToPhysicalAttachment(int logicalAttachment) const
 {
-    const double pi = 3.1415926535897932384626433832795 ;
+    const double pi = M_PI ;
     int i;
     if (oglRoughlyEqual(GetRotation(), 0.0))
     {
@@ -3252,7 +3255,7 @@ int wxShape::LogicalToPhysicalAttachment(int logicalAttachment) const
 
 void wxShape::Rotate(double WXUNUSED(x), double WXUNUSED(y), double theta)
 {
-    const double pi = 3.1415926535897932384626433832795 ;
+    const double pi = M_PI ;
     m_rotation = theta;
     if (m_rotation < 0.0)
     {

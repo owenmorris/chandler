@@ -20,6 +20,7 @@
 #include "wx/mstream.h"
 #include "wx/image.h"
 #include "wx/log.h"
+#include "wx/uri.h"
 
 #include <gdk/gdk.h>
 
@@ -253,28 +254,10 @@ size_t wxFileDataObject::GetDataSize() const
 
 bool wxFileDataObject::SetData(size_t WXUNUSED(size), const void *buf)
 {
-    // VZ: old format
-#if 0
-    // filenames are stores as a string with #0 as deliminators
-    const char *filenames = (const char*) buf;
-    size_t pos = 0;
-    for(;;)
-    {
-        if (filenames[0] == 0)
-            break;
-        if (pos >= size)
-            break;
-        wxString file( filenames );  // this returns the first file
-        AddFile( file );
-        pos += file.Len()+1;
-        filenames += file.Len()+1;
-    }
-#else // 1
     m_filenames.Empty();
 
-    // the text/uri-list format is a sequence of URIs (filenames prefixed by
-    // "file:" as far as I see) delimited by "\r\n" of total length size
-    // (I wonder what happens if the file has '\n' in its filename??)
+    // we get data in the text/uri-list format, i.e. as a sequence of URIs
+    // (filenames prefixed by "file:") delimited by "\r\n"
     wxString filename;
     for ( const char *p = (const char *)buf; ; p++ )
     {
@@ -295,7 +278,7 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size), const void *buf)
                     lenPrefix += 2;
                 }
 
-                AddFile(filename.c_str() + lenPrefix);
+                AddFile(wxURI::Unescape(filename.c_str() + lenPrefix));
                 filename.Empty();
             }
             else
@@ -315,7 +298,6 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size), const void *buf)
             filename += *p;
         }
     }
-#endif // 0/1
 
     return TRUE;
 }

@@ -82,7 +82,7 @@ wxHtmlHelpIndexCompareFunc(wxHtmlHelpDataItem **a, wxHtmlHelpDataItem **b)
         return -1;
     if (ib == NULL)
         return 1;
-    
+
     if (ia->parent == ib->parent)
     {
         return ia->name.CmpNoCase(ib->name);
@@ -686,7 +686,7 @@ bool wxHtmlHelpData::AddBook(const wxString& book)
         lineptr = ReadLine(lineptr, linebuf, 300);
 
         for (wxChar *ch = linebuf; *ch != wxT('\0') && *ch != wxT('='); ch++)
-           *ch = tolower(*ch);
+           *ch = (wxChar)wxTolower(*ch);
 
         if (wxStrstr(linebuf, _T("title=")) == linebuf)
             title = linebuf + wxStrlen(_T("title="));
@@ -700,9 +700,11 @@ bool wxHtmlHelpData::AddBook(const wxString& book)
             charset = linebuf + wxStrlen(_T("charset="));
     } while (lineptr != NULL);
 
-    wxFontEncoding enc;
-    if (charset == wxEmptyString) enc = wxFONTENCODING_SYSTEM;
-    else enc = wxFontMapper::Get()->CharsetToEncoding(charset);
+    wxFontEncoding enc = wxFONTENCODING_SYSTEM;
+#if wxUSE_FONTMAP
+    if (charset != wxEmptyString)
+        enc = wxFontMapper::Get()->CharsetToEncoding(charset);
+#endif
 
     bool rtval = AddBookParam(*fi, enc,
                               title, contents, index, start, fsys.GetPath());

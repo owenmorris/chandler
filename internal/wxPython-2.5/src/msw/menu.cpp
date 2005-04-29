@@ -106,7 +106,8 @@ UINT GetMenuState(HMENU hMenu, UINT id, UINT flags)
     wxZeroMemory(info);
     info.cbSize = sizeof(info);
     info.fMask = MIIM_STATE;
-    if ( !::GetMenuItemInfo(hMenu, id, flags & MF_BYCOMMAND ? FALSE : TRUE, & info) )
+    // MF_BYCOMMAND is zero so test MF_BYPOSITION
+    if ( !::GetMenuItemInfo(hMenu, id, flags & MF_BYPOSITION ? TRUE : FALSE , & info) )
         wxLogLastError(wxT("GetMenuItemInfo"));
     return info.fState;
 }
@@ -642,16 +643,12 @@ void wxMenu::SetTitle(const wxString& label)
 bool wxMenu::MSWCommand(WXUINT WXUNUSED(param), WXWORD id)
 {
     // ignore commands from the menu title
-
-    // NB: VC++ generates wrong assembler for `if ( id != idMenuTitle )'!!
     if ( id != (WXWORD)idMenuTitle )
     {
-        // VZ: previosuly, the command int was set to id too which was quite
-        //     useless anyhow (as it could be retrieved using GetId()) and
-        //     uncompatible with wxGTK, so now we use the command int instead
-        //     to pass the checked status
-        UINT menuState = ::GetMenuState(GetHmenu(), id, MF_BYCOMMAND) ;
-        SendEvent(id, menuState & MF_CHECKED);
+        // get the checked status of the command: notice that menuState is the
+        // old state of the menu, so the test for MF_CHECKED must be inversed
+        UINT menuState = ::GetMenuState(GetHmenu(), id, MF_BYCOMMAND);
+        SendEvent(id, !(menuState & MF_CHECKED));
     }
 
     return true;
@@ -701,13 +698,13 @@ wxMenuBar::wxMenuBar( long WXUNUSED(style) )
     Init();
 }
 
-wxMenuBar::wxMenuBar(int count, wxMenu *menus[], const wxString titles[])
+wxMenuBar::wxMenuBar(size_t count, wxMenu *menus[], const wxString titles[], long WXUNUSED(style))
 {
     Init();
 
     m_titles.Alloc(count);
 
-    for ( int i = 0; i < count; i++ )
+    for ( size_t i = 0; i < count; i++ )
     {
         m_menus.Append(menus[i]);
         m_titles.Add(titles[i]);
@@ -720,9 +717,13 @@ wxMenuBar::~wxMenuBar()
 {
     // In Windows CE (not .NET), the menubar is always associated
     // with a toolbar, which destroys the menu implicitly.
-#if defined(WINCE_WITHOUT_COMMANDBAR)
+#if defined(WINCE_WITHOUT_COMMANDBAR) && defined(__POCKETPC__)
     if (GetToolBar())
-        GetToolBar()->SetMenuBar(NULL);
+    {
+        wxToolMenuBar* toolMenuBar = wxDynamicCast(GetToolBar(), wxToolMenuBar);
+        if (toolMenuBar)
+            toolMenuBar->SetMenuBar(NULL);
+    }
 #else
     // we should free Windows resources only if Windows doesn't do it for us
     // which happens if we're attached to a frame

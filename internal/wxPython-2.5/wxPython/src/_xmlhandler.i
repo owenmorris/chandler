@@ -40,7 +40,6 @@ public:
     wxObject* GetParent()               { return m_parent; }
     wxObject* GetInstance()             { return m_instance; }
     wxWindow* GetParentAsWindow()       { return m_parentAsWindow; }
-    wxWindow* GetInstanceAsWindow()     { return m_instanceAsWindow; }
 
 
     // turn some protected methods into public via delegation
@@ -138,7 +137,8 @@ IMP_PYCALLBACK_BOOL_NODE_pure(wxPyXmlResourceHandler, wxXmlResourceHandler, CanH
 // Now the version that will be SWIGged.
 
 
-%name(XmlResourceHandler) class wxPyXmlResourceHandler : public wxObject {
+%rename(XmlResourceHandler) wxPyXmlResourceHandler;
+class wxPyXmlResourceHandler : public wxObject {
 public:
     %pythonAppend wxPyXmlResourceHandler "self._setCallbackInfo(self, XmlResourceHandler)"
     wxPyXmlResourceHandler() : wxXmlResourceHandler() {}
@@ -166,7 +166,7 @@ public:
     wxObject* GetParent()               { return m_parent; }
     wxObject* GetInstance()             { return m_instance; }
     wxWindow* GetParentAsWindow()       { return m_parentAsWindow; }
-    wxWindow* GetInstanceAsWindow()     { return m_instanceAsWindow; }
+//     wxWindow* GetInstanceAsWindow()     { return m_instanceAsWindow; }
 
 
     // Returns true if the node has a property class equal to classname,

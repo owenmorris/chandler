@@ -3,6 +3,8 @@
 # Build wxMac and wxPythonOSX from the tarball and then make an
 # Installer package out of it.
 
+##set -x
+
 spectemplate=distrib/wxPythonFull.spec.in
 
 if [ ! -d wxPython -o ! -e ${spectemplate} ]; then
@@ -12,7 +14,7 @@ fi
 
 if [ "$UID" != "0" ]; then
     echo "-------------------------------------------------------"
-    echo " WARNING:  will be unable to change ownership of files"
+    echo " WARNING: I will be unable to change ownership of files"
     echo " unless this script is run as root or via sudo"
     echo "-------------------------------------------------------"
 fi
@@ -22,7 +24,9 @@ fi
 
 function usage {
     echo ""
-    echo "Usage: $0  [panther|jaguar]  [command flags...]"
+    echo "Usage: $0  PYVER  [jaguar|panther] [command flags...]"
+    echo ""
+    echo "   PYVER          Python version to use to do the build"
     echo ""
     echo "   panther        Build for Apple's python in /usr/bin, such as on Panther"
     echo "   jaguar         Build for a python in /usr/local/bin, such as on Jaguar"
@@ -41,19 +45,28 @@ function usage {
 }
 
 
-if [ $# -lt 1 ]; then
+if [ $# -lt 2 ]; then
     usage
     exit 1
 fi
 
-KIND=$1
+PYVER=$1
+if which python$PYVER && which pythonw$PYVER; then
+    PYTHON=`which python$PYVER`
+    PYTHONW=`which pythonw$PYVER`
+else
+    usage;
+    exit 1
+fi
+
+KIND=$2
 case $KIND in
-    panther)    PYTHON=/usr/bin/python ;;
-    jaguar)     PYTHON=/usr/local/bin/python ;;
+    panther)    TAG=macosx10.3 ;;
+    jaguar)     TAG=macosx10.2 ;;
     *)          usage; exit 1 ;;
 esac
-PYTHONW=${PYTHON}w
-shift
+
+shift;shift
 
 skiptar=no
 skipconfig=no
@@ -83,11 +96,10 @@ done
 
 
 VERSION=`$PYTHON -c "import setup;print setup.VERSION"`
-PYVER=`$PYTHON -c "import sys; print sys.version[:3]"`
+SHORTVER=`echo $VERSION | cut -c 1,2,3`
 PYPREFIX=`$PYTHON -c "import sys; print sys.exec_prefix"`
 PYLIB=$PYPREFIX/lib/python$PYVER
 SITEPACKAGES=$PYLIB/site-packages
-SHORTVER=`echo $VERSION | cut -c 1,2,3`
 
 if [ $unicode == yes ]; then
     CHARTYPE=unicode
@@ -99,9 +111,15 @@ else
     PYUNICODEOPT=0
 fi
 
-#if [ "$HOSTNAME" = "bigmac.alldunn.com" ]; then
-#    MAKEJOBS="--jobs=2"
-#fi
+
+# Test if the python we are using is the System installed framework 
+# or one that was installed by the user.  This changes where the 
+# site-packages (or its alias) is located in the installer tree.
+APPLE_PYTHON=no
+if [ -e /Library/Python/$PYVER ] && [ `dirname $PYTHON` == "/usr/bin" ]; then
+    APPLE_PYTHON=yes
+fi
+
 
 
 if [ -z "$TARBALLDIR" ]; then
@@ -201,6 +219,9 @@ echo "Using source tree: $WXDIR"
 
 #----------------------------------------------------------------------
 
+if [ $KIND = panther ]; then 
+    OTHER_CFG_OPTS=--enable-mediactrl
+fi
 
 # Configure wxWidgets
 if [ $skipconfig != yes ]; then
@@ -215,8 +236,8 @@ if [ $skipconfig != yes ]; then
 	--enable-debug_flag \
 	--enable-precomp=no \
 	--enable-optimise \
-	$UNICODEOPT
-
+	--disable-debugreport \
+	$UNICODEOPT $OTHER_CFG_OPTS
 
 fi
 
@@ -225,20 +246,20 @@ if [ $skipbuild != yes ]; then
 
     # Make wxWidgets and some contribs
 
-    # For some reason Rez and DeRez have started locking up if run as
-    # root, figure out why, but in the meantime...
-    if [ "$UID" = "0" ]; then
-	chmod a+w lib
-	if [ "$CHARTYPE" = "ansi" ]; then
-	    su robind -c "make lib/libwx_macd-2.5.3.r"
-	else
-	    su robind -c "make lib/libwx_macud-2.5.3.r"
-	fi
-    fi
+#     # For some reason Rez and DeRez have started locking up if run via
+#     # an ssh terminal.  Figure out why, but in the meantime...
+#     if [ "$CHARTYPE" = "ansi" ]; then
+# 	echo cp /projects/wx2.5/bld/lib/libwx_macd-2.5.?.r* lib
+# 	     cp /projects/wx2.5/bld/lib/libwx_macd-2.5.?.r* lib
+#     else
+# 	echo cp /projects/wx2.5/bld-unicode/lib/libwx_macud-2.5.?.r* lib
+#              cp /projects/wx2.5/bld-unicode/lib/libwx_macud-2.5.?.r* lib
+#     fi
+#     touch lib/libwx*.r*
 
     make $MAKEJOBS
+    make $MAKEJOBS -C contrib/src/animate
     make $MAKEJOBS -C contrib/src/gizmos
-    make $MAKEJOBS -C contrib/src/ogl CXXFLAGS="-DwxUSE_DEPRECATED=0"
     make $MAKEJOBS -C contrib/src/stc
 
     # Build wxPython
@@ -257,10 +278,10 @@ fi
 if [ $skipinstall != yes ]; then
     # Install wxWidgets
     cd $WXBLD
-    make prefix=$INSTALLROOT$PREFIX install
-    make -C contrib/src/gizmos prefix=$INSTALLROOT$PREFIX install
-    make -C contrib/src/ogl CXXFLAGS="-DwxUSE_DEPRECATED=0" prefix=$INSTALLROOT/$PREFIX install
-    make -C contrib/src/stc prefix=$INSTALLROOT$PREFIX install
+    make                        prefix=$INSTALLROOT$PREFIX install
+    make -C contrib/src/animate prefix=$INSTALLROOT$PREFIX install
+    make -C contrib/src/gizmos  prefix=$INSTALLROOT$PREFIX install
+    make -C contrib/src/stc     prefix=$INSTALLROOT$PREFIX install
 
 
     # relink wx-config with a relative link
@@ -280,10 +301,11 @@ if [ $skipinstall != yes ]; then
 	--root=$INSTALLROOT
 
 
-    # Apple's Python (on Panther) sym-links the site-packages dir to
+    # Apple's Python Framework (such as what comes with Panther)
+    # sym-links the site-packages dir in the framework to
     # /Library/Python/$PYVER so we need to move the files so they are
     # installed in the physical location, not the virtual one.
-    if [ "$KIND" = "panther" ]; then
+    if [ $APPLE_PYTHON == yes ]; then
 	if [ -e $INSTALLROOT/Library/Python/$PYVER ]; then
 	    rm -r $INSTALLROOT/Library/Python/$PYVER
 	fi	    
@@ -312,7 +334,7 @@ if [ $skipinstall != yes ]; then
     fi
 fi
 
-if [ "$KIND" = "panther" ]; then
+if [ $APPLE_PYTHON == yes ]; then
     SITEPACKAGES=/Library/Python/$PYVER
 fi
 PKGDIR=`cat $INSTALLROOT$SITEPACKAGES/wx.pth`
@@ -379,9 +401,13 @@ EOF
     
 
     # Build the main Installer Package...
-    rm -rf wxPython${SHORTVER}-osx-$CHARTYPE-$KIND.pkg
-    python $PROGDIR/../buildpkg.py \
-	--Title=wxPython${SHORTVER}-osx-$CHARTYPE-$KIND \
+    PKGNAME=wxPython${SHORTVER}-osx-$CHARTYPE-$KIND
+    if [ $PYVER != 2.3 ]; then
+	PKGNAME=wxPython${SHORTVER}-osx-$CHARTYPE-$KIND-py$PYVER
+    fi
+    rm -rf $PKGNAME.pkg
+    $PYTHON $PROGDIR/../buildpkg.py \
+	--Title=$PKGNAME \
 	--Version=$VERSION \
 	--Description="wxPython $CHARTYPE runtime $VERSION for $W_MSG MacPython-OSX $PYVER" \
 	--NeedsAuthorization="YES" \
@@ -390,7 +416,7 @@ EOF
 	$INSTALLROOT \
 	$RESOURCEDIR
 
-    mv wxPython${SHORTVER}-osx-$CHARTYPE-$KIND.pkg $DMGROOT
+    mv $PKGNAME.pkg $DMGROOT
 
     rm $RESOURCEDIR/postflight
     rm $RESOURCEDIR/preflight
@@ -440,7 +466,7 @@ EOF
 
     #-----------------------------------------------
     # Make a disk image to hold these files
-    dmgname=wxPython${SHORTVER}-osx-$CHARTYPE-$VERSION-$KIND-py$PYVER
+    dmgname=wxPython${SHORTVER}-osx-$CHARTYPE-$VERSION-$TAG-py$PYVER
     $PROGDIR/../makedmg $DMGROOT $DMGDIR $dmgname
 
     echo Moving $DMGDIR/$dmgname.dmg to $DESTDIR
@@ -596,7 +622,7 @@ EOF
 
 
     # and then finally make a disk image containing everything
-    dmgname=wxPython${SHORTVER}-osx-docs-demos-$VERSION-$KIND
+    dmgname=wxPython${SHORTVER}-osx-docs-demos-$VERSION-$TAG-py$PYVER
     $PROGDIR/../makedmg $DMGAPPS $DMGDIR $dmgname
 
     echo Moving $DMGDIR/$dmgname.dmg to $DESTDIR

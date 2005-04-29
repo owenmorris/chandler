@@ -72,7 +72,7 @@ bool wxStatusBarUniv::Create(wxWindow *parent,
     }
 
     SetFieldsCount(1);
-    
+
     CreateInputHandler(wxINP_HANDLER_STATUSBAR);
 
     SetSize(DoGetBestSize());
@@ -116,7 +116,7 @@ void wxStatusBarUniv::DoDraw(wxControlRenderer *renderer)
     dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
     // do draw the fields
-    int flags = IsEnabled() ? 0 : wxCONTROL_DISABLED;
+    int flags = IsEnabled() ? 0 : (int)wxCONTROL_DISABLED;
     for ( int n = 0; n < m_nFields; n++ )
     {
         rect.width = m_widthsAbs[n];
@@ -183,7 +183,7 @@ void wxStatusBarUniv::SetStatusText(const wxString& text, int number)
 
 wxString wxStatusBarUniv::GetStatusText(int number) const
 {
-    wxCHECK_MSG( number >= 0 && number < m_nFields, _T(""),
+    wxCHECK_MSG( number >= 0 && number < m_nFields, wxEmptyString,
                  _T("invalid status bar field index") );
 
     return m_statusText[number];

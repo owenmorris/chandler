@@ -136,14 +136,10 @@ public:
                                                : (GdkBitmap *)NULL;
 #ifdef __WXGTK20__
             if (bitmap.HasPixbuf())
-                gtk_image_set_from_pixbuf(GTK_IMAGE(m_pixmap),
-                                          bitmap.GetPixbuf());
+                gtk_image_set_from_pixbuf( GTK_IMAGE(m_pixmap), bitmap.GetPixbuf() );
             else
-                gtk_image_set_from_pixmap(GTK_IMAGE(m_pixmap),
-                                          bitmap.GetPixmap(), mask);
-#else
-            gtk_pixmap_set(GTK_PIXMAP(m_pixmap), bitmap.GetPixmap(), mask);
 #endif // !__WXGTK20__
+                gtk_pixmap_set( GTK_PIXMAP(m_pixmap), bitmap.GetPixmap(), mask );
         }
     }
 
@@ -168,6 +164,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl)
 // "clicked" (internal from gtk_toolbar)
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_toolbar_callback( GtkWidget *WXUNUSED(widget),
                                   wxToolBarTool *tool )
 {
@@ -202,11 +199,13 @@ static void gtk_toolbar_callback( GtkWidget *WXUNUSED(widget),
         tool->SetPixmap(tool->GetBitmap());
     }
 }
+}
 
 //-----------------------------------------------------------------------------
 // "enter_notify_event" / "leave_notify_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_toolbar_tool_callback( GtkWidget *WXUNUSED(widget),
                                        GdkEventCrossing *gdk_event,
                                        wxToolBarTool *tool )
@@ -224,6 +223,7 @@ static gint gtk_toolbar_tool_callback( GtkWidget *WXUNUSED(widget),
         tb->OnMouseEnter( -1 );
 
     return FALSE;
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -396,19 +396,24 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
 
 
 #ifdef __WXGTK20__
-            tool_pixmap = gtk_image_new();
-            tool->m_pixmap = tool_pixmap;
-            tool->SetPixmap(bitmap);
-#else
-            GdkPixmap *pixmap = bitmap.GetPixmap();
-
-            GdkBitmap *mask = (GdkBitmap *)NULL;
-            if ( bitmap.GetMask() )
-              mask = bitmap.GetMask()->GetBitmap();
-            
-            tool_pixmap = gtk_pixmap_new( pixmap, mask );
-            gtk_pixmap_set_build_insensitive( GTK_PIXMAP(tool_pixmap), TRUE );
+            if (bitmap.HasPixbuf())
+            {
+                tool_pixmap = gtk_image_new();
+                tool->m_pixmap = tool_pixmap;
+                tool->SetPixmap(bitmap);
+            }
+            else
 #endif
+            {
+                GdkPixmap *pixmap = bitmap.GetPixmap();
+
+                GdkBitmap *mask = (GdkBitmap *)NULL;
+                if ( bitmap.GetMask() )
+                    mask = bitmap.GetMask()->GetBitmap();
+            
+                tool_pixmap = gtk_pixmap_new( pixmap, mask );
+                gtk_pixmap_set_build_insensitive( GTK_PIXMAP(tool_pixmap), TRUE );
+            }
 
             gtk_misc_set_alignment( GTK_MISC(tool_pixmap), 0.5, 0.5 );
 
@@ -514,7 +519,7 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
     return TRUE;
 }
 
-bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
+bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *toolBase)
 {
     wxToolBarTool *tool = (wxToolBarTool *)toolBase;
 
@@ -528,7 +533,11 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
             gtk_widget_destroy( tool->m_item );
             break;
 
-        //case wxTOOL_STYLE_SEPARATOR: -- nothing to do
+#ifdef __WXGTK20__
+        case wxTOOL_STYLE_SEPARATOR:
+            gtk_toolbar_remove_space( m_toolbar, pos );
+            break;
+#endif
     }
 
     InvalidateBestSize();

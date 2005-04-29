@@ -32,6 +32,35 @@ if RELEASE_VERSION != _core_.RELEASE_VERSION:
 
 #----------------------------------------------------------------------------
 
+# Set wxPython's default string<-->unicode conversion encoding from
+# the locale, but only if Python's default hasn't been changed.  (We
+# assume that if the user has customized it already then that is the
+# encoding we need to use as well.)
+#
+# The encoding selected here is used when string or unicode objects
+# need to be converted in order to pass them to wxWidgets.  Please be
+# aware that the default encoding within the same locale may be
+# slightly different on different platforms.  For example, please see
+# http://www.alanwood.net/demos/charsetdiffs.html for differences
+# between the common latin/roman encodings.
+
+default = _sys.getdefaultencoding()
+if default == 'ascii':
+    import locale
+    import codecs
+    try:
+        default = locale.getdefaultlocale()[1]
+        codecs.lookup(default)
+    except (ValueError, LookupError, TypeError):
+        default = _sys.getdefaultencoding()
+    del locale
+    del codecs
+if default:
+    wx.SetDefaultPyEncoding(default)
+del default
+
+#----------------------------------------------------------------------------
+
 class PyDeadObjectError(AttributeError):
     pass
 
@@ -90,7 +119,6 @@ class _wxPyUnbornObject(object):
 
 
 #----------------------------------------------------------------------------
-_wxPyCallAfterId = None
 
 def CallAfter(callable, *args, **kw):
     """
@@ -104,25 +132,23 @@ def CallAfter(callable, *args, **kw):
     app = wx.GetApp()
     assert app is not None, 'No wx.App created yet'
 
-    global _wxPyCallAfterId
-    if _wxPyCallAfterId is None:
-        _wxPyCallAfterId = wx.NewEventType()
-        app.Connect(-1, -1, _wxPyCallAfterId,
-              lambda event: event.callable(*event.args, **event.kw) )
+    if not hasattr(app, "_CallAfterId"):
+        app._CallAfterId = wx.NewEventType()
+        app.Connect(-1, -1, app._CallAfterId,
+                    lambda event: event.callable(*event.args, **event.kw) )
     evt = wx.PyEvent()
-    evt.SetEventType(_wxPyCallAfterId)
+    evt.SetEventType(app._CallAfterId)
     evt.callable = callable
     evt.args = args
     evt.kw = kw
     wx.PostEvent(app, evt)
-
 
 #----------------------------------------------------------------------------
 
 
 class FutureCall:
     """
-    A convenience class for wx.Timer, that calls the given callable
+    A convenience class for `wx.Timer`, that calls the given callable
     object once after the given amount of milliseconds, passing any
     positional or keyword args.  The return value of the callable is
     availbale after it has been run with the `GetResult` method.

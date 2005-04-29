@@ -16,6 +16,14 @@
 #pragma interface "textctrl.h"
 #endif
 
+#if wxUSE_SYSTEM_OPTIONS
+    // set this to true if you want to use the 'classic' mlte based implementation
+    // instead of the HIView based implementation in 10.3 and upwards, the former
+    // has more features (backgrounds etc.) but may show redraw artefacts and other 
+    // problems depending on your usage, default is 'false'
+    #define wxMAC_TEXTCONTROL_USE_MLTE _T("mac.textcontrol-use-mlte")
+#endif
+
 #include "wx/control.h"
 
 WXDLLEXPORT_DATA(extern const wxChar*) wxTextCtrlNameStr;
@@ -26,7 +34,7 @@ class wxMacTextControl ;
 class WXDLLEXPORT wxTextCtrl: public wxTextCtrlBase
 {
   DECLARE_DYNAMIC_CLASS(wxTextCtrl)
-    
+
 public:
   // creation
   // --------
@@ -43,14 +51,14 @@ public:
 
       Create(parent, id, value, pos, size, style, validator, name);
   }
-  
+
   bool Create(wxWindow *parent, wxWindowID id,
               const wxString& value = wxEmptyString,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize, long style = 0,
               const wxValidator& validator = wxDefaultValidator,
               const wxString& name = wxTextCtrlNameStr);
-  
+
   // accessors
   // ---------
   virtual wxString GetValue() const ;
@@ -110,7 +118,7 @@ public:
   virtual void Copy();
   virtual void Cut();
   virtual void Paste();
-  
+
   virtual bool CanCopy() const;
   virtual bool CanCut() const;
   virtual bool CanPaste() const;
@@ -126,7 +134,7 @@ public:
   virtual void SetInsertionPoint(long pos);
   virtual void SetInsertionPointEnd();
   virtual long GetInsertionPoint() const;
-  virtual long GetLastPosition() const;
+  virtual wxTextPos GetLastPosition() const;
 
   virtual void SetSelection(long from, long to);
   virtual void SetEditable(bool editable);
@@ -155,7 +163,7 @@ public:
     void OnUpdatePaste(wxUpdateUIEvent& event);
     void OnUpdateUndo(wxUpdateUIEvent& event);
     void OnUpdateRedo(wxUpdateUIEvent& event);
-    
+
     void OnEraseBackground(wxEraseEvent& event) ;
 
     virtual bool MacCanFocus() const { return true ; }
@@ -163,7 +171,8 @@ public:
 
     virtual void         MacVisibilityChanged() ;
     virtual void         MacEnabledStateChanged() ;
-
+    virtual void         MacSuperChangedPosition() ;
+#ifndef __WXMAC_OSX__
     virtual void            MacControlUserPaneDrawProc(wxInt16 part) ;
     virtual wxInt16         MacControlUserPaneHitTestProc(wxInt16 x, wxInt16 y) ;
     virtual wxInt16         MacControlUserPaneTrackingProc(wxInt16 x, wxInt16 y, void* actionProc) ;
@@ -172,6 +181,7 @@ public:
     virtual void            MacControlUserPaneActivateProc(bool activating) ;
     virtual wxInt16         MacControlUserPaneFocusProc(wxInt16 action) ;
     virtual void            MacControlUserPaneBackgroundProc(void* info) ;
+#endif
 
   wxMacTextControl*         GetPeer() const { return (wxMacTextControl*) m_peer ; }
 protected:

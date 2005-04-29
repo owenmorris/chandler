@@ -218,8 +218,9 @@ size_t wxGetMultipleChoices(wxArrayInt& selections,
 {
     wxMultiChoiceDialog dialog(parent, message, caption, n, choices);
 
-    if ( !selections.IsEmpty() )
-        dialog.SetSelections(selections);
+    // call this even if selections array is empty and this then (correctly)
+    // deselects the first item which is selected by default
+    dialog.SetSelections(selections);
 
     if ( dialog.ShowModal() == wxID_OK )
         selections = dialog.GetSelections();
@@ -260,6 +261,12 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
                                const wxPoint& pos,
                                long styleLbox)
 {
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+    styleDlg &= ~wxBORDER_MASK;
+    styleDlg &= ~wxRESIZE_BORDER;
+    styleDlg &= ~wxCAPTION;
+#endif
+
     if ( !wxDialog::Create(parent, wxID_ANY, caption, pos, wxDefaultSize, styleDlg) )
         return false;
 
@@ -276,7 +283,7 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
     if ( n > 0 )
         m_listbox->SetSelection(0);
 
-    topsizer->Add( m_listbox, 1, wxEXPAND | wxLEFT|wxRIGHT, wxLARGESMALL(15,0) );
+    topsizer->Add( m_listbox, 1, wxEXPAND|wxLEFT|wxRIGHT, wxLARGESMALL(15,0) );
 
     // smart phones does not support or do not waste space for wxButtons
 #ifdef __SMARTPHONE__
@@ -291,18 +298,19 @@ bool wxAnyChoiceDialog::Create(wxWindow *parent,
 #endif
 
     // 4) buttons
-    topsizer->Add( CreateButtonSizer( styleDlg & (wxOK|wxCANCEL) ), 0, wxCENTRE | wxALL, 10 );
+    topsizer->Add( CreateButtonSizer( styleDlg & (wxOK|wxCANCEL) ), 0, wxEXPAND | wxALL, 10 );
 
 #endif // !__SMARTPHONE__
 
-    SetAutoLayout( true );
     SetSizer( topsizer );
 
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
 
     if ( styleDlg & wxCENTRE )
         Centre(wxBOTH);
+#endif
 
     m_listbox->SetFocus();
 

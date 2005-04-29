@@ -25,7 +25,7 @@ PROGNAME=$0
 SCRIPTDIR=$WXWIN/distrib/msw
 WEBFILES=c:/wx2dev/wxWebSite
 # Set this to the required version
-VERSION=2.5.3
+VERSION=2.6.0
 
 . $SCRIPTDIR/setup.var
 
@@ -250,7 +250,7 @@ dospinmsw()
     zip $ZIPFLAGS -@ -u $DESTDIR/wxWidgets-$VERSION-win.zip < $APPDIR/distrib/msw/utilmake.rsp
     zip $ZIPFLAGS -@ -u $DESTDIR/wxWidgets-$VERSION-win.zip < $APPDIR/distrib/msw/univ.rsp
     zip $ZIPFLAGS -@ -u $DESTDIR/wxWidgets-$VERSION-win.zip < $APPDIR/distrib/msw/wince.rsp
-
+    zip $ZIPFLAGS -@ -u $DESTDIR/wxWidgets-$VERSION-win.zip < $APPDIR/distrib/msw/palmos.rsp
 }
 
 dospinwxall()
@@ -267,7 +267,7 @@ dospinwxall()
     fi
     cp $DESTDIR/wxWidgets-$VERSION-win.zip $DESTDIR/wxWidgets-$VERSION-all.zip
     
-    cat $APPDIR/distrib/msw/cw_mac.rsp $APPDIR/distrib/msw/x11.rsp $APPDIR/distrib/msw/cocoa.rsp $APPDIR/distrib/msw/motif.rsp $APPDIR/distrib/msw/mac.rsp $APPDIR/distrib/msw/mgl.rsp $APPDIR/distrib/msw/os2.rsp | sort | uniq > /tmp/all.txt
+    cat $APPDIR/distrib/msw/cw_mac.rsp $APPDIR/distrib/msw/x11.rsp $APPDIR/distrib/msw/cocoa.rsp $APPDIR/distrib/msw/motif.rsp $APPDIR/distrib/msw/mac.rsp $APPDIR/distrib/msw/mgl.rsp $APPDIR/distrib/msw/os2.rsp $APPDIR/distrib/msw/palmos.rsp | sort | uniq > /tmp/all.txt
     zip $ZIPFLAGS -@ -u $DESTDIR/wxWidgets-$VERSION-all.zip < /tmp/all.txt
 
     if [ -d $DESTDIR/wxWidgets-$VERSION ]; then
@@ -287,7 +287,7 @@ dospinwxall()
     cd $DESTDIR
 
     rm -f $DESTDIR/wxWidgets-$VERSION-all.zip
-    zip $ZIPFLAGS -r wxAll-$VERSION.zip wxWidgets-$VERSION/*
+    zip $ZIPFLAGS -r wxWidgets-$VERSION.zip wxWidgets-$VERSION/*
 }
 
 dospinbase()
@@ -533,7 +533,7 @@ dospinsetup()
 		doreplace $SETUPSCRIPTNAME "s;%HELPFILE%;$RETVALUE;g"
     fi
 
-    rm -f $DESTDIR/setup*.*
+    rm -f $DESTDIR/setup*.* $DESTDIR/wxMSW-$VERSION-Setup.exe
 
     # Inno Setup complains if this step is not done
     unix2dos --unix2dos $SETUPSCRIPTNAME
@@ -560,13 +560,19 @@ dospinsetup()
     fi
 
     cd $DESTDIR
-#    mv setup.exe $APPNAME-$VERSION-setup.exe
+    mv setup.exe wxMSW-$VERSION-Setup.exe
 
-    echo Putting all the setup files into a single zip archive
-    zip wxMSW-$VERSION-setup.zip readme-$VERSION.txt setup*.*
+    # echo Putting all the setup files into a single zip archive
+    # zip wxMSW-$VERSION-setup.zip readme-$VERSION.txt setup*.*
 
-#    rm -f wxWidgets-$VERSION-win.zip
+    rm -f wxWidgets-$VERSION-win.zip
     rm -f wxWidgets-$VERSION-ExtraDoc.zip
+    rm -f wxWidgets-$VERSION-DMC.zip
+    rm -f wxWidgets-$VERSION-eVC.zip
+    rm -f wxWidgets-$VERSION-Univ.zip
+    rm -f wxWidgets-$VERSION-VC.zip
+    rm -f wxWidgets-$VERSION-DocSource.zip
+    rm -f wxWidgets-$VERSION-LinuxDocs.zip
 
     echo If you saw no warnings or errors, $APPTITLE was successfully spun.
     echo
@@ -647,7 +653,8 @@ makesetup()
     cp $WEBFILES/site/i18n.htm $APPDIR/docs/html
 
     # Copy setup0.h files to setup.h
-    cp $APPDIR/include/wx/os2/setup0.h $APPDIR/include/wx/os2/setup.h
+    # OS/2 always built with configure now
+    # cp $APPDIR/include/wx/os2/setup0.h $APPDIR/include/wx/os2/setup.h
     cp $APPDIR/include/wx/msw/setup0.h $APPDIR/include/wx/msw/setup.h
     cp $APPDIR/include/wx/univ/setup0.h $APPDIR/include/wx/univ/setup.h
 

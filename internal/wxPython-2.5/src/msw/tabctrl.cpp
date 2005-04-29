@@ -145,7 +145,7 @@ bool wxTabCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         case TTN_NEEDTEXT:
         {
             // TODO
-//            if (tool->m_shortHelpString != "")
+//            if (!tool->m_shortHelpString.empty())
 //                ttText->lpszText = (char *) (const char *)tool->m_shortHelpString;
         }
 #endif
@@ -297,7 +297,7 @@ bool wxTabCtrl::InsertItem(int item, const wxString& text, int imageId, void* da
     TC_ITEM tcItem;
     tcItem.mask = TCIF_PARAM;
     tcItem.lParam = (long) data;
-    if (text != wxEmptyString)
+    if (!text.empty())
     {
         tcItem.mask |= TCIF_TEXT;
         wxStrcpy(buf, (const wxChar*) text);

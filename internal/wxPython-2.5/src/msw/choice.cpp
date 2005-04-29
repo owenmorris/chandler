@@ -141,7 +141,7 @@ bool wxChoice::CreateAndInit(wxWindow *parent,
         return false;
 
     // now create the real HWND
-    if ( !MSWCreateControl(wxT("COMBOBOX"), _T(""), pos, size) )
+    if ( !MSWCreateControl(wxT("COMBOBOX"), wxEmptyString, pos, size) )
         return false;
 
 
@@ -333,10 +333,26 @@ int wxChoice::FindString(const wxString& s) const
 
     return wxNOT_FOUND;
 #else // !Watcom
-    int pos = (int)SendMessage(GetHwnd(), CB_FINDSTRINGEXACT,
-                               (WPARAM)-1, (LPARAM)s.c_str());
+   //TODO:  Evidently some MSW versions (all?) don't like empty strings
+   //passed to SendMessage, so we have to do it ourselves in that case
+   if ( s.empty() )
+   {
+     int count = GetCount();
+     for ( int i = 0; i < count; i++ )
+     {
+       if ( GetString(i).empty() )
+           return i;
+     }
 
-    return pos == LB_ERR ? wxNOT_FOUND : pos;
+     return wxNOT_FOUND;
+   }
+   else
+   {
+     int pos = (int)SendMessage(GetHwnd(), CB_FINDSTRINGEXACT,
+                                (WPARAM)-1, (LPARAM)s.c_str());
+
+     return pos == LB_ERR ? wxNOT_FOUND : pos;
+   }
 #endif // Watcom/!Watcom
 }
 
@@ -488,6 +504,23 @@ void wxChoice::DoSetSize(int x, int y,
         const int hItem = SendMessage(GetHwnd(), CB_GETITEMHEIGHT, 0, 0);
         height += hItem*(nItems + 1);
     }
+    else
+    {
+        // We cannot pass wxDefaultCoord as height to wxControl. wxControl uses
+        // wxGetWindowRect() to determine the current height of the combobox,
+        // and then again sets the combobox's height to that value. Unfortunately,
+        // wxGetWindowRect doesn't include the dropdown list's height (at least
+        // on Win2K), so this would result in a combobox with dropdown height of
+        // 1 pixel. We have to determine the default height ourselves and call
+        // wxControl with that value instead.
+        int w, h;
+        RECT r;
+        DoGetSize(&w, &h);
+        if (::SendMessage(GetHwnd(), CB_GETDROPPEDCONTROLRECT, 0, (LPARAM) &r) != 0)
+        {
+            height = h + r.bottom - r.top;
+        }
+    }
 
     wxControl::DoSetSize(x, y, width, height, sizeFlags);
 
@@ -562,13 +595,14 @@ WXLRESULT wxChoice::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
         case WM_CTLCOLORLISTBOX:
         case WM_CTLCOLORSTATIC:
             {
-                WXWORD nCtlColor;
                 WXHDC hdc;
                 WXHWND hwnd;
-                UnpackCtlColor(wParam, lParam, &nCtlColor, &hdc, &hwnd);
+                UnpackCtlColor(wParam, lParam, &hdc, &hwnd);
 
-                return (WXLRESULT)OnCtlColor(hdc, hwnd, nCtlColor,
-                                             nMsg, wParam, lParam);
+                WXHBRUSH hbr = MSWControlColor((WXHDC)hdc, hwnd);
+                if ( hbr )
+                    return (WXLRESULT)hbr;
+                //else: fall through to default window proc
             }
     }
 
@@ -600,24 +634,13 @@ bool wxChoice::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
     return true;
 }
 
-WXHBRUSH wxChoice::OnCtlColor(WXHDC pDC, WXHWND WXUNUSED(pWnd), WXUINT WXUNUSED(nCtlColor),
-                               WXUINT WXUNUSED(message),
-                               WXWPARAM WXUNUSED(wParam),
-                               WXLPARAM WXUNUSED(lParam)
-     )
+WXHBRUSH wxChoice::MSWControlColor(WXHDC hDC, WXHWND hWnd)
 {
-    HDC hdc = (HDC)pDC;
-    wxColour colBack = GetBackgroundColour();
+    if ( !IsEnabled() )
+        return MSWControlColorDisabled(hDC);
 
-    if (!IsEnabled())
-        colBack = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
-
-    ::SetBkColor(hdc, wxColourToRGB(colBack));
-    ::SetTextColor(hdc, wxColourToRGB(GetForegroundColour()));
-
-    wxBrush *brush = wxTheBrushList->FindOrCreateBrush(colBack, wxSOLID);
-
-    return (WXHBRUSH)brush->GetResourceHandle();
+    return wxChoiceBase::MSWControlColor(hDC, hWnd);
 }
 
 #endif // wxUSE_CHOICE && !(__SMARTPHONE__ && __WXWINCE__)
+

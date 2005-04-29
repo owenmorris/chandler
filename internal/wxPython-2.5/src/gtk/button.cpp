@@ -22,6 +22,7 @@
 #include "wx/stockitem.h"
 
 #include "wx/gtk/private.h"
+#include "wx/gtk/win_gtk.h"
 
 //-----------------------------------------------------------------------------
 // classes
@@ -46,6 +47,7 @@ extern bool   g_blockEventsOnDrag;
 // "clicked"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_button_clicked_callback( GtkWidget *WXUNUSED(widget), wxButton *button )
 {
     if (g_isIdle)
@@ -57,6 +59,51 @@ static void gtk_button_clicked_callback( GtkWidget *WXUNUSED(widget), wxButton *
     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, button->GetId());
     event.SetEventObject(button);
     button->GetEventHandler()->ProcessEvent(event);
+}
+}
+
+//-----------------------------------------------------------------------------
+// "style_set" from m_widget
+//-----------------------------------------------------------------------------
+
+static gint
+gtk_button_style_set_callback( GtkWidget *m_widget, GtkStyle *WXUNUSED(style), wxButton *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+    
+    int left_border = 0;
+    int right_border = 0;
+    int top_border = 0;
+    int bottom_border = 0;
+        
+    /* the default button has a border around it */
+    if (GTK_WIDGET_CAN_DEFAULT(m_widget))
+    {
+#ifdef __WXGTK20__
+        GtkBorder *default_border = NULL;
+        gtk_widget_style_get( m_widget, "default_border", &default_border, NULL );
+        if (default_border)
+        {
+            left_border += default_border->left;
+            right_border += default_border->right;
+            top_border += default_border->top;
+            bottom_border += default_border->bottom;
+            g_free( default_border );
+        }
+#else
+        left_border = 6;
+        right_border = 6;
+        top_border = 6;
+        bottom_border = 5;
+#endif
+        win->DoMoveWindow( win->m_x-top_border,
+                           win->m_y-left_border,
+                           win->m_width+left_border+right_border,
+                           win->m_height+top_border+bottom_border );
+    }      
+
+    return FALSE;
 }
 
 //-----------------------------------------------------------------------------
@@ -127,22 +174,30 @@ bool wxButton::Create(  wxWindow *parent, wxWindowID id, const wxString &label,
     else if (HasFlag(wxBU_BOTTOM))
         y_alignment = 1.0;
 
-#if GTK_CHECK_VERSION(2,4,0)
-    gtk_button_set_alignment(GTK_BUTTON(m_widget), x_alignment, y_alignment);
-#else
-    if (GTK_IS_MISC(BUTTON_CHILD(m_widget)))
-        gtk_misc_set_alignment (GTK_MISC (BUTTON_CHILD (m_widget)),
-                                x_alignment, y_alignment);
+#if __WXGTK24__
+    if (!gtk_check_version(2,4,0))
+    {
+        gtk_button_set_alignment(GTK_BUTTON(m_widget), x_alignment, y_alignment);
+    }
+    else
 #endif
+    {
+        if (GTK_IS_MISC(BUTTON_CHILD(m_widget)))
+            gtk_misc_set_alignment (GTK_MISC (BUTTON_CHILD (m_widget)),
+                                x_alignment, y_alignment);
+    }
 
     SetLabel(label);
 
     if (style & wxNO_BORDER)
        gtk_button_set_relief( GTK_BUTTON(m_widget), GTK_RELIEF_NONE );
 
-    gtk_signal_connect( GTK_OBJECT(m_widget), "clicked",
+    gtk_signal_connect_after( GTK_OBJECT(m_widget), "clicked",
       GTK_SIGNAL_FUNC(gtk_button_clicked_callback), (gpointer*)this );
 
+    gtk_signal_connect_after( GTK_OBJECT(m_widget), "style_set",
+      GTK_SIGNAL_FUNC(gtk_button_style_set_callback), (gpointer*) this );
+      
     m_parent->DoAddChild( this );
 
     PostCreation(size);
@@ -160,8 +215,9 @@ void wxButton::SetDefault()
     
     GTK_WIDGET_SET_FLAGS( m_widget, GTK_CAN_DEFAULT );
     gtk_widget_grab_default( m_widget );
-
-    SetSize( m_x, m_y, m_width, m_height );
+    
+    // resize for default border
+    gtk_button_style_set_callback( m_widget, NULL, this );
 }
 
 /* static */
@@ -229,6 +285,9 @@ void wxButton::SetLabel( const wxString &lbl )
     wxString label2 = PrepareLabelMnemonics(label);
     gtk_button_set_label(GTK_BUTTON(m_widget), wxGTK_CONV(label2));
     gtk_button_set_use_stock(GTK_BUTTON(m_widget), FALSE);
+    
+    ApplyWidgetStyle( false );
+    
 #else
     gtk_label_set(GTK_LABEL(BUTTON_CHILD(m_widget)), wxGTK_CONV(GetLabel()));
 #endif

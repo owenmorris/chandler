@@ -99,12 +99,12 @@ if [ ! $? = 0 ]; then error; fi
 cd -
 
 
-# #echo ------------------
-# echo cd ../../contrib/build/xrc
-# cd ../../contrib/build/xrc
-# $WXWIN/build/msw/.mymake $BUILD_TYPE $@
-# if [ ! $? = 0 ]; then error; fi
-# cd -
+#echo ------------------
+echo cd ../../contrib/build/animate
+cd ../../contrib/build/animate
+$WXWIN/build/msw/.mymake $BUILD_TYPE $@
+if [ ! $? = 0 ]; then error; fi
+cd -
 
 
 echo ------------------
@@ -115,12 +115,12 @@ if [ ! $? = 0 ]; then error; fi
 cd -
 
 
-echo ------------------
-echo cd ../../contrib/build/ogl
-cd ../../contrib/build/ogl
-$WXWIN/build/msw/.mymake $BUILD_TYPE CPPFLAGS="-DwxUSE_DEPRECATED=0" $@
-if [ ! $? = 0 ]; then error; fi
-cd -
+# echo ------------------
+# echo cd ../../contrib/build/ogl
+# cd ../../contrib/build/ogl
+# $WXWIN/build/msw/.mymake $BUILD_TYPE CPPFLAGS="-DwxUSE_DEPRECATED=0" $@
+# if [ ! $? = 0 ]; then error; fi
+# cd -
 
 
 

@@ -9,11 +9,11 @@
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "dnd.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_DRAG_AND_DROP
 
@@ -482,7 +482,7 @@ pascal OSErr wxMacWindowDragTrackingHandler(DragTrackingMessage theMessage, Wind
 //                wxPoint point(localMouse.h , localMouse.v) ;
                 wxWindow *win = NULL ;
                 ControlPartCode controlPart ;
-                ControlRef control = wxMacFindControlUnderMouse( localMouse ,
+                ControlRef control = wxMacFindControlUnderMouse( toplevel , localMouse ,
                     theWindow , &controlPart ) ;
                 if ( control )
                     win = wxFindControlFromMacControl( control ) ;

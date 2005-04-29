@@ -12,7 +12,7 @@
 #pragma implementation "spinctrl.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_SPINCTRL
 
@@ -27,7 +27,7 @@
 
 // the focus rect around a text may have 4 pixels in each direction
 // we handle these problems right now in an extended vis region of a window
-static const wxCoord TEXTBORDER = 0 ;
+static const wxCoord TEXTBORDER = 4 ;
 // the margin between the text control and the spin
 static const wxCoord MARGIN = 8 - TEXTBORDER;
 
@@ -194,7 +194,7 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     
     //SetSize(csize);
     
-    MacPostControlCreate(pos, csize);
+    //MacPostControlCreate(pos, csize);
     SetInitialBestSize(csize);
 
     return TRUE;
@@ -265,6 +265,13 @@ bool wxSpinCtrl::Show(bool show)
     if ( !wxControl::Show(show) )
         return FALSE;
     return TRUE;
+}
+
+void wxSpinCtrl::SetFocus()
+{
+    if ( m_text != NULL) {
+        m_text->SetFocus();
+    }
 }
 
 // ----------------------------------------------------------------------------

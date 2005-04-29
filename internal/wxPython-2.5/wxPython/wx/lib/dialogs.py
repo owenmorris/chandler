@@ -57,11 +57,6 @@ class MultipleChoiceDialog(wx.Dialog):
         if x == -1 and y == -1:
             self.CenterOnScreen(wx.BOTH)
 
-        dc = wx.ClientDC(self)
-        height = 0
-        for line in msg.splitlines():
-            height = height + dc.GetTextExtent(line)[1] + 2
-
         stat = wx.StaticText(self, -1, msg)
         self.lbox = wx.ListBox(self, 100, wx.DefaultPosition, wx.DefaultSize, 
                                lst, wx.LB_MULTIPLE)
@@ -69,19 +64,20 @@ class MultipleChoiceDialog(wx.Dialog):
         ok = wx.Button(self, wx.ID_OK, "OK")
         ok.SetDefault()
         cancel = wx.Button(self, wx.ID_CANCEL, "Cancel")
-        lc = layoutf.Layoutf('t=t10#1;l=l5#1;r=r5#1;h!%d' % (height,), (self,)) 
-        stat.SetConstraints(lc)
-
-        lc = layoutf.Layoutf('t=b10#2;l=l5#1;r=r5#1;b=t5#3', (self, stat, ok)) 
-        self.lbox.SetConstraints(lc)
-
-        lc = layoutf.Layoutf('b=b5#1;x%w25#1;w!80;h*', (self,))
-        ok.SetConstraints(lc)
-
-        lc = layoutf.Layoutf('b=b5#1;x%w75#1;w!80;h*', (self,))
-        cancel.SetConstraints(lc)
         
-        self.SetAutoLayout(1)
+        dlgsizer = wx.BoxSizer(wx.VERTICAL)
+        dlgsizer.Add(stat, 0, wx.ALL, 4)
+        dlgsizer.Add(self.lbox, 1, wx.EXPAND | wx.ALL, 4)
+        
+        btnsizer = wx.StdDialogButtonSizer()
+        btnsizer.AddButton(ok)
+        btnsizer.AddButton(cancel)
+        btnsizer.Realize()
+        
+        dlgsizer.Add(btnsizer, 0, wx.ALL | wx.ALIGN_RIGHT, 4)
+        
+        self.SetSizer(dlgsizer)
+        
         self.lst = lst
         self.Layout()
 
@@ -90,11 +86,7 @@ class MultipleChoiceDialog(wx.Dialog):
 
     def GetValueString(self):
         sel = self.lbox.GetSelections()
-        val = []
-
-        for i in sel:
-            val.append(self.lst[i])
-
+        val = [ self.lst[i] for i in sel ]
         return tuple(val)
 
 
@@ -332,12 +324,13 @@ def singleChoiceDialog(parent=None, message='', title='', lst=[],
     return result
 
 
-def multipleChoiceDialog(parent=None, message='', title='', lst=[], pos=wx.DefaultPosition, 
-                         size=(200,200)):
+def multipleChoiceDialog(parent=None, message='', title='', lst=[],
+                         pos=wx.DefaultPosition, size=wx.DefaultSize):
 
-    dialog = MultipleChoiceDialog(parent, message, title, lst, pos, size)
+    dialog = wx.MultiChoiceDialog(parent, message, title, lst,
+                                  wx.CHOICEDLG_STYLE, pos)
     result = DialogResults(dialog.ShowModal())
-    result.selection = dialog.GetValueString()
+    result.selection = tuple([lst[i] for i in dialog.GetSelections()])
     dialog.Destroy()
     return result
 

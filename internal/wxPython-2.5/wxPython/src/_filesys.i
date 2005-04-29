@@ -27,8 +27,8 @@ class wxFSFile : public wxObject
 {
 public:
     %pythonAppend wxFSFile
-        "self.thisown = 0   # It will normally be deleted by the user of the wxFileSystem";
-    
+        "self.thisown = 0   # It will normally be deleted by the user of the wx.FileSystem";
+
     wxFSFile(wxInputStream *stream, const wxString& loc,
              const wxString& mimetype, const wxString& anchor,
              wxDateTime modif);
@@ -88,7 +88,8 @@ IMP_PYCALLBACK_STRING__pure(wxPyFileSystemHandler, wxFileSystemHandler, FindNext
 
 
 
-%name(CPPFileSystemHandler) class wxFileSystemHandler //: public wxObject
+%rename(CPPFileSystemHandler) wxFileSystemHandler;
+class wxFileSystemHandler //: public wxObject
 {
 public:
     //wxFileSystemHandler();
@@ -96,7 +97,8 @@ public:
 
 
 
-%name(FileSystemHandler) class wxPyFileSystemHandler : public wxFileSystemHandler
+%rename(FileSystemHandler) wxPyFileSystemHandler;
+class wxPyFileSystemHandler : public wxFileSystemHandler
 {
 public:
     %pythonAppend    wxPyFileSystemHandler "self._setCallbackInfo(self, FileSystemHandler)";
@@ -204,7 +206,7 @@ public:
             return;
         }
 
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         void*  ptr = (void*)PyString_AsString(data);
         size_t size = PyString_Size(data);
         wxPyEndBlockThreads(blocked);

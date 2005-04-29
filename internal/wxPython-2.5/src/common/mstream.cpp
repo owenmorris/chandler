@@ -52,6 +52,22 @@ wxMemoryInputStream::wxMemoryInputStream(const void *data, size_t len)
     m_length = len;
 }
 
+wxMemoryInputStream::wxMemoryInputStream(const wxMemoryOutputStream& stream)
+{
+    ssize_t len = (ssize_t)stream.GetLength();
+    if (len == wxInvalidOffset) {
+        m_i_streambuf = NULL;
+        m_lasterror = wxSTREAM_EOF;
+        return;
+    }
+    m_i_streambuf = new wxStreamBuffer(wxStreamBuffer::read);
+    m_i_streambuf->SetBufferIO(len); // create buffer
+    stream.CopyTo(m_i_streambuf->GetBufferStart(), len);
+    m_i_streambuf->SetIntPosition(0); // seek to start pos
+    m_i_streambuf->Fixed(true);
+    m_length = len;
+}
+
 wxMemoryInputStream::~wxMemoryInputStream()
 {
     delete m_i_streambuf;
@@ -60,8 +76,15 @@ wxMemoryInputStream::~wxMemoryInputStream()
 char wxMemoryInputStream::Peek()
 {
     char *buf = (char *)m_i_streambuf->GetBufferStart();
+    size_t pos = m_i_streambuf->GetIntPosition();
+    if ( pos == m_length )
+    {
+        m_lasterror = wxSTREAM_READ_ERROR;
 
-    return buf[m_i_streambuf->GetIntPosition()];
+        return 0;
+    }
+
+    return buf[pos];
 }
 
 bool wxMemoryInputStream::Eof() const

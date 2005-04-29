@@ -68,6 +68,15 @@ public:
                                   wxOrientation orient,
                                   int flags = 0);
 
+    virtual void DrawComboBoxDropButton(wxWindow *win,
+                                        wxDC& dc,
+                                        const wxRect& rect,
+                                        int flags = 0);
+
+    virtual void DrawDropArrow(wxWindow *win,
+                               wxDC& dc,
+                               const wxRect& rect,
+                               int flags = 0);
 
     virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win);
 
@@ -338,7 +347,58 @@ wxRendererGeneric::DrawSplitterSash(wxWindow *win,
     }
 }
 
+// ----------------------------------------------------------------------------
+// button drawing
+// ----------------------------------------------------------------------------
+
+void
+wxRendererGeneric::DrawComboBoxDropButton(wxWindow *win,
+                                          wxDC& dc,
+                                          const wxRect& rect,
+                                          int WXUNUSED(flags))
+{
+    // Creating a generic button background that would actually be
+    // useful is rather difficult to accomplish. Best compromise
+    // is to use window's background colour to achieve transparent'
+    // ish appearance that should look decent in combo box style
+    // controls.
+    wxColour col = win->GetBackgroundColour();
+    dc.SetBrush(wxBrush(col));
+    dc.SetPen(wxPen(col));
+    dc.DrawRectangle(rect);
+    DrawDropArrow(win,dc,rect);
+}
+
+
+void
+wxRendererGeneric::DrawDropArrow(wxWindow *win,
+                                 wxDC& dc,
+                                 const wxRect& rect,
+                                 int WXUNUSED(flags))
+{
+    // This generic implementation should be good
+    // enough for Windows platforms (including XP).
+
+    int arrowHalf = rect.width/5;
+    int rectMid = rect.width / 2;
+    int arrowTopY = (rect.height/2) - (arrowHalf/2);
+
+    // This should always result in arrow with odd width.
+    wxPoint pt[] =
+    {
+        wxPoint(rectMid - arrowHalf, arrowTopY),
+        wxPoint(rectMid + arrowHalf, arrowTopY),
+        wxPoint(rectMid, arrowTopY + arrowHalf)
+    };
+    dc.SetBrush(wxBrush(win->GetForegroundColour()));
+    dc.SetPen(wxPen(win->GetForegroundColour()));
+    dc.DrawPolygon(WXSIZEOF(pt), pt, rect.x, rect.y);
+}
+
+// ----------------------------------------------------------------------------
 // A module to allow cleanup of generic renderer.
+// ----------------------------------------------------------------------------
+
 class wxGenericRendererModule: public wxModule
 {
 DECLARE_DYNAMIC_CLASS(wxGenericRendererModule)

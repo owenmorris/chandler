@@ -32,6 +32,8 @@ public:
                const wxValidator& validator = wxDefaultValidator,
                const wxString &name = wxTextCtrlNameStr);
 
+    ~wxTextCtrl();
+
     bool Create(wxWindow *parent,
                 wxWindowID id,
                 const wxString &value = wxEmptyString,
@@ -114,12 +116,12 @@ public:
     virtual void SetInsertionPoint(long pos);
     virtual void SetInsertionPointEnd();
     virtual long GetInsertionPoint() const;
-    virtual long GetLastPosition() const;
+    virtual wxTextPos GetLastPosition() const;
 
     virtual void SetSelection(long from, long to);
     virtual void SetEditable(bool editable);
 
-    virtual bool Enable( bool enable = TRUE );
+    virtual bool Enable( bool enable = true );
 
     // Implementation from now on
     void OnDropFiles( wxDropFilesEvent &event );
@@ -154,7 +156,7 @@ public:
     void UpdateFontIfNeeded();
 #endif // __WXGTK20__/!__WXGTK20__
 
-    void SetModified() { m_modified = TRUE; }
+    void SetModified() { m_modified = true; }
 
     // GTK+ textctrl is so dumb that you need to freeze/thaw it manually to
     // avoid horrible flicker/scrolling back and forth
@@ -180,7 +182,7 @@ public:
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
-    
+
 protected:
     virtual wxSize DoGetBestSize() const;
 
@@ -198,6 +200,11 @@ protected:
     // override this and return true.
     virtual bool UseGTKStyleBase() const { return true; }
 
+#ifdef __WXGTK20__
+    // has the control been frozen by Freeze()?
+    bool IsFrozen() const { return m_frozenness > 0; }
+#endif
+
 private:
     // change the font for everything in this control
     void ChangeFontGlobally();
@@ -212,8 +219,22 @@ private:
 #endif // !__WXGTK20__
     bool        m_ignoreNextUpdate:1;
 
+#ifdef __WXGTK20__
+    // Our text buffer. Convenient, and holds the buffer while using
+    // a dummy one when m_frozenness > 0
+    GtkTextBuffer *m_buffer;
+
+    // number of calls to Freeze() minus number of calls to Thaw()
+    unsigned int m_frozenness;
+
+    // For wxTE_AUTO_URL
+    void OnUrlMouseEvent(wxMouseEvent&);
+    GdkCursor *m_gdkHandCursor;
+    GdkCursor *m_gdkXTermCursor;
+#endif
+
     DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxTextCtrl);
+    DECLARE_DYNAMIC_CLASS(wxTextCtrl)
 };
 
 #endif // __GTKTEXTCTRLH__

@@ -70,10 +70,9 @@ public:
 
     const wxArrayLong& GetSubcontrols() const { return m_subControls; }
 
-    void OnEraseBackground(wxEraseEvent& event);
-
-    virtual WXHBRUSH OnCtlColor(WXHDC pDC, WXHWND pWnd, WXUINT nCtlColor,
-            WXUINT message, WXWPARAM wParam, WXLPARAM lParam);
+    // default handling of WM_CTLCOLORxxx: this is public so that wxWindow
+    // could call it
+    virtual WXHBRUSH MSWControlColor(WXHDC pDC, WXHWND hWnd);
 
 protected:
     // choose the default border for this window
@@ -86,7 +85,7 @@ protected:
     // In wxMSW it was only wxSpinCtrl derived from wxSpinButton but in
     // WinCE of Smartphones this happens also for native wxTextCtrl,
     // wxChoice and others.
-    virtual wxSize GetBestSpinerSize(const bool is_vertical) const;
+    virtual wxSize GetBestSpinnerSize(const bool is_vertical) const;
 
     // create the control of the given Windows class: this is typically called
     // from Create() method of the derived class passing its label, pos and
@@ -121,6 +120,15 @@ protected:
     // default style for the control include WS_TABSTOP if it AcceptsFocus()
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
+    // call this from the derived class MSWControlColor() if you want to show
+    // the control greyed out (and opaque)
+    WXHBRUSH MSWControlColorDisabled(WXHDC pDC);
+
+    // common part of the 3 functions above: pass wxNullColour to use the
+    // appropriate background colour (meaning ours or our parents) or a fixed
+    // one
+    virtual WXHBRUSH DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd);
+
     // this is a helper for the derived class GetClassDefaultAttributes()
     // implementation: it returns the right colours for the classes which
     // contain something else (e.g. wxListBox, wxTextCtrl, ...) instead of
@@ -134,7 +142,6 @@ protected:
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxControl)
-    DECLARE_EVENT_TABLE()
 };
 
 #endif // _WX_CONTROL_H_

@@ -26,7 +26,7 @@
 class WXDLLEXPORT wxIcon;
 class WXDLLEXPORT wxBitmap;
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxStaticBitmapNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxStaticBitmapNameStr;
 
 // a control showing an icon or a bitmap
 class WXDLLEXPORT wxStaticBitmapBase : public wxControl
@@ -42,6 +42,7 @@ public:
 
     // overriden base class virtuals
     virtual bool AcceptsFocus() const { return false; }
+    virtual bool HasTransparentBackground() { return true; }
 
 protected:
     virtual wxSize DoGetBestSize() const;

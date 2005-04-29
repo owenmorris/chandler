@@ -108,8 +108,8 @@ public:
     // constructors
     wxFontRefData()
     {
-        Init(-1, wxSize(0, 0), FALSE, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-             wxFONTWEIGHT_NORMAL, FALSE, wxEmptyString,
+        Init(-1, wxSize(0,0), false, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+             wxFONTWEIGHT_NORMAL, false, wxEmptyString,
              wxFONTENCODING_DEFAULT);
     }
 
@@ -132,7 +132,7 @@ public:
         Init(info, hFont);
     }
 
-    wxFontRefData(const wxFontRefData& data)
+    wxFontRefData(const wxFontRefData& data) : wxGDIRefData()
     {
         if ( data.m_nativeFontInfoOk )
         {
@@ -223,7 +223,7 @@ public:
         else
         {
             m_pointSize = pointSize;
-            m_sizeUsingPixels = FALSE;
+            m_sizeUsingPixels = false;
         }
     }
 
@@ -236,7 +236,7 @@ public:
         else
         {
             m_pixelSize = pixelSize;
-            m_sizeUsingPixels = TRUE;
+            m_sizeUsingPixels = true;
         }
     }
 
@@ -506,16 +506,11 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
 
 void wxNativeFontInfo::SetPointSize(int pointsize)
 {
-#if wxFONT_SIZE_COMPATIBILITY
-    // Incorrect, but compatible with old wxWidgets behaviour
-    lf.lfHeight = (pointSize*ppInch)/72;
-#else // wxFONT_SIZE_COMPATIBILITY
     // FIXME: using the screen here results in incorrect font size calculation
     //        for printing!
     const int ppInch = ::GetDeviceCaps(ScreenHDC(), LOGPIXELSY);
 
     lf.lfHeight = -(int)((pointsize*((double)ppInch)/72.0) + 0.5);
-#endif // wxFONT_SIZE_COMPATIBILITY/!wxFONT_SIZE_COMPATIBILITY
 }
 
 void wxNativeFontInfo::SetPixelSize(const wxSize& pixelSize)

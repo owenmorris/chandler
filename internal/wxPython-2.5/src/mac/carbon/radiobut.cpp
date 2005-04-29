@@ -9,11 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "radiobut.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
+
+#if wxUSE_RADIOBTN
 
 #include "wx/radiobut.h"
 
@@ -39,7 +41,7 @@ bool wxRadioButton::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
     
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr ( CreateRadioButtonControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , CFSTR("") , 
         0 , false /* no autotoggle */ , m_peer->GetControlRefAddr() ) );
     
@@ -75,21 +77,22 @@ bool wxRadioButton::Create(wxWindow *parent, wxWindowID id,
 void wxRadioButton::SetValue(bool val)
 {
     wxRadioButton *cycle;
-      if ( m_peer->GetValue() == val )
+    if ( m_peer->GetValue() == val )
         return ;
         
-   m_peer->SetValue( val ) ;
-   if (val) 
-   {
-           cycle=this->NextInCycle();
-          if (cycle!=NULL) {
-               while (cycle!=this) {
-                   cycle->SetValue(false);
-                   cycle=cycle->NextInCycle();
-                   }
-               }
+    m_peer->SetValue( val ) ;
+    if (val) 
+    {
+        cycle=this->NextInCycle();
+        if (cycle!=NULL) 
+        {
+           while (cycle!=this) 
+           {
+               cycle->SetValue(false);
+               cycle=cycle->NextInCycle();
            }
-   MacRedrawControl() ;
+       }
+    }
 }
 
 bool wxRadioButton::GetValue() const
@@ -153,3 +156,5 @@ wxRadioButton *wxRadioButton::AddInCycle(wxRadioButton *cycle)
           return(cycle);
       }
 }  
+
+#endif

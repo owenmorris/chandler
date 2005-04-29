@@ -31,11 +31,11 @@
 
 #include "wx/ogl/ogl.h"
 
-
-#include <math.h>
-
+#if wxUSE_PROLOGIO
 static void IntToHex(unsigned int dec, wxChar *buf);
 static unsigned long HexToInt(wxChar *buf);
+#endif
+
 extern wxChar *oglBuffer;
 
 #define gyTYPE_PEN   40
@@ -165,7 +165,7 @@ void wxDrawnShape::Rotate(double x, double y, double theta)
 int wxDrawnShape::DetermineMetaFile(double rotation)
 {
     double tolerance = 0.0001;
-    const double pi = 3.1415926535897932384626433832795 ;
+    const double pi = M_PI ;
     double angle1 = 0.0;
     double angle2 = pi/2.0;
     double angle3 = pi;
@@ -733,7 +733,7 @@ void wxOpDraw::Do(wxDC& dc, double xoffset, double yoffset)
     }
     case DRAWOP_DRAW_ELLIPTIC_ARC:
     {
-      const double pi = 3.1415926535897932384626433832795 ;
+      const double pi = M_PI ;
 
       // Convert back to degrees
       dc.DrawEllipticArc(
@@ -1124,13 +1124,11 @@ wxExpr *wxOpPolyDraw::WriteExpr(wxPseudoMetaFile *WXUNUSED(image))
     long signedY = (long)(m_points[i].y*100.0);
 
     // Scale to 0 -> 64K
-    long unSignedX = (long)(signedX + 32767.0);
-    long unSignedY = (long)(signedY + 32767.0);
+    unsigned int unSignedX = (unsigned int)(signedX + 32767.0);
+    unsigned int unSignedY = (unsigned int)(signedY + 32767.0);
 
-//    IntToHex((unsigned int)signedX, buf2);
-//    IntToHex((unsigned int)signedY, buf3);
-    IntToHex((int)unSignedX, buf2);
-    IntToHex((int)unSignedY, buf3);
+    IntToHex(unSignedX, buf2);
+    IntToHex(unSignedY, buf3);
 
     // Don't overrun the buffer
     if ((i*8) < 3000)
@@ -1276,8 +1274,10 @@ bool wxOpPolyDraw::GetPerimeterPoint(double x1, double y1,
  *
  */
 
-static char hexArray[] = { 
-    _T('0'), _T('1'), _T('2'), _T('3'), _T('4'), _T('5'), _T('6'), _T('7'), 
+#if wxUSE_PROLOGIO
+
+static char hexArray[] = {
+    _T('0'), _T('1'), _T('2'), _T('3'), _T('4'), _T('5'), _T('6'), _T('7'),
     _T('8'), _T('9'), _T('A'), _T('B'), _T('C'), _T('D'), _T('E'), _T('F') };
 
 // Convert unsigned 16-bit integer to 4-character hex string
@@ -1332,11 +1332,6 @@ static int HexToInt1(wxChar hex)
       return 14;
     case _T('F'):
       return 15;
-    #if 0
-    // handling this default outside switch removes warning under Borland 
-    default:
-      return 0;
-    #endif
   }
 
   return 0;
@@ -1352,6 +1347,8 @@ static unsigned long HexToInt(wxChar *buf)
   unsigned long n = (long)(d1 + d2 + d3 + d4) ;
   return n;
 }
+
+#endif // wxUSE_PROLOGIO
 
 /*
  * wxPseudo meta-file
@@ -1371,7 +1368,7 @@ wxPseudoMetaFile::wxPseudoMetaFile()
   m_outlineOp = -1;
 }
 
-wxPseudoMetaFile::wxPseudoMetaFile(wxPseudoMetaFile& mf)
+wxPseudoMetaFile::wxPseudoMetaFile(wxPseudoMetaFile& mf):wxObject()
 {
   mf.Copy(*this);
 }
@@ -1621,9 +1618,9 @@ void wxPseudoMetaFile::ReadAttributes(wxExpr *clause, int whichAngle)
         {
           int penWidth = (int)expr->Nth(1)->IntegerValue();
           int penStyle = (int)expr->Nth(2)->IntegerValue();
-          int penRed = (int)expr->Nth(3)->IntegerValue();
-          int penGreen = (int)expr->Nth(4)->IntegerValue();
-          int penBlue = (int)expr->Nth(5)->IntegerValue();
+          unsigned char penRed = (unsigned char)expr->Nth(3)->IntegerValue();
+          unsigned char penGreen = (unsigned char)expr->Nth(4)->IntegerValue();
+          unsigned char penBlue = (unsigned char)expr->Nth(5)->IntegerValue();
           wxColour col(penRed, penGreen, penBlue);
           wxPen *p = wxThePenList->FindOrCreatePen(col, penWidth, penStyle);
           if (!p)
@@ -1634,9 +1631,9 @@ void wxPseudoMetaFile::ReadAttributes(wxExpr *clause, int whichAngle)
         case gyTYPE_BRUSH:
         {
           int brushStyle = (int)expr->Nth(1)->IntegerValue();
-          int brushRed = (int)expr->Nth(2)->IntegerValue();
-          int brushGreen = (int)expr->Nth(3)->IntegerValue();
-          int brushBlue = (int)expr->Nth(4)->IntegerValue();
+          unsigned char brushRed = (unsigned char)expr->Nth(2)->IntegerValue();
+          unsigned char brushGreen = (unsigned char)expr->Nth(3)->IntegerValue();
+          unsigned char brushBlue = (unsigned char)expr->Nth(4)->IntegerValue();
           wxColour col(brushRed, brushGreen, brushBlue);
           wxBrush *b = wxTheBrushList->FindOrCreateBrush(col, brushStyle);
           if (!b)
@@ -2195,6 +2192,7 @@ void wxPseudoMetaFile::GetBounds(double *boundMinX, double *boundMinY, double *b
       case DRAWOP_DRAW_RECT:
       case DRAWOP_DRAW_ROUNDED_RECT:
       case DRAWOP_DRAW_ELLIPSE:
+      case DRAWOP_DRAW_ELLIPTIC_ARC:
       case DRAWOP_DRAW_POINT:
       case DRAWOP_DRAW_TEXT:
       {
@@ -2212,7 +2210,8 @@ void wxPseudoMetaFile::GetBounds(double *boundMinX, double *boundMinY, double *b
         }
         else if (op->GetOp() == DRAWOP_DRAW_RECT ||
                  op->GetOp() == DRAWOP_DRAW_ROUNDED_RECT ||
-                 op->GetOp() == DRAWOP_DRAW_ELLIPSE)
+                 op->GetOp() == DRAWOP_DRAW_ELLIPSE ||
+                 op->GetOp() == DRAWOP_DRAW_ELLIPTIC_ARC)
         {
           if ((opDraw->m_x1 + opDraw->m_x2) < minX) minX = (opDraw->m_x1 + opDraw->m_x2);
           if ((opDraw->m_x1 + opDraw->m_x2) > maxX) maxX = (opDraw->m_x1 + opDraw->m_x2);
@@ -2335,7 +2334,7 @@ void wxPseudoMetaFile::DrawArc(const wxPoint& centrePt, const wxPoint& startPt, 
 
 void wxPseudoMetaFile::DrawEllipticArc(const wxRect& rect, double startAngle, double endAngle)
 {
-    const double pi = 3.1415926535897932384626433832795 ;
+    const double pi = M_PI ;
 
     double startAngleRadians = startAngle* (pi*2.0/360.0);
     double endAngleRadians = endAngle* (pi*2.0/360.0);

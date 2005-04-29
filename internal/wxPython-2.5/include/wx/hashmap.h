@@ -101,6 +101,10 @@ protected:
     {
         return (void **)calloc(sz, sizeof(void*));
     }
+    static void FreeTable(void *table)
+    {
+        free(table);
+    }
 };
 
 #define _WX_DECLARE_HASHTABLE( VALUE_T, KEY_T, HASH_T, KEY_EX_T, KEY_EQ_T, CLASSNAME, CLASSEXP, SHOULD_GROW, SHOULD_SHRINK ) \
@@ -248,7 +252,7 @@ public: \
     { \
         clear(); \
  \
-        free(m_table); \
+        FreeTable(m_table); \
     } \
  \
     hasher hash_funct() { return m_hasher; } \
@@ -379,7 +383,7 @@ protected: \
                        this, (_wxHashTable_NodeBase**)m_table, \
                        (BucketFromNode)GetBucketForNode,\
                        (ProcessNode)&DummyProcessNode ); \
-        free(srcTable); \
+        FreeTable(srcTable); \
     } \
  \
     /* this must be called _after_ m_table has been cleaned */ \
@@ -512,12 +516,10 @@ class WXDLLIMPEXP_BASE wxPointerHash
 public:
     wxPointerHash() { }
 
-    // TODO: this might not work well on architectures with 64 bit pointers but
-    //       32 bit longs, we should use % ULONG_MAX there
 #if wxUSE_STL && defined(HAVE_STL_HASH_MAP)
     size_t operator()( const void* k ) const { return (size_t)k; }
 #else
-    unsigned long operator()( const void* k ) const { return (unsigned long)wxPtrToULong(k); }
+    wxUIntPtr operator()( const void* k ) const { return wxPtrToUInt(k); }
 #endif
 
     wxPointerHash& operator=(const wxPointerHash&) { return *this; }

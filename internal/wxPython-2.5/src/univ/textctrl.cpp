@@ -47,7 +47,7 @@
    is true in which case a single LINE may correspond to multiple ROWs.
 
    A text position is an unsigned int (which for reasons of compatibility is
-   still a long) from 0 to GetLastPosition() inclusive. The positions
+   still a long as wxTextPos) from 0 to GetLastPosition() inclusive. The positions
    correspond to the gaps between the letters so the position 0 is just
    before the first character and the last position is the one beyond the last
    character. For an empty text control GetLastPosition() returns 0.
@@ -197,7 +197,7 @@ static inline void OrderPositions(wxTextPos& from, wxTextPos& to)
 
 // the value which is never used for text position, even not -1 which is
 // sometimes used for some special meaning
-static const wxTextPos INVALID_POS_VALUE = -2;
+static const wxTextPos INVALID_POS_VALUE = wxInvalidTextCoord;
 
 // overlap between pages (when using PageUp/Dn) in lines
 static const size_t PAGE_OVERLAP_IN_LINES = 1;
@@ -669,14 +669,9 @@ bool wxTextCtrl::Create(wxWindow *parent,
             style |= wxALWAYS_SHOW_SB;
         }
 
-        // wxTE_WORDWRAP is 0 for now so we don't need the code below
-#if 0
-        if ( style & wxTE_WORDWRAP )
-        {
-            // wrapping words means wrapping, hence no horz scrollbar
-            style &= ~wxHSCROLL;
-        }
-#endif // 0
+        // wrapping style: wxTE_DONTWRAP == wxHSCROLL so if it's _not_ given,
+        // we won't have horizontal scrollbar automatically, no need to do
+        // anything
 
         // TODO: support wxTE_NO_VSCROLL (?)
 
@@ -695,7 +690,7 @@ bool wxTextCtrl::Create(wxWindow *parent,
         // create data object for single line controls
         m_data.sdata = new wxTextSingleLineData;
     }
-    
+
 #if wxUSE_TWO_WINDOWS
     if ((style & wxBORDER_MASK) == 0)
         style |= wxBORDER_SUNKEN;
@@ -821,7 +816,7 @@ wxString wxTextCtrl::GetValue() const
 
 void wxTextCtrl::Clear()
 {
-    SetValue(_T(""));
+    SetValue(wxEmptyString);
 }
 
 bool wxTextCtrl::ReplaceLine(wxTextCoord line,
@@ -1249,7 +1244,7 @@ void wxTextCtrl::Remove(wxTextPos from, wxTextPos to)
     // if necessary
     OrderPositions(from, to);
 
-    Replace(from, to, _T(""));
+    Replace(from, to, wxEmptyString);
 }
 
 void wxTextCtrl::WriteText(const wxString& text)
@@ -1650,8 +1645,8 @@ wxString wxTextCtrl::GetLineText(wxTextCoord line) const
     {
         //this is called during DoGetBestSize
         if (line == 0 && GetLineCount() == 0) return wxEmptyString ;
-       
-        wxCHECK_MSG( (size_t)line < GetLineCount(), _T(""),
+
+        wxCHECK_MSG( (size_t)line < GetLineCount(), wxEmptyString,
                      _T("line index out of range") );
 
         return GetLines()[line];
@@ -1670,7 +1665,7 @@ wxTextPos wxTextCtrl::XYToPosition(wxTextCoord x, wxTextCoord y) const
     // if they are out of range
     if ( IsSingleLine() )
     {
-        return x > GetLastPosition() || y > 0 ? wxDefaultCoord : x;
+        return ( x > GetLastPosition() || y > 0 ) ? wxOutOfRangeTextCoord : x;
     }
     else // multiline
     {
@@ -2360,7 +2355,7 @@ wxSize wxTextCtrl::DoGetBestClientSize() const
 
 void wxTextCtrl::UpdateTextRect()
 {
-    wxRect rectTotal(wxPoint(0, 0), GetClientSize());
+    wxRect rectTotal(GetClientSize());
     wxCoord *extraSpace = WrapLines() ? &WData().m_widthMark : NULL;
     m_rectText = GetRenderer()->GetTextClientArea(this, rectTotal, extraSpace);
 
@@ -4146,7 +4141,7 @@ void wxTextCtrl::DoDraw(wxControlRenderer *renderer)
     // the update region is in window coords and text area is in the client
     // ones, so it must be shifted before computing intersection
     wxRegion rgnUpdate = GetUpdateRegion();
-    
+
     wxRect rectTextArea = GetRealTextArea();
     wxPoint pt = GetClientAreaOrigin();
     wxRect rectTextAreaAdjusted = rectTextArea;
@@ -4680,7 +4675,6 @@ bool wxTextCtrl::PerformAction(const wxControlAction& actionOrig,
 
         wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, GetId());
         InitCommandEvent(event);
-        event.SetString(GetValue());
         GetEventHandler()->ProcessEvent(event);
 
         // as the text changed...

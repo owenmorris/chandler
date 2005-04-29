@@ -37,7 +37,6 @@
     #include "wx/dialog.h"
     #include "wx/icon.h"
     #include "wx/intl.h"
-    #include "wx/settings.h"
     #include "wx/textctrl.h"
     #include "wx/statbmp.h"
     #include "wx/stattext.h"
@@ -46,6 +45,7 @@
 
 #include "wx/statline.h"
 #include "wx/artprov.h"
+#include "wx/settings.h"
 
 #include "wx/tipdlg.h"
 
@@ -211,6 +211,7 @@ wxString wxFileTipProvider::GetTip()
 
 BEGIN_EVENT_TABLE(wxTipDialog, wxDialog)
     EVT_BUTTON(wxID_NEXT_TIP, wxTipDialog::OnNextTip)
+    EVT_BUTTON(wxID_CLOSE, wxTipDialog::OnCancel)
 END_EVENT_TABLE()
 
 wxTipDialog::wxTipDialog(wxWindow *parent,
@@ -218,16 +219,20 @@ wxTipDialog::wxTipDialog(wxWindow *parent,
                          bool showAtStartup)
            : wxDialog(parent, wxID_ANY, _("Tip of the Day"),
                       wxDefaultPosition, wxDefaultSize,
-                      wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+                      wxDEFAULT_DIALOG_STYLE
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
+                      | wxRESIZE_BORDER
+#endif                      
+                      )
 {
     m_tipProvider = tipProvider;
+    bool isPda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
 
     // 1) create all controls in tab order
 
     // smart phones does not support or do not waste space for wxButtons
 #ifndef __SMARTPHONE__
-    // FIXME: use stock wxID_CLOSE button here!
-    wxButton *btnClose = new wxButton(this, wxID_CANCEL, _("Close"));
+    wxButton *btnClose = new wxButton(this, wxID_CLOSE);
 #endif
 
     m_checkbox = new wxCheckBox(this, wxID_ANY, _("&Show tips at startup"));
@@ -240,20 +245,22 @@ wxTipDialog::wxTipDialog(wxWindow *parent,
 
     wxStaticText *text = new wxStaticText(this, wxID_ANY, _("Did you know..."));
 
-#ifndef __SMARTPHONE__
-    wxFont font = text->GetFont();
-    font.SetPointSize(int(1.6 * font.GetPointSize()));
-    font.SetWeight(wxFONTWEIGHT_BOLD);
-    text->SetFont(font);
-#endif
+    if (!isPda)
+    {
+        wxFont font = text->GetFont();
+        font.SetPointSize(int(1.6 * font.GetPointSize()));
+        font.SetWeight(wxFONTWEIGHT_BOLD);
+        text->SetFont(font);
+    }
 
     m_text = new wxTextCtrl(this, wxID_ANY, wxEmptyString,
                             wxDefaultPosition, wxSize(200, 160),
                             wxTE_MULTILINE |
                             wxTE_READONLY |
                             wxTE_NO_VSCROLL |
-                            wxTE_RICH | // a hack to get rid of vert scrollbar
-                            wxSUNKEN_BORDER);
+                            wxTE_RICH2 | // a hack to get rid of vert scrollbar
+                            wxDEFAULT_CONTROL_BORDER
+                            );
 #if defined(__WXMSW__)
     m_text->SetFont(wxFont(12, wxSWISS, wxNORMAL, wxNORMAL));
 #endif
@@ -288,28 +295,37 @@ wxTipDialog::wxTipDialog(wxWindow *parent,
     topsizer->Add( m_text, 1, wxEXPAND | wxLEFT|wxRIGHT, wxLARGESMALL(10,0) );
 
     wxBoxSizer *bottom = new wxBoxSizer( wxHORIZONTAL );
-    bottom->Add( m_checkbox, 0, wxCENTER );
+    if (isPda)
+        topsizer->Add( m_checkbox, 0, wxCENTER|wxTOP );
+    else
+        bottom->Add( m_checkbox, 0, wxCENTER );
 
     // smart phones does not support or do not waste space for wxButtons
 #ifdef __SMARTPHONE__
     SetRightMenu(wxID_NEXT_TIP, _("Next"));
-    SetLeftMenu(wxID_CANCEL, _("Close"));
+    SetLeftMenu(wxID_CLOSE);
 #else
-    bottom->Add( 10,10,1 );
+    if (!isPda)
+        bottom->Add( 10,10,1 );
     bottom->Add( btnNext, 0, wxCENTER | wxLEFT, wxLARGESMALL(10,0) );
     bottom->Add( btnClose, 0, wxCENTER | wxLEFT, wxLARGESMALL(10,0) );
 #endif
 
-    topsizer->Add( bottom, 0, wxEXPAND | wxALL, wxLARGESMALL(10,0) );
+    if (isPda)
+        topsizer->Add( bottom, 0, wxCENTER | wxALL, 5 );
+    else
+        topsizer->Add( bottom, 0, wxEXPAND | wxALL, wxLARGESMALL(10,0) );
 
     SetTipText();
 
     SetSizer( topsizer );
 
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
 
     Centre(wxBOTH | wxCENTER_FRAME);
+#endif
 }
 
 // ----------------------------------------------------------------------------

@@ -1228,7 +1228,8 @@ static DWORD wxRasMonitorThread(wxRasThreadData *data)
                 // using wxLogLastError() from here is dangerous: we risk to
                 // deadlock the main thread if wxLog sends output to GUI
                 DWORD err = GetLastError();
-                wxMessageOutputDebug().Printf
+                wxMessageOutputDebug dbg;
+                dbg.Printf
                 (
                     wxT("WaitForMultipleObjects(RasMonitor) failed: 0x%08lx (%s)"),
                     err,
@@ -1284,7 +1285,7 @@ static void WINAPI wxRasDialFunc(UINT WXUNUSED(unMsg),
 
     wxCHECK_RET( dialUpManager, wxT("who started to dial then?") );
 
-    SendMessage(dialUpManager->GetRasWindow(), wxWM_RAS_DIALING_PROGRESS,
+    SendMessage(wxDialUpManagerMSW::GetRasWindow(), wxWM_RAS_DIALING_PROGRESS,
                 rasconnstate, dwError);
 }
 

@@ -34,7 +34,7 @@ class WXDLLEXPORT wxListItem;
 class WXDLLEXPORT wxStaticText;
 class WXDLLEXPORT wxTextCtrl;
 
-#if defined(__WXUNIVERSAL__)||defined(__WXGTK__)||defined(__WXX11__)||defined(__WXMGL__)||defined(__WXCOCOA__)
+#if defined(__WXUNIVERSAL__)||defined(__WXX11__)||defined(__WXMGL__)||defined(__WXCOCOA__)
     #define USE_GENERIC_FILEDIALOG
 #endif
 
@@ -45,20 +45,32 @@ class WXDLLEXPORT wxTextCtrl;
 class WXDLLEXPORT wxGenericFileDialog: public wxFileDialogBase
 {
 public:
-    wxGenericFileDialog() { }
+    wxGenericFileDialog() : wxFileDialogBase() { Init(); }
 
     wxGenericFileDialog(wxWindow *parent,
-                 const wxString& message = wxFileSelectorPromptStr,
+                        const wxString& message = wxFileSelectorPromptStr,
                         const wxString& defaultDir = wxEmptyString,
                         const wxString& defaultFile = wxEmptyString,
+                        const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                        long style = 0,
+                        const wxPoint& pos = wxDefaultPosition,
+                        bool bypassGenericImpl = false );
+
+    bool Create( wxWindow *parent,
+                 const wxString& message = wxFileSelectorPromptStr,
+                 const wxString& defaultDir = wxEmptyString,
+                 const wxString& defaultFile = wxEmptyString,
                  const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
                  long style = 0,
-                 const wxPoint& pos = wxDefaultPosition);
+                 const wxPoint& pos = wxDefaultPosition,
+                 bool bypassGenericImpl = false );
+
     virtual ~wxGenericFileDialog();
 
     virtual void SetMessage(const wxString& message) { SetTitle(message); }
     virtual void SetPath(const wxString& path);
     virtual void SetFilterIndex(int filterIndex);
+    virtual void SetWildcard(const wxString& wildCard);
 
     // for multiple file selection
     virtual void GetPaths(wxArrayString& paths) const;
@@ -87,6 +99,10 @@ public:
 
     virtual void UpdateControls();
 
+private:
+    // Don't use this implementation at all :-)
+    bool m_bypassGenericImpl;
+
 protected:
     // use the filter with the given index
     void DoSetFilterIndex(int filterindex);
@@ -101,6 +117,7 @@ protected:
     wxBitmapButton *m_newDirButton;
 
 private:
+    void Init();
     DECLARE_DYNAMIC_CLASS(wxGenericFileDialog)
     DECLARE_EVENT_TABLE()
 
@@ -113,8 +130,6 @@ private:
 
 class WXDLLEXPORT wxFileDialog: public wxGenericFileDialog
 {
-     DECLARE_DYNAMIC_CLASS(wxFileDialog)
-
 public:
      wxFileDialog() {}
 
@@ -128,6 +143,9 @@ public:
           :wxGenericFileDialog(parent, message, defaultDir, defaultFile, wildCard, style, pos)
      {
      }
+
+private:
+     DECLARE_DYNAMIC_CLASS(wxFileDialog)
 };
 
 #endif // USE_GENERIC_FILEDIALOG
@@ -148,6 +166,7 @@ public:
         is_drive = 0x0008
     };
 
+    wxFileData() { Init(); }
     // Full copy constructor
     wxFileData( const wxFileData& fileData ) { Copy(fileData); }
     // Create a filedata from this information
@@ -210,10 +229,10 @@ public:
     // initialize a wxListItem attributes
     void MakeItem( wxListItem &item );
 
-
+    // operators
     wxFileData& operator = (const wxFileData& fd) { Copy(fd); return *this; }
 
-private:
+protected:
     wxString m_fileName;
     wxString   m_filePath;
     long     m_size;
@@ -221,6 +240,9 @@ private:
     wxString m_permissions;
     int      m_type;
     int        m_image;
+    
+private:
+    void Init();
 };
 
 //-----------------------------------------------------------------------------
@@ -280,7 +302,7 @@ protected:
     wxFileData::fileListFieldType m_sort_field;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxFileCtrl);
+    DECLARE_DYNAMIC_CLASS(wxFileCtrl)
     DECLARE_EVENT_TABLE()
 };
 

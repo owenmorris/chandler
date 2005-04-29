@@ -9,9 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "gauge.h"
 #endif
+
+#include "wx/wxprec.h"
+
+#if wxUSE_GAUGE 
 
 #include "wx/gauge.h"
 
@@ -42,11 +46,13 @@ bool wxGauge::Create(wxWindow *parent, wxWindowID id,
     }
     */
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr ( CreateProgressBarControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , 
      GetValue() , 0 , GetRange() , false /* not indeterminate */ , m_peer->GetControlRefAddr() ) );
-    
-       
+
+    if ( GetValue() == 0 )
+        m_peer->SetData<Boolean>( kControlEntireControl , kControlProgressBarAnimatingTag , (Boolean) false ) ;
+
     MacPostControlCreate(pos,size) ;
     
     return TRUE;
@@ -67,7 +73,19 @@ void wxGauge::SetValue(int pos)
     // some change behind the values by it
     wxGaugeBase::SetValue(pos) ;
     if ( m_peer && m_peer->Ok() )
+    {
         m_peer->SetValue( GetValue() ) ;
+        // we turn off animation in the unnecessary situations as this is eating a lot of CPU otherwise
+        Boolean shouldAnimate = ( GetValue() > 0 && GetValue() < GetRange() ) ;
+        if ( m_peer->GetData<Boolean>( kControlEntireControl , kControlProgressBarAnimatingTag ) != shouldAnimate )
+        {
+            m_peer->SetData<Boolean>( kControlEntireControl , kControlProgressBarAnimatingTag , shouldAnimate ) ;
+            if ( !shouldAnimate )
+            {
+                Refresh() ;
+            }
+        }
+    }
 }
 
 int wxGauge::GetValue() const
@@ -78,4 +96,6 @@ int wxGauge::GetValue() const
 */
     return m_gaugePos ;
 }
+
+#endif // wxUSE_GAUGE 
 

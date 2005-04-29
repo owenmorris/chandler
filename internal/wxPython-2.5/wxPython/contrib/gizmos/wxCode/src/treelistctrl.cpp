@@ -40,6 +40,7 @@
 #include <wx/dcscreen.h>
 #include <wx/scrolwin.h>
 #include <wx/renderer.h>
+#include <wx/dcmemory.h>
 
 #include "wx/treelistctrl.h"
 
@@ -152,6 +153,7 @@ public:
     void DrawCurrent();
     void AdjustDC(wxDC& dc);
 
+    void OnEraseBackground( wxEraseEvent& event );
     void OnPaint( wxPaintEvent &event );
     void OnMouse( wxMouseEvent &event );
     void OnSetFocus( wxFocusEvent &event );
@@ -1075,9 +1077,10 @@ void wxTreeListTextCtrl::OnKillFocus( wxFocusEvent &event )
 IMPLEMENT_DYNAMIC_CLASS(wxTreeListHeaderWindow,wxWindow);
 
 BEGIN_EVENT_TABLE(wxTreeListHeaderWindow,wxWindow)
-    EVT_PAINT         (wxTreeListHeaderWindow::OnPaint)
-    EVT_MOUSE_EVENTS  (wxTreeListHeaderWindow::OnMouse)
-    EVT_SET_FOCUS     (wxTreeListHeaderWindow::OnSetFocus)
+    EVT_ERASE_BACKGROUND  (wxTreeListHeaderWindow::OnEraseBackground)
+    EVT_PAINT             (wxTreeListHeaderWindow::OnPaint)
+    EVT_MOUSE_EVENTS      (wxTreeListHeaderWindow::OnMouse)
+    EVT_SET_FOCUS         (wxTreeListHeaderWindow::OnSetFocus)
 END_EVENT_TABLE()
 
 void wxTreeListHeaderWindow::Init()
@@ -1110,7 +1113,7 @@ wxTreeListHeaderWindow::wxTreeListHeaderWindow( wxWindow *win,
     m_owner = owner;
     m_resizeCursor = new wxCursor(wxCURSOR_SIZEWE);
 
-    SetBackgroundColour(wxSystemSettings::GetSystemColour(
+    SetBackgroundColour(wxSystemSettings::GetColour(
                             wxSYS_COLOUR_BTNFACE));
 }
 
@@ -1136,7 +1139,7 @@ void wxTreeListHeaderWindow::DoDrawRect( wxDC *dc, int x, int y, int w, int h )
 
     dc->SetBrush( *wxTRANSPARENT_BRUSH );
 
-    dc->SetPen( wxPen(wxSystemSettings::GetSystemColour(
+    dc->SetPen( wxPen(wxSystemSettings::GetColour(
                           wxSYS_COLOUR_BTNSHADOW), 1, wxSOLID));
     dc->DrawLine( x+w-m_corner+1, y, x+w, y+h );  // right (outer)
     dc->DrawRectangle( x, y+h, w+1, 1 );          // bottom (outer)
@@ -1161,7 +1164,7 @@ void wxTreeListHeaderWindow::DoDrawRect( wxDC *dc, int x, int y, int w, int h )
     dc->DrawLine( x+w-m_corner+1, y, x+w, y+h );  // right (outer)
     dc->DrawRectangle( x, y+h, w+1, 1 );          // bottom (outer)
 
-    wxPen pen(wxSystemSettings::GetSystemColour(
+    wxPen pen(wxSystemSettings::GetColour(
                   wxSYS_COLOUR_BTNSHADOW ), 1, wxSOLID);
 
     dc->SetPen( pen );
@@ -1190,33 +1193,42 @@ void wxTreeListHeaderWindow::AdjustDC(wxDC& dc)
     dc.SetDeviceOrigin( -x * xpix, 0 );
 }
 
+
+void wxTreeListHeaderWindow::OnEraseBackground( wxEraseEvent& event )
+{
+}
+
 void wxTreeListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
 {
 #ifdef __WXGTK__
-    wxClientDC dc( this );
+    wxClientDC real_dc( this );
 #else
-    wxPaintDC dc( this );
+    wxPaintDC real_dc( this );
 #endif
 
-    PrepareDC( dc );
-    AdjustDC( dc );
-
-    dc.BeginDrawing();
-
-    dc.SetFont( GetFont() );
+    AdjustDC( real_dc );
 
     // width and height of the entire header window
     int w, h;
     GetClientSize( &w, &h );
     m_owner->CalcUnscrolledPosition(w, 0, &w, NULL);
 
+    // Setup double buffering to eliminate the flicker
+    wxMemoryDC dc;
+    wxBitmap   buffer(w, h);
+    dc.SelectObject(buffer);
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
+    dc.Clear();
+    
+    dc.BeginDrawing();
+    dc.SetFont( GetFont() );
     dc.SetBackgroundMode(wxTRANSPARENT);
 
     // do *not* use the listctrl colour for headers - one day we will have a
     // function to set it separately
     //dc.SetTextForeground( *wxBLACK );
     dc.SetTextForeground(wxSystemSettings::
-                            GetSystemColour( wxSYS_COLOUR_WINDOWTEXT ));
+                            GetColour( wxSYS_COLOUR_WINDOWTEXT ));
 
     int x = HEADER_OFFSET_X;
 
@@ -1298,8 +1310,10 @@ void wxTreeListHeaderWindow::OnPaint( wxPaintEvent &WXUNUSED(event) )
             m_parent->IsEnabled() ? 0 : wxCONTROL_DISABLED);
     }
 
-
+    // Finish up by drawing the buffer to the real dc
     dc.EndDrawing();
+    dc.SelectObject(wxNullBitmap);
+    real_dc.DrawBitmap(buffer, 0, 0, false);
 }
 
 void wxTreeListHeaderWindow::DrawCurrent()
@@ -1845,7 +1859,7 @@ void wxTreeListMainWindow::Init()
 
     m_hilightBrush = new wxBrush
                          (
-                            wxSystemSettings::GetSystemColour
+                            wxSystemSettings::GetColour
                             (
                                 wxSYS_COLOUR_HIGHLIGHT
                             ),
@@ -1854,7 +1868,7 @@ void wxTreeListMainWindow::Init()
 
     m_hilightUnfocusedBrush = new wxBrush
                               (
-                                 wxSystemSettings::GetSystemColour
+                                 wxSystemSettings::GetColour
                                  (
                                      wxSYS_COLOUR_BTNSHADOW
                                  ),
@@ -1877,7 +1891,7 @@ void wxTreeListMainWindow::Init()
 
     m_underMouse = NULL;
 
-#if defined( __WXMAC__ ) && __WXMAC_CARBON__
+#if defined( __WXMAC__ ) && defined(__WXMAC_CARBON__)
     m_normalFont.MacCreateThemeFont( kThemeViewsFont ) ;
 #else
     m_normalFont = wxSystemSettings::GetFont( wxSYS_DEFAULT_GUI_FONT );
@@ -1922,7 +1936,7 @@ bool wxTreeListMainWindow::Create(wxTreeListCtrl *parent,
     SetValidator( validator );
 #endif
 
-    SetBackgroundColour( wxSystemSettings::GetSystemColour( wxSYS_COLOUR_LISTBOX ) );
+    SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_LISTBOX ) );
 
 #ifdef __WXMSW__
     {
@@ -3300,7 +3314,7 @@ void wxTreeListMainWindow::PaintItem(wxTreeListItem *item, wxDC& dc)
     if (item->IsSelected() && HasFlag(wxTR_FULL_ROW_HIGHLIGHT)) {
             dc.SetBrush(*(m_hasFocus ? m_hilightBrush : m_hilightUnfocusedBrush));
             dc.SetPen(*wxBLACK_PEN);
-            colText = wxSystemSettings::GetSystemColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+            colText = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
     } else {
         wxColour colBg;
         if (attr && attr->HasBackgroundColour()) {
@@ -3366,7 +3380,7 @@ void wxTreeListMainWindow::PaintItem(wxTreeListItem *item, wxDC& dc)
             int width = wxMin(text_w+2, colwidth - text_x - x_colstart);
             dc.DrawRectangle(text_x-1, item->GetY() + offset, width, total_h-offset);
             dc.SetBackgroundMode(wxTRANSPARENT);
-            dc.SetTextForeground(wxSystemSettings::GetSystemColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+            dc.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
         }else{
             dc.SetTextForeground(colText);
         }
@@ -4119,6 +4133,9 @@ void wxTreeListMainWindow::OnMouse( wxMouseEvent &event )
     int flags = 0;
     wxTreeListItem *item = m_anchor->HitTest(pt, this, flags, 0);
     wxTreeListItem *underMouse = item;
+#if wxUSE_TOOLTIPS
+    bool underMouseChanged = (underMouse != m_underMouse) ;
+#endif // wxUSE_TOOLTIPS
 
     if (underMouse && (flags & wxTREE_HITTEST_ONITEMBUTTON) &&
         !event.LeftIsDown() && !m_isDragging &&
@@ -4144,6 +4161,25 @@ void wxTreeListMainWindow::OnMouse( wxMouseEvent &event )
          if (m_underMouse)
             RefreshLine( m_underMouse );
     }
+
+#if wxUSE_TOOLTIPS
+    // Determines what item we are hovering over and need a tooltip for
+    wxTreeItemId hoverItem = item;
+
+    // We do not want a tooltip if we are dragging, or if the rename timer is running
+    if (underMouseChanged && hoverItem.IsOk() && !m_isDragging && (!m_renameTimer || !m_renameTimer->IsRunning()))
+    {
+        // Ask the tree control what tooltip (if any) should be shown
+        wxTreeEvent hevent(wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP, GetId());
+        hevent.SetItem(hoverItem);
+        hevent.SetEventObject(this);
+
+        if ( GetEventHandler()->ProcessEvent(hevent) && hevent.IsAllowed() )
+        {
+            SetToolTip(hevent.GetLabel());
+        }
+    }
+#endif
 
     // we process left mouse up event (enables in-place edit), right down
     // (pass to the user code), left dbl click (activate item) and
@@ -4189,6 +4225,7 @@ void wxTreeListMainWindow::OnMouse( wxMouseEvent &event )
         wxTreeEvent nevent( command,/*ALB*/ m_owner->GetId() );
         nevent.SetItem( (long) m_current);
         nevent.SetEventObject(/*this*/m_owner); // ALB
+        nevent.SetPoint(pt);
 
         // by default the dragging is not supported, the user code must
         // explicitly allow the event for it to take place
@@ -4596,6 +4633,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxTreeListCtrl, wxControl);
 
 BEGIN_EVENT_TABLE(wxTreeListCtrl, wxControl)
     EVT_SIZE(wxTreeListCtrl::OnSize)
+    EVT_TREE_ITEM_GETTOOLTIP(wxID_ANY, wxTreeListCtrl::OnGetToolTip)
 END_EVENT_TABLE();
 
 bool wxTreeListCtrl::Create(wxWindow *parent, wxWindowID id,
@@ -4639,15 +4677,22 @@ void wxTreeListCtrl::CalculateAndSetHeaderHeight()
     }
 }
 
-
-void wxTreeListCtrl::OnSize(wxSizeEvent& WXUNUSED(event))
+void wxTreeListCtrl::DoHeaderLayout()
 {
     int w, h;
     GetClientSize(&w, &h);
     if (m_header_win)
+    {
         m_header_win->SetSize(0, 0, w, m_headerHeight);
+        m_header_win->Refresh(false);
+    }
     if (m_main_win)
         m_main_win->SetSize(0, m_headerHeight + 1, w, h - m_headerHeight - 1);
+}    
+
+void wxTreeListCtrl::OnSize(wxSizeEvent& WXUNUSED(event))
+{
+    DoHeaderLayout();
 }
 
 
@@ -4998,7 +5043,10 @@ wxString wxTreeListCtrl::GetColumnText(size_t column) const
 { return m_header_win->GetColumnText(column); }
 
 void wxTreeListCtrl::AddColumn(const wxTreeListColumnInfo& col)
-{ m_header_win->AddColumn(col); }
+{
+    m_header_win->AddColumn(col);
+    DoHeaderLayout();
+}
 
 void wxTreeListCtrl::InsertColumn(size_t before,
                                   const wxTreeListColumnInfo& col)
@@ -5064,3 +5112,11 @@ wxSize wxTreeListCtrl::DoGetBestSize() const
     // something is better than nothing...
     return wxSize(100,80);
 }
+
+// Process the tooltip event, to speed up event processing.
+// Doesn't actually get a tooltip.
+void wxTreeListCtrl::OnGetToolTip( wxTreeEvent &event )
+{
+    event.Veto();
+}
+

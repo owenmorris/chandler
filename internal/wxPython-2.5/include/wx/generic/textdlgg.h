@@ -27,7 +27,8 @@
 
 class WXDLLEXPORT wxTextCtrl;
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxGetTextFromUserPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxGetTextFromUserPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxGetPasswordFromUserPromptStr;
 
 #define wxTextEntryDialogStyle (wxOK | wxCANCEL | wxCENTRE | wxWS_EX_VALIDATE_RECURSIVELY)
 
@@ -70,6 +71,24 @@ private:
 };
 
 // ----------------------------------------------------------------------------
+// wxPasswordEntryDialog: dialog with password control, [ok] and [cancel]
+// ----------------------------------------------------------------------------
+
+class WXDLLEXPORT wxPasswordEntryDialog : public wxTextEntryDialog
+{
+public:
+    wxPasswordEntryDialog(wxWindow *parent,
+                      const wxString& message,
+                      const wxString& caption = wxGetPasswordFromUserPromptStr,
+                      const wxString& value = wxEmptyString,
+                      long style = wxTextEntryDialogStyle,
+                      const wxPoint& pos = wxDefaultPosition);
+private:
+    DECLARE_DYNAMIC_CLASS(wxPasswordEntryDialog)
+    DECLARE_NO_COPY_CLASS(wxPasswordEntryDialog)
+};
+
+// ----------------------------------------------------------------------------
 // function to get a string from user
 // ----------------------------------------------------------------------------
 
@@ -84,9 +103,12 @@ wxGetTextFromUser(const wxString& message,
 
 wxString WXDLLEXPORT
 wxGetPasswordFromUser(const wxString& message,
-                      const wxString& caption = wxGetTextFromUserPromptStr,
+                      const wxString& caption = wxGetPasswordFromUserPromptStr,
                       const wxString& default_value = wxEmptyString,
-                      wxWindow *parent = (wxWindow *) NULL);
+                      wxWindow *parent = (wxWindow *) NULL,
+                      wxCoord x = wxDefaultCoord,
+                      wxCoord y = wxDefaultCoord,
+                      bool centre = true);
 
 #endif
     // wxUSE_TEXTDLG

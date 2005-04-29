@@ -25,11 +25,13 @@
 #include "wx/cursor.h"          // we have member variables of these classes
 #include "wx/font.h"            // so we can't do without them
 #include "wx/colour.h"
+#include "wx/bitmap.h"          // for wxNullBitmap
 #include "wx/brush.h"
 #include "wx/pen.h"
 #include "wx/palette.h"
 #include "wx/list.h"            // we use wxList in inline functions
 #include "wx/dynarray.h"
+#include "wx/math.h"
 
 class WXDLLEXPORT wxDC;
 class WXDLLEXPORT wxDCBase;
@@ -95,7 +97,7 @@ protected:
 // global variables
 // ---------------------------------------------------------------------------
 
-WXDLLEXPORT_DATA(extern int) wxPageNumber;
+extern WXDLLEXPORT_DATA(int) wxPageNumber;
 
 // ---------------------------------------------------------------------------
 // wxDC is the device context - object on which any drawing is done
@@ -346,7 +348,7 @@ public:
      *  \param angle Rotating angle (counterclockwise, start at 3 o'clock, 360 is full circle).
      *  \param center Center of rotation.
      */
-    void Rotate( wxList* points, double angle, wxPoint center = wxPoint() );
+    void Rotate( wxList* points, double angle, wxPoint center = wxPoint(0,0) );
 
     // used by DrawEllipticArcRot
     // Careful: wxList gets filled with points you have to delete later.
@@ -528,17 +530,17 @@ public:
         { wxCoord x, y; DoGetDeviceOrigin(&x, &y); return wxPoint(x, y); }
     virtual void SetDeviceOrigin(wxCoord x, wxCoord y) = 0;
 
+    virtual void ComputeScaleAndOrigin() {}
+
     virtual void SetAxisOrientation(bool xLeftRight, bool yBottomUp) = 0;
 
     int GetLogicalFunction() const { return m_logicalFunction; }
     virtual void SetLogicalFunction(int function) = 0;
 
-    // Sometimes we need to override optimization, e.g. if other software is
-    // drawing onto our surface and we can't be sure of who's done what.
-    //
-    // FIXME: is this (still) used?
+#if WXWIN_COMPATIBILITY_2_4
     virtual void SetOptimization(bool WXUNUSED(opt)) { }
     virtual bool GetOptimization() { return false; }
+#endif
 
     // bounding box
     // ------------
@@ -629,6 +631,17 @@ public:
         if (h) *h = hh;
     }
 
+    // Reserved for future use
+    virtual void ReservedDCFunc1() {}
+    virtual void ReservedDCFunc2() {}
+    virtual void ReservedDCFunc3() {}
+    virtual void ReservedDCFunc4() {}
+    virtual void ReservedDCFunc5() {}
+    virtual void ReservedDCFunc6() {}
+    virtual void ReservedDCFunc7() {}
+    virtual void ReservedDCFunc8() {}
+    virtual void ReservedDCFunc9() {}
+
 protected:
     // the pure virtual functions which should be implemented by wxDC
     virtual bool DoFloodFill(wxCoord x, wxCoord y, const wxColour& col,
@@ -685,10 +698,13 @@ protected:
     virtual void DoSetClippingRegion(wxCoord x, wxCoord y,
                                      wxCoord width, wxCoord height) = 0;
 
-    // FIXME are these functions really different?
+#if WXWIN_COMPATIBILITY_2_4
+    // this was only for confusing people, use DoGetClippingBox only
     virtual void DoGetClippingRegion(wxCoord *x, wxCoord *y,
                                      wxCoord *w, wxCoord *h)
         { DoGetClippingBox(x, y, w, h); }
+#endif
+
     virtual void DoGetClippingBox(wxCoord *x, wxCoord *y,
                                   wxCoord *w, wxCoord *h) const
     {
@@ -786,7 +802,9 @@ private:
 // now include the declaration of wxDC class
 // ----------------------------------------------------------------------------
 
-#if defined(__WXMSW__)
+#if defined(__WXPALMOS__)
+    #include "wx/palmos/dc.h"
+#elif defined(__WXMSW__)
     #include "wx/msw/dc.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/dc.h"

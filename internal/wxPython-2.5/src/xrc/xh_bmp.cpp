@@ -8,7 +8,7 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "xh_bmp.h"
 #endif
 
@@ -33,7 +33,7 @@ wxBitmapXmlHandler::wxBitmapXmlHandler()
 
 wxObject *wxBitmapXmlHandler::DoCreateResource()
 {
-    return new wxBitmap(GetBitmap(wxT("")));
+    return new wxBitmap(GetBitmap(wxEmptyString));
 }
 
 bool wxBitmapXmlHandler::CanHandle(wxXmlNode *node)
@@ -50,7 +50,7 @@ wxIconXmlHandler::wxIconXmlHandler()
 
 wxObject *wxIconXmlHandler::DoCreateResource()
 {
-    return new wxIcon(GetIcon(wxT("")));
+    return new wxIcon(GetIcon(wxEmptyString));
 }
 
 bool wxIconXmlHandler::CanHandle(wxXmlNode *node)

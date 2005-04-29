@@ -72,6 +72,7 @@
 #endif
 
 #include "wx/file.h"
+#include "wx/filename.h"
 #include "wx/tokenzr.h"
 #include "wx/module.h"
 #include "wx/fontmap.h"
@@ -98,9 +99,6 @@ typedef wxUint32 size_t32;
 // magic number identifying the .mo format file
 const size_t32 MSGCATALOG_MAGIC    = 0x950412de;
 const size_t32 MSGCATALOG_MAGIC_SW = 0xde120495;
-
-// extension of ".mo" files
-#define MSGCATALOG_EXTENSION  _T(".mo")
 
 // the constants describing the format of lang_LANG locale string
 static const size_t LEN_LANG = 2;
@@ -1037,6 +1035,8 @@ static wxString GetFullSearchPath(const wxChar *lang)
                    << wxPATH_SEP;
     }
 
+    // TODO: use wxStandardPaths instead of all this mess!!
+
     // LC_PATH is a standard env var containing the search path for the .mo
     // files
 #ifndef __WXWINCE__
@@ -1056,30 +1056,30 @@ static wxString GetFullSearchPath(const wxChar *lang)
 
     // then take the current directory
     // FIXME it should be the directory of the executable
-#ifdef __WXMAC__
-    wxChar cwd[512] ;
-    wxGetWorkingDirectory( cwd , sizeof( cwd ) ) ;
-    searchPath << GetAllMsgCatalogSubdirs(cwd, lang);
+#if defined(__WXMAC__)
+    searchPath << GetAllMsgCatalogSubdirs(wxGetCwd(), lang);
     // generic search paths could be somewhere in the system folder preferences
-#else // !Mac
+#elif defined(__WXMSW__)
+    // look in the directory of the executable
+    wxString path;
+    wxSplitPath(wxGetFullModuleName(), &path, NULL, NULL);
+    searchPath << GetAllMsgCatalogSubdirs(path, lang);
+#else // !Mac, !MSW
     searchPath << GetAllMsgCatalogSubdirs(wxT("."), lang);
-
 #endif // platform
 
     return searchPath;
 }
 
 // open disk file and read in it's contents
-bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName0,
+bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName,
                             wxPluralFormsCalculatorPtr& rPluralFormsCalculator)
 {
-   /* We need to handle locales like  de_AT.iso-8859-1
-      For this we first chop off the .CHARSET specifier and ignore it.
-      FIXME: UNICODE SUPPORT: must use CHARSET specifier!
-   */
-   wxString szName = szName0;
-   if(szName.Find(wxT('.')) != wxNOT_FOUND) // contains a dot
-      szName = szName.Left(szName.Find(wxT('.')));
+  /*
+     We need to handle locales like  de_AT.iso-8859-1
+     For this we first chop off the .CHARSET specifier and ignore it.
+     FIXME: UNICODE SUPPORT: must use CHARSET specifier!
+  */
 
   wxString searchPath = GetFullSearchPath(szDirPrefix);
   const wxChar *sublocale = wxStrchr(szDirPrefix, wxT('_'));
@@ -1093,9 +1093,6 @@ bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName0,
                  << wxPATH_SEP;
   }
 
-  wxString strFile = szName;
-  strFile += MSGCATALOG_EXTENSION;
-
   // don't give translation errors here because the wxstd catalog might
   // not yet be loaded (and it's normal)
   //
@@ -1103,36 +1100,37 @@ bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName0,
 
   NoTransErr noTransErr;
   wxLogVerbose(_("looking for catalog '%s' in path '%s'."),
-               szName.c_str(), searchPath.c_str());
+               szName, searchPath.c_str());
 
+  wxFileName fn(szName);
+  fn.SetExt(_T("mo"));
   wxString strFullName;
-  if ( !wxFindFileInPath(&strFullName, searchPath, strFile) ) {
-    wxLogVerbose(_("catalog file for domain '%s' not found."), szName.c_str());
+  if ( !wxFindFileInPath(&strFullName, searchPath, fn.GetFullPath()) ) {
+    wxLogVerbose(_("catalog file for domain '%s' not found."), szName);
     return false;
   }
 
   // open file
-  wxLogVerbose(_("using catalog '%s' from '%s'."),
-             szName.c_str(), strFullName.c_str());
+  wxLogVerbose(_("using catalog '%s' from '%s'."), szName, strFullName.c_str());
 
   wxFile fileMsg(strFullName);
   if ( !fileMsg.IsOpened() )
     return false;
 
-  // get the file size
+  // get the file size (assume it is less than 4Gb...)
   wxFileOffset nSize = fileMsg.Length();
   if ( nSize == wxInvalidOffset )
     return false;
 
   // read the whole file in memory
   m_pData = new size_t8[nSize];
-  if ( fileMsg.Read(m_pData, (size_t)nSize) != (size_t)nSize ) {
+  if ( fileMsg.Read(m_pData, (size_t)nSize) != nSize ) {
     wxDELETEA(m_pData);
     return false;
   }
 
   // examine header
-  bool bValid = (size_t)nSize > sizeof(wxMsgCatalogHeader);
+  bool bValid = nSize + (size_t)0 > sizeof(wxMsgCatalogHeader);
 
   wxMsgCatalogHeader *pHeader = (wxMsgCatalogHeader *)m_pData;
   if ( bValid ) {
@@ -1157,7 +1155,7 @@ bool wxMsgCatalogFile::Load(const wxChar *szDirPrefix, const wxChar *szName0,
                    Swap(pHeader->ofsOrigTable));
   m_pTransTable = (wxMsgTableEntry *)(m_pData +
                    Swap(pHeader->ofsTransTable));
-  m_nSize = (size_t)nSize;
+  m_nSize = (size_t32)nSize;
 
   // now parse catalog's header and try to extract catalog charset and
   // plural forms formula from it:
@@ -1222,7 +1220,7 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
 {
 #if wxUSE_WCHAR_T
     wxCSConv *csConv = NULL;
-    if ( !m_charset.IsEmpty() )
+    if ( !m_charset.empty() )
         csConv = new wxCSConv(m_charset);
 
     wxMBConv& inputConv = csConv ? *((wxMBConv*)csConv) : *wxConvCurrent;
@@ -1239,7 +1237,7 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
     if ( convertEncoding )
     {
         wxFontEncoding targetEnc = wxFONTENCODING_SYSTEM;
-        wxFontEncoding enc = wxFontMapper::Get()->CharsetToEncoding(m_charset, false);
+        wxFontEncoding enc = wxFontMapperBase::Get()->CharsetToEncoding(m_charset, false);
         if ( enc == wxFONTENCODING_SYSTEM )
         {
             convertEncoding = false; // unknown encoding
@@ -1398,6 +1396,9 @@ wxLanguageInfoArray *wxLocale::ms_languagesDB = NULL;
 void wxLocale::DoCommonInit()
 {
   m_pszOldLocale = NULL;
+
+  m_pOldLocale = wxSetLocale(this);
+
   m_pMsgCat = NULL;
   m_language = wxLANGUAGE_UNKNOWN;
   m_initialized = false;
@@ -1455,7 +1456,7 @@ bool wxLocale::Init(const wxChar *szName,
 
   // the short name will be used to look for catalog files as well,
   // so we need something here
-  if ( m_strShort.IsEmpty() ) {
+  if ( m_strShort.empty() ) {
     // FIXME I don't know how these 2 letter abbreviations are formed,
     //       this wild guess is surely wrong
     if ( szLocale && szLocale[0] )
@@ -1465,9 +1466,6 @@ bool wxLocale::Init(const wxChar *szName,
             m_strShort += (wxChar)wxTolower(szLocale[1]);
     }
   }
-
-  // save the old locale to be able to restore it later
-  m_pOldLocale = wxSetLocale(this);
 
   // load the default catalog with wxWidgets standard messages
   m_pMsgCat = NULL;
@@ -1633,7 +1631,7 @@ bool wxLocale::Init(int language, int flags)
                 if (codepage != 0)
                     locale << wxT(".") << buffer;
             }
-            if (locale.IsEmpty())
+            if (locale.empty())
             {
                 wxLogLastError(wxT("SetThreadLocale"));
                 wxLogError(wxT("Cannot set locale to language %s."), name.c_str());
@@ -1681,7 +1679,25 @@ bool wxLocale::Init(int language, int flags)
         wxLogError(wxT("Cannot set locale to language %s."), name.c_str());
         return false;
     }
-#elif defined(__WXMAC__) || defined(__WXPM__)
+#elif defined(__WXMAC__)
+    if (lang == wxLANGUAGE_DEFAULT)
+        locale = wxEmptyString;
+    else
+        locale = info->CanonicalName;
+
+    wxMB2WXbuf retloc = wxSetlocale(LC_ALL, locale);
+
+    if ( !retloc )
+    {
+        // Some C libraries don't like xx_YY form and require xx only
+        retloc = wxSetlocale(LC_ALL, locale.Mid(0,2));
+    }
+    if ( !retloc )
+    {
+        wxLogError(wxT("Cannot set locale to '%s'."), locale.c_str());
+        return false;
+    }
+#elif defined(__WXPM__)
     wxMB2WXbuf retloc = wxSetlocale(LC_ALL , wxEmptyString);
 #else
     return false;
@@ -2181,6 +2197,9 @@ wxString wxLocale::GetSystemEncodingName()
     // FIXME: what is the error return value for GetACP()?
     UINT codepage = ::GetACP();
     encname.Printf(_T("windows-%u"), codepage);
+#elif defined(__WXMAC__)
+    // default is just empty string, this resolves to the default system
+    // encoding later
 #elif defined(__UNIX_LIKE__)
 
 #if defined(HAVE_LANGINFO_H) && defined(CODESET)
@@ -2296,7 +2315,7 @@ wxFontEncoding wxLocale::GetSystemEncoding()
     wxString encname = GetSystemEncodingName();
     if ( !encname.empty() )
     {
-        wxFontEncoding enc = wxFontMapper::Get()->
+        wxFontEncoding enc = (wxFontMapperBase::Get())->
             CharsetToEncoding(encname, false /* not interactive */);
 
         // on some modern Linux systems (RedHat 8) the default system locale
@@ -2423,8 +2442,9 @@ wxLocale::~wxLocale()
         delete pTmpCat;
     }
 
-    // restore old locale
+    // restore old locale pointer
     wxSetLocale(m_pOldLocale);
+
     // FIXME
 #ifndef __WXWINCE__
     wxSetlocale(LC_ALL, m_pszOldLocale);
@@ -2519,14 +2539,14 @@ wxString wxLocale::GetHeaderValue( const wxChar* szHeader,
         if ( pMsgCat == NULL )
             return wxEmptyString;
 
-        pszTrans = pMsgCat->GetString(wxT(""), (size_t)-1);
+        pszTrans = pMsgCat->GetString(wxEmptyString, (size_t)-1);
     }
     else
     {
         // search in all domains
         for ( pMsgCat = m_pMsgCat; pMsgCat != NULL; pMsgCat = pMsgCat->m_pNext )
         {
-            pszTrans = pMsgCat->GetString(wxT(""), (size_t)-1);
+            pszTrans = pMsgCat->GetString(wxEmptyString, (size_t)-1);
             if ( pszTrans != NULL )   // take the first found
                 break;
         }

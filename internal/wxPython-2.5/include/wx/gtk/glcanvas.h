@@ -116,14 +116,14 @@ public:
         long style = 0, const wxString& name = wxGLCanvasName,
         int *attribList = (int*) NULL,
         const wxPalette& palette = wxNullPalette );
-   wxGLCanvas( wxWindow *parent, const wxGLContext *shared = (wxGLContext *)NULL,
+   wxGLCanvas( wxWindow *parent, const wxGLContext *shared,
         wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long style = 0, const wxString& name = wxGLCanvasName,
         int *attribList = (int*) NULL,
         const wxPalette& palette = wxNullPalette );
-   wxGLCanvas( wxWindow *parent, const wxGLCanvas *shared = (wxGLCanvas *)NULL,
+   wxGLCanvas( wxWindow *parent, const wxGLCanvas *shared,
         wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
@@ -160,7 +160,9 @@ public:
                      *m_sharedContext;
     wxGLCanvas       *m_sharedContextOf;
     void             *m_vi; // actually an XVisualInfo*
+    GLXFBConfig      *m_fbc;
     bool              m_canFreeVi;
+    bool              m_canFreeFBC;
     GtkWidget        *m_glWidget;
     bool              m_exposed;
 
@@ -169,7 +171,12 @@ public:
     // caller is reponsible for using XFree() to deallocate
     // the returned structure.
     static void* ChooseGLVisual(int *attribList);
+    static void* ChooseGLFBC(int *attribList);
+    static void GetGLAttribListFromWX(int *wx_attribList, int *gl_attribList );
 
+    static void QueryGLXVersion();
+    static int GetGLXVersion();
+    static int m_glxVersion;
 private:
     DECLARE_EVENT_TABLE()
     DECLARE_CLASS(wxGLCanvas)

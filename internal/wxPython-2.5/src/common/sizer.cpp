@@ -21,16 +21,19 @@
     #pragma hdrstop
 #endif
 
+#ifndef WX_PRECOMP
+    #include "wx/string.h"
+    #include "wx/intl.h"
+#endif // WX_PRECOMP
+
 #include "wx/sizer.h"
 #include "wx/utils.h"
 #include "wx/statbox.h"
+#include "wx/settings.h"
 #include "wx/listimpl.cpp"
+#include "wx/intl.h"
 #if WXWIN_COMPATIBILITY_2_4
     #include "wx/notebook.h"
-#endif
-
-#ifdef __WXMAC__
-#   include "wx/mac/uma.h"
 #endif
 
 //---------------------------------------------------------------------------
@@ -42,6 +45,9 @@ IMPLEMENT_CLASS(wxFlexGridSizer, wxGridSizer)
 IMPLEMENT_CLASS(wxBoxSizer, wxSizer)
 #if wxUSE_STATBOX
 IMPLEMENT_CLASS(wxStaticBoxSizer, wxBoxSizer)
+#endif
+#if wxUSE_BUTTON
+IMPLEMENT_CLASS(wxStdDialogButtonSizer, wxBoxSizer)
 #endif
 
 WX_DEFINE_EXPORTED_LIST( wxSizerItemList );
@@ -79,17 +85,9 @@ WX_DEFINE_EXPORTED_LIST( wxSizerItemList );
     minsize
 */
 
-//---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // wxSizerItem
-//---------------------------------------------------------------------------
-
-void wxSizerItem::Init()
-{
-    m_window = NULL;
-    m_sizer = NULL;
-    m_show = true;
-    m_userData = NULL;
-}
+// ----------------------------------------------------------------------------
 
 void wxSizerItem::Init(const wxSizerFlags& flags)
 {
@@ -100,53 +98,6 @@ void wxSizerItem::Init(const wxSizerFlags& flags)
     m_border = flags.GetBorderInPixels();
 }
 
-wxSizerItem::wxSizerItem( int width, int height, int proportion, int flag, int border, wxObject* userData )
-    : m_window( NULL )
-    , m_sizer( NULL )
-    , m_size( wxSize( width, height ) ) // size is set directly
-    , m_minSize( m_size )               // minimal size is the initial size
-    , m_proportion( proportion )
-    , m_border( border )
-    , m_flag( flag )
-    , m_show( true )
-    , m_userData( userData )
-{
-    SetRatio( m_size );
-}
-
-wxSizerItem::wxSizerItem( wxWindow *window, int proportion, int flag, int border, wxObject* userData )
-    : m_window( window )
-    , m_sizer( NULL )
-    , m_proportion( proportion )
-    , m_border( border )
-    , m_flag( flag )
-    , m_show( true )
-    , m_userData( userData )
-{
-    if (flag & wxFIXED_MINSIZE)
-        window->SetMinSize(window->GetSize());
-    m_minSize = window->GetSize();
-
-    // aspect ratio calculated from initial size
-    SetRatio( m_minSize );
-
-    // m_size is calculated later
-}
-
-wxSizerItem::wxSizerItem( wxSizer *sizer, int proportion, int flag, int border, wxObject* userData )
-    : m_window( NULL )
-    , m_sizer( sizer )
-    , m_proportion( proportion )
-    , m_border( border )
-    , m_flag( flag )
-    , m_show( true )
-    , m_ratio( 0.0 )
-    , m_userData( userData )
-{
-    // m_minSize is calculated later
-    // m_size is calculated later
-}
-
 wxSizerItem::wxSizerItem()
 {
     Init();
@@ -154,32 +105,149 @@ wxSizerItem::wxSizerItem()
     m_proportion = 0;
     m_border = 0;
     m_flag = 0;
+
+    m_kind = Item_None;
+}
+
+// window item
+void wxSizerItem::SetWindow(wxWindow *window)
+{
+    wxCHECK_RET( window, _T("NULL window in wxSizerItem::SetWindow()") );
+
+    m_kind = Item_Window;
+    m_window = window;
+
+    // window doesn't become smaller than its initial size, whatever happens
+    m_minSize = window->GetSize();
+
+    if ( m_flag & wxFIXED_MINSIZE )
+        window->SetMinSize(m_minSize);
+
+    // aspect ratio calculated from initial size
+    SetRatio(m_minSize);
+}
+
+wxSizerItem::wxSizerItem(wxWindow *window,
+                         int proportion,
+                         int flag,
+                         int border,
+                         wxObject* userData)
+           : m_proportion(proportion),
+             m_border(border),
+             m_flag(flag),
+             m_userData(userData)
+{
+    SetWindow(window);
+}
+
+// sizer item
+void wxSizerItem::SetSizer(wxSizer *sizer)
+{
+    m_kind = Item_Sizer;
+    m_sizer = sizer;
+}
+
+wxSizerItem::wxSizerItem(wxSizer *sizer,
+                         int proportion,
+                         int flag,
+                         int border,
+                         wxObject* userData)
+           : m_proportion(proportion),
+             m_border(border),
+             m_flag(flag),
+             m_ratio(0.0),
+             m_userData(userData)
+{
+    SetSizer(sizer);
+
+    // m_minSize is set later
+}
+
+// spacer item
+void wxSizerItem::SetSpacer(const wxSize& size)
+{
+    m_kind = Item_Spacer;
+    m_spacer = new wxSizerSpacer(size);
+    m_minSize = size;
+    SetRatio(size);
+}
+
+wxSizerItem::wxSizerItem(int width,
+                         int height,
+                         int proportion,
+                         int flag,
+                         int border,
+                         wxObject* userData)
+           : m_minSize(width, height), // minimal size is the initial size
+             m_proportion(proportion),
+             m_border(border),
+             m_flag(flag),
+             m_userData(userData)
+{
+    SetSpacer(width, height);
 }
 
 wxSizerItem::~wxSizerItem()
 {
     delete m_userData;
 
-    if ( m_window )
+    switch ( m_kind )
     {
-        m_window->SetContainingSizer(NULL);
+        case Item_None:
+            break;
+
+        case Item_Window:
+            m_window->SetContainingSizer(NULL);
+            break;
+
+        case Item_Sizer:
+            delete m_sizer;
+            break;
+
+        case Item_Spacer:
+            delete m_spacer;
+            break;
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
     }
-    else // we must be a sizer
-    {
-        delete m_sizer;
-    }
+}
+
+wxSize wxSizerItem::GetSpacer() const
+{
+    wxSize size;
+    if ( m_kind == Item_Spacer )
+        size = m_spacer->GetSize();
+
+    return size;
 }
 
 
 wxSize wxSizerItem::GetSize() const
 {
     wxSize ret;
-    if (IsSizer())
-        ret = m_sizer->GetSize();
-    else
-    if (IsWindow())
-        ret = m_window->GetSize();
-    else ret = m_size;
+    switch ( m_kind )
+    {
+        case Item_None:
+            break;
+
+        case Item_Window:
+            ret = m_window->GetSize();
+            break;
+
+        case Item_Sizer:
+            ret = m_sizer->GetSize();
+            break;
+
+        case Item_Spacer:
+            ret = m_spacer->GetSize();
+            break;
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
+    }
 
     if (m_flag & wxWEST)
         ret.x += m_border;
@@ -284,52 +352,112 @@ void wxSizerItem::SetDimension( wxPoint pos, wxSize size )
         size.y -= m_border;
     }
 
-    if (IsSizer())
-        m_sizer->SetDimension( pos.x, pos.y, size.x, size.y );
+    m_rect = wxRect(pos, size);
 
-    if (IsWindow())
-        m_window->SetSize( pos.x, pos.y, size.x, size.y, wxSIZE_ALLOW_MINUS_ONE );
+    switch ( m_kind )
+    {
+        case Item_None:
+            wxFAIL_MSG( _T("can't set size of uninitialized sizer item") );
+            break;
 
-    m_size = size;
+        case Item_Window:
+            m_window->SetSize(pos.x, pos.y, size.x, size.y,
+                              wxSIZE_ALLOW_MINUS_ONE);
+            break;
+
+        case Item_Sizer:
+            m_sizer->SetDimension(pos.x, pos.y, size.x, size.y);
+            break;
+
+        case Item_Spacer:
+            m_spacer->SetSize(size);
+            break;
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
+    }
 }
 
 void wxSizerItem::DeleteWindows()
 {
-    if (m_window)
+    switch ( m_kind )
     {
-         m_window->Destroy();
-         m_window = NULL;
+        case Item_None:
+        case Item_Spacer:
+            break;
+
+        case Item_Window:
+            //We are deleting the window from this sizer - normally
+            //the window destroys the sizer associated with it,
+            //which might destroy this, which we don't want
+            m_window->SetContainingSizer(NULL);
+            m_window->Destroy();
+            //Putting this after the switch will result in a spacer
+            //not being deleted properly on destruction
+            m_kind = Item_None; 
+            break;
+
+        case Item_Sizer:
+            m_sizer->DeleteWindows();
+            break;
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
     }
 
-    if (m_sizer)
-        m_sizer->DeleteWindows();
-}
-
-bool wxSizerItem::IsWindow() const
-{
-    return (m_window != NULL);
-}
-
-bool wxSizerItem::IsSizer() const
-{
-    return (m_sizer != NULL);
-}
-
-bool wxSizerItem::IsSpacer() const
-{
-    return (m_window == NULL) && (m_sizer == NULL);
 }
 
 void wxSizerItem::Show( bool show )
 {
-    m_show = show;
+    switch ( m_kind )
+    {
+        case Item_None:
+            wxFAIL_MSG( _T("can't show uninitialized sizer item") );
+            break;
 
-    if( IsWindow() )
-        m_window->Show( show );
-    else if( IsSizer() )
-        m_sizer->ShowItems( show );
+        case Item_Window:
+            m_window->Show(show);
+            break;
 
-    // ... nothing else to do to hide/show spacers
+        case Item_Sizer:
+            m_sizer->Show(show);
+            break;
+
+        case Item_Spacer:
+            m_spacer->Show(show);
+            break;
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
+    }
+}
+
+bool wxSizerItem::IsShown() const
+{
+    switch ( m_kind )
+    {
+        case Item_None:
+            wxFAIL_MSG( _T("uninitialized sizer item") );
+            break;
+
+        case Item_Window:
+            return m_window->IsShown();
+
+        case Item_Sizer:
+            return m_sizer->IsShown();
+
+        case Item_Spacer:
+            return m_spacer->IsShown();
+
+        case Item_Max:
+        default:
+            wxFAIL_MSG( _T("unexpected wxSizerItem::m_kind") );
+    }
+
+    return false;
 }
 
 void wxSizerItem::SetOption( int option )
@@ -348,8 +476,8 @@ int wxSizerItem::GetOption() const
 //---------------------------------------------------------------------------
 
 wxSizer::wxSizer()
-    : m_minSize( wxSize( 0, 0 ) )
 {
+    m_isShown = true;
 }
 
 wxSizer::~wxSizer()
@@ -357,12 +485,14 @@ wxSizer::~wxSizer()
     WX_CLEAR_LIST(wxSizerItemList, m_children);
 }
 
-void wxSizer::Insert( size_t index, wxSizerItem *item )
+wxSizerItem* wxSizer::Insert( size_t index, wxSizerItem *item )
 {
     m_children.Insert( index, item );
 
-    if( item->GetWindow() )
+    if ( item->GetWindow() )
         item->GetWindow()->SetContainingSizer( this );
+
+    return item;
 }
 
 bool wxSizer::Remove( wxWindow *window )
@@ -404,7 +534,7 @@ bool wxSizer::Remove( int index )
 
     wxSizerItem *item = node->GetData();
 
-    if( item->IsWindow() )
+    if ( item->IsWindow() )
         item->GetWindow()->SetContainingSizer( NULL );
 
     delete item;
@@ -468,9 +598,9 @@ bool wxSizer::Detach( int index )
 
     wxSizerItem *item = node->GetData();
 
-    if( item->IsSizer() )
+    if ( item->IsSizer() )
         item->DetachSizer();
-    else if( item->IsWindow() )
+    else if ( item->IsWindow() )
         item->GetWindow()->SetContainingSizer( NULL );
 
     delete item;
@@ -607,7 +737,7 @@ wxSize wxSizer::GetMaxClientSize( wxWindow *window ) const
 {
     wxSize maxSize( window->GetMaxSize() );
 
-    if( maxSize != wxDefaultSize )
+    if ( maxSize != wxDefaultSize )
     {
         wxSize size( window->GetSize() );
         wxSize client_size( window->GetClientSize() );
@@ -760,9 +890,9 @@ bool wxSizer::DoSetItemMinSize( size_t index, int width, int height )
     return true;
 }
 
-bool wxSizer::Show( wxWindow *window, bool show, bool recursive )
+wxSizerItem* wxSizer::GetItem( wxWindow *window, bool recursive )
 {
-    wxASSERT_MSG( window, _T("Show for NULL window") );
+    wxASSERT_MSG( window, _T("GetItem for NULL window") );
 
     wxSizerItemList::compatibility_iterator node = m_children.GetFirst();
     while (node)
@@ -771,17 +901,64 @@ bool wxSizer::Show( wxWindow *window, bool show, bool recursive )
 
         if (item->GetWindow() == window)
         {
-            item->Show( show );
-
-            return true;
+            return item;
         }
         else if (recursive && item->IsSizer())
         {
-            if (item->GetSizer()->Show(window, show, recursive))
-                return true;
+            wxSizerItem *subitem = item->GetSizer()->GetItem( window, true );
+            if (subitem)
+                return subitem;
         }
 
         node = node->GetNext();
+    }
+
+    return NULL;
+}
+
+wxSizerItem* wxSizer::GetItem( wxSizer *sizer, bool recursive )
+{
+    wxASSERT_MSG( sizer, _T("GetItem for NULL sizer") );
+
+    wxSizerItemList::compatibility_iterator node = m_children.GetFirst();
+    while (node)
+    {
+        wxSizerItem *item = node->GetData();
+
+        if (item->GetSizer() == sizer)
+        {
+            return item;
+        }
+        else if (recursive && item->IsSizer())
+        {
+            wxSizerItem *subitem = item->GetSizer()->GetItem( sizer, true );
+            if (subitem)
+                return subitem;
+        }
+
+        node = node->GetNext();
+    }
+
+    return NULL;
+}
+
+wxSizerItem* wxSizer::GetItem( size_t index )
+{
+    wxCHECK_MSG( index < m_children.GetCount(),
+                 NULL,
+                 _T("GetItem index is out of range") );
+
+    return m_children.Item( index )->GetData();
+}
+
+bool wxSizer::Show( wxWindow *window, bool show, bool recursive )
+{
+    wxSizerItem *item = GetItem( window, recursive );
+
+    if ( item )
+    {
+         item->Show( show );
+         return true;
     }
 
     return false;
@@ -789,26 +966,12 @@ bool wxSizer::Show( wxWindow *window, bool show, bool recursive )
 
 bool wxSizer::Show( wxSizer *sizer, bool show, bool recursive )
 {
-    wxASSERT_MSG( sizer, _T("Show for NULL sizer") );
+    wxSizerItem *item = GetItem( sizer, recursive );
 
-    wxSizerItemList::compatibility_iterator node = m_children.GetFirst();
-    while (node)
+    if ( item )
     {
-        wxSizerItem     *item = node->GetData();
-
-        if (item->GetSizer() == sizer)
-        {
-            item->Show( show );
-
-            return true;
-        }
-        else if (recursive && item->IsSizer())
-        {
-            if (item->GetSizer()->Show(sizer, show, recursive))
-                return true;
-        }
-
-        node = node->GetNext();
+         item->Show( show );
+         return true;
     }
 
     return false;
@@ -816,13 +979,15 @@ bool wxSizer::Show( wxSizer *sizer, bool show, bool recursive )
 
 bool wxSizer::Show( size_t index, bool show)
 {
-    wxCHECK_MSG( index < m_children.GetCount(),
-                 false,
-                 _T("Show index is out of range") );
+    wxSizerItem *item = GetItem( index );
 
-    m_children.Item( index )->GetData()->Show( show );
+    if ( item )
+    {
+         item->Show( show );
+         return true;
+    }
 
-    return true;
+    return false;
 }
 
 void wxSizer::ShowItems( bool show )
@@ -1079,9 +1244,11 @@ void wxFlexGridSizer::RecalcSizes()
 
                 SetItemBounds( node->GetData(), x, y, w, h);
             }
-            y = y + m_rowHeights[r] + m_vgap;
+            if (m_rowHeights[r] != -1)
+                y = y + m_rowHeights[r] + m_vgap;
         }
-        x = x + m_colWidths[c] + m_hgap;
+        if (m_colWidths[c] != -1)
+            x = x + m_colWidths[c] + m_hgap;
     }
 }
 
@@ -1135,12 +1302,16 @@ wxSize wxFlexGridSizer::CalcMin()
     int width = 0;
     for (int col = 0; col < ncols; col++)
         if ( m_colWidths[ col ] != -1 )
-            width += m_colWidths[ col ] + ( col == ncols-1 ? 0 : m_hgap );
+            width += m_colWidths[ col ] + m_hgap;
+    if (width > 0)
+        width -= m_hgap;
 
     int height = 0;
     for (int row = 0; row < nrows; row++)
         if ( m_rowHeights[ row ] != -1 )
-            height += m_rowHeights[ row ] + ( row == nrows-1 ? 0 : m_vgap );
+            height += m_rowHeights[ row ] + m_vgap;
+    if (height > 0)
+        height -= m_vgap;
 
     m_calculatedMinSize = wxSize( width, height );
     return m_calculatedMinSize;
@@ -1351,7 +1522,7 @@ void wxBoxSizer::RecalcSizes()
                 }
 
                 wxPoint child_pos( pt );
-                wxSize  child_size( wxSize( size.x, height) );
+                wxSize  child_size( size.x, height );
 
                 if (item->GetFlag() & (wxEXPAND | wxSHAPED))
                     child_size.x = m_size.x;
@@ -1377,7 +1548,7 @@ void wxBoxSizer::RecalcSizes()
                 }
 
                 wxPoint child_pos( pt );
-                wxSize  child_size( wxSize(width, size.y) );
+                wxSize  child_size( width, size.y );
 
                 if (item->GetFlag() & (wxEXPAND | wxSHAPED))
                     child_size.y = m_size.y;
@@ -1415,11 +1586,12 @@ wxSize wxBoxSizer::CalcMin()
     {
         wxSizerItem *item = node->GetData();
 
-        if (item->IsShown())
+        if ( item->IsShown() )
+        {
             item->CalcMin();  // result is stored in the item
 
-        if (item->IsShown() && item->GetProportion() != 0)
             m_stretchable += item->GetProportion();
+        }
 
         node = node->GetNext();
     }
@@ -1512,49 +1684,19 @@ wxStaticBoxSizer::wxStaticBoxSizer( wxStaticBox *box, int orient )
     wxASSERT_MSG( box, wxT("wxStaticBoxSizer needs a static box") );
 }
 
+wxStaticBoxSizer::wxStaticBoxSizer(int orient, wxWindow *win, const wxString& s)
+                : wxBoxSizer(orient),
+                  m_staticBox(new wxStaticBox(win, wxID_ANY, s))
+{
+}
+
 static void GetStaticBoxBorders( wxStaticBox *box,
                                  int *borderTop,
                                  int *borderOther)
 {
     // this has to be done platform by platform as there is no way to
     // guess the thickness of a wxStaticBox border
-#ifdef __WXCOCOA__
-    box->GetBordersForSizer(borderTop,borderOther);
-#elif defined(__WXMAC__)
-
-    static int extraTop = -1; // Uninitted
-    static int other = 5;
-
-    if ( extraTop == -1 )
-    {
-        // The minimal border used for the top. Later on the staticbox'
-        // font height is added to this.
-        extraTop = 0;
-
-        if ( UMAGetSystemVersion() >= 0x1030 /*Panther*/ )
-        {
-            // As indicated by the HIG, Panther needs an extra border of 11
-            // pixels (otherwise overlapping occurs at the top). The "other"
-            // border has to be 11.
-            extraTop = 11;
-            other = 11;
-        }
-
-    }
-
-    *borderTop = extraTop + box->GetCharHeight();
-    *borderOther = other;
-
-#else
-#ifdef __WXGTK__
-    if ( box->GetLabel().IsEmpty() )
-        *borderTop = 5;
-    else
-#endif // __WXGTK__
-        *borderTop = box->GetCharHeight();
-
-    *borderOther = 5;
-#endif // __WXCOCOA__
+    box->GetBordersForSizer(borderTop, borderOther);
 }
 
 void wxStaticBoxSizer::RecalcSizes()
@@ -1597,6 +1739,188 @@ void wxStaticBoxSizer::ShowItems( bool show )
 
 #endif // wxUSE_STATBOX
 
+#if wxUSE_BUTTON
+
+wxStdDialogButtonSizer::wxStdDialogButtonSizer()
+    : wxBoxSizer(wxHORIZONTAL)
+{
+    // Vertical buttons with lots of space on either side
+    // looks rubbish on WinCE, so let's not do this for now.
+    // If we are going to use vertical buttons, we should
+    // put the sizer to the right of other controls in the dialog,
+    // and that's beyond the scope of this sizer.
+#ifndef __WXWINCE__
+    bool is_pda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
+    // If we have a PDA screen, put yes/no button over
+    // all other buttons, otherwise on the left side.
+    if (is_pda)
+        m_orient = wxVERTICAL;
+#endif
+
+    m_buttonAffirmative = NULL;
+    m_buttonApply = NULL;
+    m_buttonNegative = NULL;
+    m_buttonCancel = NULL;
+    m_buttonHelp = NULL;
+}
+
+void wxStdDialogButtonSizer::AddButton(wxButton *mybutton)
+{
+    switch (mybutton->GetId())
+    {
+        case wxID_OK:
+        case wxID_YES:
+        case wxID_SAVE:
+            m_buttonAffirmative = mybutton;
+            break;
+        case wxID_APPLY:
+            m_buttonApply = mybutton;
+            break;
+        case wxID_NO:
+            m_buttonNegative = mybutton;
+            break;
+        case wxID_CANCEL:
+            m_buttonCancel = mybutton;
+            break;
+        case wxID_HELP:
+        case wxID_CONTEXT_HELP:
+            m_buttonHelp = mybutton;
+            break;
+        default:
+            break;
+    }
+}
+
+void wxStdDialogButtonSizer::SetAffirmativeButton( wxButton *button )
+{
+    m_buttonAffirmative = button;
+}
+
+void wxStdDialogButtonSizer::SetNegativeButton( wxButton *button )
+{
+    m_buttonNegative = button;
+}
+
+void wxStdDialogButtonSizer::SetCancelButton( wxButton *button )
+{
+    m_buttonCancel = button;
+}
+
+void wxStdDialogButtonSizer::Realize()
+{
+#ifdef __WXMAC__
+        Add(0, 0, 0, wxLEFT, 6);
+        if (m_buttonHelp)
+            Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 6);
+
+        if (m_buttonNegative){
+            // HIG POLICE BULLETIN - destructive buttons need extra padding
+            // 24 pixels on either side
+            Add((wxWindow*)m_buttonNegative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 12);
+        }
+
+        // extra whitespace between help/negative and cancel/ok buttons
+        Add(0, 0, 1, wxEXPAND, 0);
+
+        if (m_buttonCancel){
+            Add((wxWindow*)m_buttonCancel, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 6);
+            // Cancel or help should be default
+            // m_buttonCancel->SetDefaultButton();
+        }
+
+        // Ugh, Mac doesn't really have apply dialogs, so I'll just
+        // figure the best place is between Cancel and OK
+        if (m_buttonApply)
+            Add((wxWindow*)m_buttonApply, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 6);
+
+        if (m_buttonAffirmative){
+            Add((wxWindow*)m_buttonAffirmative, 0, wxALIGN_CENTRE | wxLEFT, 6);
+
+            if (m_buttonAffirmative->GetId() == wxID_SAVE){
+                // these buttons have set labels under Mac so we should use them
+                m_buttonAffirmative->SetLabel(_("Save"));
+                m_buttonNegative->SetLabel(_("Don't Save"));
+            }
+        }
+
+        // Extra space around and at the right
+        Add(12, 24);
+#elif defined(__WXGTK20__)
+        Add(0, 0, 0, wxLEFT, 9);
+        if (m_buttonHelp)
+            Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 3);
+
+        // extra whitespace between help and cancel/ok buttons
+        Add(0, 0, 1, wxEXPAND, 0);
+
+        if (m_buttonNegative){
+            Add((wxWindow*)m_buttonNegative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 3);
+        }
+
+        if (m_buttonCancel){
+            Add((wxWindow*)m_buttonCancel, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 3);
+            // Cancel or help should be default
+            // m_buttonCancel->SetDefaultButton();
+        }
+
+        if (m_buttonApply)
+            Add((wxWindow*)m_buttonApply, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, 3);
+
+        if (m_buttonAffirmative)
+            Add((wxWindow*)m_buttonAffirmative, 0, wxALIGN_CENTRE | wxLEFT, 6);
+#elif defined(__WXMSW__)
+        // Windows
+
+        // right-justify buttons
+        Add(0, 0, 1, wxEXPAND, 0);
+
+        if (m_buttonAffirmative){
+            Add((wxWindow*)m_buttonAffirmative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonAffirmative->ConvertDialogToPixels(wxSize(2, 0)).x);
+        }
+
+        if (m_buttonNegative){
+            Add((wxWindow*)m_buttonNegative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonNegative->ConvertDialogToPixels(wxSize(2, 0)).x);
+        }
+
+        if (m_buttonCancel){
+            Add((wxWindow*)m_buttonCancel, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonCancel->ConvertDialogToPixels(wxSize(2, 0)).x);
+        }
+        if (m_buttonApply)
+            Add((wxWindow*)m_buttonApply, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonApply->ConvertDialogToPixels(wxSize(2, 0)).x);
+
+        if (m_buttonHelp)
+            Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonHelp->ConvertDialogToPixels(wxSize(2, 0)).x);
+#else
+        // GTK+1 and any other platform
+        
+        // Add(0, 0, 0, wxLEFT, 5); // Not sure what this was for but it unbalances the dialog
+        if (m_buttonHelp)
+            Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonHelp->ConvertDialogToPixels(wxSize(4, 0)).x);
+
+        // extra whitespace between help and cancel/ok buttons
+        Add(0, 0, 1, wxEXPAND, 0);
+
+        if (m_buttonApply)
+            Add((wxWindow*)m_buttonApply, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonApply->ConvertDialogToPixels(wxSize(4, 0)).x);
+
+        if (m_buttonAffirmative){
+            Add((wxWindow*)m_buttonAffirmative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonAffirmative->ConvertDialogToPixels(wxSize(4, 0)).x);
+        }
+
+        if (m_buttonNegative){
+            Add((wxWindow*)m_buttonNegative, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonNegative->ConvertDialogToPixels(wxSize(4, 0)).x);
+        }
+
+        if (m_buttonCancel){
+            Add((wxWindow*)m_buttonCancel, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonCancel->ConvertDialogToPixels(wxSize(4, 0)).x);
+            // Cancel or help should be default
+            // m_buttonCancel->SetDefaultButton();
+        }
+
+#endif
+}
+
+#endif // wxUSE_BUTTON
 
 #if WXWIN_COMPATIBILITY_2_4
 
@@ -1613,7 +1937,7 @@ IMPLEMENT_CLASS(wxNotebookSizer, wxBookCtrlSizer)
 
 #if wxUSE_BOOKCTRL
 
-wxBookCtrlSizer::wxBookCtrlSizer(wxBookCtrl *bookctrl)
+wxBookCtrlSizer::wxBookCtrlSizer(wxBookCtrlBase *bookctrl)
                : m_bookctrl(bookctrl)
 {
     wxASSERT_MSG( bookctrl, wxT("wxBookCtrlSizer needs a control") );
@@ -1626,7 +1950,7 @@ void wxBookCtrlSizer::RecalcSizes()
 
 wxSize wxBookCtrlSizer::CalcMin()
 {
-    wxSize sizeBorder = m_bookctrl->CalcSizeFromPage(wxSize(0, 0));
+    wxSize sizeBorder = m_bookctrl->CalcSizeFromPage(wxSize(0,0));
 
     sizeBorder.x += 5;
     sizeBorder.y += 5;

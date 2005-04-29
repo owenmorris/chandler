@@ -36,18 +36,25 @@
 
 IMPLEMENT_DYNAMIC_CLASS(wxFileDialogBase, wxDialog)
 
-wxFileDialogBase::wxFileDialogBase(wxWindow *parent,
-                                   const wxString& message,
-                                   const wxString& defaultDir,
-                                   const wxString& defaultFile,
-                                   const wxString& wildCard,
-                                   long style,
-                                   const wxPoint& WXUNUSED(pos))
-                : m_message(message),
-                  m_dir(defaultDir),
-                  m_fileName(defaultFile),
-                  m_wildCard(wildCard)
+void wxFileDialogBase::Init()
+{ 
+    m_filterIndex = m_dialogStyle = 0;
+    m_parent = NULL;
+}
+
+bool wxFileDialogBase::Create(wxWindow *parent,
+                              const wxString& message,
+                              const wxString& defaultDir,
+                              const wxString& defaultFile,
+                              const wxString& wildCard,
+                              long style,
+                              const wxPoint& WXUNUSED(pos))
 {
+    m_message = message;
+    m_dir = defaultDir;
+    m_fileName = defaultFile;
+    m_wildCard = wildCard;
+
     m_parent = parent;
     m_dialogStyle = style;
     m_filterIndex = 0;
@@ -78,6 +85,8 @@ wxFileDialogBase::wxFileDialogBase(wxWindow *parent,
                          );
         }
     }
+
+    return true;
 }
 
 #if WXWIN_COMPATIBILITY_2_4
@@ -116,7 +125,7 @@ wxString wxFileDialogBase::AppendExtension(const wxString &filePath,
     // if ext == "*" or "bar*" or "b?r" or " " then its not valid
     if ((ext.Find(wxT('*')) != wxNOT_FOUND) ||
         (ext.Find(wxT('?')) != wxNOT_FOUND) ||
-        (ext.Strip(wxString::both).IsEmpty()))
+        (ext.Strip(wxString::both).empty()))
         return filePath;
 
     // if fileName doesn't have a '.' then add one
@@ -214,10 +223,10 @@ wxString wxFileSelectorEx(const wxChar *title,
 
 {
     wxFileDialog fileDialog(parent,
-                            title ? title : wxT(""),
-                            defaultDir ? defaultDir : wxT(""),
-                            defaultFileName ? defaultFileName : wxT(""),
-                            filter ? filter : wxT(""),
+                            title ? title : wxEmptyString,
+                            defaultDir ? defaultDir : wxEmptyString,
+                            defaultFileName ? defaultFileName : wxEmptyString,
+                            filter ? filter : wxEmptyString,
                             flags, wxPoint(x, y));
 
     wxString filename;

@@ -377,13 +377,13 @@ protected:
     /// See wxInputStream
     virtual size_t OnSysRead(void *buffer, size_t bufsize);
     /// See wxInputStream
-    virtual off_t OnSysSeek(off_t seek, wxSeekMode mode);
+    virtual wxFileOffset OnSysSeek(wxFileOffset seek, wxSeekMode mode);
     /// See wxInputStream
-    virtual off_t OnSysTell() const { return m_pos; }
+    virtual wxFileOffset OnSysTell() const { return m_pos; }
 
 private:
     size_t m_size;
-    off_t m_pos;
+    wxFileOffset m_pos;
     bool m_simulateHHP;
 
     char * m_content;
@@ -501,7 +501,7 @@ size_t wxChmInputStream::OnSysRead(void *buffer, size_t bufsize)
 
 
 
-off_t wxChmInputStream::OnSysSeek(off_t seek, wxSeekMode mode)
+wxFileOffset wxChmInputStream::OnSysSeek(wxFileOffset seek, wxSeekMode mode)
 {
     wxString mode_str = wxEmptyString;
 
@@ -512,7 +512,7 @@ off_t wxChmInputStream::OnSysSeek(off_t seek, wxSeekMode mode)
     }
     m_lasterror = wxSTREAM_NO_ERROR;
 
-    off_t nextpos;
+    wxFileOffset nextpos;
 
     switch ( mode )
     {
@@ -595,7 +595,9 @@ wxChmInputStream::CreateHHPStream()
         {
             // Read #SYSTEM-Code and length
             i->Read(&code, 2);
+            code = wxUINT16_SWAP_ON_BE( code ) ;
             i->Read(&len, 2);
+            len = wxUINT16_SWAP_ON_BE( len ) ;
             // data
             buf = malloc(len);
             i->Read(buf, len);
@@ -625,7 +627,19 @@ wxChmInputStream::CreateHHPStream()
                     out->Write( (const void *) tmp, strlen(tmp));
                     tmp = NULL;
                     break;
-                case 4: // STRUCT
+                case 4: // STRUCT SYSTEM INFO
+                    tmp = NULL ;
+                    if ( len >= 28 )
+                    {
+                        char *structptr = (char*) buf ;
+                        // LCID at position 0
+                        wxUint32 dummy = *((wxUint32 *)(structptr+0)) ;
+                        wxUint32 lcid = wxUINT32_SWAP_ON_BE( dummy ) ;
+                        wxString msg ;
+                        msg.Printf(_T("Language=0x%X\r\n"),lcid) ;
+                        out->Write(msg.c_str() , msg.Length() ) ;
+                    }
+                    break ;
                 default:
                     tmp=NULL;
             }
@@ -659,7 +673,7 @@ wxChmInputStream::CreateHHPStream()
             tmp = "Index File=*.hhk\r\n";
             out->Write((const void *) tmp, strlen(tmp));
         }
-
+        
         // Now copy the Data from the memory
         out->SeekO(0, wxFromEnd);
         m_size = out->TellO();

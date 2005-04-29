@@ -14,11 +14,18 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
+#if wxUSE_IMAGLIST
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
 
+#include "wx/defs.h"
+
+#ifndef __WXPALMOS__
+
 #include "wx/generic/imaglist.h"
+
 #include "wx/icon.h"
 #include "wx/image.h"
 #include "wx/dc.h"
@@ -68,8 +75,8 @@ bool wxGenericImageList::Create()
 
 int wxGenericImageList::Add( const wxBitmap &bitmap )
 {
-    wxASSERT_MSG( bitmap.GetWidth() == m_width &&
-                    bitmap.GetHeight() == m_height,
+    wxASSERT_MSG( (bitmap.GetWidth() == m_width && bitmap.GetHeight() == m_height)
+                  || (m_width == 0 && m_height == 0),
                   _T("invalid bitmap size in wxImageList: this might work ")
                   _T("on this platform but definitely won't under Windows.") );
 
@@ -77,6 +84,13 @@ int wxGenericImageList::Add( const wxBitmap &bitmap )
         m_images.Append( new wxIcon( (const wxIcon&) bitmap ) );
     else
         m_images.Append( new wxBitmap(bitmap) );
+
+    if (m_width == 0 && m_height == 0)
+    {
+        m_width = bitmap.GetWidth();
+        m_height = bitmap.GetHeight();
+    }
+    
     return m_images.GetCount()-1;
 }
 
@@ -95,13 +109,37 @@ int wxGenericImageList::Add( const wxBitmap& bitmap, const wxColour& maskColour 
     return Add(wxBitmap(img));
 }
 
-const wxBitmap *wxGenericImageList::GetBitmap( int index ) const
+const wxBitmap *wxGenericImageList::GetBitmapPtr( int index ) const
 {
     wxList::compatibility_iterator node = m_images.Item( index );
 
     wxCHECK_MSG( node, (wxBitmap *) NULL, wxT("wrong index in image list") );
 
     return (wxBitmap*)node->GetData();
+}
+
+// Get the bitmap
+wxBitmap wxGenericImageList::GetBitmap(int index) const
+{
+    const wxBitmap* bmp = GetBitmapPtr(index);
+    if (bmp)
+        return *bmp;
+    else
+        return wxNullBitmap;
+}
+
+// Get the icon
+wxIcon wxGenericImageList::GetIcon(int index) const
+{
+    const wxBitmap* bmp = GetBitmapPtr(index);
+    if (bmp)
+    {
+        wxIcon icon;
+        icon.CopyFromBitmap(*bmp);
+        return icon;
+    }
+    else
+        return wxNullIcon;
 }
 
 bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap )
@@ -190,4 +228,5 @@ bool wxGenericImageList::Draw( int index, wxDC &dc, int x, int y,
     return true;
 }
 
-
+#endif // wxUSE_IMAGLIST
+#endif // __WXPALMOS__

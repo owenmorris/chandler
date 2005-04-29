@@ -8,7 +8,7 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "xmlres.h"
 #endif
 
@@ -20,6 +20,10 @@
 #endif
 
 #if wxUSE_XRC
+
+#ifndef __WXWINCE__
+#include <locale.h>
+#endif
 
 #include "wx/dialog.h"
 #include "wx/panel.h"
@@ -36,6 +40,7 @@
 #include "wx/image.h"
 #include "wx/fontmap.h"
 #include "wx/artprov.h"
+#include "wx/settings.h"
 
 #include "wx/xml/xml.h"
 #include "wx/xrc/xmlres.h"
@@ -98,7 +103,7 @@ bool wxXmlResource::Load(const wxString& filemask)
         fnd = wxXmlFindFirst;
     else
         fnd = filemask;
-    while (!!fnd)
+    while (!fnd.empty())
     {
         // NB: Load() accepts both filenames and URLs (should probably be
         //     changed to filenames only, but embedded resources currently
@@ -649,10 +654,9 @@ public:
 
 
 
-
 wxXmlResourceHandler::wxXmlResourceHandler()
         : m_node(NULL), m_parent(NULL), m_instance(NULL),
-          m_parentAsWindow(NULL), m_instanceAsWindow(NULL)
+          m_parentAsWindow(NULL)
 {}
 
 
@@ -662,7 +666,7 @@ wxObject *wxXmlResourceHandler::CreateResource(wxXmlNode *node, wxObject *parent
     wxXmlNode *myNode = m_node;
     wxString myClass = m_class;
     wxObject *myParent = m_parent, *myInstance = m_instance;
-    wxWindow *myParentAW = m_parentAsWindow, *myInstanceAW = m_instanceAsWindow;
+    wxWindow *myParentAW = m_parentAsWindow;
 
     m_instance = instance;
     if (!m_instance && node->HasProp(wxT("subclass")) &&
@@ -692,14 +696,13 @@ wxObject *wxXmlResourceHandler::CreateResource(wxXmlNode *node, wxObject *parent
     m_class = node->GetPropVal(wxT("class"), wxEmptyString);
     m_parent = parent;
     m_parentAsWindow = wxDynamicCast(m_parent, wxWindow);
-    m_instanceAsWindow = wxDynamicCast(m_instance, wxWindow);
 
     wxObject *returned = DoCreateResource();
 
     m_node = myNode;
     m_class = myClass;
     m_parent = myParent; m_parentAsWindow = myParentAW;
-    m_instance = myInstance; m_instanceAsWindow = myInstanceAW;
+    m_instance = myInstance;
 
     return returned;
 }
@@ -724,9 +727,11 @@ void wxXmlResourceHandler::AddWindowStyles()
     XRC_ADD_STYLE(wxNO_BORDER);
     XRC_ADD_STYLE(wxTRANSPARENT_WINDOW);
     XRC_ADD_STYLE(wxWANTS_CHARS);
+    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxNO_FULL_REPAINT_ON_RESIZE);
     XRC_ADD_STYLE(wxFULL_REPAINT_ON_RESIZE);
     XRC_ADD_STYLE(wxWS_EX_BLOCK_EVENTS);
+    XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
 }
 
 
@@ -788,14 +793,34 @@ wxString wxXmlResourceHandler::GetText(const wxString& param, bool translate)
             else
                 str2 << wxT('&') << *dt;
         }
-        // Remap \n to CR, \r to LF, \t to TAB:
+        // Remap \n to CR, \r to LF, \t to TAB, \\ to \:
         else if (*dt == wxT('\\'))
             switch (*(++dt))
             {
-                case wxT('n') : str2 << wxT('\n'); break;
-                case wxT('t') : str2 << wxT('\t'); break;
-                case wxT('r') : str2 << wxT('\r'); break;
-                default       : str2 << wxT('\\') << *dt; break;
+                case wxT('n'):
+                    str2 << wxT('\n');
+                    break;
+
+                case wxT('t'):
+                    str2 << wxT('\t');
+                    break;
+
+                case wxT('r'):
+                    str2 << wxT('\r');
+                    break;
+
+                case wxT('\\') :
+                    // "\\" wasn't translated to "\" prior to 2.5.3.0:
+                    if (m_resource->CompareVersion(2,5,3,0) >= 0)
+                    {
+                        str2 << wxT('\\');
+                        break;
+                    }
+                    // else fall-through to default: branch below
+
+                default:
+                    str2 << wxT('\\') << *dt;
+                    break;
             }
         else str2 << *dt;
     }
@@ -818,13 +843,11 @@ wxString wxXmlResourceHandler::GetText(const wxString& param, bool translate)
 #endif
         }
     }
-    else
-    {
-        // If wxXRC_USE_LOCALE is not set, then the string is already in
-        // system's default encoding in ANSI build, so we don't have to
-        // do anything special here.
-        return str2;
-    }
+
+    // If wxXRC_USE_LOCALE is not set, then the string is already in
+    // system's default encoding in ANSI build, so we don't have to
+    // do anything special here.
+    return str2;
 }
 
 
@@ -840,6 +863,24 @@ long wxXmlResourceHandler::GetLong(const wxString& param, long defaultv)
     return value;
 }
 
+float wxXmlResourceHandler::GetFloat(const wxString& param, float defaultv)
+{
+    double value;
+    wxString str1 = GetParamValue(param);
+
+#ifndef __WXWINCE__
+    const char *prevlocale = setlocale(LC_NUMERIC, "C");
+#endif
+
+    if (!str1.ToDouble(&value))
+        value = defaultv;
+
+#ifndef __WXWINCE__
+    setlocale(LC_NUMERIC, prevlocale);
+#endif
+
+    return value;
+}
 
 
 int wxXmlResourceHandler::GetID()
@@ -861,19 +902,76 @@ bool wxXmlResourceHandler::GetBool(const wxString& param, bool defaultv)
     wxString v = GetParamValue(param);
     v.MakeLower();
     if (!v) return defaultv;
-    else return (v == wxT("1"));
+
+    return (v == wxT("1"));
 }
 
 
+static wxColour GetSystemColour(const wxString& name)
+{
+    if (!name.empty())
+    {
+        #define SYSCLR(clr) \
+            if (name == _T(#clr)) return wxSystemSettings::GetColour(clr);
+        SYSCLR(wxSYS_COLOUR_SCROLLBAR)
+        SYSCLR(wxSYS_COLOUR_BACKGROUND)
+        SYSCLR(wxSYS_COLOUR_DESKTOP)
+        SYSCLR(wxSYS_COLOUR_ACTIVECAPTION)
+        SYSCLR(wxSYS_COLOUR_INACTIVECAPTION)
+        SYSCLR(wxSYS_COLOUR_MENU)
+        SYSCLR(wxSYS_COLOUR_WINDOW)
+        SYSCLR(wxSYS_COLOUR_WINDOWFRAME)
+        SYSCLR(wxSYS_COLOUR_MENUTEXT)
+        SYSCLR(wxSYS_COLOUR_WINDOWTEXT)
+        SYSCLR(wxSYS_COLOUR_CAPTIONTEXT)
+        SYSCLR(wxSYS_COLOUR_ACTIVEBORDER)
+        SYSCLR(wxSYS_COLOUR_INACTIVEBORDER)
+        SYSCLR(wxSYS_COLOUR_APPWORKSPACE)
+        SYSCLR(wxSYS_COLOUR_HIGHLIGHT)
+        SYSCLR(wxSYS_COLOUR_HIGHLIGHTTEXT)
+        SYSCLR(wxSYS_COLOUR_BTNFACE)
+        SYSCLR(wxSYS_COLOUR_3DFACE)
+        SYSCLR(wxSYS_COLOUR_BTNSHADOW)
+        SYSCLR(wxSYS_COLOUR_3DSHADOW)
+        SYSCLR(wxSYS_COLOUR_GRAYTEXT)
+        SYSCLR(wxSYS_COLOUR_BTNTEXT)
+        SYSCLR(wxSYS_COLOUR_INACTIVECAPTIONTEXT)
+        SYSCLR(wxSYS_COLOUR_BTNHIGHLIGHT)
+        SYSCLR(wxSYS_COLOUR_BTNHILIGHT)
+        SYSCLR(wxSYS_COLOUR_3DHIGHLIGHT)
+        SYSCLR(wxSYS_COLOUR_3DHILIGHT)
+        SYSCLR(wxSYS_COLOUR_3DDKSHADOW)
+        SYSCLR(wxSYS_COLOUR_3DLIGHT)
+        SYSCLR(wxSYS_COLOUR_INFOTEXT)
+        SYSCLR(wxSYS_COLOUR_INFOBK)
+        SYSCLR(wxSYS_COLOUR_LISTBOX)
+        SYSCLR(wxSYS_COLOUR_HOTLIGHT)
+        SYSCLR(wxSYS_COLOUR_GRADIENTACTIVECAPTION)
+        SYSCLR(wxSYS_COLOUR_GRADIENTINACTIVECAPTION)
+        SYSCLR(wxSYS_COLOUR_MENUHILIGHT)
+        SYSCLR(wxSYS_COLOUR_MENUBAR)
+        #undef SYSCLR
+    }
+
+    return wxNullColour;
+}
 
 wxColour wxXmlResourceHandler::GetColour(const wxString& param)
 {
     wxString v = GetParamValue(param);
+
+    // find colour using HTML syntax (#RRGGBB)
     unsigned long tmp = 0;
 
     if (v.Length() != 7 || v[0u] != wxT('#') ||
         wxSscanf(v.c_str(), wxT("#%lX"), &tmp) != 1)
     {
+        // the colour doesn't use #RRGGBB format, check if it is symbolic
+        // colour name:
+        wxColour clr = GetSystemColour(v);
+        if (clr.Ok())
+            return clr;
+
         wxLogError(_("XRC resource: Incorrect colour specification '%s' for property '%s'."),
                    v.c_str(), param.c_str());
         return wxNullColour;
@@ -902,7 +1000,7 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
                 scl = defaultArtClient;
             else
                 scl = wxART_MAKE_CLIENT_ID_FROM_STR(scl);
-            
+
             wxBitmap stockArt =
                 wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(sid),
                                          scl, size);
@@ -913,7 +1011,7 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
 
     /* ...or load the bitmap from file: */
     wxString name = GetParamValue(param);
-    if (name.IsEmpty()) return wxNullBitmap;
+    if (name.empty()) return wxNullBitmap;
 #if wxUSE_FILESYSTEM
     wxFSFile *fsfile = GetCurFileSystem().OpenFile(name);
     if (fsfile == NULL)
@@ -930,7 +1028,8 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
 
     if (!img.Ok())
     {
-        wxLogError(_("XRC resource: Cannot create bitmap from '%s'."), param.c_str());
+        wxLogError(_("XRC resource: Cannot create bitmap from '%s'."),
+                   param.c_str());
         return wxNullBitmap;
     }
     if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);
@@ -987,7 +1086,7 @@ wxString wxXmlResourceHandler::GetNodeContent(wxXmlNode *node)
 
 wxString wxXmlResourceHandler::GetParamValue(const wxString& param)
 {
-    if (param.IsEmpty())
+    if (param.empty())
         return GetNodeContent(m_node);
     else
         return GetNodeContent(GetParamNode(param));
@@ -995,10 +1094,11 @@ wxString wxXmlResourceHandler::GetParamValue(const wxString& param)
 
 
 
-wxSize wxXmlResourceHandler::GetSize(const wxString& param)
+wxSize wxXmlResourceHandler::GetSize(const wxString& param,
+                                     wxWindow *windowToUse)
 {
     wxString s = GetParamValue(param);
-    if (s.IsEmpty()) s = wxT("-1,-1");
+    if (s.empty()) s = wxT("-1,-1");
     bool is_dlg;
     long sx, sy = 0;
 
@@ -1014,17 +1114,22 @@ wxSize wxXmlResourceHandler::GetSize(const wxString& param)
 
     if (is_dlg)
     {
-        if (m_instanceAsWindow)
-            return wxDLG_UNIT(m_instanceAsWindow, wxSize(sx, sy));
+        if (windowToUse)
+        {
+            return wxDLG_UNIT(windowToUse, wxSize(sx, sy));
+        }
         else if (m_parentAsWindow)
+        {
             return wxDLG_UNIT(m_parentAsWindow, wxSize(sx, sy));
+        }
         else
         {
             wxLogError(_("Cannot convert dialog units: dialog unknown."));
             return wxDefaultSize;
         }
     }
-    else return wxSize(sx, sy);
+
+    return wxSize(sx, sy);
 }
 
 
@@ -1037,10 +1142,12 @@ wxPoint wxXmlResourceHandler::GetPosition(const wxString& param)
 
 
 
-wxCoord wxXmlResourceHandler::GetDimension(const wxString& param, wxCoord defaultv)
+wxCoord wxXmlResourceHandler::GetDimension(const wxString& param,
+                                           wxCoord defaultv,
+                                           wxWindow *windowToUse)
 {
     wxString s = GetParamValue(param);
-    if (s.IsEmpty()) return defaultv;
+    if (s.empty()) return defaultv;
     bool is_dlg;
     long sx;
 
@@ -1055,20 +1162,45 @@ wxCoord wxXmlResourceHandler::GetDimension(const wxString& param, wxCoord defaul
 
     if (is_dlg)
     {
-        if (m_instanceAsWindow)
-            return wxDLG_UNIT(m_instanceAsWindow, wxSize(sx, 0)).x;
+        if (windowToUse)
+        {
+            return wxDLG_UNIT(windowToUse, wxSize(sx, 0)).x;
+        }
         else if (m_parentAsWindow)
+        {
             return wxDLG_UNIT(m_parentAsWindow, wxSize(sx, 0)).x;
+        }
         else
         {
             wxLogError(_("Cannot convert dialog units: dialog unknown."));
             return defaultv;
         }
     }
-    else return sx;
+
+    return sx;
 }
 
 
+// Get system font index using indexname
+static wxFont GetSystemFont(const wxString& name)
+{
+    if (!name.empty())
+    {
+        #define SYSFNT(fnt) \
+            if (name == _T(#fnt)) return wxSystemSettings::GetFont(fnt);
+        SYSFNT(wxSYS_OEM_FIXED_FONT)
+        SYSFNT(wxSYS_ANSI_FIXED_FONT)
+        SYSFNT(wxSYS_ANSI_VAR_FONT)
+        SYSFNT(wxSYS_SYSTEM_FONT)
+        SYSFNT(wxSYS_DEVICE_DEFAULT_FONT)
+        SYSFNT(wxSYS_DEFAULT_PALETTE)
+        SYSFNT(wxSYS_SYSTEM_FIXED_FONT)
+        SYSFNT(wxSYS_DEFAULT_GUI_FONT)
+        #undef SYSFNT
+    }
+
+    return wxNullFont;
+}
 
 wxFont wxXmlResourceHandler::GetFont(const wxString& param)
 {
@@ -1082,53 +1214,120 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     wxXmlNode *oldnode = m_node;
     m_node = font_node;
 
-    long size = GetLong(wxT("size"), 12);
+    // font attributes:
 
-    wxString style = GetParamValue(wxT("style"));
-    wxString weight = GetParamValue(wxT("weight"));
-    int istyle = wxNORMAL, iweight = wxNORMAL;
-    if (style == wxT("italic")) istyle = wxITALIC;
-    else if (style == wxT("slant")) istyle = wxSLANT;
-    if (weight == wxT("bold")) iweight = wxBOLD;
-    else if (weight == wxT("light")) iweight = wxLIGHT;
+    // size
+    int isize = wxDEFAULT;
+    bool hasSize = HasParam(wxT("size"));
+    if (hasSize)
+        isize = GetLong(wxT("size"), wxDEFAULT);
 
-    wxString family = GetParamValue(wxT("family"));
-    int ifamily = wxDEFAULT;
-         if (family == wxT("decorative")) ifamily = wxDECORATIVE;
-    else if (family == wxT("roman")) ifamily = wxROMAN;
-    else if (family == wxT("script")) ifamily = wxSCRIPT;
-    else if (family == wxT("swiss")) ifamily = wxSWISS;
-    else if (family == wxT("modern")) ifamily = wxMODERN;
-
-    bool underlined = GetBool(wxT("underlined"), false);
-
-    wxString encoding = GetParamValue(wxT("encoding"));
-    wxFontMapper mapper;
-    wxFontEncoding enc = wxFONTENCODING_DEFAULT;
-    if (!encoding.IsEmpty())
-        enc = mapper.CharsetToEncoding(encoding);
-    if (enc == wxFONTENCODING_SYSTEM)
-        enc = wxFONTENCODING_DEFAULT;
-
-    wxString faces = GetParamValue(wxT("face"));
-    wxString facename = wxEmptyString;
-    wxFontEnumerator enu;
-    enu.EnumerateFacenames();
-    wxStringTokenizer tk(faces, wxT(","));
-    while (tk.HasMoreTokens())
+    // style
+    int istyle = wxNORMAL;
+    bool hasStyle = HasParam(wxT("style"));
+    if (hasStyle)
     {
-        int index = enu.GetFacenames()->Index(tk.GetNextToken(), false);
-        if (index != wxNOT_FOUND)
+        wxString style = GetParamValue(wxT("style"));
+        if (style == wxT("italic"))
+            istyle = wxITALIC;
+        else if (style == wxT("slant"))
+            istyle = wxSLANT;
+    }
+
+    // weight
+    int iweight = wxNORMAL;
+    bool hasWeight = HasParam(wxT("weight"));
+    if (hasWeight)
+    {
+        wxString weight = GetParamValue(wxT("weight"));
+        if (weight == wxT("bold"))
+            iweight = wxBOLD;
+        else if (weight == wxT("light"))
+            iweight = wxLIGHT;
+    }
+
+    // underline
+    bool hasUnderlined = HasParam(wxT("underlined"));
+    bool underlined = hasUnderlined ? GetBool(wxT("underlined"), false) : false;
+
+    // family and facename
+    int ifamily = wxDEFAULT;
+    bool hasFamily = HasParam(wxT("family"));
+    if (hasFamily)
+    {
+        wxString family = GetParamValue(wxT("family"));
+             if (family == wxT("decorative")) ifamily = wxDECORATIVE;
+        else if (family == wxT("roman")) ifamily = wxROMAN;
+        else if (family == wxT("script")) ifamily = wxSCRIPT;
+        else if (family == wxT("swiss")) ifamily = wxSWISS;
+        else if (family == wxT("modern")) ifamily = wxMODERN;
+        else if (family == wxT("teletype")) ifamily = wxTELETYPE;
+    }
+
+
+    wxString facename;
+    bool hasFacename = HasParam(wxT("face"));
+    if (hasFacename)
+    {
+        wxString faces = GetParamValue(wxT("face"));
+        wxFontEnumerator enu;
+        enu.EnumerateFacenames();
+        wxStringTokenizer tk(faces, wxT(","));
+        while (tk.HasMoreTokens())
         {
-            facename = (*enu.GetFacenames())[index];
-            break;
+            int index = enu.GetFacenames()->Index(tk.GetNextToken(), false);
+            if (index != wxNOT_FOUND)
+            {
+                facename = (*enu.GetFacenames())[index];
+                break;
+            }
         }
     }
 
-    m_node = oldnode;
+    // encoding
+    wxFontEncoding enc = wxFONTENCODING_DEFAULT;
+    bool hasEncoding = HasParam(wxT("encoding"));
+    if (hasEncoding)
+    {
+        wxString encoding = GetParamValue(wxT("encoding"));
+        wxFontMapper mapper;
+        if (!encoding.empty())
+            enc = mapper.CharsetToEncoding(encoding);
+        if (enc == wxFONTENCODING_SYSTEM)
+            enc = wxFONTENCODING_DEFAULT;
+    }
 
-    wxFont font(size, ifamily, istyle, iweight, underlined, facename, enc);
-    return font;
+    // is this font based on a system font?
+    wxFont sysfont = GetSystemFont(GetParamValue(wxT("sysfont")));
+
+    if (sysfont.Ok())
+    {
+        if (hasSize)
+            sysfont.SetPointSize(isize);
+        else if (HasParam(wxT("relativesize")))
+            sysfont.SetPointSize(int(sysfont.GetPointSize() *
+                                     GetFloat(wxT("relativesize"))));
+
+        if (hasStyle)
+            sysfont.SetStyle(istyle);
+        if (hasWeight)
+            sysfont.SetWeight(iweight);
+        if (hasUnderlined)
+            sysfont.SetUnderlined(underlined);
+        if (hasFamily)
+            sysfont.SetFamily(ifamily);
+        if (hasFacename)
+            sysfont.SetFaceName(facename);
+        if (hasEncoding)
+            sysfont.SetDefaultEncoding(enc);
+
+        m_node = oldnode;
+        return sysfont;
+    }
+
+    m_node = oldnode;
+    return wxFont(isize, ifamily, istyle, iweight,
+                  underlined, facename, enc);
 }
 
 
@@ -1215,8 +1414,6 @@ static XRCID_record *XRCID_Records[XRCID_TABLE_SIZE] = {NULL};
 
 static int XRCID_Lookup(const wxChar *str_id, int value_if_not_found = -2)
 {
-    static int XRCID_LastID = wxID_HIGHEST;
-
     int index = 0;
 
     for (const wxChar *c = str_id; *c != wxT('\0'); c++) index += (int)*c;
@@ -1251,7 +1448,7 @@ static int XRCID_Lookup(const wxChar *str_id, int value_if_not_found = -2)
         }
         else
         {
-            (*rec_var)->id = ++XRCID_LastID;
+            (*rec_var)->id = wxNewId();
         }
     }
 
@@ -1290,7 +1487,7 @@ static void AddStdXRCID_Records()
 
     stdID(wxID_ANY);
     stdID(wxID_SEPARATOR);
-    
+
     stdID(wxID_OPEN);
     stdID(wxID_CLOSE);
     stdID(wxID_NEW);

@@ -238,9 +238,11 @@ class xxxObject:
                 else:                   # simple parameter
                     self.params[tag] = xxxParam(node)
             else:
+                pass
                 # Remove all other nodes
-                element.removeChild(node)
-                node.unlink()
+#                element.removeChild(node)
+#                node.unlink()
+
         # Check that all required params are set
         for param in self.required:
             if not self.params.has_key(param):
@@ -333,15 +335,14 @@ class xxxParamFont(xxxObject, xxxNode):
 
 class xxxContainer(xxxObject):
     hasChildren = True
+    exStyles = []
 
 # Simulate normal parameter for encoding
 class xxxEncoding:
-    def __init__(self, val):
-        self.encd = val
     def value(self):
-        return self.encd
+        return g.currentEncoding
     def update(self, val):
-        self.encd = val
+        g.currentEncoding = val
 
 # Special class for root node
 class xxxMainNode(xxxContainer):
@@ -353,7 +354,7 @@ class xxxMainNode(xxxContainer):
         # Reset required parameters after processing XML, because encoding is
         # a little special
         self.required = ['encoding']
-        self.params['encoding'] = xxxEncoding(dom.encoding)
+        self.params['encoding'] = xxxEncoding()
 
 ################################################################################
 # Top-level windwows
@@ -362,40 +363,37 @@ class xxxPanel(xxxContainer):
     allParams = ['pos', 'size', 'style']
     styles = ['fg', 'bg', 'font', 'enabled', 'focused', 'hidden', 'exstyle',
               'tooltip']
-    winStyles = ['wxNO_3D', 'wxTAB_TRAVERSAL', 'wxCLIP_CHILDREN']
-    exStyles = ['wxWS_EX_VALIDATE_RECURSIVELY']
 
 class xxxDialog(xxxContainer):
     allParams = ['title', 'centered', 'pos', 'size', 'style']
     paramDict = {'centered': ParamBool}
     required = ['title']
     default = {'title': ''}
-    winStyles = ['wxDEFAULT_DIALOG_STYLE', 'wxSTAY_ON_TOP',
-##                 'wxDIALOG_MODAL', 'wxDIALOG_MODELESS',
-                 'wxCAPTION', 'wxSYSTEM_MENU', 'wxRESIZE_BORDER', 'wxRESIZE_BOX',
+    winStyles = ['wxDEFAULT_DIALOG_STYLE', 
+                 'wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX', 'wxCLOSE_BOX',
+                 'wxSTAY_ON_TOP',
                  'wxTHICK_FRAME',
-                 'wxNO_3D', 'wxTAB_TRAVERSAL', 'wxCLIP_CHILDREN']
+                 'wxNO_3D', 'wxDIALOG_NO_PARENT']
     styles = ['fg', 'bg', 'font', 'enabled', 'focused', 'hidden', 'exstyle',
               'tooltip']
-    exStyles = ['wxWS_EX_VALIDATE_RECURSIVELY']
 
 class xxxFrame(xxxContainer):
     allParams = ['title', 'centered', 'pos', 'size', 'style']
     paramDict = {'centered': ParamBool}
     required = ['title']
     default = {'title': ''}
-    winStyles = ['wxDEFAULT_FRAME_STYLE', 'wxDEFAULT_DIALOG_STYLE',
+    winStyles = ['wxDEFAULT_FRAME_STYLE',
+                 'wxCAPTION', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX', 'wxCLOSE_BOX',
                  'wxSTAY_ON_TOP',
-                 'wxCAPTION', 'wxSYSTEM_MENU', 'wxRESIZE_BORDER',
-                 'wxRESIZE_BOX', 'wxMINIMIZE_BOX', 'wxMAXIMIZE_BOX',
-                 'wxFRAME_FLOAT_ON_PARENT', 'wxFRAME_TOOL_WINDOW',
-                 'wxNO_3D', 'wxTAB_TRAVERSAL', 'wxCLIP_CHILDREN']
+                 'wxSYSTEM_MENU', 'wxRESIZE_BORDER',
+                 'wxFRAME_TOOL_WINDOW', 'wxFRAME_NO_TASKBAR',
+                 'wxFRAME_FLOAT_ON_PARENT', 'wxFRAME_SHAPED'
+                 ]
     styles = ['fg', 'bg', 'font', 'enabled', 'focused', 'hidden', 'exstyle',
               'tooltip']
-    exStyles = ['wxWS_EX_VALIDATE_RECURSIVELY']
 
 class xxxTool(xxxObject):
-    allParams = ['bitmap', 'bitmap2', 'toggle', 'tooltip', 'longhelp']
+    allParams = ['bitmap', 'bitmap2', 'toggle', 'tooltip', 'longhelp', 'label']
     required = ['bitmap']
     paramDict = {'bitmap2': ParamBitmap, 'toggle': ParamBool}
     hasStyle = False
@@ -407,7 +405,24 @@ class xxxToolBar(xxxContainer):
     paramDict = {'bitmapsize': ParamPosSize, 'margins': ParamPosSize,
                  'packing': ParamInt, 'separation': ParamInt,
                  'style': ParamNonGenericStyle}
-    winStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_VERTICAL', 'wxTB_HORIZONTAL']
+    winStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_VERTICAL', 'wxTB_HORIZONTAL', 'wxTB_TEXT']
+
+class xxxWizard(xxxContainer):
+    allParams = ['title', 'bitmap', 'pos']
+    required = ['title']
+    default = {'title': ''}
+    winStyles = []
+    exStyles = ['wxWIZARD_EX_HELPBUTTON']
+
+class xxxWizardPage(xxxContainer):
+    allParams = ['bitmap']
+    winStyles = []
+    exStyles = []
+
+class xxxWizardPageSimple(xxxContainer):
+    allParams = ['bitmap']
+    winStyles = []
+    exStyles = []
 
 ################################################################################
 # Bitmap, Icon
@@ -418,8 +433,7 @@ class xxxBitmap(xxxObject):
 
 # Just like bitmap
 class xxxIcon(xxxObject):
-    allParams = ['icon']
-    required = ['icon']
+    allParams = []
 
 ################################################################################
 # Controls
@@ -503,8 +517,8 @@ class xxxSplitterWindow(xxxContainer):
     allParams = ['orientation', 'sashpos', 'minsize', 'pos', 'size', 'style']
     paramDict = {'orientation': ParamOrientation, 'sashpos': ParamUnit, 'minsize': ParamUnit }
     winStyles = ['wxSP_3D', 'wxSP_3DSASH', 'wxSP_3DBORDER', 'wxSP_BORDER',
-                             'wxSP_NOBORDER', 'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
-                             'wxSP_NO_XP_THEME' ]
+                         'wxSP_NOBORDER', 'wxSP_PERMIT_UNSPLIT', 'wxSP_LIVE_UPDATE',
+                         'wxSP_NO_XP_THEME' ]
 
 class xxxGenericDirCtrl(xxxObject):
     allParams = ['defaultfolder', 'filter', 'defaultfilter', 'pos', 'size', 'style']
@@ -622,6 +636,9 @@ class xxxGridSizer(xxxSizer):
     allParams = ['cols', 'rows', 'vgap', 'hgap']
     required = ['cols']
     default = {'cols': '2', 'rows': '2'}
+
+class xxxStdDialogButtonSizer(xxxSizer):
+    allParams = []
 
 # For repeated parameters
 class xxxParamMulti:
@@ -775,6 +792,9 @@ xxxDict = {
     'wxFrame': xxxFrame,
     'tool': xxxTool,
     'wxToolBar': xxxToolBar,
+    'wxWizard': xxxWizard,
+    'wxWizardPage': xxxWizardPage,
+    'wxWizardPageSimple': xxxWizardPageSimple,
 
     'wxBitmap': xxxBitmap,
     'wxIcon': xxxIcon,
@@ -816,6 +836,7 @@ xxxDict = {
     'wxGridSizer': xxxGridSizer,
     'wxFlexGridSizer': xxxFlexGridSizer,
     'wxGridBagSizer': xxxGridBagSizer,
+    'wxStdDialogButtonSizer': xxxStdDialogButtonSizer,
     'sizeritem': xxxSizerItem,
     'spacer': xxxSpacer,
 

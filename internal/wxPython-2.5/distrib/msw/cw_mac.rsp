@@ -50,6 +50,8 @@ samples/controls/*M?.xml
 samples/controls/*.mcp
 samples/db/*M?.xml
 samples/db/*.mcp
+samples/debugrpt/*M?.xml
+samples/debugrpt/*.mcp
 samples/dialogs/*M?.xml
 samples/dialogs/*.mcp
 samples/dialup/*M?.xml
@@ -96,6 +98,8 @@ samples/listctrl/*M?.xml
 samples/listctrl/*.mcp
 samples/mdi/*M?.xml
 samples/mdi/*.mcp
+samples/mediaplayer/*M?.xml
+samples/mediaplayer/*.mcp
 samples/memcheck/*M?.xml
 samples/memcheck/*.mcp
 samples/menu/*M?.xml
@@ -121,6 +125,8 @@ samples/opengl/*.mcp
 samples/ownerdrw/*M?.xml
 samples/ownerdrw/*.mcp
 samples/png/*M?.xml
+samples/popup/*M?.xml
+samples/popup/*.mcp
 samples/png/*.mcp
 samples/printing/*M?.xml
 samples/printing/*.mcp

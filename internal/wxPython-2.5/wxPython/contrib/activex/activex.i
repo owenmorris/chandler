@@ -64,7 +64,7 @@ static wxString  _VARTYPEname(VARTYPE vt);
 inline bool wxPyErr_Occurred()
 {
     bool rval;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     rval = PyErr_Occurred() != NULL;
     wxPyEndBlockThreads(blocked);
     return rval;
@@ -240,6 +240,9 @@ class wxActiveXWindow : public wxActiveX
 {
 private:
     CLSID       m_CLSID;
+    
+    DECLARE_ABSTRACT_CLASS(wxActiveXWindow);
+
 public:
     wxActiveXWindow( wxWindow* parent, const CLSID& clsId, wxWindowID id = -1,
                      const wxPoint& pos = wxDefaultPosition,
@@ -326,7 +329,7 @@ public:
     void SetAXProp(const wxString& name, PyObject* value)
     {        
         const wxPropX& prop = GetAXPropDesc(name);
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if (! PyErr_Occurred() ) {
             if (! prop.CanSet()) {
                 wxString msg;
@@ -362,7 +365,7 @@ public:
     {        
         PyObject* rval = NULL;
         const wxPropX& prop = GetAXPropDesc(name);
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if (! PyErr_Occurred() ) {
             if (! prop.CanGet()) {
                 wxString msg;
@@ -408,7 +411,7 @@ public:
         PyObject* rval = NULL;
         const wxFuncX& func = GetAXMethodDesc(name);
         
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if (! PyErr_Occurred() ) {
             nargs = func.params.size();
             if (nargs > 0)
@@ -497,6 +500,8 @@ public:
         return rval;
     }
 };
+
+IMPLEMENT_ABSTRACT_CLASS( wxActiveXWindow, wxWindow );
 %}
 
 
@@ -636,7 +641,7 @@ public:
         // handler. We'll convert and load the ActiveX event parameters into
         // attributes of the Python event object.
         void _preCallInit(PyObject* pyself) {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* pList = PyList_New(0);
             PyObject_SetAttrString(pyself, "paramList", pList);
             Py_DECREF(pList);
@@ -655,7 +660,7 @@ public:
         // handler. It reloads any "out" parameters from the python attributes
         // back into the wxVariant they came from.        
         void _postCallCleanup(PyObject* pyself) {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             for (int i=0; i<self->ParamCount(); i+=1) {
                 PyObject* val = PyObject_GetAttrString(
                     pyself, (char*)(const char*)self->ParamName(i).mb_str());
@@ -861,6 +866,8 @@ class wxIEHtmlWindowBase : public wxActiveXWindow {
 private:
     wxAutoOleInterface<IWebBrowser2>  m_webBrowser;
 
+    DECLARE_ABSTRACT_CLASS(wxIEHtmlWindowBase);
+
 public:
 
     wxIEHtmlWindowBase ( wxWindow* parent, const CLSID& clsId, wxWindowID id = -1,
@@ -1043,6 +1050,9 @@ public:
 //         return ! m_bAmbientUserMode;
 //     };
 };
+
+IMPLEMENT_ABSTRACT_CLASS( wxIEHtmlWindowBase, wxActiveXWindow );
+
 %}
 
 
@@ -1059,6 +1069,7 @@ MustHaveApp(wxIEHtmlWindowBase);
 
 class wxIEHtmlWindowBase : public wxActiveXWindow {
 public:
+    %pythonAppend wxIEHtmlWindowBase    "self._setOORInfo(self)"
 
     wxIEHtmlWindowBase ( wxWindow* parent, const CLSID& clsId, wxWindowID id = -1,
                          const wxPoint& pos = wxDefaultPosition,

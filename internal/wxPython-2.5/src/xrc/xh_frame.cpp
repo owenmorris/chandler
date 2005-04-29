@@ -8,7 +8,7 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "xh_frame.h"
 #endif
 
@@ -52,6 +52,7 @@ wxFrameXmlHandler::wxFrameXmlHandler() : wxXmlResourceHandler()
     XRC_ADD_STYLE(wxNO_3D);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
+    XRC_ADD_STYLE(wxFRAME_EX_METAL);
 
     AddWindowStyles();
 }
@@ -68,9 +69,11 @@ wxObject *wxFrameXmlHandler::DoCreateResource()
                   GetName());
 
     if (HasParam(wxT("size")))
-        frame->SetClientSize(GetSize());
+        frame->SetClientSize(GetSize(wxT("size"), frame));
     if (HasParam(wxT("pos")))
         frame->Move(GetPosition());
+    if (HasParam(wxT("icon")))
+        frame->SetIcon(GetIcon(wxT("icon"), wxART_FRAME_ICON));
 
     SetupWindow(frame);
 

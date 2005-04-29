@@ -363,6 +363,8 @@
 #define wxSTC_LEX_AU3 60
 #define wxSTC_LEX_APDL 61
 #define wxSTC_LEX_BASH 62
+#define wxSTC_LEX_ASN1 63
+#define wxSTC_LEX_VHDL 64
 
 // When a lexer specifies its language as SCLEX_AUTOMATIC it receives a
 // value assigned in sequence from SCLEX_AUTOMATIC+1.
@@ -649,6 +651,7 @@
 #define wxSTC_ERR_IFORT 17
 #define wxSTC_ERR_ABSF 18
 #define wxSTC_ERR_TIDY 19
+#define wxSTC_ERR_JAVA_STACK 20
 
 // Lexical states for SCLEX_BATCH
 #define wxSTC_BAT_DEFAULT 0
@@ -863,6 +866,7 @@
 #define wxSTC_CSS_DIRECTIVE 12
 #define wxSTC_CSS_DOUBLESTRING 13
 #define wxSTC_CSS_SINGLESTRING 14
+#define wxSTC_CSS_IDENTIFIER2 15
 
 // Lexical states for SCLEX_POV
 #define wxSTC_POV_DEFAULT 0
@@ -1126,6 +1130,7 @@
 #define wxSTC_AU3_VARIABLE 9
 #define wxSTC_AU3_SENT 10
 #define wxSTC_AU3_PREPROCESSOR 11
+#define wxSTC_AU3_SPECIAL 12
 
 // Lexical states for SCLEX_APDL
 #define wxSTC_APDL_DEFAULT 0
@@ -1133,10 +1138,14 @@
 #define wxSTC_APDL_COMMENTBLOCK 2
 #define wxSTC_APDL_NUMBER 3
 #define wxSTC_APDL_STRING 4
-#define wxSTC_APDL_WORD 5
-#define wxSTC_APDL_COMMAND 6
+#define wxSTC_APDL_OPERATOR 5
+#define wxSTC_APDL_WORD 6
 #define wxSTC_APDL_PROCESSOR 7
-#define wxSTC_APDL_FUNCTION 8
+#define wxSTC_APDL_COMMAND 8
+#define wxSTC_APDL_SLASHCOMMAND 9
+#define wxSTC_APDL_STARCOMMAND 10
+#define wxSTC_APDL_ARGUMENT 11
+#define wxSTC_APDL_FUNCTION 12
 
 // Lexical states for SCLEX_BASH
 #define wxSTC_SH_DEFAULT 0
@@ -1153,6 +1162,36 @@
 #define wxSTC_SH_BACKTICKS 11
 #define wxSTC_SH_HERE_DELIM 12
 #define wxSTC_SH_HERE_Q 13
+
+// Lexical states for SCLEX_ASN1
+#define wxSTC_ASN1_DEFAULT 0
+#define wxSTC_ASN1_COMMENT 1
+#define wxSTC_ASN1_IDENTIFIER 2
+#define wxSTC_ASN1_STRING 3
+#define wxSTC_ASN1_OID 4
+#define wxSTC_ASN1_SCALAR 5
+#define wxSTC_ASN1_KEYWORD 6
+#define wxSTC_ASN1_ATTRIBUTE 7
+#define wxSTC_ASN1_DESCRIPTOR 8
+#define wxSTC_ASN1_TYPE 9
+#define wxSTC_ASN1_OPERATOR 10
+
+// Lexical states for SCLEX_VHDL
+#define wxSTC_VHDL_DEFAULT 0
+#define wxSTC_VHDL_COMMENT 1
+#define wxSTC_VHDL_COMMENTLINEBANG 2
+#define wxSTC_VHDL_NUMBER 3
+#define wxSTC_VHDL_STRING 4
+#define wxSTC_VHDL_OPERATOR 5
+#define wxSTC_VHDL_IDENTIFIER 6
+#define wxSTC_VHDL_STRINGEOL 7
+#define wxSTC_VHDL_KEYWORD 8
+#define wxSTC_VHDL_STDOPERATOR 9
+#define wxSTC_VHDL_ATTRIBUTE 10
+#define wxSTC_VHDL_STDFUNCTION 11
+#define wxSTC_VHDL_STDPACKAGE 12
+#define wxSTC_VHDL_STDTYPE 13
+#define wxSTC_VHDL_USERWORD 14
 
 
 //-----------------------------------------
@@ -1456,7 +1495,7 @@ public:
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize, long style = 0,
                      const wxString& name = wxPySTCNameStr);
-    %name(PreStyledTextCtrl) wxStyledTextCtrl();
+    %RenameCtor(PreStyledTextCtrl,  wxStyledTextCtrl());
 
 #else
     wxStyledTextCtrl(wxWindow *parent, wxWindowID id=wxID_ANY,
@@ -1468,10 +1507,10 @@ public:
 
 #endif
 
-    void Create(wxWindow *parent, wxWindowID id=wxID_ANY,
-                     const wxPoint& pos = wxDefaultPosition,
-                     const wxSize& size = wxDefaultSize, long style = 0,
-                     const wxString& name = wxSTCNameStr);
+    bool Create(wxWindow *parent, wxWindowID id=wxID_ANY,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize, long style = 0,
+                const wxString& name = wxSTCNameStr);
 
 
 //----------------------------------------------------------------------
@@ -1696,9 +1735,6 @@ public:
 
     // Set a style to be mixed case, or to force upper or lower case.
     void StyleSetCase(int style, int caseForce);
-
-    // Set the character set of the font in a style.
-    void StyleSetCharacterSet(int style, int characterSet);
 
     // Set a style to be a hotspot or not.
     void StyleSetHotSpot(int style, bool hotspot);
@@ -2266,7 +2302,7 @@ public:
     bool GetUseVerticalScrollBar();
 
     // Append a string to the end of the document without changing the selection.
-    void AppendText(int length, const wxString& text);
+    void AppendText(const wxString& text);
 
     // Is drawing done in two phases with backgrounds drawn before foregrounds?
     bool GetTwoPhaseDraw();
@@ -2737,6 +2773,10 @@ public:
     // Enlarge the document to a particular size of text bytes.
     void Allocate(int bytes);
 
+    // Find the position of a column on a line taking into account tabs and 
+    // multi-byte characters. If beyond end of line, return line end position.
+    int FindColumn(int line, int column);
+
     // Start notifying the container of all key presses and commands.
     void StartRecord();
 
@@ -2795,13 +2835,20 @@ public:
     void StyleSetFontAttr(int styleNum, int size,
                           const wxString& faceName,
                           bool bold, bool italic,
-                          bool underline);
+                          bool underline,
+                          wxFontEncoding encoding=wxFONTENCODING_DEFAULT);
 
 
+    // Set the character set of the font in a style.  Converts the Scintilla
+    // character set values to a wxFontEncoding.
+    void StyleSetCharacterSet(int style, int characterSet);
+
+    // Set the font encoding to be used by a style.
+    void StyleSetFontEncoding(int style, wxFontEncoding encoding);
+    
 
     // Perform one of the operations defined by the wxSTC_CMD_* constants.
     void CmdKeyExecute(int cmd);
-
 
 
     // Set the left and right margin in the edit area, measured in pixels.
@@ -2832,11 +2879,11 @@ public:
 
 
     // Set the vertical scrollbar to use instead of the ont that's built-in.
-    void SetVScrollBar(wxScrollBar* bar) { m_vScrollBar = bar; }
+    void SetVScrollBar(wxScrollBar* bar);
 
 
     // Set the horizontal scrollbar to use instead of the ont that's built-in.
-    void SetHScrollBar(wxScrollBar* bar) { m_hScrollBar = bar; }
+    void SetHScrollBar(wxScrollBar* bar);
 
     // Can be used to prevent the EVT_CHAR handler from adding the char
     bool GetLastKeydownProcessed() { return m_lastKeyDownConsumed; }
@@ -2865,11 +2912,53 @@ public:
     bool GetUseAntiAliasing();
 
 
+    
+    // The following methods are nearly equivallent to their similarly named
+    // cousins above.  The difference is that these methods bypass wxString
+    // and always use a char* even if used in a unicode build of wxWidgets.
+    // In that case the character data will be utf-8 encoded since that is
+    // what is used internally by Scintilla in unicode builds.
+    
+    // Add text to the document at current position.
+    void AddTextRaw(const char* text);
+
+    // Insert string at a position.
+    void InsertTextRaw(int pos, const char* text);
+
+    // Retrieve the text of the line containing the caret.
+    // Returns the index of the caret on the line.
+#ifdef SWIG
+    wxCharBuffer GetCurLineRaw(int* OUTPUT);
+#else
+    wxCharBuffer GetCurLineRaw(int* linePos=NULL);
+#endif
+
+    // Retrieve the contents of a line.
+    wxCharBuffer GetLineRaw(int line);
+
+    // Retrieve the selected text.
+    wxCharBuffer GetSelectedTextRaw();
+
+    // Retrieve a range of text.
+    wxCharBuffer GetTextRangeRaw(int startPos, int endPos);
+
+    // Replace the contents of the document with the argument text.
+    void SetTextRaw(const char* text);
+
+    // Retrieve all the text in the document.
+    wxCharBuffer GetTextRaw();
+
+    // Append a string to the end of the document without changing the selection.
+    void AppendTextRaw(const char* text);
+
+#ifdef SWIG
+    %pythoncode "_stc_utf8_methods.py"
+#endif
 //----------------------------------------------------------------------
 
 
 #ifndef SWIG
-private:
+protected:
     // Event handlers
     void OnPaint(wxPaintEvent& evt);
     void OnScrollWin(wxScrollWinEvent& evt);
@@ -2898,6 +2987,7 @@ private:
     void NotifyChange();
     void NotifyParent(SCNotification* scn);
 
+private:
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxStyledTextCtrl)
 

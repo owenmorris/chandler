@@ -207,22 +207,118 @@ public:
 
 unsigned long wxSysErrorCode();
 const wxString wxSysErrorMsg(unsigned long nErrCode = 0);
-void wxLogFatalError(const wxString& msg);
-void wxLogError(const wxString& msg);
-void wxLogWarning(const wxString& msg);
-void wxLogMessage(const wxString& msg);
-void wxLogInfo(const wxString& msg);
-void wxLogDebug(const wxString& msg);
-void wxLogVerbose(const wxString& msg);
-void wxLogStatus(const wxString& msg);
-%name(LogStatusFrame)void wxLogStatus(wxFrame *pFrame, const wxString& msg);
-void wxLogSysError(const wxString& msg);
 
-%nokwargs wxLogTrace;
-void wxLogTrace(unsigned long mask, const wxString& msg);
-void wxLogTrace(const wxString& mask, const wxString& msg);
+%{// Make somce wrappers that double any % signs so they are 'escaped'
+    void wxPyLogFatalError(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogFatalError(m);
+    }
+    
+    void wxPyLogError(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogError(m);
+    }
 
-void wxLogGeneric(unsigned long level, const wxString& msg);
+    void wxPyLogWarning(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogWarning(m);
+    }
+
+    void wxPyLogMessage(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogMessage(m);
+    }
+
+    void wxPyLogInfo(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogInfo(m);
+    }
+
+    void wxPyLogDebug(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogDebug(m);
+    }
+
+    void wxPyLogVerbose(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogVerbose(m);
+    }
+
+    void wxPyLogStatus(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogStatus(m);
+    }
+
+    void wxPyLogStatusFrame(wxFrame *pFrame, const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogStatus(pFrame, m);
+    }
+
+    void wxPyLogSysError(const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogSysError(m);
+    }
+
+    void wxPyLogGeneric(unsigned long level, const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogGeneric(level, m);
+    }
+
+    void wxPyLogTrace(unsigned long mask, const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogTrace(mask, m);
+    }
+        
+    void wxPyLogTrace(const wxString& mask, const wxString& msg)
+    {
+        wxString m(msg);
+        m.Replace(wxT("%"), wxT("%%"));
+        wxLogTrace(mask, m);
+    }
+    
+%}
+
+%Rename(LogFatalError,  void, wxPyLogFatalError(const wxString& msg));
+%Rename(LogError,  void, wxPyLogError(const wxString& msg));
+%Rename(LogWarning,  void, wxPyLogWarning(const wxString& msg));
+%Rename(LogMessage,  void, wxPyLogMessage(const wxString& msg));
+%Rename(LogInfo,  void, wxPyLogInfo(const wxString& msg));
+%Rename(LogDebug,  void, wxPyLogDebug(const wxString& msg));
+%Rename(LogVerbose,  void, wxPyLogVerbose(const wxString& msg));
+%Rename(LogStatus,  void, wxPyLogStatus(const wxString& msg));
+%Rename(LogStatusFrame,  void, wxPyLogStatusFrame(wxFrame *pFrame, const wxString& msg));
+%Rename(LogSysError,  void, wxPyLogSysError(const wxString& msg));
+
+%Rename(LogGeneric,  void, wxPyLogGeneric(unsigned long level, const wxString& msg));
+
+%nokwargs wxPyLogTrace;
+%Rename(LogTrace,  void, wxPyLogTrace(unsigned long mask, const wxString& msg));
+%Rename(LogTrace,  void, wxPyLogTrace(const wxString& mask, const wxString& msg));
+
 
 // wxLogFatalError helper: show the (fatal) error to the user in a safe way,
 // i.e. without using wxMessageBox() for example because it could crash
@@ -250,7 +346,7 @@ public:
 
     virtual void DoLog(wxLogLevel level, const wxChar *szString, time_t t) {
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "DoLog"))) {
             PyObject* s = wx2PyString(szString);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(iOi)", level, s, t));
@@ -263,7 +359,7 @@ public:
 
     virtual void DoLogString(const wxChar *szString, time_t t) {
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "DoLogString"))) {
             PyObject* s = wx2PyString(szString);
             wxPyCBH_callCallback(m_myInst, Py_BuildValue("(Oi)", s, t));

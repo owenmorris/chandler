@@ -9,9 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "bmpbuttn.h"
 #endif
+
+#include "wx/wxprec.h"
+
+#if wxUSE_BMPBUTTON
 
 #include "wx/window.h"
 #include "wx/bmpbuttn.h"
@@ -63,22 +67,17 @@ bool wxBitmapButton::Create(wxWindow *parent, wxWindowID id, const wxBitmap& bit
     }
 
     m_bmpNormal = bitmap;
-    
-    wxBitmapRefData * bmap = NULL ;
-    
-    if ( m_bmpNormal.Ok() )
-        bmap = (wxBitmapRefData*) ( m_bmpNormal.GetRefData()) ;
-    
+        
     ControlButtonContentInfo info ;
     wxMacCreateBitmapButton( &info , m_bmpNormal ) ;
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl( this ) ;
     verify_noerr ( CreateBevelButtonControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , CFSTR("") , 
         (( style & wxBU_AUTODRAW ) ? kControlBevelButtonSmallBevel : kControlBevelButtonNormalBevel )  , 
         kControlBehaviorOffsetContents , &info , 0 , 0 , 0 , m_peer->GetControlRefAddr() ) );
     
-    
+    wxMacReleaseBitmapButton( &info ) ;
     wxASSERT_MSG( m_peer != NULL && m_peer->Ok() , wxT("No valid mac control") ) ;
     
     MacPostControlCreate(pos,size) ;
@@ -97,6 +96,7 @@ void wxBitmapButton::SetBitmapLabel(const wxBitmap& bitmap)
     {
         m_peer->SetData( kControlButtonPart , kControlBevelButtonContentTag , info ) ;
     }
+    wxMacReleaseBitmapButton( &info ) ;
 }
 
 
@@ -110,3 +110,5 @@ wxSize wxBitmapButton::DoGetBestSize() const
     }
     return best;
 }
+
+#endif

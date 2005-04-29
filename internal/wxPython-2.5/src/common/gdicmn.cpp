@@ -42,7 +42,7 @@
 #include "wx/log.h"
 #include <string.h>
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__)
 #include "wx/msw/wrapwin.h"
 #endif
 
@@ -119,12 +119,6 @@ wxRect::wxRect(const wxPoint& point1, const wxPoint& point2)
     height++;
 }
 
-wxRect::wxRect(const wxPoint& point, const wxSize& size)
-{
-    x = point.x; y = point.y;
-    width = size.x; height = size.y;
-}
-
 bool wxRect::operator==(const wxRect& rect) const
 {
     return ((x == rect.x) &&
@@ -133,13 +127,7 @@ bool wxRect::operator==(const wxRect& rect) const
             (height == rect.height));
 }
 
-wxRect& wxRect::operator += (const wxRect& rect)
-{
-    *this = (*this + rect);
-    return ( *this ) ;
-}
-
-wxRect wxRect::operator + (const wxRect& rect) const
+wxRect wxRect::operator+(const wxRect& rect) const
 {
     int x1 = wxMin(this->x, rect.x);
     int y1 = wxMin(this->y, rect.y);
@@ -148,25 +136,60 @@ wxRect wxRect::operator + (const wxRect& rect) const
     return wxRect(x1, y1, x2-x1, y2-y1);
 }
 
+wxRect& wxRect::Union(const wxRect& rect)
+{
+    // ignore empty rectangles: union with an empty rectangle shouldn't extend
+    // this one to (0, 0)
+    if ( !width || !height )
+    {
+        *this = rect;
+    }
+    else if ( rect.width && rect.height )
+    {
+        int x1 = wxMin(x, rect.x);
+        int y1 = wxMin(y, rect.y);
+        int y2 = wxMax(y + height, rect.height + rect.y);
+        int x2 = wxMax(x + width, rect.width + rect.x);
+
+        x = x1;
+        y = y1;
+        width = x2 - x1;
+        height = y2 - y1;
+    }
+    //else: we're not empty and rect is empty
+
+    return *this;
+}
+
 wxRect& wxRect::Inflate(wxCoord dx, wxCoord dy)
 {
-    x -= dx;
-    y -= dy;
-    width += 2*dx;
-    height += 2*dy;
+     if (-2*dx>width)
+     {
+         // Don't allow deflate to eat more width than we have,
+         // a well-defined rectangle cannot have negative width.
+         x+=width/2;
+         width=0;
+     }
+     else
+     {
+         // The inflate is valid.
+         x-=dx;
+         width+=2*dx;
+     }
 
-    // check that we didn't make the rectangle invalid by accident (you almost
-    // never want to have negative coords and never want negative size)
-    if ( x < 0 )
-        x = 0;
-    if ( y < 0 )
-        y = 0;
-
-    // what else can we do?
-    if ( width < 0 )
-        width = 0;
-    if ( height < 0 )
-        height = 0;
+     if (-2*dy>height)
+     {
+         // Don't allow deflate to eat more height than we have,
+         // a well-defined rectangle cannot have negative height.
+         y+=height/2;
+         height=0;
+     }
+     else
+     {
+         // The inflate is valid.
+         y-=dy;
+         height+=2*dy;
+     }
 
     return *this;
 }
@@ -381,7 +404,7 @@ void wxColourDatabase::AddColour(const wxString& name, const wxColour& colour)
     }
     else // new colour
     {
-        (*m_map)[name] = new wxColour(colour);
+        (*m_map)[colName] = new wxColour(colour);
     }
 }
 
@@ -538,7 +561,7 @@ void wxInitializeStockObjects ()
 
     GetThemeFont(kThemeSystemFont , GetApplicationScript() , fontName , &fontSize , &fontStyle ) ;
     sizeFont = fontSize ;
-#if __WXMAC_CLASSIC__
+#ifdef __WXMAC_CLASSIC__
     wxNORMAL_FONT = new wxFont (fontSize, wxMODERN, wxNORMAL, wxNORMAL , false , wxMacMakeStringFromPascal(fontName) );
 #else
     wxNORMAL_FONT = new wxFont () ;
@@ -563,7 +586,7 @@ void wxInitializeStockObjects ()
 #elif defined(__WXMAC__)
     wxSWISS_FONT = new wxFont (sizeFont, wxSWISS, wxNORMAL, wxNORMAL); /* Helv */
     wxITALIC_FONT = new wxFont (sizeFont, wxROMAN, wxITALIC, wxNORMAL);
-#if __WXMAC_CLASSIC__
+#ifdef __WXMAC_CLASSIC__
   GetThemeFont(kThemeSmallSystemFont , GetApplicationScript() , fontName , &fontSize , &fontStyle ) ;
     wxSMALL_FONT = new wxFont (fontSize, wxSWISS, wxNORMAL, wxNORMAL , false , wxMacMakeStringFromPascal( fontName ) );
 #else
@@ -664,10 +687,6 @@ void wxDeleteStockLists()
 // ============================================================================
 // wxTheXXXList stuff (semi-obsolete)
 // ============================================================================
-
-wxBitmapList::wxBitmapList()
-{
-}
 
 wxBitmapList::~wxBitmapList ()
 {
@@ -858,7 +877,7 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
             // a different font if we create it with empty facename, but it is
             // still better than never matching anything in the cache at all
             // in this case
-            if ( same && !facename.IsEmpty() )
+            if ( same && !facename.empty() )
             {
                 const wxString& fontFace = font->GetFaceName();
 

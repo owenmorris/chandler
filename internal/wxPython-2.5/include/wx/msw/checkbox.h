@@ -52,7 +52,6 @@ protected:
     virtual wxSize DoGetBestSize() const;
 
     virtual void DoSet3StateValue(wxCheckBoxState value);
-
     virtual wxCheckBoxState DoGet3StateValue() const;
 
 private:

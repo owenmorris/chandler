@@ -42,6 +42,12 @@
 
 #include "wx/spinctrl.h"
 
+// if wxDatePickerCtrl code doesn't define the date event, do it here as we
+// need it as well
+#if !wxUSE_DATEPICKCTRL
+    #define _WX_DEFINE_DATE_EVENTS_
+#endif
+
 #include "wx/calctrl.h"
 
 #define DEBUG_PAINT 0
@@ -162,7 +168,7 @@ wxCONSTRUCTOR_6( wxCalendarCtrl , wxWindow* , Parent , wxWindowID , Id , wxDateT
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxCalendarCtrl, wxControl)
 #endif
-IMPLEMENT_DYNAMIC_CLASS(wxCalendarEvent, wxCommandEvent)
+IMPLEMENT_DYNAMIC_CLASS(wxCalendarEvent, wxDateEvent)
 
 // ----------------------------------------------------------------------------
 // events
@@ -316,7 +322,7 @@ bool wxCalendarCtrl::Create(wxWindow *parent,
     // Since we don't paint the whole background make sure that the platform
     // will use the right one.
     SetBackgroundColour(GetBackgroundColour());
-    
+
     SetHolidayAttrs();
 
     return true;
@@ -795,7 +801,7 @@ wxSize wxCalendarCtrl::DoGetBestSize() const
 
     wxSize best(width, height);
     CacheBestSize(best);
-    return best;   
+    return best;
 }
 
 void wxCalendarCtrl::DoSetSize(int x, int y,
@@ -969,7 +975,7 @@ void wxCalendarCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
         leftarrow[1] = wxPoint(arrowheight / 2, 0);
         leftarrow[2] = wxPoint(arrowheight / 2, arrowheight - 1);
 
-        rightarrow[0] = wxPoint(0, 0);
+        rightarrow[0] = wxPoint(0,0);
         rightarrow[1] = wxPoint(arrowheight / 2, arrowheight / 2);
         rightarrow[2] = wxPoint(0, arrowheight - 1);
 
@@ -978,8 +984,7 @@ void wxCalendarCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
         wxCoord arrowy = (m_heightRow - arrowheight) / 2;
         wxCoord larrowx = (m_widthCol - (arrowheight / 2)) / 2;
         wxCoord rarrowx = ((m_widthCol - (arrowheight / 2)) / 2) + m_widthCol*6;
-        m_leftArrowRect = wxRect(0, 0, 0, 0);
-        m_rightArrowRect = wxRect(0, 0, 0, 0);
+        m_leftArrowRect = m_rightArrowRect = wxRect(0,0,0,0);
 
         if ( AllowMonthChange() )
         {
@@ -1818,23 +1823,6 @@ wxCalendarCtrl::GetClassDefaultAttributes(wxWindowVariant variant)
 {
     // Use the same color scheme as wxListBox
     return wxListBox::GetClassDefaultAttributes(variant);
-}
-
-
-// ----------------------------------------------------------------------------
-// wxCalendarEvent
-// ----------------------------------------------------------------------------
-
-void wxCalendarEvent::Init()
-{
-    m_wday = wxDateTime::Inv_WeekDay;
-}
-
-wxCalendarEvent::wxCalendarEvent(wxCalendarCtrl *cal, wxEventType type)
-               : wxCommandEvent(type, cal->GetId())
-{
-    m_date = cal->GetDate();
-    SetEventObject(cal);
 }
 
 #endif // wxUSE_CALENDARCTRL

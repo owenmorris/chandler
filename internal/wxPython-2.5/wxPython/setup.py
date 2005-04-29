@@ -11,7 +11,7 @@
 # Licence:     wxWindows license
 #----------------------------------------------------------------------
 
-import sys
+import sys, os
 
 
 # The full contents of the wx.build.config module used to be located
@@ -29,6 +29,14 @@ import sys
 # config .py in the same place as setup.py, and then copy it to
 # wx/build as needed below.
 
+# To fully support external builds, we need to have a build options
+# file that is created whenever a new wxPython build is performed.
+# We happen to be doing that in this script, so make sure to remove
+# the build_options.py file, so that config.py will recreate it.
+
+if os.path.exists("build_options.py"):
+    os.remove("build_options.py")
+
 sys.setup_is_main =  __name__ == "__main__"  # an icky hack!
 from config import *
 
@@ -38,7 +46,9 @@ from config import *
 #----------------------------------------------------------------------
 
 copy_file('config.py', 'wx/build', update=1, verbose=1)
+copy_file('build_options.py', 'wx/build', update=1, verbose=1)
 CLEANUP.append('wx/build/config.py')
+CLEANUP.append('wx/build/build_options.py')
 
 #----------------------------------------------------------------------
 # Update the version file
@@ -137,7 +147,6 @@ else:
 
 
 ext = Extension('_core_', ['src/helpers.cpp',
-                           'src/libpy.c',
                            ] + rc_file + swig_sources,
 
                 include_dirs = includes,
@@ -255,6 +264,7 @@ swig_sources = run_swig(['controls.i'], 'src', GENDIR, PKGDIR,
                           'src/_pycontrol.i',
                           'src/_cshelp.i',
                           'src/_dragimg.i',
+                          'src/_datectrl.i',
                           ],
                         True)
 ext = Extension('_controls_', swig_sources,
@@ -293,6 +303,7 @@ swig_sources = run_swig(['misc.i'], 'src', GENDIR, PKGDIR,
                           'src/_dnd.i',
                           'src/_display.i',
                           'src/_clipbrd.i',
+                          'src/_stdpaths.i',
                           ],
                         True)
 ext = Extension('_misc_', swig_sources,
@@ -379,6 +390,22 @@ ext = Extension('_html', swig_sources,
                 )
 wxpExtensions.append(ext)
 
+
+mediaLibs = libs[:]
+if not MONOLITHIC and os.name == 'nt':
+    mediaLibs.append(makeLibName('media')[0])
+swig_sources = run_swig(['media.i'], 'src', GENDIR, PKGDIR,
+                        USE_SWIG, swig_force, swig_args, swig_deps)
+ext = Extension('_media', swig_sources,
+                include_dirs =  includes,
+                define_macros = defines,
+                library_dirs = libdirs,
+                libraries = mediaLibs,
+                extra_compile_args = cflags,
+                extra_link_args = lflags,
+                **depends
+                )
+wxpExtensions.append(ext)
 
 
 swig_sources = run_swig(['webkit.i'], 'src', GENDIR, PKGDIR,
@@ -536,7 +563,11 @@ if BUILD_STC:
     swig_sources = run_swig(['stc.i'], location, GENDIR, PKGDIR,
                             USE_SWIG, swig_force,
                             swig_args + ['-I'+STC_H, '-I'+location],
-                            [opj(STC_H, 'stc.h')] + swig_deps)
+                            [opj(STC_H, 'stc.h'),
+                             opj(location, "_stc_utf8_methods.py"),
+                             opj(location, "_stc_docstrings.i"),
+                             opj(location, "_stc_gendocs.i"),
+                             ] + swig_deps)
 
     ext = Extension('_stc',
                     swig_sources,
@@ -638,6 +669,33 @@ if BUILD_GIZMOS:
 
                     library_dirs = libdirs,
                     libraries = libs + makeLibName('gizmos'),
+
+                    extra_compile_args = cflags,
+                    extra_link_args = lflags,
+                    )
+
+    wxpExtensions.append(ext)
+
+
+#----------------------------------------------------------------------
+# Define the ANIMATE  extension module
+#----------------------------------------------------------------------
+
+if BUILD_ANIMATE:
+    msg('Preparing ANIMATE...')
+    location = 'contrib/animate'
+
+    swig_sources = run_swig(['animate.i'], location, GENDIR, PKGDIR,
+                            USE_SWIG, swig_force, swig_args, swig_deps)
+
+    ext = Extension('_animate',
+                    swig_sources,
+
+                    include_dirs =  includes + CONTRIBS_INC,
+                    define_macros = defines,
+
+                    library_dirs = libdirs,
+                    libraries = libs + makeLibName('animate'),
 
                     extra_compile_args = cflags,
                     extra_link_args = lflags,

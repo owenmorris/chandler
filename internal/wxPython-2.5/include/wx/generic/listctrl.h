@@ -3,7 +3,7 @@
 // Purpose:     Generic list control
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:
+// RCS-ID:      $Id$
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,11 @@
 
 #include "wx/defs.h"
 #include "wx/object.h"
+#ifdef __WXMAC__
+#include "wx/imaglist.h"
+#else
 #include "wx/generic/imaglist.h"
+#endif
 
 #include "wx/control.h"
 #include "wx/timer.h"
@@ -72,7 +76,7 @@ public:
                 const wxSize &size = wxDefaultSize,
                 long style = wxLC_ICON,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString &name = wxT("listctrl") )
+                const wxString &name = wxListCtrlNameStr)
     {
         Create(parent, winid, pos, size, style, validator, name);
     }
@@ -84,7 +88,7 @@ public:
                  const wxSize &size = wxDefaultSize,
                  long style = wxLC_ICON,
                  const wxValidator& validator = wxDefaultValidator,
-                 const wxString &name = wxT("listctrl") );
+                 const wxString &name = wxListCtrlNameStr);
 
     bool GetColumn( int col, wxListItem& item ) const;
     bool SetColumn( int col, wxListItem& item );
@@ -212,7 +216,7 @@ public:
     virtual void SetFocus();
 
     virtual wxSize DoGetBestSize() const;
-    
+
     // implementation
     // --------------
 
@@ -254,7 +258,7 @@ private:
     void ResizeReportView(bool showHeader);
 
     DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxGenericListCtrl);
+    DECLARE_DYNAMIC_CLASS(wxGenericListCtrl)
 };
 
 #if !defined(__WXMSW__) || defined(__WXUNIVERSAL__)
@@ -275,7 +279,7 @@ public:
                const wxSize& size = wxDefaultSize,
                long style = wxLC_ICON,
                const wxValidator &validator = wxDefaultValidator,
-               const wxString &name = wxT("listctrl") )
+               const wxString &name = wxListCtrlNameStr)
     : wxGenericListCtrl(parent, winid, pos, size, style, validator, name)
     {
     }

@@ -16,12 +16,14 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "statline.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
+
+#if wxUSE_STATLINE
 
 #ifdef __BORLANDC__
     #pragma hdrstop
@@ -56,10 +58,12 @@ bool wxStaticLine::Create( wxWindow *parent,
         return false;
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr(CreateSeparatorControl(MAC_WXHWND(parent->MacGetTopLevelWindowRef()),&bounds, m_peer->GetControlRefAddr() ) ) ;  
 
     MacPostControlCreate(pos,size) ;
 
     return TRUE;
 }
+
+#endif //wxUSE_STATLINE

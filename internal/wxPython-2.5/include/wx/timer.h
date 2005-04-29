@@ -17,14 +17,14 @@
     #pragma interface "timerbase.h"
 #endif
 
-#include "wx/setup.h"
+#include "wx/defs.h"
+
+#if wxUSE_GUI && wxUSE_TIMER
+
 #include "wx/object.h"
 #include "wx/longlong.h"
 #include "wx/event.h"
-
 #include "wx/stopwatch.h" // for backwards compatibility
-
-#if wxUSE_GUI && wxUSE_TIMER
 
 // ----------------------------------------------------------------------------
 // wxTimer
@@ -118,8 +118,10 @@ protected:
     #include "wx/motif/timer.h"
 #elif defined(__WXGTK__)
     #include "wx/gtk/timer.h"
-#elif defined(__WXX11__) || defined(__WXMGL__) || defined(__WXCOCOA__)
+#elif defined(__WXX11__) || defined(__WXMGL__)
     #include "wx/generic/timer.h"
+#elif defined (__WXCOCOA__)
+    #include "wx/cocoa/timer.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/timer.h"
 #elif defined(__WXPM__)
@@ -187,8 +189,11 @@ private:
 
 typedef void (wxEvtHandler::*wxTimerEventFunction)(wxTimerEvent&);
 
+#define wxTimerEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxTimerEventFunction, &func)
+
 #define EVT_TIMER(timerid, func) \
-    DECLARE_EVENT_TABLE_ENTRY( wxEVT_TIMER, timerid, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxTimerEventFunction, & func ), NULL),
+    wx__DECLARE_EVT1(wxEVT_TIMER, timerid, wxTimerEventHandler(func))
 
 #endif // wxUSE_GUI && wxUSE_TIMER
 

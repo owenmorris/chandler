@@ -237,8 +237,8 @@ static void ConvertWxToFileTime(FILETIME *ft, const wxDateTime& dt)
 {
     SYSTEMTIME st;
     st.wDay = dt.GetDay();
-    st.wMonth = dt.GetMonth() + 1;
-    st.wYear = dt.GetYear();
+    st.wMonth = (WORD)(dt.GetMonth() + 1);
+    st.wYear = (WORD)dt.GetYear();
     st.wHour = dt.GetHour();
     st.wMinute = dt.GetMinute();
     st.wSecond = dt.GetSecond();
@@ -300,12 +300,14 @@ void wxFileName::Assign( const wxFileName &filepath )
     m_name = filepath.GetName();
     m_ext = filepath.GetExt();
     m_relative = filepath.m_relative;
+    m_hasExt = filepath.m_hasExt;
 }
 
 void wxFileName::Assign(const wxString& volume,
                         const wxString& path,
                         const wxString& name,
                         const wxString& ext,
+                        bool hasExt,
                         wxPathFormat format )
 {
     SetPath( path, format );
@@ -313,6 +315,8 @@ void wxFileName::Assign(const wxString& volume,
     m_volume = volume;
     m_ext = ext;
     m_name = name;
+
+    m_hasExt = hasExt;
 }
 
 void wxFileName::SetPath( const wxString& pathOrig, wxPathFormat format )
@@ -411,9 +415,10 @@ void wxFileName::Assign(const wxString& fullpath,
                         wxPathFormat format)
 {
     wxString volume, path, name, ext;
-    SplitPath(fullpath, &volume, &path, &name, &ext, format);
+    bool hasExt;
+    SplitPath(fullpath, &volume, &path, &name, &ext, &hasExt, format);
 
-    Assign(volume, path, name, ext, format);
+    Assign(volume, path, name, ext, hasExt, format);
 }
 
 void wxFileName::Assign(const wxString& fullpathOrig,
@@ -429,15 +434,16 @@ void wxFileName::Assign(const wxString& fullpathOrig,
     }
 
     wxString volume, path, name, ext;
+    bool hasExt;
 
     // do some consistency checks in debug mode: the name should be really just
     // the filename and the path should be really just a path
 #ifdef __WXDEBUG__
-    wxString pathDummy, nameDummy, extDummy;
+    wxString volDummy, pathDummy, nameDummy, extDummy;
 
-    SplitPath(fullname, &pathDummy, &name, &ext, format);
+    SplitPath(fullname, &volDummy, &pathDummy, &name, &ext, &hasExt, format);
 
-    wxASSERT_MSG( pathDummy.empty(),
+    wxASSERT_MSG( volDummy.empty() && pathDummy.empty(),
                   _T("the file name shouldn't contain the path") );
 
     SplitPath(fullpath, &volume, &path, &nameDummy, &extDummy, format);
@@ -446,16 +452,29 @@ void wxFileName::Assign(const wxString& fullpathOrig,
                   _T("the path shouldn't contain file name nor extension") );
 
 #else // !__WXDEBUG__
-    SplitPath(fullname, NULL /* no path */, &name, &ext, format);
+    SplitPath(fullname, NULL /* no volume */, NULL /* no path */,
+                        &name, &ext, &hasExt, format);
     SplitPath(fullpath, &volume, &path, NULL, NULL, format);
 #endif // __WXDEBUG__/!__WXDEBUG__
+
+    Assign(volume, path, name, ext, hasExt, format);
+}
+
+void wxFileName::Assign(const wxString& pathOrig,
+                        const wxString& name,
+                        const wxString& ext,
+                        wxPathFormat format)
+{
+    wxString volume,
+             path;
+    SplitVolume(pathOrig, &volume, &path, format);
 
     Assign(volume, path, name, ext, format);
 }
 
 void wxFileName::AssignDir(const wxString& dir, wxPathFormat format)
 {
-    Assign(dir, _T(""), format);
+    Assign(dir, wxEmptyString, format);
 }
 
 void wxFileName::Clear()
@@ -468,6 +487,9 @@ void wxFileName::Clear()
 
     // we don't have any absolute path for now
     m_relative = true;
+
+    // nor any extension
+    m_hasExt = false;
 }
 
 /* static */
@@ -561,6 +583,8 @@ wxString wxFileName::GetHomeDir()
     return ::wxGetHomeDir();
 }
 
+#if wxUSE_FILE
+
 void wxFileName::AssignTempFileName(const wxString& prefix, wxFile *fileTemp)
 {
     wxString tempname = CreateTempFileName(prefix, fileTemp);
@@ -592,7 +616,7 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
     }
     path = dir + wxT("\\") + prefix;
     int i = 1;
-    while (wxFileExists(path))
+    while (FileExists(path))
     {
         path = dir + wxT("\\") + prefix ;
         path << i;
@@ -708,7 +732,7 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
     }
 #else // !HAVE_MKTEMP (includes __DOS__)
     // generate the unique file name ourselves
-    #if !defined(__DOS__) && (!defined(__MWERKS__) || defined(__DARWIN__) )
+    #if !defined(__DOS__) && !defined(__PALMOS__) && (!defined(__MWERKS__) || defined(__DARWIN__) )
     path << (unsigned int)getpid();
     #endif
 
@@ -719,7 +743,7 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
     {
         // 3 hex digits is enough for numTries == 1000 < 4096
         pathTry = path + wxString::Format(_T("%.03x"), (unsigned int) n);
-        if ( !wxFile::Exists(pathTry) )
+        if ( !FileExists(pathTry) )
         {
             break;
         }
@@ -769,6 +793,8 @@ wxFileName::CreateTempFileName(const wxString& prefix, wxFile *fileTemp)
 
     return path;
 }
+
+#endif // wxUSE_FILE
 
 // ----------------------------------------------------------------------------
 // directory operations
@@ -1030,7 +1056,7 @@ bool wxFileName::GetShortcutTarget(const wxString& shortcutPath, wxString& targe
     bool success = false;
 
     // Assume it's not a shortcut if it doesn't end with lnk
-    if (ext.Lower() != wxT("lnk"))
+    if (ext.CmpNoCase(wxT("lnk"))!=0)
         return false;
 
     // create a ShellLink object
@@ -1063,7 +1089,7 @@ bool wxFileName::GetShortcutTarget(const wxString& shortcutPath, wxString& targe
 
                 psl->GetArguments(buf, 2048);
                 wxString args(buf);
-                if (!args.IsEmpty() && arguments)
+                if (!args.empty() && arguments)
                 {
                     *arguments = args;
                 }
@@ -1277,10 +1303,8 @@ wxString wxFileName::GetPathTerminators(wxPathFormat format)
 bool wxFileName::IsPathSeparator(wxChar ch, wxPathFormat format)
 {
     // wxString::Find() doesn't work as expected with NUL - it will always find
-    // it, so it is almost surely a bug if this function is called with NUL arg
-    wxASSERT_MSG( ch != _T('\0'), _T("shouldn't be called with NUL") );
-
-    return GetPathSeparators(format).Find(ch) != wxNOT_FOUND;
+    // it, so test for it separately
+    return ch != _T('\0') && GetPathSeparators(format).Find(ch) != wxNOT_FOUND;
 }
 
 // ----------------------------------------------------------------------------
@@ -1310,26 +1334,26 @@ bool wxFileName::IsPathSeparator(wxChar ch, wxPathFormat format)
     return true;
 }
 
-void wxFileName::AppendDir( const wxString &dir )
+void wxFileName::AppendDir( const wxString& dir )
 {
     if ( IsValidDirComponent(dir) )
         m_dirs.Add( dir );
 }
 
-void wxFileName::PrependDir( const wxString &dir )
+void wxFileName::PrependDir( const wxString& dir )
 {
     InsertDir(0, dir);
 }
 
-void wxFileName::InsertDir( int before, const wxString &dir )
+void wxFileName::InsertDir(size_t before, const wxString& dir)
 {
     if ( IsValidDirComponent(dir) )
-        m_dirs.Insert( dir, before );
+        m_dirs.Insert(dir, before);
 }
 
-void wxFileName::RemoveDir( int pos )
+void wxFileName::RemoveDir(size_t pos)
 {
-    m_dirs.RemoveAt( (size_t)pos );
+    m_dirs.RemoveAt(pos);
 }
 
 // ----------------------------------------------------------------------------
@@ -1338,13 +1362,14 @@ void wxFileName::RemoveDir( int pos )
 
 void wxFileName::SetFullName(const wxString& fullname)
 {
-    SplitPath(fullname, NULL /* no path */, &m_name, &m_ext);
+    SplitPath(fullname, NULL /* no volume */, NULL /* no path */,
+                        &m_name, &m_ext, &m_hasExt);
 }
 
 wxString wxFileName::GetFullName() const
 {
     wxString fullname = m_name;
-    if ( !m_ext.empty() )
+    if ( m_hasExt )
     {
         fullname << wxFILE_SEP_EXT << m_ext;
     }
@@ -1428,7 +1453,7 @@ wxString wxFileName::GetPath( int flags, wxPathFormat format ) const
                 }
 
                 // convert back from ".." to nothing
-                if ( m_dirs[i] != wxT("..") )
+                if ( !m_dirs[i].IsSameAs(wxT("..")) )
                      fullpath += m_dirs[i];
                 break;
 
@@ -1445,7 +1470,7 @@ wxString wxFileName::GetPath( int flags, wxPathFormat format ) const
                 // TODO: What to do with ".." under VMS
 
                 // convert back from ".." to nothing
-                if ( m_dirs[i] != wxT("..") )
+                if ( !m_dirs[i].IsSameAs(wxT("..")) )
                     fullpath += m_dirs[i];
                 break;
         }
@@ -1706,6 +1731,7 @@ void wxFileName::SplitPath(const wxString& fullpathWithVolume,
                            wxString *pstrPath,
                            wxString *pstrName,
                            wxString *pstrExt,
+                           bool *hasExt,
                            wxPathFormat format)
 {
     format = GetFormat(format);
@@ -1792,18 +1818,25 @@ void wxFileName::SplitPath(const wxString& fullpathWithVolume,
         *pstrName = fullpath.Mid(nStart, count);
     }
 
-    if ( pstrExt )
+    // finally deal with the extension here: we have an added complication that
+    // extension may be empty (but present) as in "foo." where trailing dot
+    // indicates the empty extension at the end -- and hence we must remember
+    // that we have it independently of pstrExt
+    if ( posLastDot == wxString::npos )
     {
-        if ( posLastDot == wxString::npos )
-        {
-            // no extension
-            pstrExt->Empty();
-        }
-        else
-        {
-            // take everything after the dot
+        // no extension
+        if ( pstrExt )
+            pstrExt->clear();
+        if ( hasExt )
+            *hasExt = false;
+    }
+    else
+    {
+        // take everything after the dot
+        if ( pstrExt )
             *pstrExt = fullpath.Mid(posLastDot + 1);
-        }
+        if ( hasExt )
+            *hasExt = true;
     }
 }
 
@@ -1988,7 +2021,7 @@ public :
   MacDefaultExtensionRecord()
   {
     m_ext[0] = 0 ;
-    m_type = m_creator = NULL ;
+    m_type = m_creator = 0 ;
   }
   MacDefaultExtensionRecord( const MacDefaultExtensionRecord& from )
   {

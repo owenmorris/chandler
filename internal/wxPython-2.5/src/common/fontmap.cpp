@@ -51,6 +51,7 @@
 #include "wx/msgdlg.h"
 #include "wx/fontdlg.h"
 #include "wx/choicdlg.h"
+#include "wx/encinfo.h"
 
 #include "wx/encconv.h"
 
@@ -162,6 +163,19 @@ wxFontMapper::~wxFontMapper()
 {
 }
 
+bool wxFontMapper::IsWxFontMapper()
+{   return true; }
+
+/* static */
+wxFontMapper *wxFontMapper::Get()
+{
+    wxFontMapperBase *fontmapper = wxFontMapperBase::Get();
+    wxASSERT_MSG(fontmapper->IsWxFontMapper(), wxT("GUI code requested a wxFontMapper but we only have a wxFontMapperBase."));
+    // Now return it anyway because there's a chance the GUI code might just
+    // only want to call wxFontMapperBase functions.
+    return (wxFontMapper*)fontmapper;
+}
+
 wxFontEncoding
 wxFontMapper::CharsetToEncoding(const wxString& charset, bool interactive)
 {
@@ -226,7 +240,7 @@ wxFontMapper::CharsetToEncoding(const wxString& charset, bool interactive)
 
             // remember the alt encoding for this charset -- or remember that
             // we don't know it
-            long value = n == -1 ? wxFONTENCODING_UNKNOWN : (long)encoding;
+            long value = n == -1 ? (long)wxFONTENCODING_UNKNOWN : (long)encoding;
             if ( !config->Write(charset, value) )
             {
                 wxLogError(_("Failed to remember the encoding for the charset '%s'."), charset.c_str());

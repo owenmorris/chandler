@@ -1,3 +1,4 @@
+///////////////////////////////////////////////////////////////////////////////
 // Name:        univ/themes/win32.cpp
 // Purpose:     wxUniversal theme implementing Win32-like LNF
 // Author:      Vadim Zeitlin
@@ -32,6 +33,7 @@
     #include "wx/dcmemory.h"
 
     #include "wx/button.h"
+    #include "wx/bmpbuttn.h"
     #include "wx/listbox.h"
     #include "wx/checklst.h"
     #include "wx/combobox.h"
@@ -54,6 +56,7 @@
 #include "wx/menu.h"
 #include "wx/artprov.h"
 #include "wx/toplevel.h"
+#include "wx/image.h"
 
 #include "wx/univ/scrtimer.h"
 #include "wx/univ/renderer.h"
@@ -108,6 +111,7 @@ enum IndicatorStatus
 {
     IndicatorStatus_Checked,
     IndicatorStatus_Unchecked,
+    IndicatorStatus_Undeterminated,
     IndicatorStatus_Max
 };
 
@@ -625,7 +629,7 @@ public:
                              const wxMouseEvent& event);
 
     virtual bool HandleActivation(wxInputConsumer *consumer, bool activated);
-                             
+
     void PopupSystemMenu(wxTopLevelWindow *window, const wxPoint& pos) const;
 
 private:
@@ -678,7 +682,7 @@ private:
     wxInputHandler *GetDefaultInputHandler();
 
     wxWin32Renderer *m_renderer;
-    
+
     wxWin32ArtProvider *m_artProvider;
 
     // the names of the already created handlers and the handlers themselves
@@ -1007,6 +1011,54 @@ static const char *unchecked_item_xpm[] = {
 "wwwwwwwwwwwww"
 };
 
+static const char *undetermined_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"13 13 5 1",
+"A c #030303",
+"B c #838383",
+"C c #C3C3C3",
+"D c #FBFBFB",
+"E c #DBDBDB",
+/* pixels */
+"BBBBBBBBBBBBD",
+"BAAAAAAAAAAED",
+"BACDCDCDCDCED",
+"BADCDCDCDBDED",
+"BACDCDCDBBCED",
+"BADBDCEBBBDED",
+"BACBBDBBBDCED",
+"BADBBBBBDCDED",
+"BACDBBBDCDCED",
+"BADCDBDCDCDED",
+"BACDCDCDCDCED",
+"BEEEEEEEEEEED",
+"DDDDDDDDDDDDD"
+};
+
+static const char *pressed_undetermined_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"13 13 5 1",
+"A c #040404",
+"B c #848484",
+"C c #C4C4C4",
+"D c #FCFCFC",
+"E c #DCDCDC",
+/* pixels */
+"BBBBBBBBBBBBD",
+"BAAAAAAAAAAED",
+"BACCCCCCCCCCD",
+"BACCCCCCCACED",
+"BACCCCCCAACED",
+"BACACCCAAACED",
+"BACAACAAACCED",
+"BACAAAAACCCED",
+"BACCAAACCCCCD",
+"BACCCACCCCCED",
+"BACCCCCCCCCED",
+"BEEEEEEEEEEED",
+"DDDDDDDDDDDDD"
+};
+
 static const char *checked_radio_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "12 12 6 1",
@@ -1133,40 +1185,40 @@ static const char **
     // checkboxes first
     {
         // normal state
-        { checked_xpm, unchecked_xpm },
+        { checked_xpm, unchecked_xpm, undetermined_xpm },
 
         // pressed state
-        { pressed_checked_xpm, pressed_unchecked_xpm },
+        { pressed_checked_xpm, pressed_unchecked_xpm, pressed_undetermined_xpm },
 
         // disabled state
-        { pressed_disabled_checked_xpm, pressed_unchecked_xpm },
+        { pressed_disabled_checked_xpm, pressed_unchecked_xpm, pressed_disabled_checked_xpm },
     },
 
     // radio
     {
         // normal state
-        { checked_radio_xpm, unchecked_radio_xpm },
+        { checked_radio_xpm, unchecked_radio_xpm, NULL },
 
         // pressed state
-        { pressed_checked_radio_xpm, pressed_unchecked_radio_xpm },
+        { pressed_checked_radio_xpm, pressed_unchecked_radio_xpm, NULL },
 
         // disabled state
-        { pressed_disabled_checked_radio_xpm, pressed_unchecked_radio_xpm },
+        { pressed_disabled_checked_radio_xpm, pressed_unchecked_radio_xpm, NULL },
     },
 
     // menu
     {
         // normal state
-        { checked_menu_xpm, NULL },
+        { checked_menu_xpm, NULL, NULL },
 
         // selected state
-        { selected_checked_menu_xpm, NULL },
+        { selected_checked_menu_xpm, NULL, NULL },
 
         // disabled state
-        { disabled_checked_menu_xpm, NULL },
+        { disabled_checked_menu_xpm, NULL, NULL },
 
         // disabled selected state
-        { selected_disabled_checked_menu_xpm, NULL },
+        { selected_disabled_checked_menu_xpm, NULL, NULL },
     }
 };
 
@@ -1337,11 +1389,11 @@ wxColour wxWin32ColourScheme::GetBackground(wxWindow *win) const
         wxTextCtrl *text = wxDynamicCast(win, wxTextCtrl);
 #if wxUSE_LISTBOX
         wxListBox* listBox = wxDynamicCast(win, wxListBox);
-#endif        
+#endif
         if ( text
 #if wxUSE_LISTBOX
          || listBox
-#endif         
+#endif
           )
         {
             if ( !win->IsEnabled() ) // not IsEditable()
@@ -1355,7 +1407,7 @@ wxColour wxWin32ColourScheme::GetBackground(wxWindow *win) const
                 }
             }
         }
-        
+
         if (!col.Ok())
             col = Get(CONTROL); // Most controls should be this colour, not WINDOW
     }
@@ -1893,7 +1945,7 @@ wxRect wxWin32Renderer::GetBorderDimensions(wxBorder border) const
             break;
 
         default:
-        { 
+        {
             // char *crash = NULL;
             // *crash = 0;
             wxFAIL_MSG(_T("unknown border type"));
@@ -2313,7 +2365,9 @@ wxBitmap wxWin32Renderer::GetIndicator(IndicatorType indType, int flags)
 
     IndicatorStatus indStatus = flags & wxCONTROL_CHECKED
                                     ? IndicatorStatus_Checked
-                                    : IndicatorStatus_Unchecked;
+                                    : ( flags & wxCONTROL_UNDETERMINED
+                                          ? IndicatorStatus_Undeterminated
+                                          : IndicatorStatus_Unchecked );
 
     wxBitmap bmp = m_bmpIndicators[indType][indState][indStatus];
     if ( !bmp.Ok() )
@@ -2486,13 +2540,23 @@ void wxWin32Renderer::DrawTab(wxDC& dc,
                               int flags,
                               int indexAccel)
 {
+    #define SELECT_FOR_VERTICAL(X,Y) ( isVertical ? Y : X )
+    #define REVERSE_FOR_VERTICAL(X,Y) \
+        SELECT_FOR_VERTICAL(X,Y)      \
+        ,                             \
+        SELECT_FOR_VERTICAL(Y,X)
+
     wxRect rect = rectOrig;
+
+    bool isVertical = ( dir == wxLEFT ) || ( dir == wxRIGHT );
 
     // the current tab is drawn indented (to the top for default case) and
     // bigger than the other ones
     const wxSize indent = GetTabIndent();
     if ( flags & wxCONTROL_SELECTED )
     {
+        rect.Inflate( SELECT_FOR_VERTICAL( indent.x , 0),
+                      SELECT_FOR_VERTICAL( 0, indent.y ));
         switch ( dir )
         {
             default:
@@ -2500,100 +2564,146 @@ void wxWin32Renderer::DrawTab(wxDC& dc,
                 // fall through
 
             case wxTOP:
-                rect.Inflate(indent.x, 0);
                 rect.y -= indent.y;
-                rect.height += indent.y;
-                break;
-
+                // fall through
             case wxBOTTOM:
-                rect.Inflate(indent.x, 0);
                 rect.height += indent.y;
                 break;
 
             case wxLEFT:
+                rect.x -= indent.x;
+                // fall through
             case wxRIGHT:
-                wxFAIL_MSG(_T("TODO"));
+                rect.width += indent.x;
                 break;
         }
     }
 
     // draw the text, image and the focus around them (if necessary)
-    wxRect rectLabel = rect;
+    wxRect rectLabel( REVERSE_FOR_VERTICAL(rect.x,rect.y),
+                      REVERSE_FOR_VERTICAL(rect.width,rect.height)
+                    );
     rectLabel.Deflate(1, 1);
-    DrawButtonLabel(dc, label, bitmap, rectLabel,
-                    flags, wxALIGN_CENTRE, indexAccel);
+    if ( isVertical )
+    {
+        // draw it horizontally into memory and rotate for screen
+        wxMemoryDC dcMem;
+        wxBitmap bitmapRotated,
+                 bitmapMem( rectLabel.x + rectLabel.width,
+                            rectLabel.y + rectLabel.height );
+        dcMem.SelectObject(bitmapMem);
+        dcMem.SetBackground(dc.GetBackground());
+        dcMem.SetFont(dc.GetFont());
+        dcMem.SetTextForeground(dc.GetTextForeground());
+        dcMem.Clear();
+        bitmapRotated = wxBitmap( wxImage( bitmap.ConvertToImage() ).Rotate90(dir==wxLEFT) );
+        DrawButtonLabel(dcMem, label, bitmapRotated, rectLabel,
+                        flags, wxALIGN_CENTRE, indexAccel);
+        dcMem.SelectObject(wxNullBitmap);
+        bitmapMem = bitmapMem.GetSubBitmap(rectLabel);
+        bitmapMem = wxBitmap(wxImage(bitmapMem.ConvertToImage()).Rotate90(dir==wxRIGHT));
+        dc.DrawBitmap(bitmapMem, rectLabel.y, rectLabel.x, false);
+    }
+    else
+    {
+        DrawButtonLabel(dc, label, bitmap, rectLabel,
+                        flags, wxALIGN_CENTRE, indexAccel);
+    }
 
     // now draw the tab border itself (maybe use DrawRoundedRectangle()?)
     static const wxCoord CUTOFF = 2; // radius of the rounded corner
-    wxCoord x = rect.x,
-            y = rect.y,
-            x2 = rect.GetRight(),
-            y2 = rect.GetBottom();
+    wxCoord x = SELECT_FOR_VERTICAL(rect.x,rect.y),
+            y = SELECT_FOR_VERTICAL(rect.y,rect.x),
+            x2 = SELECT_FOR_VERTICAL(rect.GetRight(),rect.GetBottom()),
+            y2 = SELECT_FOR_VERTICAL(rect.GetBottom(),rect.GetRight());
 
     // FIXME: all this code will break if the tab indent or the border width,
     //        it is tied to the fact that both of them are equal to 2
     switch ( dir )
     {
         default:
+            // default is top
+        case wxLEFT:
+            // left orientation looks like top but IsVertical makes x and y reversed
         case wxTOP:
+            // top is not vertical so use coordinates in written order
             dc.SetPen(m_penHighlight);
-            dc.DrawLine(x, y2, x, y + CUTOFF);
-            dc.DrawLine(x, y + CUTOFF, x + CUTOFF, y);
-            dc.DrawLine(x + CUTOFF, y, x2 - CUTOFF + 1, y);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y2),
+                        REVERSE_FOR_VERTICAL(x, y + CUTOFF));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y + CUTOFF),
+                        REVERSE_FOR_VERTICAL(x + CUTOFF, y));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + CUTOFF, y),
+                        REVERSE_FOR_VERTICAL(x2 - CUTOFF + 1, y));
 
             dc.SetPen(m_penBlack);
-            dc.DrawLine(x2, y2, x2, y + CUTOFF);
-            dc.DrawLine(x2, y + CUTOFF, x2 - CUTOFF, y);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y2),
+                        REVERSE_FOR_VERTICAL(x2, y + CUTOFF));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y + CUTOFF),
+                        REVERSE_FOR_VERTICAL(x2 - CUTOFF, y));
 
             dc.SetPen(m_penDarkGrey);
-            dc.DrawLine(x2 - 1, y2, x2 - 1, y + CUTOFF - 1);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2 - 1, y2),
+                        REVERSE_FOR_VERTICAL(x2 - 1, y + CUTOFF - 1));
 
             if ( flags & wxCONTROL_SELECTED )
             {
                 dc.SetPen(m_penLightGrey);
 
                 // overwrite the part of the border below this tab
-                dc.DrawLine(x + 1, y2 + 1, x2 - 1, y2 + 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y2 + 1),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y2 + 1));
 
                 // and the shadow of the tab to the left of us
-                dc.DrawLine(x + 1, y + CUTOFF + 1, x + 1, y2 + 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y + CUTOFF + 1),
+                            REVERSE_FOR_VERTICAL(x + 1, y2 + 1));
             }
             break;
 
+        case wxRIGHT:
+            // right orientation looks like bottom but IsVertical makes x and y reversed
         case wxBOTTOM:
+            // bottom is not vertical so use coordinates in written order
             dc.SetPen(m_penHighlight);
             // we need to continue one pixel further to overwrite the corner of
             // the border for the selected tab
-            dc.DrawLine(x, y - (flags & wxCONTROL_SELECTED ? 1 : 0),
-                        x, y2 - CUTOFF);
-            dc.DrawLine(x, y2 - CUTOFF, x + CUTOFF, y2);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y - (flags & wxCONTROL_SELECTED ? 1 : 0)),
+                        REVERSE_FOR_VERTICAL(x, y2 - CUTOFF));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y2 - CUTOFF),
+                        REVERSE_FOR_VERTICAL(x + CUTOFF, y2));
 
             dc.SetPen(m_penBlack);
-            dc.DrawLine(x + CUTOFF, y2, x2 - CUTOFF + 1, y2);
-            dc.DrawLine(x2, y, x2, y2 - CUTOFF);
-            dc.DrawLine(x2, y2 - CUTOFF, x2 - CUTOFF, y2);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + CUTOFF, y2),
+                        REVERSE_FOR_VERTICAL(x2 - CUTOFF + 1, y2));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y),
+                        REVERSE_FOR_VERTICAL(x2, y2 - CUTOFF));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y2 - CUTOFF),
+                        REVERSE_FOR_VERTICAL(x2 - CUTOFF, y2));
 
             dc.SetPen(m_penDarkGrey);
-            dc.DrawLine(x + CUTOFF, y2 - 1, x2 - CUTOFF + 1, y2 - 1);
-            dc.DrawLine(x2 - 1, y, x2 - 1, y2 - CUTOFF + 1);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + CUTOFF, y2 - 1),
+                        REVERSE_FOR_VERTICAL(x2 - CUTOFF + 1, y2 - 1));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2 - 1, y),
+                        REVERSE_FOR_VERTICAL(x2 - 1, y2 - CUTOFF + 1));
 
             if ( flags & wxCONTROL_SELECTED )
             {
                 dc.SetPen(m_penLightGrey);
 
                 // overwrite the part of the (double!) border above this tab
-                dc.DrawLine(x + 1, y - 1, x2 - 1, y - 1);
-                dc.DrawLine(x + 1, y - 2, x2 - 1, y - 2);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y - 1),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y - 1));
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y - 2),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y - 2));
 
                 // and the shadow of the tab to the left of us
-                dc.DrawLine(x + 1, y2 - CUTOFF, x + 1, y - 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y2 - CUTOFF),
+                            REVERSE_FOR_VERTICAL(x + 1, y - 1));
             }
             break;
-
-        case wxLEFT:
-        case wxRIGHT:
-            wxFAIL_MSG(_T("TODO"));
     }
+
+    #undef SELECT_FOR_VERTICAL
+    #undef REVERSE_FOR_VERTICAL
 }
 
 // ----------------------------------------------------------------------------
@@ -2609,7 +2719,7 @@ wxWin32Renderer::GetSliderThumbSize(const wxRect& WXUNUSED(rect),
     wxCoord width  = wxMax (lenThumb, SLIDER_THUMB_LENGTH) / 2;
     wxCoord height = wxMax (lenThumb, SLIDER_THUMB_LENGTH);
 
-    if (orient == wxHORIZONTAL) 
+    if (orient == wxHORIZONTAL)
     {
         size.x = width;
         size.y = height;
@@ -2644,11 +2754,11 @@ wxRect wxWin32Renderer::GetSliderShaftRect(const wxRect& rectOrig,
 
     if (orient == wxHORIZONTAL) {
         rect.x += SLIDER_MARGIN;
-        if (left & right) 
+        if (left & right)
         {
             rect.y += wxMax ((rect.height - 2*BORDER_THICKNESS) / 2, sizeThumb.y/2);
         }
-        else if (left) 
+        else if (left)
         {
             rect.y += wxMax ((rect.height - 2*BORDER_THICKNESS - sizeThumb.y/2), sizeThumb.y/2);
         }
@@ -2662,11 +2772,11 @@ wxRect wxWin32Renderer::GetSliderShaftRect(const wxRect& rectOrig,
     else
     { // == wxVERTICAL
         rect.y += SLIDER_MARGIN;
-        if (left & right) 
+        if (left & right)
         {
             rect.x += wxMax ((rect.width - 2*BORDER_THICKNESS) / 2, sizeThumb.x/2);
         }
-        else if (left) 
+        else if (left)
         {
             rect.x += wxMax ((rect.width - 2*BORDER_THICKNESS - sizeThumb.x/2), sizeThumb.x/2);
         }
@@ -2780,7 +2890,7 @@ void wxWin32Renderer::DrawSliderThumb(wxDC& dc,
         DrawLine(dc, x3+1-c, y1, x2, y3, transpose);
     }
     DrawLine(dc, x2, y3, x2, y4, transpose);
-    if (right) 
+    if (right)
     {
         DrawLine(dc, x3+1-c, y2, x2, y4, transpose);
     }
@@ -2800,7 +2910,7 @@ void wxWin32Renderer::DrawSliderThumb(wxDC& dc,
     }
 
     dc.SetPen(m_penHighlight);
-    if (left) 
+    if (left)
     {
         DrawLine(dc, x1, y3, x3, y1, transpose);
         DrawLine(dc, x3+1-c, y1+1, x2-1, y3, transpose);
@@ -2810,7 +2920,7 @@ void wxWin32Renderer::DrawSliderThumb(wxDC& dc,
         DrawLine(dc, x1, y1, x2, y1, transpose);
     }
     DrawLine(dc, x1, y3, x1, y4, transpose);
-    if (right) 
+    if (right)
     {
         DrawLine(dc, x1, y4, x3+c, y2+c, transpose);
     }
@@ -2818,7 +2928,7 @@ void wxWin32Renderer::DrawSliderThumb(wxDC& dc,
     if (flags & wxCONTROL_PRESSED) {
         // TODO: MSW fills the entire area inside, not just the rect
         wxRect rectInt = rect;
-        if ( transpose ) 
+        if ( transpose )
         {
             rectInt.SetLeft(y3);
             rectInt.SetRight(y4);
@@ -3822,7 +3932,7 @@ wxSize wxWin32Renderer::GetFrameTotalSize(const wxSize& clientSize,
 
 wxSize wxWin32Renderer::GetFrameMinSize(int flags) const
 {
-    wxSize s(0, 0);
+    wxSize s;
 
     if ( (flags & wxTOPLEVEL_BORDER) && !(flags & wxTOPLEVEL_MAXIMIZED) )
     {
@@ -4108,6 +4218,12 @@ void wxWin32Renderer::AdjustSize(wxSize *size, const wxWindow *window)
     }
 #endif // wxUSE_SCROLLBAR/!wxUSE_SCROLLBAR
 
+#if wxUSE_BMPBUTTON
+    if ( wxDynamicCast(window, wxBitmapButton) )
+    {
+        // do nothing
+    } else
+#endif // wxUSE_BMPBUTTON
 #if wxUSE_BUTTON
     if ( wxDynamicCast(window, wxButton) )
     {
@@ -4548,16 +4664,16 @@ class wxWin32SystemMenuEvtHandler : public wxEvtHandler
 {
 public:
     wxWin32SystemMenuEvtHandler(wxWin32FrameInputHandler *handler);
-    
+
     void Attach(wxInputConsumer *consumer);
     void Detach();
-    
+
 private:
     DECLARE_EVENT_TABLE()
     void OnSystemMenu(wxCommandEvent &event);
     void OnCloseFrame(wxCommandEvent &event);
     void OnClose(wxCloseEvent &event);
-   
+
     wxWin32FrameInputHandler *m_inputHnd;
     wxTopLevelWindow         *m_wnd;
 #if wxUSE_ACCEL
@@ -4578,9 +4694,9 @@ void wxWin32SystemMenuEvtHandler::Attach(wxInputConsumer *consumer)
 
     m_wnd = wxStaticCast(consumer->GetInputWindow(), wxTopLevelWindow);
     m_wnd->PushEventHandler(this);
-    
+
 #if wxUSE_ACCEL
-    // VS: This code relies on using generic implementation of 
+    // VS: This code relies on using generic implementation of
     //     wxAcceleratorTable in wxUniv!
     wxAcceleratorTable table = *m_wnd->GetAcceleratorTable();
     m_oldAccelTable = table;
@@ -4597,7 +4713,7 @@ void wxWin32SystemMenuEvtHandler::Detach()
 #if wxUSE_ACCEL
         m_wnd->SetAcceleratorTable(m_oldAccelTable);
 #endif
-        m_wnd->RemoveEventHandler(this); 
+        m_wnd->RemoveEventHandler(this);
         m_wnd = NULL;
     }
 }
@@ -4678,8 +4794,8 @@ bool wxWin32FrameInputHandler::HandleMouse(wxInputConsumer *consumer,
         else if ( tlw->GetWindowStyle() & wxSYSTEM_MENU )
         {
             if ( (event.LeftDown() && hit == wxHT_TOPLEVEL_ICON) ||
-                 (event.RightDown() && 
-                      (hit == wxHT_TOPLEVEL_TITLEBAR || 
+                 (event.RightDown() &&
+                      (hit == wxHT_TOPLEVEL_TITLEBAR ||
                        hit == wxHT_TOPLEVEL_ICON)) )
             {
                 PopupSystemMenu(tlw, event.GetPosition());
@@ -4691,7 +4807,7 @@ bool wxWin32FrameInputHandler::HandleMouse(wxInputConsumer *consumer,
     return wxStdFrameInputHandler::HandleMouse(consumer, event);
 }
 
-void wxWin32FrameInputHandler::PopupSystemMenu(wxTopLevelWindow *window, 
+void wxWin32FrameInputHandler::PopupSystemMenu(wxTopLevelWindow *window,
                                                const wxPoint& pos) const
 {
     wxMenu *menu = new wxMenu;
@@ -4707,7 +4823,7 @@ void wxWin32FrameInputHandler::PopupSystemMenu(wxTopLevelWindow *window,
         menu->Append(wxID_MAXIMIZE_FRAME , _("Ma&ximize"));
     menu->AppendSeparator();
     menu->Append(wxID_CLOSE_FRAME, _("Close\tAlt-F4"));
-    
+
     if ( window->GetWindowStyle() & wxMAXIMIZE_BOX )
     {
         if ( window->IsMaximized() )
@@ -4725,7 +4841,7 @@ void wxWin32FrameInputHandler::PopupSystemMenu(wxTopLevelWindow *window,
     delete menu;
 }
 
-bool wxWin32FrameInputHandler::HandleActivation(wxInputConsumer *consumer, 
+bool wxWin32FrameInputHandler::HandleActivation(wxInputConsumer *consumer,
                                                 bool activated)
 {
     if ( consumer->GetInputWindow()->GetWindowStyle() & wxSYSTEM_MENU )

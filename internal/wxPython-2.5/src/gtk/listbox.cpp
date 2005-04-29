@@ -51,6 +51,8 @@ extern bool           g_blockEventsOnDrag;
 extern bool           g_blockEventsOnScroll;
 extern wxCursor       g_globalCursor;
 extern wxWindowGTK   *g_delayedFocus;
+extern wxWindowGTK   *g_focusWindow;
+extern wxWindowGTK   *g_focusWindowLast;
 
 static bool       g_hasDoubleClicked = FALSE;
 
@@ -65,7 +67,8 @@ struct wxlistbox_idle_struct
     gint         m_tag;
 };
 
-extern "C" gint wxlistbox_idle_callback( gpointer gdata )
+extern "C" {
+static gint wxlistbox_idle_callback( gpointer gdata )
 {
     wxlistbox_idle_struct* data = (wxlistbox_idle_struct*) gdata;
     gdk_threads_enter();
@@ -86,6 +89,73 @@ extern "C" gint wxlistbox_idle_callback( gpointer gdata )
 
     return TRUE;
 }
+}
+
+//-----------------------------------------------------------------------------
+// "focus_in_event"
+//-----------------------------------------------------------------------------
+
+extern "C" {
+static gint gtk_listitem_focus_in_callback( GtkWidget *widget,
+                                          GdkEvent *WXUNUSED(event),
+                                          wxWindow *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+
+    g_focusWindowLast =
+    g_focusWindow = win;
+
+    // does the window itself think that it has the focus?
+    if ( !win->m_hasFocus )
+    {
+        // not yet, notify it
+        win->m_hasFocus = TRUE;
+        
+        wxChildFocusEvent eventChildFocus(win);
+        (void)win->GetEventHandler()->ProcessEvent(eventChildFocus);
+
+        wxFocusEvent eventFocus(wxEVT_SET_FOCUS, win->GetId());
+        eventFocus.SetEventObject(win);
+
+        (void)win->GetEventHandler()->ProcessEvent(eventFocus);
+    }
+
+    return FALSE;
+}
+}
+
+//-----------------------------------------------------------------------------
+// "focus_out_event"
+//-----------------------------------------------------------------------------
+
+extern "C" {
+static gint gtk_listitem_focus_out_callback( GtkWidget *widget, GdkEventFocus *gdk_event, wxWindowGTK *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+
+    g_focusWindow = (wxWindowGTK *)NULL;
+
+    // don't send the window a kill focus event if it thinks that it doesn't
+    // have focus already
+    if ( win->m_hasFocus )
+    {
+        win->m_hasFocus = FALSE;
+
+        wxFocusEvent event( wxEVT_KILL_FOCUS, win->GetId() );
+        event.SetEventObject( win );
+
+        // even if we did process the event in wx code, still let GTK itself
+        // process it too as otherwise bad things happen, especially in GTK2
+        // where the text control simply aborts the program if it doesn't get
+        // the matching focus out event
+        (void)win->GetEventHandler()->ProcessEvent( event );
+    }
+
+    return FALSE;
+}
+}
 
 //-----------------------------------------------------------------------------
 // "button_release_event"
@@ -97,6 +167,7 @@ extern "C" gint wxlistbox_idle_callback( gpointer gdata )
    this can lead to race conditions so that we emit the dclick event
    after the GDK_BUTTON_RELEASE event after the GDK_2BUTTON_PRESS event */
 
+extern "C" {
 static gint
 gtk_listbox_button_release_callback( GtkWidget * WXUNUSED(widget),
                                      GdkEventButton * WXUNUSED(gdk_event),
@@ -130,17 +201,19 @@ gtk_listbox_button_release_callback( GtkWidget * WXUNUSED(widget),
         n = -1;
     }
 
-    event.m_commandInt = n;
+    event.SetInt(n);
 
     listbox->GetEventHandler()->ProcessEvent( event );
 
     return FALSE;
+}
 }
 
 //-----------------------------------------------------------------------------
 // "button_press_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint
 gtk_listbox_button_press_callback( GtkWidget *widget,
                                    GdkEventButton *gdk_event,
@@ -169,16 +242,34 @@ gtk_listbox_button_press_callback( GtkWidget *widget,
     }
 #endif // wxUSE_CHECKLISTBOX
 
+    if ((gdk_event->state == 0) &&
+         (((listbox->GetWindowStyleFlag() & wxLB_MULTIPLE) != 0) ||
+          ((listbox->GetWindowStyleFlag() & wxLB_EXTENDED) != 0)) )
+    {
+            listbox->m_blockEvent = TRUE;
+
+            int i;
+            for (i = 0; i < (int)listbox->GetCount(); i++)
+                if (i != sel)
+                    gtk_list_unselect_item( GTK_LIST(listbox->m_list), i );
+                
+            listbox->m_blockEvent = FALSE;
+            
+            return false;
+    }
+
     /* emit wxEVT_COMMAND_LISTBOX_DOUBLECLICKED later */
     g_hasDoubleClicked = (gdk_event->type == GDK_2BUTTON_PRESS);
 
     return FALSE;
+}
 }
 
 //-----------------------------------------------------------------------------
 // "key_press_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint
 gtk_listbox_key_press_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxListBox *listbox )
 {
@@ -256,7 +347,7 @@ gtk_listbox_key_press_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxLis
             {
                 n = -1;
             }
-            new_event.m_commandInt = n;
+            new_event.SetInt(n);
             listbox->GetEventHandler()->ProcessEvent( new_event );
         }
     }
@@ -269,22 +360,11 @@ gtk_listbox_key_press_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxLis
 
     return FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "select" and "deselect"
 //-----------------------------------------------------------------------------
-
-static void gtk_listitem_select_cb( GtkWidget *widget, wxListBox *listbox, bool is_selection );
-
-static void gtk_listitem_select_callback( GtkWidget *widget, wxListBox *listbox )
-{
-    gtk_listitem_select_cb( widget, listbox, TRUE );
-}
-
-static void gtk_listitem_deselect_callback( GtkWidget *widget, wxListBox *listbox )
-{
-    gtk_listitem_select_cb( widget, listbox, FALSE );
-}
 
 static void gtk_listitem_select_cb( GtkWidget *widget,
                                     wxListBox *listbox,
@@ -329,11 +409,44 @@ static void gtk_listitem_select_cb( GtkWidget *widget,
         n = -1;
     }
 
-    event.m_commandInt = n;
+    event.SetInt(n);
 
 //    No longer required with new code in wxLB_SINGLE
 //    listbox->GetEventHandler()->AddPendingEvent( event );
     listbox->GetEventHandler()->ProcessEvent( event );
+}
+
+extern "C" {
+static void gtk_listitem_select_callback( GtkWidget *widget, wxListBox *listbox )
+{
+    gtk_listitem_select_cb( widget, listbox, TRUE );
+}
+}
+
+extern "C" {
+static void gtk_listitem_deselect_callback( GtkWidget *widget, wxListBox *listbox )
+{
+    gtk_listitem_select_cb( widget, listbox, FALSE );
+}
+}
+
+//-----------------------------------------------------------------------------
+// wxListBox
+//-----------------------------------------------------------------------------
+
+extern "C" {
+static gint
+gtk_listbox_realized_callback( GtkWidget *m_widget, wxListBox *win )
+{
+    if (g_isIdle)
+        wxapp_install_idle_handler();
+        
+    GList *child = win->m_list->children;
+    for (child = win->m_list->children; child != NULL; child = child->next)
+        gtk_widget_show( GTK_WIDGET(child->data) );
+    
+    return false;
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -411,7 +524,7 @@ bool wxListBox::Create( wxWindow *parent, wxWindowID id,
     {
         // if style was 0 set single mode
         m_windowStyle |= wxLB_SINGLE;
-        mode = GTK_SELECTION_MULTIPLE;
+        mode = GTK_SELECTION_SINGLE;
     }
 
     gtk_list_set_selection_mode( GTK_LIST(m_list), mode );
@@ -426,6 +539,9 @@ bool wxListBox::Create( wxWindow *parent, wxWindowID id,
 
     gtk_widget_show( GTK_WIDGET(m_list) );
 
+    gtk_signal_connect( GTK_OBJECT(m_list), "realize",
+                        GTK_SIGNAL_FUNC(gtk_listbox_realized_callback), (gpointer) this );
+                            
     if ( style & wxLB_SORT )
     {
         // this will change DoAppend() behaviour
@@ -585,11 +701,11 @@ void wxListBox::GtkAddItem( const wxString &item, int pos )
     else
         gtk_list_insert_items( GTK_LIST (m_list), gitem_list, pos );
 
-    gtk_signal_connect( GTK_OBJECT(list_item), "select",
+    gtk_signal_connect_after( GTK_OBJECT(list_item), "select",
       GTK_SIGNAL_FUNC(gtk_listitem_select_callback), (gpointer)this );
 
     if (HasFlag(wxLB_MULTIPLE) || HasFlag(wxLB_EXTENDED))
-        gtk_signal_connect( GTK_OBJECT(list_item), "deselect",
+        gtk_signal_connect_after( GTK_OBJECT(list_item), "deselect",
           GTK_SIGNAL_FUNC(gtk_listitem_deselect_callback), (gpointer)this );
 
     gtk_signal_connect( GTK_OBJECT(list_item),
@@ -607,12 +723,19 @@ void wxListBox::GtkAddItem( const wxString &item, int pos )
                            (GtkSignalFunc)gtk_listbox_key_press_callback,
                            (gpointer)this );
 
-    ConnectWidget( list_item );
 
-    gtk_widget_show( list_item );
+    gtk_signal_connect( GTK_OBJECT(list_item), "focus_in_event",
+            GTK_SIGNAL_FUNC(gtk_listitem_focus_in_callback), (gpointer)this );
+
+    gtk_signal_connect( GTK_OBJECT(list_item), "focus_out_event",
+            GTK_SIGNAL_FUNC(gtk_listitem_focus_out_callback), (gpointer)this );
+
+    ConnectWidget( list_item );
 
     if (GTK_WIDGET_REALIZED(m_widget))
     {
+        gtk_widget_show( list_item );
+        
         gtk_widget_realize( list_item );
         gtk_widget_realize( GTK_BIN(list_item)->child );
 
@@ -915,7 +1038,7 @@ bool wxListBox::IsSelected( int n ) const
     return (GTK_WIDGET(target->data)->state == GTK_STATE_SELECTED) ;
 }
 
-void wxListBox::SetSelection( int n, bool select )
+void wxListBox::DoSetSelection( int n, bool select )
 {
     wxCHECK_RET( m_list != NULL, wxT("invalid listbox") );
 

@@ -20,9 +20,21 @@
 %}
 
 //---------------------------------------------------------------------------
+
+enum {
+    wxIMAGE_ALPHA_TRANSPARENT,
+    wxIMAGE_ALPHA_THRESHOLD,
+    wxIMAGE_ALPHA_OPAQUE
+};
+
+
+//---------------------------------------------------------------------------
 %newgroup
 
-
+DocStr(wxImageHandler,
+"This is the base class for implementing image file loading/saving, and
+image creation from data. It is used within `wx.Image` and is not
+normally seen by the application.", "");
 class wxImageHandler : public wxObject {
 public:
     // wxImageHandler();    Abstract Base Class
@@ -68,45 +80,169 @@ public:
         "Find first colour that is not used in the image and has higher RGB
 values than startR, startG, startB.  Returns a tuple consisting of a
 success flag and rgb values.", "");
+
+    %extend {
+        DocStr(GetCount,
+               "Returns the pixel count for the given key.  Use `MakeKey` to create a
+key value from a RGB tripple.", "");
+        unsigned long GetCount(unsigned long key) {
+            wxImageHistogramEntry e = (*self)[key];
+            return e.value;
+        }
+
+        DocStr(GetCountRGB,
+               "Returns the pixel count for the given RGB values.", "");
+        unsigned long GetCountRGB(unsigned char r,
+                                  unsigned char g,
+                                  unsigned char b) {
+            unsigned long key = wxImageHistogram::MakeKey(r, g, b);
+            wxImageHistogramEntry e = (*self)[key];
+            return e.value;
+        }
+        
+        DocStr(GetCountColour,
+               "Returns the pixel count for the given `wx.Colour` value.", "");
+        unsigned long GetCountColour(const wxColour& colour) {
+            unsigned long key = wxImageHistogram::MakeKey(colour.Red(),
+                                                          colour.Green(),
+                                                          colour.Blue());
+            wxImageHistogramEntry e = (*self)[key];
+            return e.value;
+        }
+    }
+    
 };
 
+
+//---------------------------------------------------------------------------
+
+%{
+    typedef unsigned char* buffer;
+%}    
+
+%typemap(in) (buffer data, int DATASIZE)
+    { if (!PyArg_Parse($input, "t#", &$1, &$2)) SWIG_fail; }
+
+%typemap(in) (buffer alpha, int ALPHASIZE)
+    { if (!PyArg_Parse($input, "t#", &$1, &$2)) SWIG_fail; }
 
 //---------------------------------------------------------------------------
 
 
 class wxImage : public wxObject {
 public:
-    wxImage( const wxString& name, long type = wxBITMAP_TYPE_ANY, int index = -1 );
+    %typemap(out) wxImage*;    // turn off this typemap
+
+    DocCtorStr(
+        wxImage( const wxString& name, long type = wxBITMAP_TYPE_ANY, int index = -1 ),
+        "", "");
+    
     ~wxImage();
 
     // Alternate constructors
-    %name(ImageFromMime) wxImage(const wxString& name, const wxString& mimetype, int index = -1);
-    %name(ImageFromStream) wxImage(wxInputStream& stream, long type = wxBITMAP_TYPE_ANY, int index = -1);
-    %name(ImageFromStreamMime) wxImage(wxInputStream& stream, const wxString& mimetype, int index = -1 );
+    DocCtorStrName(
+        wxImage(const wxString& name, const wxString& mimetype, int index = -1),
+        "", "",
+        ImageFromMime);
+    
+    DocCtorStrName(
+        wxImage(wxInputStream& stream, long type = wxBITMAP_TYPE_ANY, int index = -1),
+        "", "",
+        ImageFromStream);
+    
+    DocCtorStrName(
+        wxImage(wxInputStream& stream, const wxString& mimetype, int index = -1 ),
+        "", "",
+        ImageFromStreamMime);
+    
     %extend {
-        %name(EmptyImage) wxImage(int width=0, int height=0, bool clear = true) {
-            if (width > 0 && height > 0)
-                return new wxImage(width, height, clear);
-            else
-                return new wxImage;
-        }
-
-        MustHaveApp(wxImage(const wxBitmap &bitmap));
-        %name(ImageFromBitmap) wxImage(const wxBitmap &bitmap) {
-            return new wxImage(bitmap.ConvertToImage());
-        }
-
-        %name(ImageFromData) wxImage(int width, int height, unsigned char* data) {
-            // Copy the source data so the wxImage can clean it up later
-            unsigned char* copy = (unsigned char*)malloc(width*height*3);
-            if (copy == NULL) {
-                PyErr_NoMemory();
-                return NULL;
+        %RenameDocCtor(
+            EmptyImage,
+            "Construct an empty image of a given size, optionally setting all
+pixels to black.", "",
+            wxImage(int width=0, int height=0, bool clear = true))
+            {
+                if (width > 0 && height > 0)
+                    return new wxImage(width, height, clear);
+                else
+                    return new wxImage;
             }
-            memcpy(copy, data, width*height*3);
-            return new wxImage(width, height, copy, false);
-        }
+
+        
+       MustHaveApp(wxImage(const wxBitmap &bitmap));
+        
+        %RenameDocCtor(
+            ImageFromBitmap,
+            "Construct an Image from a `wx.Bitmap`.", "",
+            wxImage(const wxBitmap &bitmap))
+            {
+                return new wxImage(bitmap.ConvertToImage());
+            }
+
+        %RenameDocCtor(
+            ImageFromData,
+            "Construct an Image from a buffer of RGB bytes.  Accepts either a
+string or a buffer object holding the data and the length of the data
+must be width*height*3.", "",
+            wxImage(int width, int height, buffer data, int DATASIZE))
+            {
+                if (DATASIZE != width*height*3) {
+                    wxPyErr_SetString(PyExc_ValueError, "Invalid data buffer size.");
+                    return NULL;
+                }
+            
+                // Copy the source data so the wxImage can clean it up later
+                buffer copy = (buffer)malloc(DATASIZE);
+                if (copy == NULL) {
+                    wxPyBLOCK_THREADS(PyErr_NoMemory());
+                    return NULL;
+                }            
+                memcpy(copy, data, DATASIZE);
+                return new wxImage(width, height, copy, false);
+            }
+
+        
+        %RenameDocCtor(
+            ImageFromDataWithAlpha,
+            "Construct an Image from a buffer of RGB bytes with an Alpha channel.
+Accepts either a string or a buffer object holding the data and the
+length of the data must be width*height*3.", "",
+            wxImage(int width, int height, buffer data, int DATASIZE, buffer alpha, int ALPHASIZE))
+            {
+                if (DATASIZE != width*height*3) {
+                    wxPyErr_SetString(PyExc_ValueError, "Invalid data buffer size.");
+                    return NULL;
+                }
+                if (ALPHASIZE != width*height) {
+                    wxPyErr_SetString(PyExc_ValueError, "Invalid alpha buffer size.");
+                    return NULL;
+                }
+
+                // Copy the source data so the wxImage can clean it up later
+                buffer dcopy = (buffer)malloc(DATASIZE);
+                if (dcopy == NULL) {
+                    wxPyBLOCK_THREADS(PyErr_NoMemory());
+                    return NULL;
+                }
+                memcpy(dcopy, data, DATASIZE);
+            
+                buffer acopy = (buffer)malloc(ALPHASIZE);
+                if (acopy == NULL) {
+                    wxPyBLOCK_THREADS(PyErr_NoMemory());
+                    return NULL;
+                }
+                memcpy(acopy, alpha, ALPHASIZE);
+            
+                return new wxImage(width, height, dcopy, acopy, false);
+            }
     }
+
+    // TODO: wxImage( char** xpmData );
+
+
+    // Turn it back on again
+    %typemap(out) wxImage* { $result = wxPyMake_wxObject($1, $owner); }
+
 
     void Create( int width, int height );
     void Destroy();
@@ -115,7 +251,16 @@ public:
     wxImage ShrinkBy( int xFactor , int yFactor ) const ;
     wxImage& Rescale(int width, int height);
 
+    // resizes the image in place
+    wxImage& Resize( const wxSize& size, const wxPoint& pos, 
+                     int r = -1, int g = -1, int b = -1 );
+    
     void SetRGB( int x, int y, unsigned char r, unsigned char g, unsigned char b );
+
+    %Rename(SetRGBRect,
+            void, SetRGB( const wxRect& rect,
+                          unsigned char r, unsigned char g, unsigned char b ));
+
     unsigned char GetRed( int x, int y );
     unsigned char GetGreen( int x, int y );
     unsigned char GetBlue( int x, int y );
@@ -124,6 +269,21 @@ public:
     unsigned char GetAlpha(int x, int y);
     bool HasAlpha();
 
+    DocDeclStr(
+        void , InitAlpha(),
+        "Initializes the image alpha channel data. It is an error to call it if
+the image already has alpha data. If it doesn't, alpha data will be by
+default initialized to all pixels being fully opaque. But if the image
+has a a mask colour, all mask pixels will be completely transparent.", "");
+
+
+    DocDeclStr(
+        bool , IsTransparent(int x, int y,
+                             unsigned char threshold = wxIMAGE_ALPHA_THRESHOLD) const,
+        "Returns True if this pixel is masked or has an alpha value less than
+the spcified threshold.", "");
+    
+    
     // find first colour that is not used in the image and has higher
     // RGB values than <startR,startG,startB>
     DocDeclAStr(
@@ -136,7 +296,7 @@ success flag and rgb values.", "");
 
     
     DocDeclStr(
-        bool , ConvertAlphaToMask(byte threshold = 128),
+        bool , ConvertAlphaToMask(byte threshold = wxIMAGE_ALPHA_THRESHOLD),
         "If the image has alpha channel, this method converts it to mask. All pixels
 with alpha value less than ``threshold`` are replaced with mask colour and the
 alpha channel is removed. Mask colour is chosen automatically using
@@ -144,6 +304,17 @@ alpha channel is removed. Mask colour is chosen automatically using
 
 If the image image doesn't have alpha channel, ConvertAlphaToMask does
 nothing.", "");
+    
+
+    DocDeclStr(
+        bool , ConvertColourToAlpha( unsigned char r, unsigned char g, unsigned char b ),
+        "This method converts an image where the original alpha information is
+only available as a shades of a colour (actually shades of grey)
+typically when you draw anti-aliased text into a bitmap. The DC
+drawing routines draw grey values on the black background although
+they actually mean to draw white with differnt alpha values.  This
+method reverses it, assuming a black (!) background and white text.
+The method will then fill up the whole image with the colour given.", "");
     
 
     
@@ -161,14 +332,14 @@ nothing.", "");
     static int GetImageCount( const wxString& name, long type = wxBITMAP_TYPE_ANY );
 
     bool LoadFile( const wxString& name, long type = wxBITMAP_TYPE_ANY, int index = -1 );
-    %name(LoadMimeFile)bool LoadFile( const wxString& name, const wxString& mimetype, int index = -1 );
+    %Rename(LoadMimeFile, bool,  LoadFile( const wxString& name, const wxString& mimetype, int index = -1 ));
 
     bool SaveFile( const wxString& name, int type );
-    %name(SaveMimeFile)bool SaveFile( const wxString& name, const wxString& mimetype );
+    %Rename(SaveMimeFile, bool,  SaveFile( const wxString& name, const wxString& mimetype ));
 
-    %name(CanReadStream) static bool CanRead( wxInputStream& stream );
-    %name(LoadStream) bool LoadFile( wxInputStream& stream, long type = wxBITMAP_TYPE_ANY, int index = -1 );
-    %name(LoadMimeStream) bool LoadFile( wxInputStream& stream, const wxString& mimetype, int index = -1 );
+    %Rename(CanReadStream, static bool,  CanRead( wxInputStream& stream ));
+    %Rename(LoadStream, bool,  LoadFile( wxInputStream& stream, long type = wxBITMAP_TYPE_ANY, int index = -1 ));
+    %Rename(LoadMimeStream, bool,  LoadFile( wxInputStream& stream, const wxString& mimetype, int index = -1 ));
 
     bool Ok();
     int GetWidth();
@@ -182,6 +353,14 @@ nothing.", "");
     }
 
     wxImage GetSubImage(const wxRect& rect);
+
+    // Paste the image or part of this image into an image of the given size at the pos
+    //  any newly exposed areas will be filled with the rgb colour
+    //  by default if r = g = b = -1 then fill with this image's mask colour or find and 
+    //  set a suitable mask colour
+    wxImage Size( const wxSize& size, const wxPoint& pos, 
+                  int r = -1, int g = -1, int b = -1 ) const;
+    
     wxImage Copy();
     void Paste( const wxImage &image, int x, int y );
 
@@ -189,59 +368,68 @@ nothing.", "");
     //void SetData( unsigned char *data );
 
     %extend {
-        PyObject* GetData() {
-            unsigned char* data = self->GetData();
+        DocStr(GetData,
+               "Returns a string containing a copy of the RGB bytes of the image.", "");
+        PyObject* GetData()
+        {
+            buffer data = self->GetData();
             int len = self->GetWidth() * self->GetHeight() * 3;
             PyObject* rv;
             wxPyBLOCK_THREADS( rv = PyString_FromStringAndSize((char*)data, len));
             return rv;
         }
-        void SetData(PyObject* data) {
-            unsigned char* dataPtr;
-
-            if (! PyString_Check(data)) {
-                wxPyBLOCK_THREADS(PyErr_SetString(PyExc_TypeError,
-                                                  "Expected string object"));
-                return /* NULL */ ;
-            }
-
-            size_t len = self->GetWidth() * self->GetHeight() * 3;
-            dataPtr = (unsigned char*) malloc(len);
-            wxPyBLOCK_THREADS( memcpy(dataPtr, PyString_AsString(data), len) );
-            self->SetData(dataPtr);
-            // wxImage takes ownership of dataPtr...
+        DocStr(SetData,
+               "Resets the Image's RGB data from a buffer of RGB bytes.  Accepts
+either a string or a buffer object holding the data and the length of
+the data must be width*height*3.", "");
+        void SetData(buffer data, int DATASIZE)
+        {
+            if (DATASIZE != self->GetWidth() * self->GetHeight() * 3) {
+                wxPyErr_SetString(PyExc_ValueError, "Invalid data buffer size.");
+                return;
+            }            
+            buffer copy = (buffer)malloc(DATASIZE);
+            if (copy == NULL) {
+                wxPyBLOCK_THREADS(PyErr_NoMemory());
+                return;
+            }            
+            memcpy(copy, data, DATASIZE);
+            self->SetData(copy, false);
+            // wxImage takes ownership of copy...
         }
 
 
-
-        PyObject* GetDataBuffer() {
-            unsigned char* data = self->GetData();
+        DocStr(GetDataBuffer,
+               "Returns a writable Python buffer object that is pointing at the RGB
+image data buffer inside the wx.Image.", "");
+        PyObject* GetDataBuffer()
+        {
+            buffer data = self->GetData();
             int len = self->GetWidth() * self->GetHeight() * 3;
             PyObject* rv;
             wxPyBLOCK_THREADS( rv = PyBuffer_FromReadWriteMemory(data, len) );
             return rv;
         }
-        void SetDataBuffer(PyObject* data) {
-            unsigned char* buffer;
-            int size;
 
-            bool blocked = wxPyBeginBlockThreads();
-            if (!PyArg_Parse(data, "t#", &buffer, &size))
-                goto done;
-
-            if (size != self->GetWidth() * self->GetHeight() * 3) {
-                PyErr_SetString(PyExc_TypeError, "Incorrect buffer size");
-                goto done;
+        DocStr(SetDataBuffer,
+               "Sets the internal image data pointer to point at a Python buffer
+object.  This can save a copy of the data but you must ensure that the
+buffer object lives longer than the wx.Image does.", "");
+        void SetDataBuffer(buffer data, int DATASIZE)
+        {
+            if (DATASIZE != self->GetWidth() * self->GetHeight() * 3) {
+                wxPyErr_SetString(PyExc_ValueError, "Invalid data buffer size.");
+                return;
             }
-            self->SetData(buffer);
-        done:
-            wxPyEndBlockThreads(blocked);
+            self->SetData(data, true);
         }
 
 
 
+        DocStr(GetAlphaData,
+               "Returns a string containing a copy of the alpha bytes of the image.", "");
         PyObject* GetAlphaData() {
-            unsigned char* data = self->GetAlpha();
+            buffer data = self->GetAlpha();
             if (! data) {
                 RETURN_NONE();
             } else {
@@ -251,49 +439,66 @@ nothing.", "");
                 return rv;
             }
         }
-        void SetAlphaData(PyObject* data) {
-            unsigned char* dataPtr;
 
-            if (! PyString_Check(data)) {
-                PyErr_SetString(PyExc_TypeError, "Expected string object");
-                return /* NULL */ ;
+        DocStr(SetAlphaData,
+               "Resets the Image's alpha data from a buffer of bytes.  Accepts either
+a string or a buffer object holding the data and the length of the
+data must be width*height.", ""); 
+        void SetAlphaData(buffer alpha, int ALPHASIZE)
+        {
+            if (ALPHASIZE != self->GetWidth() * self->GetHeight()) {
+                wxPyErr_SetString(PyExc_ValueError, "Invalid alpha buffer size.");
+                return;
             }
-
-            size_t len = self->GetWidth() * self->GetHeight();
-            dataPtr = (unsigned char*) malloc(len);
-            wxPyBLOCK_THREADS( memcpy(dataPtr, PyString_AsString(data), len) );
-            self->SetAlpha(dataPtr);
-            // wxImage takes ownership of dataPtr...
+            buffer acopy = (buffer)malloc(ALPHASIZE);
+            if (acopy == NULL) {
+                wxPyBLOCK_THREADS(PyErr_NoMemory());
+                return;
+            }
+            memcpy(acopy, alpha, ALPHASIZE);
+            self->SetAlpha(acopy, false);
+            // wxImage takes ownership of acopy...
         }
 
 
-
-        PyObject* GetAlphaBuffer() {
-            unsigned char* data = self->GetAlpha();
+        
+        DocStr(GetDataBuffer,
+               "Returns a writable Python buffer object that is pointing at the Alpha
+data buffer inside the wx.Image.", "");
+        PyObject* GetAlphaBuffer()
+        {
+            buffer data = self->GetAlpha();
             int len = self->GetWidth() * self->GetHeight();
             PyObject* rv;
             wxPyBLOCK_THREADS( rv = PyBuffer_FromReadWriteMemory(data, len) );
             return rv;
         }
-        void SetAlphaBuffer(PyObject* data) {
-            unsigned char* buffer;
-            int size;
 
-            bool blocked = wxPyBeginBlockThreads();
-            if (!PyArg_Parse(data, "t#", &buffer, &size))
-                goto done;
-
-            if (size != self->GetWidth() * self->GetHeight()) {
-                PyErr_SetString(PyExc_TypeError, "Incorrect buffer size");
-                goto done;
+        
+        DocStr(SetDataBuffer,
+               "Sets the internal image alpha pointer to point at a Python buffer
+object.  This can save a copy of the data but you must ensure that the
+buffer object lives longer than the wx.Image does.", "");
+        void SetAlphaBuffer(buffer alpha, int ALPHASIZE)
+        {
+            if (ALPHASIZE != self->GetWidth() * self->GetHeight()) {
+                wxPyErr_SetString(PyExc_ValueError, "Invalid alpha buffer size.");
+                return;
             }
-            self->SetAlpha(buffer);
-        done:
-            wxPyEndBlockThreads(blocked);
+            self->SetAlpha(alpha, true);
         }
     }
 
     void SetMaskColour( unsigned char r, unsigned char g, unsigned char b );
+
+    DocDeclAStr(
+        /*bool*/ void , GetOrFindMaskColour( unsigned char *OUTPUT,
+                                             unsigned char *OUTPUT,
+                                             unsigned char *OUTPUT ) const,
+        "GetOrFindMaskColour() -> (r,g,b)",
+        "Get the current mask colour or find a suitable colour.", "");
+    
+
     unsigned char GetMaskRed();
     unsigned char GetMaskGreen();
     unsigned char GetMaskBlue();
@@ -312,7 +517,7 @@ nothing.", "");
     wxImage ConvertToMono( unsigned char r, unsigned char g, unsigned char b ) const;
 
     void SetOption(const wxString& name, const wxString& value);
-    %name(SetOptionInt)void SetOption(const wxString& name, int value);
+    %Rename(SetOptionInt, void,  SetOption(const wxString& name, int value));
     wxString GetOption(const wxString& name) const;
     int GetOptionInt(const wxString& name) const;
     bool HasOption(const wxString& name) const;
@@ -369,12 +574,15 @@ const wxImage    wxNullImage;
 
 //---------------------------------------------------------------------------
 
-
+MAKE_CONST_WXSTRING(IMAGE_OPTION_FILENAME);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_BMP_FORMAT);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_CUR_HOTSPOT_X);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_CUR_HOTSPOT_Y);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTION);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTIONX);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTIONY);
 MAKE_CONST_WXSTRING(IMAGE_OPTION_RESOLUTIONUNIT);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_QUALITY);
 
 enum
 {
@@ -382,6 +590,21 @@ enum
     wxIMAGE_RESOLUTION_CM = 2
 };
 
+
+MAKE_CONST_WXSTRING(IMAGE_OPTION_BITSPERSAMPLE);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_SAMPLESPERPIXEL); 
+MAKE_CONST_WXSTRING(IMAGE_OPTION_COMPRESSION);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_IMAGEDESCRIPTOR);
+
+MAKE_CONST_WXSTRING(IMAGE_OPTION_PNG_FORMAT);
+MAKE_CONST_WXSTRING(IMAGE_OPTION_PNG_BITDEPTH);
+
+enum
+{
+    wxPNG_TYPE_COLOUR = 0,
+    wxPNG_TYPE_GREY = 2,
+    wxPNG_TYPE_GREY_RED = 3
+};
 
 enum
 {
@@ -398,21 +621,29 @@ enum
 };
 
 
+DocStr(wxBMPHandler,
+"A `wx.ImageHandler` for \*.bmp bitmap files.", "");
 class wxBMPHandler : public wxImageHandler {
 public:
     wxBMPHandler();
 };
 
+DocStr(wxICOHandler,
+"A `wx.ImageHandler` for \*.ico icon files.", "");
 class wxICOHandler : public wxBMPHandler {
 public:
     wxICOHandler();
 };
 
+DocStr(wxCURHandler,
+"A `wx.ImageHandler` for \*.cur cursor files.", "");
 class wxCURHandler : public wxICOHandler {
 public:
     wxCURHandler();
 };
 
+DocStr(wxANIHandler,
+"A `wx.ImageHandler` for \*.ani animated cursor files.", "");
 class wxANIHandler : public wxCURHandler {
 public:
     wxANIHandler();
@@ -421,40 +652,54 @@ public:
 
 //---------------------------------------------------------------------------
 
+DocStr(wxPNGHandler,
+"A `wx.ImageHandler` for PNG image files.", "");
 class wxPNGHandler : public wxImageHandler {
 public:
     wxPNGHandler();
 };
 
 
+DocStr(wxGIFHandler,
+"A `wx.ImageHandler` for GIF image files.", "");
 class wxGIFHandler : public wxImageHandler {
 public:
     wxGIFHandler();
 };
 
 
+DocStr(wxPCXHandler,
+"A `wx.ImageHandler` for PCX imager files.", "");
 class wxPCXHandler : public wxImageHandler {
 public:
     wxPCXHandler();
 };
 
 
+DocStr(wxJPEGHandler,
+"A `wx.ImageHandler` for JPEG/JPG image files.", "");
 class wxJPEGHandler : public wxImageHandler {
 public:
     wxJPEGHandler();
 };
 
 
+DocStr(wxPNMHandler,
+"A `wx.ImageHandler` for PNM image files.", "");
 class wxPNMHandler : public wxImageHandler {
 public:
     wxPNMHandler();
 };
 
+DocStr(wxXPMHandler,
+"A `wx.ImageHandler` for XPM image.", "");
 class wxXPMHandler : public wxImageHandler {
 public:
     wxXPMHandler();
 };
 
+DocStr(wxTIFFHandler,
+"A `wx.ImageHandler` for TIFF image files.", "");
 class wxTIFFHandler : public wxImageHandler {
 public:
     wxTIFFHandler();
@@ -462,6 +707,8 @@ public:
 
 
 #if wxUSE_IFF
+DocStr(wxIFFHandler,
+"A `wx.ImageHandler` for IFF image files.", "");
 class wxIFFHandler : public wxImageHandler {
 public:
     wxIFFHandler();

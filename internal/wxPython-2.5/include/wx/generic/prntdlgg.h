@@ -23,6 +23,9 @@
 
 #include "wx/dialog.h"
 #include "wx/cmndata.h"
+#include "wx/prntbase.h"
+#include "wx/printdlg.h"
+#include "wx/listctrl.h"
 
 #if wxUSE_POSTSCRIPT
     #include "wx/dcps.h"
@@ -34,13 +37,14 @@ class WXDLLEXPORT wxCheckBox;
 class WXDLLEXPORT wxComboBox;
 class WXDLLEXPORT wxStaticText;
 class WXDLLEXPORT wxRadioBox;
-class WXDLLEXPORT wxPrintSetupData;
 class WXDLLEXPORT wxPageSetupData;
+
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
 
-// FIXME why all these enums start with 10 or 30?
+// This is not clear why all these enums start with 10 or 30 but do not change it
+// without good reason to avoid some subtle backwards compatibility breakage
 
 enum
 {
@@ -67,7 +71,67 @@ enum
     wxPRINTID_ORIENTATION,
     wxPRINTID_COMMAND,
     wxPRINTID_OPTIONS,
-    wxPRINTID_PAPERSIZE
+    wxPRINTID_PAPERSIZE,
+    wxPRINTID_PRINTER
+};
+
+#if wxUSE_POSTSCRIPT
+
+//----------------------------------------------------------------------------
+// wxPostScriptNativeData
+//----------------------------------------------------------------------------
+
+class WXDLLEXPORT wxPostScriptPrintNativeData: public wxPrintNativeDataBase
+{
+public:
+    wxPostScriptPrintNativeData();
+    virtual ~wxPostScriptPrintNativeData();
+
+    virtual bool TransferTo( wxPrintData &data );
+    virtual bool TransferFrom( const wxPrintData &data );
+
+    virtual bool Ok() const { return true; }
+
+    const wxString& GetPrinterCommand() const { return m_printerCommand; }
+    const wxString& GetPrinterOptions() const { return m_printerOptions; }
+    const wxString& GetPreviewCommand() const { return m_previewCommand; }
+    const wxString& GetFontMetricPath() const { return m_afmPath; }
+    double GetPrinterScaleX() const { return m_printerScaleX; }
+    double GetPrinterScaleY() const { return m_printerScaleY; }
+    long GetPrinterTranslateX() const { return m_printerTranslateX; }
+    long GetPrinterTranslateY() const { return m_printerTranslateY; }
+
+    void SetPrinterCommand(const wxString& command) { m_printerCommand = command; }
+    void SetPrinterOptions(const wxString& options) { m_printerOptions = options; }
+    void SetPreviewCommand(const wxString& command) { m_previewCommand = command; }
+    void SetFontMetricPath(const wxString& path) { m_afmPath = path; }
+    void SetPrinterScaleX(double x) { m_printerScaleX = x; }
+    void SetPrinterScaleY(double y) { m_printerScaleY = y; }
+    void SetPrinterScaling(double x, double y) { m_printerScaleX = x; m_printerScaleY = y; }
+    void SetPrinterTranslateX(long x) { m_printerTranslateX = x; }
+    void SetPrinterTranslateY(long y) { m_printerTranslateY = y; }
+    void SetPrinterTranslation(long x, long y) { m_printerTranslateX = x; m_printerTranslateY = y; }
+
+#if wxUSE_STREAMS
+    wxOutputStream *GetOutputStream() { return m_outputStream; }
+    void SetOutputStream( wxOutputStream *output ) { m_outputStream = output; }
+#endif
+
+private:
+    wxString        m_printerCommand;
+    wxString        m_previewCommand;
+    wxString        m_printerOptions;
+    wxString        m_afmPath;
+    double          m_printerScaleX;
+    double          m_printerScaleY;
+    long            m_printerTranslateX;
+    long            m_printerTranslateY;
+#if wxUSE_STREAMS
+    wxOutputStream *m_outputStream;
+#endif
+
+private:
+    DECLARE_DYNAMIC_CLASS(wxPostScriptPrintNativeData)
 };
 
 // ----------------------------------------------------------------------------
@@ -75,8 +139,7 @@ enum
 // Windows using PostScript print/preview)
 // ----------------------------------------------------------------------------
 
-#if wxUSE_POSTSCRIPT
-class WXDLLEXPORT wxGenericPrintDialog : public wxDialog
+class WXDLLEXPORT wxGenericPrintDialog : public wxPrintDialogBase
 {
 public:
     wxGenericPrintDialog(wxWindow *parent,
@@ -94,10 +157,8 @@ public:
 
     virtual int ShowModal();
 
-#if wxUSE_POSTSCRIPT
     wxPrintData& GetPrintData()
         { return m_printDialogData.GetPrintData(); }
-#endif // wxUSE_POSTSCRIPT
 
     wxPrintDialogData& GetPrintDialogData() { return m_printDialogData; }
     wxDC *GetPrintDC();
@@ -129,48 +190,52 @@ public:
     // There are no configuration options for the dialog, so we
     // just pass the wxPrintData object (no wxPrintSetupDialogData class needed)
     wxGenericPrintSetupDialog(wxWindow *parent, wxPrintData* data);
-    wxGenericPrintSetupDialog(wxWindow *parent, wxPrintSetupData* data);
     virtual ~wxGenericPrintSetupDialog();
 
     void Init(wxPrintData* data);
 
+    void OnPrinter(wxListEvent& event);
+
     virtual bool TransferDataFromWindow();
     virtual bool TransferDataToWindow();
 
-    wxComboBox *CreatePaperTypeChoice(int* x, int* y);
+    virtual wxComboBox *CreatePaperTypeChoice();
 
 public:
+    wxListCtrl*         m_printerListCtrl;
     wxRadioBox*         m_orientationRadioBox;
     wxTextCtrl*         m_printerCommandText;
     wxTextCtrl*         m_printerOptionsText;
     wxCheckBox*         m_colourCheckBox;
-    wxComboBox*           m_paperTypeChoice;
+    wxComboBox*         m_paperTypeChoice;
 
-#if wxUSE_POSTSCRIPT
     wxPrintData         m_printData;
     wxPrintData&        GetPrintData() { return m_printData; }
-#endif // wxUSE_POSTSCRIPT
+
+    // After pressing OK, write data here.
+    wxPrintData*        m_targetData;
 
 private:
+    DECLARE_EVENT_TABLE()
     DECLARE_CLASS(wxGenericPrintSetupDialog)
 };
 #endif
     // wxUSE_POSTSCRIPT
 
-class WXDLLEXPORT wxGenericPageSetupDialog : public wxDialog
+class WXDLLEXPORT wxGenericPageSetupDialog : public wxPageSetupDialogBase
 {
 public:
     wxGenericPageSetupDialog(wxWindow *parent = NULL,
-                             wxPageSetupData* data = NULL);
+                             wxPageSetupDialogData* data = NULL);
     virtual ~wxGenericPageSetupDialog();
 
     virtual bool TransferDataFromWindow();
     virtual bool TransferDataToWindow();
 
-    void OnPrinter(wxCommandEvent& event);
+    virtual wxPageSetupDialogData& GetPageSetupDialogData();
 
+    void OnPrinter(wxCommandEvent& event);
     wxComboBox *CreatePaperTypeChoice(int* x, int* y);
-    wxPageSetupData& GetPageSetupData() { return m_pageData; }
 
 public:
     wxButton*       m_printerButton;
@@ -181,9 +246,7 @@ public:
     wxTextCtrl*     m_marginBottomText;
     wxComboBox*       m_paperTypeChoice;
 
-    static bool     m_pageSetupDialogCancelled;
-
-    wxPageSetupData m_pageData;
+    wxPageSetupDialogData m_pageData;
 
 private:
     DECLARE_EVENT_TABLE()
@@ -193,4 +256,4 @@ private:
 #endif
 
 #endif
-// __PRINTDLGH_G__
+// __PRINTDLGH_G_

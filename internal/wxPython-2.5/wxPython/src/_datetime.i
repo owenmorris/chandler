@@ -18,10 +18,10 @@
 
 %{
 #include <wx/datetime.h>
-
 %}
-MAKE_CONST_WXSTRING2(DateFormatStr, wxT("%c"));
-MAKE_CONST_WXSTRING2(TimeSpanFormatStr, wxT("%H:%M:%S"));
+
+MAKE_CONST_WXSTRING(DefaultDateTimeFormat);
+MAKE_CONST_WXSTRING(DefaultTimeSpanFormat);
 
 //---------------------------------------------------------------------------
 
@@ -343,15 +343,15 @@ public:
 
         // returns the number of days in this year (356 or 355 for Gregorian
         // calendar usually :-)
-    %name(GetNumberOfDaysinYear)
-        static wxDateTime_t GetNumberOfDays(int year, Calendar cal = Gregorian);
+    %Rename(GetNumberOfDaysinYear, 
+        static wxDateTime_t, GetNumberOfDays(int year, Calendar cal = Gregorian));
 
         // get the number of the days in the given month (default value for
         // the year means the current one)
-    %name(GetNumberOfDaysInMonth)
-        static wxDateTime_t GetNumberOfDays(Month month,
+    %Rename(GetNumberOfDaysInMonth, 
+        static wxDateTime_t, GetNumberOfDays(Month month,
                                             int year = Inv_Year,
-                                            Calendar cal = Gregorian);
+                                            Calendar cal = Gregorian));
 
         // get the full (default) or abbreviated month name in the current
         // locale, returns empty string on error
@@ -363,11 +363,24 @@ public:
     static wxString GetWeekDayName(WeekDay weekday,
                                    NameFlags flags = Name_Full);
 
-    DocDeclAStr(
-        static void, GetAmPmStrings(wxString *OUTPUT, wxString *OUTPUT),
-        "GetAmPmStrings() -> (am, pm)",
-        "Get the AM and PM strings in the current locale (may be empty)", "");
-
+    %extend {
+        DocAStr(
+            GetAmPmStrings,
+            "GetAmPmStrings() -> (am, pm)",
+            "Get the AM and PM strings in the current locale (may be empty)", "");
+        static PyObject* GetAmPmStrings() {
+            wxString am;
+            wxString pm;
+            wxDateTime::GetAmPmStrings(&am, &pm);
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
+            PyObject* tup = PyTuple_New(2);
+            PyTuple_SET_ITEM(tup, 0, wx2PyString(am));
+            PyTuple_SET_ITEM(tup, 1, wx2PyString(pm));
+            wxPyEndBlockThreads(blocked);
+            return tup;
+        }
+    }
+                
         // return True if the given country uses DST for this year
     static bool IsDSTApplicable(int year = Inv_Year,
                                 Country country = Country_Default);
@@ -400,19 +413,19 @@ public:
     // constructors
 
     wxDateTime();
-    %name(DateTimeFromTimeT)wxDateTime(time_t timet);
-    %name(DateTimeFromJDN)wxDateTime(double jdn);
-    %name(DateTimeFromHMS)wxDateTime(wxDateTime_t hour,
+    %RenameCtor(DateTimeFromTimeT, wxDateTime(time_t timet));
+    %RenameCtor(DateTimeFromJDN, wxDateTime(double jdn));
+    %RenameCtor(DateTimeFromHMS, wxDateTime(wxDateTime_t hour,
                                      wxDateTime_t minute = 0,
                                      wxDateTime_t second = 0,
-                                     wxDateTime_t millisec = 0);
-    %name(DateTimeFromDMY)wxDateTime(wxDateTime_t day,
+                                     wxDateTime_t millisec = 0));
+    %RenameCtor(DateTimeFromDMY, wxDateTime(wxDateTime_t day,
                                      Month        month = Inv_Month,
                                      int          year = Inv_Year,
                                      wxDateTime_t hour = 0,
                                      wxDateTime_t minute = 0,
                                      wxDateTime_t second = 0,
-                                     wxDateTime_t millisec = 0);
+                                     wxDateTime_t millisec = 0));
             
     ~wxDateTime();
 
@@ -422,16 +435,16 @@ public:
     wxDateTime& SetToCurrent();
 
         // set to given time_t value
-    %name(SetTimeT)wxDateTime& Set(time_t timet);
+    %Rename(SetTimeT, wxDateTime&, Set(time_t timet));
 
         // set to given JDN (beware of rounding errors)
-    %name(SetJDN)wxDateTime& Set(double jdn);
+    %Rename(SetJDN, wxDateTime&, Set(double jdn));
 
         // set to given time, date = today
-    %name(SetHMS)wxDateTime& Set(wxDateTime_t hour,
+    %Rename(SetHMS, wxDateTime&, Set(wxDateTime_t hour,
                     wxDateTime_t minute = 0,
                     wxDateTime_t second = 0,
-                    wxDateTime_t millisec = 0);
+                    wxDateTime_t millisec = 0));
 
         // from separate values for each component with explicit date
         // (defaults for month and year are the current values)
@@ -681,15 +694,15 @@ public:
     // arithmetics with dates (see also below for more operators)
 
         // add a time span (positive or negative)
-    %name(AddTS) wxDateTime& Add(const wxTimeSpan& diff);
+    %Rename(AddTS,  wxDateTime&, Add(const wxTimeSpan& diff));
         // add a date span (positive or negative)
-    %name(AddDS) wxDateTime& Add(const wxDateSpan& diff);
+    %Rename(AddDS,  wxDateTime&, Add(const wxDateSpan& diff));
 
         // subtract a time span (positive or negative)
-    %name(SubtractTS) wxDateTime& Subtract(const wxTimeSpan& diff);
+    %Rename(SubtractTS,  wxDateTime&, Subtract(const wxTimeSpan& diff));
 
         // subtract a date span (positive or negative)
-    %name(SubtractDS) wxDateTime& Subtract(const wxDateSpan& diff);
+    %Rename(SubtractDS,  wxDateTime&, Subtract(const wxDateSpan& diff));
 
         // return the difference between two dates
     wxTimeSpan Subtract(const wxDateTime& dt) const;
@@ -708,14 +721,15 @@ public:
     inline wxDateTime& operator-=(const wxDateSpan& diff);
 
 
+//     inline bool operator<(const wxDateTime& dt) const;
+//     inline bool operator<=(const wxDateTime& dt) const;
+//     inline bool operator>(const wxDateTime& dt) const;
+//     inline bool operator>=(const wxDateTime& dt) const;
+//     inline bool operator==(const wxDateTime& dt) const;
+//     inline bool operator!=(const wxDateTime& dt) const;
+
     %nokwargs __add__;
     %nokwargs __sub__;
-    %nokwargs __lt__;
-    %nokwargs __le__;
-    %nokwargs __gt__;
-    %nokwargs __ge__;
-    %nokwargs __eq__;
-    %nokwargs __ne__;
     %extend {
         wxDateTime __add__(const wxTimeSpan& other) { return *self + other; }
         wxDateTime __add__(const wxDateSpan& other) { return *self + other; }
@@ -724,14 +738,9 @@ public:
         wxDateTime __sub__(const wxTimeSpan& other) { return *self - other; }
         wxDateTime __sub__(const wxDateSpan& other) { return *self - other; }
 
-//         bool __lt__(const wxDateTime* other) { return other ? (*self <  *other) : false; }
-//         bool __le__(const wxDateTime* other) { return other ? (*self <= *other) : false; }
-//         bool __gt__(const wxDateTime* other) { return other ? (*self >  *other) : true;  }
-//         bool __ge__(const wxDateTime* other) { return other ? (*self >= *other) : true;  }
-
-
         // These fall back to just comparing pointers if other is NULL, or if
-        // either operand is invalid.
+        // either operand is invalid.  This allows Python comparrisons to None
+        // to not assert and to return a sane value for the compare.
         bool __lt__(const wxDateTime* other) { 
             if (!other || !self->IsValid() || !other->IsValid()) return self <  other; 
             return (*self <  *other);
@@ -759,6 +768,9 @@ public:
         }            
     }
 
+
+
+   
         
     // ------------------------------------------------------------------------
     // conversion from text: all conversions from text return -1 on failure,
@@ -783,7 +795,7 @@ public:
         // default, they will not change if they had valid values or will
         // default to Today() otherwise)
         int ParseFormat(const wxString& date,
-                        const wxString& format = wxPyDateFormatStr,
+                        const wxString& format = wxPyDefaultDateTimeFormat,
                         const wxDateTime& dateDef = wxDefaultDateTime) {
             const wxChar* rv;
             const wxChar* _date = date;
@@ -828,7 +840,7 @@ public:
         // argument corresponds to the preferred date and time representation
         // for the current locale) and returns the string containing the
         // resulting text representation
-    wxString Format(const wxString& format = wxPyDateFormatStr,
+    wxString Format(const wxString& format = wxPyDefaultDateTimeFormat,
                     const wxDateTime::TimeZone& tz = LOCAL_TZ) const;
 
         // preferred date representation for the current locale
@@ -848,12 +860,13 @@ public:
     %pythoncode {
     def __repr__(self):
         if self.IsValid():
-            return '<wx.DateTime: \"%s\" at %s>' % ( self.Format(), self.this)
+            f = self.Format().encode(wx.GetDefaultPyEncoding())
+            return '<wx.DateTime: \"%s\" at %s>' % ( f, self.this)
         else:
             return '<wx.DateTime: \"INVALID\" at %s>' % self.this
     def __str__(self):
         if self.IsValid():
-            return self.Format()
+            return self.Format().encode(wx.GetDefaultPyEncoding())
         else:
             return "INVALID DateTime"
     }
@@ -995,13 +1008,14 @@ public:
         // resulting text representation. Notice that only some of format
         // specifiers valid for wxDateTime are valid for wxTimeSpan: hours,
         // minutes and seconds make sense, but not "PM/AM" string for example.
-    wxString Format(const wxString& format = wxPyTimeSpanFormatStr) const;
+    wxString Format(const wxString& format = wxPyDefaultTimeSpanFormat) const;
 
     %pythoncode {
      def __repr__(self):
-         return '<wx.TimeSpan: \"%s\" at %s>' % ( self.Format(), self.this)
+         f = self.Format().encode(wx.GetDefaultPyEncoding())
+         return '<wx.TimeSpan: \"%s\" at %s>' % ( f, self.this)
      def __str__(self):
-         return self.Format()
+         return self.Format().encode(wx.GetDefaultPyEncoding())
      }
 };
 

@@ -40,18 +40,14 @@
     #include "wx/app.h"
 #endif
 
-#include "wx/msw/private.h"
+#include "wx/msw/wrapcdlg.h"
 
-#if !defined(__WIN32__) || defined(__WXWINCE__)
-    #include <commdlg.h>
-#endif
-
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "wx/filename.h"
 #include "wx/tokenzr.h"
+#include "wx/math.h"
 
 #include "wx/msw/missing.h"
 
@@ -394,8 +390,6 @@ int wxFileDialog::ShowModal()
             of.lpstrDefExt = defextBuffer.c_str();
         }
     }
-
-     //== Execute FileDialog >>=================================================
 
     //== Execute FileDialog >>=================================================
 

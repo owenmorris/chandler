@@ -181,26 +181,29 @@ WXDIR=`pwd`
 # Configure and build wxWidgets
 mkdir bld
 cd bld
-../configure --with-gtk \
+../configure \
+%if %{using_gtk1}
+	--with-gtk=1 \
+%else 
+	--with-gtk=2 \
+%endif
 	--prefix=%{wxpref} \
 	--enable-monolithic \
-	--enable-rpath=%{wxpref}/lib \
+	--disable-rpath \
 	--with-opengl \
 	--enable-geometry \
 	--enable-optimise \
 	--enable-sound 	--with-sdl \
 	--enable-display \
-%if %{using_gtk1}
-	--disable-gtk2 \
-%else 
-	--enable-gtk2 \
-%endif
 %if %{unicode}
 	--enable-unicode \
+%else
+	--disable-unicode \
 %endif
 %if %{debug_flag}
 	--enable-debug_flag \
 %endif
+	--disable-debugreport \
 %if %{builtin_libs}
 	--with-libjpeg=builtin \
 	--with-libpng=builtin \
@@ -210,8 +213,8 @@ cd bld
 
 
 make 
+make -C contrib/src/animate 
 make -C contrib/src/gizmos 
-make -C contrib/src/ogl CXXFLAGS="-DwxUSE_DEPRECATED=0"
 make -C contrib/src/stc
 
 
@@ -223,8 +226,9 @@ cd $WXDIR/wxPython
 	UNICODE=%{unicode} \
 	EP_ADD_OPTS=1 \
 	NO_SCRIPTS=1 \
-	WX_CONFIG="$WXDIR/bld/wx-config --inplace" \
-       	build
+	WX_CONFIG="$WXDIR/bld/wx-config --no_rpath" \
+       	build_ext --rpath=%{wxpref}/lib \
+	build
 
 
 
@@ -236,8 +240,8 @@ WXDIR=`pwd`
 # Install wxGTK and contribs
 cd bld
 make prefix=$RPM_BUILD_ROOT%{wxpref} install
+make -C contrib/src/animate prefix=$RPM_BUILD_ROOT%{wxpref} install
 make -C contrib/src/gizmos prefix=$RPM_BUILD_ROOT%{wxpref} install
-make -C contrib/src/ogl CXXFLAGS="-DwxUSE_DEPRECATED=0" prefix=$RPM_BUILD_ROOT%{wxpref} install
 make -C contrib/src/stc prefix=$RPM_BUILD_ROOT%{wxpref} install
 
 
@@ -249,7 +253,8 @@ cd $WXDIR/wxPython
 	UNICODE=%{unicode} \
 	EP_ADD_OPTS=1 \
 	NO_SCRIPTS=1 \
-	WX_CONFIG="$RPM_BUILD_ROOT%{wxpref}/bin/wx-config --prefix=$RPM_BUILD_ROOT%{wxpref}" \
+	WX_CONFIG="$RPM_BUILD_ROOT%{wxpref}/bin/wx-config --prefix=$RPM_BUILD_ROOT%{wxpref} --no_rpath" \
+       	build_ext --rpath=%{wxpref}/lib \
 	install \
 	--root=$RPM_BUILD_ROOT
 

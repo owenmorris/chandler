@@ -13,11 +13,11 @@
 // headers & declarations
 // ============================================================================
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "checklst.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_CHECKLISTBOX
 
@@ -224,7 +224,7 @@ bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
 
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr( ::CreateDataBrowserControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()), &bounds, kDataBrowserListView , m_peer->GetControlRefAddr() ) );
     
 
@@ -299,6 +299,12 @@ bool wxCheckListBox::Create(wxWindow *parent, wxWindowID id,
 	    NewDataBrowserItemNotificationUPP(DataBrowserItemNotificationProc) ;
 #endif
     m_peer->SetCallbacks( &callbacks);
+
+#if 0
+    // shouldn't be necessary anymore under 10.2
+    m_peer->SetData( kControlNoPart, kControlDataBrowserIncludesFrameAndFocusTag, (Boolean) false ) ;
+    m_peer->SetNeedsFocusRect( true ) ;
+#endif
 
     MacPostControlCreate(pos,size) ;
 

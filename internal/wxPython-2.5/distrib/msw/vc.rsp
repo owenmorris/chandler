@@ -3,8 +3,6 @@ build/msw/*.dsw
 
 src/wxWindows.dsp
 src/wxWindows.dsw
-src/wxBase.dsp
-src/wxBase.dsw
 
 src/jpeg/jpeg.dsp
 src/jpeg/jpeg.dsw
@@ -51,6 +49,9 @@ samples/controls/controls.dsw
 
 samples/db/db.dsp
 samples/db/db.dsw
+
+samples/debugrpt/debugrept.dsp
+samples/debugrpt/debugrept.dsw
 
 samples/dialogs/dialogs.dsp
 samples/dialogs/dialogs.dsw
@@ -151,6 +152,9 @@ samples/listctrl/listctrl.dsw
 samples/mdi/mdi.dsp
 samples/mdi/mdi.dsw
 
+samples/mediaplayer/mediaplayer.dsp
+samples/mediaplayer/mediaplayer.dsw
+
 samples/memcheck/memcheck.dsp
 samples/memcheck/memcheck.dsw
 
@@ -189,6 +193,9 @@ samples/ownerdrw/ownerdrw.dsw
 samples/png/png.dsp
 samples/png/png.dsw
 
+samples/popup/popup.dsp
+samples/popup/popup.dsw
+
 samples/printing/printing.dsp
 samples/printing/printing.dsw
 
@@ -200,6 +207,9 @@ samples/regtest/regtest.dsw
 
 samples/render/*.dsp
 samples/render/*.dsw
+
+samples/richedit/*.dsp
+samples/richedit/*.dsw
 
 samples/rotate/rotate.dsp
 samples/rotate/rotate.dsw
@@ -391,4 +401,7 @@ utils/configtool/src/configtool.dsw
 
 utils/hhp2cached/hhp2cached.dsp
 utils/hhp2cached/hhp2cached.dsw
+
+tests/*.dsp
+tests/*.dsw
 

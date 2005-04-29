@@ -51,6 +51,11 @@
     #include "wx/fontmap.h"
 #endif // wxUSE_FONTMAP
 
+#if defined(__DARWIN__) && defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
+    // For MacTypes.h for Debugger function
+    #include <CoreFoundation/CFBase.h>
+#endif
+
 #if defined(__WXMAC__)
     // VZ: MacTypes.h is enough under Mac OS X (where I could test it) but
     //     I don't know which headers are needed under earlier systems so
@@ -61,6 +66,12 @@
         #include  "wx/mac/private.h"  // includes mac headers
     #endif
 #endif // __WXMAC__
+
+#ifdef __WXDEBUG__
+    #ifdef wxUSE_STACKWALKER
+        #include "wx/stackwalk.h"
+    #endif // wxUSE_STACKWALKER
+#endif // __WXDEBUG__
 
 // ----------------------------------------------------------------------------
 // private functions prototypes
@@ -140,11 +151,13 @@ bool wxAppConsole::Initialize(int& argc, wxChar **argv)
     this->argc = argc;
     this->argv = argv;
 
+#ifndef __WXPALMOS__
     if ( m_appName.empty() && argv )
     {
         // the application name is, by default, the name of its executable file
         wxFileName::SplitPath(argv[0], NULL, &m_appName, NULL);
     }
+#endif
 
     return true;
 }
@@ -256,6 +269,11 @@ wxMessageOutput *wxAppConsole::CreateMessageOutput()
 
 void wxAppConsole::ProcessPendingEvents()
 {
+#if wxUSE_THREADS
+    if ( !wxPendingEventsLocker )
+        return;
+#endif
+    
     // ensure that we're the only thread to modify the pending events list
     wxENTER_CRIT_SECT( *wxPendingEventsLocker );
 
@@ -275,7 +293,9 @@ void wxAppConsole::ProcessPendingEvents()
         // In ProcessPendingEvents(), new handlers might be add
         // and we can safely leave the critical section here.
         wxLEAVE_CRIT_SECT( *wxPendingEventsLocker );
+        
         handler->ProcessPendingEvents();
+
         wxENTER_CRIT_SECT( *wxPendingEventsLocker );
 
         node = wxPendingEvents->GetFirst();
@@ -343,7 +363,7 @@ void wxAppConsole::OnInitCmdLine(wxCmdLineParser& parser)
 #if wxUSE_LOG
         {
             wxCMD_LINE_SWITCH,
-            _T(""),
+            wxEmptyString,
             OPTION_VERBOSE,
             gettext_noop("generate verbose log messages"),
             wxCMD_LINE_VAL_NONE,
@@ -354,9 +374,9 @@ void wxAppConsole::OnInitCmdLine(wxCmdLineParser& parser)
         // terminator
         {
             wxCMD_LINE_NONE,
-            _T(""),
-            _T(""),
-            _T(""),
+            wxEmptyString,
+            wxEmptyString,
+            wxEmptyString,
             wxCMD_LINE_VAL_NONE,
             0x0
         }
@@ -439,6 +459,15 @@ void wxAppConsole::OnAssert(const wxChar *file,
 }
 
 #endif // __WXDEBUG__
+
+#if WXWIN_COMPATIBILITY_2_4
+
+bool wxAppConsole::CheckBuildOptions(const wxBuildOptions& buildOptions)
+{
+    return CheckBuildOptions(buildOptions.m_signature, "your program");
+}
+
+#endif
 
 // ============================================================================
 // other classes implementations
@@ -565,6 +594,8 @@ void wxTrap()
     #else
         SysBreak();
     #endif
+#elif defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
+    Debugger();
 #elif defined(__UNIX__)
     raise(SIGTRAP);
 #else
@@ -704,6 +735,70 @@ void ShowAssertDialog(const wxChar *szFile,
         msg << _T('.');
     }
 
+#if wxUSE_STACKWALKER
+    class StackDump : public wxStackWalker
+    {
+    public:
+        StackDump() { }
+
+        const wxString& GetStackTrace() const { return m_stackTrace; }
+
+    protected:
+        virtual void OnStackFrame(const wxStackFrame& frame)
+        {
+            m_stackTrace << wxString::Format(_T("[%02d] "), frame.GetLevel());
+
+            wxString name = frame.GetName();
+            if ( !name.empty() )
+            {
+                m_stackTrace << wxString::Format(_T("%-40s"), name.c_str());
+            }
+            else
+            {
+                m_stackTrace << wxString::Format
+                                (
+                                    _T("0x%08lx"),
+                                    (unsigned long)frame.GetAddress()
+                                );
+            }
+
+            if ( frame.HasSourceLocation() )
+            {
+                m_stackTrace << _T('\t')
+                             << frame.GetFileName()
+                             << _T(':')
+                             << frame.GetLine();
+            }
+
+            m_stackTrace << _T('\n');
+        }
+
+    private:
+        wxString m_stackTrace;
+    };
+
+    StackDump dump;
+    dump.Walk(5); // don't show OnAssert() call itself
+    wxString stackTrace = dump.GetStackTrace();
+
+    // don't show more than maxLines or we could get a dialog too tall to be
+    // shown on screen: 20 should be ok everywhere as even with 15 pixel high
+    // characters it is still only 300 pixels...
+    const int maxLines = 20;
+    int count = stackTrace.Freq(wxT('\n'));
+    if (count > maxLines)
+    {
+        int i;
+        for (i = 0; i < count - maxLines; i++)
+            stackTrace = stackTrace.BeforeLast(wxT('\n'));
+    }
+    if ( !stackTrace.empty() )
+    {
+        msg << _T("\n\nCall stack:\n")
+            << stackTrace;
+    }
+#endif // wxUSE_STACKWALKER
+
 #if wxUSE_THREADS
     // if we are not in the main thread, output the assert directly and trap
     // since dialogs cannot be displayed
@@ -722,6 +817,7 @@ void ShowAssertDialog(const wxChar *szFile,
         // He-e-e-e-elp!! we're asserting in a child thread
         wxTrap();
     }
+    else
 #endif // wxUSE_THREADS
 
     if ( !s_bNoAsserts )

@@ -40,7 +40,12 @@
 
 #include "wx/control.h"
 
+#if wxUSE_NOTEBOOK
+    #include "wx/notebook.h"
+#endif // wxUSE_NOTEBOOK
+
 #include "wx/msw/private.h"
+#include "wx/msw/uxtheme.h"
 
 #if defined(__WIN95__) && !(defined(__GNUWIN32_OLD__) && !defined(__CYGWIN10__))
     #include <commctrl.h>
@@ -51,10 +56,6 @@
 // ----------------------------------------------------------------------------
 
 IMPLEMENT_ABSTRACT_CLASS(wxControl, wxWindow)
-
-BEGIN_EVENT_TABLE(wxControl, wxWindow)
-    EVT_ERASE_BACKGROUND(wxControl::OnEraseBackground)
-END_EVENT_TABLE()
 
 // ============================================================================
 // wxControl implementation
@@ -125,11 +126,15 @@ bool wxControl::MSWCreateControl(const wxChar *classname,
         style |= WS_VISIBLE;
     }
 
-    // choose the position for the control
+    // choose the position for the control: we have a problem with default size
+    // here as we can't calculate the best size before the control exists
+    // (DoGetBestSize() may need to use m_hWnd), so just choose the minimal
+    // possible but non 0 size because 0 window width/height result in problems
+    // elsewhere
     int x = pos.x == wxDefaultCoord ? 0 : pos.x,
         y = pos.y == wxDefaultCoord ? 0 : pos.y,
-        w = size.x == wxDefaultCoord ? 0 : size.x,
-        h = size.y == wxDefaultCoord ? 0 : size.y;
+        w = size.x == wxDefaultCoord ? 1 : size.x,
+        h = size.y == wxDefaultCoord ? 1 : size.y;
 
     // ... and adjust it to account for a possible parent frames toolbar
     AdjustForParentClientOrigin(x, y);
@@ -149,19 +154,16 @@ bool wxControl::MSWCreateControl(const wxChar *classname,
 
     if ( !m_hWnd )
     {
-        wxLogDebug(wxT("Failed to create a control of class '%s'"), classname);
-        wxFAIL_MSG(_T("something is very wrong, CreateWindowEx failed"));
+#ifdef __WXDEBUG__
+        wxFAIL_MSG(wxString::Format
+                   (
+                    _T("CreateWindowEx(\"%s\", flags=%08x, ex=%08x) failed"),
+                    classname, (unsigned int)style, (unsigned int)exstyle
+                   ));
+#endif // __WXDEBUG__
 
         return false;
     }
-
-#if wxUSE_CTL3D
-    if ( want3D )
-    {
-        Ctl3dSubclassCtl(GetHwnd());
-        m_useCtl3D = true;
-    }
-#endif // wxUSE_CTL3D
 
     // install wxWidgets window proc for this window
     SubclassWin(m_hWnd);
@@ -186,7 +188,11 @@ wxBorder wxControl::GetDefaultBorder() const
     // we want to automatically give controls a sunken style (confusingly,
     // it may not really mean sunken at all as we map it to WS_EX_CLIENTEDGE
     // which is not sunken at all under Windows XP -- rather, just the default)
+#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
+    return wxBORDER_SIMPLE;
+#else
     return wxBORDER_SUNKEN;
+#endif
 }
 
 WXDWORD wxControl::MSWGetStyle(long style, WXDWORD *exstyle) const
@@ -210,15 +216,15 @@ wxSize wxControl::DoGetBestSize() const
 // In wxMSW it was only wxSpinCtrl derived from wxSpinButton but in
 // WinCE of Smartphones this happens also for native wxTextCtrl,
 // wxChoice and others.
-wxSize wxControl::GetBestSpinerSize(const bool is_vertical) const
+wxSize wxControl::GetBestSpinnerSize(const bool is_vertical) const
 {
     // take size according to layout
     wxSize bestSize(
 #if defined(__SMARTPHONE__) && defined(__WXWINCE__)
                     0,GetCharHeight()
 #else
-                    GetSystemMetrics(is_vertical ? SM_CXVSCROLL : SM_CXHSCROLL),
-                    GetSystemMetrics(is_vertical ? SM_CYVSCROLL : SM_CYHSCROLL)
+                    ::GetSystemMetrics(is_vertical ? SM_CXVSCROLL : SM_CXHSCROLL),
+                    ::GetSystemMetrics(is_vertical ? SM_CYVSCROLL : SM_CYHSCROLL)
 #endif
     );
 
@@ -326,60 +332,57 @@ bool wxControl::MSWOnNotify(int idCtrl,
 }
 #endif // Win95
 
-void wxControl::OnEraseBackground(wxEraseEvent& event)
+WXHBRUSH wxControl::DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd)
 {
-    // notice that this 'dumb' implementation may cause flicker for some of the
-    // controls in which case they should intercept wxEraseEvent and process it
-    // themselves somehow
+    HDC hdc = (HDC)pDC;
+    if ( m_hasFgCol )
+    {
+        ::SetTextColor(hdc, wxColourToRGB(GetForegroundColour()));
+    }
 
-    RECT rect;
-    ::GetClientRect(GetHwnd(), &rect);
+    WXHBRUSH hbr = 0;
+    if ( !colBg.Ok() )
+    {
+        hbr = MSWGetBgBrush(pDC, hWnd);
 
-    HBRUSH hBrush = ::CreateSolidBrush(wxColourToRGB(GetBackgroundColour()));
+        // if the control doesn't have any bg colour, foreground colour will be
+        // ignored as the return value would be 0 -- so forcefully give it a
+        // non default background brush in this case
+        if ( !hbr && m_hasFgCol )
+            colBg = GetBackgroundColour();
+    }
 
-    HDC hdc = GetHdcOf((*event.GetDC()));
+    // use the background colour override if a valid colour is given
+    if ( colBg.Ok() )
+    {
+        ::SetBkColor(hdc, wxColourToRGB(colBg));
 
-#ifndef __WXWINCE__
-    int mode = ::SetMapMode(hdc, MM_TEXT);
-#endif
+        // draw children with the same colour as the parent
+        wxBrush *brush = wxTheBrushList->FindOrCreateBrush(colBg, wxSOLID);
 
-    ::FillRect(hdc, &rect, hBrush);
-    ::DeleteObject(hBrush);
+        hbr = (WXHBRUSH)brush->GetResourceHandle();
+    }
 
-#ifndef __WXWINCE__
-    ::SetMapMode(hdc, mode);
-#endif
+    return hbr;
 }
 
-WXHBRUSH wxControl::OnCtlColor(WXHDC pDC, WXHWND WXUNUSED(pWnd), WXUINT WXUNUSED(nCtlColor),
-#if wxUSE_CTL3D
-                               WXUINT message,
-                               WXWPARAM wParam,
-                               WXLPARAM lParam
-#else
-                               WXUINT WXUNUSED(message),
-                               WXWPARAM WXUNUSED(wParam),
-                               WXLPARAM WXUNUSED(lParam)
-#endif
-    )
+WXHBRUSH wxControl::MSWControlColor(WXHDC pDC, WXHWND hWnd)
 {
-#if wxUSE_CTL3D
-    if ( m_useCtl3D )
-    {
-        HBRUSH hbrush = Ctl3dCtlColorEx(message, wParam, lParam);
-        return (WXHBRUSH) hbrush;
-    }
-#endif // wxUSE_CTL3D
+    wxColour colBg;
 
-    HDC hdc = (HDC)pDC;
-    wxColour colBack = GetBackgroundColour();
+    if ( HasTransparentBackground() )
+        ::SetBkMode((HDC)pDC, TRANSPARENT);
+    else // if the control is opaque it shouldn't use the parents background
+        colBg = GetBackgroundColour();
 
-    ::SetBkColor(hdc, wxColourToRGB(colBack));
-    ::SetTextColor(hdc, wxColourToRGB(GetForegroundColour()));
+    return DoMSWControlColor(pDC, colBg, hWnd);
+}
 
-    wxBrush *brush = wxTheBrushList->FindOrCreateBrush(colBack, wxSOLID);
-
-    return (WXHBRUSH)brush->GetResourceHandle();
+WXHBRUSH wxControl::MSWControlColorDisabled(WXHDC pDC)
+{
+    return DoMSWControlColor(pDC,
+                             wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE),
+                             GetHWND());
 }
 
 // ---------------------------------------------------------------------------

@@ -22,7 +22,29 @@
 
 #include "wx/control.h"
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxSliderNameStr;
+// ----------------------------------------------------------------------------
+// wxSlider flags
+// ----------------------------------------------------------------------------
+
+#define wxSL_HORIZONTAL      wxHORIZONTAL /* 0x0004 */
+#define wxSL_VERTICAL        wxVERTICAL   /* 0x0008 */
+
+#define wxSL_TICKS           0x0010
+#define wxSL_AUTOTICKS       wxSL_TICKS // we don't support manual ticks
+#define wxSL_LABELS          0x0020
+#define wxSL_LEFT            0x0040
+#define wxSL_TOP             0x0080
+#define wxSL_RIGHT           0x0100
+#define wxSL_BOTTOM          0x0200
+#define wxSL_BOTH            0x0400
+#define wxSL_SELRANGE        0x0800
+#define wxSL_INVERSE         0x1000
+
+// obsolete
+#define wxSL_NOTIFY_DRAG     0x0000
+
+
+extern WXDLLEXPORT_DATA(const wxChar*) wxSliderNameStr;
 
 // ----------------------------------------------------------------------------
 // wxSliderBase: define wxSlider interface
@@ -80,10 +102,16 @@ public:
     virtual int GetSelStart() const { return GetMax(); }
     virtual void SetSelection(int WXUNUSED(min), int WXUNUSED(max)) { }
 
+protected:
 
-    virtual void ApplyParentThemeBackground(const wxColour& bg)
-        { SetBackgroundColour(bg); }
-
+    // adjust value according to wxSL_INVERSE style
+    virtual int ValueInvertOrNot(int value) const
+    {
+        if (HasFlag(wxSL_INVERSE))
+            return (GetMax() + GetMin()) - value;
+        else
+            return value;
+    }
 
 private:
     DECLARE_NO_COPY_CLASS(wxSliderBase)
@@ -97,7 +125,9 @@ private:
     #include "wx/univ/slider.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/slider95.h"
-    #define wxSlider wxSlider95
+    #if WXWIN_COMPATIBILITY_2_4
+         #define wxSlider95 wxSlider
+    #endif
 #elif defined(__WXMOTIF__)
     #include "wx/motif/slider.h"
 #elif defined(__WXGTK__)
@@ -108,6 +138,8 @@ private:
     #include "wx/cocoa/slider.h"
 #elif defined(__WXPM__)
     #include "wx/os2/slider.h"
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/slider.h"
 #endif
 
 #endif // wxUSE_SLIDER

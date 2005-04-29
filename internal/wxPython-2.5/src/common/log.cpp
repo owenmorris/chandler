@@ -209,8 +209,7 @@ void wxLogFatalError(const wxChar *szFormat, ...)
 void wxVLogVerbose(const wxChar *szFormat, va_list argptr)
 {
     if ( IsLoggingEnabled() ) {
-        wxLog *pLog = wxLog::GetActiveTarget();
-        if ( pLog != NULL && pLog->GetVerbose() ) {
+        if ( wxLog::GetActiveTarget() != NULL && wxLog::GetVerbose() ) {
             wxCRIT_SECT_LOCKER(locker, gs_csLogBuf);
 
             wxVsnprintf(s_szBuf, s_szBufSize, szFormat, argptr);
@@ -366,10 +365,6 @@ void WXDLLEXPORT wxLogSysError(long lErrCode, const wxChar *szFormat, ...)
 // ----------------------------------------------------------------------------
 // wxLog class implementation
 // ----------------------------------------------------------------------------
-
-wxLog::wxLog()
-{
-}
 
 wxChar *wxLog::SetLogBuffer( wxChar *buf, size_t size)
 {
@@ -559,7 +554,7 @@ void wxLogStderr::DoLogString(const wxChar *szString, time_t WXUNUSED(t))
         if ( traits && !traits->HasStderr() )
         {
             wxMessageOutputDebug dbgout;
-            dbgout.Printf(_T("%s"), str.c_str());
+            dbgout.Printf(_T("%s\n"), str.c_str());
         }
     }
 }

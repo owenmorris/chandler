@@ -11,6 +11,7 @@
 
 // from config.log confdefs
 
+#define HAVE_SSIZE_T 1
 #define HAVE_BOOL 1
 #define HAVE_CONST_CAST
 #define HAVE_COS 1

@@ -27,6 +27,7 @@
 #endif
 
 #include "wx/artprov.h"
+#include "wx/image.h"
 
 // ----------------------------------------------------------------------------
 // wxDefaultArtProvider
@@ -129,7 +130,12 @@ protected:
 #include "../../art/repview.xpm"
 #include "../../art/listview.xpm"
 #include "../../art/new_dir.xpm"
+#include "../../art/harddisk.xpm"
+#include "../../art/cdrom.xpm"
+#include "../../art/floppy.xpm"
+#include "../../art/removable.xpm"
 #include "../../art/folder.xpm"
+#include "../../art/folder_open.xpm"
 #include "../../art/dir_up.xpm"
 #include "../../art/exefile.xpm"
 #include "../../art/deffile.xpm"
@@ -138,13 +144,7 @@ protected:
 
 #undef static
 
-// ----------------------------------------------------------------------------
-// CreateBitmap routine
-// ----------------------------------------------------------------------------
-
-wxBitmap wxDefaultArtProvider::CreateBitmap(const wxArtID& id,
-                                            const wxArtClient& WXUNUSED(client),
-                                            const wxSize& WXUNUSED(size))
+wxBitmap wxDefaultArtProvider_CreateBitmap(const wxArtID& id)
 {
     // wxMessageBox icons:
     ART_MSGBOX(wxART_ERROR,       wxICON_ERROR,       error)
@@ -176,7 +176,12 @@ wxBitmap wxDefaultArtProvider::CreateBitmap(const wxArtID& id,
     ART(wxART_REPORT_VIEW,                         repview)
     ART(wxART_LIST_VIEW,                           listview)
     ART(wxART_NEW_DIR,                             new_dir)
+    ART(wxART_HARDDISK,                            harddisk)
+    ART(wxART_FLOPPY,                              floppy)
+    ART(wxART_CDROM,                               cdrom)
+    ART(wxART_REMOVABLE,                           removable)
     ART(wxART_FOLDER,                              folder)
+    ART(wxART_FOLDER_OPEN,                         folder_open)
     ART(wxART_GO_DIR_UP,                           dir_up)
     ART(wxART_EXECUTABLE_FILE,                     exefile)
     ART(wxART_NORMAL_FILE,                         deffile)
@@ -184,4 +189,42 @@ wxBitmap wxDefaultArtProvider::CreateBitmap(const wxArtID& id,
     ART(wxART_CROSS_MARK,                          cross)
 
     return wxNullBitmap;
+}
+
+// ----------------------------------------------------------------------------
+// CreateBitmap routine
+// ----------------------------------------------------------------------------
+
+wxBitmap wxDefaultArtProvider::CreateBitmap(const wxArtID& id,
+                                            const wxArtClient& client,
+                                            const wxSize& reqSize)
+{
+    wxBitmap bmp = wxDefaultArtProvider_CreateBitmap(id);
+
+#if wxUSE_IMAGE
+    if (bmp.Ok())
+    {
+        // fit into transparent image with desired size hint from the client
+        if (reqSize == wxDefaultSize)
+        {
+            // find out if there is a desired size for this client
+            wxSize bestSize = GetSizeHint(client);
+            if (bestSize != wxDefaultSize)
+            {
+                int bmp_w = bmp.GetWidth();
+                int bmp_h = bmp.GetHeight();
+                // want default size but it's smaller, paste into transparent image
+                if ((bmp_h < bestSize.x) && (bmp_w < bestSize.y))
+                {
+                    wxPoint offset((bestSize.x - bmp_w)/2, (bestSize.y - bmp_h)/2);
+                    wxImage img = bmp.ConvertToImage();
+                    img.Resize(bestSize, offset);
+                    bmp = wxBitmap(img);
+                }
+            }
+        }
+    }
+#endif // wxUSE_IMAGE
+
+    return bmp;
 }

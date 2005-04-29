@@ -26,6 +26,7 @@ samples/checklst/*W7.xml
 samples/config/*W7.xml
 samples/controls/*W7.xml
 samples/db/*W7.xml
+samples/debugrpt/*W7.xml
 samples/dialogs/*W7.xml
 samples/dialup/*W7.xml
 samples/dnd/*W7.xml
@@ -49,6 +50,7 @@ samples/layout/*W7.xml
 samples/listbox/*W7.xml
 samples/listctrl/*W7.xml
 samples/mdi/*W7.xml
+samples/mediaplayer/*W7.xml
 samples/memcheck/*W7.xml
 samples/menu/*W7.xml
 samples/mfc/*W7.xml
@@ -62,6 +64,7 @@ samples/oleauto/*W7.xml
 samples/opengl/*W7.xml
 samples/ownerdrw/*W7.xml
 samples/png/*W7.xml
+samples/popup/*W7.xml
 samples/printing/*W7.xml
 samples/regtest/*W7.xml
 samples/rotate/*W7.xml

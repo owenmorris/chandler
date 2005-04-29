@@ -165,17 +165,21 @@ your Mac."""
         if redirect:
             self.RedirectStdio(filename)
 
+        # Use Python's install prefix as the default  
+        wx.StandardPaths.Get().SetInstallPrefix(_sys.prefix)
+
         # This finishes the initialization of wxWindows and then calls
         # the OnInit that should be present in the derived class
         self._BootstrapApp()
 
 
-    def __del__(self):
-        try:
-            self.RestoreStdio()  # Just in case the MainLoop was overridden
-        except:
-            pass
+    def __del__(self, destroy=wx.PyApp.__del__):
+        self.RestoreStdio()  # Just in case the MainLoop was overridden
+        destroy(self)
 
+    def Destroy(self):
+        wx.PyApp.Destroy(self)
+        self.thisown = 0
 
     def SetTopWindow(self, frame):
         """Set the \"main\" top level window"""
@@ -200,7 +204,10 @@ your Mac."""
 
 
     def RestoreStdio(self):
-        _sys.stdout, _sys.stderr = self.saveStdio
+        try:
+            _sys.stdout, _sys.stderr = self.saveStdio
+        except:
+            pass
 
 
     def SetOutputWindowAttributes(self, title=None, pos=None, size=None):

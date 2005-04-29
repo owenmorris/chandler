@@ -12,6 +12,7 @@ samples/config/Makefile.in
 samples/console/Makefile.in
 samples/controls/Makefile.in
 samples/db/Makefile.in
+samples/debugrpt/Makefile.in
 samples/dialogs/Makefile.in
 samples/dnd/Makefile.in
 samples/docview/Makefile.in
@@ -47,6 +48,7 @@ samples/layout/Makefile.in
 samples/listbox/Makefile.in
 samples/listctrl/Makefile.in
 samples/mdi/Makefile.in
+samples/mediaplayer/Makefile.in
 samples/minifram/Makefile.in
 samples/minimal/Makefile.in
 samples/mobile/Makefile.in
@@ -55,9 +57,11 @@ samples/mobile/styles/Makefile.in
 samples/multimon/Makefile.in
 samples/notebook/Makefile.in
 samples/png/Makefile.in
+samples/popup/Makefile.in
 samples/printing/Makefile.in
 samples/propsize/Makefile.in
 samples/render/Makefile.in
+samples/richedit/Makefile.in
 samples/rotate/Makefile.in
 samples/sashtest/Makefile.in
 samples/scroll/Makefile.in
@@ -85,6 +89,7 @@ samples/opengl/penguin/Makefile.in
 samples/opengl/isosurf/Makefile.in
 samples/validate/Makefile.in
 samples/vscroll/Makefile.in
+samples/xrc/Makefile.in
 samples/widgets/Makefile.in
 samples/wizard/Makefile.in
 demos/Makefile.in
@@ -107,6 +112,7 @@ utils/helpview/Makefile.in
 utils/helpview/src/Makefile.in
 utils/configtool/Makefile.in
 utils/configtool/src/Makefile.in
+utils/wxrc/Makefile.in
 
 contrib/Makefile.in
 contrib/src/Makefile.in
@@ -184,6 +190,8 @@ src/x11/descrip.mms
 src/png/scripts/descrip.mms
 src/unix/descrip.mms
 src/zlib/descrip.mms
+src/xml/descrip.mms
+src/xrc/descrip.mms
 src/regex/descrip.mms
 utils/helpview/src/descrip.mms
 utils/tex2rtf/src/descrip.mms

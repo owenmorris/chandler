@@ -50,6 +50,9 @@ enum
     wxFRAME_NO_TASKBAR,
     wxFRAME_SHAPED,
     wxFRAME_DRAWER,
+
+    wxFRAME_EX_METAL,
+    wxDIALOG_EX_METAL,
     
     // Obsolete
     wxDIALOG_MODAL,
@@ -168,7 +171,7 @@ public:
             const wxSize& size = wxDefaultSize,
             long style = wxDEFAULT_FRAME_STYLE,
             const wxString& name = wxPyFrameNameStr);
-    %name(PreFrame)wxFrame();
+    %RenameCtor(PreFrame, wxFrame());
 
     // Turn it back on again
     %typemap(out) wxFrame* { $result = wxPyMake_wxObject($1, $owner); }
@@ -191,7 +194,6 @@ public:
 
     // sends a size event to the window using its current size -- this has an
     // effect of refreshing the window layout
-    //
     virtual void SendSizeEvent();
 
 
@@ -288,7 +290,7 @@ public:
              const wxSize& size = wxDefaultSize,
              long style = wxDEFAULT_DIALOG_STYLE,
              const wxString& name = wxPyDialogNameStr);
-    %name(PreDialog)wxDialog();
+    %RenameCtor(PreDialog, wxDialog());
 
     // Turn it back on again
     %typemap(out) wxDialog* { $result = wxPyMake_wxObject($1, $owner); }
@@ -309,11 +311,11 @@ public:
 
     // splits text up at newlines and places the
     // lines into a vertical wxBoxSizer
-    wxSizer *CreateTextSizer( const wxString &message );
+    wxSizer* CreateTextSizer( const wxString &message );
 
     // places buttons into a horizontal wxBoxSizer
-    wxSizer *CreateButtonSizer( long flags );
-
+    wxSizer* CreateButtonSizer( long flags );
+    wxStdDialogButtonSizer* CreateStdDialogButtonSizer( long flags );
 
     //void SetModal(bool flag);
 
@@ -353,7 +355,7 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_FRAME_STYLE,
                 const wxString& name = wxPyFrameNameStr);
-    %name(PreMiniFrame)wxMiniFrame();
+    %RenameCtor(PreMiniFrame, wxMiniFrame());
 
     bool Create(wxWindow* parent, const wxWindowID id=-1,
                 const wxString& title = wxPyEmptyString,

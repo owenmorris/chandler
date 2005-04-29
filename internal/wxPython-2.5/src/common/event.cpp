@@ -44,6 +44,7 @@
         #include "wx/control.h"
         #include "wx/utils.h"
         #include "wx/dc.h"
+        #include "wx/textctrl.h"
     #endif // wxUSE_GUI
 #endif
 
@@ -264,6 +265,7 @@ DEFINE_EVENT_TYPE(wxEVT_MOVING)
 DEFINE_EVENT_TYPE(wxEVT_CLOSE_WINDOW)
 DEFINE_EVENT_TYPE(wxEVT_END_SESSION)
 DEFINE_EVENT_TYPE(wxEVT_QUERY_END_SESSION)
+DEFINE_EVENT_TYPE(wxEVT_HIBERNATE)
 DEFINE_EVENT_TYPE(wxEVT_ACTIVATE_APP)
 DEFINE_EVENT_TYPE(wxEVT_POWER)
 DEFINE_EVENT_TYPE(wxEVT_ACTIVATE)
@@ -380,8 +382,16 @@ wxEvent::wxEvent(const wxEvent &src)
  *
  */
 
+#ifdef __VISUALC__
+    // 'this' : used in base member initializer list (for m_commandString)
+    #pragma warning(disable:4355)
+#endif
+
 wxCommandEvent::wxCommandEvent(wxEventType commandType, int theId)
               : wxEvent(theId, commandType)
+#if WXWIN_COMPATIBILITY_2_4
+              , m_commandString(this)
+#endif
 {
     m_clientData = (char *) NULL;
     m_clientObject = (wxClientData *) NULL;
@@ -391,6 +401,26 @@ wxCommandEvent::wxCommandEvent(wxEventType commandType, int theId)
 
     // the command events are propagated upwards by default
     m_propagationLevel = wxEVENT_PROPAGATE_MAX;
+}
+
+#ifdef __VISUALC__
+    #pragma warning(default:4355)
+#endif
+
+wxString wxCommandEvent::GetString() const
+{
+    if(m_eventType != wxEVT_COMMAND_TEXT_UPDATED || !m_eventObject)
+        return m_cmdString;
+    else
+    {
+#if wxUSE_TEXTCTRL
+        wxTextCtrl *txt = wxDynamicCast(m_eventObject, wxTextCtrl);
+        if(txt)
+            return txt->GetValue();
+        else
+#endif // wxUSE_TEXTCTRL
+            return m_cmdString;
+    }
 }
 
 /*
@@ -1060,22 +1090,14 @@ void wxEvtHandler::AddPendingEvent(wxEvent& event)
     wxCHECK_RET( eventCopy,
                  _T("events of this type aren't supposed to be posted") );
 
-#if defined(__VISAGECPP__)
-    wxENTER_CRIT_SECT( m_eventsLocker);
-#else
-    wxENTER_CRIT_SECT( *m_eventsLocker);
-#endif
+    wxENTER_CRIT_SECT( Lock() );
 
     if ( !m_pendingEvents )
       m_pendingEvents = new wxList;
 
     m_pendingEvents->Append(eventCopy);
 
-#if defined(__VISAGECPP__)
-    wxLEAVE_CRIT_SECT( m_eventsLocker);
-#else
-    wxLEAVE_CRIT_SECT( *m_eventsLocker);
-#endif
+    wxLEAVE_CRIT_SECT( Lock() );
 
     // 2) Add this event handler to list of event handlers that
     //    have pending events.
@@ -1100,41 +1122,33 @@ void wxEvtHandler::ProcessPendingEvents()
     wxCHECK_RET( m_pendingEvents,
                  wxT("Please call wxApp::ProcessPendingEvents() instead") );
 
-#if defined(__VISAGECPP__)
-    wxENTER_CRIT_SECT( m_eventsLocker);
-#else
-    wxENTER_CRIT_SECT( *m_eventsLocker);
-#endif
+    wxENTER_CRIT_SECT( Lock() );
 
-    wxList::compatibility_iterator node = m_pendingEvents->GetFirst();
-    while ( node )
+    // we leave the loop once we have processed all events that were present at
+    // the start of ProcessPendingEvents because otherwise we could get into
+    // infinite loop if the pending event handler execution resulted in another
+    // event being posted
+    size_t n = m_pendingEvents->size();
+    for ( wxList::compatibility_iterator node = m_pendingEvents->GetFirst();
+          node;
+          node = m_pendingEvents->GetFirst() )
     {
         wxEvent *event = (wxEvent *)node->GetData();
+
         m_pendingEvents->Erase(node);
 
-        // In ProcessEvent, new events might get added and
-        // we can safely leave the crtical section here.
-#if defined(__VISAGECPP__)
-        wxLEAVE_CRIT_SECT( m_eventsLocker);
-#else
-        wxLEAVE_CRIT_SECT( *m_eventsLocker);
-#endif
+        wxLEAVE_CRIT_SECT( Lock() );
+
         ProcessEvent(*event);
         delete event;
-#if defined(__VISAGECPP__)
-        wxENTER_CRIT_SECT( m_eventsLocker);
-#else
-        wxENTER_CRIT_SECT( *m_eventsLocker);
-#endif
 
-        node = m_pendingEvents->GetFirst();
+        wxENTER_CRIT_SECT( Lock() );
+
+        if ( !--n )
+            break;
     }
 
-#if defined(__VISAGECPP__)
-    wxLEAVE_CRIT_SECT( m_eventsLocker);
-#else
-    wxLEAVE_CRIT_SECT( *m_eventsLocker);
-#endif
+    wxLEAVE_CRIT_SECT( Lock() );
 }
 
 /*
@@ -1335,7 +1349,7 @@ bool wxEvtHandler::SearchDynamicEventTable( wxEvent& event )
         wxDynamicEventTableEntry *entry = (wxDynamicEventTableEntry*)node->GetData();
 #endif // WXWIN_COMPATIBILITY_EVENT_TYPES/!WXWIN_COMPATIBILITY_EVENT_TYPES
 
-        if ((event.m_eventType == entry->m_eventType) && (entry->m_fn != 0))
+        if ((event.GetEventType() == entry->m_eventType) && (entry->m_fn != 0))
         {
             wxEvtHandler *handler =
 #if !WXWIN_COMPATIBILITY_EVENT_TYPES

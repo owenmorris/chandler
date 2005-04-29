@@ -260,7 +260,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 
     return *gs_fontDefault;
 #else // !__WXWINCE__
-    // wxWindow ctor calls GetSystemFont(wxSYS_DEFAULT_GUI_FONT) so we're
+    // wxWindow ctor calls GetFont(wxSYS_DEFAULT_GUI_FONT) so we're
     // called fairly often -- this is why we cache this particular font
     const bool isDefaultRequested = index == wxSYS_DEFAULT_GUI_FONT;
     if ( isDefaultRequested )
@@ -377,7 +377,7 @@ static const int gs_metricsMap[] =
 };
 
 // Get a system metric, e.g. scrollbar size
-int wxSystemSettingsNative::GetMetric(wxSystemMetric index)
+int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(win))
 {
 #ifdef __WXMICROWIN__
     // TODO: probably use wxUniv themes functionality
@@ -438,7 +438,7 @@ extern wxFont wxGetCCDefaultFont()
     {
         case wxWIN95:
             // 4.10 is Win98
-            useIconFont = verMin == 4 && verMin >= 10;
+            useIconFont = verMaj == 4 && verMin >= 10;
             break;
 
         case wxWINDOWS_NT:

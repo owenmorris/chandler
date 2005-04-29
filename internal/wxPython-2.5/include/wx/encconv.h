@@ -16,8 +16,6 @@
 
 #include "wx/defs.h"
 
-#if wxUSE_FONTMAP
-
 #include "wx/object.h"
 #include "wx/fontenc.h"
 #include "wx/dynarray.h"
@@ -93,15 +91,15 @@ class WXDLLIMPEXP_BASE wxEncodingConverter : public wxObject
 
             // Convert input string according to settings passed to Init.
             // Note that you must call Init before using Convert!
-            void Convert(const char* input, char* output) const;
-            void Convert(char* str) const { Convert(str, str); }
+            bool Convert(const char* input, char* output) const;
+            bool Convert(char* str) const { return Convert(str, str); }
             wxString Convert(const wxString& input) const;
 
 #if wxUSE_WCHAR_T
-            void Convert(const char* input, wchar_t* output) const;
-            void Convert(const wchar_t* input, char* output) const;
-            void Convert(const wchar_t* input, wchar_t* output) const;
-            void Convert(wchar_t* str) const { Convert(str, str); }
+            bool Convert(const char* input, wchar_t* output) const;
+            bool Convert(const wchar_t* input, char* output) const;
+            bool Convert(const wchar_t* input, wchar_t* output) const;
+            bool Convert(wchar_t* str) const { return Convert(str, str); }
 #endif
             // Return equivalent(s) for given font that are used
             // under given platform. wxPLATFORM_CURRENT means the plaform
@@ -161,7 +159,5 @@ class WXDLLIMPEXP_BASE wxEncodingConverter : public wxObject
 
     DECLARE_NO_COPY_CLASS(wxEncodingConverter)
 };
-
-#endif // wxUSE_FONTMAP
 
 #endif  // _WX_ENCCONV_H_

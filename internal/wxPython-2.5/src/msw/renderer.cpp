@@ -33,6 +33,18 @@
 #include "wx/splitter.h"
 #include "wx/renderer.h"
 #include "wx/msw/uxtheme.h"
+#include "wx/msw/private.h"
+
+// tmschema.h is in Win32 Platform SDK and might not be available with earlier
+// compilers
+#ifndef CP_DROPDOWNBUTTON
+    #define CP_DROPDOWNBUTTON  1
+
+    #define CBXS_NORMAL        1
+    #define CBXS_HOT           2
+    #define CBXS_PRESSED       3
+    #define CBXS_DISABLED      4
+#endif
 
 // ----------------------------------------------------------------------------
 // wxRendererMSW: wxRendererNative implementation for "old" Win32 systems
@@ -45,6 +57,11 @@ public:
 
     static wxRendererNative& Get();
 
+    virtual void DrawComboBoxDropButton(wxWindow *win,
+                                        wxDC& dc,
+                                        const wxRect& rect,
+                                        int flags = 0);
+
 private:
     DECLARE_NO_COPY_CLASS(wxRendererMSW)
 };
@@ -52,6 +69,8 @@ private:
 // ----------------------------------------------------------------------------
 // wxRendererXP: wxRendererNative implementation for Windows XP and later
 // ----------------------------------------------------------------------------
+
+#if wxUSE_UXTHEME
 
 class WXDLLEXPORT wxRendererXP : public wxDelegateRendererNative
 {
@@ -70,11 +89,18 @@ public:
                                   wxCoord position,
                                   wxOrientation orient,
                                   int flags = 0);
+
     virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win);
 
+    virtual void DrawComboBoxDropButton(wxWindow *win,
+                                        wxDC& dc,
+                                        const wxRect& rect,
+                                        int flags = 0);
 private:
     DECLARE_NO_COPY_CLASS(wxRendererXP)
 };
+
+#endif // wxUSE_UXTHEME
 
 // ============================================================================
 // wxRendererNative and wxRendererMSW implementation
@@ -83,9 +109,13 @@ private:
 /* static */
 wxRendererNative& wxRendererNative::GetDefault()
 {
+#if wxUSE_UXTHEME
     wxUxThemeEngine *themeEngine = wxUxThemeEngine::Get();
-    return themeEngine && themeEngine->IsAppThemed() ? wxRendererXP::Get()
-                                                     : wxRendererMSW::Get();
+    if ( themeEngine && themeEngine->IsAppThemed() )
+        return wxRendererXP::Get();
+#endif // wxUSE_UXTHEME
+
+    return wxRendererMSW::Get();
 }
 
 /* static */
@@ -96,9 +126,36 @@ wxRendererNative& wxRendererMSW::Get()
     return s_rendererMSW;
 }
 
+#if defined(__WXWINCE__) && !defined(DFCS_FLAT)
+#define DFCS_FLAT 0
+#endif
+
+void
+wxRendererMSW::DrawComboBoxDropButton(wxWindow * WXUNUSED(win),
+                                      wxDC& dc,
+                                      const wxRect& rect,
+                                      int flags)
+{
+    RECT r;
+    r.left = rect.GetLeft();
+    r.top = rect.GetTop();
+    r.bottom = rect.y + rect.height;
+    r.right = rect.x + rect.width;
+
+    int style = DFCS_SCROLLCOMBOBOX;
+    if ( flags & wxCONTROL_DISABLED )
+        style |= DFCS_INACTIVE;
+    if ( flags & wxCONTROL_PRESSED )
+        style |= DFCS_PUSHED | DFCS_FLAT;
+
+    ::DrawFrameControl(GetHdcOf(dc), &r, DFC_SCROLL, style);
+}
+
 // ============================================================================
 // wxRendererXP implementation
 // ============================================================================
+
+#if wxUSE_UXTHEME
 
 /* static */
 wxRendererNative& wxRendererXP::Get()
@@ -106,6 +163,47 @@ wxRendererNative& wxRendererXP::Get()
     static wxRendererXP s_rendererXP;
 
     return s_rendererXP;
+}
+
+// NOTE: There is no guarantee that the button drawn fills the entire rect (XP
+// default theme, for example), so the caller should have cleared button's
+// background before this call. This is quite likely a wxMSW-specific thing.
+void
+wxRendererXP::DrawComboBoxDropButton(wxWindow * win,
+                                      wxDC& dc,
+                                      const wxRect& rect,
+                                      int flags)
+{
+    wxUxThemeHandle hTheme(win, L"COMBOBOX");
+    if ( hTheme )
+    {
+        RECT r;
+        r.left = rect.x;
+        r.top = rect.y;
+        r.right = rect.x + rect.width;
+        r.bottom = rect.y + rect.height;
+
+        int state;
+        if ( flags & wxCONTROL_PRESSED )
+            state = CBXS_PRESSED;
+        else if ( flags & wxCONTROL_CURRENT )
+            state = CBXS_HOT;
+        else if ( flags & wxCONTROL_DISABLED )
+            state = CBXS_DISABLED;
+        else
+            state = CBXS_NORMAL;
+
+        wxUxThemeEngine::Get()->DrawThemeBackground
+                                (
+                                    hTheme,
+                                    dc.GetHDC(),
+                                    CP_DROPDOWNBUTTON,
+                                    state,
+                                    &r,
+                                    NULL
+                                );
+
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -144,43 +242,42 @@ wxRendererXP::DrawSplitterSash(wxWindow *win,
                                wxOrientation orient,
                                int flags)
 {
-    if (win->GetWindowStyle() & wxSP_NO_XP_THEME)
+    if ( !win->HasFlag(wxSP_NO_XP_THEME) )
     {
-        m_rendererNative.DrawSplitterSash(
-                   win, dc, size, position, orient, flags);
-        return;
+        wxUxThemeHandle hTheme(win, L"WINDOW");
+        if ( hTheme )
+        {
+            RECT rect;
+            if ( orient == wxVERTICAL )
+            {
+                rect.left = position;
+                rect.right = position + SASH_WIDTH;
+                rect.top = 0;
+                rect.bottom = size.y;
+            }
+            else // wxHORIZONTAL
+            {
+                rect.left = 0;
+                rect.right = size.x;
+                rect.top = position;
+                rect.bottom = position + SASH_WIDTH;
+            }
+
+            wxUxThemeEngine::Get()->DrawThemeBackground
+                                    (
+                                        (WXHTHEME)hTheme,
+                                        dc.GetHDC(),
+                                        29, // WP_DIALOG: dlg background
+                                        0, // no particular state
+                                        &rect,
+                                        NULL
+                                    );
+            return;
+        }
     }
 
-    // I don't know if it is correct to use the rebar background for the
-    // splitter but it least this works ok in the default theme
-    wxUxThemeHandle hTheme(win, L"REBAR");
-    if ( hTheme )
-    {
-        RECT rect;
-        if ( orient == wxVERTICAL )
-        {
-            rect.left = position;
-            rect.right = position + SASH_WIDTH;
-            rect.top = 0;
-            rect.bottom = size.y;
-        }
-        else // wxHORIZONTAL
-        {
-            rect.left = 0;
-            rect.right = size.x;
-            rect.top = position;
-            rect.bottom = position + SASH_WIDTH;
-        }
-
-        wxUxThemeEngine::Get()->DrawThemeBackground
-                                (
-                                    (WXHTHEME)hTheme,
-                                    dc.GetHDC(),
-                                    3 /* RP_BAND */,
-                                    0 /* no state */ ,
-                                    &rect,
-                                    NULL
-                                );
-    }
+    m_rendererNative.DrawSplitterSash(win, dc, size, position, orient, flags);
 }
+
+#endif // wxUSE_UXTHEME
 

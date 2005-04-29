@@ -9,11 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "button.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #include "wx/button.h"
 #include "wx/panel.h"
@@ -44,7 +44,7 @@ bool wxButton::Create(wxWindow *parent, wxWindowID id, const wxString& lbl,
     m_label = label ;
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     if ( id == wxID_HELP )
     {
         ControlButtonContentInfo info ;

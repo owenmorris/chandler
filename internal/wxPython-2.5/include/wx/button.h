@@ -25,7 +25,7 @@
 #define wxBU_TOP             0x0080
 #define wxBU_RIGHT           0x0100
 #define wxBU_BOTTOM          0x0200
-
+#define wxBU_ALIGN_MASK      ( wxBU_LEFT | wxBU_TOP | wxBU_RIGHT | wxBU_BOTTOM )
 #endif
 
 #if wxUSE_BUTTON
@@ -47,7 +47,7 @@
 
 class WXDLLEXPORT wxBitmap;
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxButtonNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxButtonNameStr;
 
 // ----------------------------------------------------------------------------
 // wxButton: a push button
@@ -94,6 +94,8 @@ protected:
     #include "wx/cocoa/button.h"
 #elif defined(__WXPM__)
     #include "wx/os2/button.h"
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/button.h"
 #endif
 
 #endif // wxUSE_BUTTON

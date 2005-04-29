@@ -41,9 +41,6 @@
     #include "wx/icon.h"
 #endif
 
-#include "wx/msw/private.h" // needs to be before #include <commdlg.h>
-#include "wx/msw/missing.h" // needs to be before #include <commdlg.h>
-
 #include "wx/sysopt.h"
 #include "wx/dcprint.h"
 #include "wx/module.h"
@@ -54,12 +51,8 @@
 #endif
 
 #include <string.h>
-#include <math.h>
 
-#if wxUSE_COMMON_DIALOGS && !defined(__WXMICROWIN__)
-    #include <commdlg.h>
-#endif
-
+#include "wx/msw/wrapcdlg.h"
 #ifndef __WIN32__
     #include <print.h>
 #endif
@@ -94,11 +87,6 @@ static const int VIEWPORT_EXTENT = 1000;
 static const int MM_POINTS = 9;
 static const int MM_METRIC = 10;
 
-// usually this is defined in math.h
-#ifndef M_PI
-    static const double M_PI = 3.14159265358979323846;
-#endif // M_PI
-
 // ROPs which don't have standard names (see "Ternary Raster Operations" in the
 // MSDN docs for how this and other numbers in wxDC::Blit() are obtained)
 #define DSTCOPY 0x00AA0029      // a.k.a. NOP operation
@@ -115,10 +103,10 @@ static const int MM_METRIC = 10;
  */
 
 #ifdef __WXWINCE__
-    #define XLOG2DEV(x) ((x-m_logicalOriginX)*m_signX+m_deviceOriginX)
-    #define YLOG2DEV(y) ((y-m_logicalOriginY)*m_signY+m_deviceOriginY)
-    #define XDEV2LOG(x) ((x-m_deviceOriginX)*m_signX+m_logicalOriginX)
-    #define YDEV2LOG(y) ((y-m_deviceOriginY)*m_signY+m_logicalOriginY)
+    #define XLOG2DEV(x) ((x-m_logicalOriginX)*m_signX)
+    #define YLOG2DEV(y) ((y-m_logicalOriginY)*m_signY)
+    #define XDEV2LOG(x) ((x)*m_signX+m_logicalOriginX)
+    #define YDEV2LOG(y) ((y)*m_signY+m_logicalOriginY)
 #else
     #define XLOG2DEV(x) (x)
     #define YLOG2DEV(y) (y)
@@ -418,6 +406,12 @@ void wxDC::SetClippingHrgn(WXHRGN hrgn)
     RECT rectClip;
     if ( !::GetClipBox(GetHdc(), &rectClip) )
         return;
+
+    // GetClipBox returns logical coordinates, so transform to device
+    rectClip.left = LogicalToDeviceX(rectClip.left);
+    rectClip.top = LogicalToDeviceY(rectClip.top);
+    rectClip.right = LogicalToDeviceX(rectClip.right);
+    rectClip.bottom = LogicalToDeviceY(rectClip.bottom);
 
     HRGN hrgnDest = ::CreateRectRgn(0, 0, 0, 0);
     HRGN hrgnClipOld = ::CreateRectRgn(rectClip.left, rectClip.top,
@@ -920,8 +914,11 @@ void wxDC::DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height)
         // I wonder if this shouldn´t be done after the LOG2DEV() conversions. RR.
         if ( m_pen.GetStyle() == wxTRANSPARENT )
         {
+            // Apparently not needed for WinCE (see e.g. Life! demo)
+#ifndef __WXWINCE__
             x2++;
             y2++;
+#endif
         }
 
         (void)Rectangle(GetHdc(), XLOG2DEV(x), YLOG2DEV(y), XLOG2DEV(x2), YLOG2DEV(y2));
@@ -1844,9 +1841,7 @@ void wxDC::SetDeviceOrigin(wxCoord x, wxCoord y)
     m_deviceOriginX = x;
     m_deviceOriginY = y;
 
-#ifndef __WXWINCE__
     ::SetViewportOrgEx(GetHdc(), (int)m_deviceOriginX, (int)m_deviceOriginY, NULL);
-#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -2233,7 +2228,7 @@ void wxDC::DoGetSizeMM(int *w, int *h) const
 
 wxSize wxDC::GetPPI() const
 {
-    WXMICROWIN_CHECK_HDC_RET(wxSize())
+    WXMICROWIN_CHECK_HDC_RET(wxSize(0,0))
 
     int x = ::GetDeviceCaps(GetHdc(), LOGPIXELSX);
     int y = ::GetDeviceCaps(GetHdc(), LOGPIXELSY);

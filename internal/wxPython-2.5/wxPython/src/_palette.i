@@ -30,8 +30,9 @@ public:
     
     DocDeclA(
         bool, GetRGB(int pixel, byte* OUTPUT, byte* OUTPUT, byte* OUTPUT),
-        "GetRGB(int pixel) -> (R,G,B)");
+        "GetRGB(self, int pixel) -> (R,G,B)");
 
+    int GetColoursCount() const;
     bool Ok();
 
     %pythoncode { def __nonzero__(self): return self.Ok() }

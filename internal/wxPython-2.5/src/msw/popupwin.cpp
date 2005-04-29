@@ -38,8 +38,6 @@
 
 #include "wx/msw/private.h"     // for GetDesktopWindow()
 
-IMPLEMENT_DYNAMIC_CLASS(wxPopupWindow, wxWindow)
-
 // ============================================================================
 // implementation
 // ============================================================================
@@ -109,6 +107,9 @@ bool wxPopupWindow::Show(bool show)
         {
             wxLogLastError(_T("SetWindowPos"));
         }
+
+        // and set it as the foreground window so the mouse can be captured
+        ::SetForegroundWindow(GetHwnd());
     }
 
     return true;

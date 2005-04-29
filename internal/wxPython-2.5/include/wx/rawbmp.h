@@ -76,6 +76,13 @@
     #pragma warning(disable: 4355) // 'this' used in initializer list
 #endif
 
+/*
+    Note: we do not use WXDLLEXPORT with classes in this file because VC++ has
+    problems with exporting inner class defined inside a specialization of a
+    template class from a DLL. Besides, as all the methods are inline it's not
+    really necessary to put them in DLL at all.
+ */
+
 // ----------------------------------------------------------------------------
 // wxPixelFormat
 // ----------------------------------------------------------------------------
@@ -107,7 +114,7 @@ template <class Channel,
           size_t Bpp, int R, int G, int B, int A = -1,
           class Pixel = wxUint32>
 
-struct WXDLLEXPORT wxPixelFormat
+struct wxPixelFormat
 {
     // iterator over pixels is usually of type "ChannelType *"
     typedef Channel ChannelType;
@@ -161,6 +168,11 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
     typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
 
     #define wxPIXEL_FORMAT_ALPHA 3
+#elif defined(__WXGTK__)
+    // Under GTK+ 2.X we use GdkPixbuf, which should be RGBA
+    typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
+
+    #define wxPIXEL_FORMAT_ALPHA 3
 #endif
 
 // the (most common) native format for bitmaps with alpha channel
@@ -176,14 +188,16 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
 // used as default value for the pixel format in wxPixelIterator template
 template <class T> struct wxPixelFormatFor;
 
+#if wxUSE_IMAGE
 // wxPixelFormatFor is only defined for wxImage, attempt to use it with other
 // classes (wxBitmap...) will result in compile errors which is exactly what we
 // want
 template <>
-struct WXDLLEXPORT wxPixelFormatFor<wxImage>
+struct wxPixelFormatFor<wxImage>
 {
     typedef wxImagePixelFormat Format;
 };
+#endif //wxUSE_IMAGE
 
 // ----------------------------------------------------------------------------
 // wxPixelData
@@ -193,7 +207,7 @@ struct WXDLLEXPORT wxPixelFormatFor<wxImage>
     wxPixelDataBase is just a helper for wxPixelData: it contains things common
     to both wxImage and wxBitmap specializations.
  */
-class WXDLLEXPORT wxPixelDataBase
+class wxPixelDataBase
 {
 public:
     // origin of the rectangular region we represent
@@ -261,26 +275,28 @@ protected:
 
 // we need to define this skeleton template to mollify VC++
 template <class Image>
-struct WXDLLEXPORT wxPixelDataOut
+struct wxPixelDataOut
 {
     template <class PixelFormat>
-    class WXDLLEXPORT wxPixelDataIn
+    class wxPixelDataIn
     {
     public:
         class Iterator { };
     };
 };
 
+#if wxUSE_IMAGE
 // wxPixelData specialization for wxImage: this is the simplest case as we
 // don't have to care about different pixel formats here
 template <>
-struct WXDLLEXPORT wxPixelDataOut<wxImage>
+struct wxPixelDataOut<wxImage>
 {
     // NB: this is a template class even though it doesn't use its template
     //     parameter because otherwise wxPixelData couldn't compile
     template <class dummyPixelFormat>
-    class WXDLLEXPORT wxPixelDataIn : public wxPixelDataBase
+    class wxPixelDataIn : public wxPixelDataBase
     {
+    public:
         // the type of the class we're working with
         typedef wxImage ImageType;
 
@@ -455,14 +471,16 @@ struct WXDLLEXPORT wxPixelDataOut<wxImage>
         Iterator m_pixels;
     };
 };
+#endif //wxUSE_IMAGE
 
+#if wxUSE_GUI
 // wxPixelData specialization for wxBitmap: here things are more interesting as
 // we also have to support different pixel formats
 template <>
-struct WXDLLEXPORT wxPixelDataOut<wxBitmap>
+struct wxPixelDataOut<wxBitmap>
 {
     template <class Format>
-    class WXDLLEXPORT wxPixelDataIn : public wxPixelDataBase
+    class wxPixelDataIn : public wxPixelDataBase
     {
     public:
         // the type of the class we're working with
@@ -637,6 +655,7 @@ struct WXDLLEXPORT wxPixelDataOut<wxBitmap>
         }
     };
 };
+#endif //wxUSE_GUI
 
 #ifdef __VISUALC__
     // typedef-name 'foo' used as synonym for class-name 'bar'
@@ -667,9 +686,14 @@ public:
 
 
 // some "predefined" pixel data classes
+#if wxUSE_IMAGE
 typedef wxPixelData<wxImage> wxImagePixelData;
+#endif //wxUSE_IMAGE
+#if wxUSE_GUI
 typedef wxPixelData<wxBitmap, wxNativePixelFormat> wxNativePixelData;
 typedef wxPixelData<wxBitmap, wxAlphaPixelFormat> wxAlphaPixelData;
+
+#endif //wxUSE_GUI
 
 // ----------------------------------------------------------------------------
 // wxPixelIterator
@@ -688,7 +712,7 @@ typedef wxPixelData<wxBitmap, wxAlphaPixelFormat> wxAlphaPixelData;
     partial template specialization then and neither VC6 nor VC7 provide it.
  */
 template < class Image, class PixelFormat = wxPixelFormatFor<Image> >
-struct WXDLLEXPORT wxPixelIterator : wxPixelData<Image, PixelFormat>::Iterator
+struct wxPixelIterator : wxPixelData<Image, PixelFormat>::Iterator
 {
 };
 

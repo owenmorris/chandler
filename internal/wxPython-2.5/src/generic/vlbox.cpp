@@ -24,6 +24,8 @@
     #pragma hdrstop
 #endif
 
+#if wxUSE_LISTBOX
+
 #ifndef WX_PRECOMP
     #include "wx/settings.h"
     #include "wx/dcclient.h"
@@ -243,7 +245,7 @@ void wxVListBox::SendSelectedEvent()
 
     wxCommandEvent event(wxEVT_COMMAND_LISTBOX_SELECTED, GetId());
     event.SetEventObject(this);
-    event.m_commandInt = m_current;
+    event.SetInt(m_current);
 
     (void)GetEventHandler()->ProcessEvent(event);
 }
@@ -574,6 +576,8 @@ void wxVListBox::OnKeyDown(wxKeyEvent& event)
 
 void wxVListBox::OnLeftDown(wxMouseEvent& event)
 {
+    SetFocus();
+    
     int item = HitTest(event.GetPosition());
 
     if ( item != wxNOT_FOUND )
@@ -602,7 +606,7 @@ void wxVListBox::OnLeftDClick(wxMouseEvent& event)
     {
         wxCommandEvent event(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, GetId());
         event.SetEventObject(this);
-        event.m_commandInt = item;
+        event.SetInt(item);
 
         (void)GetEventHandler()->ProcessEvent(event);
     }
@@ -621,3 +625,5 @@ wxVListBox::GetClassDefaultAttributes(wxWindowVariant variant)
 {
     return wxListBox::GetClassDefaultAttributes(variant);
 }
+
+#endif

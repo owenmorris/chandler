@@ -13,6 +13,8 @@
 // headers & declarations
 // ============================================================================
 
+#include "wx/wxprec.h"
+
 #include "wx/app.h"
 #include "wx/menu.h"
 #include "wx/menuitem.h"
@@ -46,8 +48,7 @@ wxMenuItem::wxMenuItem(wxMenu *pParentMenu,
                        wxMenu *pSubMenu) 
           : wxMenuItemBase(pParentMenu, id, text, strHelp, kind, pSubMenu)
 {
-    // TO DISCUSS on dev : whether we can veto id 0
-    // wxASSERT_MSG( id != 0 || pSubMenu != NULL , wxT("A MenuItem ID of Zero does not work under Mac") ) ;
+    wxASSERT_MSG( id != 0 || pSubMenu != NULL , wxT("A MenuItem ID of Zero does not work under Mac") ) ;
     
     // In other languages there is no difference in naming the Exit/Quit menu item between MacOS and Windows guidelines
     // therefore these item must not be translated
@@ -85,15 +86,17 @@ void wxMenuItem::UpdateItemBitmap()
         
     if ( m_bitmap.Ok() )
     {
+#if wxUSE_BMPBUTTON
         ControlButtonContentInfo info ;
-        wxMacCreateBitmapButton( &info , m_bitmap , kControlContentCIconHandle ) ;
+        wxMacCreateBitmapButton( &info , m_bitmap ) ;
         if ( info.contentType != kControlNoContent )
         {
-            if ( info.contentType == kControlContentCIconHandle )
+            if ( info.contentType == kControlContentIconRef )
                 SetMenuItemIconHandle( mhandle , index , 
-                    kMenuColorIconType , (Handle) info.u.cIconHandle ) ;
+                    kMenuIconRefType , (Handle) info.u.iconRef ) ;
         }
-            
+        wxMacReleaseBitmapButton( &info ) ;
+#endif            
     }
 }
 
@@ -156,13 +159,18 @@ void wxMenuItem::UpdateItemText()
 
 void wxMenuItem::Enable(bool bDoEnable)
 {
-    if ( m_isEnabled != bDoEnable
+    if (( m_isEnabled != bDoEnable
 #if TARGET_CARBON
-         || GetId() == wxApp::s_macPreferencesMenuItemId
-         || GetId() == wxApp::s_macExitMenuItemId
-         || GetId() == wxApp::s_macAboutMenuItemId
+      // avoid changing menuitem state when menu is disabled
+      // eg. BeginAppModalStateForWindow() will disable menus and ignore this change
+      // which in turn causes m_isEnabled to become out of sync with real menuitem state
+         && !(m_parentMenu && !IsMenuItemEnabled(MAC_WXHMENU(m_parentMenu->GetHMenu()), 0)) )
+      // always update builtin menuitems
+         || (   GetId() == wxApp::s_macPreferencesMenuItemId
+             || GetId() == wxApp::s_macExitMenuItemId
+             || GetId() == wxApp::s_macAboutMenuItemId
 #endif
-         ) 
+         ))
     {
         wxMenuItemBase::Enable( bDoEnable ) ;
         UpdateItemStatus() ;

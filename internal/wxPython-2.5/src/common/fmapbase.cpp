@@ -199,7 +199,7 @@ class wxFontMapperModule : public wxModule
 public:
     wxFontMapperModule() : wxModule() { }
     virtual bool OnInit() { return true; }
-    virtual void OnExit() { delete wxFontMapper::Set(NULL); }
+    virtual void OnExit() { delete (wxFontMapperBase*)wxFontMapperBase::Set(NULL); }
 
     DECLARE_DYNAMIC_CLASS(wxFontMapperModule)
 };
@@ -233,8 +233,11 @@ wxFontMapperBase::~wxFontMapperBase()
 #endif // wxUSE_CONFIG
 }
 
+bool wxFontMapperBase::IsWxFontMapper()
+{   return false; }
+
 /* static */
-wxFontMapper *wxFontMapperBase::Get()
+wxFontMapperBase *wxFontMapperBase::Get()
 {
     if ( !sm_instance )
     {
@@ -255,7 +258,7 @@ wxFontMapper *wxFontMapperBase::Get()
         }
     }
 
-    return sm_instance;
+    return (wxFontMapperBase*)sm_instance;
 }
 
 /* static */

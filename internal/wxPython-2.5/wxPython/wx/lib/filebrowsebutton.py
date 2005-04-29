@@ -52,7 +52,7 @@ class FileBrowseButton(wx.Panel):
         :param startDirectory: Default directory for file dialog startup
         :param fileMask:       File mask (glob pattern, such as *.*) to use in file dialog
         :param fileMode:       wx.OPEN or wx.SAVE, indicates type of file dialog to use
-        :param changeCallback: callback receives all changes in value of control
+        :param changeCallback: Optional callback called for all changes in value of the control
         """
       
         # store variables
@@ -86,11 +86,17 @@ class FileBrowseButton(wx.Panel):
     def createDialog( self, parent, id, pos, size, style ):
         """Setup the graphic representation of the dialog"""
         wx.Panel.__init__ (self, parent, id, pos, size, style)
+        self.SetMinSize(size) # play nice with sizers
+
         # try to set the background colour
         try:
-            self.SetBackgroundColour(self._bc)
+            #Question: is this still needed on other platforms?
+            #It should have transparent background on Mac
+            if wx.Platform != "__WXMAC__":
+                self.SetBackgroundColour(self._bc)
         except:
             pass
+
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         self.label = self.createLabel( )
@@ -340,18 +346,27 @@ class DirBrowseButton(FileBrowseButton):
                  dialogTitle = '',
                  startDirectory = '.',
                  changeCallback = None,
-                 dialogClass = wx.DirDialog):
+                 dialogClass = wx.DirDialog,
+                 newDirectory = False):
         FileBrowseButton.__init__(self, parent, id, pos, size, style,
                                   labelText, buttonText, toolTip,
                                   dialogTitle, startDirectory,
                                   changeCallback = changeCallback)
         self.dialogClass = dialogClass
+        self.newDirectory = newDirectory
     #
 
     def OnBrowse(self, ev = None):
+        style=0
+
+        if self.newDirectory:
+          style|=wx.DD_NEW_DIR_BUTTON
+
         dialog = self.dialogClass(self,
                                   message = self.dialogTitle,
-                                  defaultPath = self.startDirectory)
+                                  defaultPath = self.startDirectory,
+                                  style = style)
+
         if dialog.ShowModal() == wx.ID_OK:
             self.SetValue(dialog.GetPath())
         dialog.Destroy()

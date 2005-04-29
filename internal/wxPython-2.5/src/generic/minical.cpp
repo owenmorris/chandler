@@ -692,7 +692,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     dc.SetBackgroundMode(wxSOLID);
 
-	int dayPosition;
+    int dayPosition;
     for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, y += m_heightRow )
     {
         // if the update region doesn't intersect this row, don't paint it
@@ -704,14 +704,14 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 		// don't draw last week if none of the days appear in the month
         if ( nWeek == WEEKS_TO_DISPLAY && (date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date)) )
-		{
-			date += wxDateSpan::Week();
-			continue;
-		}
+	{
+	    date += wxDateSpan::Week();
+	    continue;
+	}
 
         for ( size_t wd = 0; wd < DAYS_PER_WEEK; wd++ )
         {
-			dayPosition = (nWeek - 1) * DAYS_PER_WEEK + wd;
+	    dayPosition = (nWeek - 1) * DAYS_PER_WEEK + wd;
             if ( IsDateShown(date) )
             {
                 // don't use wxDate::Format() which prepends 0s
@@ -737,40 +737,39 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 {
                     attr = m_attrs[dayPosition];
 
-					// highlight selected day
-					if ( date.IsSameDate(m_date) )
+                    // highlight selected day
+                    if ( date.IsSameDate(m_date) )
                     {
-						dc.SetTextBackground(*wxLIGHT_GREY);
-						dc.SetBrush(wxBrush(*wxLIGHT_GREY, wxSOLID));
-					    dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));						
-						dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
+			dc.SetTextBackground(*wxLIGHT_GREY);
+			dc.SetBrush(wxBrush(*wxLIGHT_GREY, wxSOLID));
+			dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));						
+			dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
 
                         changedColours = true;
-					}
-					dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
-					dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
+		    }
+		    dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
+		    dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
-					// today should be printed as bold
-					if ( date.IsSameDate(wxDateTime::Today()) )
-					{
-						dc.SetFont(m_boldFont);
-						changedFont = true;
-					}
+		    // today should be printed as bold
+		    if ( date.IsSameDate(wxDateTime::Today()) )
+		    {
+		        dc.SetFont(m_boldFont);
+		        changedFont = true;
+		    }
                 }
 
                 dc.DrawText(dayStr, x, y + 1);
 
-				// draw free/busy indicator
-				if ( attr )
+		// draw free/busy indicator
+		if ( attr )
                 {
-					int height = (m_heightRow - 6) * attr->GetBusy();
-					dc.DrawRectangle(x-2, y + (m_heightRow - height - 3),
-						             2, height);								
+		    double height = (m_heightRow - 6) * attr->GetBusy();
+		    dc.DrawRectangle(x-2, y + (m_heightRow - (int)height - 3), 2, (int)height);								
                 }
 
                 dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
-				if ( changedColours )
+		if ( changedColours )
                 {
                     dc.SetTextForeground(GetForegroundColour());
                     dc.SetTextBackground(GetBackgroundColour());

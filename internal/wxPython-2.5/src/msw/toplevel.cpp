@@ -159,20 +159,19 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
                         (style & ~wxBORDER_MASK) | wxBORDER_NONE, exflags
                       ) & ~WS_CHILD & ~WS_VISIBLE;
 
-#if defined(__WXWINCE__) && _WIN32_WCE < 400
+    // For some reason, WS_VISIBLE needs to be defined on creation for
+    // SmartPhone 2003. The title can fail to be displayed otherwise.
+#if defined(__SMARTPHONE__) || (defined(__WXWINCE__) && _WIN32_WCE < 400)
     msflags |= WS_VISIBLE;
+    ((wxTopLevelWindowMSW*)this)->wxWindowBase::Show(true);
 #endif
 
     // first select the kind of window being created
     //
     // note that if we don't set WS_POPUP, Windows assumes WS_OVERLAPPED and
-    // creates a window with both caption and border, hence we also test it
-    // below in some other cases
-    if ( style & wxFRAME_TOOL_WINDOW )
-    {
-        msflags |= WS_POPUP;
-    }
-    //else: WS_OVERLAPPED is 0 anyhow, so it is on by default
+    // creates a window with both caption and border, hence we need to use
+    // WS_POPUP in a few cases just to avoid having caption/border which we
+    // don't want
 
 #if !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
     // border and caption styles
@@ -182,35 +181,48 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
         *exflags |= WS_EX_DLGMODALFRAME;
     else if ( !(style & wxBORDER_NONE) )
         msflags |= WS_BORDER;
+#ifndef __POCKETPC__
     else
         msflags |= WS_POPUP;
 #endif
+#endif
 
-    // normally we consider that all windows without caption must be popups,
+    // normally we consider that all windows without a caption must be popups,
     // but CE is an exception: there windows normally do not have the caption
     // but shouldn't be made popups as popups can't have menus and don't look
     // like normal windows anyhow
+
+    // TODO: Smartphone appears to like wxCAPTION, but we should check that
+    // we need it.
+#if defined(__SMARTPHONE__) || !defined(__WXWINCE__)
     if ( style & wxCAPTION )
         msflags |= WS_CAPTION;
 #ifndef __WXWINCE__
     else
         msflags |= WS_POPUP;
 #endif // !__WXWINCE__
+#endif
 
     // next translate the individual flags
     if ( style & wxMINIMIZE_BOX )
         msflags |= WS_MINIMIZEBOX;
     if ( style & wxMAXIMIZE_BOX )
         msflags |= WS_MAXIMIZEBOX;
+
+#ifndef __WXWINCE__    
     if ( style & wxSYSTEM_MENU )
         msflags |= WS_SYSMENU;
+#endif
 
     // NB: under CE these 2 styles are not supported currently, we should
     //     call Minimize()/Maximize() "manually" if we want to support them
     if ( style & wxMINIMIZE )
         msflags |= WS_MINIMIZE;
+
+#if !defined(__POCKETPC__)
     if ( style & wxMAXIMIZE )
         msflags |= WS_MAXIMIZE;
+#endif
 
     // Keep this here because it saves recoding this function in wxTinyFrame
     if ( style & (wxTINY_CAPTION_VERT | wxTINY_CAPTION_HORIZ) )
@@ -219,13 +231,13 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
     if ( exflags )
     {
  	if (wxApp::GetComCtl32Version() >= 582)
-//		if (GetKeyState( VK_CAPITAL ) == 0)
-		{
-			*exflags |= 0x02000000;	// WS_EX_COMPOSITED
-//			MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
-		}
+//	    if (GetKeyState( VK_CAPITAL ) == 0)
+	    {
+	        *exflags |= 0x02000000;	// WS_EX_COMPOSITED
+//	        MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
+	    }
 
-       // there is no taskbar under CE, so omit all this
+        // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
         {
@@ -257,13 +269,13 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
             }
             //else: nothing to do [here]
         }
+
+        if ( GetExtraStyle() & wxFRAME_EX_CONTEXTHELP )
+            *exflags |= WS_EX_CONTEXTHELP;
 #endif // !__WXWINCE__
 
         if ( style & wxSTAY_ON_TOP )
             *exflags |= WS_EX_TOPMOST;
-
-        if ( GetExtraStyle() & wxFRAME_EX_CONTEXTHELP )
-            *exflags |= WS_EX_CONTEXTHELP;
     }
 
     return msflags;
@@ -368,7 +380,7 @@ bool wxTopLevelWindowMSW::CreateDialog(const void *dlgTemplate,
                        SWP_NOACTIVATE);
     }
 
-#if defined(__WIN95__)
+#if !defined(__WXWINCE__)
     // For some reason, the system menu is activated when we use the
     // WS_EX_CONTEXTHELP style, so let's set a reasonable icon
     if ( exflags & WS_EX_CONTEXTHELP )
@@ -385,7 +397,7 @@ bool wxTopLevelWindowMSW::CreateDialog(const void *dlgTemplate,
             }
         }
     }
-#endif // __WIN95__
+#endif
 
     // move the dialog to its initial position without forcing repainting
     int x, y, w, h;
@@ -413,6 +425,11 @@ bool wxTopLevelWindowMSW::CreateDialog(const void *dlgTemplate,
     }
 
     SubclassWin(m_hWnd);
+    
+#ifdef __SMARTPHONE__
+    // Work around title non-display glitch
+    Show(false);
+#endif    
 
     return true;
 #endif // __WXMICROWIN__/!__WXMICROWIN__
@@ -436,10 +453,12 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
 #endif
 
 	// cannot let this flag go through...
-	if (! IsTopLevel())
-		exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
+    if (! IsTopLevel())
+        exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
 
-    return MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
+    bool result = MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
+
+    return result;
 }
 
 bool wxTopLevelWindowMSW::Create(wxWindow *parent,
@@ -498,9 +517,11 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
         // all dialogs are popups
         dlgTemplate->style |= WS_POPUP;
 
+#ifndef __WXWINCE__
         // force 3D-look if necessary, it looks impossibly ugly otherwise
         if ( style & (wxRESIZE_BORDER | wxCAPTION) )
             dlgTemplate->style |= DS_MODALFRAME;
+#endif
 
         ret = CreateDialog(dlgTemplate, title, pos, sizeReal);
         free(dlgTemplate);
@@ -510,10 +531,12 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
         ret = CreateFrame(title, pos, sizeReal);
     }
 
+#ifndef __WXWINCE__
     if ( ret && !(GetWindowStyleFlag() & wxCLOSE_BOX) )
     {
         EnableCloseButton(false);
     }
+#endif
 
     // for some reason we need to manually send ourselves this message as
     // otherwise the mnemonics are always shown -- even if they're configured
@@ -532,8 +555,9 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
         );
     }
 
-    // Native look is full screen window on Smartphones and Standard SDK
-#if defined(__WXWINCE__)
+    // Note: if we include PocketPC in this test, dialogs can fail to show up,
+    // for example the text entry dialog in the dialogs sample. Problem with Maximise()?
+#if defined(__WXWINCE__) && (defined(__SMARTPHONE__) || defined(__WINCE_STANDARDSDK__))
     if ( style & wxMAXIMIZE )
     {
         this->Maximize();
@@ -589,7 +613,7 @@ bool wxTopLevelWindowMSW::Show(bool show)
             nShowCmd = SW_MAXIMIZE;
 
             // This is necessary, or no window appears
-#ifdef __WINCE_STANDARDSDK__
+#if defined( __WINCE_STANDARDSDK__) || defined(__SMARTPHONE__)
             DoShowWindow(SW_SHOW);
 #endif
 
@@ -1026,16 +1050,15 @@ wxDlgProc(HWND hDlg,
         // under CE, add a "Ok" button in the dialog title bar and make it full
         // screen
         //
-        // VZ: we should probably allow for overriding this, e.g. by including
-        //     MAXIMIZED flag in the dialog style by default and doing this
-        //     only if it is present...
-
+        // TODO: find the window for this HWND, and take into account
+        // wxMAXIMIZE and wxCLOSE_BOX. For now, assume both are present.
+        //
         // Standard SDK doesn't have aygshell.dll: see
         // include/wx/msw/wince/libraries.h
 #if defined(__WXWINCE__) && !defined(__WINCE_STANDARDSDK__) && !defined(__HANDHELDPC__)
         SHINITDLGINFO shidi;
         shidi.dwMask = SHIDIM_FLAGS;
-        shidi.dwFlags = SHIDIF_SIZEDLGFULLSCREEN
+        shidi.dwFlags = SHIDIF_SIZEDLG // take account of the SIP or menubar
 #ifndef __SMARTPHONE__
                         | SHIDIF_DONEBUTTON
 #endif

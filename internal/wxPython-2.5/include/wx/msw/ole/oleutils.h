@@ -18,12 +18,48 @@
 
 #include "wx/defs.h"
 
+#if wxUSE_OLE
+
 // get IUnknown, REFIID &c
 #include <ole2.h>
+#include "wx/intl.h"
 
 // ============================================================================
 // General purpose functions and macros
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// initialize/cleanup OLE
+// ----------------------------------------------------------------------------
+
+// call OleInitialize() or CoInitialize[Ex]() depending on the platform
+//
+// return true if ok, false otherwise
+inline bool wxOleInitialize()
+{
+    // we need to initialize OLE library
+#ifdef __WXWINCE__
+    if ( FAILED(::CoInitializeEx(NULL, COINIT_MULTITHREADED)) )
+#else
+    if ( FAILED(::OleInitialize(NULL)) )
+#endif
+    {
+        wxLogError(_("Cannot initialize OLE"));
+
+        return false;
+    }
+
+    return true;
+}
+
+inline void wxOleUninitialize()
+{
+#ifdef __WXWINCE__
+    ::CoUninitialize();
+#else
+    ::OleUninitialize();
+#endif
+}
 
 // ----------------------------------------------------------------------------
 // misc helper functions/macros
@@ -161,11 +197,11 @@ void wxLogQueryInterface(const wxChar *szInterface, REFIID riid);
 void wxLogAddRef (const wxChar *szInterface, ULONG cRef);
 void wxLogRelease(const wxChar *szInterface, ULONG cRef);
 
-#else   //!WXDEBUG
+#else   //!__WXDEBUG__
   #define   wxLogQueryInterface(szInterface, riid)
   #define   wxLogAddRef(szInterface, cRef)
   #define   wxLogRelease(szInterface, cRef)
-#endif  //WXDEBUG
+#endif  //__WXDEBUG__
 
 // wrapper around BSTR type (by Vadim Zeitlin)
 
@@ -205,6 +241,16 @@ BSTR wxConvertStringToOle(const wxString& str);
 // Convert string from BSTR to wxString
 wxString wxConvertStringFromOle(BSTR bStr);
 
+#else // !wxUSE_OLE
+
+// ----------------------------------------------------------------------------
+// stub functions to avoid #if wxUSE_OLE in the main code
+// ----------------------------------------------------------------------------
+
+inline bool wxOleInitialize() { return false; }
+inline void wxOleUninitialize() { }
+
+#endif // wxUSE_OLE/!wxUSE_OLE
 
 #endif  //_WX_OLEUTILS_H
 

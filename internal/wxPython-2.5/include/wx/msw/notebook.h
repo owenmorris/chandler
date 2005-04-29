@@ -30,23 +30,33 @@
 class WXDLLEXPORT wxNotebookPageInfo : public wxObject
 {
 public :
-    wxNotebookPageInfo() { m_page = NULL ; m_imageId = -1 ; m_selected = false ; }
+    wxNotebookPageInfo() { m_page = NULL; m_imageId = -1; m_selected = false; }
     virtual ~wxNotebookPageInfo() { }
 
-    void Create( wxNotebookPage *page , const wxString &text , bool selected , int imageId )
-    { m_page = page ; m_text = text ; m_selected = selected ; m_imageId = imageId ; }
-    wxNotebookPage* GetPage() const { return m_page ; }
-    wxString GetText() const { return m_text ; }
-    bool GetSelected() const { return m_selected ; }
-    int GetImageId() const { return m_imageId; }
-private :
-    wxNotebookPage *m_page ;
-    wxString m_text ;
-    bool m_selected ;
-    int m_imageId ;
+    void Create(wxNotebookPage *page,
+                const wxString& text,
+                bool selected,
+                int imageId)
+    {
+        m_page = page;
+        m_text = text;
+        m_selected = selected;
+        m_imageId = imageId;
+    }
 
-    DECLARE_DYNAMIC_CLASS(wxNotebookPageInfo) ;
-} ;
+    wxNotebookPage* GetPage() const { return m_page; }
+    wxString GetText() const { return m_text; }
+    bool GetSelected() const { return m_selected; }
+    int GetImageId() const { return m_imageId; }
+
+private:
+    wxNotebookPage *m_page;
+    wxString m_text;
+    bool m_selected;
+    int m_imageId;
+
+    DECLARE_DYNAMIC_CLASS(wxNotebookPageInfo)
+};
 
 
 WX_DECLARE_EXPORTED_LIST(wxNotebookPageInfo, wxNotebookPageInfoList );
@@ -64,14 +74,15 @@ public:
              const wxPoint& pos = wxDefaultPosition,
              const wxSize& size = wxDefaultSize,
              long style = 0,
-             const wxString& name = wxNOTEBOOK_NAME);
+             const wxString& name = wxNotebookNameStr);
     // Create() function
   bool Create(wxWindow *parent,
               wxWindowID id,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = 0,
-              const wxString& name = wxNOTEBOOK_NAME);
+              const wxString& name = wxNotebookNameStr);
+  virtual ~wxNotebook();
 
   // accessors
   // ---------
@@ -111,9 +122,6 @@ public:
     // set the padding between tabs (in pixels)
   void SetPadding(const wxSize& padding);
 
-    // Windows only: attempts to get colour for UX theme page background
-  wxColour GetThemeBackgroundColour();
-
   // operations
   // ----------
     // remove all pages
@@ -127,15 +135,12 @@ public:
                   bool bSelect = false,
                   int imageId = -1);
 
-  void AddPageInfo( wxNotebookPageInfo* info ) { AddPage( info->GetPage() , info->GetText() , info->GetSelected() , info->GetImageId() ) ; }
-  const wxNotebookPageInfoList& GetPageInfos() const ;
+  void AddPageInfo( wxNotebookPageInfo* info ) { AddPage( info->GetPage() , info->GetText() , info->GetSelected() , info->GetImageId() ); }
+  const wxNotebookPageInfoList& GetPageInfos() const;
 
     // Windows-only at present. Also, you must use the wxNB_FIXEDWIDTH
     // style.
   void SetTabSize(const wxSize& sz);
-
-    // Windows only: attempts to apply the UX theme page background to this page
-  void ApplyThemeBackground(wxWindow* window, const wxColour& colour);
 
     // hit test
   virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;
@@ -162,6 +167,24 @@ public:
   virtual bool DoPhase(int nPhase);
 #endif // wxUSE_CONSTRAINTS
 
+  // Attempts to get colour for UX theme page background
+  wxColour GetThemeBackgroundColour() const;
+
+  // implementation only
+  // -------------------
+
+#if wxUSE_UXTHEME
+  virtual bool SetBackgroundColour(const wxColour& colour)
+  {
+      if ( !wxNotebookBase::SetBackgroundColour(colour) )
+          return false;
+
+      UpdateBgBrush();
+
+      return true;
+  }
+#endif // wxUSE_UXTHEME
+
 protected:
   // common part of all ctors
   void Init();
@@ -172,19 +195,48 @@ protected:
   // remove one page from the notebook, without deleting
   virtual wxNotebookPage *DoRemovePage(size_t nPage);
 
+  // get the page rectangle for the current notebook size
+  //
+  // returns empty rectangle if an error occurs, do test for it
+  wxRect GetPageSize() const;
+
   // set the size of the given page to fit in the notebook
   void AdjustPageSize(wxNotebookPage *page);
 
-    // override WndProc.
 #if wxUSE_UXTHEME
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-#endif
+  // gets the bitmap of notebook background and returns a brush from it
+  WXHBRUSH QueryBgBitmap();
+
+  // creates the brush to be used for drawing the tab control background
+  void UpdateBgBrush();
+
+  // return the themed brush for painting our children
+  virtual WXHBRUSH MSWGetBgBrushForChild(WXHDC hDC, WXHWND hWnd);
+
+  // draw child background
+  virtual bool MSWPrintChild(WXHDC hDC, wxWindow *win);
+
+  // common part of QueryBgBitmap() and MSWPrintChild()
+  //
+  // if child == NULL, draw background for the entire notebook itself
+  bool DoDrawBackground(WXHDC hDC, wxWindow *child = NULL);
+#endif // wxUSE_UXTHEME
 
   // the current selection (-1 if none)
   int m_nSelection;
 
-  wxNotebookPageInfoList m_pageInfos ;
+  wxNotebookPageInfoList m_pageInfos;
 
+#if wxUSE_UXTHEME
+  // background brush used to paint the tab control
+  WXHBRUSH m_hbrBackground;
+#endif // wxUSE_UXTHEME
+
+  // No need to optimize for WinCE
+#ifndef __WXWINCE__
+  void OnEraseBackground(wxEraseEvent& event);
+  void OnPaint(wxPaintEvent& event);
+#endif
 
   DECLARE_DYNAMIC_CLASS_NO_COPY(wxNotebook)
   DECLARE_EVENT_TABLE()

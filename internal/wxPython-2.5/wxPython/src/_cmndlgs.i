@@ -252,7 +252,6 @@ example::
         void , SetFilterIndex(int filterIndex),
         "Sets the default filter index, starting from zero.", "");
     
-
     DocDeclStr(
         wxString , GetMessage() const,
         "Returns the message that will be displayed on the dialog.", "");
@@ -430,6 +429,8 @@ DocStr(wxTextEntryDialog,
 
 MustHaveApp(wxTextEntryDialog);
 
+enum { wxTextEntryDialogStyle };
+
 class wxTextEntryDialog : public wxDialog {
 public:
     %pythonAppend wxTextEntryDialog   "self._setOORInfo(self)"
@@ -439,7 +440,7 @@ public:
                           const wxString& message,
                           const wxString& caption = wxPyGetTextFromUserPromptStr,
                           const wxString& defaultValue = wxPyEmptyString,
-                          long style = wxOK | wxCANCEL | wxCENTRE,
+                          long style = wxTextEntryDialogStyle,
                           const wxPoint& pos = wxDefaultPosition),
         "Constructor.  Use ShowModal method to show the dialog.", "");
 
@@ -451,6 +452,21 @@ or the original value if the user has pressed Cancel.", "");
     DocDeclStr(
         void , SetValue(const wxString& value),
         "Sets the default text value.", "");
+};
+
+//---------------------------------------------------------------------------
+
+MAKE_CONST_WXSTRING(GetPasswordFromUserPromptStr);
+
+class wxPasswordEntryDialog : public wxTextEntryDialog
+{
+public:
+    wxPasswordEntryDialog(wxWindow *parent,
+                      const wxString& message,
+                      const wxString& caption = wxPyGetPasswordFromUserPromptStr,
+                      const wxString& value = wxPyEmptyString,
+                      long style = wxTextEntryDialogStyle,
+                      const wxPoint& pos = wxDefaultPosition);
 };
 
 //---------------------------------------------------------------------------
@@ -637,9 +653,14 @@ Window Styles
 
     wx.PD_REMAINING_TIME     This flag tells the dialog that it should show
                              remaining time.
+
+    wx.PD_SMOOTH             Uses the wx.GA_SMOOTH style on the embedded
+                             wx.Gauge widget.
     ====================     =============================================
 ");
 
+
+// TODO: wxPD_CAN_SKIP
 
 MustHaveApp(wxProgressDialog);
 
@@ -657,12 +678,15 @@ public:
 for other windows, or, if wx.PD_APP_MODAL flag is not given, for its
 parent window only.", "");
 
+    // TODO: support getting the skipped value back in the return value, but
+    // only if style is set.  This is so the API doesn't change for existing
+    // users...
     DocDeclStr(
         virtual bool , Update(int value, const wxString& newmsg = wxPyEmptyString),
         "Updates the dialog, setting the progress bar to the new value and, if
 given changes the message above it. The value given should be less
 than or equal to the maximum value given to the constructor and the
-dialog is closed if it is equal to the maximum.  Returns true unless
+dialog is closed if it is equal to the maximum.  Returns True unless
 the Cancel button has been pressed.
 
 If false is returned, the application can either immediately destroy

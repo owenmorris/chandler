@@ -43,13 +43,15 @@
 #include "wx/evtloop.h"
 #include "wx/ptr_scpd.h"
 
-#if wxUSE_COMMON_DIALOGS && !defined(__WXMICROWIN__)
-    #include <commdlg.h>
-#endif
+#include "wx/msw/wrapcdlg.h"
 
 #if defined(__SMARTPHONE__) && defined(__WXWINCE__)
     #include "wx/msw/wince/resources.h"
 #endif // __SMARTPHONE__ && __WXWINCE__
+
+#if wxUSE_TOOLBAR && defined(__POCKETPC__)
+#include "wx/toolbar.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -160,6 +162,9 @@ void wxDialog::Init()
     m_isShown = false;
     m_modalData = NULL;
     m_endModalCalled = false;
+#if wxUSE_TOOLBAR && defined(__POCKETPC__)
+    m_dialogToolBar = NULL;
+#endif
 }
 
 bool wxDialog::Create(wxWindow *parent,
@@ -184,10 +189,11 @@ bool wxDialog::Create(wxWindow *parent,
     if ( !m_hasFont )
         SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
-
 #if defined(__SMARTPHONE__) && defined(__WXWINCE__)
     SetLeftMenu(wxID_OK, _("OK"));
+#endif
+#if wxUSE_TOOLBAR && defined(__POCKETPC__)
+    CreateToolBar();
 #endif
 
     return true;
@@ -431,13 +437,53 @@ void wxDialog::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 
 void wxDialog::OnSysColourChanged(wxSysColourChangedEvent& WXUNUSED(event))
 {
-#if wxUSE_CTL3D
-    Ctl3dColorChange();
-#else
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
     Refresh();
-#endif
 }
+
+#ifdef __POCKETPC__
+// Responds to the OK button in a PocketPC titlebar. This
+// can be overridden, or you can change the id used for
+// sending the event, by calling SetAffirmativeId.
+bool wxDialog::DoOK()
+{
+    wxButton *btn = wxDynamicCast(FindWindow(GetAffirmativeId()), wxButton);
+
+    if ( btn && btn->IsEnabled() )
+    {
+        // If we have this button, press it
+        btn->MSWCommand(BN_CLICKED, 0 /* unused */);
+        return true;
+    }
+    else
+    {
+        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetAffirmativeId());
+        event.SetEventObject(this);
+
+        return GetEventHandler()->ProcessEvent(event);
+    }
+}
+#endif
+
+#if wxUSE_TOOLBAR && defined(__POCKETPC__)
+// create main toolbar by calling OnCreateToolBar()
+wxToolBar* wxDialog::CreateToolBar(long style, wxWindowID winid, const wxString& name)
+{
+    m_dialogToolBar = OnCreateToolBar(style, winid, name);
+
+    return m_dialogToolBar;
+}
+
+// return a new toolbar
+wxToolBar *wxDialog::OnCreateToolBar(long style,
+                                       wxWindowID winid,
+                                       const wxString& name)
+{
+    return new wxToolMenuBar(this, winid,
+                         wxDefaultPosition, wxDefaultSize,
+                         style, name);
+}
+#endif
 
 // ---------------------------------------------------------------------------
 // dialog window proc
@@ -456,17 +502,13 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
         {
             switch ( LOWORD(wParam) )
             {
-#ifndef __SMARTPHONE__
+#ifdef __POCKETPC__
                 case IDOK:
-                    wxButton *btn = wxDynamicCast(FindWindow(wxID_CANCEL), wxButton);
-                    if ( btn && btn->IsEnabled() )
-                    {
-                        // if we do have a cancel button, do press it
-                        btn->MSWCommand(BN_CLICKED, 0 /* unused */);
-                        processed = true;
-                        break;
-                    }
-#else // ifdef __SMARTPHONE__
+                    processed = DoOK();
+                    if (!processed)
+                        processed = !Close();
+#endif
+#ifdef __SMARTPHONE__
                 case IDM_LEFT:
                 case IDM_RIGHT:
                     processed = HandleCommand( LOWORD(wParam) , 0 , NULL );
@@ -531,19 +573,4 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
 
     return rc;
 }
-
-#if wxUSE_CTL3D
-
-// Define for each class of dialog and control
-WXHBRUSH wxDialog::OnCtlColor(WXHDC WXUNUSED(pDC),
-                              WXHWND WXUNUSED(pWnd),
-                              WXUINT WXUNUSED(nCtlColor),
-                              WXUINT message,
-                              WXWPARAM wParam,
-                              WXLPARAM lParam)
-{
-    return (WXHBRUSH)Ctl3dCtlColorEx(message, wParam, lParam);
-}
-
-#endif // wxUSE_CTL3D
 

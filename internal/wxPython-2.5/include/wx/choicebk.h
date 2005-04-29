@@ -28,7 +28,7 @@ class WXDLLEXPORT wxChoice;
 // wxChoicebook
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxChoicebook : public wxBookCtrl
+class WXDLLEXPORT wxChoicebook : public wxBookCtrlBase
 {
 public:
     wxChoicebook()
@@ -76,6 +76,9 @@ public:
 
     virtual bool DeleteAllPages();
 
+    // returns the choice control
+    wxChoice* GetChoiceCtrl() const { return m_choice; }
+
 protected:
     virtual wxWindow *DoRemovePage(size_t page);
 
@@ -107,12 +110,12 @@ private:
 // choicebook event class and related stuff
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxChoicebookEvent : public wxBookCtrlEvent
+class WXDLLEXPORT wxChoicebookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxChoicebookEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
                       int nSel = -1, int nOldSel = -1)
-        : wxBookCtrlEvent(commandType, id, nSel, nOldSel)
+        : wxBookCtrlBaseEvent(commandType, id, nSel, nOldSel)
     {
     }
 
@@ -125,23 +128,14 @@ extern WXDLLIMPEXP_CORE const wxEventType wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGING
 
 typedef void (wxEvtHandler::*wxChoicebookEventFunction)(wxChoicebookEvent&);
 
-#define EVT_CHOICEBOOK_PAGE_CHANGED(id, fn)                                 \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED,                                  \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxChoicebookEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define wxChoicebookEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxChoicebookEventFunction, &func)
 
-#define EVT_CHOICEBOOK_PAGE_CHANGING(id, fn)                                \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGING,                                 \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxChoicebookEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define EVT_CHOICEBOOK_PAGE_CHANGED(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, winid, wxChoicebookEventHandler(fn))
+
+#define EVT_CHOICEBOOK_PAGE_CHANGING(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGING, winid, wxChoicebookEventHandler(fn))
 
 #endif // wxUSE_CHOICEBOOK
 

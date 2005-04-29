@@ -15,6 +15,8 @@
 #include "wx/colour.h"
 #include "wx/font.h"
 
+class WXDLLEXPORT wxWindow;
+
 // possible values for wxSystemSettings::GetFont() parameter
 //
 // NB: wxMSW assumes that they have the same values as the parameters of
@@ -81,7 +83,7 @@ enum wxSystemColour
     wxSYS_COLOUR_MAX
 };
 
-// possible values for wxSystemSettings::GetMetric() parameter
+// possible values for wxSystemSettings::GetMetric() index parameter
 //
 // NB: update the conversion table in msw/settings.cpp if you change the values
 //     of the elements of this enum
@@ -165,7 +167,7 @@ public:
     static wxFont GetFont(wxSystemFont index);
 
     // get a system-dependent metric
-    static int GetMetric(wxSystemMetric index);
+    static int GetMetric(wxSystemMetric index, wxWindow * win = NULL);
 
     // return true if the port has certain feature
     static bool HasFeature(wxSystemFeature index);
@@ -180,7 +182,7 @@ class WXDLLEXPORT wxSystemSettings : public wxSystemSettingsNative
 public:
 #ifdef __WXUNIVERSAL__
     // in wxUniversal we want to use the theme standard colours instead of the
-    // system ones, otherwuse wxSystemSettings is just the same as
+    // system ones, otherwise wxSystemSettings is just the same as
     // wxSystemSettingsNative
     static wxColour GetColour(wxSystemColour index);
 #endif // __WXUNIVERSAL__
@@ -195,15 +197,13 @@ public:
     // Value
     static wxSystemScreenType ms_screen;
 
-
+#if WXWIN_COMPATIBILITY_2_4
     // the backwards compatible versions of wxSystemSettingsNative functions,
     // don't use these methods in the new code!
-    static wxColour GetSystemColour(int index)
-        { return GetColour((wxSystemColour)index); }
-    static wxFont GetSystemFont(int index)
-        { return GetFont((wxSystemFont)index); }
-    static int GetSystemMetric(int index)
-        { return GetMetric((wxSystemMetric)index); }
+    wxDEPRECATED(static wxColour GetSystemColour(int index));
+    wxDEPRECATED(static wxFont GetSystemFont(int index));
+    wxDEPRECATED(static int GetSystemMetric(int index));
+#endif
 };
 
 #endif

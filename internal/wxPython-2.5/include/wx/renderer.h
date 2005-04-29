@@ -54,6 +54,7 @@ enum
     wxCONTROL_SELECTED   = 0x00000020,  // selected item in e.g. listbox
     wxCONTROL_CHECKED    = 0x00000040,  // (check/radio button) is checked
     wxCONTROL_CHECKABLE  = 0x00000080,  // (menu) item can be checked
+    wxCONTROL_UNDETERMINED = wxCONTROL_CHECKABLE, // (check) undetermined state
 
     wxCONTROL_FLAGS_MASK = 0x000000ff,
 
@@ -153,6 +154,21 @@ public:
                                   wxOrientation orient,
                                   int flags = 0) = 0;
 
+    // draw a combobox dropdown button
+    //
+    // flags may use wxCONTROL_PRESSED and wxCONTROL_CURRENT
+    virtual void DrawComboBoxDropButton(wxWindow *win,
+                                        wxDC& dc,
+                                        const wxRect& rect,
+                                        int flags = 0) = 0;
+
+    // draw a dropdown arrow
+    //
+    // flags may use wxCONTROL_PRESSED and wxCONTROL_CURRENT
+    virtual void DrawDropArrow(wxWindow *win,
+                               wxDC& dc,
+                               const wxRect& rect,
+                               int flags = 0) = 0;
 
     // geometry functions
     // ------------------
@@ -244,6 +260,17 @@ public:
         { m_rendererNative.DrawSplitterSash(win, dc, size,
                                             position, orient, flags); }
 
+    virtual void DrawComboBoxDropButton(wxWindow *win,
+                                        wxDC& dc,
+                                        const wxRect& rect,
+                                        int flags = 0)
+        { m_rendererNative.DrawComboBoxDropButton(win, dc, rect, flags); }
+
+    virtual void DrawDropArrow(wxWindow *win,
+                               wxDC& dc,
+                               const wxRect& rect,
+                               int flags = 0)
+        { m_rendererNative.DrawDropArrow(win, dc, rect, flags); }
 
     virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win)
         { return m_rendererNative.GetSplitterParams(win); }

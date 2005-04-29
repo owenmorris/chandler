@@ -144,6 +144,7 @@
     #include "wx/msw/private.h"
 #endif
 
+
 // ============================================================================
 // implementation of wxFile
 // ============================================================================
@@ -298,18 +299,19 @@ bool wxFile::Close()
 // ----------------------------------------------------------------------------
 
 // read
-size_t wxFile::Read(void *pBuf, size_t nCount)
+ssize_t wxFile::Read(void *pBuf, size_t nCount)
 {
     wxCHECK( (pBuf != NULL) && IsOpened(), 0 );
 
-    int iRc = wxRead(m_fd, pBuf, nCount);
+    ssize_t iRc = wxRead(m_fd, pBuf, nCount);
 
-    if ( iRc == -1 ) {
+    if ( iRc == -1 )
+    {
         wxLogSysError(_("can't read from file descriptor %d"), m_fd);
-        return (size_t)wxInvalidOffset;
+        return wxInvalidOffset;
     }
-    else
-        return (size_t)iRc;
+
+    return iRc;
 }
 
 // write
@@ -317,15 +319,16 @@ size_t wxFile::Write(const void *pBuf, size_t nCount)
 {
     wxCHECK( (pBuf != NULL) && IsOpened(), 0 );
 
-    int iRc = wxWrite(m_fd, pBuf, nCount);
+    ssize_t iRc = wxWrite(m_fd, pBuf, nCount);
 
-    if ( iRc == -1 ) {
+    if ( iRc == -1 )
+    {
         wxLogSysError(_("can't write to file descriptor %d"), m_fd);
         m_error = true;
-        return 0;
+        iRc = 0;
     }
-    else
-        return iRc;
+
+    return iRc;
 }
 
 // flush
@@ -353,7 +356,10 @@ bool wxFile::Flush()
 // seek
 wxFileOffset wxFile::Seek(wxFileOffset ofs, wxSeekMode mode)
 {
-    wxASSERT( IsOpened() );
+    wxASSERT_MSG( IsOpened(), _T("can't seek on closed file") );
+    wxCHECK_MSG( ofs != wxInvalidOffset || mode != wxFromStart,
+                 wxInvalidOffset,
+                 _T("invalid absolute file offset") );
 
     int origin;
     switch ( mode ) {
@@ -373,32 +379,27 @@ wxFileOffset wxFile::Seek(wxFileOffset ofs, wxSeekMode mode)
             break;
     }
 
-    if (ofs == wxInvalidOffset)
-    {
-        wxLogSysError(_("can't seek on file descriptor %d, large files support is not enabled."), m_fd);
-        return wxInvalidOffset;
-    }
     wxFileOffset iRc = wxSeek(m_fd, ofs, origin);
-    if ( iRc == -1 ) {
+    if ( iRc == wxInvalidOffset )
+    {
         wxLogSysError(_("can't seek on file descriptor %d"), m_fd);
-        return wxInvalidOffset;
     }
-    else
-        return iRc;
+
+    return iRc;
 }
 
-// get current wxFileOffset
+// get current file offset
 wxFileOffset wxFile::Tell() const
 {
     wxASSERT( IsOpened() );
 
     wxFileOffset iRc = wxTell(m_fd);
-    if ( iRc == -1 ) {
+    if ( iRc == wxInvalidOffset )
+    {
         wxLogSysError(_("can't get seek position on file descriptor %d"), m_fd);
-        return wxInvalidOffset;
     }
-    else
-        return iRc;
+
+    return iRc;
 }
 
 // get current file length
@@ -407,26 +408,26 @@ wxFileOffset wxFile::Length() const
     wxASSERT( IsOpened() );
 
     wxFileOffset iRc = Tell();
-    if ( iRc != -1 ) {
-        // @ have to use const_cast :-(
+    if ( iRc != wxInvalidOffset ) {
+        // have to use const_cast :-(
         wxFileOffset iLen = ((wxFile *)this)->SeekEnd();
-        if ( iLen != -1 ) {
+        if ( iLen != wxInvalidOffset ) {
             // restore old position
-            if ( ((wxFile *)this)->Seek(iRc) == -1 ) {
+            if ( ((wxFile *)this)->Seek(iRc) == wxInvalidOffset ) {
                 // error
-                iLen = -1;
+                iLen = wxInvalidOffset;
             }
         }
 
         iRc = iLen;
     }
 
-    if ( iRc == -1 ) {
+    if ( iRc == wxInvalidOffset )
+    {
         wxLogSysError(_("can't find length of file on file descriptor %d"), m_fd);
-        return wxInvalidOffset;
     }
-    else
-        return iRc;
+
+    return iRc;
 }
 
 // is end of file reached?
@@ -434,34 +435,28 @@ bool wxFile::Eof() const
 {
     wxASSERT( IsOpened() );
 
-    int iRc;
+    wxFileOffset iRc;
 
 #if defined(__DOS__) || defined(__UNIX__) || defined(__GNUWIN32__) || defined( __MWERKS__ ) || defined(__SALFORDC__)
     // @@ this doesn't work, of course, on unseekable file descriptors
     wxFileOffset ofsCur = Tell(),
     ofsMax = Length();
     if ( ofsCur == wxInvalidOffset || ofsMax == wxInvalidOffset )
-        iRc = -1;
+        iRc = wxInvalidOffset;
     else
         iRc = ofsCur == ofsMax;
 #else  // Windows and "native" compiler
     iRc = wxEof(m_fd);
 #endif // Windows/Unix
 
-    switch ( iRc ) {
-        case 1:
-            break;
-
-        case 0:
-            return false;
-
-        case -1:
-            wxLogSysError(_("can't determine if the end of file is reached on descriptor %d"), m_fd);
-                break;
-
-        default:
-            wxFAIL_MSG(_("invalid eof() return value."));
-    }
+    if ( iRc == 1)
+        {}
+    else if ( iRc == 0 )
+        return false;
+    else if ( iRc == wxInvalidOffset )
+        wxLogSysError(_("can't determine if the end of file is reached on descriptor %d"), m_fd);
+    else
+        wxFAIL_MSG(_("invalid eof() return value."));
 
     return true;
 }

@@ -24,7 +24,8 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, 19)
 END_DECLARE_EVENT_TYPES()
 
-#define EVT_TOGGLEBUTTON(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
+#define EVT_TOGGLEBUTTON(id, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, id, wxCommandEventHandler(fn))
 
 #if defined(__WXMSW__)
     #include "wx/msw/tglbtn.h"
@@ -34,10 +35,10 @@ END_DECLARE_EVENT_TYPES()
     #include "wx/motif/tglbtn.h"
 #elif defined(__WXMAC__)
     #include "wx/mac/tglbtn.h"
-/*
-# elif defined(__WXPM__)
-#  include "wx/os2/tglbtn.h"
-*/
+#elif defined(__WXPALMOS__)
+    #include "wx/palmos/tglbtn.h"
+#elif defined(__WXPM__)
+    #include "wx/os2/tglbtn.h"
 #endif
 
 #endif // wxUSE_TOGGLEBTN

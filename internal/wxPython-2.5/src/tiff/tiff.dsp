@@ -133,6 +133,22 @@ SOURCE=.\tif_codec.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\tif_color.c
+
+!IF  "$(CFG)" == "tiff - Win32 Release"
+
+# ADD CPP /I ".."
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ELSEIF  "$(CFG)" == "tiff - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\tif_compress.c
 
 !IF  "$(CFG)" == "tiff - Win32 Release"
@@ -230,6 +246,22 @@ SOURCE=.\tif_dumpmode.c
 # Begin Source File
 
 SOURCE=.\tif_error.c
+
+!IF  "$(CFG)" == "tiff - Win32 Release"
+
+# ADD CPP /I ".."
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ELSEIF  "$(CFG)" == "tiff - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\tif_extension.c
 
 !IF  "$(CFG)" == "tiff - Win32 Release"
 

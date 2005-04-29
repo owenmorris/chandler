@@ -90,9 +90,10 @@ public:
     DEC_PYCALLBACK_VOID_WXWINBASE(RemoveChild);
 
     DEC_PYCALLBACK_BOOL_const(ShouldInheritColours);
-    DEC_PYCALLBACK__COLOUR(ApplyParentThemeBackground);
     DEC_PYCALLBACK_VIZATTR_(GetDefaultAttributes);
     
+    DEC_PYCALLBACK_BOOL_(HasTransparentBackground);
+
     PYPRIVATE;
 };
 
@@ -123,9 +124,9 @@ IMP_PYCALLBACK_VOID_WXWINBASE(wxPyWindow, wxWindow, AddChild);
 IMP_PYCALLBACK_VOID_WXWINBASE(wxPyWindow, wxWindow, RemoveChild);
 
 IMP_PYCALLBACK_BOOL_const(wxPyWindow, wxWindow, ShouldInheritColours);
-IMP_PYCALLBACK__COLOUR(wxPyWindow, wxWindow, ApplyParentThemeBackground);
 IMP_PYCALLBACK_VIZATTR_(wxPyWindow, wxWindow, GetDefaultAttributes);
- 
+
+IMP_PYCALLBACK_BOOL_(wxPyWindow, wxWindow, HasTransparentBackground);
 %}
 
 // And now the one for SWIG to see
@@ -142,7 +143,7 @@ public:
                long style = 0,
                const wxString& name = wxPyPanelNameStr);
 
-    %name(PrePyWindow) wxPyWindow();
+    %RenameCtor(PrePyWindow, wxPyWindow());
     
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -181,7 +182,6 @@ public:
     void base_RemoveChild(wxWindow* child);
 
     bool base_ShouldInheritColours() const;
-    void base_ApplyParentThemeBackground(const wxColour& c);
     wxVisualAttributes base_GetDefaultAttributes();
 };
 
@@ -235,9 +235,10 @@ public:
     DEC_PYCALLBACK_VOID_WXWINBASE(RemoveChild);
 
     DEC_PYCALLBACK_BOOL_const(ShouldInheritColours);
-    DEC_PYCALLBACK__COLOUR(ApplyParentThemeBackground);
     DEC_PYCALLBACK_VIZATTR_(GetDefaultAttributes);
     
+    DEC_PYCALLBACK_BOOL_(HasTransparentBackground);
+
     PYPRIVATE;
 };
 
@@ -268,10 +269,10 @@ IMP_PYCALLBACK_VOID_WXWINBASE(wxPyPanel, wxPanel, AddChild);
 IMP_PYCALLBACK_VOID_WXWINBASE(wxPyPanel, wxPanel, RemoveChild);
 
 IMP_PYCALLBACK_BOOL_const(wxPyPanel, wxPanel, ShouldInheritColours);
-IMP_PYCALLBACK__COLOUR(wxPyPanel, wxPanel, ApplyParentThemeBackground);
 IMP_PYCALLBACK_VIZATTR_(wxPyPanel, wxPanel, GetDefaultAttributes);
 
- %}
+IMP_PYCALLBACK_BOOL_(wxPyPanel, wxPanel, HasTransparentBackground);
+%}
 
 // And now the one for SWIG to see
 MustHaveApp(wxPyPanel);
@@ -287,7 +288,7 @@ public:
                long style = 0,
                const wxString& name = wxPyPanelNameStr);
 
-    %name(PrePyPanel) wxPyPanel();
+    %RenameCtor(PrePyPanel,  wxPyPanel());
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -325,7 +326,6 @@ public:
     void base_RemoveChild(wxWindow* child);
 
     bool base_ShouldInheritColours() const ;
-    void base_ApplyParentThemeBackground(const wxColour& c);
     wxVisualAttributes base_GetDefaultAttributes();
 };
 
@@ -372,9 +372,10 @@ public:
     DEC_PYCALLBACK_VOID_WXWINBASE(RemoveChild);
 
     DEC_PYCALLBACK_BOOL_const(ShouldInheritColours);
-    DEC_PYCALLBACK__COLOUR(ApplyParentThemeBackground);
     DEC_PYCALLBACK_VIZATTR_(GetDefaultAttributes);
     
+    DEC_PYCALLBACK_BOOL_(HasTransparentBackground);
+
     PYPRIVATE;
 };
 
@@ -405,9 +406,9 @@ IMP_PYCALLBACK_VOID_WXWINBASE(wxPyScrolledWindow, wxScrolledWindow, AddChild);
 IMP_PYCALLBACK_VOID_WXWINBASE(wxPyScrolledWindow, wxScrolledWindow, RemoveChild);
 
 IMP_PYCALLBACK_BOOL_const(wxPyScrolledWindow, wxScrolledWindow, ShouldInheritColours);
-IMP_PYCALLBACK__COLOUR(wxPyScrolledWindow, wxScrolledWindow, ApplyParentThemeBackground);
 IMP_PYCALLBACK_VIZATTR_(wxPyScrolledWindow, wxScrolledWindow, GetDefaultAttributes);
 
+IMP_PYCALLBACK_BOOL_(wxPyScrolledWindow, wxScrolledWindow, HasTransparentBackground);
 %}
 
 // And now the one for SWIG to see
@@ -424,7 +425,7 @@ public:
                long style = 0,
                const wxString& name = wxPyPanelNameStr);
 
-    %name(PrePyScrolledWindow) wxPyScrolledWindow();
+    %RenameCtor(PrePyScrolledWindow,  wxPyScrolledWindow());
 
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
@@ -462,7 +463,6 @@ public:
     void base_RemoveChild(wxWindow* child);
 
     bool base_ShouldInheritColours() const;
-    void base_ApplyParentThemeBackground(const wxColour& c);
     wxVisualAttributes base_GetDefaultAttributes();
 };
 

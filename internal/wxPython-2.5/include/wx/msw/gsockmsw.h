@@ -23,6 +23,16 @@
 
 #include "wx/msw/wrapwin.h"
 
+#if defined(__CYGWIN__)
+    //CYGWIN gives annoying warning about runtime stuff if we don't do this
+#   define USE_SYS_TYPES_FD_SET
+#   include <sys/types.h>
+#endif
+
+#if defined(__WXWINCE__) || defined(__CYGWIN__)
+#include <winsock.h>
+#endif
+
 class GSocketGUIFunctionsTableConcrete: public GSocketGUIFunctionsTable
 {
 public:

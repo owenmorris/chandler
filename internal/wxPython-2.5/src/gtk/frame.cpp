@@ -24,6 +24,7 @@
 
 #include "wx/defs.h"
 
+#include "wx/frame.h"
 #include "wx/dialog.h"
 #include "wx/control.h"
 #include "wx/app.h"
@@ -79,6 +80,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxFrame, wxTopLevelWindow)
 // "child_attached" of menu bar
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_attached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *WXUNUSED(child), wxFrame *win )
 {
     if (!win->m_hasVMT) return;
@@ -86,11 +88,13 @@ static void gtk_menu_attached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *
     win->m_menuBarDetached = FALSE;
     win->GtkUpdateSize();
 }
+}
 
 //-----------------------------------------------------------------------------
 // "child_detached" of menu bar
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *WXUNUSED(child), wxFrame *win )
 {
     if (g_isIdle)
@@ -104,6 +108,7 @@ static void gtk_menu_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *
     win->m_menuBarDetached = TRUE;
     win->GtkUpdateSize();
 }
+}
 
 #endif // wxUSE_MENUS_NATIVE
 
@@ -112,6 +117,7 @@ static void gtk_menu_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *
 // "child_attached" of tool bar
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_toolbar_attached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *WXUNUSED(child), wxFrame *win )
 {
     if (!win->m_hasVMT) return;
@@ -119,11 +125,13 @@ static void gtk_toolbar_attached_callback( GtkWidget *WXUNUSED(widget), GtkWidge
     win->m_toolBarDetached = FALSE;
     win->GtkUpdateSize();
 }
+}
 
 //-----------------------------------------------------------------------------
 // "child_detached" of tool bar
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_toolbar_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidget *WXUNUSED(child), wxFrame *win )
 {
     if (g_isIdle)
@@ -136,6 +144,7 @@ static void gtk_toolbar_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidge
 
     win->m_toolBarDetached = TRUE;
     win->GtkUpdateSize();
+}
 }
 #endif // wxUSE_TOOLBAR
 

@@ -14,14 +14,22 @@
 #pragma interface "imagtiff.h"
 #endif
 
-#include "wx/image.h"
-
+#include "wx/defs.h"
 
 //-----------------------------------------------------------------------------
 // wxTIFFHandler
 //-----------------------------------------------------------------------------
 
 #if wxUSE_LIBTIFF
+
+#include "wx/image.h"
+
+// defines for wxImage::SetOption
+#define wxIMAGE_OPTION_BITSPERSAMPLE               wxString(_T("BitsPerSample"))
+#define wxIMAGE_OPTION_SAMPLESPERPIXEL             wxString(_T("SamplesPerPixel"))
+#define wxIMAGE_OPTION_COMPRESSION                 wxString(_T("Compression"))
+#define wxIMAGE_OPTION_IMAGEDESCRIPTOR             wxString(_T("ImageDescriptor"))
+
 class WXDLLEXPORT wxTIFFHandler: public wxImageHandler
 {
 public:
@@ -37,9 +45,8 @@ public:
 private:
     DECLARE_DYNAMIC_CLASS(wxTIFFHandler)
 };
-#endif
 
+#endif // wxUSE_LIBTIFF
 
-#endif
-  // _WX_IMAGTIFF_H_
+#endif // _WX_IMAGTIFF_H_
 

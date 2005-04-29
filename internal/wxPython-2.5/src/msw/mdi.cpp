@@ -384,10 +384,14 @@ void wxMDIParentFrame::Cascade()
     ::SendMessage(GetWinHwnd(GetClientWindow()), WM_MDICASCADE, 0, 0);
 }
 
-// TODO: add a direction argument (hor/vert)
-void wxMDIParentFrame::Tile()
+void wxMDIParentFrame::Tile(wxOrientation orient)
 {
-    ::SendMessage(GetWinHwnd(GetClientWindow()), WM_MDITILE, MDITILE_HORIZONTAL, 0);
+    wxASSERT_MSG( orient == wxHORIZONTAL || orient == wxVERTICAL,
+                  _T("invalid orientation value") );
+
+    ::SendMessage(GetWinHwnd(GetClientWindow()), WM_MDITILE,
+                  orient == wxHORIZONTAL ? MDITILE_HORIZONTAL
+                                         : MDITILE_VERTICAL, 0);
 }
 
 void wxMDIParentFrame::ArrangeIcons()
@@ -486,9 +490,8 @@ WXLRESULT wxMDIParentFrame::MSWWindowProc(WXUINT message,
             break;
 
         case WM_SIZE:
-            // as we don't (usually) resize the MDI client to exactly fit the
-            // client area (we put it below the toolbar, above statusbar &c),
-            // we should not pass this one to DefFrameProc
+            // though we don't (usually) resize the MDI client to exactly fit the
+            // client area we need to pass this one to DefFrameProc to allow the children to show
             break;
     }
 

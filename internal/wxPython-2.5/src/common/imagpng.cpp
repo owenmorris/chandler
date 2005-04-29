@@ -175,28 +175,16 @@ void PNGLINKAGEMODE wx_PNG_stream_writer( png_structp png_ptr, png_bytep data,
 // from pngerror.c
 // so that the libpng doesn't send anything on stderr
 void
-PNGLINKAGEMODE wx_png_error(png_structp png_ptr, png_const_charp message)
+PNGLINKAGEMODE wx_png_error(png_structp WXUNUSED(png_ptr), png_const_charp message)
 {
-    wxPNGInfoStruct *info = WX_PNG_INFO(png_ptr);
-    if (info->verbose)
-        wxLogError( wxString::FromAscii(message) );
-
-#ifdef USE_FAR_KEYWORD
-    {
-       jmp_buf jmpbuf;
-       png_memcpy(jmpbuf,info->jmpbuf,sizeof(jmp_buf));
-       longjmp(jmpbuf, 1);
-    }
-#else
-    longjmp(info->jmpbuf, 1);
-#endif
+    wxLogFatalError( wxString::FromAscii(message) );
 }
 
 void
 PNGLINKAGEMODE wx_png_warning(png_structp png_ptr, png_const_charp message)
 {
-    wxPNGInfoStruct *info = WX_PNG_INFO(png_ptr);
-    if (info->verbose)
+    wxPNGInfoStruct *info = png_ptr ? WX_PNG_INFO(png_ptr) : NULL;
+    if ( !info || info->verbose )
         wxLogWarning( wxString::FromAscii(message) );
 }
 
@@ -531,14 +519,15 @@ wxPNGHandler::LoadFile(wxImage *image,
 
     image->Destroy();
 
-    png_structp png_ptr = png_create_read_struct( PNG_LIBPNG_VER_STRING,
-        (voidp) NULL,
-        (png_error_ptr) NULL,
-        (png_error_ptr) NULL );
+    png_structp png_ptr = png_create_read_struct
+                          (
+                            PNG_LIBPNG_VER_STRING,
+                            (voidp) NULL,
+                            wx_png_error,
+                            wx_png_warning
+                          );
     if (!png_ptr)
         goto error;
-
-    png_set_error_fn(png_ptr, (png_voidp)NULL, wx_png_error, wx_png_warning);
 
     // NB: please see the comment near wxPNGInfoStruct declaration for
     //     explanation why this line is mandatory
@@ -640,15 +629,19 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
     wxinfo.verbose = verbose;
     wxinfo.stream.out = &stream;
 
-    png_structp png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_structp png_ptr = png_create_write_struct
+                          (
+                            PNG_LIBPNG_VER_STRING,
+                            NULL,
+                            wx_png_error,
+                            wx_png_warning
+                          );
     if (!png_ptr)
     {
         if (verbose)
            wxLogError(_("Couldn't save PNG image."));
         return false;
     }
-
-    png_set_error_fn(png_ptr, (png_voidp)NULL, wx_png_error, wx_png_warning);
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (info_ptr == NULL)
@@ -671,51 +664,160 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
     //     explanation why this line is mandatory
     png_set_write_fn( png_ptr, &wxinfo, wx_PNG_stream_writer, NULL);
 
-    png_set_IHDR( png_ptr, info_ptr, image->GetWidth(), image->GetHeight(), 8,
-        PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
-        PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+    const int iColorType = image->HasOption(wxIMAGE_OPTION_PNG_FORMAT)
+                            ? image->GetOptionInt(wxIMAGE_OPTION_PNG_FORMAT)
+                            : wxPNG_TYPE_COLOUR;
+    const int iBitDepth = image->HasOption(wxIMAGE_OPTION_PNG_BITDEPTH)
+                            ? image->GetOptionInt(wxIMAGE_OPTION_PNG_BITDEPTH)
+                            : 8;
 
+    wxASSERT_MSG( iBitDepth == 8 || iBitDepth == 16,
+                    _T("PNG bit depth must be 8 or 16") );
+
+    bool bHasAlpha = image->HasAlpha();
+    bool bHasMask = image->HasMask();
+    bool bUseAlpha = bHasAlpha || bHasMask;
+
+    int iPngColorType;
+    if ( iColorType==wxPNG_TYPE_COLOUR )
+    {
+        iPngColorType = bUseAlpha ? PNG_COLOR_TYPE_RGB_ALPHA
+                                  : PNG_COLOR_TYPE_RGB;
+    }
+    else
+    {
+        iPngColorType = bUseAlpha ? PNG_COLOR_TYPE_GRAY_ALPHA
+                                  : PNG_COLOR_TYPE_GRAY;
+    }
+
+    png_set_IHDR( png_ptr, info_ptr, image->GetWidth(), image->GetHeight(),
+                  iBitDepth, iPngColorType,
+                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                  PNG_FILTER_TYPE_BASE);
+
+    int iElements;
     png_color_8 sig_bit;
-    sig_bit.red = 8;
-    sig_bit.green = 8;
-    sig_bit.blue = 8;
-    sig_bit.alpha = 8;
+
+    if ( iPngColorType & PNG_COLOR_MASK_COLOR )
+    {
+        sig_bit.red =
+        sig_bit.green =
+        sig_bit.blue = (png_byte)iBitDepth;
+        iElements = 3;
+    }
+    else // grey
+    {
+        sig_bit.gray = (png_byte)iBitDepth;
+        iElements = 1;
+    }
+
+    if ( iPngColorType & PNG_COLOR_MASK_ALPHA )
+    {
+        sig_bit.alpha = (png_byte)iBitDepth;
+        iElements++;
+    }
+
+    if ( iBitDepth == 16 )
+        iElements *= 2;
+
     png_set_sBIT( png_ptr, info_ptr, &sig_bit );
     png_write_info( png_ptr, info_ptr );
     png_set_shift( png_ptr, &sig_bit );
     png_set_packing( png_ptr );
 
-    unsigned char *data = (unsigned char *)malloc( image->GetWidth()*4 );
-    if (!data)
+    unsigned char *
+        data = (unsigned char *)malloc( image->GetWidth() * iElements );
+    if ( !data )
     {
         png_destroy_write_struct( &png_ptr, (png_infopp)NULL );
         return false;
     }
 
-    for (int y = 0; y < image->GetHeight(); y++)
+    unsigned char *
+        pAlpha = (unsigned char *)(bHasAlpha ? image->GetAlpha() : NULL);
+    int iHeight = image->GetHeight();
+    int iWidth = image->GetWidth();
+
+    unsigned char uchMaskRed = 0, uchMaskGreen = 0, uchMaskBlue = 0;
+
+    if ( bHasMask )
     {
-        unsigned char *ptr = image->GetData() + (y * image->GetWidth() * 3);
-        for (int x = 0; x < image->GetWidth(); x++)
+        uchMaskRed = image->GetMaskRed();
+        uchMaskGreen = image->GetMaskGreen();
+        uchMaskBlue = image->GetMaskBlue();
+    }
+
+    unsigned char *pColors = image->GetData();
+
+    for (int y = 0; y != iHeight; ++y)
+    {
+        unsigned char *pData = data;
+        for (int x = 0; x != iWidth; x++)
         {
-            data[(x << 2) + 0] = *ptr++;
-            data[(x << 2) + 1] = *ptr++;
-            data[(x << 2) + 2] = *ptr++;
-            if ( image->HasAlpha() )
+            unsigned char uchRed = *pColors++;
+            unsigned char uchGreen = *pColors++;
+            unsigned char uchBlue = *pColors++;
+
+            switch ( iColorType )
             {
-                data[(x << 2) + 3] = image->GetAlpha(x, y);
+                default:
+                    wxFAIL_MSG( _T("unknown wxPNG_TYPE_XXX") );
+                    // fall through
+
+                case wxPNG_TYPE_COLOUR:
+                    *pData++ = uchRed;
+                    if ( iBitDepth == 16 )
+                        *pData++ = 0;
+                    *pData++ = uchGreen;
+                    if ( iBitDepth == 16 )
+                        *pData++ = 0;
+                    *pData++ = uchBlue;
+                    if ( iBitDepth == 16 )
+                        *pData++ = 0;
+                    break;
+
+                case wxPNG_TYPE_GREY:
+                    {
+                        // where do these coefficients come from? maybe we
+                        // should have image options for them as well?
+                        unsigned uiColor =
+                            (unsigned) (76.544*(unsigned)uchRed +
+                                        150.272*(unsigned)uchGreen +
+                                        36.864*(unsigned)uchBlue);
+
+                        *pData++ = (unsigned char)((uiColor >> 8) & 0xFF);
+                        if ( iBitDepth == 16 )
+                            *pData++ = (unsigned char)(uiColor & 0xFF);
+                    }
+                    break;
+
+                case wxPNG_TYPE_GREY_RED:
+                    *pData++ = uchRed;
+                    if ( iBitDepth == 16 )
+                        *pData++ = 0;
+                    break;
             }
-            else if (( !image->HasMask() ) || \
-                (data[(x << 2) + 0] != image->GetMaskRed()) || \
-                (data[(x << 2) + 1] != image->GetMaskGreen()) || \
-                (data[(x << 2) + 2] != image->GetMaskBlue()))
+
+            if ( bUseAlpha )
             {
-                data[(x << 2) + 3] = 255;
-            }
-            else
-            {
-                data[(x << 2) + 3] = 0;
+                unsigned char uchAlpha = 255;
+                if ( bHasAlpha )
+                    uchAlpha = *pAlpha++;
+
+                if ( bHasMask )
+                {
+                    if ( (uchRed == uchMaskRed)
+                            && (uchGreen == uchMaskGreen)
+                                && (uchBlue == uchMaskBlue) )
+                        uchAlpha = 0;
+                }
+
+                *pData++ = uchAlpha;
+                if ( iBitDepth == 16 )
+                    *pData++ = 0;
             }
         }
+
         png_bytep row_ptr = data;
         png_write_rows( png_ptr, &row_ptr, 1 );
     }

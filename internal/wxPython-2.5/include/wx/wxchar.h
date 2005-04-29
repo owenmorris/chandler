@@ -20,6 +20,10 @@
 
 #include "wx/defs.h"        /* for wxUSE_UNICODE */
 
+#if defined(HAVE_STRTOK_R) && defined(__DARWIN__) && defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
+    char	*strtok_r(char *, const char *, char **);
+#endif
+
 /* check whether we have wchar_t and which size it is if we do */
 #if !defined(wxUSE_WCHAR_T)
     #if defined(__UNIX__)
@@ -87,12 +91,17 @@
         /* Cygwin versions, wchar.h requires sys/types.h */
         #ifdef __CYGWIN__
             #include <sys/types.h>
-            extern "C" {
+            #ifdef __cplusplus
+                extern "C" {
+            #endif
         #endif /* Cygwin */
-                #include <wchar.h>
-        #ifdef __CYGWIN__
+
+        #include <wchar.h>
+
+        #if defined(__CYGWIN__) && defined(__cplusplus)
             }
-        #endif /* Cygwin */
+        #endif /* Cygwin and C++ */
+
     #elif defined(HAVE_WCSTR_H)
         /* old compilers have relevant declarations here */
         #include <wcstr.h>
@@ -118,7 +127,7 @@
     #define wxHAVE_TCHAR_SUPPORT
 #elif defined(__DMC__)
     #define wxHAVE_TCHAR_SUPPORT
-#elif defined(__MINGW32__) && wxCHECK_W32API_VERSION( 1, 0 )
+#elif defined(__MINGW32__) && wxCHECK_W32API_VERSION( 1, 0 ) && !defined(__WXPALMOS__)
     #define wxHAVE_TCHAR_SUPPORT
     #include <stddef.h>
     #include <string.h>
@@ -242,18 +251,24 @@
 #ifdef wxHAVE_TCHAR_SUPPORT
     #include <ctype.h>
 
+    #if defined(__WATCOMC__) && defined(UNICODE)
+      #define WXWCHAR_T_CAST(c) (wint_t)(c)
+    #else
+      #define WXWCHAR_T_CAST(c) c
+    #endif
+
     /* ctype.h functions */
-    #define  wxIsalnum   _istalnum
-    #define  wxIsalpha   _istalpha
-    #define  wxIscntrl   _istcntrl
-    #define  wxIsdigit   _istdigit
-    #define  wxIsgraph   _istgraph
-    #define  wxIslower   _istlower
-    #define  wxIsprint   _istprint
-    #define  wxIspunct   _istpunct
-    #define  wxIsspace   _istspace
-    #define  wxIsupper   _istupper
-    #define  wxIsxdigit  _istxdigit
+    #define  wxIsalnum(c)   _istalnum(WXWCHAR_T_CAST(c))
+    #define  wxIsalpha(c)   _istalpha(WXWCHAR_T_CAST(c))
+    #define  wxIscntrl(c)   _istcntrl(WXWCHAR_T_CAST(c))
+    #define  wxIsdigit(c)   _istdigit(WXWCHAR_T_CAST(c))
+    #define  wxIsgraph(c)   _istgraph(WXWCHAR_T_CAST(c))
+    #define  wxIslower(c)   _istlower(WXWCHAR_T_CAST(c))
+    #define  wxIsprint(c)   _istprint(WXWCHAR_T_CAST(c))
+    #define  wxIspunct(c)   _istpunct(WXWCHAR_T_CAST(c))
+    #define  wxIsspace(c)   _istspace(WXWCHAR_T_CAST(c))
+    #define  wxIsupper(c)   _istupper(WXWCHAR_T_CAST(c))
+    #define  wxIsxdigit(c)  _istxdigit(WXWCHAR_T_CAST(c))
 
     /*
        There is a bug in VC6 C RTL: toxxx() functions dosn't do anything with
@@ -293,7 +308,11 @@
     #define  wxFgetc     _fgettc
     #define  wxFgetchar  _fgettchar
     #define  wxFgets     _fgetts
-    #define  wxFopen     _tfopen
+    #if wxUSE_UNICODE_MSLU
+        #define  wxFopen    wxMSLU__tfopen
+    #else
+        #define  wxFopen     _tfopen
+    #endif
     #define  wxFputc     _fputtc
     #define  wxFputchar  _fputtchar
     #define  wxFprintf   _ftprintf
@@ -305,7 +324,7 @@
     #define  wxGets      _getts
     #define  wxPerror    _tperror
     #define  wxPrintf    _tprintf
-    #define  wxPutc      _puttc
+    #define  wxPutc(c,f) _puttc(WXWCHAR_T_CAST(c),f)
     #define  wxPutchar   _puttchar
     #define  wxPuts      _putts
     #define  wxScanf     _tscanf
@@ -354,31 +373,40 @@
     #define  wxAtoi      _ttoi
     #define  wxAtol      _ttol
     /* #define  wxAtof   _tttof -- notice that there is no such thing (why?) */
-    #define  wxGetenv    _tgetenv
+    /* there are no env vars at all under CE, so no _tgetenv neither */
+    #ifdef __WXWINCE__
+        /* can't define as inline function as this is a C file... */
+        #define wxGetenv(name)  ((wxChar *)NULL)
+    #else
+        #define  wxGetenv    _tgetenv
+    #endif
     #define  wxSystem    _tsystem
 
     /* time.h functions */
     #define  wxAsctime   _tasctime
     #define  wxCtime     _tctime
+    
+    #define wxMbstowcs mbstowcs
+    #define wxWcstombs wcstombs
 #else /* !TCHAR-aware compilers */
 
     #if !defined(__MWERKS__) && defined(__DARWIN__) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2 )
-        /* even though they are defined and "implemented", they are bad and just 
+        /* even though they are defined and "implemented", they are bad and just
            stubs so we need our own - we need these even in ANSI builds!! */
-        #define mbstowcs wxInternalMbstowcs
-        #define wcstombs wxInternalWcstombs
-        
-        WXDLLIMPEXP_BASE size_t wxInternalMbstowcs (wchar_t *, const char *, size_t);
-        WXDLLIMPEXP_BASE size_t	wxInternalWcstombs (char *, const wchar_t *, size_t);
+        WXDLLIMPEXP_BASE size_t wxMbstowcs (wchar_t *, const char *, size_t);
+        WXDLLIMPEXP_BASE size_t wxWcstombs (char *, const wchar_t *, size_t);
+    #else
+        #define wxMbstowcs mbstowcs
+        #define wxWcstombs wcstombs
     #endif
-    
+
     /* No UNICODE in the c library except wchar_t typedef on mac OSX 10.2 and less - roll our own */
     #if !defined(__MWERKS__) && wxUSE_UNICODE && defined(__DARWIN__) && ( MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2 )
-        
+
         /* we need everything! */
         #define wxNEED_WX_STRING_H
         #define wxNEED_WX_CTYPE_H
-        
+
         #define  wxFgetchar(c)  wxFgetc(c, stdin)
         #define  wxFputc     wxPutc
         #define  wxFputchar(c)  wxPutc(c, stdout)
@@ -393,11 +421,13 @@
         #define wxNEED_UNGETC
 
         #define wxNEED_FPUTS
+        #define wxNEED_PUTS
         #define wxNEED_PUTC
- 
+
         int wxFputs(const wxChar *ch, FILE *stream);
+        int wxPuts(const wxChar *ws);
         int wxPutc(wxChar ch, FILE *stream);
-        
+
         #ifdef __cplusplus
         extern "C" {
         #endif
@@ -407,13 +437,12 @@
         #endif
 
         #define wxPutchar(wch) wxPutc(wch, stdout)
-        #define wxPuts(ws) wxFputs(ws, stdout)
-            
+
         #define wxNEED_PRINTF_CONVERSION
         #define wxNEED_WX_STDIO_H
         #define wxNEED_WX_STDLIB_H
         #define wxNEED_WX_TIME_H
-                
+
     #elif wxUSE_UNICODE
         #include <wctype.h>
 
@@ -498,7 +527,8 @@
             #ifdef HAVE_PUTWS
                 #define wxPuts      putws
             #else
-                #define wxPuts(ws) wxFputs(ws, stdout)
+                #define wxNEED_PUTS
+                int wxPuts(const wxChar *ws);
             #endif
 
             /* we need %s to %ls conversion for printf and scanf etc */
@@ -691,6 +721,12 @@
             defined(__EMX__) || defined(__DJGPP__)
         #define wxStricmp stricmp
         #define wxStrnicmp strnicmp
+    #elif defined(__WXPALMOS__)
+        /* FIXME: There is no equivalent to strnicmp in the Palm OS API.  This
+         * quick hack should do until one can be written.
+         */
+        #define wxStricmp StrCaselessCompare
+        #define wxStrnicmp strnicmp
     #elif defined(__SYMANTEC__) || defined(__VISUALC__) || \
             (defined(__MWERKS__) && defined(__INTEL__))
         #define wxStricmp _stricmp
@@ -745,7 +781,11 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
    headers, so we need to declare it ourselves to be able to use it.
  */
 #if defined(HAVE_VSNPRINTF) && !defined(HAVE_VSNPRINTF_DECL)
+#ifdef __cplusplus
     extern "C"
+#else
+    extern
+#endif
     int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #endif /* !HAVE_VSNPRINTF_DECL */
 
@@ -930,14 +970,14 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
     WXDLLIMPEXP_BASE char *strdup(const char* s);
 #endif
 
-/* RN: Used only under OSX <= 10.2 currently 
+/* RN: Used only under OSX <= 10.2 currently
    The __cplusplus ifdefs are messy, but they are required to build
    the regex library, since c does not support function overloading
 */
 #ifdef wxNEED_WX_STRING_H
-#	ifdef __cplusplus
+# ifdef __cplusplus
     extern "C" {
-#	endif
+# endif
         WXDLLIMPEXP_BASE wxChar * wxStrcat(wxChar *dest, const wxChar *src);
         WXDLLIMPEXP_BASE const wxChar * wxStrchr(const wxChar *s, wxChar c);
         WXDLLIMPEXP_BASE int      wxStrcmp(const wxChar *s1, const wxChar *s2);
@@ -951,9 +991,9 @@ WXDLLIMPEXP_BASE bool wxOKlibc(); /* for internal use */
         WXDLLIMPEXP_BASE const wxChar * wxStrrchr(const wxChar *s, wxChar c);
         WXDLLIMPEXP_BASE size_t   wxStrspn(const wxChar *s, const wxChar *accept);
         WXDLLIMPEXP_BASE const wxChar * wxStrstr(const wxChar *haystack, const wxChar *needle);
-#	ifdef __cplusplus	
+# ifdef __cplusplus
     }
-#	endif
+# endif
 
     /* These functions use C++, so we can't c extern them */
     WXDLLIMPEXP_BASE double   wxStrtod(const wxChar *nptr, wxChar **endptr);
@@ -1070,7 +1110,8 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
         #define wxWX2WC wxMB2WC
     #endif
 #else /* !wxUSE_UNICODE */
-#error ha
+/* Why is this here?
+#error ha */
     /* No wxUSE_WCHAR_T: we have to do something (JACS) */
     #define wxMB2WC wxStrncpy
     #define wxWC2MB wxStrncpy
@@ -1080,27 +1121,27 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
     #define wxWX2WC wxMB2WC
 #endif
 
-//
-// RN:  The following are not normal versions of memcpy et al., rather
-// these are either char or widechar versions depending on 
-// if unicode is used or not.
-//
+/*
+    RN:  The following are not normal versions of memcpy et al., rather
+    these are either char or widechar versions depending on
+    if unicode is used or not.
+*/
 
 #ifdef __cplusplus
 
     //
-    //	RN: We could do the usual tricky compiler detection here,
+    //  RN: We could do the usual tricky compiler detection here,
     //  and use their variant (such as wmemchr, etc.).  The problem
-    //  is that these functions are quite rare, even though they are 
+    //  is that these functions are quite rare, even though they are
     //  part of the current POSIX standard.  In addition, most compilers
     //  (including even MSC) inline them just like we do right in their
     //  headers.
     //
     #if wxUSE_UNICODE
         #include <string.h> //for mem funcs
-        
+
         //implement our own wmem variants
-        inline wxChar* wxMemchr(const wxChar* s, wxChar c, size_t l)
+        inline wxChar* wxTmemchr(const wxChar* s, wxChar c, size_t l)
         {
             for(;l && *s != c;--l, ++s) {}
 
@@ -1109,7 +1150,7 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
             return NULL;
         }
 
-        inline int wxMemcmp(const wxChar* sz1, const wxChar* sz2, size_t len)
+        inline int wxTmemcmp(const wxChar* sz1, const wxChar* sz2, size_t len)
         {
             for(; *sz1 == *sz2 && len; --len, ++sz1, ++sz2) {}
 
@@ -1119,17 +1160,17 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
                 return 0;
         }
 
-        inline wxChar* wxMemcpy(wxChar* szOut, const wxChar* szIn, size_t len)
+        inline wxChar* wxTmemcpy(wxChar* szOut, const wxChar* szIn, size_t len)
         {
             return (wxChar*) memcpy(szOut, szIn, len * sizeof(wxChar));
         }
 
-        inline wxChar* wxMemmove(wxChar* szOut, const wxChar* szIn, size_t len)
+        inline wxChar* wxTmemmove(wxChar* szOut, const wxChar* szIn, size_t len)
         {
             return (wxChar*) memmove(szOut, szIn, len * sizeof(wxChar));
         }
 
-        inline wxChar* wxMemset(wxChar* szOut, const wxChar cIn, size_t len)
+        inline wxChar* wxTmemset(wxChar* szOut, const wxChar cIn, size_t len)
         {
             wxChar* szRet = szOut;
 
@@ -1140,11 +1181,11 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
         }
 
     #else //!wxUSE_UNICODE
-    #   define wxMemchr memchr
-    #   define wxMemcmp memcmp
-    #   define wxMemcpy memcpy
-    #   define wxMemmove memmove
-    #   define wxMemset memset
+    #   define wxTmemchr memchr
+    #   define wxTmemcmp memcmp
+    #   define wxTmemcpy memcpy
+    #   define wxTmemmove memmove
+    #   define wxTmemset memset
     #endif
 
 #endif /*__cplusplus*/

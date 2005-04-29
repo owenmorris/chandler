@@ -69,11 +69,13 @@ public:
 class wxPyCBInputStream : public wxInputStream {
 public:
     ~wxPyCBInputStream();
-    virtual size_t GetSize() const;
+    virtual wxFileOffset GetLength() const;
 
     // factory function
     static wxPyCBInputStream* create(PyObject *py, bool block=true);
 
+    wxPyCBInputStream(const wxPyCBInputStream& other);
+    
 protected:
     // can only be created via the factory
     wxPyCBInputStream(PyObject *r, PyObject *s, PyObject *t, bool block);

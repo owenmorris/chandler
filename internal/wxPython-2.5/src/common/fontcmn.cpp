@@ -29,6 +29,7 @@
 #endif
 
 #ifndef WX_PRECOMP
+    #include "wx/dc.h"
     #include "wx/font.h"
     #include "wx/intl.h"
     #include "wx/dcscreen.h"
@@ -602,7 +603,7 @@ wxString wxNativeFontInfo::ToUserString() const
     wxFontEncoding enc = GetEncoding();
     if ( enc != wxFONTENCODING_DEFAULT && enc != wxFONTENCODING_SYSTEM )
     {
-        desc << _T(' ') << wxFontMapper::Get()->GetEncodingName(enc);
+        desc << _T(' ') << wxFontMapper::GetEncodingName(enc);
     }
 #endif // wxUSE_FONTMAP
 

@@ -9,9 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "mdi.h"
 #endif
+
+#include "wx/wxprec.h"
+
+#if wxUSE_MDI
 
 #include "wx/mdi.h"
 #include "wx/menu.h"
@@ -38,6 +42,8 @@ BEGIN_EVENT_TABLE(wxMDIClientWindow, wxWindow)
 END_EVENT_TABLE()
 
 #endif
+
+static const wxChar *TRACE_MDI = _T("mdi");
 
 static const int IDM_WINDOWTILE  = 4001;
 static const int IDM_WINDOWTILEHOR  = 4001;
@@ -105,26 +111,10 @@ bool wxMDIParentFrame::Create(wxWindow *parent,
 wxMDIParentFrame::~wxMDIParentFrame()
 {
     DestroyChildren();
-    // already delete by DestroyChildren()
-#if wxUSE_TOOLBAR
-    m_frameToolBar = NULL;
-#endif
-#if wxUSE_STATUSBAR
-    m_frameStatusBar = NULL;
-#endif    
+    // already deleted by DestroyChildren()
     m_clientWindow = NULL ;
     
-    if (m_windowMenu)
-    {
-        delete m_windowMenu;
-        m_windowMenu = (wxMenu*) NULL;
-    }
-    
-    if ( m_clientWindow )
-    {
-        delete m_clientWindow;
-        m_clientWindow = NULL ;
-    }
+    delete m_windowMenu;
 }
 
 
@@ -133,21 +123,30 @@ void wxMDIParentFrame::SetMenuBar(wxMenuBar *menu_bar)
     wxFrame::SetMenuBar( menu_bar ) ;
 }
 
+void wxMDIParentFrame::GetRectForTopLevelChildren(int *x, int *y, int *w, int *h)
+{
+    if(x)
+        *x = 0;
+    if(y)
+        *y = 0;
+    wxDisplaySize(w,h);
+}
+
 void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
 {
-    wxLogDebug(wxT("MDI PARENT=%p MacActivate(0x%08lx,%s)"),this,timestamp,activating?wxT("ACTIV"):wxT("deact"));
+    wxLogTrace(TRACE_MDI, wxT("MDI PARENT=%p MacActivate(0x%08lx,%s)"),this,timestamp,activating?wxT("ACTIV"):wxT("deact"));
     if(activating)
     {
         if(s_macDeactivateWindow && s_macDeactivateWindow->GetParent()==this)
         {
-            wxLogDebug(wxT("child had been scheduled for deactivation, rehighlighting"));
+            wxLogTrace(TRACE_MDI, wxT("child had been scheduled for deactivation, rehighlighting"));
             UMAHighlightAndActivateWindow((WindowRef)s_macDeactivateWindow->MacGetWindowRef(), true);
-            wxLogDebug(wxT("done highliting child"));
+            wxLogTrace(TRACE_MDI, wxT("done highliting child"));
             s_macDeactivateWindow = NULL;
         }
         else if(s_macDeactivateWindow == this)
         {
-            wxLogDebug(wxT("Avoided deactivation/activation of this=%p"), this);
+            wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"), this);
             s_macDeactivateWindow = NULL;
         }
         else // window to deactivate is NULL or is not us or one of our kids
@@ -172,8 +171,8 @@ void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
         else // schedule ourselves for deactivation
         {
             if(s_macDeactivateWindow)
-                wxLogDebug(wxT("window=%p SHOULD have been deactivated, oh well!"),s_macDeactivateWindow);
-            wxLogDebug(wxT("Scheduling delayed MDI Parent deactivation"));
+                wxLogTrace(TRACE_MDI, wxT("window=%p SHOULD have been deactivated, oh well!"),s_macDeactivateWindow);
+            wxLogTrace(TRACE_MDI, wxT("Scheduling delayed MDI Parent deactivation"));
             s_macDeactivateWindow = this;
         }
     }
@@ -213,7 +212,7 @@ void wxMDIParentFrame::Cascade()
     // TODO
 }
 
-void wxMDIParentFrame::Tile()
+void wxMDIParentFrame::Tile(wxOrientation WXUNUSED(orient))
 {
     // TODO
 }
@@ -235,16 +234,18 @@ void wxMDIParentFrame::ActivatePrevious()
 
 bool wxMDIParentFrame::Show( bool show )
 {
-    if ( !wxFrame::Show(show) )
-        return false;
-
     // don't really show the MDI frame unless it has any children other than
     // MDI children as it is pretty useless in this case
+
     if ( show )
     {
         // TODO: check for other children
-        Move(-10000, -10000);
+        if(!GetToolBar())
+            Move(-10000, -10000);
     }
+
+    if ( !wxFrame::Show(show) )
+        return false;
 
     return true;
 }
@@ -291,13 +292,6 @@ wxMDIChildFrame::~wxMDIChildFrame()
     if(mdiparent->m_currentChild == this)
         mdiparent->m_currentChild = NULL;
     DestroyChildren();
-    // already delete by DestroyChildren()
-#if wxUSE_TOOLBAR
-    m_frameToolBar = NULL;
-#endif
-#if wxUSE_STATUSBAR
-    m_frameStatusBar = NULL;
-#endif    
 }
 
 void wxMDIChildFrame::SetMenuBar(wxMenuBar *menu_bar)
@@ -307,16 +301,16 @@ void wxMDIChildFrame::SetMenuBar(wxMenuBar *menu_bar)
 
 void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
 {
-    wxLogDebug(wxT("MDI child=%p  MacActivate(0x%08lx,%s)"),this,timestamp,activating?wxT("ACTIV"):wxT("deact"));
+    wxLogTrace(TRACE_MDI, wxT("MDI child=%p  MacActivate(0x%08lx,%s)"),this,timestamp,activating?wxT("ACTIV"):wxT("deact"));
     wxMDIParentFrame *mdiparent = wxDynamicCast(m_parent, wxMDIParentFrame);
     wxASSERT(mdiparent);
     if(activating)
     {
         if(s_macDeactivateWindow == m_parent)
         {
-            wxLogDebug(wxT("parent had been scheduled for deactivation, rehighlighting"));
+            wxLogTrace(TRACE_MDI, wxT("parent had been scheduled for deactivation, rehighlighting"));
             UMAHighlightAndActivateWindow((WindowRef)s_macDeactivateWindow->MacGetWindowRef(), true);
-            wxLogDebug(wxT("done highliting parent"));
+            wxLogTrace(TRACE_MDI, wxT("done highliting parent"));
             s_macDeactivateWindow = NULL;
         }
         else if((mdiparent->m_currentChild==this) || !s_macDeactivateWindow)
@@ -328,7 +322,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
 
         if(s_macDeactivateWindow==this)
         {
-            wxLogDebug(wxT("Avoided deactivation/activation of this=%p"),this);
+            wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"),this);
             s_macDeactivateWindow=NULL;
         }
         else
@@ -347,8 +341,8 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
         else // schedule ourselves for deactivation
         {
             if(s_macDeactivateWindow)
-                wxLogDebug(wxT("window=%p SHOULD have been deactivated, oh well!"),s_macDeactivateWindow);
-            wxLogDebug(wxT("Scheduling delayed deactivation"));
+                wxLogTrace(TRACE_MDI, wxT("window=%p SHOULD have been deactivated, oh well!"),s_macDeactivateWindow);
+            wxLogTrace(TRACE_MDI, wxT("Scheduling delayed deactivation"));
             s_macDeactivateWindow = this;
         }
     }
@@ -401,4 +395,6 @@ void wxMDIClientWindow::DoGetClientSize(int *x, int *y) const
 void wxMDIClientWindow::OnScroll(wxScrollEvent& event)
 {
 }
+
+#endif
 

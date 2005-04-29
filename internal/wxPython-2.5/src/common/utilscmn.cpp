@@ -95,7 +95,7 @@
     #include <sys/stat.h>
 #endif
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__)
     #include "wx/msw/private.h"
 #endif
 
@@ -119,7 +119,7 @@
 wxChar *
 copystring (const wxChar *s)
 {
-  if (s == NULL) s = wxT("");
+  if (s == NULL) s = wxEmptyString;
   size_t len = wxStrlen (s) + 1;
 
   wxChar *news = new wxChar[len];
@@ -281,19 +281,14 @@ const wxChar *wxGetInstallPrefix()
 #ifdef wxINSTALL_PREFIX
     return wxT(wxINSTALL_PREFIX);
 #else
-    return wxT("");
+    return wxEmptyString;
 #endif
 }
 
 wxString wxGetDataDir()
 {
-    wxString format = wxGetInstallPrefix();
-    format <<  wxFILE_SEP_PATH
-           << wxT("share") << wxFILE_SEP_PATH
-           << wxT("wx") << wxFILE_SEP_PATH
-           << wxT("%i.%i");
-    wxString dir;
-    dir.Printf(format.c_str(), wxMAJOR_VERSION, wxMINOR_VERSION);
+    wxString dir = wxGetInstallPrefix();
+    dir <<  wxFILE_SEP_PATH << wxT("share") << wxFILE_SEP_PATH << wxT("wx");
     return dir;
 }
 
@@ -335,10 +330,10 @@ wxString wxGetEmailAddress()
     wxString email;
 
     wxString host = wxGetFullHostName();
-    if ( !host.IsEmpty() )
+    if ( !host.empty() )
     {
         wxString user = wxGetUserId();
-        if ( !user.IsEmpty() )
+        if ( !user.empty() )
         {
             email << user << wxT('@') << host;
         }
@@ -484,13 +479,14 @@ static bool ReadAll(wxInputStream *is, wxArrayString& output)
 // public versions of wxExecute() below
 static long wxDoExecuteWithCapture(const wxString& command,
                                    wxArrayString& output,
-                                   wxArrayString* error)
+                                   wxArrayString* error,
+                                   int flags)
 {
     // create a wxProcess which will capture the output
     wxProcess *process = new wxProcess;
     process->Redirect();
 
-    long rc = wxExecute(command, wxEXEC_SYNC, process);
+    long rc = wxExecute(command, wxEXEC_SYNC | flags, process);
 
 #if wxUSE_STREAMS
     if ( rc != -1 )
@@ -515,16 +511,17 @@ static long wxDoExecuteWithCapture(const wxString& command,
     return rc;
 }
 
-long wxExecute(const wxString& command, wxArrayString& output)
+long wxExecute(const wxString& command, wxArrayString& output, int flags)
 {
-    return wxDoExecuteWithCapture(command, output, NULL);
+    return wxDoExecuteWithCapture(command, output, NULL, flags);
 }
 
 long wxExecute(const wxString& command,
                wxArrayString& output,
-               wxArrayString& error)
+               wxArrayString& error,
+               int flags)
 {
-    return wxDoExecuteWithCapture(command, output, &error);
+    return wxDoExecuteWithCapture(command, output, &error, flags);
 }
 
 // ----------------------------------------------------------------------------
@@ -552,10 +549,13 @@ bool wxYieldIfNeeded()
 // Id generation
 static long wxCurrentId = 100;
 
-long
-wxNewId (void)
+long wxNewId()
 {
-  return wxCurrentId++;
+    // skip the part of IDs space that contains hard-coded values:
+    if (wxCurrentId == wxID_LOWEST)
+        wxCurrentId = wxID_HIGHEST + 1;
+
+    return wxCurrentId++;
 }
 
 long
@@ -811,11 +811,19 @@ wxString wxGetTextFromUser(const wxString& message, const wxString& caption,
 wxString wxGetPasswordFromUser(const wxString& message,
                                const wxString& caption,
                                const wxString& defaultValue,
-                               wxWindow *parent)
+                               wxWindow *parent,
+                               wxCoord x, wxCoord y, bool centre )
 {
     wxString str;
-    wxTextEntryDialog dialog(parent, message, caption, defaultValue,
-                             wxOK | wxCANCEL | wxTE_PASSWORD);
+    long style = wxTextEntryDialogStyle;
+
+    if (centre)
+        style |= wxCENTRE;
+    else
+        style &= ~wxCENTRE;
+
+    wxPasswordEntryDialog dialog(parent, message, caption, defaultValue,
+                             style, wxPoint(x, y));
     if ( dialog.ShowModal() == wxID_OK )
     {
         str = dialog.GetValue();

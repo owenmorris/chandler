@@ -9,9 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "icon.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/icon.h"
 
@@ -19,7 +21,10 @@
 IMPLEMENT_DYNAMIC_CLASS(wxIcon, wxBitmap)
 #endif
 
+#include "wx/image.h"
 #include "wx/mac/private.h"
+
+#define M_ICONDATA ((wxIconRefData *)m_refData)
 
 
 /*
@@ -30,20 +35,22 @@ wxIcon::wxIcon()
 {
 }
 
-wxIcon::wxIcon(const char bits[], int width, int height) :
-    wxBitmap(bits, width, height)
+wxIcon::wxIcon(const char bits[], int width, int height) 
 {
-    
+    wxBitmap bmp(bits,width,height) ;
+    CopyFromBitmap( bmp ) ;
 }
 
-wxIcon::wxIcon( const char **bits ) :
-    wxBitmap(bits)
+wxIcon::wxIcon( const char **bits ) 
 {
+    wxBitmap bmp(bits) ;
+    CopyFromBitmap( bmp ) ;
 }
 
-wxIcon::wxIcon( char **bits ) :
-    wxBitmap(bits)
+wxIcon::wxIcon( char **bits ) 
 {
+    wxBitmap bmp(bits) ;
+    CopyFromBitmap( bmp ) ;
 }
 
 wxIcon::wxIcon(const wxString& icon_file, int flags,
@@ -56,25 +63,165 @@ wxIcon::~wxIcon()
 {
 }
 
+WXHICON wxIcon::GetHICON() const 
+{
+    wxASSERT( Ok() ) ;
+    return (WXHICON) ((wxIconRefData*)m_refData)->GetHICON() ;
+}
+
+int wxIcon::GetWidth() const
+{
+   wxCHECK_MSG( Ok(), -1, wxT("invalid icon") );
+
+   return M_ICONDATA->GetWidth();
+}
+
+int wxIcon::GetHeight() const
+{
+   wxCHECK_MSG( Ok(), -1, wxT("invalid icon") );
+
+   return M_ICONDATA->GetHeight();
+}
+
+int wxIcon::GetDepth() const{
+	return 32; 
+}
+
+void wxIcon::SetDepth(int depth){
+	
+}
+
+void wxIcon::SetWidth(int width){
+	
+}
+
+void wxIcon::SetHeight(int height){
+	
+}
+
+bool wxIcon::Ok() const
+{
+    return m_refData != NULL ;
+}
+
 bool wxIcon::LoadFile(const wxString& filename, wxBitmapType type,
     int desiredWidth, int desiredHeight)
 {
     UnRef();
     
-    m_refData = new wxBitmapRefData;
-    
-    wxBitmapHandler *handler = FindHandler((wxBitmapType)type);
-    
-    if ( handler )
-        return handler->LoadFile(this, filename, type, desiredWidth, desiredHeight);
+    if ( type == wxBITMAP_TYPE_ICON_RESOURCE )
+    {
+        OSType theId = 0 ;
+        if ( filename == wxT("wxICON_INFORMATION") )
+        {
+            theId = kAlertNoteIcon ;
+        }
+        else if ( filename == wxT("wxICON_QUESTION") )
+        {
+            theId = kAlertCautionIcon ;
+        }
+        else if ( filename == wxT("wxICON_WARNING") )
+        {
+            theId = kAlertCautionIcon ;
+        }
+        else if ( filename == wxT("wxICON_ERROR") )
+        {
+            theId = kAlertStopIcon ;
+        }
+        else
+        {/*
+            Str255 theName ;
+            OSType theType ;
+            wxMacStringToPascal( name , theName ) ;
+            
+            Handle resHandle = GetNamedResource( 'cicn' , theName ) ;
+            if ( resHandle != 0L )
+            {
+                GetResInfo( resHandle , &theId , &theType , theName ) ;
+                ReleaseResource( resHandle ) ;
+            }
+        */
+        }
+        if ( theId != 0 )
+        {
+            IconRef iconRef = NULL ;
+            verify_noerr(GetIconRef(kOnSystemDisk,kSystemIconsCreator,theId, &iconRef)) ;    
+            if ( iconRef )
+            {
+                m_refData = new wxIconRefData( (WXHICON) iconRef ) ;
+                return TRUE ;
+            }
+        }
+        return FALSE ;
+    }
     else
-        return FALSE;
+    {
+        wxBitmapHandler *handler = wxBitmap::FindHandler(type);
+
+        if ( handler )
+        {
+            wxBitmap bmp ;
+            if ( handler->LoadFile(&bmp , filename, type, desiredWidth, desiredHeight ))
+            {
+                CopyFromBitmap( bmp ) ;
+                return true ;
+            }
+            return false ;
+        }
+        else
+        {
+#if wxUSE_IMAGE
+            wxImage loadimage(filename, type);
+            if (loadimage.Ok()) 
+            {
+                if ( desiredWidth == -1 )
+                    desiredWidth = loadimage.GetWidth() ;
+                if ( desiredHeight == -1 )
+                    desiredHeight = loadimage.GetHeight() ;
+                if ( desiredWidth != loadimage.GetWidth() || desiredHeight != loadimage.GetHeight() )
+                    loadimage.Rescale( desiredWidth , desiredHeight ) ;
+                wxBitmap bmp( loadimage );
+                CopyFromBitmap( bmp ) ;
+                return true;
+            }
+#endif
+        }
+    }
+    return true ;
 }
 
 void wxIcon::CopyFromBitmap(const wxBitmap& bmp)
 {
-    wxIcon *icon = (wxIcon*)(&bmp);
-    *this = *icon;
+    UnRef() ;
+    
+    // as the bitmap owns that ref, we have to acquire it as well
+    IconRef iconRef = bmp.GetBitmapData()->GetIconRef() ;
+    AcquireIconRef( iconRef ) ;
+    m_refData = new wxIconRefData( (WXHICON) iconRef ) ;
+    M_ICONDATA->SetWidth( bmp.GetWidth() ) ;
+    M_ICONDATA->SetHeight( bmp.GetHeight() ) ;
+}
+
+wxIconRefData::wxIconRefData( WXHICON icon )
+{
+    m_iconRef = MAC_WXHICON( icon ) ;
+    // Std sizes
+    SetWidth( 32 ) ;
+    SetHeight( 32 ) ;
+}
+
+void wxIconRefData::Init() 
+{
+    m_iconRef = NULL ;
+}
+
+void wxIconRefData::Free()
+{
+    if ( m_iconRef )
+    {
+        ReleaseIconRef( m_iconRef ) ;
+        m_iconRef = NULL ;
+    }
 }
 
 IMPLEMENT_DYNAMIC_CLASS(wxICONResourceHandler, wxBitmapHandler)
@@ -82,51 +229,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxICONResourceHandler, wxBitmapHandler)
 bool  wxICONResourceHandler::LoadFile(wxBitmap *bitmap, const wxString& name, long flags,
                                       int desiredWidth, int desiredHeight)
 {
-    short theId = -1 ;
-    if ( name == wxT("wxICON_INFORMATION") )
-    {
-        theId = kNoteIcon ;
-    }
-    else if ( name == wxT("wxICON_QUESTION") )
-    {
-        theId = kCautionIcon ;
-    }
-    else if ( name == wxT("wxICON_WARNING") )
-    {
-        theId = kCautionIcon ;
-    }
-    else if ( name == wxT("wxICON_ERROR") )
-    {
-        theId = kStopIcon ;
-    }
-    else
-    {
-        Str255 theName ;
-        OSType theType ;
-        wxMacStringToPascal( name , theName ) ;
-        
-        Handle resHandle = GetNamedResource( 'cicn' , theName ) ;
-        if ( resHandle != 0L )
-        {
-            GetResInfo( resHandle , &theId , &theType , theName ) ;
-            ReleaseResource( resHandle ) ;
-        }
-    }
-    if ( theId != -1 )
-    {
-        CIconHandle theIcon = (CIconHandle ) GetCIcon( theId ) ;
-        if ( theIcon )
-        {
-            M_BITMAPHANDLERDATA->m_hIcon = theIcon ;
-            M_BITMAPHANDLERDATA->m_width =  32 ;
-            M_BITMAPHANDLERDATA->m_height = 32 ;
-            
-            M_BITMAPHANDLERDATA->m_depth = 8 ;
-            M_BITMAPHANDLERDATA->m_ok = true ;
-            M_BITMAPHANDLERDATA->m_numColors = 256 ;
-            M_BITMAPHANDLERDATA->m_bitmapType = kMacBitmapTypeIcon ;
-            return TRUE ;
-        }
-    }
-    return FALSE ;
+    wxIcon icon ;
+    icon.LoadFile( name , wxBITMAP_TYPE_ICON_RESOURCE , desiredWidth , desiredHeight ) ;
+    bitmap->CopyFromIcon( icon ) ;
+    return bitmap->Ok() ;
 }

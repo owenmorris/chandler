@@ -84,12 +84,12 @@ call %WXWIN%\build\msw\.mymake.btm %BUILD_TYPE% %$
 if %? != 0 goto done
 cd -
 
-REM echo ------------------
-REM echo cd ..\..\contrib\build\xrc
-REM cd ..\..\contrib\build\xrc
-REM call %WXWIN%\build\msw\.mymake.btm %BUILD_TYPE% %$
-REM if %? != 0 goto done
-REM cd -
+echo ------------------
+echo cd ..\..\contrib\build\animate
+cd ..\..\contrib\build\animate
+call %WXWIN%\build\msw\.mymake.btm %BUILD_TYPE% %$
+if %? != 0 goto done
+cd -
 
 
 echo ------------------
@@ -100,12 +100,12 @@ if %? != 0 goto done
 cd -
 
 
-echo ------------------
-echo cd ..\..\contrib\build\ogl
-cd ..\..\contrib\build\ogl
-call %WXWIN%\build\msw\.mymake.btm %BUILD_TYPE% CXX="cl -DwxUSE_DEPRECATED=0" %$
-if %? != 0 goto done
-cd -
+REM echo ------------------
+REM echo cd ..\..\contrib\build\ogl
+REM cd ..\..\contrib\build\ogl
+REM call %WXWIN%\build\msw\.mymake.btm %BUILD_TYPE% CXX="cl -DwxUSE_DEPRECATED=0" %$
+REM if %? != 0 goto done
+REM cd -
 
 
 

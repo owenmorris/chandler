@@ -42,6 +42,8 @@ public:
 
     wxArrayString() { }
     wxArrayString(const wxArrayString& a) : wxArrayStringBase(a) { }
+    wxArrayString(size_t sz, const wxChar** a);
+    wxArrayString(size_t sz, const wxString* a);
 
     int Index(const wxChar* sz, bool bCase = true, bool bFromEnd = false) const;
 
@@ -110,6 +112,10 @@ public:
     //     of course, using explicit would be even better - if all compilers
     //     supported it...
   wxArrayString(int autoSort) { Init(autoSort != 0); }
+    // C string array ctor
+  wxArrayString(size_t sz, const wxChar** a);
+    // wxString string array ctor
+  wxArrayString(size_t sz, const wxString* a);
     // copy ctor
   wxArrayString(const wxArrayString& array);
     // assignment operator
@@ -160,7 +166,7 @@ public:
     // once you are done with it.  Will return NULL if the
     // ArrayString was empty.
 #if WXWIN_COMPATIBILITY_2_4
-  wxString* GetStringArray() const;
+  wxDEPRECATED( wxString* GetStringArray() const );
 #endif
 
   // item management
@@ -180,7 +186,7 @@ public:
   void Remove(const wxChar *sz);
     // remove item by index
 #if WXWIN_COMPATIBILITY_2_4
-  void Remove(size_t nIndex, size_t nRemove = 1) { RemoveAt(nIndex, nRemove); }
+  wxDEPRECATED( void Remove(size_t nIndex, size_t nRemove = 1) );
 #endif
   void RemoveAt(size_t nIndex, size_t nRemove = 1);
 
@@ -209,7 +215,7 @@ public:
   typedef int difference_type;
   typedef size_t size_type;
 
-  // FIXME: same in dynarray.h
+  // TODO: this code duplicates the one in dynarray.h
   class reverse_iterator
   {
     typedef wxString value_type;
@@ -227,13 +233,13 @@ public:
     reverse_iterator(const itor& it) : m_ptr(it.m_ptr) { }
     reference operator*() const { return *m_ptr; }
     pointer operator->() const { return m_ptr; }
-    itor operator++() { --m_ptr; return *this; }
-    itor operator++(int)
+    itor& operator++() { --m_ptr; return *this; }
+    const itor operator++(int)
       { reverse_iterator tmp = *this; --m_ptr; return tmp; }
-    itor operator--() { ++m_ptr; return *this; }
-    itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
-    bool operator ==(const itor& it) { return m_ptr == it.m_ptr; }
-    bool operator !=(const itor& it) { return m_ptr != it.m_ptr; }
+    itor& operator--() { ++m_ptr; return *this; }
+    const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
+    bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }
+    bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }
   };
 
   class const_reverse_iterator
@@ -254,13 +260,13 @@ public:
     const_reverse_iterator(const reverse_iterator& it) : m_ptr(it.m_ptr) { }
     reference operator*() const { return *m_ptr; }
     pointer operator->() const { return m_ptr; }
-    itor operator++() { --m_ptr; return *this; }
-    itor operator++(int)
+    itor& operator++() { --m_ptr; return *this; }
+    const itor operator++(int)
       { itor tmp = *this; --m_ptr; return tmp; }
-    itor operator--() { ++m_ptr; return *this; }
-    itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
-    bool operator ==(const itor& it) { return m_ptr == it.m_ptr; }
-    bool operator !=(const itor& it) { return m_ptr != it.m_ptr; }
+    itor& operator--() { ++m_ptr; return *this; }
+    const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
+    bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }
+    bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }
   };
 
   wxArrayString(const_iterator first, const_iterator last)

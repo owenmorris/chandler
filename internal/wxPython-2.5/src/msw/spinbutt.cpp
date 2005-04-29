@@ -39,13 +39,8 @@
 
 IMPLEMENT_DYNAMIC_CLASS(wxSpinEvent, wxNotifyEvent)
 
-#if defined(__WIN95__)
-
 #include "wx/msw/private.h"
-
-#if defined(__WIN95__) && !(defined(__GNUWIN32_OLD__) && !defined(__CYGWIN10__))
-    #include <commctrl.h>
-#endif
+#include "wx/msw/wrapcctl.h"
 
 // ============================================================================
 // implementation
@@ -211,7 +206,7 @@ wxSpinButton::~wxSpinButton()
 
 wxSize wxSpinButton::DoGetBestSize() const
 {
-    return GetBestSpinerSize( (GetWindowStyle() & wxSP_VERTICAL) != 0 );
+    return GetBestSpinnerSize( (GetWindowStyle() & wxSP_VERTICAL) != 0 );
 }
 
 // ----------------------------------------------------------------------------
@@ -220,16 +215,24 @@ wxSize wxSpinButton::DoGetBestSize() const
 
 int wxSpinButton::GetValue() const
 {
+    int n;
 #ifdef UDM_GETPOS32
     if ( wxTheApp->GetComCtl32Version() >= 580 )
     {
         // use the full 32 bit range if available
-        return ::SendMessage(GetHwnd(), UDM_GETPOS32, 0, 0);
+        n = ::SendMessage(GetHwnd(), UDM_GETPOS32, 0, 0);
     }
+    else
 #endif // UDM_GETPOS32
+    {
+        // we're limited to 16 bit
+        n = (short)LOWORD(::SendMessage(GetHwnd(), UDM_GETPOS, 0, 0));
+    }
 
-    // we're limited to 16 bit
-    return (short)LOWORD(::SendMessage(GetHwnd(), UDM_GETPOS, 0, 0));
+    if (n < m_min) n = m_min;
+    if (n > m_max) n = m_max;
+
+    return n;
 }
 
 void wxSpinButton::SetValue(int val)
@@ -254,7 +257,7 @@ void wxSpinButton::SetRange(int minVal, int maxVal)
     wxSpinButtonBase::SetRange(minVal, maxVal);
 
 #ifdef UDM_SETRANGE32
-    if ( wxTheApp->GetComCtl32Version() >= 471 )
+    if ( wxApp::GetComCtl32Version() >= 471 )
     {
         // use the full 32 bit range if available
         ::SendMessage(GetHwnd(), UDM_SETRANGE32, minVal, maxVal);
@@ -310,7 +313,5 @@ bool wxSpinButton::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD WXUNUSED(id))
     // No command messages
     return false;
 }
-
-#endif // __WIN95__
 
 #endif // wxUSE_SPINBTN

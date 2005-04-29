@@ -40,6 +40,7 @@ CC_DEFINE =
 OBJECTS =       baseunix.obj,\
 		dialup.obj,\
 		dir.obj,\
+		dlunix.obj,\
 		fontenum.obj,\
 		fontutil.obj,\
 		gsocket.obj,\
@@ -51,11 +52,13 @@ OBJECTS =       baseunix.obj,\
 		snglinst.obj,\
 		sound.obj,\
 		sound_sdl.obj,\
+		stdpaths.obj,\
 		taskbarx11.obj
 
 SOURCES =       baseunix.cpp,\
 		dialup.cpp,\
 		dir.cpp,\
+		dlunix.cpp,\
 		fontenum.cpp,\
 		fontutil.cpp,\
 		gsocket.cpp,\
@@ -67,6 +70,7 @@ SOURCES =       baseunix.cpp,\
 		snglinst.cpp,\
 		sound.cpp,\
 		sound_sdl.cpp,\
+		stdpaths.cpp,\
 		taskbarx11.cpp
 
 all : $(SOURCES)
@@ -86,6 +90,7 @@ all : $(SOURCES)
 baseunix.obj : baseunix.cpp
 dialup.obj : dialup.cpp
 dir.obj : dir.cpp
+dlunix.obj : dlunix.cpp
 fontenum.obj : fontenum.cpp
 fontutil.obj : fontutil.cpp
 gsocket.obj : gsocket.cpp
@@ -98,4 +103,5 @@ joystick.obj : joystick.cpp
 snglinst.obj : snglinst.cpp
 sound.obj : sound.cpp
 sound_sdl.obj : sound_sdl.cpp
+stdpaths.obj : stdpaths.cpp
 taskbarx11.obj : taskbarx11.cpp

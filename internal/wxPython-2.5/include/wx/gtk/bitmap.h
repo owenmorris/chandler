@@ -25,6 +25,8 @@
 typedef struct _GdkPixbuf GdkPixbuf;
 #endif
 
+class WXDLLEXPORT wxPixelDataBase;
+
 //-----------------------------------------------------------------------------
 // classes
 //-----------------------------------------------------------------------------
@@ -63,7 +65,7 @@ private:
 // wxBitmap
 //-----------------------------------------------------------------------------
 
-class wxBitmap: public wxGDIObject
+class wxBitmap: public wxBitmapBase
 {
 public:
     wxBitmap();
@@ -72,7 +74,7 @@ public:
     wxBitmap( const char **bits ) { (void)CreateFromXpm(bits); }
     wxBitmap( char **bits ) { (void)CreateFromXpm((const char **)bits); }
     wxBitmap( const wxBitmap& bmp );
-    wxBitmap( const wxString &filename, int type = wxBITMAP_TYPE_XPM );
+    wxBitmap( const wxString &filename, wxBitmapType type = wxBITMAP_TYPE_XPM );
     wxBitmap( const wxImage& image, int depth = -1 ) { (void)CreateFromImage(image, depth); }
     ~wxBitmap();
     wxBitmap& operator = ( const wxBitmap& bmp );
@@ -96,14 +98,17 @@ public:
     
     wxBitmap GetSubBitmap( const wxRect& rect ) const;
 
-    bool SaveFile( const wxString &name, int type, wxPalette *palette = (wxPalette *) NULL );
-    bool LoadFile( const wxString &name, int type = wxBITMAP_TYPE_XPM );
+    bool SaveFile(const wxString &name, wxBitmapType type,
+                          const wxPalette *palette = (wxPalette *)NULL) const;
+    bool LoadFile(const wxString &name, wxBitmapType type = wxBITMAP_TYPE_XPM );
 
+#if wxUSE_PALETTE
     wxPalette *GetPalette() const;
+    void SetPalette(const wxPalette& palette);
     wxPalette *GetColourMap() const { return GetPalette(); };
+#endif // wxUSE_PALETTE
 
-    static void InitStandardHandlers() { }
-    static void CleanUpHandlers() { }
+    static void InitStandardHandlers();
 
     // implementation
     // --------------
@@ -127,6 +132,14 @@ public:
     
     // Basically, this corresponds to Win32 StretchBlt()
     wxBitmap Rescale( int clipx, int clipy, int clipwidth, int clipheight, int width, int height );
+    
+    // raw bitmap access support functions
+    void *GetRawData(wxPixelDataBase& data, int bpp);
+    void UngetRawData(wxPixelDataBase& data);
+
+    bool HasAlpha() const;
+    void UseAlpha();
+
 protected:
     bool CreateFromXpm(const char **bits);
     bool CreateFromImage(const wxImage& image, int depth);
@@ -150,8 +163,30 @@ private:
 
     friend class wxMemoryDC;
 #endif
-    
+    friend class wxBitmapHandler;
+
+private:    
     DECLARE_DYNAMIC_CLASS(wxBitmap)
 };
+
+//-----------------------------------------------------------------------------
+// wxBitmapHandler
+//-----------------------------------------------------------------------------
+
+class wxBitmapHandler: public wxBitmapHandlerBase
+{
+public:
+    wxBitmapHandler() { }
+    virtual ~wxBitmapHandler();
+
+    virtual bool Create(wxBitmap *bitmap, void *data, long flags, int width, int height, int depth = 1);
+    virtual bool LoadFile(wxBitmap *bitmap, const wxString& name, long flags,
+        int desiredWidth, int desiredHeight);
+    virtual bool SaveFile(const wxBitmap *bitmap, const wxString& name, int type, const wxPalette *palette = NULL);
+
+private:
+    DECLARE_DYNAMIC_CLASS(wxBitmapHandler)
+};
+
 
 #endif // __GTKBITMAPH__

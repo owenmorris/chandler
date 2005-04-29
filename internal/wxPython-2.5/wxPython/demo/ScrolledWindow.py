@@ -24,7 +24,8 @@ class MyCanvas(wx.ScrolledWindow):
         bmp.SetMask(mask)
         self.bmp = bmp
 
-        self.SetScrollbars(20, 20, self.maxWidth/20, self.maxHeight/20)
+        self.SetVirtualSize((self.maxWidth, self.maxHeight))
+        self.SetScrollRate(20,20)
 
         if BUFFERED:
             # Initialize the buffer bitmap.  No real DC is needed at this point.
@@ -53,7 +54,7 @@ class MyCanvas(wx.ScrolledWindow):
             # wx.PaintDC and then blit the bitmap to it when dc is
             # deleted.  Since we don't need to draw anything else
             # here that's all there is to it.
-            dc = wx.BufferedPaintDC(self, self.buffer)
+            dc = wx.BufferedPaintDC(self, self.buffer, wx.BUFFER_VIRTUAL_AREA)
         else:
             dc = wx.PaintDC(self)
             self.PrepareDC(dc)

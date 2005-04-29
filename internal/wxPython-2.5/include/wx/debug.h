@@ -127,7 +127,7 @@
 #ifdef __cplusplus
     /*  Use of wxFalse instead of false suppresses compiler warnings about testing */
     /*  constant expression */
-    WXDLLIMPEXP_DATA_BASE(extern const bool) wxFalse;
+    extern WXDLLIMPEXP_DATA_BASE(const bool) wxFalse;
 #endif
 
 #define wxAssertFailure wxFalse
@@ -198,8 +198,17 @@
 
  It may be used both within a function and in the global scope.
 */
-#define wxCOMPILE_TIME_ASSERT(expr, msg) \
-    struct wxMAKE_UNIQUE_ASSERT_NAME { unsigned int msg: expr; }
+#ifdef __WATCOMC__
+    /* avoid "unused symbol" warning */
+    #define wxCOMPILE_TIME_ASSERT(expr, msg) \
+        class wxMAKE_UNIQUE_ASSERT_NAME { \
+          unsigned int msg: expr; \
+          wxMAKE_UNIQUE_ASSERT_NAME() { wxUnusedVar(msg); } \
+        }
+#else
+    #define wxCOMPILE_TIME_ASSERT(expr, msg) \
+        struct wxMAKE_UNIQUE_ASSERT_NAME { unsigned int msg: expr; }
+#endif
 
 /*
    When using VC++ 6 with "Edit and Continue" on, the compiler completely
@@ -224,12 +233,14 @@
 /*  other miscellaneous debugger-related functions */
 /*  ---------------------------------------------------------------------------- */
 
-/*  return true if we're running under debugger */
-/*  */
-/*  currently this only really works under Mac in CodeWarrior builds, it always */
-/*  returns false otherwise */
+/*
+    Return true if we're running under debugger.
+
+    Currently this only really works under Win32 and Mac in CodeWarrior builds,
+    it always returns false in other cases.
+ */
 #ifdef __cplusplus
-    #ifdef __WXMAC__
+    #if defined(__WXMAC__) || defined(__WXMSW__)
         extern bool WXDLLIMPEXP_BASE wxIsDebuggerRunning();
     #else /*  !Mac */
         inline bool wxIsDebuggerRunning() { return false; }

@@ -44,12 +44,11 @@
 #endif
 
 #include "wx/dcprint.h"
-#include "math.h"
+#include "wx/printdlg.h"
+#include "wx/msw/printdlg.h"
+#include "wx/math.h"
 
-#if wxUSE_COMMON_DIALOGS
-    #include <commdlg.h>
-#endif
-
+#include "wx/msw/wrapcdlg.h"
 #ifndef __WIN32__
     #include <print.h>
 #endif
@@ -180,7 +179,7 @@ bool wxPrinterDC::StartDoc(const wxString& message)
 
     wxString filename(m_printData.GetFilename());
 
-    if (filename.IsEmpty())
+    if (filename.empty())
         docinfo.lpszOutput = NULL;
     else
         docinfo.lpszOutput = (const wxChar *) filename;
@@ -276,18 +275,32 @@ static bool wxGetDefaultDeviceName(wxString& deviceName, wxString& portName)
         GlobalFree(pd.hDevMode);
         pd.hDevMode=NULL;
     }
-    return ( deviceName != wxEmptyString );
+    return ( !deviceName.empty() );
 }
 
 // Gets an HDC for the specified printer configuration
 WXHDC WXDLLEXPORT wxGetPrinterDC(const wxPrintData& printDataConst)
 {
-    wxPrintData printData = printDataConst;
-    printData.ConvertToNative();
+#if defined(__WXUNIVERSAL__) && (!defined(__WXMSW__) || wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW)
+
+#if 0
+    wxPostScriptPrintNativeData *data =
+        (wxPostScriptPrintNativeData *) printDataConst.GetNativeData();
+    // FIXME: how further ???
+#else
+    return 0;
+#endif
+
+#else // Postscript vs. native Windows
+
+    wxWindowsPrintNativeData *data =
+        (wxWindowsPrintNativeData *) printDataConst.GetNativeData();
+
+    data->TransferFrom( printDataConst );
 
     wxChar* driverName = (wxChar*) NULL;
 
-    wxString devNameStr = printData.GetPrinterName();
+    wxString devNameStr = printDataConst.GetPrinterName();
     wxChar* portName = (wxChar*) NULL; // Obsolete in WIN32
 
     const wxChar* deviceName;
@@ -298,7 +311,7 @@ WXHDC WXDLLEXPORT wxGetPrinterDC(const wxPrintData& printDataConst)
 
     LPDEVMODE lpDevMode = (LPDEVMODE) NULL;
 
-    HGLOBAL hDevMode = (HGLOBAL)(DWORD) printData.GetNativeData();
+    HGLOBAL hDevMode = (HGLOBAL)(DWORD) data->GetDevMode();
 
     if ( hDevMode )
         lpDevMode = (DEVMODE*) GlobalLock(hDevMode);
@@ -324,6 +337,7 @@ WXHDC WXDLLEXPORT wxGetPrinterDC(const wxPrintData& printDataConst)
         GlobalUnlock(hDevMode);
 
     return (WXHDC) hDC;
+#endif
 }
 
 // ----------------------------------------------------------------------------

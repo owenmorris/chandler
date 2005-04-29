@@ -35,11 +35,12 @@
     3. SameFileAs() function to compare inodes under Unix
  */
 
-// ridiculously enough, this will replace DirExists with wxDirExists etc
 #include "wx/filefn.h"
 #include "wx/datetime.h"
 
+#if wxUSE_FILE
 class WXDLLIMPEXP_BASE wxFile;
+#endif
 
 // ----------------------------------------------------------------------------
 // constants
@@ -140,7 +141,15 @@ public:
                 const wxString& path,
                 const wxString& name,
                 const wxString& ext,
+                bool hasExt,
                 wxPathFormat format = wxPATH_NATIVE);
+
+    void Assign(const wxString& volume,
+                const wxString& path,
+                const wxString& name,
+                const wxString& ext,
+                wxPathFormat format = wxPATH_NATIVE)
+        { Assign(volume, path, name, ext, !ext.empty(), format); }
 
     void Assign(const wxString& path,
                 const wxString& name,
@@ -149,11 +158,7 @@ public:
     void Assign(const wxString& path,
                 const wxString& name,
                 const wxString& ext,
-                wxPathFormat format = wxPATH_NATIVE)
-    {
-        // empty volume
-        Assign(wxEmptyString, path, name, ext, format);
-    }
+                wxPathFormat format = wxPATH_NATIVE);
 
     void AssignDir(const wxString& dir, wxPathFormat format = wxPATH_NATIVE);
 
@@ -180,7 +185,8 @@ public:
     bool IsOk() const
     {
         // we're fine if we have the path or the name or if we're a root dir
-        return m_dirs.size() != 0 || !m_name.IsEmpty() || !m_relative;
+        return m_dirs.size() != 0 || !m_name.empty() || !m_relative ||
+                !m_ext.empty() || m_hasExt;
     }
 
         // does the file with this name exists?
@@ -244,12 +250,14 @@ public:
     void AssignHomeDir();
     static wxString GetHomeDir();
 
+#if wxUSE_FILE
         // get a temp file name starting with the specified prefix and open the
         // file passed to us using this name for writing (atomically if
         // possible)
     void AssignTempFileName(const wxString& prefix, wxFile *fileTemp = NULL);
     static wxString CreateTempFileName(const wxString& prefix,
                                        wxFile *fileTemp = NULL);
+#endif // wxUSE_FILE
 
     // directory creation and removal.
     bool Mkdir( int perm = 0777, int flags = 0);
@@ -350,16 +358,19 @@ public:
     static bool IsPathSeparator(wxChar ch, wxPathFormat format = wxPATH_NATIVE);
 
     // Dir accessors
-    void AppendDir( const wxString &dir );
-    void PrependDir( const wxString &dir );
-    void InsertDir( int before, const wxString &dir );
-    void RemoveDir( int pos );
     size_t GetDirCount() const { return m_dirs.size(); }
+    void AppendDir(const wxString& dir);
+    void PrependDir(const wxString& dir);
+    void InsertDir(size_t before, const wxString& dir);
+    void RemoveDir(size_t pos);
+    void RemoveLastDir() { RemoveDir(GetDirCount() - 1); }
 
     // Other accessors
-    void SetExt( const wxString &ext )          { m_ext = ext; }
+    void SetExt( const wxString &ext )          { m_ext = ext; m_hasExt = !m_ext.empty(); }
+    void ClearExt()                             { m_ext = wxEmptyString; m_hasExt = false; }
+    void SetEmptyExt()                          { m_ext = wxT(""); m_hasExt = true; }
     wxString GetExt() const                     { return m_ext; }
-    bool HasExt() const                         { return !m_ext.empty(); }
+    bool HasExt() const                         { return m_hasExt; }
 
     void SetName( const wxString &name )        { m_name = name; }
     wxString GetName() const                    { return m_name; }
@@ -406,9 +417,20 @@ public:
                           wxString *path,
                           wxString *name,
                           wxString *ext,
+                          bool *hasExt = NULL,
                           wxPathFormat format = wxPATH_NATIVE);
 
-        // compatibility version
+    static void SplitPath(const wxString& fullpath,
+                          wxString *volume,
+                          wxString *path,
+                          wxString *name,
+                          wxString *ext,
+                          wxPathFormat format)
+    {
+        SplitPath(fullpath, volume, path, name, ext, NULL, format);
+    }
+
+        // compatibility version: volume is part of path
     static void SplitPath(const wxString& fullpath,
                           wxString *path,
                           wxString *name,
@@ -454,6 +476,13 @@ private:
     // NB: the path is not absolute just because m_relative is false, it still
     //     needs the drive (i.e. volume) in some formats (Windows)
     bool            m_relative;
+
+    // when m_ext is empty, it may be because we don't have any extension or
+    // because we have an empty extension
+    //
+    // the difference is important as file with name "foo" and without
+    // extension has full name "foo" while with empty extension it is "foo."
+    bool            m_hasExt;
 };
 
 #endif // _WX_FILENAME_H_

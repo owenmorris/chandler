@@ -97,14 +97,16 @@ wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
 
+#if wxUSE_STATTEXT
     // 1) text message
     topsizer->Add( CreateTextSizer( message ), 0, wxALL, wxLARGESMALL(10,0) );
+#endif        
 
     // 2) text ctrl
     m_textctrl = new wxTextCtrl(this, wxID_TEXT, value,
                                 wxDefaultPosition, wxSize(300, wxDefaultCoord),
                                 style & ~wxTextEntryDialogStyle);
-    topsizer->Add( m_textctrl, 1, wxEXPAND | wxLEFT|wxRIGHT, wxLARGESMALL(15,0) );
+    topsizer->Add( m_textctrl, style & wxTE_MULTILINE ? 1 : 0, wxEXPAND | wxLEFT|wxRIGHT, wxLARGESMALL(15,0) );
 
 #if wxUSE_VALIDATORS
     wxTextValidator validator( wxFILTER_NONE, &m_value );
@@ -125,18 +127,20 @@ wxTextEntryDialog::wxTextEntryDialog(wxWindow *parent,
 #endif
 
     // 4) buttons
-    topsizer->Add( CreateButtonSizer( style ), 0, wxCENTRE | wxALL, 10 );
+    topsizer->Add( CreateButtonSizer( style ), 0, wxEXPAND | wxALL, 10 );
 
 #endif // !__SMARTPHONE__
 
     SetAutoLayout( true );
     SetSizer( topsizer );
 
+#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
 
-    if ( ( style & wxCENTRE ) == wxCENTRE )
+    if ( style & wxCENTRE )
         Centre( wxBOTH );
+#endif
 
     m_textctrl->SetSelection(-1, -1);
     m_textctrl->SetFocus();
@@ -180,5 +184,23 @@ void wxTextEntryDialog::SetTextValidator( wxTextValidator& validator )
 
 #endif
   // wxUSE_VALIDATORS
+
+// ----------------------------------------------------------------------------
+// wxPasswordEntryDialog
+// ----------------------------------------------------------------------------
+
+IMPLEMENT_CLASS(wxPasswordEntryDialog, wxTextEntryDialog)
+
+wxPasswordEntryDialog::wxPasswordEntryDialog(wxWindow *parent,
+                                     const wxString& message,
+                                     const wxString& caption,
+                                     const wxString& value,
+                                     long style,
+                                     const wxPoint& pos)
+                 : wxTextEntryDialog(parent, message, caption, value,
+                                     style | wxTE_PASSWORD, pos)
+{
+    // Only change from wxTextEntryDialog is the password style
+}
 
 #endif // wxUSE_TEXTDLG

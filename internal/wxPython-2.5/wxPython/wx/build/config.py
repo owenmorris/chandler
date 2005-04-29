@@ -37,9 +37,9 @@ import distutils.command.clean
 #----------------------------------------------------------------------
 
 VER_MAJOR        = 2      # The first three must match wxWidgets
-VER_MINOR        = 5
-VER_RELEASE      = 3
-VER_SUBREL       = 1      # wxPython release num for x.y.z release of wxWidgets
+VER_MINOR        = 6
+VER_RELEASE      = 0
+VER_SUBREL       = 0      # wxPython release num for x.y.z release of wxWidgets
 VER_FLAGS        = ""     # release flags, such as prerelease num, unicode, etc.
 
 DESCRIPTION      = "Cross platform GUI toolkit for Python"
@@ -79,14 +79,15 @@ Topic :: Software Development :: User Interfaces
 # Config values below this point can be reset on the setup.py command line.
 
 BUILD_GLCANVAS = 1 # If true, build the contrib/glcanvas extension module
-BUILD_OGL = 1      # If true, build the contrib/ogl extension module
+BUILD_OGL = 0      # If true, build the contrib/ogl extension module
 BUILD_STC = 1      # If true, build the contrib/stc extension module
 BUILD_GIZMOS = 1   # Build a module for the gizmos contrib library
+BUILD_ANIMATE = 1  # Build a module for the animate contrib library
 BUILD_DLLWIDGET = 0# Build a module that enables unknown wx widgets
                    # to be loaded from a DLL and to be used from Python.
 
                    # Internet Explorer wrapper (experimental)
-BUILD_IEWIN = (os.name == 'nt')
+BUILD_IEWIN = 0 #(os.name == 'nt')
 BUILD_ACTIVEX = (os.name == 'nt')  # new version of IEWIN and more
 
 
@@ -233,6 +234,7 @@ if sys.platform[:6] == "darwin":
 if os.name == 'nt':
     WXPORT = 'msw'
 
+WXPYTHON_TYPE_TABLE = '_wxPython_table'
 
 #----------------------------------------------------------------------
 # Check for build flags on the command line
@@ -265,6 +267,37 @@ for option in ['WX_CONFIG', 'WXDLLVER', 'BUILD_BASE', 'WXPORT', 'SWIG',
 
 sys.argv = filter(None, sys.argv)
 
+
+#----------------------------------------------------------------------
+# build options file
+#----------------------------------------------------------------------
+
+build_options_template = """
+UNICODE=%d
+UNDEF_NDEBUG=%d
+INSTALL_MULTIVERSION=%d
+FLAVOUR="%s"
+EP_ADD_OPTS=%d
+WX_CONFIG="%s"
+WXPORT="%s"
+MONOLITHIC=%d
+FINAL=%d
+HYBRID=%d
+""" % (UNICODE, UNDEF_NDEBUG, INSTALL_MULTIVERSION, FLAVOUR, EP_ADD_OPTS,
+       WX_CONFIG, WXPORT, MONOLITHIC, FINAL, HYBRID)
+
+try: 
+    from build_options import *
+except:
+    build_options_file = os.path.join(os.path.dirname(__file__), "build_options.py")
+    if not os.path.exists(build_options_file):
+        try:
+            myfile = open(build_options_file, "w")
+            myfile.write(build_options_template)
+            myfile.close()
+        except:
+            print "WARNING: Unable to create build_options.py."
+    
 
 #----------------------------------------------------------------------
 # some helper functions
@@ -337,9 +370,14 @@ def run_swig(files, dir, gendir, package, USE_SWIG, force, swig_args,
 
         if not cleaning and USE_SWIG:
             for dep in swig_deps:
-                if newer(dep, py_file) or newer(dep, cpp_file):
-                    force = 1
-                    break
+                # this may fail for external builds, but it's not 
+                # a fatal error, so keep going.
+                try:
+                    if newer(dep, py_file) or newer(dep, cpp_file):
+                        force = 1
+                        break
+                except:
+                    pass
 
             if force or newer(i_file, py_file) or newer(i_file, cpp_file):
                 ## we need forward slashes here even on win32
@@ -585,8 +623,6 @@ def getExtraPath(shortVer=True, addOpts=False):
 
     return ep
 
-
-
 #----------------------------------------------------------------------
 # sanity checks
 
@@ -598,6 +634,7 @@ if CORE_ONLY:
     BUILD_DLLWIDGET = 0
     BUILD_IEWIN = 0
     BUILD_ACTIVEX = 0
+    BUILD_ANIMATE = 0
 
 if debug:
     FINAL  = 0
@@ -644,7 +681,7 @@ if os.name == 'nt':
                 (WXPLAT, None),
                 ('WXUSINGDLL', '1'),
 
-                ('SWIG_GLOBAL', None),
+                ('SWIG_TYPE_TABLE', WXPYTHON_TYPE_TABLE),
                 ('WXP_USE_THREAD', '1'),
                 ]
 
@@ -698,7 +735,7 @@ if os.name == 'nt':
 elif os.name == 'posix':
     WXDIR = '..'
     includes = ['include', 'src']
-    defines = [('SWIG_GLOBAL', None),
+    defines = [('SWIG_TYPE_TABLE', WXPYTHON_TYPE_TABLE),
                ('HAVE_CONFIG_H', None),
                ('WXP_USE_THREAD', '1'),
                ]
@@ -733,7 +770,7 @@ elif os.name == 'posix':
     WXPREFIX   = os.popen(WX_CONFIG + ' --prefix').read()[:-1]
 
 
-    if sys.platform[:6] == "darwin":
+    if sys.platform[:6] == "darwin" and WXPORT == 'mac':
         # Flags and such for a Darwin (Max OS X) build of Python
         WXPLAT = '__WXMAC__'
         GENDIR = 'mac'
@@ -800,6 +837,20 @@ VERSION = "%s.%s.%s.%s%s" % (VER_MAJOR, VER_MINOR, VER_RELEASE,
 # SWIG defaults
 #----------------------------------------------------------------------
 
+# *.i files could live in the wxWidgets/wxPython/src dir, or in 
+# a subdirectory of the devel package. Let's specify both 
+# dirs as includes so we don't have to guess which is correct.
+ 
+wxfilesdir = ""
+i_subdir = opj("include", "wx", "wxPython", "i_files")
+if os.name != "nt":
+    wxfilesdir = opj(WXPREFIX, i_subdir)
+else:
+    wxfilesdir = opj(WXPY_SRC, i_subdir)
+
+i_files_includes = [ '-I' + opj(WXPY_SRC, 'src'),
+                     '-I' + wxfilesdir ]
+
 swig_cmd = SWIG
 swig_force = force
 swig_args = ['-c++',
@@ -810,11 +861,9 @@ swig_args = ['-c++',
              '-keyword',
              '-new_repr',
              '-modern',
-
-             '-I' + opj(WXPY_SRC, 'src'),
              '-D'+WXPLAT,
-             '-noruntime'
-             ]
+             ] + i_files_includes
+             
 if UNICODE:
     swig_args.append('-DwxUSE_UNICODE')
 
@@ -823,10 +872,7 @@ if FULL_DOCS:
     
 
 swig_deps = [ opj(WXPY_SRC, 'src/my_typemaps.i'),
-              opj(WXPY_SRC, 'src/my_fragments.i'),
-              opj(WXPY_SRC, 'src/common.swg'),
-              opj(WXPY_SRC, 'src/pyrun.swg'),
-              opj(WXPY_SRC, 'src/python.swg'),
+              opj(WXPY_SRC, 'src/pyfragments.swg'),
               ]
 
 depends = [ #'include/wx/wxPython/wxPython.h',
@@ -841,8 +887,6 @@ depends = [ #'include/wx/wxPython/wxPython.h',
 ####################################
 
 import pprint
-import xml.sax            
-
 try:
     import libxml2
     FOUND_LIBXML2 = True
@@ -850,7 +894,6 @@ except ImportError:
     FOUND_LIBXML2 = False
 
 #---------------------------------------------------------------------------
-
 
 renamerTemplateStart = """\
 // A bunch of %rename directives generated by BuildRenamers in config.py

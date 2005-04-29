@@ -40,6 +40,8 @@
 
 #if wxUSE_STL
     #include "wx/beforestd.h"
+    #include <algorithm>
+    #include <iterator>
     #include <list>
     #include "wx/afterstd.h"
 #endif
@@ -96,122 +98,204 @@ enum wxKeyType
 #define WX_DECLARE_LIST_WITH_DECL(elT, liT, decl) \
     WX_DECLARE_LIST_XO(elT*, liT, decl)
 
-#define WX_DECLARE_LIST_XO(elT, liT, decl) \
+#if !defined( __VISUALC__ )
+
+template<class T>
+class WXDLLIMPEXP_BASE wxList_SortFunction
+{
+public:
+    wxList_SortFunction(wxSortCompareFunction f) : m_f(f) { }
+    bool operator()(const T& i1, const T& i2)
+      { return m_f((T*)&i1, (T*)&i2) < 0; }
+private:
+    wxSortCompareFunction m_f;
+};
+
+#define WX_LIST_SORTFUNCTION( elT, f ) wxList_SortFunction<elT>(f)
+#define VC6_WORKAROUND(elT, liT, decl)
+
+#else // if defined( __VISUALC__ )
+
+#define WX_LIST_SORTFUNCTION( elT, f ) std::greater<elT>( f )
+#define VC6_WORKAROUND(elT, liT, decl)                                        \
+    decl liT;                                                                 \
+                                                                              \
+    /* Workaround for broken VC6 STL incorrectly requires a std::greater<> */ \
+    /* to be passed into std::list::sort() */                                 \
+    template <>                                                               \
+    struct std::greater<elT>                                                  \
+    {                                                                         \
+        private:                                                              \
+            wxSortCompareFunction m_CompFunc;                                 \
+        public:                                                               \
+            greater( wxSortCompareFunction compfunc = NULL )                  \
+                : m_CompFunc( compfunc ) {}                                   \
+            bool operator()(const elT X, const elT Y) const                   \
+                {                                                             \
+                    return m_CompFunc ?                                       \
+                        ( m_CompFunc( X, Y ) < 0 ) :                          \
+                        ( X > Y );                                            \
+                }                                                             \
+    };
+
+#endif // defined( __VISUALC__ )
+
+#define WX_DECLARE_LIST_XO(elT, liT, decl)                                    \
+    VC6_WORKAROUND(elT, liT, decl)                                            \
     decl liT : public std::list<elT>                                          \
     {                                                                         \
+    private:                                                                  \
+        bool m_destroy;                                                       \
+    private:                                                                  \
+        typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
+        static void DeleteFunction( const _WX_LIST_ITEM_TYPE_##liT X );       \
     public:                                                                   \
-        class dummy;                                                          \
-                                                                              \
-        struct compatibility_iterator                                         \
+        class compatibility_iterator                                          \
         {                                                                     \
-            typedef std::list<elT>::iterator iterator;                        \
+        private:                                                              \
+          /* Workaround for broken VC6 nested class name resolution */        \
+          typedef std::list<elT>::iterator iterator;                          \
+          friend class liT;                                                   \
+        private:                                                              \
             iterator m_iter;                                                  \
             liT * m_list;                                                     \
         public:                                                               \
+            compatibility_iterator()                                          \
+                : m_iter(), m_list( NULL ) {}                                 \
+            compatibility_iterator( liT* li, iterator i )                     \
+                : m_iter( i ), m_list( li ) {}                                \
+            compatibility_iterator( const liT* li, iterator i )               \
+                : m_iter( i ), m_list( const_cast< liT* >( li ) ) {}          \
+                                                                              \
+            compatibility_iterator* operator->() { return this; }             \
+            const compatibility_iterator* operator->() const { return this; } \
+                                                                              \
+            bool operator==(const compatibility_iterator& i) const            \
+                { return (m_list == i.m_list) && (m_iter == i.m_iter); }      \
+            bool operator!=(const compatibility_iterator& i) const            \
+                { return !( operator==( i ) ); }                              \
             operator bool() const                                             \
-                { return m_list && m_iter != m_list->end(); }                 \
+                { return m_list ? m_iter != m_list->end() : false; }          \
             bool operator !() const                                           \
-                { return !m_list || m_iter == m_list->end(); }                \
-            compatibility_iterator( const liT* li, iterator it )              \
-                : m_iter( it ), m_list( (liT*)li ) {}                         \
-            compatibility_iterator( liT* li, iterator it )                    \
-                : m_iter( it ), m_list( li ) {}                               \
-            compatibility_iterator() : m_list( NULL ) { }                     \
-            dummy* operator->() { return (dummy*)this; }                      \
-            const dummy* operator->() const { return (const dummy*)this; }    \
-            bool operator==(const compatibility_iterator& it)                 \
-                { return m_list == it.m_list && m_iter == it.m_iter; }        \
-            bool operator!=(const compatibility_iterator& it)                 \
-                { return m_list != it.m_list || m_iter != it.m_iter; }        \
-        };                                                                    \
-        typedef struct compatibility_iterator citer;                          \
+                { return !( operator bool() ); }                              \
                                                                               \
-        class dummy                                                           \
-        {                                                                     \
-            typedef std::list<elT>::iterator it;                              \
-            typedef compatibility_iterator citer;                             \
-        public:                                                               \
             elT GetData() const                                               \
-            {                                                                 \
-                citer* i = (citer*)this;                                      \
-                return *(i->m_iter);                                          \
-            }                                                                 \
-            citer GetNext() const                                             \
-            {                                                                 \
-                citer* i = (citer*)this;                                      \
-                it lit = i->m_iter;                                           \
-                return citer( i->m_list, ++lit );                             \
-            }                                                                 \
-            citer GetPrevious() const                                         \
-            {                                                                 \
-                citer* i = (citer*)this;                                      \
-                it lit = i->m_iter;                                           \
-                return citer( i->m_list, --lit );                             \
-            }                                                                 \
+                { return *m_iter; }                                           \
             void SetData( elT e )                                             \
-            {                                                                 \
-                citer* i = (citer*)this;                                      \
-                *(i->m_iter) = e;                                             \
-            }                                                                 \
-        private:                                                              \
-            dummy();                                                          \
-        };                                                                    \
-    protected:                                                                \
-        iterator find( const elT e )                                          \
-        {                                                                     \
-            iterator it, en;                                                  \
-            for( it = begin(), en = end(); it != en; ++it )                   \
-                if( *it == e )                                                \
-                    return it;                                                \
-            return it;                                                        \
-        }                                                                     \
-    public:                                                                   \
-        liT() {}                                                              \
+                { *m_iter = e; }                                              \
                                                                               \
-        citer Append( elT e ) { push_back( e ); return GetLast(); }           \
-        void Clear() { clear(); }                                             \
-        size_t GetCount() const { return size(); }                            \
-        citer GetFirst() const { return citer( this, ((liT*)this)->begin() ); } \
-        citer GetLast() const { return citer( this, --(((liT*)this)->end()) ); } \
-        bool IsEmpty() const { return empty(); }                              \
-        bool DeleteObject( elT e )                                            \
-        {                                                                     \
-            iterator it = find( e );                                          \
-            if( it != end() )                                                 \
+            compatibility_iterator GetNext() const                            \
             {                                                                 \
-                erase( it );                                                  \
+                iterator i = m_iter;                                          \
+                return compatibility_iterator( m_list, ++i );                 \
+            }                                                                 \
+            compatibility_iterator GetPrevious() const                        \
+            {                                                                 \
+                iterator i = m_iter;                                          \
+                return compatibility_iterator( m_list, --i );                 \
+            }                                                                 \
+            int IndexOf() const                                               \
+            {                                                                 \
+                return m_list ?                                               \
+                    m_iter != m_list->end() ?                                 \
+                        std::distance( m_list->begin(), m_iter ) :            \
+                            wxNOT_FOUND :                                     \
+                        wxNOT_FOUND;                                          \
+            }                                                                 \
+        };                                                                    \
+    public:                                                                   \
+        liT() : m_destroy( false ) {}                                         \
+                                                                              \
+        compatibility_iterator Find( const elT e ) const                      \
+        {                                                                     \
+          liT* _this = const_cast< liT* >( this );                            \
+          return compatibility_iterator( _this,                               \
+                     std::find( _this->begin(), _this->end(), e ) );          \
+        }                                                                     \
+                                                                              \
+        bool IsEmpty() const                                                  \
+            { return empty(); }                                               \
+        size_t GetCount() const                                               \
+            { return size(); }                                                \
+        int Number() const                                                    \
+            { return static_cast< int >( GetCount() ); }                      \
+                                                                              \
+        compatibility_iterator Item( size_t idx ) const                       \
+        {                                                                     \
+            iterator i = const_cast< liT* >(this)->begin();                   \
+            std::advance( i, idx );                                           \
+            return compatibility_iterator( this, i );                         \
+        }                                                                     \
+        compatibility_iterator GetFirst() const                               \
+        {                                                                     \
+            return compatibility_iterator( this,                              \
+                const_cast< liT* >(this)->begin() );                          \
+        }                                                                     \
+        compatibility_iterator GetLast() const                                \
+        {                                                                     \
+            iterator i = const_cast< liT* >(this)->end();                     \
+            return compatibility_iterator( this, !empty() ? --i : i );        \
+        }                                                                     \
+        compatibility_iterator Member( elT e ) const                          \
+            { return Find( e ); }                                             \
+        compatibility_iterator Nth( int n ) const                             \
+            { return Item( n ); }                                             \
+        int IndexOf( elT e ) const                                            \
+            { return Find( e ).IndexOf(); }                                   \
+                                                                              \
+        compatibility_iterator Append( elT e )                                \
+        {                                                                     \
+            push_back( e );                                                   \
+            return GetLast();                                                 \
+        }                                                                     \
+        compatibility_iterator Insert( elT e )                                \
+        {                                                                     \
+            push_front( e );                                                  \
+            return compatibility_iterator( this, begin() );                   \
+        }                                                                     \
+        compatibility_iterator Insert( compatibility_iterator & i, elT e )    \
+        {                                                                     \
+            return compatibility_iterator( this, insert( i.m_iter, e ) );     \
+        }                                                                     \
+        compatibility_iterator Insert( size_t idx, elT e )                    \
+        {                                                                     \
+            return compatibility_iterator( this,                              \
+                                           insert( Item( idx ).m_iter, e ) ); \
+        }                                                                     \
+                                                                              \
+        void DeleteContents( bool destroy )                                   \
+            { m_destroy = destroy; }                                          \
+        bool GetDeleteContents() const                                        \
+            { return m_destroy; }                                             \
+        void Erase( const compatibility_iterator& i )                         \
+        {                                                                     \
+            if ( m_destroy )                                                  \
+                DeleteFunction( i->GetData() );                               \
+            erase( i.m_iter );                                                \
+        }                                                                     \
+        bool DeleteNode( const compatibility_iterator& i )                    \
+        {                                                                     \
+            if( i )                                                           \
+            {                                                                 \
+                Erase( i );                                                   \
                 return true;                                                  \
             }                                                                 \
             return false;                                                     \
         }                                                                     \
-        void Erase( const compatibility_iterator& it )                        \
+        bool DeleteObject( elT e )                                            \
         {                                                                     \
-            erase( it.m_iter );                                               \
+            return DeleteNode( Find( e ) );                                   \
         }                                                                     \
-        citer Find( const elT e ) const { return citer( this, ((liT*)this)->find( e ) ); } \
-        citer Member( elT e ) const { return Find( e ); }                     \
-        citer Insert( elT e )                                                 \
-            { push_front( e ); return citer( this, begin() ); }               \
-        citer Insert( size_t idx, elT e )                                     \
-            { return Insert( Item( idx ), e ); }                              \
-        citer Insert( citer idx, elT e )                                      \
-            { return citer( this, insert( idx.m_iter, e ) ); }                \
-        citer Item( size_t idx ) const                                        \
+        void Clear()                                                          \
         {                                                                     \
-            iterator it;                                                      \
-            for( it = ((liT*)this)->begin(); idx; --idx )                     \
-                ++it;                                                         \
-            return citer( this, it );                                         \
+            if ( m_destroy )                                                  \
+                std::for_each( begin(), end(), DeleteFunction );              \
+            clear();                                                          \
         }                                                                     \
-        int IndexOf( elT e ) const                                            \
-        {                                                                     \
-            const_iterator it, en;                                            \
-            int idx;                                                          \
-            for( idx = 0, it = begin(), en = end(); it != en; ++it, ++idx )   \
-                if( *it == e )                                                \
-                    return idx;                                               \
-            return wxNOT_FOUND;                                               \
-        }                                                                     \
+        /* Workaround for broken VC6 std::list::sort() see above */           \
+        void Sort( wxSortCompareFunction compfunc )                           \
+            { sort( WX_LIST_SORTFUNCTION( elT, compfunc ) ); }                \
+        ~liT() { Clear(); }                                                   \
     }
 
 #define WX_DECLARE_LIST(elementtype, listname)                              \
@@ -245,7 +329,6 @@ extern WXDLLIMPEXP_BASE wxChar* copystring(const wxChar *s);
 #endif
 
 class WXDLLEXPORT wxObjectListNode;
-typedef wxObjectListNode wxNode;
 
 // undef it to get rid of old, deprecated functions
 #define wxLIST_COMPATIBILITY
@@ -307,7 +390,7 @@ private:
 // wxNodeBase class is a (base for) node in a double linked list
 // -----------------------------------------------------------------------------
 
-WXDLLIMPEXP_DATA_BASE(extern wxListKey) wxDefaultListKey;
+extern WXDLLIMPEXP_DATA_BASE(wxListKey) wxDefaultListKey;
 
 class WXDLLIMPEXP_BASE wxListBase;
 
@@ -377,9 +460,7 @@ class WXDLLIMPEXP_BASE wxListBase : public wxObject
 {
 friend class WXDLLIMPEXP_BASE wxNodeBase; // should be able to call DetachNode()
 friend class wxHashTableBase;   // should be able to call untyped Find()
-private:
-        // common part of all ctors
-    void Init(wxKeyType keyType = wxKEY_NONE); // Must be declared before it's used (for VC++ 1.5)
+
 public:
     // default ctor & dtor
     wxListBase(wxKeyType keyType = wxKEY_NONE)
@@ -516,6 +597,10 @@ protected:
     void Reverse();
     void DeleteNodes(wxNodeBase* first, wxNodeBase* last);
 private:
+
+        // common part of all ctors
+    void Init(wxKeyType keyType = wxKEY_NONE);
+
     // helpers
         // common part of copy ctor and assignment operator
     void DoCopy(const wxListBase& list);
@@ -588,6 +673,7 @@ private:
         void SetData(T *data)                                               \
             { wxNodeBase::SetData(data); }                                  \
                                                                             \
+    protected:                                                              \
         virtual void DeleteData();                                          \
                                                                             \
         DECLARE_NO_COPY_CLASS(nodetype)                                     \
@@ -655,8 +741,10 @@ private:
         int IndexOf(Tbase *object) const                                    \
             { return wxListBase::IndexOf(object); }                         \
                                                                             \
+        void Sort(wxSortCompareFunction func)                               \
+            { wxListBase::Sort(func); }                                     \
         void Sort(wxSortFuncFor_##name func)                                \
-            { wxListBase::Sort((wxSortCompareFunction)func); }              \
+            { Sort((wxSortCompareFunction)func); }                          \
                                                                             \
     protected:                                                              \
         virtual wxNodeBase *CreateNode(wxNodeBase *prev, wxNodeBase *next,  \
@@ -700,14 +788,14 @@ private:
                 { return *(pointer_type)m_node->GetDataPtr(); }             \
             ptrop                                                           \
             itor& operator++() { m_node = m_node->GetNext(); return *this; }\
-            itor operator++(int)                                            \
+            const itor operator++(int)                                      \
                 { itor tmp = *this; m_node = m_node->GetNext(); return tmp; }\
             itor& operator--()                                              \
             {                                                               \
                 m_node = m_node ? m_node->GetPrevious() : m_init;           \
                 return *this;                                               \
             }                                                               \
-            itor operator--(int)                                            \
+            const itor operator--(int)                                      \
             {                                                               \
                 itor tmp = *this;                                           \
                 m_node = m_node ? m_node->GetPrevious() : m_init;           \
@@ -743,14 +831,14 @@ private:
                 { return *(pointer_type)m_node->GetDataPtr(); }             \
             ptrop                                                           \
             itor& operator++() { m_node = m_node->GetNext(); return *this; }\
-            itor operator++(int)                                            \
+            const itor operator++(int)                                      \
                 { itor tmp = *this; m_node = m_node->GetNext(); return tmp; }\
             itor& operator--()                                              \
             {                                                               \
                 m_node = m_node ? m_node->GetPrevious() : m_init;           \
                 return *this;                                               \
             }                                                               \
-            itor operator--(int)                                            \
+            const itor operator--(int)                                      \
             {                                                               \
                 itor tmp = *this;                                           \
                 m_node = m_node ? m_node->GetPrevious() : m_init;           \
@@ -785,11 +873,11 @@ private:
             ptrop                                                           \
             itor& operator++()                                              \
                 { m_node = m_node->GetPrevious(); return *this; }           \
-            itor operator++(int)                                            \
+            const itor operator++(int)                                      \
             { itor tmp = *this; m_node = m_node->GetPrevious(); return tmp; }\
             itor& operator--()                                              \
             { m_node = m_node ? m_node->GetNext() : m_init; return *this; } \
-            itor operator--(int)                                            \
+            const itor operator--(int)                                      \
             {                                                               \
                 itor tmp = *this;                                           \
                 m_node = m_node ? m_node->GetNext() : m_init;               \
@@ -826,11 +914,11 @@ private:
             ptrop                                                           \
             itor& operator++()                                              \
                 { m_node = m_node->GetPrevious(); return *this; }           \
-            itor operator++(int)                                            \
+            const itor operator++(int)                                      \
             { itor tmp = *this; m_node = m_node->GetPrevious(); return tmp; }\
             itor& operator--()                                              \
                 { m_node = m_node ? m_node->GetNext() : m_init; return *this;}\
-            itor operator--(int)                                            \
+            const itor operator--(int)                                      \
             {                                                               \
                 itor tmp = *this;                                           \
                 m_node = m_node ? m_node->GetNext() : m_init;               \
@@ -844,7 +932,7 @@ private:
                                                                             \
         wxEXPLICIT name(size_type n, const_reference v = value_type())      \
             { assign(n, v); }                                               \
-        name(const_iterator first, const_iterator last)                     \
+        name(const const_iterator& first, const const_iterator& last)       \
             { assign(first, last); }                                        \
         iterator begin() { return iterator(GetFirst(), GetLast()); }        \
         const_iterator begin() const                                        \
@@ -870,15 +958,15 @@ private:
         bool empty() const { return IsEmpty(); }                            \
         reference front() { return *begin(); }                              \
         const_reference front() const { return *begin(); }                  \
-        reference back() { return *--end(); }                               \
-        const_reference back() const { return *--end(); }                   \
+        reference back() { iterator tmp = end(); return *--tmp; }           \
+        const_reference back() const { const_iterator tmp = end(); return *--tmp; }\
         void push_front(const_reference v = value_type())                   \
             { Insert(GetFirst(), (const_base_reference)v); }                \
         void pop_front() { DeleteNode(GetFirst()); }                        \
         void push_back(const_reference v = value_type())                    \
             { Append((const_base_reference)v); }                            \
         void pop_back() { DeleteNode(GetLast()); }                          \
-        void assign(const_iterator first, const_iterator last)              \
+        void assign(const_iterator first, const const_iterator& last)       \
         {                                                                   \
             clear();                                                        \
             for(; first != last; ++first)                                   \
@@ -890,38 +978,38 @@ private:
             for(size_type i = 0; i < n; ++i)                                \
                 Append((const_base_reference)v);                            \
         }                                                                   \
-        iterator insert(iterator it, const_reference v = value_type())      \
+        iterator insert(const iterator& it, const_reference v = value_type())\
         {                                                                   \
             Insert(it.m_node, (const_base_reference)v);                     \
             return iterator(it.m_node->GetPrevious(), GetLast());           \
         }                                                                   \
-        void insert(iterator it, size_type n, const_reference v = value_type())\
+        void insert(const iterator& it, size_type n, const_reference v = value_type())\
         {                                                                   \
             for(size_type i = 0; i < n; ++i)                                \
                 Insert(it.m_node, (const_base_reference)v);                 \
         }                                                                   \
-        void insert(iterator it, const_iterator first, const_iterator last) \
+        void insert(const iterator& it, const_iterator first, const const_iterator& last)\
         {                                                                   \
             for(; first != last; ++first)                                   \
                 Insert(it.m_node, (const_base_reference)*first);            \
         }                                                                   \
-        iterator erase(iterator it)                                         \
+        iterator erase(const iterator& it)                                  \
         {                                                                   \
             iterator next = iterator(it.m_node->GetNext(), GetLast());      \
             DeleteNode(it.m_node); return next;                             \
         }                                                                   \
-        iterator erase(iterator first, iterator last)                       \
+        iterator erase(const iterator& first, const iterator& last)         \
         {                                                                   \
             iterator next = last; ++next;                                   \
             DeleteNodes(first.m_node, last.m_node);                         \
             return next;                                                    \
         }                                                                   \
         void clear() { Clear(); }                                           \
-        void splice(iterator it, name& l, iterator first, iterator last)    \
+        void splice(const iterator& it, name& l, const iterator& first, const iterator& last)\
             { insert(it, first, last); l.erase(first, last); }              \
-        void splice(iterator it, name& l)                                   \
+        void splice(const iterator& it, name& l)                            \
             { splice(it, l, l.begin(), l.end() ); }                         \
-        void splice(iterator it, name& l, iterator first)                   \
+        void splice(const iterator& it, name& l, const iterator& first)     \
         {                                                                   \
             iterator tmp = first; ++tmp;                                    \
             if(it == first || it == tmp) return;                            \
@@ -1116,9 +1204,9 @@ private:
 
 #else // if wxUSE_STL
 
-WX_DECLARE_LIST_XO(wxString, wxStringListBase, class WXDLLEXPORT);
+WX_DECLARE_LIST_XO(wxString, wxStringListBase, class WXDLLIMPEXP_BASE);
 
-class WXDLLEXPORT wxStringList : public wxStringListBase
+class WXDLLIMPEXP_BASE wxStringList : public wxStringListBase
 {
 public:
     compatibility_iterator Append(wxChar* s)

@@ -4,6 +4,7 @@
 // Date: 08/11/1999
 // Author: Guilhem Lavaux <lavaux@easynet.fr> (C) 1999
 // CVSID: $Id$
+// wxWindows licence
 // --------------------------------------------------------------------------
 #ifdef __GNUG__
 #pragma implementation "sndwav.cpp"
@@ -372,7 +373,7 @@ FAIL_WITH(s->Write(&signature, 4).LastWrite() != 4, wxSOUND_INVSTRM);
         delete frmt;
     }
     
-    data << (fmt_data.GetSize() + m_sndformat->GetBytesFromTime(time));
+    data << (wxUint32)(fmt_data.GetSize() + m_sndformat->GetBytesFromTime(time));
 
     // We, finally, copy the header block to the output stream 
     {

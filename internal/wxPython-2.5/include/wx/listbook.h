@@ -43,7 +43,7 @@ class WXDLLEXPORT wxStaticLine;
 // wxListbook
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxListbook : public wxBookCtrl
+class WXDLLEXPORT wxListbook : public wxBookCtrlBase
 {
 public:
     wxListbook()
@@ -129,12 +129,12 @@ private:
 // listbook event class and related stuff
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxListbookEvent : public wxBookCtrlEvent
+class WXDLLEXPORT wxListbookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxListbookEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
                     int nSel = wxNOT_FOUND, int nOldSel = wxNOT_FOUND)
-        : wxBookCtrlEvent(commandType, id, nSel, nOldSel)
+        : wxBookCtrlBaseEvent(commandType, id, nSel, nOldSel)
     {
     }
 
@@ -147,23 +147,14 @@ extern WXDLLIMPEXP_CORE const wxEventType wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING;
 
 typedef void (wxEvtHandler::*wxListbookEventFunction)(wxListbookEvent&);
 
-#define EVT_LISTBOOK_PAGE_CHANGED(id, fn)                                   \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,                                    \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxListbookEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define wxListbookEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxListbookEventFunction, &func)
 
-#define EVT_LISTBOOK_PAGE_CHANGING(id, fn)                                  \
-  DECLARE_EVENT_TABLE_ENTRY(                                                \
-    wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING,                                   \
-    id,                                                                     \
-    wxID_ANY,                                                               \
-    (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxListbookEventFunction, &fn ),  \
-    NULL                                                                    \
-  ),
+#define EVT_LISTBOOK_PAGE_CHANGED(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED, winid, wxListbookEventHandler(fn))
+
+#define EVT_LISTBOOK_PAGE_CHANGING(winid, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING, winid, wxListbookEventHandler(fn))
 
 #endif // wxUSE_LISTBOOK
 

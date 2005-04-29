@@ -23,6 +23,7 @@
 #if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
 
 #include "wx/artprov.h"
+#include "wx/module.h"
 
 #include <gtk/gtk.h>
 
@@ -86,19 +87,45 @@ static const char *wxArtIDToStock(const wxArtID& id)
     //ART(wxART_REPORT_VIEW,                         )
     //ART(wxART_LIST_VIEW,                           )
     //ART(wxART_NEW_DIR,                             )
+#ifdef __WXGTK24__
     ART(wxART_FOLDER,                              GTK_STOCK_DIRECTORY)
+    ART(wxART_FOLDER_OPEN,                         GTK_STOCK_DIRECTORY)
+#endif
     //ART(wxART_GO_DIR_UP,                           )
     ART(wxART_EXECUTABLE_FILE,                     GTK_STOCK_EXECUTE)
     ART(wxART_NORMAL_FILE,                         GTK_STOCK_FILE)
     ART(wxART_TICK_MARK,                           GTK_STOCK_APPLY)
     ART(wxART_CROSS_MARK,                          GTK_STOCK_CANCEL)
+
+#ifdef __WXGTK24__
+    ART(wxART_FLOPPY,                              GTK_STOCK_FLOPPY)
+    ART(wxART_CDROM,                               GTK_STOCK_CDROM)
+    ART(wxART_HARDDISK,                            GTK_STOCK_HARDDISK)
+    ART(wxART_REMOVABLE,                           GTK_STOCK_HARDDISK)
+
+    ART(wxART_FILE_SAVE,                           GTK_STOCK_SAVE)
+    ART(wxART_FILE_SAVE_AS,                        GTK_STOCK_SAVE_AS)
+
+    ART(wxART_COPY,                                GTK_STOCK_COPY)
+    ART(wxART_CUT,                                 GTK_STOCK_CUT)
+    ART(wxART_PASTE,                               GTK_STOCK_PASTE)
+    ART(wxART_DELETE,                              GTK_STOCK_DELETE)
+
+    ART(wxART_UNDO,                                GTK_STOCK_UNDO)
+    ART(wxART_REDO,                                GTK_STOCK_REDO)
+
+    ART(wxART_QUIT,                                GTK_STOCK_QUIT)
+
+    ART(wxART_FIND,                                GTK_STOCK_FIND)
+    ART(wxART_FIND_AND_REPLACE,                    GTK_STOCK_FIND_AND_REPLACE)
+#endif
     
     return NULL;
     
     #undef ART
 }
 
-static GtkIconSize wxArtClientToIconSize(const wxArtClient& client)
+GtkIconSize wxArtClientToIconSize(const wxArtClient& client)
 {
     if (client == wxART_TOOLBAR)
         return GTK_ICON_SIZE_LARGE_TOOLBAR;
@@ -109,7 +136,7 @@ static GtkIconSize wxArtClientToIconSize(const wxArtClient& client)
     else if (client == wxART_BUTTON)
         return GTK_ICON_SIZE_BUTTON;
     else
-        return GTK_ICON_SIZE_BUTTON; // this is arbitrary
+        return GTK_ICON_SIZE_INVALID; // this is arbitrary
 }
 
 static GtkIconSize FindClosestIconSize(const wxSize& size)
@@ -159,6 +186,9 @@ static GtkIconSize FindClosestIconSize(const wxSize& size)
     return best;
 }
 
+
+static GtkStyle *gs_gtkStyle = NULL;
+
 static GdkPixbuf *CreateStockIcon(const char *stockid, GtkIconSize size)
 {
     // FIXME: This code is not 100% correct, because stock pixmap are
@@ -169,18 +199,26 @@ static GdkPixbuf *CreateStockIcon(const char *stockid, GtkIconSize size)
     //        with "stock-id" representation (in addition to pixmap and pixbuf
     //        ones) and would convert it to pixbuf when rendered.
     
-    GtkStyle *style = gtk_widget_get_default_style();
-    GtkIconSet *iconset = gtk_style_lookup_icon_set(style, stockid);
+    if (gs_gtkStyle == NULL)
+    {
+        GtkWidget *widget = gtk_button_new();
+        gs_gtkStyle = gtk_rc_get_style(widget);
+        wxASSERT( gs_gtkStyle != NULL );
+        g_object_ref(G_OBJECT(gs_gtkStyle));
+        gtk_widget_destroy(widget);
+    }
+
+    GtkIconSet *iconset = gtk_style_lookup_icon_set(gs_gtkStyle, stockid);
 
     if (!iconset)
         return NULL;
 
-    return gtk_icon_set_render_icon(iconset, style,
+    return gtk_icon_set_render_icon(iconset, gs_gtkStyle,
                                     gtk_widget_get_default_direction(),
                                     GTK_STATE_NORMAL, size, NULL, NULL);
 }
 
-#if GTK_CHECK_VERSION(2,4,0)
+#ifdef __WXGTK24__
 static GdkPixbuf *CreateThemeIcon(const char *iconname,
                                   GtkIconSize iconsize, const wxSize& sz)
 {
@@ -196,7 +234,7 @@ static GdkPixbuf *CreateThemeIcon(const char *iconname,
                     size.x,
                     (GtkIconLookupFlags)0, NULL);
 }
-#endif // GTK+ >= 2.4.0
+#endif
 
 wxBitmap wxGTK2ArtProvider::CreateBitmap(const wxArtID& id,
                                          const wxArtClient& client,
@@ -207,15 +245,22 @@ wxBitmap wxGTK2ArtProvider::CreateBitmap(const wxArtID& id,
                                 wxArtClientToIconSize(client) : 
                                 FindClosestIconSize(size);
 
+    // we must have some size, this is arbitrary
+    if (stocksize == GTK_ICON_SIZE_INVALID)
+        stocksize = GTK_ICON_SIZE_BUTTON;
+
     // allow passing GTK+ stock IDs to wxArtProvider:
     if (!stockid)
         stockid = id.ToAscii();
 
     GdkPixbuf *pixbuf = CreateStockIcon(stockid, stocksize);
 
-#if GTK_CHECK_VERSION(2,4,0)
-    if (!pixbuf)
-        pixbuf = CreateThemeIcon(stockid, stocksize, size);
+#ifdef __WXGTK24__
+    if (!gtk_check_version(2,4,0))
+    {
+        if (!pixbuf)
+            pixbuf = CreateThemeIcon(stockid, stocksize, size);
+    }
 #endif
 
     if (pixbuf && size != wxDefaultSize &&
@@ -241,5 +286,27 @@ wxBitmap wxGTK2ArtProvider::CreateBitmap(const wxArtID& id,
 
     return bmp;
 }
+
+// ----------------------------------------------------------------------------
+// Cleanup
+// ----------------------------------------------------------------------------
+
+class wxArtGtkModule: public wxModule
+{
+public:
+    bool OnInit() { return true; }
+    void OnExit()
+    {
+        if (gs_gtkStyle)
+        {
+            g_object_unref(G_OBJECT(gs_gtkStyle));
+            gs_gtkStyle = NULL;
+        }
+    }
+
+    DECLARE_DYNAMIC_CLASS(wxArtGtkModule)
+};
+
+IMPLEMENT_DYNAMIC_CLASS(wxArtGtkModule, wxModule)
 
 #endif // defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)

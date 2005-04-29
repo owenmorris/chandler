@@ -95,7 +95,7 @@ public:
                const wxSize& size = wxDefaultSize,
                long style = wxLC_ICON,
                const wxValidator& validator = wxDefaultValidator,
-               const wxString& name = _T("wxListCtrl"))
+               const wxString& name = wxListCtrlNameStr)
     {
         Init();
 
@@ -110,7 +110,7 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxLC_ICON,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = _T("wxListCtrl"));
+                const wxString& name = wxListCtrlNameStr);
 
 
     // Attributes
@@ -374,6 +374,11 @@ protected:
 
     // convert our styles to Windows
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
+
+    // special Windows message handling
+    virtual WXLRESULT MSWWindowProc(WXUINT nMsg,
+                                    WXWPARAM wParam,
+                                    WXLPARAM lParam);
 
 
     wxTextCtrl*       m_textCtrl;        // The control used for editing a label

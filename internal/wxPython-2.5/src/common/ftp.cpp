@@ -348,7 +348,7 @@ char wxFTP::GetResult()
     }
 
     // if we got here we must have a non empty code string
-    return code[0u];
+    return (char)code[0u];
 }
 
 // ----------------------------------------------------------------------------
@@ -771,7 +771,7 @@ wxInputStream *wxFTP::GetInputStream(const wxString& path)
         return NULL;
     }
 
-    wxString tmp_str = wxT("RETR ") + wxURL::ConvertFromURI(path);
+    wxString tmp_str = wxT("RETR ") + wxURI::Unescape(path);
     if ( !CheckCommand(tmp_str, '1') )
         return NULL;
 
@@ -824,7 +824,7 @@ bool wxFTP::GetList(wxArrayString& files,
     //        - Windows : like "dir" command
     //        - others  : ?
     wxString line(details ? _T("LIST") : _T("NLST"));
-    if ( !wildcard.IsEmpty() )
+    if ( !wildcard.empty() )
     {
         line << _T(' ') << wildcard;
     }

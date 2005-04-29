@@ -15,11 +15,11 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
+#include "wx/menu.h"
 #include "wx/log.h"
 #include "wx/intl.h"
 #include "wx/app.h"
 #include "wx/bitmap.h"
-#include "wx/menu.h"
 
 #if wxUSE_ACCEL
     #include "wx/accel.h"
@@ -57,7 +57,7 @@ extern void wxapp_install_idle_handler();
 extern bool g_isIdle;
 
 #if wxUSE_ACCEL
-static wxString GetHotKey( const wxMenuItem& item );
+static wxString GetGtkHotKey( const wxMenuItem& item );
 #endif
 
 //-----------------------------------------------------------------------------
@@ -96,12 +96,14 @@ struct _GtkPixmapMenuItemClass
     guint have_pixmap_count;
 };
 
-
+extern "C" {
 GtkType    gtk_pixmap_menu_item_get_type       (void);
 GtkWidget* gtk_pixmap_menu_item_new            (void);
 void       gtk_pixmap_menu_item_set_pixmap     (GtkPixmapMenuItem *menu_item,
-                                                                    GtkWidget *pixmap);
-#endif // GTK 2.0
+                                                GtkWidget *pixmap);
+}
+
+#endif // !__WXGTK20__
 
 //-----------------------------------------------------------------------------
 // idle system
@@ -149,6 +151,7 @@ static wxString wxReplaceUnderscore( const wxString& title )
 // activate message from GTK
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_open_callback( GtkWidget *widget, wxMenu *menu )
 {
     if (g_isIdle) wxapp_install_idle_handler();
@@ -163,6 +166,7 @@ static void gtk_menu_open_callback( GtkWidget *widget, wxMenu *menu )
     wxWindow *win = menu->GetInvokingWindow();
     if (win) win->GetEventHandler()->ProcessEvent( event );
 }
+}
 
 //-----------------------------------------------------------------------------
 // wxMenuBar
@@ -170,7 +174,7 @@ static void gtk_menu_open_callback( GtkWidget *widget, wxMenu *menu )
 
 IMPLEMENT_DYNAMIC_CLASS(wxMenuBar,wxWindow)
 
-wxMenuBar::wxMenuBar( long style )
+void wxMenuBar::Init(size_t n, wxMenu *menus[], const wxString titles[], long style)
 {
     // the parent window is known after wxFrame::SetMenu()
     m_needParent = FALSE;
@@ -203,32 +207,24 @@ wxMenuBar::wxMenuBar( long style )
     PostCreation();
 
     ApplyWidgetStyle();
+
+    for (size_t i = 0; i < n; ++i )
+        Append(menus[i], titles[i]);
+}
+
+wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long style)
+{
+    Init(n, menus, titles, style);
+}
+
+wxMenuBar::wxMenuBar(long style)
+{
+    Init(0, NULL, NULL, style);
 }
 
 wxMenuBar::wxMenuBar()
 {
-    // the parent window is known after wxFrame::SetMenu()
-    m_needParent = FALSE;
-    m_style = 0;
-    m_invokingWindow = (wxWindow*) NULL;
-
-    if (!PreCreation( (wxWindow*) NULL, wxDefaultPosition, wxDefaultSize ) ||
-        !CreateBase( (wxWindow*) NULL, -1, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("menubar") ))
-    {
-        wxFAIL_MSG( wxT("wxMenuBar creation failed") );
-        return;
-    }
-
-    m_menubar = gtk_menu_bar_new();
-#ifndef __WXGTK20__
-    m_accel = gtk_accel_group_new();
-#endif
-
-    m_widget = GTK_WIDGET(m_menubar);
-
-    PostCreation();
-
-    ApplyWidgetStyle();
+    Init(0, NULL, NULL, 0);
 }
 
 wxMenuBar::~wxMenuBar()
@@ -589,6 +585,7 @@ void wxMenuBar::SetLabelTop( size_t pos, const wxString& label )
 // "activate"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_clicked_callback( GtkWidget *widget, wxMenu *menu )
 {
     if (g_isIdle)
@@ -659,11 +656,13 @@ static void gtk_menu_clicked_callback( GtkWidget *widget, wxMenu *menu )
         menu->SendEvent(id, item->IsCheckable() ? item->IsChecked() : -1);
     }
 }
+}
 
 //-----------------------------------------------------------------------------
 // "select"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_hilight_callback( GtkWidget *widget, wxMenu *menu )
 {
     if (g_isIdle) wxapp_install_idle_handler();
@@ -685,11 +684,13 @@ static void gtk_menu_hilight_callback( GtkWidget *widget, wxMenu *menu )
     wxWindow *win = menu->GetInvokingWindow();
     if (win) win->GetEventHandler()->ProcessEvent( event );
 }
+}
 
 //-----------------------------------------------------------------------------
 // "deselect"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_menu_nolight_callback( GtkWidget *widget, wxMenu *menu )
 {
     if (g_isIdle) wxapp_install_idle_handler();
@@ -711,6 +712,7 @@ static void gtk_menu_nolight_callback( GtkWidget *widget, wxMenu *menu )
     wxWindow *win = menu->GetInvokingWindow();
     if (win)
         win->GetEventHandler()->ProcessEvent( event );
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -813,13 +815,17 @@ void wxMenuItem::SetText( const wxString& str )
 {
     // Some optimization to avoid flicker
     wxString oldLabel = m_text;
-    oldLabel = wxStripMenuCodes(oldLabel.BeforeFirst('\t'));
+    oldLabel = wxStripMenuCodes(oldLabel);
     oldLabel.Replace(wxT("_"), wxT(""));
-    wxString label1 = wxStripMenuCodes(str.BeforeFirst('\t'));
-    if (oldLabel == label1)
-        return;
+    wxString label1 = wxStripMenuCodes(str);
+    wxString oldhotkey = GetHotKey();    // Store the old hotkey in Ctrl-foo format
+    wxCharBuffer oldbuf = wxGTK_CONV( GetGtkHotKey(*this) );  // and as <control>foo
 
     DoSetText(str);
+
+    if (oldLabel == label1 && 
+             oldhotkey == GetHotKey())    // Make sure we can change a hotkey even if the label is unaltered
+        return;
 
     if (m_menuItem)
     {
@@ -839,6 +845,29 @@ void wxMenuItem::SetText( const wxString& str )
         (void)gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV(m_text) );
         gtk_accel_label_refetch( GTK_ACCEL_LABEL(label) );
 #endif
+    }
+
+    guint accel_key;
+    GdkModifierType accel_mods;
+    gtk_accelerator_parse( (const char*) oldbuf, &accel_key, &accel_mods);
+    if (accel_key != 0)
+    {
+        gtk_widget_remove_accelerator( GTK_WIDGET(m_menuItem), 
+                                       m_parentMenu->m_accel,
+                                       accel_key,
+                                       accel_mods );
+    }
+
+    wxCharBuffer buf = wxGTK_CONV( GetGtkHotKey(*this) );
+    gtk_accelerator_parse( (const char*) buf, &accel_key, &accel_mods);
+    if (accel_key != 0)
+    {
+        gtk_widget_add_accelerator( GTK_WIDGET(m_menuItem),
+                                    "activate",
+                                    m_parentMenu->m_accel,
+                                    accel_key,
+                                    accel_mods,
+                                    GTK_ACCEL_VISIBLE);
     }
 }
 
@@ -871,8 +900,6 @@ void wxMenuItem::DoSetText( const wxString& str )
         ++pc;
     }
 
-    // wxPrintf( wxT("DoSetText(): str %s m_text %s\n"), str.c_str(), m_text.c_str() );
-
     m_hotKey = wxT("");
 
     if(*pc == wxT('\t'))
@@ -880,6 +907,8 @@ void wxMenuItem::DoSetText( const wxString& str )
        pc++;
        m_hotKey = pc;
     }
+    
+    // wxPrintf( wxT("DoSetText(): str %s m_text %s hotkey %s\n"), str.c_str(), m_text.c_str(), m_hotKey.c_str() );
 }
 
 #if wxUSE_ACCEL
@@ -1053,13 +1082,24 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
     {
         wxString text = mitem->GetText();
         const wxBitmap *bitmap = &mitem->GetBitmap();
-        GdkPixmap *gdk_pixmap = bitmap->GetPixmap();
-        GdkBitmap *gdk_bitmap = bitmap->GetMask() ? bitmap->GetMask()->GetBitmap() : (GdkBitmap*) NULL;
 
 #ifdef __WXGTK20__
         menuItem = gtk_image_menu_item_new_with_mnemonic( wxGTK_CONV( text ) );
 
-        GtkWidget *image = gtk_image_new_from_pixmap( gdk_pixmap, gdk_bitmap );
+        GtkWidget *image;
+        if (bitmap->HasPixbuf())
+        {
+            image = gtk_image_new_from_pixbuf(bitmap->GetPixbuf());
+        }
+        else
+        {
+            GdkPixmap *gdk_pixmap = bitmap->GetPixmap();
+            GdkBitmap *gdk_bitmap = bitmap->GetMask() ? 
+                                        bitmap->GetMask()->GetBitmap() :
+                                        (GdkBitmap*) NULL;
+            image = gtk_image_new_from_pixmap( gdk_pixmap, gdk_bitmap );
+        }
+        
         gtk_widget_show(image);
 
         gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM(menuItem), image );
@@ -1073,6 +1113,8 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
         else
             gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
 #else
+        GdkPixmap *gdk_pixmap = bitmap->GetPixmap();
+        GdkBitmap *gdk_bitmap = bitmap->GetMask() ? bitmap->GetMask()->GetBitmap() : (GdkBitmap*) NULL;
 
         menuItem = gtk_pixmap_menu_item_new ();
         GtkWidget *label = gtk_accel_label_new ( wxGTK_CONV( text ) );
@@ -1085,7 +1127,7 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
 
         // accelerator for the item, as specified by its label
         // (ex. Ctrl+O for open)
-        gtk_accelerator_parse(GetHotKey(*mitem).c_str(), &accel_key,
+        gtk_accelerator_parse(GetGtkHotKey(*mitem).c_str(), &accel_key,
                               &accel_mods);
         if (accel_key != GDK_VoidSymbol)
         {
@@ -1256,10 +1298,9 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
 
     guint accel_key;
     GdkModifierType accel_mods;
-    wxCharBuffer buf = wxGTK_CONV( GetHotKey(*mitem) );
+    wxCharBuffer buf = wxGTK_CONV( GetGtkHotKey(*mitem) );
 
-    // wxPrintf( wxT("item: %s hotkey %s\n"), mitem->GetText().c_str(), GetHotKey(*mitem).c_str() );
-
+    // wxPrintf( wxT("item: %s hotkey %s\n"), mitem->GetText().c_str(), GetGtkHotKey(*mitem).c_str() );
     gtk_accelerator_parse( (const char*) buf, &accel_key, &accel_mods);
     if (accel_key != 0)
     {
@@ -1349,7 +1390,7 @@ int wxMenu::FindMenuIdByMenuItem( GtkWidget *menuItem ) const
 
 #if wxUSE_ACCEL
 
-static wxString GetHotKey( const wxMenuItem& item )
+static wxString GetGtkHotKey( const wxMenuItem& item )
 {
     wxString hotkey;
 
@@ -1520,7 +1561,7 @@ static void changed_have_pixmap_status         (GtkPixmapMenuItem *menu_item);
 
 static GtkMenuItemClass *parent_class = NULL;
 
-}
+} // extern "C"
 
 #define BORDER_SPACING  3
 #define PMAP_WIDTH 20
@@ -1550,6 +1591,8 @@ gtk_pixmap_menu_item_get_type (void)
 
   return pixmap_menu_item_type;
 }
+
+extern "C" {
 
 /**
  * gtk_pixmap_menu_item_new
@@ -1829,5 +1872,7 @@ changed_have_pixmap_status (GtkPixmapMenuItem *menu_item)
     gtk_widget_queue_resize(GTK_WIDGET(menu_item));
 }
 
-#endif
+} // extern "C"
+
+#endif // !__WXGTK20__
 

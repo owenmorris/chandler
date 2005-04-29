@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include "wx/object.h"
 #include "wx/string.h"
-#include "wx/filefn.h"  // for off_t, wxInvalidOffset and wxSeekMode
+#include "wx/filefn.h"  // for wxFileOffset, wxInvalidOffset and wxSeekMode
 
 class WXDLLIMPEXP_BASE wxStreamBase;
 class WXDLLIMPEXP_BASE wxInputStream;
@@ -82,13 +82,29 @@ public:
     void Reset() { m_lasterror = wxSTREAM_NO_ERROR; }
 
     // this doesn't make sense for all streams, always test its return value
-    virtual size_t GetSize() const { return 0; }
+    virtual size_t GetSize() const;
+    virtual wxFileOffset GetLength() const { return wxInvalidOffset; }
+
+    // returns true if the streams supports seeking to arbitrary offsets
+    virtual bool IsSeekable() const { return false; }
 
 #if WXWIN_COMPATIBILITY_2_2
     // deprecated, for compatibility only
-    wxStreamError LastError() const { return m_lasterror; }
-    size_t StreamSize() const { return GetSize(); }
+    wxDEPRECATED( wxStreamError LastError() const );
+    wxDEPRECATED( size_t StreamSize() const );
 #endif // WXWIN_COMPATIBILITY_2_2
+
+
+    // Reserved for future use
+    virtual void ReservedStreamFunc1() {}
+    virtual void ReservedStreamFunc2() {}
+    virtual void ReservedStreamFunc3() {}
+    virtual void ReservedStreamFunc4() {}
+    virtual void ReservedStreamFunc5() {}
+    virtual void ReservedStreamFunc6() {}
+    virtual void ReservedStreamFunc7() {}
+    virtual void ReservedStreamFunc8() {}
+    virtual void ReservedStreamFunc9() {}
 
 protected:
     virtual wxFileOffset OnSysSeek(wxFileOffset seek, wxSeekMode mode);
@@ -256,6 +272,7 @@ public:
     virtual size_t LastWrite() const { return wxStreamBase::m_lastcount; }
 
     virtual void Sync();
+    virtual bool Close() { return true; }
 
     wxOutputStream& operator<<(wxInputStream& out) { return Write(out); }
     wxOutputStream& operator<<( __wxOutputManip func) { return func(*this); }
@@ -283,7 +300,7 @@ class WXDLLIMPEXP_BASE wxCountingOutputStream : public wxOutputStream
 public:
     wxCountingOutputStream();
 
-    size_t GetSize() const;
+    wxFileOffset GetLength() const;
     bool Ok() const { return true; }
 
 protected:
@@ -309,7 +326,7 @@ public:
 
     char Peek() { return m_parent_i_stream->Peek(); }
 
-    size_t GetSize() const { return m_parent_i_stream->GetSize(); }
+    wxFileOffset GetLength() const { return m_parent_i_stream->GetLength(); }
 
     wxInputStream *GetFilterInputStream() const { return m_parent_i_stream; }
 
@@ -326,7 +343,7 @@ public:
     wxFilterOutputStream(wxOutputStream& stream);
     virtual ~wxFilterOutputStream();
 
-    size_t GetSize() const { return m_parent_o_stream->GetSize(); }
+    wxFileOffset GetLength() const { return m_parent_o_stream->GetLength(); }
 
     wxOutputStream *GetFilterOutputStream() const { return m_parent_o_stream; }
 
@@ -477,6 +494,7 @@ public:
     // Position functions
     wxFileOffset SeekI(wxFileOffset pos, wxSeekMode mode = wxFromStart);
     wxFileOffset TellI() const;
+    bool IsSeekable() const { return m_parent_i_stream->IsSeekable(); }
 
     // the buffer given to the stream will be deleted by it
     void SetInputStreamBuffer(wxStreamBuffer *buffer);
@@ -512,10 +530,12 @@ public:
     // Position functions
     wxFileOffset SeekO(wxFileOffset pos, wxSeekMode mode = wxFromStart);
     wxFileOffset TellO() const;
+    bool IsSeekable() const { return m_parent_o_stream->IsSeekable(); }
 
     void Sync();
+    bool Close();
 
-    size_t GetSize() const;
+    wxFileOffset GetLength() const;
 
     // the buffer given to the stream will be deleted by it
     void SetOutputStreamBuffer(wxStreamBuffer *buffer);

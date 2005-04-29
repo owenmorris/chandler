@@ -51,6 +51,7 @@
 #include "wx/spinbutt.h"
 #include "wx/toplevel.h"
 #include "wx/artprov.h"
+#include "wx/image.h"
 
 #include "wx/univ/renderer.h"
 #include "wx/univ/inphand.h"
@@ -328,6 +329,7 @@ public:
     // helpers for "wxBitmap wxColourScheme::Get()"
     void DrawCheckBitmap(wxDC& dc, const wxRect& rect);
     void DrawUncheckBitmap(wxDC& dc, const wxRect& rect, bool isPressed);
+    void DrawUndeterminedBitmap(wxDC& dc, const wxRect& rect, bool isPressed);
 
 protected:
     // DrawBackground() helpers
@@ -447,7 +449,7 @@ protected:
                         const wxString& label,
                         int flags,
                         int indexAccel,
-                        const wxString& accel = _T(""),
+                        const wxString& accel = wxEmptyString,
                         const wxBitmap& bitmap = wxNullBitmap,
                         const wxGTKMenuGeometryInfo *geometryInfo = NULL);
 
@@ -468,9 +470,9 @@ private:
           m_penHighlight;
 
     // the checkbox bitmaps: first row is for the normal, second for the
-    // pressed state and the columns are for checked and unchecked status
-    // respectively
-    wxBitmap m_bitmapsCheckbox[2][2];
+    // pressed state and the columns are for checked, unchecked and
+    // undeterminated respectively
+    wxBitmap m_bitmapsCheckbox[2][3];
 
     // the line wrap bitmap (drawn at the end of wrapped lines)
     wxBitmap m_bmpLineWrap;
@@ -1332,7 +1334,7 @@ void wxGTKRenderer::DrawCheckItem(wxDC& dc,
     rectBitmap.width = GetCheckBitmapSize().x;
 
     // never draw the focus rect around the check indicators here
-    DrawCheckButton(dc, _T(""), bitmap, rectBitmap, flags & ~wxCONTROL_FOCUSED);
+    DrawCheckButton(dc, wxEmptyString, bitmap, rectBitmap, flags & ~wxCONTROL_FOCUSED);
 
     wxRect rectLabel = rect;
     wxCoord shift = rectBitmap.width + 2*GetCheckItemMargin();
@@ -1344,6 +1346,35 @@ void wxGTKRenderer::DrawCheckItem(wxDC& dc,
 // ----------------------------------------------------------------------------
 // check/radion buttons
 // ----------------------------------------------------------------------------
+
+void wxGTKRenderer::DrawUndeterminedBitmap(wxDC& dc,
+                                           const wxRect& rectTotal,
+                                           bool isPressed)
+{
+    // FIXME: For sure it is not GTK look but it is better than nothing.
+    // Show me correct look and I will immediatelly make it better (ABX)
+    wxRect rect = rectTotal;
+
+    wxColour col1, col2;
+
+    if ( isPressed )
+    {
+        col1 = wxSCHEME_COLOUR(m_scheme, SHADOW_DARK);
+        col2 = wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED);
+    }
+    else
+    {
+        col1 = wxSCHEME_COLOUR(m_scheme, SHADOW_DARK);
+        col2 = wxSCHEME_COLOUR(m_scheme, SHADOW_IN);
+    }
+
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(col1, wxSOLID));
+    dc.DrawRectangle(rect);
+    rect.Deflate(1);
+    dc.SetBrush(wxBrush(col2, wxSOLID));
+    dc.DrawRectangle(rect);
+}
 
 void wxGTKRenderer::DrawUncheckBitmap(wxDC& dc,
                                       const wxRect& rectTotal,
@@ -1470,7 +1501,7 @@ wxBitmap wxGTKRenderer::GetCheckBitmap(int flags)
         rect.height = size.y;
         for ( int i = 0; i < 2; i++ )
         {
-            for ( int j = 0; j < 2; j++ )
+            for ( int j = 0; j < 3; j++ )
                 m_bitmapsCheckbox[i][j].Create(rect.width, rect.height);
         }
 
@@ -1484,16 +1515,30 @@ wxBitmap wxGTKRenderer::GetCheckBitmap(int flags)
         dc.SelectObject(m_bitmapsCheckbox[0][1]);
         DrawUncheckBitmap(dc, rect, false);
 
+        // normal undeterminated
+        dc.SelectObject(m_bitmapsCheckbox[0][2]);
+        DrawUndeterminedBitmap(dc, rect, false);
+
         // pressed checked
         m_bitmapsCheckbox[1][0] = m_bitmapsCheckbox[0][0];
 
         // pressed unchecked
         dc.SelectObject(m_bitmapsCheckbox[1][1]);
         DrawUncheckBitmap(dc, rect, true);
+
+        // pressed undeterminated
+        dc.SelectObject(m_bitmapsCheckbox[1][2]);
+        DrawUndeterminedBitmap(dc, rect, true);
     }
 
-    int row = flags & wxCONTROL_PRESSED ? 1 : 0;
-    int col = flags & wxCONTROL_CHECKED ? 0 : 1;
+    int row = flags & wxCONTROL_PRESSED
+                  ? 1
+                  : 0;
+    int col = flags & wxCONTROL_CHECKED
+                  ? 0
+                  : ( flags & wxCONTROL_UNDETERMINED
+                          ? 2
+                          : 1 );
 
     return m_bitmapsCheckbox[row][col];
 }
@@ -1742,13 +1787,23 @@ void wxGTKRenderer::DrawTab(wxDC& dc,
                             int flags,
                             int indexAccel)
 {
+    #define SELECT_FOR_VERTICAL(X,Y) ( isVertical ? Y : X )
+    #define REVERSE_FOR_VERTICAL(X,Y) \
+        SELECT_FOR_VERTICAL(X,Y)      \
+        ,                             \
+        SELECT_FOR_VERTICAL(Y,X)
+
     wxRect rect = rectOrig;
+
+    bool isVertical = ( dir == wxLEFT ) || ( dir == wxRIGHT );
 
     // the current tab is drawn indented (to the top for default case) and
     // bigger than the other ones
     const wxSize indent = GetTabIndent();
     if ( flags & wxCONTROL_SELECTED )
     {
+        rect.Inflate( SELECT_FOR_VERTICAL( indent.x , 0),
+                      SELECT_FOR_VERTICAL( 0, indent.y ));
         switch ( dir )
         {
             default:
@@ -1756,19 +1811,17 @@ void wxGTKRenderer::DrawTab(wxDC& dc,
                 // fall through
 
             case wxTOP:
-                rect.Inflate(indent.x, 0);
                 rect.y -= indent.y;
-                rect.height += indent.y;
-                break;
-
+                // fall through
             case wxBOTTOM:
-                rect.Inflate(indent.x, 0);
                 rect.height += indent.y;
                 break;
 
             case wxLEFT:
+                rect.x -= indent.x;
+                // fall through
             case wxRIGHT:
-                wxFAIL_MSG(_T("TODO"));
+                rect.width += indent.x;
                 break;
         }
     }
@@ -1786,87 +1839,129 @@ void wxGTKRenderer::DrawTab(wxDC& dc,
         rectBorder.Deflate(4, 3);
         if ( dir == wxBOTTOM )
             rectBorder.Offset(0, -1);
+        if ( dir == wxRIGHT )
+            rectBorder.Offset(-1, 0);
 
         DrawRect(dc, &rectBorder, m_penBlack);
     }
 
     // draw the text, image and the focus around them (if necessary)
-    wxRect rectLabel = rect;
+    wxRect rectLabel( REVERSE_FOR_VERTICAL(rect.x,rect.y),
+                      REVERSE_FOR_VERTICAL(rect.width,rect.height)
+                    );
     rectLabel.Deflate(1, 1);
-    dc.DrawLabel(label, bitmap, rectLabel, wxALIGN_CENTRE, indexAccel);
+    if ( isVertical )
+    {
+        // draw it horizontally into memory and rotate for screen
+        wxMemoryDC dcMem;
+        wxBitmap bitmapRotated,
+                 bitmapMem( rectLabel.x + rectLabel.width,
+                            rectLabel.y + rectLabel.height );
+        dcMem.SelectObject(bitmapMem);
+        dcMem.SetBackground(dc.GetBackground());
+        dcMem.SetFont(dc.GetFont());
+        dcMem.SetTextForeground(dc.GetTextForeground());
+        dcMem.Clear();
+        bitmapRotated = wxBitmap( wxImage( bitmap.ConvertToImage() ).Rotate90(dir==wxLEFT) );
+        dcMem.DrawLabel(label, bitmapRotated, rectLabel, wxALIGN_CENTRE, indexAccel);
+        dcMem.SelectObject(wxNullBitmap);
+        bitmapMem = bitmapMem.GetSubBitmap(rectLabel);
+        bitmapMem = wxBitmap(wxImage(bitmapMem.ConvertToImage()).Rotate90(dir==wxRIGHT));
+        dc.DrawBitmap(bitmapMem, rectLabel.y, rectLabel.x, false);
+    }
+    else
+    {
+        dc.DrawLabel(label, bitmap, rectLabel, wxALIGN_CENTRE, indexAccel);
+    }
 
     // now draw the tab itself
-    wxCoord x = rect.x,
-            y = rect.y,
-            x2 = rect.GetRight(),
-            y2 = rect.GetBottom();
+    wxCoord x = SELECT_FOR_VERTICAL(rect.x,rect.y),
+            y = SELECT_FOR_VERTICAL(rect.y,rect.x),
+            x2 = SELECT_FOR_VERTICAL(rect.GetRight(),rect.GetBottom()),
+            y2 = SELECT_FOR_VERTICAL(rect.GetBottom(),rect.GetRight());
     switch ( dir )
     {
         default:
+            // default is top
+        case wxLEFT:
+            // left orientation looks like top but IsVertical makes x and y reversed
         case wxTOP:
+            // top is not vertical so use coordinates in written order
             dc.SetPen(m_penHighlight);
-            dc.DrawLine(x, y2, x, y);
-            dc.DrawLine(x + 1, y, x2, y);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y2),
+                        REVERSE_FOR_VERTICAL(x, y));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y),
+                        REVERSE_FOR_VERTICAL(x2, y));
 
             dc.SetPen(m_penBlack);
-            dc.DrawLine(x2, y2, x2, y);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y2),
+                        REVERSE_FOR_VERTICAL(x2, y));
 
             dc.SetPen(m_penDarkGrey);
-            dc.DrawLine(x2 - 1, y2, x2 - 1, y + 1);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2 - 1, y2),
+                        REVERSE_FOR_VERTICAL(x2 - 1, y + 1));
 
             if ( flags & wxCONTROL_SELECTED )
             {
                 dc.SetPen(m_penLightGrey);
 
                 // overwrite the part of the border below this tab
-                dc.DrawLine(x + 1, y2 + 1, x2 - 1, y2 + 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y2 + 1),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y2 + 1));
 
                 // and the shadow of the tab to the left of us
-                dc.DrawLine(x + 1, y + 2, x + 1, y2 + 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y + 2),
+                            REVERSE_FOR_VERTICAL(x + 1, y2 + 1));
             }
             break;
 
+        case wxRIGHT:
+            // right orientation looks like bottom but IsVertical makes x and y reversed
         case wxBOTTOM:
+            // bottom is not vertical so use coordinates in written order
             dc.SetPen(m_penHighlight);
 
             // we need to continue one pixel further to overwrite the corner of
             // the border for the selected tab
-            dc.DrawLine(x, y - (flags & wxCONTROL_SELECTED ? 1 : 0),
-                        x, y2);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x, y - (flags & wxCONTROL_SELECTED ? 1 : 0)),
+                        REVERSE_FOR_VERTICAL(x, y2));
 
             // it doesn't work like this (TODO: implement it properly)
 #if 0
             // erase the corner of the tab to the right
             dc.SetPen(m_penLightGrey);
-            dc.DrawPoint(x2 - 1, y - 2);
-            dc.DrawPoint(x2 - 2, y - 2);
-            dc.DrawPoint(x2 - 2, y - 1);
+            dc.DrawPoint(REVERSE_FOR_VERTICAL(x2 - 1, y - 2));
+            dc.DrawPoint(REVERSE_FOR_VERTICAL(x2 - 2, y - 2));
+            dc.DrawPoint(REVERSE_FOR_VERTICAL(x2 - 2, y - 1));
 #endif // 0
 
             dc.SetPen(m_penBlack);
-            dc.DrawLine(x + 1, y2, x2, y2);
-            dc.DrawLine(x2, y, x2, y2);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y2),
+                        REVERSE_FOR_VERTICAL(x2, y2));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2, y),
+                        REVERSE_FOR_VERTICAL(x2, y2));
 
             dc.SetPen(m_penDarkGrey);
-            dc.DrawLine(x + 2, y2 - 1, x2 - 1, y2 - 1);
-            dc.DrawLine(x2 - 1, y, x2 - 1, y2);
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x + 2, y2 - 1),
+                        REVERSE_FOR_VERTICAL(x2 - 1, y2 - 1));
+            dc.DrawLine(REVERSE_FOR_VERTICAL(x2 - 1, y),
+                        REVERSE_FOR_VERTICAL(x2 - 1, y2));
 
             if ( flags & wxCONTROL_SELECTED )
             {
                 dc.SetPen(m_penLightGrey);
 
                 // overwrite the part of the (double!) border above this tab
-                dc.DrawLine(x + 1, y - 1, x2 - 1, y - 1);
-                dc.DrawLine(x + 1, y - 2, x2 - 1, y - 2);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y - 1),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y - 1));
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y - 2),
+                            REVERSE_FOR_VERTICAL(x2 - 1, y - 2));
 
                 // and the shadow of the tab to the left of us
-                dc.DrawLine(x + 1, y2 - 1, x + 1, y - 1);
+                dc.DrawLine(REVERSE_FOR_VERTICAL(x + 1, y2 - 1),
+                            REVERSE_FOR_VERTICAL(x + 1, y - 1));
             }
             break;
-
-        case wxLEFT:
-        case wxRIGHT:
-            wxFAIL_MSG(_T("TODO"));
     }
 }
 
@@ -2231,7 +2326,7 @@ wxMenuGeometryInfo *wxGTKRenderer::GetMenuGeometry(wxWindow *win,
 wxSize
 wxGTKRenderer::GetStatusBarBorders(wxCoord * WXUNUSED(borderBetweenFields)) const
 {
-    return wxSize(0, 0);
+    return wxSize(0,0);
 }
 
 void wxGTKRenderer::DrawStatusField(wxDC& WXUNUSED(dc),
@@ -2266,7 +2361,7 @@ void wxGTKRenderer::InitComboBitmaps()
         wxCONTROL_DISABLED,
     };
 
-    wxRect rect(wxPoint(0, 0), sizeArrow);
+    wxRect rect(sizeArrow);
 
     wxMemoryDC dc;
     for ( n = ComboState_Normal; n < ComboState_Max; n++ )

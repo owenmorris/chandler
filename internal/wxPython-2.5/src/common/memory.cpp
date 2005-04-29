@@ -892,6 +892,9 @@ public:
     MemoryCriticalSection() {
         memSectionOk = true;
     }
+    ~MemoryCriticalSection() {
+        memSectionOk = false;
+    }
 };
 
 class MemoryCriticalSectionLocker
@@ -910,19 +913,52 @@ private:
     bool m_locked;
 };
 
-MemoryCriticalSection &GetMemLocker()
-{
-    static MemoryCriticalSection memLocker;
-    return memLocker;
-}
+static MemoryCriticalSection memLocker;
 
 #endif
+
+#if !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
+#ifdef __WXDEBUG__
+#if wxUSE_GLOBAL_MEMORY_OPERATORS
+void * operator new (size_t size, wxChar * fileName, int lineNum)
+{
+    return wxDebugAlloc(size, fileName, lineNum, false, false);
+}
+
+void * operator new (size_t size)
+{
+    return wxDebugAlloc(size, NULL, 0, false);
+}
+
+void operator delete (void * buf)
+{
+    wxDebugFree(buf, false);
+}
+
+#if wxUSE_ARRAY_MEMORY_OPERATORS
+void * operator new[] (size_t size)
+{
+    return wxDebugAlloc(size, NULL, 0, false, true);
+}
+
+void * operator new[] (size_t size, wxChar * fileName, int lineNum)
+{
+    return wxDebugAlloc(size, fileName, lineNum, false, true);
+}
+
+void operator delete[] (void * buf)
+{
+  wxDebugFree(buf, true);
+}
+#endif // wxUSE_ARRAY_MEMORY_OPERATORS
+#endif // !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
+#endif // wxUSE_GLOBAL_MEMORY_OPERATORS
 
 // TODO: store whether this is a vector or not.
 void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, bool WXUNUSED(isVect) )
 {
 #if USE_THREADSAFE_MEMORY_ALLOCATION
-  MemoryCriticalSectionLocker lock(GetMemLocker());
+  MemoryCriticalSectionLocker lock(memLocker);
 #endif
 
   // If not in debugging allocation mode, do the normal thing
@@ -982,7 +1018,7 @@ void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, 
 void wxDebugFree(void * buf, bool WXUNUSED(isVect) )
 {
 #if USE_THREADSAFE_MEMORY_ALLOCATION
-  MemoryCriticalSectionLocker lock(GetMemLocker());
+  MemoryCriticalSectionLocker lock(memLocker);
 #endif
 
   if (!buf)
@@ -1027,6 +1063,8 @@ void wxDebugFree(void * buf, bool WXUNUSED(isVect) )
 
     free((char *)st);
 }
+
+#endif // __WXDEBUG__
 
 // Trace: send output to the current debugging stream
 void wxTrace(const wxChar * ...)
@@ -1106,11 +1144,11 @@ void wxTraceLevel(int, const wxChar * ...)
 }
 
 //----------------------------------------------------------------------------
-// Final cleanup after all global objects in all files have been destructed
+// Final cleanup after all global objects in all files have been destroyed
 //----------------------------------------------------------------------------
 
 // Don't set it to 0 by dynamic initialization
-// Some compilers will realy do the asignment later
+// Some compilers will really do the assignment later
 // All global variables are initialized to 0 at the very beginning, and this is just fine.
 int wxDebugContextDumpDelayCounter::sm_count;
 
@@ -1125,7 +1163,7 @@ void wxDebugContextDumpDelayCounter::DoDump()
 }
 
 // Even if there is nothing else, make sure that there is at
-// least one clenup counter object
+// least one cleanup counter object
 static wxDebugContextDumpDelayCounter wxDebugContextDumpDelayCounter_One;
 
 #endif // (defined(__WXDEBUG__) && wxUSE_MEMORY_TRACING) || wxUSE_DEBUG_CONTEXT

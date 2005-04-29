@@ -100,10 +100,6 @@ bool wxGenericValidator::Copy(const wxGenericValidator& val)
     return true;
 }
 
-wxGenericValidator::~wxGenericValidator()
-{
-}
-
 // Called to transfer data to the window
 bool wxGenericValidator::TransferToWindow(void)
 {
@@ -229,7 +225,7 @@ bool wxGenericValidator::TransferToWindow(void)
             {
                 pControl->SetStringSelection(* m_pString);
             }
-            else
+            if ((m_validatorWindow->GetWindowStyle() & wxCB_READONLY) == 0)
             {
                 pControl->SetValue(* m_pString);
             }
@@ -256,6 +252,7 @@ bool wxGenericValidator::TransferToWindow(void)
         }
     } else
 #endif
+#if wxUSE_STATTEXT
     if (m_validatorWindow->IsKindOf(CLASSINFO(wxStaticText)) )
     {
         wxStaticText* pControl = (wxStaticText*) m_validatorWindow;
@@ -265,6 +262,7 @@ bool wxGenericValidator::TransferToWindow(void)
             return true;
         }
     } else
+#endif
 #if wxUSE_TEXTCTRL
     if (m_validatorWindow->IsKindOf(CLASSINFO(wxTextCtrl)) )
     {
@@ -454,7 +452,10 @@ bool wxGenericValidator::TransferFromWindow(void)
     }
     else if (m_pString)
     {
-        *m_pString = pControl->GetValue();
+        if (m_validatorWindow->GetWindowStyle() & wxCB_READONLY)
+            *m_pString = pControl->GetStringSelection();
+        else
+            *m_pString = pControl->GetValue();
         return true;
     }
   } else
@@ -475,6 +476,7 @@ bool wxGenericValidator::TransferFromWindow(void)
     }
   } else
 #endif
+#if wxUSE_STATTEXT
   if (m_validatorWindow->IsKindOf(CLASSINFO(wxStaticText)) )
   {
     wxStaticText* pControl = (wxStaticText*) m_validatorWindow;
@@ -484,6 +486,7 @@ bool wxGenericValidator::TransferFromWindow(void)
       return true;
     }
   } else
+#endif
 #if wxUSE_TEXTCTRL
   if (m_validatorWindow->IsKindOf(CLASSINFO(wxTextCtrl)) )
   {

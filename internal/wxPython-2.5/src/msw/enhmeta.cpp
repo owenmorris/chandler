@@ -33,6 +33,7 @@
 #ifndef WX_PRECOMP
     #include "wx/string.h"
     #include "wx/log.h"
+    #include "wx/intl.h"
 #endif //WX_PRECOMP
 
 #include "wx/metafile.h"
@@ -69,6 +70,21 @@ static inline const wxChar *GetMetaFileName(const wxString& fn)
 // ----------------------------------------------------------------------------
 // wxEnhMetaFile
 // ----------------------------------------------------------------------------
+
+void wxEnhMetaFile::Init()
+{
+    if ( m_filename.empty() )
+    {
+        m_hMF = 0;
+    }
+    else // have valid file name, load metafile from it
+    {
+        m_hMF = GetEnhMetaFile(m_filename);
+        if ( !m_hMF )
+            wxLogSysError(_("Failed to load metafile from file \"%s\"."),
+                          m_filename.c_str());
+    }
+}
 
 void wxEnhMetaFile::Assign(const wxEnhMetaFile& mf)
 {

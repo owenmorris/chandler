@@ -543,9 +543,10 @@ protected:
 //     // the common part of all ctors
 //     void Init();
 
+    void OnGetToolTip( wxTreeEvent &event );
     void OnSize(wxSizeEvent& event);
     void CalculateAndSetHeaderHeight();
-    
+    void DoHeaderLayout();
 
 private:
     size_t fill_column;

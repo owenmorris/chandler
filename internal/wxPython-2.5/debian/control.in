@@ -1,7 +1,7 @@
 Source: wxwidgets=V
 Section: libs
 Priority: optional
-Build-Depends: debhelper (>=4.0), flex, bison, gettext, libgtk2.0-dev, =PY, =PY-dev, zlib1g-dev, libjpeg62-dev, libpng12-dev, libtiff4-dev, xlibmesa-gl-dev | libgl-dev, xlibmesa-glu-dev | libglu-dev, libesd0-dev
+Build-Depends: debhelper (>=4.0), flex, bison, gettext, libgtk2.0-dev, =PY, =PY-dev, zlib1g-dev, libjpeg62-dev, libpng12-dev, libtiff4-dev, xlibmesa-gl-dev | libgl-dev, xlibmesa-glu-dev | libglu-dev, libesd0-dev, libgnomeprintui2.2-dev
 Maintainer: Ron Lee <ron@debian.org>
 Standards-Version: 3.6.1.1
 
@@ -9,6 +9,7 @@ Package: libwxgtk=SOV
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}
+Suggests: libgnomeprintui2.2-0
 Description: wxWidgets Cross-platform C++ GUI toolkit (GTK+ runtime)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
  GUI components and other facilities on several popular platforms (and some
@@ -97,7 +98,7 @@ Architecture: any
 Section: devel
 Depends: ${shlibs:Depends}
 Conflicts: wx-common
-Replaces: wx-common, wxwin2.4-headers, libwxgtk2.4-contrib-dev
+Replaces: wx-common, wxwin2.4-headers, libwxgtk2.4-contrib-dev, wx2.5-common
 Provides: wx-common
 Description: wxWidgets Cross-platform C++ GUI toolkit (common support files)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing
@@ -122,8 +123,8 @@ Description: wxWidgets Cross-platform C++ GUI toolkit (header files)
 Package: wx=V-i18n
 Architecture: all
 Section: libs
-Conflicts: wx-i18n, wxwin-i18n
-Replaces: wx-i18n, wxwin-i18n
+Conflicts: wx-i18n, wxwin-i18n, wx2.4-i18n
+Replaces: wx-i18n, wxwin-i18n, wx2.4-i18n, wx2.5-i18n
 Provides: wx-i18n
 Description: wxWidgets Cross-platform C++ GUI toolkit (i18n support)
  wxWidgets (formerly known as wxWindows) is a class library for C++ providing

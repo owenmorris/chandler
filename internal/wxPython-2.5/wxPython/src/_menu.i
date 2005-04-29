@@ -50,20 +50,20 @@ public:
                                 const wxString& text,
                                 const wxString& help = wxPyEmptyString);
     // append a submenu
-    %name(AppendMenu) wxMenuItem* Append(int id,
-                                         const wxString& text,
-                                         wxMenu *submenu,
-                                         const wxString& help = wxPyEmptyString);
+    %Rename(AppendMenu, wxMenuItem*, Append(int id,
+                                           const wxString& text,
+                                           wxMenu *submenu,
+                                           const wxString& help = wxPyEmptyString));
 
     // the most generic form of Append() - append anything
-    %name(AppendItem) wxMenuItem* Append(wxMenuItem *item);
+    %Rename(AppendItem, wxMenuItem*, Append(wxMenuItem *item));
 
     // insert a break in the menu (only works when appending the items, not
     // inserting them)
     virtual void Break();
 
     // insert an item before given position
-    %name(InsertItem) wxMenuItem* Insert(size_t pos, wxMenuItem *item);
+    %Rename(InsertItem, wxMenuItem*, Insert(size_t pos, wxMenuItem *item));
 
     // insert an item before given position
     wxMenuItem* Insert(size_t pos,
@@ -88,14 +88,14 @@ public:
                                 const wxString& help = wxPyEmptyString);
 
     // insert a submenu
-    %name(InsertMenu) wxMenuItem* Insert(size_t pos,
+    %Rename(InsertMenu, wxMenuItem*, Insert(size_t pos,
                                          int id,
                                          const wxString& text,
                                          wxMenu *submenu,
-                                         const wxString& help = wxPyEmptyString);
+                                         const wxString& help = wxPyEmptyString));
 
     // prepend an item to the menu
-    %name(PrependItem) wxMenuItem* Prepend(wxMenuItem *item);
+    %Rename(PrependItem,  wxMenuItem*, Prepend(wxMenuItem *item));
 
     // prepend any item to the menu
     wxMenuItem* Prepend(int id,
@@ -117,26 +117,26 @@ public:
                                   const wxString& help = wxPyEmptyString);
 
     // prepend a submenu
-    %name(PrependMenu) wxMenuItem* Prepend(int id,
+    %Rename(PrependMenu,  wxMenuItem*, Prepend(int id,
                                            const wxString& text,
                                            wxMenu *submenu,
-                                           const wxString& help = wxPyEmptyString);
+                                           const wxString& help = wxPyEmptyString));
 
     // detach an item from the menu, but don't delete it so that it can be
     // added back later (but if it's not, the caller is responsible for
     // deleting it!)
     wxMenuItem *Remove(int id);
-    %name(RemoveItem) wxMenuItem *Remove(wxMenuItem *item);
+    %Rename(RemoveItem,  wxMenuItem*, Remove(wxMenuItem *item));
 
     // delete an item from the menu (submenus are not destroyed by this
     // function, see Destroy)
     bool Delete(int id);
-    %name(DeleteItem) bool Delete(wxMenuItem *item);
+    %Rename(DeleteItem,  bool, Delete(wxMenuItem *item));
 
     // delete the item from menu and destroy it (if it's a submenu)
     %extend { void Destroy() { delete self; } }
-    %name(DestroyId) bool Destroy(int id);
-    %name(DestroyItem) bool Destroy(wxMenuItem *item);
+    %Rename(DestroyId,  bool, Destroy(int id));
+    %Rename(DestroyItem,  bool, Destroy(wxMenuItem *item));
 
 
     // get the items
@@ -150,7 +150,7 @@ public:
 
     // search
     int FindItem(const wxString& item) const;
-    %name(FindItemById) wxMenuItem* FindItem(int id /*, wxMenu **menu = NULL*/) const;
+    %Rename(FindItemById, wxMenuItem*, FindItem(int id /*, wxMenu **menu = NULL*/) const);
 
     // find by position
     wxMenuItem* FindItemByPosition(size_t position) const;
@@ -263,7 +263,7 @@ public:
     // find item by id (in any menu), returns NULL if not found
     //
     // if menu is !NULL, it will be filled with wxMenu this item belongs to
-    %name(FindItemById) virtual wxMenuItem* FindItem(int id /*, wxMenu **menu = NULL*/) const;
+    %Rename(FindItemById, virtual wxMenuItem*, FindItem(int id /*, wxMenu **menu = NULL*/) const);
 
     // find menu by its caption, return wxNOT_FOUND on failure
     int FindMenu(const wxString& title) const;
@@ -279,7 +279,8 @@ public:
     void Check(int id, bool check);
     bool IsChecked(int id) const;
     bool IsEnabled(int id) const;
-
+    // TODO: bool IsEnabled() const;
+     
     void SetLabel(int id, const wxString &label);
     wxString GetLabel(int id) const;
 
@@ -387,9 +388,25 @@ public:
     void SetOwnerDrawn(bool ownerDrawn = true);
     void ResetOwnerDrawn();
 #else
-    // just to keep the global  renamers in sync
     %extend {
+        void SetFont(const wxFont& font) {}
+        wxFont GetFont() { return wxNullFont; }
+        void SetTextColour(const wxColour& colText) {}
+        wxColour GetTextColour() { return wxNullColour; }
+        void SetBackgroundColour(const wxColour& colBack) {}
+        wxColour GetBackgroundColour() { return wxNullColour; }
+        void SetBitmaps(const wxBitmap& bmpChecked,
+                        const wxBitmap& bmpUnchecked = wxNullBitmap) {}
+    
+        void SetDisabledBitmap( const wxBitmap& bmpDisabled ) {}
+        const wxBitmap& GetDisabledBitmap() const { return wxNullBitmap; }
+   
+        void SetMarginWidth(int nWidth) {}
+        int GetMarginWidth() { return 0; }
         static int GetDefaultMarginWidth() { return 0; }
+        bool IsOwnerDrawn() { return false; }
+        void SetOwnerDrawn(bool ownerDrawn = true) {}
+        void ResetOwnerDrawn() {}
     }
 #endif
 

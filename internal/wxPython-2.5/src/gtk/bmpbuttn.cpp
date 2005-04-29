@@ -45,6 +45,7 @@ extern bool   g_blockEventsOnDrag;
 // "clicked"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_bmpbutton_clicked_callback( GtkWidget *WXUNUSED(widget), wxBitmapButton *button )
 {
     if (g_isIdle)
@@ -57,11 +58,13 @@ static void gtk_bmpbutton_clicked_callback( GtkWidget *WXUNUSED(widget), wxBitma
     event.SetEventObject(button);
     button->GetEventHandler()->ProcessEvent(event);
 }
+}
 
 //-----------------------------------------------------------------------------
 // "enter"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_bmpbutton_enter_callback( GtkWidget *WXUNUSED(widget), wxBitmapButton *button )
 {
     if (!button->m_hasVMT) return;
@@ -69,11 +72,13 @@ static void gtk_bmpbutton_enter_callback( GtkWidget *WXUNUSED(widget), wxBitmapB
 
     button->HasFocus();
 }
+}
 
 //-----------------------------------------------------------------------------
 // "leave"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_bmpbutton_leave_callback( GtkWidget *WXUNUSED(widget), wxBitmapButton *button )
 {
     if (!button->m_hasVMT) return;
@@ -81,11 +86,13 @@ static void gtk_bmpbutton_leave_callback( GtkWidget *WXUNUSED(widget), wxBitmapB
 
     button->NotFocus();
 }
+}
 
 //-----------------------------------------------------------------------------
 // "pressed"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_bmpbutton_press_callback( GtkWidget *WXUNUSED(widget), wxBitmapButton *button )
 {
     if (!button->m_hasVMT) return;
@@ -93,17 +100,20 @@ static void gtk_bmpbutton_press_callback( GtkWidget *WXUNUSED(widget), wxBitmapB
 
     button->StartSelect();
 }
+}
 
 //-----------------------------------------------------------------------------
 // "released"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_bmpbutton_release_callback( GtkWidget *WXUNUSED(widget), wxBitmapButton *button )
 {
     if (!button->m_hasVMT) return;
     if (g_blockEventsOnDrag) return;
 
     button->EndSelect();
+}
 }
 
 //-----------------------------------------------------------------------------
@@ -149,7 +159,7 @@ bool wxBitmapButton::Create( wxWindow *parent,
         OnSetBitmap();
     }
 
-    gtk_signal_connect( GTK_OBJECT(m_widget), "clicked",
+    gtk_signal_connect_after( GTK_OBJECT(m_widget), "clicked",
       GTK_SIGNAL_FUNC(gtk_bmpbutton_clicked_callback), (gpointer*)this );
 
     gtk_signal_connect( GTK_OBJECT(m_widget), "enter",
@@ -265,16 +275,7 @@ void wxBitmapButton::OnSetBitmap()
 
 wxSize wxBitmapButton::DoGetBestSize() const
 {
-    wxSize best;
-    
-    if (m_bmpNormal.Ok())
-    {
-        int border = HasFlag(wxNO_BORDER) ? 4 : 10;
-        best.x = m_bmpNormal.GetWidth()+border;
-        best.y = m_bmpNormal.GetHeight()+border;
-    }
-    CacheBestSize(best);
-    return best;
+    return wxControl::DoGetBestSize();
 }
 
 bool wxBitmapButton::Enable( bool enable )

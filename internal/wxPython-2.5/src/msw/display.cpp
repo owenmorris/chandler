@@ -3,6 +3,7 @@
 // Purpose:     MSW Implementation of wxDisplay class
 // Author:      Royce Mitchell III
 // Modified by: VZ (resolutions enumeration/change support, DirectDraw, ...)
+//		    Ryan Norton (IsPrimary override)
 // Created:     06/21/02
 // RCS-ID:      $Id$
 // Copyright:   (c) wxWidgets team
@@ -54,6 +55,10 @@
     // with VC++ 6 <sigh>
     #pragma warning(disable:4706)
 #endif
+
+// with mingw32, we must include windows.h first and it doesn't hurt with other
+// compilers
+#include <windows.h>
 
 #include <multimon.h>
 
@@ -377,10 +382,12 @@ size_t wxDisplayBase::GetCount()
 {
     InitDisplays();
 
-    // I'm not sure if they really always return the same thing and if this is
-    // not true I'd like to know in which situation does it happen
-    wxASSERT_MSG( gs_displays->GetCount() == (size_t)::GetSystemMetrics(SM_CMONITORS),
-                    _T("So how many displays does this system have?") );
+    //RN: FIXME:  This is wrong - the display info array should reload after every call
+    //to GetCount() - otherwise it will not be accurate.
+    //The user can change the number of displays in display properties/settings
+    //after GetCount or similar is called and really mess this up...  
+    //wxASSERT_MSG( gs_displays->GetCount() == (size_t)::GetSystemMetrics(SM_CMONITORS),
+    //                _T("So how many displays does this system have?") );
 
     return gs_displays->GetCount();
 }
@@ -542,6 +549,30 @@ wxString wxDisplay::GetNameForEnumSettings() const
         name = GetName();
 
     return name;
+}
+
+// ----------------------------------------------------------------------------
+// determine if this is the primary display
+// ----------------------------------------------------------------------------
+
+bool wxDisplay::IsPrimary() const
+{
+    wxDisplayInfo& dpyInfo = (*gs_displays)[m_index];
+
+    MONITORINFOEX monInfo;
+    wxZeroMemory(monInfo);
+    monInfo.cbSize = sizeof(monInfo);
+
+    // NB: Cast from MONITORINFOEX* to MONITORINFO* is done because
+    //     Mingw headers - unlike the ones from Microsoft's Platform SDK -
+    //     don't derive the former from the latter in C++ mode and so
+    //     the pointer's type is not converted implicitly.
+    if ( !::GetMonitorInfo(dpyInfo.m_hmon, (LPMONITORINFO)&monInfo) )
+    {
+        wxLogLastError(_T("GetMonitorInfo"));
+    }
+
+    return (monInfo.dwFlags & MONITORINFOF_PRIMARY) == MONITORINFOF_PRIMARY;
 }
 
 // ----------------------------------------------------------------------------

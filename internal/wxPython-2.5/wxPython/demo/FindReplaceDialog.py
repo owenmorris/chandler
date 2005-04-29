@@ -5,9 +5,7 @@
 # 11/28/2003 - Jeff Grimmett (grimmtooth@softhome.net)
 #
 # o Changed the event binding slightly.
-# o There are issues with the GetReplaceText() method of the 
-#   FindDialogEvent. Must be retested when this is fixed.
-# 
+
 
 import  wx
 
@@ -18,28 +16,28 @@ class TestPanel(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
         self.log = log
 
-        b = wx.Button(self, -1, "Show Find Dialog", (25, 50))
-        self.Bind(wx.EVT_BUTTON, self.OnShowFind, b)
+        self.fbtn = wx.Button(self, -1, "Show Find Dialog", (25, 50))
+        self.Bind(wx.EVT_BUTTON, self.OnShowFind, self.fbtn)
 
-        b = wx.Button(self, -1, "Show Find && Replace Dialog", (25, 90))
-        self.Bind(wx.EVT_BUTTON, self.OnShowFindReplace, b)
+        self.frbtn = wx.Button(self, -1, "Show Find && Replace Dialog", (25, 90))
+        self.Bind(wx.EVT_BUTTON, self.OnShowFindReplace, self.frbtn)
 
-
-        # jg - 11/28/03 - corrected a long standing issue here where 
-        # EVT_COMMAND_FIND_* was being used for these event binders
-        # instead of the actual event IDs shown below. As a result,
-        # onFind() was never showing the appropriate type. I guess
-        # nobody really paid much attention to that little
-        # debugging window :-)
-        #
         self.Bind(wx.EVT_FIND, self.OnFind)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFind)
         self.Bind(wx.EVT_FIND_REPLACE, self.OnFind)
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
 
+    def EnableButtons(self):
+        self.fbtn.Enable()
+        self.frbtn.Enable()
+
+    def DisableButtons(self):
+        self.fbtn.Disable()
+        self.frbtn.Disable()
 
     def OnShowFind(self, evt):
+        self.DisableButtons()
         data = wx.FindReplaceData()
         dlg = wx.FindReplaceDialog(self, data, "Find")
         dlg.data = data  # save a reference to it...
@@ -47,6 +45,7 @@ class TestPanel(wx.Panel):
 
 
     def OnShowFindReplace(self, evt):
+        self.DisableButtons()
         data = wx.FindReplaceData()
         dlg = wx.FindReplaceDialog(self, data, "Find & Replace", wx.FR_REPLACEDIALOG)
         dlg.data = data  # save a reference to it...
@@ -68,9 +67,7 @@ class TestPanel(wx.Panel):
         else:
             evtType = "**Unknown Event Type**"
 
-        #>> Todo: the GetReplaceString() method is broken. Has to be
-        # fixed.
-        if et == wx.EVT_COMMAND_FIND_REPLACE or et == wx.EVT_COMMAND_FIND_REPLACE_ALL:
+        if et in [wx.wxEVT_COMMAND_FIND_REPLACE, wx.wxEVT_COMMAND_FIND_REPLACE_ALL]:
             replaceTxt = "Replace text: %s" % evt.GetReplaceString()
         else:
             replaceTxt = ""
@@ -82,6 +79,8 @@ class TestPanel(wx.Panel):
     def OnFindClose(self, evt):
         self.log.write("FindReplaceDialog closing...\n")
         evt.GetDialog().Destroy()
+        self.EnableButtons()
+        
 
 #---------------------------------------------------------------------------
 

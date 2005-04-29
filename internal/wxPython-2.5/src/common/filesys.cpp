@@ -39,7 +39,7 @@ wxString wxFileSystemHandler::GetMimeTypeFromExt(const wxString& location)
 {
     wxString ext, mime;
     wxString loc = GetRightLocation(location);
-    char c;
+    wxChar c;
     int l = loc.Length(), l2;
 
     l2 = l;
@@ -64,28 +64,28 @@ wxString wxFileSystemHandler::GetMimeTypeFromExt(const wxString& location)
         static const wxFileTypeInfo fallbacks[] =
         {
             wxFileTypeInfo(_T("image/jpeg"),
-                           _T(""),
-                           _T(""),
+                           wxEmptyString,
+                           wxEmptyString,
                            _T("JPEG image (from fallback)"),
                            _T("jpg"), _T("jpeg"), _T("JPG"), _T("JPEG"), NULL),
             wxFileTypeInfo(_T("image/gif"),
-                           _T(""),
-                           _T(""),
+                           wxEmptyString,
+                           wxEmptyString,
                            _T("GIF image (from fallback)"),
                            _T("gif"), _T("GIF"), NULL),
             wxFileTypeInfo(_T("image/png"),
-                           _T(""),
-                           _T(""),
+                           wxEmptyString,
+                           wxEmptyString,
                            _T("PNG image (from fallback)"),
                            _T("png"), _T("PNG"), NULL),
             wxFileTypeInfo(_T("image/bmp"),
-                           _T(""),
-                           _T(""),
+                           wxEmptyString,
+                           wxEmptyString,
                            _T("windows bitmap image (from fallback)"),
                            _T("bmp"), _T("BMP"), NULL),
             wxFileTypeInfo(_T("text/html"),
-                           _T(""),
-                           _T(""),
+                           wxEmptyString,
+                           wxEmptyString,
                            _T("HTML document (from fallback)"),
                            _T("htm"), _T("html"), _T("HTM"), _T("HTML"), NULL),
             // must terminate the table with this!
@@ -166,7 +166,7 @@ wxString wxFileSystemHandler::GetRightLocation(const wxString& location) const
 
 wxString wxFileSystemHandler::GetAnchor(const wxString& location) const
 {
-    char c;
+    wxChar c;
     int l = location.Length();
 
     for (int i = l-1; i >= 0; i--) {
@@ -354,7 +354,7 @@ wxFSFile* wxFileSystem::OpenFile(const wxString& location)
 {
     wxString loc = MakeCorrectPath(location);
     unsigned i, ln;
-    char meta;
+    wxChar meta;
     wxFSFile *s = NULL;
     wxList::compatibility_iterator node;
 
@@ -460,8 +460,8 @@ void wxFileSystem::CleanUpHandlers()
     WX_CLEAR_LIST(wxList, m_Handlers);
 }
 
-const static wxString g_unixPathString(wxT("/"));
-const static wxString g_nativePathString(wxFILE_SEP_PATH);
+static const wxString g_unixPathString(wxT("/"));
+static const wxString g_nativePathString(wxFILE_SEP_PATH);
 
 // Returns the native path for a file URL
 wxFileName wxFileSystem::URLToFileName(const wxString& url)

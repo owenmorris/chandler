@@ -20,19 +20,18 @@
 #include "wx/containr.h"
 #include "wx/toplevel.h"
 
+class WXDLLEXPORT wxSizer;
+class WXDLLEXPORT wxStdDialogButtonSizer;
+
 #define wxDIALOG_NO_PARENT      0x0001  // Don't make owned by apps top window
 
 #ifdef __WXWINCE__
-#   ifdef __SMARTPHONE__
-#       define wxDEFAULT_DIALOG_STYLE (wxMAXIMIZE | wxCAPTION)
-#   else
-#       define wxDEFAULT_DIALOG_STYLE (0)
-#   endif
-#else // !__WXWINCE__
-#   define wxDEFAULT_DIALOG_STYLE  (wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
+#define wxDEFAULT_DIALOG_STYLE  (wxCAPTION | wxMAXIMIZE | wxCLOSE_BOX | wxNO_BORDER)
+#else
+#define wxDEFAULT_DIALOG_STYLE  (wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX)
 #endif
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
 
 class WXDLLEXPORT wxDialogBase : public wxTopLevelWindow
 {
@@ -42,10 +41,14 @@ public:
 
     void Init();
 
-    // the modal dialogs have a return code - usually the id of the last
+    // Modal dialogs have a return code - usually the id of the last
     // pressed button
     void SetReturnCode(int returnCode) { m_returnCode = returnCode; }
     int GetReturnCode() const { return m_returnCode; }
+
+    // The identifier for the affirmative button
+    void SetAffirmativeId(int affirmativeId) { m_affirmativeId = affirmativeId; }
+    int GetAffirmativeId() const { return m_affirmativeId; }
 
 #if wxUSE_STATTEXT // && wxUSE_TEXTCTRL
     // splits text up at newlines and places the
@@ -56,11 +59,15 @@ public:
 #if wxUSE_BUTTON
     // places buttons into a horizontal wxBoxSizer
     wxSizer *CreateButtonSizer( long flags );
+    wxStdDialogButtonSizer *CreateStdDialogButtonSizer( long flags );
 #endif // wxUSE_BUTTON
 
 protected:
-    // the return code from modal dialog
+    // The return code from modal dialog
     int m_returnCode;
+
+    // The identifier for the affirmative button (usually wxID_OK)
+    int m_affirmativeId;
 
     DECLARE_NO_COPY_CLASS(wxDialogBase)
     DECLARE_EVENT_TABLE()
@@ -71,7 +78,9 @@ protected:
 #if defined(__WXUNIVERSAL__) && !defined(__WXMICROWIN__)
     #include "wx/univ/dialog.h"
 #else
-    #if defined(__WXMSW__)
+    #if defined(__WXPALMOS__)
+        #include "wx/palmos/dialog.h"
+    #elif defined(__WXMSW__)
         #include "wx/msw/dialog.h"
     #elif defined(__WXMOTIF__)
         #include "wx/motif/dialog.h"

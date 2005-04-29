@@ -261,6 +261,10 @@ public:
     // get the theme engine or NULL if themes are not available
     static wxUxThemeEngine *Get();
 
+    // get the theme enging or NULL if themes are not available or not used for
+    // this application
+    static wxUxThemeEngine *GetIfActive();
+
     // all uxtheme.dll functions
     wxUX_THEME_DECLARE(PFNWXUOPENTHEMEDATA, OpenThemeData)
     wxUX_THEME_DECLARE(PFNWXUCLOSETHEMEDATA, CloseThemeData)
@@ -343,14 +347,29 @@ private:
     DECLARE_NO_COPY_CLASS(wxUxThemeEngine)
 };
 
-#if !wxUSE_UXTHEME
+#if wxUSE_UXTHEME
+
+/* static */ inline wxUxThemeEngine *wxUxThemeEngine::GetIfActive()
+{
+    wxUxThemeEngine *engine = Get();
+    return engine && engine->IsAppThemed() && engine->IsThemeActive()
+                ? engine
+                : NULL;
+}
+
+#else // !wxUSE_UXTHEME
 
 /* static */ inline wxUxThemeEngine *wxUxThemeEngine::Get()
 {
     return NULL;
 }
 
-#endif // !wxUSE_UXTHEME
+/* static */ inline wxUxThemeEngine *wxUxThemeEngine::GetIfActive()
+{
+    return NULL;
+}
+
+#endif // wxUSE_UXTHEME/!wxUSE_UXTHEME
 
 // ----------------------------------------------------------------------------
 // wxUxThemeHandle: encapsulates ::Open/CloseThemeData()

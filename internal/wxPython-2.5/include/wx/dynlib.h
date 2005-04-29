@@ -16,11 +16,12 @@
 #   pragma interface "dynlib.h"
 #endif
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 
 #if wxUSE_DYNLIB_CLASS
 
 #include "wx/string.h"
+#include "wx/dynarray.h"
 
 // FIXME: can this go in private.h or something too??
 #if defined(__WXPM__) || defined(__EMX__)
@@ -31,6 +32,12 @@
 #ifdef __WXMSW__
 #include "wx/msw/private.h"
 #endif
+
+#if defined(HAVE_DLERROR) && !defined(__EMX__)
+    #define wxHAVE_DYNLIB_ERROR
+#endif
+
+class WXDLLIMPEXP_BASE wxDynamicLibraryDetailsCreator;
 
 // ----------------------------------------------------------------------------
 // conditional compilation
@@ -62,21 +69,18 @@
 enum wxDLFlags
 {
     wxDL_LAZY       = 0x00000001,   // resolve undefined symbols at first use
+                                    // (only works on some Unix versions)
     wxDL_NOW        = 0x00000002,   // resolve undefined symbols on load
+                                    // (default, always the case under Win32)
     wxDL_GLOBAL     = 0x00000004,   // export extern symbols to subsequently
                                     // loaded libs.
-    wxDL_VERBATIM   = 0x00000008,   // Attempt to load the supplied library
+    wxDL_VERBATIM   = 0x00000008,   // attempt to load the supplied library
                                     // name without appending the usual dll
                                     // filename extension.
-
     wxDL_NOSHARE    = 0x00000010,   // load new DLL, don't reuse already loaded
+                                    // (only for wxPluginManager)
 
-    // FIXME: why? (VZ)
-#ifdef __osf__
-    wxDL_DEFAULT    = wxDL_LAZY
-#else
-    wxDL_DEFAULT    = wxDL_LAZY | wxDL_GLOBAL
-#endif
+    wxDL_DEFAULT    = wxDL_NOW      // default flags correspond to Win32
 };
 
 enum wxDynamicLibraryCategory
@@ -106,9 +110,62 @@ enum wxPluginCategory
 #define wxDYNLIB_FUNCTION(type, name, dynlib) \
     type pfn ## name = (type)(dynlib).GetSymbol(_T(#name))
 
-// ---------------------------------------------------------------------------
-// wxDynamicLibrary
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// wxDynamicLibraryDetails: contains details about a loaded wxDynamicLibrary
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_BASE wxDynamicLibraryDetails
+{
+public:
+    // ctor, normally never used as these objects are only created by
+    // wxDynamicLibrary::ListLoaded()
+    wxDynamicLibraryDetails() { m_address = NULL; m_length = 0; }
+
+    // get the (base) name
+    wxString GetName() const { return m_name; }
+
+    // get the full path of this object
+    wxString GetPath() const { return m_path; }
+
+    // get the load address and the extent, return true if this information is
+    // available
+    bool GetAddress(void **addr, size_t *len) const
+    {
+        if ( !m_address )
+            return false;
+
+        if ( addr )
+            *addr = m_address;
+        if ( len )
+            *len = m_length;
+
+        return true;
+    }
+
+    // return the version of the DLL (may be empty if no version info)
+    wxString GetVersion() const
+    {
+        return m_version;
+    }
+
+private:
+    wxString m_name,
+             m_path,
+             m_version;
+
+    void *m_address;
+    size_t m_length;
+
+    friend class wxDynamicLibraryDetailsCreator;
+};
+
+WX_DECLARE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetails,
+                                  wxDynamicLibraryDetailsArray,
+                                  WXDLLIMPEXP_BASE);
+
+// ----------------------------------------------------------------------------
+// wxDynamicLibrary: represents a handle to a DLL/shared object
+// ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_BASE wxDynamicLibrary
 {
@@ -135,7 +192,12 @@ public:
     bool IsLoaded() const { return m_handle != 0; }
 
     // load the library with the given name (full or not), return true if ok
-    bool Load(wxString libname, int flags = wxDL_DEFAULT);
+    bool Load(const wxString& libname, int flags = wxDL_DEFAULT);
+
+    // raw function for loading dynamic libs: always behaves as if
+    // wxDL_VERBATIM were specified and doesn't log error message if the
+    // library couldn't be loaded but simply returns NULL
+    static wxDllType RawLoad(const wxString& libname, int flags = wxDL_DEFAULT);
 
     // detach the library object from its handle, i.e. prevent the object from
     // unloading the library in its dtor -- the caller is now responsible for
@@ -151,6 +213,16 @@ public:
     // Return the raw handle from dlopen and friends.
     wxDllType GetLibHandle() const { return m_handle; }
 
+    // check if the given symbol is present in the library, useful to verify if
+    // a loadable module is our plugin, for example, without provoking error
+    // messages from GetSymbol()
+    bool HasSymbol(const wxString& name) const
+    {
+        bool ok;
+        DoGetSymbol(name, &ok);
+        return ok;
+    }
+
     // resolve a symbol in a loaded DLL, such as a variable or function name.
     // 'name' is the (possibly mangled) name of the symbol. (use extern "C" to
     // export unmangled names)
@@ -162,8 +234,23 @@ public:
     //
     // Returns a pointer to the symbol on success, or NULL if an error occurred
     // or the symbol wasn't found.
-    void *GetSymbol(const wxString& name, bool *success = 0) const;
+    void *GetSymbol(const wxString& name, bool *success = NULL) const;
 
+    // low-level version of GetSymbol()
+    static void *RawGetSymbol(wxDllType handle, const wxString& name);
+    void *RawGetSymbol(const wxString& name) const
+    {
+#if defined (__WXPM__) || defined(__EMX__)
+        return GetSymbol(name);
+#else
+        return RawGetSymbol(m_handle, name);
+#endif
+    }
+
+    // return all modules/shared libraries in the address space of this process
+    //
+    // returns an empty array if not implemented or an error occured
+    static wxDynamicLibraryDetailsArray ListLoaded();
 
     // return platform-specific name of dynamic library with proper extension
     // and prefix (e.g. "foo.dll" on Windows or "libfoo.so" on Linux)
@@ -186,6 +273,15 @@ public:
 #endif
 
 protected:
+    // common part of GetSymbol() and HasSymbol()
+    void *DoGetSymbol(const wxString& name, bool *success = 0) const;
+
+#ifdef wxHAVE_DYNLIB_ERROR
+    // log the error after a dlxxx() function failure
+    static void Error();
+#endif // wxHAVE_DYNLIB_ERROR
+
+
     // platform specific shared lib suffix.
     static const wxChar *ms_dllext;
 

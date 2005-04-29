@@ -54,18 +54,6 @@ DEFINE_EVENT_TYPE(wxEVT_COMMAND_TEXT_URL)
 DEFINE_EVENT_TYPE(wxEVT_COMMAND_TEXT_MAXLEN)
 
 // ----------------------------------------------------------------------------
-// ctor
-// ----------------------------------------------------------------------------
-
-wxTextCtrlBase::wxTextCtrlBase()
-{
-}
-
-wxTextCtrlBase::~wxTextCtrlBase()
-{
-}
-
-// ----------------------------------------------------------------------------
 // style functions - not implemented here
 // ----------------------------------------------------------------------------
 
@@ -232,7 +220,7 @@ bool wxTextCtrlBase::LoadFile(const wxString& filename)
 
 bool wxTextCtrlBase::SaveFile(const wxString& filename)
 {
-    wxString filenameToUse = filename.IsEmpty() ? m_filename : filename;
+    wxString filenameToUse = filename.empty() ? m_filename : filename;
     if ( filenameToUse.empty() )
     {
         // what kind of message to give? is it an error or a program bug?
@@ -311,7 +299,7 @@ wxTextCtrl& wxTextCtrlBase::operator<<(const wxChar c)
 // streambuf methods implementation
 // ----------------------------------------------------------------------------
 
-#ifndef NO_TEXT_WINDOW_STREAM
+#if wxHAS_TEXT_WINDOW_STREAM
 
 int wxTextCtrlBase::overflow(int c)
 {
@@ -321,7 +309,7 @@ int wxTextCtrlBase::overflow(int c)
     return 0;
 }
 
-#endif // NO_TEXT_WINDOW_STREAM
+#endif // wxHAS_TEXT_WINDOW_STREAM
 
 // ----------------------------------------------------------------------------
 // clipboard stuff
@@ -406,9 +394,8 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
         case WXK_NUMPAD_DELETE:
             // delete the character at cursor
             {
-                const long pos = GetInsertionPoint(),
-                           last = GetLastPosition();
-                if ( pos < last )
+                const long pos = GetInsertionPoint();
+                if ( pos < GetLastPosition() )
                     Remove(pos, pos + 1);
             }
             break;
@@ -423,6 +410,13 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
             break;
 
         default:
+#if wxUSE_UNICODE
+            if ( event.GetUnicodeKey() )
+            {
+                ch = event.GetUnicodeKey();
+            }
+            else
+#endif
             if ( keycode < 256 && keycode >= 0 && wxIsprint(keycode) )
             {
                 // FIXME this is not going to work for non letters...

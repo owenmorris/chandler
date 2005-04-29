@@ -86,10 +86,10 @@ enum
 
 // get the address object for the given server name, the caller must delete it
 static wxSockAddress *
-GetAddressFromName(const wxString& serverName, const wxString& host = _T(""))
+GetAddressFromName(const wxString& serverName, const wxString& host = wxEmptyString)
 {
     // we always use INET sockets under non-Unix systems
-#if defined(__UNIX__) && !defined(__WXMAC__) && !defined(__WINE__)
+#if defined(__UNIX__) && !defined(__WINDOWS__) && !defined(__WXMAC__) && !defined(__WINE__)
     // under Unix, if the server name looks like a path, create a AF_UNIX
     // socket instead of AF_INET one
     if ( serverName.Find(_T('/')) != wxNOT_FOUND )
@@ -119,7 +119,7 @@ GetAddressFromName(const wxString& serverName, const wxString& host = _T(""))
 class wxTCPEventHandler : public wxEvtHandler
 {
 public:
-  wxTCPEventHandler() : wxEvtHandler() {};
+  wxTCPEventHandler() : wxEvtHandler() {}
 
   void Client_OnRequest(wxSocketEvent& event);
   void Server_OnRequest(wxSocketEvent& event);

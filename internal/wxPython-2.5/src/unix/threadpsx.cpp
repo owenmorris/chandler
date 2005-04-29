@@ -37,6 +37,7 @@
 #include "wx/intl.h"
 #include "wx/dynarray.h"
 #include "wx/timer.h"
+#include "wx/stopwatch.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -1482,6 +1483,12 @@ void wxThread::Exit(ExitCode status)
         //       we make it a global object, but this would mean that we can
         //       only call one thread function at a time :-(
         DeleteThread(this);
+    }
+    else
+    {
+        m_critsect.Enter();
+        m_internal->SetState(STATE_EXITED);
+        m_critsect.Leave();
     }
 
     // terminate the thread (pthread_exit() never returns)

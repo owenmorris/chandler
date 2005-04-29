@@ -220,7 +220,6 @@ class LineShape(Shape):
 
     def __del__(self):
         if self._lineControlPoints:
-            self.ClearPointList(self._lineControlPoints)
             self._lineControlPoints = []
         for i in range(3):
             if self._labelObjects[i]:
@@ -289,8 +288,6 @@ class LineShape(Shape):
 
     def MakeLineControlPoints(self, n):
         """Make a given number of control points (minimum of two)."""
-        if self._lineControlPoints:
-            self.ClearPointList(self._lineControlPoints)
         self._lineControlPoints = []
         
         for _ in range(n):
@@ -1378,7 +1375,7 @@ class LineShape(Shape):
         """
         for arrow in self._arcArrows:
             if (position == -1 or position == arrow.GetArrowEnd()) and arrow.GetName() == name:
-                return arow
+                return arrow
 
         return None
 
@@ -1514,12 +1511,7 @@ class LineShape(Shape):
         labelShape._shapeRegion.SetSize(labelShape.GetWidth(), labelShape.GetHeight())
 
         # Find position in line's region list
-        i = 0
-        for region in self.GetRegions():
-            if labelShape._shapeRegion == region:
-                self.GetRegions().remove(region)
-            else:
-                i += 1
+        i = self._regions.index(labelShape._shapeRegion)
                 
         xx, yy = self.GetLabelPosition(i)
         # Set the region's offset, relative to the default position for

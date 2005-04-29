@@ -5,6 +5,10 @@
 #if !defined(RC2XML_H)
 #define RC2XML_H
 
+#ifdef __GNUG__
+#pragma interface "rc2xml.h"
+#endif
+
 #include "wx/file.h"
 #include <wx/ffile.h>
 #include <wx/list.h>
@@ -87,7 +91,7 @@ protected:
     wxList * m_resourcelist;
     wxFile m_rc;
     wxFFile m_xmlfile;
-    int m_filesize;
+    wxFileOffset m_filesize;
     bool m_done;
 
 };

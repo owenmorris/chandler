@@ -42,6 +42,18 @@
 // ============================================================================
 
 // ----------------------------------------------------------------------------
+// seek and tell with large file support if available
+// ----------------------------------------------------------------------------
+
+#ifdef HAVE_FSEEKO
+#   define wxFseek fseeko
+#   define wxFtell ftello
+#else
+#   define wxFseek fseek
+#   define wxFtell ftell
+#endif
+
+// ----------------------------------------------------------------------------
 // opening the file
 // ----------------------------------------------------------------------------
 
@@ -91,40 +103,40 @@ bool wxFFile::Close()
 // read/write
 // ----------------------------------------------------------------------------
 
-bool wxFFile::ReadAll(wxString *str)
+bool wxFFile::ReadAll(wxString *str, wxMBConv& conv)
 {
     wxCHECK_MSG( str, false, wxT("invalid parameter") );
     wxCHECK_MSG( IsOpened(), false, wxT("can't read from closed file") );
+    wxCHECK_MSG( Length() >= 0, false, wxT("invalid length") );
+    size_t length = (size_t)Length();
+    wxCHECK_MSG( (wxFileOffset)length == Length(), false, wxT("huge file not supported") );
 
     clearerr(m_fp);
 
-    str->Empty();
-    str->Alloc(Length());
+    wxCharBuffer buf(length + 1);
 
-    wxChar buf[1024];
-    static const size_t nSize = WXSIZEOF(buf) - 1; // -1 for trailing '\0'
-    while ( !Eof() )
+    // note that real length may be less than file length for text files with DOS EOLs
+    // ('\r's get dropped by CRT when reading which means that we have
+    // realLen = fileLen - numOfLinesInTheFile)
+    length = fread(buf.data(), sizeof(char), length, m_fp);
+
+    if ( Error() ) 
     {
-        size_t nRead = fread(buf, sizeof(wxChar), nSize, m_fp);
-        if ( (nRead < nSize) && Error() )
-        {
-            wxLogSysError(_("Read error on file '%s'"), m_name.c_str());
+        wxLogSysError(_("Read error on file '%s'"), m_name.c_str());
 
-            return false;
-        }
-        //else: just EOF
-
-        buf[nRead] = 0;
-        *str += buf;
+        return false;
     }
+
+    buf.data()[length] = 0;
+    *str = wxString(buf, conv);
 
     return true;
 }
 
 size_t wxFFile::Read(void *pBuf, size_t nCount)
 {
-    wxCHECK_MSG( pBuf, FALSE, wxT("invalid parameter") );
-    wxCHECK_MSG( IsOpened(), FALSE, wxT("can't read from closed file") );
+    wxCHECK_MSG( pBuf, 0, wxT("invalid parameter") );
+    wxCHECK_MSG( IsOpened(), 0, wxT("can't read from closed file") );
 
     size_t nRead = fread(pBuf, 1, nCount, m_fp);
     if ( (nRead < nCount) && Error() )
@@ -137,8 +149,8 @@ size_t wxFFile::Read(void *pBuf, size_t nCount)
 
 size_t wxFFile::Write(const void *pBuf, size_t nCount)
 {
-    wxCHECK_MSG( pBuf, FALSE, wxT("invalid parameter") );
-    wxCHECK_MSG( IsOpened(), FALSE, wxT("can't write to closed file") );
+    wxCHECK_MSG( pBuf, 0, wxT("invalid parameter") );
+    wxCHECK_MSG( IsOpened(), 0, wxT("can't write to closed file") );
 
     size_t nWritten = fwrite(pBuf, 1, nCount, m_fp);
     if ( nWritten < nCount )
@@ -170,7 +182,7 @@ bool wxFFile::Flush()
 // seeking
 // ----------------------------------------------------------------------------
 
-bool wxFFile::Seek(long ofs, wxSeekMode mode)
+bool wxFFile::Seek(wxFileOffset ofs, wxSeekMode mode)
 {
     wxCHECK_MSG( IsOpened(), false, wxT("can't seek on closed file") );
 
@@ -194,7 +206,18 @@ bool wxFFile::Seek(long ofs, wxSeekMode mode)
             break;
     }
 
-    if ( fseek(m_fp, ofs, origin) != 0 )
+#ifndef HAVE_FSEEKO
+    if ((long)ofs != ofs)
+    {
+        wxLogError(_("Seek error on file '%s' (large files not supported by stdio)"), m_name.c_str());
+
+        return false;
+    }
+
+    if ( wxFseek(m_fp, (long)ofs, origin) != 0 )
+#else
+    if ( wxFseek(m_fp, ofs, origin) != 0 )
+#endif
     {
         wxLogSysError(_("Seek error on file '%s'"), m_name.c_str());
 
@@ -204,34 +227,34 @@ bool wxFFile::Seek(long ofs, wxSeekMode mode)
     return true;
 }
 
-size_t wxFFile::Tell() const
+wxFileOffset wxFFile::Tell() const
 {
-    wxCHECK_MSG( IsOpened(), (size_t)-1,
+    wxCHECK_MSG( IsOpened(), wxInvalidOffset,
                  _T("wxFFile::Tell(): file is closed!") );
 
-    long rc = ftell(m_fp);
-    if ( rc == -1 )
+    wxFileOffset rc = wxFtell(m_fp);
+    if ( rc == wxInvalidOffset )
     {
         wxLogSysError(_("Can't find current position in file '%s'"),
                       m_name.c_str());
     }
 
-    return (size_t)rc;
+    return rc;
 }
 
-size_t wxFFile::Length() const
+wxFileOffset wxFFile::Length() const
 {
-    wxCHECK_MSG( IsOpened(), (size_t)-1,
+    wxCHECK_MSG( IsOpened(), wxInvalidOffset,
                  _T("wxFFile::Length(): file is closed!") );
 
     wxFFile& self = *(wxFFile *)this;   // const_cast
 
-    size_t posOld = Tell();
-    if ( posOld != (size_t)-1 )
+    wxFileOffset posOld = Tell();
+    if ( posOld != wxInvalidOffset )
     {
         if ( self.SeekEnd() )
         {
-            size_t len = Tell();
+            wxFileOffset len = Tell();
 
             (void)self.Seek(posOld);
 
@@ -239,7 +262,7 @@ size_t wxFFile::Length() const
         }
     }
 
-    return (size_t)-1;
+    return wxInvalidOffset;
 }
 
 #endif // wxUSE_FFILE

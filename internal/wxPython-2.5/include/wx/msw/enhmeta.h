@@ -31,7 +31,7 @@ class WXDLLEXPORT wxEnhMetaFile : public wxObject
 public:
     wxEnhMetaFile(const wxString& file = wxEmptyString) : m_filename(file)
         { Init(); }
-    wxEnhMetaFile(const wxEnhMetaFile& metafile)
+    wxEnhMetaFile(const wxEnhMetaFile& metafile) : wxObject()
         { Init(); Assign(metafile); }
     wxEnhMetaFile& operator=(const wxEnhMetaFile& metafile)
         { Free(); Assign(metafile); return *this; }
@@ -61,7 +61,7 @@ public:
     void SetHENHMETAFILE(WXHANDLE hMF) { Free(); m_hMF = hMF; }
 
 protected:
-    void Init() { m_hMF = 0; }
+    void Init();
     void Free();
     void Assign(const wxEnhMetaFile& mf);
 

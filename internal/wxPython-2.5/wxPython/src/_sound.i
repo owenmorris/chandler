@@ -38,19 +38,19 @@ class wxSound : public wxObject
 {
 public:
     wxSound() {
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         PyErr_SetString(PyExc_NotImplementedError,
                         "wxSound is not available on this platform.");
         wxPyEndBlockThreads(blocked);
     }
     wxSound(const wxString&/*, bool*/) {
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         PyErr_SetString(PyExc_NotImplementedError,
                         "wxSound is not available on this platform.");
         wxPyEndBlockThreads(blocked);
     }
     wxSound(int, const wxByte*) {
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         PyErr_SetString(PyExc_NotImplementedError,
                         "wxSound is not available on this platform.");
         wxPyEndBlockThreads(blocked);
@@ -85,11 +85,12 @@ public:
             else
                 return new wxSound(fileName);
         }
-        %name(SoundFromData) wxSound(PyObject* data) {
+        %RenameCtor(SoundFromData,  wxSound(PyObject* data))
+        {
             unsigned char* buffer; int size;
             wxSound *sound = NULL;
 
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (!PyArg_Parse(data, "t#", &buffer, &size))
                 goto done;
             sound = new wxSound(size, buffer);
@@ -112,7 +113,7 @@ public:
             int size;
             bool rv = false;
 
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             if (!PyArg_Parse(data, "t#", &buffer, &size))
                 goto done;
             rv = self->Create(size, buffer);
@@ -120,7 +121,7 @@ public:
             wxPyEndBlockThreads(blocked);
             return rv;
         %#else
-                 bool blocked = wxPyBeginBlockThreads();
+                 wxPyBlock_t blocked = wxPyBeginBlockThreads();
                  PyErr_SetString(PyExc_NotImplementedError,
                                  "Create from data is not available on this platform.");
                  wxPyEndBlockThreads(blocked);
@@ -135,16 +136,9 @@ public:
     bool Play(unsigned flags = wxSOUND_ASYNC) const;
 
     // Plays sound from filename:
-    %name(PlaySound) static bool Play(const wxString& filename, unsigned flags = wxSOUND_ASYNC);
+    %Rename(PlaySound,  static bool, Play(const wxString& filename, unsigned flags = wxSOUND_ASYNC));
 
-#ifndef __WXMAC__
     static void Stop();
-#else
-    %extend {
-        static void Stop()
-            { wxPyRaiseNotImplemented(); }
-    }
-#endif
 
     %pythoncode { def __nonzero__(self): return self.IsOk() }
 };

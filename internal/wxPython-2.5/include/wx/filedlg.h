@@ -5,12 +5,14 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:
+// RCS-ID:      $Id$
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_FILEDLG_H_BASE_
 #define _WX_FILEDLG_H_BASE_
+
+#include "wx/defs.h"
 
 #if wxUSE_FILEDLG
 
@@ -38,8 +40,8 @@ enum
     wxCHANGE_DIR        = 0x0040
 };
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxFileSelectorPromptStr;
-WXDLLEXPORT_DATA(extern const wxChar*) wxFileSelectorDefaultWildcardStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxFileSelectorPromptStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxFileSelectorDefaultWildcardStr;
 
 //----------------------------------------------------------------------------
 // wxFileDialogBase
@@ -48,15 +50,27 @@ WXDLLEXPORT_DATA(extern const wxChar*) wxFileSelectorDefaultWildcardStr;
 class WXDLLEXPORT wxFileDialogBase: public wxDialog
 {
 public:
-    wxFileDialogBase () {}
+    wxFileDialogBase () { Init(); }
 
     wxFileDialogBase(wxWindow *parent,
-                 const wxString& message = wxFileSelectorPromptStr,
-                 const wxString& defaultDir = wxEmptyString,
-                 const wxString& defaultFile = wxEmptyString,
-                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
-                 long style = 0,
-                 const wxPoint& pos = wxDefaultPosition);
+                     const wxString& message = wxFileSelectorPromptStr,
+                     const wxString& defaultDir = wxEmptyString,
+                     const wxString& defaultFile = wxEmptyString,
+                     const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                     long style = 0,
+                     const wxPoint& pos = wxDefaultPosition) : wxDialog()
+    {
+        Init();
+        Create(parent, message, defaultDir, defaultFile, wildCard, style, pos);
+    }
+
+    bool Create(wxWindow *parent,
+                const wxString& message = wxFileSelectorPromptStr,
+                const wxString& defaultDir = wxEmptyString,
+                const wxString& defaultFile = wxEmptyString,
+                const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                long style = 0,
+                const wxPoint& pos = wxDefaultPosition);
 
     virtual void SetMessage(const wxString& message) { m_message = message; }
     virtual void SetPath(const wxString& path) { m_path = path; }
@@ -84,9 +98,9 @@ public:
     // The arrays will contain an equal number of items found before the error.
     // wildCard is in the form:
     // "All files (*)|*|Image Files (*.jpeg *.png)|*.jpg;*.png"
-    static int ParseWildcard(const wxString& wildCard,
-                             wxArrayString& descriptions,
-                             wxArrayString& filters);
+    wxDEPRECATED( static int ParseWildcard(const wxString& wildCard,
+                                           wxArrayString& descriptions,
+                                           wxArrayString& filters) );
 #endif // WXWIN_COMPATIBILITY_2_4
 
     // Append first extension to filePath from a ';' separated extensionList
@@ -107,6 +121,7 @@ protected:
     int           m_filterIndex;
 
 private:
+    void Init();
     DECLARE_DYNAMIC_CLASS(wxFileDialogBase)
     DECLARE_NO_COPY_CLASS(wxFileDialogBase)
 };
@@ -159,7 +174,7 @@ wxSaveFileSelector(const wxChar *what,
 #elif defined(__WXMOTIF__)
 #include "wx/motif/filedlg.h"
 #elif defined(__WXGTK__)
-#include "wx/generic/filedlgg.h"
+#include "wx/gtk/filedlg.h"
 #elif defined(__WXX11__)
 #include "wx/generic/filedlgg.h"
 #elif defined(__WXMGL__)
@@ -167,7 +182,7 @@ wxSaveFileSelector(const wxChar *what,
 #elif defined(__WXMAC__)
 #include "wx/mac/filedlg.h"
 #elif defined(__WXCOCOA__)
-#include "wx/generic/filedlgg.h"
+#include "wx/cocoa/filedlg.h"
 #elif defined(__WXPM__)
 #include "wx/os2/filedlg.h"
 #endif

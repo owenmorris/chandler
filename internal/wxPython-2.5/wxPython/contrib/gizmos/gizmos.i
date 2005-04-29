@@ -26,6 +26,7 @@
 #include <wx/gizmos/editlbox.h>
 #include <wx/gizmos/splittree.h>
 #include <wx/gizmos/ledctrl.h>
+#include <wx/gizmos/statpict.h>
 
 #include <wx/listctrl.h>
 #include <wx/treectrl.h>
@@ -47,7 +48,8 @@
 MAKE_CONST_WXSTRING2(DynamicSashNameStr,     wxT("dynamicSashWindow"));
 MAKE_CONST_WXSTRING2(EditableListBoxNameStr, wxT("editableListBox"));
 MAKE_CONST_WXSTRING2(TreeListCtrlNameStr,    wxT("treelistctrl"));
-
+MAKE_CONST_WXSTRING(StaticPictureNameStr);                     
+    
 MAKE_CONST_WXSTRING_NOSWIG(EmptyString);
 
 
@@ -56,12 +58,12 @@ MAKE_CONST_WXSTRING_NOSWIG(EmptyString);
 //---------------------------------------------------------------------------
 
 enum {
-    wxEVT_DYNAMIC_SASH_SPLIT,
-    wxEVT_DYNAMIC_SASH_UNIFY,
-
     wxDS_MANAGE_SCROLLBARS,
     wxDS_DRAG_CORNER,
 };
+
+%constant wxEventType wxEVT_DYNAMIC_SASH_SPLIT;
+%constant wxEventType wxEVT_DYNAMIC_SASH_UNIFY;
 
 
 /*
@@ -150,7 +152,7 @@ public:
                         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                         long style = wxCLIP_CHILDREN | wxDS_MANAGE_SCROLLBARS | wxDS_DRAG_CORNER,
                         const wxString& name = wxPyDynamicSashNameStr);
-    %name(PreDynamicSashWindow)wxDynamicSashWindow();
+    %RenameCtor(PreDynamicSashWindow, wxDynamicSashWindow());
 
     bool Create(wxWindow *parent, wxWindowID id=-1,
                 const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
@@ -283,7 +285,7 @@ public:
 
     virtual void DrawItem(wxDC& dc, wxTreeItemId id, const wxRect& rect) {
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "DrawItem"))) {
             PyObject* dcobj = wxPyMake_wxObject(&dc,false);
             PyObject* idobj = wxPyConstructObject((void*)&id, wxT("wxTreeItemId"), false);
@@ -305,7 +307,8 @@ public:
 
 MustHaveApp(wxPyTreeCompanionWindow);
 
-%name(TreeCompanionWindow) class wxPyTreeCompanionWindow: public wxWindow
+%rename(TreeCompanionWindow) wxPyTreeCompanionWindow;
+class wxPyTreeCompanionWindow: public wxWindow
 {
 public:
     %pythonAppend wxPyTreeCompanionWindow         "self._setOORInfo(self);self._setCallbackInfo(self, TreeCompanionWindow)"
@@ -398,7 +401,7 @@ public:
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
                     long style =  wxLED_ALIGN_LEFT | wxLED_DRAW_FADED);
-    %name(PreLEDNumberCtrl) wxLEDNumberCtrl();
+    %RenameCtor(PreLEDNumberCtrl,  wxLEDNumberCtrl());
 
     bool Create(wxWindow *parent, wxWindowID id = -1,
                     const wxPoint& pos = wxDefaultPosition,
@@ -494,7 +497,7 @@ public:
                        const wxTreeItemId& item2) {
         int rval = 0;
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "OnCompareItems"))) {
             PyObject *o1 = wxPyConstructObject((void*)&item1, wxT("wxTreeItemId"), 0);
             PyObject *o2 = wxPyConstructObject((void*)&item2, wxT("wxTreeItemId"), 0);
@@ -521,7 +524,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyTreeListCtrl, wxTreeListCtrl)
 
 MustHaveApp(wxPyTreeListCtrl);
 
-%name(TreeListCtrl) class wxPyTreeListCtrl : public wxControl
+%rename(TreeListCtrl) wxPyTreeListCtrl;
+class wxPyTreeListCtrl : public wxControl
 {
 public:
     %pythonAppend wxPyTreeListCtrl         "self._setOORInfo(self);self._setCallbackInfo(self, TreeListCtrl)"
@@ -533,7 +537,7 @@ public:
                    long style = wxTR_DEFAULT_STYLE,
                    const wxValidator &validator = wxDefaultValidator,
                    const wxString& name = wxPyTreeListCtrlNameStr );
-    %name(PreTreeListCtrl)wxPyTreeListCtrl();
+    %RenameCtor(PreTreeListCtrl, wxPyTreeListCtrl());
 
     bool Create(wxWindow *parent, wxWindowID id = -1,
                 const wxPoint& pos = wxDefaultPosition,
@@ -590,11 +594,11 @@ public:
 //     void AddColumn(const wxString& text,
 //                    size_t width,
 //                    wxTreeListColumnAlign alignment = wxTL_ALIGN_LEFT);
-    %name(AddColumnInfo) void AddColumn(const wxTreeListColumnInfo& col);
+    %Rename(AddColumnInfo,  void,  AddColumn(const wxTreeListColumnInfo& col));
 
     // inserts a column before the given one
     void InsertColumn(size_t before, const wxString& text);
-    %name(InsertColumnInfo) void InsertColumn(size_t before, const wxTreeListColumnInfo& col);
+    %Rename(InsertColumnInfo,  void,  InsertColumn(size_t before, const wxTreeListColumnInfo& col));
 
     // deletes the given column - does not delete the corresponding column
     // of each item
@@ -755,7 +759,7 @@ public:
     //size_t GetSelections(wxArrayTreeItemIds&) const;
     %extend {
         PyObject* GetSelections() {
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject*           rval = PyList_New(0);
             wxArrayTreeItemIds  array;
             size_t              num, x;
@@ -791,7 +795,7 @@ public:
         PyObject* GetFirstChild(const wxTreeItemId& item) {
             void* cookie = 0;
             wxTreeItemId* ritem = new wxTreeItemId(self->GetFirstChild(item, cookie));
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, wxPyConstructObject(ritem, wxT("wxTreeItemId"), true));
             PyTuple_SET_ITEM(tup, 1, wxPyMakeSwigPtr(cookie, wxT("void")));
@@ -806,7 +810,7 @@ public:
         // passed to GetNextChild in order to continue the search.
         PyObject* GetNextChild(const wxTreeItemId& item, void* cookie) {
             wxTreeItemId* ritem = new wxTreeItemId(self->GetNextChild(item, cookie));
-            bool blocked = wxPyBeginBlockThreads();
+            wxPyBlock_t blocked = wxPyBeginBlockThreads();
             PyObject* tup = PyTuple_New(2);
             PyTuple_SET_ITEM(tup, 0, wxPyConstructObject(ritem, wxT("wxTreeItemId"), true));
             PyTuple_SET_ITEM(tup, 1, wxPyMakeSwigPtr(cookie, wxT("void")));
@@ -861,12 +865,12 @@ public:
                             wxPyTreeItemData *data = NULL);
 
     // insert a new item before the one with the given index
-    %name(InsertItemBefore)
-        wxTreeItemId InsertItem(const wxTreeItemId& parent,
+    %Rename(InsertItemBefore, 
+        wxTreeItemId,  InsertItem(const wxTreeItemId& parent,
                                 size_t index,
                                 const wxString& text,
                                 int image = -1, int selectedImage = -1,
-                                wxPyTreeItemData *data = NULL);
+                                wxPyTreeItemData *data = NULL));
 
     // insert a new item in as the last child of the parent
     wxTreeItemId AppendItem(const wxTreeItemId& parent,
@@ -925,7 +929,7 @@ public:
         PyObject* GetBoundingRect(const wxTreeItemId& item, bool textOnly = false) {
             wxRect rect;
             if (self->GetBoundingRect(item, rect, textOnly)) {
-                bool blocked = wxPyBeginBlockThreads();
+                wxPyBlock_t blocked = wxPyBeginBlockThreads();
                 wxRect* r = new wxRect(rect);
                 PyObject* val = wxPyConstructObject((void*)r, wxT("wxRect"), 1);
                 wxPyEndBlockThreads(blocked);
@@ -955,7 +959,55 @@ public:
 
 };
 
+//----------------------------------------------------------------------
 
+enum
+{
+    wxSCALE_HORIZONTAL,
+    wxSCALE_VERTICAL,
+    wxSCALE_UNIFORM,
+    wxSCALE_CUSTOM    
+};
+
+MustHaveApp(wxStaticPicture);
+
+class wxStaticPicture : public wxControl
+{
+public:
+    %pythonAppend wxStaticPicture         "self._setOORInfo(self)"
+    %pythonAppend wxStaticPicture()       ""
+
+    wxStaticPicture( wxWindow* parent, wxWindowID id=-1,
+                     const wxBitmap& label=wxNullBitmap,
+                     const wxPoint& pos = wxDefaultPosition,
+                     const wxSize& size = wxDefaultSize,
+                     long style = 0,
+                     const wxString& name = wxPyStaticPictureNameStr );
+
+    %RenameCtor(PreStaticPicture, wxStaticPicture());
+
+    bool Create( wxWindow* parent, wxWindowID id=-1,
+                 const wxBitmap& label=wxNullBitmap,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 long style = 0,
+                 const wxString& name = wxPyStaticPictureNameStr );
+
+    void SetBitmap( const wxBitmap& bmp );
+    wxBitmap GetBitmap() const;
+    void SetIcon( const wxIcon& icon );
+    wxIcon GetIcon() const;
+
+    void SetAlignment( int align );
+    int GetAlignment() const;
+
+    void SetScale( int scale );
+    int GetScale() const; 
+
+    void SetCustomScale( float sx, float sy );
+    void GetCustomScale( float* OUTPUT, float* OUTPUT ) const;
+
+};
 
 
 //----------------------------------------------------------------------

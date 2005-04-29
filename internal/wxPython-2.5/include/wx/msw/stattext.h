@@ -52,6 +52,7 @@ protected:
     virtual wxSize DoGetBestSize() const;
     virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
 
+
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText)
 };
 

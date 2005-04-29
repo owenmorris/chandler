@@ -70,17 +70,17 @@ public:
     %extend {
         DocStr(wxCursor,
                "Construct a Cursor from a file.  Specify the type of file using
-wx.BITAMP_TYPE* constants, and specify the hotspot if not using a cur
-file.
-
-This constructor is not available on wxGTK, use ``wx.StockCursor``,
-``wx.CursorFromImage``, or ``wx.CursorFromBits`` instead.", "");
-        wxCursor(const wxString* cursorName, long type, int hotSpotX=0, int hotSpotY=0) {
+wx.BITAMP_TYPE* constants, and specify the hotspot if not using a .cur
+file.","
+:see: Alternate constructors `wx.StockCursor`,`wx.CursorFromImage`");
+        wxCursor(const wxString& cursorName, long type, int hotSpotX=0, int hotSpotY=0) {
 %#ifdef __WXGTK__
-            wxCHECK_MSG(false, NULL,
-                        wxT("wx.Cursor constructor not implemented for wxGTK, use wx.StockCursor, wx.CursorFromImage, or wx.CursorFromBits instead."));
+            wxImage img(cursorName, type);
+            img.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, hotSpotX);
+            img.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, hotSpotY);
+            return new wxCursor(img);
 %#else
-            return new wxCursor(*cursorName, type, hotSpotX, hotSpotY);
+            return new wxCursor(cursorName, type, hotSpotX, hotSpotY);
 %#endif
         }
     }
@@ -90,34 +90,30 @@ This constructor is not available on wxGTK, use ``wx.StockCursor``,
     DocCtorStrName(
         wxCursor(int id),
         "Create a cursor using one of the stock cursors.  Note that not all
-cursors are available on all platforms.", "",
+stock cursors are available on all platforms.", "",
         StockCursor);
 
     
     DocCtorStrName(
         wxCursor(const wxImage& image),
-        "Constructs a cursor from a wxImage. The cursor is monochrome, colors
-with the RGB elements all greater than 127 will be foreground, colors
-less than this background. The mask (if any) will be used as
-transparent.",
+        "Constructs a cursor from a `wx.Image`. The mask (if any) will be used
+for setting the transparent portions of the cursor.",
 "
-In MSW the foreground will be white and the background
-black. The cursor is resized to 32x32.
+In MSW the cursor is resized to 32x32 if it was larger.
 
-In GTK, the two most frequent colors will be used for foreground and
-background. The cursor will be displayed at the size of the image.
+In GTK the cursor will be displayed at the size of the image.
 
-On MacOS the cursor is resized to 16x16 and currently only shown as
-black/white (mask respected).",
+On MacOS the cursor is resized to 16x16 if it was larger.",
         CursorFromImage);
     
     
 //     %extend {
 //         DocStr(wxCursor,
 //                "");
-//         %name(CursorFromBits) wxCursor(PyObject* bits, int width, int  height,
+//         %RenameCtor(CursorFromBits,  wxCursor(PyObject* bits, int width, int  height,
 //                                          int hotSpotX=-1, int hotSpotY=-1,
-//                                          PyObject* maskBits=NULL) {
+//                                          PyObject* maskBits=NULL))
+//         {
 //             char* bitsbuf;
 //             char* maskbuf = NULL;
 //             int   length;

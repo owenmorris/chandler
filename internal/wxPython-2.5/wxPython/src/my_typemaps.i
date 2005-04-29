@@ -124,6 +124,11 @@ MAKE_INT_ARRAY_TYPEMAPS(styles, styles_field)
 
 
 
+%typemap(out) wxCharBuffer {
+    $result = PyString_FromString((char*)$1.data());
+}
+
+
 //---------------------------------------------------------------------------
 // Typemaps to convert Python sequence objects (tuples, etc.) to
 // wxSize, wxPoint, wxRealPoint, and wxRect.
@@ -284,6 +289,24 @@ MAKE_INT_ARRAY_TYPEMAPS(styles, styles_field)
 
 
 //---------------------------------------------------------------------------
+// wxFileOffset, can be a 32-bit or a 64-bit integer
+
+%typemap(in) wxFileOffset {
+    if (sizeof(wxFileOffset) > sizeof(long))
+        $1 = PyLong_AsLongLong($input);
+    else
+        $1 = PyInt_AsLong($input);
+}
+
+%typemap(out) wxFileOffset {
+    if (sizeof(wxFileOffset) > sizeof(long))
+        $result = PyLong_FromLongLong($1);
+    else
+        $result = PyInt_FromLong($1);
+}
+
+
+//---------------------------------------------------------------------------
 // Typemap for when GDI objects are returned by reference.  This will cause a
 // copy to be made instead of returning a reference to the same instance.  The
 // GDI object's internal refcounting scheme will do a copy-on-write of the
@@ -316,6 +339,7 @@ MAKE_INT_ARRAY_TYPEMAPS(styles, styles_field)
 %typemap(out) wxFSFile*                 { $result = wxPyMake_wxObject($1, $owner); }
 %typemap(out) wxFileSystem*             { $result = wxPyMake_wxObject($1, $owner); }
 %typemap(out) wxImageList*              { $result = wxPyMake_wxObject($1, $owner); }
+%typemap(out) wxImage*                  { $result = wxPyMake_wxObject($1, $owner); }
 %typemap(out) wxListItem*               { $result = wxPyMake_wxObject($1, $owner); }
 %typemap(out) wxMenuItem*               { $result = wxPyMake_wxObject($1, $owner); }
 %typemap(out) wxMouseEvent*             { $result = wxPyMake_wxObject($1, $owner); }

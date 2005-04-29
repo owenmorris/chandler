@@ -193,7 +193,7 @@ public:
     virtual void OnDraw(wxDC *dc) = 0;
     virtual void OnPrint(wxDC *dc, wxObject *info);
     virtual void OnUpdate(wxView *sender, wxObject *hint = (wxObject *) NULL);
-    virtual void OnClosingDocument() {};
+    virtual void OnClosingDocument() {}
     virtual void OnChangeFilename();
 
     // Called by framework if created automatically by the default document
@@ -331,7 +331,6 @@ public:
     void OnFileSave(wxCommandEvent& event);
     void OnFileSaveAs(wxCommandEvent& event);
     void OnPrint(wxCommandEvent& event);
-    void OnPrintSetup(wxCommandEvent& event);
     void OnPreview(wxCommandEvent& event);
     void OnUndo(wxCommandEvent& event);
     void OnRedo(wxCommandEvent& event);
@@ -347,7 +346,6 @@ public:
     void OnUpdateRedo(wxUpdateUIEvent& event);
 
     void OnUpdatePrint(wxUpdateUIEvent& event);
-    void OnUpdatePrintSetup(wxUpdateUIEvent& event);
     void OnUpdatePreview(wxUpdateUIEvent& event);
 
     // Extend event processing to search the view's event table
@@ -469,7 +467,7 @@ public:
                     const wxSize& size = wxDefaultSize,
                     long type = wxDEFAULT_FRAME_STYLE,
                     const wxString& name = wxT("frame"));
-    ~wxDocChildFrame();
+    ~wxDocChildFrame(){}
 
     // Extend event processing to search the view's event table
     virtual bool ProcessEvent(wxEvent& event);
@@ -565,7 +563,7 @@ public:
     // Operations
     virtual void AddFileToHistory(const wxString& file);
     virtual void RemoveFileFromHistory(size_t i);
-    virtual int GetMaxFiles() const { return m_fileMaxFiles; }
+    virtual int GetMaxFiles() const { return (int)m_fileMaxFiles; }
     virtual void UseMenu(wxMenu *menu);
 
     // Remove menu from the list (MDI child may be closing)

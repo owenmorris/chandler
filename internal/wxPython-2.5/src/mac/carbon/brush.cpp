@@ -9,11 +9,12 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "brush.h"
 #endif
 
-#include "wx/setup.h"
+#include "wx/wxprec.h"
+
 #include "wx/utils.h"
 #include "wx/brush.h"
 
@@ -170,7 +171,10 @@ void wxBrush::MacSetTheme(ThemeBrush macThemeBrush)
 
     M_BRUSHDATA->m_macBrushKind = kwxMacBrushTheme;
     M_BRUSHDATA->m_macThemeBrush = macThemeBrush;
-
+    RGBColor color ;
+    GetThemeBrushAsColor( macThemeBrush , 32, true, &color );
+    M_BRUSHDATA->m_colour.Set( color.red >> 8 , color.green >> 8 , color.blue >> 8 ) ;
+    
     RealizeResource();
 }
 

@@ -8,7 +8,7 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "xh_menu.h"
 #endif
 
@@ -88,7 +88,7 @@ wxObject *wxMenuXmlHandler::DoCreateResource()
             wxMenuItem *mitem = new wxMenuItem(p_menu, id, fullLabel,
                                                GetText(wxT("help")), kind);
 
-#if wxUSE_OWNER_DRAWN
+#if (!defined(__WXMSW__) && !defined(__WXPM__)) || wxUSE_OWNER_DRAWN
             if (HasParam(wxT("bitmap")))
                 mitem->SetBitmap(GetBitmap(wxT("bitmap"), wxART_MENU));
 #endif

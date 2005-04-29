@@ -109,6 +109,22 @@ LRESULT APIENTRY _EXPORT wxBuddyChoiceWndProc(HWND hwnd,
                             hwnd, message, wParam, lParam);
 }
 
+wxChoice *wxChoice::GetChoiceForListBox(WXHWND hwndBuddy)
+{
+    wxChoice *choice = (wxChoice *)wxGetWindowUserData((HWND)hwndBuddy);
+
+    int i = ms_allChoiceSpins.Index(choice);
+
+    if ( i == wxNOT_FOUND )
+        return NULL;
+
+    // sanity check
+    wxASSERT_MSG( choice->m_hwndBuddy == hwndBuddy,
+                  _T("wxChoice has incorrect buddy HWND!") );
+
+    return choice;
+}
+
 // ----------------------------------------------------------------------------
 // creation
 // ----------------------------------------------------------------------------
@@ -149,7 +165,7 @@ bool wxChoice::CreateAndInit(wxWindow *parent,
     WXDWORD msStyle = MSWGetStyle(GetWindowStyle(), & exStyle) ;
 
     wxSize sizeText(size), sizeBtn(size);
-    sizeBtn.x = GetBestSpinerSize(IsVertical(style)).x;
+    sizeBtn.x = GetBestSpinnerSize(IsVertical(style)).x;
 
     if ( sizeText.x == wxDefaultCoord )
     {
@@ -284,7 +300,34 @@ WXDWORD wxChoice::MSWGetStyle(long style, WXDWORD *exstyle) const
     if ( style & wxCB_SORT )
         msStyle |= LBS_SORT;
 
+    msStyle |= LBS_NOTIFY;
+
     return msStyle;
+}
+
+bool wxChoice::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
+{
+    if ( param != LBN_SELCHANGE)
+    {
+        // "selection changed" is the only event we're after
+        return false;
+    }
+
+    int n = GetSelection();
+    if (n > -1)
+    {
+        wxCommandEvent event(wxEVT_COMMAND_CHOICE_SELECTED, m_windowId);
+        event.SetInt(n);
+        event.SetEventObject(this);
+        event.SetString(GetStringSelection());
+        if ( HasClientObjectData() )
+            event.SetClientObject( GetClientObject(n) );
+        else if ( HasClientUntypedData() )
+            event.SetClientData( GetClientData(n) );
+        ProcessCommand(event);
+    }
+
+    return true;
 }
 
 wxChoice::~wxChoice()
@@ -478,7 +521,7 @@ wxClientData* wxChoice::DoGetItemClientObject( int n ) const
 
 wxSize wxChoice::DoGetBestSize() const
 {
-    wxSize sizeBtn = GetBestSpinerSize(IsVertical(GetWindowStyle()));
+    wxSize sizeBtn = GetBestSpinnerSize(IsVertical(GetWindowStyle()));
     sizeBtn.x += DEFAULT_ITEM_WIDTH + MARGIN_BETWEEN;
 
     int y;
@@ -501,7 +544,7 @@ wxSize wxChoice::DoGetBestSize() const
 
 void wxChoice::DoMoveWindow(int x, int y, int width, int height)
 {
-    int widthBtn = GetBestSpinerSize(IsVertical(GetWindowStyle())).x;
+    int widthBtn = GetBestSpinnerSize(IsVertical(GetWindowStyle())).x;
     int widthText = width - widthBtn - MARGIN_BETWEEN;
     if ( widthText <= 0 )
     {

@@ -21,6 +21,20 @@ dnl
 dnl Version: $Id$
 dnl ---------------------------------------------------------------------------
 
+
+dnl ===========================================================================
+dnl Objective-C(++) related macros
+dnl ===========================================================================
+m4_define([AC_WX_LANG_OBJECTIVEC],
+[AC_LANG(C)
+ac_ext=m
+])
+
+m4_define([AC_WX_LANG_OBJECTIVECPLUSPLUS],
+[AC_LANG(C++)
+ac_ext=mm
+])
+
 dnl ===========================================================================
 dnl macros to find the a file in the list of include/lib paths
 dnl ===========================================================================
@@ -648,6 +662,167 @@ if test "$ac_cv_cxx_static_cast" = yes; then
 fi
 ])
 
+dnl http://autoconf-archive.cryp.to/ac_cxx_dynamic_cast.html
+AC_DEFUN([AC_CXX_DYNAMIC_CAST],
+[AC_CACHE_CHECK(whether the compiler supports dynamic_cast<>,
+ac_cv_cxx_dynamic_cast,
+[AC_LANG_SAVE
+ AC_LANG_CPLUSPLUS
+ AC_TRY_COMPILE([#include <typeinfo>
+class Base { public : Base () {} virtual void f () = 0;};
+class Derived : public Base { public : Derived () {} virtual void f () {} };],[
+Derived d; Base& b=d; return dynamic_cast<Derived*>(&b) ? 0 : 1;],
+ ac_cv_cxx_dynamic_cast=yes, ac_cv_cxx_dynamic_cast=no)
+ AC_LANG_RESTORE
+])
+if test "$ac_cv_cxx_dynamic_cast" = yes; then
+  AC_DEFINE(HAVE_DYNAMIC_CAST,,[define if the compiler supports dynamic_cast<>])
+fi
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl Compiler detection macros by David Elliott
+dnl ---------------------------------------------------------------------------
+
+
+dnl ===========================================================================
+dnl Macros to detect non-GNU compilers (MetroWerks, XLC)
+dnl ===========================================================================
+
+dnl Based on autoconf _AC_LANG_COMPILER_GNU
+AC_DEFUN([_AC_BAKEFILE_LANG_COMPILER_MWERKS],
+[AC_CACHE_CHECK([whether we are using the Metrowerks _AC_LANG compiler],
+    [bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_mwerks],
+    [AC_TRY_COMPILE([],[#ifndef __MWERKS__
+       choke me
+#endif
+],
+        [bakefile_compiler_mwerks=yes],
+        [bakefile_compiler_mwerks=no])
+    bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_mwerks=$bakefile_compiler_mwerks
+    ])
+])
+
+dnl Loosely based on autoconf AC_PROG_CC
+dnl TODO: Maybe this should wrap the call to AC_PROG_CC and be used instead.
+AC_DEFUN([AC_BAKEFILE_PROG_MWCC],
+[AC_LANG_PUSH(C)
+_AC_BAKEFILE_LANG_COMPILER_MWERKS
+MWCC=`test $bakefile_cv_c_compiler_mwerks = yes && echo yes`
+AC_LANG_POP(C)
+])
+
+dnl Loosely based on autoconf AC_PROG_CXX
+dnl TODO: Maybe this should wrap the call to AC_PROG_CXX and be used instead.
+AC_DEFUN([AC_BAKEFILE_PROG_MWCXX],
+[AC_LANG_PUSH(C++)
+_AC_BAKEFILE_LANG_COMPILER_MWERKS
+MWCXX=`test $bakefile_cv_cxx_compiler_mwerks = yes && echo yes`
+AC_LANG_POP(C++)
+])
+
+dnl Based on autoconf _AC_LANG_COMPILER_GNU
+AC_DEFUN([_AC_BAKEFILE_LANG_COMPILER_XLC],
+[AC_CACHE_CHECK([whether we are using the IBM xlC _AC_LANG compiler],
+    [wx_cv_[]_AC_LANG_ABBREV[]_compiler_xlc],
+    [AC_TRY_COMPILE([],[#ifndef __xlC__
+       choke me
+#endif
+],
+        [wx_compiler_xlc=yes],
+        [wx_compiler_xlc=no])
+    wx_cv_[]_AC_LANG_ABBREV[]_compiler_xlc=$wx_compiler_xlc
+    ])
+])
+
+dnl Loosely based on autoconf AC_PROG_CC
+AC_DEFUN([AC_BAKEFILE_PROG_XLCC],
+[AC_LANG_PUSH(C)
+_AC_BAKEFILE_LANG_COMPILER_XLC
+XLCC=`test $wx_cv_c_compiler_xlc = yes && echo yes`
+AC_LANG_POP(C)
+])
+
+dnl Loosely based on autoconf AC_PROG_CXX
+AC_DEFUN([AC_BAKEFILE_PROG_XLCXX],
+[AC_LANG_PUSH(C++)
+_AC_BAKEFILE_LANG_COMPILER_XLC
+XLCXX=`test $wx_cv_cxx_compiler_xlc = yes && echo yes`
+AC_LANG_POP(C++)
+])
+
+
+dnl ===========================================================================
+dnl macros to detect specialty compiler options
+dnl ===========================================================================
+
+dnl Figure out if we need to pass -ext o to compiler (MetroWerks)
+AC_DEFUN([AC_BAKEFILE_METROWERKS_EXTO],
+[AC_CACHE_CHECK([if the _AC_LANG compiler requires -ext o], wx_cv_[]_AC_LANG_ABBREV[]_exto,
+dnl First create an empty conf test
+[AC_LANG_CONFTEST([AC_LANG_PROGRAM()])
+dnl Now remove .o and .c.o or .cc.o
+rm -f conftest.$ac_objext conftest.$ac_ext.o
+dnl Now compile the test
+AS_IF([AC_TRY_EVAL(ac_compile)],
+dnl If the test succeeded look for conftest.c.o or conftest.cc.o
+[for ac_file in `(ls conftest.* 2>/dev/null)`; do
+    case $ac_file in
+        conftest.$ac_ext.o)
+            wx_cv_[]_AC_LANG_ABBREV[]_exto="-ext o"
+            ;;
+        *)
+            ;;
+    esac
+done],
+[AC_MSG_FAILURE([cannot figure out if compiler needs -ext o: cannot compile])
+]) dnl AS_IF
+
+rm -f conftest.$ac_ext.o conftest.$ac_objext conftest.$ac_ext
+]) dnl AC_CACHE_CHECK
+
+if test "x$wx_cv_[]_AC_LANG_ABBREV[]_exto" '!=' "x"; then
+    if test "[]_AC_LANG_ABBREV[]" = "c"; then
+        CFLAGS="$wx_cv_[]_AC_LANG_ABBREV[]_exto $CFLAGS"
+    fi
+    if test "[]_AC_LANG_ABBREV[]" = "cxx"; then
+        CXXFLAGS="$wx_cv_[]_AC_LANG_ABBREV[]_exto $CXXFLAGS"
+    fi
+fi
+]) dnl AC_DEFUN
+
+
+dnl ===========================================================================
+dnl Macros to do all of the compiler detections as one macro
+dnl ===========================================================================
+AC_DEFUN([AC_BAKEFILE_PROG_CC],
+[
+    AC_PROG_CC
+    AC_BAKEFILE_METROWERKS_EXTO
+    dnl By the time we find out that we need -ext o some tests have failed.
+    if test "x$wx_cv_c_exto" '!=' "x"; then
+        unset ac_cv_prog_cc_g
+        _AC_PROG_CC_G
+    fi
+    AC_BAKEFILE_PROG_MWCC
+    AC_BAKEFILE_PROG_XLCC
+])
+
+AC_DEFUN([AC_BAKEFILE_PROG_CXX],
+[
+    AC_PROG_CXX
+    AC_BAKEFILE_METROWERKS_EXTO
+    dnl By the time we find out that we need -ext o some tests have failed.
+    if test "x$wx_cv_cxx_exto" '!=' "x"; then
+        unset ac_cv_prog_cxx_g
+        _AC_PROG_CXX_G
+    fi
+    AC_BAKEFILE_PROG_MWCXX
+    AC_BAKEFILE_PROG_XLCXX
+])
+
+
 # Configure paths for GTK+
 # Owen Taylor     1997-2001
 
@@ -1152,8 +1327,10 @@ AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run 
            sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
     if test "x$enable_sdltest" = "xyes" ; then
       ac_save_CFLAGS="$CFLAGS"
+      ac_save_CXXFLAGS="$CXXFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $SDL_CFLAGS"
+      CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
       LIBS="$LIBS $SDL_LIBS"
 dnl
 dnl Now check if the installed SDL is sufficiently new. (Also sanity
@@ -1219,6 +1396,7 @@ int main (int argc, char *argv[])
 
 ],, no_sdl=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
        CFLAGS="$ac_save_CFLAGS"
+       CXXFLAGS="$ac_save_CXXFLAGS"
        LIBS="$ac_save_LIBS"
      fi
   fi
@@ -1238,6 +1416,7 @@ int main (int argc, char *argv[])
        else
           echo "*** Could not run SDL test program, checking why..."
           CFLAGS="$CFLAGS $SDL_CFLAGS"
+          CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
           LIBS="$LIBS $SDL_LIBS"
           AC_TRY_LINK([
 #include <stdio.h>
@@ -1262,6 +1441,7 @@ int main(int argc, char *argv[])
           echo "*** or that you have moved SDL since it was installed. In the latter case, you"
           echo "*** may want to edit the sdl-config script: $SDL_CONFIG" ])
           CFLAGS="$ac_save_CFLAGS"
+          CXXFLAGS="$ac_save_CXXFLAGS"
           LIBS="$ac_save_LIBS"
        fi
      fi
@@ -1272,6 +1452,30 @@ int main(int argc, char *argv[])
   AC_SUBST(SDL_CFLAGS)
   AC_SUBST(SDL_LIBS)
   rm -f conf.sdltest
+])
+
+dnl Perform a check for a GStreamer element using gst-inspect
+dnl Thomas Vander Stichele <thomas at apestaart dot org>
+dnl Last modification: 25/01/2005
+
+dnl AM_GST_ELEMENT_CHECK(ELEMENT-NAME, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+
+AC_DEFUN([AM_GST_ELEMENT_CHECK],
+[
+  if test "x$GST_INSPECT" == "x"; then
+    AC_CHECK_PROG(GST_INSPECT, gst-inspect, gst-inspect, [])
+  fi
+
+  if test "x$GST_INSPECT" != "x"; then
+    AC_MSG_CHECKING(GStreamer element $1)
+    if [ $GST_INSPECT $1 > /dev/null 2> /dev/null ]; then
+      AC_MSG_RESULT(found.)
+      $2
+    else
+      AC_MSG_RESULT(not found.)
+      $3
+    fi
+  fi
 ])
 
 dnl ---------------------------------------------------------------------------
@@ -1322,8 +1526,10 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
     PLATFORM_WIN32=0
     PLATFORM_MSDOS=0
     PLATFORM_MAC=0
+    PLATFORM_MACOS=0
     PLATFORM_MACOSX=0
     PLATFORM_OS2=0
+    PLATFORM_BEOS=0
 
     if test "x$BAKEFILE_FORCE_PLATFORM" = "x"; then 
         case "${BAKEFILE_HOST}" in
@@ -1339,6 +1545,13 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
             powerpc-*-darwin* )
                 PLATFORM_MAC=1
                 PLATFORM_MACOSX=1
+            ;; 
+            *-*-beos* )
+                PLATFORM_BEOS=1
+            ;;
+            powerpc-apple-macos* )
+                PLATFORM_MAC=1
+                PLATFORM_MACOS=1
             ;;
             * )
                 PLATFORM_UNIX=1
@@ -1362,6 +1575,9 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
             unix )
                 PLATFORM_UNIX=1
             ;;
+            beos )
+                PLATFORM_BEOS=1
+            ;;
             * )
                 AC_MSG_ERROR([Unknown platform: $BAKEFILE_FORCE_PLATFORM])
             ;;
@@ -1372,8 +1588,10 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM],
     AC_SUBST(PLATFORM_WIN32)
     AC_SUBST(PLATFORM_MSDOS)
     AC_SUBST(PLATFORM_MAC)
+    AC_SUBST(PLATFORM_MACOS)
     AC_SUBST(PLATFORM_MACOSX)
     AC_SUBST(PLATFORM_OS2)
+    AC_SUBST(PLATFORM_BEOS)
 ])
 
 
@@ -1408,6 +1626,10 @@ AC_DEFUN([AC_BAKEFILE_PLATFORM_SPECIFICS],
         else
             OS2_LIBEXT="a"
         fi
+        ;;
+      
+      i*86-*-beos* )
+        LDFLAGS="-L/boot/develop/lib/x86 $LDFLAGS"
         ;;
     esac
 ])
@@ -1494,24 +1716,21 @@ dnl ---------------------------------------------------------------------------
 
 AC_DEFUN([AC_BAKEFILE_SHARED_LD],
 [
-    dnl Defaults for GCC and ELF .so shared libs:
-    SHARED_LD_CC="\$(CC) -shared -o"
-    SHARED_LD_CXX="\$(CXX) -shared -o"
-
     dnl the extra compiler flags needed for compilation of shared library
+    PIC_FLAG=""
     if test "x$GCC" = "xyes"; then
         dnl the switch for gcc is the same under all platforms
         PIC_FLAG="-fPIC"
     fi
+    
+    dnl Defaults for GCC and ELF .so shared libs:
+    SHARED_LD_CC="\$(CC) -shared ${PIC_FLAG} -o"
+    SHARED_LD_CXX="\$(CXX) -shared ${PIC_FLAG} -o"
 
     case "${BAKEFILE_HOST}" in
       *-hp-hpux* )
         dnl default settings are good for gcc but not for the native HP-UX
-        if test "x$GCC" = "xyes"; then
-            dnl -o flag must be after PIC flag
-            SHARED_LD_CC="${CC} -shared ${PIC_FLAG} -o"
-            SHARED_LD_CXX="${CXX} -shared ${PIC_FLAG} -o"
-        else
+        if test "x$GCC" != "xyes"; then
             dnl no idea why it wants it, but it does
             LDFLAGS="$LDFLAGS -L/usr/lib"
 
@@ -1611,8 +1830,8 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
       *-*-beos* )
         dnl can't use gcc under BeOS for shared library creation because it
         dnl complains about missing 'main'
-        SHARED_LD_CC="${LD} -shared -o"
-        SHARED_LD_CXX="${LD} -shared -o"
+        SHARED_LD_CC="${LD} -nostart -o"
+        SHARED_LD_CXX="${LD} -nostart -o"
       ;;
 
       *-*-irix* )
@@ -1624,16 +1843,19 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
       
       *-*-cygwin* | *-*-mingw32* )
         PIC_FLAG=""
+        SHARED_LD_CC="\$(CC) -shared -o"
+        SHARED_LD_CXX="\$(CXX) -shared -o"
       ;;
 
       *-pc-os2_emx | *-pc-os2-emx )
-        SHARED_LD_CC="`pwd`/dllar.sh -o"
-        SHARED_LD_CXX="`pwd`/dllar.sh -o"
+        SHARED_LD_CC="`pwd`/dllar.sh -libf INITINSTANCE -libf TERMINSTANCE -o"
+        SHARED_LD_CXX="`pwd`/dllar.sh -libf INITINSTANCE -libf TERMINSTANCE -o"
         PIC_FLAG=""
         AC_BAKEFILE_CREATE_FILE_DLLAR_SH
         chmod +x dllar.sh
       ;;
       
+      powerpc-apple-macos* | \
       *-*-freebsd* | *-*-openbsd* | *-*-netbsd* | \
       *-*-sunos4* | \
       *-*-osf* | \
@@ -1681,7 +1903,7 @@ AC_DEFUN([AC_BAKEFILE_SHARED_VERSIONS],
     SONAME_FLAG=
 
     case "${BAKEFILE_HOST}" in
-      *-*-linux* )
+      *-*-linux* | *-*-freebsd* )
         SONAME_FLAG="-Wl,-soname,"
         USE_SOVERSION=1
         USE_SOVERLINUX=1
@@ -1736,6 +1958,11 @@ AC_DEFUN([AC_BAKEFILE_DEPS],
             ;;
         esac
         AC_MSG_RESULT([gcc])
+    elif test "x$MWCC" = "xyes"; then
+        DEPSMODE=mwcc
+        DEPS_TRACKING=1
+        DEPSFLAG_MWCC="-MM"
+        AC_MSG_RESULT([mwcc])
     else
         AC_MSG_RESULT([none])
     fi
@@ -1770,6 +1997,8 @@ AC_DEFUN([AC_BAKEFILE_CHECK_BASIC_STUFF],
 
     case ${BAKEFILE_HOST} in
         *-hp-hpux* )
+            dnl HP-UX install doesn't handle the "-d" switch so don't
+            dnl use it there
             INSTALL_DIR="mkdir -p"
             ;;
         *)  INSTALL_DIR="$INSTALL -d"
@@ -1807,7 +2036,7 @@ AC_DEFUN([AC_BAKEFILE_RES_COMPILERS],
             fi
          ;;
  
-      *-*-darwin* )
+      *-*-darwin* | powerpc-apple-macos* )
             AC_CHECK_PROG(RESCOMP, Rez, Rez, /Developer/Tools/Rez)
             AC_CHECK_PROG(SETFILE, SetFile, SetFile, /Developer/Tools/SetFile)
         ;;
@@ -1859,49 +2088,7 @@ AC_DEFUN([AC_BAKEFILE_PRECOMP_HEADERS],
                     AC_MSG_RESULT([no])
                 ])
             if test $GCC_PCH = 1 ; then
-                cat <<EOF >bk-make-pch
-#!/bin/sh
-
-# This script is part of Bakefile (http://bakefile.sourceforge.net) autoconf
-# script. It is used to generated precompiled headers.
-#
-# Permission is given to use this file in any way.
-
-outfile="\${1}"
-header="\${2}"
-shift
-shift
-
-compiler=
-headerfile=
-while test \${#} -gt 0; do
-    case "\${1}" in
-        -I* )
-            incdir=\`echo \${1} | sed -e 's/-I\(.*\)/\1/g'\`
-            if test "x\${headerfile}" = "x" -a -f "\${incdir}/\${header}" ; then
-                headerfile="\${incdir}/\${header}"
-            fi
-        ;;
-    esac
-    compiler="\${compiler} \${1}"
-    shift
-done
-
-if test "x\${headerfile}" = "x" ; then
-    echo "error: can't find header \${header} in include paths" >2
-else
-    if test -f \${outfile} ; then
-        rm -f \${outfile}
-    else
-        mkdir -p \`dirname \${outfile}\`
-    fi
-    depsfile=".deps/\`basename \${outfile}\`.d"
-    mkdir -p .deps
-    # can do this because gcc is >= 3.4:
-    \${compiler} -o \${outfile} -MMD -MF "\${depsfile}" "\${headerfile}"
-    exit \${?}
-fi
-EOF
+                AC_BAKEFILE_CREATE_FILE_BK_MAKE_PCH
                 chmod +x bk-make-pch
             fi
         fi
@@ -1913,7 +2100,7 @@ EOF
 
 
 dnl ---------------------------------------------------------------------------
-dnl AC_BAKEFILE
+dnl AC_BAKEFILE([autoconf_inc.m4 inclusion])
 dnl
 dnl To be used in configure.in of any project using Bakefile-generated mks
 dnl
@@ -1923,10 +2110,20 @@ dnl                             to perform check for basic tools like ranlib
 dnl    BAKEFILE_HOST            set this to override host detection, defaults
 dnl                             to ${host}
 dnl    BAKEFILE_FORCE_PLATFORM  set to override platform detection
+dnl
+dnl Example usage:
+dnl
+dnl   AC_BAKEFILE([FOO(autoconf_inc.m4)])
+dnl
+dnl (replace FOO with m4_include above, aclocal would die otherwise)
+dnl (yes, it's ugly, but thanks to a bug in aclocal, it's the only thing
+dnl we can do...)
 dnl ---------------------------------------------------------------------------
 
 AC_DEFUN([AC_BAKEFILE],
 [
+    AC_PREREQ(2.58)
+
     if test "x$BAKEFILE_HOST" = "x"; then
         BAKEFILE_HOST="${host}"
     fi
@@ -1943,9 +2140,10 @@ AC_DEFUN([AC_BAKEFILE],
     AC_BAKEFILE_DEPS
     AC_BAKEFILE_RES_COMPILERS
 
-    BAKEFILE_BAKEFILE_M4_VERSION="0.1.4"
-    
-    builtin(include, autoconf_inc.m4)
+    BAKEFILE_BAKEFILE_M4_VERSION="0.1.8"
+   
+    dnl includes autoconf_inc.m4:
+    $1
     
     if test "$BAKEFILE_BAKEFILE_M4_VERSION" != "$BAKEFILE_AUTOCONF_INC_M4_VERSION" ; then
         AC_MSG_ERROR([Versions of Bakefile used to generate makefiles ($BAKEFILE_AUTOCONF_INC_M4_VERSION) and configure ($BAKEFILE_BAKEFILE_M4_VERSION) do not match.])
@@ -1960,6 +2158,8 @@ dnl ---------------------------------------------------------------------------
 AC_DEFUN([AC_BAKEFILE_CREATE_FILE_DLLAR_SH],
 [
 dnl ===================== dllar.sh begins here =====================
+dnl    (Created by merge-scripts.py from dllar.sh
+dnl     file do not edit here!)
 D='$'
 cat <<EOF >dllar.sh
 #!/bin/sh
@@ -2022,7 +2222,7 @@ flag_USE_LXLITE=1;
 basnam(){
     case ${D}# in
     1)
-        echo ${D}1 | sed 's/.*\///' | sed 's/.*\\//'
+        echo ${D}1 | sed 's/.*\\///' | sed 's/.*\\\\//'
         ;;
     2)
         echo ${D}1 | sed 's/'${D}2'${D}//'
@@ -2049,18 +2249,19 @@ CleanUp() {
 
     # Kill result in case of failure as there is just to many stupid make/nmake
     # things out there which doesn't do this.
-    if [[] ${D}# -eq 0 []]; then
+    if @<:@ ${D}# -eq 0 @:>@; then
         rm -f ${D}arcFile ${D}arcFile2 ${D}defFile ${D}dllFile
     fi
 }
 
 # Print usage and exit script with rc=1.
 PrintHelp() {
- echo 'Usage: dllar [[]-o[[]utput[]] output_file[]] [[]-i[[]mport[]] importlib_name[]]'
- echo '       [[]-d[[]escription[]] "dll descrption"[]] [[]-cc "CC"[]] [[]-f[[]lags[]] "CFLAGS"[]]'
- echo '       [[]-ord[[]inals[]][]] -ex[[]clude[]] "symbol(s)"'
- echo '       [[]-libf[[]lags[]] "{INIT|TERM}{GLOBAL|INSTANCE}"[]] [[]-nocrt[[]dll[]][]] [[]-nolxl[[]ite[]][]]'
- echo '       [[]*.o[]] [[]*.a[]]'
+ echo 'Usage: dllar.sh @<:@-o@<:@utput@:>@ output_file@:>@ @<:@-i@<:@mport@:>@ importlib_name@:>@'
+ echo '       @<:@-name-mangler-script script.sh@:>@'
+ echo '       @<:@-d@<:@escription@:>@ "dll descrption"@:>@ @<:@-cc "CC"@:>@ @<:@-f@<:@lags@:>@ "CFLAGS"@:>@'
+ echo '       @<:@-ord@<:@inals@:>@@:>@ -ex@<:@clude@:>@ "symbol(s)"'
+ echo '       @<:@-libf@<:@lags@:>@ "{INIT|TERM}{GLOBAL|INSTANCE}"@:>@ @<:@-nocrt@<:@dll@:>@@:>@ @<:@-nolxl@<:@ite@:>@@:>@'
+ echo '       @<:@*.o@:>@ @<:@*.a@:>@'
  echo '*> "output_file" should have no extension.'
  echo '   If it has the .o, .a or .dll extension, it is automatically removed.'
  echo '   The import library name is derived from this and is set to "name".a,'
@@ -2070,19 +2271,26 @@ PrintHelp() {
  echo '   This name is used as the import library name and may be longer and'
  echo '   more descriptive than the DLL name which has to follow the old '
  echo '   8.3 convention of FAT.'
+ echo '*> "script.sh may be given to override the output_file name by a'
+ echo '   different name. It is mainly useful if the regular make process'
+ echo '   of some package does not take into account OS/2 restriction of'
+ echo '   DLL name lengths. It takes the importlib name as input and is'
+ echo '   supposed to procude a shorter name as output. The script should'
+ echo '   expect to get importlib_name without extension and should produce'
+ echo '   a (max.) 8 letter name without extension.'
  echo '*> "cc" is used to use another GCC executable.   (default: gcc.exe)'
  echo '*> "flags" should be any set of valid GCC flags. (default: -s -Zcrtdll)'
  echo '   These flags will be put at the start of GCC command line.'
- echo '*> -ord[[]inals[]] tells dllar to export entries by ordinals. Be careful.'
- echo '*> -ex[[]clude[]] defines symbols which will not be exported. You can define'
+ echo '*> -ord@<:@inals@:>@ tells dllar to export entries by ordinals. Be careful.'
+ echo '*> -ex@<:@clude@:>@ defines symbols which will not be exported. You can define'
  echo '   multiple symbols, for example -ex "myfunc yourfunc _GLOBAL*".'
  echo '   If the last character of a symbol is "*", all symbols beginning'
  echo '   with the prefix before "*" will be exclude, (see _GLOBAL* above).'
- echo '*> -libf[[]lags[]] can be used to add INITGLOBAL/INITINSTANCE and/or'
+ echo '*> -libf@<:@lags@:>@ can be used to add INITGLOBAL/INITINSTANCE and/or'
  echo '   TERMGLOBAL/TERMINSTANCE flags to the dynamically-linked library.'
- echo '*> -nocrt[[]dll[]] switch will disable linking the library against emx''s'
+ echo '*> -nocrt@<:@dll@:>@ switch will disable linking the library against emx''s'
  echo '   C runtime DLLs.'
- echo '*> -nolxl[[]ite[]] switch will disable running lxlite on the resulting DLL.'
+ echo '*> -nolxl@<:@ite@:>@ switch will disable running lxlite on the resulting DLL.'
  echo '*> All other switches (for example -L./ or -lmylib) will be passed'
  echo '   unchanged to GCC at the end of command line.'
  echo '*> If you create a DLL from a library and you do not specify -o,'
@@ -2106,7 +2314,7 @@ doCommand() {
     eval ${D}*
     rcCmd=${D}?
 
-    if [[] ${D}rcCmd -ne 0 []]; then
+    if @<:@ ${D}rcCmd -ne 0 @:>@; then
         echo "command failed, exit code="${D}rcCmd
         CleanUp
         exit ${D}rcCmd
@@ -2119,6 +2327,7 @@ cmdLine=${D}*
 outFile=""
 outimpFile=""
 inputFiles=""
+renameScript=""
 description=""
 CC=gcc.exe
 CFLAGS="-s -Zcrtdll"
@@ -2137,7 +2346,8 @@ case ${D}curDirS in
 esac
 # Parse commandline
 libsToLink=0
-while [[] ${D}1 []]; do
+omfLinking=0
+while @<:@ ${D}1 @:>@; do
     case ${D}1 in
     -ord*)
         EXPORT_BY_ORDINALS=1;
@@ -2149,6 +2359,10 @@ while [[] ${D}1 []]; do
     -i*)
         shift
         outimpFile=${D}1
+        ;;
+    -name-mangler-script)
+        shift
+        renameScript=${D}1
         ;;
     -d*)
         shift
@@ -2184,23 +2398,34 @@ while [[] ${D}1 []]; do
         -L* | -l*)
             libsToLink=1
             ;;
+        -Zomf)
+            omfLinking=1
+            ;;
         *)
             ;;
         esac
         EXTRA_CFLAGS=${D}{EXTRA_CFLAGS}" "${D}1
         ;;
+    *.dll)
+        EXTRA_CFLAGS="${D}{EXTRA_CFLAGS} \`basnam ${D}1 .dll\`"
+        if @<:@ ${D}omfLinking -eq 1 @:>@; then
+            EXTRA_CFLAGS="${D}{EXTRA_CFLAGS}.lib"
+	else
+            EXTRA_CFLAGS="${D}{EXTRA_CFLAGS}.a"
+        fi
+        ;;
     *)
         found=0;
-        if [[] ${D}libsToLink -ne 0 []]; then
+        if @<:@ ${D}libsToLink -ne 0 @:>@; then
             EXTRA_CFLAGS=${D}{EXTRA_CFLAGS}" "${D}1
         else
             for file in ${D}1 ; do
-                if [[] -f ${D}file []]; then
+                if @<:@ -f ${D}file @:>@; then
                     inputFiles="${D}{inputFiles} ${D}file"
                     found=1
                 fi
             done
-            if [[] ${D}found -eq 0 []]; then
+            if @<:@ ${D}found -eq 0 @:>@; then
                 echo "ERROR: No file(s) found: "${D}1
                 exit 8
             fi
@@ -2211,7 +2436,7 @@ while [[] ${D}1 []]; do
 done # iterate cmdline words
 
 #
-if [[] -z "${D}inputFiles" []]; then
+if @<:@ -z "${D}inputFiles" @:>@; then
     echo "dllar: no input files"
     PrintHelp
 fi
@@ -2236,7 +2461,7 @@ for file in ${D}inputFiles ; do
         esac
         dirname=\`basnam ${D}file ${D}suffix\`"_%"
         mkdir ${D}dirname
-        if [[] ${D}? -ne 0 []]; then
+        if @<:@ ${D}? -ne 0 @:>@; then
             echo "Failed to create subdirectory ./${D}dirname"
             CleanUp
             exit 8;
@@ -2247,16 +2472,16 @@ for file in ${D}inputFiles ; do
         cd ${D}curDir
         found=0;
         for subfile in ${D}dirname/*.o* ; do
-            if [[] -f ${D}subfile []]; then
+            if @<:@ -f ${D}subfile @:>@; then
                 found=1
-                if [[] -s ${D}subfile []]; then
+                if @<:@ -s ${D}subfile @:>@; then
 	            # FIXME: This should be: is file size > 32 byte, _not_ > 0!
                     newInputFiles="${D}newInputFiles ${D}subfile"
                 fi
             fi
         done
-        if [[] ${D}found -eq 0 []]; then
-            echo "WARNING: there are no files in archive \'${D}file\'"
+        if @<:@ ${D}found -eq 0 @:>@; then
+            echo "WARNING: there are no files in archive \\'${D}file\\'"
         fi
         ;;
     *)
@@ -2268,7 +2493,7 @@ inputFiles="${D}newInputFiles"
 
 # Output filename(s).
 do_backup=0;
-if [[] -z ${D}outFile []]; then
+if @<:@ -z ${D}outFile @:>@; then
     do_backup=1;
     set outFile ${D}inputFiles; outFile=${D}2
 fi
@@ -2313,21 +2538,25 @@ case ${D}outimpFile in
 *)
     ;;
 esac
-if [[] -z ${D}outimpFile []]; then
+if @<:@ -z ${D}outimpFile @:>@; then
     outimpFile=${D}outFile
 fi
 defFile="${D}{outFile}.def"
 arcFile="${D}{outimpFile}.a"
 arcFile2="${D}{outimpFile}.lib"
-dllFile="${D}outFile"
-# Add suffix to dllFile later, first we need a version to use as
-# name in .def file.
 
-if [[] ${D}do_backup -ne 0 []] ; then
-    if [[] -f ${D}arcFile []] ; then
+#create ${D}dllFile as something matching 8.3 restrictions,
+if @<:@ -z ${D}renameScript @:>@ ; then
+    dllFile="${D}outFile"
+else
+    dllFile=\`${D}renameScript ${D}outimpFile\`
+fi
+
+if @<:@ ${D}do_backup -ne 0 @:>@ ; then
+    if @<:@ -f ${D}arcFile @:>@ ; then
         doCommand "mv ${D}arcFile ${D}{outFile}_s.a"
     fi
-    if [[] -f ${D}arcFile2 []] ; then
+    if @<:@ -f ${D}arcFile2 @:>@ ; then
         doCommand "mv ${D}arcFile2 ${D}{outFile}_s.lib"
     fi
 fi
@@ -2348,9 +2577,9 @@ done
 # Create the def file.
 rm -f ${D}defFile
 echo "LIBRARY \`basnam ${D}dllFile\` ${D}library_flags" >> ${D}defFile
-dllFile="${D}dllFile.dll"
-if [[] -n ${D}description []]; then
-    echo "DESCRIPTION  \"${D}{description}\"" >> ${D}defFile
+dllFile="${D}{dllFile}.dll"
+if @<:@ ! -z ${D}description @:>@; then
+    echo "DESCRIPTION  \\"${D}{description}\\"" >> ${D}defFile
 fi
 echo "EXPORTS" >> ${D}defFile
 
@@ -2364,12 +2593,12 @@ for word in ${D}exclude_symbols; do
 done
 
 
-if [[] ${D}EXPORT_BY_ORDINALS -ne 0 []]; then
-    sed "=" < ${D}tmpdefFile | \
+if @<:@ ${D}EXPORT_BY_ORDINALS -ne 0 @:>@; then
+    sed "=" < ${D}tmpdefFile | \\
     sed '
       N
       : loop
-      s/^\([[]0-9[]]\+\)\([[]^;[]]*\)\(;.*\)\?/\2 @\1 NONAME/
+      s/^\\(@<:@0-9@:>@\\+\\)\\(@<:@^;@:>@*\\)\\(;.*\\)\\?/\\2 @\\1 NONAME/
       t loop
     ' > ${D}{tmpdefFile}%
     grep -v "^ *${D}" < ${D}{tmpdefFile}% > ${D}tmpdefFile
@@ -2394,9 +2623,9 @@ doCommand "${D}CC ${D}CFLAGS -Zdll -o ${D}dllFile ${D}defFile ${D}gccCmdl ${D}EX
 touch "${D}{outFile}.dll"
 
 doCommand "emximp -o ${D}arcFile ${D}defFile"
-if [[] ${D}flag_USE_LXLITE -ne 0 []]; then
+if @<:@ ${D}flag_USE_LXLITE -ne 0 @:>@; then
     add_flags="";
-    if [[] ${D}EXPORT_BY_ORDINALS -ne 0 []]; then
+    if @<:@ ${D}EXPORT_BY_ORDINALS -ne 0 @:>@; then
         add_flags="-ynd"
     fi
     doCommand "lxlite -cs -t: -mrn -mln ${D}add_flags ${D}dllFile"
@@ -2413,6 +2642,8 @@ dnl ===================== dllar.sh ends here =====================
 AC_DEFUN([AC_BAKEFILE_CREATE_FILE_BK_DEPS],
 [
 dnl ===================== bk-deps begins here =====================
+dnl    (Created by merge-scripts.py from bk-deps
+dnl     file do not edit here!)
 D='$'
 cat <<EOF >bk-deps
 #!/bin/sh
@@ -2425,6 +2656,7 @@ cat <<EOF >bk-deps
 DEPSMODE=${DEPSMODE}
 DEPSDIR=.deps
 DEPSFLAG_GCC="${DEPSFLAG_GCC}"
+DEPSFLAG_MWCC="${DEPSFLAG_MWCC}"
 
 mkdir -p ${D}DEPSDIR
 
@@ -2449,18 +2681,43 @@ if test ${D}DEPSMODE = gcc ; then
         esac
         shift
     done
-    depfile=\`basename ${D}srcfile | sed -e 's/\..*${D}/.d/g'\`
-    depobjname=\`echo ${D}depfile |sed -e 's/\.d/.o/g'\`
+    depfile=\`basename ${D}srcfile | sed -e 's/\\..*${D}/.d/g'\`
+    depobjname=\`echo ${D}depfile |sed -e 's/\\.d/.o/g'\`
     if test -f ${D}depfile ; then
         sed -e "s,${D}depobjname:,${D}objfile:,g" ${D}depfile >${D}{DEPSDIR}/${D}{objfile}.d
         rm -f ${D}depfile
     else
-        depfile=\`basename ${D}objfile | sed -e 's/\..*${D}/.d/g'\`
+        depfile=\`basename ${D}objfile | sed -e 's/\\..*${D}/.d/g'\`
         if test -f ${D}depfile ; then
             sed -e "/^${D}objfile/!s,${D}depobjname:,${D}objfile:,g" ${D}depfile >${D}{DEPSDIR}/${D}{objfile}.d
             rm -f ${D}depfile
         fi
     fi
+    exit 0
+elif test ${D}DEPSMODE = mwcc ; then
+    ${D}*
+    status=${D}?
+    if test ${D}{status} != 0 ; then
+        exit ${D}{status}
+    fi
+    # Run mwcc again with -MM and redirect into the dep file we want
+    # NOTE: We can't use shift here because we need ${D}* to be valid
+    prevarg=
+    for arg in ${D}* ; do
+        if test "${D}prevarg" = "-o"; then
+            objfile=${D}arg
+        else
+            case "${D}arg" in
+                -* )
+                ;;
+                * )
+                    srcfile=${D}arg
+                ;;
+            esac
+        fi
+        prevarg="${D}arg"
+    done
+    ${D}* ${D}DEPSFLAG_MWCC >${D}{DEPSDIR}/${D}{objfile}.d
     exit 0
 else
     ${D}*
@@ -2473,6 +2730,8 @@ dnl ===================== bk-deps ends here =====================
 AC_DEFUN([AC_BAKEFILE_CREATE_FILE_SHARED_LD_SH],
 [
 dnl ===================== shared-ld-sh begins here =====================
+dnl    (Created by merge-scripts.py from shared-ld-sh
+dnl     file do not edit here!)
 D='$'
 cat <<EOF >shared-ld-sh
 #!/bin/sh
@@ -2562,6 +2821,58 @@ rm -f master.${D}${D}.o
 exit 0
 EOF
 dnl ===================== shared-ld-sh ends here =====================
+])
+
+AC_DEFUN([AC_BAKEFILE_CREATE_FILE_BK_MAKE_PCH],
+[
+dnl ===================== bk-make-pch begins here =====================
+dnl    (Created by merge-scripts.py from bk-make-pch
+dnl     file do not edit here!)
+D='$'
+cat <<EOF >bk-make-pch
+#!/bin/sh
+
+# This script is part of Bakefile (http://bakefile.sourceforge.net) autoconf
+# script. It is used to generated precompiled headers.
+#
+# Permission is given to use this file in any way.
+
+outfile="${D}{1}"
+header="${D}{2}"
+shift
+shift
+
+compiler=
+headerfile=
+while test ${D}{#} -gt 0; do
+    case "${D}{1}" in
+        -I* )
+            incdir=\`echo ${D}{1} | sed -e 's/-I\\(.*\\)/\\1/g'\`
+            if test "x${D}{headerfile}" = "x" -a -f "${D}{incdir}/${D}{header}" ; then
+                headerfile="${D}{incdir}/${D}{header}"
+            fi
+        ;;
+    esac
+    compiler="${D}{compiler} ${D}{1}"
+    shift
+done
+
+if test "x${D}{headerfile}" = "x" ; then
+    echo "error: can't find header ${D}{header} in include paths" >2
+else
+    if test -f ${D}{outfile} ; then
+        rm -f ${D}{outfile}
+    else
+        mkdir -p \`dirname ${D}{outfile}\`
+    fi
+    depsfile=".deps/\`echo ${D}{outfile} | tr '/.' '__'\`.d"
+    mkdir -p .deps
+    # can do this because gcc is >= 3.4:
+    ${D}{compiler} -o ${D}{outfile} -MMD -MF "${D}{depsfile}" "${D}{headerfile}"
+    exit ${D}{?}
+fi
+EOF
+dnl ===================== bk-make-pch ends here =====================
 ])
 
 dnl

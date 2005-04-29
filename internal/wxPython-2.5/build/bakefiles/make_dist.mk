@@ -167,7 +167,6 @@ ALL_GUI_DIST: ALL_DIST
 	cp $(COMMDIR)/*.cpp $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.c $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.inc $(DISTDIR)/src/common
-	cp $(COMMDIR)/*.h $(DISTDIR)/src/common
 	cp $(COMMDIR)/*.mms $(DISTDIR)/src/common
 	cp $(UNIXDIR)/*.cpp $(DISTDIR)/src/unix
 	cp $(UNIXDIR)/*.mms $(DISTDIR)/src/unix
@@ -195,13 +194,13 @@ BASE_DIST: ALL_DIST
 	mkdir $(DISTDIR)/include/wx/unix
 	mkdir $(DISTDIR)/include/wx/xml
 	mkdir $(DISTDIR)/include/wx/msw
+	mkdir $(DISTDIR)/include/wx/html
 	mkdir $(DISTDIR)/src/unix
 	mkdir $(DISTDIR)/src/msw
 	cp $(DOCDIR)/changes.txt $(DISTDIR)/CHANGES.txt
 	cp $(DOCDIR)/base/readme.txt $(DISTDIR)/README.txt
 	cp $(WXDIR)/src/common/*.inc $(DISTDIR)/src/common
 	cp $(WXDIR)/src/common/base.rc $(DISTDIR)/src/common
-	cp $(WXDIR)/src/common/unzip.h $(DISTDIR)/src/common
 	list='$(ALL_BASE_HEADERS)'; for p in $$list; do \
 	  cp $(WXDIR)/include/$$p $(DISTDIR)/include/$$p; \
 	done
@@ -227,6 +226,12 @@ GTK_DIST: ALL_GUI_DIST
 	cp $(GTKDIR)/*.c $(DISTDIR)/src/gtk
 	cp $(GTKDIR)/*.xbm $(DISTDIR)/src/gtk
 	cp $(GTKDIR)/*.mms $(DISTDIR)/src/gtk
+
+	mkdir $(DISTDIR)/include/wx/gtk/gnome
+	mkdir $(DISTDIR)/src/gtk/gnome
+	cp $(INCDIR)/wx/gtk/gnome/*.h $(DISTDIR)/include/wx/gtk/gnome
+	cp $(GTKDIR)/gnome/*.cpp $(DISTDIR)/src/gtk/gnome
+
 	mkdir $(DISTDIR)/contrib
 	cp -R $(WXDIR)/contrib $(DISTDIR)
 
@@ -291,7 +296,6 @@ COCOA_DIST: ALL_GUI_DIST
 
 MSW_DIST: ALL_GUI_DIST
 	cp $(WXDIR)/wxWINE.spec $(DISTDIR)
-	mkdir $(DISTDIR)/include/wx/msw/ctl3d
 	mkdir $(DISTDIR)/include/wx/msw/gnuwin32
 	mkdir $(DISTDIR)/include/wx/msw/gnuwin32/gl
 	mkdir $(DISTDIR)/include/wx/msw/ole
@@ -301,7 +305,6 @@ MSW_DIST: ALL_GUI_DIST
 	cp $(INCDIR)/wx/msw/*.ico $(DISTDIR)/include/wx/msw
 	cp $(INCDIR)/wx/msw/*.bmp $(DISTDIR)/include/wx/msw
 	cp $(INCDIR)/wx/msw/*.rc $(DISTDIR)/include/wx/msw
-	cp $(INCDIR)/wx/msw/ctl3d/*.h $(DISTDIR)/include/wx/msw/ctl3d
 	cp $(INCDIR)/wx/msw/gnuwin32/*.h $(DISTDIR)/include/wx/msw/gnuwin32
 	cp $(INCDIR)/wx/msw/gnuwin32/gl/*.h $(DISTDIR)/include/wx/msw/gnuwin32/gl
 	cp $(INCDIR)/wx/msw/gnuwin32/gl/*.def $(DISTDIR)/include/wx/msw/gnuwin32/gl
@@ -311,20 +314,20 @@ MSW_DIST: ALL_GUI_DIST
 	mkdir $(DISTDIR)/src/msw/wince
 	cp $(MSWDIR)/*.cpp $(DISTDIR)/src/msw
 	cp $(MSWDIR)/*.c $(DISTDIR)/src/msw
+	cp $(MSWDIR)/*.rc $(DISTDIR)/src/msw
 	cp $(MSWDIR)/*.def $(DISTDIR)/src/msw
 	cp $(MSWDIR)/ole/*.cpp $(DISTDIR)/src/msw/ole
 
 MSW_ZIP_TEXT_DIST: ALL_GUI_DIST
 	cp $(WXDIR)/wxWINE.spec $(DISTDIR)
 	mkdir $(DISTDIR)/include/wx/msw
-	mkdir $(DISTDIR)/include/wx/msw/ctl3d
 	mkdir $(DISTDIR)/include/wx/msw/gnuwin32
 	mkdir $(DISTDIR)/include/wx/msw/gnuwin32/gl
 	mkdir $(DISTDIR)/include/wx/msw/ole
 	mkdir $(DISTDIR)/include/wx/msw/wince
 	cp $(INCDIR)/wx/msw/*.h $(DISTDIR)/include/wx/msw
 	cp $(INCDIR)/wx/msw/*.rc $(DISTDIR)/include/wx/msw
-	cp $(INCDIR)/wx/msw/ctl3d/*.h $(DISTDIR)/include/wx/msw/ctl3d
+	cp $(INCDIR)/wx/msw/wx.manifest $(DISTDIR)/include/wx/msw
 	cp $(INCDIR)/wx/msw/gnuwin32/*.h $(DISTDIR)/include/wx/msw/gnuwin32
 	cp $(INCDIR)/wx/msw/gnuwin32/gl/*.h $(DISTDIR)/include/wx/msw/gnuwin32/gl
 	cp $(INCDIR)/wx/msw/gnuwin32/gl/*.def $(DISTDIR)/include/wx/msw/gnuwin32/gl
@@ -340,7 +343,6 @@ MSW_ZIP_TEXT_DIST: ALL_GUI_DIST
 	cp $(MSWDIR)/wince/*.* $(DISTDIR)/src/msw/wince
 	cp $(SRCDIR)/*.??? $(DISTDIR)/src
 	cp $(SRCDIR)/*.?? $(DISTDIR)/src
-	cp $(MSWDIR)/?ake*.* $(DISTDIR)/src/msw
 	mkdir $(DISTDIR)/contrib
 	cp -R $(WXDIR)/contrib $(DISTDIR)
 
@@ -481,7 +483,6 @@ SAMPLES_DIST: ALL_GUI_DIST
 	mkdir $(DISTDIR)/samples/dnd
 	cp $(SAMPDIR)/dnd/Makefile.in $(DISTDIR)/samples/dnd
 	cp $(SAMPDIR)/dnd/makefile.unx $(DISTDIR)/samples/dnd
-	cp $(SAMPDIR)/dnd/*.wxr $(DISTDIR)/samples/dnd
 	cp $(SAMPDIR)/dnd/*.cpp $(DISTDIR)/samples/dnd
 	cp $(SAMPDIR)/dnd/*.xpm $(DISTDIR)/samples/dnd
 	cp $(SAMPDIR)/dnd/*.txt $(DISTDIR)/samples/dnd
@@ -613,7 +614,7 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/image/makefile.unx $(DISTDIR)/samples/image
 	cp $(SAMPDIR)/image/*.cpp $(DISTDIR)/samples/image
 	cp $(SAMPDIR)/image/*.mms $(DISTDIR)/samples/image
-	cp $(SAMPDIR)/image/horse.* $(DISTDIR)/samples/image
+	cp $(SAMPDIR)/image/horse*.* $(DISTDIR)/samples/image
 	cp $(SAMPDIR)/image/smile.xbm $(DISTDIR)/samples/image
 	cp $(SAMPDIR)/image/smile.xpm $(DISTDIR)/samples/image
 
@@ -668,6 +669,10 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/listctrl/*.h $(DISTDIR)/samples/listctrl
 	cp $(SAMPDIR)/listctrl/*.xpm $(DISTDIR)/samples/listctrl
 	cp $(SAMPDIR)/listctrl/bitmaps/*.xpm $(DISTDIR)/samples/listctrl/bitmaps
+
+	mkdir $(DISTDIR)/samples/mediaplayer
+	cp $(SAMPDIR)/mediaplayer/Makefile.in $(DISTDIR)/samples/mediaplayer
+	cp $(SAMPDIR)/mediaplayer/*.cpp $(DISTDIR)/samples/mediaplayer
 
 	mkdir $(DISTDIR)/samples/mdi
 	mkdir $(DISTDIR)/samples/mdi/bitmaps
@@ -756,6 +761,11 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/png/*.h $(DISTDIR)/samples/png
 	cp $(SAMPDIR)/png/*.png $(DISTDIR)/samples/png
 
+	mkdir $(DISTDIR)/samples/popup
+	cp $(SAMPDIR)/popup/Makefile.in $(DISTDIR)/samples/popup
+	cp $(SAMPDIR)/popup/makefile.unx $(DISTDIR)/samples/popup
+	cp $(SAMPDIR)/popup/*.cpp $(DISTDIR)/samples/popup
+
 	mkdir $(DISTDIR)/samples/printing
 	cp $(SAMPDIR)/printing/Makefile.in $(DISTDIR)/samples/printing
 	cp $(SAMPDIR)/printing/makefile.unx $(DISTDIR)/samples/printing
@@ -840,6 +850,7 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/splash/Makefile.in $(DISTDIR)/samples/splash
 	cp $(SAMPDIR)/splash/*.cpp $(DISTDIR)/samples/splash
 	cp $(SAMPDIR)/splash/*.png $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/*.mpg $(DISTDIR)/samples/splash
 
 	mkdir $(DISTDIR)/samples/splitter
 	cp $(SAMPDIR)/splitter/Makefile.in $(DISTDIR)/samples/splitter
@@ -898,6 +909,10 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/validate/*.h $(DISTDIR)/samples/validate
 	cp $(SAMPDIR)/validate/*.xpm $(DISTDIR)/samples/validate
 
+	mkdir $(DISTDIR)/samples/vscroll
+	cp $(SAMPDIR)/vscroll/Makefile.in $(DISTDIR)/samples/vscroll
+	cp $(SAMPDIR)/vscroll/*.cpp $(DISTDIR)/samples/vscroll
+
 	mkdir $(DISTDIR)/samples/wizard
 	cp $(SAMPDIR)/wizard/Makefile.in $(DISTDIR)/samples/wizard
 	cp $(SAMPDIR)/wizard/makefile.unx $(DISTDIR)/samples/wizard
@@ -911,6 +926,17 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/widgets/*.h $(DISTDIR)/samples/widgets
 	cp $(SAMPDIR)/widgets/*.rc $(DISTDIR)/samples/widgets
 	cp $(SAMPDIR)/widgets/icons/*.xpm $(DISTDIR)/samples/widgets/icons
+
+	mkdir $(DISTDIR)/samples/xrc
+	mkdir $(DISTDIR)/samples/xrc/rc
+	cp $(SAMPDIR)/xrc/Makefile.in $(DISTDIR)/samples/xrc
+	cp $(SAMPDIR)/xrc/*.cpp $(DISTDIR)/samples/xrc
+	cp $(SAMPDIR)/xrc/*.h $(DISTDIR)/samples/xrc
+	cp $(SAMPDIR)/xrc/*.rc $(DISTDIR)/samples/xrc
+	cp $(SAMPDIR)/xrc/rc/*.xpm $(DISTDIR)/samples/xrc/rc
+	cp $(SAMPDIR)/xrc/rc/*.xrc $(DISTDIR)/samples/xrc/rc
+	cp $(SAMPDIR)/xrc/rc/*.gif $(DISTDIR)/samples/xrc/rc
+	cp $(SAMPDIR)/xrc/rc/*.ico $(DISTDIR)/samples/xrc/rc
 
 UTILS_DIST: ALL_GUI_DIST
 	mkdir $(DISTDIR)/utils
@@ -964,11 +990,6 @@ UTILS_DIST: ALL_GUI_DIST
 	cp $(UTILSDIR)/wxrc/*.rc $(DISTDIR)/utils/wxrc
 
 MISC_DIST: ALL_GUI_DIST
-	mkdir $(DISTDIR)/misc
-	mkdir $(DISTDIR)/misc/afm
-	cp $(MISCDIR)/afm/*.afm  $(DISTDIR)/misc/afm
-	mkdir $(DISTDIR)/misc/gs_afm
-	cp $(MISCDIR)/gs_afm/*.afm  $(DISTDIR)/misc/gs_afm
 
 INTL_DIST:
 	mkdir $(DISTDIR)/locale

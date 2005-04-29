@@ -48,9 +48,9 @@
 // compiled in - it should only be used when building real wxFoo
 #ifdef __WXUNIVERSAL__
     #define wxUSE_MENUS_NATIVE 0
-#else // __WXMSW__
+#else // !__WXUNIVERSAL__
     #define wxUSE_MENUS_NATIVE wxUSE_MENUS
-#endif // __WXUNIVERSAL__/__WXMSW__
+#endif // __WXUNIVERSAL__/!__WXUNIVERSAL__
 
 // ----------------------------------------------------------------------------
 // forward declarations
@@ -116,7 +116,7 @@ WX_DECLARE_LIST_3(wxWindow, wxWindowBase, wxWindowList, wxWindowListNode, class 
 // global variables
 // ----------------------------------------------------------------------------
 
-WXDLLEXPORT_DATA(extern wxWindowList) wxTopLevelWindows;
+extern WXDLLEXPORT_DATA(wxWindowList) wxTopLevelWindows;
 
 // ----------------------------------------------------------------------------
 // wxWindowBase is the base class for all GUI controls/widgets, this is the public
@@ -368,7 +368,7 @@ public:
     {
         DoSetSizeHints(minW, minH, maxW, maxH, incW, incH);
     }
-    
+
     void SetSizeHints( const wxSize& minSize,
                        const wxSize& maxSize=wxDefaultSize,
                        const wxSize& incSize=wxDefaultSize)
@@ -377,7 +377,7 @@ public:
                        maxSize.x, maxSize.y,
                        incSize.x, incSize.y);
     }
-    
+
     virtual void DoSetSizeHints(int minW, int minH,
                                 int maxW = wxDefaultCoord, int maxH = wxDefaultCoord,
                                int incW = wxDefaultCoord, int incH = wxDefaultCoord );
@@ -424,10 +424,10 @@ public:
 
         // Override these methods for windows that have a virtual size
         // independent of their client size.  eg. the virtual area of a
-        // wxScrolledWindow.  Default is to alias VirtualSize to ClientSize.
+        // wxScrolledWindow.
 
     virtual void DoSetVirtualSize( int x, int y );
-    virtual wxSize DoGetVirtualSize() const; // { return m_virtualSize; }
+    virtual wxSize DoGetVirtualSize() const;
 
         // Return the largest of ClientSize and BestSize (as determined
         // by a sizer, interior children, or other means)
@@ -452,8 +452,8 @@ public:
     virtual bool Enable( bool enable = true );
     bool Disable() { return Enable(false); }
 
-    bool IsShown() const { return m_isShown; }
-    bool IsEnabled() const { return m_isEnabled; }
+    virtual bool IsShown() const { return m_isShown; }
+    virtual bool IsEnabled() const { return m_isEnabled; }
 
         // get/set window style (setting style won't update the window and so
         // is only useful for internal usage)
@@ -482,14 +482,6 @@ public:
     virtual void SetThemeEnabled(bool enableTheme) { m_themeEnabled = enableTheme; }
     virtual bool GetThemeEnabled() const { return m_themeEnabled; }
 
-        // Returns true if this class should have the background colour
-        // changed to match the parent window's theme.  For example when a
-        // page is added to a notebook it and its children may need to have
-        // the colours adjusted depending on the current theme settings, but
-        // not all windows/controls can do this without looking wrong.
-    virtual void ApplyParentThemeBackground(const wxColour& WXUNUSED(bg))
-        { /* do nothing */ }
-
 
     // focus and keyboard handling
     // ---------------------------
@@ -502,7 +494,7 @@ public:
 
         // return the window which currently has the focus or NULL
     static wxWindow *FindFocus();
-    
+
     static wxWindow *DoFindFocus() /* = 0: implement in derived classes */;
 
         // can this window have focus?
@@ -570,8 +562,8 @@ public:
 
         // find window among the descendants of this one either by id or by
         // name (return NULL if not found)
-    wxWindow *FindWindow( long winid );
-    wxWindow *FindWindow( const wxString& name );
+    wxWindow *FindWindow(long winid) const;
+    wxWindow *FindWindow(const wxString& name) const;
 
         // Find a window among any window (all return NULL if not found)
     static wxWindow *FindWindowById( long winid, const wxWindow *parent = NULL );
@@ -692,7 +684,10 @@ public:
                           const wxRect *rect = (const wxRect *) NULL ) = 0;
 
         // a less awkward wrapper for Refresh
-    void RefreshRect(const wxRect& rect) { Refresh(true, &rect); }
+    void RefreshRect(const wxRect& rect, bool eraseBackground = true)
+    {
+        Refresh(eraseBackground, &rect);
+    }
 
         // repaint all invalid areas of the window immediately
     virtual void Update() { }
@@ -756,6 +751,14 @@ public:
             m_inheritBgCol = false;
     }
     wxColour GetBackgroundColour() const;
+    bool InheritsBackgroundColour() const
+    {
+        return m_inheritBgCol;
+    }
+    bool UseBgCol() const
+    {
+        return m_hasBgCol;
+    }
 
     virtual bool SetForegroundColour(const wxColour& colour);
     void SetOwnForegroundColour(const wxColour& colour)
@@ -769,6 +772,11 @@ public:
         // Pass one of wxBG_STYLE_SYSTEM, wxBG_STYLE_COLOUR, wxBG_STYLE_CUSTOM
     virtual bool SetBackgroundStyle(wxBackgroundStyle style) { m_backgroundStyle = style; return true; }
     virtual wxBackgroundStyle GetBackgroundStyle() const { return m_backgroundStyle; }
+
+        // returns true if the control has "transparent" areas such as a
+        // wxStaticText and wxCheckBox and the background should be adapted
+        // from a parent window
+    virtual bool HasTransparentBackground() { return false; }
 
         // set/retrieve the font for the window (SetFont() returns true if the
         // font really changed)
@@ -1061,6 +1069,17 @@ public:
     // behaviour in the most common case
     virtual bool ShouldInheritColours() const { return false; }
 
+    // Reserved for future use
+    virtual void ReservedWindowFunc1() {}
+    virtual void ReservedWindowFunc2() {}
+    virtual void ReservedWindowFunc3() {}
+    virtual void ReservedWindowFunc4() {}
+    virtual void ReservedWindowFunc5() {}
+    virtual void ReservedWindowFunc6() {}
+    virtual void ReservedWindowFunc7() {}
+    virtual void ReservedWindowFunc8() {}
+    virtual void ReservedWindowFunc9() {}
+
 protected:
     // event handling specific to wxWindow
     virtual bool TryValidator(wxEvent& event);
@@ -1085,7 +1104,7 @@ protected:
     // returns the main window of composite control; this is the window
     // that FindFocus returns if the focus is in one of composite control's
     // windows
-    virtual wxWindow *GetMainWindowOfCompositeControl() 
+    virtual wxWindow *GetMainWindowOfCompositeControl()
         { return (wxWindow*)this; }
 
     // the window id - a number which uniquely identifies a window among
@@ -1293,6 +1312,9 @@ protected:
     // implements the window variants
     virtual void DoSetWindowVariant( wxWindowVariant variant ) ;
 
+    // Reserved for future use
+    void* m_windowReserved;
+
 private:
     // contains the last id generated by NewControlId
     static int ms_lastControlId;
@@ -1310,7 +1332,14 @@ private:
 // ----------------------------------------------------------------------------
 
 // include the declaration of the platform-specific class
-#if defined(__WXMSW__)
+#if defined(__WXPALMOS__)
+    #ifdef __WXUNIVERSAL__
+        #define wxWindowNative wxWindowPalm
+    #else // !wxUniv
+        #define wxWindowPalm wxWindow
+    #endif // wxUniv/!wxUniv
+    #include "wx/palmos/window.h"
+#elif defined(__WXMSW__)
     #ifdef __WXUNIVERSAL__
         #define wxWindowNative wxWindowMSW
     #else // !wxUniv
@@ -1389,13 +1418,13 @@ inline wxWindow *wxWindowBase::GetGrandParent() const
 
 // Find the wxWindow at the current mouse position, also returning the mouse
 // position.
-WXDLLEXPORT extern wxWindow* wxFindWindowAtPointer(wxPoint& pt);
+extern WXDLLEXPORT wxWindow* wxFindWindowAtPointer(wxPoint& pt);
 
 // Get the current mouse position.
-WXDLLEXPORT extern wxPoint wxGetMousePosition();
+extern WXDLLEXPORT wxPoint wxGetMousePosition();
 
 // get the currently active window of this application or NULL
-WXDLLEXPORT extern wxWindow *wxGetActiveWindow();
+extern WXDLLEXPORT wxWindow *wxGetActiveWindow();
 
 // get the (first) top level parent window
 WXDLLEXPORT wxWindow* wxGetTopLevelParent(wxWindow *win);
@@ -1412,7 +1441,7 @@ class WXDLLEXPORT wxWindowAccessible: public wxAccessible
 {
 public:
     wxWindowAccessible(wxWindow* win): wxAccessible(win) { if (win) win->SetAccessible(this); }
-    virtual ~wxWindowAccessible() {};
+    virtual ~wxWindowAccessible() {}
 
 // Overridables
 

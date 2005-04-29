@@ -9,9 +9,11 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "dialog.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/dialog.h"
 #include "wx/utils.h"
@@ -163,6 +165,8 @@ void wxDialog::DoShowModal()
 
     wxModalDialogs.Append(this);
 
+    SetFocus() ;
+    
 #if TARGET_CARBON
     BeginAppModalStateForWindow(  (WindowRef) MacGetWindowRef()) ;
 #else

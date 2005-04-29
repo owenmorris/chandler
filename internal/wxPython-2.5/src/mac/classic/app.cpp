@@ -1479,7 +1479,7 @@ void wxApp::MacHandleModifierEvents( WXEVENTREF evr )
 
         event.m_x = ev->where.h;
         event.m_y = ev->where.v;
-        event.m_timeStamp = ev->when;
+        event.SetTimestamp( ev->when );
         wxWindow* focus = wxWindow::FindFocus() ;
         event.SetEventObject(focus);
 
@@ -1853,14 +1853,12 @@ int wxKeyCodeToMacModifier(wxKeyCode key)
 
 bool wxGetKeyState(wxKeyCode key) //virtual key code if < 10.2.x, else see below
 {
-#if __WXMAC_CARBON__
-//TODO: Low get map...
-   return !!(GetCurrentKeyModifiers() & wxKeyCodeToMacModifier(key)); 
-#else
-	KeyMap keymap; 
-	GetKeys(keymap);
-	return !!(BitTst(keymap, (sizeof(KeyMap)*8) - key));
-#endif
+    wxASSERT_MSG(key != WXK_LBUTTON && key != WXK_RBUTTON && key !=
+        WXK_MBUTTON, wxT("can't use wxGetKeyState() for mouse buttons"));
+
+    KeyMap keymap; 
+    GetKeys(keymap);
+    return !!(BitTst(keymap, (sizeof(KeyMap)*8) - key));
 }
 
 #if !TARGET_CARBON
@@ -1953,7 +1951,7 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
 
     event.m_x = wherex;
     event.m_y = wherey;
-    event.m_timeStamp = when;
+    event.SetTimestamp(when);
     event.SetEventObject(focus);
     handled = focus->GetEventHandler()->ProcessEvent( event ) ;
     if ( handled && event.GetSkipped() )
@@ -2080,7 +2078,7 @@ bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifier
 
     event.m_x = wherex;
     event.m_y = wherey;
-    event.m_timeStamp = when;
+    event.SetTimestamp(when);
     event.SetEventObject(focus);
     handled = focus->GetEventHandler()->ProcessEvent( event ) ;
 
@@ -2219,7 +2217,7 @@ void wxApp::MacHandleOSEvent( WXEVENTREF evr )
                     event.m_metaDown = ev->modifiers & cmdKey;
                     event.m_x = ev->where.h;
                     event.m_y = ev->where.v;
-                    event.m_timeStamp = ev->when;
+                    event.SetTimestamp( ev->when );
                     event.SetEventObject(this);
 
                     if ( wxWindow::s_lastMouseWindow )
@@ -2322,7 +2320,7 @@ void wxApp::MacHandleMouseMovedEvent(wxInt32 x , wxInt32 y ,wxUint32 modifiers ,
 
         event.m_x = x;
         event.m_y = y;
-        event.m_timeStamp = timestamp;
+        event.SetTimestamp(timestamp);
 
         if ( wxWindow::s_lastMouseWindow )
         {

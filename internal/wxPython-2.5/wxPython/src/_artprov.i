@@ -48,13 +48,20 @@ MAKE_CONST_WXSTRING(ART_GO_DOWN);
 MAKE_CONST_WXSTRING(ART_GO_TO_PARENT);
 MAKE_CONST_WXSTRING(ART_GO_HOME);
 MAKE_CONST_WXSTRING(ART_FILE_OPEN);
+MAKE_CONST_WXSTRING(ART_FILE_SAVE);
+MAKE_CONST_WXSTRING(ART_FILE_SAVE_AS);
 MAKE_CONST_WXSTRING(ART_PRINT);
 MAKE_CONST_WXSTRING(ART_HELP);
 MAKE_CONST_WXSTRING(ART_TIP);
 MAKE_CONST_WXSTRING(ART_REPORT_VIEW);
 MAKE_CONST_WXSTRING(ART_LIST_VIEW);
 MAKE_CONST_WXSTRING(ART_NEW_DIR);
+MAKE_CONST_WXSTRING(ART_HARDDISK);
+MAKE_CONST_WXSTRING(ART_FLOPPY);
+MAKE_CONST_WXSTRING(ART_CDROM);
+MAKE_CONST_WXSTRING(ART_REMOVABLE);
 MAKE_CONST_WXSTRING(ART_FOLDER);
+MAKE_CONST_WXSTRING(ART_FOLDER_OPEN);
 MAKE_CONST_WXSTRING(ART_GO_DIR_UP);
 MAKE_CONST_WXSTRING(ART_EXECUTABLE_FILE);
 MAKE_CONST_WXSTRING(ART_NORMAL_FILE);
@@ -65,6 +72,15 @@ MAKE_CONST_WXSTRING(ART_QUESTION);
 MAKE_CONST_WXSTRING(ART_WARNING);
 MAKE_CONST_WXSTRING(ART_INFORMATION);
 MAKE_CONST_WXSTRING(ART_MISSING_IMAGE);
+MAKE_CONST_WXSTRING(ART_COPY);
+MAKE_CONST_WXSTRING(ART_CUT);
+MAKE_CONST_WXSTRING(ART_PASTE);
+MAKE_CONST_WXSTRING(ART_DELETE);
+MAKE_CONST_WXSTRING(ART_UNDO);
+MAKE_CONST_WXSTRING(ART_REDO);
+MAKE_CONST_WXSTRING(ART_QUIT);
+MAKE_CONST_WXSTRING(ART_FIND);
+MAKE_CONST_WXSTRING(ART_FIND_AND_REPLACE);
 
 //---------------------------------------------------------------------------
 
@@ -76,7 +92,7 @@ public:
                                   const wxArtClient& client,
                                   const wxSize& size) {
         wxBitmap rval = wxNullBitmap;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((wxPyCBH_findCallback(m_myInst, "CreateBitmap"))) {
             PyObject* so = wxPyConstructObject((void*)&size, wxT("wxSize"), 0);
             PyObject* ro;
@@ -205,7 +221,8 @@ MustHaveApp(wxPyArtProvider);
 MustHaveApp(wxPyArtProvider::GetBitmap);
 MustHaveApp(wxPyArtProvider::GetIcon);
 
-%name(ArtProvider) class wxPyArtProvider /*: public wxObject*/
+%rename(ArtProvider) wxPyArtProvider;
+class wxPyArtProvider /*: public wxObject*/
 {
 public:
 
@@ -244,6 +261,12 @@ wx.NullBitmap if no provider provides it.", "");
                                 const wxSize& size = wxDefaultSize),
         "Query the providers for icon with given ID and return it.  Return
 wx.NullIcon if no provider provides it.", "");
+
+    DocDeclStr(
+        static wxSize , GetSizeHint(const wxString& client, bool platform_dependent = false),
+        "Get the size hint of an icon from a specific Art Client, queries the
+topmost provider if platform_dependent = false", "");
+    
     
 
     %extend { void Destroy() { delete self; }}

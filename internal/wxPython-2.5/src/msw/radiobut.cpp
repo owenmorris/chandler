@@ -168,6 +168,12 @@ void wxRadioButton::SetValue(bool value)
     // buttons in the same group: Windows doesn't do it automatically
     if ( m_isChecked )
     {
+        // If another radiobutton in the group currently has the focus, we have to 
+        // set it to this radiobutton, else the old readiobutton will be reselected
+        // automatically, if a parent window loses the focus and regains it.
+        bool shouldSetFocus = false;
+        wxWindow* pFocusWnd = FindFocus();
+
         const wxWindowList& siblings = GetParent()->GetChildren();
         wxWindowList::compatibility_iterator nodeThis = siblings.Find(this);
         wxCHECK_RET( nodeThis, _T("radio button not a child of its parent?") );
@@ -182,20 +188,25 @@ void wxRadioButton::SetValue(bool value)
             {
                 wxRadioButton *btn = wxDynamicCast(nodeBefore->GetData(),
                                                    wxRadioButton);
-                if ( !btn )
+                if ( btn && btn->HasFlag(wxRB_SINGLE) )
                 {
-                    // the radio buttons in a group must be consecutive, so
-                    // there are no more of them
+                    // A wxRB_SINGLE button isn't part of this group
                     break;
                 }
-
-                btn->SetValue(false);
-
-                if ( btn->HasFlag(wxRB_GROUP) )
+                
+                if (btn)
                 {
-                    // even if there are other radio buttons before this one,
-                    // they're not in the same group with us
-                    break;
+                    if (btn == pFocusWnd)
+                        shouldSetFocus = true;
+
+                    btn->SetValue(false);
+
+                    if ( btn->HasFlag(wxRB_GROUP) )
+                    {
+                        // even if there are other radio buttons before this one,
+                        // they're not in the same group with us
+                        break;
+                    }
                 }
             }
         }
@@ -208,14 +219,22 @@ void wxRadioButton::SetValue(bool value)
             wxRadioButton *btn = wxDynamicCast(nodeAfter->GetData(),
                                                wxRadioButton);
 
-            if ( !btn || btn->HasFlag(wxRB_GROUP) )
+            if ( btn && (btn->HasFlag(wxRB_GROUP) || btn->HasFlag(wxRB_SINGLE) ) )
             {
                 // no more buttons or the first button of the next group
                 break;
             }
 
-            btn->SetValue(false);
+            if (btn)
+            {
+                if (btn == pFocusWnd)
+                        shouldSetFocus = true;
+
+                btn->SetValue(false);
+            }
         }
+        if (shouldSetFocus)
+            SetFocus();
     }
 }
 
@@ -234,7 +253,7 @@ bool wxRadioButton::GetValue() const
 
 void wxRadioButton::Command (wxCommandEvent& event)
 {
-    SetValue(event.m_commandInt != 0);
+    SetValue(event.GetInt() != 0);
     ProcessCommand(event);
 }
 

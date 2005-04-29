@@ -10,11 +10,17 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "colordlg.h"
 #endif
 
+#include "wx/wxprec.h"
+
 #include "wx/mac/colordlg.h"
+#include "wx/fontdlg.h"
+
+
+#if !USE_NATIVE_FONT_DIALOG_FOR_MACOSX
 
 #if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
@@ -68,3 +74,4 @@ int wxColourDialog::ShowModal()
     return wxID_CANCEL;
 }
 
+#endif

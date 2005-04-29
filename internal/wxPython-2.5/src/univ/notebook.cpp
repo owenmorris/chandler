@@ -48,7 +48,7 @@
 // due to unsigned type nPage is always >= 0
 #define IS_VALID_PAGE(nPage) (((nPage) >= 0) && ((size_t(nPage)) < GetPageCount()))
 #else
-#define IS_VALID_PAGE(nPage) ((size_t(nPage)) < GetPageCount())
+#define IS_VALID_PAGE(nPage) (((size_t)nPage) < GetPageCount())
 #endif
 
 // ----------------------------------------------------------------------------
@@ -144,7 +144,7 @@ bool wxNotebook::Create(wxWindow *parent,
 
 wxString wxNotebook::GetPageText(size_t nPage) const
 {
-    wxCHECK_MSG( IS_VALID_PAGE(nPage), _T(""), _T("invalid notebook page") );
+    wxCHECK_MSG( IS_VALID_PAGE(nPage), wxEmptyString, _T("invalid notebook page") );
 
     return m_titles[nPage];
 }
@@ -473,7 +473,7 @@ void wxNotebook::DoDrawTab(wxDC& dc, const wxRect& rect, size_t n)
         m_imageList->Draw(image, dc, 0, 0, wxIMAGELIST_DRAW_NORMAL, true);
         dc.SelectObject(wxNullBitmap);
 #else
-        bmp = *m_imageList->GetBitmap(image);
+        bmp = m_imageList->GetBitmap(image);
 #endif
     }
 
@@ -745,8 +745,16 @@ wxRect wxNotebook::GetTabsPart() const
     const wxSize indent = GetRenderer()->GetTabIndent();
     if ( IsVertical() )
     {
-        rect.x += indent.y;
         rect.y += indent.x;
+        if ( dir == wxLEFT )
+        {
+            rect.x += indent.y;
+            rect.width -= indent.y;
+        }
+        else // wxRIGHT
+        {
+            rect.width -= indent.y;
+        }
     }
     else // horz
     {
@@ -1245,7 +1253,7 @@ void wxNotebook::ScrollLastTo(int page)
 wxSize wxNotebook::DoGetBestClientSize() const
 {
     // calculate the max page size
-    wxSize size(0, 0);
+    wxSize size;
 
     size_t count = GetPageCount();
     if ( count )
@@ -1285,9 +1293,9 @@ void wxNotebook::DoSetSize(int x, int y,
     wxSize old_client_size = GetClientSize();
 
     wxControl::DoSetSize(x, y, width, height, sizeFlags);
-    
+
     wxSize new_client_size = GetClientSize();
-    
+
     if (old_client_size != new_client_size)
         Relayout();
 }

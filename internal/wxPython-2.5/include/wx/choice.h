@@ -20,6 +20,8 @@
     #pragma interface "choicebase.h"
 #endif
 
+#include "wx/defs.h"
+
 #if wxUSE_CHOICE
 
 #include "wx/ctrlsub.h"     // the base class
@@ -28,7 +30,7 @@
 // global data
 // ----------------------------------------------------------------------------
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxChoiceNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxChoiceNameStr;
 
 // ----------------------------------------------------------------------------
 // wxChoice allows to select one of a non-modifiable list of strings
@@ -41,13 +43,6 @@ public:
     virtual ~wxChoiceBase();
 
     // all generic methods are in wxControlWithItems
-
-    // single selection logic
-    virtual void SetSelection(int n) = 0;
-    virtual bool SetStringSelection(const wxString& s);
-
-    // don't override this
-    virtual void Select(int n) { SetSelection(n); }
 
     // set/get the number of columns in the control (as they're not supported on
     // most platforms, they do nothing by default)

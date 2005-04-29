@@ -36,9 +36,9 @@ class WXDLLEXPORT wxImage;
 // constants
 // ----------------------------------------------------------------------------
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxToolBarNameStr;
-WXDLLEXPORT_DATA(extern const wxSize) wxDefaultSize;
-WXDLLEXPORT_DATA(extern const wxPoint) wxDefaultPosition;
+extern WXDLLEXPORT_DATA(const wxChar*) wxToolBarNameStr;
+extern WXDLLEXPORT_DATA(const wxSize) wxDefaultSize;
+extern WXDLLEXPORT_DATA(const wxPoint) wxDefaultPosition;
 
 enum wxToolBarToolStyle
 {
@@ -109,7 +109,7 @@ public:
         m_toolStyle = wxTOOL_STYLE_CONTROL;
     }
 
-    ~wxToolBarToolBase();
+    ~wxToolBarToolBase(){}
 
     // accessors
     // ---------
@@ -151,10 +151,10 @@ public:
     const wxBitmap& GetBitmap() const
         { return IsEnabled() ? GetNormalBitmap() : GetDisabledBitmap(); }
 
-    wxString GetLabel() const { return m_label; }
+    const wxString& GetLabel() const { return m_label; }
 
-    wxString GetShortHelp() const { return m_shortHelpString; }
-    wxString GetLongHelp() const { return m_longHelpString; }
+    const wxString& GetShortHelp() const { return m_shortHelpString; }
+    const wxString& GetLongHelp() const { return m_longHelpString; }
 
     wxObject *GetClientData() const
     {
@@ -200,11 +200,11 @@ public:
 
     // compatibility only, don't use
 #if WXWIN_COMPATIBILITY_2_2
-    const wxBitmap& GetBitmap1() const { return GetNormalBitmap(); }
-    const wxBitmap& GetBitmap2() const { return GetDisabledBitmap(); }
+    wxDEPRECATED( const wxBitmap& GetBitmap1() const );
+    wxDEPRECATED( const wxBitmap& GetBitmap2() const );
 
-    void SetBitmap1(const wxBitmap& bmp) { SetNormalBitmap(bmp); }
-    void SetBitmap2(const wxBitmap& bmp) { SetDisabledBitmap(bmp); }
+    wxDEPRECATED( void SetBitmap1(const wxBitmap& bmp) );
+    wxDEPRECATED( void SetBitmap2(const wxBitmap& bmp) );
 #endif // WXWIN_COMPATIBILITY_2_2
 
 protected:

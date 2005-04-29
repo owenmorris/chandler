@@ -34,6 +34,7 @@
 #include "wx/filename.h"
 #include "wx/module.h"
 #include "wx/image.h"
+#include "wx/thread.h"
 
 #ifdef __WXGPE__
 #include <gpe/init.h>
@@ -79,7 +80,6 @@
 
 #include <gtk/gtk.h>
 
-
 //-----------------------------------------------------------------------------
 // global data
 //-----------------------------------------------------------------------------
@@ -96,6 +96,10 @@ static GtkWidget *gs_RootWindow = (GtkWidget*) NULL;
 extern bool g_isIdle;
 
 void wxapp_install_idle_handler();
+
+#if wxUSE_THREADS
+static wxMutex gs_idleTagsMutex;
+#endif
 
 //-----------------------------------------------------------------------------
 // wxYield
@@ -128,14 +132,9 @@ bool wxApp::Yield(bool onlyIfNeeded)
 
     wxIsInsideYield = TRUE;
 
-    if (!g_isIdle)
-    {
-        // We need to remove idle callbacks or the loop will
-        // never finish.
-        gtk_idle_remove( m_idleTag );
-        m_idleTag = 0;
-        g_isIdle = TRUE;
-    }
+    // We need to remove idle callbacks or the loop will
+    // never finish.
+    wxTheApp->RemoveIdleTag();
 
     // disable log flushing from here because a call to wxYield() shouldn't
     // normally result in message boxes popping up &c
@@ -164,20 +163,30 @@ bool wxApp::Yield(bool onlyIfNeeded)
 // wxWakeUpIdle
 //-----------------------------------------------------------------------------
 
+// RR/KH: The wxMutexGui calls are not needed on GTK2 according to
+// the GTK faq, http://www.gtk.org/faq/#AEN500
+// The calls to gdk_threads_enter() and leave() are specifically noted
+// as not being necessary.  The MutexGui calls are still left in for GTK1.
+// Eliminating the MutexGui calls fixes the long-standing "random" lockup
+// when using wxPostEvent (which calls WakeUpIdle) from a thread.
+
 void wxApp::WakeUpIdle()
 {
+#ifndef __WXGTK20__
 #if wxUSE_THREADS
     if (!wxThread::IsMain())
         wxMutexGuiEnter();
-#endif
+#endif // wxUSE_THREADS_
+#endif // __WXGTK2__
 
-    if (g_isIdle)
-        wxapp_install_idle_handler();
+    wxapp_install_idle_handler();
 
+#ifndef __WXGTK20__
 #if wxUSE_THREADS
     if (!wxThread::IsMain())
         wxMutexGuiLeave();
-#endif
+#endif // wxUSE_THREADS_
+#endif // __WXGTK2__
 }
 
 //-----------------------------------------------------------------------------
@@ -200,7 +209,12 @@ static gint wxapp_pending_callback( gpointer WXUNUSED(data) )
     // Sent idle event to all who request them.
     wxTheApp->ProcessPendingEvents();
 
-    g_pendingTag = 0;
+    {
+#if wxUSE_THREADS
+        wxMutexLocker lock(gs_idleTagsMutex);
+#endif
+        g_pendingTag = 0;
+    }
 
     // Flush the logged messages if any.
 #if wxUSE_LOG
@@ -248,8 +262,13 @@ static gint wxapp_idle_callback( gpointer WXUNUSED(data) )
 
     // Indicate that we are now in idle mode and event handlers
     // will have to reinstall the idle handler again.
-    g_isIdle = TRUE;
-    wxTheApp->m_idleTag = 0;
+    {
+#if wxUSE_THREADS
+        wxMutexLocker lock(gs_idleTagsMutex);
+#endif
+        g_isIdle = TRUE;
+        wxTheApp->m_idleTag = 0;
+    }
 
     // Send idle event to all who request them as long as
     // no events have popped up in the event queue.
@@ -357,6 +376,15 @@ static gint wxapp_poll_func( GPollFD *ufds, guint nfds, gint timeout )
 
 void wxapp_install_idle_handler()
 {
+#if wxUSE_THREADS
+    wxMutexLocker lock(gs_idleTagsMutex);
+#endif
+
+    // Don't install the handler if it's already installed. This test *MUST*
+    // be done when gs_idleTagsMutex is locked!
+    if (!g_isIdle)
+        return;
+
     // GD: this assert is raised when using the thread sample (which works)
     //     so the test is probably not so easy. Can widget callbacks be
     //     triggered from child threads and, if so, for which widgets?
@@ -408,6 +436,7 @@ wxApp::wxApp()
 #endif // __WXDEBUG__
 
     m_idleTag = 0;
+    g_isIdle = TRUE;
     wxapp_install_idle_handler();
 
 #if wxUSE_THREADS
@@ -418,6 +447,7 @@ wxApp::wxApp()
 
     // this is NULL for a "regular" wxApp, but is set (and freed) by a wxGLApp
     m_glVisualInfo = (void *) NULL;
+    m_glFBCInfo = (void *) NULL;
 }
 
 wxApp::~wxApp()
@@ -576,6 +606,34 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
         wxConvCurrent = (wxMBConv*) NULL;
 #endif // wxUSE_WCHAR_T/!wxUSE_WCHAR_T
 
+#ifdef __WXGTK20__
+    // decide which conversion to use for the file names
+
+    // (1) this variable exists for the sole purpose of specifying the encoding
+    //     of the filenames for GTK+ programs, so use it if it is set
+    wxString encName(wxGetenv(_T("G_FILENAME_ENCODING")));
+    if (encName == _T("@locale"))
+        encName.clear();
+    encName.MakeUpper();
+#if wxUSE_INTL        
+    if (encName.empty())
+    {
+        // (2) if a non default locale is set, assume that the user wants his
+        //     filenames in this locale too
+        encName = wxLocale::GetSystemEncodingName().Upper();
+        // (3) finally use UTF-8 by default
+        if (encName.empty() || encName == _T("US-ASCII"))
+            encName = _T("UTF-8");
+        wxSetEnv(_T("G_FILENAME_ENCODING"), encName);
+    }
+#else
+    if (encName.empty())
+        encName = _T("UTF-8");
+#endif // wxUSE_INTL
+    static wxConvBrokenFileNames fileconv(encName);
+    wxConvFileName = &fileconv;
+#endif // __WXGTK20__
+
 #if wxUSE_UNICODE
     // gtk_init() wants UTF-8, not wchar_t, so convert
     int i;
@@ -668,3 +726,15 @@ void wxApp::OnAssert(const wxChar *file, int line, const wxChar* cond, const wxC
 
 #endif // __WXDEBUG__
 
+void wxApp::RemoveIdleTag()
+{
+#if wxUSE_THREADS
+    wxMutexLocker lock(gs_idleTagsMutex);
+#endif
+    if (!g_isIdle)
+    {
+        gtk_idle_remove( wxTheApp->m_idleTag );
+        wxTheApp->m_idleTag = 0;
+        g_isIdle = TRUE;
+    }
+}

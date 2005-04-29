@@ -9,7 +9,7 @@
 // Licence:     The wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_GUI
 
@@ -33,6 +33,9 @@
 #endif
 #include "wx/mac/uma.h"
 
+#if TARGET_API_MAC_OSX
+#include "wx/toplevel.h"
+#endif
 
 // since we have decided that we only support 8.6 upwards we are
 // checking for these minimum requirements in the startup code of
@@ -194,7 +197,7 @@ long UMAGetProcessMode()
     ProcessInfoRec processinfo;
     ProcessSerialNumber procno ;
 
-    procno.highLongOfPSN = NULL ;
+    procno.highLongOfPSN = 0 ;
     procno.lowLongOfPSN = kCurrentProcess ;
     processinfo.processInfoLength = sizeof(ProcessInfoRec);
     processinfo.processName = NULL;
@@ -790,21 +793,17 @@ OSStatus UMAPutScrap( Size size , OSType type , void *data )
 
 Rect* UMAGetControlBoundsInWindowCoords(ControlRef theControl, Rect *bounds)
 {
-    wxWindow* win = wxFindControlFromMacControl( theControl ) ;
-    
     GetControlBounds( theControl , bounds ) ;
 #if TARGET_API_MAC_OSX
-    if ( win != NULL && win->MacGetTopLevelWindow() != NULL )   
+    WindowRef tlwref = GetControlOwner( theControl ) ;
+
+    wxTopLevelWindowMac* tlwwx = wxFindWinFromMacWindow( tlwref ) ;
+    if ( tlwwx != NULL && tlwwx->MacUsesCompositing() )
     {
-        int x , y ;
-        x = 0 ;
-        y = 0 ;
-        
-        win->GetParent()->MacWindowToRootWindow( &x , & y ) ;
-        bounds->left += x ;
-        bounds->right += x ;
-        bounds->top += y ;
-        bounds->bottom += y ;
+        ControlRef rootControl = tlwwx->GetPeer()->GetControlRef() ;
+        HIPoint hiPoint = CGPointMake(  0 , 0 ) ;
+        HIViewConvertPoint( &hiPoint , HIViewGetSuperview(theControl) , rootControl  ) ;
+        OffsetRect( bounds , (short) hiPoint.x , (short) hiPoint.y ) ;
     }
 #endif
     return bounds ;

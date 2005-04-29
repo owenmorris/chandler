@@ -28,34 +28,13 @@
 // compatibility settings
 // ----------------------------------------------------------------------------
 
-// This setting determines the compatibility with 2.0 API: set it to 1 to
+// This setting determines the compatibility with 2.2 API: set it to 1 to
 // enable it
 //
 // Default is 1.
 //
 // Recommended setting: 0 (please update your code instead!)
 #define WXWIN_COMPATIBILITY_2_2 1
-
-// in wxMSW version 2.1.11 and earlier, wxIcon always derives from wxBitmap,
-// but this is very dangerous because you can mistakenly pass an icon instead
-// of a bitmap to a function taking "const wxBitmap&" - which will *not* work
-// because an icon is not a valid bitmap
-//
-// Starting from 2.1.12, you have the choice under this backwards compatible
-// behaviour (your code will still compile, but probably won't behave as
-// expected!) and not deriving wxIcon class from wxBitmap, but providing a
-// conversion ctor wxBitmap(const wxIcon&) instead.
-//
-// Recommended setting: 0
-#define wxICON_IS_BITMAP    0
-
-// Define as 1 for font size to be backward compatible to 1.63 and earlier.
-// 1.64 and later define point sizes to be compatible with Windows.
-//
-// Default is 0
-//
-// Recommended setting: 0
-#define wxFONT_SIZE_COMPATIBILITY    0
 
 // Set to 0 for accurate dialog units, else 1 to be as per 2.1.16 and before.
 // If migrating between versions, your dialogs may seem to shrink.
@@ -391,6 +370,27 @@
 
 // wxSound class
 #define wxUSE_SOUND      0
+
+// Use wxMediaCtrl
+//
+// Default is 1.
+//
+// Recommended setting: 1 
+#define wxUSE_MEDIACTRL     1
+
+// Use QuickTime
+//
+// Default is 0
+//
+// Recommended setting: 1 if you have the QT SDK installed and you need it, else 0
+#define wxUSE_QUICKTIME     0
+
+// Use DirectShow
+//
+// Default is 0
+//
+// Recommended setting: 1 if the DirectX 7 SDK is installed (highly recommended), else 0
+#define wxUSE_DIRECTSHOW    1
 
 // Use wxWidget's XRC XML-based resource system.  Recommended.
 //
@@ -808,10 +808,6 @@
 // Set to 1 to use font metric files in GetTextExtent
 #define wxUSE_AFM_FOR_POSTSCRIPT 0
 
-// Set to 0 to disable PostScript print/preview architecture code under Windows
-// (just use Windows printing).
-#define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 0
-
 // ----------------------------------------------------------------------------
 // database classes
 // ----------------------------------------------------------------------------
@@ -932,6 +928,10 @@
 #else
 #define wxUSE_CTL3D                      1
 #endif
+
+// Set to 0 to disable PostScript print/preview architecture code under Windows
+// (just use Windows printing).
+#define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 0
 
 // Define as 1 to use Microsoft's ItsyBitsy small title bar library, for
 // wxMiniFrame. This setting is only used for Win3.1; Win9x and NT use native

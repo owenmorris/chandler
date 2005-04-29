@@ -167,7 +167,7 @@ bool wxTextCtrl::Create(wxWindow *parent, wxWindowID id,
     WXDWORD msStyle = MSWGetStyle(GetWindowStyle(), & exStyle) ;
 
     wxSize sizeText(size), sizeBtn(size);
-    sizeBtn.x = GetBestSpinerSize(IsVertical(style)).x / 2;
+    sizeBtn.x = GetBestSpinnerSize(IsVertical(style)).x / 2;
 
     if ( sizeText.x == wxDefaultCoord )
     {
@@ -566,7 +566,7 @@ long wxTextCtrl::GetInsertionPoint() const
     return Pos & 0xFFFF;
 }
 
-long wxTextCtrl::GetLastPosition() const
+wxTextPos wxTextCtrl::GetLastPosition() const
 {
     int numLines = GetNumberOfLines();
     long posStartLastLine = XYToPosition(0, numLines - 1);
@@ -1040,40 +1040,6 @@ bool wxTextCtrl::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
     return true;
 }
 
-WXHBRUSH wxTextCtrl::OnCtlColor(WXHDC pDC, WXHWND WXUNUSED(pWnd), WXUINT WXUNUSED(nCtlColor),
-#if wxUSE_CTL3D
-                               WXUINT message,
-                               WXWPARAM wParam,
-                               WXLPARAM lParam
-#else
-                               WXUINT WXUNUSED(message),
-                               WXWPARAM WXUNUSED(wParam),
-                               WXLPARAM WXUNUSED(lParam)
-#endif
-    )
-{
-#if wxUSE_CTL3D
-    if ( m_useCtl3D )
-    {
-        HBRUSH hbrush = Ctl3dCtlColorEx(message, wParam, lParam);
-        return (WXHBRUSH) hbrush;
-    }
-#endif // wxUSE_CTL3D
-
-    HDC hdc = (HDC)pDC;
-    wxColour colBack = GetBackgroundColour();
-
-    if (!IsEnabled() && (GetWindowStyle() & wxTE_MULTILINE) == 0)
-        colBack = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
-
-    ::SetBkColor(hdc, wxColourToRGB(colBack));
-    ::SetTextColor(hdc, wxColourToRGB(GetForegroundColour()));
-
-    wxBrush *brush = wxTheBrushList->FindOrCreateBrush(colBack, wxSOLID);
-
-    return (WXHBRUSH)brush->GetResourceHandle();
-}
-
 bool wxTextCtrl::AdjustSpaceLimit()
 {
     unsigned int limit = ::SendMessage(GetBuddyHwnd(), EM_GETLIMITTEXT, 0, 0);
@@ -1122,7 +1088,7 @@ bool wxTextCtrl::AcceptsFocus() const
 
 void wxTextCtrl::DoMoveWindow(int x, int y, int width, int height)
 {
-    int widthBtn = GetBestSpinerSize(IsVertical(GetWindowStyle())).x / 2;
+    int widthBtn = GetBestSpinnerSize(IsVertical(GetWindowStyle())).x / 2;
     int widthText = width - widthBtn - MARGIN_BETWEEN;
     if ( widthText <= 0 )
     {

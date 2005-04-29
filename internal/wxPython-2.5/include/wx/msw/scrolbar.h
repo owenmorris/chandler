@@ -54,14 +54,13 @@ public:
     void SetRange( int s ) { SetScrollbar( GetThumbPosition() , GetThumbSize() , s , GetPageSize() , true ) ; }
 
     void Command(wxCommandEvent& event);
-    virtual WXHBRUSH OnCtlColor(WXHDC pDC, WXHWND pWnd, WXUINT nCtlColor,
-            WXUINT message, WXWPARAM wParam, WXLPARAM lParam);
     virtual bool MSWOnScroll(int orientation, WXWORD wParam,
                              WXWORD pos, WXHWND control);
 
 protected:
 
     wxSize DoGetBestSize() const;
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     int m_pageSize;
     int m_viewSize;

@@ -15,7 +15,7 @@
     #pragma interface "univdialog.h"
 #endif
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxDialogNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxDialogNameStr;
 class WXDLLEXPORT wxWindowDisabler;
 class WXDLLEXPORT wxEventLoop;
 
@@ -58,7 +58,7 @@ public:
     // returns true if we're in a modal loop
     bool IsModalShowing() const;
 
-    bool Show(bool show = true);
+    virtual bool Show(bool show = true);
 
     // implementation only from now on
     // -------------------------------

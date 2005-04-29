@@ -227,6 +227,10 @@ public:
     void SetLinkColor(const wxColour& clr);
     wxColour GetActualColor();
     void SetActualColor(const wxColour& clr);
+    %pythoncode {
+        GetActualColour = GetActualColor
+        SetActualColour = SetActualColor
+    }
     void SetLink(const wxString& link);
     wxFont* CreateCurrentFont();
     wxHtmlLinkInfo GetLink();
@@ -258,7 +262,8 @@ IMP_PYCALLBACK_BOOL_TAG_pure(wxPyHtmlTagHandler, wxHtmlTagHandler, HandleTag);
 %}
 
 
-%name(HtmlTagHandler) class wxPyHtmlTagHandler : public wxObject {
+%rename(HtmlTagHandler) wxPyHtmlTagHandler;
+class wxPyHtmlTagHandler : public wxObject {
 public:
     %pythonAppend wxPyHtmlTagHandler   "self._setCallbackInfo(self, HtmlTagHandler)"    
     wxPyHtmlTagHandler();
@@ -296,7 +301,8 @@ IMP_PYCALLBACK_BOOL_TAG_pure(wxPyHtmlWinTagHandler, wxHtmlWinTagHandler, HandleT
 %}
 
 
-%name(HtmlWinTagHandler) class wxPyHtmlWinTagHandler : public wxPyHtmlTagHandler {
+%rename(HtmlWinTagHandler) wxPyHtmlWinTagHandler;
+class wxPyHtmlWinTagHandler : public wxPyHtmlTagHandler {
 public:
     %pythonAppend wxPyHtmlWinTagHandler    "self._setCallbackInfo(self, HtmlWinTagHandler)"
     wxPyHtmlWinTagHandler();
@@ -323,7 +329,7 @@ public:
     }
 
     void OnExit() {
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         Py_DECREF(m_tagHandlerClass);
         m_tagHandlerClass = NULL;
         for (size_t x=0; x < m_objArray.GetCount(); x++) {
@@ -337,7 +343,7 @@ public:
         // Wave our magic wand...  (if it works it's a miracle!  ;-)
 
         // First, make a new instance of the tag handler
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         PyObject* arg = PyTuple_New(0);
         PyObject* obj = PyObject_CallObject(m_tagHandlerClass, arg);
         Py_DECREF(arg);
@@ -391,7 +397,7 @@ public:
 
     void Set(const wxPoint& fromPos, const wxHtmlCell *fromCell,
              const wxPoint& toPos, const wxHtmlCell *toCell);
-    %name(SetCells)void Set(const wxHtmlCell *fromCell, const wxHtmlCell *toCell);
+    %Rename(SetCells, void, Set(const wxHtmlCell *fromCell, const wxHtmlCell *toCell));
 
     const wxHtmlCell *GetFromCell() const;
     const wxHtmlCell *GetToCell() const;
@@ -591,7 +597,7 @@ public:
     int GetIndentUnits(int ind);
     void SetAlign(const wxHtmlTag& tag);
     void SetWidthFloat(int w, int units);
-    %name(SetWidthFloatFromTag)void SetWidthFloat(const wxHtmlTag& tag);
+    %Rename(SetWidthFloatFromTag, void,  SetWidthFloat(const wxHtmlTag& tag));
     void SetMinHeight(int h, int align = wxHTML_ALIGN_TOP);
     void SetBackgroundColour(const wxColour& clr);
     wxColour GetBackgroundColour();
@@ -604,7 +610,7 @@ public:
 
 class wxHtmlColourCell : public wxHtmlCell {
 public:
-    wxHtmlColourCell(wxColour clr, int flags = wxHTML_CLR_FOREGROUND);
+    wxHtmlColourCell(const wxColour& clr, int flags = wxHTML_CLR_FOREGROUND);
 
 };
 
@@ -641,7 +647,7 @@ public:
     virtual bool CanRead(const wxFSFile& file) const {
         bool rval = false;
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "CanRead"))) {
             PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file,false);  // cast away const
             rval = wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));
@@ -657,7 +663,7 @@ public:
     virtual wxString ReadFile(const wxFSFile& file) const {
         wxString rval;
         bool found;
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if ((found = wxPyCBH_findCallback(m_myInst, "ReadFile"))) {
             PyObject* obj = wxPyMake_wxObject((wxFSFile*)&file,false);  // cast away const
             PyObject* ro;
@@ -681,7 +687,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxPyHtmlFilter, wxHtmlFilter);
 
 // And now the version seen by SWIG
 
-%name(HtmlFilter) class wxPyHtmlFilter : public wxObject {
+%rename(HtmlFilter) wxPyHtmlFilter;
+class wxPyHtmlFilter : public wxObject {
 public:
     %pythonAppend wxPyHtmlFilter   "self._setCallbackInfo(self, HtmlFilter)"
     wxPyHtmlFilter();
@@ -740,7 +747,7 @@ IMP_PYCALLBACK__CELLINTINTME(wxPyHtmlWindow, wxHtmlWindow, OnCellClicked);
 
 void wxPyHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link) {
     bool found;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if ((found = wxPyCBH_findCallback(m_myInst, "OnLinkClicked"))) {
         PyObject* obj = wxPyConstructObject((void*)&link, wxT("wxHtmlLinkInfo"), 0);
         wxPyCBH_callCallback(m_myInst, Py_BuildValue("(O)", obj));
@@ -760,7 +767,7 @@ wxHtmlOpeningStatus wxPyHtmlWindow::OnOpeningURL(wxHtmlURLType type,
                                                  wxString *redirect) const {
     bool found;
     wxHtmlOpeningStatus rval;
-    bool blocked = wxPyBeginBlockThreads();
+    wxPyBlock_t blocked = wxPyBeginBlockThreads();
     if ((found = wxPyCBH_findCallback(m_myInst, "OnOpeningURL"))) {
         PyObject* ro;
         PyObject* s = wx2PyString(url);
@@ -794,7 +801,8 @@ wxHtmlOpeningStatus wxPyHtmlWindow::OnOpeningURL(wxHtmlURLType type,
 
 MustHaveApp(wxPyHtmlWindow);
 
-%name(HtmlWindow) class wxPyHtmlWindow : public wxScrolledWindow {
+%rename(HtmlWindow) wxPyHtmlWindow;
+class wxPyHtmlWindow : public wxScrolledWindow {
 public:
     %pythonAppend wxPyHtmlWindow      "self._setCallbackInfo(self, HtmlWindow); self._setOORInfo(self)"
     %pythonAppend wxPyHtmlWindow()    ""
@@ -805,7 +813,7 @@ public:
                  const wxSize& size = wxDefaultSize,
                  int style=wxHW_DEFAULT_STYLE,
                  const wxString& name = wxPyHtmlWindowNameStr);
-    %name(PreHtmlWindow)wxPyHtmlWindow();
+    %RenameCtor(PreHtmlWindow, wxPyHtmlWindow());
 
     // Turn it back on again
     %typemap(out) wxPyHtmlWindow* { $result = wxPyMake_wxObject($1, $owner); }
@@ -884,6 +892,10 @@ public:
 
     // Sets space between text and window borders.
     void SetBorders(int b);
+
+    // Sets the bitmap to use for background (currnetly it will be tiled,
+    // when/if we have CSS support we could add other possibilities...)
+    void SetBackgroundImage(const wxBitmap& bmpBg);
 
     // Saves custom settings into cfg config. it will use the path 'path'
     // if given, otherwise it will save info into currently selected path.
@@ -972,7 +984,7 @@ public:
                           const wxString& normal_face = wxPyEmptyString,
                           const wxString& fixed_face = wxPyEmptyString);
     
-    int Render(int x, int y, int from = 0, int dont_render = false, int to = INT_MAX,
+    int Render(int x, int y, int from = 0, int dont_render = false, int maxHeight = INT_MAX,
                //int *known_pagebreaks = NULL, int number_of_pages = 0
                int* choices=NULL, int LCOUNT = 0
                );
@@ -1045,7 +1057,7 @@ public:
     void PreviewText(const wxString &htmltext, const wxString& basepath = wxPyEmptyString);
     void PrintFile(const wxString &htmlfile);
     void PrintText(const wxString &htmltext, const wxString& basepath = wxPyEmptyString);
-    void PrinterSetup();
+//    void PrinterSetup();
     void PageSetup();
     void SetHeader(const wxString& header, int pg = wxPAGE_ALL);
     void SetFooter(const wxString& footer, int pg = wxPAGE_ALL);
@@ -1167,7 +1179,7 @@ public:
     wxHtmlHelpData* GetData();
     void SetTitleFormat(const wxString& format);
     void Display(const wxString& x);
-    %name(DisplayID) void Display(int id);
+    %Rename(DisplayID,  void,  Display(int id));
     void DisplayContents();
     void DisplayIndex();
     bool KeywordSearch(const wxString& keyword);
@@ -1195,9 +1207,10 @@ enum {
 
 MustHaveApp(wxHtmlHelpController);
 
-class wxHtmlHelpController : public wxEvtHandler {
+class wxHtmlHelpController : public wxObject  // wxHelpControllerBase
+{
 public:
-    %pythonAppend wxHtmlHelpController "self._setOORInfo(self)"
+//    %pythonAppend wxHtmlHelpController "self._setOORInfo(self)"
     
     wxHtmlHelpController(int style = wxHF_DEFAULTSTYLE);
     ~wxHtmlHelpController();
@@ -1206,7 +1219,7 @@ public:
     void SetTempDir(const wxString& path);
     bool AddBook(const wxString& book, int show_wait_msg = false);
     void Display(const wxString& x);
-    %name(DisplayID) void Display(int id);
+    %Rename(DisplayID,  void,  Display(int id));
     void DisplayContents();
     void DisplayIndex();
     bool KeywordSearch(const wxString& keyword);

@@ -86,6 +86,8 @@ public:
     bool CanGetPageSource() { return false; }
     wxString GetPageSource() { return wxEmptyString; }
     void SetPageSource(wxString& source, const wxString& baseUrl = wxEmptyString) {}
+    wxString GetPageURL()   { return wxEmptyString; }
+    wxString GetPageTitle() { return wxEmptyString; }
 };
 
 
@@ -116,7 +118,7 @@ public:
 #endif
 %}
 
-// Now define it for SWIG, usign either the real class or the dummy above.
+// Now define it for SWIG, using either the real class or the dummy above.
 
 MustHaveApp(wxWebKitCtrl);
 
@@ -134,7 +136,7 @@ public:
                     const wxValidator& validator = wxDefaultValidator,
                     const wxString& name = wxPyWebKitNameStr);
 
-    %name(PreWebKitCtrl)wxWebKitCtrl();
+    %RenameCtor(PreWebKitCtrl, wxWebKitCtrl());
 
     
     bool Create(wxWindow *parent,
@@ -156,6 +158,8 @@ public:
     bool CanGetPageSource();
     wxString GetPageSource();
     void SetPageSource(wxString& source, const wxString& baseUrl = wxPyEmptyString);
+    wxString GetPageURL();
+    wxString GetPageTitle();
 };
 
 

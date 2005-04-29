@@ -48,6 +48,7 @@ OBJECTS = \
 		appcmn.obj,\
 		artprov.obj,\
 		artstd.obj,\
+		bmpbase.obj,\
 		bookctrl.obj,\
 		choiccmn.obj,\
 		clipcmn.obj,\
@@ -77,6 +78,7 @@ OBJECTS = \
 		encconv.obj,\
 		event.obj,\
 		extended.obj,\
+		fddlgcmn.obj,\
 		ffile.obj,\
 		file.obj,\
 		fileconf.obj,\
@@ -142,6 +144,7 @@ OBJECTS1=fs_inet.obj,\
 		socket.obj,\
 		settcmn.obj,\
 		statbar.obj,\
+		stdpbase.obj,\
 		stockitem.obj,\
 		stopwatch.obj,\
 		strconv.obj,\
@@ -157,11 +160,11 @@ OBJECTS1=fs_inet.obj,\
 		toplvcmn.obj,\
 		treebase.obj,\
 		txtstrm.obj,\
-		unzip.obj,\
 		url.obj
 
 OBJECTS2=utilscmn.obj,\
 		rgncmn.obj,\
+		uri.obj,\
 		valgen.obj,\
 		validate.obj,\
 		valtext.obj,\
@@ -173,9 +176,9 @@ OBJECTS2=utilscmn.obj,\
 		zipstrm.obj,\
 		zstream.obj
 
-OBJECTS_MOTIF=bmpbase.obj,gaugecmn.obj
+OBJECTS_MOTIF=gaugecmn.obj,radiocmn.obj
 
-OBJECTS_X11=accesscmn.obj,bmpbase.obj,dndcmn.obj,dpycmn.obj,dseldlg.obj,\
+OBJECTS_X11=accesscmn.obj,dndcmn.obj,dpycmn.obj,dseldlg.obj,\
 	dynload.obj,effects.obj,fddlgcmn.obj,fs_mem.obj,gaugecmn.obj,\
 	gbsizer.obj,geometry.obj,matrix.obj,radiocmn.obj,\
 	regex.obj,taskbarcmn.obj,xti.obj,xtistrm.obj,xtixml.obj
@@ -216,6 +219,7 @@ SOURCES = \
 		event.cpp,\
 		extended.c,\
 		ffile.cpp,\
+		fddlgcmn.cpp,\
 		file.cpp,\
 		fileconf.cpp,\
 		filename.cpp,\
@@ -281,6 +285,7 @@ SOURCES = \
 		socket.cpp,\
 		settcmn.cpp,\
 		statbar.cpp,\
+		stdpbase.cpp,\
 		stockitem.cpp,\
 		stopwatch.cpp,\
 		strconv.cpp,\
@@ -296,7 +301,6 @@ SOURCES = \
 		toplvcmn.cpp,\
 		treebase.cpp,\
 		txtstrm.cpp,\
-		unzip.c,\
 		url.cpp,\
 		utilscmn.cpp,\
 		valgen.cpp,\
@@ -323,6 +327,7 @@ SOURCES = \
 		radiocmn.cpp,\
 		regex.cpp,\
 		taskbarcmn.cpp,\
+		uri.cpp,\
 		xti.cpp,\
 		xtistrm.cpp,\
 		xtixml.cpp
@@ -388,6 +393,7 @@ encconv.obj : encconv.cpp
 event.obj : event.cpp
 extended.obj : extended.c
 ffile.obj : ffile.cpp
+fddlgcmn.obj : fddlgcmn.cpp
 file.obj : file.cpp
 fileconf.obj : fileconf.cpp
 filefn.obj : filefn.cpp
@@ -453,6 +459,7 @@ sizer.obj : sizer.cpp
 socket.obj : socket.cpp
 settcmn.obj : settcmn.cpp
 statbar.obj : statbar.cpp
+stdpbase.obj : stdpbase.cpp
 stockitem.obj : stockitem.cpp
 stopwatch.obj : stopwatch.cpp
 strconv.obj : strconv.cpp
@@ -468,7 +475,6 @@ tokenzr.obj : tokenzr.cpp
 toplvcmn.obj : toplvcmn.cpp
 treebase.obj : treebase.cpp
 txtstrm.obj : txtstrm.cpp
-unzip.obj : unzip.c
 url.obj : url.cpp
 utilscmn.obj : utilscmn.cpp
 valgen.obj : valgen.cpp
@@ -498,3 +504,4 @@ taskbarcmn.obj : taskbarcmn.cpp
 xti.obj : xti.cpp
 xtistrm.obj : xtistrm.cpp
 xtixml.obj : xtixml.cpp
+uri.obj : uri.cpp

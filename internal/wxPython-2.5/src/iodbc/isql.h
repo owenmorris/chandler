@@ -6,8 +6,8 @@
  *  iODBC defines
  *
  *  The iODBC driver manager.
- *  
- *  Copyright (C) 1995 by Ke Jin <kejin@empress.com> 
+ *
+ *  Copyright (C) 1995 by Ke Jin <kejin@empress.com>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
@@ -47,6 +47,7 @@ typedef long int SDWORD;
 typedef short int SWORD;
 typedef unsigned long int UDWORD;
 typedef unsigned short int UWORD;
+typedef long SQLINTEGER;
 
 typedef void FAR *PTR;
 typedef void FAR *HENV;
@@ -220,7 +221,7 @@ extern "C"
   RETCODE SQL_API SQLTransact (HENV henv, HDBC hdbc, UWORD fType);
 
 /*
- *  Depreciated ODBC 1.0 function - Use SQLBindParameter
+ *  Deprecated ODBC 1.0 function - Use SQLBindParameter
  */
   RETCODE SQL_API SQLSetParam (HSTMT hstmt, UWORD ipar, SWORD fCType,
       SWORD fSqlType, UDWORD cbColDef, SWORD ibScale, PTR rgbValue,

@@ -77,8 +77,10 @@
 #    define WXMAKINGDLL_ODBC
 #    define WXMAKINGDLL_DBGRID
 #    define WXMAKINGDLL_HTML
+#    define WXMAKINGDLL_GL
 #    define WXMAKINGDLL_XML
 #    define WXMAKINGDLL_XRC
+#    define WXMAKINGDLL_MEDIA
 #endif /* WXMAKINGDLL */
 
 /*
@@ -140,6 +142,17 @@
 #    define WXDLLIMPEXP_DATA_ODBC(type) type
 #endif
 
+#ifdef WXMAKINGDLL_QA
+#    define WXDLLIMPEXP_QA WXEXPORT
+#    define WXDLLIMPEXP_DATA_QA(type) WXEXPORT type
+#elif defined(WXUSINGDLL)
+#    define WXDLLIMPEXP_QA WXIMPORT
+#    define WXDLLIMPEXP_DATA_QA(type) WXIMPORT type
+#else /* not making nor using DLL */
+#    define WXDLLIMPEXP_QA
+#    define WXDLLIMPEXP_DATA_QA(type) type
+#endif
+
 #ifdef WXMAKINGDLL_DBGRID
 #    define WXDLLIMPEXP_DBGRID WXEXPORT
 #    define WXDLLIMPEXP_DATA_DBGRID(type) WXEXPORT type
@@ -184,6 +197,14 @@
 #    define WXDLLIMPEXP_XRC WXIMPORT
 #else /* not making nor using DLL */
 #    define WXDLLIMPEXP_XRC
+#endif
+
+#ifdef WXMAKINGDLL_MEDIA
+#    define WXDLLIMPEXP_MEDIA WXEXPORT
+#elif defined(WXUSINGDLL)
+#    define WXDLLIMPEXP_MEDIA WXIMPORT
+#else /* not making nor using DLL */
+#    define WXDLLIMPEXP_MEDIA
 #endif
 
 /* for backwards compatibility, define suffix-less versions too */

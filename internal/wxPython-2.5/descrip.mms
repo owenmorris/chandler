@@ -34,6 +34,10 @@ gtk : [.include.wx]setup.h
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
 	set default [-.html]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
+	set default [-.xml]
+	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
+	set default [-.xrc]
+	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
 	set default [-.unix]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
 	set default [-.gtk]
@@ -75,7 +79,7 @@ gtk : [.include.wx]setup.h
 	set default [-.minimal]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
 	set default [-.richedit]
-	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
+#	$(MMS)$(MMSQUALIFIERS)/macro=(__WXGTK__=1)
 	set default [--]
 
 x11 : [.include.wx]setup.h
@@ -84,6 +88,10 @@ x11 : [.include.wx]setup.h
 	set default [-.common]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXX11__=1,__WXUNIVERSAL__=1)
 	set default [-.html]
+	$(MMS)$(MMSQUALIFIERS)/macro=(__WXX11__=1,__WXUNIVERSAL__=1)
+	set default [-.xml]
+	$(MMS)$(MMSQUALIFIERS)/macro=(__WXX11__=1,__WXUNIVERSAL__=1)
+	set default [-.xrc]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXX11__=1,__WXUNIVERSAL__=1)
 	set default [-.unix]
 	$(MMS)$(MMSQUALIFIERS)/macro=(__WXX11__=1,__WXUNIVERSAL__=1)

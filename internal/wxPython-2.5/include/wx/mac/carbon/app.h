@@ -21,6 +21,10 @@
 #include "wx/gdicmn.h"
 #include "wx/event.h"
 
+#ifdef __WXMAC_OSX__
+typedef struct __CFRunLoopSource * CFRunLoopSourceRef;
+#endif
+
 class WXDLLEXPORT wxFrame;
 class WXDLLEXPORT wxWindowMac;
 class WXDLLEXPORT wxApp ;
@@ -105,6 +109,9 @@ private:
     WXEVENTHANDLERREF     m_macEventHandler ;
     WXEVENTHANDLERCALLREF m_macCurrentEventHandlerCallRef ;
     WXEVENTREF            m_macCurrentEvent ;
+#ifdef __WXMAC_OSX__
+    CFRunLoopSourceRef    m_macEventPosted ;
+#endif
 
 public:
     static bool           s_macSupportPCMenuShortcuts ;
@@ -124,10 +131,6 @@ public:
     static bool           s_macHasDialogManager ;
     static long           s_macDialogManagerVersion ;
     
-    #ifdef __DARWIN__
-    static class wxHIDKeyboard* s_macHIDKeyboard;
-    #endif
-
     WXHRGN                m_macCursorRgn ;
     WXHRGN                m_macSleepRgn ;
     WXHRGN                m_macHelpRgn ;
@@ -139,8 +142,8 @@ public:
     // For embedded use. By default does nothing.
     virtual void          MacHandleUnhandledEvent( WXEVENTREF ev );
 
-    bool    MacSendKeyDownEvent( wxWindow* focus , long keyval , long modifiers , long when , short wherex , short wherey ) ;
-    bool    MacSendKeyUpEvent( wxWindow* focus , long keyval , long modifiers , long when , short wherex , short wherey ) ;
+    bool    MacSendKeyDownEvent( wxWindow* focus , long keyval , long modifiers , long when , short wherex , short wherey , wxChar uniChar ) ;
+    bool    MacSendKeyUpEvent( wxWindow* focus , long keyval , long modifiers , long when , short wherex , short wherey , wxChar uniChar ) ;
 
     virtual short         MacHandleAEODoc(const WXAPPLEEVENTREF event , WXAPPLEEVENTREF reply) ;
     virtual short         MacHandleAEPDoc(const WXAPPLEEVENTREF event , WXAPPLEEVENTREF reply) ;

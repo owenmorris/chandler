@@ -9,12 +9,12 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "spinbutt.h"
 #pragma implementation "spinbuttbase.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_SPINBTN
 
@@ -33,8 +33,6 @@
     IMPLEMENT_DYNAMIC_CLASS(wxSpinButton, wxControl)
     IMPLEMENT_DYNAMIC_CLASS(wxSpinEvent, wxScrollEvent)
 #endif
-
-extern ControlActionUPP wxMacLiveScrollbarActionUPP ;
 
 wxSpinButton::wxSpinButton()
    : wxSpinButtonBase()
@@ -58,11 +56,11 @@ bool wxSpinButton::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, c
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
 
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr ( CreateLittleArrowsControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , 0 , m_min , m_max , 1 ,
      m_peer->GetControlRefAddr() ) );
 
-    m_peer->SetActionProc( wxMacLiveScrollbarActionUPP ) ;
+    m_peer->SetActionProc( GetwxMacLiveScrollbarActionProc() ) ;
     MacPostControlCreate(pos,size) ;
 
     return true;
@@ -87,7 +85,12 @@ int wxSpinButton::GetMax() const
 
 int wxSpinButton::GetValue() const
 {
-    return m_value;
+    int n = m_value;
+
+    if (n < m_min) n = m_min;
+    if (n > m_max) n = m_max;
+
+    return n;
 }
 
 void wxSpinButton::SetValue(int val)

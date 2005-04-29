@@ -28,22 +28,24 @@
 #include "wx/dynarray.h"        // wxArrayInt
 #include "wx/gdicmn.h"          // wxPoint
 
-// 16-bit Borland 4.0 doesn't seem to allow multiple inheritance with wxWindow
-// and streambuf: it complains about deriving a huge class from the huge class
-// streambuf. !! Also, can't use streambuf if making or using a DLL :-(
+// Open Watcom 1.3 does allow only ios::rdbuf() while
+// we want something with streambuf parameter
+// Also, can't use streambuf if making or using a DLL :-(
 
-#if (defined(__BORLANDC__)) || defined(__MWERKS__) || \
+#if defined(__WATCOMC__) || \
+    defined(__MWERKS__) || \
     (defined(__WINDOWS__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL)))
-    #define NO_TEXT_WINDOW_STREAM
+    #define wxHAS_TEXT_WINDOW_STREAM 0
+#elif wxUSE_STD_IOSTREAM
+    #include "wx/ioswrap.h"
+    #define wxHAS_TEXT_WINDOW_STREAM 1
+#else
+    #define wxHAS_TEXT_WINDOW_STREAM 0
 #endif
 
-#ifndef NO_TEXT_WINDOW_STREAM
-    #if wxUSE_STD_IOSTREAM
-        #include "wx/ioswrap.h"    // derivation: we need the full decls.
-    #else // !wxUSE_STD_IOSTREAM
-        // can't compile this feature in if we don't use streams at all
-        #define NO_TEXT_WINDOW_STREAM
-    #endif // wxUSE_STD_IOSTREAM/!wxUSE_STD_IOSTREAM
+#if WXWIN_COMPATIBILITY_2_4 && !wxHAS_TEXT_WINDOW_STREAM
+    // define old flag if one could use it somewhere
+    #define NO_TEXT_WINDOW_STREAM
 #endif
 
 class WXDLLEXPORT wxTextCtrl;
@@ -64,15 +66,20 @@ typedef long wxTextCoord;
 // constants
 // ----------------------------------------------------------------------------
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxTextCtrlNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxTextCtrlNameStr;
+
+// this is intentionally not enum to avoid warning fixes with
+// typecasting from enum type to wxTextCoord
+const wxTextCoord wxOutOfRangeTextCoord = -1;
+const wxTextCoord wxInvalidTextCoord    = -2;
 
 // ----------------------------------------------------------------------------
 // wxTextCtrl style flags
 // ----------------------------------------------------------------------------
 
-// the flag bits 0x0001, and 0x0004 are free but should be used only for the
-// things which don't make sense for a text control used by wxTextEntryDialog
-// because they would otherwise conflict with wxOK, wxCANCEL, wxCENTRE
+// the flag bit 0x0001 s free but should be used only for the things which
+// don't make sense for a text control used by wxTextEntryDialog because they
+// would otherwise conflict with wxOK, wxCANCEL, wxCENTRE
 
 #define wxTE_NO_VSCROLL     0x0002
 #define wxTE_AUTO_SCROLL    0x0008
@@ -97,22 +104,35 @@ WXDLLEXPORT_DATA(extern const wxChar*) wxTextCtrlNameStr;
 // automatically detect the URLs and generate the events when mouse is
 // moved/clicked over an URL
 //
-// this is for Win32 richedit controls only so far
+// this is for Win32 richedit and wxGTK2 multiline controls only so far
 #define wxTE_AUTO_URL       0x1000
 
 // by default, the Windows text control doesn't show the selection when it
 // doesn't have focus - use this style to force it to always show it
 #define wxTE_NOHIDESEL      0x2000
 
-// use wxHSCROLL to not wrap text at all, wxTE_LINEWRAP to wrap it at any
+// use wxHSCROLL to not wrap text at all, wxTE_CHARWRAP to wrap it at any
 // position and wxTE_WORDWRAP to wrap at words boundary
+//
+// if no wrapping style is given at all, the control wraps at word boundary
 #define wxTE_DONTWRAP       wxHSCROLL
-#define wxTE_LINEWRAP       0x4000
-#define wxTE_WORDWRAP       0x0000  // it's just == !wxHSCROLL
+#define wxTE_CHARWRAP       0x4000  // wrap at any position
+#define wxTE_WORDWRAP       0x0001  // wrap only at words boundaries
+#define wxTE_BESTWRAP       0x0000  // this is the default
+
+// obsolete synonym
+#define wxTE_LINEWRAP       wxTE_CHARWRAP
 
 // force using RichEdit version 2.0 or 3.0 instead of 1.0 (default) for
 // wxTE_RICH controls - can be used together with or instead of wxTE_RICH
 #define wxTE_RICH2          0x8000
+
+// reuse wxTE_RICH2's value for CAPEDIT control on Windows CE
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+#define wxTE_CAPITALIZE     wxTE_RICH2
+#else
+#define wxTE_CAPITALIZE     0
+#endif
 
 // ----------------------------------------------------------------------------
 // wxTextCtrl::HitTest return values
@@ -245,7 +265,7 @@ private:
 // ----------------------------------------------------------------------------
 
 class WXDLLEXPORT wxTextCtrlBase : public wxControl
-#ifndef NO_TEXT_WINDOW_STREAM
+#if wxHAS_TEXT_WINDOW_STREAM
                                  , public wxSTD streambuf
 #endif
 
@@ -254,8 +274,8 @@ public:
     // creation
     // --------
 
-    wxTextCtrlBase();
-    ~wxTextCtrlBase();
+    wxTextCtrlBase(){}
+    ~wxTextCtrlBase(){}
 
     // accessors
     // ---------
@@ -273,7 +293,7 @@ public:
     virtual bool IsEditable() const = 0;
 
     // more readable flag testing methods
-    bool IsSingleLine() const { return !(GetWindowStyle() & wxTE_MULTILINE); }
+    bool IsSingleLine() const { return !HasFlag(wxTE_MULTILINE); }
     bool IsMultiLine() const { return !IsSingleLine(); }
 
     // If the return values from and to are the same, there is no selection.
@@ -355,16 +375,16 @@ public:
     virtual void SetInsertionPoint(long pos) = 0;
     virtual void SetInsertionPointEnd() = 0;
     virtual long GetInsertionPoint() const = 0;
-    virtual long GetLastPosition() const = 0;
+    virtual wxTextPos GetLastPosition() const = 0;
 
     virtual void SetSelection(long from, long to) = 0;
     virtual void SelectAll();
     virtual void SetEditable(bool editable) = 0;
 
     // override streambuf method
-#ifndef NO_TEXT_WINDOW_STREAM
+#if wxHAS_TEXT_WINDOW_STREAM
     int overflow(int i);
-#endif // NO_TEXT_WINDOW_STREAM
+#endif // wxHAS_TEXT_WINDOW_STREAM
 
     // stream-like insertion operators: these are always available, whether we
     // were, or not, compiled with streambuf support
@@ -466,12 +486,22 @@ public:
 
 typedef void (wxEvtHandler::*wxTextUrlEventFunction)(wxTextUrlEvent&);
 
-#define EVT_TEXT(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TEXT_UPDATED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TEXT_ENTER(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TEXT_ENTER, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TEXT_URL(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TEXT_URL, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxTextUrlEventFunction, & fn ), (wxObject *) NULL ),
-#define EVT_TEXT_MAXLEN(id, fn) DECLARE_EVENT_TABLE_ENTRY( wxEVT_COMMAND_TEXT_MAXLEN, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction)  wxStaticCastEvent( wxCommandEventFunction, & fn ), (wxObject *) NULL ),
+#define wxTextEventHandler(func) wxCommandEventHandler(func)
+#define wxTextUrlEventHandler(func) \
+    (wxObjectEventFunction)(wxEventFunction)wxStaticCastEvent(wxTextUrlEventFunction, &func)
 
-#ifndef NO_TEXT_WINDOW_STREAM
+#define wx__DECLARE_TEXTEVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_TEXT_ ## evt, id, wxTextEventHandler(fn))
+
+#define wx__DECLARE_TEXTURLEVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_COMMAND_TEXT_ ## evt, id, wxTextUrlEventHandler(fn))
+
+#define EVT_TEXT(id, fn) wx__DECLARE_TEXTEVT(UPDATED, id, fn)
+#define EVT_TEXT_ENTER(id, fn) wx__DECLARE_TEXTEVT(ENTER, id, fn)
+#define EVT_TEXT_URL(id, fn) wx__DECLARE_TEXTURLEVT(URL, id, fn)
+#define EVT_TEXT_MAXLEN(id, fn) wx__DECLARE_TEXTEVT(MAXLEN, id, fn)
+
+#if wxHAS_TEXT_WINDOW_STREAM
 
 // ----------------------------------------------------------------------------
 // wxStreamToTextRedirector: this class redirects all data sent to the given
@@ -513,7 +543,7 @@ private:
     wxSTD streambuf *m_sbufOld;
 };
 
-#endif // !NO_TEXT_WINDOW_STREAM
+#endif // wxHAS_TEXT_WINDOW_STREAM
 
 #endif // wxUSE_TEXTCTRL
 

@@ -14,12 +14,21 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
+#include <wx/wx.h>
+#include <wx/textbuf.h>
+#include <wx/dataobj.h>
+#include <wx/clipbrd.h>
+#include <wx/dnd.h>
 
 #include "ScintillaWX.h"
 #include "ExternalLexer.h"
 #include "wx/stc/stc.h"
 #include "PlatWX.h"
-#include <wx/textbuf.h>
+
+#ifdef __WXMSW__
+    // GetHwndOf()
+    #include <wx/msw/private.h>
+#endif
 
 //----------------------------------------------------------------------
 // Helper classes
@@ -181,6 +190,11 @@ ScintillaWX::ScintillaWX(wxStyledTextCtrl* win) {
     stc   = win;
     wheelRotation = 0;
     Initialise();
+#ifdef __WXMSW__
+    sysCaretBitmap = 0;
+    sysCaretWidth = 0;
+    sysCaretHeight = 0;
+#endif
 }
 
 
@@ -211,6 +225,7 @@ void ScintillaWX::Finalise() {
     ScintillaBase::Finalise();
     SetTicking(false);
     SetIdle(false);
+    DestroySystemCaret();
 }
 
 
@@ -450,7 +465,7 @@ void ScintillaWX::Paste() {
 void ScintillaWX::CopyToClipboard(const SelectionText& st) {
     if (wxTheClipboard->Open()) {
         wxTheClipboard->UsePrimarySelection(false);
-        wxString text = wxTextBuffer::Translate(stc2wx(st.s, st.len));
+        wxString text = wxTextBuffer::Translate(stc2wx(st.s, st.len-1));
         wxTheClipboard->SetData(new wxTextDataObject(text));
         wxTheClipboard->Close();
     }
@@ -520,6 +535,70 @@ void ScintillaWX::ClaimSelection() {
 }
 
 
+void ScintillaWX::UpdateSystemCaret() {
+#ifdef __WXMSW__
+    if (hasFocus) {
+        if (HasCaretSizeChanged()) {
+            DestroySystemCaret();
+            CreateSystemCaret();
+        }
+        Point pos = LocationFromPosition(currentPos);
+        ::SetCaretPos(pos.x, pos.y);
+    }
+#endif
+}
+
+
+bool ScintillaWX::HasCaretSizeChanged() {
+#ifdef __WXMSW__
+    if (( (0 != vs.caretWidth) && (sysCaretWidth != vs.caretWidth) )
+        || (0 != vs.lineHeight) && (sysCaretHeight != vs.lineHeight)) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+bool ScintillaWX::CreateSystemCaret() {
+#ifdef __WXMSW__
+    sysCaretWidth = vs.caretWidth;
+    if (0 == sysCaretWidth) {
+        sysCaretWidth = 1;
+    }
+    sysCaretHeight = vs.lineHeight;
+    int bitmapSize = (((sysCaretWidth + 15) & ~15) >> 3) * sysCaretHeight;
+    char *bits = new char[bitmapSize];
+    memset(bits, 0, bitmapSize);
+    sysCaretBitmap = ::CreateBitmap(sysCaretWidth, sysCaretHeight, 1,
+                                    1, reinterpret_cast<BYTE *>(bits));
+    delete [] bits;
+    BOOL retval = ::CreateCaret(GetHwndOf(stc), sysCaretBitmap,
+                                sysCaretWidth, sysCaretHeight);
+    ::ShowCaret(GetHwndOf(stc));
+    return retval != 0;
+#else
+    return false;
+#endif
+}
+
+bool ScintillaWX::DestroySystemCaret() {
+#ifdef __WXMSW__
+    ::HideCaret(GetHwndOf(stc));
+    BOOL retval = ::DestroyCaret();
+    if (sysCaretBitmap) {
+        ::DeleteObject(sysCaretBitmap);
+        sysCaretBitmap = 0;
+    }
+    return retval != 0;
+#else
+    return false;
+#endif
+}
+
+
+//----------------------------------------------------------------------
+
+
 long ScintillaWX::DefWndProc(unsigned int /*iMessage*/, unsigned long /*wParam*/, long /*lParam*/) {
     return 0;
 }
@@ -539,7 +618,8 @@ long ScintillaWX::WndProc(unsigned int iMessage, unsigned long wParam, long lPar
                                           defn,
                                           vs.styles[STYLE_DEFAULT].fontName,
                                           vs.styles[STYLE_DEFAULT].sizeZoomed,
-                                          IsUnicodeMode(),
+                                          CodePage(),
+                                          vs.styles[STYLE_DEFAULT].characterSet,
                                           wMain);
           // If the call-tip window would be out of the client
           // space, adjust so it displays above the text.
@@ -565,6 +645,7 @@ long ScintillaWX::WndProc(unsigned int iMessage, unsigned long wParam, long lPar
             LexerManager::GetInstance()->Load((const char*)lParam);
             break;
 #endif
+
       default:
           return ScintillaBase::WndProc(iMessage, wParam, lParam);
       }
@@ -686,12 +767,15 @@ void ScintillaWX::DoLoseFocus(){
     focusEvent = true;
     SetFocusState(false);
     focusEvent = false;
+    DestroySystemCaret();
 }
 
 void ScintillaWX::DoGainFocus(){
     focusEvent = true;
     SetFocusState(true);
     focusEvent = false;
+    DestroySystemCaret();
+    CreateSystemCaret();
 }
 
 void ScintillaWX::DoSysColourChange() {
@@ -750,27 +834,25 @@ void ScintillaWX::DoMiddleButtonUp(Point WXUNUSED(pt)) {
 void ScintillaWX::DoAddChar(int key) {
 #if wxUSE_UNICODE
     wxChar wszChars[2];
-    wszChars[0] = key;
+    wszChars[0] = (wxChar)key;
     wszChars[1] = 0;
     wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(wszChars);
     AddCharUTF((char*)buf.data(), strlen(buf));
 #else
-    AddChar(key);
+    AddChar((char)key);
 #endif
 }
 
 
-#ifdef __WXMAC__
-int  ScintillaWX::DoKeyDown(int key, bool shift, bool ctrl, bool alt, bool meta, bool* consumed) {
-#else
-int  ScintillaWX::DoKeyDown(int key, bool shift, bool ctrl, bool alt, bool WXUNUSED(meta), bool* consumed) {
-#endif
-#if defined(__WXGTK__) || defined(__WXMAC__)
-    // Ctrl chars (A-Z) end up with the wrong keycode on wxGTK
-    // TODO:  Check this, it shouldn't be true any longer.
+int  ScintillaWX::DoKeyDown(const wxKeyEvent& evt, bool* consumed)
+{
+    int key = evt.GetKeyCode();
+    bool shift = evt.ShiftDown(),
+         ctrl  = evt.ControlDown(),
+         alt   = evt.AltDown();
+
     if (ctrl && key >= 1 && key <= 26)
         key += 'A' - 1;
-#endif
 
     switch (key) {
     case WXK_DOWN:              key = SCK_DOWN;     break;
@@ -788,6 +870,7 @@ int  ScintillaWX::DoKeyDown(int key, bool shift, bool ctrl, bool alt, bool WXUNU
     case WXK_ESCAPE:            key = SCK_ESCAPE;   break;
     case WXK_BACK:              key = SCK_BACK;     break;
     case WXK_TAB:               key = SCK_TAB;      break;
+    case WXK_NUMPAD_ENTER:      // fall through
     case WXK_RETURN:            key = SCK_RETURN;   break;
     case WXK_ADD:               // fall through
     case WXK_NUMPAD_ADD:        key = SCK_ADD;      break;
@@ -802,7 +885,7 @@ int  ScintillaWX::DoKeyDown(int key, bool shift, bool ctrl, bool alt, bool WXUNU
     }
 
 #ifdef __WXMAC__
-    if ( meta ) {
+    if ( evt.MetaDown() ) {
         // check for a few common Mac Meta-key combos and remap them to Ctrl
         // for Scintilla
         switch ( key ) {
@@ -911,7 +994,9 @@ void ScintillaWX::DoDragLeave() {
 
 // Force the whole window to be repainted
 void ScintillaWX::FullPaint() {
+#ifndef __WXMAC__
     stc->Refresh(false);
+#endif
     stc->Update();
 }
 
@@ -925,28 +1010,25 @@ void ScintillaWX::DoScrollToColumn(int column) {
     HorizontalScrollTo(column * vs.spaceWidth);
 }
 
-#ifdef __WXGTK__
-void ScintillaWX::ClipChildren(wxDC& dc, PRectangle rect) {
-    wxRegion rgn(wxRectFromPRectangle(rect));
-    if (ac.Active()) {
-        wxRect childRect = ((wxWindow*)ac.lb->GetID())->GetRect();
-        rgn.Subtract(childRect);
-    }
-    if (ct.inCallTipMode) {
-        wxSTCCallTip* tip = (wxSTCCallTip*)ct.wCallTip.GetID();
-        wxRect childRect = tip->GetRect();
-#if wxUSE_POPUPWIN && wxSTC_USE_POPUP
-        childRect.SetPosition(tip->GetMyPosition());
-#endif
-        rgn.Subtract(childRect);
-    }
-
-    dc.SetClippingRegion(rgn);
+// wxGTK doesn't appear to need this explicit clipping code any longer, but I
+// will leave it here commented out for a while just in case...
+void ScintillaWX::ClipChildren(wxDC& WXUNUSED(dc), PRectangle WXUNUSED(rect))
+{
+//     wxRegion rgn(wxRectFromPRectangle(rect));
+//     if (ac.Active()) {
+//         wxRect childRect = ((wxWindow*)ac.lb->GetID())->GetRect();
+//         rgn.Subtract(childRect);
+//     }
+//     if (ct.inCallTipMode) {
+//         wxSTCCallTip* tip = (wxSTCCallTip*)ct.wCallTip.GetID();
+//         wxRect childRect = tip->GetRect();
+// #if wxUSE_POPUPWIN && wxSTC_USE_POPUP
+//         childRect.SetPosition(tip->GetMyPosition());
+// #endif
+//         rgn.Subtract(childRect);
+//     }
+//     dc.SetClippingRegion(rgn);
 }
-#else
-void ScintillaWX::ClipChildren(wxDC& WXUNUSED(dc), PRectangle WXUNUSED(rect)) {
-}
-#endif
 
 
 void ScintillaWX::SetUseAntiAliasing(bool useAA) {

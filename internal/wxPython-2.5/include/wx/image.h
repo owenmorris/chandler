@@ -14,7 +14,7 @@
 #pragma interface "image.h"
 #endif
 
-#include "wx/setup.h"
+#include "wx/defs.h"
 #include "wx/object.h"
 #include "wx/string.h"
 #include "wx/gdicmn.h"
@@ -30,7 +30,28 @@
 // which breaks the compilation below
 #undef index
 
+#define wxIMAGE_OPTION_QUALITY  wxString(_T("quality"))
 #define wxIMAGE_OPTION_FILENAME wxString(_T("FileName"))
+
+#define wxIMAGE_OPTION_RESOLUTION            wxString(_T("Resolution"))
+#define wxIMAGE_OPTION_RESOLUTIONX           wxString(_T("ResolutionX"))
+#define wxIMAGE_OPTION_RESOLUTIONY           wxString(_T("ResolutionY"))
+
+#define wxIMAGE_OPTION_RESOLUTIONUNIT        wxString(_T("ResolutionUnit"))
+
+// constants used with wxIMAGE_OPTION_RESOLUTIONUNIT
+enum
+{
+    wxIMAGE_RESOLUTION_INCHES = 1,
+    wxIMAGE_RESOLUTION_CM = 2
+};
+
+// alpha channel values: fully transparent, default threshold separating
+// transparent pixels from opaque for a few functions dealing with alpha and
+// fully opaque
+const unsigned char wxIMAGE_ALPHA_TRANSPARENT = 0;
+const unsigned char wxIMAGE_ALPHA_THRESHOLD = 0x80;
+const unsigned char wxIMAGE_ALPHA_OPAQUE = 0xff;
 
 //-----------------------------------------------------------------------------
 // classes
@@ -136,11 +157,14 @@ public:
 class WXDLLEXPORT wxImage: public wxObject
 {
 public:
-    wxImage();
+    wxImage(){}
     wxImage( int width, int height, bool clear = true );
     wxImage( int width, int height, unsigned char* data, bool static_data = false );
+    wxImage( int width, int height, unsigned char* data, unsigned char* alpha, bool static_data = false );
     wxImage( const wxString& name, long type = wxBITMAP_TYPE_ANY, int index = -1 );
     wxImage( const wxString& name, const wxString& mimetype, int index = -1 );
+    wxImage( const char** xpmData );
+    wxImage( char** xpmData );
 
 #if wxUSE_STREAMS
     wxImage( wxInputStream& stream, long type = wxBITMAP_TYPE_ANY, int index = -1 );
@@ -152,6 +176,8 @@ public:
 
     bool Create( int width, int height, bool clear = true );
     bool Create( int width, int height, unsigned char* data, bool static_data = false );
+    bool Create( int width, int height, unsigned char* data, unsigned char* alpha, bool static_data = false );
+    bool Create( const char** xpmData );
     void Destroy();
 
     // creates an identical copy of the image (the = operator
@@ -159,7 +185,14 @@ public:
     wxImage Copy() const;
 
     // return the new image with size width*height
-    wxImage GetSubImage( const wxRect& ) const;
+    wxImage GetSubImage( const wxRect& rect) const;
+
+    // Paste the image or part of this image into an image of the given size at the pos
+    //  any newly exposed areas will be filled with the rgb colour
+    //  by default if r = g = b = -1 then fill with this image's mask colour or find and
+    //  set a suitable mask colour
+    wxImage Size( const wxSize& size, const wxPoint& pos,
+                  int r = -1, int g = -1, int b = -1 ) const;
 
     // pastes image into this instance and takes care of
     // the mask colour and out of bounds problems
@@ -172,6 +205,10 @@ public:
 
     // rescales the image in place
     wxImage& Rescale( int width, int height ) { return *this = Scale(width, height); }
+
+    // resizes the image in place
+    wxImage& Resize( const wxSize& size, const wxPoint& pos,
+                     int r = -1, int g = -1, int b = -1 ) { return *this = Size(size, pos, r, g, b); }
 
     // Rotates the image about the given point, 'angle' radians.
     // Returns the rotated image, leaving this image intact.
@@ -191,6 +228,7 @@ public:
 
     // these routines are slow but safe
     void SetRGB( int x, int y, unsigned char r, unsigned char g, unsigned char b );
+    void SetRGB( const wxRect& rect, unsigned char r, unsigned char g, unsigned char b );
     unsigned char GetRed( int x, int y ) const;
     unsigned char GetGreen( int x, int y ) const;
     unsigned char GetBlue( int x, int y ) const;
@@ -209,7 +247,19 @@ public:
 
     // converts image's alpha channel to mask, if it has any, does nothing
     // otherwise:
-    bool ConvertAlphaToMask(unsigned char threshold = 128);
+    bool ConvertAlphaToMask(unsigned char threshold = wxIMAGE_ALPHA_THRESHOLD);
+
+    // This method converts an image where the original alpha
+    // information is only available as a shades of a colour
+    // (actually shades of grey) typically when you draw anti-
+    // aliased text into a bitmap. The DC drawinf routines
+    // draw grey values on the black background although they
+    // actually mean to draw white with differnt alpha values.
+    // This method reverses it, assuming a black (!) background
+    // and white text (actually only the red channel is read).
+    // The method will then fill up the whole image with the
+    // colour given.
+    bool ConvertColourToAlpha( unsigned char r, unsigned char g, unsigned char b );
 
     static bool CanRead( const wxString& name );
     static int GetImageCount( const wxString& name, long type = wxBITMAP_TYPE_ANY );
@@ -239,15 +289,24 @@ public:
     // these functions provide fastest access to wxImage data but should be
     // used carefully as no checks are done
     unsigned char *GetData() const;
-    void SetData( unsigned char *data );
-    void SetData( unsigned char *data, int new_width, int new_height );
+    void SetData( unsigned char *data, bool static_data=false );
+    void SetData( unsigned char *data, int new_width, int new_height, bool static_data=false );
 
     unsigned char *GetAlpha() const;    // may return NULL!
     bool HasAlpha() const { return GetAlpha() != NULL; }
-    void SetAlpha(unsigned char *alpha = NULL);
+    void SetAlpha(unsigned char *alpha = NULL, bool static_data=false);
+    void InitAlpha();
+
+    // return true if this pixel is masked or has alpha less than specified
+    // threshold
+    bool IsTransparent(int x, int y,
+                       unsigned char threshold = wxIMAGE_ALPHA_THRESHOLD) const;
 
     // Mask functions
     void SetMaskColour( unsigned char r, unsigned char g, unsigned char b );
+    // Get the current mask colour or find a suitable colour
+    // returns true if using current mask colour
+    bool GetOrFindMaskColour( unsigned char *r, unsigned char *g, unsigned char *b ) const;
     unsigned char GetMaskRed() const;
     unsigned char GetMaskGreen() const;
     unsigned char GetMaskBlue() const;
@@ -307,6 +366,12 @@ public:
 protected:
     static wxList   sm_handlers;
 
+    // return the index of the point with the given coordinates or -1 if the
+    // image is invalid of the coordinates are out of range
+    //
+    // note that index must be multiplied by 3 when using it with RGB array
+    long XYToIndex(int x, int y) const;
+
 private:
     friend class WXDLLEXPORT wxImageHandler;
 
@@ -316,7 +381,7 @@ private:
 
 extern void WXDLLEXPORT wxInitAllImageHandlers();
 
-WXDLLEXPORT_DATA(extern wxImage)    wxNullImage;
+extern WXDLLEXPORT_DATA(wxImage)    wxNullImage;
 
 //-----------------------------------------------------------------------------
 // wxImage handlers

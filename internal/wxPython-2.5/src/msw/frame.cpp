@@ -46,6 +46,12 @@
 #include <commctrl.h>
 #endif
 
+#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
+#include "wx/msw/ole/oleutils.h"
+#include <aygshell.h>
+#include "wx/msw/winundef.h"
+#endif
+
 #if wxUSE_STATUSBAR
     #include "wx/statusbr.h"
     #include "wx/generic/statusbr.h"
@@ -169,14 +175,21 @@ IMPLEMENT_DYNAMIC_CLASS(wxFrame, wxTopLevelWindow)
 
 void wxFrame::Init()
 {
+#if wxUSE_MENUS
+    m_hMenu = NULL;
+#endif // wxUSE_MENUS
+
 #if wxUSE_TOOLTIPS
     m_hwndToolTip = 0;
 #endif
 
-    // Data to save/restore when calling ShowFullScreen
-    m_fsStatusBarFields = 0;
-    m_fsStatusBarHeight = 0;
-    m_fsToolBarHeight = 0;
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+    SHACTIVATEINFO* info = new SHACTIVATEINFO;
+    memset(info, 0, sizeof(SHACTIVATEINFO));
+    info->cbSize = sizeof(SHACTIVATEINFO);
+
+    m_activateInfo = (void*) info;
+#endif
 
     m_wasMinimized = false;
 }
@@ -192,10 +205,19 @@ bool wxFrame::Create(wxWindow *parent,
     if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style, name) )
         return false;
 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
+    SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
 
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
+#if defined(__SMARTPHONE__)
     SetLeftMenu(wxID_EXIT, _("Done"));
+#endif
+
+#if defined(__POCKETPC__)
+    // The guidelines state that Ctrl+Q should quit the app.
+    // Let's define an accelerator table to send wxID_EXIT.
+    wxAcceleratorEntry entries[1];
+    entries[0].Set(wxACCEL_CTRL,   'Q',         wxID_EXIT);
+    wxAcceleratorTable accel(1, entries);
+    SetAcceleratorTable(accel);
 #endif
 
     return true;
@@ -205,6 +227,12 @@ wxFrame::~wxFrame()
 {
     m_isBeingDeleted = true;
     DeleteAllBars();
+
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+    SHACTIVATEINFO* info = (SHACTIVATEINFO*) m_activateInfo;
+    delete info;
+    m_activateInfo = NULL;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -349,7 +377,7 @@ void wxFrame::AttachMenuBar(wxMenuBar *menubar)
 #elif defined(WINCE_WITHOUT_COMMANDBAR)
     if (!GetToolBar())
     {
-        wxToolBar* toolBar = new wxToolBar(this, wxID_ANY,
+        wxToolMenuBar* toolBar = new wxToolMenuBar(this, wxID_ANY,
                          wxDefaultPosition, wxDefaultSize,
                          wxBORDER_NONE | wxTB_HORIZONTAL,
                          wxToolBarNameStr, menubar);
@@ -420,7 +448,7 @@ void wxFrame::InternalSetMenuBar()
 // Responds to colour changes, and passes event on to children.
 void wxFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
 {
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
+    SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
     Refresh();
 
 #if wxUSE_STATUSBAR
@@ -439,92 +467,75 @@ void wxFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
 // Pass true to show full screen, false to restore.
 bool wxFrame::ShowFullScreen(bool show, long style)
 {
+    // TODO-CE: add support for CE
+#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     if ( IsFullScreen() == show )
         return false;
 
     if (show)
     {
+        // zap the toolbar, menubar, and statusbar if needed
+        //
+        // TODO: hide commandbar for WINCE_WITH_COMMANDBAR
 #if wxUSE_TOOLBAR
-
-#if defined(WINCE_WITH_COMMANDBAR)
-        // TODO: hide commandbar
-#else
         wxToolBar *theToolBar = GetToolBar();
-        if (theToolBar)
-            theToolBar->GetSize(NULL, &m_fsToolBarHeight);
-
-        // zap the toolbar, menubar, and statusbar
 
         if ((style & wxFULLSCREEN_NOTOOLBAR) && theToolBar)
         {
-            theToolBar->SetSize(wxDefaultCoord,0);
-            theToolBar->Show(false);
+            if ( theToolBar->IsShown() )
+            {
+                theToolBar->SetSize(wxDefaultCoord,0);
+                theToolBar->Show(false);
+            }
+            else // prevent it from being restored later
+            {
+                style &= ~wxFULLSCREEN_NOTOOLBAR;
+            }
         }
-#endif // __WXWINCE__
 #endif // wxUSE_TOOLBAR
 
-#if defined(__WXMICROWIN__)
-#elif defined(__WXWINCE__)
-        // TODO: make it work for WinCE
-#else
         if (style & wxFULLSCREEN_NOMENUBAR)
             SetMenu((HWND)GetHWND(), (HMENU) NULL);
-#endif
 
 #if wxUSE_STATUSBAR
         wxStatusBar *theStatusBar = GetStatusBar();
-        if (theStatusBar)
-            theStatusBar->GetSize(NULL, &m_fsStatusBarHeight);
 
         // Save the number of fields in the statusbar
         if ((style & wxFULLSCREEN_NOSTATUSBAR) && theStatusBar)
         {
-            //m_fsStatusBarFields = theStatusBar->GetFieldsCount();
-            //SetStatusBar((wxStatusBar*) NULL);
-            //delete theStatusBar;
-            theStatusBar->Show(false);
+            if ( theStatusBar->IsShown() )
+                theStatusBar->Show(false);
+            else
+                style &= ~wxFULLSCREEN_NOSTATUSBAR;
         }
-        else
-            m_fsStatusBarFields = 0;
 #endif // wxUSE_STATUSBAR
     }
-    else
+    else // restore to normal
     {
+        // restore the toolbar, menubar, and statusbar if we had hid them
 #if wxUSE_TOOLBAR
-#if defined(WINCE_WITHOUT_COMMANDBAR)
-        // TODO: show commandbar
-#else
         wxToolBar *theToolBar = GetToolBar();
 
-        // restore the toolbar, menubar, and statusbar
-        if (theToolBar && (m_fsStyle & wxFULLSCREEN_NOTOOLBAR))
+        if ((m_fsStyle & wxFULLSCREEN_NOTOOLBAR) && theToolBar)
         {
-            theToolBar->SetSize(wxDefaultCoord, m_fsToolBarHeight);
             theToolBar->Show(true);
         }
-#endif // __WXWINCE__
 #endif // wxUSE_TOOLBAR
 
+        if ((m_fsStyle & wxFULLSCREEN_NOMENUBAR) && m_hMenu)
+            ::SetMenu(GetHwnd(), (HMENU)m_hMenu);
+
 #if wxUSE_STATUSBAR
-        if ( m_fsStyle & wxFULLSCREEN_NOSTATUSBAR )
+        wxStatusBar *theStatusBar = GetStatusBar();
+
+        if ((m_fsStyle & wxFULLSCREEN_NOSTATUSBAR) && theStatusBar)
         {
-            //CreateStatusBar(m_fsStatusBarFields);
-            if (GetStatusBar())
-            {
-                GetStatusBar()->Show(true);
-                PositionStatusBar();
-            }
+            theStatusBar->Show(true);
+            PositionStatusBar();
         }
 #endif // wxUSE_STATUSBAR
-
-#if defined(__WXMICROWIN__)
-#elif defined(__WXWINCE__)
-        // TODO: make it work for WinCE
-#else
-        if ((m_fsStyle & wxFULLSCREEN_NOMENUBAR) && (m_hMenu != 0))
-            SetMenu((HWND)GetHWND(), (HMENU)m_hMenu);
-#endif
     }
+#endif // !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 
     return wxFrameBase::ShowFullScreen(show, style);
 }
@@ -681,7 +692,7 @@ void wxFrame::IconizeChildFrames(bool bIconize)
         wxFrame *frame = wxDynamicCast(win, wxFrame);
         if ( frame
 #if wxUSE_MDI_ARCHITECTURE
-                && !wxDynamicCast(frame, wxMDIChildFrame)
+                && !frame->IsMDIChild()
 #endif // wxUSE_MDI_ARCHITECTURE
            )
         {
@@ -941,6 +952,39 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
 
     switch ( message )
     {
+#if defined(__SMARTPHONE__) || defined(__POCKETPC__)
+        case WM_ACTIVATE:
+        {
+            SHACTIVATEINFO* info = (SHACTIVATEINFO*) m_activateInfo;
+            if (info)
+                SHHandleWMActivate(GetHwnd(), wParam, lParam, info, FALSE);
+            
+            // This implicitly sends a wxEVT_ACTIVATE_APP event
+            if (wxTheApp)
+                wxTheApp->SetActive(wParam != 0, FindFocus());
+            break;
+        }
+        case WM_SETTINGCHANGE:
+        {
+            SHACTIVATEINFO* info = (SHACTIVATEINFO*) m_activateInfo;
+            if (info)
+                SHHandleWMSettingChange(GetHwnd(), wParam, lParam, info);
+            processed = true;
+            break;
+        }
+        case WM_HIBERNATE:
+        {
+            wxActivateEvent event(wxEVT_HIBERNATE, true, wxID_ANY);
+            event.SetEventObject(wxTheApp);
+
+            if (wxTheApp)
+            {
+                processed = wxTheApp->ProcessEvent(event);
+            }
+            break;
+        }
+#endif
+
         case WM_CLOSE:
             // if we can't close, tell the system that we processed the
             // message - otherwise it would close us

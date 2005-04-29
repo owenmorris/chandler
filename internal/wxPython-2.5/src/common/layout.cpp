@@ -48,6 +48,32 @@
     IMPLEMENT_DYNAMIC_CLASS(wxLayoutConstraints, wxObject)
 
 
+
+inline void wxGetAsIs(wxWindowBase* win, int* w, int* h)
+{
+#if 1
+    // The old way.  Works for me.
+    win->GetSize(w, h);
+#endif
+    
+#if 0
+    // Vadim's change.  Breaks wxPython's LayoutAnchors
+    win->GetBestSize(w, h);
+#endif
+
+#if 0
+    // Proposed compromise.  Doesn't work.
+    int sw, sh, bw, bh;
+    win->GetSize(&sw, &sh);
+    win->GetBestSize(&bw, &bh);
+    if (w)
+        *w = wxMax(sw, bw);
+    if (h)
+        *h = wxMax(sh, bh);
+#endif
+}
+
+
 wxIndividualLayoutConstraint::wxIndividualLayoutConstraint()
 {
     myEdge = wxTop;
@@ -58,10 +84,6 @@ wxIndividualLayoutConstraint::wxIndividualLayoutConstraint()
     otherEdge = wxTop;
     done = false;
     otherWin = (wxWindowBase *) NULL;
-}
-
-wxIndividualLayoutConstraint::~wxIndividualLayoutConstraint()
-{
 }
 
 void wxIndividualLayoutConstraint::Set(wxRelationship rel, wxWindowBase *otherW, wxEdge otherE, int val, int marg)
@@ -304,7 +326,7 @@ bool wxIndividualLayoutConstraint::SatisfyConstraint(wxLayoutConstraints *constr
                 {
                     int x, y;
                     int w, h;
-                    win->GetSize(&w, &h);
+                    wxGetAsIs(win, &w, &h);
                     win->GetPosition(&x, &y);
                     value = x + w;
                     done = true;
@@ -457,7 +479,7 @@ bool wxIndividualLayoutConstraint::SatisfyConstraint(wxLayoutConstraints *constr
                 {
                     int x, y;
                     int w, h;
-                    win->GetSize(&w, &h);
+                    wxGetAsIs(win, &w, &h);
                     win->GetPosition(&x, &y);
                     value = h + y;
                     done = true;
@@ -625,7 +647,7 @@ bool wxIndividualLayoutConstraint::SatisfyConstraint(wxLayoutConstraints *constr
                     if (win)
                     {
                         int h;
-                        win->GetSize(&value, &h);
+                        wxGetAsIs(win, &value, &h);
                         done = true;
                         return true;
                     }
@@ -683,7 +705,7 @@ bool wxIndividualLayoutConstraint::SatisfyConstraint(wxLayoutConstraints *constr
                     if (win)
                     {
                         int w;
-                        win->GetSize(&w, &value);
+                        wxGetAsIs(win, &w, &value);
                         done = true;
                         return true;
                     }
@@ -958,10 +980,6 @@ wxLayoutConstraints::wxLayoutConstraints()
     centreY.SetEdge(wxCentreY);
     width.SetEdge(wxWidth);
     height.SetEdge(wxHeight);
-}
-
-wxLayoutConstraints::~wxLayoutConstraints()
-{
 }
 
 bool wxLayoutConstraints::SatisfyConstraints(wxWindowBase *win, int *nChanges)

@@ -17,15 +17,14 @@
 
 #include <ctype.h>
 
-#include "wx/stc/stc.h"
-#include "ScintillaWX.h"
-
 #include <wx/wx.h>
 #include <wx/tokenzr.h>
 #include <wx/mstream.h>
 #include <wx/image.h>
 #include <wx/file.h>
 
+#include "wx/stc/stc.h"
+#include "ScintillaWX.h"
 
 //----------------------------------------------------------------------
 
@@ -46,7 +45,9 @@ static long wxColourAsLong(const wxColour& co) {
 
 static wxColour wxColourFromLong(long c) {
     wxColour clr;
-    clr.Set(c & 0xff, (c >> 8) & 0xff, (c >> 16) & 0xff);
+    clr.Set((unsigned char)(c & 0xff),
+            (unsigned char)((c >> 8) & 0xff),
+            (unsigned char)((c >> 16) & 0xff));
     return clr;
 }
 
@@ -60,7 +61,9 @@ static wxColour wxColourFromSpec(const wxString& spec) {
         spec.Mid(1,2).ToLong(&red,   16);
         spec.Mid(3,2).ToLong(&green, 16);
         spec.Mid(5,2).ToLong(&blue,  16);
-        return wxColour(red, green, blue);
+        return wxColour((unsigned char)red,
+                        (unsigned char)green,
+                        (unsigned char)blue);
     }
     else
         return wxColour(spec);
@@ -147,19 +150,20 @@ wxStyledTextCtrl::wxStyledTextCtrl(wxWindow *parent,
 }
 
 
-void wxStyledTextCtrl::Create(wxWindow *parent,
-                                   wxWindowID id,
-                                   const wxPoint& pos,
-                                   const wxSize& size,
-                                   long style,
-                                   const wxString& name)
+bool wxStyledTextCtrl::Create(wxWindow *parent,
+                              wxWindowID id,
+                              const wxPoint& pos,
+                              const wxSize& size,
+                              long style,
+                              const wxString& name)
 {
 #ifdef __WXMAC__
     style |= wxVSCROLL | wxHSCROLL;
 #endif
-    wxControl::Create(parent, id, pos, size,
-              style | wxWANTS_CHARS | wxCLIP_CHILDREN,
-              wxDefaultValidator, name);
+    if (!wxControl::Create(parent, id, pos, size,
+                           style | wxWANTS_CHARS | wxCLIP_CHILDREN,
+                           wxDefaultValidator, name))
+        return false;
 
 #ifdef LINK_LEXERS
     Scintilla_LinkLexers();
@@ -175,6 +179,10 @@ void wxStyledTextCtrl::Create(wxWindow *parent,
 #endif
 
     SetBestFittingSize(size);
+
+    // Reduces flicker on GTK+/X11
+    SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    return true;
 }
 
 
@@ -190,7 +198,26 @@ long wxStyledTextCtrl::SendMsg(int msg, long wp, long lp) {
     return m_swx->WndProc(msg, wp, lp);
 }
 
+//----------------------------------------------------------------------
 
+// Set the vertical scrollbar to use instead of the ont that's built-in.
+void wxStyledTextCtrl::SetVScrollBar(wxScrollBar* bar)  {
+    m_vScrollBar = bar;
+    if (bar != NULL) {
+        // ensure that the built-in scrollbar is not visible
+        SetScrollbar(wxVERTICAL, 0, 0, 0);
+    }
+}
+
+
+// Set the horizontal scrollbar to use instead of the ont that's built-in.
+void wxStyledTextCtrl::SetHScrollBar(wxScrollBar* bar)  {
+    m_hScrollBar = bar;
+    if (bar != NULL) {
+        // ensure that the built-in scrollbar is not visible
+        SetScrollbar(wxHORIZONTAL, 0, 0, 0);
+    }
+}
 
 //----------------------------------------------------------------------
 // BEGIN generated section.  The following code is automatically generated
@@ -593,11 +620,6 @@ void wxStyledTextCtrl::StyleSetUnderline(int style, bool underline) {
 // Set a style to be mixed case, or to force upper or lower case.
 void wxStyledTextCtrl::StyleSetCase(int style, int caseForce) {
     SendMsg(2060, style, caseForce);
-}
-
-// Set the character set of the font in a style.
-void wxStyledTextCtrl::StyleSetCharacterSet(int style, int characterSet) {
-    SendMsg(2066, style, characterSet);
 }
 
 // Set a style to be a hotspot or not.
@@ -1605,8 +1627,9 @@ bool wxStyledTextCtrl::GetUseVerticalScrollBar() {
 }
 
 // Append a string to the end of the document without changing the selection.
-void wxStyledTextCtrl::AppendText(int length, const wxString& text) {
-    SendMsg(2282, length, (long)(const char*)wx2stc(text));
+void wxStyledTextCtrl::AppendText(const wxString& text) {
+                    wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(text);
+                    SendMsg(2282, strlen(buf), (long)(const char*)buf);
 }
 
 // Is drawing done in two phases with backgrounds drawn before foregrounds?
@@ -2385,6 +2408,12 @@ void wxStyledTextCtrl::Allocate(int bytes) {
     SendMsg(2446, bytes, 0);
 }
 
+// Find the position of a column on a line taking into account tabs and 
+// multi-byte characters. If beyond end of line, return line end position.
+int wxStyledTextCtrl::FindColumn(int line, int column) {
+    return SendMsg(2456, line, column);
+}
+
 // Start notifying the container of all key presses and commands.
 void wxStyledTextCtrl::StartRecord() {
     SendMsg(3001, 0, 0);
@@ -2495,28 +2524,127 @@ void wxStyledTextCtrl::StyleSetFont(int styleNum, wxFont& font) {
     int x, y;
     GetTextExtent(wxT("X"), &x, &y, NULL, NULL, &font);
 #endif
-    int      size     = font.GetPointSize();
-    wxString faceName = font.GetFaceName();
-    bool     bold     = font.GetWeight() == wxBOLD;
-    bool     italic   = font.GetStyle() != wxNORMAL;
-    bool     under    = font.GetUnderlined();
-
-    // TODO: add encoding/charset mapping
-    StyleSetFontAttr(styleNum, size, faceName, bold, italic, under);
+    int            size     = font.GetPointSize();
+    wxString       faceName = font.GetFaceName();
+    bool           bold     = font.GetWeight() == wxBOLD;
+    bool           italic   = font.GetStyle() != wxNORMAL;
+    bool           under    = font.GetUnderlined();
+    wxFontEncoding encoding = font.GetEncoding();
+    
+    StyleSetFontAttr(styleNum, size, faceName, bold, italic, under, encoding);
 }
 
 // Set all font style attributes at once.
 void wxStyledTextCtrl::StyleSetFontAttr(int styleNum, int size,
                                         const wxString& faceName,
                                         bool bold, bool italic,
-                                        bool underline) {
+                                        bool underline,
+                                        wxFontEncoding encoding) {
     StyleSetSize(styleNum, size);
     StyleSetFaceName(styleNum, faceName);
     StyleSetBold(styleNum, bold);
     StyleSetItalic(styleNum, italic);
     StyleSetUnderline(styleNum, underline);
+    StyleSetFontEncoding(styleNum, encoding);
+}
 
-    // TODO: add encoding/charset mapping
+
+// Set the character set of the font in a style.  Converts the Scintilla
+// character set values to a wxFontEncoding.
+void wxStyledTextCtrl::StyleSetCharacterSet(int style, int characterSet)
+{
+    wxFontEncoding encoding;
+
+    // Translate the Scintilla characterSet to a wxFontEncoding
+    switch (characterSet) {
+        default:
+        case wxSTC_CHARSET_ANSI:
+        case wxSTC_CHARSET_DEFAULT:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_BALTIC:
+            encoding = wxFONTENCODING_ISO8859_13;
+            break;
+
+        case wxSTC_CHARSET_CHINESEBIG5:
+            encoding = wxFONTENCODING_CP950;
+            break;
+
+        case wxSTC_CHARSET_EASTEUROPE:
+            encoding = wxFONTENCODING_ISO8859_2;
+            break;
+
+        case wxSTC_CHARSET_GB2312:
+            encoding = wxFONTENCODING_CP936;
+            break;
+
+        case wxSTC_CHARSET_GREEK:
+            encoding = wxFONTENCODING_ISO8859_7;
+            break;
+
+        case wxSTC_CHARSET_HANGUL:
+            encoding = wxFONTENCODING_CP949;
+            break;
+
+        case wxSTC_CHARSET_MAC:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_OEM:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_RUSSIAN:
+            encoding = wxFONTENCODING_KOI8;
+            break;
+
+        case wxSTC_CHARSET_SHIFTJIS:
+            encoding = wxFONTENCODING_CP932;
+            break;
+
+        case wxSTC_CHARSET_SYMBOL:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_TURKISH:
+            encoding = wxFONTENCODING_ISO8859_9;
+            break;
+
+        case wxSTC_CHARSET_JOHAB:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_HEBREW:
+            encoding = wxFONTENCODING_ISO8859_8;
+            break;
+
+        case wxSTC_CHARSET_ARABIC:
+            encoding = wxFONTENCODING_ISO8859_6;
+            break;
+
+        case wxSTC_CHARSET_VIETNAMESE:
+            encoding = wxFONTENCODING_DEFAULT;
+            break;
+
+        case wxSTC_CHARSET_THAI:
+            encoding = wxFONTENCODING_ISO8859_11;
+            break;
+    }
+
+    // We just have Scintilla track the wxFontEncoding for us.  It gets used
+    // in Font::Create in PlatWX.cpp.  We add one to the value so that the
+    // effective wxFONENCODING_DEFAULT == SC_SHARSET_DEFAULT and so when
+    // Scintilla internally uses SC_CHARSET_DEFAULT we will translate it back
+    // to wxFONENCODING_DEFAULT in Font::Create.
+    SendMsg(SCI_STYLESETCHARACTERSET, style, encoding+1);
+}
+
+
+// Set the font encoding to be used by a style.
+void wxStyledTextCtrl::StyleSetFontEncoding(int style, wxFontEncoding encoding)
+{
+    SendMsg(SCI_STYLESETCHARACTERSET, style, encoding+1);
 }
 
 
@@ -2584,13 +2712,15 @@ bool wxStyledTextCtrl::LoadFile(const wxString& filename)
     if (file.IsOpened())
     {
         wxString contents;
-        size_t len = (size_t)file.Length();
+        // get the file size (assume it is not huge file...)
+        ssize_t len = (ssize_t)file.Length();
+
         if (len > 0)
         {
 #if wxUSE_UNICODE
             wxMemoryBuffer buffer(len+1);
             success = (file.Read(buffer.GetData(), len) == len);
-	    if (success) {
+            if (success) {
                 ((char*)buffer.GetData())[len] = 0;
                 contents = wxString(buffer, *wxConvCurrent, len);
             }
@@ -2601,7 +2731,12 @@ bool wxStyledTextCtrl::LoadFile(const wxString& filename)
 #endif
         }
         else
-            success = true;		// empty file is ok
+        {
+            if (len == 0)
+                success = true;  // empty file is ok
+            else
+                success = false; // len == wxInvalidOffset
+        }
 
         if (success)
         {
@@ -2634,6 +2769,109 @@ void wxStyledTextCtrl::SetUseAntiAliasing(bool useAA) {
 bool wxStyledTextCtrl::GetUseAntiAliasing() {
     return m_swx->GetUseAntiAliasing();
 }
+
+
+
+
+
+void wxStyledTextCtrl::AddTextRaw(const char* text)
+{
+    SendMsg(SCI_ADDTEXT, strlen(text), (long)text);
+}
+
+void wxStyledTextCtrl::InsertTextRaw(int pos, const char* text)
+{
+    SendMsg(SCI_INSERTTEXT, pos, (long)text);
+}
+
+wxCharBuffer wxStyledTextCtrl::GetCurLineRaw(int* linePos)
+{
+    int len = LineLength(GetCurrentLine());
+    if (!len) {
+        if (linePos)  *linePos = 0;
+        wxCharBuffer empty;
+        return empty;
+    }
+
+    wxCharBuffer buf(len);
+    int pos = SendMsg(SCI_GETCURLINE, len, (long)buf.data());
+    if (linePos)  *linePos = pos;
+    return buf;
+}
+
+wxCharBuffer wxStyledTextCtrl::GetLineRaw(int line)
+{
+    int len = LineLength(line);
+    if (!len) {
+        wxCharBuffer empty;
+        return empty;
+    }
+
+    wxCharBuffer buf(len);
+    SendMsg(SCI_GETLINE, line, (long)buf.data());
+    return buf;
+}
+
+wxCharBuffer wxStyledTextCtrl::GetSelectedTextRaw()
+{
+    int   start;
+    int   end;
+
+    GetSelection(&start, &end);
+    int   len  = end - start;
+    if (!len) {
+        wxCharBuffer empty;
+        return empty;
+    }        
+
+    wxCharBuffer buf(len);
+    SendMsg(SCI_GETSELTEXT, 0, (long)buf.data());
+    return buf;
+}
+
+wxCharBuffer wxStyledTextCtrl::GetTextRangeRaw(int startPos, int endPos)
+{
+    if (endPos < startPos) {
+        int temp = startPos;
+        startPos = endPos;
+        endPos = temp;
+    }
+    int len  = endPos - startPos;
+    if (!len) {
+        wxCharBuffer empty;
+        return empty;
+    }        
+
+    wxCharBuffer buf(len);
+    TextRange tr;
+    tr.lpstrText = buf.data();
+    tr.chrg.cpMin = startPos;
+    tr.chrg.cpMax = endPos;
+    SendMsg(SCI_GETTEXTRANGE, 0, (long)&tr);
+    return buf;
+}
+
+void wxStyledTextCtrl::SetTextRaw(const char* text)
+{
+    SendMsg(SCI_SETTEXT, 0, (long)text);
+}
+
+wxCharBuffer wxStyledTextCtrl::GetTextRaw()
+{
+    int len  = GetTextLength();
+    wxCharBuffer buf(len);
+    SendMsg(SCI_GETTEXT, len, (long)buf.data());
+    return buf;
+}
+
+void wxStyledTextCtrl::AppendTextRaw(const char* text)
+{
+    SendMsg(SCI_APPENDTEXT, strlen(text), (long)text);
+}
+
+
+
+
 
 //----------------------------------------------------------------------
 // Event handlers
@@ -2722,7 +2960,7 @@ void wxStyledTextCtrl::OnMouseWheel(wxMouseEvent& evt) {
 
 
 void wxStyledTextCtrl::OnChar(wxKeyEvent& evt) {
-    // On (some?) non-US keyboards the AltGr key is required to enter some
+    // On (some?) non-US PC keyboards the AltGr key is required to enter some
     // common characters.  It comes to us as both Alt and Ctrl down so we need
     // to let the char through in that case, otherwise if only ctrl or only
     // alt let's skip it.
@@ -2737,32 +2975,38 @@ void wxStyledTextCtrl::OnChar(wxKeyEvent& evt) {
 #endif
     bool skip = ((ctrl || alt) && ! (ctrl && alt));
 
-    int key = evt.GetKeyCode();
+    if (!m_lastKeyDownConsumed && !skip) {
+#if wxUSE_UNICODE
+        int key = evt.GetUnicodeKey();
+        bool keyOk = true;
 
-//     printf("OnChar key:%d  consumed:%d  ctrl:%d  alt:%d  skip:%d\n",
-//            key, m_lastKeyDownConsumed, ctrl, alt, skip);
-
-    if ( (key <= WXK_START || key > WXK_COMMAND) &&
-         !m_lastKeyDownConsumed && !skip) {
-        m_swx->DoAddChar(key);
-        return;
+        // if the unicode key code is not really a unicode character (it may
+        // be a function key or etc., the platforms appear to always give us a
+        // small value in this case) then fallback to the ascii key code but
+        // don't do anything for function keys or etc.
+        if (key <= 127) {
+            key = evt.GetKeyCode();
+            keyOk = (key <= 127);
+        }
+        if (keyOk) {
+            m_swx->DoAddChar(key);
+            return;
+        }
+#else
+        int key = evt.GetKeyCode();
+        if (key <= WXK_START || key > WXK_COMMAND) {
+            m_swx->DoAddChar(key);
+            return;
+        }
+#endif
     }
+    
     evt.Skip();
 }
 
 
 void wxStyledTextCtrl::OnKeyDown(wxKeyEvent& evt) {
-    int key = evt.GetKeyCode();
-    bool shift = evt.ShiftDown(),
-         ctrl  = evt.ControlDown(),
-         alt   = evt.AltDown(),
-         meta  = evt.MetaDown();
-
-    int processed = m_swx->DoKeyDown(key, shift, ctrl, alt, meta, &m_lastKeyDownConsumed);
-
-//     printf("KeyDn  key:%d  shift:%d  ctrl:%d  alt:%d  processed:%d  consumed:%d\n",
-//            key, shift, ctrl, alt, processed, m_lastKeyDownConsumed);
-
+    int processed = m_swx->DoKeyDown(evt, &m_lastKeyDownConsumed);
     if (!processed && !m_lastKeyDownConsumed)
         evt.Skip();
 }

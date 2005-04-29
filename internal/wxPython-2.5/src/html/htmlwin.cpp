@@ -180,6 +180,8 @@ void wxHtmlWindow::Init()
     m_lastDoubleClick = 0;
 #endif // wxUSE_CLIPBOARD
     m_backBuffer = NULL;
+    m_eraseBgInOnPaint = false;
+    m_tmpSelFromCell = NULL;
 }
 
 bool wxHtmlWindow::Create(wxWindow *parent, wxWindowID id,
@@ -270,6 +272,9 @@ bool wxHtmlWindow::SetPage(const wxString& source)
 
     wxDELETE(m_selection);
 
+    // we will soon delete all the cells, so clear pointers to them:
+    m_tmpSelFromCell = NULL;
+
     // pass HTML through registered processors:
     if (m_Processors || m_GlobalProcessors)
     {
@@ -307,6 +312,7 @@ bool wxHtmlWindow::SetPage(const wxString& source)
     wxClientDC *dc = new wxClientDC(this);
     dc->SetMapMode(wxMM_TEXT);
     SetBackgroundColour(wxColour(0xFF, 0xFF, 0xFF));
+    SetBackgroundImage(wxNullBitmap);
     m_OpenedPage = m_OpenedAnchor = m_OpenedPageTitle = wxEmptyString;
     m_Parser->SetDC(dc);
     if (m_Cell)
@@ -848,15 +854,47 @@ void wxHtmlWindow::OnCellMouseHover(wxHtmlCell * WXUNUSED(cell),
     // do nothing here
 }
 
-void wxHtmlWindow::OnEraseBackground(wxEraseEvent& WXUNUSED(event))
+void wxHtmlWindow::OnEraseBackground(wxEraseEvent& event)
 {
+    if ( !m_bmpBg.Ok() )
+    {
+        // don't even skip the event, if we don't have a bg bitmap we're going
+        // to overwrite background in OnPaint() below anyhow, so letting the
+        // default handling take place would only result in flicker, just set a
+        // flag to erase the background below
+        m_eraseBgInOnPaint = true;
+        return;
+    }
+
+    wxDC& dc = *event.GetDC();
+
+    // if the image is not fully opaque, we have to erase the background before
+    // drawing it, however avoid doing it for opaque images as this would just
+    // result in extra flicker without any other effect as background is
+    // completely covered anyhow
+    if ( m_bmpBg.GetMask() )
+    {
+        dc.SetBackground(wxBrush(GetBackgroundColour(), wxSOLID));
+        dc.Clear();
+    }
+
+    const wxSize sizeWin(GetClientSize());
+    const wxSize sizeBmp(m_bmpBg.GetWidth(), m_bmpBg.GetHeight());
+    for ( wxCoord x = 0; x < sizeWin.x; x += sizeBmp.x )
+    {
+        for ( wxCoord y = 0; y < sizeWin.y; y += sizeBmp.y )
+        {
+            dc.DrawBitmap(m_bmpBg, x, y, true /* use mask */);
+        }
+    }
 }
 
 void wxHtmlWindow::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
     wxPaintDC dc(this);
 
-    if (m_tmpCanDrawLocks > 0 || m_Cell == NULL) return;
+    if (m_tmpCanDrawLocks > 0 || m_Cell == NULL)
+        return;
 
     int x, y;
     GetViewStart(&x, &y);
@@ -867,8 +905,25 @@ void wxHtmlWindow::OnPaint(wxPaintEvent& WXUNUSED(event))
     if ( !m_backBuffer )
         m_backBuffer = new wxBitmap(sz.x, sz.y);
     dcm.SelectObject(*m_backBuffer);
-    dcm.SetBackground(wxBrush(GetBackgroundColour(), wxSOLID));
-    dcm.Clear();
+
+    if ( m_eraseBgInOnPaint )
+    {
+        dcm.SetBackground(wxBrush(GetBackgroundColour(), wxSOLID));
+        dcm.Clear();
+
+        m_eraseBgInOnPaint = false;
+    }
+    else // someone has already erased the background, keep it
+    {
+        // preserve the existing background, otherwise we'd erase anything the
+        // user code had drawn in its EVT_ERASE_BACKGROUND handler when we do
+        // the Blit back below
+        dcm.Blit(0, rect.GetTop(),
+                 sz.x, rect.GetBottom() - rect.GetTop() + 1,
+                 &dc,
+                 0, rect.GetTop());
+    }
+
     PrepareDC(dcm);
     dcm.SetMapMode(wxMM_TEXT);
     dcm.SetBackgroundMode(wxTRANSPARENT);

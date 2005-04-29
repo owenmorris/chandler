@@ -85,18 +85,31 @@ wxConsoleAppTraits::WaitForChild(wxExecuteData& execData)
 // misc other stuff
 // ----------------------------------------------------------------------------
 
-// this is in mac/utils.cpp under Mac
-#ifndef __WXMAC__
+// this is in mac/utils.cpp under Mac and MGL
+#if !defined(__WXMAC__) && !defined(__WXMGL__)
 
 wxToolkitInfo& wxConsoleAppTraits::GetToolkitInfo()
 {
     static wxToolkitInfo info;
     int major, minor;
-    char name[256];
 
-    if ( sscanf(WXWIN_OS_DESCRIPTION, "%255s %d.%d", name, &major, &minor) != 3 )
+    FILE *f = popen("uname -r", "r");
+    if (f)
     {
-        // unreckognized uname string format
+        char buf[32];
+        size_t c = fread(buf, 1, sizeof(buf) - 1, f);
+        pclose(f);
+        buf[c] = '\0';
+        if ( sscanf(buf, "%d.%d", &major, &minor) != 2 )
+        {
+            // unrecognized uname string format
+            major =
+            minor = -1;
+        }
+    }
+    else
+    {
+        // failed to run uname
         major =
         minor = -1;
     }

@@ -515,7 +515,7 @@ void wxListBox::Clear()
     MacClear() ;
 }
 
-void wxListBox::SetSelection(int N, bool select)
+void wxListBox::DoSetSelection(int N, bool select)
 {
     wxCHECK_RET( N >= 0 && N < m_noItems,
         wxT("invalid index in wxListBox::SetSelection") );
@@ -909,7 +909,7 @@ void wxListBox::MacDoClick()
         n = -1;
     }
     
-    event.m_commandInt = n;
+    event.SetInt(n);
     
     GetEventHandler()->ProcessEvent(event);
 }
@@ -990,7 +990,7 @@ void wxListBox::OnChar(wxKeyEvent& event)
             n = -1;
         }
         
-        event.m_commandInt = n;
+        event.SetInt(n);
         
         GetEventHandler()->ProcessEvent(event);
     }
@@ -1017,7 +1017,7 @@ void wxListBox::OnChar(wxKeyEvent& event)
                     event.SetClientData( GetClientData(line) );
                 event.SetString( GetString(line) );
                 
-                event.m_commandInt = line ;
+                event.SetInt(line);
                 
                 GetEventHandler()->ProcessEvent(event);
             }

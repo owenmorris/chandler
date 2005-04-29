@@ -318,7 +318,7 @@ int SavePCX(wxImage *image, wxOutputStream& stream)
     unsigned char *src;             // pointer into wxImage data
     unsigned int width, height;     // size of the image
     unsigned int bytesperline;      // bytes per line (each plane)
-    int nplanes = 3;                // number of planes
+    unsigned char nplanes = 3;      // number of planes
     int format = wxPCX_24BIT;       // image format (8 bit, 24 bit)
     wxImageHistogram histogram;     // image histogram
     unsigned long key;              // key in the hashtable
@@ -418,7 +418,7 @@ int SavePCX(wxImage *image, wxOutputStream& stream)
         unsigned long index;
 
         for (wxImageHistogram::iterator entry = histogram.begin();
-             entry != histogram.end(); entry++ )
+             entry != histogram.end(); ++entry )
         {
             key = entry->first;
             index = entry->second.index;

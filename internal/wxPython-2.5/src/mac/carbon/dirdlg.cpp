@@ -9,11 +9,14 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "dirdlg.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
+
+#if wxUSE_DIRDLG
+
 #include "wx/utils.h"
 #include "wx/dialog.h"
 #include "wx/dirdlg.h"
@@ -117,3 +120,4 @@ int wxDirDialog::ShowModal()
     return wxID_CANCEL;
 }
 
+#endif

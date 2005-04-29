@@ -9,11 +9,13 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
   #pragma implementation "statbmp.h"
 #endif
 
-#include "wx/defs.h"
+#include "wx/wxprec.h"
+
+#if wxUSE_STATBMP
 
 #include "wx/statbmp.h"
 #include "wx/dcclient.h"
@@ -80,4 +82,6 @@ wxSize wxStaticBitmap::DoGetBestSize() const
     // this is completely arbitrary
     return DoGetSizeFromClientSize( wxSize(16, 16) ); 
 }
+
+#endif
 

@@ -44,11 +44,6 @@
 #endif
 
 
-#if PLAT_WX
-#include <wx/object.h>  // For the global memory operators, if needed.
-#endif
-
-
 // Underlying the implementation of the platform classes are platform specific types.
 // Sometimes these need to be passed around by client code so they are defined here
 
@@ -69,7 +64,7 @@ public:
 	int x;
 	int y;
 
-	Point(int x_=0, int y_=0) : x(x_), y(y_) {
+	explicit Point(int x_=0, int y_=0) : x(x_), y(y_) {
 	}
 
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine

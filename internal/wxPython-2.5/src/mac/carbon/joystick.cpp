@@ -9,15 +9,17 @@
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "joystick.h"
 #endif
 
-#include "wx/setup.h"
-
-#include "wx/joystick.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_JOYSTICK
+
+#if !defined (__WXMAC_OSX__)
+
+#include "wx/joystick.h"
 
 IMPLEMENT_DYNAMIC_CLASS(wxJoystick, wxObject)
 
@@ -281,6 +283,8 @@ bool wxJoystick::ReleaseCapture()
     return FALSE;
 }
 
+#endif 
+    // !OSX
 #endif
     // wxUSE_JOYSTICK
 

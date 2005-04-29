@@ -15,28 +15,28 @@
 
 //---------------------------------------------------------------------------
 
-MAKE_CONST_WXSTRING(NOTEBOOK_NAME);
+MAKE_CONST_WXSTRING(NotebookNameStr);
 
 //---------------------------------------------------------------------------
 %newgroup
 
 // TODO:  Virtualize this class so other book controls can be derived in Python
 
-MustHaveApp(wxBookCtrl);
+MustHaveApp(wxBookCtrlBase);
 
 //  Common base class for wxList/Tree/Notebook
-class wxBookCtrl : public wxControl
+class wxBookCtrlBase : public wxControl
 {
 public:
     // This is an ABC, it can't be constructed...
 
-//     wxBookCtrl(wxWindow *parent,
+//     wxBookCtrlBase(wxWindow *parent,
 //                wxWindowID id,
 //                const wxPoint& pos = wxDefaultPosition,
 //                const wxSize& size = wxDefaultSize,
 //                long style = 0,
 //                const wxString& name = wxPyEmptyString);
-//     %name(PreBookCtrl)wxBookCtrl();
+//     %RenameCtor(PreBookCtrlBase, wxBookCtrlBase());
 //     bool Create(wxWindow *parent,
 //                 wxWindowID id,
 //                 const wxPoint& pos = wxDefaultPosition,
@@ -50,6 +50,9 @@ public:
 
     // get the panel which represents the given page
     virtual wxWindow *GetPage(size_t n);
+
+    // get the current page or NULL if none
+    wxWindow* GetCurrentPage() const;
 
     // get the currently selected page or wxNOT_FOUND if none
     virtual int GetSelection() const/* = 0*/;
@@ -124,10 +127,10 @@ public:
 
 
 
-class wxBookCtrlEvent : public wxNotifyEvent
+class wxBookCtrlBaseEvent : public wxNotifyEvent
 {
 public:
-    wxBookCtrlEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
+    wxBookCtrlBaseEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
                     int nSel = -1, int nOldSel = -1);
 
         // the currently selected page (-1 if none)
@@ -151,6 +154,7 @@ enum {
     wxNB_RIGHT,
     wxNB_BOTTOM,
     wxNB_MULTILINE,
+    wxNB_NOPAGETHEME,
 
     // hittest flags
     wxNB_HITTEST_NOWHERE = 1,   // not on tab
@@ -164,7 +168,7 @@ enum {
 
 MustHaveApp(wxNotebook);
 
-class wxNotebook : public wxBookCtrl {
+class wxNotebook : public wxBookCtrlBase {
 public:
     %pythonAppend wxNotebook         "self._setOORInfo(self)"
     %pythonAppend wxNotebook()       ""
@@ -175,8 +179,8 @@ public:
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = 0,
-               const wxString& name = wxPyNOTEBOOK_NAME);
-    %name(PreNotebook)wxNotebook();
+               const wxString& name = wxPyNotebookNameStr);
+    %RenameCtor(PreNotebook, wxNotebook());
 
     // Turn it back on again
     %typemap(out) wxNotebook* { $result = wxPyMake_wxObject($1, $owner); }
@@ -186,7 +190,7 @@ public:
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = 0,
-               const wxString& name = wxPyNOTEBOOK_NAME);
+               const wxString& name = wxPyNotebookNameStr);
 
 
     // get the number of rows for a control with wxNB_MULTILINE style (not all
@@ -210,18 +214,17 @@ wx.NB_HITTEST flags.", "");
     // implement some base class functions
     virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const;
 
-#ifdef __WXMSW__
-    // Windows only: attempts to apply the UX theme page background to this page
-  void ApplyThemeBackground(wxWindow* window, const wxColour& colour);
-#endif
-
+    // On platforms that support it, get the theme page background colour,
+    // else invalid colour
+    wxColour GetThemeBackgroundColour() const;
+    
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 };
 
 
 
-class wxNotebookEvent : public wxBookCtrlEvent
+class wxNotebookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxNotebookEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
@@ -247,8 +250,8 @@ public:
 class NotebookPage(wx.Panel):
     """
     There is an old (and apparently unsolvable) bug when placing a
-    window with a nonstandard background colour in a wxNotebook on
-    wxGTK, as the notbooks's background colour would always be used
+    window with a nonstandard background colour in a wx.Notebook on
+    wxGTK1, as the notbooks's background colour would always be used
     when the window is refreshed.  The solution is to place a panel in
     the notbook and the coloured window on the panel, sized to cover
     the panel.  This simple class does that for you, just put an
@@ -260,7 +263,7 @@ class NotebookPage(wx.Panel):
                  style=wx.TAB_TRAVERSAL, name="panel"):
         wx.Panel.__init__(self, parent, id, pos, size, style, name)
         self.child = None
-        EVT_SIZE(self, self.OnSize)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnSize(self, evt):
         if self.child is None:
@@ -297,7 +300,7 @@ enum
 MustHaveApp(wxListbook);
 
 //  wxListCtrl and wxNotebook combination
-class wxListbook : public wxBookCtrl
+class wxListbook : public wxBookCtrlBase
 {
 public:
     %pythonAppend wxListbook         "self._setOORInfo(self)"
@@ -309,7 +312,7 @@ public:
                const wxSize& size = wxDefaultSize,
                long style = 0,
                const wxString& name = wxPyEmptyString);
-    %name(PreListbook)wxListbook();
+    %RenameCtor(PreListbook, wxListbook());
 
     bool Create(wxWindow *parent,
                 wxWindowID id=-1,
@@ -326,7 +329,7 @@ public:
 
 
 
-class wxListbookEvent : public wxBookCtrlEvent
+class wxListbookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxListbookEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
@@ -361,7 +364,7 @@ enum {
 
 MustHaveApp(wxChoicebook);
 
-class wxChoicebook : public wxBookCtrl
+class wxChoicebook : public wxBookCtrlBase
 {
 public:
     %pythonAppend wxChoicebook         "self._setOORInfo(self)"
@@ -373,7 +376,7 @@ public:
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
                  const wxString& name = wxPyEmptyString);
-    %name(PreChoicebook)wxChoicebook();
+    %RenameCtor(PreChoicebook, wxChoicebook());
 
     // quasi ctor
     bool Create(wxWindow *parent,
@@ -385,13 +388,16 @@ public:
 
 
     // returns true if we have wxCHB_TOP or wxCHB_BOTTOM style
-    bool IsVertical() const { return HasFlag(wxCHB_BOTTOM | wxCHB_TOP); }
+    bool IsVertical() const;
+
+    // returns the choice control
+    wxChoice* GetChoiceCtrl() const;
 
     virtual bool DeleteAllPages();
 };
 
 
-class wxChoicebookEvent : public wxBookCtrlEvent
+class wxChoicebookEvent : public wxBookCtrlBaseEvent
 {
 public:
     wxChoicebookEvent(wxEventType commandType = wxEVT_NULL, int id = 0,
@@ -409,17 +415,18 @@ public:
 //---------------------------------------------------------------------------
 %newgroup;
 
+// WXWIN_COMPATIBILITY_2_4
 
 class wxBookCtrlSizer: public wxSizer
 {
 public:
     %pythonAppend wxBookCtrlSizer "self._setOORInfo(self)"
 
-    wxBookCtrlSizer( wxBookCtrl *nb );
+    wxBookCtrlSizer( wxBookCtrlBase *nb );
 
     void RecalcSizes();
     wxSize CalcMin();
-    wxBookCtrl *GetControl();
+    wxBookCtrlBase *GetControl();
 };
 
 
@@ -433,5 +440,9 @@ public:
     wxSize CalcMin();
     wxNotebook *GetNotebook();
 };
+
+%pythoncode { NotebookSizer.__init__ = wx._deprecated(NotebookSizer.__init__, "NotebookSizer is no longer needed.") }
+%pythoncode { BookCtrlSizer.__init__ = wx._deprecated(BookCtrlSizer.__init__, "BookCtrlSizer is no longer needed.") }
+
 
 //---------------------------------------------------------------------------

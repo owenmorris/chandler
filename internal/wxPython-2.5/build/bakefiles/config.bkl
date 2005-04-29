@@ -2,7 +2,7 @@
 <!-- $Id$ -->
 
 <makefile>
-    
+
     <set var="BUILDING_LIB" overwrite="0">0</set>
 
     <option name="SHARED">
@@ -13,7 +13,7 @@
             What type of library to build?
         </description>
     </option>
-    
+
     <option name="WXUNIV">
         <values>0,1</values>
         <values-description>,Universal</values-description>
@@ -26,7 +26,7 @@
     <option name="UNICODE">
         <values>0,1</values>
         <values-description>,Unicode</values-description>
-        <default-value>0</default-value>        
+        <default-value>0</default-value>
         <description>
             Compile Unicode build of wxWidgets?
         </description>
@@ -35,7 +35,7 @@
     <if cond="FORMAT!='autoconf' and FORMAT!='watcom'">
         <option name="MSLU">
             <values>0,1</values>
-            <default-value>0</default-value>        
+            <default-value>0</default-value>
             <description>
                 Use MSLU library when building Unicode version.
             </description>
@@ -53,17 +53,26 @@
             Type of compiled binaries
         </description>
     </option>
-    
+   
+    <!-- FIXME: restore this once bakefile is fixed to not use
+                /Gm /GZ (incompatible with /O2) w/ debug-info -->
+    <set var="DEBUG_INFO_DEFAULT">
+        <if cond="FORMAT in ['msvc','msvc6prj','msevc4prj']">1</if>
+        <if cond="FORMAT not in ['msvc','msvc6prj','msevc4prj']">default</if>
+    </set>
+    -->
+    <set var="DEBUG_INFO_DEFAULT">default</set>
+
     <option name="DEBUG_INFO">
         <values>0,1,default</values>
-        <default-value>default</default-value>
+        <default-value>$(DEBUG_INFO_DEFAULT)</default-value>
         <description>
 Should debugging info be included in the executables? The default value
 "default" means that debug info will be included if BUILD=debug
 and not included if BUILD=release.
         </description>
     </option>
-    
+
     <option name="DEBUG_FLAG">
         <values>0,1,default</values>
         <default-value>default</default-value>
@@ -79,7 +88,7 @@ be defined if BUILD=debug and not defined if BUILD=release.
             <default-value>default</default-value>
             <description>
 Should link against debug RTL (msvcrtd.dll) or release (msvcrt.dll)?
-Acts according to DEBUG_INFO by default.
+Acts according to BUILD by default.
             </description>
         </option>
     </if>
@@ -99,7 +108,7 @@ Acts according to DEBUG_INFO by default.
             Multiple libraries or single huge monolithic one?
         </description>
     </option>
-    
+
     <if cond="FORMAT=='autoconf'"> <!-- FIXME - temporary -->
         <option name="USE_PLUGINS">
             <values>0,1</values>
@@ -113,7 +122,7 @@ Acts according to DEBUG_INFO by default.
     <if cond="FORMAT!='autoconf'">
         <set var="USE_PLUGINS">0</set> <!-- FIXME - temporary -->
     </if>
-    
+
     <option name="USE_GUI">
         <values>0,1</values>
         <values-description>Base,GUI</values-description>
@@ -122,7 +131,7 @@ Acts according to DEBUG_INFO by default.
             Build GUI libraries?
         </description>
     </option>
-    
+
     <option name="USE_HTML">
         <values>0,1</values>
         <default-value>1</default-value>
@@ -130,7 +139,7 @@ Acts according to DEBUG_INFO by default.
             Build wxHTML library (USE_GUI must be 1)?
         </description>
     </option>
-    
+
     <option name="USE_XRC">
         <values>0,1</values>
         <default-value>1</default-value>
@@ -138,7 +147,7 @@ Acts according to DEBUG_INFO by default.
             Build wxXRC library (USE_GUI must be 1)?
         </description>
     </option>
-    
+
     <option name="USE_OPENGL">
         <values>0,1</values>
         <default-value>0</default-value>
@@ -146,7 +155,7 @@ Acts according to DEBUG_INFO by default.
             Build OpenGL canvas library (USE_GUI must be 1)?
         </description>
     </option>
-    
+
     <option name="USE_ODBC">
         <values>0,1</values>
         <default-value>0</default-value>
@@ -154,7 +163,15 @@ Acts according to DEBUG_INFO by default.
             Build ODBC database classes (USE_GUI must be 1)?
         </description>
     </option>
-    
+
+    <option name="USE_QA">
+        <values>0,1</values>
+        <default-value>0</default-value>
+        <description>
+            Build quality assurance classes library (USE_GUI must be 1)?
+        </description>
+    </option>
+
     <option name="USE_EXCEPTIONS">
         <values>0,1</values>
         <default-value>1</default-value>
@@ -162,7 +179,23 @@ Acts according to DEBUG_INFO by default.
             Enable exceptions in compiled code.
         </description>
     </option>
-    
+
+    <option name="USE_RTTI">
+        <values>0,1</values>
+        <default-value>1</default-value>
+        <description>
+            Enable run-time type information (RTTI) in compiled code.
+        </description>
+    </option>
+
+    <option name="USE_THREADS">
+        <values>0,1</values>
+        <default-value>1</default-value>
+        <description>
+            Enable threading in compiled code.
+        </description>
+    </option>
+
     <option name="OFFICIAL_BUILD">
         <values>0,1</values>
         <default-value>0</default-value>
@@ -202,7 +235,7 @@ Compiler flags needed to compile test suite in tests directory. If you want
 to run the tests, set it so that the compiler can find CppUnit headers.
         </description>
     </option>
-    
+
     <option name="CPPUNIT_LIBS">
         <default-value></default-value>
         <description>
@@ -210,13 +243,13 @@ Linker flags needed to link test suite in tests directory. If you want
 to run the tests, include CppUnit library here.
         </description>
     </option>
-    
-    
+
+
     <!-- ================================================================== -->
     <!--                             Autoconf                               -->
     <!-- ================================================================== -->
-    
-    <if cond="FORMAT=='autoconf'"> 
+
+    <if cond="FORMAT=='autoconf'">
         <option name="DEREZ"/>
         <option name="TOOLKIT"/>
         <option name="TOOLKIT_LOWERCASE"/>
@@ -230,20 +263,21 @@ to run the tests, include CppUnit library here.
         <option name="EXTRALIBS_GUI"/>
         <option name="EXTRALIBS_OPENGL"/>
         <option name="EXTRALIBS_SDL"/>
+        <option name="EXTRALIBS_GNOMEPRINT"/>
         <option name="HOST_SUFFIX"/>
         <option name="SAMPLES_RPATH_FLAG"/>
         <option name="SAMPLES_RPATH_POSTLINK"/>
-        
+
         <set var="TOP_SRCDIR">$(top_srcdir)/</set>
         <set var="RUNTIME_LIBS">dynamic</set>
         <set var="WXTOPDIR"/> <!-- to be overriden on bakefile cmd line -->
-    
+
         <option name="WITH_PLUGIN_SDL">
             <values>0,1</values>
         </option>
     </if>
 
-    
+
     <!-- ================================================================== -->
     <!--                         windows compilers                          -->
     <!-- ================================================================== -->
@@ -258,7 +292,7 @@ static if SHARED=0, but it is highly recommended to not do
 it if SHARED=1 unless you know what you are doing.
             </description>
         </option>
-        
+
         <set var="WXTOPDIR"/> <!-- to be overriden on bakefile cmd line -->
 
         <set var="TOOLKIT" overwrite="0">
@@ -280,6 +314,7 @@ it if SHARED=1 unless you know what you are doing.
             <if cond="COMPILER=='gcc'">-lopengl32 -lglu32</if>
         </set>
         <set var="EXTRALIBS_SDL"/>
+        <set var="EXTRALIBS_GNOMEPRINT"/>
 
         <set var="WITH_PLUGIN_SDL">0</set>
 
@@ -289,7 +324,7 @@ it if SHARED=1 unless you know what you are doing.
         </set>
         <set var="TOP_SRCDIR">$(SRCDIR)/$(WXTOPDIR)</set>
     </if>
-    
+
     <if cond="FORMAT=='mingw'">
         <option name="GCC_VERSION">
             <values>3,2.95</values>
@@ -324,10 +359,13 @@ Set the version of your Mingw installation here.
         <set var="USE_XRC">1</set>
         <set var="USE_OPENGL">1</set>
         <set var="USE_ODBC">1</set>
+        <set var="USE_QA">1</set>
         <set var="MONOLITHIC">0</set>
         <set var="USE_GUI">1</set>
         <set var="USE_EXCEPTIONS">1</set>
-        <set var="DEBUG_INFO">default</set>
+        <set var="USE_RTTI">1</set>
+        <set var="USE_THREADS">1</set>
+        <set var="DEBUG_INFO">$(DEBUG_INFO_DEFAULT)</set>
         <set var="DEBUG_FLAG">default</set>
         <set var="MSLU">0</set>
     </if>
@@ -354,12 +392,17 @@ Set the version of your Mingw installation here.
         <set var="SHARED">0</set>
         <set var="WXUNIV">0</set>
         <set var="UNICODE">0</set>
+        <!-- Free version does not distribute OpenGL,
+             in commercial distribution better use dmars_smake format -->
+        <set var="USE_OPENGL">0</set>
     </if>
 
     <!-- No need for wxUniv on embedded devices (yet): -->
     <if cond="FORMAT=='msevc4prj'">
         <set var="WXUNIV">0</set>
         <set var="UNICODE">1</set>
+	<!-- Uploading debug reports from PDAs seems impractical -->
+        <set var="USE_QA">0</set>
         <set var="MONOLITHIC">1</set> <!-- sic! -->
     </if>
 

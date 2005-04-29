@@ -31,6 +31,9 @@ samples/controls/controls.vcw
 samples/db/db.vcp
 samples/db/db.vcw
 
+samples/debugrpt/debugrpt.vcp
+samples/debugrpt/debugrpt.vcw
+
 samples/dialogs/dialogs.vcp
 samples/dialogs/dialogs.vcw
 
@@ -130,6 +133,9 @@ samples/listctrl/listctrl.vcw
 samples/mdi/mdi.vcp
 samples/mdi/mdi.vcw
 
+samples/mediaplayer/mediaplayer.vcp
+samples/mediaplayer/mediaplayer.vcw
+
 samples/memcheck/memcheck.vcp
 samples/memcheck/memcheck.vcw
 
@@ -168,6 +174,9 @@ samples/ownerdrw/ownerdrw.vcw
 samples/png/png.vcp
 samples/png/png.vcw
 
+samples/popup/popup.vcp
+samples/popup/popup.vcw
+
 samples/printing/printing.vcp
 samples/printing/printing.vcw
 
@@ -181,6 +190,9 @@ samples/render/render_renddll.vcp
 samples/render/render_renddll.vcw
 samples/render/render_render.vcp
 samples/render/render_render.vcw
+
+samples/richedit/richedit.vcp
+samples/richedit/richedit.vcw
 
 samples/rotate/rotate.vcp
 samples/rotate/rotate.vcw
@@ -265,6 +277,14 @@ demos/fractal/fractal.vcw
 
 demos/life/life.vcp
 demos/life/life.vcw
+demos/life/setup/wince/build.bat
+demos/life/setup/wince/register.bat
+demos/life/setup/wince/life.ico
+demos/life/setup/wince/life.inf
+demos/life/setup/wince/install.ini
+demos/life/setup/wince/readme.txt
+demos/life/setup/wince/Common/breeder.lif
+demos/life/setup/wince/Common/life.htp
 
 demos/poem/poem.vcp
 demos/poem/poem.vcw
@@ -384,4 +404,7 @@ contrib/samples/svg/svgtest.vcw
 
 utils/configtool/src/configtool.vcp
 utils/configtool/src/configtool.vcw
+
+tests/*.vcp
+tests/*.vcw
 

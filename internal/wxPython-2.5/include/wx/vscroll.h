@@ -95,10 +95,10 @@ public:
     virtual bool ScrollPages(int pages);
 
     // redraw the specified line
-    void RefreshLine(size_t line);
+    virtual void RefreshLine(size_t line);
 
     // redraw all lines in the specified range (inclusive)
-    void RefreshLines(size_t from, size_t to);
+    virtual void RefreshLines(size_t from, size_t to);
 
     // return the item at the specified (in physical coordinates) position or.
 
@@ -118,14 +118,26 @@ public:
     size_t GetLineCount() const { return m_lineMax; }
 
     // get the first currently visible line
-    size_t GetFirstVisibleLine() const { return m_lineFirst; }
+    size_t GetVisibleBegin() const { return m_lineFirst; }
 
-    // get the last currently visible line
-    size_t GetLastVisibleLine() const { return m_lineFirst + m_nVisible - 1; }
+    // get the first currently visible line
+    size_t GetVisibleEnd() const { return m_lineFirst + m_nVisible; }
 
     // is this line currently visible?
     bool IsVisible(size_t line) const
-        { return line >= m_lineFirst && line <= GetLastVisibleLine(); }
+        { return line >= GetVisibleBegin() && line < GetVisibleEnd(); }
+
+
+    // this is the same as GetVisibleBegin(), exists to match
+    // GetLastVisibleLine() and for backwards compatibility only
+    size_t GetFirstVisibleLine() const { return m_lineFirst; }
+
+    // get the last currently visible line
+    //
+    // this function is unsafe as it returns (size_t)-1 (i.e. a huge positive
+    // number) if the control is empty, use GetVisibleEnd() instead, this one
+    // is kept for backwards compatibility
+    size_t GetLastVisibleLine() const { return GetVisibleEnd() - 1; }
 
 
 protected:
@@ -163,6 +175,9 @@ protected:
     // the event handlers
     void OnSize(wxSizeEvent& event);
     void OnScroll(wxScrollWinEvent& event);
+#if wxUSE_MOUSEWHEEL
+    void OnMouseWheel(wxMouseEvent& event);
+#endif
 
     // find the index of the line we need to show at the top of the window such
     // that the last (fully or partially) visible line is the given one
@@ -193,6 +208,10 @@ private:
     // partly, visible one)
     size_t m_nVisible;
 
+    // accumulated mouse wheel rotation
+#if wxUSE_MOUSEWHEEL
+    int m_sumWheelRotation;
+#endif
 
     DECLARE_EVENT_TABLE()
     DECLARE_NO_COPY_CLASS(wxVScrolledWindow)

@@ -16,12 +16,13 @@
 
 #if wxUSE_COMBOBOX
 
-WXDLLEXPORT_DATA(extern const wxChar*) wxComboBoxNameStr;
+extern WXDLLEXPORT_DATA(const wxChar*) wxComboBoxNameStr;
 
 // ----------------------------------------------------------------------------
 // wxComboBoxBase: this interface defines the methods wxComboBox must implement
 // ----------------------------------------------------------------------------
 
+#include "wx/textctrl.h"
 #include "wx/ctrlsub.h"
 
 class WXDLLEXPORT wxComboBoxBase : public wxItemContainer
@@ -36,7 +37,7 @@ public:
     virtual void Paste() = 0;
     virtual void SetInsertionPoint(long pos) = 0;
     virtual long GetInsertionPoint() const = 0;
-    virtual long GetLastPosition() const = 0;
+    virtual wxTextPos GetLastPosition() const = 0;
     virtual void Replace(long from, long to, const wxString& value) = 0;
     virtual void SetSelection(long from, long to) = 0;
     virtual void SetEditable(bool editable) = 0;
@@ -45,6 +46,23 @@ public:
         { SetInsertionPoint(GetLastPosition()); }
     virtual void Remove(long from, long to)
         { Replace(from, to, wxEmptyString); }
+
+    virtual bool IsEditable() const = 0;
+
+    virtual void Undo() = 0;
+    virtual void Redo() = 0;
+    virtual void SelectAll() = 0;
+
+    virtual bool CanCopy() const = 0;
+    virtual bool CanCut() const = 0;
+    virtual bool CanPaste() const = 0;
+    virtual bool CanUndo() const = 0;
+    virtual bool CanRedo() const = 0;
+
+
+    // redeclare inherited SetSelection() overload here as well to avoid
+    // virtual function hiding
+    virtual void SetSelection(int n) = 0;
 };
 
 // ----------------------------------------------------------------------------

@@ -43,7 +43,7 @@
 //   - Mac when compiling with CodeWarrior (__WXMAC__)
 
 const wxTextFileType wxTextBuffer::typeDefault =
-#if defined(__WINDOWS__) || defined(__DOS__)
+#if defined(__WINDOWS__) || defined(__DOS__) || defined(__PALMOS__)
   wxTextFileType_Dos;
 #elif defined(__UNIX__)
   wxTextFileType_Unix;
@@ -63,7 +63,7 @@ const wxChar *wxTextBuffer::GetEOL(wxTextFileType type)
             wxFAIL_MSG(wxT("bad buffer type in wxTextBuffer::GetEOL."));
             // fall through nevertheless - we must return something...
 
-        case wxTextFileType_None: return wxT("");
+        case wxTextFileType_None: return wxEmptyString;
         case wxTextFileType_Unix: return wxT("\n");
         case wxTextFileType_Dos:  return wxT("\r\n");
         case wxTextFileType_Mac:  return wxT("\r");
@@ -77,7 +77,7 @@ wxString wxTextBuffer::Translate(const wxString& text, wxTextFileType type)
         return text;
 
     // nor if it is empty
-    if ( text.IsEmpty() )
+    if ( text.empty() )
         return text;
 
     wxString eol = GetEOL(type), result;
@@ -148,6 +148,7 @@ wxTextBuffer::wxTextBuffer(const wxString& strBufferName)
 
 wxTextBuffer::~wxTextBuffer()
 {
+    // required here for Darwin
 }
 
 // ----------------------------------------------------------------------------
@@ -169,7 +170,7 @@ bool wxTextBuffer::Create(const wxString& strBufferName)
 bool wxTextBuffer::Create()
 {
     // buffer name must be either given in ctor or in Create(const wxString&)
-    wxASSERT( !m_strBufferName.IsEmpty() );
+    wxASSERT( !m_strBufferName.empty() );
 
     // if the buffer already exists do nothing
     if ( Exists() ) return false;
@@ -191,7 +192,7 @@ bool wxTextBuffer::Open(const wxString& strBufferName, wxMBConv& conv)
 bool wxTextBuffer::Open(wxMBConv& conv)
 {
     // buffer name must be either given in ctor or in Open(const wxString&)
-    wxASSERT( !m_strBufferName.IsEmpty() );
+    wxASSERT( !m_strBufferName.empty() );
 
     // open buffer in read-only mode
     if ( !OnOpen(m_strBufferName, ReadAccess) )

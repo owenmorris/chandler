@@ -26,6 +26,10 @@
 #include "wx/stream.h"
 #endif
 
+
+class WXDLLEXPORT wxPrintNativeDataBase;
+
+
 class WXDLLEXPORT wxColourData: public wxObject
 {
 public:
@@ -143,12 +147,6 @@ private:
  * Encapsulates printer information (not printer dialog information)
  */
 
-#ifdef __WXMAC__
-
-class wxNativePrintData ;
-
-#endif
-
 enum wxPrintBin
 {
     wxPRINTBIN_DEFAULT,
@@ -167,7 +165,7 @@ enum wxPrintBin
     wxPRINTBIN_CASSETTE,
     wxPRINTBIN_FORMSOURCE,
 
-    wxPRINTBIN_USER,
+    wxPRINTBIN_USER
 };
 
 
@@ -178,9 +176,9 @@ public:
     wxPrintData(const wxPrintData& printData);
     ~wxPrintData();
 
-    int GetNoCopies() const { return m_printNoCopies; };
-    bool GetCollate() const { return m_printCollate; };
-    int  GetOrientation() const { return m_printOrientation; };
+    int GetNoCopies() const { return m_printNoCopies; }
+    bool GetCollate() const { return m_printCollate; }
+    int  GetOrientation() const { return m_printOrientation; }
 
     // Is this data OK for showing the print dialog?
     bool Ok() const ;
@@ -193,10 +191,11 @@ public:
                                                                       // in wxPageSetupDialogData
     wxPrintQuality GetQuality() const { return m_printQuality; }
     wxPrintBin GetBin() const { return m_bin; }
+    wxPrintMode GetPrintMode() const { return m_printMode; }
 
-    void SetNoCopies(int v) { m_printNoCopies = v; };
-    void SetCollate(bool flag) { m_printCollate = flag; };
-    void SetOrientation(int orient) { m_printOrientation = orient; };
+    void SetNoCopies(int v) { m_printNoCopies = v; }
+    void SetCollate(bool flag) { m_printCollate = flag; }
+    void SetOrientation(int orient) { m_printOrientation = orient; }
 
     void SetPrinterName(const wxString& name) { m_printerName = name; }
     void SetColour(bool colour) { m_colour = colour; }
@@ -205,89 +204,68 @@ public:
     void SetPaperSize(const wxSize& sz) { m_paperSize = sz; }
     void SetQuality(wxPrintQuality quality) { m_printQuality = quality; }
     void SetBin(wxPrintBin bin) { m_bin = bin; }
-
-    // PostScript-specific data
-    const wxString& GetPrinterCommand() const { return m_printerCommand; }
-    const wxString& GetPrinterOptions() const { return m_printerOptions; }
-    const wxString& GetPreviewCommand() const { return m_previewCommand; }
-    const wxString& GetFilename() const { return m_filename; }
-    const wxString& GetFontMetricPath() const { return m_afmPath; }
-    double GetPrinterScaleX() const { return m_printerScaleX; }
-    double GetPrinterScaleY() const { return m_printerScaleY; }
-    long GetPrinterTranslateX() const { return m_printerTranslateX; }
-    long GetPrinterTranslateY() const { return m_printerTranslateY; }
-    wxPrintMode GetPrintMode() const { return m_printMode; }
-
-    void SetPrinterCommand(const wxString& command) { m_printerCommand = command; }
-    void SetPrinterOptions(const wxString& options) { m_printerOptions = options; }
-    void SetPreviewCommand(const wxString& command) { m_previewCommand = command; }
-    void SetFilename(const wxString& filename) { m_filename = filename; }
-    void SetFontMetricPath(const wxString& path) { m_afmPath = path; }
-    void SetPrinterScaleX(double x) { m_printerScaleX = x; }
-    void SetPrinterScaleY(double y) { m_printerScaleY = y; }
-    void SetPrinterScaling(double x, double y) { m_printerScaleX = x; m_printerScaleY = y; }
-    void SetPrinterTranslateX(long x) { m_printerTranslateX = x; }
-    void SetPrinterTranslateY(long y) { m_printerTranslateY = y; }
-    void SetPrinterTranslation(long x, long y) { m_printerTranslateX = x; m_printerTranslateY = y; }
     void SetPrintMode(wxPrintMode printMode) { m_printMode = printMode; }
 
-#if wxUSE_STREAMS
-    wxOutputStream* GetOutputStream() { return m_outputstream; }
-    void SetOutputStream(wxOutputStream* outputstream) { m_outputstream = outputstream; }
-#endif
-
+    wxString GetFilename() const { return m_filename; }
+    void SetFilename( const wxString &filename ) { m_filename = filename; }
+    
     void operator=(const wxPrintData& data);
 
-#if defined(__WXMSW__)
-    // Convert to/from the DEVMODE structure
-    void ConvertToNative();
-    void ConvertFromNative();
-    void* GetNativeData() const { return m_devMode; }
-    void SetNativeData(void* data) { m_devMode = data; }
-    void* GetNativeDataDevNames() const { return m_devNames; }
-    void SetNativeDataDevNames(void* data) { m_devNames = data; }
-#elif defined(__WXMAC__)
-  void ConvertToNative();
-  void ConvertFromNative();
+    char* GetPrivData() const { return m_privData; }
+    int GetPrivDataLen() const { return m_privDataLen; }
+    void SetPrivData( char *privData, int len );
+   
+
+#if WXWIN_COMPATIBILITY_2_4
+    // PostScript-specific data
+    wxString GetPrinterCommand() const;
+    wxString GetPrinterOptions() const;
+    wxString GetPreviewCommand() const;
+    wxString GetFontMetricPath() const;
+    double GetPrinterScaleX() const;
+    double GetPrinterScaleY() const;
+    long GetPrinterTranslateX() const;
+    long GetPrinterTranslateY() const;
+
+    void SetPrinterCommand(const wxString& command);
+    void SetPrinterOptions(const wxString& options);
+    void SetPreviewCommand(const wxString& command);
+    void SetFontMetricPath(const wxString& path);
+    void SetPrinterScaleX(double x);
+    void SetPrinterScaleY(double y);
+    void SetPrinterScaling(double x, double y);
+    void SetPrinterTranslateX(long x);
+    void SetPrinterTranslateY(long y);
+    void SetPrinterTranslation(long x, long y);
 #endif
 
-public:
-#if defined(__WXMSW__)
-    void*           m_devMode;
-    void*           m_devNames;
-#elif defined(__WXMAC__)
-    wxNativePrintData* m_nativePrintData ;
-#endif
-#if wxUSE_STREAMS
-    wxOutputStream* m_outputstream;
-#endif
+    // Convert between wxPrintData and native data
+    void ConvertToNative();
+    void ConvertFromNative();
+    // Holds the native print data
+    wxPrintNativeDataBase *GetNativeData() const { return m_nativeData; }
 
 private:
     wxPrintBin      m_bin;
+    wxPrintMode     m_printMode;
 
     int             m_printNoCopies;
     int             m_printOrientation;
     bool            m_printCollate;
 
-    // New members, 24/3/99
     wxString        m_printerName;
     bool            m_colour;
     wxDuplexMode    m_duplexMode;
     wxPrintQuality  m_printQuality;
     wxPaperSize     m_paperId;
     wxSize          m_paperSize;
-
-    // PostScript-specific data
-    wxString        m_printerCommand;
-    wxString        m_previewCommand;
-    wxString        m_printerOptions;
+    
     wxString        m_filename;
-    wxString        m_afmPath;
-    double          m_printerScaleX;
-    double          m_printerScaleY;
-    long            m_printerTranslateX;
-    long            m_printerTranslateY;
-    wxPrintMode     m_printMode;
+    
+    char* m_privData;
+    int   m_privDataLen;
+    
+    wxPrintNativeDataBase  *m_nativeData;
 
 private:
     DECLARE_DYNAMIC_CLASS(wxPrintData)
@@ -317,8 +295,9 @@ public:
     bool GetSelection() const { return m_printSelection; };
     bool GetCollate() const { return m_printCollate; };
     bool GetPrintToFile() const { return m_printToFile; };
+#if WXWIN_COMPATIBILITY_2_4
     bool GetSetupDialog() const { return m_printSetupDialog; };
-
+#endif
     void SetFromPage(int v) { m_printFromPage = v; };
     void SetToPage(int v) { m_printToPage = v; };
     void SetMinPage(int v) { m_printMinPage = v; };
@@ -328,8 +307,9 @@ public:
     void SetSelection(bool flag) { m_printSelection = flag; };
     void SetCollate(bool flag) { m_printCollate = flag; };
     void SetPrintToFile(bool flag) { m_printToFile = flag; };
+#if WXWIN_COMPATIBILITY_2_4
     void SetSetupDialog(bool flag) { m_printSetupDialog = flag; };
-
+#endif
     void EnablePrintToFile(bool flag) { m_printEnablePrintToFile = flag; };
     void EnableSelection(bool flag) { m_printEnableSelection = flag; };
     void EnablePageNumbers(bool flag) { m_printEnablePageNumbers = flag; };
@@ -349,21 +329,6 @@ public:
     void operator=(const wxPrintDialogData& data);
     void operator=(const wxPrintData& data); // Sets internal m_printData member
 
-#ifdef __WXMSW__
-    // Convert to/from the PRINTDLG structure
-    void ConvertToNative();
-    void ConvertFromNative();
-    void SetOwnerWindow(wxWindow* win);
-    void* GetNativeData() const { return m_printDlgData; }
-#elif defined(__WXMAC__)
-    void ConvertToNative();
-    void ConvertFromNative();
-#endif
-
-#ifdef __WXMSW__
-    void*           m_printDlgData;
-#endif
-
 private:
     int             m_printFromPage;
     int             m_printToPage;
@@ -378,7 +343,9 @@ private:
     bool            m_printEnablePageNumbers;
     bool            m_printEnableHelp;
     bool            m_printEnablePrintToFile;
+#if WXWIN_COMPATIBILITY_2_4
     bool            m_printSetupDialog;
+#endif
     wxPrintData     m_printData;
 
 private:
@@ -440,17 +407,6 @@ public:
     void EnablePrinter(bool flag) { m_enablePrinter = flag; };
     void EnableHelp(bool flag) { m_enableHelp = flag; };
 
-#if defined(__WIN95__)
-    // Convert to/from the PAGESETUPDLG structure
-    void ConvertToNative();
-    void ConvertFromNative();
-    void SetOwnerWindow(wxWindow* win);
-    void* GetNativeData() const { return m_pageSetupData; }
-#elif defined(__WXMAC__)
-    void ConvertToNative();
-    void ConvertFromNative();
-#endif
-
     // Use paper size defined in this object to set the wxPrintData
     // paper id
     void CalculateIdFromPaperSize();
@@ -462,11 +418,7 @@ public:
     wxPageSetupDialogData& operator=(const wxPrintData& data);
 
     wxPrintData& GetPrintData() { return m_printData; }
-    void SetPrintData(const wxPrintData& printData) { m_printData = printData; }
-
-#if defined(__WIN95__)
-    void*           m_pageSetupData;
-#endif
+    void SetPrintData(const wxPrintData& printData);
 
 private:
     wxSize          m_paperSize; // The dimensions selected by the user (on return, same as in wxPrintData?)

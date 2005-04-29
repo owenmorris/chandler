@@ -28,6 +28,7 @@
 
 #include "wx/defs.h"
 
+#include "wx/toplevel.h"
 #include "wx/log.h"
 #include "wx/dialog.h"
 #include "wx/control.h"
@@ -81,6 +82,7 @@ static int              g_sendActivateEvent = -1;
 // "focus_in_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_frame_focus_in_callback( GtkWidget *widget,
                                          GdkEvent *WXUNUSED(event),
                                          wxTopLevelWindowGTK *win )
@@ -114,11 +116,13 @@ static gint gtk_frame_focus_in_callback( GtkWidget *widget,
 
     return FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "focus_out_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_frame_focus_out_callback( GtkWidget *widget, 
                                           GdkEventFocus *WXUNUSED(gdk_event), 
                                           wxTopLevelWindowGTK *win )
@@ -134,21 +138,26 @@ static gint gtk_frame_focus_out_callback( GtkWidget *widget,
     // wxASSERT_MSG( (g_activeFrame == win), wxT("TLW deactivatd although it wasn't active") );
         
     // wxPrintf( wxT("inactive: %s\n"), win->GetTitle().c_str() );
-        
-    wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
-    wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
-    event.SetEventObject(g_activeFrame);
-    g_activeFrame->GetEventHandler()->ProcessEvent(event);
 
-    g_activeFrame = NULL;
+    if (g_activeFrame)
+    {
+        wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
+        wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
+        event.SetEventObject(g_activeFrame);
+        g_activeFrame->GetEventHandler()->ProcessEvent(event);
+
+        g_activeFrame = NULL;
+    }
         
     return FALSE;
+}
 }
 
 //-----------------------------------------------------------------------------
 // "focus" from m_window
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_frame_focus_callback( GtkWidget *widget, GtkDirectionType WXUNUSED(d), wxWindow *WXUNUSED(win) )
 {
     if (g_isIdle)
@@ -158,11 +167,13 @@ static gint gtk_frame_focus_callback( GtkWidget *widget, GtkDirectionType WXUNUS
     gtk_signal_emit_stop_by_name( GTK_OBJECT(widget), "focus" );
     return TRUE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "size_allocate"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void gtk_frame_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation* alloc, wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
@@ -188,11 +199,13 @@ static void gtk_frame_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation*
         win->GtkUpdateSize();
     }
 }
+}
 
 //-----------------------------------------------------------------------------
 // "delete_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED(event), wxTopLevelWindowGTK *win )
 {
     if (g_isIdle)
@@ -205,12 +218,14 @@ static gint gtk_frame_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WX
 
     return TRUE;
 }
+}
 
 
 //-----------------------------------------------------------------------------
 // "configure_event"
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static gint
 gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WXUNUSED(event), wxTopLevelWindowGTK *win )
 {
@@ -219,6 +234,7 @@ gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WX
 
     if (!win->m_hasVMT || !win->IsShown())
         return FALSE;
+
 
     int x = 0;
     int y = 0;
@@ -232,6 +248,7 @@ gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WX
 
     return FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "realize" from m_widget
@@ -240,6 +257,7 @@ gtk_frame_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WX
 // we cannot MWM hints and icons before the widget has been realized,
 // so we do this directly after realization
 
+extern "C" {
 static void
 gtk_frame_realized_callback( GtkWidget * WXUNUSED(widget),
                              wxTopLevelWindowGTK *win )
@@ -268,11 +286,13 @@ gtk_frame_realized_callback( GtkWidget * WXUNUSED(widget),
         win->SetIcons( iconsOld );
     }
 }
+}
 
 //-----------------------------------------------------------------------------
 // "map_event" from m_widget
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void
 gtk_frame_map_callback( GtkWidget * WXUNUSED(widget),
                         GdkEvent * WXUNUSED(event),
@@ -280,11 +300,13 @@ gtk_frame_map_callback( GtkWidget * WXUNUSED(widget),
 {
     win->SetIconizeState(FALSE);
 }
+}
 
 //-----------------------------------------------------------------------------
 // "unmap_event" from m_widget
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static void
 gtk_frame_unmap_callback( GtkWidget * WXUNUSED(widget),
                           GdkEvent * WXUNUSED(event),
@@ -292,11 +314,13 @@ gtk_frame_unmap_callback( GtkWidget * WXUNUSED(widget),
 {
     win->SetIconizeState(TRUE);
 }
+}
 
 //-----------------------------------------------------------------------------
 // "expose_event" of m_client
 //-----------------------------------------------------------------------------
 
+extern "C" {
 static int gtk_window_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_event, wxWindow *win )
 {
     GtkPizza *pizza = GTK_PIZZA(widget);
@@ -311,6 +335,7 @@ static int gtk_window_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_ev
 
     return FALSE;
 }
+}
 
 //-----------------------------------------------------------------------------
 // "draw" of m_client
@@ -318,6 +343,7 @@ static int gtk_window_expose_callback( GtkWidget *widget, GdkEventExpose *gdk_ev
 
 #ifndef __WXGTK20__
 
+extern "C" {
 static void gtk_window_draw_callback( GtkWidget *widget, GdkRectangle *rect, wxWindow *win )
 {
     GtkPizza *pizza = GTK_PIZZA(widget);
@@ -329,6 +355,7 @@ static void gtk_window_draw_callback( GtkWidget *widget, GdkRectangle *rect, wxW
                         win->m_widget,
                         (char *)"base",
                         0, 0, -1, -1);
+}
 }
 
 #endif // GTK+ 1.x
@@ -427,10 +454,6 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     //     e.g. in wxTaskBarIconAreaGTK
     if (m_widget == NULL)
     {
-        GtkWindowType win_type = GTK_WINDOW_TOPLEVEL;
-        if (style & wxFRAME_TOOL_WINDOW)
-            win_type = GTK_WINDOW_POPUP;
-
         if (GetExtraStyle() & wxTOPLEVEL_EX_DIALOG)
         {
 #ifdef __WXGTK20__
@@ -447,7 +470,23 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
         }
         else
         {
-            m_widget = gtk_window_new(win_type);
+            m_widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+#if GTK_CHECK_VERSION(2,1,0)
+            if (style & wxFRAME_TOOL_WINDOW)
+            {
+                gtk_window_set_type_hint(GTK_WINDOW(m_widget),
+                                         GDK_WINDOW_TYPE_HINT_UTILITY);
+                
+                // On some WMs, like KDE, a TOOL_WINDOW will still show
+                // on the taskbar, but on Gnome a TOOL_WINDOW will not.
+                // For consistency between WMs and with Windows, we 
+                // should set the NO_TASKBAR flag which will apply
+                // the set_skip_taskbar_hint if it is available,
+                // ensuring no taskbar entry will appear.
+                style |= wxFRAME_NO_TASKBAR;
+            }
+#endif
+
         }
     }
 
@@ -615,69 +654,88 @@ wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
 
 bool wxTopLevelWindowGTK::ShowFullScreen(bool show, long style )
 {
-    if (show == m_fsIsShowing) return FALSE; // return what?
+    if (show == m_fsIsShowing)
+        return FALSE; // return what?
 
     m_fsIsShowing = show;
-
-    GdkWindow *window = m_widget->window;
+    
     wxX11FullScreenMethod method =
         wxGetFullScreenMethodX11((WXDisplay*)GDK_DISPLAY(),
                                  (WXWindow)GDK_ROOT_WINDOW());
 
-    if (show)
+#if GTK_CHECK_VERSION(2,2,0)
+    // NB: gtk_window_fullscreen() uses freedesktop.org's WMspec extensions
+    //     to switch to fullscreen, which is not always available. We must
+    //     check if WM supports the spec and use legacy methods if it
+    //     doesn't.
+    if (method == wxX11_FS_WMSPEC)
     {
-        m_fsSaveFlag = style;
-        GetPosition( &m_fsSaveFrame.x, &m_fsSaveFrame.y );
-        GetSize( &m_fsSaveFrame.width, &m_fsSaveFrame.height );
+        if (show)
+            gtk_window_fullscreen( GTK_WINDOW( m_widget ) );
+        else
+            gtk_window_unfullscreen( GTK_WINDOW( m_widget ) );
 
-        int screen_width,screen_height;
-        wxDisplaySize( &screen_width, &screen_height );
-
-		gint client_x, client_y, root_x, root_y;
-		gint width, height;
-
-        if (method != wxX11_FS_WMSPEC)
-        {
-            // don't do it always, Metacity hates it
-            m_fsSaveGdkFunc = m_gdkFunc;
-            m_fsSaveGdkDecor = m_gdkDecor;
-            m_gdkFunc = m_gdkDecor = 0;
-            gdk_window_set_decorations(window, (GdkWMDecoration)0);
-            gdk_window_set_functions(window, (GdkWMFunction)0);
-        }
-
-		gdk_window_get_origin (m_widget->window, &root_x, &root_y);
-		gdk_window_get_geometry (m_widget->window, &client_x, &client_y,
-					 &width, &height, NULL);
-
-		gdk_window_move_resize (m_widget->window, -client_x, -client_y,
-					screen_width + 1, screen_height + 1);
-
-        wxSetFullScreenStateX11((WXDisplay*)GDK_DISPLAY(),
-                                (WXWindow)GDK_ROOT_WINDOW(),
-                                (WXWindow)GDK_WINDOW_XWINDOW(window),
-                                show, &m_fsSaveFrame, method);
+        return TRUE;
     }
     else
+#endif // GTK+ >= 2.2.0
     {
-        if (method != wxX11_FS_WMSPEC)
+        GdkWindow *window = m_widget->window;
+
+        if (show)
         {
-            // don't do it always, Metacity hates it
-            m_gdkFunc = m_fsSaveGdkFunc;
-            m_gdkDecor = m_fsSaveGdkDecor;
-            gdk_window_set_decorations(window, (GdkWMDecoration)m_gdkDecor);
-            gdk_window_set_functions(window, (GdkWMFunction)m_gdkFunc);
+            m_fsSaveFlag = style;
+            GetPosition( &m_fsSaveFrame.x, &m_fsSaveFrame.y );
+            GetSize( &m_fsSaveFrame.width, &m_fsSaveFrame.height );
+
+            int screen_width,screen_height;
+            wxDisplaySize( &screen_width, &screen_height );
+
+            gint client_x, client_y, root_x, root_y;
+            gint width, height;
+
+            if (method != wxX11_FS_WMSPEC)
+            {
+                // don't do it always, Metacity hates it
+                m_fsSaveGdkFunc = m_gdkFunc;
+                m_fsSaveGdkDecor = m_gdkDecor;
+                m_gdkFunc = m_gdkDecor = 0;
+                gdk_window_set_decorations(window, (GdkWMDecoration)0);
+                gdk_window_set_functions(window, (GdkWMFunction)0);
+            }
+
+            gdk_window_get_origin (m_widget->window, &root_x, &root_y);
+            gdk_window_get_geometry (m_widget->window, &client_x, &client_y,
+                         &width, &height, NULL);
+
+            gdk_window_move_resize (m_widget->window, -client_x, -client_y,
+                        screen_width + 1, screen_height + 1);
+
+            wxSetFullScreenStateX11((WXDisplay*)GDK_DISPLAY(),
+                                    (WXWindow)GDK_ROOT_WINDOW(),
+                                    (WXWindow)GDK_WINDOW_XWINDOW(window),
+                                    show, &m_fsSaveFrame, method);
         }
+        else
+        {
+            if (method != wxX11_FS_WMSPEC)
+            {
+                // don't do it always, Metacity hates it
+                m_gdkFunc = m_fsSaveGdkFunc;
+                m_gdkDecor = m_fsSaveGdkDecor;
+                gdk_window_set_decorations(window, (GdkWMDecoration)m_gdkDecor);
+                gdk_window_set_functions(window, (GdkWMFunction)m_gdkFunc);
+            }
 
-        wxSetFullScreenStateX11((WXDisplay*)GDK_DISPLAY(),
-                                (WXWindow)GDK_ROOT_WINDOW(),
-                                (WXWindow)GDK_WINDOW_XWINDOW(window),
-                                show, &m_fsSaveFrame, method);
+            wxSetFullScreenStateX11((WXDisplay*)GDK_DISPLAY(),
+                                    (WXWindow)GDK_ROOT_WINDOW(),
+                                    (WXWindow)GDK_WINDOW_XWINDOW(window),
+                                    show, &m_fsSaveFrame, method);
 
-        SetSize(m_fsSaveFrame.x, m_fsSaveFrame.y,
-                m_fsSaveFrame.width, m_fsSaveFrame.height);
+            SetSize(m_fsSaveFrame.x, m_fsSaveFrame.y,
+                    m_fsSaveFrame.width, m_fsSaveFrame.height);
+        }
     }
-
 
     return TRUE;
 }
@@ -699,8 +757,20 @@ bool wxTopLevelWindowGTK::Show( bool show )
 
         GtkOnSize( m_x, m_y, m_width, m_height );
     }
-
+    
+    if (show)
+        gtk_widget_set_uposition( m_widget, m_x, m_y );
+    
     return wxWindow::Show( show );
+}
+
+void wxTopLevelWindowGTK::Raise()
+{
+#ifdef __WXGTK20__
+    gtk_window_present( GTK_WINDOW( m_widget ) );
+#else
+    wxWindow::Raise();
+#endif
 }
 
 void wxTopLevelWindowGTK::DoMoveWindow(int WXUNUSED(x), int WXUNUSED(y), int WXUNUSED(width), int WXUNUSED(height) )

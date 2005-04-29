@@ -45,7 +45,7 @@ public:
         wxPyValidator* ptr = NULL;
         wxPyValidator* self = (wxPyValidator*)this;
 
-        bool blocked = wxPyBeginBlockThreads();
+        wxPyBlock_t blocked = wxPyBeginBlockThreads();
         if (wxPyCBH_findCallback(self->m_myInst, "Clone")) {
             PyObject* ro;
             ro = wxPyCBH_callCallbackObj(self->m_myInst, Py_BuildValue("()"));
@@ -79,11 +79,7 @@ public:
 class wxPyTimer : public wxTimer
 {
 public:
-    wxPyTimer(wxEvtHandler *owner=NULL, int id = -1)
-        : wxTimer(owner, id)
-    {
-        if (owner == NULL) SetOwner(this);
-    }
+    wxPyTimer(wxEvtHandler *owner=NULL, int id = -1);
 
     DEC_PYCALLBACK__(Notify);
     PYPRIVATE;

@@ -10,7 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "geometry.cpp"
+    #pragma implementation "geometry.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -28,11 +28,6 @@
 
 #include "wx/geometry.h"
 #include "wx/datstrm.h"
-
-// normally this is defined in <math.h>
-#ifndef M_PI
-    #define M_PI 3.14159265358979323846
-#endif
 
 //
 // wxPoint2D

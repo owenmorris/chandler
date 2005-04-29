@@ -17,11 +17,13 @@
 #pragma interface "file.h"
 #endif
 
+#include  "wx/defs.h"
+
+#if wxUSE_FILE
+
 #include  "wx/string.h"
 #include  "wx/filefn.h"
 #include  "wx/strconv.h"
-
-#if wxUSE_FILE
 
 // ----------------------------------------------------------------------------
 // constants
@@ -94,8 +96,8 @@ public:
   int  fd() const { return m_fd; }
 
   // read/write (unbuffered)
-    // returns number of bytes read or ofsInvalid on error
-  size_t Read(void *pBuf, size_t nCount);
+    // returns number of bytes read or wxInvalidOffset on error
+  ssize_t Read(void *pBuf, size_t nCount);
     // returns the number of bytes written
   size_t Write(const void *pBuf, size_t nCount);
     // returns true on success
@@ -108,12 +110,12 @@ public:
     // flush data not yet written
   bool Flush();
 
-  // file pointer operations (return ofsInvalid on failure)
-    // move ptr ofs bytes related to start/current off_t/end of file
+  // file pointer operations (return wxInvalidOffset on failure)
+    // move ptr ofs bytes related to start/current offset/end of file
   wxFileOffset Seek(wxFileOffset ofs, wxSeekMode mode = wxFromStart);
     // move ptr to ofs bytes before the end
   wxFileOffset SeekEnd(wxFileOffset ofs = 0) { return Seek(ofs, wxFromEnd); }
-    // get current off_t
+    // get current offset
   wxFileOffset Tell() const;
     // get current file length
   wxFileOffset Length() const;
@@ -125,6 +127,8 @@ public:
   bool Eof() const;
     // has an error occured?
   bool Error() const { return m_error; }
+    // type such as disk or pipe
+  wxFileKind GetKind() const { return wxGetFileKind(m_fd); }
 
   // dtor closes the file if opened
   ~wxFile() { Close(); }
@@ -162,9 +166,16 @@ public:
 
   // is the file opened?
   bool IsOpened() const { return m_file.IsOpened(); }
+    // get current file length
+  wxFileOffset Length() const { return m_file.Length(); }
+    // move ptr ofs bytes related to start/current offset/end of file
+  wxFileOffset Seek(wxFileOffset ofs, wxSeekMode mode = wxFromStart)
+    { return m_file.Seek(ofs, mode); }
+    // get current offset
+  wxFileOffset Tell() const { return m_file.Tell(); }
 
   // I/O (both functions return true on success, false on failure)
-  bool Write(const void *p, size_t n) { return m_file.Write(p, n) != 0; }
+  bool Write(const void *p, size_t n) { return m_file.Write(p, n) == n; }
   bool Write(const wxString& str, wxMBConv& conv = wxConvUTF8)
     { return m_file.Write(str, conv); }
 

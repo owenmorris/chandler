@@ -18,15 +18,15 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "button.h"
 #endif
 
-#include "wx/defs.h"
-#include "wx/tglbtn.h"
+#include "wx/wxprec.h"
 
 #if wxUSE_TOGGLEBTN
 
+#include "wx/tglbtn.h"
 #include "wx/mac/uma.h"
 // Button
 
@@ -65,7 +65,7 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
 
     Rect bounds = wxMacGetBoundsForControl( this , pos , size ) ;
     
-    m_peer = new wxMacControl() ;
+    m_peer = new wxMacControl(this) ;
     verify_noerr ( CreateBevelButtonControl( MAC_WXHWND(parent->MacGetTopLevelWindowRef()) , &bounds , CFSTR("") , 
         kControlBevelButtonNormalBevel , kControlBehaviorToggles , NULL , 0 , 0 , 0 , m_peer->GetControlRefAddr() ) );
     

@@ -9,9 +9,11 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "settings.h"
 #endif
+
+#include "wx/wxprec.h"
 
 #include "wx/settings.h"
 #include "wx/gdicmn.h"
@@ -152,7 +154,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 // ----------------------------------------------------------------------------
 
 // Get a system metric, e.g. scrollbar size
-int wxSystemSettingsNative::GetMetric(wxSystemMetric index)
+int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(win))
 {
     int value;
 

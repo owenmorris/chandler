@@ -277,11 +277,22 @@ public:
     virtual void SetInsertionPoint(long pos);
     virtual void SetInsertionPointEnd();
     virtual long GetInsertionPoint() const;
-    virtual long GetLastPosition() const;
+    virtual wxTextPos GetLastPosition() const;
     virtual void Replace(long from, long to, const wxString& value);
     virtual void Remove(long from, long to);
     virtual void SetSelection(long from, long to);
     virtual void SetEditable(bool editable);
+    virtual bool IsEditable() const;
+
+    virtual void Undo();
+    virtual void Redo();
+    virtual void SelectAll();
+
+    virtual bool CanCopy() const;
+    virtual bool CanCut() const;
+    virtual bool CanPaste() const;
+    virtual bool CanUndo() const;
+    virtual bool CanRedo() const;
 
     // wxControlWithItems methods
     virtual void Clear();
@@ -290,11 +301,8 @@ public:
     virtual wxString GetString(int n) const;
     virtual void SetString(int n, const wxString& s);
     virtual int FindString(const wxString& s) const;
-    virtual void Select(int n);
+    virtual void SetSelection(int n);
     virtual int GetSelection() const;
-    void SetSelection(int n) { Select(n); }
-
-    void SetStringSelection(const wxString& WXUNUSED(s)) {  }
 
     wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 

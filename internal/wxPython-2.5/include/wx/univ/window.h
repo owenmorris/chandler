@@ -73,6 +73,8 @@ public:
                 long style = 0,
                 const wxString& name = wxPanelNameStr);
 
+    virtual ~wxWindow();
+
     // background pixmap support
     // -------------------------
 
@@ -142,23 +144,12 @@ public:
     // controls only
     virtual bool IsCanvasWindow() const { return false; }
 
-    // returns true if the control has "transparent" areas such
-    // as a wxStaticText and wxCheckBox and the background should
-    // be adapted from a parent window
-    virtual bool HasTransparentBackground() { return false; }
-    
-    // to be used with function above: transparent windows get
-    // their background from parents that return true here,
-    // so this is mostly for wxPanel, wxTopLevelWindow etc.
-    virtual bool ProvidesBackground() const { return false; }
-
     // return true if this control can be highlighted when the mouse is over
     // it (the theme decides itself whether it is really highlighted or not)
     virtual bool CanBeHighlighted() const { return false; }
 
     // return true if we should use the colours/fonts returned by the
     // corresponding GetXXX() methods instead of the default ones
-    bool UseBgCol() const { return m_hasBgCol; }
     bool UseFgCol() const { return m_hasFgCol; }
     bool UseFont() const { return m_hasFont; }
 
@@ -181,7 +172,7 @@ public:
 
     // erase part of the control
     virtual void EraseBackground(wxDC& dc, const wxRect& rect);
-    
+
     // overridden base class methods
     // -----------------------------
 
@@ -250,12 +241,12 @@ protected:
 
     // the renderer we use
     wxRenderer *m_renderer;
-    
+
     // background bitmap info
     wxBitmap  m_bitmapBg;
     int       m_alignBgBitmap;
     wxStretch m_stretchBgBitmap;
-    
+
     // old size
     wxSize m_oldSize;
 
