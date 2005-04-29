@@ -20,12 +20,12 @@ class AccessDeniedError(Exception):
 
 class ACL(list):
 
-    def verify(self, principal, pid, perms):
+    def verify(self, principal, perms):
 
         grant = deny = 0
 
         for ace in self:
-            on, off = ace.verify(principal, pid, perms)
+            on, off = ace.verify(principal, perms)
             grant |= on
             deny |= off
 

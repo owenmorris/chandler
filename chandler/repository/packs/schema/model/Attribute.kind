@@ -10,6 +10,8 @@
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
 
+      <ref alias="schemaHash" type="path">/Core/schemaHash</ref>
+
       <!-- 
          - plus local attributes below:
          -     required, persist, cardinality, type,

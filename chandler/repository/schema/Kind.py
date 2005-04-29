@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from new import classobj
 
-from chandlerdb.util.uuid import UUID, _combine
+from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import CDescriptor
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
@@ -17,6 +17,7 @@ from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
 from repository.item.Monitors import Monitors, Monitor
+from repository.schema.TypeHandler import TypeHandler
 
 
 class Kind(Item):
@@ -96,7 +97,7 @@ class Kind(Item):
         if sync is not None:
             if sync == 'attributes':
                 attributes = self.getAttributeValue('attributes',
-                                                    _attrDict=self._references,
+                                                    self._references,
                                                     default=[])
             elif sync == 'superKinds':
                 attributes = set(a._uuid for n, a, k in self.iterAttributes())
@@ -225,13 +226,10 @@ class Kind(Item):
 
         superClasses = []
         
-        hash = _combine(0, self._uuid._hash)
-        for superKind in self.getAttributeValue('superKinds',
-                                                _attrDict=self._references):
+        for superKind in self.getAttributeValue('superKinds', self._references):
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
-                hash = _combine(hash, superKind._uuid._hash)
 
         count = len(superClasses)
 
@@ -240,6 +238,10 @@ class Kind(Item):
         elif count == 1:
             c = superClasses[0]
         else:
+            hash = 0
+            for c in superClasses:
+                hash = _combine(hash, _hash('.'.join((c.__module__,
+                                                      c.__name__))))
             if hash < 0:
                 hash = ~hash
             name = "class_%08x" %(hash)
@@ -255,8 +257,7 @@ class Kind(Item):
 
         result = super(Kind, self).check(recursive)
         
-        if not self.getAttributeValue('superKinds', default=None,
-                                      _attrDict = self._references):
+        if not self.getAttributeValue('superKinds', self._references):
             if self is not self.getItemKind():
                 self.itsView.logger.warn('No superKinds for %s', self.itsPath)
                 result = False
@@ -382,7 +383,7 @@ class Kind(Item):
 
         uuid = self.resolve(name)
         if uuid is not None:
-            if self.hasValue('attributes', uuid, _attrDict=self._references):
+            if self.hasValue('attributes', uuid, self._references):
                 return True
         elif self.inheritedAttributes.resolveAlias(name):
             return True
@@ -452,9 +453,8 @@ class Kind(Item):
         if inherited:
             references = self._references
             inheritedAttributes = self.getAttributeValue('inheritedAttributes',
-                                                         _attrDict=references)
-            for superKind in self.getAttributeValue('superKinds',
-                                                    _attrDict=references):
+                                                         references)
+            for superKind in self.getAttributeValue('superKinds', references):
                 for name, attribute, k in superKind.iterAttributes():
                     if (attribute._uuid not in inheritedAttributes and
                         inheritedAttributes.resolveAlias(name) is None):
@@ -464,7 +464,7 @@ class Kind(Item):
                 name = link._alias
                 if not self.resolve(name):
                     attribute = link.getValue(self)
-                    for kind in attribute.getAttributeValue('kinds', _attrDict=attribute._references):
+                    for kind in attribute.getAttributeValue('kinds', attribute._references):
                         if self.isKindOf(kind):
                             break
                     yield (name, attribute, kind)
@@ -475,8 +475,7 @@ class Kind(Item):
             return None
 
         cache = True
-        for superKind in self.getAttributeValue('superKinds',
-                                                _attrDict=self._references):
+        for superKind in self.getAttributeValue('superKinds', self._references):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
@@ -517,9 +516,9 @@ class Kind(Item):
             else:
                 duplicates[superKind._uuid] = superKind
                 
-        hash = _combine(0, self._uuid._hash)
+        hash = self.hashItem()
         for superKind in superKinds:
-            hash = _combine(hash, superKind._uuid._hash)
+            hash = _combine(hash, superKind.hashItem())
         if hash < 0:
             hash = ~hash
         name = "mixin_%08x" %(hash)
@@ -531,8 +530,7 @@ class Kind(Item):
 
             kind.addValue('superKinds', self)
             kind.superKinds.extend(superKinds)
-            kind.addValue('mixins', self._uuid)
-            kind.mixins.extend([sk._uuid for sk in superKinds])
+            kind.mixins = [sk.itsPath for sk in kind.superKinds]
             
         return kind
         
@@ -560,7 +558,7 @@ class Kind(Item):
             kindOf = self._refList('kindOf', 'ofKind', False)
             self._references['kindOf'] = kindOf
             for superKind in self.getAttributeValue('superKinds',
-                                                    _attrDict=self._references):
+                                                    self._references):
                 kindOf.append(superKind)
                 kindOf.update(superKind._kindOf())
 
@@ -636,8 +634,7 @@ class Kind(Item):
             self._values._clearTransient('classes')
             del self._values['classes']
 
-        for subKind in self.getAttributeValue('subKinds',
-                                              _attrDict=self._references,
+        for subKind in self.getAttributeValue('subKinds', self._references,
                                               default=[]):
             subKind.flushCaches(reason)
 
@@ -646,7 +643,9 @@ class Kind(Item):
             for cls in Kind._kinds.get(self._uuid, []):
                 logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', reason, cls.__module__, cls.__name__, self.itsPath)
                 self._setupDescriptors(cls, reason)
-            
+
+        if 'schemaHash' in self._values:
+            del self.schemaHash
 
     # begin typeness of Kind as SingleRef
     
@@ -697,6 +696,13 @@ class Kind(Item):
         
         return offset+17, SingleRef(UUID(data[offset+1:offset+17]))
 
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return TypeHandler.hashValue(self.itsView, SingleRef(value.itsUUID))
+
     def handlerName(self):
 
         return 'ref'
@@ -734,18 +740,80 @@ class Kind(Item):
         """
 
         results = []
-        clouds = self.getAttributeValue('clouds', default=None,
-                                        _attrDict=self._references)
+        clouds = self.getAttributeValue('clouds', self._references,
+                                        default=None)
 
         if clouds is None or clouds.resolveAlias(cloudAlias) is None:
             for superKind in self.getAttributeValue('superKinds',
-                                                    _attrDict=self._references):
+                                                    self._references):
                 results.extend(superKind.getClouds(cloudAlias))
 
         else:
             results.append(clouds.getByAlias(cloudAlias))
 
         return results
+
+    def _hashItem(self):
+
+        hash = 0
+        isMixin = self.isMixin()
+
+        if not isMixin:
+            hash = _combine(hash, _hash(str(self.itsPath)))
+
+        for superKind in self.getAttributeValue('superKinds', self._references):
+            hash = _combine(hash, superKind.hashItem())
+
+        if not isMixin:
+            attributes = list(self.iterAttributes(False))
+            attributes.sort()
+            for name, attribute, kind in attributes:
+                hash = _combine(hash, _hash(name))
+                hash = _combine(hash, attribute.hashItem())
+
+        return hash
+
+    def hashItem(self):
+        """
+        Compute a hash value from this kind's schema.
+
+        The hash value is computed from the kind's path (unless it is a
+        mixin kind), superKind and locally defined name - attribute item
+        hashes.
+
+        @return: an integer
+        """
+
+        if 'schemaHash' in self._values:
+            return self.schemaHash
+
+        self.schemaHash = hash = self._hashItem()
+        return hash
+
+    def onValueChanged(self, name):
+
+        if name == 'attributeHash':
+            if 'schemaHash' in self._values:
+                del self.schemaHash
+
+    def findMatch(self, view, matches=None):
+
+        if matches is not None:
+            match = matches.get(self)
+        else:
+            match = None
+            
+        if match is None:
+            match = view.find(self._uuid)
+            if match is None:
+                match = view.find(self.itsPath)
+                if not (match is None or matches is None):
+                    if not (self is match or
+                            self.hashItem() == match.hashItem()):
+                        raise SchemaError, ("kind matches are incompatible: %s %s", self.itsPath, match.itsPath)
+                    matches[self] = match
+
+        return match
 
 
     NoneString = "__NONE__"

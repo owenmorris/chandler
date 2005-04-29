@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import _countAccess
 from chandlerdb.item.item import CItem
 from chandlerdb.item.ItemError import *
@@ -570,6 +570,8 @@ class Item(CItem):
             otherName = self._kind.getOtherName(name, _attrID, self)
             _attrDict._removeValue(name, value, otherName)
 
+        if hasattr(type(self), 'onValueChanged'):
+            self.onValueChanged(name)
         Item._monitorsClass.invoke('remove', self, name)
 
     def hasChild(self, name, load=True):
@@ -1193,6 +1195,8 @@ class Item(CItem):
                 assert attrDict is not None
                 attrDict._setDirty(attribute)
                 if not noMonitors:
+                    if hasattr(type(self), 'onValueChanged'):
+                        self.onValueChanged(attribute)
                     Item._monitorsClass.invoke('set', self, attribute)
                 
             _countAccess(self)
@@ -1374,7 +1378,7 @@ class Item(CItem):
         item.setDirty(Item.NDIRTY)
 
         if hasattr(cls, 'onItemCopy'):
-            item.onItemCopy(self)
+            item.onItemCopy(item.itsView, self)
 
         return item
 
@@ -2232,6 +2236,29 @@ class Item(CItem):
             self._references._revertMerge()
 
         self._status &= ~Item.MERGED
+
+    def hashItem(self):
+        """
+        Compute a hash value from this item's class, kind and attribute values.
+
+        The hash value is computed from the item's class name, kind hash,
+        and persistent attribute name-value pairs. The version, uuid,
+        parent, children of the item are not used in the computation. The
+        returned hash value can be used to compare items for schema and
+        value sameness.
+
+        @return: an integer
+        """
+
+        cls = type(self)
+
+        hash = _hash('.'.join((cls.__module__, cls.__name__)))
+        if self._kind is not None:
+            hash = _combine(hash, self._kind.hashItem())
+        hash = _combine(hash, self._values._hashValues())
+        hash = _combine(hash, self._references._hashValues())
+
+        return hash
 
     def __new__(cls, *args, **kwds):
 

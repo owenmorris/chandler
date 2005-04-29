@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.uuid import UUID, _hash, _combine
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexes import NumericIndex, AttributeIndex, CompareIndex
@@ -924,6 +924,17 @@ class RefList(LinkedMap):
     def _clearDirties(self):
         pass
 
+    def _hashValues(self):
+
+        hash = 0
+        for key in self.iterkeys():
+            link = self._get(key)
+            hash = _combine(hash, key._hash)
+            if link._alias is not None:
+                hash = _combine(hash, _hash(link._alias))
+
+        return hash
+    
     SETDIRTY = 0x0002
     READONLY = 0x0004
 

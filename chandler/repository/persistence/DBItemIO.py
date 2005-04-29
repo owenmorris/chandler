@@ -82,7 +82,7 @@ class DBItemWriter(ItemWriter):
 
     def writeLong(self, buffer, value):
         
-        buffer.write(pack('>l', value))
+        buffer.write(pack('>q', value))
         
     def writeFloat(self, buffer, value):
 
@@ -407,7 +407,7 @@ class DBItemReader(ItemReader):
         return offset+4, unpack('>i', data[offset:offset+4])[0]
 
     def readLong(self, offset, data):
-        return offset+4, unpack('>l', data[offset:offset+4])[0]
+        return offset+8, unpack('>q', data[offset:offset+8])[0]
         
     def readFloat(self, offset, data):
         return offset+8, unpack('>d', data[offset:offset+8])[0]

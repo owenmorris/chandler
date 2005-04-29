@@ -1062,7 +1062,10 @@ class ItemContainer(DBContainer):
 
 class ValueContainer(DBContainer, CValueContainer):
 
-    FORMAT_VERSION = 0x00050000
+    # 0.5.0: first tracked format version
+    # 0.5.1: 'Long' values saved as long long (64 bit)
+
+    FORMAT_VERSION = 0x00050100
 
     def __init__(self, store, name, txn, **kwds):
 

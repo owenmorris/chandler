@@ -5,7 +5,6 @@
   <item>
     <name>Parcel</name>
     <kind type="path">//Schema/Core/Kind</kind>
-    <class module="repository.schema.Kind">Kind</class>
 
     <ref name="attributes">
 
@@ -29,7 +28,6 @@
   <item>
     <name>author</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -43,7 +41,6 @@
   <item>
     <name>publisher</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -57,7 +54,6 @@
   <item>
     <name>status</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -71,7 +67,6 @@
   <item>
     <name>summary</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -85,7 +80,6 @@
   <item>
     <name>icon</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -99,7 +93,6 @@
   <item>
     <name>version</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -113,7 +106,6 @@
   <item>
     <name>createdOn</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -127,7 +119,6 @@
   <item>
     <name>modifiedOn</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -141,7 +132,6 @@
   <item>
     <name>namespace</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -156,7 +146,6 @@
   <item>
     <name>namespaceMap</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -171,7 +160,6 @@
   <item>
     <name>file</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
@@ -186,7 +174,6 @@
   <item>
     <name>originalValues</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">

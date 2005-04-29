@@ -228,6 +228,9 @@ class Cloud(Item):
 
             uuid = other._uuid
             if uuid in items or uuid in references:
+                if uuid in copies:
+                    return copies[uuid]
+                
                 match = other.findMatch(view, matches)
                 if match is not None:
                     return match

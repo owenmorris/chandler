@@ -13,7 +13,7 @@ class Movie(Item):
         else:
             return 0
 
-    def onItemCopy(self, original):
+    def onItemCopy(self, view, original):
 
         print 'copied', self.title, 'from', original.itsUUID
 

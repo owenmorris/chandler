@@ -12,7 +12,9 @@ import repository.util.SingleRef
 import repository.util.URL
 
 from new import classobj
+from struct import pack
 
+from chandlerdb.util.uuid import _hash, _combine
 from repository.item.Item import Item
 from repository.schema.TypeHandler import TypeHandler
 from repository.item.ItemHandler import ValueHandler
@@ -29,7 +31,7 @@ class TypeKind(Kind):
 
         TypeHandler.typeHandlers[view][None] = self
 
-    def onItemCopy(self, view):
+    def onItemCopy(self, view, orig):
 
         TypeHandler.typeHandlers[view][None] = self
 
@@ -98,6 +100,9 @@ class Type(Item):
     def onItemLoad(self, view):
         self._registerTypeHandler(self.getImplementationType(), view)
 
+    def onItemCopy(self, view, orig):
+        self._registerTypeHandler(self.getImplementationType(), view)
+
     def onItemImport(self, view):
         if view is not self.itsView:
             implementationType = self.getImplementationType()
@@ -106,7 +111,7 @@ class Type(Item):
 
     def getImplementationType(self):
         return self.getAttributeValue('implementationTypes',
-                                      _attrDict=self._values)['python']
+                                      self._values)['python']
 
     def handlerName(self):
         return None
@@ -122,6 +127,17 @@ class Type(Item):
 
     def eval(self, value):
         return value
+
+    def hashItem(self):
+        """
+        Compute a hash value from this type's schema.
+
+        The hash value is computed from the type's path.
+
+        @return: an integer
+        """
+
+        return _hash(str(self.itsPath))
 
     # override this to compare types of the same category, like
     # Integer, Long and Float or String and Symbol
@@ -153,6 +169,9 @@ class Type(Item):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         raise NotImplementedError, "%s._readValue" %(type(self))
 
+    def hashValue(self, value):
+        return _hash(self.makeString(value))
+
     NoneString = "__NONE__"
 
 
@@ -161,6 +180,11 @@ class String(Type):
     def onItemLoad(self, view):
 
         super(String, self).onItemLoad(view)
+        self._registerTypeHandler(str, view)
+
+    def onItemCopy(self, view, orig):
+
+        super(String, self).onItemCopy(view, orig)
         self._registerTypeHandler(str, view)
 
     def onItemImport(self, view):
@@ -208,6 +232,13 @@ class String(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         
         return itemReader.readString(offset, data)
+
+    def hashValue(self, value):
+        
+        if type(value) is unicode:
+            value = value.encode('utf-8')
+
+        return _hash(value)
 
 
 class Symbol(Type):
@@ -274,6 +305,9 @@ class Integer(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readInteger(offset, data)
 
+    def hashValue(self, value):
+        return _hash(pack('>l', value))
+
 
 class Long(Type):
 
@@ -302,6 +336,9 @@ class Long(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readLong(offset, data)
 
+    def hashValue(self, value):
+        return _hash(pack('>q', value))
+
 
 class Float(Type):
 
@@ -326,6 +363,9 @@ class Float(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readFloat(offset, data)
 
+    def hashValue(self, value):
+        return _hash(pack('>d', value))
+
     
 class Complex(Type):
 
@@ -349,6 +389,11 @@ class Complex(Type):
         offset, imag = itemReader.readFloat(offset, data)
 
         return offset, complex(real, imag)
+
+    def hashValue(self, value):
+
+        return _combine(_hash(pack('>d', value.real)),
+                        _hash(pack('>d', value.imag)))
         
 
 class Boolean(Type):
@@ -375,6 +420,13 @@ class Boolean(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
         return itemReader.readBoolean(offset, data)
+
+    def hashValue(self, value):
+
+        if value == True:
+            return _hash('True')
+        else:
+            return _hash('False')
 
 
 class UUID(Type):
@@ -430,6 +482,13 @@ class UUID(Type):
             return offset+1, None
         
         return offset+17, chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
+
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return value._hash        
 
 
 class SingleRef(Type):
@@ -494,6 +553,13 @@ class SingleRef(Type):
 
         return False
 
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return _combine(_hash(str(self.itsPath)), value._uuid._hash)
+
 
 class Path(Type):
 
@@ -554,6 +620,13 @@ class Path(Type):
         offset, string = itemReader.readString(offset+1, data)
         return offset, repository.util.Path.Path(string)
 
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return _combine(_hash(str(self.itsPath)), _hash(str(value)))
+
 
 class URL(Type):
 
@@ -599,6 +672,13 @@ class URL(Type):
         offset, string = itemReader.readString(offset+1, data)
         return offset, repository.util.URL.URL(string)
 
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return _combine(_hash(str(self.itsPath)), _hash(str(value)))
+
 
 class NoneType(Type):
 
@@ -628,6 +708,9 @@ class NoneType(Type):
             raise AssertionError, 'invalid byte for None'
         return offset+1, None
 
+    def hashValue(self, value):
+        return 0
+
 
 class Class(Type):
 
@@ -644,7 +727,7 @@ class Class(Type):
         return ClassLoader.loadClass(data)
 
     def makeString(self, value):
-        return "%s.%s" %(value.__module__, value.__name__)
+        return '.'.join((value.__module__, value.__name__))
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
         itemWriter.writeString(buffer, self.makeString(value))
@@ -652,6 +735,9 @@ class Class(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         offset, string = itemReader.readString(offset, data)
         return offset, ClassLoader.loadClass(string)
+
+    def hashValue(self, value):
+        return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
         
 
 class Enumeration(Type):
@@ -689,6 +775,9 @@ class Enumeration(Type):
         else:
             offset, integer = itemReader.readInteger(offset, data)
             return offset, self.getAttributeValue('values', _attrDict=self._values)[integer]
+
+    def hashValue(self, value):
+        return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
 
 
 class Struct(Type):
@@ -749,6 +838,9 @@ class Struct(Type):
 
         if attrs.has_key('typeid'):
             typeHandler = itemHandler.repository[chandlerdb.util.uuid.UUID(attrs['typeid'])]
+            value = typeHandler.makeValue(itemHandler.data)
+        elif attrs.has_key('typepath'):
+            typeHandler = itemHandler.repository.findPath(attrs['typepath'])
             value = typeHandler.makeValue(itemHandler.data)
         elif attrs.has_key('type'):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)
@@ -817,9 +909,7 @@ class Struct(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        fields = self.getAttributeValue('fields',
-                                        _attrDict=self._values,
-                                        default={})
+        fields = self.getAttributeValue('fields', self._values, default={})
 
         for fieldName, field in fields.iteritems():
             default = self.getDefaultValue(fieldName) 
@@ -836,10 +926,9 @@ class Struct(Type):
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
-        fields = self.getAttributeValue('fields', _attrDict=self._values,
-                                        default=None)
-
+        fields = self.getAttributeValue('fields', self._values, default=None)
         value = self.getImplementationType()()
+
         while True:
             offset, fieldName = itemReader.readSymbol(offset, data)
             if fieldName != '':
@@ -850,6 +939,27 @@ class Struct(Type):
                 setattr(value, fieldName, fieldValue)
             else:
                 return offset, value
+
+    def hashValue(self, value):
+
+        view = self.itsView
+        hash = _hash(str(self.itsPath))
+        fields = self.getAttributeValue('fields', self._values, default={})
+
+        for fieldName, field in fields.iteritems():
+            default = self.getDefaultValue(fieldName) 
+            fieldValue = self.getFieldValue(value, fieldName, default)
+            if fieldValue == default:
+                continue
+            
+            fieldType = field.get('type', None)
+            hash = _combine(hash, _hash(fieldName))
+            if fieldType is not None:
+                hash = _combine(hash, fieldType.hashValue(fieldValue))
+            else:
+                hash = _combine(hash, TypeHandler.hashValue(view, fieldValue))
+
+        return hash
 
 
 class MXType(Struct):
@@ -1028,6 +1138,15 @@ class Collection(Type):
         itemHandler.tagCounts[-1] -= 1
         itemHandler.valueEnd(itemHandler, attrs, **kwds)
 
+    def hashValue(self, value):
+
+        view = self.itsView
+        hash = _hash(str(self.itsPath))
+        for v in value:
+            hash = _combine(hash, TypeHandler.hashValue(view, v))
+
+        return hash
+
 
 class Dictionary(Collection):
 
@@ -1094,7 +1213,17 @@ class Dictionary(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
         return itemReader.readDict(offset, data, withSchema, None, view, name)
-    
+
+    def hashValue(self, value):
+        
+        view = self.itsView
+        hash = _hash(str(self.itsPath))
+        for k, v in value.iteritems():
+            hash = _combine(hash, TypeHandler.hashValue(view, k))
+            hash = _combine(hash, TypeHandler.hashValue(view, v))
+
+        return hash
+
 
 class List(Collection):
 
@@ -1289,3 +1418,8 @@ class Lob(Type):
     def handlerName(self):
 
         return 'lob'
+
+    def hashValue(self, value):
+
+        # for now
+        return 0

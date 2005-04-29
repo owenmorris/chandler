@@ -4,13 +4,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.uuid import UUID
+from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
+from repository.schema.TypeHandler import TypeHandler
 
 
 class Values(dict):
@@ -235,7 +236,7 @@ class Values(dict):
         
         item = self._item
         kind = item._kind
-        repository = item.itsView
+        view = item.itsView
 
         for key, value in self.iteritems():
             if kind is not None:
@@ -269,12 +270,52 @@ class Values(dict):
                     attrs['flags'] = str(flags)
 
                 try:
-                    ValueHandler.xmlValue(repository, key, value, 'attribute',
+                    ValueHandler.xmlValue(view, key, value, 'attribute',
                                           attrType, attrCard, attrId, attrs,
                                           generator, withSchema)
                 except Exception, e:
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise
+
+    def _hashValues(self):
+
+        item = self._item
+        kind = item._kind
+        view = item.itsView
+        hash = 0
+
+        names = self.keys()
+        names.sort()
+        
+        for name in names:
+            if kind is not None:
+                attribute = kind.getAttribute(name, False, item)
+            else:
+                attribute = None
+
+            if attribute is not None:
+                persist = attribute.getAspect('persist', default=True)
+            else:
+                persist = True
+
+            if persist:
+                persist = self._getFlags(name) & Values.TRANSIENT == 0
+
+            if persist:
+                hash = _combine(hash, _hash(name))
+                value = self[name]
+                
+                if attribute is not None:
+                    attrType = attribute.getAspect('type')
+                else:
+                    attrType = None
+
+                if attrType is not None:
+                    hash = _combine(hash, attrType.hashValue(value))
+                else:
+                    hash = _combine(hash, TypeHandler.hashValue(view, value))
+
+        return hash
 
     def _prepareMerge(self):
 
@@ -707,6 +748,33 @@ class References(Values):
                     else:
                         self._xmlRef(name, value, generator, withSchema,
                                      version, attrs)
+
+    def _hashValues(self):
+
+        item = self._item
+        kind = item._kind
+        view = item.itsView
+        hash = 0
+
+        names = self.keys()
+        names.sort()
+
+        for name in names:
+            attribute = kind.getAttribute(name, False, item)
+            if attribute.getAspect('persist', default=True):
+                hash = _combine(hash, _hash(name))
+                value = self[name]
+                
+                if value is None:
+                    hash = _combine(hash, 0)
+                elif value._isUUID():
+                    hash = _combine(hash, value._hash)
+                elif value._isItem():
+                    hash = _combine(hash, value._uuid._hash)
+                elif value._isRefList():
+                    hash = _combine(hash, value._hashValues())
+
+        return hash
 
     def _clearDirties(self):
 

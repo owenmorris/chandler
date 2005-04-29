@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
+from chandlerdb.util.uuid import _hash, _combine
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
 
@@ -75,3 +76,19 @@ class Alias(Type):
                 return
 
         raise TypeError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)
+
+    def hashItem(self):
+        """
+        Compute a hash value from this aliase's schema.
+
+        The hash value is computed from the aliase's path and types.
+
+        @return: an integer
+        """
+
+        hash = _hash(str(self.itsPath))
+        if 'types' in self._references:
+            for t in self.types:
+                hash = _combine(hash, t.hashItem())
+
+        return hash

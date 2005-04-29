@@ -12,13 +12,6 @@ from repository.util.ClassLoader import ClassLoader
 
 class TypeHandler(object):
 
-    def makeValue(cls, typeName, data):
-
-        try:
-            return cls.typeDispatch[typeName](data)
-        except KeyError:
-            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
-
     def typeHandler(cls, view, value):
 
         try:
@@ -28,7 +21,16 @@ class TypeHandler(object):
         except KeyError:
             pass
 
-        typeKind = cls.typeHandlers[view][None]
+        from repository.item.Item import Item
+        if isinstance(value, Item):
+            return cls.typeHandlers[view][SingleRef][0]
+
+        try:
+            typeKind = cls.typeHandlers[view][None]
+        except KeyError:
+            print type(value), value
+            raise
+        
         types = typeKind.findTypes(value)
         if types:
             return types[0]
@@ -38,6 +40,17 @@ class TypeHandler(object):
     def makeString(cls, view, value):
 
         return cls.typeHandler(view, value).makeString(value)
+
+    def makeValue(cls, typeName, data):
+
+        try:
+            return cls.typeDispatch[typeName](data)
+        except KeyError:
+            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
+
+    def hashValue(cls, view, value):
+
+        return cls.typeHandler(view, value).hashValue(value)
 
     def clear(cls, view):
 
@@ -50,6 +63,7 @@ class TypeHandler(object):
     typeHandler = classmethod(typeHandler)
     makeString = classmethod(makeString)
     makeValue = classmethod(makeValue)
+    hashValue = classmethod(hashValue)
     clear = classmethod(clear)
 
     typeHandlers = {}

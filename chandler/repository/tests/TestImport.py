@@ -93,6 +93,7 @@ class TestImport(RepositoryTestCase):
         view = self.rep.view
 
         nv.loadPack(self.schemaPack)
+        nv.loadPack(self.chandlerPack)
         nv.loadPack(cineguidePack)
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('n', 'numeric')
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('t', 'attribute',

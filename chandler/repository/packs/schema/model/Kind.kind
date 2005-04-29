@@ -10,6 +10,8 @@
     <ref name="attributes" otherName="kinds"
          cardinality="list" otherCard="list">
 
+      <ref alias="schemaHash" type="path">/Core/schemaHash</ref>
+
       <!-- 
          - plus local attributes below:
          -     notFoundAttributes, inheritedAttributes,
@@ -221,7 +223,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/UUID</ref>
+         type="path" otherCard="list">/Core/Path</ref>
     <attribute name="cardinality">list</attribute>
   </item>
 </items>
