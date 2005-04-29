@@ -56,7 +56,7 @@ wxPython:
 MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest
 
 clean:
-	rm -rf $(SRC)/wxPython/$(BUILD)
+	rm -rf $(SRC)/wxPython/$(BUILD)*
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
 
 cleanmanifest:
@@ -158,8 +158,8 @@ wxWidgets: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc install
 
 clean:
-	cd $(SRC); rm -rf $(BUILD); \
-	cd $(SRC)/wxPython; rm -rf $(BUILD)
+	rm -rf $(SRC)/wxPython/$(BUILD)*
+	rm -rf $(SRC)/$(BUILD)
 
 endif
 
