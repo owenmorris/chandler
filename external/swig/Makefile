@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-VERSION=1.3.22
+VERSION=1.3.24
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
 
