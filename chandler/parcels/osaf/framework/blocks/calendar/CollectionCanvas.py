@@ -642,36 +642,38 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         self.DrawCanvas(dc)
         
     def DrawCanvas(self, dc):
-        # Find update rect in scrolled coordinates
-        updateRect = self.GetUpdateRegion().GetBox()
-        point = self.CalcUnscrolledPosition((updateRect.GetLeft(),
-                                             updateRect.GetTop()))
-        wBuffer = updateRect.GetWidth()
-        hBuffer = updateRect.GetHeight()
+        if (True):
+            dc.BeginDrawing()
+            self.DrawBackground(dc)
+            self.DrawCells(dc)
+            dc.EndDrawing()
+        else:
+            # Find update rect in scrolled coordinates
+            updateRect = self.GetUpdateRegion().GetBox()
+            point = self.CalcUnscrolledPosition((updateRect.GetLeft(), updateRect.GetTop()))
+            wBuffer = updateRect.GetWidth()
+            hBuffer = updateRect.GetHeight()
 
-        # Create offscreen buffer
-        memoryDC = wx.MemoryDC()
-        buffer = wx.EmptyBitmap(wBuffer, hBuffer)
-        memoryDC.SelectObject(buffer)
-        memoryDC.SetDeviceOrigin(-point.x, -point.y)
+            # Create offscreen buffer
+            memoryDC = wx.MemoryDC()
+            buffer = wx.EmptyBitmap(wBuffer, hBuffer)
+            memoryDC.SelectObject(buffer)
+            memoryDC.SetDeviceOrigin(-point.x, -point.y)
 
-        memoryDC.BeginDrawing()
+            memoryDC.BeginDrawing()
+            self.DrawBackground(memoryDC)
+            self.DrawCells(memoryDC)
+            memoryDC.EndDrawing()      
 
-        self.DrawBackground(memoryDC)
-        self.DrawCells(memoryDC)
+            dc.Blit(point.x, point.y,
+                    wBuffer, hBuffer,
+                    memoryDC,
+                    point.x, point.y)
 
-        memoryDC.EndDrawing()      
-
-        dc.Blit(point.x, point.y,
-                wBuffer, hBuffer,
-                memoryDC,
-                point.x, point.y)
-
-        
     def PrintCanvas(self, dc):
         dc.BeginDrawing()
         self.DrawBackground(dc)
-        self.DrawCells(dc)        
+        self.DrawCells(dc)
         dc.EndDrawing()
 
     def DrawCells(self, dc):
