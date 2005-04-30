@@ -124,7 +124,7 @@ public:
     Rijndael();
     ~Rijndael();
     int init(Mode mode, Direction direction, const UINT8 *key,
-             KeyLength keyLength, UINT8 *initVector=0);
+             KeyLength keyLength);
     int blockEncrypt(const UINT8 *input, int inputBits, UINT8 *outBuffer);
     int padEncrypt(const UINT8 *input, int inputBytes, UINT8 *outBuffer);
     int blockDecrypt(const UINT8 *input, int inputBits, UINT8 *outBuffer);
