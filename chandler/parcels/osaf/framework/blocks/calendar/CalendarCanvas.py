@@ -152,11 +152,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def GetMaxEditorSize(self):
         return self._bounds.GetSize()
     
-    def GetStatusPen(self, styles):
+    def GetStatusPen(self, color):
         # probably should use styles to determine a good pen color
         item = self.GetItem()
-        eventColors = styles.blockItem.getEventColors(item)
-        color = eventColors.outlineColor
+        
         if (item.transparency == "confirmed"):
             pen = wx.Pen(color, 4)
         elif (item.transparency == "fyi"):
@@ -392,7 +391,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
-    def Draw(self, dc, boundingRect, styles, bitmapBrush):
+    def Draw(self, dc, boundingRect, styles, selected):
         item = self._item
 
         time = item.startTime
@@ -404,22 +403,27 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()
         if not cwidth == cheight == 0:
             clipRect = wx.Rect(x,y,width,height)
-
-        # save the current pen, we'll need it
-        drawingPen = dc.GetPen()
-        origin = dc.GetDeviceOrigin()
-        newOrigin = copy.copy(origin)
+        
+        eventColors = styles.blockItem.getEventColors(item)
+        if selected:
+            penColor = eventColors.selectedOutlineColor
+            gradientLeft = eventColors.selectedGradientLeft
+            gradientRight = eventColors.selectedGradientRight
+            textColor = eventColors.selectedTextColor
+        else:
+            penColor = eventColors.outlineColor
+            gradientLeft = eventColors.gradientLeft
+            gradientRight = eventColors.gradientRight
+            textColor = eventColors.textColor
+        
+        dc.SetTextForeground(textColor)
         
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
-            newOrigin.x += itemRect.x
-            dc.SetDeviceOriginPoint(newOrigin)
-            itemRect = copy.copy(itemRect)
-            itemRect.x = 0
-            brush = wx.Brush(wx.WHITE,wx.STIPPLE)
-            brush.SetStipple(bitmapBrush)
+            brush = styles.GetGradientBrush(itemRect.x, itemRect.width, 
+                                            gradientLeft, gradientRight)
+            dc.SetPen(wx.Pen(penColor))
             dc.SetBrush(brush)
-            dc.SetPen(drawingPen)
 
             # properly round the corners - first and last
             # boundsRect gets some rounding, and they
@@ -434,7 +438,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
 
             self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
 
-            pen = self.GetStatusPen(styles)
+            pen = self.GetStatusPen(penColor)
     
             cornerRadius = 0
             pen.SetCap(wx.CAP_BUTT)
@@ -471,7 +475,6 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DestroyClippingRegion()
         if clipRect:
             dc.SetClippingRect(clipRect)
-        dc.SetDeviceOriginPoint(origin)
 
     def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):
         """
@@ -511,14 +514,27 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class HeaderCanvasItem(CalendarCanvasItem):
-    def Draw(self, dc, styles):
+    def Draw(self, dc, styles, selected):
         item = self._item
         itemRect = self._bounds
         
+        eventColors = styles.blockItem.getEventColors(item)
+        if selected:
+            brush = styles.GetGradientBrush(itemRect.x, itemRect.width,
+                                            eventColors.selectedGradientLeft,
+                                            eventColors.selectedGradientRight)
+            pen = wx.Pen(eventColors.selectedOutlineColor)
+        else:
+            brush = wx.TRANSPARENT_BRUSH
+            pen = wx.TRANSPARENT_PEN
+
+        dc.SetTextForeground(eventColors.textColor)
+        dc.SetPen(pen)
+        dc.SetBrush(brush)
         dc.DrawRectangleRect(itemRect)
                 
         # draw little rectangle to the left of the item
-        pen = self.GetStatusPen(styles)
+        pen = self.GetStatusPen(eventColors.outlineColor)
         
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
@@ -915,7 +931,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # just cause a repaint - hopefully this cascades to child windows?
         self.Refresh()
         
-    def MakeGradientBitmap(self, width, leftColor, rightColor):
+    def MakeGradientBrush(self, offset, width, leftColor, rightColor):
         """
         Creates a gradient brush from leftColor to rightColor, specified
         as color tuples (r,g,b)
@@ -949,26 +965,42 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
         # assign a sliding scale of floating point values from left to right
         # in the bitmap
-        bits = ""
+        offset %= bitmapWidth
         for x in xrange(bitmapWidth):
-            pixel = x % width
-            sat = satStart + satStep*pixel
+            
+            # first offset the gradient within the bitmap
+            # gradientIndex is the index of the color, i.e. the nth
+            # color between leftColor and rightColor
+            
+            # First offset within the bitmap. The + bitmapWidth % bitmapWidth
+            # ensures we're dealing with x<offset correctly
+            gradientIndex = (x - offset + bitmapWidth) % bitmapWidth
+            
+            # now offset within the gradient range
+            gradientIndex %= width
+            
+            # now calculate the actual color from the gradient index
+            sat = satStart + satStep*gradientIndex
             newColor = rgb2color(*hsv_to_rgb(hue, sat, value))
             image.SetRGB(x,0,*newColor)
+            
         # and now we have to go from Image -> Bitmap. Yuck.
-        return wx.BitmapFromImage(image)
+        bitmap = wx.BitmapFromImage(image)
+        brush = wx.Brush(wx.WHITE, wx.STIPPLE)
+        brush.SetStipple(bitmap)
+        return brush
         
-    def GetGradientBitmap(self, width, leftColor, rightColor):
+    def GetGradientBrush(self, offset, width, leftColor, rightColor):
         """
         Gets an appropriately sized gradient brush from the cache, 
         or creates one if necessary
         """
-        key = (width, leftColor, rightColor)
-        bitmap = self._gradientCache.get(key, None)
-        if not bitmap:
-            bitmap = self.MakeGradientBitmap(*key)
-            self._gradientCache[key] = bitmap
-        return bitmap
+        key = (offset, width, leftColor, rightColor)
+        brush = self._gradientCache.get(key, None)
+        if not brush:
+            brush = self.MakeGradientBrush(*key)
+            self._gradientCache[key] = brush
+        return brush
         
 
 class wxWeekHeaderWidgets(wx.Panel):
@@ -1201,38 +1233,20 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
         styles = self.parent
 
-        #dc.SetTextForeground(styles.eventLabelColor)
         dc.SetFont(styles.eventLabelFont)
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.SetBrush(wx.WHITE_BRUSH)
         
         selectedBox = None
 
         for canvasItem in self.canvasItemList:
-            dc.SetPen(wx.TRANSPARENT_PEN)
             # save the selected box to be drawn last
             item = canvasItem.GetItem()
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                eventColors = styles.blockItem.getEventColors(item)
-                #dc.SetPen(wx.Pen(eventColors.outlineColor))
-                #dc.SetBrush(wx.Brush(eventColors.gradientLeft))
-                dc.SetTextForeground(eventColors.textColor)
-                canvasItem.Draw(dc, styles)
+                canvasItem.Draw(dc, styles, False)
         
         if selectedBox:
-            eventColors = styles.blockItem.getEventColors(selectedBox.GetItem())
-            dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
-            bitmap = styles.GetGradientBitmap(self.parent.dayWidth,
-                                              eventColors.selectedGradientLeft,
-                                              eventColors.selectedGradientRight)
-            brush = wx.Brush(wx.WHITE,wx.STIPPLE)
-            brush.SetStipple(bitmap)
-            dc.SetBrush(brush)
-            dc.SetTextForeground(eventColors.selectedTextColor)
-
-            selectedBox.Draw(dc, styles)
+            selectedBox.Draw(dc, styles, True)
 
         # Draw a line across the bottom of the header
         dc.SetPen(styles.majorLinePen)
@@ -1561,23 +1575,11 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                eventColors = styles.blockItem.getEventColors(item)
-                dc.SetPen(wx.Pen(eventColors.outlineColor))
-                bitmap = styles.GetGradientBitmap(self.dayWidth, eventColors.gradientLeft, 
-                                                  eventColors.gradientRight)
-                dc.SetTextForeground(eventColors.textColor)
-                
-                canvasItem.Draw(dc, boundingRect, styles, bitmap)
+                canvasItem.Draw(dc, boundingRect, styles, False)
             
         # now draw the current item on top of everything else
         if selectedBox:
-            item = selectedBox.GetItem()
-            eventColors = styles.blockItem.getEventColors(item)
-            dc.SetPen(wx.Pen(eventColors.selectedOutlineColor))
-            bitmap = styles.GetGradientBitmap(self.dayWidth, eventColors.selectedGradientLeft,
-                                              eventColors.selectedGradientRight)
-            dc.SetTextForeground(eventColors.selectedTextColor)
-            selectedBox.Draw(dc, boundingRect, styles, bitmap)
+            selectedBox.Draw(dc, boundingRect, styles, True)
         
     def CheckConflicts(self):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
