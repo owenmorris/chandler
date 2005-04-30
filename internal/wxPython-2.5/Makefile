@@ -30,10 +30,19 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
-wxWidgets:
+$(SRC)/include/wx/msw/setup.h:
 	cd $(SRC); \
-        	export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
-		devenv.com build/msw/msw.sln /build $(SNAP)
+	sed -e "s/#define wxUSE_UNICODE 0/#define wxUSE_UNICODE 1/" include/wx/msw/setup0.h | \
+	sed -e "s/#define wxUSE_DIALUP_MANAGER   1/#define wxUSE_DIALUP_MANAGER 0/" | \
+	sed -e "s/#define wxUSE_DISPLAY       0/#define wxUSE_DISPLAY 1/" | \
+	sed -e "s/#define wxUSE_RESOURCES   0/#define wxUSE_RESOURCES 1/"> include/wx/msw/setup.h
+
+setup: $(SRC)/include/wx/msw/setup.h
+
+wxWidgets: setup
+	cd $(SRC); \
+		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
+		devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
@@ -57,7 +66,8 @@ MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)*
-	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(SNAP)
+	rm -f $(SRC)/include/wx/msw/setup.h
+	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \
