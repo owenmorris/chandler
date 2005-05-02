@@ -291,12 +291,15 @@ static int t_descriptor___set__(t_descriptor *self,
                 int flags = PyInt_AS_LONG(PyTuple_GET_ITEM(tuple, 1));
                 PyObject *attrDict = get_attrdict(obj, flags);
 
-                if (attrDict != Py_None && !(flags & PROCESS) &&
-                    flags & SINGLE && !(flags & COLLECTION))
+                if (attrDict != Py_None)
                 {
                     PyObject *oldValue = PyDict_GetItem(attrDict, self->name);
 
-                    if (oldValue && !PyObject_Compare(value, oldValue))
+                    if (value == oldValue)
+                        return 0;
+
+                    if (flags & SINGLE && !(flags & (PROCESS | COLLECTION)) &&
+                        oldValue && !PyObject_Compare(value, oldValue))
                         return 0;
                 }
 
