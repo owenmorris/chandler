@@ -22,9 +22,12 @@ class Alias(Type):
     def getFlags(self):
 
         flags = CDescriptor.ALIAS
+
         if 'types' in self._references:
             for t in self._references['types']:
                 flags |= t.getFlags()
+        else:
+            flags |= CDescriptor.PROCESS
 
         return flags
 
