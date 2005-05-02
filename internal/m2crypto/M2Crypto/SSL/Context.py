@@ -18,13 +18,13 @@ class _ctxmap:
         self.map = {}
 
     def __getitem__(self, key):
-        return self.map[key] 
+        return self.map[long(key)] 
 
     def __setitem__(self, key, value):
-        self.map[key] = value
+        self.map[long(key)] = value
 
     def __delitem__(self, key):
-        del self.map[key]
+        del self.map[long(key)]
 
 def map():
     if _ctxmap.singleton is None:
