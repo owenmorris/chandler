@@ -11,7 +11,192 @@ Schema Definition Support
 Introduction
 ------------
 
-TBD
+TODO
+
+------------
+Role Objects
+------------
+
+The ``One``, ``Many``, ``Sequence``, and ``Mapping`` classes are all used to
+define roles.  They are all essentially identical except for their
+``cardinality`` attribute, which controls how the repository will store the
+attribute's value::
+
+    >>> schema.One.cardinality
+    'single'
+    >>> schema.Many.cardinality
+    'set'
+    >>> schema.Sequence.cardinality
+    'list'
+    >>> schema.Mapping.cardinality
+    'dict'
+
+
+The ``Role`` Base Type
+======================
+
+The base class for roles is ``schema.Role``.  It provides most of the
+default behavior of roles, so rather than duplicate examples for each
+individual role type, we'll examine the default behaviors here.
+
+All role objects have at least the following attributes and methods:
+
+``name`` (read-only)
+    The name under which this role was first defined in an entity class or
+    relationship, or ``None`` if the role has not been registered with a
+    class yet::
+
+        >>> role = schema.Role()
+        >>> print role.name
+        None
+        >>> class anEntity(schema.Item):
+        ...     aRole = role
+        >>> role.name
+        'aRole'
+
+
+``owner`` (read-only)
+    The entity or relationship class in which the role was defined, or ``None``
+    if the role has not been registered with a class yet::
+
+        >>> role = schema.Role()
+        >>> print role.owner
+        None
+        >>> class anEntity(schema.Item):
+        ...     aRole = role
+        >>> role.owner
+        <class 'anEntity'>
+
+    If a role's owner is an ``Item`` class, then setting ``aRole.inverse`` will
+    invoke ``aRole.inverse.addType(aRole.owner)``, so that the inverse role
+    will accept instances of the first role's owning type.  This allows you
+    to easily define bidirectional links without "forward references"; just
+    leave off the `types` argument in both role definitions, and specify an
+    `inverse` argument for the second::
+
+        >>> class anotherEntity(schema.Item):
+        ...     otherRole = schema.Role(inverse=anEntity.aRole)
+        >>> anotherEntity.otherRole.type
+        <class 'anEntity'>
+        >>> anEntity.aRole.type
+        <class 'anotherEntity'>
+
+    As you can see, this ensures that both roles can accept the owning type of
+    the other role.  It also works for setting up self-recursive roles within a
+    single type::
+
+        >>> class Kind(schema.Item):
+        ...     name = schema.One(str)
+        ...     subkinds = schema.Many()
+        ...     superkinds = schema.Many(inverse=subkinds)
+        ...     def __repr__(self):
+        ...         return getattr(self,'name',object.__repr__(self))
+
+        >>> Kind.subkinds.type
+        <class 'Kind'>
+        >>> Kind.superkinds.type
+        <class 'Kind'>
+
+``displayName`` and ``doc``
+    The name and description of this role, if any.  They will be used to
+    collectively form a ``__doc__`` string, so that ``help()`` is informative
+    for Item classes::
+
+        >>> Kind.subkinds.doc = "Sub-kinds of this kind"
+        >>> Kind.superkinds.doc = "Super-kinds of this kind"
+        >>> Kind.name.doc = "This kind's name"
+        >>> Kind.name.displayName = "Kind Name"
+
+        >>> help(Kind)  # doctest: +NORMALIZE_WHITESPACE
+        Help on class Kind ...
+        ...
+        class Kind(application.schema.Item)
+         | ...
+         |  Data and other attributes defined here:
+         |
+         |  name = <Role name of <class 'Kind'>>
+         |      Kind Name -- One(str)
+         |
+         |      This kind's name
+         |
+         |  subkinds = <Role subkinds of <class 'Kind'>>
+         |      Many(Kind)
+         |
+         |      Sub-kinds of this kind
+         |
+         |  superkinds = <Role superkinds of <class 'Kind'>>
+         |      Many(Kind)
+         |
+         |      Super-kinds of this kind
+         |  ...
+
+
+``inverse``
+    The role object that represents the "other side" of the relationship, or
+    ``None`` if not yet set.  Setting a role's inverse automatically attempts
+    to set the reverse role, so that each role's ``inverse`` attribute points
+    to the other.  Thus, you do not have to set both roles' ``inverse``
+    attributes in order to link them together.
+
+    ``inverse`` can be set via keyword argument to the role class'
+    constructor::
+
+        >>> role1 = schema.Role()
+        >>> print role1.inverse
+        None
+        >>> role2 = schema.Role(inverse=role1)
+        >>> role2.inverse is role1
+        True
+        >>> role1.inverse is role2
+        True
+
+    Or by setting the ``inverse`` attribute after construction::
+
+        >>> role1 = schema.Role()
+        >>> role2 = schema.Role()
+        >>> role2.inverse = role1
+        >>> role2.inverse is role1
+        True
+        >>> role1.inverse is role2
+        True
+
+    Once set, it cannot be changed, unless it is to the same role::
+
+        >>> role2.inverse = schema.Role()
+        Traceback (most recent call last):
+        ...
+        ValueError: Role inverse cannot be changed once set
+
+        >>> role2.inverse is role1      # no change took place
+        True
+
+    And trying to insert a new role into an existing pair also fails::
+
+        >>> role3 = schema.Role()
+        >>> print role3.inverse
+        None
+        >>> role3.inverse = role2
+        Traceback (most recent call last):
+        ...
+        ValueError: Role inverse cannot be changed once set
+
+        >>> print role3.inverse         # no change took place
+        None
+
+To avoid silent definition errors, ``Role`` classes will not allow setting
+attributes that are not defined by their class::
+
+    >>> r = schema.Role(foo="bar")
+    Traceback (most recent call last):
+    ...
+    TypeError: 'foo' is not a public attribute of 'Role' objects
+
+And, to avoid unintentional alterations, Role attributes can be set only once::
+
+    >>> Kind.superkinds.doc = "testing"
+    Traceback (most recent call last):
+      ...
+    TypeError: Role objects are immutable; can't change 'doc' once set
 
 
 --------------------
@@ -110,3 +295,24 @@ loaded::
 
         >>> schema.parcel_for_module("") is rep.findPath('//parcels')
         True
+
+
+Descriptor Activation
+---------------------
+
+Placing an instance of a ``schema.ActiveDescriptor`` subclass in a class whose
+metaclass is a subclass of ``schema.Activator`` automatically activates it,
+by calling its ``activateInClass`` method::
+
+    >>> class MockAttr(schema.ActiveDescriptor):
+    ...     def activateInClass(self,cls,name):
+    ...         print "activated %r in %r" % (name,cls)
+
+    >>> class Test1(object):
+    ...     __metaclass__ = schema.Activator
+    ...     aRole = MockAttr()
+    activated 'aRole' in <class 'Test1'>
+
+    >>> class Test2(Test1):
+    ...     test = MockAttr()
+    activated 'test' in <class 'Test2'>
