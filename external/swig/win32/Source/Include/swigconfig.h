@@ -50,13 +50,13 @@
 #define PACKAGE_NAME "swig"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "swig 1.3.22"
+#define PACKAGE_STRING "swig 1.3.24"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "swig"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.3.22"
+#define PACKAGE_VERSION "1.3.24"
 
 /* Executable release suffix for co-existence with older versions */
 #define RELEASE_SUFFIX ""
@@ -68,13 +68,13 @@
 #define SWIG_CXX "g++"
 
 /* Directory for SWIG system-independent libraries */
-#define SWIG_LIB "/opt/swig/share/swig/1.3.22"
+#define SWIG_LIB "/opt/swig/share/swig/1.3.24"
 
 /* Platform that SWIG is built for */
 #define SWIG_PLATFORM "i686-pc-linux-gnu"
 
 /* Version number of package */
-#define VERSION "1.3.22"
+#define VERSION "1.3.24"
 
 
 /* Default language */
