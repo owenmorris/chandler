@@ -50,6 +50,7 @@ NOT_LOGGED_IN = "-ERR Unknown AUHORIZATION state command"
 STAT = "+OK 0 0"
 UIDL = "+OK Unique-ID listing follows\r\n."
 LIST = "+OK Mailbox scan listing follows\r\n."
+CAP_START = "+OK Capability list follows:"
 
 
 class POPTestServer(basic.LineReceiver):
@@ -69,7 +70,7 @@ class POPTestServer(basic.LineReceiver):
 
     def sendCapabilities(self):
         if self.caps is None:
-            self.caps = []
+            self.caps = [CAP_START]
 
         if SSL_SUPPORT:
             self.caps.append(CAPABILITIES_SSL)
