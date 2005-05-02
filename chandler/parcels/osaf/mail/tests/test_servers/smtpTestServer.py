@@ -257,13 +257,7 @@ slow - Wait 20 seconds after the connection is made to return a Server Greeting
 def printMessage(msg):
     print "Server Starting in %s mode" % msg
 
-def processArgs():
-
-    if len(sys.argv) < 2:
-        printMessage("ESMTP | SSL | AUTH")
-        return
-
-    arg = sys.argv[1]
+def processArg(arg):
 
     if arg.lower() == 'no_ssl':
         no_ssl_support()
@@ -331,7 +325,13 @@ def dirCheck():
         d = os.mkdir(DIR)
 
 def main():
-    processArgs()
+    if len(sys.argv) < 2:
+        printMessage("ESMTP | SSL | AUTH")
+    else:
+        args = sys.argv[1:]
+        for arg in args:
+            processArg(arg)
+
     dirCheck()
 
     f = Factory()

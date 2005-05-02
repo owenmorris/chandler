@@ -17,6 +17,7 @@ PASS = "1234Osaf"
 PORT = 1100
 
 SSL_SUPPORT = True
+UIDL_SUPPORT = True
 INVALID_SERVER_RESPONSE = False
 INVALID_CAPABILITY_RESPONSE = False
 INVALID_LOGIN_RESPONSE = False
@@ -38,6 +39,7 @@ CAPABILITIES = [
 ]
 
 CAPABILITIES_SSL = "STLS"
+CAPABILITIES_UIDL = "UIDL"
 
  
 INVALID_RESPONSE = "-ERR Unknown request"
@@ -47,7 +49,7 @@ AUTH_ACCEPTED = "+OK Mailbox open, 0 messages"
 TLS_ERROR = "-ERR server side error start TLS handshake"
 LOGOUT_COMPLETE = "+OK quit completed"
 NOT_LOGGED_IN = "-ERR Unknown AUHORIZATION state command"
-STAT = "+OK 0 0"
+STAT = "+OK 1 232323"
 UIDL = "+OK Unique-ID listing follows\r\n."
 LIST = "+OK Mailbox scan listing follows\r\n."
 CAP_START = "+OK Capability list follows:"
@@ -71,6 +73,9 @@ class POPTestServer(basic.LineReceiver):
     def sendCapabilities(self):
         if self.caps is None:
             self.caps = [CAP_START]
+
+        if UIDL_SUPPORT:
+            self.caps.append(CAPABILITIES_UIDL)
 
         if SSL_SUPPORT:
             self.caps.append(CAPABILITIES_SSL)
@@ -174,6 +179,10 @@ class POPTestServer(basic.LineReceiver):
         elif "UIDL" in line.upper():
             if TIMEOUT_DEFERRED:
                 return
+            elif not UIDL_SUPPORT:
+                self.sendLine(INVALID_RESPONSE)
+                return
+
             self.sendLine(UIDL)
 
 
@@ -182,7 +191,8 @@ class POPTestServer(basic.LineReceiver):
 
 
 usage = """popServer.py [arg] (default is Standard POP Server with no messages)
-no_ssl - Start with no SSL support
+no_ssl  - Start with no SSL support
+no_uidl - Start with no UIDL support
 bad_resp - Send a non-RFC compliant response to the Client
 bad_cap_resp - send a non-RFC compliant response when the Client sends a 'CAPABILITY' request
 bad_login_resp - send a non-RFC compliant response when the Client sends a 'LOGIN' request
@@ -198,18 +208,17 @@ slow - Wait 20 seconds after the connection is made to return a Server Greeting
 def printMessage(msg):
     print "Server Starting in %s mode" % msg
 
-def processArgs():
-
-    if len(sys.argv) < 2:
-        printMessage("POP3 with no messages")
-        return
-
-    arg = sys.argv[1]
+def processArg(arg):
 
     if arg.lower() == 'no_ssl':
         global SSL_SUPPORT
         SSL_SUPPORT = False
         printMessage("NON-SSL")
+
+    elif arg.lower() == 'no_uidl':
+        global UIDL_SUPPORT
+        UIDL_SUPPORT = False
+        printMessage("NON-UIDL")
 
     elif arg.lower() == 'bad_resp':
         global INVALID_SERVER_RESPONSE
@@ -266,7 +275,13 @@ def processArgs():
         sys.exit()
 
 def main():
-    processArgs()
+    if len(sys.argv) < 2:
+        printMessage("POP3 with no messages")
+    else:
+        args = sys.argv[1:]
+
+        for arg in args:
+            processArg(arg)
 
     f = Factory()
     f.protocol = POPTestServer

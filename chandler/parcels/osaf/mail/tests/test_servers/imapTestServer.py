@@ -191,13 +191,7 @@ slow - Wait 20 seconds after the connection is made to return a Server Greeting
 def printMessage(msg):
     print "Server Starting in %s mode" % msg
 
-def processArgs():
-
-    if len(sys.argv) < 2:
-        printMessage("Inbox with no messages")
-        return
-
-    arg = sys.argv[1]
+def processArg(arg):
 
     if arg.lower() == 'cap_greeting':
         global SEND_CAPABILITY_IN_GREETING
@@ -269,7 +263,14 @@ def processArgs():
         sys.exit()
 
 def main():
-    processArgs()
+    if len(sys.argv) < 2:
+        printMessage("Inbox with no messages")
+
+    else:
+        args = sys.argv[1:]
+
+        for arg in args:
+            processArg(arg)
 
     f = Factory()
     f.protocol = IMAPTestServer
