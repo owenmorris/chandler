@@ -635,19 +635,22 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         """
         """
 
-        # double buffered drawing
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
-        
         self.DrawCanvas(dc)
         
     def DrawCanvas(self, dc):
+
         if (True):
+            # if non-double buffered drawing is desired
+            # esp. if top window is already composited
             dc.BeginDrawing()
             self.DrawBackground(dc)
             self.DrawCells(dc)
             dc.EndDrawing()
         else:
+            # if double buffered drawing is desired
+
             # Find update rect in scrolled coordinates
             updateRect = self.GetUpdateRegion().GetBox()
             point = self.CalcUnscrolledPosition((updateRect.GetLeft(), updateRect.GetTop()))

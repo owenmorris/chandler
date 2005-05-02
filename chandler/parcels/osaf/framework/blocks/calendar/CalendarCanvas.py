@@ -1412,8 +1412,11 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.Scroll(scrollX, scaledY)
         
     def _doDrawingCalculations(self):
+
         # @@@ magic numbers
+        # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
         self.size = self.GetVirtualSize()
+
         self.xOffset = self.size.width / 8
         if self.parent.blockItem.dayMode:
             self.parent.columns = 1
@@ -1421,7 +1424,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             self.parent.columns = self.parent.blockItem.daysPerView
 
         self.dayWidth = (self.size.width - self.xOffset) / self.parent.columns
-            
         self.dayHeight = self.hourHeight * 24
 
     def DrawBackground(self, dc):

@@ -74,6 +74,10 @@ class MainThreadCallbackEvent(wx.PyEvent):
 class MainFrame(wx.Frame):
     def __init__(self, *arguments, **keywords):
         super (MainFrame, self).__init__(*arguments, **keywords)
+
+        # useful in debugging Mac background drawing problems
+        self.MacSetMetalAppearance(True)
+
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_SIZE, self.OnSize)
