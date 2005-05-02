@@ -1,0 +1,112 @@
+=========================
+Schema Definition Support
+=========================
+
+.. contents:: **Table of Contents**
+
+    >>> from application import schema
+
+
+------------
+Introduction
+------------
+
+TBD
+
+
+--------------------
+Schema API Internals
+--------------------
+
+Importing the ``application.schema`` module automatically loads the core and
+Chandler schema packs into the null repository view, if they aren't already
+loaded::
+
+    >>> from repository.persistence.RepositoryView import nullRepositoryView
+    >>> rep = nullRepositoryView
+    >>> rep.findPath('//Schema/Core/Parcel')
+    <Kind ...>
+
+
+``global_lock``
+    Many schema API operations are protected by a global lock object,
+    ``schema.global_lock``, which is a ``threading.RLock``.  ``RLock`` objects
+    support re-entrant locking for the same thread, which is important because
+    many schema API operations are recursive.  The lock's normal state is to
+    be unlocked::
+
+        >>> schema.global_lock
+        <_RLock(None, 0)>
+
+
+``importString(moduleName)``
+    Imports the named module (or named item within a module)::
+
+        >>> import sys
+        >>> schema.importString("sys") is sys
+        True
+
+        >>> schema.importString("application.tests")
+        <module 'application.tests' from '...'>
+
+        >>> import application.tests
+        >>> schema.importString("application.tests") is application.tests
+        True
+
+
+``parcel_for_module(moduleName)``
+    The ``parcel_for_module()`` API returns a parcel instance for the named
+    module.  If the module has a ``__parcel__`` attribute, this is always
+    returned::
+
+        >>> application.tests.__parcel__ = 123
+        >>> schema.parcel_for_module("application.tests")
+        123
+
+    If the module has no ``__parcel__``, but it has a ``__parcel_class__``,
+    then it is called to create a new parcel instance, passing in the name,
+    parent parcel, and parcel kind::
+
+        >>> del application.tests.__parcel__
+
+        >>> def __parcel_class__(name, parent, kind):
+        ...     print "Creating", name, parent, kind
+        ...     print "Lock state:", schema.global_lock
+        ...     return 456
+        >>> application.tests.__parcel_class__ = __parcel_class__
+
+        >>> def __parcel_class__(name, parent, kind):
+        ...     print "Creating", name, parent, kind
+        ...     print "Lock state:", schema.global_lock
+        ...     from application.Parcel import Parcel
+        ...     return Parcel(name, parent, kind)
+        >>> application.__parcel_class__ = __parcel_class__
+
+        >>> schema.parcel_for_module("application.tests")
+        Creating application <Parcel ...parcels...> <Kind ...Parcel...>
+        Lock state: <_RLock(MainThread, 2)>
+        Creating tests <Parcel ...application...> <Kind ...Parcel...>
+        Lock state: <_RLock(MainThread, 1)>
+        456
+
+        >>> schema.global_lock
+        <_RLock(None, 0)>
+
+    As you can see, the global lock is acquired during the recursive creation
+    or retrieval of the parcel object, and released afterwards.
+
+    The created parcel object is cached in the module's ``__parcel__``
+    attribute, so that subsequent invocations just return the same object,
+    without re-invoking the ``__parcel_class__``::
+
+        >>> schema.parcel_for_module("application.tests")
+        456
+
+    If the name is an empty string, the root of the ``//parcels`` namespace is
+    returned::
+
+        >>> schema.parcel_for_module("")
+        <Parcel ...: parcels ...>
+
+        >>> schema.parcel_for_module("") is rep.findPath('//parcels')
+        True
