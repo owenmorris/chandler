@@ -1108,13 +1108,23 @@
       <cardinality>dict</cardinality>
     </core:Attribute>
 
-    <!-- A dictionary mapping a name,kindpathComponent string to a new name.
-         It would be much nicer if the key could be a (name, kindItem) tuple, but
-         that's not possible with current parcel XML
+    <!--
+      A dictionary mapping a name,kindpathComponent string to a new name.
+      It would be much nicer if the key could be a (name, kindItem) tuple, but
+      that's not possible with current parcel XML
     -->
     <core:Attribute itsName="nameAlternatives">
       <type itemref="core:String"/>
       <cardinality>dict</cardinality>
+    </core:Attribute>
+
+    <!--
+      A list of the items in the sidebar that are checked
+    -->
+    <core:Attribute itsName="checkedItems">
+      <type itemref="core:Item"/>
+      <cardinality>list</cardinality>
+      <initialValue />
     </core:Attribute>
 
     <core:Cloud itsName="DefaultCloud">

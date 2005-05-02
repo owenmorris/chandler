@@ -42,23 +42,120 @@ class SidebarElementDelegate (ControlBlocks.ListDelegate):
 
 
 class wxSidebar(ControlBlocks.wxTable):
+    def __init__(self, *arguments, **keywords):
+        super (wxSidebar, self).__init__ (*arguments, **keywords)
+        gridWindow = self.GetGridWindow()
+        gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
 
-    def OnRequestDrop(self, x, y):
+    def CalculateCellRect (self, row):
+        cellRect = self.CellToRect (row, 0)
+        cellRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
+        left, top = self.CalcScrolledPosition (cellRect.GetLeft(), cellRect.GetTop())
+        cellRect.SetLeft (left)
+        cellRect.SetTop (top)
+        return cellRect
+
+    def OnMouseEvents (self, event):
+        """
+          This code is tricky, tred with care -- DJA
+        """
+        gridWindow = self.GetGridWindow()
+
+        x, y = self.CalcUnscrolledPosition (event.GetX(), event.GetY())
+        row = self.YToRow (y)
+        
+        cellRect = self.CalculateCellRect (row)
+
+        if not cellRect.InsideXY (event.GetX(), event.GetY()):
+            row = wx.NOT_FOUND
+
+        image = wx.GetApp().GetImage ("SidebarAll.png")
+        imageRect = wx.Rect (cellRect.GetLeft() + 1,
+                             cellRect.GetTop() + (cellRect.GetHeight() - image.GetHeight()) / 2,
+                             image.GetWidth(),
+                             image.GetHeight())
+
+        item, attribute = self.GetTable().GetValue (row, 0)
+
+        if event.LeftDown():
+            if (imageRect.InsideXY (event.GetX(), event.GetY())
+                and isinstance (item, ItemCollection.ItemCollection)):
+                gridWindow.SetFocus()
+                gridWindow.Update()
+
+                if not hasattr (self, "hoverRow"):
+                    assert not gridWindow.HasCapture()
+                    gridWindow.CaptureMouse()
+                    self.cellRect = cellRect
+                    self.imageRect = imageRect
+                    self.hoverRow = row
+                
+                self.screenChecked = not item in self.blockItem.checkedItems
+                self.blockChecked = self.screenChecked
+                self.RefreshRect (self.imageRect)
+                #event.Skip (False) #Let the grid get the mouse down
+
+        elif hasattr (self, "hoverRow"):
+            if event.LeftUp():
+                if self.imageRect.InsideXY (event.GetX(), event.GetY()):
+                    checkedItems = self.blockItem.checkedItems
+                    if item in checkedItems:
+                        checkedItems.remove (item)
+                    else:
+                        checkedItems.append (item)
+                    wx.GetApp().UIRepositoryView.commit()
+                else:
+                    self.RefreshRect (self.imageRect)
+                    del self.hoverRow
+                    gridWindow.ReleaseMouse()
+
+            elif not event.LeftIsDown():
+                if not self.cellRect.InsideXY (event.GetX(), event.GetY()):
+                    self.RefreshRect (self.imageRect)
+                    del self.hoverRow
+                    gridWindow.ReleaseMouse()
+
+            elif (self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
+                  (self.screenChecked == self.blockChecked)):
+                self.screenChecked = not self.screenChecked
+                self.RefreshRect (self.imageRect)
+            #event.Skip (False) #Let the grid get the mouse down
+
+        elif (row != wx.NOT_FOUND) and event.Moving():
+            assert not hasattr (self, "hoverRow")
+            assert not gridWindow.HasCapture()
+            self.screenChecked = item in self.blockItem.checkedItems
+            self.blockChecked = self.screenChecked
+            self.cellRect = cellRect
+            self.imageRect = imageRect
+            self.hoverRow = row
+            self.RefreshRect (self.imageRect)
+            """
+              Capture the mouse until we lose the hover state or mouse up
+            outside  a row
+            """
+            gridWindow.CaptureMouse()
+            event.Skip()
+
+
+
+    def OnRequestDrop (self, x, y):
+        x, y = self.CalcUnscrolledPosition(x, y)
         self.dropRow = self.YToRow(y)
         if self.dropRow == wx.NOT_FOUND:
             return False
         return True
         
-    def AddItem(self, itemUUID):
+    def AddItem (self, itemUUID):
         item = self.blockItem.findUUID(itemUUID)
         self.blockItem.contents[self.dropRow].add(item)
         self.SetRowHighlight(self.dropRow, False)
     
-    def OnItemDrag(self, event):
+    def OnItemDrag (self, event):
         # @@@ You currently can't drag out of the sidebar
         pass
 
-    def OnHover(self, x, y):
+    def OnHover (self, x, y):
         hoverRow = self.YToRow(y)
         try:
             self.hoverRow
@@ -77,14 +174,14 @@ class wxSidebar(ControlBlocks.wxTable):
             # Store current state
             self.hoverRow = hoverRow
             
-    def SetRowHighlight(self, row, highlightOn):
+    def SetRowHighlight (self, row, highlightOn):
         if highlightOn:
             self.SetCellBackgroundColour(row, 0, wx.LIGHT_GREY)
         else:
             self.SetCellBackgroundColour(row, 0, wx.WHITE)
         # Just invalidate the changed rect
-        rect = self.CellToRect(row, 0)
-        rect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
+
+        rect = self.CalculateCellRect (row)
         self.RefreshRect(rect)
         self.Update()
 
@@ -103,41 +200,62 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
 
         dc.SetBackgroundMode (wx.TRANSPARENT)
         item, attribute = grid.GetTable().GetValue (row, col)
-        name = getattr (item, attribute)
 
         if isinstance (item, ItemCollection.ItemCollection):
             if len (item) == 0:
                 dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-
+            """
+              Draw the sharing state icon
+            """
             share = Sharing.getShare(item)
             if share is not None:
                 if hasattr(share, 'sharer') and share.sharer is not None and \
                    str(share.sharer.itsPath) == "//userdata/me":
-                    imageName = "SidebarOut.png"
+                    imageName = "SidebarUpload.png"
                 else:
-                    imageName = "SidebarIn.png"
+                    imageName = "SidebarDownload.png"
                 image = wx.GetApp().GetImage (imageName)
-                x = rect.GetRight() -image.GetWidth() - 1
+                x = rect.GetRight() - image.GetWidth() - 1
                 y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
                 dc.DrawBitmap (image, x, y, True)
+            """
+              Draw the left icon simulating a button
+            """
+            name = getattr (item, attribute)
+            key = name
+            sidebar = grid.blockItem
+            if sidebar.filterKind is not None:
+                key += os.path.basename (unicode (sidebar.filterKind.itsPath))
+            try:
+                name = sidebar.nameAlternatives [key]
+            except KeyError:
+                imageName = name
+            else:
+                imageName = key
+    
+            if row == getattr (grid, "hoverRow", wx.NOT_FOUND):
+                imagePrefix = "SidebarMouseOver"
+                checked = grid.screenChecked
+            else:
+                imagePrefix = "Sidebar"
+                checked = item in grid.blockItem.checkedItems
+    
+            if checked:
+                imageSuffix = "Checked.png"
+            else:
+                imageSuffix = ".png"
+    
+            image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
+    
+            if image is None:
+                image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
 
-            if not getattr (item, "renameable", True):
-                key = name
-                sidebar = grid.blockItem
-                if sidebar.filterKind is not None:
-                    key += os.path.basename (unicode (sidebar.filterKind.itsPath))
-                try:
-                    name = sidebar.nameAlternatives [key]
-                except KeyError:
-                    imageSuffix = name
-                else:
-                    imageSuffix = key
-                image = wx.GetApp().GetImage ("Sidebar" + imageSuffix + ".png")
-        
-                if image is not None:
-                    x = rect.GetLeft() + 1
-                    y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
-                    dc.DrawBitmap (image, x, y, True)
+            if image is not None:
+                x = rect.GetLeft() + 1
+                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+                dc.DrawBitmap (image, x, y, True)
+        else:
+            name = getattr (item, attribute)
 
         textRect = GetRenderEditorTextRect (rect)
         textRect.Inflate (-1, -1)
@@ -183,7 +301,7 @@ class Sidebar (ControlBlocks.Table):
                 return
 
         self.postEventByName("SelectItemBroadcast", {'item':item})
-
+        
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _mapItemToCacheKeyItem(self, item):
