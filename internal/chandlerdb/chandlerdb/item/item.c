@@ -76,6 +76,10 @@ static PyMemberDef t_item_members[] = {
     { "_values", T_OBJECT, offsetof(t_item, values), 0, "literals" },
     { "_references", T_OBJECT, offsetof(t_item, references), 0, "references" },
     { "_kind", T_OBJECT, offsetof(t_item, kind), 0, "item kind" },
+    { "_parent", T_OBJECT, offsetof(t_item, parent), 0, "item parent" },
+    { "_children", T_OBJECT, offsetof(t_item, children), 0, "item children" },
+    { "_root", T_OBJECT, offsetof(t_item, root), 0, "item root" },
+    { "_acls", T_OBJECT, offsetof(t_item, acls), 0, "item acls" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -148,6 +152,16 @@ static PyTypeObject ItemType = {
 
 static void t_item_dealloc(t_item *self)
 {
+    Py_XDECREF(self->uuid);
+    Py_XDECREF(self->name);
+    Py_XDECREF(self->values);
+    Py_XDECREF(self->references);
+    Py_XDECREF(self->kind);
+    Py_XDECREF(self->parent);
+    Py_XDECREF(self->children);
+    Py_XDECREF(self->root);
+    Py_XDECREF(self->acls);
+
     self->ob_type->tp_free((PyObject *) self);
 }
 
@@ -165,6 +179,10 @@ static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->values = NULL;
         self->references = NULL;
         self->kind = NULL;
+        self->parent = NULL;
+        self->children = NULL;
+        self->root = NULL;
+        self->acls = NULL;
     }
 
     return (PyObject *) self;
@@ -288,6 +306,69 @@ static PyObject *t_item__isUUID(t_item *self, PyObject *args)
 }
 
 
+typedef struct {
+    PyObject_HEAD
+} t_nil;
+
+static int t_nil_length(t_nil *self)
+{
+    return 0;
+}
+
+static PySequenceMethods nil_as_sequence = {
+    (inquiry) t_nil_length,             /* sq_length */
+    0,                                  /* sq_concat */
+    0,					/* sq_repeat */
+    0,                                  /* sq_item */
+    0,                                  /* sq_slice */
+    0,                                  /* sq_ass_item */
+    0,                                  /* sq_ass_slice */
+    0,                                  /* sq_contains */
+};
+
+static PyTypeObject NilType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                         /* ob_size */
+    "chandlerdb.item.item.Nil",                /* tp_name */
+    sizeof(t_nil),                             /* tp_basicsize */
+    0,                                         /* tp_itemsize */
+    0,                                         /* tp_dealloc */
+    0,                                         /* tp_print */
+    0,                                         /* tp_getattr */
+    0,                                         /* tp_setattr */
+    0,                                         /* tp_compare */
+    0,                                         /* tp_repr */
+    0,                                         /* tp_as_number */
+    &nil_as_sequence,                          /* tp_as_sequence */
+    0,                                         /* tp_as_mapping */
+    0,                                         /* tp_hash  */
+    0,                                         /* tp_call */
+    0,                                         /* tp_str */
+    0,                                         /* tp_getattro */
+    0,                                         /* tp_setattro */
+    0,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
+    "Nil type",                                /* tp_doc */
+    0,                                         /* tp_traverse */
+    0,                                         /* tp_clear */
+    0,                                         /* tp_richcompare */
+    0,                                         /* tp_weaklistoffset */
+    0,                                         /* tp_iter */
+    0,                                         /* tp_iternext */
+    0,                                         /* tp_methods */
+    0,                                         /* tp_members */
+    0,                                         /* tp_getset */
+    0,                                         /* tp_base */
+    0,                                         /* tp_dict */
+    0,                                         /* tp_descr_get */
+    0,                                         /* tp_descr_set */
+    0,                                         /* tp_dictoffset */
+    0,                                         /* tp_init */
+    0,                                         /* tp_alloc */
+    0,                                         /* tp_new */
+};
+
+
 static void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
 {
     PyObject *pyValue = PyInt_FromLong(value);
@@ -298,18 +379,21 @@ static void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
 
 void inititem(void)
 {
-    if (PyType_Ready(&ItemType) >= 0)
+    if (PyType_Ready(&ItemType) >= 0 && PyType_Ready(&NilType) >= 0)
     {
         PyObject *m = Py_InitModule3("item", item_funcs, "Item C type module");
 
         if (m)
         {
-            PyObject *dict;
+            PyObject *dict = ItemType.tp_dict;
 
             Py_INCREF(&ItemType);
             PyModule_AddObject(m, "CItem", (PyObject *) &ItemType);
 
-            dict = ItemType.tp_dict;
+            PyModule_AddObject(m, "Nil",
+                               (PyObject *) PyObject_New(t_nil, &NilType));
+            PyModule_AddObject(m, "Default",
+                               (PyObject *) PyObject_New(t_nil, &NilType));
 
             PyDict_SetItemString_Int(dict, "DELETED", DELETED);
             PyDict_SetItemString_Int(dict, "VDIRTY", VDIRTY);

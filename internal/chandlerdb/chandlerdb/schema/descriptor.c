@@ -8,13 +8,20 @@
 #include "../item/item.h"
 
 enum {
-    VALUE    = 0x0001,
-    REF      = 0x0002,
-    REDIRECT = 0x0004,
-    DICTMASK = 0x0007,
-    REQUIRED = 0x0008,
-    SIMPLE   = 0x0010,
-    SINGLE   = 0x0020
+    VALUE        = 0x0001,
+    REF          = 0x0002,
+    REDIRECT     = 0x0004,
+    REQUIRED     = 0x0008,
+    PROCESS      = 0x0010,
+    SINGLE       = 0x0020,
+    LIST         = 0x0040,
+    DICT         = 0x0080,
+    SET          = 0x0100,
+    ALIAS        = 0x0200,
+    KIND         = 0x0400,
+    ATTRDICT     = VALUE | REF | REDIRECT,
+    CARDINALITY  = SINGLE | LIST | DICT | SET,
+    COLLECTION   = LIST | DICT | SET,
 };
 
 typedef struct {
@@ -50,14 +57,16 @@ static PyObject *_getRef_NAME;
 static PyObject *getAttributeValue_NAME;
 static PyObject *setAttributeValue_NAME;
 static PyObject *removeAttributeValue_NAME;
-static PyObject *isSimple_NAME;
+static PyObject *getFlags_NAME;
 static PyObject *otherName_NAME;
 static PyObject *cardinality_NAME;
 static PyObject *redirectTo_NAME;
 static PyObject *type_NAME;
 static PyObject *required_NAME;
+static PyObject *single_NAME;
 static PyObject *list_NAME;
 static PyObject *dict_NAME;
+static PyObject *set_NAME;
 
 
 static PyMemberDef t_descriptor_members[] = {
@@ -166,7 +175,7 @@ static int t_descriptor_init(t_descriptor *self,
 
 static PyObject *get_attrdict(PyObject *obj, int flags)
 {
-    switch (flags & DICTMASK) {
+    switch (flags & ATTRDICT) {
       case VALUE:
         return ((t_item *) obj)->values;
       case REF:
@@ -210,7 +219,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
 
                 if (attrDict != Py_None)
                 {
-                    if (flags & SIMPLE)
+                    if (!(flags & PROCESS))
                     {
                         value = PyDict_GetItem(attrDict, self->name);
                         if (value != NULL)
@@ -282,7 +291,8 @@ static int t_descriptor___set__(t_descriptor *self,
                 int flags = PyInt_AS_LONG(PyTuple_GET_ITEM(tuple, 1));
                 PyObject *attrDict = get_attrdict(obj, flags);
 
-                if (attrDict != Py_None && flags & SIMPLE)
+                if (attrDict != Py_None && !(flags & PROCESS) &&
+                    flags & SINGLE && !(flags & COLLECTION))
                 {
                     PyObject *oldValue = PyDict_GetItem(attrDict, self->name);
 
@@ -391,24 +401,35 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
     else
     {
         PyObject *values = ((t_item *) attribute)->values;
+        PyObject *cardinality = PyDict_GetItem(values, cardinality_NAME);
         int flags = 0;
+
+        if (!cardinality)
+            flags |= SINGLE;
+        else if (!PyObject_Compare(cardinality, single_NAME))
+            flags |= SINGLE;
+        else if (!PyObject_Compare(cardinality, list_NAME))
+            flags |= LIST;
+        else if (!PyObject_Compare(cardinality, dict_NAME))
+            flags |= DICT;
+        else if (!PyObject_Compare(cardinality, set_NAME))
+            flags |= SET;
 
         if (PyDict_GetItem(values, required_NAME) == Py_True)
             flags |= REQUIRED;
 
         if (PyDict_Contains(values, otherName_NAME))
         {
-            PyObject *cardinality = PyDict_GetItem(values, cardinality_NAME);
-
-            if (cardinality != NULL &&
-                (PyObject_Compare(cardinality, list_NAME) == 0 ||
-                 PyObject_Compare(cardinality, dict_NAME) == 0))
-                flags |= SIMPLE;
+            if (flags & SINGLE)
+                flags |= PROCESS;
 
             flags |= REF;
         }            
         else if (PyDict_Contains(values, redirectTo_NAME))
-            flags |= REDIRECT;
+        {
+            flags |= REDIRECT | PROCESS;
+            flags &= ~CARDINALITY;
+        }
         else
         {
             PyObject *references = ((t_item *) attribute)->references;
@@ -422,19 +443,30 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
 
                 if (type != Py_None)
                 {
-                    PyObject *isSimple = PyObject_CallMethodObjArgs(type, isSimple_NAME, NULL);
+                    PyObject *typeFlags =
+                        PyObject_CallMethodObjArgs(type, getFlags_NAME, NULL);
 
                     Py_DECREF(type);
-                    if (isSimple == NULL)
-                        return NULL;
-                    if (isSimple == Py_True)
-                        flags |= SIMPLE;
 
-                    Py_DECREF(isSimple);
+                    if (typeFlags == NULL)
+                        return NULL;
+
+                    if (!PyInt_Check(typeFlags))
+                    {
+                        PyErr_SetObject(PyExc_TypeError, typeFlags);
+                        Py_DECREF(typeFlags);
+
+                        return NULL;
+                    }
+
+                    flags |= PyInt_AsLong(typeFlags);
+                    Py_DECREF(typeFlags);
                 }
                 else
                     Py_DECREF(type);
             }
+            else
+                flags |= PROCESS;
 
             flags |= VALUE;
         }
@@ -516,8 +548,13 @@ void initdescriptor(void)
             PyDict_SetItemString_Int(dict, "REF", REF);
             PyDict_SetItemString_Int(dict, "REDIRECT", REDIRECT);
             PyDict_SetItemString_Int(dict, "REQUIRED", REQUIRED);
-            PyDict_SetItemString_Int(dict, "SIMPLE", SIMPLE);
+            PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
             PyDict_SetItemString_Int(dict, "SINGLE", SINGLE);
+            PyDict_SetItemString_Int(dict, "LIST", LIST);
+            PyDict_SetItemString_Int(dict, "DICT", DICT);
+            PyDict_SetItemString_Int(dict, "SET", SET);
+            PyDict_SetItemString_Int(dict, "ALIAS", ALIAS);
+            PyDict_SetItemString_Int(dict, "KIND", KIND);
 
             m = PyImport_ImportModule("chandlerdb.item.ItemError");
             PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");
@@ -527,14 +564,16 @@ void initdescriptor(void)
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
             setAttributeValue_NAME = PyString_FromString("setAttributeValue");
             removeAttributeValue_NAME = PyString_FromString("removeAttributeValue");
-            isSimple_NAME = PyString_FromString("isSimple");
+            getFlags_NAME = PyString_FromString("getFlags");
             otherName_NAME = PyString_FromString("otherName");
             cardinality_NAME = PyString_FromString("cardinality");
             redirectTo_NAME = PyString_FromString("redirectTo");
             type_NAME = PyString_FromString("type");
             required_NAME = PyString_FromString("required");
+            single_NAME = PyString_FromString("single");
             list_NAME = PyString_FromString("list");
             dict_NAME = PyString_FromString("dict");
+            set_NAME = PyString_FromString("set");
         }
     }
 }

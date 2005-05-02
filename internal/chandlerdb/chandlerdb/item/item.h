@@ -13,6 +13,10 @@ typedef struct {
     PyObject *values;
     PyObject *references;
     PyObject *kind;
+    PyObject *parent;
+    PyObject *children;
+    PyObject *root;
+    PyObject *acls;
 } t_item;
 
 enum {
