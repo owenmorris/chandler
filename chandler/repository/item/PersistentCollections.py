@@ -467,8 +467,10 @@ class PersistentTuple(tuple, PersistentCollection):
         if values is not None:
             values = [cls.prepareValue(owner, value, setDirty)
                       for value in values]
-            
-        return super(PersistentTuple, cls).__new__(cls, values)
+
+            return super(PersistentTuple, cls).__new__(cls, values)
+
+        return super(PersistentTuple, cls).__new__(cls)
 
     def __init__(self, owner, values=None, setDirty=True):
 

@@ -423,7 +423,7 @@ class Item(CItem):
                                                     False, _attrID, None)
                 attrValue = PersistentTuple((self, name, companion), value)
                 _values[name] = attrValue
-                setDirty = False
+                dirty = Item.VDIRTY
             
         elif isinstance(value, set):
             if _attrDict is _references:
