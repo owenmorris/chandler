@@ -6,14 +6,15 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import _countAccess
-from chandlerdb.item.item import CItem
+from chandlerdb.item.item import CItem, Nil, Default
 from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList
 from repository.item.Values import Values, References, ItemValue
 from repository.item.Access import ACL
-from repository.item.PersistentCollections \
-     import PersistentCollection, PersistentList, PersistentDict
+from repository.item.PersistentCollections import \
+     PersistentCollection, PersistentList, PersistentDict, \
+     PersistentTuple, PersistentSet
 
 from repository.persistence.RepositoryView import nullRepositoryView
 
@@ -24,7 +25,7 @@ from repository.util.LinkedMap import LinkedMap
 
 class Item(CItem):
     'The root class for all items.'
-    
+
     def __init__(self, name=None, parent=None, kind=None, _uuid=None, **values):
         """
         Construct an Item.
@@ -170,8 +171,8 @@ class Item(CItem):
 
         return False
 
-    def getAttributeAspect(self, name, aspect, noError=False, _attrID=None,
-                           **kwds):
+    def getAttributeAspect(self, name, aspect,
+                           noError=False, _attrID=None, default=Default):
         """
         Return the value for an attribute aspect.
 
@@ -275,18 +276,21 @@ class Item(CItem):
 
             if attribute is not None:
                 if aspect != 'redirectTo':
-                    redirect = attribute.getAspect('redirectTo', default=None)
+                    redirect = attribute.getAspect('redirectTo', None)
                     if redirect is not None:
                         item = self
                         names = redirect.split('.')
                         for i in xrange(len(names) - 1):
                             item = item.getAttributeValue(names[i])
                         return item.getAttributeAspect(names[-1], aspect,
-                                                       noError, None, **kwds)
+                                                       noError, None, default)
                     
-                return attribute.getAspect(aspect, **kwds)
+                return attribute.getAspect(aspect, default)
 
-        return kwds.get('default', None)
+        if default is Default:
+            return None
+
+        return default
         
     def setAttributeValue(self, name, value=None, _attrDict=None, _attrID=None,
                           setDirty=True, setAliases=False):
@@ -314,18 +318,16 @@ class Item(CItem):
         if _attrDict is None:
             if name in _values:
                 _attrDict = _values
-                otherName = Item.Nil
+                otherName = Nil
             elif name in _references:
                 _attrDict = _references
             else:
-                otherName = self._kind.getOtherName(name, _attrID, self,
-                                                    Item.Nil)
-                if otherName is not Item.Nil:
+                otherName = self._kind.getOtherName(name, _attrID, self, Nil)
+                if otherName is not Nil:
                     _attrDict = _references
                 else:
                     redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                       False, _attrID,
-                                                       default=None)
+                                                       False, _attrID, None)
                     if redirect is not None:
                         item = self
                         names = redirect.split('.')
@@ -351,8 +353,8 @@ class Item(CItem):
                     old.clear()
 
         if isItem or value is None:
-            card = self.getAttributeAspect(name, 'cardinality', False, _attrID,
-                                           default='single')
+            card = self.getAttributeAspect(name, 'cardinality',
+                                           False, _attrID, 'single')
 
             if card != 'single':
                 raise CardinalityError, (self, name, 'single-valued')
@@ -382,11 +384,9 @@ class Item(CItem):
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID,
-                                                    default=None)
-                attrValue = PersistentList(self, name, companion)
+                                                    False, _attrID, None)
+                attrValue = PersistentList((self, name, companion), value)
                 _values[name] = attrValue
-                attrValue.extend(value)
                 setDirty = False
 
         elif isinstance(value, dict):
@@ -402,11 +402,45 @@ class Item(CItem):
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID,
-                                                    default=None)
-                attrValue = PersistentDict(self, name, companion)
+                                                    False, _attrID, None)
+                attrValue = PersistentDict((self, name, companion), value)
                 _values[name] = attrValue
-                attrValue.update(value)
+                setDirty = False
+            
+        elif isinstance(value, tuple):
+            if _attrDict is _references:
+                if old is None:
+                    _references[name] = refList = self._refList(name)
+                else:
+                    assert isinstance(old, RefList)
+                    refList = old
+
+                refList.update(value, setAliases)
+                value = refList
+                setDirty = False
+            else:
+                companion = self.getAttributeAspect(name, 'companion',
+                                                    False, _attrID, None)
+                attrValue = PersistentTuple((self, name, companion), value)
+                _values[name] = attrValue
+                setDirty = False
+            
+        elif isinstance(value, set):
+            if _attrDict is _references:
+                if old is None:
+                    _references[name] = refList = self._refList(name)
+                else:
+                    assert isinstance(old, RefList)
+                    refList = old
+
+                refList.update(value, setAliases)
+                value = refList
+                setDirty = False
+            else:
+                companion = self.getAttributeAspect(name, 'companion',
+                                                    False, _attrID, None)
+                attrValue = PersistentSet((self, name, companion), value)
+                _values[name] = attrValue
                 setDirty = False
             
         elif isinstance(value, ItemValue):
@@ -426,12 +460,14 @@ class Item(CItem):
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
-            refList = self.getAttributeValue(collectionName, default=None,
-                                             _attrDict=self._references)
+            refList = self.getAttributeValue(collectionName, self._references,
+                                             None, None)
+                                             
             if refList is not None and item._uuid in refList:
                 refList.placeItem(item, None, indexName)
 
-    def getAttributeValue(self, name, _attrDict=None, _attrID=None, **kwds):
+    def getAttributeValue(self, name, _attrDict=None, _attrID=None,
+                          default=Default):
         """
         Return a Chandler attribute value.
 
@@ -490,7 +526,7 @@ class Item(CItem):
             else:
                 attribute = self._kind.getAttribute(name, False, self)
 
-            inherit = attribute.getAspect('inheritFrom', default=None)
+            inherit = attribute.getAspect('inheritFrom', None)
             if inherit is not None:
                 value = self
                 for attr in inherit.split('.'):
@@ -499,18 +535,18 @@ class Item(CItem):
                     value.setReadOnly(True)
                 return value
 
-            redirect = attribute.getAspect('redirectTo', default=None)
+            redirect = attribute.getAspect('redirectTo', None)
             if redirect is not None:
                 value = self
                 for attr in redirect.split('.'):
                     value = value.getAttributeValue(attr)
                 return value
 
-            if 'default' in kwds:
-                return kwds['default']
+            if default is not Default:
+                return default
 
-            value = attribute.getAspect('defaultValue', default=Item.Nil)
-            if value is not Item.Nil:
+            value = attribute.getAspect('defaultValue', Nil)
+            if value is not Nil:
                 if isinstance(value, PersistentCollection):
                     value.setReadOnly(True)
                 return value
@@ -519,8 +555,8 @@ class Item(CItem):
 
             raise NoValueForAttributeError, (self, name)
 
-        elif 'default' in kwds:
-            return kwds['default']
+        elif default is not Default:
+            return default
 
         raise NoValueForAttributeError, (self, name)
 
@@ -544,8 +580,7 @@ class Item(CItem):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   False, _attrID,
-                                                   default=None)
+                                                   False, _attrID, None)
                 if redirect is not None:
                     item = self
                     names = redirect.split('.')
@@ -787,10 +822,8 @@ class Item(CItem):
         @return: a value
         """
 
-        value = self.getAttributeValue(attribute, default=Item.Nil,
-                                       _attrDict=_attrDict)
-            
-        if value is Item.Nil:
+        value = self.getAttributeValue(attribute, _attrDict, None, Nil)
+        if value is Nil:
             return default
 
         if alias is not None:
@@ -846,7 +879,7 @@ class Item(CItem):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   default=None)
+                                                   False, None, None)
                 if redirect is not None:
                     item = self
                     attributes = redirect.split('.')
@@ -859,11 +892,11 @@ class Item(CItem):
                     _attrDict = self._values
 
         isItem = isinstance(value, Item)
-        attrValue = _attrDict.get(attribute, Item.Nil)
+        attrValue = _attrDict.get(attribute, Nil)
             
-        if attrValue is Item.Nil:
+        if attrValue is Nil:
             card = self.getAttributeAspect(attribute, 'cardinality',
-                                           default='single')
+                                           False, None, 'single')
 
             if card == 'dict':
                 if _attrDict is self._references:
@@ -873,8 +906,8 @@ class Item(CItem):
                         raise TypeError, type(value)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
-                                                        default=None)
-                    attrValue = PersistentDict(self, attribute, companion)
+                                                        False, None, None)
+                    attrValue = PersistentDict((self, attribute, companion))
                     _attrDict[attribute] = attrValue
                     attrValue[key] = value
                     
@@ -888,8 +921,23 @@ class Item(CItem):
                         raise TypeError, type(value)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
-                                                        default=None)
-                    attrValue = PersistentList(self, attribute, companion)
+                                                        False, None, None)
+                    attrValue = PersistentList((self, attribute, companion))
+                    _attrDict[attribute] = attrValue
+                    attrValue.append(value)
+
+                    return attrValue
+
+            elif card == 'set':
+                if _attrDict is self._references:
+                    if isItem:
+                        attrValue = self._refList(attribute)
+                    else:
+                        raise TypeError, type(value)
+                else:
+                    companion = self.getAttributeAspect(attribute, 'companion',
+                                                        False, None, None)
+                    attrValue = PersistentSet((self, attribute, companion))
                     _attrDict[attribute] = attrValue
                     attrValue.append(value)
 
@@ -945,7 +993,7 @@ class Item(CItem):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   default=None)
+                                                   False, None, None)
                 if redirect is not None:
                     item = self
                     attributes = redirect.split('.')
@@ -957,8 +1005,8 @@ class Item(CItem):
                 else:
                     _attrDict = self._values
 
-        attrValue = _attrDict.get(attribute, Item.Nil)
-        if attrValue is Item.Nil:
+        attrValue = _attrDict.get(attribute, Nil)
+        if attrValue is Nil:
             return self.setValue(attribute, value, key, alias, _attrDict)
 
         elif isinstance(attrValue, RefList):
@@ -995,10 +1043,9 @@ class Item(CItem):
         @return: C{True} or C{False}
         """
 
-        value = self.getAttributeValue(attribute, default=Item.Nil,
-                                       _attrDict=_attrDict)
+        value = self.getAttributeValue(attribute, _attrDict, None, Nil)
 
-        if value is not Item.Nil:
+        if value is not Nil:
             if isinstance(value, dict):
                 if alias is not None:
                     return value.resolveAlias(alias) is not None
@@ -1025,9 +1072,8 @@ class Item(CItem):
         @return: C{True} or C{False}
         """
 
-        attrValue = self.getAttributeValue(attribute, default=Item.Nil,
-                                           _attrDict=_attrDict)
-        if attrValue is Item.Nil:
+        attrValue = self.getAttributeValue(attribute, _attrDict, None, Nil)
+        if attrValue is Nil:
             return False
 
         if isinstance(attrValue, RefList) or isinstance(attrValue, list):
@@ -1084,7 +1130,7 @@ class Item(CItem):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
-                                                   default=None)
+                                                   False, None, None)
                 if redirect is not None:
                     item = self
                     attributes = redirect.split('.')
@@ -1096,9 +1142,9 @@ class Item(CItem):
                 else:
                     _attrDict = self._values
 
-        values = _attrDict.get(attribute, Item.Nil)
+        values = _attrDict.get(attribute, Nil)
 
-        if values is not Item.Nil:
+        if values is not Nil:
             if key is not None or alias is not None:
                 if alias is not None:
                     key = value.resolveAlias(alias)
@@ -1209,8 +1255,7 @@ class Item(CItem):
                 if not view.isLoading():
                     if attribute is not None:
                         if not self.getAttributeAspect(attribute, 'persist',
-                                                       True, None,
-                                                       default=True):
+                                                       True, None, True):
                             return False
                     if view._logItem(self):
                         self._status |= dirty
@@ -1363,7 +1408,7 @@ class Item(CItem):
                                            None, copyOther)
                 return otherCopy
             else:
-                return Item.Nil
+                return Nil
 
         if copyFn is None:
             copyFn = copyOther
@@ -1446,7 +1491,7 @@ class Item(CItem):
             for name in self._references.keys():
                 policy = (deletePolicy or
                           self.getAttributeAspect(name, 'deletePolicy',
-                                                  default='remove'))
+                                                  False, None, 'remove'))
                 if policy == 'cascade':
                     value = self._references._getRef(name)
                     if value is not None:
@@ -1455,7 +1500,7 @@ class Item(CItem):
                         else:
                             others.append(value)
                     
-                self.removeAttributeValue(name, _attrDict=self._references)
+                self.removeAttributeValue(name, self._references)
 
             self.itsParent._removeItem(self)
             self._setRoot(None, view)
@@ -1547,7 +1592,7 @@ class Item(CItem):
             for name in self._references.iterkeys():
                 if counted:
                     policy = self.getAttributeAspect(name, 'countPolicy',
-                                                     default='none')
+                                                     False, None, 'none')
                     if policy == 'count':
                         count += self._references.refCount(name, loaded)
                 else:
@@ -1647,8 +1692,7 @@ class Item(CItem):
                             except AttributeError:
                                 newAttr = None
                             if curAttr is not newAttr:
-                                self.removeAttributeValue(name,
-                                                          _attrDict=attrDict)
+                                self.removeAttributeValue(name, attrDict)
 
                     removeOrphans(self._values)
                     removeOrphans(self._references)
@@ -1788,11 +1832,11 @@ class Item(CItem):
         """
 
         if self._acls is not None:
-            acl = self._acls.get(name, Item.Nil)
+            acl = self._acls.get(name, Nil)
         else:
-            acl = Item.Nil
+            acl = Nil
 
-        if acl is Item.Nil:
+        if acl is Nil:
             acl = self.getRepositoryView().getACL(self._uuid, name,
                                                   self._version)
 
@@ -2035,8 +2079,7 @@ class Item(CItem):
         if path[_index] == '..':
             if attr is not None:
                 otherName = self._kind.getOtherName(attrName, None, self)
-                parent = self.getAttributeValue(otherName,
-                                                _attrDict=self._references)
+                parent = self.getAttributeValue(otherName, self._references)
                 otherAttr = self._kind.getAttribute(otherName, False, self)
                 if otherAttr.cardinality == 'list':
                     parent = parent.first()
@@ -2049,12 +2092,11 @@ class Item(CItem):
             return parent.walk(path, callable, _index + 1, **kwds)
 
         if attr is not None:
-            children = self.getAttributeValue(attrName,
-                                              _attrDict=self._references,
-                                              default=None)
+            children = self.getAttributeValue(attrName, self._references,
+                                              None, None)
             if children is not None:
-                child = children.getByAlias(path[_index], default=None,
-                                            load=kwds.get('load', True))
+                child = children.getByAlias(path[_index], None,
+                                            kwds.get('load', True))
         else:
             name = path[_index]
             if isinstance(name, UUID):
@@ -2206,7 +2248,8 @@ class Item(CItem):
         if otherName is None:
             otherName = self._kind.getOtherName(name, None, self)
         if persist is None:
-            persist = self.getAttributeAspect(name, 'persist', default=True)
+            persist = self.getAttributeAspect(name, 'persist',
+                                              False, None, True)
 
         return self.getRepositoryView()._createRefList(self, name, otherName,
                                                        persist, False, True,
@@ -2260,23 +2303,6 @@ class Item(CItem):
 
         return hash
 
-    def __new__(cls, *args, **kwds):
-
-        item = CItem.__new__(cls, *args, **kwds)
-        item.__dict__.update({ '_parent': None,
-                               '_children': None,
-                               '_root': None,
-                               '_acls': None })
-
-        return item
-
-    __new__   = classmethod(__new__)
-
-    class nil(object):
-        def __nonzero__(self):
-            return False
-    Nil        = nil()
-    
     itsName = property(fget = __getName,
                        fset = rename,
                        doc =

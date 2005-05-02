@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
+from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
 from repository.util.Lob import Lob
@@ -55,7 +56,7 @@ class Values(dict):
         item = self._item
         for name, value in orig.iteritems():
             if isinstance(value, PersistentCollection):
-                self[name] = value._copy(item, name, value._companion,
+                self[name] = value._copy((item, name, value._owner[2]),
                                          copyPolicy, copyFn)
 
             elif isinstance(value, ItemValue):
@@ -66,13 +67,13 @@ class Values(dict):
             elif isinstance(value, SingleRef):
                 policy = (copyPolicy or
                           item.getAttributeAspect(name, 'copyPolicy',
-                                                  default='copy'))
+                                                  False, None, 'copy'))
                 other = item.find(value.itsUUID)
                 if other is None:
                     self[name] = value
                 else:
                     copyOther = copyFn(item, other, policy)
-                    if copyOther is not item.Nil:
+                    if copyOther is not Nil:
                         self[name] = SingleRef(copyOther.itsUUID)
 
             else:
@@ -211,7 +212,7 @@ class Values(dict):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persist = attribute.getAspect('persist', default=True)
+                persist = attribute.getAspect('persist', True)
             else:
                 attribute = None
                 persist = True
@@ -223,8 +224,8 @@ class Values(dict):
                 itemWriter._unchangedValue(item, name)
                 continue
             
-            if value is item.Nil:
-                raise ValueError, 'Cannot persist Item.Nil'
+            if value is Nil:
+                raise ValueError, 'Cannot persist Nil'
 
             itemWriter._value(item, name, value,
                               version, flags & Values.SAVEMASK, 
@@ -245,7 +246,7 @@ class Values(dict):
                 attribute = None
 
             if attribute is not None:
-                persist = attribute.getAspect('persist', default=True)
+                persist = attribute.getAspect('persist', True)
             else:
                 persist = True
 
@@ -257,8 +258,7 @@ class Values(dict):
             if persist:
                 if attribute is not None:
                     attrType = attribute.getAspect('type')
-                    attrCard = attribute.getAspect('cardinality',
-                                                   default='single')
+                    attrCard = attribute.getAspect('cardinality', 'single')
                     attrId = attribute.itsUUID
                 else:
                     attrType = None
@@ -294,7 +294,7 @@ class Values(dict):
                 attribute = None
 
             if attribute is not None:
-                persist = attribute.getAspect('persist', default=True)
+                persist = attribute.getAspect('persist', True)
             else:
                 persist = True
 
@@ -369,9 +369,9 @@ class Values(dict):
                 result = False
                 continue
 
-            attrType = attribute.getAspect('type', default=None)
+            attrType = attribute.getAspect('type', None)
             if attrType is not None:
-                attrCard = attribute.getAspect('cardinality', default='single')
+                attrCard = attribute.getAspect('cardinality', 'single')
                 if attrCard == 'single':
                     check = self._checkValue(logger, key, value, attrType)
                     result = result and check
@@ -456,7 +456,7 @@ class References(Values):
         if value is None:
             cardinality = (kwds.get('cardinality') or
                            item.getAttributeAspect(name, 'cardinality',
-                                                   True, default='single'))
+                                                   True, None, 'single'))
             if cardinality == 'list':
                 self[name] = value = item._refList(name, otherName)
             elif cardinality != 'single':
@@ -608,7 +608,7 @@ class References(Values):
         value = self._getRef(name, other)
         copyOther = copyFn(copyItem, value, policy)
 
-        if copyOther is not copyItem.Nil and name not in copyItem._references:
+        if copyOther is not Nil and name not in copyItem._references:
             copyItem._references._setValue(name, copyOther,
                                            copyItem._kind.getOtherName(name))
 
@@ -671,7 +671,7 @@ class References(Values):
         if withSchema:
             otherName = self._item._kind.getOtherName(name)
             otherCard = other.getAttributeAspect(otherName, 'cardinality',
-                                                 default='single')
+                                                 False, None, 'single')
             attrs['otherName'] = otherName
             if otherCard != 'single':
                 attrs['otherCard'] = otherCard
@@ -698,7 +698,7 @@ class References(Values):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persist = attribute.getAspect('persist', default=True)
+                persist = attribute.getAspect('persist', True)
             else:
                 attribute = None
                 persist = True
@@ -710,8 +710,8 @@ class References(Values):
                 itemWriter._unchangedValue(item, name)
                 continue
             
-            if value is item.Nil:
-                raise ValueError, 'Cannot persist Item.Nil'
+            if value is Nil:
+                raise ValueError, 'Cannot persist Nil'
 
             if withSchema and value is not None and value._isUUID():
                 value = self._getRef(name, value)
@@ -727,7 +727,7 @@ class References(Values):
 
         for name, value in self.iteritems():
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persist', default=True):
+            if attribute.getAspect('persist', True):
                 flags = self._getFlags(name) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
@@ -761,7 +761,7 @@ class References(Values):
 
         for name in names:
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persist', default=True):
+            if attribute.getAspect('persist', True):
                 hash = _combine(hash, _hash(name))
                 value = self[name]
                 
@@ -849,7 +849,7 @@ class References(Values):
                              other, self._item.itsPath, name)
                 return False
 
-        otherName = self._item._kind.getOtherName(name, default=None)
+        otherName = self._item._kind.getOtherName(name, None, None, None)
         if otherName is None:
             logger.error('otherName is None for attribute %s.%s',
                          self._item._kind.itsPath, name)
@@ -858,7 +858,8 @@ class References(Values):
         if other is not None:
             if other._kind is None:
                 raise AssertionError, 'no kind for %s' %(other.itsPath)
-            otherOtherName = other._kind.getOtherName(otherName, default=None)
+            otherOtherName = other._kind.getOtherName(otherName,
+                                                      None, None, None)
             if otherOtherName != name:
                 logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
                              self._item._kind.itsPath, name, otherName,
@@ -893,7 +894,7 @@ class References(Values):
                 value = self._getRef(key, value)
                 
             attrCard = item.getAttributeAspect(key, 'cardinality',
-                                               default='single')
+                                               False, None, 'single')
             if attrCard == 'single':
                 check = self._checkCardinality(logger, key, value,
                                                Item, 'single')

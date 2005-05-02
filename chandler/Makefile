@@ -19,7 +19,7 @@ endif
 
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
-         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-7.tar.gz \
+         $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-8.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.27-1.tar.gz \
          $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-2.tar.gz \

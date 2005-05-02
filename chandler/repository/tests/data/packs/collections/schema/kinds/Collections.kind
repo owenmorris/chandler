@@ -9,11 +9,13 @@
     <ref alias="list" type="path">/Collections/Attributes/list</ref>
     <ref alias="listItems" type="path">/Collections/Attributes/listItems</ref>
     <ref alias="inList" type="path">/Collections/Attributes/inList</ref>
-    <ref alias="lists" type="path">/Collections/Attributes/lists</ref>
-    <ref alias="dictionaries" type="path">/Collections/Attributes/dictionaries</ref>
     <ref alias="alias" type="path">/Collections/Attributes/alias</ref>
-    <ref alias="strings" type="path">/Collections/Attributes/strings</ref>
+    <ref alias="listOfStrings" type="path">/Collections/Attributes/listOfStrings</ref>
+    <ref alias="dictOfStrings" type="path">/Collections/Attributes/dictOfStrings</ref>
+    <ref alias="setOfStrings" type="path">/Collections/Attributes/setOfStrings</ref>
+    <ref alias="anything" type="path">/Collections/Attributes/anything</ref>
     <ref alias="tuple" type="path">/Collections/Attributes/tuple</ref>
+    <ref alias="set" type="path">/Collections/Attributes/set</ref>
   </ref>
 
   <ref name="superKinds">

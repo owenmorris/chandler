@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item withSchema="True">
-  <name>Tuple</name>
+  <name>Set</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="repository.schema.Types">Tuple</class>
+  <class module="repository.schema.Types">Set</class>
 
   <attribute name="implementationTypes" cardinality="dict" type="class">
-    <value name="python">repository.item.PersistentCollections.PersistentTuple</value>
+    <value name="python">repository.item.PersistentCollections.PersistentSet</value>
   </attribute>
 </item>

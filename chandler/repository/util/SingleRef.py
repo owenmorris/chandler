@@ -43,6 +43,10 @@ class SingleRef(object):
 
         return self._uuid
 
+    def __hash__(self):
+
+        return hash(self._uuid)
+
     def __eq__(self, other):
 
         return isinstance(other, SingleRef) and self._uuid.__eq__(other._uuid)

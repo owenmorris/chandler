@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Strings</name>
+  <kind type="path">//Schema/Collections/Kinds/Collections</kind>
+
+  <attribute name="listOfStrings">
+    <value>a string in a list</value>
+    <value>another string in a list</value>
+  </attribute>
+
+  <attribute name="dictOfStrings">
+    <value name="a">a string in a dict</value>
+    <value name="another">another string in a dict</value>
+  </attribute>
+
+  <attribute name="setOfStrings">
+    <value>a string in a set</value>
+    <value>another string in a set</value>
+  </attribute>
+
+  <attribute name="anything" type="list">
+    <value>
+      <value>a string</value>
+      <value type="list">
+        <value type="int">1</value>
+        <value type="float">2.5</value>
+        <value>a string in a list</value>
+      </value>
+      <value type="dict">
+        <value name="zero" type="int">1</value>
+        <value name="one" type="float">2.5</value>
+        <value name="two">a string in a dict</value>
+      </value>
+      <value type="set">
+        <value type="int">1</value>
+        <value type="float">2.5</value>
+        <value>a string in a set</value>
+      </value>
+    </value>
+  </attribute>
+</item>

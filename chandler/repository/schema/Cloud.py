@@ -6,8 +6,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
 
-from repository.item.Item import Item
+from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import RecursiveDeleteError
+from repository.item.Item import Item
 from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
@@ -154,7 +155,7 @@ class Cloud(Item):
                 return other
             if uuid in references:
                 return other
-            return Item.Nil
+            return Nil
 
         copy = item.copy(name, parent, copies, 'remove', None, copyOther)
         results.insert(0, copy)
@@ -240,7 +241,7 @@ class Cloud(Item):
                     parent = otherParent.findMatch(view, matches)
                     if parent is None:
                         parent = exportOther(None, otherParent, None)
-                        if parent is None or parent is Item.Nil:
+                        if parent is None or parent is Nil:
                             raise ValueError, 'export parent (%s) not found while exporting %s: %s' %(otherParent.itsPath, other.itsPath, parent)
                     otherKind = other.itsKind
                     kind = otherKind.findMatch(view, matches)
@@ -255,7 +256,7 @@ class Cloud(Item):
                 else:
                     return other
 
-            return Item.Nil
+            return Nil
 
         for item in exporting:
             exportOther(None, item, None)
@@ -313,7 +314,8 @@ class Cloud(Item):
         endpoints by the same alias are not inherited.
         """
 
-        endpoints = self.getAttributeValue('endpoints', default=None)
+        endpoints = self.getAttributeValue('endpoints', self._references,
+                                           None, None)
         if endpoints is not None:
             for endpoint in endpoints:
                 yield (endpoints.getAlias(endpoint), endpoint, self)
@@ -413,16 +415,16 @@ class Endpoint(Item):
                 results.extend(cloud.getItems(item, cloudAlias,
                                               items, references, trace))
 
-            cloud = self.getAttributeValue('cloud', default=None,
-                                           _attrDict=self._references)
+            cloud = self.getAttributeValue('cloud', self._references,
+                                           None, None)
             if cloud is not None:
                 getItems(cloud)
             else:
                 kind = item._kind
                 if cloudAlias is None:
                     cloudAlias = self.getAttributeValue('cloudAlias',
-                                                        default=None,
-                                                        _attrDict=self._values)
+                                                        self._values,
+                                                        None, None)
                 clouds = kind.getClouds(cloudAlias)
                 for cloud in clouds:
                     getItems(cloud)
@@ -455,8 +457,8 @@ class Endpoint(Item):
                     uuids[uuid] = uuid
 
                 elif policy == 'byCloud':
-                    cloud = self.getAttributeValue('cloud', default=None,
-                                                   _attrDict=self._references)
+                    cloud = self.getAttributeValue('cloud', self._references,
+                                                   None, None)
                     if cloud is None:
                         match = self.kindExp.match(xml, xml.index("<kind "))
                         kind = self.itsView[UUID(match.group(1))]
@@ -501,24 +503,24 @@ class Endpoint(Item):
             if isinstance(value, PersistentCollection):
                 values = []
                 for v in value._iterItems():
-                    append(values, v.getAttributeValue(name, default=None))
+                    append(values, v.getAttributeValue(name, None, None, None))
                 value = values
             elif isinstance(value, RefList):
                 values = []
                 for v in value:
-                    append(values, v.getAttributeValue(name, default=None))
+                    append(values, v.getAttributeValue(name, None, None, None))
                 value = values
             elif isinstance(value, list):
                 values = []
                 for v in value:
                     if isinstance(v, Item):
-                        append(values, v.getAttributeValue(name, default=None))
+                        append(values, v.getAttributeValue(name, None, None, None))
                     else:
                         for i in v:
-                            append(values, i.getAttributeValue(name, default=None))
+                            append(values, i.getAttributeValue(name, None, None, None))
                 value = values
             else:
-                value = value.getAttributeValue(name, default=None)
+                value = value.getAttributeValue(name, None, None, None)
                 if value is None:
                     break
                 if not (isinstance(value, Item) or

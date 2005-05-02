@@ -14,14 +14,16 @@ import repository.util.URL
 from new import classobj
 from struct import pack
 
+from chandlerdb.schema.descriptor import CDescriptor
 from chandlerdb.util.uuid import _hash, _combine
+from chandlerdb.item.item import Nil
 from repository.item.Item import Item
-from repository.schema.TypeHandler import TypeHandler
+from repository.item.PersistentCollections import \
+     PersistentList, PersistentDict, PersistentTuple, PersistentSet
 from repository.item.ItemHandler import ValueHandler
-from repository.item.PersistentCollections import PersistentList
-from repository.item.PersistentCollections import PersistentDict
 from repository.item.Query import KindQuery
 from repository.schema.Kind import Kind
+from repository.schema.TypeHandler import TypeHandler
 from repository.util.ClassLoader import ClassLoader
 
 
@@ -148,8 +150,8 @@ class Type(Item):
     def isAlias(self):
         return False
 
-    def isSimple(self):
-        return True
+    def getFlags(self):
+        return 0
 
     def typeXML(self, value, generator, withSchema):
         generator.characters(self.makeString(value))
@@ -549,9 +551,9 @@ class SingleRef(Type):
         uuid = chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
         return offset+17, repository.util.SingleRef.SingleRef(uuid)
 
-    def isSimple(self):
+    def getFlags(self):
 
-        return False
+        return CDescriptor.PROCESS
 
     def hashValue(self, value):
 
@@ -783,7 +785,7 @@ class Enumeration(Type):
 class Struct(Type):
 
     def getDefaultValue(self, fieldName):
-        return Item.Nil
+        return Nil
 
     def getFieldValue(self, value, fieldName, default):
         return getattr(value, fieldName, default)
@@ -796,9 +798,7 @@ class Struct(Type):
 
     def typeXML(self, value, generator, withSchema):
 
-        fields = self.getAttributeValue('fields', _attrDict=self._values,
-                                        default={})
-
+        fields = self.getAttributeValue('fields', self._values, None, None)
         if fields:
             repository = self.itsView
             generator.startElement('fields', {})
@@ -810,9 +810,9 @@ class Struct(Type):
     
     def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        fieldValue = getattr(value, fieldName, Item.Nil)
+        fieldValue = getattr(value, fieldName, Nil)
 
-        if fieldValue is not Item.Nil:
+        if fieldValue is not Nil:
             typeHandler = field.get('type', None)
 
             if typeHandler is None:
@@ -862,8 +862,8 @@ class Struct(Type):
             for fieldName, field in self.fields.iteritems():
                 typeHandler = field.get('type', None)
                 if typeHandler is not None:
-                    fieldValue = getattr(value, fieldName, Item.Nil)
-                    if not (fieldValue is Item.Nil or
+                    fieldValue = getattr(value, fieldName, Nil)
+                    if not (fieldValue is Nil or
                             typeHandler.recognizes(fieldValue)):
                         return False
             return True
@@ -901,32 +901,32 @@ class Struct(Type):
 
         strings = []
         for fieldName, field in self.fields.iteritems():
-            fieldValue = getattr(value, fieldName, Item.Nil)
-            if fieldValue is not Item.Nil:
+            fieldValue = getattr(value, fieldName, Nil)
+            if fieldValue is not Nil:
                 strings.append("%s:%s" %(fieldName, fieldValue))
 
         return ",".join(strings)
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        fields = self.getAttributeValue('fields', self._values, default={})
-
-        for fieldName, field in fields.iteritems():
-            default = self.getDefaultValue(fieldName) 
-            fieldValue = self.getFieldValue(value, fieldName, default)
-            if fieldValue == default:
-                continue
+        fields = self.getAttributeValue('fields', self._values, None, None)
+        if fields:
+            for fieldName, field in fields.iteritems():
+                default = self.getDefaultValue(fieldName) 
+                fieldValue = self.getFieldValue(value, fieldName, default)
+                if fieldValue == default:
+                    continue
             
-            fieldType = field.get('type', None)
-            itemWriter.writeSymbol(buffer, fieldName)
-            itemWriter.writeValue(buffer, item, fieldValue,
-                                  withSchema, fieldType)
+                fieldType = field.get('type', None)
+                itemWriter.writeSymbol(buffer, fieldName)
+                itemWriter.writeValue(buffer, item, fieldValue,
+                                      withSchema, fieldType)
 
         itemWriter.writeSymbol(buffer, '')
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
-        fields = self.getAttributeValue('fields', self._values, default=None)
+        fields = self.getAttributeValue('fields', self._values, None, None)
         value = self.getImplementationType()()
 
         while True:
@@ -944,20 +944,22 @@ class Struct(Type):
 
         view = self.itsView
         hash = _hash(str(self.itsPath))
-        fields = self.getAttributeValue('fields', self._values, default={})
 
-        for fieldName, field in fields.iteritems():
-            default = self.getDefaultValue(fieldName) 
-            fieldValue = self.getFieldValue(value, fieldName, default)
-            if fieldValue == default:
-                continue
+        fields = self.getAttributeValue('fields', self._values, None, None)
+        if fields:
+            for fieldName, field in fields.iteritems():
+                default = self.getDefaultValue(fieldName) 
+                fieldValue = self.getFieldValue(value, fieldName, default)
+                if fieldValue == default:
+                    continue
             
-            fieldType = field.get('type', None)
-            hash = _combine(hash, _hash(fieldName))
-            if fieldType is not None:
-                hash = _combine(hash, fieldType.hashValue(fieldValue))
-            else:
-                hash = _combine(hash, TypeHandler.hashValue(view, fieldValue))
+                fieldType = field.get('type', None)
+                hash = _combine(hash, _hash(fieldName))
+                if fieldType is not None:
+                    hash = _combine(hash, fieldType.hashValue(fieldValue))
+                else:
+                    hash = _combine(hash, TypeHandler.hashValue(view,
+                                                                fieldValue))
 
         return hash
 
@@ -979,8 +981,7 @@ class MXType(Struct):
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
-        fields = self.getAttributeValue('fields', _attrDict=self._values,
-                                        default=None)
+        fields = self.getAttributeValue('fields', self._values, None, None)
 
         flds = {}
         while True:
@@ -1150,12 +1151,13 @@ class Collection(Type):
 
 class Dictionary(Collection):
 
-    def handlerName(self):
+    def getFlags(self):
+        return CDescriptor.DICT
 
+    def handlerName(self):
         return 'dict'
 
     def recognizes(self, value):
-
         return isinstance(value, dict)
 
     def typeXML(self, value, generator, withSchema):
@@ -1204,7 +1206,7 @@ class Dictionary(Collection):
 
     def _empty(self):
 
-        return PersistentDict(None, None, None)
+        return PersistentDict((None, None, None))
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
@@ -1227,12 +1229,13 @@ class Dictionary(Collection):
 
 class List(Collection):
 
+    def getFlags(self):
+        return CDescriptor.LIST
+    
     def handlerName(self):
-
         return 'list'
 
     def recognizes(self, value):
-
         return isinstance(value, list)
 
     def typeXML(self, value, generator, withSchema):
@@ -1269,7 +1272,7 @@ class List(Collection):
 
     def _empty(self):
 
-        return PersistentList(None, None, None)
+        return PersistentList((None, None, None))
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
@@ -1282,16 +1285,13 @@ class List(Collection):
 
 class Tuple(Collection):
 
-    def getImplementationType(self):
-
-        return tuple
+    def getFlags(self):
+        return CDescriptor.LIST
 
     def handlerName(self):
-
         return 'tuple'
 
     def recognizes(self, value):
-
         return isinstance(value, tuple)
 
     def typeXML(self, value, generator, withSchema):
@@ -1336,7 +1336,8 @@ class Tuple(Collection):
 
     def getParsedValue(self, itemHandler, data):
 
-        return tuple(super(Tuple, self).getParsedValue(itemHandler, data))
+        values = super(Tuple, self).getParsedValue(itemHandler, data)
+        return PersistentTuple((None, None, None), values, False)
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
@@ -1346,7 +1347,63 @@ class Tuple(Collection):
 
         offset, value = itemReader.readList(offset, data, withSchema,
                                             None, view, name)
-        return offset, tuple(value)
+        return offset, PersistentTuple((None, None, None), value, False)
+
+
+class Set(Collection):
+
+    def getFlags(self):
+        return CDescriptor.SET
+
+    def handlerName(self):
+        return 'set'
+
+    def recognizes(self, value):
+        return isinstance(value, set)
+
+    def typeXML(self, value, generator, withSchema):
+
+        repository = self.itsView
+
+        generator.startElement('values', {})
+        for val in value._itervalues():
+            ValueHandler.xmlValue(repository,
+                                  None, val, 'value', None, 'single', None, {},
+                                  generator, withSchema)
+        generator.endElement('values')
+
+    def makeString(self, value):
+
+        return ",".join([str(v) for v in value])
+
+    def makeValue(self, data):
+        """
+        Make a set of strings from comma separated strings.
+
+        The implementation is very cheap, using split, so spaces are part of
+        the list's elements and the strings cannot contain spaces.
+        """
+
+        if data:
+            return data.split(',')
+        else:
+            return []
+
+    def makeCollection(self, values):
+
+        return set(values)
+
+    def _empty(self):
+
+        return PersistentSet((None, None, None))
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeSet(buffer, item, value, withSchema, None)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        return itemReader.readSet(offset, data, withSchema, None, view, name)
 
 
 class Lob(Type):

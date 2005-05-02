@@ -8,5 +8,6 @@
     <value>single</value>
     <value>list</value>
     <value>dict</value>
+    <value>set</value>
   </attribute>
 </item>

@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID
 from repository.util.SingleRef import SingleRef
+from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
 
 
@@ -18,12 +19,12 @@ class PersistentCollection(object):
     collection class such as list or dict.
     """
 
-    def __init__(self, item, attribute, companion):
+    def __init__(self, owner):
 
         super(PersistentCollection, self).__init__()
 
         self._readOnly = False
-        self.__setItem(item, attribute, companion)
+        self._owner = owner
 
     def _refCount(self):
 
@@ -46,88 +47,91 @@ class PersistentCollection(object):
 
         return self._readOnly
 
-    def _setItem(self, item, attribute, companion):
+    def _setOwner(self, owner):
 
+        # owner tuple is (item, attribute, companion)
+        
         from repository.item.Values import ItemValue
 
-        if self._item is not None and self._item is not item:
-            raise OwnedValueError, (self._item, self._attribute, self)
+        item = self._owner[0]
+        if item is not None and item is not owner[0]:
+            raise OwnedValueError, (item, self._owner[1], self)
 
-        self.__setItem(item, attribute, companion)
+        self._owner = owner
         for value in self.itervalues():
             if isinstance(value, PersistentCollection):
-                value._setItem(item, attribute, companion)
+                value._setOwner(owner)
             elif isinstance(value, ItemValue):
-                value._setItem(item, attribute)
-
-    def __setItem(self, item, attribute, companion):
-        
-        self._item = item
-        self._attribute = attribute
-        self._companion = companion
+                value._setItem(owner[0], owner[1])
 
     def _setDirty(self):
 
         if self._readOnly:
-            raise ReadOnlyAttributeError, (self._item, self._attribute)
+            raise ReadOnlyAttributeError, self._owner[0:2]
 
-        item = self._item
+        item = self._owner[0]
         if item is not None:
-            item.setDirty(item.VDIRTY, self._attribute, item._values)
+            item.setDirty(item.VDIRTY, self._owner[1], item._values)
 
-    def _prepareValue(self, value, setDirty=True):
-
+    @classmethod
+    def prepareValue(cls, owner, value, setDirty=True):
+        
         from repository.item.Item import Item
         from repository.item.Values import ItemValue
         
         if isinstance(value, PersistentCollection):
             def copyValue(x, other, z):
                 if other is None:
-                    return Item.Nil
+                    return Nil
                 return other
-            value = value._copy(self._item, self._attribute, self._companion,
-                                'copy', copyValue)
+            value = value._copy(owner, 'copy', copyValue)
         elif isinstance(value, list):
-            persistentValue = PersistentList(self._item, self._attribute,
-                                             self._companion)
-            persistentValue.extend(value, setDirty)
-            value = persistentValue
+            value = PersistentList(owner, value, setDirty)
         elif isinstance(value, dict):
-            persistentValue = PersistentDict(self._item, self._attribute,
-                                             self._companion)
-            persistentValue.update(value, setDirty)
-            value = persistentValue
+            value = PersistentDict(owner, value, setDirty)
+        elif isinstance(value, tuple):
+            value = PersistentTuple(owner, value, setDirty)
+        elif isinstance(value, set):
+            value = PersistentSet(owner, value, setDirty)
         elif isinstance(value, Item):
             value = SingleRef(value._uuid)
         elif isinstance(value, ItemValue):
-            value._setItem(self._item, self._attribute)
+            value._setItem(owner[0], owner[1])
 
         return value
 
     def _restoreValue(self, value):
 
-        if self._item is not None and isinstance(value, SingleRef):
+        owner = self._owner
+        item = owner[0]
+        if item is not None and isinstance(value, SingleRef):
             uuid = value.itsUUID
-            if self._companion is None:
-                return self._item.find(uuid)
+            companion = owner[2]
+            if companion is None:
+                return item.find(uuid)
             else:
-                return self._item.getAttributeValue(self._companion).get(uuid)
+                return item.getAttributeValue(companion).get(uuid)
 
         return value
 
     def _storeValue(self, value):
 
-        from repository.item.Item import Item
+        owner = self._owner
+        companion = owner[2]
+        if companion is not None:
+            from repository.item.Item import Item
 
-        if self._companion is not None:
             if isinstance(value, Item):
-                if not self._item.hasValue(self._companion, value):
-                    self._item.addValue(self._companion, value)
+                item = owner[0]
+                if not item.hasValue(companion, value):
+                    item.addValue(companion, value)
 
     def _iterItems(self, items=None):
 
-        if self._companion is not None:
-            for item in self._item.getAttributeValue(self._companion):
+        owner = self._owner
+        companion = owner[2]
+        if companion is not None:
+            for item in owner[0].getAttributeValue(companion):
                 yield item
         else:
             if items is None:
@@ -148,27 +152,30 @@ class PersistentCollection(object):
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion):
+    def __init__(self, owner, values=None, setDirty=True):
 
         list.__init__(self)
-        PersistentCollection.__init__(self, item, attribute, companion)
+        PersistentCollection.__init__(self, owner)
 
-    def _copy(self, item, attribute, companion, copyPolicy, copyFn):
+        if values is not None:
+            self.extend(values, setDirty)
+
+    def _copy(self, owner, copyPolicy, copyFn):
 
         from repository.item.Item import Item
 
-        copy = type(self)(item, attribute, companion)
+        item, attribute, companion = owner
+        copy = type(self)(owner)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
-                                                       default='copy')
+                                                       False, None, 'copy')
 
         for value in self:
             if isinstance(value, Item):
                 value = copyFn(item, value, policy)
-                if value is not Item.Nil:
+                if value is not Nil:
                     copy.append(value, False)
             elif isinstance(value, PersistentCollection):
-                copy.append(value._copy(item, attribute, companion,
-                                        copyPolicy, copyFn), False)
+                copy.append(value._copy(owner, copyPolicy, copyFn), False)
             else:
                 copy.append(value, False)
 
@@ -204,7 +211,7 @@ class PersistentList(list, PersistentCollection):
     def __setitem__(self, index, value):
 
         self._storeValue(value)
-        value = self._prepareValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
         super(PersistentList, self).__setitem__(index, value)
         self._setDirty()
 
@@ -217,7 +224,8 @@ class PersistentList(list, PersistentCollection):
 
         for v in value:
             self._storeValue(v)
-        value = [self._prepareValue(v) for v in value]
+        owner = self._owner
+        value = [PersistentCollection.prepareValue(owner, v) for v in value]
         super(PersistentList, self).__setslice__(start, end, value)
         self._setDirty()
 
@@ -230,7 +238,8 @@ class PersistentList(list, PersistentCollection):
 
         for v in value:
             self._storeValue(v)
-        value = [self._prepareValue(v) for v in value]
+        owner = self._owner
+        value = [PersistentCollection.prepareValue(owner, v) for v in value]
         super(PersistentList, self).__iadd__(value)
         self._setDirty()
 
@@ -242,7 +251,16 @@ class PersistentList(list, PersistentCollection):
     def append(self, value, setDirty=True):
 
         self._storeValue(value)
-        value = self._prepareValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
+        super(PersistentList, self).append(value)
+
+        if setDirty:
+            self._setDirty()
+
+    def add(self, value, setDirty=True):
+
+        self._storeValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
         super(PersistentList, self).append(value)
 
         if setDirty:
@@ -251,7 +269,7 @@ class PersistentList(list, PersistentCollection):
     def insert(self, index, value):
 
         self._storeValue(value)
-        value = self._prepareValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
         super(PersistentList, self).insert(index, value)
         self._setDirty()
 
@@ -285,9 +303,11 @@ class PersistentList(list, PersistentCollection):
 
     def extend(self, value, setDirty=True):
 
+        owner = self._owner
         for v in value:
             self._storeValue(v)
-            self.append(self._prepareValue(v, False), False)
+            self.append(PersistentCollection.prepareValue(owner, v, False),
+                        False)
         if setDirty:
             self._setDirty()
 
@@ -322,27 +342,31 @@ class PersistentList(list, PersistentCollection):
 class PersistentDict(dict, PersistentCollection):
     'A persistence aware dict, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion):
+    def __init__(self, owner, values=None, setDirty=True):
 
         dict.__init__(self)
-        PersistentCollection.__init__(self, item, attribute, companion)
+        PersistentCollection.__init__(self, owner)
 
-    def _copy(self, item, attribute, companion, copyPolicy, copyFn):
+        if values is not None:
+            self.update(values, setDirty)
+
+    def _copy(self, owner, copyPolicy, copyFn):
 
         from repository.item.Item import Item
 
-        copy = type(self)(item, attribute, companion)
+        item, attribute, companion = owner
+        copy = type(self)(owner)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
-                                                       default='copy')
+                                                       False, None, 'copy')
         
         for key, value in self.iteritems():
             if isinstance(value, Item):
                 value = copyFn(item, value, policy)
-                if value is not Item.Nil:
+                if value is not Nil:
                     copy.__setitem__(key, value, False)
             elif isinstance(value, PersistentCollection):
-                copy.__setitem__(key, value._copy(item, attribute, companion,
-                                                  copyPolicy, copyFn), False)
+                copy.__setitem__(key, value._copy(owner, copyPolicy, copyFn),
+                                 False)
             else:
                 copy.__setitem__(key, value, False)
 
@@ -356,7 +380,7 @@ class PersistentDict(dict, PersistentCollection):
     def __setitem__(self, key, value, setDirty=True):
 
         self._storeValue(value)
-        value = self._prepareValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
         super(PersistentDict, self).__setitem__(key, value)
 
         if setDirty:
@@ -369,9 +393,11 @@ class PersistentDict(dict, PersistentCollection):
 
     def update(self, value, setDirty=True):
 
+        owner = self._owner
         for k, v in value.iteritems():
             self._storeValue(v)
-            self.__setitem__(k, self._prepareValue(v, False), False)
+            v = PersistentCollection.prepareValue(owner, v, False)
+            self.__setitem__(k, v, False)
         if setDirty:
             self._setDirty()
 
@@ -381,7 +407,7 @@ class PersistentDict(dict, PersistentCollection):
             self._setDirty()
 
         self._storeValue(value)
-        value = self._prepareValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
 
         return super(PersistentDict, self).setdefault(key, value)
 
@@ -424,3 +450,212 @@ class PersistentDict(dict, PersistentCollection):
     def _iteritems(self):
 
         return super(PersistentDict, self).iteritems()
+
+    def values(self):
+
+        return list(self.itervalues())
+
+    def _values(self):
+
+        return super(PersistentDict, self).values()
+
+
+class PersistentTuple(tuple, PersistentCollection):
+
+    def __new__(cls, owner, values=None, setDirty=True):
+
+        if values is not None:
+            values = [cls.prepareValue(owner, value, setDirty)
+                      for value in values]
+            
+        return super(PersistentTuple, cls).__new__(cls, values)
+
+    def __init__(self, owner, values=None, setDirty=True):
+
+        super(PersistentTuple, self).__init__(owner)
+
+    def _copy(self, owner, copyPolicy, copyFn):
+
+        from repository.item.Item import Item
+
+        item, attribute, companion = owner
+        copy = []
+        policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
+                                                       False, None, 'copy')
+
+        for value in self:
+            if isinstance(value, Item):
+                value = copyFn(item, value, policy)
+                if value is not Nil:
+                    copy.append(value)
+            elif isinstance(value, PersistentCollection):
+                copy.append(value._copy(owner, copyPolicy, copyFn))
+            else:
+                copy.append(value)
+
+        return type(self)(owner, copy, False)
+
+    def __getitem__(self, key):
+
+        value = super(PersistentTuple, self).__getitem__(key)
+        value = self._restoreValue(value)
+        
+        return value
+
+    def __contains__(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        return super(PersistentTuple, self).__contains__(value)
+
+    def __iter__(self):
+
+        for value in super(PersistentTuple, self).__iter__():
+            yield self._restoreValue(value)
+
+    def itervalues(self):
+
+        return self.__iter__()
+
+    def _itervalues(self):
+
+        return super(PersistentTuple, self).__iter__()
+
+
+class PersistentSet(set, PersistentCollection):
+    'A persistence aware set, tracking changes into a dirty bit.'
+
+    def __init__(self, owner, values=None, setDirty=True):
+
+        set.__init__(self)
+        PersistentCollection.__init__(self, owner)
+
+        if values is not None:
+            self.update(values, setDirty)
+
+    def _copy(self, owner, copyPolicy, copyFn):
+
+        from repository.item.Item import Item
+
+        item, attribute, companion = owner
+        copy = type(self)(owner)
+        policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
+                                                       False, None, 'copy')
+        
+        for value in self:
+            if isinstance(value, Item):
+                value = copyFn(item, value, policy)
+                if value is not Nil:
+                    copy.add(value, False)
+            elif isinstance(value, PersistentCollection):
+                copy.add(value._copy(owner, copyPolicy, copyFn), False)
+            else:
+                copy.add(value, False)
+
+        return copy
+
+    def __contains__(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        return super(PersistentSet, self).__contains__(value)
+
+    def __iter__(self):
+
+        for value in super(PersistentSet, self).__iter__():
+            yield self._restoreValue(value)
+
+    def itervalues(self):
+
+        return self.__iter__()
+
+    def _itervalues(self):
+
+        return super(PersistentSet, self).__iter__()
+
+    def add(self, value, setDirty=True):
+
+        self._storeValue(value)
+        value = PersistentCollection.prepareValue(self._owner, value)
+        super(PersistentSet, self).add(value)
+
+        if setDirty:
+            self._setDirty()
+
+    def pop(self):
+
+        value = super(PersistentSet, self).pop()
+        value = self._restoreValue(value)
+        self._setDirty()
+
+        return value
+
+    def remove(self, value, setDirty=True):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        super(PersistentSet, self).remove(value)
+        if setDirty:
+            self._setDirty()
+
+    def discard(self, value):
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            value = SingleRef(value._uuid)
+
+        super(PersistentSet, self).discard(value)
+        self._setDirty()
+
+    def clear(self):
+
+        super(PersistentSet, self).clear()
+        self._setDirty()
+
+    def update(self, value, setDirty=True):
+
+        owner = self._owner
+        for v in value:
+            if v not in self:
+                self._storeValue(v)
+                v = PersistentCollection.prepareValue(owner, v, False)
+                self.add(v, False)
+        if setDirty:
+            self._setDirty()
+
+    def intersection_update(self, value, setDirty=True):
+
+        for v in [v for v in self if v not in value]:
+            self.remove(v, False)
+
+        if setDirty:
+            self._setDirty()
+
+    def difference_update(self, value, setDirty=True):
+
+        for v in [v for v in self if v in value]:
+            self.remove(v, False)
+
+        if setDirty:
+            self._setDirty()
+
+    def symmetric_difference_update(self, value, setDirty=True):
+
+        for v in [v for v in self if v in value]:
+            self.remove(v, False)
+
+        for v in [v for v in value if v not in self]:
+            self.add(v, False)
+
+        if setDirty:
+            self._setDirty()

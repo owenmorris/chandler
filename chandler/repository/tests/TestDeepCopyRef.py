@@ -17,7 +17,7 @@ from repository.util.Path import Path
 # constants
 currentPolicy = 'cascade'
 
-class DeepCopyRefTest(RepositoryTestCase):
+class TestDeepCopyRef(RepositoryTestCase):
     """Test Deep Copy Reference problem"""
     
     # When I copy a set of cyclical references, one

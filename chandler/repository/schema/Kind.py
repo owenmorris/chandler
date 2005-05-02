@@ -8,6 +8,7 @@ from new import classobj
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import CDescriptor
+from chandlerdb.item.item import Nil, Default
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
@@ -97,8 +98,7 @@ class Kind(Item):
         if sync is not None:
             if sync == 'attributes':
                 attributes = self.getAttributeValue('attributes',
-                                                    self._references,
-                                                    default=[])
+                                                    self._references, None, [])
             elif sync == 'superKinds':
                 attributes = set(a._uuid for n, a, k in self.iterAttributes())
             else:
@@ -390,7 +390,7 @@ class Kind(Item):
         else:
             return self._inheritAttribute(name) is not None
 
-    def getOtherName(self, name, _attrID=None, item=None, default=0):
+    def getOtherName(self, name, _attrID=None, item=None, default=Default):
 
         if 'otherNames' in self._values:
             try:
@@ -405,7 +405,7 @@ class Kind(Item):
 
         otherName = attribute._values.get('otherName', None)
         if otherName is None:
-            if default != 0:
+            if default is not Default:
                 return default
             raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
 
@@ -437,7 +437,8 @@ class Kind(Item):
         @type globalOnly: boolean
         """
 
-        attributes = self.getAttributeValue('attributes', default=None)
+        attributes = self.getAttributeValue('attributes', self._references,
+                                            None, None)
         if attributes is not None:
 
             if not globalOnly:
@@ -571,9 +572,9 @@ class Kind(Item):
             self._initialValues = {}
             self._initialReferences = {}
             for name, attribute, k in self.iterAttributes():
-                value = attribute.getAspect('initialValue', default=Item.Nil)
-                if value is not Item.Nil:
-                    otherName = self.getOtherName(name, default=None)
+                value = attribute.getAspect('initialValue', Nil)
+                if value is not Nil:
+                    otherName = self.getOtherName(name, None, None, None)
                     if otherName is None:
                         self._initialValues[name] = value
                     else:
@@ -584,7 +585,7 @@ class Kind(Item):
         for name, value in self._initialValues.iteritems():
             if name not in values:
                 if isinstance(value, PersistentCollection):
-                    value = value._copy(item, name, value._companion,
+                    value = value._copy((item, name, value._owner[2]),
                                         'copy', lambda x, other, z: other)
                 elif isinstance(value, ItemValue):
                     value = value._copy(item, name)
@@ -635,7 +636,7 @@ class Kind(Item):
             del self._values['classes']
 
         for subKind in self.getAttributeValue('subKinds', self._references,
-                                              default=[]):
+                                              None, []):
             subKind.flushCaches(reason)
 
         if reason is not None:
@@ -723,9 +724,9 @@ class Kind(Item):
     
         return False
 
-    def isSimple(self):
+    def getFlags(self):
 
-        return False
+        return CDescriptor.KIND | CDescriptor.PROCESS
 
     # end typeness of Kind as SingleRef
 
@@ -740,8 +741,7 @@ class Kind(Item):
         """
 
         results = []
-        clouds = self.getAttributeValue('clouds', self._references,
-                                        default=None)
+        clouds = self.getAttributeValue('clouds', self._references, None, None)
 
         if clouds is None or clouds.resolveAlias(cloudAlias) is None:
             for superKind in self.getAttributeValue('superKinds',

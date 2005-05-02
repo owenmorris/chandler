@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>strings</name>
+    <name>dictOfStrings</name>
     <kind type="path">//Schema/Core/Attribute</kind>
 
-    <attribute name="cardinality">list</attribute>
+    <attribute name="cardinality">dict</attribute>
     <ref name="type" type="path">/Core/String</ref>
 </item>

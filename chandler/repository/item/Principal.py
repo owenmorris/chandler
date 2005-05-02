@@ -14,9 +14,8 @@ class Principal(Item):
         if pid == self._uuid:
             return True
 
-        principals = self.getAttributeValue('principals',
-                                            _attrDict=self._references,
-                                            default=None)
+        principals = self.getAttributeValue('principals', self._references,
+                                            None, None)
         if principals:
 
             if pid in principals:

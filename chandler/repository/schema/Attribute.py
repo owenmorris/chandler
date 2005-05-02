@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import _hash, _combine
+from chandlerdb.item.item import Nil, Default
 from chandlerdb.item.ItemError import SchemaError
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
@@ -31,7 +32,7 @@ class Attribute(Item):
 
         return self.hasLocalAttributeValue(name)
 
-    def getAspect(self, name, **kwds):
+    def getAspect(self, name, default=Default):
 
         if name in self._values:
             return self._values[name]
@@ -39,14 +40,15 @@ class Attribute(Item):
             return self._references._getRef(name)
 
         if 'superAttribute' in self._references:
-            return self.superAttribute.getAspect(name, **kwds)
+            return self.superAttribute.getAspect(name, default)
 
-        if 'default' in kwds:
-            return kwds['default']
+        if default is not Default:
+            return default
 
         if self._kind is not None:
             aspectAttr = self._kind.getAttribute(name, False, self)
-            return aspectAttr.getAttributeValue('defaultValue', default=None)
+            return aspectAttr.getAttributeValue('defaultValue',
+                                                aspectAttr._values, None, None)
         
         return None
 
@@ -57,17 +59,15 @@ class Attribute(Item):
         if path[0] == '//':
             if l == 1:
                 return self
-            roots = self.getAttributeValue('roots', default=Item.Nil,
-                                           _attrDict=self._values)
-            if roots is Item.Nil:
+            roots = self.getAttributeValue('roots', self._values, None, Nil)
+            if roots is Nil:
                 root = None
             else:
                 root = roots.get(path[1], None)
             index = 1
 
         elif path[0] == '/':
-            root = self.getAttributeValue('root', default=None,
-                                          _attrDict=self._values)
+            root = self.getAttributeValue('root', self._values, None, None)
             index = 0
 
         root = callable(self, path[index], root, **kwds)
@@ -86,24 +86,23 @@ class Attribute(Item):
         view = self.itsView
 
         item = self.getAttributeValue('superAttribute', self._references,
-                                      default=None)
+                                      None, None)
         if item is not None:
             hash = _combine(hash, item.hashItem())
 
         for aspect in Attribute.valueAspects:
-            value = self.getAttributeValue(aspect, self._values, 
-                                           default=Item.Nil)
+            value = self.getAttributeValue(aspect, self._values, None, Nil)
                                            
-            if value is not Item.Nil:
+            if value is not Nil:
                 hash = _combine(hash, _hash(aspect))
-                type = self.getAttributeAspect(aspect, 'type', default=None)
+                type = self.getAttributeAspect(aspect, 'type',
+                                               False, None, None)
                 if type is not None:
                     hash = _combine(hash, type.hashValue(value))
                 else:
                     hash = _combine(hash, TypeHandler.hashValue(view, value))
 
-        item = self.getAttributeValue('type', self._references,
-                                      default=None)
+        item = self.getAttributeValue('type', self._references, None, None)
         if item is not None:
             if isinstance(item, Kind):
                 hash = _combine(hash, _hash(str(item.itsPath)))

@@ -5,11 +5,11 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.schema.TypeHandler import TypeHandler
-from repository.item.PersistentCollections import PersistentCollection
-from repository.item.PersistentCollections import PersistentList
-from repository.item.PersistentCollections import PersistentDict
+from repository.item.PersistentCollections import \
+     PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.item.Values import Values, References, ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
+from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
 
 from chandlerdb.util.uuid import UUID
@@ -162,9 +162,11 @@ class ValueHandler(ContentHandler, TypeHandler):
         cardinality = self.getCardinality(attribute, attrs)
         
         if cardinality == 'list':
-            self.collections.append(PersistentList(None, None, None))
+            self.collections.append(PersistentList((None, None, None)))
         elif cardinality == 'dict':
-            self.collections.append(PersistentDict(None, None, None))
+            self.collections.append(PersistentDict((None, None, None)))
+        elif cardinality == 'set':
+            self.collections.append(PersistentSet((None, None, None)))
         else:
             self.valueStart(itemHandler, attrs)
 
@@ -186,9 +188,11 @@ class ValueHandler(ContentHandler, TypeHandler):
             typeName = self.tagAttrs[-1]['type']
 
         if typeName == 'dict':
-            self.collections.append(PersistentDict(None, None, None))
+            self.collections.append(PersistentDict((None, None, None)))
         elif typeName == 'list':
-            self.collections.append(PersistentList(None, None, None))
+            self.collections.append(PersistentList((None, None, None)))
+        elif typeName == 'set':
+            self.collections.append(PersistentSet((None, None, None)))
 
     # valueEnd is called when parsing 'dict' or 'list' cardinality values of
     # one type (type specified with cardinality) or of unspecified type
@@ -204,11 +208,11 @@ class ValueHandler(ContentHandler, TypeHandler):
             attribute = self.attributes.pop()
             cardinality = self.getCardinality(attribute, attrs)
 
-            if cardinality == 'dict' or cardinality == 'list':
+            if cardinality in ('list', 'dict', 'set'):
                 value = self.collections.pop()
             else:
                 typeName = self.getTypeName(attribute, attrs, 'str')
-                if typeName == 'dict' or typeName == 'list':
+                if typeName in ('list', 'dict', 'set'):
                     value = self.collections.pop()
                 else:
                     value = self.makeValue(typeName, self.data)
@@ -244,7 +248,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                 else:
                     typeName = 'str'
                 
-            if typeName == 'dict' or typeName == 'list':
+            if typeName in ('list', 'dict', 'set'):
                 value = self.collections.pop()
             else:
                 value = self.makeValue(typeName, self.data)
@@ -255,7 +259,7 @@ class ValueHandler(ContentHandler, TypeHandler):
         name = attrs.get('name')
 
         if name is None:
-            self.collections[-1].append(value, False)
+            self.collections[-1].add(value, False)
         else:
             name = self.makeValue(attrs.get('nameType', 'str'), name)
             self.collections[-1].__setitem__(name, value, False)
@@ -275,8 +279,7 @@ class ValueHandler(ContentHandler, TypeHandler):
             if attribute is None:
                 cardinality = 'single'
             else:
-                cardinality = attribute.getAspect('cardinality',
-                                                  default='single')
+                cardinality = attribute.getAspect('cardinality', 'single')
 
         return cardinality
 
@@ -300,7 +303,7 @@ class ValueHandler(ContentHandler, TypeHandler):
             name = attrs['type']
 
         elif attribute is not None:
-            attrType = attribute.getAspect('type', default=None)
+            attrType = attribute.getAspect('type', None)
             if attrType is not None:
                 name = attrType.handlerName()
 
@@ -367,8 +370,8 @@ class ValueHandler(ContentHandler, TypeHandler):
             if isinstance(value, Item):
                 raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
 
-            if value is Item.Nil:
-                raise ValueError, 'Cannot persist Item.Nil'
+            if value is Nil:
+                raise ValueError, 'Cannot persist Nil'
 
             if attrType is not None:
                 if not attrType.recognizes(value):
@@ -378,7 +381,7 @@ class ValueHandler(ContentHandler, TypeHandler):
             else:
                 generator.characters(cls.makeString(repository, value))
             
-        elif attrCard == 'list':
+        elif attrCard in ('list', 'set'):
             for val in value._itervalues():
                 cls.xmlValue(repository,
                              None, val, 'value', attrType, 'single',
@@ -564,8 +567,8 @@ class ItemHandler(ValueHandler):
                     companion = None
                 else:
                     companion = item.getAttributeAspect(attribute, 'companion',
-                                                        default=None)
-                value._setItem(item, attribute, companion)
+                                                        False, None, None)
+                value._setOwner((item, attribute, companion))
             elif isinstance(value, ItemValue):
                 value._setItem(item, attribute)
 

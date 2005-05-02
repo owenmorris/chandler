@@ -58,6 +58,9 @@ class ItemWriter(object):
     def writeList(self, buffer, item, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeList" %(type(self))
 
+    def writeSet(self, buffer, item, value, withSchema, attrType):
+        raise NotImplementedError, "%s.writeSet" %(type(self))
+
     def writeDict(self, buffer, item, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeDict" %(type(self))
 

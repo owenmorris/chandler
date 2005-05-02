@@ -82,6 +82,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                           'RelativeDateTime':'type(mx.DateTime.RelativeDateTime())',
                           'Dictionary':'repository.item.PersistentCollections.PersistentDict',
                           'List':'repository.item.PersistentCollections.PersistentList',
+                          'Set':'repository.item.PersistentCollections.PersistentSet',
                           'Lob':'repository.persistence.DBLob.DBLob' }
         excludes = ['NoneType','Enumeration','Struct','Collection']
 

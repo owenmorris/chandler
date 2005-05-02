@@ -71,9 +71,11 @@ class KindQuery(Query):
                     yield item
 
             if self.recursive:
-                subKinds = kind.getAttributeValue('subKinds', default=[])
-                for item in self._run(subKinds, changedItems):
-                    yield item
+                subKinds = kind.getAttributeValue('subKinds', kind._references,
+                                                  None, None)
+                if subKinds:
+                    for item in self._run(subKinds, changedItems):
+                        yield item
 
 
 class TextQuery(Query):

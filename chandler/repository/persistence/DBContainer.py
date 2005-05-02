@@ -1064,8 +1064,9 @@ class ValueContainer(DBContainer, CValueContainer):
 
     # 0.5.0: first tracked format version
     # 0.5.1: 'Long' values saved as long long (64 bit)
+    # 0.5.2: added support for 'Set' type and 'set' cardinality
 
-    FORMAT_VERSION = 0x00050100
+    FORMAT_VERSION = 0x00050200
 
     def __init__(self, store, name, txn, **kwds):
 

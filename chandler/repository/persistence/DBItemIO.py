@@ -8,11 +8,12 @@ from struct import pack, unpack
 from cStringIO import StringIO
 
 from chandlerdb.util.uuid import UUID, _hash
+from chandlerdb.item.item import Nil
 from repository.item.Item import Item
 from repository.item.Values import Values, References, ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
-from repository.item.PersistentCollections import PersistentCollection
-from repository.item.PersistentCollections import PersistentList, PersistentDict
+from repository.item.PersistentCollections \
+     import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError \
      import LoadError, LoadValueError, MergeError
@@ -108,6 +109,15 @@ class DBItemWriter(ItemWriter):
         for v in value:
             self.writeValue(buffer, item, v, withSchema, attrType)
 
+    def writeSet(self, buffer, item, value, withSchema, attrType):
+
+        flags = DBItemWriter.SET | DBItemWriter.VALUE
+        attrType = self._type(buffer, flags, item, value, False,
+                              withSchema, attrType)
+        buffer.write(pack('>I', len(value)))
+        for v in value:
+            self.writeValue(buffer, item, v, withSchema, attrType)
+
     def writeDict(self, buffer, item, value, withSchema, attrType):
 
         flags = DBItemWriter.DICT | DBItemWriter.VALUE
@@ -170,8 +180,8 @@ class DBItemWriter(ItemWriter):
             attrType = None
         else:
             uAttr = attribute._uuid
-            attrCard = attribute.getAspect('cardinality', default='single')
-            attrType = attribute.getAspect('type', default=None)
+            attrCard = attribute.getAspect('cardinality', 'single')
+            attrType = attribute.getAspect('type', None)
             
         buffer = self.dataBuffer
         buffer.truncate(0)
@@ -185,6 +195,8 @@ class DBItemWriter(ItemWriter):
             self.writeValue(buffer, item, value, withSchema, attrType)
         elif attrCard == 'list':
             self.writeList(buffer, item, value, withSchema, attrType)
+        elif attrCard == 'set':
+            self.writeSet(buffer, item, value, withSchema, attrType)
         elif attrCard == 'dict':
             self.writeDict(buffer, item, value, withSchema, attrType)
 
@@ -287,6 +299,7 @@ class DBItemWriter(ItemWriter):
     TYPED    = 0x01
     VALUE    = 0x02
     REF      = 0x04
+    SET      = 0x08
     SINGLE   = 0x10
     LIST     = 0x20
     DICT     = 0x40
@@ -376,8 +389,8 @@ class DBItemReader(ItemReader):
                     companion = None
                 else:
                     companion = kind.getAttribute(name).getAspect('companion',
-                                                                  default=None)
-                value._setItem(item, name, companion)
+                                                                  None)
+                value._setOwner((item, name, companion))
             elif isinstance(value, ItemValue):
                 value._setItem(item, name)
 
@@ -506,7 +519,7 @@ class DBItemReader(ItemReader):
                 raise LoadValueError, (self.name or self.uItem, name,
                                        "not value or ref: 0x%x" %(flags))
 
-            if value is not Item.Nil:
+            if value is not Nil:
                 d[name] = value
                 if valueFlags != 0:
                     d._setFlags(name, valueFlags)
@@ -517,7 +530,7 @@ class DBItemReader(ItemReader):
         if withSchema:
             attrType = None
         else:
-            attrType = attribute.getAspect('type', default=None)
+            attrType = attribute.getAspect('type', None)
 
         flags = ord(data[offset])
 
@@ -527,6 +540,9 @@ class DBItemReader(ItemReader):
         elif flags & DBItemWriter.LIST:
             return self.readList(offset, data, withSchema, attrType,
                                  view, name)
+        elif flags & DBItemWriter.SET:
+            return self.readSet(offset, data, withSchema, attrType,
+                                view, name)
         elif flags & DBItemWriter.DICT:
             return self.readDict(offset, data, withSchema, attrType,
                                  view, name)
@@ -599,11 +615,25 @@ class DBItemReader(ItemReader):
         count, = unpack('>I', data[offset:offset+4])
         offset += 4
 
-        value = PersistentList(None, None, None)
+        value = PersistentList((None, None, None))
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name)
-            value.append(v)
+            value.append(v, False)
+
+        return offset, value
+
+    def readSet(self, offset, data, withSchema, attrType, view, name):
+
+        offset, attrType = self._type(offset, data, attrType, view, name)
+        count, = unpack('>I', data[offset:offset+4])
+        offset += 4
+
+        value = PersistentSet((None, None, None))
+        for i in xrange(count):
+            offset, v = self.readValue(offset, data, withSchema, attrType,
+                                       view, name)
+            value.add(v, False)
 
         return offset, value
 
@@ -613,13 +643,13 @@ class DBItemReader(ItemReader):
         count, = unpack('>I', data[offset:offset+4])
         offset += 4
 
-        value = PersistentDict(None, None, None)
+        value = PersistentDict((None, None, None))
         for i in xrange(count):
             offset, k = self.readValue(offset, data, False, None,
                                        view, name)
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name)
-            value[k] = v
+            value.__setitem__(k, v, False)
 
         return offset, value
 
@@ -650,14 +680,14 @@ class DBItemVMergeReader(DBItemMergeReader):
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):
 
-        value = Item.Nil
+        value = Nil
         if name in self.dirties:
             offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
             originalValues = self.item._values
             if originalValues._isDirty(name):
-                originalValue = originalValues.get(name, Item.Nil)
+                originalValue = originalValues.get(name, Nil)
                 if value == originalValue:
-                    value = Item.Nil
+                    value = Nil
                 elif self.mergeFn is not None:
                     value = self.mergeFn(MergeError.VALUE,
                                          self.item, name, value)
@@ -670,13 +700,13 @@ class DBItemVMergeReader(DBItemMergeReader):
              afterLoadHooks):
 
         if name not in self.dirties:
-            return offset, Item.Nil
+            return offset, Nil
 
         flags = ord(data[offset])
         offset += 1
 
         if flags & DBItemWriter.LIST:
-            return offset, Item.Nil
+            return offset, Nil
 
         if flags & DBItemWriter.NONE:
             itemRef = None
@@ -693,16 +723,16 @@ class DBItemVMergeReader(DBItemMergeReader):
             if origRef is not None:
                 if origRef._isUUID():
                     if origRef == itemRef:
-                        return offset, Item.Nil
+                        return offset, Nil
                     origRef = origItem._references._getRef(name, origRef)
 
                 elif origRef._uuid == itemRef:
-                    return offset, Item.Nil
+                    return offset, Nil
 
                 self._e_2_overlap(MergeError.REF, self.item, name)
 
             elif itemRef is None:
-                return offset, Item.Nil
+                return offset, Nil
 
         if origRef is not None:
             if not (origRef._isItem() and origRef._uuid == itemRef or
@@ -747,7 +777,7 @@ class DBItemRMergeReader(DBItemMergeReader):
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):
 
-        return offset, Item.Nil
+        return offset, Nil
     
     def _ref(self, offset, data, kind, withSchema, attribute, view, name,
              afterLoadHooks):
@@ -762,7 +792,7 @@ class DBItemRMergeReader(DBItemMergeReader):
                         value._mergeChanges(self.oldVersion, self.version)
                         self.merged.append(self.dirties.hash(name))
 
-                        return offset, Item.Nil
+                        return offset, Nil
 
                 else:
                     offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
@@ -770,4 +800,4 @@ class DBItemRMergeReader(DBItemMergeReader):
     
                     return offset, value
 
-        return offset, Item.Nil
+        return offset, Nil
