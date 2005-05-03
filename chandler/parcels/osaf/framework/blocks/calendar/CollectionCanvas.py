@@ -128,6 +128,7 @@ class CanvasTextButton(wx.BitmapButton):
         bitmap = self.buildBitmap(self.GetParent(), text,
                                   self.font, self.fgcolor, self.bgcolor)
         self.SetBitmapLabel(bitmap)
+        self.UpdateSize()
 
     def UpdateSize(self):
         """ Sizes the button to just fit the bitmap """
@@ -135,7 +136,7 @@ class CanvasTextButton(wx.BitmapButton):
         bitmap = self.GetBitmapLabel()
         width = bitmap.GetWidth() + self.forcedBorder*2
         height = bitmap.GetHeight() + self.forcedBorder*2
-        self.SetSize(wx.Size(width, height))
+        self.SetMinSize(wx.Size(width, height))
 
 class CanvasBitmapButton(wx.BitmapButton):
     """ Flat bitmap button, no border.
@@ -159,6 +160,7 @@ class CanvasBitmapButton(wx.BitmapButton):
                                                  bitmap, style=wx.NO_BORDER)
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.UpdateSize()
 
     def OnEraseBackground(self, event):
         """
@@ -172,7 +174,7 @@ class CanvasBitmapButton(wx.BitmapButton):
         bitmap = self.GetBitmapLabel()
         width = bitmap.GetWidth() + self.forcedBorder*2
         height = bitmap.GetHeight() + self.forcedBorder*2
-        self.SetSize(wx.Size(width, height))
+        self.SetMinSize(wx.Size(width, height))
 
 class CanvasItem(object):
     """
