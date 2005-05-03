@@ -121,7 +121,7 @@ class Kind(Item):
                 descriptors[name] = descriptor
                 setattr(cls, name, descriptor)
                 descriptor.registerAttribute(self, attribute)
-            elif type(descriptor) is CDescriptor:
+            elif isinstance(descriptor,CDescriptor):
                 descriptor.registerAttribute(self, attribute)
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
