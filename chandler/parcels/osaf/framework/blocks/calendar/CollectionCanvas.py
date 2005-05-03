@@ -55,14 +55,6 @@ class CanvasTextButton(wx.BitmapButton):
         self.fgcolor = fgcolor
         self.bgcolor = bgcolor
 
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-
-    def OnEraseBackground(self, event):
-        """
-        Do nothing on EraseBackground events, to avoid flicker.
-        """
-        pass
-
     def buildBitmap(self, window, text, font, fgcolor, bgcolor):
         """ Creates a bitmap with the given text.
 
@@ -159,14 +151,7 @@ class CanvasBitmapButton(wx.BitmapButton):
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.NO_BORDER)
 
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.UpdateSize()
-
-    def OnEraseBackground(self, event):
-        """
-        Do nothing on EraseBackground events, to avoid flicker.
-        """
-        pass
 
     def UpdateSize(self):
         """ Sizes the button to just fit the bitmap """
