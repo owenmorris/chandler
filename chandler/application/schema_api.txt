@@ -287,6 +287,9 @@ loaded::
         >>> schema.parcel_for_module("application.tests")
         456
 
+        >>> # clean up dummy parcel setup
+        >>> del application.tests.__parcel__, application.tests.__parcel_class__
+
     If the name is an empty string, the root of the ``//parcels`` namespace is
     returned::
 
@@ -295,6 +298,46 @@ loaded::
 
         >>> schema.parcel_for_module("") is rep.findPath('//parcels')
         True
+
+``Item._schema_kind``
+    Item subclasses have a read-only ``_schema_kind`` property that returns the
+    repository ``Kind`` object that represents that class in the null view::
+
+        >>> schema.Item._schema_kind
+        <Kind ... Item ...>
+
+        >>> class TestItem(schema.Item):
+        ...     __module__ = 'application.tests'  # pretend we're here
+
+        >>> TestItem._schema_kind
+        <Kind ... TestItem ...>
+
+        >>> kind = TestItem._schema_kind
+
+    And the generated kind has its class' module's parcel as its parent::
+
+        >>> kind.itsParent is application.tests.__parcel__
+        True
+
+        >>> kind is rep.findPath('//parcels/application/tests/TestItem')
+        True
+
+    Its superkinds are the ``_schema_kind`` values of its base classes::
+
+        >>> list(kind.superKinds) == [rep.findPath('//Schema/Core/Item')]
+        True
+
+    Its kind is of course ``Kind``::
+
+        >>> kind.itsKind is rep.findPath('//Schema/Core/Kind')
+        True
+
+    And its class is the class::
+
+        >>> kind.classes['python'] is TestItem
+        True
+
+
 
 
 Descriptor Activation

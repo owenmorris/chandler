@@ -1,6 +1,6 @@
 from repository.persistence.RepositoryView import nullRepositoryView as nrv
 from repository.item.Item import Item as Base
-from repository.schema.Kind import CDescriptor
+from repository.schema.Kind import CDescriptor, Kind
 from application.Parcel import Manager, Parcel
 
 import __main__
@@ -12,14 +12,16 @@ global_lock = threading.RLock()
 
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role',
-    'One', 'Many', 'Sequence', 'Mapping',
+    'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module',
 ]
 
+# Initialize the core schema, if needed
 if nrv.findPath('//Schema/Core/Item') is None:
     nrv.loadPack(os.path.join(packdir,'schema.pack'))
 if nrv.findPath('//Schema/Core/Parcel') is None:
     nrv.loadPack(os.path.join(packdir,'chandler.pack'))
+
 
 class ActiveDescriptor(object):
     """Abstract base for descriptors needing activation by their classes"""
@@ -27,6 +29,7 @@ class ActiveDescriptor(object):
     def activateInClass(self,cls,name):
         """Redefine in subclasses to do useful things with `cls` & `name`"""
         raise NotImplementedError
+
 
 class Activator(type):
     """Metaclass that activates contained ``ActiveDescriptor`` instances"""
@@ -52,7 +55,7 @@ class Role(ActiveDescriptor,CDescriptor):
         for k,v in kw.items():
             if k!='name':   # XXX workaround CDescriptor not allowing name set
                 setattr(self,k,v)
-        #self.setDoc()   # default the doc string
+        self.setDoc()   # default the doc string
 
     def activateInClass(self,cls,name):
         """Role was defined/used in class `cls` under name `name`"""
@@ -76,6 +79,8 @@ class Role(ActiveDescriptor,CDescriptor):
                 "Role objects are immutable; can't change %r once set" % attr
             )
         self._setattr(attr,value)
+        if attr=='type':
+            self.setDoc()   # update docstring
 
     def __setInverse(self,inverse):
         if self._inverse is not inverse:    # No-op if no change
@@ -132,29 +137,73 @@ class Role(ActiveDescriptor,CDescriptor):
 
     def docInfo(self):
         return ("%s(%s)" %
-            (self.__class__.__name__, getattr(self.type,'__name__',None)
-                #'/'.join([typ.__name__ for typ in self.types]) or '()'
-            )
+            (self.__class__.__name__, getattr(self.type,'__name__',None))
         )
-
 
 
 class One(Role):
     cardinality = 'single'
 
+
 class Many(Role):
     cardinality = 'set'
 
+
 class Sequence(Role):
     cardinality = 'list'
+
 
 class Mapping(Role):
     cardinality = 'dict'
 
 
+class ItemClass(Activator):
+    @property
+    def _schema_kind(cls):
+        try:
+            return cls.__dict__['_schema_kind_']
+        except KeyError:
+            pass
+
+        global_lock.acquire()
+        try:
+            if '_schema_kind_' in cls.__dict__:
+                # In case another thread set it up while we were waiting for
+                # the lock (i.e., this is double-checked locking)
+                return cls.__dict__['_schema_kind_']
+
+            elif '_schema_kind' in cls.__dict__:
+                # In case the class set its kind explicitly...
+                kind = cls.__dict__['_schema_kind']
+
+            else:
+                # Create a new kind
+                kind = Kind(
+                    cls.__name__, parcel_for_module(cls.__module__),
+                    nrv.findPath('//Schema/Core/Kind')
+                )
+                kind.superKinds = [
+                    b._schema_kind for b in cls.__bases__ if issubclass(b,Item)
+                ]
+
+                # kind.classes['python'] = cls
+                kind._values['classes'] = { 'python': cls }
+                kind._values._setTransient('classes')
+                kind._setupClass(cls)
+
+            type.__setattr__(cls,'_schema_kind_',kind)
+            return kind
+
+        finally:
+            global_lock.release()
+
+
 class Item(Base):
     """Base class for schema-defined Kinds"""
-    __metaclass__ = Activator
+
+    __metaclass__ = ItemClass
+
+    _schema_kind = nrv.findPath('//Schema/Core/Item')   # bootstrap root class
 
 
 def importString(name, globalDict=defaultGlobalDict):
