@@ -1390,7 +1390,14 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # the end
         self._bgSelectionDragEnd = True
         
-        self.SetVirtualSize((self.GetVirtualSize().width, self.hourHeight*24))
+        # @@@ clean this up...
+        #self.SetVirtualSize((self.GetVirtualSize().width, self.hourHeight*24))
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        if (self.hourHeight > 0):
+              self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
+
         self.SetScrollRate(0, self._scrollYRate)
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
@@ -1415,7 +1422,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         # @@@ magic numbers
         # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
-        self.size = self.GetVirtualSize()
+        #self.size = self.GetVirtualSize()
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        if (self.hourHeight > 0):
+              self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
 
         self.xOffset = self.size.width / 8
         if self.parent.blockItem.dayMode:
@@ -1432,7 +1444,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
-        
+
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
@@ -1445,7 +1457,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         topCoordinate = self.CalcUnscrolledPosition((0,0))
         topTime = self.getDateTimeFromPosition(wx.Point(topCoordinate[0],
                                                         topCoordinate[1]))
-        
+
         #bottomCoordinate = self.CalcUnscrolledPosition((
         #bottomTime = self.getDateTimeFromPosition(wx.Point(bottomCoordinate[0],
         #                                                   bottomCoordinate[1]))
