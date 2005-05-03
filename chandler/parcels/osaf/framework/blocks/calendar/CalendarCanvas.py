@@ -19,18 +19,11 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Styles as Styles
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 
+import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+
 from colorsys import *
 import copy
-import math
 
-# 'color' is 0..255 based
-# 'rgb' is 0..1.0 based
-def color2rgb(r,g,b):
-    return (r*1.0)/255, (g*1.0)/255, (b*1.0)/255
-    
-def rgb2color(r,g,b):
-    return r*255,g*255,b*255
-    
 # from ASPN/Python Cookbook
 class CachedAttribute(object):
     def __init__(self, method):
@@ -86,7 +79,7 @@ class CalendarData(ContentModel.ContentItem):
     def eventHue(self):
         c = self.eventColor
         rgbvalues = (c.red, c.green, c.blue)
-        hsv = rgb_to_hsv(*color2rgb(*rgbvalues))
+        hsv = rgb_to_hsv(*DrawingUtilities.color2rgb(*rgbvalues))
         return hsv[0]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
@@ -94,7 +87,7 @@ class CalendarData(ContentModel.ContentItem):
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
             hsv = (self.eventHue, saturation, value)
-            return rgb2color(*hsv_to_rgb(*hsv))
+            return DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv))
         return property(getSaturatedColor)
             
     # these are all for when this calendar is the 'current' one
@@ -420,8 +413,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
-            brush = styles.GetGradientBrush(itemRect.x, itemRect.width, 
-                                            gradientLeft, gradientRight)
+            brush = styles.brushes.GetGradientBrush(itemRect.x, itemRect.width, 
+                                                    gradientLeft, gradientRight)
             dc.SetPen(wx.Pen(penColor))
             dc.SetBrush(brush)
 
@@ -520,9 +513,9 @@ class HeaderCanvasItem(CalendarCanvasItem):
         
         eventColors = styles.blockItem.getEventColors(item)
         if selected:
-            brush = styles.GetGradientBrush(itemRect.x, itemRect.width,
-                                            eventColors.selectedGradientLeft,
-                                            eventColors.selectedGradientRight)
+            brush = styles.brushes.GetGradientBrush(itemRect.x, itemRect.width,
+                                                    eventColors.selectedGradientLeft,
+                                                    eventColors.selectedGradientRight)
             pen = wx.Pen(eventColors.selectedOutlineColor)
         else:
             brush = wx.TRANSPARENT_BRUSH
@@ -736,7 +729,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     def setupNextHue(self):
         c = self.contents.source.calendarColor.backgroundColor
         self.lastHue = CalendarData.getNextHue(self.lastHue)
-        (c.red, c.green, c.blue) = rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
+        (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
         
     def getEventColors(self, event):
         """
@@ -750,7 +743,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
             # hack alert! The out-of-the-box collections aren't renameable, so
             # we'll rely on that to make sure we don't get 'All's color
-            if (not hasattr(coll, 'renameable') or coll.renameable) and \
+            if (not getattr(coll, 'renameable', False)) and \
                 coll.isItemOf(calDataKind):
                 return coll
         return self.calendarData
@@ -855,7 +848,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         
         # gradient cache
-        self._gradientCache = {}
+        self.brushes = DrawingUtilities.Gradients()
         
     def _doDrawingCalculations(self):
         self.size = self.GetSize()
@@ -872,7 +865,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # the gradient brushes are based on dayWidth, so blow it away
         # when dayWidth changes
         if oldDayWidth != self.dayWidth:
-            self._gradientCache = {}
+            self.brushes.ClearCache()
         
         if self.blockItem.dayMode:
             self.columns = 1
@@ -930,77 +923,6 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
         # just cause a repaint - hopefully this cascades to child windows?
         self.Refresh()
-        
-    def MakeGradientBrush(self, offset, width, leftColor, rightColor):
-        """
-        Creates a gradient brush from leftColor to rightColor, specified
-        as color tuples (r,g,b)
-        The brush is a bitmap, width of self.dayWidth, height 1. The color 
-        gradient is made by varying the color saturation from leftColor to 
-        rightColor. This means that the Hue and Value should be the same, 
-        or the resulting color on the right won't match rightColor
-        """
-        # mac requires bitmaps to have a height and width that are powers of 2
-        # use frexp to round up to the nearest power of 2
-        # (frexp(x) returns (m,e) where x = m * 2**e, and we just want e)
-        bitmapWidth = 2**math.frexp(width-1)[1]
-        # There is probably a nicer way to do this, without:
-        # - going through wxImage
-        # - individually setting each RGB pixel
-        image = wx.EmptyImage(bitmapWidth, 1)
-        leftHSV = rgb_to_hsv(*color2rgb(*leftColor))
-        rightHSV = rgb_to_hsv(*color2rgb(*rightColor))
-        
-        # make sure they are the same hue
-        # this doesn't quite work, because sometimes division issues
-        # cause numbers to be very close, but not quite the same
-        #assert leftHSV[0] == rightHSV[0]
-        #assert leftHSV[2] == rightHSV[2]
-        
-        hue = leftHSV[0]
-        value = leftHSV[2]
-        satStart = leftHSV[1]
-        satDelta = rightHSV[1] - leftHSV[1]
-        satStep = satDelta / width
-        
-        # assign a sliding scale of floating point values from left to right
-        # in the bitmap
-        offset %= bitmapWidth
-        for x in xrange(bitmapWidth):
-            
-            # first offset the gradient within the bitmap
-            # gradientIndex is the index of the color, i.e. the nth
-            # color between leftColor and rightColor
-            
-            # First offset within the bitmap. The + bitmapWidth % bitmapWidth
-            # ensures we're dealing with x<offset correctly
-            gradientIndex = (x - offset + bitmapWidth) % bitmapWidth
-            
-            # now offset within the gradient range
-            gradientIndex %= width
-            
-            # now calculate the actual color from the gradient index
-            sat = satStart + satStep*gradientIndex
-            newColor = rgb2color(*hsv_to_rgb(hue, sat, value))
-            image.SetRGB(x,0,*newColor)
-            
-        # and now we have to go from Image -> Bitmap. Yuck.
-        bitmap = wx.BitmapFromImage(image)
-        brush = wx.Brush(wx.WHITE, wx.STIPPLE)
-        brush.SetStipple(bitmap)
-        return brush
-        
-    def GetGradientBrush(self, offset, width, leftColor, rightColor):
-        """
-        Gets an appropriately sized gradient brush from the cache, 
-        or creates one if necessary
-        """
-        key = (offset, width, leftColor, rightColor)
-        brush = self._gradientCache.get(key, None)
-        if not brush:
-            brush = self.MakeGradientBrush(*key)
-            self._gradientCache[key] = brush
-        return brush
         
 
 class wxWeekHeaderWidgets(wx.Panel):
