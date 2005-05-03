@@ -186,10 +186,7 @@ class ItemClass(Activator):
                     b._schema_kind for b in cls.__bases__ if issubclass(b,Item)
                 ]
 
-                # kind.classes['python'] = cls
-                kind._values['classes'] = { 'python': cls }
-                kind._values._setTransient('classes')
-                kind._setupClass(cls)
+                kind.classes = {'python': cls }
 
             type.__setattr__(cls,'_schema_kind_',kind)
             return kind
