@@ -21,12 +21,12 @@ __svn__          = "$Id$"
     # Assumptions:
     #                            
     # source tree:
-    #    /www/docs/chandler/continuous
+    #    /home/builder/www/chandler/continuous
     #        + ( osx | win | linux )
     #            + YYYYMMDDHHMMSS 
     #
     # target tree:
-    #    /www/docs/chandler/continuous/qa
+    #    /home/builder/www/chandler/continuous/qa
     #
     # each build will be present in qa named as:
     #                   
@@ -39,7 +39,7 @@ __svn__          = "$Id$"
 
 import os, glob, string
 
-workingDirectory = '/Users/bear/temp/continuous' #'/www/docs/chandler/continuous'
+workingDirectory = '/Users/bear/temp/continuous' #'/home/builder/www/chandler/continuous'
 platforms        = ['osx', 'win', 'linux']
         
 def main():
@@ -74,10 +74,10 @@ def main():
                     if item[:9] == 'Chandler_':
                         target = item.replace('_' + buildDate, '')
                         targetFile = os.path.join(targetDir, target)                      
-                                                          
-                        if os.path.isfile(targetFile):
+                        
+                        if os.path.islink(targetFile):
                             os.unlink(targetFile) 
-                                
+                        
                         os.symlink(os.path.join(sourceDir, item), targetFile)
 
 main()
