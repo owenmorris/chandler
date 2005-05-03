@@ -1,10 +1,14 @@
 from repository.persistence.RepositoryView import nullRepositoryView as nrv
 from repository.item.Item import Item as Base
 from repository.schema.Kind import CDescriptor, Kind
+from repository.schema.Attribute import Attribute
 from application.Parcel import Manager, Parcel
 
 import __main__
 defaultGlobalDict = __main__.__dict__
+
+all_aspects = Attribute.valueAspects + Attribute.refAspects + \
+    ('displayName','description')
 
 import os, repository, threading
 packdir = os.path.join(os.path.dirname(repository.__file__),'packs')    # XXX
@@ -45,6 +49,9 @@ class Role(ActiveDescriptor,CDescriptor):
 
     owner = type = _inverse = None
 
+    __slots__ = ['__dict__']
+    __slots__.extend(all_aspects)
+    
     def __new__(cls, type=None, **kw):
         return super(Role,cls).__new__(cls,kw.get('name'))
 
@@ -70,6 +77,10 @@ class Role(ActiveDescriptor,CDescriptor):
         super(Role,self).__setattr__(attr,value)
 
     def __setattr__(self,attr,value):
+        if '_schema_attr_' in self.__dict__:
+            raise TypeError(
+                "Role object cannot be modified after use"
+            )            
         if not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
                 % (attr,type(self).__name__))
@@ -111,7 +122,7 @@ class Role(ActiveDescriptor,CDescriptor):
         self.__dict__['doc'] = val
         self.setDoc()
 
-    doc = property(__getDoc,__setDoc)
+    doc = description = property(__getDoc,__setDoc)
 
     def __getDisplayName(self):
         return self.__dict__.get('displayName')
@@ -140,6 +151,43 @@ class Role(ActiveDescriptor,CDescriptor):
             (self.__class__.__name__, getattr(self.type,'__name__',None))
         )
 
+    @property
+    def _schema_attr(self):
+        try:
+            return self.__dict__['_schema_attr_']
+        except KeyError:
+            if self.owner is None or self.name is None:
+                raise TypeError(
+                    "role object used outside of schema.Item subclass"
+                )
+            kind = self.owner._schema_kind
+
+        global_lock.acquire()
+        try:
+            if '_schema_attr_' in self.__dict__:
+                # In case another thread set it up while we were waiting for
+                # the lock (i.e., this is double-checked locking)
+                # (This branch is also taken if creating 'kind' recursively
+                # invoked creation of this attribute)
+                return self.__dict__['_schema_attr_']
+            else:
+                # Create a new Attribute
+                attr = Attribute(
+                    self.name, kind, nrv.findPath('//Schema/Core/Attribute'),
+                )
+                kind.attributes.append(attr)
+                for aspect in all_aspects:
+                    if hasattr(self,aspect):
+                        setattr(attr,aspect,getattr(self,aspect))
+                if not hasattr(self,'otherName') and self.inverse is not None:
+                    attr.otherName = self.inverse.name
+
+                # XXX self.registerAttribute(self.owner._schema_kind, attr)
+
+            self.__dict__['_schema_attr_'] = attr
+            return attr
+        finally:
+            global_lock.release()
 
 class One(Role):
     cardinality = 'single'
@@ -174,7 +222,7 @@ class ItemClass(Activator):
 
             elif '_schema_kind' in cls.__dict__:
                 # In case the class set its kind explicitly...
-                kind = cls.__dict__['_schema_kind']
+                kind = cls._schema_kind_ = cls.__dict__['_schema_kind']
 
             else:
                 # Create a new kind
@@ -185,10 +233,14 @@ class ItemClass(Activator):
                 kind.superKinds = [
                     b._schema_kind for b in cls.__bases__ if issubclass(b,Item)
                 ]
-
+                kind.attributes = []
                 kind.classes = {'python': cls }
+                cls._schema_kind_ = kind
 
-            type.__setattr__(cls,'_schema_kind_',kind)
+                for attr in cls.__dict__.values():
+                    if isinstance(attr,Role):
+                        attr._schema_attr
+
             return kind
 
         finally:
@@ -201,6 +253,11 @@ class Item(Base):
     __metaclass__ = ItemClass
 
     _schema_kind = nrv.findPath('//Schema/Core/Item')   # bootstrap root class
+
+    def __init__(self, name=None, parent=None, kind=None, _uuid=None, **values):
+        if kind is None:
+            kind = self.__class__._schema_kind
+        super(Item,self).__init__(name,parent,kind,_uuid,**values)
 
 
 def importString(name, globalDict=defaultGlobalDict):

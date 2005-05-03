@@ -97,7 +97,7 @@ All role objects have at least the following attributes and methods:
         >>> Kind.superkinds.type
         <class 'Kind'>
 
-``displayName`` and ``doc``
+``displayName``, ``description``, and ``doc``
     The name and description of this role, if any.  They will be used to
     collectively form a ``__doc__`` string, so that ``help()`` is informative
     for Item classes::
@@ -130,6 +130,11 @@ All role objects have at least the following attributes and methods:
          |      Super-kinds of this kind
          |  ...
 
+    Note: ``doc`` is a shortcut for ``description``; there is no difference
+    between the two attributes::
+
+        >>> Kind.name.doc is Kind.name.description
+        True
 
 ``inverse``
     The role object that represents the "other side" of the relationship, or
@@ -183,6 +188,19 @@ All role objects have at least the following attributes and methods:
         >>> print role3.inverse         # no change took place
         None
 
+Aspect Attributes
+    Role objects support setting all of the aspects of a repository
+    ``Attribute``, including ``required``, ``persist``, ``cardinality``,
+    ``defaultValue``, ``initialValue``, ``inheritFrom``, ``redirectTo``,
+    ``otherName``, ``companion``, ``deletePolicy``, ``copyPolicy``,
+    ``countPolicy``, ``type``, ``superAttribute``, ``displayName``, and
+    ``description.  You can supply any of these as keyword arguments to a
+    Role constructor (such as ``schema.One``, ``schema.Many``, etc.), in order
+    to set the corresponding value for the attribute.  Unspecified aspects will
+    take on their normal default values, except for ``otherName``, which is
+    set to ``inverse.name`` by default, if the attribute has an inverse.
+
+
 To avoid silent definition errors, ``Role`` classes will not allow setting
 attributes that are not defined by their class::
 
@@ -193,10 +211,33 @@ attributes that are not defined by their class::
 
 And, to avoid unintentional alterations, Role attributes can be set only once::
 
-    >>> Kind.superkinds.doc = "testing"
+    >>> r = schema.Role(doc="x")
+    >>> r.doc = "testing"
     Traceback (most recent call last):
       ...
     TypeError: Role objects are immutable; can't change 'doc' once set
+
+
+---------------
+Item Subclasses
+---------------
+
+XXX Explain this.
+
+    >>> class Person(schema.Item):
+    ...     fullname = schema.One(str)
+    ...     age = schema.One(int)
+    ...     parents = schema.Sequence()
+    ...     children = schema.Sequence(inverse=parents)
+    ...     def __repr__(self): return self.fullname
+
+    >>> Joe = Person("dummy1", fullname="Joe Schmoe", age=39)
+    >>> Joe
+    Joe Schmoe
+
+    >>> Mary = Person("dummy2", children=[Joe], fullname="Mary Quite Contrary")
+    >>> list(Joe.parents)
+    [Mary Quite Contrary]
 
 
 --------------------
@@ -338,7 +379,47 @@ loaded::
         True
 
 
+``Role._schema_attr``
+    Role objects have a read-only ``_schema_attr`` property that returns the
+    repository ``Attribute`` object representing that attribute in the null
+    view.
 
+        >>> Kind.subkinds._schema_attr
+        <Attribute ... subkinds ...>
+
+        >>> Kind.subkinds._schema_attr.otherName
+        'superkinds'
+
+        >>> Kind.superkinds._schema_attr.otherName
+        'subkinds'
+
+        >>> Kind.subkinds._schema_attr.itsParent is Kind._schema_kind
+        True
+
+        >>> Kind.subkinds._schema_attr in Kind._schema_kind.attributes
+        True
+
+        >>> Kind.subkinds._schema_attr.cardinality
+        'set'
+
+        >>> Kind.subkinds._schema_attr.description is Kind.subkinds.doc
+        True
+
+    Roles must be activated in a class, however, in order to generate their
+    Attribute::
+
+        >>> schema.One()._schema_attr
+        Traceback (most recent call last):
+        ...
+        TypeError: role object used outside of schema.Item subclass
+
+    And once a role's ``Attribute`` is generated, you cannot change any of its
+    attributes any more::
+
+        >>> Kind.subkinds.redirectTo = "xyz"
+        Traceback (most recent call last):
+        ...
+        TypeError: Role object cannot be modified after use
 
 Descriptor Activation
 ---------------------
