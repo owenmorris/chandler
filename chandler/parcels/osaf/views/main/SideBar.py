@@ -59,6 +59,7 @@ class wxSidebar(ControlBlocks.wxTable):
         """
           This code is tricky, tred with care -- DJA
         """
+        event.Skip() #Let the grid also handle the event
         gridWindow = self.GetGridWindow()
 
         x, y = self.CalcUnscrolledPosition (event.GetX(), event.GetY())
@@ -89,11 +90,12 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.cellRect = cellRect
                     self.imageRect = imageRect
                     self.hoverRow = row
+                else:
+                    event.Skip (False) #Gobble the event
                 
                 self.screenChecked = not item in self.blockItem.checkedItems
                 self.blockChecked = self.screenChecked
                 self.RefreshRect (self.imageRect)
-                #event.Skip (False) #Let the grid get the mouse down
 
         elif hasattr (self, "hoverRow"):
             if event.LeftUp():
@@ -119,7 +121,7 @@ class wxSidebar(ControlBlocks.wxTable):
                   (self.screenChecked == self.blockChecked)):
                 self.screenChecked = not self.screenChecked
                 self.RefreshRect (self.imageRect)
-            #event.Skip (False) #Let the grid get the mouse down
+            
 
         elif (row != wx.NOT_FOUND) and event.Moving():
             assert not hasattr (self, "hoverRow")
@@ -135,9 +137,6 @@ class wxSidebar(ControlBlocks.wxTable):
             outside  a row
             """
             gridWindow.CaptureMouse()
-            event.Skip()
-
-
 
     def OnRequestDrop (self, x, y):
         x, y = self.CalcUnscrolledPosition(x, y)
