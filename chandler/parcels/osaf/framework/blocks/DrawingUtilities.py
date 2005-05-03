@@ -30,7 +30,7 @@ def SetTextColorsAndFont (grid, attr, dc, isSelected):
 def DrawWrappedText (dc, string, rect):
     x = rect.x + 1
     y = rect.y + 1
-    for line in str (string).split (os.linesep):
+    for line in unicode(string).split (os.linesep):
         # test for flicker by drawing a random character first each time we draw
         # line = chr(ord('a') + random.randint(0,25)) + line
         
