@@ -231,11 +231,11 @@ XXX Explain this.
     ...     children = schema.Sequence(inverse=parents)
     ...     def __repr__(self): return self.fullname
 
-    >>> Joe = Person("dummy1", fullname="Joe Schmoe", age=39)
+    >>> Joe = Person(fullname="Joe Schmoe", age=39)
     >>> Joe
     Joe Schmoe
 
-    >>> Mary = Person("dummy2", children=[Joe], fullname="Mary Quite Contrary")
+    >>> Mary = Person(children=[Joe], fullname="Mary Quite Contrary")
     >>> list(Joe.parents)
     [Mary Quite Contrary]
 

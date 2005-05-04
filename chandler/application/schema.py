@@ -26,7 +26,13 @@ if nrv.findPath('//Schema/Core/Item') is None:
 if nrv.findPath('//Schema/Core/Parcel') is None:
     nrv.loadPack(os.path.join(packdir,'chandler.pack'))
 
-
+anonymous_root = nrv.findPath('//anonymous-root')
+if anonymous_root is None:
+    anonymous_root = Base(
+        'anonymous-root', nrv, nrv.findPath('//Schema/Core/Item')
+    )
+    
+    
 class ActiveDescriptor(object):
     """Abstract base for descriptors needing activation by their classes"""
 
@@ -254,7 +260,9 @@ class Item(Base):
 
     _schema_kind = nrv.findPath('//Schema/Core/Item')   # bootstrap root class
 
-    def __init__(self, name=None, parent=None, kind=None, _uuid=None, **values):
+    def __init__(self,
+        name=None, parent=anonymous_root, kind=None, _uuid=None, **values
+    ):
         if kind is None:
             kind = self.__class__._schema_kind
         super(Item,self).__init__(name,parent,kind,_uuid,**values)
