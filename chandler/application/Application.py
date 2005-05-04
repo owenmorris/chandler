@@ -4,10 +4,10 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import gettext, os, sys, threading, time
+
 from new import classobj
 import wx
 import Globals
-from chandlerdb.util.uuid import UUID
 import application.Parcel
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
@@ -182,8 +182,8 @@ class wxApplication (wx.App):
 
         insertionPoint = 1
         for directory in parcelPath:
-                sys.path.insert(insertionPoint, directory)
-                insertionPoint += 1
+            sys.path.insert(insertionPoint, directory)
+            insertionPoint += 1
 
         logger.info("Using PARCELPATH %s" % parcelPath)
 
@@ -447,7 +447,7 @@ class wxApplication (wx.App):
         Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
         Delay imports to avoid circular references.
         """
-        from osaf.framework.blocks.Block import Block, BlockEvent
+        from osaf.framework.blocks.Block import Block
 
         wxID = event.GetId()
 

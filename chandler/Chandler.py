@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, os, shutil
+import sys, os
 import application.Globals
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 from application.Application import SchemaMismatchError
@@ -161,7 +161,6 @@ def main():
         """
         app = wxApplication(redirect=False, useBestVisual=True)
 
-        message = "and had to shut down."
         app.MainLoop()
 
     if application.Globals.options.nocatch:
@@ -196,7 +195,7 @@ def main():
             dialog.ShowModal()
             dialog.Destroy()
 
-        except Exception, exception:
+        except Exception:
             type, value, stack = sys.exc_info()
             formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
 
@@ -216,6 +215,6 @@ def main():
     # print "\nTiming results:\n"
     # util.timing.results()
 
-if __name__=="__main__":
+if __name__== "__main__":
     main()
 

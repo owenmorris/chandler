@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, errno, sys
+import os, hardhatlib, hardhatutil, sys
 
 info = {
         'name':'chandler',

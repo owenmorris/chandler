@@ -649,9 +649,9 @@ class AccountPreferencesDialog(wx.Dialog):
                 for item in KindQuery().run([self.view.findPath(kind)]):
                     deleted = False
                     for accountData in self.deletions:
-                         if accountData['item'] == item.itsUUID:
-                             deleted = True
-                             break
+                        if accountData['item'] == item.itsUUID:
+                            deleted = True
+                            break
                          
                     if item.isActive and not deleted:
                         items.append(item)
@@ -873,12 +873,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
 
 def ShowAccountPreferencesDialog(parent, account=None, view=None):
-        xrcFile = os.path.join(application.Globals.chandlerDirectory,
-         'application', 'dialogs', 'AccountPreferences_wdr.xrc')
-        resources = wx.xrc.XmlResource(xrcFile)
-        win = AccountPreferencesDialog(parent, "Account Preferences",
-         resources=resources, account=account, view=view)
-        win.CenterOnScreen()
-        val = win.ShowModal()
-        win.Destroy()
-        return val
+    xrcFile = os.path.join(application.Globals.chandlerDirectory,
+     'application', 'dialogs', 'AccountPreferences_wdr.xrc')
+    resources = wx.xrc.XmlResource(xrcFile)
+    win = AccountPreferencesDialog(parent, "Account Preferences",
+     resources=resources, account=account, view=view)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+    win.Destroy()
+    return val
