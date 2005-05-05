@@ -334,12 +334,23 @@ int		yDiff;
 // virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
-wxSize	bestSize;
+wxSize	targetSize;
 
-	bestSize = CalculateDefaultSize();
-	CacheBestSize( bestSize );
+	targetSize = CalculateDefaultSize();
+	CacheBestSize( targetSize );
 
-	return bestSize;
+	return targetSize;
+}
+
+// virtual
+wxSize wxColumnHeader::DoGetMinSize( void ) const
+{
+wxSize	targetSize;
+
+	targetSize = CalculateDefaultSize();
+	targetSize.x = 0;
+
+	return targetSize;
 }
 
 wxSize wxColumnHeader::CalculateDefaultSize( void ) const

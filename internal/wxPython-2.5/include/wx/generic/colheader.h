@@ -72,6 +72,7 @@ public:
 	virtual bool Show( bool bShow = true );
 	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
+	virtual wxSize DoGetMinSize( void ) const;
 
 	wxSize CalculateDefaultSize( void ) const;
 	long GetTotalUIExtent( void ) const;
