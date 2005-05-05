@@ -20,11 +20,11 @@ SRC=$(QP)
 build: $(PYTHON) $(SRC)/QueryParser.g
 	$(PYTHON) $(TOOLPATH) $(GRAMMAR_PATH)
 	mkdir -p $(MANIFEST_PATH)
-	cp -p QueryParser.py $(MANIFEST_PATH)
+	cp -p QueryParser.py $(BUILD_ROOT)/$(MANIFEST_PATH)
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(QP)/$(MANIFEST)
+	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz > $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
@@ -34,7 +34,7 @@ realclean: clean
 	rm -f QueryParser-debug-*.tar.gz* QueryParser-release-*.tar.gz*
 
 install:
-	tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
+	tar -C $(BUILD_ROOT) -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 upload: QueryParser-$(SNAP)-$(RELVER).tar.gz
 	scp QueryParser-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
