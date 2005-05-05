@@ -1,5 +1,5 @@
---- M2Crypto-r261/setup.py	2005-05-04 21:07:40.000000000 -0700
-+++ M2Crypto-r261-patched/setup.py	2005-05-04 21:23:41.287371200 -0700
+--- M2Crypto-r263/setup.py	2005-05-04 21:07:40.000000000 -0700
++++ M2Crypto-r263-patched/setup.py	2005-05-04 21:23:41.287371200 -0700
 @@ -12,6 +12,10 @@
  from distutils.core import setup, Extension
  from distutils.command import build_ext
