@@ -384,7 +384,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
-    def Draw(self, dc, boundingRect, styles, selected):
+    def Draw(self, dc, boundingRect, styles, brushOffset, selected):
         item = self._item
 
         time = item.startTime
@@ -413,7 +413,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         
         for rectIndex, itemRect in enumerate(self._boundsRects):        
             
-            brush = styles.brushes.GetGradientBrush(itemRect.x, itemRect.width, 
+            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset, 
+                                                    itemRect.width, 
                                                     gradientLeft, gradientRight)
             dc.SetPen(wx.Pen(penColor))
             dc.SetBrush(brush)
@@ -507,13 +508,14 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class HeaderCanvasItem(CalendarCanvasItem):
-    def Draw(self, dc, styles, selected):
+    def Draw(self, dc, styles, brushOffset, selected):
         item = self._item
         itemRect = self._bounds
         
         eventColors = styles.blockItem.getEventColors(item)
         if selected:
-            brush = styles.brushes.GetGradientBrush(itemRect.x, itemRect.width,
+            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset,
+                                                    itemRect.width,
                                                     eventColors.selectedGradientLeft,
                                                     eventColors.selectedGradientRight)
             pen = wx.Pen(eventColors.selectedOutlineColor)
@@ -786,6 +788,24 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
     def GetCurrentDateRange(self):
         return self.parent.blockItem.GetCurrentDateRange()
+
+    def GetPlatformBrushOffset(self):
+        """
+        On mac, the brushes are relative to the toplevel window. We have
+        to walk up the parent window chain to find our offset within the parent
+        window.
+        Other platforms, the brush is offset from the current window.
+        """
+        if '__WXMAC__' in wx.PlatformInfo:
+            brushOffset = 0
+            p = self
+            while not p.IsTopLevel():
+                brushOffset += p.GetPosition().x
+                p = p.GetParent()
+        else:
+            brushOffset = 0
+
+        return brushOffset
 
 
 class wxWeekPanel(wx.Panel, CalendarEventHandler):
@@ -1158,6 +1178,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         dc.SetFont(styles.eventLabelFont)
         
         selectedBox = None
+        brushOffset = self.GetPlatformBrushOffset()
 
         for canvasItem in self.canvasItemList:
             # save the selected box to be drawn last
@@ -1165,10 +1186,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, styles, False)
+                canvasItem.Draw(dc, styles, brushOffset, False)
         
         if selectedBox:
-            selectedBox.Draw(dc, styles, True)
+            selectedBox.Draw(dc, styles, brushOffset, True)
 
         # Draw a line across the bottom of the header
         dc.SetPen(styles.majorLinePen)
@@ -1503,6 +1524,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         selectedBox = None        
         # finally, draw the items
         boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
+        brushOffset = self.GetPlatformBrushOffset()
         for canvasItem in self.canvasItemList:
 
             item = canvasItem.GetItem()
@@ -1511,11 +1533,11 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, boundingRect, styles, False)
+                canvasItem.Draw(dc, boundingRect, styles,  brushOffset, False)
             
         # now draw the current item on top of everything else
         if selectedBox:
-            selectedBox.Draw(dc, boundingRect, styles, True)
+            selectedBox.Draw(dc, boundingRect, styles, brushOffset, True)
         
     def CheckConflicts(self):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
