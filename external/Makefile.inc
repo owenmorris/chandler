@@ -70,7 +70,7 @@ GCJ_VER=3
 endif
 ifeq ($(OS),Darwin)
 GCJ_HOME=$(compiler)
-GCJ_VER=4
+GCJ_VER=3
 endif
 ifeq ($(OS),Linux)
 GCJ_HOME=$(compiler)
