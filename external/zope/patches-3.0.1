@@ -1,0 +1,13 @@
+--- ZopeInterface-3.0.1/Dependencies/zope.interface-ZopeInterface-3.0.1/zope.interface/_zope_interface_coptimizations.c	Wed Aug  4 06:03:17 2004
++++ ZopeInterface-3.0.1-patched/Dependencies/zope.interface-ZopeInterface-3.0.1/zope.interface/_zope_interface_coptimizations.c	Thu May  5 14:20:16 2005
+@@ -335,9 +335,9 @@
+ 
+ 	{NULL,		NULL}		/* sentinel */
+ };
+ 
+-static PyTypeObject SpecType = {
++PyTypeObject SpecType = {
+ 	PyObject_HEAD_INIT(NULL)
+ 	/* ob_size           */ 0,
+ 	/* tp_name           */ "_interface_coptimizations."
+                                 "SpecificationBase",
