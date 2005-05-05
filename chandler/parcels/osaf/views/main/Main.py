@@ -16,6 +16,7 @@ import application.Parcel
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
@@ -117,7 +118,11 @@ class MainView(View):
     def onNewEvent (self, event):
         # Create a new Content Item
         # Triggered from "File | New Item" menu, for any of the item kinds.
-        newItem = event.kindParameter.newItem (None, None)
+        try:
+            kindParam = event.kindParameter
+        except AttributeError:
+            kindParam = Notes.Note.getKind(self.itsView) # default kind for "New"
+        newItem = kindParam.newItem (None, None)
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
