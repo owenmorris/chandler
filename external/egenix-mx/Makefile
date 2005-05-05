@@ -9,8 +9,8 @@ include $(BUILD_ROOT)/Makefile.inc
 BUILD=build_$(SNAP)
 
 
-apply: patches
-	patch -Nup0 < patches; echo ok
+apply: patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 build: expand apply
 	cd $(SRC); \

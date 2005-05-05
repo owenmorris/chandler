@@ -1,5 +1,5 @@
 --- egenix-mx-base-2.1.0/mx/BeeBase/mxBeeBase/mxBeeBase.c	2001-12-20 13:01:53.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/BeeBase/mxBeeBase/mxBeeBase.c	2004-03-18 18:41:26.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/BeeBase/mxBeeBase/mxBeeBase.c	2005-05-04 21:03:04.000000000 -0700
 @@ -65,10 +65,10 @@
  /* --- forward declarations ----------------------------------------------- */
  
@@ -13,8 +13,24 @@
  
  staticforward
  mxBeeCursorObject *mxBeeCursor_New(mxBeeIndexObject *index,   /* Index object */
+@@ -1200,7 +1200,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxBeeIndex_Methods[] =
+ {   
+     Py_MethodListEntry("get",mxBeeIndex_get),
+@@ -1550,7 +1549,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxBeeCursor_Methods[] =
+ {   
+     Py_MethodListEntryNoArgs("next",mxBeeCursor_next),
 --- egenix-mx-base-2.1.0/mx/DateTime/mxDateTime/mxDateTime.c	2001-12-10 02:15:49.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/DateTime/mxDateTime/mxDateTime.c	2004-03-18 18:38:26.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/DateTime/mxDateTime/mxDateTime.c	2005-05-04 20:57:39.000000000 -0700
 @@ -76,8 +76,10 @@
  #define STRFTIME_OUTPUT_SIZE	1024
  
@@ -39,8 +55,24 @@
  
  staticforward
  PyObject *mxDateTimeDelta_FromDaysEx(long days,
+@@ -2291,7 +2293,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxDateTime_Methods[] =
+ {   
+ #ifdef HAVE_STRFTIME
+@@ -3957,7 +3958,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxDateTimeDelta_Methods[] =
+ {   
+     Py_MethodListEntryNoArgs("absvalues",mxDateTimeDelta_absvalues),
 --- egenix-mx-base-2.1.0/mx/Proxy/mxProxy/mxProxy.c	2001-12-20 11:57:46.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/Proxy/mxProxy/mxProxy.c	2004-03-18 18:39:06.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Proxy/mxProxy/mxProxy.c	2005-05-04 20:58:16.000000000 -0700
 @@ -66,7 +66,7 @@
  /* --- forward declarations ----------------------------------------------- */
  
@@ -50,8 +82,16 @@
  static int mxProxy_DefuncObjectReference(mxProxyObject *self);
  static int mxProxy_FinalizeWeakReferences(void);
  
+@@ -1403,7 +1403,6 @@
+ 
+  */
+ 
+-statichere
+ PyMethodDef mxProxy_Methods[] =
+ {   
+     Py_MethodListEntry("proxy_getattr",mxProxy_proxy_getattr),
 --- egenix-mx-base-2.1.0/mx/Queue/mxQueue/mxQueue.c	2001-12-20 11:57:46.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/Queue/mxQueue/mxQueue.c	2004-03-18 18:39:35.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Queue/mxQueue/mxQueue.c	2005-05-04 21:00:15.000000000 -0700
 @@ -58,7 +58,7 @@
  /* --- forward declarations ----------------------------------------------- */
  
@@ -61,8 +101,16 @@
  
  /* --- internal macros ---------------------------------------------------- */
  
+@@ -904,7 +904,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxQueue_Methods[] =
+ {   
+     Py_MethodListEntrySingleArg("push",mxQueue_push),
 --- egenix-mx-base-2.1.0/mx/Stack/mxStack/mxStack.c	2001-12-20 11:57:46.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/Stack/mxStack/mxStack.c	2004-03-18 18:40:00.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Stack/mxStack/mxStack.c	2005-05-04 21:00:43.000000000 -0700
 @@ -58,7 +58,7 @@
  /* --- forward declarations ----------------------------------------------- */
  
@@ -72,8 +120,16 @@
  
  /* --- internal macros ---------------------------------------------------- */
  
+@@ -849,7 +849,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxStack_Methods[] =
+ {   
+     Py_MethodListEntrySingleArg("push",mxStack_push),
 --- egenix-mx-base-2.1.0/mx/TextTools/mxTextTools/mxTextTools.c	2001-12-28 12:53:03.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/TextTools/mxTextTools/mxTextTools.c	2004-03-18 18:40:51.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/TextTools/mxTextTools/mxTextTools.c	2005-05-04 21:02:01.000000000 -0700
 @@ -141,7 +141,7 @@
  
  /* --- Text Search Object ----------------------------------------------*/
@@ -83,7 +139,15 @@
  
  /* allocation */
  
-@@ -912,7 +912,7 @@
+@@ -897,7 +897,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxTextSearch_Methods[] =
+ {   
+     Py_MethodListEntry("search",mxTextSearch_search),
+@@ -912,7 +911,7 @@
  
  /* --- Character Set Object --------------------------------------------*/
  
@@ -92,7 +156,15 @@
  
  /* internal */
  
-@@ -2081,7 +2081,7 @@
+@@ -2063,7 +2062,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxCharSet_Methods[] =
+ {   
+     Py_MethodListEntry("contains",mxCharSet_contains),
+@@ -2081,7 +2079,7 @@
  
  /* --- Tag Table Object ------------------------------------------------*/
  
@@ -101,6 +173,14 @@
  
  PyObject *mxTagTable_New(PyObject *definition,
  			 int tabletype,
+@@ -2891,7 +2889,6 @@
+ 
+ /* Python Method Table */
+ 
+-statichere
+ PyMethodDef mxTagTable_Methods[] =
+ {   
+     Py_MethodListEntryNoArgs("compiled",mxTagTable_compiled),
 --- egenix-mx-base-2.1.0/mx/DateTime/DateTime.py	Wed Oct 10 01:10:00 2001
 +++ egenix-mx-base-2.1.0-patched/mx/DateTime/DateTime.py	Thu Nov 18 17:55:48 2004
 @@ -532,17 +532,17 @@
