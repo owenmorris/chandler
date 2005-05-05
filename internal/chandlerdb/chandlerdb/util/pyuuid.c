@@ -113,8 +113,8 @@ static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 {
     unsigned char uuid[16];
-    unsigned char *text;
     unsigned int len = 0;
+    char *text;
 
     if (!PyArg_ParseTuple(args, "|z#", &text, &len))
         return -1; 
@@ -144,7 +144,7 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
-    self->uuid = PyString_FromStringAndSize(uuid, sizeof(uuid));
+    self->uuid = PyString_FromStringAndSize((char *) uuid, sizeof(uuid));
     self->hash = hash_bytes(uuid, sizeof(uuid));
 
     return 0;
@@ -158,7 +158,7 @@ static int t_uuid_hash(t_uuid *self)
 static PyObject *t_uuid_str(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
-    unsigned char buf[36];
+    char buf[36];
 
     format16_uuid(uuid, buf);
 
@@ -168,7 +168,7 @@ static PyObject *t_uuid_str(t_uuid *self)
 static PyObject *t_uuid_repr(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
-    unsigned char buf[44];
+    char buf[44];
 
     strcpy(buf, "<UUID: ");
     format16_uuid(uuid, buf + 7);
@@ -209,7 +209,7 @@ static PyObject *t_uuid_richcmp(t_uuid *o1, t_uuid *o2, int opid)
 static PyObject *format64(t_uuid *self)
 {
     unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
-    unsigned char buf[22];
+    char buf[22];
 
     format64_uuid(uuid, buf);
 
@@ -264,7 +264,7 @@ PyObject *PyUUID_Make16(PyObject *str16)
     
     /* steals reference */
     uuid->uuid = str16;
-    uuid->hash = hash_bytes(PyString_AS_STRING(str16), 16);
+    uuid->hash = hash_bytes((unsigned char *) PyString_AS_STRING(str16), 16);
 
     return (PyObject *) uuid;
 }
