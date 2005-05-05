@@ -160,12 +160,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     # Drawing utility -- scaffolding, we'll try using editor/renderers
     @staticmethod
     def DrawWrappedText(dc, text, rect):
-        # Simple wordwrap, next step is to not overdraw the rect
+        """
+        Simple wordwrap - draws the text into the current DC
+        
+        returns the height of the text that was written
+        """
         
         result = []
         
         lines = text.splitlines()
         y = rect.y
+        totalHeight = 0
         for line in lines:
             x = rect.x
             wrap = 0
@@ -176,11 +181,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # (careful not to jump if we're already at the beginning of the line)
                 if (x != rect.x and x + width > rect.x + rect.width):
                     y += height
+                    totalHeight += height
                     x = rect.x
                 
                 # if we're out of vertical space, just return
                 if (y + height > rect.y + rect.height):
-                    return y
+                    return totalHeight
                    
                 # if we wrapped but we still can't fit the word,
                 # just truncate it    
@@ -194,15 +200,15 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 width, height = dc.GetTextExtent(' ')
                 dc.DrawText(' ', x, y)
                 x += width
-            y += height
-        return y
+            totalHeight += height
+        return totalHeight
 
     @staticmethod
     def DrawClippedText(dc, word, x, y, maxWidth):
         # keep shortening the word until it fits
         for i in xrange(len(word), 0, -1):
             smallWord = word[0:i] # + "..."
-            width, height = dc.GetTextExtent(smallWord)
+            (width, height) = dc.GetTextExtent(smallWord)
             if width <= maxWidth:
                 dc.DrawText(smallWord, x, y)
                 return
@@ -459,7 +465,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                 # draw the time if there is room
                 if (timeHeight < itemRect.height/2):
                     dc.SetFont(styles.eventTimeFont)
-                    y = self.DrawWrappedText(dc, timeString, timeRect)
+                    textHeight = self.DrawWrappedText(dc, timeString, timeRect)
+                    y += textHeight
                 
                 textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
                 
@@ -508,6 +515,9 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class HeaderCanvasItem(CalendarCanvasItem):
+    def __init__(self, *args, **kwargs):
+        super(HeaderCanvasItem, self).__init__(*args, **kwargs)
+
     def Draw(self, dc, styles, brushOffset, selected):
         item = self._item
         itemRect = self._bounds
@@ -860,8 +870,11 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
 
         self.bgColor = wx.WHITE
 
-        self.majorLinePen = wx.Pen(wx.Colour(204, 204, 204))
-        self.minorLinePen = wx.Pen(wx.Colour(229, 229, 229))
+        self.majorLineColor = wx.Colour(204, 204, 204)
+        self.minorLineColor = wx.Colour(229, 229, 229)
+        
+        self.majorLinePen = wx.Pen(self.majorLineColor)
+        self.minorLinePen = wx.Pen(self.minorLineColor)
         self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
         self.selectionPen = wx.Pen(wx.Colour(102,102,102))
 
@@ -1106,18 +1119,13 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekHeaderCanvas, self).__init__ (*arguments, **keywords)
 
+        self.SetMinSize((-1,25))
+        self.size = self.GetSize()
         self.fixed = True
-
-        # @@@ constants
-        
-        self.hourHeight = 40
-        self.dayHeight = self.hourHeight * 24
 
     def OnInit(self):
         super (wxWeekHeaderCanvas, self).OnInit()
         
-        self.SetMinSize((-1,20))
-        self.size = self.GetSize()
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
                     
@@ -1209,7 +1217,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
-            width = self.size.width
+            width = self.size.width - self.parent.scrollbarWidth
         else:
             startDay = self.parent.blockItem.rangeStart
             width = self.parent.dayWidth
@@ -1307,6 +1315,26 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
 class wxWeekColumnCanvas(wxCalendarCanvas):
 
+    def __init__(self, *args, **kwargs):
+        super(wxWeekColumnCanvas,self).__init__(*args, **kwargs)
+        
+        # @@@ rationalize drawing calculations...
+        self.hourHeight = 40
+        
+        self._scrollYRate = 10
+        
+        self._bgSelectionStartTime = None
+        self._bgSelectionEndTime = None
+        
+        # determines if we're dragging the start or the end of an event, usually
+        # the end
+        self._bgSelectionDragEnd = True
+
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
+        
     def wxSynchronizeWidget(self):
         self._doDrawingCalculations()
         self.RebuildCanvasItems()
@@ -1321,26 +1349,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     def OnInit(self):
         super (wxWeekColumnCanvas, self).OnInit()
         
-        # @@@ rationalize drawing calculations...
-        self.hourHeight = 40
-        
-        self._scrollYRate = 10
-        
-        self._bgSelectionStartTime = None
-        self._bgSelectionEndTime = None
-        
-        # determines if we're dragging the start or the end of an event, usually
-        # the end
-        self._bgSelectionDragEnd = True
-        
-        # @@@ clean this up...
-        #self.SetVirtualSize((self.GetVirtualSize().width, self.hourHeight*24))
-        self.size = self.GetSize()
-        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
-        if (self.hourHeight > 0):
-              self.size.height = self.hourHeight * 24
-        self.SetVirtualSize(self.size)
-
         self.SetScrollRate(0, self._scrollYRate)
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
@@ -1368,8 +1376,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         #self.size = self.GetVirtualSize()
         self.size = self.GetSize()
         self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
-        if (self.hourHeight > 0):
-              self.size.height = self.hourHeight * 24
+        self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
 
         self.xOffset = self.size.width / 8
@@ -1396,15 +1403,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         dc.SetTextForeground(styles.legendColor)
         dc.SetFont(styles.legendFont)
 
-        # Use topTime to draw am/pm on the topmost hour
-        topCoordinate = self.CalcUnscrolledPosition((0,0))
-        topTime = self.getDateTimeFromPosition(wx.Point(topCoordinate[0],
-                                                        topCoordinate[1]))
-
-        #bottomCoordinate = self.CalcUnscrolledPosition((
-        #bottomTime = self.getDateTimeFromPosition(wx.Point(bottomCoordinate[0],
-        #                                                   bottomCoordinate[1]))
-
         # Draw the lines separating hours
         halfHourHeight = self.hourHeight/2
         for hour in range(24):
@@ -1416,15 +1414,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                 elif (hour == 12): 
                     hourString = "pm 12"
                 elif (hour > 12):
-                    if (hour == (topTime.hour + 1)): # topmost hour
-                        hourString = "pm %s" % str(hour - 12)
-                    else:
-                        hourString = str(hour - 12)
+                    hourString = str(hour - 12)
                 else:
-                    if (hour == (topTime.hour + 1)): # topmost hour
-                        hourString = "am %s" % str(hour)
-                    else:
-                        hourString = str(hour)
+                    hourString = str(hour)
                 wText, hText = dc.GetTextExtent(hourString)
                 dc.DrawText(hourString,
                             self.xOffset - wText - 5,
@@ -1445,11 +1437,28 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                          hour * self.hourHeight + halfHourHeight)
 
         # Draw lines between days
-        for day in range(self.parent.columns):
-            if day == 0:
-                dc.SetPen(styles.majorLinePen)
-            else:
-                dc.SetPen(styles.minorLinePen)
+        
+        legendBorderWidth = 3
+        legendBorderX = self.xOffset - legendBorderWidth + 1
+
+        dc.SetPen(wx.Pen(styles.majorLineColor, legendBorderWidth))
+        dc.DrawLine(legendBorderX, 0,
+                    legendBorderX, self.size.height)
+                    
+        # hardcode this for now - eventually this should be a preference
+        workdayHourStart = 9 # 9am
+        workdayHourEnd = 17  # 5pm
+        
+        pen = wx.Pen(styles.legendColor, legendBorderWidth)
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        
+        dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
+                    legendBorderX, workdayHourEnd * self.hourHeight)
+                 
+        
+        dc.SetPen(styles.minorLinePen)
+        for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
 
