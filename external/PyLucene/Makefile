@@ -92,7 +92,12 @@ PYLUCENE_JCCH=$(GCJ_HOME)/bin/gcjh
 endif
 
 ifeq ($(PYLUCENE_JAR),)
+ifeq ($(GCJ_VER),3)
 PYLUCENE_JAR=$(GCJ_HOME)/bin/jar
+endif
+ifeq ($(GCJ_VER),4)
+PYLUCENE_JAR=$(GCJ_HOME)/bin/fastjar
+endif
 endif
 
 build: expand apply
