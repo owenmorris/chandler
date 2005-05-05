@@ -1,5 +1,5 @@
 
-VERSION=r255
+VERSION=r261
 RELVER=$(VERSION)-1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 
@@ -63,3 +63,8 @@ upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 clean:
 	rm -rf  $(SRC)/$(BUILD)
 
+# To build source tarballs: make srctarball M2SVNREV=<revision>
+srctarball:
+	svn co -r$(M2SVNREV) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-r$(M2SVNREV) 
+	tar --exclude=.svn -czvf M2Crypto-r$(M2SVNREV).tar.gz M2Crypto-r$(M2SVNREV)
+	md5sum -b M2Crypto-r$(M2SVNREV).tar.gz > M2Crypto-r$(M2SVNREV).tar.gz.md5

@@ -1,40 +1,17 @@
---- M2Crypto-r255/setup.py	2005-04-13 17:04:18.000000000 -0700
-+++ M2Crypto-r255-patched/setup.py	2004-12-01 19:00:55.479326400 -0800
-@@ -3,19 +3,23 @@
- """
- Distutils installer for M2Crypto.
- 
--Copyright (c) 1999-2004, Ng Pheng Siong. All rights reserved.
-+Copyright (c) 1999-2003, Ng Pheng Siong. All rights reserved.
- """
- 
--_RCS_id = '$Id: setup.py,v 1.13 2004/03/28 11:30:01 ngps Exp $'
-+_RCS_id = '$Id: setup.py,v 1.4 2004/12/01 00:36:34 vajda Exp $'
- 
--import os, shutil, sys
-+import os, shutil
+--- M2Crypto-r261/setup.py	2005-05-04 21:07:40.000000000 -0700
++++ M2Crypto-r261-patched/setup.py	2005-05-04 21:23:41.287371200 -0700
+@@ -12,6 +12,10 @@
  from distutils.core import setup, Extension
  from distutils.command import build_ext
  
--if sys.version_info < (2,4):
 +# XXX This is a hack to force search order that works
 +# XXX for Chandler.
 +from distutils.sysconfig import get_config_var
- 
--    # This copy of swig_sources is from Python 2.2.
- 
-+if 'swig=' not in [opt[0] for opt in build_ext.build_ext.user_options]:
 +
-+    # This copy of swig_sources is from Python 2.2.
-     def swig_sources (self, sources):
+ if sys.version_info < (2,4):
  
-         """Walk the list of source files in 'sources', looking for SWIG
-@@ -64,18 +68,29 @@
- 
-     build_ext.build_ext.swig_sources = swig_sources
- 
-+
- my_inc = os.path.join(os.getcwd(), 'SWIG')
+     # This copy of swig_sources is from Python 2.2.
+@@ -68,13 +72,23 @@
  
  if os.name == 'nt':
      openssl_dir = 'c:\\pkg\\openssl'
@@ -49,8 +26,7 @@
 +    library_dirs = [prefix_dir + '\\..\\lib',
 +                    openssl_dir + '\\lib']
      libraries = ['ssleay32', 'libeay32']
-     extra_compile_args = [ "-DTHREADING" ]
- 
+     
  elif os.name == 'posix':
 -    include_dirs = [my_inc, '/usr/include']
 -    library_dirs = ['/usr/lib']
@@ -61,5 +37,5 @@
 +    library_dirs = [get_config_var('LIBDIR'),
 +                    '/usr/lib']
      libraries = ['ssl', 'crypto']
-     extra_compile_args = [ "-DTHREADING" ]
  
+ m2crypto = Extension(name = '__m2crypto',
