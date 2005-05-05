@@ -266,7 +266,8 @@ public:
     %Rename(FindItemById, virtual wxMenuItem*, FindItem(int id /*, wxMenu **menu = NULL*/) const);
 
     // find menu by its caption, return wxNOT_FOUND on failure
-    int FindMenu(const wxString& title) const;
+    // NB: (davids) the final "const" is commented out to hack around a wxMac decl bug
+    int FindMenu(const wxString& title); // const;
 
  
     // all these functions just use FindItem() and then call an appropriate
