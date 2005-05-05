@@ -13,6 +13,10 @@ from repository.persistence.DBRepository import DBRepository
 from repository.util.Path import Path
 from application.Parcel import Manager as ParcelManager
 
+# set up the gettext locale, so we have a definition of _()
+os.environ['LANGUAGE'] = 'en'
+gettext.install('chandler', 'locale')
+
 class RepositoryTestCase(TestCase):
 
     def _setup(self, ramdb=True):
@@ -31,10 +35,6 @@ class RepositoryTestCase(TestCase):
         root.addHandler(handler)
 
         self.ramdb = ramdb
-
-        # set up the gettext locale, so we have a definition of _()
-        os.environ['LANGUAGE'] = 'en'
-        gettext.install('chandler', 'locale')
 
     def _openRepository(self, ramdb=True):
         preloadedRepositoryPath = os.path.join(self.testdir, '__preloaded_repository__')
@@ -62,7 +62,7 @@ class RepositoryTestCase(TestCase):
 
     def setUp(self, ramdb=True):
         self._setup(ramdb)
-        
+
         self.testdir = os.path.join(self.rootdir, 'repository',
                                     'tests')
         self._openRepository(ramdb)
