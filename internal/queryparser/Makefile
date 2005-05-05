@@ -19,7 +19,7 @@ SRC=$(QP)
 
 build: $(PYTHON) $(SRC)/QueryParser.g
 	$(PYTHON) $(TOOLPATH) $(GRAMMAR_PATH)
-	mkdir -p $(MANIFEST_PATH)
+	mkdir -p $(BUILD_ROOT)/$(MANIFEST_PATH)
 	cp -p QueryParser.py $(BUILD_ROOT)/$(MANIFEST_PATH)
 
 snap: 
