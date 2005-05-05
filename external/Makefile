@@ -16,7 +16,8 @@ SYSTEMS=persistence/db \
         pychecker \
         yapps \
 	vobject \
-	dateutil
+	dateutil \
+	m2crypto
 
 .PHONY: sources expand binaries $(SYSTEMS)
 

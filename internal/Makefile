@@ -3,7 +3,6 @@ include Makefile.inc
 
 SYSTEMS=chandlerdb \
         wxPython-2.5 \
-        m2crypto \
         launchers \
         queryparser
 
