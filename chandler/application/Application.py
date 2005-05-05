@@ -15,6 +15,7 @@ from repository.persistence.RepositoryError \
 from crypto import Crypto
 import logging as logging
 import cStringIO
+import CPIAScript
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
@@ -584,6 +585,10 @@ class wxApplication (wx.App):
                 self.mainFrame.UpdateWindowUI (wx.UPDATE_UI_FROMIDLE | wx.UPDATE_UI_RECURSE)
             finally:
                 self.needsUpdateUI = False
+
+        # Give CPIA Script a chance to execute a script
+        CPIAScript.RunScript()
+
         event.Skip()
 
     def OnExit(self):
