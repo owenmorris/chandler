@@ -30,7 +30,11 @@ def RunScript(script=None):
         Globals.CPIAScript = script
 
     # if we have a script, execucte it until completion
-    if Globals.CPIAScript is not None:
+    try:
+        script = Globals.CPIAScript
+    except AttributeError:
+        script = None
+    if script is not None:
         scriptDone = True
         try:
             scriptDone = Globals.CPIAScript.execute()
