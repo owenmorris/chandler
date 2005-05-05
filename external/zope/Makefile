@@ -1,6 +1,6 @@
 
-VERSION=3.0.0b1
-RELVER=$(VERSION)-2
+VERSION=3.0.1
+RELVER=$(VERSION)-1
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/ZopeInterface-$(VERSION)
 
@@ -8,10 +8,7 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION);echo ok
-
-build: expand apply
+build: expand
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
