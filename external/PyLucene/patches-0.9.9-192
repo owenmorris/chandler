@@ -25,7 +25,7 @@
 +	install $(GCJ_HOME)/lib/libgcj.so.$(LIBGCJ_VER) $(PREFIX)/lib
 +	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
 +	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
-+	strip $(PREFIX)/lib/libgcj.so.5
++	strip $(PREFIX)/lib/libgcj.so.$(LIBGCJ_VER)
 +	strip $(PREFIX)/lib/libstdc++.so.6
  else
  
