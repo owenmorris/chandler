@@ -66,13 +66,18 @@ endif
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
 GCJ_HOME=$(compiler)
+GCJ_VER=3
 endif
 ifeq ($(OS),Darwin)
 GCJ_HOME=$(compiler)
+GCJ_VER=4
 endif
 ifeq ($(OS),Linux)
 GCJ_HOME=$(compiler)
+GCJ_VER=3
 endif
+else
+GCJ_VER=3
 endif
 
 ifeq ($(CHANDLERHOME),)
