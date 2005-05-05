@@ -63,6 +63,9 @@ MD5CHECK=$(MD5) -c
 endif
 endif
 
+# GCJ_VER should be set to 3, if using gcj 3.4.x
+# GCJ_VER should be set to 4, if using gcj 4.x.y
+
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
 GCJ_HOME=$(compiler)
