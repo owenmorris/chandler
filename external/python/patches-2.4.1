@@ -1,0 +1,93 @@
+--- Python-2.4.1/Mac/OSX/Makefile	2005-01-06 14:33:55.000000000 -0800
++++ Python-2.4.1-patched/Mac/OSX/Makefile	2005-05-04 19:22:18.000000000 -0700
+@@ -59,8 +59,7 @@
+ compileall=$(srcdir)/Lib/compileall.py
+ bundlebuilder=$(srcdir)/Lib/plat-mac/bundlebuilder.py
+ 
+-installapps: install_PythonLauncher install_Python install_BuildApplet install_IDE \
+-	install_IDLE install_PackageManager checkapplepython
++installapps: install_Python
+ 
+ install_PythonLauncher:
+ 	cd $(srcdir)/Mac/OSX/PythonLauncher/PythonLauncher.pbproj ; \
+--- Python-2.4.1/PC/getpathp.c	2004-08-07 12:12:27.000000000 -0700
++++ Python-2.4.1-patched/PC/getpathp.c	2005-05-04 19:23:21.000000000 -0700
+@@ -489,8 +489,13 @@
+ 	}
+  
+ 	skiphome = pythonhome==NULL ? 0 : 1;
+-	machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
+-	userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
++#if 0
++        /* Chandler doesn't want to grab registry info because we want to
++         * ignore extensions that the user already has installed.
++         */
++        machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
++        userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
++#endif
+ 	/* We only use the default relative PYTHONPATH if we havent
+ 	   anything better to use! */
+ 	skipdefault = envpath!=NULL || pythonhome!=NULL || \
+--- Python-2.4.1/setup.py	2005-03-09 14:27:24.000000000 -0800
++++ Python-2.4.1-patched/setup.py	2005-05-04 19:36:21.000000000 -0700
+@@ -490,33 +490,35 @@
+         # http://www.sleepycat.com/update/index.html
+ 
+         max_db_ver = (4, 3)
+-        min_db_ver = (3, 2)
++        min_db_ver = (4, 3)
+         db_setup_debug = False   # verbose debug prints from this script?
+ 
+-        # construct a list of paths to look for the header file in on
+-        # top of the normal inc_dirs.
+-        db_inc_paths = [
+-            '/usr/include/db4',
+-            '/usr/local/include/db4',
+-            '/opt/sfw/include/db4',
+-            '/sw/include/db4',
+-            '/usr/include/db3',
+-            '/usr/local/include/db3',
+-            '/opt/sfw/include/db3',
+-            '/sw/include/db3',
+-        ]
+-        # 4.x minor number specific paths
+-        for x in (0,1,2,3):
+-            db_inc_paths.append('/usr/include/db4%d' % x)
+-            db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
+-            db_inc_paths.append('/usr/local/include/db4%d' % x)
+-            db_inc_paths.append('/pkg/db-4.%d/include' % x)
+-        # 3.x minor number specific paths
+-        for x in (2,3):
+-            db_inc_paths.append('/usr/include/db3%d' % x)
+-            db_inc_paths.append('/usr/local/BerkeleyDB.3.%d/include' % x)
+-            db_inc_paths.append('/usr/local/include/db3%d' % x)
+-            db_inc_paths.append('/pkg/db-3.%d/include' % x)
++        # for Chandler build
++        if os.environ.has_key('DB'):
++            DB = os.environ['DB']
++            print 'DB:', DB
++            db_inc_paths = [ os.path.join(DB, 'include') ]
++
++        else:
++            # construct a list of paths to look for the header file in on
++            # top of the normal inc_dirs.
++            db_inc_paths = [
++                '/usr/include/db4',
++                '/usr/local/include/db4',
++                '/opt/sfw/include/db4',
++                '/sw/include/db4',
++                '/usr/include/db3',
++                '/usr/local/include/db3',
++                '/opt/sfw/include/db3',
++                '/sw/include/db3',
++            ]
++
++            # 4.x minor number specific paths
++            for x in (0,1,2,3):
++                db_inc_paths.append('/usr/include/db4%d' % x)
++                db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
++                db_inc_paths.append('/usr/local/include/db4%d' % x)
++                db_inc_paths.append('/pkg/db-4.%d/include' % x)
+ 
+         db_ver_inc_map = {}
+ 
