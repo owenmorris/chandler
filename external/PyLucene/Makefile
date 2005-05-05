@@ -1,5 +1,5 @@
 
-VERSION=0.9.8-190
+VERSION=0.9.9-192
 RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -43,7 +43,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).$(_dylib) \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
-         $(SNAP)/lib/libgcj.5.dylib \
+         $(SNAP)/lib/libgcj.6.dylib \
          $(SNAP)/lib/libstdc++.6.dylib
 else
 
@@ -93,6 +93,7 @@ build: expand apply
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             SWIG=$(SWIG) \
             GCJ_HOME=$(GCJ_HOME) \
+            GCJ_VER=$(GCJ_VER) \
             PYDBG=$(PYDBG) \
             CC=$(PYLUCENE_CC) \
             CXX=$(PYLUCENE_CXX) \

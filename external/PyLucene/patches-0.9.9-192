@@ -1,0 +1,41 @@
+--- PyLucene-0.9.9-192/Makefile	2005-05-05 13:23:54.000000000 -0700
++++ PyLucene-0.9.9-192-patched/Makefile	2005-05-05 13:34:42.000000000 -0700
+@@ -270,7 +270,7 @@
+ PYLUCENE_CP:=`cygpath -awp $(PYLUCENE_CP)`
+ else
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -name '*.java'`
+-DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/build_unix
++DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/$(BUILD_DB)
+ endif
+ 
+ STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+@@ -327,7 +327,7 @@
+ else
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
+ DB_CONST=$(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java
+-DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/build_unix
++DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/$(BUILD_DB)
+ endif
+ 
+ STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+@@ -869,13 +869,19 @@
+ 	mkdir -p $(PREFIX_DB)/lib
+ 	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib
+ endif
++	install $(GCJ_HOME)/lib/libgcj.so.$(LIBGCJ_VER) $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libstdc++.so.6 $(PREFIX)/lib
++	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(PREFIX)/lib
++	strip $(PREFIX)/lib/libgcj.so.5
++	strip $(PREFIX)/lib/libstdc++.so.6
+ else
+ 
+ ifeq ($(OS),Cygwin)
+ install::
+ 	install $(GCJ_HOME)/bin/libiconv-2.dll $(PYTHON_SITE)
+ ifdef DB
+-	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
++	mkdir -p $(PREFIX)/bin
++	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
+ endif
+ endif
+ endif
