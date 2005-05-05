@@ -128,15 +128,18 @@ class CanvasTextButton(wx.BitmapButton):
         bitmap = self.GetBitmapLabel()
         width = bitmap.GetWidth() + self.forcedBorder*2
         height = bitmap.GetHeight() + self.forcedBorder*2
-        self.SetMinSize(wx.Size(width, height))
+
+        # @@@ on Mac, the SetMinSize causes the bottom of the column header to get clipped
+        #self.SetMinSize(wx.Size(width, height))
+        self.SetSize(wx.Size(width, height))
 
 class CanvasBitmapButton(wx.BitmapButton):
     """ Flat bitmap button, no border.
     
-        Currently does not work well on os x, widgets doesn't give us
-        a button with no border. 
+        Currently does not work well on MacOSX:
+        wxWidgets doesn't implement a button with no border. 
     """
-    
+
     def __init__(self, parent, name):
         """
 
@@ -146,7 +149,7 @@ class CanvasBitmapButton(wx.BitmapButton):
         @type name: string
         """
         self.forcedBorder = GetPlatformBorder()
-        
+
         bitmap = wx.GetApp().GetImage (name)
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.NO_BORDER)
