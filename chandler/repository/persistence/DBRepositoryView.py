@@ -395,11 +395,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         merges = {}
 
-        def union(l0, l1):
-            for i in l1:
-                if not i in l0:
-                    l0.append(i)
-
         def check(uuid, version, status, parent, dirties):
             item = self.find(uuid, False)
 
@@ -408,11 +403,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                     oldDirty = status & Item.DIRTY
                     if uuid in merges:
                         od, x, d = merges[uuid]
-                        merges[uuid] = (od | oldDirty, parent,
-                                        union(d, dirties))
+                        merges[uuid] = (od | oldDirty, parent, d.union(dirties))
                     else:
-                        merges[uuid] = (oldDirty, parent,
-                                        list(dirties))
+                        merges[uuid] = (oldDirty, parent, dirties)
 
                 elif item._version < version:
                     unloads[uuid] = item

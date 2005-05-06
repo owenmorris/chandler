@@ -31,11 +31,17 @@ class TypeKind(Kind):
 
     def onItemLoad(self, view):
 
-        TypeHandler.typeHandlers[view][None] = self
+        try:
+            TypeHandler.typeHandlers[view][None] = self
+        except KeyError:
+            TypeHandler.typeHandlers[view] = { None: self }
 
     def onItemCopy(self, view, orig):
 
-        TypeHandler.typeHandlers[view][None] = self
+        try:
+            TypeHandler.typeHandlers[view][None] = self
+        except KeyError:
+            TypeHandler.typeHandlers[view] = { None: self }
 
     def onItemImport(self, view):
 
@@ -44,7 +50,11 @@ class TypeKind(Kind):
                 del TypeHandler.typeHandlers[self.itsView][None]
             except KeyError:
                 pass
-            TypeHandler.typeHandlers[view][None] = self
+
+            try:
+                TypeHandler.typeHandlers[view][None] = self
+            except KeyError:
+                TypeHandler.typeHandlers[view] = { None: self }
 
     def onViewClose(self, view):
 
