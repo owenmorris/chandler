@@ -151,7 +151,7 @@ class RepoResource(resource.Resource):
                     prevView.setCurrentView()
 
         except Exception, e: # outer try
-            result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
+            result = "<html>Caught a %s exception: %s<br> %s</html>" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         if isinstance(result, unicode):
             result = result.encode('ascii', 'replace')
@@ -527,7 +527,7 @@ def RenderKindQuery(repoView, item):
             output.append("<a href=%s>'%s'</a>  (%s) %s" % (toLink(i.itsPath), i.getItemDisplayName(), i.itsKind.itsName, i.itsPath))
         result += ("<br>".join(output))
     except Exception, e:
-        result += "Caught an exception: %s<br> %s" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
+        result += "Caught a %s exception: %s<br> %s" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
     result += "</div>"
     result += "</td></tr></table>\n"
     return result
