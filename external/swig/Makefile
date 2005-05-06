@@ -12,6 +12,7 @@ BUILD=build_$(SNAP)
 ifeq ($(OS),Cygwin)
 
 $(SRC)/SWIG13.sln:
+	sed -e "s/1.3.24/$(VERSION)/" win32/Source/Include/swigconfig0.h > win32/Source/Include/swigconfig.h
 	tar -C win32 --exclude CVS -cf - . | tar -C $(SRC) -xvf -
 
 swig: $(SRC)/SWIG13.sln
