@@ -50,9 +50,12 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).$(_dylib) \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
+         $(SNAP)/lib/libgcj.$(LIBGCJ_VER).dylib
+ifeq ($(GCJ_VER),3)
+MANIFEST=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
-         $(SNAP)/lib/libgcj.$(LIBGCJ_VER).dylib \
          $(SNAP)/lib/libstdc++.6.dylib
+endif
 else
 
 ifeq ($(OS),Linux)
@@ -63,9 +66,12 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/security/classpath.security \
          $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so \
+         $(SNAP)/lib/libgcj.so.$(LIBGCJ_VER)
+ifeq ($(GCJ_VER),3)
+MANIFEST=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.so.1 \
-         $(SNAP)/lib/libgcj.so.$(LIBGCJ_VER) \
          $(SNAP)/lib/libstdc++.so.6
+endif
 endif
 endif
 endif
