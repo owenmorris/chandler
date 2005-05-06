@@ -405,7 +405,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                         od, x, d = merges[uuid]
                         merges[uuid] = (od | oldDirty, parent, d.union(dirties))
                     else:
-                        merges[uuid] = (oldDirty, parent, dirties)
+                        merges[uuid] = (oldDirty, parent, set(dirties))
 
                 elif item._version < version:
                     unloads[uuid] = item
