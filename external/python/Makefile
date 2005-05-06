@@ -137,7 +137,7 @@ $(SRC)/$(BUILD)/Makefile:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_DBG) \
                      --enable-framework=$(PREFIX)/Library/Frameworks
 
-build: expand $(SRC)/$(BUILD)/Makefile apply
+build: expand apply $(SRC)/$(BUILD)/Makefile
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
@@ -162,7 +162,7 @@ $(SRC)/$(BUILD)/Makefile:
 bzip2-$(BZIP2VERSION)/libbz2.a:
 	make -C bzip2-$(BZIP2VERSION) libbz2.a
 
-build: expand bzip2-$(BZIP2VERSION)/libbz2.a $(SRC)/$(BUILD)/Makefile apply
+build: expand bzip2-$(BZIP2VERSION)/libbz2.a apply $(SRC)/$(BUILD)/Makefile
 	install -D bzip2-$(BZIP2VERSION)/libbz2.a $(PREFIX)/lib/libbz2.a
 	install -D bzip2-$(BZIP2VERSION)/bzlib.h $(PREFIX)/include/bzlib.h
 	$(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) install

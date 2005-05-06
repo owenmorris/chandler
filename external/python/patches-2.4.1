@@ -91,3 +91,16 @@
  
          db_ver_inc_map = {}
  
+
+--- Python-2.4.1/Makefile.pre.in        2005-03-28 18:23:01.000000000 -0500
++++ Python-2.4.1-patched/Makefile.pre.in     2005-05-06 15:07:57.000000000 -0400
+@@ -111,7 +111,7 @@
+ # by distutils
+ CONFIGURE_MACOSX_DEPLOYMENT_TARGET=@CONFIGURE_MACOSX_DEPLOYMENT_TARGET@
+ # Options to enable prebinding (for fast startup prior to Mac OS X 10.3)
+-OTHER_LIBTOOL_OPT=@OTHER_LIBTOOL_OPT@
++OTHER_LIBTOOL_OPT=@OTHER_LIBTOOL_OPT@ -undefined dynamic_lookup
+
+ # Environment to run shared python without installed libraries
+ RUNSHARED=       @RUNSHARED@
+
