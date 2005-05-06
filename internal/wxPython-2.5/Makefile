@@ -91,6 +91,7 @@ $(SRC)/$(BUILD)/Makefile:
 		--enable-display \
 		--with-sdl \
 		--with-libpng \
+		--with-libtiff=builtin \
 		--with-mac
 
 wxPython:
@@ -128,6 +129,7 @@ $(SRC)/$(BUILD)/Makefile:
 		--enable-display \
 		--with-sdl \
 		--with-libpng \
+		--with-libtiff=builtin \
 		--with-gtk \
 		--enable-gtk2
 
