@@ -8,6 +8,7 @@ import logging
 
 from repository.persistence.RepositoryError import RepositoryError
 from repository.persistence.Repository import RepositoryThread
+from chandlerdb.util.uuid import UUID
 
 
 class AbstractRepositoryViewManager(object):
@@ -18,13 +19,17 @@ class AbstractRepositoryViewManager(object):
 
         @param repository: a Repository instance
         @type repository: C{Repository}
-        @param viewName: The name to assign as the key for the view
+        @param viewName: The name to assign as the key for the view if None
+                         an abitrary name will be assigned
         @type name: a string
         @return: C{None}
         """
 
         if repository is None:
             raise RepositoryError, "Repository Instance is None"
+
+        if viewName is None:
+            viewName = str(UUID())
 
         self.repository = repository
         self.view = self.repository.createView(viewName, version)

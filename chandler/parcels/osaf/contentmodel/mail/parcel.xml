@@ -88,7 +88,6 @@
             <inverseAttribute itemref="mail:MailMessageMixin/parentAccount" />
             <initialValue />
         </Attribute>
-
         <Attribute itsName="accountType">
             <displayName value="Account Type" />
             <description value="POP, IMAP, or SMTP" />
@@ -109,25 +108,12 @@
         </Attribute>
     </Kind>
 
-    <Kind itsName="IMAPAccount">
+
+    <Kind itsName="DownloadAccountBase">
         <superKinds itemref="mail:AccountBase" />
-        <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPAccount" />
-        <displayName value="IMAP Account" />
-        <description value="An IMAP Account" />
-
-        <Attribute itsName="port">
-            <displayName value="Port" />
-            <description value="The non-SSL port number to use" />
-            <type itemref="Integer" />
-            <initialValue type="Integer" value="143" />
-            <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
-        </Attribute>
-
-        <Attribute itsName="messageDownloadSequence">
-            <displayName value="Message Download Sequence" />
-            <type itemref="Long" />
-            <initialValue type="Long" value="0" />
-        </Attribute>
+        <classes key="python" value="osaf.contentmodel.mail.Mail.DownloadAccountBase" />
+        <displayName value="Downloaad Account Base" />
+        <description value="Base Account for protocols that download mail" />
 
         <Attribute itsName="defaultSMTPAccount">
             <displayName value="Default SMTP Account" />
@@ -156,6 +142,59 @@
 
     </Kind>
 
+    <Kind itsName="POPAccount">
+        <superKinds itemref="mail:DownloadAccountBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.POPAccount" />
+        <displayName value="POP Account" />
+        <description value="An POP Account" />
+
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type itemref="Integer" />
+            <initialValue type="Integer" value="110" />
+            <issues value="In order to get a custom initialValue for this attribute for a POPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
+        </Attribute>
+
+        <Attribute itsName="downloadedMessageUIDS">
+            <displayName value="Downloaded Message UID" />
+            <description value="Used for quick look up to discover if a message has already been downloaded" />
+            <cardinality value="dict" />
+            <type itemref="String" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="leaveOnServer">
+            <displayName value="Leave Mail On Server" />
+            <description value="Whether or not to leave messages on the server after downloading" />
+            <type itemref="Boolean" />
+            <initialValue type="Boolean" value="True" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="IMAPAccount">
+        <superKinds itemref="mail:DownloadAccountBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.IMAPAccount" />
+        <displayName value="IMAP Account" />
+        <description value="An IMAP Account" />
+
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type itemref="Integer" />
+            <initialValue type="Integer" value="143" />
+            <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
+        </Attribute>
+
+        <Attribute itsName="messageDownloadSequence">
+            <displayName value="Message Download Sequence" />
+            <type itemref="Long" />
+            <initialValue type="Long" value="0" />
+        </Attribute>
+
+    </Kind>
+
     <Kind itsName="SMTPAccount">
         <superKinds itemref="mail:AccountBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.SMTPAccount" />
@@ -179,9 +218,9 @@
 
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
-            <description value="Which IMAP accounts use this SMTP account as their default" />
-            <type itemref="mail:IMAPAccount" />
-            <inverseAttribute itemref="mail:IMAPAccount/defaultSMTPAccount" />
+            <description value="Which accounts use this SMTP account as their default" />
+            <type itemref="mail:DownloadAccountBase" />
+            <inverseAttribute itemref="mail:DownloadAccountBase/defaultSMTPAccount" />
             <cardinality value="list" />
             <initialValue />
         </Attribute>
@@ -335,6 +374,21 @@
             <cardinality value="list" />
             <type itemref="String" />
             <initialValue />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="POPDelivery">
+        <superKinds itemref="mail:MailDeliveryBase" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.POPDelivery" />
+        <displayName value="POP Delivery" />
+        <description value="Tracks the state of an inbound message" />
+
+        <Attribute itsName="uid">
+            <displayName value="POP UID" />
+            <description value="The unique POP ID for the message" />
+            <type itemref="String" />
+            <initialValue type="String" value=""/>
         </Attribute>
 
     </Kind>
@@ -683,8 +737,8 @@
             <description value="A list of Email Accounts that use this Email Address as the reply address for mail sent from the account." />
             <cardinality value="list" />
             <initialValue />
-            <type itemref="mail:IMAPAccount" />
-            <inverseAttribute itemref="mail:IMAPAccount/replyToAddress" />
+            <type itemref="mail:DownloadAccountBase" />
+            <inverseAttribute itemref="mail:DownloadAccountBase/replyToAddress" />
         </Attribute>
 
         <Attribute itsName="messagesBcc">

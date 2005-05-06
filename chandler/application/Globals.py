@@ -20,5 +20,6 @@ mainViewRoot = None           # The main View
 views = []                    # A list of nested views
 crypto = None                 # Cryptographic services
 wakeupCaller = None           # WakeupCaller Service
+mailService = None            # Mail Service (IMAP, POP, SMTP)
 options = None                # Command line options
 args = None                   # Command line arguments

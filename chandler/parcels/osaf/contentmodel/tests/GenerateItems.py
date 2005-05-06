@@ -74,8 +74,10 @@ M_TEXT  = "This is a test email message"
 M_EVENT = " that has been stamped as a Calendar Event"
 M_TASK  = " that has been stamped as a Task"
 M_BOTH  = " that has been stamped as a Task and a Calendar Event"
+M_FROM  = None
 
 def GenerateMailMessage(view):
+    global M_FROM
     message  = Mail.MailMessage(view=view)
     body     = M_TEXT
 
@@ -83,7 +85,10 @@ def GenerateMailMessage(view):
     type     = random.randint(1, 8)
     numTo    = random.randint(1, 3)
 
-    message.fromAddress = GenerateCalendarParticipant(view)
+    if M_FROM is None:
+        M_FROM = GenerateCalendarParticipant(view)
+
+    message.fromAddress = M_FROM
 
     for num in range(numTo):
         message.toAddress.append(GenerateCalendarParticipant(view))
@@ -91,14 +96,18 @@ def GenerateMailMessage(view):
     message.subject  = random.choice(TITLES)
     message.dateSent = DateTime.now()
 
+
+
     if outbound:
-        message.outgoingMessage()
+        acc = Mail.MailParcel.getSMTPAccount(view)[0]
+        message.outgoingMessage(acc)
 
         """Make the Message appear as if it has already been sent"""
         message.deliveryExtension.sendSucceeded()
 
     else:
-        message.incomingMessage()
+        acc = Mail.MailParcel.getIMAPAccount(view)
+        message.incomingMessage(acc)
 
     if type == EVENT:
         message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))

@@ -6,20 +6,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 #twisted imports
 import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
-import twisted.internet.protocol as protocol
-import twisted.python.failure as failure
 import twisted.internet.error as error
 import twisted.mail.imap4 as imap4
-import twisted.protocols.policies as policies
 
 #python / mx imports
-import mx.DateTime as DateTime
 import email as email
 import logging as logging
 
 #Chandler imports
-import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import chandlerdb.util.uuid as UUID
 import repository.item.Query as Query
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
@@ -28,26 +22,37 @@ import M2Crypto.SSL as SSL
 
 #Chandler Mail Service imports
 import message as message
-import sharing as sharing
 import errors as errors
 import constants as constants
 import utils as utils
+import base as base
 
 """
-  Bug:
     TODO:
     1. Print warning message if UID validity is bad (Where to store UID Validity 
        since on folder)
-    2. Batch fetch of 30 messages followed by commit and memory clear and prune
-    3. Keep \\Deleted flags in sync with IMAP Server
+    2. Keep \\Deleted flags in sync with IMAP Server (Look at best syntax for this)
 
-    FUTURE:
+    TO DO: 
     1. Look in to pluging the Python email 3.0 Feedparser in to the
        rawDataReceived method of IMAP4Client for better performance.
+       Or Twisted Feedparser
+
+    4. Look at Spambayes for its message parsing python alogrithm,
+       Quotient mail parser 
+    5. Hotshot and timeit
+
+NOTES:
+1. Will need to just get the basic headers of subject, message id, message size
+   to, from, cc. Then have a callback to sync the rest
+   when downloading an individual mail use the feedparser for performance
+
+2. LOOK AT THE RFC IS UUID ALWAYS A LONG
+3. Fix the getEmailAddress method to be much more performant in content model
 """
 
-class ChandlerIMAP4Client(imap4.IMAP4Client):
-    timeout = constants.TIMEOUT
+class _TwistedIMAP4Client(imap4.IMAP4Client):
+    timeout  = constants.TIMEOUT
 
     def serverGreeting(self, caps):
         """
@@ -61,196 +66,62 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @return C{None}
         """
 
-        self.factory.imapDownloader.proto = self
+        self.delegate.proto = self
 
         if caps is None:
+            """If no capabilities returned in server greeting then get
+               the server capabilities """
             d = self.getCapabilities()
 
-            """If no capabilities returned in server greeting then get
-               the server capabilities to remove STARTTLS if not
-               in TLS mode"""
-            d.addCallbacks(self.__getCapabilities, self.factory.imapDownloader.catchErrors)
+            d.addCallbacks(self.__getCapabilities.delegate.catchErrors)
 
             return d
 
         self.__getCapabilities(caps)
 
+    def __getCapabilities(self, caps):
+
+        if self.factory.useTLS:
+            """The Twisted IMAP4Client will check to make sure the server can STARTTLS
+               and raise an error if it can not"""
+            d = self.startTLS(Globals.crypto.getSSLContext())
+            d.addCallbacks(lambda _: self.delegate.loginClient(), self.delegate.catchErrors)
+            return d
+
+        if 'LOGINDISABLED' in caps:
+            self.delegate.catchErrors(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
+
+        else:
+            """Remove the STARTTLS from capabilities"""
+            self._capCache = utils.disableTwistedTLS(caps)
+            self.delegate.loginClient()
+
     def timeoutConnection(self):
         """Called by C{policies.TimeoutMixin} base class.
            If the connection is not Done the method will
-           errback a C{IMAPException}
+           generate an C{IMAPException} and forward to delegate
+           errback
         """
-        exc = errors.IMAPException("Communication with IMAP Server timed out. Please try again later.")
-        self.factory.imapDownloader.catchErrors(exc)
-
-    def __getCapabilities(self, caps):
-        if self.factory.useTLS:
-            self._capCache = utils.disableTwistedAUTH(caps)
-
-        self.factory.imapDownloader.loginClient()
+        exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
+        self.delegate.catchErrors(exc)
 
 
-class ChandlerIMAP4Factory(protocol.ClientFactory):
-    protocol = ChandlerIMAP4Client
-
-    def __init__(self, imapDownloader, useTLS):
-        """
-        @return: C{None}
-        """
-        self.imapDownloader = imapDownloader
-        self.connectionLost = False
-        self.sendFinished = 0
-        self.useTLS = useTLS
-
-        retries = self.imapDownloader.account.numRetries
-
-        assert isinstance(retries, (int, long))
-        self.retries = -retries
-
-        def buildProtocol(self, addr):
-            if self.useTLS:
-                p = self.protocol(Globals.crypto.getSSLContext())
-            else:
-                p = self.protocol()
-
-            p.factory = self
-            return p
-
-    def clientConnectionFailed(self, connector, err):
-        self._processConnectionError(connector, err)
-
-    def clientConnectionLost(self, connector, err):
-        self._processConnectionError(connector, err)
-
-    def _processConnectionError(self, connector, err):
-        self.connectionLost = True
-
-        if self.retries < self.sendFinished <= 0:
-            logging.info("IMAP Client Retrying server. Retry: %s" % -self.retries)
-            connector.connect()
-            self.retries += 1
-
-        elif self.sendFinished <= 0:
-            if err.check(error.ConnectionDone):
-                err.value = errors.IMAPException( \
-                            "Unable to connect to IMAP server. Please try again later.")
-
-            self.imapDownloader.catchErrors(err)
+class IMAPClientFactory(base.AbstractDownloadClientFactory):
+    protocol  = _TwistedIMAP4Client
+    exception = errors.IMAPException
 
 
-class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
-    __errStr = "An error occurred while downloading IMAP mail: %s"
+class IMAPClient(base.AbstractDownloadClient):
+    accounType  = Mail.IMAPAccount
+    clientType  = "IMAPClient"
+    factoryType = IMAPClientFactory
+    defaultPort = 143
 
-    def __init__(self, repository, account):
-        """
-        Creates a C{IMAPDownload} instance
-        @param account: An Instance of C{IMAPAccount}
-        @type account: C{IMAPAccount}
-        @return: C{None}
-        """
-        assert account is not None, "You must pass in an IMAPAccount instance"
-
-        viewName = "%s_%s_%s" % (account.displayName, str(UUID.UUID()), DateTime.now())
-        super(IMAPDownloader, self).__init__(repository, viewName)
-
-        self.accountUUID = account.itsUUID
-        self.account = None
-        self.downloadedStr = None
-        self.factory = None
-        self.proto = None
-
-        """
-           KEY: UID
-           Value: [FLAGS, MaiMessage]
-        """
-        self.messages = {}
-        self.numMessages = 0
-        self.totalDownloaded = 0
-        self.lastUID = 0
-
-    def getMail(self):
-        """
-        This method retrieves all mail in an IMAP Server INBOX that has a
-        UID (RFC3501) greater than the UID of the last message downloaded.
-
-        If this is the first time downloading mail, all mail in the INBOX will
-        be downloaded. On the next check only mail greater than the last UID
-        will be downloaded.
-
-        This method is executed in the current thread and calls C{reactor.callFromThread}
-        to utilize a C{imap4.IMAP4Client} via the C{TwistedReactorManager} to connect to an
-        IMAP Server.
-
-        @return: C{None}
-
-        """
+    def _loginClient(self):
         if __debug__:
-            self.printCurrentView("getMail")
+            self.printCurrentView("_loginClient")
 
-        """Move code execution path from current thread in to the Reactor Asynch thread"""
-        reactor.callFromThread(self.execInView, self.__getMail)
-
-    def __getMail(self):
-        if __debug__:
-            self.printCurrentView("__getMail")
-
-        self.__getAccount()
-
-        self.factory = ChandlerIMAP4Factory(self, self.account.connectionSecurity == 'TLS')
-        self.factory.getContext = lambda : Globals.crypto.getSSLContext()
-        self.factory.sslChecker = SSL.Checker.Checker()
-
-        #XXX: This method actually begins the SSL exchange. Confusing name!
-        self.factory.startTLS   = self.account.connectionSecurity == 'SSL'
-
-        wrappingFactory = policies.WrappingFactory(self.factory)
-        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-        reactor.connectTCP(self.account.host, self.account.port, wrappingFactory)
-
-    def catchErrors(self, err):
-        """
-        This method captures all errors thrown while in the Twisted Reactor Thread.
-        @return: C{None}
-        """
-        if __debug__:
-            self.printCurrentView("catchErrors: %s " % str(err))
-
-        if not self.factory.connectionLost:
-            self.__disconnect()
-
-        if isinstance(err, failure.Failure):
-            err = err.value
-
-        errorType = str(err.__class__)
-        message   = err.__str__()
-
-        if errorType == errors.M2CRYPTO_ERROR:
-            try:
-                #XXX: Special Case should be caught prompting the message to be resend
-                #     if the user adds the cert to the chain
-                if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                    message = "The SSL Certificate returned can not be verified."
-
-            except:
-                pass
-
-        #XXX: When IMAP Errors are saved to Repository will need to
-        #     wait for commit to complete before doing a Notification
-        utils.NotifyUIAsync(_(self.__errStr) % message, self.log.error, alert=True)
-
-    def loginClient(self):
-        """
-        This method is a Twisted C{defer.Deferred} callback that logs in to an IMAP Server
-        based on the account information stored in a C{EmailAccountKind}.
-        @return: C{None}
-        """
-        self.execInView(self.__loginClient)
-
-    def __loginClient(self):
-        if __debug__:
-            self.printCurrentView("__loginClient")
-
-        assert self.account is not None, "Account is None can not login client"
+        assert self.account is not None
 
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
@@ -278,11 +149,18 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def __selectInbox(self, result):
         if __debug__:
-            self.printCurrentView("selectInbox ***Could be wrong view***")
+            self.printCurrentView("__selectInbox")
 
-        utils.NotifyUIAsync(_("Checking Inbox for new mail messages"), self.__printInfo)
+        if self.testing:
+            utils.alert(constants.TEST_SUCCESS, self.account.displayName)
+            self._actionCompleted()
+            return
 
-        return self.proto.select("INBOX").addCallbacks(self.__checkForNewMessages, self.catchErrors)
+        utils.NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
+
+        d = self.proto.select("INBOX")
+        d.addCallbacks(self.__checkForNewMessages, self.catchErrors)
+        return d
 
     def __checkForNewMessages(self, msgs):
         if __debug__:
@@ -290,135 +168,100 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         #XXX: Store and compare msgs['UIDVALIDITY']
 
-        exists = msgs['EXISTS']
+        if msgs['EXISTS'] == 0:
+            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            return self._actionCompleted()
 
-        if exists != 0:
-            """ Fetch everything newer than the last UID we saw. """
-            if self.__getNextUID() == 0:
-                 msgSet = imap4.MessageSet(1, None)
-            else:
-                 msgSet = imap4.MessageSet(self.__getNextUID(), None)
+        if self.__getNextUID() == 0:
+             msgSet = imap4.MessageSet(1, None)
+        else:
+             msgSet = imap4.MessageSet(self.__getNextUID(), None)
 
-            d = self.proto.fetchFlags(msgSet, uid=True)
+        d = self.proto.fetchFlags(msgSet, uid=True)
 
-            d.addCallback(self.__getMessagesFlagsUID).addErrback(self.catchErrors)
+        d.addCallback(self.__getMessagesFlagsUID).addErrback(self.catchErrors)
 
-            return d
-
-        self.__noMessages()
+        return d
 
     def __getMessagesFlagsUID(self, msgs):
         if __debug__:
-            self.printCurrentView("getMessagesFlagsUIDS")
+            self.printCurrentView("__getMessagesFlagsUIDS")
 
-        if len(msgs.keys()) == 0:
-            return self.__noMessages()
-
-        uidList = []
+        nextUID = self.__getNextUID()
 
         for message in msgs.itervalues():
-            uid = message['UID']
-            luid = long(uid)
+            luid = long(message['UID'])
 
-            if luid < self.__getNextUID():
+            if luid < nextUID:
                 continue
 
             if luid > self.lastUID:
                 self.lastUID = luid
 
             if not "\\Deleted" in message['FLAGS']:
-                self.messages[uid] = [message['FLAGS']]
-                uidList.append(luid)
+                self.pending.append([luid, message['FLAGS']])
 
+        if len(self.pending) == 0:
+            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            return self._actionCompleted()
 
-        self.numMessages = len(uidList)
+        """Reorder highest to lowest UID for popping"""
+        self.pending.reverse()
+        self.execInView(self._getNextMessageSet)
 
-        if self.numMessages == 0:
-            return self.__noMessages()
-
-        """Sort the uid's from lowest to highest"""
-        uidList.sort()
-
-        """ Refresh our view before creating mail message items"""
-        self.view.refresh()
-
-        for uid in uidList:
-            d = self.proto.fetchMessage(str(uid), uid=True)
-            d.addCallback(self.__fetchMessage).addErrback(self.catchErrors)
-
-    def __noMessages(self):
-        self.__disconnect()
-        utils.NotifyUIAsync(_("No new messages found"), self.__printInfo)
-        return None
-
-    def __disconnect(self, result=None):
+    def _getNextMessageSet(self):
         if __debug__:
-            self.printCurrentView("__disconnect")
+            self.printCurrentView("_getNextMessageSet")
 
-        self.factory.sendFinished = 1
+        self.numToDownload = len(self.pending)
 
-        if self.proto is not None:
-            self.proto.transport.loseConnection()
+        if self.numToDownload == 0:
+            return self._actionCompleted()
 
-    def __fetchMessage(self, msgs):
-        self.setViewCurrent()
+        if self.numToDownload > constants.DOWNLOAD_MAX:
+            self.numToDownload = constants.DOWNLOAD_MAX
 
-        try:
-            if __debug__:
-                self.printCurrentView("fetchMessage")
+        m = self.pending.pop()
+        d = self.proto.fetchMessage(str(m[0]), uid=True)
+        d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
+        d.addErrback(self.catchErrors)
 
-            msg = msgs.keys()[0]
 
-            messageText = msgs[msg]['RFC822']
-            strUID = msgs[msg]['UID']
-            uid = long(strUID)
+    def __fetchMessage(self, msgs, curMessage):
+        if __debug__:
+            self.printCurrentView("fetchMessage")
 
-            messageObject = email.message_from_string(messageText)
+        msg = msgs.keys()[0]
 
-            repMessage = message.messageObjectToKind(self.view,
-                                                     messageObject, messageText)
+        messageText = msgs[msg]['RFC822']
 
-            """Set the message as incoming"""
-            repMessage.incomingMessage(account=self.account)
+        #XXX: Need a more perforrmant way to do this
+        messageObject = email.message_from_string(messageText)
 
-            """Save IMAP Delivery info in Repository"""
-            repMessage.deliveryExtension.folder = "INBOX"
-            repMessage.deliveryExtension.uid = uid
-            repMessage.deliveryExtension.flags = self.messages[strUID][0]
+        repMessage = message.messageObjectToKind(self.view,
+                                                 messageObject, messageText)
 
-            self.messages[strUID].append(repMessage)
-            self.totalDownloaded += 1
+        """Set the message as incoming"""
+        repMessage.incomingMessage(self.account)
 
-        finally:
-            self.restorePreviousView()
+        """Save IMAP Delivery info in Repository"""
+        repMessage.deliveryExtension.folder = "INBOX"
+        repMessage.deliveryExtension.uid = curMessage[0]
+        repMessage.deliveryExtension.flags = curMessage[1]
 
-        if self.totalDownloaded == self.numMessages:
+        self.numDownloaded += 1
+
+        if self.numDownloaded == self.numToDownload:
             self.__setNextUID(self.lastUID + 1)
-            self.downloadedStr = _("%d messages downloaded to Chandler") % \
-                                   (self.totalDownloaded)
-            self.__disconnect()
-            self.commitInView(True)
+            self.totalDownloaded += self.numDownloaded
+            self._commitDownloadedMail()
 
+        else:
+            m = self.pending.pop()
+            d = self.proto.fetchMessage(str(m[0]), uid=True)
+            d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
+            d.addErrback(self.catchErrors)
 
-    def _viewCommitSuccess(self):
-        """
-        Overides C{RepositoryViewManager.AbstractRepositoryViewManager}.
-        It posts a commit event to the GUI thread, unpins the C{EmailAccountKind} from
-        memory, and writes commit info to the logger
-        @return: C{None}
-        """
-
-        utils.NotifyUIAsync(self.downloadedStr, self.__printInfo)
-        """Clear references"""
-        self.downloadedStr   = None
-        self.account         = None
-        self.proto           = None
-        self.factory         = None
-        self.numMessages     = 0
-        self.totalDownloaded = 0
-        self.lastUID         = 0
-
-        self.messages.clear()
 
     def __expunge(self, result):
         if __debug__:
@@ -432,19 +275,20 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
     def __setNextUID(self, uid):
         self.account.messageDownloadSequence = uid
 
-    def __getAccount(self):
-        self.view.refresh()
-        self.account = Mail.MailParcel.getIMAPAccount(self.view,
-                                                      self.accountUUID)
+    def _beforeDisconnect(self):
+        if __debug__:
+            self.printCurrentView("_beforeDisconnect")
 
-    def __printInfo(self, info):
+        if self.factory.connectionLost:
+            return defer.succeed(True)
 
-        if self.account.port != 143:
-            str = "[Server: %s:%d User: %s] %s" % (self.account.host,
-                                                   self.account.port,
-                                                   self.account.username, info)
-        else:
-            str = "[Server: %s User: %s] %s" % (self.account.host,
-                                                self.account.username, info)
+        d = self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
 
-        self.log.info(str)
+        return d
+
+    def _getAccount(self):
+        if self.account is None:
+            self.account = Mail.MailParcel.getIMAPAccount(self.view,
+                                                          self.accountUUID)
+
+        return self.account

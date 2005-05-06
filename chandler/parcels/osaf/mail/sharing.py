@@ -85,16 +85,13 @@ class SMTPInvitationSender:
                                          accountUUID)
 
     def sendInvitation(self):
-        smtp.SMTPSender(self.repository, self.account, self.__createMessage()).sendMail()
+        #XXX Use Mail Service
+        smtp.SMTPClient(self.repository, self.account).sendMail(self.__createMessage())
 
     def __createMessage(self):
         self.repository.view.refresh()
 
         m = Mail.MailMessage(view=self.repository.view)
-
-        #XXX: Try commenting out see what happens
-        #m.toAddress = []
-        #m.chandlerHeaders = {}
 
         m.subject = self.__createSubject()
         m.fromAddress = self.fromAddress
@@ -135,7 +132,7 @@ def getSharingHeaderInfo(mailItem):
 
     #XXX: Tnis needs to be base 64 unencoded; also, see above.
     sharingHeaderValue = mailItem.chandlerHeaders[sharingHeaderName]
-    
-    urlAndCollectionName = sharingHeaderValue.split(constants.SHARING_DIVIDER)            
+ 
+    urlAndCollectionName = sharingHeaderValue.split(constants.SHARING_DIVIDER)
     return urlAndCollectionName 
 

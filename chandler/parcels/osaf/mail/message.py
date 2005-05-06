@@ -21,6 +21,11 @@ import constants as constants
 import utils as utils
 
 """
+Performance:
+   1. Reduce checks when downloading mail
+      only check when resending for performance
+
+
 Notes:
 1. Need to pay attention for when setting values in Message.Message object as they must 
    be of type str
@@ -92,13 +97,15 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
         return unicode(val, charset, 'ignore')
 
     except(UnicodeError, UnicodeDecodeError, LookupError):
-        if charset != constants.DEFAULT_CHARSET:
+        if __debug__ and charset != constants.DEFAULT_CHARSET:
             logging.error("Unable to convert charset: %s trying %s" % \
                           (charset, constants.DEFAULT_CHARSET))
 
             return getUnicodeValue(val)
 
-        logging.error("Unable to convert charset: %s" % charset)
+        if __debug__: 
+            logging.error("Unable to convert charset: %s" % charset)
+
         return constants.EMPTY
 
 def createChandlerHeader(postfix):
@@ -429,6 +436,7 @@ def __getEmailAddress(view, name, addr):
 
      """ Use any existing EmailAddress, but don't update them
          because that will cause the item to go stale in the UI thread."""
+    #XXX: This method needs much better performance
      return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
 
 
@@ -480,7 +488,7 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
 
             bodyBuffer.append(constants.LF.join(tmp))
 
-        else:
+        elif __debug__:
             logging.warn("******WARNING****** message/rfc822 part not Multipart investigate")
 
     elif subtype == "delivery-status":
@@ -494,22 +502,25 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
         return
 
     elif subtype == "external-body":
-        logging.warn("Chandler Mail Service does not support message/external-body at this time")
+        if __debug__:
+            logging.warn("Chandler Mail Service does not support message/external-body at this time")
         return
 
     elif subtype == "http":
-        logging.warn("Chandler Mail Service does not support message/http at this time")
+        if __debug__:
+            logging.warn("Chandler Mail Service does not support message/http at this time")
         return
 
     elif subtype == "partial":
-        logging.warn("Chandler Mail Service does not support message/partial at this time")
+        if __debug__:
+            logging.warn("Chandler Mail Service does not support message/partial at this time")
         return
 
     if multipart:
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
-    else:
+    elif __debug__:
         logging.warn("******WARNING****** message/%s payload not multipart" % subtype)
 
 
@@ -555,23 +566,27 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
                                  counter, buf, level+1)
                 else:
                     __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1)
-        else:
+        elif __debug__:
             logging.warn("******WARNING****** multipart/alternative has no payload")
 
     elif subtype == "byteranges":
-        logging.warn("Chandler Mail Service does not support multipart/byteranges at this time")
+        if __debug__:
+            logging.warn("Chandler Mail Service does not support multipart/byteranges at this time")
         return
 
     elif subtype == "form-data":
-        logging.warn("Chandler Mail Service does not support multipart/form-data at this time")
+        if __debug__:
+            logging.warn("Chandler Mail Service does not support multipart/form-data at this time")
         return
 
     else:
         if subtype == "signed":
-            logging.warn("Chandler Mail Service does not validate multipart/signed at this time")
+            if __debug__:
+                logging.warn("Chandler Mail Service does not validate multipart/signed at this time")
 
         elif subtype == "encrypted":
-            logging.warn("Chandler Mail Service does not validate multipart/encrypted at this time")
+            if __debug__:
+                logging.warn("Chandler Mail Service does not validate multipart/encrypted at this time")
 
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
@@ -659,7 +674,7 @@ def __getFileName(mimePart, counter):
     return getUnicodeValue('Attachment-%s%s' % (counter.nextValue(), ext))
 
 def __checkForDefects(mimePart):
-    if len(mimePart.defects) > 0:
+    if __debug__ and len(mimePart.defects) > 0:
         strBuffer = [mimePart.get("Message-ID", "Unknown Message ID")]
         handled = False
 

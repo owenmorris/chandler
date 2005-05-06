@@ -322,6 +322,13 @@
                         <object class="sizeritem">
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
+                            <object class="wxRadioButton" name="IMAP_TLS">
+                                <label>TLS</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
                             <object class="wxRadioButton" name="IMAP_SSL">
                                 <label>SSL</label>
                             </object>

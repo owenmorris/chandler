@@ -3,6 +3,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+STR_SSL_CERTIFICATE_ERROR = _("The SSL Certificate returned can not be verified")
+STR_SSL_ERROR = _("SSL communication error")
+STR_UNKNOWN_ERROR = _("Unknown Error %s %s")
+STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
+STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later")
+
+
+
 class MailException(Exception):
     """Base class for all Chandler mail related exceptions"""
 
@@ -10,6 +18,9 @@ class IMAPException(MailException):
     """Base class for all Chandler IMAP based exceptions"""
 
 class SMTPException(MailException):
+    """Base class for all Chandler SMTP based exceptions"""
+
+class POPException(MailException):
     """Base class for all Chandler SMTP based exceptions"""
 
 """Code return by M2Crypto when a certificate can not be verified"""
@@ -37,6 +48,7 @@ CONNECTION_REFUSED_ERROR  = __TWISTED_PREFIX + "ConnectionRefusedError"
 MAIL_EXCEPTION            = __MAILSERVICE_PREFIX + "MailException"
 IMAP_EXCEPTION            = __MAILSERVICE_PREFIX + "IMAPException"
 SMTP_EXCEPTION            = __MAILSERVICE_PREFIX + "SMTPException"
+POP_EXCEPTION             = __MAILSERVICE_PREFIX + "POPException"
 
 """ Contains common transport error codes used by the mail service"""
 __offset = 600

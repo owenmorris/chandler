@@ -104,7 +104,7 @@ PANELS = {
                 "type" : "radioEnumeration",
                 "buttons" : { 
                     "IMAP_SECURE_NO" : "NONE", 
-                    # "IMAP_TLS" : "TLS", 
+                    "IMAP_TLS" : "TLS", 
                     "IMAP_SSL" : "SSL", 
                     },
                 "default" : "NONE",

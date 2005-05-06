@@ -55,21 +55,6 @@ def loadMailTests(view, dir):
 
     view.commit()
 
-
-def getChandlerTransportMessage():
-    """Returns the skeleton of a mail message populated with the subject
-       and body verbage Chandler uses when the message in not intended to
-       be view by users i.e. a sharing invitation."""
-
-    message = \
-"""Subject: ***FOR CHANDLER INTERNAL USE - DO NOT DELETE ***
-
-This message is used for Chandler to Chandler communication and is
-not intended to be viewed by the user. Please do not delete this message
-as Chandler will manage this email automatically for you.
-"""
-    return email.message_from_string(message)
-
 def getEmptyDate():
     """Returns a DateTime object set to 0 ticks.
        @return: C{mx.DateTime} object"""
@@ -105,21 +90,25 @@ def disableTwistedAUTH(items):
     return items
 
 
-def disableTwistedTLS(items):
+def disableTwistedTLS(items, TLSKEY='STARTTLS'):
     """Disables SSL support for debugging so
        a tcpflow trace can be done on the Client / Server
        command exchange
     """
 
-    if items != None:
+    if items != None and TLSKEY != None:
         try:
-            del items["STARTTLS"]
+            del items[TLSKEY]
 
         except KeyError:
             pass
 
     return items
 
+def alert(message, *args):
+    """Temp method for displaying an Alert box in CPIA
+    """
+    NotifyUIAsync(message % args, alert=True)
 
 def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
     """Temp method for posting a event to the CPIA layer. This
@@ -129,6 +118,7 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
         logger(message)
 
     wxApplication = Globals.wxApplication
+
     if wxApplication is not None: # test framework has no wxApplication
         wxApplication.CallItemMethodAsync(Globals.views[0], callable,
                                           message, **keys)

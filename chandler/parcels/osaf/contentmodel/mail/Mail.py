@@ -22,23 +22,11 @@ import chandlerdb.item.ItemError as ItemError
 from repository.util.Path import Path
 
 """
-   Notes:
-      1. if message is marked already as inbound do not sent
-      2. Need to revisit inbound outbound logic
-      3. What should and should not be in this layer (Meeting with CPIA and Service Team)
-      4. Seems like email address logic is not performant
-
 Design Issues:
       1. Is tries really needed
       2. Date sent string could probally be gotten rid of
-
-MIME-TYPES:
-------------
-MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
-MIME_BINARY = ["image", "application", "audio", "video"]
-MIME_SECURITY = ["encrypted", "signed"]
-MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "digest"]
 """
+
 
 
 class MailParcel(application.Parcel.Parcel):
@@ -64,48 +52,48 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailItemParent = classmethod(getMailItemParent)
 
-    def getSMTPAccount(cls, view, UUID=None):
+    def getSMTPAccount(cls, view, uuid=None):
         """
             This method returns a tuple containing:
-            1. The default C{SMTPAccount} account in the Repository.
+            1. The an C{SMTPAccount} account
             2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
                parent which will either be a POP or IMAP Acccount.
 
-        The method will throw a C{SMTPException} if:
-        1. No C{SMTPAccount} in the Repository
-        2. No parent account associated with the C{SMTPAccount}
-        3. The replyToAddress of the parent account is None
-
-        @param UUID: The C{UUID} of the C{SMTPAccount}. If no C{UUID} passed will return
-                     the default (first) C{SMTPAccount}
-        @type UUID: C{UUID}
+        @param uuid: The C{uuid} of the C{SMTPAccount}. If no C{uuid} passed will return
+                     the current  C{SMTPAccount}
+        @type uuid: C{uuid}
         @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
         """
 
         smtpAccount = None
-        imapAccount = None
         replyToAddress = None
 
+        if uuid is not None:
+            smtpAccount = view.findUUID(uuid)
+
+            if smtpAccount is not None:
+                for acc in smtpAccount.accounts:
+                    if acc.isActive and acc.host and \
+                       acc.username and hasattr(acc, 'replyToAddress'):
+                        replyToAddress = acc.replyToAddress
+                        break
+
+            return (smtpAccount, replyToAddress)
+
         """Get the default IMAP Account"""
-        imapAccount = Current.Current.get(view, "IMAPAccount")
+        parentAccount = Current.Current.get(view, "IMAPAccount")
 
-        if imapAccount is None:
-            return (None, None)
+        if parentAccount is None:
+            """Get the default POP Account"""
+            parentAccount = Current.Current.get(view, "POPAccount")
 
-        if hasattr(imapAccount, 'replyToAddress'):
-            replyToAddress = imapAccount.replyToAddress
+        if parentAccount is not None:
+            if hasattr(parentAccount, 'replyToAddress'):
+                replyToAddress = parentAccount.replyToAddress
 
-        if replyToAddress is None:
-            return (None, None)
-
-        if UUID is not None:
-            assert isinstance(UUID.UUID), "The UUID argument must be of type UUID.UUID"
-            smtpAccount = view.findUUID(UUID)
-
-        else:
             """Get the default SMTP Account"""
             try:
-                smtpAccount = imapAccount.defaultSMTPAccount
+                smtpAccount = parentAccount.defaultSMTPAccount
 
             except ItemError.NoValueForAttributeError:
                 pass
@@ -115,26 +103,43 @@ class MailParcel(application.Parcel.Parcel):
     getSMTPAccount = classmethod(getSMTPAccount)
 
 
-    def getIMAPAccount(cls, view, UUID=None):
+    def getPOPAccount(cls, view, uuid=None):
         """
-        This method returns a C{IMAPAccount} in the Repository. If UUID is not
-        None will try and retrieve the C{IMAPAccount} that has the UUID passed.
-        Otherwise the method will try and retrieve the default C{IMAPAccount}.
+        This method returns a C{POPAccount} in the Repository. If uuid is not
+        None will try and retrieve the C{POPAccount} that has the uuid passed.
+        Otherwise the method will try and retrieve the current C{POPAccount}.
 
-        It will throw a C{IMAPException} if there is either no C{IMAPAccount}
-        matching the UUID passed or if there is no C{IMAPAccount}
-        at all in the Repository.
+        @param uuid: The C{uuid} of the C{POPAccount}. If no C{uuid} passed will return
+                 the current C{POPAccount}
+        @type uuid: C{uuid}
+        @return C{POPAccount}
+        """
 
-        @param UUID: The C{UUID} of the C{IMAPAccount}. If no C{UUID} passed will return
-                 the first C{IMAPAccount}
-        @type UUID: C{UUID}
+        if uuid is not None:
+            account = view.findUUID(uuid)
+
+        else:
+            account = Current.Current.get(view, "POPAccount")
+
+        return account
+
+    getPOPAccount = classmethod(getPOPAccount)
+
+
+    def getIMAPAccount(cls, view, uuid=None):
+        """
+        This method returns a C{IMAPAccount} in the Repository. If uuid is not
+        None will try and retrieve the C{IMAPAccount} that has the uuid passed.
+        Otherwise the method will try and retrieve the current C{IMAPAccount}.
+
+        @param uuid: The C{uuid} of the C{IMAPAccount}. If no C{uuid} passed will return
+                 the current C{IMAPAccount}
+        @type uuid: C{uuid}
         @return C{IMAPAccount}
         """
 
-        account = None
-
-        if UUID is not None:
-            account = view.findUUID(UUID)
+        if uuid is not None:
+            account = view.findUUID(uuid)
 
         else:
             account = Current.Current.get(view, "IMAPAccount")
@@ -144,6 +149,15 @@ class MailParcel(application.Parcel.Parcel):
     getIMAPAccount = classmethod(getIMAPAccount)
 
 
+    def getActivePOPAccounts(cls, view):
+        kind = "//parcels/osaf/contentmodel/mail/POPAccount"
+        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+            if item.isActive and item.host and item.username:
+                yield item
+
+    getActivePOPAccounts = classmethod(getActivePOPAccounts)
+
+
     def getActiveIMAPAccounts(cls, view):
         kind = "//parcels/osaf/contentmodel/mail/IMAPAccount"
         for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
@@ -151,6 +165,15 @@ class MailParcel(application.Parcel.Parcel):
                 yield item
 
     getActiveIMAPAccounts = classmethod(getActiveIMAPAccounts)
+
+
+    def getActiveSMTPAccounts(cls, view):
+        kind = "//parcels/osaf/contentmodel/mail/SMTPAccount"
+        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+            if item.isActive and item.host and item.username:
+                yield item
+
+    getActiveSMTPAccounts = classmethod(getActiveSMTPAccounts)
 
 
 class AccountBase(ContentModel.ContentItem):
@@ -164,6 +187,18 @@ class AccountBase(ContentModel.ContentItem):
             parent = MailParcel.getMailItemParent(view)
         super(AccountBase, self).__init__(name, parent, kind, view)
 
+
+class DownloadAccountBase(AccountBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/DownloadAccountBase"
+
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        if parent is None:
+            if view is None:
+                view = kind.itsView
+            parent = MailParcel.getMailItemParent(view)
+        super(DownloadAccountBase, self).__init__(name, parent, kind, view)
+
 class SMTPAccount(AccountBase):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/SMTPAccount"
@@ -175,11 +210,9 @@ class SMTPAccount(AccountBase):
             parent = MailParcel.getMailItemParent(view)
         super(SMTPAccount, self).__init__(name, parent, kind, view)
 
-
-        #XXX: Is account type really needed
         self.accountType = "SMTP"
 
-class IMAPAccount(AccountBase):
+class IMAPAccount(DownloadAccountBase):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/IMAPAccount"
 
@@ -190,8 +223,21 @@ class IMAPAccount(AccountBase):
             parent = MailParcel.getMailItemParent(view)
         super(IMAPAccount, self).__init__(name, parent, kind, view)
 
-        #XXX: Is account type really needed
         self.accountType = "IMAP"
+
+
+class POPAccount(DownloadAccountBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/POPAccount"
+
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        if parent is None:
+            if view is None:
+                view = kind.itsView
+            parent = MailParcel.getMailItemParent(view)
+        super(POPAccount, self).__init__(name, parent, kind, view)
+
+        self.accountType = "POP"
 
 
 class MailDeliveryError(ContentModel.ContentItem):
@@ -237,7 +283,6 @@ class SMTPDelivery(MailDeliveryBase):
         super(SMTPDelivery, self).__init__(name, parent, kind, view)
 
 
-        #XXX: Is account type really needed
         self.deliveryType = "SMTP"
         self.state = "DRAFT"
 
@@ -248,7 +293,6 @@ class SMTPDelivery(MailDeliveryBase):
         self.history.append("FAILED")
         self.state = "FAILED"
 
-        #XXX: Not sure we need this
         self.tries += 1
 
     def sendSucceeded(self):
@@ -273,6 +317,22 @@ class IMAPDelivery(MailDeliveryBase):
         super(IMAPDelivery, self).__init__(name, parent, kind, view)
 
         self.deliveryType = "IMAP"
+
+
+class POPDelivery(MailDeliveryBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/POPDelivery"
+
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        if parent is None:
+            if view is None:
+                view = kind.itsView
+            parent = MailParcel.getMailItemParent(view)
+
+        super(POPDelivery, self).__init__(name, parent, kind, view)
+
+        self.deliveryType = "POP"
+
 
 class MIMEBase(ContentModel.ContentItem):
     myKindID = None
@@ -410,13 +470,10 @@ class MailMessageMixin(MIMEContainer):
         return super(MailMessageMixin, self).getAnyWhoFrom()
 
 
-    def outgoingMessage(self, type="SMTP", account=None):
+    def outgoingMessage(self, account, type='SMTP'):
         assert type == "SMTP", "Only SMTP currently supported"
 
-        if account is None:
-            account, replyAddress = MailParcel.getSMTPAccount(self.itsView)
-
-        assert account.isItemOf(SMTPAccount.getKind(self.itsView)), "Only SMTP Accounts Supported"
+        assert isinstance(account, SMTPAccount)
 
         if self.deliveryExtension is None:
             self.deliveryExtension = SMTPDelivery(view=self.itsView)
@@ -424,23 +481,20 @@ class MailMessageMixin(MIMEContainer):
         self.isOutbound = True
         self.parentAccount = account
 
-    def incomingMessage(self, type="IMAP", account=None):
-        assert type == "IMAP", "Only IMAP currently supported"
-
-        if account is None:
-            account = MailParcel.getIMAPAccount(self.itsView)
-
-        assert account.isItemOf(IMAPAccount.getKind(self.itsView)), "Only IMAP Accounts Supported"
+    def incomingMessage(self, account, type="IMAP"):
+        assert isinstance(account, DownloadAccountBase)
 
         if self.deliveryExtension is None:
-            self.deliveryExtension = IMAPDelivery(view=self.itsView)
+            if type == "IMAP":
+                 self.deliveryExtension = IMAPDelivery(view=self.itsView)
+            elif type == "POP":
+                 self.deliveryExtension = POPDelivery(view=self.itsView)
 
         self.isInbound = True
         self.parentAccount = account
 
     def getAttachments(self):
         """ First pass at API will be expanded upon later """
-        # Anything not in the body of the message will have a filename, and size with it
         return self.mimeParts
 
     def getNumberOfAttachments(self):
@@ -738,8 +792,8 @@ class EmailAddress(ContentModel.ContentItem):
         @type emailAddressTwo: C{String}
         @return: C{Boolean}
         """
-        assert isinstance(emailAddressOne, (str, unicode)), "Email Address must be in string or unicode format"
-        assert isinstance(emailAddressTwo, (str, unicode)), "Email Address must be in string or unicode format"
+        assert isinstance(emailAddressOne, (str, unicode))
+        assert isinstance(emailAddressTwo, (str, unicode))
 
         emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
         emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
@@ -757,7 +811,10 @@ class EmailAddress(ContentModel.ContentItem):
 
         account = MailParcel.getIMAPAccount(view)
 
-        if account is not None:
+        if account is None:
+            account = MailParcel.getPOPAccount(view)
+
+        if account is not None and hasattr(account, 'replyToAddress'):
             return account.replyToAddress
 
         return None

@@ -7,7 +7,7 @@
      xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
 
   <content:IMAPAccount itsName="PredefinedIMAPAccount">
-    <displayName>Incoming mail</displayName>
+    <displayName>Incoming IMAP mail</displayName>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:PredefinedReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
@@ -15,11 +15,46 @@
     <currentItemOf itemref="current:IMAPAccount"/>
   </content:IMAPAccount>
 
+  <content:POPAccount itsName="PredefinedPOPAccount">
+    <displayName>Incoming POP mail</displayName>
+    <!-- This points replyToAddress to the email address item below-->
+    <replyToAddress itemref="mail:PredefinedReplyAddress" />
+    <!-- This points to the SMTPAccount item below -->
+    <defaultSMTPAccount itemref="mail:PredefinedSMTPAccount" />
+    <currentItemOf itemref="current:POPAccount"/>
+  </content:POPAccount>
+
   <content:EmailAddress itsName="PredefinedReplyAddress" />
 
   <content:SMTPAccount itsName="PredefinedSMTPAccount">
-    <displayName>Outgoing mail</displayName>
+    <displayName>Outgoing SMTP mail</displayName>
     <currentItemOf itemref="current:SMTPAccount"/>
   </content:SMTPAccount>
 
+  <content:IMAPAccount itsName="TestIMAPAccount">
+    <displayName>Test IMAP Account</displayName>
+    <isActive>False</isActive>
+    <!-- This points replyToAddress to the email address item below-->
+    <replyToAddress itemref="mail:TestReplyAddress" />
+    <!-- This points to the SMTPAccount item below -->
+    <defaultSMTPAccount itemref="mail:TestSMTPAccount" />
+  </content:IMAPAccount>
+
+  <content:POPAccount itsName="TestPOPAccount">
+    <displayName>Test POP Account</displayName>
+    <isActive>False</isActive>
+    <!-- This points replyToAddress to the email address item below-->
+    <replyToAddress itemref="mail:TestReplyAddress" />
+    <!-- This points to the SMTPAccount item below -->
+    <defaultSMTPAccount itemref="mail:TestSMTPAccount" />
+  </content:POPAccount>
+
+  <content:EmailAddress itsName="TestReplyAddress" />
+
+  <content:SMTPAccount itsName="TestSMTPAccount">
+    <displayName>Test SMTP Account</displayName>
+    <isActive>False</isActive>
+  </content:SMTPAccount>
+
 </Parcel>
+

@@ -11,6 +11,7 @@ import wx, os, sys, traceback
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.mail.imap
+import osaf.mail.pop
 from application.SplashScreen import SplashScreen
 import application.Parcel
 import osaf.contentmodel.mail.Mail as Mail
@@ -215,7 +216,7 @@ class MainView(View):
         self.setStatusMessage ('Sending mail...')
 
         # Now send the mail
-        smtp.SMTPSender(self.itsView.repository, account, item).sendMail()
+        Globals.mailService.getSMTPInstance(account).sendMail(item)
 
     def onShareItemEvent (self, event):
         """
@@ -421,8 +422,13 @@ class MainView(View):
 
         view = self.itsView
         view.commit()
+
         for account in Mail.MailParcel.getActiveIMAPAccounts(self.itsView):
-            osaf.mail.imap.IMAPDownloader(view.repository, account).getMail()
+            Globals.mailService.getIMAPInstance(account).getMail()
+
+        for account in Mail.MailParcel.getActivePOPAccounts(self.itsView):
+            Globals.mailService.getPOPInstance(account).getMail()
+
         view.refresh()
 
     def onReloadParcelsEvent(self, event):

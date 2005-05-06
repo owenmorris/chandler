@@ -23,6 +23,7 @@
 
     <cm:CurrentPointer itsName="WebDAVAccount" />
     <cm:CurrentPointer itsName="IMAPAccount" />
+    <cm:CurrentPointer itsName="POPAccount" />
     <cm:CurrentPointer itsName="SMTPAccount" />
     <cm:CurrentPointer itsName="Contact" />
 

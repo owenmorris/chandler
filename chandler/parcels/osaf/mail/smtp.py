@@ -11,7 +11,6 @@ import twisted.internet.error as error
 import twisted.protocols.policies as policies
 
 #python / mx imports
-import email.Message as Message
 import mx.DateTime as DateTime
 import cStringIO as StringIO
 import logging as logging
@@ -19,7 +18,6 @@ import logging as logging
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.contentmodel.mail.Mail as Mail
-import chandlerdb.util.uuid as UUID
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.SSL as SSL
@@ -31,20 +29,9 @@ import message as message
 import utils as utils
 
 
-"""
- Notes:
- ------
-1. Should sending use a pool or a queue
-2. Do we really need the error codes (Perhaps not)
-3. Could make smtp class just a transport and pass around a tuple of the account, message, and view).
-   Else need safeguards to make sure smtp not called 2x at same time. Can have a parent account class
-   that spawns an SMTPSender for each request
-   
-"""
+class _TwistedESMTPSender(smtp.ESMTPSender):
 
-class ChandlerESMTPSender(smtp.ESMTPSender):
-
-    """Turn off SMTPClient logging if not in __debug__ mode"""
+    """Turn off Twisted SMTPClient logging if not in __debug__ mode"""
     if not __debug__:
         debug = False
 
@@ -62,113 +49,302 @@ class ChandlerESMTPSender(smtp.ESMTPSender):
         if not self.requireTransportSecurity:
             items = utils.disableTwistedTLS(items)
 
-        smtp.ESMTPSender.tryTLS(self, code, resp, items)
+        return smtp.ESMTPSender.tryTLS(self, code, resp, items)
+
+    def smtpState_toOrData(self, code, resp):
+        if self.lastAddress is None and self.factory.testing:
+            """
+               If in testing mode, Overload the Twisted SMTPClient
+               to instead of sending an 'RCPT TO:' request,
+               send a 'QUIT' request and disconnect from the Server.
+               This is followed by a call to sentMail which is a Twisted
+               method indicating the mail was sent successfully
+               method
+            """
+
+            self._disconnectFromServer()
+            return self.sentMail(200, None, None, None, None)
+
+        return smtp.ESMTPSender.smtpState_toOrData(self, code, resp)
 
 
-class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
+class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends a Chandler mail message via SMTP"""
 
-    def __init__(self, repository, account, mailMessage):
+    def __init__(self, repository, account):
         """
            @param account: An SMTP Account content model object
            @type account: C{Mail.MailParcel.SMTPAccountKind}
-
-           @param mailMessage: A MailMessage content model object
-           @type account: C{Mail.MailMessageMixin}
         """
+        assert isinstance(account, Mail.SMTPAccount)
 
-        assert account is not None and account.isItemOf(Mail.SMTPAccount.getKind(repository.view))
-        assert mailMessage is not None and isinstance(mailMessage, Mail.MailMessageMixin)
-
-        """Create a unique view string to prevent multiple sends using same view"""
-        viewName = "SMTPSender_%s_%s" % (str(UUID.UUID()), DateTime.now())
-
-        super(SMTPSender, self).__init__(repository, viewName)
+        super(SMTPClient, self).__init__(repository)
 
         self.accountUUID = account.itsUUID
-        self.mailMessageUUID = mailMessage.itsUUID
         self.account = None
-        self.mailMessage = None
+        self.curTransport = None
+        self.pending = []
+        self.testing = False
 
-    def sendMail(self):
-        """Sends a mail message via SMTP using the account and mailMessage
-           passed to this classes __init__ method"""
+    def shutdown(self):
+        if __debug__:
+            self.log.warn("SMTPClient shutdown")
+
+
+    def sendMail(self, mailMessage):
+        """
+            Sends a mail message via SMTP using the account and mailMessage
+           passed to this classes __init__ method
+
+           @param mailMessage: A MailMessage content model object
+           @type mailMessage: C{Mail.MailMessageMixin}
+        """
         if __debug__:
             self.printCurrentView("sendMail")
 
-        reactor.callFromThread(self.execInView, self.__sendMail)
+        assert isinstance(mailMessage, Mail.MailMessageMixin)
 
-    def __sendMail(self):
+        reactor.callFromThread(self.execInView, self.__sendMail, mailMessage.itsUUID)
+
+    def testAccountSettings(self):
+        if __debug__:
+            self.printCurrentView("testAccountSettings")
+
+        reactor.callFromThread(self.execInView, self.__testAccountSettings)
+
+    def _viewCommitSuccess(self):
+        """
+        Overides C{RepositoryViewManager.AbstractRepositoryViewManager}.
+        It posts a commit event to the GUI thread, unpins the C{SMTPAccountKind} and
+        C{MailMessageKind} from memory, and writes commit info to the logger
+        @return: C{None}
+        """
+        if __debug__:
+            self.printCurrentView("_viewCommitSuccess")
+
+        reactor.callFromThread(self.__actionComplete)
+
+    def __actionComplete(self):
+        if __debug__:
+            self.printCurrentView("__actionComplete")
+
+        key = None
+
+        mailMessage = self.curTransport.mailMessage
+
+        if mailMessage.deliveryExtension.state == "FAILED":
+            key = "displaySMTPSendError"
+        else:
+            key = "displaySMTPSendSuccess"
+
+        utils.NotifyUIAsync(mailMessage, callable=key)
+
+        self.curTransport = None
+
+        """If there are messages send the next one in the Queue"""
+        if len(self.pending) > 0:
+            mUUID = self.pending.pop()
+
+            if __debug__:
+                self.log.warn("SMTPClient sending next message in Queue %s" % mUUID)
+
+            """Yield to Twisted Event Loop"""
+            reactor.callLater(0, self.__sendMail, mUUID)
+
+
+    def __sendMail(self, mailMessageUUID):
         """Sends a mail message via SMTP using the account and mailMessage
            passed to this classes __init__ method using the Twisted Asych Reactor"""
 
         if __debug__:
             self.printCurrentView("__sendMail")
 
-        self.__getKinds()
+        """If currently sending a message put the next request in the Queue"""
+        if self.curTransport is not None:
 
-        #XXX: make sure that we need this could just check if outbound already
-        self.mailMessage.outgoingMessage(account=self.account)
+            sending = (self.curTransport.mailMessage.itsUUID == mailMessageUUID)
+
+            """Check that the mailMessage in not already Queued"""
+            if mailMessageUUID in self.pending:
+                if __debug__:
+                    self.log.warn("SMTPClient Queue already contains message: %s" % mailMessageUUID)
+
+            elif sending:
+                """Check that the mailMessage in not currently being sent"""
+                if __debug__:
+                    self.log.warn("SMTPClient currently sending message: %s" % mailMessageUUID)
+
+            else:
+                self.pending.insert(0, mailMessageUUID)
+
+                if __debug__:
+                    self.log.warn("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
+
+            return
+
+        """ Refresh our view before retrieving Account info"""
+        self.view.refresh()
+
+        """Get the account, get the mail message and hand off to an instance to send
+           if someone already sending them put in a queue"""
+
+        self.__getAccount()
+        mailMessage = self.__getMailMessage(mailMessageUUID)
+
+        self.curTransport = _SMTPTransport(self)
+        self.curTransport.transportMail(mailMessage)
+
+    def __testAccountSettings(self):
+        if __debug__:
+            self.printCurrentView("__testAccountSettings")
+
+        """ Refresh our view before retrieving Account info"""
+        self.view.refresh()
+
+        """Get the account, get the mail message and hand off to an instance to send
+           if someone already sending them put in a queue"""
+        self.__getAccount()
+
+        self.testing = True
+        _SMTPTransport(self).testAccountSettings()
+
+    def __getAccount(self):
+        """Returns instances of C{SMTPAccount} based on C{UUID}'s"""
+
+        if self.account is None:
+            accountKind = Mail.SMTPAccount.getKind(self.view)
+            self.account = accountKind.findUUID(self.accountUUID)
+            assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
+
+
+    def __getMailMessage(self, mailMessageUUID):
+        mailMessageKind = Mail.MailMessage.getKind(self.view)
+        m = mailMessageKind.findUUID(mailMessageUUID)
+
+        assert m is not None, "No MailMessage for UUID: %s" % mailMessageUUID
+        return m
+
+
+    def sendMailMessage(cls, from_addr, to_addrs, messageText, deferred, account, testing=False):
+        """XXX can only be called from twisted thread"""
+
+        username         = None
+        password         = None
+        authRequired     = False
+        tlsContext       = None
+        securityRequired = False
+        heloFallback     = True
+
+        if account.useAuth:
+            username     = account.username
+            password     = account.password
+            authRequired = True
+            heloFallback = False
+
+        if account.connectionSecurity == 'TLS':
+            tlsContext = Globals.crypto.getSSLContext()
+            securityRequired = True
+
+        msg = StringIO.StringIO(messageText)
+
+        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
+                                          deferred, account.numRetries, constants.TIMEOUT,
+                                          tlsContext, heloFallback, authRequired, securityRequired)
+
+
+        if account.connectionSecurity == 'SSL':
+            #XXX: This method actually begins the SSL exchange. Confusing name!
+            factory.startTLS = True
+            factory.sslChecker = SSL.Checker.Checker()
+            factory.getContext = lambda : Globals.crypto.getSSLContext()
+
+        factory.protocol = _TwistedESMTPSender
+        factory.testing  = testing
+
+        wrappingFactory = policies.WrappingFactory(factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+
+        reactor.connectTCP(account.host, account.port, wrappingFactory)
+
+    sendMailMessage = classmethod(sendMailMessage)
+
+
+class _SMTPTransport(object):
+    #Can only be used in the Twisted Reactor Thread
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.mailMessage = None
+
+    def transportMail(self, mailMessage):
+        """Sends a mail message via SMTP using the account and mailMessage
+           passed to this classes __init__ method."""
+
+        if __debug__:
+            self.parent.printCurrentView("transport.__transportMail")
+
+        self.mailMessage = mailMessage
+
+        self.mailMessage.outgoingMessage(self.parent.account)
 
         """Clear out any previous DeliveryErrors from a previous attempt"""
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
 
-
-
         """Get the sender's Email Address will either be the Reply-To or From field"""
         sender = self.__getSender()
 
-
-        """Make sure that the Mail Message has a sender"""
-        if sender is None:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
-                              "A From Address is required to send an SMTP Mail Message.")
+        if self.__mailMessageHasErrors(sender):
             return
 
-        """Make sure the sender's Email Address is valid"""
-        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
-                              "%s is not a valid From Address." % \
-                              Mail.EmailAddress.format(sender))
-            return
-
-        """Make sure there is at least one Email Address to send the message to"""
-        if len(self.mailMessage.toAddress) == 0:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
-                              "A To Address is required to send an SMTP Mail Message.")
-            return
-
-        errs = []
-        #XXX: Clean up verbage and of course move to external file when i18n in place
-        errStr = "%s Address %s is not a valid Email Address."
-
-        """Make sure that each Recipients Email Address is valid"""
-        for toAddress in self.mailMessage.toAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
-                errs.append(errStr % ("To", Mail.EmailAddress.format(toAddress)))
-
-        for ccAddress in self.mailMessage.ccAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
-                errs.append(errStr % ("Cc", Mail.EmailAddress.format(ccAddress)))
-
-        for bccAddress in self.mailMessage.bccAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
-                errs.append(errStr % ("Bcc", Mail.EmailAddress.format(bccAddress)))
-
-        if len(errs) > 0:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
-                              "\n".join(errs))
-            return
 
         messageText = message.kindToMessageText(self.mailMessage)
 
         d = defer.Deferred()
-        d.addCallback(self.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
-        d.addErrback(self.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
+        d.addCallback(self.parent.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
+        d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
 
-        SMTPSender.sendMailMessage(sender.emailAddress, self.__getRcptTo(), \
-                                     messageText, d, self.account)
+        SMTPClient.sendMailMessage(sender.emailAddress, self.__getRcptTo(), \
+                                  messageText, d, self.parent.account)
+
+
+    def testAccountSettings(self):
+        if __debug__:
+            self.parent.printCurrentView("transport.testSettings")
+
+        sender = Mail.MailParcel.getSMTPAccount(self.parent.view, \
+                                                self.parent.accountUUID)[1]
+
+        if sender is None:
+            errorStr = constants.UPLOAD_NO_REPLY_ADDRESS % self.parent.account.displayName
+            utils.alert(constants.TEST_ERROR, errorStr)
+            return
+
+        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
+            errorStr = constants.UPLOAD_BAD_REPLY_ADDRESS % (sender.emailAddress, \
+                                                             self.parent.account.displayName)
+
+            utils.alert(constants.TEST_ERROR, errorStr)
+            return
+
+        d = defer.Deferred()
+        d.addCallback(self.__testSuccess)
+        d.addErrback(self.__testFailure)
+
+        SMTPClient.sendMailMessage(sender.emailAddress, [], "", d, \
+                                   self.parent.account, True)
+
+    def __testSuccess(self, result):
+        self.testing = False
+        utils.alert(constants.TEST_SUCCESS, self.parent.account.displayName)
+
+    def __testFailure(self, exc):
+        self.testing = False
+
+        """Just get the error string do not need the 
+           error code"""
+        err = self.__getError(exc.value)[1]
+        utils.alert(constants.TEST_ERROR, self.parent.account.displayName, err)
 
 
     def __mailSuccessCheck(self, result):
@@ -178,13 +354,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
            treat the message as failed for .4B and possibly beyond"""
 
         if __debug__:
-            self.printCurrentView("__mailSuccessCheck")
+            self.parent.printCurrentView("transport.__mailSuccessCheck")
 
         """ Refresh our view before adding items to our mail Message
             and commiting. Will not cause merge conflicts since
             no data changed in view in yet """
 
-        self.view.refresh()
+        self.parent.view.refresh()
 
         if result[0] == len(result[1]):
             self.__mailSuccess(result)
@@ -197,7 +373,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
            mailMessage"""
 
         if __debug__:
-            self.printCurrentView("__mailSuccess")
+            self.parent.printCurrentView("transport.__mailSuccess")
 
         now = DateTime.now()
         self.mailMessage.dateSent = now
@@ -211,7 +387,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             for address in result[1]:
                 addrs.append(address[0])
 
-            self.log.info("SMTP Message sent to [%s]" % (", ".join(addrs)))
+            self.parent.log.info(constants.UPLOAD_SUCCESS % (", ".join(addrs)))
 
     def __mailSomeFailed(self, result):
         """
@@ -222,7 +398,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         """
 
         if __debug__:
-            self.printCurrentView("__mailSomeFailed")
+            self.parent.printCurrentView("transport.__mailSomeFailed")
 
         errorDate = DateTime.now()
 
@@ -230,7 +406,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             email, code, str = recipient
 
             if recipient[1] != constants.SMTP_SUCCESS:
-                deliveryError = Mail.MailDeliveryError(view=self.getCurrentView())
+                deliveryError = Mail.MailDeliveryError(view=self.parent.view)
                 deliveryError.errorCode = code
                 deliveryError.errorString = "%s: %s" % (email, str)
                 deliveryError.errorDate = errorDate
@@ -239,40 +415,52 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         self.mailMessage.deliveryExtension.sendFailed()
 
         if __debug__:
-            s = []
-            s.append("SMTP Send failed for the following recipients:")
+            s = [constants.UPLOAD_FAILED_FOR_RECIPIENTS]
 
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
                 s.append(deliveryError.__str__())
 
-            self.log.error("\n".join(s))
+            self.parent.log.error("\n".join(s))
 
 
     def __mailFailure(self, exc):
         """If the mail message was not sent update the mailMessage object"""
 
         if __debug__:
-            self.printCurrentView("__mailFailure")
+            self.parent.printCurrentView("transport.__mailFailure")
 
         """ Refresh our view before adding items to our mail Message
             and commiting. Will not cause merge conflicts since
             no data changed in view in yet """
-        self.view.refresh()
+        self.parent.view.refresh()
 
         self.__recordError(exc.value)
         self.mailMessage.deliveryExtension.sendFailed()
 
         if __debug__:
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                s = "SMTP send failed: %s" % deliveryError
-                self.log.error(s)
+                s = constants.UPLOAD_FAILED % deliveryError
+                self.parent.log.error(s)
 
     def __recordError(self, err):
-        """Helper method to record the errors to the mailMessage object"""
+        """Helper method to record the C{DeliveryErrors} to the C{SMTPDelivery} object"""
 
-        deliveryError = Mail.MailDeliveryError(view=self.getCurrentView())
-        deliveryError.errorDate = DateTime.now()
-        errorType = str(err.__class__)
+        result = self.__getError(err)
+
+        deliveryError = Mail.MailDeliveryError(view=self.parent.view)
+
+        deliveryError.errorDate   = DateTime.now()
+        deliveryError.errorCode   = result[0]
+        deliveryError.errorString = result[1]
+
+
+        self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
+
+
+    def __getError(self, err):
+        errorCode   = None
+        errorString = None
+        errorType   = str(err.__class__)
 
         if isinstance(err, smtp.SMTPClientError):
             """Base type for all SMTP Related Errors.
@@ -282,30 +470,25 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
                correct error code from the smtp server.
             """
 
-            #XXX: Users password may get logged will need to enhance in a 
-            #     future release to prevent this from happening
-            if __debug__ and self.account.connectionSecurity == 'SSL' and err.log is not None:
-                self.log.error("\n%s" % err.log)
-
-            deliveryError.errorCode = err.code
-            deliveryError.errorString = err.resp
+            errorCode = err.code
+            errorString = err.resp
 
             #if errorType == errors.AUTH_DECLINED_ERROR:
             #if errorType == errors.TLS_ERROR:
 
             if err.code == -1:
                 if errorType == errors.SMTP_DELIVERY_ERROR:
-                    deliveryError.errorCode = errors.DELIVERY_CODE
+                    errorCode = errors.DELIVERY_CODE
 
                 elif errorType == errors.SMTP_CONNECT_ERROR:
-                    deliveryError.errorCode = errors.CONNECTION_CODE
+                    errorCode = errors.CONNECTION_CODE
 
                 elif errorType == errors.SMTP_PROTOCOL_ERROR:
-                    deliveryError.errorCode = errors.PROTOCOL_CODE
+                    errorCode = errors.PROTOCOL_CODE
 
         elif errorType == errors.SMTP_EXCEPTION:
-            deliveryError.errorCode = errors.MISSING_VALUE_CODE
-            deliveryError.errorString = err.__str__()
+            errorCode = errors.MISSING_VALUE_CODE
+            errorString = err.__str__()
 
         elif isinstance(err, error.ConnectError):
             """ Record the error code of a ConnectionError.
@@ -314,75 +497,53 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
                 and no error code will be returned by the
                 server."""
 
-            deliveryError.errorString = err.__str__()
+            errorString = err.__str__()
 
             if errorType == errors.CONNECT_BIND_ERROR:
-                deliveryError.errorCode = errors.BIND_CODE
+                errorCode = errors.BIND_CODE
 
             elif errorType == errors.UNKNOWN_HOST_ERROR:
-                deliveryError.errorCode = errors.HOST_UNKNOWN_CODE
+                errorCode = errors.HOST_UNKNOWN_CODE
 
             elif errorType == errors.TIMEOUT_ERROR:
-                deliveryError.errorCode = errors.TIMEOUT_CODE
+                errorCode = errors.TIMEOUT_CODE
 
             elif errorType == errors.SSL_ERROR:
-                deliveryError.errorCode = errors.SSL_CODE
+                errorCode = errors.SSL_CODE
 
             elif errorType == errors.CONNECTION_REFUSED_ERROR:
-                deliveryError.errorCode = errors.CONNECTION_REFUSED_CODE
+                errorCode = errors.CONNECTION_REFUSED_CODE
 
         elif errorType == errors.DNS_LOOKUP_ERROR:
-            deliveryError.errorCode = errors.DNS_LOOKUP_CODE
-            deliveryError.errorString = err.__str__()
+            errorCode = errors.DNS_LOOKUP_CODE
+            errorString = err.__str__()
 
         elif errorType == errors.M2CRYPTO_ERROR:
-            deliveryError.errorCode = errors.M2CRYPTO_CODE
+            errorCode = errors.M2CRYPTO_CODE
 
             try:
                 #XXX: Special Case should be caught prompting the message to be resend
                 #     if the user adds the cert to the chain
                 if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                    deliveryError.errorString = "The SSL Certificate returned can not be verified."
+                    errorString =  errors.STR_SSL_CERTIFICATE_ERROR
 
             except:
-                deliveryError.errorString = "SSL communication error"
+               errorString = errors.STR_SSL_ERROR
 
         else:
-            deliveryError.errorCode = errors.UNKNOWN_CODE
-            s = "Unknown Exception encountered docString: %s module: %s" % (err.__doc__, err.__module__)
-            deliveryError.errorString = s
-
-        self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
+            errorCode = errors.UNKNOWN_CODE
+            errorString = errors.STR_UNKNOWN_ERROR % (err.__module__, err.__doc__)
 
 
-    def _viewCommitSuccess(self):
-        """
-        Overides C{RepositoryViewManager.AbstractRepositoryViewManager}.
-        It posts a commit event to the GUI thread, unpins the C{SMTPAccountKind} and
-        C{MailMessageKind} from memory, and writes commit info to the logger
-        @return: C{None}
-        """
+        return (errorCode, errorString)
 
-        if __debug__:
-            self.printCurrentView("_viewCommitSuccess")
-
-        key = None
-
-        if self.mailMessage.deliveryExtension.state == "FAILED":
-            key = "displaySMTPSendError"
-        else:
-            key = "displaySMTPSendSuccess"
-
-        utils.NotifyUIAsync(self.mailMessage, callable=key)
-        self.account = None
-        self.mailMessage = None
 
     def __fatalError(self, str):
         """If a fatal error occurred before sending the message i.e. no To Address
            then record the error, log it, and commit the mailMessage containing the
            error info"""
         if __debug__:
-            self.printCurrentView("__fatalError")
+            self.parent.printCurrentView("transport.__fatalError")
 
         e = errors.SMTPException(str)
         self.__recordError(e)
@@ -390,27 +551,10 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         if __debug__:
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                s = "SMTP send failed: %s" % deliveryError
-                self.log.error(s)
+                self.log.error(constants.UPLOAD_FAILED % deliveryError)
 
-    def __getKinds(self):
-        """Returns instances of C{SMTPAccount} and C{MailMessage}
-           based on C{UUID}'s"""
-
-        """ Refresh our view before retrieving Message and Account info"""
-        self.view.refresh()
-
-        accountKind = Mail.SMTPAccount.getKind(self.view)
-        self.account = accountKind.findUUID(self.accountUUID)
-
-        mailMessageKind = Mail.MailMessage.getKind(self.view)
-        self.mailMessage = mailMessageKind.findUUID(self.mailMessageUUID)
-
-        assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
-        assert self.mailMessage is not None, "No MailMessage for UUID: %s" % self.mailMessageUUID
 
     def __getSender(self):
-        #XXX: Will want to refine how this look is done when mail preferences are in place
         if self.mailMessage.replyToAddress is not None:
             return self.mailMessage.replyToAddress
 
@@ -433,44 +577,45 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         return to_addrs
 
-    def sendMailMessage(cls, from_addr, to_addrs, messageText, deferred, account):
-        #XXX: Perform some error checking
-        username         = None
-        password         = None
-        authRequired     = False
-        tlsContext       = None
-        securityRequired = False
-        heloFallback     = True
+    def __mailMessageHasErrors(self, sender):
+        """Make sure that the Mail Message has a sender"""
+        if sender is None:
+            reactor.callLater(0, self.parent.execInViewThenCommitInThread, self.__fatalError, \
+                              constants.UPLOAD_FROM_REQUIRED)
+            return True
 
+        """Make sure the sender's Email Address is valid"""
+        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
+            reactor.callLater(0, self.parent.execInViewThenCommitInThread, self.__fatalError, \
+                              constants.UPLOAD_BAD_FROM_ADDRESS % \
+                              Mail.EmailAddress.format(sender))
+            return True
 
-        if account.useAuth:
-            username     = account.username
-            password     = account.password
-            authRequired = True
-            heloFallback = False
+        """Make sure there is at least one Email Address to send the message to"""
+        if len(self.mailMessage.toAddress) == 0:
+            reactor.callLater(0, self.parent.execInViewThenCommitInThread, self.__fatalError, \
+                              constants.UPLOAD_TO_REQUIRED)
+            return True
 
-        if account.connectionSecurity == 'TLS':
-            tlsContext = Globals.crypto.getSSLContext()
-            securityRequired = True
+        errs = []
+        errStr = constants.INVALID_EMAIL_ADDRESS
 
-        msg = StringIO.StringIO(messageText)
+        """Make sure that each Recipients Email Address is valid"""
+        for toAddress in self.mailMessage.toAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
+                errs.append(errStr % ("To", Mail.EmailAddress.format(toAddress)))
 
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          deferred, account.numRetries, constants.TIMEOUT,
-                                          tlsContext, heloFallback, authRequired, securityRequired)
+        for ccAddress in self.mailMessage.ccAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
+                errs.append(errStr % ("Cc", Mail.EmailAddress.format(ccAddress)))
 
+        for bccAddress in self.mailMessage.bccAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
+                errs.append(errStr % ("Bcc", Mail.EmailAddress.format(bccAddress)))
 
-        if account.connectionSecurity == 'SSL':
-            #XXX: This method actually begins the SSL exchange. Confusing name!
-            factory.startTLS = True
-            factory.getContext = lambda : Globals.crypto.getSSLContext()
+        if len(errs) > 0:
+            reactor.callLater(0, self.parent.execInViewThenCommitInThread, self.__fatalError, \
+                              "\n".join(errs))
+            return True
 
-        factory.protocol = ChandlerESMTPSender
-        factory.sslChecker = SSL.Checker.Checker()
-
-        wrappingFactory = policies.WrappingFactory(factory)
-        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-
-        reactor.connectTCP(account.host, account.port, wrappingFactory)
-
-    sendMailMessage = classmethod(sendMailMessage)
+        return False 

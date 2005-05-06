@@ -347,9 +347,16 @@ class wxApplication (wx.App):
 
         self.mainFrame.Show()
 
+
+        """Start the WakeupCaller Service"""
         from osaf.framework.wakeup.WakeupCaller import WakeupCaller
         Globals.wakeupCaller = WakeupCaller(self.UIRepositoryView.repository)
         Globals.wakeupCaller.startup()
+
+        """Start the Chandler Mail Service"""
+        from osaf.mail.mailservice import MailService
+        Globals.mailService = MailService(self.UIRepositoryView.repository)
+        Globals.mailService.startup()
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
@@ -597,6 +604,8 @@ class wxApplication (wx.App):
         """
         if __debug__:
             wx.GetApp().UIRepositoryView.repository.check()
+
+        Globals.mailService.shutdown()
         Globals.wakeupCaller.shutdown()
         self.__twistedReactorManager.stopReactor()
         """
