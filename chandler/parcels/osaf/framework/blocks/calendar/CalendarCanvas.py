@@ -869,8 +869,8 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         
         self.eventTimeFont = smallBoldFont
         
-        self.legendFont = bigBoldFont
-        self.legendColor = wx.Colour(153, 153, 153)
+        self.legendFont = bigFont
+        self.legendColor = wx.Colour(128,128,128)
 
         self.bgColor = wx.WHITE
 
@@ -992,7 +992,14 @@ class wxWeekHeaderWidgets(wx.Panel):
                                                              styles.monthLabelColor,
                                                              styles.bgColor)
         navigationRow.Add((0,0), 1)
-        navigationRow.Add(self.monthButton, 0, wx.ALIGN_CENTER)
+        
+        # add vertical margins above/below the month button
+        monthSizer = wx.BoxSizer(wx.VERTICAL)
+        monthSizer.Add((7,7),0)
+        monthSizer.Add(self.monthButton, 0)
+        monthSizer.Add((5,5), 0)
+        
+        navigationRow.Add(monthSizer, 0, wx.ALIGN_CENTER)
         navigationRow.Add((0,0), 1)
         
         # 
@@ -1002,7 +1009,6 @@ class wxWeekHeaderWidgets(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
 
-        #navigationRow.Add((0,0), 1, wx.EXPAND)
         navigationRow.Add(self.prevButton, 0, wx.CENTER)
         navigationRow.Add((5,5), 0)
         navigationRow.Add(self.nextButton, 0, wx.CENTER)
