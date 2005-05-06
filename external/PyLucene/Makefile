@@ -52,7 +52,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la \
          $(SNAP)/lib/libgcj.$(LIBGCJ_VER).dylib
 ifeq ($(GCJ_VER),3)
-MANIFEST=$(MANIFEST) \
+MANIFEST:=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
          $(SNAP)/lib/libstdc++.6.dylib
 endif
@@ -68,7 +68,7 @@ MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so \
          $(SNAP)/lib/libgcj.so.$(LIBGCJ_VER)
 ifeq ($(GCJ_VER),3)
-MANIFEST=$(MANIFEST) \
+MANIFEST:=$(MANIFEST) \
          $(SNAP)/lib/libgcc_s.so.1 \
          $(SNAP)/lib/libstdc++.so.6
 endif
