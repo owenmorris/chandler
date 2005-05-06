@@ -130,8 +130,7 @@ $(SRC)/$(BUILD)/Makefile:
 		--with-sdl \
 		--with-libpng \
 		--with-libtiff=builtin \
-		--with-gtk \
-		--enable-gtk2
+		--with-gtk=2
 
 wxPython:
 	cd $(SRC)/wxPython; \
