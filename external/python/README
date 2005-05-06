@@ -16,11 +16,13 @@ Upgrading python build
 
  On Windows:
    - upgrade the vc++ project files to 7.1
+      Note: 2.4.1 may already be 7.1 - open them in 7.1 to verify
    - copy them into win32/$(VERSION)
    - edit _bsddb.vcproj to point header include path at ..\..\..\release\db
    - edit _bsddb.vcproj to point lib path at ..\..\..\release\lib
    - edit _bsddb.vcproj to use libdb43.lib and reset IgnoreDefaultLibraryNames
    - edit zlib.vcproj to point at zlib 1.2.1 instead of zlib 1.1.4
+      Note: 2.4.1 already has this change
    - edit zlib.vcproj to remove the VCPreLinkEventTool checking for zlib
    - edit bz2.vcproj to remove the VCPreLinkEventTool checking for bzip2
    - disable the _ssl, _testcapi, _tkinter, winsound, win9xpopen projects
