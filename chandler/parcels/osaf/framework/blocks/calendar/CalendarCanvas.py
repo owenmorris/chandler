@@ -193,6 +193,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 if (x == rect.x and width > rect.width):
                     CalendarCanvasItem.DrawClippedText(dc, word, x, y, rect.width)
                     y += height
+                    totalHeight += height
                     continue
                 
                 dc.DrawText(word, x, y)
@@ -823,6 +824,9 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         super (wxWeekPanel, self).__init__ (*arguments, **keywords)
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        
+        # minimum 45 pixels per column
+        self.SetMinSize((8*45, -1))
 
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         
@@ -1343,8 +1347,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     def OnSize(self, event):
         self._doDrawingCalculations()
         self.RebuildCanvasItems()
-        #self.Refresh()
-        #event.Skip()
+        self.Refresh()
 
     def OnInit(self):
         super (wxWeekColumnCanvas, self).OnInit()
