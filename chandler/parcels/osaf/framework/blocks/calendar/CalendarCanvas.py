@@ -987,16 +987,17 @@ class wxWeekHeaderWidgets(wx.Panel):
 
         today = DateTime.today()
         styles = self.parent
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
-                                                             styles.monthLabelFont, 
-                                                             styles.monthLabelColor,
-                                                             styles.bgColor)
+
+        self.monthText = wx.StaticText(self, -1)
+        self.monthText.SetFont(styles.monthLabelFont)
+        self.monthText.SetForegroundColour(styles.monthLabelColor)
+
         navigationRow.Add((0,0), 1)
         
-        # add vertical margins above/below the month button
+        # add vertical margins above/below the month 
         monthSizer = wx.BoxSizer(wx.VERTICAL)
         monthSizer.Add((7,7),0)
-        monthSizer.Add(self.monthButton, 0)
+        monthSizer.Add(self.monthText, 0)
         monthSizer.Add((5,5), 0)
         
         navigationRow.Add(monthSizer, 0, wx.ALIGN_CENTER)
@@ -1083,7 +1084,7 @@ class wxWeekHeaderWidgets(wx.Panel):
             monthText = "%s - %s" % (startDate.Format("%B"),
                                      lastDate.Format("%B %Y"))
      
-        self.monthButton.SetLabel(monthText)
+        self.monthText.SetLabel(monthText)
 
         today = DateTime.today()
         for day in range(7):
