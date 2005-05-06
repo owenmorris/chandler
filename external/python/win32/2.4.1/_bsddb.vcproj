@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Include;..\PC;..\..\..\debug\include;"
+				AdditionalIncludeDirectories="..\Include;..\PC;..\..\..\debug\include\db;"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
@@ -36,7 +36,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\debug\lib\libdb43sd.lib"
+				AdditionalDependencies="..\..\..\debug\lib\libdb43d.lib"
 				OutputFile="./_bsddb_d.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -87,7 +87,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\Include;..\PC;..\..\..\release\include;"
+				AdditionalIncludeDirectories="..\Include;..\PC;..\..\..\release\include\db;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -105,7 +105,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\release\lib\libdb43s.lib"
+				AdditionalDependencies="..\..\..\release\lib\libdb43.lib"
 				OutputFile="./_bsddb.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
