@@ -719,7 +719,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Lazily stamp the data
         """
-        caldata = self.contents.source
+        caldata = self.contents.source.first()
         if not isinstance(caldata, CalendarData):
             caldata.StampKind('add', CalendarData.getKind(view=caldata.itsView))
             
@@ -740,7 +740,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     calendarData = property(getCalendarData)
 
     def setupNextHue(self):
-        c = self.contents.source.calendarColor.backgroundColor
+        c = self.contents.source.first().calendarColor.backgroundColor
         self.lastHue = CalendarData.getNextHue(self.lastHue)
         (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
         
@@ -1275,7 +1275,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                                             event.startTime.minute))
         event.allDay = True
 
-        self.parent.blockItem.contents.source.add(event)
+        self.parent.blockItem.contents.source.first().add(event)
         self.OnSelectItem(event)
         view.commit()
         return event
@@ -1643,7 +1643,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         # ugh, this is a hack to work around the whole ItemCollection stuff
         # see bug 2749 for some background
-        self.parent.blockItem.contents.source.add(event)
+        self.parent.blockItem.contents.source.first().add(event)
         
         self.OnSelectItem(event)
 

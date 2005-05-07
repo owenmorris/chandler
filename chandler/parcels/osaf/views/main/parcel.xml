@@ -1241,7 +1241,8 @@
 
   <TrunkParentBlock itsName="MainDetailView">
     <blockName>MainDetailView</blockName>
-    <detailItem itemref="doc:ChandlerMainView"/>
+    <TPBDetailItem itemref="doc:ChandlerMainView"/>
+    <TPBSelectedItem itemref="doc:ChandlerMainView"/>
     <childrenBlocks itemref="doc:ChandlerMainView"/>
     <trunkDelegate itemref="doc:MainTrunkDelegate"/>
   </TrunkParentBlock>
@@ -1317,10 +1318,10 @@
     <border>0,0,4,0</border>
     <dontShowCalendarForItemsWithName key="In filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
     <dontShowCalendarForItemsWithName key="Out filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
-    <nameAlternatives key="All" value="All my Items"></nameAlternatives>
-    <nameAlternatives key="AllMailMessageMixin" value="All my Mail"></nameAlternatives>
-    <nameAlternatives key="AllCalendarEventMixin" value="All my Events"></nameAlternatives>
-    <nameAlternatives key="AllTaskMixin" value="All my Tasks"></nameAlternatives>
+    <nameAlternatives key="All" value="All my items"></nameAlternatives>
+    <nameAlternatives key="AllMailMessageMixin" value="All my mail"></nameAlternatives>
+    <nameAlternatives key="AllCalendarEventMixin" value="All my events"></nameAlternatives>
+    <nameAlternatives key="AllTaskMixin" value="All my tasks"></nameAlternatives>
   </doc:Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
@@ -1329,7 +1330,8 @@
 
   <TrunkParentBlock itsName="SidebarTPB">
     <blockName value="SidebarTPB"/>
-    <detailItem itemref="doc:allItemCollection"/>
+    <TPBDetailItem itemref="doc:allItemCollection"/>
+    <TPBSelectedItem itemref="doc:allItemCollection"/>
     <trunkDelegate itemref="doc:SidebarTrunkDelegateInstance"/>
   </TrunkParentBlock>
 
@@ -1377,7 +1379,6 @@
 
   <TrunkParentBlock itsName="TableSummaryDetailTPB">
     <blockName>TableSummaryDetailTPB</blockName>
-    <detailItem itemref="core:None"/>
     <trunkDelegate itemref="doc:TableSummaryDetailTrunkDelegate"/>
   </TrunkParentBlock>
 
@@ -1401,7 +1402,6 @@
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>
-    <detailItem itemref="core:None"/>
     <trunkDelegate itemref="doc:CalendarDetailTrunkDelegate"/>
     <colorStyle itemref="detail:WhiteBackground"/>
   </TrunkParentBlock>
@@ -1465,7 +1465,8 @@
 
   <TrunkParentBlock itsName="CPIATestSidebarDetailView">
     <blockName>CPIATestSidebarDetailView</blockName>
-    <detailItem itemref="doc:allItemCollection"/>
+    <TPBDetailItem itemref="doc:allItemCollection"/>
+    <TPBSelectedItem itemref="doc:allItemCollection"/>
     <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegateInstance"/>
   </TrunkParentBlock>
 
@@ -1565,7 +1566,6 @@
 
   <TrunkParentBlock itsName="CPIATestSummaryDetailTPB">
     <blockName>CPIATestSummaryDetailTPB</blockName>
-    <detailItem itemref="core:None"/>
     <trunkDelegate itemref="doc:CPIATestSummaryTrunkDelegate"/>
   </TrunkParentBlock>
 

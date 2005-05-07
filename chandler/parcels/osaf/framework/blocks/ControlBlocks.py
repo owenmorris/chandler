@@ -1583,9 +1583,7 @@ class AEBlock(RectangularChild):
         return selectedEditor
 
     def onSetContentsEvent (self, event):
-        newContents = event.arguments['item']
-        if getattr(self, 'contents', None) is not newContents:
-            self.contents = newContents
+        self.contents = event.arguments['item']
 
     def getItem(self):        
         return getattr(self, 'contents', None)

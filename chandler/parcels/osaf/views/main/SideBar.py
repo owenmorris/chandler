@@ -55,6 +55,13 @@ class wxSidebar(ControlBlocks.wxTable):
         cellRect.SetTop (top)
         return cellRect
 
+    def wxSynchronizeWidget(self):
+        sidebar = self.blockItem
+        for checkedItem in sidebar.checkedItems:
+            if checkedItem not in sidebar.contents:
+                sidebar.checkedItems.remove (checkedItem)
+        super (wxSidebar, self).wxSynchronizeWidget()
+
     def OnMouseEvents (self, event):
         """
           This code is tricky, tred with care -- DJA
@@ -105,6 +112,8 @@ class wxSidebar(ControlBlocks.wxTable):
                         checkedItems.remove (item)
                     else:
                         checkedItems.append (item)
+                    sidebar = self.blockItem
+                    sidebar.postEventByName ("SelectItemBroadcast", {'item':sidebar.selectedItemToView})
                     wx.GetApp().UIRepositoryView.commit()
                 else:
                     self.RefreshRect (self.imageRect)
@@ -306,9 +315,19 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _mapItemToCacheKeyItem(self, item):
         key = item
         if isinstance (item, ItemCollection.ItemCollection):
-            filterKind = Block.Block.findBlockByName ("Sidebar").filterKind
+            sidebar = Block.Block.findBlockByName ("Sidebar")
+            collectionList = [theItem for theItem in sidebar.checkedItems]
+            if item not in collectionList:
+                collectionList.insert (0, item)
+            tupleList = [theItem.itsUUID for theItem in collectionList]
+            
+            filterKind = sidebar.filterKind
             if not filterKind is None:
-                tupleKey = (item.itsUUID, filterKind.itsUUID)
+                tupleList.append (filterKind)
+            
+            if len (tupleList) > 1:
+                tupleKey = tuple (tupleList)
+
                 try:
                     key = self.itemTupleKeyToCacheKey [tupleKey]
                 except KeyError:
@@ -324,9 +343,14 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                       ItemCollection change we don't update our copied rule.                      
                     """
                     key = ItemCollection.ItemCollection (view=self.itsView)
-                    key.source = item
-                    key.displayName = item.displayName + u" filtered by " + filterKind.displayName
-                    key.addFilterKind (filterKind)
+                    key.source = collectionList
+                    
+                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+                    if filterKind is not None:
+                        key.addFilterKind (filterKind)
+                        displayName += u" filtered by " + filterKind.displayName                    
+                    key.displayName = displayName
+
                     self.itemTupleKeyToCacheKey [tupleKey] = key
         return key
 
@@ -352,8 +376,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         assert isinstance (trunk, Block.Block)
         return self._copyItem(trunk, onlyIfReadOnly=True)
 
-    def _setContentsOnTrunk(self, trunk, item, keyItem):
-        trunk.postEventByName("SetContents", {'item':keyItem})
+    def _getContentsForTrunk(self, trunk, item, keyItem):
+        return keyItem
 
 
 class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):

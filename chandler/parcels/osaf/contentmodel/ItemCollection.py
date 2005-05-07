@@ -73,24 +73,32 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         """
         if self.ruleIsStale:
             args = {}
+            argNumber = 0
             newQueryString = self._rule
-            if self.source is not None:
+                
+            for sourceItem in self.source:
                 if newQueryString:
-                    newQueryString = "union (" + newQueryString + ", for i in $0 where True)"
+                    newQueryString = "union (" + newQueryString + ", for i in $" + str (argNumber) + " where True)"
                 else:
-                    newQueryString = "for i in $0 where True"
-                args ["$0"] = (self.source.itsUUID, "_resultSet")
+                    newQueryString = "for i in $" + str (argNumber) + " where True"
+                args ["$" + str (argNumber)] = (sourceItem.itsUUID, "_resultSet")
+                argNumber += 1
+
             if len (self.inclusions):
                 if newQueryString:
-                    newQueryString = "union (" + newQueryString + ", for i in $1 where True)"
+                    newQueryString = "union (" + newQueryString + ", for i in $" + str (argNumber) + " where True)"
                 else:
-                    newQueryString = "for i in $1 where True"
-                args ["$1"] = (self.itsUUID, "inclusions")
+                    newQueryString = "for i in $" + str (argNumber) + " where True"
+                args ["$" + str (argNumber)] = (self.itsUUID, "inclusions")
+                argNumber += 1
+
             if newQueryString:
-                if len (self.exclusions):
-                    newQueryString = "difference (" + newQueryString + ", for i in $2 where True)"
-                    args ["$2"] = (self.itsUUID, "exclusions")
-                if len (self.kindFilter) != 0:
+                if len (self.exclusions) > 0:
+                    newQueryString = "difference (" + newQueryString + ", for i in $" + str (argNumber) + " where True)"
+                    args ["$" + str (argNumber) + ""] = (self.itsUUID, "exclusions")
+                    argNumber += 1
+
+                if len (self.kindFilter) > 0:
                     for kindPath in self.kindFilter:
                         newQueryString = "intersect (" + newQueryString + ", for i inevery '" + kindPath + "' where True)"
             self.queryString = newQueryString
@@ -129,11 +137,11 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
             return self.resultSet.getIndexPosition (self.indexName, item)
 
     def subscribe(self, *arguments, **keywords):
-        if self.source is not None:
-            self.source.subscribe (self, "")
+        for item in self.source:
+            item.subscribe (self, "")
         super (ItemCollection, self).subscribe (*arguments, **keywords)
 
     def unsubscribe(self, *arguments, **keywords):
         super (ItemCollection, self).unsubscribe (*arguments, **keywords)
-        if self.source is not None:
-            self.source.unsubscribe (self)
+        for item in self.source:
+            item.unsubscribe (self)

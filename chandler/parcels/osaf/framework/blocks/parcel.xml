@@ -525,10 +525,16 @@
       <type itemref="docSchema:ContextMenu"/>
     </Attribute>
 
-    <Attribute itsName="detailItemOwner">
+    <Attribute itsName="TPBDetailItemOwner">
       <type itemref="docSchema:Block/"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:TrunkParentBlock/detailItem"/>
+      <inverseAttribute itemref="docSchema:TrunkParentBlock/TPBDetailItem"/>
+    </Attribute>
+
+    <Attribute itsName="TPBSelectedItemOwner">
+      <type itemref="docSchema:Block/"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="docSchema:TrunkParentBlock/TPBSelectedItem"/>
     </Attribute>
 
     <Attribute itsName="viewContainer">
@@ -1470,9 +1476,16 @@
       <required>True</required>
     </Attribute>
     
-    <Attribute itsName="detailItem">
+    <Attribute itsName="TPBDetailItem">
       <type itemref="Item"/>
-      <inverseAttribute itemref="docSchema:Block/detailItemOwner"/>
+      <inverseAttribute itemref="docSchema:Block/TPBDetailItemOwner"/>
+      <initialValue itemref="None"/>
+    </Attribute>
+
+    <Attribute itsName="TPBSelectedItem">
+      <type itemref="Item"/>
+      <inverseAttribute itemref="docSchema:Block/TPBSelectedItemOwner"/>
+      <initialValue itemref="None"/>
     </Attribute>
 
     <attributes itemref="docSchema:colorStyle"/>
@@ -1485,11 +1498,16 @@
             <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/trunkDelegate"/>
-        <Endpoint itsName="detailItem">
-            <attribute value="detailItem"/>
+        <Endpoint itsName="TPBDetailItem">
+            <attribute value="TPBDetailItem"/>
             <includePolicy value="byCloud"/>
         </Endpoint>
-        <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/detailItem"/>
+        <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/TPBDetailItem"/>
+        <Endpoint itsName="TPBSelectedItem">
+            <attribute value="TPBSelectedItem"/>
+            <includePolicy value="byCloud"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/TPBSelectedItem"/>
         <Endpoint itsName="colorStyle">
             <attribute value="colorStyle"/>
             <includePolicy value="byRef"/>

@@ -131,7 +131,9 @@
 
         <attributes itemref="blocks:Block/viewContainer"/>
 
-        <attributes itemref="blocks:Block/detailItemOwner"/>
+        <attributes itemref="blocks:Block/TPBDetailItemOwner"/>
+
+        <attributes itemref="blocks:Block/TPBSelectedItemOwner"/>
 
         <Attribute itsName="createdOn">
             <displayName>Created On</displayName>
@@ -332,7 +334,8 @@
     <Attribute itsName="source">
       <type itemref="cm:ItemCollection"/>
       <inverseAttribute itemref="cm:ItemCollection/destination"/>
-      <initialValue itemref="None"/>
+      <cardinality>list</cardinality>
+      <initialValue />
     </Attribute>
   
     <Attribute itsName="destination">

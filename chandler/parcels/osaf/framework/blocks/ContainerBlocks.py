@@ -15,8 +15,8 @@ import time
 
 
 class wxBoxContainer (wxRectangularChild):
-    def wxSynchronizeWidget(self, *arguments, **keywords):
-        super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
+    def wxSynchronizeWidget(self):
+        super (wxBoxContainer, self).wxSynchronizeWidget ()
         
         if self.blockItem.isShown:
             sizer = self.GetSizer()
@@ -41,7 +41,7 @@ class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):
         super (wxLayoutChooser, self).__init__ (*arguments, **keywords)
             
-    def wxSynchronizeWidget(self, *arguments, **keywords):
+    def wxSynchronizeWidget(self):
         selectedChoice = self._getSelectedChoice()
         if selectedChoice != self.blockItem.selection:
             for childBlock in self.blockItem.childrenBlocks:
@@ -49,7 +49,7 @@ class wxLayoutChooser(wxBoxContainer):
                     childBlock.parentBlock = None
                     if hasattr(childBlock, 'widget'):
                         childBlock.widget.Destroy()
-            super(wxLayoutChooser, self).wxSynchronizeWidget(*arguments, **keywords)
+            super(wxLayoutChooser, self).wxSynchronizeWidget()
 
             try: # @@@ Until all the views have the necessary choices
                 choice = self.blockItem.choices[selectedChoice]
@@ -128,7 +128,7 @@ class LayoutChooser(BoxContainer):
 
         
 class wxScrolledContainer (wx.ScrolledWindow):
-    def wxSynchronizeWidget(self, *arguments, **keywords):
+    def wxSynchronizeWidget(self):
         if self.blockItem.isShown:
             sizer = self.GetSizer()
             sizer.Clear()

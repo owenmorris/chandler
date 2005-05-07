@@ -788,7 +788,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def onRemoveEvent(self, event):
         if self.selection is not None:
-            self.contents.source.remove(self.selection)
+            self.contents.source.first.remove(self.selection)
             self.selection = None
             self.postSelectItemBroadcast ()
             self.itsView.commit()

@@ -28,10 +28,10 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     A widget block that gives its TrunkParentBlock a chance to change 
     the tree of blocks within it. 
     """
-    def wxSynchronizeWidget(self, *arguments, **keywords):
+    def wxSynchronizeWidget(self):
         if self.blockItem.isShown:
-            self.blockItem.installTreeOfBlocks(**keywords)
-        super(wxTrunkParentBlock, self).wxSynchronizeWidget(*arguments, **keywords)
+            self.blockItem.installTreeOfBlocks()
+        super(wxTrunkParentBlock, self).wxSynchronizeWidget()
         self.blockItem.synchronizeColor()
     
 class TrunkParentBlock(ContainerBlocks.BoxContainer):
@@ -43,15 +43,10 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
     def onSelectItemEvent (self, event):
-        item = event.arguments['item']
-        if item != self.detailItem:
-            self.detailItem = event.arguments['item']
-            keywords = {'rerenderHint': True}
-        else:
-            keywords = {}
+        self.TPBSelectedItem = event.arguments['item']
         """
           Occasionally a block that contains a TrunkParentBlock will send
-        a selectItem event to set detailItem when it can't be set in parcel
+        a selectItem event to set TPBSelectedItem when it can't be set in parcel
         XML (for example when it isn't yet created). This can happen before
         the widget is actually created so we'll ignore this first call to 
         wxSynchronizeWidget since it will get called later.
@@ -61,24 +56,34 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         except AttributeError:
             pass
         else:
-            widget.wxSynchronizeWidget (**keywords)
+            widget.wxSynchronizeWidget ()
 
-    def installTreeOfBlocks(self,  **keywords):
-        """ Maybe replace our children with a trunk of blocks appropriate for our content """
-        newView = None
-        try:
-            detailItem = self.detailItem
-        except AttributeError:
-            detailItem = None
+    def installTreeOfBlocks(self):
+        """
+          If necessary, replace our children with a trunk of blocks appropriate for our content
+        """
+        TPBSelectedItem = self.TPBSelectedItem
+        if TPBSelectedItem is None:
+            newView = None
+            rerender = False
+            TPBDetailItem = None
         else:
-            if detailItem is not None:
-                keyItem = self.trunkDelegate._mapItemToCacheKeyItem(detailItem)
-                newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
-            
+            keyItem = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
+            newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
+            """
+              Seems like we should always mark new views with an event boundary
+            """
+            assert newView.eventBoundary
+            TPBDetailItem = self.trunkDelegate._getContentsForTrunk (newView, TPBSelectedItem, keyItem)
+            newContents = TPBDetailItem is not self.TPBDetailItem
+            rerender = not hasattr (newView, "widget") or newContents
+
+        self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
-        if (newView is not oldView) or ('rerenderHint' in keywords):
-            logger.debug("changing tree to display %s", detailItem)
-            if not oldView is None:
+
+        if (newView is not oldView) or rerender:
+            logger.debug("changing tree to display %s", TPBSelectedItem)
+            if oldView is not None:
                 """
                 oldFocus = self.widget.FindFocus()
                 if oldFocus is not None:
@@ -89,15 +94,12 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.childrenBlocks = []
 
             if newView is not None:
+                if (newView is not oldView) or newContents:
+                    newView.postEventByName ("SetContents", {'item':TPBDetailItem})
                 self.childrenBlocks.append(newView)
-                """
-                  Seems like we should always mark new views with an event boundary
-                """
-                assert newView.eventBoundary
-                self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
                 newView.render()
         else:
-            logger.debug("NOT changing tree to display %s", detailItem)
+            logger.debug("NOT changing tree to display %s", TPBSelectedItem)
 
 
     def synchronizeColor (self):
@@ -171,9 +173,9 @@ class TrunkDelegate(Item):
             
         return result
 
-    def _setContentsOnTrunk(self, trunk, item, keyItem):
+    def _getContentsForTrunk(self, trunk, item, keyItem):
         """ 
-        Given a trunk, item and keyItem, set the contents of the trunk.
+        Given a trunk, item and keyItem, return the contents for the trunk.
         """
-        trunk.postEventByName("SetContents", {'item':item})
+        return item
 

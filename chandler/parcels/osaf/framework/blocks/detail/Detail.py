@@ -249,16 +249,6 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         else:
             item.shareSend() # tell the ContentItem to share/send itself.
 
-    def resynchronizeDetailView (self):
-        # Called to resynchronize the whole Detail View
-        # Called when an itemCollection gets new sharees,
-        #  because the Notify button should then be enabled.
-        # Also called after stamping.
-        # 
-        # Just tell our parent block's widget to resync; this'll force
-        # our tree of blocks to be rerendered.
-        self.parentBlock.widget.wxSynchronizeWidget(rerenderHint=True)
-
     def finishSelectionChanges (self):
         """ 
           Need to finish any changes to the selected item
@@ -368,10 +358,6 @@ class DetailSynchronizer(Item):
         # return the selected item
         rootBlock = self.detailRoot()
         return rootBlock.selectedItem()
-
-    def resynchronizeDetailView (self):
-        # resynchronize the whole detail view.
-        self.detailRoot().resynchronizeDetailView ()
 
     def finishSelectionChanges (self):
         # finish any changes in progress in editable text fields.
@@ -578,11 +564,11 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         del self.detailRoot().ignoreCollectionChangedWhileStamping
         
         # notify the world that the item has a new kind.
-        self.resynchronizeDetailView ()
+        self.detailRoot().parentBlock.widget.wxSynchronizeWidget()
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
-        enable = item and self._isStampable(item)
+        enable = item is not None and self._isStampable(item)
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
@@ -995,7 +981,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
                 showIt = True
         # logger.debug("AcceptShareButton.shouldShow = %s", showIt)
         return showIt
-    
+
     def onAcceptShareEvent(self, event):
         url, collectionName = MailSharing.getSharingHeaderInfo(self.selectedItem())
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
@@ -1138,7 +1124,13 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
         item = self.selectedItem()
         if item is not None:
             item.allDay = self.widget.GetValue() == wx.CHK_CHECKED
-            self.resynchronizeDetailView()
+            # The detail view doesn't properly handle synchronizing, so
+            #we'll unrender the tree of blocks and call wxSynchronizeWidget
+            #on our TPB which wil render the tree of blocks and synchronize
+            #all of them
+            detailRoot = self.detailRoot()
+            detailRoot.unRender()
+            detailRoot.parentBlock.widget.wxSynchronizeWidget()
 
 class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """

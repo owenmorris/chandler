@@ -24,7 +24,7 @@ logger.setLevel(logging.INFO)
 import util.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "11"
+SCHEMA_VERSION = "12"
 
 """
   Event used to post callbacks on the UI thread
@@ -479,7 +479,6 @@ class wxApplication (wx.App):
                     except AttributeError: 
                         pass
  
-
                 block.post (blockEvent, arguments)
  
                 if updateUIEvent:
