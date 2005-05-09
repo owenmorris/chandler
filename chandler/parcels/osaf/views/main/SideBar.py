@@ -323,7 +323,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
             
             filterKind = sidebar.filterKind
             if not filterKind is None:
-                tupleList.append (filterKind)
+                tupleList.append (filterKind.itsUUID)
             
             if len (tupleList) > 1:
                 tupleKey = tuple (tupleList)
