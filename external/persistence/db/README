@@ -1,0 +1,17 @@
+
+Upgrading db build
+------------------
+
+ On Windows:
+   - upgrade the vc++ project files to 7.1
+   - change the Berkeley_DB.sln project to *NOT* build the static versions
+     of the libraries, for two reasons:
+       1. we don't need them and speeding up the build is welcome
+       2. we want to *NOT* have them so when during a python upgrade, python
+          attempts to link against the static libraries, we get an error
+          instead of silent success and really hard to debug bugs later
+   - copy these project files into persistence/db/win32 
+   - make
+
+ On other OS:
+   - make
