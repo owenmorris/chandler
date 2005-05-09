@@ -15,3 +15,9 @@ Upgrading db build
 
  On other OS:
    - make
+
+
+After upgrading Berkeley DB the systems that depend on it need to be
+rebuilt, and re-released with an incremented RELVER number:
+   - external/python
+   - external/PyLucene
