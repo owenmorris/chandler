@@ -353,7 +353,7 @@ def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
             log.write("cd " + moduleDir + "\n")
             os.chdir(moduleDir)
 
-            buildCmds = ' all binaries install strip'
+            buildCmds = ' all binaries install'
                 
             print "Doing make " + dbgStr + " " + clean + buildCmds + "\n"
             log.write("Doing make " + dbgStr + " " + clean + buildCmds + "\n")
