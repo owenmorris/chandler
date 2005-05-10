@@ -118,10 +118,10 @@ class CalendarData(ContentModel.ContentItem):
     selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
     # 'visible' means that its not the 'current' calendar, but is still visible
-    visibleGradientLeft = tintedColor(0.4)
-    visibleGradientRight = tintedColor(0.4)
-    visibleOutlineColor = tintedColor(0.3)
-    visibleTextColor = tintedColor(0.5)
+    visibleGradientLeft = tintedColor(0.3)
+    visibleGradientRight = tintedColor(0.3)
+    visibleOutlineColor = tintedColor(0.4)
+    visibleTextColor = tintedColor(0.5, 0.95)
     visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
         
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
