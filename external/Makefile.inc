@@ -1,5 +1,6 @@
 #-*- Mode: Makefile; -*-
 OS=$(shell uname)
+OS_VERSION=$(shell uname -r) 
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
@@ -184,7 +185,13 @@ endif
 
 ifeq ($(OS),Darwin)
 
+ifeq ($(strip $(OS_VERSION)),8.0.0)
+GCC_VERSION=4.1-20050501
+GCJ_VER=4
+else
 GCC_VERSION=3.4.3
+GCJ_VER=3
+endif
 
 compiler=$(BUILD_ROOT)/gcc-$(GCC_VERSION)
 
@@ -193,7 +200,7 @@ $(compiler): $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz
 	tar xvzf gcc-$(GCC_VERSION).tar.gz
 
 $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
-	cd $(BUILD_ROOT); \
+	cd $(BUILD_ROOT);
 	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz
 	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz.md5
 
