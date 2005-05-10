@@ -378,6 +378,17 @@ loaded::
         >>> kind.classes['python'] is TestItem
         True
 
+``synchronize(repoView, moduleName)``
+    Ensure that the named module has been imported, and that its offered schema
+    (if any) has been imported into the supplied repository view.
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> nrv = NullRepositoryView()
+    >>> print nrv.findPath('//parcels/application/tests/TestItem')
+    None
+    >>> schema.synchronize(nrv, 'application.tests')
+    >>> print nrv.findPath('//parcels/application/tests/TestItem')
+    <Kind ... TestItem ...>
 
 ``Role._schema_attr``
     Role objects have a read-only ``_schema_attr`` property that returns the

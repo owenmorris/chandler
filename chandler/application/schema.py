@@ -31,8 +31,8 @@ if anonymous_root is None:
     anonymous_root = Base(
         'anonymous-root', nrv, nrv.findPath('//Schema/Core/Item')
     )
-    
-    
+
+
 class ActiveDescriptor(object):
     """Abstract base for descriptors needing activation by their classes"""
 
@@ -57,7 +57,7 @@ class Role(ActiveDescriptor,CDescriptor):
 
     __slots__ = ['__dict__']
     __slots__.extend(all_aspects)
-    
+
     def __new__(cls, type=None, **kw):
         return super(Role,cls).__new__(cls,kw.get('name'))
 
@@ -86,7 +86,7 @@ class Role(ActiveDescriptor,CDescriptor):
         if '_schema_attr_' in self.__dict__:
             raise TypeError(
                 "Role object cannot be modified after use"
-            )            
+            )
         if not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
                 % (attr,type(self).__name__))
@@ -352,3 +352,9 @@ def parcel_for_module(moduleName):
             return root
     finally:
         global_lock.release()
+
+
+def synchronize(repoView,moduleName):
+    """Ensure that the named module's schema is incorporated into `repoView`"""
+    repoView.importItem(parcel_for_module(moduleName))
+
