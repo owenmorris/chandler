@@ -317,9 +317,15 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         rerender = False
         if isinstance (item, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
-            collectionList = [theItem for theItem in sidebar.contents if theItem in sidebar.checkedItems]
-            if item not in collectionList:
-                collectionList.insert (0, item)
+            """
+              collectionList should be in the order that the source items are overlayed in the Calendar view
+            """
+            collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
+            collectionList.insert (0, item)
+            """
+              tupleList is sorted so we always end up with on collection for any order of collections
+            in the source
+            """
             tupleList = [theItem.itsUUID for theItem in collectionList]
             tupleList.sort()
 
@@ -354,8 +360,14 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     key.displayName = displayName
 
                     self.itemTupleKeyToCacheKey [tupleKey] = key
-                rerender = key.source.first() != item
-                key.source.placeItem (item, None)
+                else:
+                    """
+                      Check to see if we need to reorder the source list
+                    """
+                    for new, old in map (None, key.source, collectionList):
+                        if new is not old:
+                            key.source = collectionList
+                            rerender = True
         return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):
