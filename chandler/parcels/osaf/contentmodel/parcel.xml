@@ -147,6 +147,12 @@
             <inverseAttribute itemref="cm:CurrentPointer/item"/>
         </Attribute>
 
+        <Attribute itsName="shares">
+          <type itemref="share:Share"/>
+          <cardinality value="list" />
+          <inverseAttribute itemref="share:Share/contents"/>
+          <initialValue />
+        </Attribute>
 
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
@@ -345,12 +351,6 @@
       <cardinality>list</cardinality>
     </Attribute>
 
-    <Attribute itsName="shares">
-      <type itemref="share:Share"/>
-      <cardinality value="list" />
-      <inverseAttribute itemref="share:Share/contents"/>
-      <initialValue />
-    </Attribute>
 
     <Attribute itsName="invitees">
         <description value="The people who are being invited to share in this item; filled in when the user types in the DV's 'invite' box, then cleared on send (entries copied to the share object)." />

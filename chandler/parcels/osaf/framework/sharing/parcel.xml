@@ -80,8 +80,8 @@
         </Attribute>
 
         <Attribute itsName="contents">
-            <type itemref="cm:ItemCollection"/>
-            <inverseAttribute itemref="cm:ItemCollection/shares"/>
+            <type itemref="cm:ContentItem"/>
+            <inverseAttribute itemref="cm:ContentItem/shares"/>
             <cardinality value="single"/>
         </Attribute>
 

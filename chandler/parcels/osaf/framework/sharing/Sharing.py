@@ -10,7 +10,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.ItemCollection as ItemCollection
+from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.current.Current as Current
 from chandlerdb.util.uuid import UUID
 import application.dialogs.PublishCollection
@@ -186,10 +186,12 @@ class ShareConduit(ContentModel.ContentItem):
 
             self.resourceList = self._getResourceList(location)
 
-            for item in self.share.contents:
-
-                if not item.isPrivate:
-                    self.__conditionalPutItem(item, skipItems)
+            # If we're sharing a collection, put the collection's items
+            # individually:
+            if isinstance(self.share.contents, ItemCollection):
+                for item in self.share.contents:
+                    if not item.isPrivate:
+                        self.__conditionalPutItem(item, skipItems)
 
             self.__conditionalPutItem(self.share, skipItems)
 
@@ -248,7 +250,7 @@ class ShareConduit(ContentModel.ContentItem):
 
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
-        
+
         self.__resetSeen()
 
         itemPath = self._getItemPath(self.share)
@@ -262,30 +264,37 @@ class ShareConduit(ContentModel.ContentItem):
         except:
             pass
 
-        for itemPath in self.resourceList:
-            item = self.__conditionalGetItem(itemPath)
-            if item is not None:
-                self.share.contents.add(item)
-                retrievedItems.append(item)
-            self.__setSeen(itemPath)
-            
-        # When first importing a collection, name it after the share
-        if not hasattr(self.share.contents, 'displayName'):
-            self.share.contents.displayName = self.share.displayName
+        # If share.contents is an ItemCollection, treat other resources as
+        # items to add to the collection:
 
-        # If an item was prevsiously on the server (it was in our manifest)
-        # but is no longer on the server, remove it from the collection
-        # locally:
-        toRemove = []
-        for unseenPath in self.__iterUnseen():
-            uuid = self.manifest[unseenPath]['uuid']
-            item = self.itsView.findUUID(uuid)
-            if item is not None:
-                logger.info("...removing %s from collection" % item)
-                self.share.contents.remove(item)
-                toRemove.append(unseenPath)
-        for removePath in toRemove:
-            self.__removeFromManifest(removePath)
+        if isinstance(self.share.contents, ItemCollection):
+
+            # Conditionally fetch items, and add them to collection
+            for itemPath in self.resourceList:
+                item = self.__conditionalGetItem(itemPath)
+                if item is not None:
+                    self.share.contents.add(item)
+                    retrievedItems.append(item)
+                self.__setSeen(itemPath)
+
+            # When first importing a collection, name it after the share
+            if not hasattr(self.share.contents, 'displayName'):
+                self.share.contents.displayName = self.share.displayName
+
+            # If an item was prevsiously on the server (it was in our manifest)
+            # but is no longer on the server, remove it from the collection
+            # locally:
+            toRemove = []
+            for unseenPath in self.__iterUnseen():
+                uuid = self.manifest[unseenPath]['uuid']
+                item = self.itsView.findUUID(uuid)
+                if item is not None:
+                    logger.info("...removing %s from collection" % item)
+                    self.share.contents.remove(item)
+                    toRemove.append(unseenPath)
+
+            for removePath in toRemove:
+                self.__removeFromManifest(removePath)
 
         self.itsView.commit()
 
@@ -1559,6 +1568,7 @@ def splitUrl(url):
 
     if host.find(':') != -1:
         (host, port) = host.split(':')
+        port = int(port)
 
     return (useSSL, host, port, path, query, fragment)
 
