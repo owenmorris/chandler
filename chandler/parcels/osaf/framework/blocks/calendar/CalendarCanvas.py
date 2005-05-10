@@ -90,23 +90,39 @@ class CalendarData(ContentModel.ContentItem):
             return DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv))
         return property(getSaturatedColor)
             
+    def tupleProperty(*args):
+        """
+        untangle a tuple of property objects.
+        
+        If you try to just declare a tuple of attributes
+        that are property objects, you end up with a tuple
+        of property objects, rather than a tuple of evaluated
+        property values
+        """
+        def demangledTupleGetter(self):
+            return tuple([val.fget(self) for val in args])
+        return property(demangledTupleGetter)
+        
     # these are all for when this calendar is the 'current' one
     gradientLeft = tintedColor(0.4)
     gradientRight = tintedColor(0.2)
     outlineColor = tintedColor(0.5)
     textColor = tintedColor(0.67, 0.6)
+    defaultColors = tupleProperty(gradientLeft, gradientRight, outlineColor, textColor)
     
     # when a user selects a calendar event, use these
     selectedGradientLeft = tintedColor(0.15)
     selectedGradientRight = tintedColor(0.05)
     selectedOutlineColor = tintedColor(0.5)
     selectedTextColor = tintedColor(0.67, 0.6)
+    selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
     # 'visible' means that its not the 'current' calendar, but is still visible
     visibleGradientLeft = tintedColor(0.4)
     visibleGradientRight = tintedColor(0.4)
     visibleOutlineColor = tintedColor(0.3)
     visibleTextColor = tintedColor(0.5)
+    visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
         
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     """
@@ -404,17 +420,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         if not cwidth == cheight == 0:
             clipRect = wx.Rect(x,y,width,height)
         
-        eventColors = styles.blockItem.getEventColors(item)
-        if selected:
-            penColor = eventColors.selectedOutlineColor
-            gradientLeft = eventColors.selectedGradientLeft
-            gradientRight = eventColors.selectedGradientRight
-            textColor = eventColors.selectedTextColor
-        else:
-            penColor = eventColors.outlineColor
-            gradientLeft = eventColors.gradientLeft
-            gradientRight = eventColors.gradientRight
-            textColor = eventColors.textColor
+        gradientLeft, gradientRight, outlineColor, textColor = \
+            styles.blockItem.getEventColors(item, selected)
         
         dc.SetTextForeground(textColor)
         
@@ -423,8 +430,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset, 
                                                     itemRect.width, 
                                                     gradientLeft, gradientRight)
-            dc.SetPen(wx.Pen(penColor))
             dc.SetBrush(brush)
+            dc.SetPen(wx.Pen(outlineColor))
 
             # properly round the corners - first and last
             # boundsRect gets some rounding, and they
@@ -439,7 +446,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
 
             self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
 
-            pen = self.GetStatusPen(penColor)
+            pen = self.GetStatusPen(outlineColor)
     
             cornerRadius = 0
             pen.SetCap(wx.CAP_BUTT)
@@ -523,18 +530,20 @@ class HeaderCanvasItem(CalendarCanvasItem):
         item = self._item
         itemRect = self._bounds
         
-        eventColors = styles.blockItem.getEventColors(item)
+        gradientLeft, gradientRight, outlineColor, textColor = \
+            styles.blockItem.getEventColors(item, selected)
+        
         if selected:
             brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset,
                                                     itemRect.width,
-                                                    eventColors.selectedGradientLeft,
-                                                    eventColors.selectedGradientRight)
-            pen = wx.Pen(eventColors.selectedOutlineColor)
+                                                    gradientLeft,
+                                                    gradientRight)
+            pen = wx.Pen(outlineColor)
         else:
             brush = wx.TRANSPARENT_BRUSH
             pen = wx.TRANSPARENT_PEN
 
-        dc.SetTextForeground(eventColors.textColor)
+        dc.SetTextForeground(textColor)
         dc.SetPen(pen)
         dc.SetBrush(brush)
         dc.DrawRectangleRect(itemRect)
@@ -712,17 +721,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             endDay = startDay + self.rangeIncrement
         return (startDay, endDay)
 
-    #
-    # Color stuff
-    #
-    def getCalendarData(self):
-        """
-        Lazily stamp the data
-        """
-        caldata = self.contents.source.first()
-        if not isinstance(caldata, CalendarData):
-            caldata.StampKind('add', CalendarData.getKind(view=caldata.itsView))
-            
+    def StampedCalendarData(self, collection):
+        if not isinstance(collection, CalendarData):
+            collection.StampKind('add', CalendarData.getKind(view=collection.itsView))
             # XXX really, the object should be lazily creating this.
             
             colorstyle = Styles.ColorStyle(view=self.itsView)
@@ -731,11 +732,22 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
             colorstyle.foregroundColor = copy.copy(colorstyle.foregroundColor)
             colorstyle.backgroundColor = copy.copy(colorstyle.backgroundColor)
             
-            caldata.calendarColor = colorstyle
+            collection.calendarColor = colorstyle
 
             self.setupNextHue()
+        return collection
             
-        return caldata
+    #
+    # Color stuff
+    #
+    def getCalendarData(self):
+        """
+        Returns a CalendarData object that can be used to persistently store
+        calendar color data, and associate it with the collection.
+        
+        At the moment, this stamps the current itemcollection as a CalendarData
+        """
+        return self.StampedCalendarData(self.contents.source.first())            
                             
     calendarData = property(getCalendarData)
 
@@ -744,21 +756,42 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         self.lastHue = CalendarData.getNextHue(self.lastHue)
         (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
         
-    def getEventColors(self, event):
+        
+    def getEventColors(self, event, selected):
+        calData = self.getEventCalendarData(event)
+        
+        if selected:
+            return calData.selectedColors
+        elif calData == self.contents.source.first():
+            return calData.defaultColors
+        
+        return calData.visibleColors
+            
+    def getEventCalendarData(self, event):
         """
         Get the eventColors object which contains all the right color tints
         for the given event. If the given event doesn't have color data,
         then we return the default one associated with the view
         """
+        collections = self.contents.source
+        selectedCollection = collections.first()
         containingCollections = event.itemCollectionInclusions
         calDataKind = CalendarData.getKind(view=self.itsView)
-        for coll in containingCollections:
+        for coll in collections:
 
             # hack alert! The out-of-the-box collections aren't renameable, so
             # we'll rely on that to make sure we don't get 'All's color
-            if (not getattr(coll, 'renameable', False)) and \
-                coll.isItemOf(calDataKind):
-                return coll
+            if (event in coll):
+                if getattr(coll, 'renameable', True):
+                    return self.StampedCalendarData(coll)
+                else:
+                    # save it for later, we might be returning it
+                    firstSpecialCollection = self.StampedCalendarData(coll)
+                    
+        if firstSpecialCollection:
+            return firstSpecialCollection
+
+        # this seems unlikely.. should we assert? do we even need calendarData?
         return self.calendarData
 
     def setCalendarColor(self, color):
