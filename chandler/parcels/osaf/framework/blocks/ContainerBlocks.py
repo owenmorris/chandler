@@ -6,7 +6,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from Block import Block, RectangularChild, wxRectangularChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
-from Styles import Font
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from osaf.contentmodel.ItemCollection import ItemCollection

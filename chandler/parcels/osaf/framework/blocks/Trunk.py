@@ -84,11 +84,9 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         if (newView is not oldView) or rerender:
             logger.debug("changing tree to display %s", TPBSelectedItem)
             if oldView is not None:
-                """
                 oldFocus = self.widget.FindFocus()
                 if oldFocus is not None:
                     logger.debug("unrendering the focused block!")
-                """
                 oldView.unRender()
 
             self.childrenBlocks = []

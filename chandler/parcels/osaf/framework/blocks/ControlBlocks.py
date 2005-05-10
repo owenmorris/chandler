@@ -8,7 +8,6 @@ from application.Application import mixinAClass
 from Block import *
 from ContainerBlocks import *
 from DragAndDrop import DraggableWidget as DraggableWidget
-from Styles import Font
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
@@ -17,10 +16,14 @@ import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+import Styles
 
 from repository.schema.Types import DateTime
 from repository.schema.Types import RelativeDateTime
 import mx.DateTime
+
+# @@@BJS: Should we show borders for debugging?
+showBorders = False
 
 class Button(RectangularChild):
     def instantiateWidget(self):
@@ -96,6 +99,8 @@ class Choice(RectangularChild):
                          (self.minimumSize.width, self.minimumSize.height),
                          self.choices)
         choice.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
+        choice.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
+        
         return choice
 
 class ComboBox(RectangularChild):
@@ -164,7 +169,7 @@ class EditText(RectangularChild):
                                (self.minimumSize.width, self.minimumSize.height),
                                style=style, name=self.itsUUID.str64())
 
-        editText.SetFont(Font (self.characterStyle))
+        editText.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return editText
     
     """
@@ -875,6 +880,8 @@ class Table (RectangularChild):
 
     def instantiateWidget (self):
         widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self))
+        widget.SetDefaultCellFont(Styles.getFont(getattr(self, "characterStyle", None)))
+        widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
         map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
@@ -952,8 +959,9 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
             
-        # @@@BJS For my own debugging
-        # style |= wx.SIMPLE_BORDER
+        global showBorders
+        if showBorders:
+            style |= wx.SIMPLE_BORDER
 
         staticText = wxStaticText (self.parentBlock.widget,
                                    -1,
@@ -961,8 +969,7 @@ class StaticText(RectangularChild):
                                    wx.DefaultPosition,
                                    (self.minimumSize.width, self.minimumSize.height),
                                    style)
-
-        staticText.SetFont(Font (self.characterStyle))
+        staticText.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return staticText
 
     
@@ -1371,7 +1378,7 @@ class wxAEBlock(wxRectangularChild):
         super (wxAEBlock, self).__init__ (*arguments, **keywords)
 
         # set minimum size hints
-        minW, minH = arguments[-1] # assumes minimum size passed as last arg
+        minW, minH = arguments[3] # grab the size
         self.SetSizeHints(minW=minW, minH=minH)
 
         # install event handlers
@@ -1436,9 +1443,12 @@ class wxAEBlock(wxRectangularChild):
             self.createControl()
         else:
             # Show the control we've already got
-            assert not self.control.IsShown()
-            self.control.Show()
-            logger.debug("wxAEBlock.onClick: showing existing control.")
+            if not self.control.IsShown():
+                self.control.Show()
+                logger.debug("wxAEBlock.onClick: showing existing control.")
+            else:
+                logger.debug("wxAEBlock.onClick: ignoring click outside control")
+                return
 
         # Begin editing
         editor.BeginControlEdit(item, attributeName, self.control)
@@ -1514,6 +1524,8 @@ class wxAEBlock(wxRectangularChild):
           The control lost focus - we're finishing editing in the control.
         """
         logger.debug("wxAEBlock: control lost focus")
+        event.Skip()
+        logger.debug("wxAEBlock: back from skip")
         
         # @@@BJS: needed? return if there's no control
         assert self.control
@@ -1522,11 +1534,12 @@ class wxAEBlock(wxRectangularChild):
 
         item = self.blockItem.getItem()
         attributeName = self.blockItem.getAttributeName()
+        logger.debug("wxAEBlock: calling ECE")
         self.editor.EndControlEdit(item, attributeName, self.control)
+        logger.debug("wxAEBlock: back from ECE")
         if not self.editor.UsePermanentControl():
             self.control.Hide()
-
-        event.Skip()
+        logger.debug("wxAEBlock: returning from losefocus")
 
     def OnKeyUpFromControl(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
@@ -1552,16 +1565,17 @@ class AEBlock(RectangularChild):
           Create the Attribute Editor shell widget, that defines the
         drawing world that the actual Attribute Editor will live within.
         """
+        style = wx.TAB_TRAVERSAL
+        global showBorders
+        if showBorders:
+            style |= wx.SIMPLE_BORDER
         widget = wxAEBlock (self.parentBlock.widget,
                             -1,
                             wx.DefaultPosition,
-                            (self.minimumSize.width, self.minimumSize.height))
-        try:
-            charStyle = self.characterStyle
-        except AttributeError:
-            pass
-        else:
-            widget.SetFont(Font (charStyle))
+                            (self.minimumSize.width, self.minimumSize.height),
+                            style)
+
+        widget.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return widget
 
     def lookupEditor(self, oldEditor):

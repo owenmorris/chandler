@@ -79,10 +79,10 @@
 
   <StaticText itsName="LinkLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>link</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
   
@@ -107,16 +107,16 @@
 
   <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>category</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="CategoryAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <title>category</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>1.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
   </StaticText>
@@ -133,16 +133,16 @@
   
   <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>author</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="AuthorAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <title>author</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>    
   </StaticText>
@@ -159,16 +159,16 @@
 
   <StaticText itsName="DateLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
     <title>date</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </StaticText>
   
   <StaticText itsName="DateAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <title>date</title>
-    <characterStyle itemref="detail:LabelStyle"/>
+    <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>    
   </StaticText>

@@ -234,6 +234,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             rect.Inflate (-1, -1)
             dc.SetClippingRect (rect)
             
+            # theText = "%s %s" % (dc.GetFont().GetFaceName(), dc.GetFont().GetPointSize())
             DrawingUtilities.DrawWrappedText (dc, theText, rect)
                 
             dc.DestroyClippingRegion()
@@ -279,9 +280,12 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def EndControlEdit (self, item, attributeName, control):
         # update the item attribute value, from the latest control value.
+        logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
         if item is not None:
-            logger.debug("EndControlEdit: %s is '%s' on %s", attributeName, self.GetControlValue(control), item)
-            self.SetAttributeValue (item, attributeName, self.GetControlValue (control))
+            value = self.GetControlValue (control)
+            logger.debug("EndControlEdit: value is '%s' ", value)
+            self.SetAttributeValue (item, attributeName, value)
+            logger.debug("EndControlEdit: value set.")
 
     def GetControlValue (self, control):
         # return the empty string, if we're showing the sample value.
@@ -318,7 +322,10 @@ class StringAttributeEditor (BaseAttributeEditor):
     def __changeTextQuietly(self, control, text):
         self.ignoreTextChanged = True
         logger.debug("__changeTextQuietly: to '%s'", text)
+        # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
         control.SetValue(text)
+        logger.debug("AE(%s): Got '%s' after Set '%s'" % (self.attributeName, control.GetValue(), text))
+        
         del self.ignoreTextChanged
         
     def __setSampleText(self, control, sampleText):

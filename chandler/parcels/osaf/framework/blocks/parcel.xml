@@ -204,7 +204,38 @@
   <Attribute itsName="blockName">
     <type itemref="String"/>
   </Attribute>
-    
+  
+  <!--
+    A few specific styles
+  -->
+  <docSchema:CharacterStyle itsName="TextStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+  </docSchema:CharacterStyle>
+
+  <docSchema:CharacterStyle itsName="BigTextStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>16</fontSize>
+    <fontStyle>bold</fontStyle>
+  </docSchema:CharacterStyle>
+
+  <docSchema:CharacterStyle itsName="LabelStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+  </docSchema:CharacterStyle>
+
+  <docSchema:CharacterStyle itsName="SummaryHeaderStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontStyle>bold</fontStyle>
+  </docSchema:CharacterStyle>
+  
+  <docSchema:CharacterStyle itsName="SummaryRowStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+  </docSchema:CharacterStyle>
+
+  <docSchema:ColorStyle itsName="WhiteBackground">
+    <backgroundColor>255,255,255,0</backgroundColor>
+  </docSchema:ColorStyle>
+      
+  
   <!--
     Block Events
   -->
@@ -844,6 +875,7 @@
   <Kind itsName="Choice">
     <classes key="python">osaf.framework.blocks.ControlBlocks.Choice</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
+    <attributes itemref="docSchema:characterStyle"/>    
     <attributes itemref="docSchema:event"/>
     
     <Attribute itsName="choices">
@@ -852,6 +884,11 @@
     </Attribute>
 
     <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Choice/DefaultCloud/characterStyle"/>
         <Endpoint itsName="event">
             <attribute value="event"/>
             <includePolicy value="byCloud"/>
@@ -1067,12 +1104,27 @@
     <attributes itemref="docSchema:Table/selectedItemToView"/>
     <attributes itemref="docSchema:Table/hideColumnHeadings"/>
 
+    <attributes itemref="docSchema:characterStyle"/>
+    <Attribute itsName="headerCharacterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
+
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="selectedItemToView">
             <attribute value="selectedItemToView"/>
             <includePolicy value="byCloud"/>
         </Endpoint>
         <endpoints itemref="docSchema:Table/DefaultCloud/selectedItemToView"/>
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Table/DefaultCloud/characterStyle"/>
+        <Endpoint itsName="headerCharacterStyle">
+            <attribute value="headerCharacterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:Table/DefaultCloud/headerCharacterStyle"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:Table/DefaultCloud"/>
 

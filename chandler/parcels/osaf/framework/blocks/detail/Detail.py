@@ -886,6 +886,7 @@ class FromEditField (EditTextAttribute):
         except AttributeError:
             whoString = ''
         widget.SetValue (whoString)
+        logger.debug("FromEditField: Got '%s' after Set '%s'" % (widget.GetValue(), whoString))
 
 class EditRedirectAttribute (EditTextAttribute):
     """
@@ -1101,6 +1102,7 @@ class EditTimeAttribute (EditRedirectAttribute):
             format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
             value = dateTime.strftime (format)
         widget.SetValue (value)
+        logger.debug("EditTime: Got '%s' after Set '%s'" % (widget.GetValue(), value))
 
 class CalendarDurationArea (CalendarEventBlock):
     def shouldShow (self, item):
