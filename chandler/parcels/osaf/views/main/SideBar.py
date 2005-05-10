@@ -314,13 +314,15 @@ class Sidebar (ControlBlocks.Table):
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _mapItemToCacheKeyItem(self, item):
         key = item
+        rerender = False
         if isinstance (item, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
-            collectionList = [theItem for theItem in sidebar.checkedItems]
+            collectionList = [theItem for theItem in sidebar.contents if theItem in sidebar.checkedItems]
             if item not in collectionList:
                 collectionList.insert (0, item)
             tupleList = [theItem.itsUUID for theItem in collectionList]
-            
+            tupleList.sort()
+
             filterKind = sidebar.filterKind
             if not filterKind is None:
                 tupleList.append (filterKind.itsUUID)
@@ -352,7 +354,9 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     key.displayName = displayName
 
                     self.itemTupleKeyToCacheKey [tupleKey] = key
-        return key
+                rerender = key.source.first() != item
+                key.source.placeItem (item, None)
+        return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):

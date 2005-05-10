@@ -283,7 +283,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         if item is None:
             return None
         else:
-            return item.itsKind
+            return item.itsKind, False
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 

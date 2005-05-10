@@ -68,7 +68,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             rerender = False
             TPBDetailItem = None
         else:
-            keyItem = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
+            keyItem, rerender = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
             newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
             """
               Seems like we should always mark new views with an event boundary
@@ -76,7 +76,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             assert newView.eventBoundary
             TPBDetailItem = self.trunkDelegate._getContentsForTrunk (newView, TPBSelectedItem, keyItem)
             newContents = TPBDetailItem is not self.TPBDetailItem
-            rerender = not hasattr (newView, "widget") or newContents
+            rerender = rerender or newContents or not hasattr (newView, "widget")
 
         self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
@@ -109,6 +109,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
 
 # @@@BJS: "reload parcels" needs to blow away this cache!
 
+
 class TrunkDelegate(Item):
     """
     A mechanism to map an item to a view: call its getTrunkForKeyItem(item)
@@ -138,10 +139,12 @@ class TrunkDelegate(Item):
 
     def _mapItemToCacheKeyItem(self, item):
         """ 
-        Given an item, determine the item to be used as the cache key.
-        Can be overridden; defaults to using the item itself.
+          Given an item, determine the item to be used as the cache key, and a boolean,
+        which if True forces the view to be rerendered, otherwise it will only
+        be rerendered if the view or it's contents change.
+          Can be overridden; defaults to using the item itself.
         """
-        return item
+        return item, False
 
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
