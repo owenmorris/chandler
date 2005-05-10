@@ -35,6 +35,7 @@ class SharingTestCase(unittest.TestCase):
                        # aren't detected.  perhaps checksum checking is needed
         self.Modify()
         self.Remove()
+        self.RoundTripNonCollection()
         self._teardown()
 
     def _setup(self):
@@ -74,6 +75,7 @@ class SharingTestCase(unittest.TestCase):
 
     def _teardown(self):
         self.share1.destroy()
+        self.share3.destroy()
 
     def _initRamDB(self, packs):
         repo = DBRepository.DBRepository(None)
@@ -134,7 +136,6 @@ class SharingTestCase(unittest.TestCase):
     def dumpSandbox(self, repo):
         Parcel.PrintItem("//sandbox", repo, recursive=True)
 
-
     def RoundTrip(self):
 
         # Export
@@ -179,6 +180,42 @@ class SharingTestCase(unittest.TestCase):
             del names[item.displayName]
         self.assert_(len(names) == 0, "Import is missing some items that were"
          "exported")
+
+    def RoundTripNonCollection(self):
+
+        # Export
+        repo = self.repos[0]
+        theItem = ContentModel.ContentItem(view=repo.view)
+        theItem.displayName = "I'm an item"
+
+        conduit = Sharing.FileSystemConduit(sharePath=".",
+                                            shareName="exporteditem",
+                                            view=repo.view)
+        format = Sharing.CloudXMLFormat(view=repo.view)
+        self.share3 = Sharing.Share(contents=theItem, conduit=conduit,
+                                    format=format, view=repo.view)
+        if self.share3.exists():
+            self.share3.destroy()
+        self.share3.create()
+        self.share3.put()
+
+        # Import
+        repo = self.repos[1]
+
+        conduit = Sharing.FileSystemConduit(sharePath=".",
+                                            shareName="exporteditem",
+                                            view=repo.view)
+        format = Sharing.CloudXMLFormat(view=repo.view)
+        self.share4 = Sharing.Share(conduit=conduit, format=format,
+                                    view=repo.view)
+        self.share4.get()
+
+        alsoTheItem = self.share4.contents
+        self.assert_(alsoTheItem.displayName == "I'm an item",
+                     "Single-item import/export failed")
+
+
+
 
     def Modify(self):
 
