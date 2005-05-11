@@ -31,7 +31,8 @@
   </content:SMTPAccount>
 
   <content:IMAPAccount itsName="TestIMAPAccount">
-    <displayName>Test IMAP Account</displayName>
+    <displayName>IMAP Account</displayName>
+    <description>The IMAP Account used for testing account settings</description>
     <isActive>False</isActive>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:TestReplyAddress" />
@@ -40,7 +41,8 @@
   </content:IMAPAccount>
 
   <content:POPAccount itsName="TestPOPAccount">
-    <displayName>Test POP Account</displayName>
+    <displayName>POP Account</displayName>
+    <description>The POP Account used for testing account settings</description>
     <isActive>False</isActive>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:TestReplyAddress" />
@@ -51,7 +53,8 @@
   <content:EmailAddress itsName="TestReplyAddress" />
 
   <content:SMTPAccount itsName="TestSMTPAccount">
-    <displayName>Test SMTP Account</displayName>
+    <displayName>SMTP Account</displayName>
+    <description>The SMTP Account used for testing account settings</description>
     <isActive>False</isActive>
   </content:SMTPAccount>
 

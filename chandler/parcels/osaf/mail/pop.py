@@ -130,9 +130,6 @@ class POPClient(base.AbstractDownloadClient):
             utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
-        """ Reverse the list for popping"""
-        self.pending.reverse()
-
         self.execInView(self._getNextMessageSet)
 
     def _getNextMessageSet(self):
@@ -147,7 +144,7 @@ class POPClient(base.AbstractDownloadClient):
         if self.numToDownload > constants.DOWNLOAD_MAX:
             self.numToDownload = constants.DOWNLOAD_MAX
 
-        msgNum, uid = self.pending.pop()
+        msgNum, uid = self.pending.pop(0)
 
         d = self.proto.retrieve(msgNum)
         d.addCallback(self.execInViewDeferred, self.__retrieveMessage, msgNum, uid)
@@ -187,7 +184,7 @@ class POPClient(base.AbstractDownloadClient):
             d.addCallback(lambda _: self._commitDownloadedMail())
 
         else:
-            msgNum, uid = self.pending.pop()
+            msgNum, uid = self.pending.pop(0)
 
             d.addCallback(lambda _: self.proto.retrieve(msgNum))
             d.addCallback(self.execInViewDeferred, self.__retrieveMessage, msgNum, uid)

@@ -29,8 +29,6 @@ import base as base
 
 """
     TODO:
-    1. Print warning message if UID validity is bad (Where to store UID Validity 
-       since on folder)
     2. Keep \\Deleted flags in sync with IMAP Server (Look at best syntax for this)
 
     TO DO: 
@@ -40,15 +38,14 @@ import base as base
 
     4. Look at Spambayes for its message parsing python alogrithm,
        Quotient mail parser 
-    5. Hotshot and timeit
 
 NOTES:
 1. Will need to just get the basic headers of subject, message id, message size
    to, from, cc. Then have a callback to sync the rest
    when downloading an individual mail use the feedparser for performance
 
-2. LOOK AT THE RFC IS UUID ALWAYS A LONG
 3. Fix the getEmailAddress method to be much more performant in content model
+4. Start thinking about offline mode. Does the content model need any changes.
 """
 
 class _TwistedIMAP4Client(imap4.IMAP4Client):
@@ -73,7 +70,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
                the server capabilities """
             d = self.getCapabilities()
 
-            d.addCallbacks(self.__getCapabilities.delegate.catchErrors)
+            d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
 
             return d
 
@@ -166,7 +163,9 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             self.printCurrentView("checkForNewMessages")
 
-        #XXX: Store and compare msgs['UIDVALIDITY']
+            #XXX: Need to store and compare UIDVALIDITY
+        #if not msgs['UIDVALIDITY']:
+        #    print "server: %s has no UUID Validity:\n%s" % (self.account.host, msgs)
 
         if msgs['EXISTS'] == 0:
             utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
@@ -205,8 +204,6 @@ class IMAPClient(base.AbstractDownloadClient):
             utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
-        """Reorder highest to lowest UID for popping"""
-        self.pending.reverse()
         self.execInView(self._getNextMessageSet)
 
     def _getNextMessageSet(self):
@@ -221,7 +218,7 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.numToDownload > constants.DOWNLOAD_MAX:
             self.numToDownload = constants.DOWNLOAD_MAX
 
-        m = self.pending.pop()
+        m = self.pending.pop(0)
         d = self.proto.fetchMessage(str(m[0]), uid=True)
         d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
         d.addErrback(self.catchErrors)
@@ -257,7 +254,7 @@ class IMAPClient(base.AbstractDownloadClient):
             self._commitDownloadedMail()
 
         else:
-            m = self.pending.pop()
+            m = self.pending.pop(0)
             d = self.proto.fetchMessage(str(m[0]), uid=True)
             d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
             d.addErrback(self.catchErrors)

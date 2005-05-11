@@ -212,14 +212,12 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         """Returns instances of C{SMTPAccount} based on C{UUID}'s"""
 
         if self.account is None:
-            accountKind = Mail.SMTPAccount.getKind(self.view)
-            self.account = accountKind.findUUID(self.accountUUID)
+            self.account = self.view.findUUID(self.accountUUID)
             assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
 
 
     def __getMailMessage(self, mailMessageUUID):
-        mailMessageKind = Mail.MailMessage.getKind(self.view)
-        m = mailMessageKind.findUUID(mailMessageUUID)
+        m = self.view.findUUID(mailMessageUUID)
 
         assert m is not None, "No MailMessage for UUID: %s" % mailMessageUUID
         return m
@@ -316,15 +314,16 @@ class _SMTPTransport(object):
                                                 self.parent.accountUUID)[1]
 
         if sender is None:
-            errorStr = constants.UPLOAD_NO_REPLY_ADDRESS % self.parent.account.displayName
-            utils.alert(constants.TEST_ERROR, errorStr)
+            errorStr = constants.UPLOAD_NO_REPLY_ADDRESS
+            utils.alert(constants.TEST_ERROR, \
+                        self.parent.account.displayName, errorStr)
             return
 
         if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
-            errorStr = constants.UPLOAD_BAD_REPLY_ADDRESS % (sender.emailAddress, \
-                                                             self.parent.account.displayName)
+            errorStr = constants.UPLOAD_BAD_REPLY_ADDRESS % sender.emailAddress
 
-            utils.alert(constants.TEST_ERROR, errorStr)
+            utils.alert(constants.TEST_ERROR, \
+                        self.parent.account.displayName, errorStr)
             return
 
         d = defer.Deferred()
@@ -453,9 +452,7 @@ class _SMTPTransport(object):
         deliveryError.errorCode   = result[0]
         deliveryError.errorString = result[1]
 
-
         self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
-
 
     def __getError(self, err):
         errorCode   = None
