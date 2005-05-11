@@ -4,13 +4,12 @@
       xmlns:core="http://osafoundation.org/parcels/core"
       xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
       xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-      xmlns:zaobao="http://osafoundation.org/examples/zaobao/schema"
+      xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao/schema"
       xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
       xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:displayName value="ZaoBao View Items"/>
   <core:description value="Events and menu items and such"/>
-  <core:namespace value="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"/>
   
   <!-- blocks and menu items -->
   <BlockEvent itsName="NewZaoBaoChannelEvent">

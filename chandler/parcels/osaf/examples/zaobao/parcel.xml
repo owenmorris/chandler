@@ -7,11 +7,10 @@
 
 <Parcel itsName="zaobao"
      xmlns="http://osafoundation.org/parcels/core"
-     xmlns:doc="http://osafoundation.org/examples/zaobao"
+     xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao"
      xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup"
-     xmlns:schema="http://osafoundation.org/examples/zaobao/schema" >
+     xmlns:schema="http://osafoundation.org/parcels/osaf/examples/zaobao/schema" >
 
-    <namespace value="http://osafoundation.org/examples/zaobao"/>
     <version>0.3</version>
 
     <!-- Just declaring an item of this type will allow it to be woken up -->

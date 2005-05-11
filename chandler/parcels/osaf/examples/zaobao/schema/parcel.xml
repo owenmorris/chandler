@@ -2,10 +2,9 @@
 
 <Parcel itsName="schema"
         xmlns="http://osafoundation.org/parcels/core"
-        xmlns:doc="http://osafoundation.org/examples/zaobao/schema"
+        xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao/schema"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
 
-  <namespace value="http://osafoundation.org/examples/zaobao/schema"/>
   <!-- Meta information for the parcel -->
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.4 release</description>
