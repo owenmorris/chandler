@@ -505,8 +505,7 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
         if (err)
             return raiseDBError(err);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        return PyInt_FromLong(key.size + data.size);
     }        
 }
 
@@ -643,8 +642,7 @@ static PyObject *t_ref_container_saveRef(t_ref_container *self, PyObject *args)
         if (err)
             return raiseDBError(err);
 
-        Py_INCREF(Py_None);
-        return Py_None;
+        return PyInt_FromLong(key.size + data.size);
     }
 }
 

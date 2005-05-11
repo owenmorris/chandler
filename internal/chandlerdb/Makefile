@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.5-8
+RELVER=0.5-9
 CHANDLERDB=$(INTERNAL)/chandlerdb
 
 BUILD=build_$(SNAP)
@@ -27,6 +27,8 @@ build:
 
 clean:
 	rm -rf $(BUILD)
+
+realclean: clean
 
 upload: chandlerdb-$(SNAP)-$(RELVER).tar.gz
 	scp chandlerdb-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
