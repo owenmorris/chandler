@@ -46,6 +46,34 @@ def IMAPDeleteHandler(item, values, data):
     # can't be deleted; True otherwise.
     return not values['IMAP_DEFAULT']
 
+def POPSaveHandler(item, fields, values):
+    newAddressString = values['POP_EMAIL_ADDRESS']
+    newFullName = values['POP_FULL_NAME']
+    newUsername = values['POP_USERNAME']
+    newServer = values['POP_SERVER']
+
+    # If either the host or username changes, we need to set this account item
+    # to inactive and create a new one.
+    if (item.host and item.host != newServer) or (item.username and item.username != newUsername):
+        item.isActive = False
+        item = Mail.POPAccount(view=item.itsView)
+
+
+    item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
+                                                            newAddressString,
+                                                            newFullName)
+
+    return item # Returning a non-None item tells the caller to continue
+                # processing this item.
+                # Returning None would tell the caller that processing this 
+                # item is complete.
+
+
+def POPDeleteHandler(item, values, data):
+    # If this IMAP account is the default, then return False to indicate it
+    # can't be deleted; True otherwise.
+    return not values['POP_DEFAULT']
+
 def SMTPDeleteHandler(item, values, data):
     # If this SMTP account is the default for any of the IMAP accounts, return
     # False to indicate it can't be deleted; True otherwise.
@@ -113,7 +141,7 @@ PANELS = {
             },
             "IMAP_DEFAULT" : {
                 "type" : "currentPointer",
-                "pointer" : "IMAPAccount",
+                "pointer" : "MailAccount",
                 "exclusive" : True,
             },
             "IMAP_SMTP" : {
@@ -127,6 +155,79 @@ PANELS = {
         "deleteHandler" : IMAPDeleteHandler,
         "displayName" : "IMAP_DESCRIPTION",
         "description" : "Incoming mail (IMAP)",
+        "callbacks" : (
+            ("IMAP_TEST", "OnTestIMAP"),
+        )
+    },
+    "POP" : {
+        "fields" : {
+            "POP_DESCRIPTION" : {
+                "attr" : "displayName",
+                "type" : "string",
+                "required" : True,
+                "default": "New POP account"
+            },
+            "POP_EMAIL_ADDRESS" : {
+                "attr" : "emailAddress",
+                "type" : "string",
+            },
+            "POP_FULL_NAME" : {
+                "attr" : "fullName",
+                "type" : "string",
+            },
+            "POP_SERVER" : {
+                "attr" : "host",
+                "type" : "string",
+            },
+            "POP_USERNAME" : {
+                "attr" : "username",
+                "type" : "string",
+            },
+            "POP_PASSWORD" : {
+                "attr" : "password",
+                "type" : "string",
+            },
+            "POP_PORT" : {
+                "attr" : "port",
+                "type" : "integer",
+                "default": 143,
+                "required" : True,
+            },
+            "POP_SECURE" : {
+                "attr" : "connectionSecurity",
+                "type" : "radioEnumeration",
+                "buttons" : { 
+                    "POP_SECURE_NO" : "NONE", 
+                    "POP_TLS" : "TLS", 
+                    "POP_SSL" : "SSL", 
+                    },
+                "default" : "NONE",
+                "linkedTo" : ("POP_PORT", 
+                              { "NONE":"110", "TLS":"110", "SSL":"995" } )
+            },
+            "POP_DEFAULT" : {
+                "type" : "currentPointer",
+                "pointer" : "MailAccount",
+                "exclusive" : True,
+            },
+            "POP_SMTP" : {
+                "type" : "itemRef",
+                "attr" : "defaultSMTPAccount",
+                "kind" : "//parcels/osaf/contentmodel/mail/SMTPAccount",
+            },
+            "POP_LEAVE" : {
+                "attr" : "leaveOnServer",
+                "type" : "boolean",
+            },
+        },
+        "id" : "POPPanel",
+        "saveHandler" : POPSaveHandler,
+        "deleteHandler" : POPDeleteHandler,
+        "displayName" : "POP_DESCRIPTION",
+        "description" : "Incoming mail (POP)",
+        "callbacks" : (
+            ("POP_TEST", "OnTestPOP"),
+        )
     },
     "SMTP" : {
         "fields" : {
@@ -175,6 +276,9 @@ PANELS = {
         "deleteHandler" : SMTPDeleteHandler,
         "displayName" : "SMTP_DESCRIPTION",
         "description" : "Outgoing mail (SMTP)",
+        "callbacks" : (
+            ("SMTP_TEST", "OnTestSMTP"),
+        )
     },
     "WebDAV" : {
         "fields" : {
@@ -328,6 +432,7 @@ class AccountPreferencesDialog(wx.Dialog):
         accountIndex = 0 # which account to select first
         pm = application.Parcel.Manager.get(self.view)
         imapAccountKind = pm.lookup(MAIL_MODEL, "IMAPAccount")
+        popAccountKind = pm.lookup(MAIL_MODEL, "POPAccount")
         smtpAccountKind = pm.lookup(MAIL_MODEL, "SMTPAccount")
         webDavAccountKind = pm.lookup(SHARING_MODEL, "WebDAVAccount")
 
@@ -337,8 +442,12 @@ class AccountPreferencesDialog(wx.Dialog):
             if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
+        for item in KindQuery().run([popAccountKind]):
+            if item.isActive and hasattr(item, 'displayName'):
+                accounts.append(item)
+
         for item in KindQuery().run([smtpAccountKind]):
-            if hasattr(item, 'displayName'):
+            if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
         for item in KindQuery().run([webDavAccountKind]):
@@ -400,6 +509,8 @@ class AccountPreferencesDialog(wx.Dialog):
             else:
                 if account['type'] == "IMAP":
                     item = Mail.IMAPAccount(view=self.view)
+                elif account['type'] == "POP":
+                    item = Mail.POPAccount(view=self.view)
                 elif account['type'] == "SMTP":
                     item = Mail.SMTPAccount(view=self.view)
 
@@ -407,11 +518,11 @@ class AccountPreferencesDialog(wx.Dialog):
                     #     exists and makes the new account the defaultSMTPAccount
                     #     for the default IMAP ccount
 
-                    if Mail.MailParcel.getSMTPAccount(view=self.view)[0] is None:
-                        imapAccount = Mail.MailParcel.getIMAPAccount(view=self.view)
+                    if Mail.MailParcel.getCurrentSMTPAccount(view=self.view)[0] is None:
+                        mailAccount = Mail.MailParcel.getCurrentMailAccount(view=self.view)
 
-                        if imapAccount is not None:
-                            imapAccount.defaultSMTPAccount = item
+                        if mailAccount is not None:
+                            mailAccount.defaultSMTPAccount = item
 
                 elif account['type'] == "WebDAV":
                     item = Sharing.WebDAVAccount(view=self.view)
@@ -695,6 +806,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.__ApplyDeletions()
             self.EndModal(True)
             self.view.commit()
+            application.Globals.mailService.refreshMailServiceCache()
 
     def OnCancel(self, evt):
         self.__ApplyCancellations()      
@@ -708,9 +820,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
         accountType = self.choiceNewType.GetClientData(selection)
         self.choiceNewType.SetSelection(0)
-        
+
         if accountType == "IMAP":
             item = Mail.IMAPAccount(view=self.view)
+        elif accountType == "POP":
+            item = Mail.POPAccount(view=self.view)
         elif accountType == "SMTP":
             item = Mail.SMTPAccount(view=self.view)
         elif accountType == "WebDAV":
@@ -769,6 +883,57 @@ class AccountPreferencesDialog(wx.Dialog):
             msg = "This account currently may not be deleted because it has been marked as a 'default' account"
             application.dialogs.Util.ok(self, "Cannot delete default account",
                                         msg)
+
+
+    def OnTestIMAP(self, evt):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+         self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        account = self.view.findPath("//parcels/osaf/mail/TestIMAPAccount")
+        account.host = data['IMAP_SERVER']
+        account.port = data['IMAP_PORT']
+        account.connectionSecurity = data['IMAP_SECURE']
+        account.username = data['IMAP_USERNAME']
+        account.password = data['IMAP_PASSWORD']
+
+        self.view.commit()
+        application.Globals.mailService.getIMAPInstance(account).testAccountSettings()
+
+    def OnTestSMTP(self, evt):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+         self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        account = self.view.findPath("//parcels/osaf/mail/TestSMTPAccount")
+        account.host = data['SMTP_SERVER']
+        account.port = data['SMTP_PORT']
+        account.connectionSecurity = data['SMTP_SECURE']
+        account.useAuth = data['SMTP_USE_AUTH']
+        account.username = data['SMTP_USERNAME']
+        account.password = data['SMTP_PASSWORD']
+
+        self.view.commit()
+        application.Globals.mailService.getSMTPInstance(account).testAccountSettings()
+
+    def OnTestPOP(self, evt):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+         self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        account = self.view.findPath("//parcels/osaf/mail/TestPOPAccount")
+        account.host = data['POP_SERVER']
+        account.port = data['POP_PORT']
+        account.connectionSecurity = data['POP_SECURE']
+        account.leaveOnServer = data['POP_LEAVE']
+        account.username = data['POP_USERNAME']
+        account.password = data['POP_PASSWORD']
+
+        self.view.commit()
+        application.Globals.mailService.getPOPInstance(account).testAccountSettings()
 
 
     def OnTestWebDAV(self, evt):
@@ -865,9 +1030,13 @@ class AccountPreferencesDialog(wx.Dialog):
                 if fieldInfo.get('exclusive', False):
                     index = 0
                     for accountData in self.data:
-                        if accountData['type'] == self.currentPanelType:
-                            if index != self.currentIndex:
-                                accountData['values'][field] = False
+                        if index != self.currentIndex:
+                            aPanel = PANELS[accountData['type']]
+                            for (aField, aFieldInfo) in aPanel['fields'].iteritems():
+                                if aFieldInfo.get('type') == 'currentPointer':
+                                    if aFieldInfo.get('pointer', '') == \
+                                        fieldInfo.get('pointer'):
+                                            accountData['values'][aField] = False
                         index += 1
                     break
 

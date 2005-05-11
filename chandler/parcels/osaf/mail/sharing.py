@@ -81,7 +81,7 @@ class SMTPInvitationSender:
         else:
             accountUUID = account.itsUUID
 
-        self.account, self.fromAddress = Mail.MailParcel.getSMTPAccount(self.repository.view, \
+        self.account, self.fromAddress = Mail.MailParcel.getCurrentSMTPAccount(self.repository.view, \
                                          accountUUID)
 
     def sendInvitation(self):

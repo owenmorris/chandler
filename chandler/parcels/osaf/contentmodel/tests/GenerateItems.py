@@ -99,14 +99,14 @@ def GenerateMailMessage(view):
 
 
     if outbound:
-        acc = Mail.MailParcel.getSMTPAccount(view)[0]
+        acc = Mail.MailParcel.getCurrentSMTPAccount(view)[0]
         message.outgoingMessage(acc)
 
         """Make the Message appear as if it has already been sent"""
         message.deliveryExtension.sendSucceeded()
 
     else:
-        acc = Mail.MailParcel.getIMAPAccount(view)
+        acc = Mail.MailParcel.getCurrentMailAccount(view)
         message.incomingMessage(acc)
 
     if type == EVENT:

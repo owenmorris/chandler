@@ -312,7 +312,7 @@ class _SMTPTransport(object):
         if __debug__:
             self.parent.printCurrentView("transport.testSettings")
 
-        sender = Mail.MailParcel.getSMTPAccount(self.parent.view, \
+        sender = Mail.MailParcel.getCurrentSMTPAccount(self.parent.view, \
                                                 self.parent.accountUUID)[1]
 
         if sender is None:

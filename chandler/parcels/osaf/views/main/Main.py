@@ -210,7 +210,7 @@ class MainView(View):
     
         # get default SMTP account
         item = event.arguments ['item']
-        account = Mail.MailParcel.getSMTPAccount(self.itsView)[0]
+        account = Mail.MailParcel.getCurrentSMTPAccount(self.itsView)[0]
 
         # put a sending message into the status bar
         self.setStatusMessage ('Sending mail...')
@@ -641,7 +641,7 @@ class MainView(View):
         self.onSyncWebDAVEvent (event)
 
         # If mail is set up, fetch it:
-        if Sharing.isIMAPSetUp(self.itsView):
+        if Sharing.isInboundMailSetUp(self.itsView):
             self.setStatusMessage (_("Getting new Mail"))
             self.onGetNewMailEvent (event)
 

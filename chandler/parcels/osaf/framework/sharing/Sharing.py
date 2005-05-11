@@ -1611,9 +1611,9 @@ def getShare(collection):
     return None
 
 
-def isIMAPSetUp(view):
-    """ See if the IMAP account has at least the minimum setup needed for
-        sharing (IMAP needs email address).
+def isInboundMailSetUp(view):
+    """ See if the IMAP/POP account has at least the minimum setup needed for
+        sharing (IMAP/POP needs email address).
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -1621,8 +1621,8 @@ def isIMAPSetUp(view):
     """
 
     # Find imap account, and make sure email address is valid
-    imap = Mail.MailParcel.getIMAPAccount(view)
-    if imap is not None and imap.replyToAddress and imap.replyToAddress.emailAddress:
+    account = Mail.MailParcel.getCurrentMailAccount(view)
+    if account is not None and account.replyToAddress and account.replyToAddress.emailAddress:
         return True
     return False
 
@@ -1637,7 +1637,7 @@ def isSMTPSetUp(view):
     """
 
     # Find smtp account, and make sure server field is set
-    (smtp, replyTo) = Mail.MailParcel.getSMTPAccount(view)
+    (smtp, replyTo) = Mail.MailParcel.getCurrentSMTPAccount(view)
     if smtp is not None and smtp.host:
         return True
     return False
@@ -1651,7 +1651,7 @@ def isMailSetUp(view):
     @type view: L{repository.persistence.RepositoryView}
     @return: True if the accounts are set up; False otherwise.
     """
-    if isIMAPSetUp(view) and isSMTPSetUp(view):
+    if isInboundMailSetUp(view) and isSMTPSetUp(view):
         return True
     return False
 
@@ -1684,16 +1684,16 @@ def ensureAccountSetUp(view):
     while True:
 
         DAVReady = isWebDAVSetUp(view)
-        IMAPReady = isIMAPSetUp(view)
+        InboundMailReady = isInboundMailSetUp(view)
         SMTPReady = isSMTPSetUp(view)
-        if DAVReady and IMAPReady and SMTPReady:
+        if DAVReady and InboundMailReady and SMTPReady:
             return True
 
         msg = "The following account(s) need to be set up:\n\n"
         if not DAVReady:
             msg += " - WebDAV (collection publishing)\n"
-        if not IMAPReady:
-            msg += " - IMAP (inbound email)\n"
+        if not InboundMailReady:
+            msg += " - IMAP/POP (inbound email)\n"
         if not SMTPReady:
             msg += " - SMTP (outound email)\n"
         msg += "\nWould you like to enter account information now?"
@@ -1704,11 +1704,11 @@ def ensureAccountSetUp(view):
         if response == False:
             return False
 
-        if not IMAPReady:
-            account = Mail.MailParcel.getIMAPAccount(view)
+        if not InboundMailReady:
+            account = Mail.MailParcel.getCurrentMailAccount(view)
         elif not SMTPReady:
             """ Returns the defaultSMTPAccount or None"""
-            account = Mail.MailParcel.getSMTPAccount(view)
+            account = Mail.MailParcel.getCurrentSMTPAccount(view)
         else:
             account = getWebDAVAccount(view)
 

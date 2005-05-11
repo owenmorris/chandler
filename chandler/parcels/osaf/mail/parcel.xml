@@ -12,7 +12,7 @@
     <replyToAddress itemref="mail:PredefinedReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
     <defaultSMTPAccount itemref="mail:PredefinedSMTPAccount" />
-    <currentItemOf itemref="current:IMAPAccount"/>
+    <currentItemOf itemref="current:MailAccount"/>
   </content:IMAPAccount>
 
   <content:POPAccount itsName="PredefinedPOPAccount">
@@ -21,7 +21,6 @@
     <replyToAddress itemref="mail:PredefinedReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
     <defaultSMTPAccount itemref="mail:PredefinedSMTPAccount" />
-    <currentItemOf itemref="current:POPAccount"/>
   </content:POPAccount>
 
   <content:EmailAddress itsName="PredefinedReplyAddress" />

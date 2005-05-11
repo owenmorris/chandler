@@ -52,7 +52,7 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailItemParent = classmethod(getMailItemParent)
 
-    def getSMTPAccount(cls, view, uuid=None):
+    def getCurrentSMTPAccount(cls, view, uuid=None):
         """
             This method returns a tuple containing:
             1. The an C{SMTPAccount} account
@@ -80,12 +80,8 @@ class MailParcel(application.Parcel.Parcel):
 
             return (smtpAccount, replyToAddress)
 
-        """Get the default IMAP Account"""
-        parentAccount = Current.Current.get(view, "IMAPAccount")
-
-        if parentAccount is None:
-            """Get the default POP Account"""
-            parentAccount = Current.Current.get(view, "POPAccount")
+        """Get the default Mail Account"""
+        parentAccount = Current.Current.get(view, "MailAccount")
 
         if parentAccount is not None:
             if hasattr(parentAccount, 'replyToAddress'):
@@ -100,53 +96,32 @@ class MailParcel(application.Parcel.Parcel):
 
         return(smtpAccount, replyToAddress)
 
-    getSMTPAccount = classmethod(getSMTPAccount)
+    getCurrentSMTPAccount = classmethod(getCurrentSMTPAccount)
 
 
-    def getPOPAccount(cls, view, uuid=None):
+
+
+    def getCurrentMailAccount(cls, view, uuid=None):
         """
-        This method returns a C{POPAccount} in the Repository. If uuid is not
-        None will try and retrieve the C{POPAccount} that has the uuid passed.
-        Otherwise the method will try and retrieve the current C{POPAccount}.
+        This method returns either an C{IMAPAccount} or C{POPAccount} in the
+        Repository. If uuid is not None will try and retrieve the account that
+        has the uuid passed.  Otherwise the method will try and retrieve the
+        current C{IMAPAccount} or C{POPAccount}.
 
-        @param uuid: The C{uuid} of the C{POPAccount}. If no C{uuid} passed will return
-                 the current C{POPAccount}
+        @param uuid: The C{uuid} of the account. If no C{uuid} passed will return the current account
         @type uuid: C{uuid}
-        @return C{POPAccount}
+        @return C{IMAPAccount} or C{POPAccount}
         """
 
         if uuid is not None:
             account = view.findUUID(uuid)
 
         else:
-            account = Current.Current.get(view, "POPAccount")
+            account = Current.Current.get(view, "MailAccount")
 
         return account
 
-    getPOPAccount = classmethod(getPOPAccount)
-
-
-    def getIMAPAccount(cls, view, uuid=None):
-        """
-        This method returns a C{IMAPAccount} in the Repository. If uuid is not
-        None will try and retrieve the C{IMAPAccount} that has the uuid passed.
-        Otherwise the method will try and retrieve the current C{IMAPAccount}.
-
-        @param uuid: The C{uuid} of the C{IMAPAccount}. If no C{uuid} passed will return
-                 the current C{IMAPAccount}
-        @type uuid: C{uuid}
-        @return C{IMAPAccount}
-        """
-
-        if uuid is not None:
-            account = view.findUUID(uuid)
-
-        else:
-            account = Current.Current.get(view, "IMAPAccount")
-
-        return account
-
-    getIMAPAccount = classmethod(getIMAPAccount)
+    getCurrentMailAccount = classmethod(getCurrentMailAccount)
 
 
     def getActivePOPAccounts(cls, view):
@@ -809,10 +784,7 @@ class EmailAddress(ContentModel.ContentItem):
         address.
         """
 
-        account = MailParcel.getIMAPAccount(view)
-
-        if account is None:
-            account = MailParcel.getPOPAccount(view)
+        account = MailParcel.getCurrentMailAccount(view)
 
         if account is not None and hasattr(account, 'replyToAddress'):
             return account.replyToAddress
@@ -820,5 +792,3 @@ class EmailAddress(ContentModel.ContentItem):
         return None
 
     getCurrentMeEmailAddress = classmethod(getCurrentMeEmailAddress)
-
-

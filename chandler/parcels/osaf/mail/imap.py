@@ -288,7 +288,6 @@ class IMAPClient(base.AbstractDownloadClient):
 
     def _getAccount(self):
         if self.account is None:
-            self.account = Mail.MailParcel.getIMAPAccount(self.view,
-                                                          self.accountUUID)
+            self.account = self.view.findUUID(self.accountUUID)
 
         return self.account

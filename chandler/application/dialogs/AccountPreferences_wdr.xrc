@@ -169,6 +169,20 @@
                         <value></value>
                     </object>
                 </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxButton" name="SMTP_TEST">
+                        <label>Test this account</label>
+                    </object>
+                </object>
             </object>
         </object>
     </object>
@@ -394,6 +408,20 @@
                         <size>300,-1</size>
                         <content>
                         </content>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxButton" name="IMAP_TEST">
+                        <label>Test this account</label>
                     </object>
                 </object>
             </object>
@@ -649,6 +677,261 @@
             <border>10</border>
             <object class="wxButton" name="wxID_CANCEL">
                 <label>Cancel</label>
+            </object>
+        </object>
+    </object>
+</object>
+
+<object class="wxPanel" name="POPPanel">
+    <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxFlexGridSizer">
+                <cols>2</cols>
+                <rows>0</rows>
+                <vgap>0</vgap>
+                <hgap>0</hgap>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Account type:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <size>300,-1</size>
+                        <label>POP</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Description:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_DESCRIPTION">
+                        <size>300,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Email address:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_EMAIL_ADDRESS">
+                        <size>300,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Full name:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_FULL_NAME">
+                        <size>300,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Incoming mail server:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_SERVER">
+                        <size>300,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>User name:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_USERNAME">
+                        <size>300,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Password:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_PASSWORD">
+                        <size>300,-1</size>
+                        <style>wxTE_PASSWORD</style>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Secure connection:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL</flag>
+                    <border>5</border>
+                    <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="POP_SECURE_NO">
+                                <style>wxRB_GROUP</style>
+                                <label>No</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="POP_TLS">
+                                <label>TLS</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="POP_SSL">
+                                <label>SSL</label>
+                            </object>
+                        </object>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <style>wxALIGN_RIGHT</style>
+                        <label>Port number:</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxTextCtrl" name="POP_PORT">
+                        <size>100,-1</size>
+                        <value></value>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxCheckBox" name="POP_LEAVE">
+                        <label>Leave messages on server</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL</flag>
+                    <border>5</border>
+                    <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="POP_DEFAULT">
+                                <style>wxRB_GROUP</style>
+                                <label>Use as default 'From' account</label>
+                            </object>
+                        </object>
+                        <object class="sizeritem">
+                            <flag>wxALIGN_CENTER|wxALL</flag>
+                            <border>5</border>
+                            <object class="wxRadioButton" name="POP_DEFAULT_HIDDEN">
+                                <label></label>
+                            </object>
+                        </object>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label>Outgoing mail server (SMTP):</label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxChoice" name="POP_SMTP">
+                        <size>300,-1</size>
+                        <content>
+                        </content>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxStaticText" name="ID_TEXT">
+                        <label></label>
+                    </object>
+                </object>
+                <object class="sizeritem">
+                    <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                    <border>5</border>
+                    <object class="wxButton" name="POP_TEST">
+                        <label>Test this account</label>
+                    </object>
+                </object>
             </object>
         </object>
     </object>
