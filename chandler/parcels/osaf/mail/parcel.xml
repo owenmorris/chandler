@@ -33,6 +33,8 @@
   <content:IMAPAccount itsName="TestIMAPAccount">
     <displayName>IMAP Account</displayName>
     <description>The IMAP Account used for testing account settings</description>
+    <host>host</host>
+    <username>username</username>
     <isActive>False</isActive>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:TestReplyAddress" />
@@ -43,6 +45,8 @@
   <content:POPAccount itsName="TestPOPAccount">
     <displayName>POP Account</displayName>
     <description>The POP Account used for testing account settings</description>
+    <host>host</host>
+    <username>username</username>
     <isActive>False</isActive>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:TestReplyAddress" />

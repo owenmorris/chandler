@@ -311,7 +311,8 @@ class _SMTPTransport(object):
             self.parent.printCurrentView("transport.testSettings")
 
         sender = Mail.MailParcel.getCurrentSMTPAccount(self.parent.view, \
-                                                self.parent.accountUUID)[1]
+                                                self.parent.accountUUID,
+                                                includeInactives=True)[1]
 
         if sender is None:
             errorStr = constants.UPLOAD_NO_REPLY_ADDRESS

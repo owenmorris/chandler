@@ -52,7 +52,7 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailItemParent = classmethod(getMailItemParent)
 
-    def getCurrentSMTPAccount(cls, view, uuid=None):
+    def getCurrentSMTPAccount(cls, view, uuid=None, includeInactives=False):
         """
             This method returns a tuple containing:
             1. The an C{SMTPAccount} account
@@ -73,10 +73,11 @@ class MailParcel(application.Parcel.Parcel):
 
             if smtpAccount is not None:
                 for acc in smtpAccount.accounts:
-                    if acc.isActive and acc.host and \
-                       acc.username and hasattr(acc, 'replyToAddress'):
-                        replyToAddress = acc.replyToAddress
-                        break
+                    if acc.isActive or includeInactives:
+                        if acc.host and acc.username and \
+                           hasattr(acc, 'replyToAddress'):
+                            replyToAddress = acc.replyToAddress
+                            break
 
             return (smtpAccount, replyToAddress)
 
