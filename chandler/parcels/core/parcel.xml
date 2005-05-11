@@ -3,8 +3,6 @@
 <Parcel itsName="core"
          xmlns="http://osafoundation.org/parcels/core" >
 
-  <namespace value="http://osafoundation.org/parcels/core" />
-
   <namespaceMap key="" value="//Schema/Core" />
   <namespaceMap key="Alias" value="//Schema/Core/Alias" />
   <namespaceMap key="Anything" value="//Schema/Core/Anything" />

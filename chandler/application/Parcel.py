@@ -237,7 +237,7 @@ class Manager(Item):
         # repository path, and parcel file name.  Populated first by looking
         # at existing parcel items, then overriden by newer parcel.xml files
         self._ns2parcel = { }  # namespace -> "parcel descriptor" (see below)
-        self._repo2ns = { }    # repository path -> namespace
+        self._repo2ns = {'//parcels':NS_ROOT}  # repository path -> namespace
         self._file2ns = { }    # file path -> namespace
 
         # Do a Parcel-kind query for existing parcels; populate a dictionary
