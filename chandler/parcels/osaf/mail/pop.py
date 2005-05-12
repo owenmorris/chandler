@@ -51,7 +51,7 @@ class _TwistedPOP3Client(pop3.POP3Client):
         if self.factory.useTLS:
             """The Twisted POP3Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
-            d = self.startTLS(Globals.crypto.getSSLContext())
+            d = self.startTLS(Globals.crypto.getSSLContext(protocol='sslv3'))
             d.addCallbacks(lambda _: self.delegate.loginClient(), self.delegate.catchErrors)
             return d
 
