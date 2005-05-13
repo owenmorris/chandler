@@ -549,7 +549,7 @@ class HeaderCanvasItem(CalendarCanvasItem):
         dc.DrawRectangleRect(itemRect)
                 
         # draw little rectangle to the left of the item
-        pen = self.GetStatusPen(eventColors.outlineColor)
+        pen = self.GetStatusPen(outlineColor)
         
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
