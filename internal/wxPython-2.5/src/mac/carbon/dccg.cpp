@@ -40,9 +40,7 @@ using namespace std ;
 #include <FixMath.h>
 #include <CGContext.h>
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
-#endif
 
 //-----------------------------------------------------------------------------
 // constants
@@ -1603,22 +1601,23 @@ void  wxDC::Clear(void)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
                     if ( HIThemeSetFill != 0 )
                     {
-                        HIThemeSetFill( m_backgroundBrush.MacGetTheme() , cg ) ;
+                        HIThemeSetFill( m_backgroundBrush.MacGetTheme(), NULL, cg, kHIThemeOrientationNormal );
                         CGContextFillRect(cg, rect);
 
                     }
                     else
 #endif
                     {
-        				RGBColor	color;
-        				GetThemeBrushAsColor( m_backgroundBrush.MacGetTheme() , 32, true, &color );
-        				CGContextSetRGBFillColor( cg , (float) color.red / 65536,
-        						(float) color.green / 65536, (float) color.blue / 65536, 1 );
-        				CGContextFillRect( cg, rect );
+                        RGBColor	color;
+                        GetThemeBrushAsColor( m_backgroundBrush.MacGetTheme(), 32, true, &color );
+                        CGContextSetRGBFillColor( cg , (float) color.red / 65536,
+        		    (float) color.green / 65536, (float) color.blue / 65536, 1 );
+                        CGContextFillRect( cg, rect );
                     }
+
                     // reset to normal value
                     RGBColor col = MAC_WXCOLORREF( GetBrush().GetColour().GetPixel() ) ;
-                    CGContextSetRGBFillColor( cg , col.red / 65536.0 , col.green / 65536.0 , col.blue / 65536.0 , 1.0 ) ;
+                    CGContextSetRGBFillColor( cg, col.red / 65536.0 , col.green / 65536.0 , col.blue / 65536.0 , 1.0 );
                 }
             break ;
             case kwxMacBrushThemeBackground :
