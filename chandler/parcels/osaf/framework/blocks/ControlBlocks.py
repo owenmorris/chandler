@@ -1523,15 +1523,23 @@ class wxAEBlock(wxRectangularChild):
         """
           The control lost focus - we're finishing editing in the control.
         """
-        logger.debug("wxAEBlock: control lost focus")
-        event.Skip()
-        logger.debug("wxAEBlock: back from skip")
+        if event is not None:
+            logger.debug("wxAEBlock: control lost focus")
+            event.Skip()
+            logger.debug("wxAEBlock: back from skip")
         
         # @@@BJS: needed? return if there's no control
         assert self.control
         if self.control is None:
+            logger.debug("wxAEBlock: skipping onLoseFocus because we have no control.")
+            return
+        
+        # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
+        if self.control.IsBeingDeleted() or self.control.GetParent().IsBeingDeleted():
+            logger.debug("wxAEBlock: skipping onLoseFocus because the control's being deleted.")
             return
 
+        logger.debug("wxAEBlock: processing onLoseFocus.")
         item = self.blockItem.getItem()
         attributeName = self.blockItem.getAttributeName()
         logger.debug("wxAEBlock: calling ECE")

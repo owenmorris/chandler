@@ -68,7 +68,19 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             dumpSelectItem = False
             if dumpSelectItem:
                 self.dumpShownHierarchy ('onSelectItemEvent')
-    
+
+    def unRender(self):
+        # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
+        # after the control's been deleted, which makes it impossible to grab
+        # the control's state on the way out. To work around this, the control
+        # does nothing in its EVT_KILL_FOCUS handler if it's being deleted,
+        # and we'll force the final update here.
+        self.finishSelectionChanges() 
+        
+        # then call our parent which'll do the actual unrender, triggering the
+        # no-op EVT_KILL_FOCUS.
+        super(DetailRoot, self).unRender()
+        
     def __changeSelection(self, item):
         self.selection = item
         
