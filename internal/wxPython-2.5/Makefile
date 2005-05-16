@@ -68,6 +68,7 @@ MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)*
+	rm -f $(SRC)/wxPython/docs/xml-raw/*.xml
 	rm -f $(SRC)/include/wx/msw/setup.h
 	rm -f $(SRC)/lib/vc_dll/msw$(UNICODE_SUFFIX)$(SUFFIX)/setup.h
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
