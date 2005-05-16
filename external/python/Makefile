@@ -1,6 +1,6 @@
 
-VERSION=2.4
-RELVER=$(VERSION)-2
+VERSION=2.4.1
+RELVER=$(VERSION)-1
 BZIP2VERSION=1.0.2
 ZLIBVERSION=1.2.1
 
@@ -134,8 +134,12 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD); \
-	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_DBG) \
-                     --enable-framework=$(PREFIX)/Library/Frameworks
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+	   LDFLAGS="-L$(PREFIX)/lib $(LDFLAGS)" \
+	   CPPFLAGS="-I$(PREFIX)/include $(CPPFLAGS)" \
+	         ../configure \
+           --prefix=$(PREFIX) $(CONF_DBG) --enable-framework=$(PREFIX)/Library/Frameworks \
+           --with-readline=$(PREFIX)/lib
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) -C $(SRC)/$(BUILD) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework

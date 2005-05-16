@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 VERSION=0.5
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-2
 DATEUTIL=$(BUILD_ROOT)/dateutil
 MANIFEST=$(SNAP)/$(SITE)/dateutil
 BUILD=build_$(SNAP)

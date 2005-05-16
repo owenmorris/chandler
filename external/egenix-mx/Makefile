@@ -1,6 +1,6 @@
 
 VERSION=2.1.0
-RELVER=$(VERSION)-3
+RELVER=$(VERSION)-4
 EGENIX=$(BUILD_ROOT)/egenix-mx
 SRC=$(EGENIX)/egenix-mx-base-$(VERSION)
 

@@ -2,8 +2,9 @@
 include Makefile.inc
 
 SYSTEMS=persistence/db \
-        python \
         swig \
+        readline \
+        python \
         epydoc \
         PyLucene \
         persistence/libxml2 \

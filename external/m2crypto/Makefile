@@ -1,6 +1,6 @@
 
 VERSION=r263
-RELVER=$(VERSION)-1
+RELVER=$(VERSION)-2
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
