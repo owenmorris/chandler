@@ -21,21 +21,22 @@ endif
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-8.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.27-1.tar.gz \
-         $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
-         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-2.tar.gz \
-         $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-2.tar.gz \
-         $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-3.tar.gz \
-         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-r263-1.tar.gz \
-         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-2.tar.gz \
-         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-1.tar.gz \
-         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4-2.tar.gz \
-         $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-2.tar.gz \
-         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-7.tar.gz \
-         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.0.0-3.tar.gz \
-         $(CHANDLERARCHIVES)/yapps-$(SNAP)-2.1.1-2.tar.gz \
-         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.1-1.tar.gz \
-         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.5-1.tar.gz \
-         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.1-1.tar.gz \
+         $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-4.tar.gz \
+         $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-3.tar.gz \
+         $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-3.tar.gz \
+         $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-4.tar.gz \
+         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-r263-2.tar.gz \
+         $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
+         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-2.tar.gz \
+         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-1.tar.gz \
+         $(CHANDLERARCHIVES)/readline-$(SNAP)-5.0-1.tar.gz \
+         $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
+         $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-8.tar.gz \
+         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.0.0-4.tar.gz \
+         $(CHANDLERARCHIVES)/yapps-$(SNAP)-2.1.1-3.tar.gz \
+         $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.1-2.tar.gz \
+         $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.5-2.tar.gz \
+         $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.2-2.tar.gz \
          $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
