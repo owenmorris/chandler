@@ -131,7 +131,9 @@ class DBRepository(OnDemandRepository):
 
     def _lockOpen(self):
         
-        fd = lock.open("%s.lock" %(self.dbHome))
+        lockFile = os.path.join(os.path.dirname(self.dbHome),
+                                ".%s.lock" %(os.path.basename(self.dbHome)))
+        fd = lock.open(lockFile)
         if not lock.lock(fd, lock.LOCK_SH | lock.LOCK_NB):
             lock.close(fd)
             raise RepositoryOpenDeniedError
