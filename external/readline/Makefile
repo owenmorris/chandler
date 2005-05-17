@@ -22,6 +22,10 @@ readline: $(SRC)/Makefile apply
 clean:
 	rm -rf $(READLINE)/$(BUILD)
 	rm $(READLINE)/readline-$(VERSION)-expanded
+
+realclean: clean
+	rm -rf build_debug build_release
+	rm -f readline-debug-*.tar.gz* readline-release-*.tar.gz*
  
 ifeq ($(strip $(OS_VERSION)),8.0.0) 
 apply:
@@ -65,6 +69,9 @@ readline:
 
   # Nothing to do
 clean:
+
+  # Nothing to do
+realclean:
 
   # Nothing to do
 snap:
