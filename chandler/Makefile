@@ -29,7 +29,6 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
          $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-2.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-1.tar.gz \
-         $(CHANDLERARCHIVES)/readline-$(SNAP)-5.0-1.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-8.tar.gz \
          $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.0.0-4.tar.gz \
@@ -42,6 +41,11 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
 ARCHIVES += $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7d-1.tar.gz
+endif
+
+# readline is only needed for OSX
+ifeq ($(OS),Darwin)
+ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.0-1.tar.gz
 endif
 
 ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
