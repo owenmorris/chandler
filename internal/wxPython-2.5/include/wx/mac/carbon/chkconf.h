@@ -30,7 +30,7 @@
  */
 
 #ifndef wxMAC_USE_CORE_GRAPHICS
-#define wxMAC_USE_CORE_GRAPHICS 1
+#define wxMAC_USE_CORE_GRAPHICS 0
 #endif
 
 #endif
