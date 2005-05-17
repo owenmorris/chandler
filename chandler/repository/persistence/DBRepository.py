@@ -4,8 +4,9 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, cStringIO, threading
+import os, cStringIO
 
+from threading import Thread, Lock, Condition, local
 from datetime import datetime
 from struct import pack
 
@@ -60,6 +61,7 @@ class DBRepository(OnDemandRepository):
             self._openDir = None
         self._exclusiveLock = None
         self._env = None
+        self._checkpointThread = None
 
     def _touchOpenFile(self):
 
@@ -89,6 +91,8 @@ class DBRepository(OnDemandRepository):
                 self._status |= Repository.RAMDB
             else:
                 self._touchOpenFile()
+                self._checkpointThread = DBCheckpointThread(self)
+                self._checkpointThread.start()
 
     def _create(self, **kwds):
 
@@ -299,6 +303,9 @@ class DBRepository(OnDemandRepository):
             self._status |= Repository.OPEN
             self._touchOpenFile()
 
+            self._checkpointThread = DBCheckpointThread(self)
+            self._checkpointThread.start()
+
     def close(self):
 
         super(DBRepository, self).close()
@@ -308,7 +315,8 @@ class DBRepository(OnDemandRepository):
 
             ramdb = status & Repository.RAMDB
             if not ramdb:
-                self._env.txn_checkpoint()
+                self._checkpointThread.terminate()
+                self._checkpointThread = None
 
             self.store.close()
             self._env.close()
@@ -334,7 +342,7 @@ class DBStore(Store):
 
     def __init__(self, repository):
 
-        self._threaded = threading.local()
+        self._threaded = local()
         super(DBStore, self).__init__(repository)
         
     def open(self, **kwds):
@@ -634,3 +642,48 @@ class DBStore(Store):
     env = property(_getEnv)
     txn = property(_getTxn, _setTxn)
     lockId = property(_getLockId)
+
+
+class DBCheckpointThread(Thread):
+
+    def __init__(self, repository):
+
+        super(DBCheckpointThread, self).__init__()
+
+        self._repository = repository
+        self._condition = Condition(Lock())
+        self._alive = True
+
+        self.setDaemon(True)
+
+    def run(self):
+
+        repository = self._repository
+        condition = self._condition
+
+        while self._alive:
+            condition.acquire()
+            condition.wait(600.0)
+            condition.release()
+
+            if self._alive:
+                try:
+                    for view in repository.getOpenViews():
+                        view._exclusive.acquire()
+                    repository._env.txn_checkpoint()
+                    repository.logger.info('%s: %s, completed checkpoint',
+                                           repository, datetime.now())
+                finally:
+                    for view in repository.getOpenViews():
+                        view._exclusive.release()
+
+    def terminate(self):
+        
+        condition = self._condition
+
+        condition.acquire()
+        self._alive = False
+        condition.notify()
+        condition.release()
+
+        self._repository._env.txn_checkpoint()

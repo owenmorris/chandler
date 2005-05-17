@@ -38,6 +38,10 @@ class Repository(object):
         self._notifications = []
         self._openViews = []
 
+    def __repr__(self):
+
+        return "<%s>" %(type(self).__name__)
+
     def create(self, **kwds):
         """
         Create a new repository in C{self.dbHome}. Some implementations may
