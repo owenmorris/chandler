@@ -32,7 +32,6 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
         if self.blockItem.isShown:
             self.blockItem.installTreeOfBlocks()
         super(wxTrunkParentBlock, self).wxSynchronizeWidget()
-        self.blockItem.synchronizeColor()
     
 class TrunkParentBlock(ContainerBlocks.BoxContainer):
     """
@@ -96,11 +95,6 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         else:
             logger.debug("NOT changing tree to display %s", TPBSelectedItem)
 
-
-    def synchronizeColor (self):
-        # if there's a color style defined, synchronize the color
-        if self.hasLocalAttributeValue("colorStyle"):
-            self.colorStyle.synchronizeColor(self)
 
 class TrunkDelegate(Item):
     """

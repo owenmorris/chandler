@@ -33,11 +33,6 @@ class ColorStyle(Style):
     def __init__(self, *arguments, **keywords):
         super (ColorStyle, self).__init__(*arguments, **keywords)
         
-    def synchronizeColor(self, block):
-        widget = block.widget
-        if widget:
-            widget.SetBackgroundColour(self.backgroundColor.wxColor())
-            widget.SetForegroundColour(self.foregroundColor.wxColor())
         
 fontCache = {}
 platformDefaultFaceName = None

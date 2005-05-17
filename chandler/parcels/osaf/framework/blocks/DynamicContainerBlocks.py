@@ -684,8 +684,15 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
-        self.blockItem.synchronizeColor()
-        
+
+        try:
+            colorStyle = self.blockItem.colorStyle
+        except AttributeError:
+            pass
+        else:
+            self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
+            self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
+
         # first time synchronizing this bar?
         dynamicChildren = self.blockItem.dynamicChildren
         rebuild = False
@@ -818,11 +825,6 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
             style |= wx.TB_TEXT
         return style
     
-    def synchronizeColor (self):
-        # if there's a color style defined, synchronize the color
-        if self.hasLocalAttributeValue("colorStyle"):
-            self.colorStyle.synchronizeColor(self)
-
             
 class ToolbarItem (Block.Block, DynamicChild):
     """

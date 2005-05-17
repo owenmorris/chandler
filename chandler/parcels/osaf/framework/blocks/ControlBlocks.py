@@ -1295,16 +1295,6 @@ class ContentItemDetail(BoxContainer):
     Supports Color Style
     """
     
-    def synchronizeWidget (self):
-        super(ContentItemDetail, self).synchronizeWidget()
-        if not wx.GetApp().ignoreSynchronizeWidget:
-            self.synchronizeColor()
-        
-    def synchronizeColor (self):
-        # if there's a color style defined, syncronize the color
-        if self.hasLocalAttributeValue("colorStyle"):
-            self.colorStyle.synchronizeColor(self)
-           
 class wxPyTimer(wx.PyTimer):
     """ 
     A wx.PyTimer that has an IsShown() method, like all the other widgets

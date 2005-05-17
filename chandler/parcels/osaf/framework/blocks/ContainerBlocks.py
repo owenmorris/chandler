@@ -16,7 +16,15 @@ import time
 class wxBoxContainer (wxRectangularChild):
     def wxSynchronizeWidget(self):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
-        
+
+        try:
+            colorStyle = self.blockItem.colorStyle
+        except AttributeError:
+            pass
+        else:
+            self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
+            self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
+
         if self.blockItem.isShown:
             sizer = self.GetSizer()
             if not sizer:
