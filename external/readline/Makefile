@@ -21,7 +21,7 @@ readline: $(SRC)/Makefile apply
 
 clean:
 	rm -rf $(READLINE)/$(BUILD)
-	rm $(READLINE)/readline-$(VERSION)-expanded
+	rm $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
 
 realclean: clean
 	rm -rf build_debug build_release
@@ -55,12 +55,12 @@ readline-$(VERSION).tar.gz:
 
 sources: readline-$(VERSION).tar.gz
 
-readline-$(VERSION)-expanded: readline-$(VERSION).tar.gz
+readline-$(VERSION)-$(SNAP)-expanded: readline-$(VERSION).tar.gz
 	mkdir -p $(READLINE)/$(BUILD)
 	tar -C $(READLINE)/$(BUILD) -xzf $(READLINE)/readline-$(VERSION).tar.gz
 	touch $(READLINE)/readline-$(VERSION)-expanded
 
-expand: readline-$(VERSION)-expanded
+expand: readline-$(VERSION)-$(SNAP)-expanded
 
 else
 
