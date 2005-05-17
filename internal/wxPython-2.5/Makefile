@@ -96,10 +96,10 @@ MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python
 
 clean:
 	rm -rf $(CLEANITEMSALL)
-	rm -rf $(SRC)/build/msw/vc_mswudll
-	rm -rf $(SRC)/wxPython/contrib/build/animate/vc_mswudll
-	rm -rf $(SRC)/wxPython/contrib/build/gizmos/vc_mswudll
-	rm -rf $(SRC)/wxPython/contrib/build/stc/vc_mswudll
+	rm -rf $(SRC)/build/msw/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
+	rm -rf $(SRC)/wxPython/contrib/build/animate/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
+	rm -rf $(SRC)/wxPython/contrib/build/gizmos/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
+	rm -rf $(SRC)/wxPython/contrib/build/stc/vc_msw$(UNICODE_SUFFIX)$(SUFFIX)dll
 	rm -rf $(SRC)/wxPython/contrib/build/animate/wxPythonAnimate/Debug
 	rm -rf $(SRC)/wxPython/contrib/build/animate/wxPythonAnimate/Release
 	rm -rf $(SRC)/wxPython/$(BUILD)*
