@@ -418,8 +418,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         clipRect = None   
         (cx,cy,cwidth,cheight) = dc.GetClippingBox()
         if not cwidth == cheight == 0:
-            clipRect = wx.Rect(x,y,width,height)
-        
+            clipRect = wx.Rect(cx,cy,cwidth,cheight)
+
         gradientLeft, gradientRight, outlineColor, textColor = \
             styles.blockItem.getEventColors(item, selected)
         
