@@ -1,6 +1,7 @@
 
 include ../Makefile.inc
 
+# version info
 VERSION=2.6.0.0
 RELVER=$(VERSION)-4
 WXMAJORVERSIONCOMPACT=26
@@ -9,6 +10,7 @@ SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
 UNICODE_SUFFIX=u
 
+# debug vs. release info
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
 DIST_OPT=--debug
@@ -23,6 +25,32 @@ SUFFIX=
 PYTHON_SUFFIX=
 endif
 
+# platform info
+ifeq ($(OS),Cygwin)
+OSTAG=msw
+else
+ifeq ($(OS),Darwin)
+OSTAG=mac
+else
+OSTAG=gtk
+endif
+endif
+
+
+# auto-generated items list (all platforms)
+CLEANITEMSALL= \
+	$(SRC)/wxPython/docs/xml-raw/*.xml \
+	$(SRC)/wxPython/src/$(OSTAG)/media.py \
+	$(SRC)/wxPython/src/$(OSTAG)/media_wrap.cpp \
+	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos.py \
+	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos_wrap.cpp \
+	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/glcanvas.py \
+	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/glcanvas_wrap.cpp \
+	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc.py \
+	$(SRC)/wxPython/contrib/stc/$(OSTAG)/stc_wrap.cpp
+
+
+# the working guts
 
 BUILD=build_$(SNAP)
 
@@ -67,8 +95,14 @@ wxPython:
 MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest
 
 clean:
+	rm -rf $(CLEANITEMSALL)
+	rm -rf $(SRC)/build/msw/vc_mswudll
+	rm -rf $(SRC)/wxPython/contrib/build/animate/vc_mswudll
+	rm -rf $(SRC)/wxPython/contrib/build/gizmos/vc_mswudll
+	rm -rf $(SRC)/wxPython/contrib/build/stc/vc_mswudll
+	rm -rf $(SRC)/wxPython/contrib/build/animate/wxPythonAnimate/Debug
+	rm -rf $(SRC)/wxPython/contrib/build/animate/wxPythonAnimate/Release
 	rm -rf $(SRC)/wxPython/$(BUILD)*
-	rm -f $(SRC)/wxPython/docs/xml-raw/*.xml
 	rm -f $(SRC)/include/wx/msw/setup.h
 	rm -f $(SRC)/lib/vc_dll/msw$(UNICODE_SUFFIX)$(SUFFIX)/setup.h
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
@@ -171,6 +205,7 @@ wxWidgets: $(SRC)/$(BUILD)/Makefile
 	$(MAKE) -C $(SRC)/$(BUILD)/contrib/src/stc install
 
 clean:
+	rm -rf $(CLEANITEMSALL)
 	rm -rf $(SRC)/wxPython/$(BUILD)*
 	rm -rf $(SRC)/$(BUILD)
 
