@@ -1,3 +1,16 @@
+--- egenix-mx-base-2.1.0/mxSetup.py	Tue May 17 00:35:03 2005
++++ egenix-mx-base-2.1.0-patched/mxSetup.py	Tue May 17 00:46:04 2005
+@@ -152,9 +152,9 @@
+ 
+ def mx_msvccompiler__init__(self, *args, **kws):
+ 
+     apply(old_MSVCCompiler__init__, (self,) + args, kws)
+-    self.compile_options.extend(['/O2','/Gf','/GB','/GD'])
++    #self.compile_options.extend(['/O2','/Gf','/GB','/GD'])
+ 
+ # "install" new __init__
+ MSVCCompiler.__init__ = mx_msvccompiler__init__ 
+
 --- egenix-mx-base-2.1.0/mx/BeeBase/mxBeeBase/mxBeeBase.c	2001-12-20 13:01:53.000000000 -0800
 +++ egenix-mx-base-2.1.0-patched/mx/BeeBase/mxBeeBase/mxBeeBase.c	2005-05-04 21:03:04.000000000 -0700
 @@ -65,10 +65,10 @@
