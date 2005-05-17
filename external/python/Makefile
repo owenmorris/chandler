@@ -35,10 +35,6 @@ ifeq ($(OS),Cygwin)
 BINDIR=$(PREFIX)/bin
 PV=$(subst .,,$(PYTHON_VER))
 
-$(SRC)/PCbuild/pcbuild.sln:
-	(cd win32/$(VERSION); \
-         tar -cf - *.sln *.vcproj) | tar -C $(SRC)/PCbuild -xf -
-
 ifeq ($(DEBUG),1)
 MKBZIP2MF=sed -e "s/ -MD -Ox / -MDd -Zi /" makefile.msc > $(BUILD)/makefile$(SUFFIX).msc
 MKZLIBMF=sed -e "s/ -MD -O2 / -MDd -Zi /" win32/makefile.msc > $(BUILD)/win32/makefile$(SUFFIX).msc
@@ -78,7 +74,9 @@ zlib: zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
 build: expand apply compile installext
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
 
-compile: $(SRC)/PCbuild/pcbuild.sln bzip2 zlib
+compile: bzip2 zlib
+	(cd win32/$(VERSION); \
+         tar -cf - *.sln *.vcproj) | tar -C $(SRC)/PCbuild -xf -
 	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /build $(Snap)
 
 installext:
