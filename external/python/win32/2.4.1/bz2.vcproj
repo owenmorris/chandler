@@ -37,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\bzip2-1.0.2\libbz2.lib"
+				AdditionalDependencies="..\..\bzip2-1.0.2\libbz2_d.lib"
 				OutputFile="./bz2_d.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"

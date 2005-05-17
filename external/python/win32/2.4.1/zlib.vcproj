@@ -37,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\zlib-1.2.1\zlib.lib"
+				AdditionalDependencies="..\..\zlib-1.2.1\zlib_d.lib"
 				OutputFile="./zlib_d.pyd"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
