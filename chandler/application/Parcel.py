@@ -19,6 +19,9 @@ from repository.util.Path import Path
 from repository.item.RefCollections import RefList
 import repository.item.Values
 
+logger = logging.getLogger('Parcel')
+logger.setLevel(logging.INFO)
+
 NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
 CPIA = "%s/osaf/framework/blocks" % NS_ROOT
@@ -87,10 +90,6 @@ class Manager(Item):
 
     def onItemLoad(self, view):
 
-        # Get the logger
-        self.log = logging.getLogger('Parcel')
-        self.log.setLevel(logging.INFO)
-
         # Initialize any attributes that aren't persisted:
         self.repo = view
         self.currentXMLFile = None
@@ -100,7 +99,7 @@ class Manager(Item):
         self.itemUUID = view.findPath("//Schema/Core/Item").itsUUID
         self.attrUUID = view.findPath("//Schema/Core/Attribute").itsUUID
         self.registryLoaded = False
-        self.log.info("Parcel Manager initialized")
+        logger.info("Parcel Manager initialized")
 
     def getParentParcel(cls, item):
         parent = item.itsParent
@@ -157,17 +156,17 @@ class Manager(Item):
         @type name: string
         """
 
-        self.log.debug("lookup: args (%s) (%s)" % (namespace, name))
+        logger.debug("lookup: args (%s) (%s)" % (namespace, name))
 
         if not self.registryLoaded:
             self.__refreshRegistry()
 
         if namespace is None:
-            self.log.warning("lookup: no namespace provided")
+            logger.warning("lookup: no namespace provided")
             return None
 
         if not self._ns2parcel.has_key(namespace):
-            self.log.debug("lookup: no such namespace (%s)" % \
+            logger.debug("lookup: no such namespace (%s)" % \
              namespace)
             return None
 
@@ -213,12 +212,12 @@ class Manager(Item):
             item = self.repo.findPath(path)
             if item is None:
                 # There is no item with this name
-                self.log.debug("lookup: no such name (%s) in namespace "
+                logger.debug("lookup: no such name (%s) in namespace "
                  "(%s)" % (nameHead, namespace))
                 return None
             else:
                 # Found an item with this name
-                self.log.debug("lookup: found matching item (%s)" % \
+                logger.debug("lookup: found matching item (%s)" % \
                  item.itsPath)
                 if nameTail:
                     return item.findPath(nameTail)
@@ -228,7 +227,7 @@ class Manager(Item):
             repoPath = pDesc["aliases"][nameHead]
             if nameTail:
                 repoPath = "%s/%s" % (repoPath, nameTail)
-            self.log.debug("lookup: yielded item (%s)" % \
+            logger.debug("lookup: yielded item (%s)" % \
              repoPath)
             return self.repo.findPath(repoPath)
 
@@ -367,22 +366,22 @@ class Manager(Item):
                 self._file2ns[parcelFile] = namespace
 
                 # Load this file during LoadParcels
-                self.log.debug("scan: adding %s to load list" % namespace)
+                logger.debug("scan: adding %s to load list" % namespace)
                 self.__parcelsToLoad.append(namespace)
 
 
             for file in self._file2ns.keys():
-                self.log.debug("scan: file (%s) --> ns (%s)" % \
+                logger.debug("scan: file (%s) --> ns (%s)" % \
                  ( file, self._file2ns[file] ) )
             for repoPath in self._repo2ns.keys():
-                self.log.debug("scan: path (%s) --> ns (%s)" % \
+                logger.debug("scan: path (%s) --> ns (%s)" % \
                  ( repoPath, self._repo2ns[repoPath] ) )
             for uri in self._ns2parcel.keys():
                 pDesc = self._ns2parcel[uri]
-                self.log.debug("scan: pDesc ns (%s), file (%s), path (%s)" % \
+                logger.debug("scan: pDesc ns (%s), file (%s), path (%s)" % \
                  ( uri, pDesc["file"], pDesc["path"] ) )
                 for alias in pDesc["aliases"].keys():
-                    self.log.debug("scan:    alias (%s) --> (%s)" % \
+                    logger.debug("scan:    alias (%s) --> (%s)" % \
                      (alias, pDesc["aliases"][alias]) )
 
         except xml.sax._exceptions.SAXParseException, e:
@@ -476,7 +475,7 @@ class Manager(Item):
         # for i in range(globalDepth):
         #     print " ",
         # print str(namespace)
-        self.log.info(str(namespace))
+        logger.info(str(namespace))
 
         # prepare the handler
         handler = ParcelItemHandler()
@@ -521,24 +520,24 @@ class Manager(Item):
         print "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
         msg =  "Error during parcel loading..."
         print msg
-        self.log.error(msg)
+        logger.error(msg)
         print
         if self.currentXMLFile:
             msg = "   File %s" % self.currentXMLFile
             print msg
-            self.log.error(msg)
+            logger.error(msg)
         if self.currentXMLLine:
             msg = "   Line %d" % self.currentXMLLine
             print msg
-            self.log.error(msg)
+            logger.error(msg)
         if self.currentExplanation:
             msg = "   Reason: %s" % self.currentExplanation
             print msg
-            self.log.error(msg)
+            logger.error(msg)
         else:
             msg = "   Reason not recorded"
             print msg
-            self.log.error(msg)
+            logger.error(msg)
         print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
 
 
@@ -564,9 +563,9 @@ class Manager(Item):
 
         try:
             self.resetState()
-            self.log.info("Scanning parcels...")
+            logger.info("Scanning parcels...")
             self.__scanParcels()
-            self.log.info("...done")
+            logger.info("...done")
             
             self.__parcelsWithData = []
             self.__delayedOperations = []
@@ -577,11 +576,11 @@ class Manager(Item):
             self.resetState()
             if namespaces:
                 self.schemaPhase = True
-                self.log.info("Loading Schema items from parcels...")
+                logger.info("Loading Schema items from parcels...")
                 for namespace in namespaces:
                     parcel = self.__loadParcel(namespace)
                     parcel.modifiedOn = DateTime.now()
-                self.log.info("...done")
+                logger.info("...done")
                 
             self.resetState()
             namespaces = self.__parcelsWithData
@@ -590,10 +589,10 @@ class Manager(Item):
             self.__parcelsToReload[:] = namespaces
             if (len(namespaces) > 0):
                 self.schemaPhase = False
-                self.log.info("Loading other items from parcels...")
+                logger.info("Loading other items from parcels...")
                 for namespace in namespaces:
                     parcel = self.__loadParcel(namespace)
-                self.log.info("...done")
+                logger.info("...done")
 
             self.__parcelsWithData = None
             
@@ -612,11 +611,11 @@ class Manager(Item):
             self.__delayedOperations = None
             
             self.resetState()
-            self.log.info("Starting parcels...")
+            logger.info("Starting parcels...")
             root = self.repo.findPath("//parcels")
             for parcel in self.__walkParcels(root):
                 parcel.startupParcel()
-            self.log.info("...done")
+            logger.info("...done")
             self.resetState()
 
         except:
@@ -1484,8 +1483,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             displayPath = "None"
                         else:
                             displayPath = reference.itsPath
-                        print "Reload: item %s, assigning %s = %s" % \
-                         (item.itsPath, attributeName, displayPath)
+                        logger.debug("Reload: item %s, assigning %s = %s" % \
+                         (item.itsPath, attributeName, displayPath))
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1519,8 +1518,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     assignmentArgs = (attributeName, reference.itsUUID, )
 
                     if reloading:
-                        print "Reload: item %s, assigning %s = UUID of %s" % \
-                         (item.itsPath, attributeName, reference.itsPath)
+                        logger.debug("Reload: item %s, assigning %s = UUID of %s" % \
+                         (item.itsPath, attributeName, reference.itsPath))
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1576,15 +1575,15 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         assignmentCallable = item.setValue
                         assignmentArgs = (attributeName, value, key, )
                         if reloading:
-                            print "Reload: item %s, assigning %s[%s] = " \
+                            logger.debug("Reload: item %s, assigning %s[%s] = " \
                              "'%s'" % \
-                             (item.itsPath, attributeName, key, value)
+                             (item.itsPath, attributeName, key, value))
                     else:
                         assignmentCallable = item.addValue
                         assignmentArgs = (attributeName, value, )
                         if reloading:
-                            print "Reload: item %s, assigning %s = '%s'" % \
-                             (item.itsPath, attributeName, value)
+                            logger.debug("Reload: item %s, assigning %s = '%s'" % \
+                             (item.itsPath, attributeName, value))
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1767,8 +1766,8 @@ class ValueSet(object):
         for (attrName, value, key) in self.getAssignments():
             card = self.item.getAttributeAspect(attrName, "cardinality")
             if card == "dict":
-                print "Reload: item %s, unassigning %s[%s] = '%s'" % \
-                 (self.item.itsPath, attrName, key, value)
+                logger.debug("Reload: item %s, unassigning %s[%s] = '%s'" % \
+                 (self.item.itsPath, attrName, key, value))
                 self.item.removeValue(attrName, key=key)
             elif card == "list":
                 # First, see if this is a ref collection, since we handle those
@@ -1781,8 +1780,8 @@ class ValueSet(object):
                     # remove it from this collection
                     otherItem = self.item.findUUID(value)
                     attr.remove(otherItem)
-                    print "Reload: item %s, unassigning %s = '%s'" % \
-                     (self.item.itsPath, attrName, otherItem.itsPath)
+                    logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                     (self.item.itsPath, attrName, otherItem.itsPath))
                     continue
 
                 # For list and single cardinality attributes, unassigning
@@ -1794,25 +1793,25 @@ class ValueSet(object):
                     if isinstance(listValue, repository.item.Item.Item):
                         if str(listValue.itsUUID) == value:
                             list.remove(listValue)
-                            print "Reload: item %s, unassigning %s = '%s'" % \
-                             (self.item.itsPath, attrName, listValue.itsPath)
+                            logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                             (self.item.itsPath, attrName, listValue.itsPath))
                     else:
                         if str(listValue) == value:
                             list.remove(listValue)
-                            print "Reload: item %s, unassigning %s = '%s'" % \
-                             (self.item.itsPath, attrName, value)
+                            logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                             (self.item.itsPath, attrName, value))
             else:
                 attrValue = self.item.getAttributeValue(attrName)
                 if isinstance(attrValue, repository.item.Item.Item):
                     if str(attrValue.itsUUID) == value:
                         self.item.removeAttributeValue(attrName)
-                        print "Reload: item %s, unassigning %s = '%s'" % \
-                         (self.item.itsPath, attrName, attrValue.itsPath)
+                        logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                         (self.item.itsPath, attrName, attrValue.itsPath))
                 else:
                     if str(attrValue) == value:
                         self.item.removeAttributeValue(attrName)
-                        print "Reload: item %s, unassigning %s = '%s'" % \
-                         (self.item.itsPath, attrName, value)
+                        logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                         (self.item.itsPath, attrName, value))
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
