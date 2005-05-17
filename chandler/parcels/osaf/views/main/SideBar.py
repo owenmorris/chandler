@@ -102,6 +102,7 @@ class wxSidebar(ControlBlocks.wxTable):
                 
                 self.screenChecked = not item in self.blockItem.checkedItems
                 self.blockChecked = self.screenChecked
+                self.buttonPressed = True
                 self.RefreshRect (self.imageRect)
 
         elif hasattr (self, "hoverRow"):
@@ -119,14 +120,17 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.RefreshRect (self.imageRect)
                     del self.hoverRow
                     gridWindow.ReleaseMouse()
+                self.buttonPressed = False
 
             elif not event.LeftIsDown():
                 if not self.cellRect.InsideXY (event.GetX(), event.GetY()):
                     self.RefreshRect (self.imageRect)
                     del self.hoverRow
+                    self.buttonPressed = False
                     gridWindow.ReleaseMouse()
 
-            elif (self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
+            elif (self.buttonPressed and
+                  self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
                   (self.screenChecked == self.blockChecked)):
                 self.screenChecked = not self.screenChecked
                 self.RefreshRect (self.imageRect)
@@ -140,6 +144,7 @@ class wxSidebar(ControlBlocks.wxTable):
             self.cellRect = cellRect
             self.imageRect = imageRect
             self.hoverRow = row
+            self.buttonPressed = False
             self.RefreshRect (self.imageRect)
             """
               Capture the mouse until we lose the hover state or mouse up
