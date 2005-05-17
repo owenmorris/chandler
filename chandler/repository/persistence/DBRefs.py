@@ -120,12 +120,12 @@ class PersistentRefs(object):
             raise ValueError, 'key is None'
 
         store = self.view.repository.store
-        store._refs.saveRef(store.txn, self._key.getvalue(), version, key,
-                            previous, next, alias)
+        return store._refs.saveRef(store.txn, self._key.getvalue(), version,
+                                   key, previous, next, alias)
 
     def _deleteRef(self, key, version):
 
-        self._getRefs().deleteRef(self._key, self._value, version, key)
+        return self._getRefs().deleteRef(self._key, self._value, version, key)
 
     def resolveAlias(self, alias, load=True):
 
@@ -280,8 +280,8 @@ class DBRefList(RefList, PersistentRefs):
             raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
                                                              self._name)
 
-        self._writeRef(self.uuid, version,
-                       self._firstKey, self._lastKey, self._count)
+        size = self._writeRef(self.uuid, version,
+                              self._firstKey, self._lastKey, self._count)
             
         for key, (op, oldAlias) in self._changedRefs.iteritems():
             if op == 0:               # change
@@ -291,21 +291,23 @@ class DBRefList(RefList, PersistentRefs):
                 next = link._nextKey
                 alias = link._alias
     
-                self._writeRef(key, version, previous, next, alias)
+                size += self._writeRef(key, version, previous, next, alias)
                 if (oldAlias is not None and
                     oldAlias != alias and
                     oldAlias not in self._aliases):
-                    store.writeName(version, self.uuid, oldAlias, None)
+                    size += store.writeName(version, self.uuid, oldAlias, None)
                 if alias is not None:
-                    store.writeName(version, self.uuid, alias, key)
+                    size += store.writeName(version, self.uuid, alias, key)
                         
             elif op == 1:             # remove
-                self._deleteRef(key, version)
+                size += self._deleteRef(key, version)
                 if oldAlias is not None and oldAlias not in self._aliases:
-                    store.writeName(version, self.uuid, oldAlias, None)
+                    size += store.writeName(version, self.uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op
+
+        return size
         
     def _clearDirties(self):
 
@@ -488,15 +490,17 @@ class DBNumericIndex(NumericIndex):
 
         indexes = self._getIndexes()
 
-        indexes.saveKey(self._key, self._value,
-                        version, self._headKey, self._head)
-        indexes.saveKey(self._key, self._value,
-                        version, self._tailKey, self._tail)
+        size = indexes.saveKey(self._key, self._value,
+                               version, self._headKey, self._head)
+        size += indexes.saveKey(self._key, self._value,
+                                version, self._tailKey, self._tail)
         for key, node in self._changedKeys.iteritems():
-            indexes.saveKey(self._key, self._value,
-                            version, key, node)
+            size += indexes.saveKey(self._key, self._value,
+                                    version, key, node)
 
         self._version = version
+
+        return size
 
     def _clearDirties(self):
 
@@ -591,8 +595,8 @@ class DBChildren(Children, PersistentRefs):
         store = self.view.repository.store
         unloads = []
         
-        self._writeRef(self.uuid, version,
-                       self._firstKey, self._lastKey, self._count)
+        size = self._writeRef(self.uuid, version,
+                              self._firstKey, self._lastKey, self._count)
         
         for key, (op, oldAlias) in self._changedRefs.iteritems():
     
@@ -602,21 +606,21 @@ class DBChildren(Children, PersistentRefs):
                 next = link._nextKey
                 alias = link._alias
                     
-                self._writeRef(key, version, previous, next, alias)
+                size += self._writeRef(key, version, previous, next, alias)
                 if (oldAlias is not None and
                     oldAlias != alias and
                     oldAlias not in self._aliases):
-                    store.writeName(version, self.uuid, oldAlias, None)
+                    size += store.writeName(version, self.uuid, oldAlias, None)
                 if alias is not None:
-                    store.writeName(version, self.uuid, alias, key)
+                    size += store.writeName(version, self.uuid, alias, key)
 
                 if link.getValue(self) is None:
                     unloads.append((key, link._alias))
 
             elif op == 1:             # remove
-                self._deleteRef(key, version)
+                size += self._deleteRef(key, version)
                 if oldAlias is not None and oldAlias not in self._aliases:
-                    store.writeName(version, self.uuid, oldAlias, None)
+                    size += store.writeName(version, self.uuid, oldAlias, None)
 
             else:                     # error
                 raise ValueError, op
@@ -625,6 +629,8 @@ class DBChildren(Children, PersistentRefs):
             self._remove(key)
             if alias is not None:
                 del self._aliases[alias]
+
+        return size
 
     def _clearDirties(self):
 

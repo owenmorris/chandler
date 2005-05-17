@@ -530,16 +530,21 @@ class Item(CItem):
             if inherit is not None:
                 value = self
                 for attr in inherit.split('.'):
-                    value = value.getAttributeValue(attr)
-                if isinstance(value, PersistentCollection):
-                    value.setReadOnly(True)
-                return value
+                    value = value.getAttributeValue(attr, None, None, Nil)
+                    if value is Nil:
+                        break
+                if value is not Nil:
+                    if isinstance(value, PersistentCollection):
+                        value.setReadOnly(True)
+                    return value
 
             redirect = attribute.getAspect('redirectTo', None)
             if redirect is not None:
                 value = self
                 for attr in redirect.split('.'):
-                    value = value.getAttributeValue(attr)
+                    value = value.getAttributeValue(attr, None, None, default)
+                    if value is default:
+                        break
                 return value
 
             if default is not Default:

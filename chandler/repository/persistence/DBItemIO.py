@@ -40,17 +40,18 @@ class DBItemWriter(ItemWriter):
         else:
             self.oldValues = None
 
-        super(DBItemWriter, self).writeItem(item, version)
-        self.store._items.saveItem(self.valueBuffer,
-                                   item._uuid, version,
-                                   self.uKind, item._status & Item.SAVEMASK,
-                                   self.uParent, self.name,
-                                   self.moduleName, self.className,
-                                   self.values,
-                                   item._values._getDirties(),
-                                   item._references._getDirties())
+        size = super(DBItemWriter, self).writeItem(item, version)
+        size += self.store._items.saveItem(self.valueBuffer,
+                                           item._uuid, version,
+                                           self.uKind,
+                                           item._status & Item.SAVEMASK,
+                                           self.uParent, self.name,
+                                           self.moduleName, self.className,
+                                           self.values,
+                                           item._values._getDirties(),
+                                           item._references._getDirties())
 
-        return 0
+        return size
 
     def writeString(self, buffer, value):
 
@@ -62,6 +63,8 @@ class DBItemWriter(ItemWriter):
             
         buffer.write(value)
 
+        return 4 + len(value)
+
     def writeSymbol(self, buffer, value):
 
         if isinstance(value, unicode):
@@ -70,6 +73,8 @@ class DBItemWriter(ItemWriter):
         buffer.write(pack('>H', len(value)))
         buffer.write(value)
 
+        return 2 + len(value)
+
     def writeBoolean(self, buffer, value):
 
         if value:
@@ -77,28 +82,34 @@ class DBItemWriter(ItemWriter):
         else:
             buffer.write('\0')
 
+        return 1
+
     def writeInteger(self, buffer, value):
 
         buffer.write(pack('>i', value))
+        return 4
 
     def writeLong(self, buffer, value):
         
         buffer.write(pack('>q', value))
+        return 8
         
     def writeFloat(self, buffer, value):
 
         buffer.write(pack('>d', value))
+        return 8
 
     def writeUUID(self, buffer, value):
 
         buffer.write(value._uuid)
+        return 16
 
     def writeValue(self, buffer, item, value, withSchema, attrType):
 
         flags = DBItemWriter.SINGLE | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, True,
                               withSchema, attrType)
-        attrType.writeValue(self, buffer, item, value, withSchema)
+        return attrType.writeValue(self, buffer, item, value, withSchema)
 
     def writeList(self, buffer, item, value, withSchema, attrType):
 
@@ -106,8 +117,11 @@ class DBItemWriter(ItemWriter):
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
         buffer.write(pack('>I', len(value)))
+        size = 4
         for v in value:
-            self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, v, withSchema, attrType)
+
+        return size
 
     def writeSet(self, buffer, item, value, withSchema, attrType):
 
@@ -115,8 +129,11 @@ class DBItemWriter(ItemWriter):
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
         buffer.write(pack('>I', len(value)))
+        size = 4
         for v in value:
-            self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, v, withSchema, attrType)
+
+        return size
 
     def writeDict(self, buffer, item, value, withSchema, attrType):
 
@@ -124,9 +141,12 @@ class DBItemWriter(ItemWriter):
         attrType = self._type(buffer, flags, item, value, False,
                               withSchema, attrType)
         buffer.write(pack('>I', len(value)))
+        size = 4
         for k, v in value._iteritems():
-            self.writeValue(buffer, item, k, False, None)
-            self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, k, False, None)
+            size += self.writeValue(buffer, item, v, withSchema, attrType)
+
+        return size
 
     def _kind(self, kind):
 
@@ -135,39 +155,50 @@ class DBItemWriter(ItemWriter):
         else:
             self.uKind = kind._uuid
 
+        return 0
+
     def _parent(self, parent, isContainer):
 
         self.uParent = parent.itsUUID
+        return 0
 
     def _name(self, name):
 
         self.name = name
+        return 0
 
     def _className(self, moduleName, className):
 
         self.moduleName = moduleName
         self.className = className
 
+        return 0
+
     def _children(self, item, version, all):
 
         if item._children is not None:
-            item._children._saveValues(version)
+            return item._children._saveValues(version)
+
+        return 0
 
     def _acls(self, item, version, all):
 
+        size = 0
         if item._status & Item.ADIRTY:
             store = self.store
             uuid = item._uuid
             for name, acl in item._acls.iteritems():
-                store.saveACL(version, uuid, name, acl)
+                size += store.saveACL(version, uuid, name, acl)
+
+        return size
 
     def _values(self, item, version, withSchema, all):
 
-        item._values._writeValues(self, version, withSchema, all)
+        return item._values._writeValues(self, version, withSchema, all)
 
     def _references(self, item, version, withSchema, all):
 
-        item._references._writeValues(self, version, withSchema, all)
+        return item._references._writeValues(self, version, withSchema, all)
 
     def _value(self, item, name, value, version, flags, withSchema, attribute):
 
@@ -200,8 +231,8 @@ class DBItemWriter(ItemWriter):
         elif attrCard == 'dict':
             self.writeDict(buffer, item, value, withSchema, attrType)
 
-        self.store._values.saveValue(self.store.txn, item._uuid, version,
-                                     uAttr, uValue, buffer.getvalue())
+        return self.store._values.saveValue(self.store.txn, item._uuid, version,
+                                            uAttr, uValue, buffer.getvalue())
 
     def _unchangedValue(self, item, name):
 
@@ -209,6 +240,8 @@ class DBItemWriter(ItemWriter):
             self.values.append((name, self.oldValues[_hash(name)]))
         except KeyError:
             raise AssertionError, "unchanged value for '%s' not found" %(name)
+
+        return 0
 
     def _type(self, buffer, flags, item, value, verify, withSchema, attrType):
 
@@ -251,6 +284,7 @@ class DBItemWriter(ItemWriter):
 
         uValue = UUID()
         self.values.append((name, uValue))
+        size = 0
 
         buffer = self.dataBuffer
         buffer.truncate(0)
@@ -282,19 +316,22 @@ class DBItemWriter(ItemWriter):
             if withSchema:
                 self.writeSymbol(buffer,
                                  item._kind.getOtherName(name, attribute._uuid))
-            value._saveValues(version)
+            size += value._saveValues(version)
             if value._indexes:
                 buffer.write(pack('>H', len(value._indexes)))
                 for name, index in value._indexes.iteritems():
                     self.writeSymbol(buffer, name)
                     self.writeSymbol(buffer, index.getIndexType())
                     index._writeValue(self, buffer)
-                    index._saveValues(version)
+                    size += index._saveValues(version)
             else:
                 buffer.write('\0\0')
 
-        self.store._values.saveValue(self.store.txn, item._uuid, version,
-                                     attribute._uuid, uValue, buffer.getvalue())
+        size += self.store._values.saveValue(self.store.txn, item._uuid,
+                                             version, attribute._uuid, uValue,
+                                             buffer.getvalue())
+
+        return size
 
     TYPED    = 0x01
     VALUE    = 0x02

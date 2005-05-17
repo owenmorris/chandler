@@ -795,7 +795,7 @@ class RepositoryView(object):
 
         items = set()
         view = item.itsView
-        if view is self:
+        if view is self or item.findMatch(self) is not None:
             return items
 
         replace = {}
@@ -1019,22 +1019,25 @@ class OnDemandRepositoryView(RepositoryView):
                     if not item._status & (item.PINNED | item.DIRTY)]
 
             heapq.heapify(heap)
-            count = len(heap) - int(size * 0.9)
-            self.logger.info('pruning %d items', count)
 
-            if self.isRefCounted():
-                for i in xrange(count):
-                    item = registry[heapq.heappop(heap)[1]]
-                    itemRefs = item._refCount()
-                    pythonRefs = sys.getrefcount(item)
-                    if pythonRefs - itemRefs <= 3:
-                        item._unloadItem(False)
-                    else:
-                        self.logger.warn('not pruning %s (refCount %d)',
-                                         item._repr_(), pythonRefs - itemRefs)
-            else:
-                for i in xrange(count):
-                    registry[heapq.heappop(heap)[1]]._unloadItem(False)
+            count = len(heap) - int(size * 0.9)
+            if count > 0:
+                self.logger.info('pruning %d items', count)
+
+                if self.isRefCounted():
+                    for i in xrange(count):
+                        item = registry[heapq.heappop(heap)[1]]
+                        itemRefs = item._refCount()
+                        pythonRefs = sys.getrefcount(item)
+                        if pythonRefs - itemRefs <= 3:
+                            item._unloadItem(False)
+                        else:
+                            self.logger.warn('not pruning %s (refCount %d)',
+                                             item._repr_(),
+                                             pythonRefs - itemRefs)
+                else:
+                    for i in xrange(count):
+                        registry[heapq.heappop(heap)[1]]._unloadItem(False)
 
 
 class NullRepositoryView(RepositoryView):

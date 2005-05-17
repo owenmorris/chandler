@@ -239,7 +239,7 @@ class String(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeString(buffer, value)
+        return itemWriter.writeString(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         
@@ -290,7 +290,7 @@ class Symbol(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeSymbol(buffer, value)
+        return itemWriter.writeSymbol(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         
@@ -312,7 +312,7 @@ class Integer(Type):
         return -1
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
-        itemWriter.writeInteger(buffer, value)
+        return itemWriter.writeInteger(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readInteger(offset, data)
@@ -343,7 +343,7 @@ class Long(Type):
         return 0
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
-        itemWriter.writeLong(buffer, value)
+        return itemWriter.writeLong(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readLong(offset, data)
@@ -370,7 +370,7 @@ class Float(Type):
         return 1
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
-        itemWriter.writeFloat(buffer, value)
+        return itemWriter.writeFloat(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         return itemReader.readFloat(offset, data)
@@ -392,8 +392,10 @@ class Complex(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeFloat(buffer, value.real)
-        itemWriter.writeFloat(buffer, value.imag)
+        size = itemWriter.writeFloat(buffer, value.real)
+        size += itemWriter.writeFloat(buffer, value.imag)
+
+        return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -427,7 +429,7 @@ class Boolean(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeBoolean(buffer, value)
+        return itemWriter.writeBoolean(buffer, value)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -484,9 +486,11 @@ class UUID(Type):
 
         if value is None:
             buffer.write('\0')
+            return 1
         else:
             buffer.write('\1')
             buffer.write(value._uuid)
+            return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -549,9 +553,11 @@ class SingleRef(Type):
 
         if value is None:
             buffer.write('\0')
+            return 1
         else:
             buffer.write('\1')
             buffer.write(value._uuid._uuid)
+            return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -620,9 +626,12 @@ class Path(Type):
 
         if value is None:
             buffer.write('\0')
+            size = 1
         else:
             buffer.write('\1')
-            itemWriter.writeString(buffer, str(value))
+            size = 1 + itemWriter.writeString(buffer, str(value))
+
+        return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -672,9 +681,12 @@ class URL(Type):
 
         if value is None:
             buffer.write('\0')
+            size = 1
         else:
             buffer.write('\1')
-            itemWriter.writeString(buffer, str(value))
+            size = 1 + itemWriter.writeString(buffer, str(value))
+
+        return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -714,6 +726,7 @@ class NoneType(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
         buffer.write('\0')
+        return 1
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         if data[offset] != '\0':
@@ -742,7 +755,7 @@ class Class(Type):
         return '.'.join((value.__module__, value.__name__))
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
-        itemWriter.writeString(buffer, self.makeString(value))
+        return itemWriter.writeString(buffer, self.makeString(value))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         offset, string = itemReader.readString(offset, data)
@@ -776,9 +789,9 @@ class Enumeration(Type):
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
         if withSchema:
-            itemWriter.writeString(buffer, value)
+            return itemWriter.writeString(buffer, value)
         else:
-            itemWriter.writeInteger(buffer, self.getAttributeValue('values', _attrDict=self._values).index(value))
+            return itemWriter.writeInteger(buffer, self.getAttributeValue('values', _attrDict=self._values).index(value))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
         
@@ -919,6 +932,8 @@ class Struct(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
+        size = 0
+
         fields = self.getAttributeValue('fields', self._values, None, None)
         if fields:
             for fieldName, field in fields.iteritems():
@@ -928,11 +943,13 @@ class Struct(Type):
                     continue
             
                 fieldType = field.get('type', None)
-                itemWriter.writeSymbol(buffer, fieldName)
-                itemWriter.writeValue(buffer, item, fieldValue,
-                                      withSchema, fieldType)
+                size += itemWriter.writeSymbol(buffer, fieldName)
+                size += itemWriter.writeValue(buffer, item, fieldValue,
+                                              withSchema, fieldType)
 
-        itemWriter.writeSymbol(buffer, '')
+        size += itemWriter.writeSymbol(buffer, '')
+
+        return size
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1220,7 +1237,7 @@ class Dictionary(Collection):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeDict(buffer, item, value, withSchema, None)
+        return itemWriter.writeDict(buffer, item, value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1286,7 +1303,7 @@ class List(Collection):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeList(buffer, item, value, withSchema, None)
+        return itemWriter.writeList(buffer, item, value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1351,7 +1368,7 @@ class Tuple(Collection):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeList(buffer, item, value, withSchema, None)
+        return itemWriter.writeList(buffer, item, value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1409,7 +1426,7 @@ class Set(Collection):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        itemWriter.writeSet(buffer, item, value, withSchema, None)
+        return itemWriter.writeSet(buffer, item, value, withSchema, None)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1466,7 +1483,7 @@ class Lob(Type):
 
     def writeValue(self, itemWriter, buffer, item, value, withSchema):
 
-        value._writeValue(itemWriter, buffer, withSchema)
+        return value._writeValue(itemWriter, buffer, withSchema)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 

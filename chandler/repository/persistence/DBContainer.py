@@ -94,6 +94,7 @@ class DBContainer(object):
     def put(self, key, value):
 
         self._db.put(key, value, self.store.txn)
+        return len(key) + len(value)
 
     def delete(self, key):
 
@@ -339,9 +340,10 @@ class RefContainer(DBContainer, CRefContainer):
 
         buffer.truncate(0)
         buffer.seek(0)
-
         self._writeUUID(buffer, None)
-        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
+
+        return self.put(self._packKey(keyBuffer, key, version),
+                        buffer.getvalue())
 
     def eraseRef(self, buffer, key):
 
@@ -446,8 +448,8 @@ class NamesContainer(DBContainer):
         if uuid is None:
             uuid = key
 
-        self.put(pack('>16sll', key._uuid, _hash(name), ~version),
-                 uuid._uuid)
+        return self.put(pack('>16sll', key._uuid, _hash(name), ~version),
+                        uuid._uuid)
 
     def readName(self, version, key, name):
 
@@ -677,7 +679,8 @@ class IndexesContainer(DBContainer):
         else:
             buffer.write('\0')
             
-        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
+        return self.put(self._packKey(keyBuffer, key, version),
+                        buffer.getvalue())
 
     def loadKey(self, index, keyBuffer, version, key):
         
@@ -818,7 +821,7 @@ class ItemContainer(DBContainer):
         buffer.write(pack('>l', len(values)))
         buffer.write(pack('>l', count))
 
-        self.put(pack('>16sl', uItem._uuid, ~version), buffer.getvalue())
+        return self.put(pack('>16sl', uItem._uuid, ~version), buffer.getvalue())
 
     def _readItem(self, itemVer, value):
 

@@ -247,7 +247,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     return lock, 0
         
                 notifications = RepositoryNotifications()
-        
+
                 while True:
                     try:
                         while True:
@@ -260,6 +260,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 break
 
                         count = len(self._log)
+                        if count > 1000:
+                            self.logger.info('%s committing %d items...',
+                                             self, count)
+
                         txnStatus = self._startTransaction()
 
                         if count > 0:
@@ -271,7 +275,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                                        itemWriter,
                                                        notifications)
                             if self.isDirty():
-                                self._roots._saveValues(newVersion)
+                                size += self._roots._saveValues(newVersion)
 
                         lock, txnStatus = finish(lock, txnStatus, True)
                         break
@@ -283,7 +287,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                     except:
                         if txnStatus:
-                            self.logger.exception('aborting transaction (%ld bytes)', size)
+                            self.logger.exception('aborting transaction (%d kb)', size >> 10)
                         lock, txnStatus = finish(lock, txnStatus, False)
                         raise
 
@@ -305,12 +309,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if count > 0:
                     duration = after - before
                     try:
-                        speed = ", %d items/s" % round(count / duration)
+                        iSpeed = "%d items/s" % round(count / duration)
+                        dSpeed = "%d kbytes/s" % round((size >> 10) / duration)
                     except ZeroDivisionError:
-                        speed = ' (speed could not be measured)'
-                    self.logger.info('%s committed %d items in %s%s',
-                                     self, count,
-                                     timedelta(seconds=duration), speed)
+                        iSpeed = dSpeed = 'speed could not be measured'
+
+                    self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s)', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed)
 
                 if len(notifications) > 0:
                     notifications.dispatchHistory(self)

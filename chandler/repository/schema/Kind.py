@@ -686,9 +686,11 @@ class Kind(Item):
 
         if value is None:
             buffer.write('\0')
+            return 1
         else:
             buffer.write('\1')
             buffer.write(value.itsUUID._uuid)
+            return 17
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 

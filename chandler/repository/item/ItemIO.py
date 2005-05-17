@@ -16,23 +16,26 @@ class ItemWriter(object):
         status = item._status
         withSchema = (status & Item.CORESCHEMA) != 0
         kind = item.itsKind
-        
-        self._kind(kind)
-        self._parent(item.itsParent, item._children is not None)
-        self._name(item._name)
+        size = 0
+
+        size += self._kind(kind)
+        size += self._parent(item.itsParent, item._children is not None)
+        size += self._name(item._name)
 
         itemClass = type(item)
         if withSchema or kind is None or kind.getItemClass() is not itemClass:
-            self._className(itemClass.__module__, itemClass.__name__)
+            size += self._className(itemClass.__module__, itemClass.__name__)
         else:
-            self._className(None, None)
+            size += self._className(None, None)
 
         if status & Item.DELETED == 0:
             all = (status & Item.NEW) != 0 or item._version == 0
-            self._values(item, version, withSchema, all)
-            self._references(item, version, withSchema, all)
-            self._children(item, version, all)
-            self._acls(item, version, all)
+            size += self._values(item, version, withSchema, all)
+            size += self._references(item, version, withSchema, all)
+            size += self._children(item, version, all)
+            size += self._acls(item, version, all)
+
+        return size
 
     def writeString(self, buffer, value):
         raise NotImplementedError, "%s.writeString" %(type(self))
@@ -116,12 +119,16 @@ class XMLItemWriter(ItemWriter):
         super(XMLItemWriter, self).writeItem(item, version)
         self.generator.endElement('item')
 
+        return 0
+
     def _name(self, name):
 
         if name is not None:
             self.generator.startElement('name', {})
             self.generator.characters(name)
             self.generator.endElement('name')
+
+        return 0
         
     def _kind(self, kind):
 
@@ -130,12 +137,16 @@ class XMLItemWriter(ItemWriter):
             self.generator.characters(str(kind.itsPath))
             self.generator.endElement('kind')
 
+        return 0
+
     def _className(self, moduleName, className):
 
         if moduleName is not None and className is not None:
             self.generator.startElement('class', { 'module': moduleName })
             self.generator.characters(className)
             self.generator.endElement('class')
+
+        return 0
         
     def _parent(self, parent, isContainer):
 
@@ -147,17 +158,19 @@ class XMLItemWriter(ItemWriter):
         self.generator.characters(parent.itsUUID.str16())
         self.generator.endElement('parent')
 
+        return 0
+
     def _values(self, item, version, withSchema, all):
-        item._values._xmlValues(self.generator, withSchema, version)
+        return item._values._xmlValues(self.generator, withSchema, version)
 
     def _references(self, item, version, withSchema, all):
-        item._references._xmlValues(self.generator, withSchema, version)
+        return item._references._xmlValues(self.generator, withSchema, version)
 
     def _children(self, item, version, all):
-        pass
+        return 0
 
     def _acls(self, item, version, all):
-        pass
+        return 0
 
 
 class ItemReader(object):

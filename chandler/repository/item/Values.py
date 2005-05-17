@@ -204,6 +204,7 @@ class Values(dict):
         item = self._item
         kind = item._kind
 
+        size = 0
         for name, value in self.iteritems():
 
             flags = self._getFlags(name)
@@ -221,15 +222,17 @@ class Values(dict):
                 continue
             
             if not (all or flags & Values.DIRTY != 0):
-                itemWriter._unchangedValue(item, name)
+                size += itemWriter._unchangedValue(item, name)
                 continue
             
             if value is Nil:
                 raise ValueError, 'Cannot persist Nil'
 
-            itemWriter._value(item, name, value,
-                              version, flags & Values.SAVEMASK, 
-                              withSchema, attribute)
+            size += itemWriter._value(item, name, value,
+                                      version, flags & Values.SAVEMASK, 
+                                      withSchema, attribute)
+
+        return size
 
     def _xmlValues(self, generator, withSchema, version):
 
@@ -276,6 +279,7 @@ class Values(dict):
                 except Exception, e:
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise
+        return 0
 
     def _hashValues(self):
 
@@ -690,6 +694,7 @@ class References(Values):
         item = self._item
         kind = item._kind
 
+        size = 0
         for name, value in self.iteritems():
 
             flags = self._getFlags(name)
@@ -707,7 +712,7 @@ class References(Values):
                 continue
             
             if not (all or flags & Values.DIRTY != 0):
-                itemWriter._unchangedValue(item, name)
+                size += itemWriter._unchangedValue(item, name)
                 continue
             
             if value is Nil:
@@ -716,9 +721,11 @@ class References(Values):
             if withSchema and value is not None and value._isUUID():
                 value = self._getRef(name, value)
 
-            itemWriter._ref(item, name, value,
-                            version, flags & Values.SAVEMASK, 
-                            withSchema, attribute)
+            size += itemWriter._ref(item, name, value,
+                                    version, flags & Values.SAVEMASK, 
+                                    withSchema, attribute)
+
+        return size
 
     def _xmlValues(self, generator, withSchema, version):
 
@@ -748,6 +755,8 @@ class References(Values):
                     else:
                         self._xmlRef(name, value, generator, withSchema,
                                      version, attrs)
+
+        return 0
 
     def _hashValues(self):
 

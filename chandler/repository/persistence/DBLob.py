@@ -45,7 +45,11 @@ class DBLob(Lob, ItemValue):
             else:
                 self._version += 1
                 out = db.createFile(store.lobName(uuid, self._version))
+            size = 32
+
             out.write(self._data)
+            size += len(self._data)
+
             out.close()
             self._data = ''
 
@@ -59,12 +63,15 @@ class DBLob(Lob, ItemValue):
                 reader.close()
             
             self._dirty = False
+            return size
+
+        return 0
 
     def _writeValue(self, itemWriter, buffer, withSchema):
 
         uuid = self.getUUID()
         store = self._view.repository.store
-        self._writeData(uuid, store, store._lobs)
+        size = self._writeData(uuid, store, store._lobs)
 
         itemWriter.writeUUID(buffer, uuid)
         itemWriter.writeInteger(buffer, self._version)
@@ -85,6 +92,8 @@ class DBLob(Lob, ItemValue):
             itemWriter.writeSymbol(buffer, self._encryption)
         else:
             itemWriter.writeSymbol(buffer, '')
+
+        return size
 
     def _readValue(self, itemReader, offset, data, withSchema):
 
