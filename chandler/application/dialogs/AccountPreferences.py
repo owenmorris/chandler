@@ -916,38 +916,8 @@ class AccountPreferencesDialog(wx.Dialog):
         account.username = data['SMTP_USERNAME']
         account.password = data['SMTP_PASSWORD']
 
-        # Figure out the right replyTo value. We need to look at the POP and
-        # IMAP account data within this dialog and grab the first one we see
-        # which has this SMTP account set as default.  Then we take the
-        # email address from that account and stick it into the Test email
-        # address item.
-
-        emailAddr = None
-
-        for accountData in self.data:
-            if accountData['type'] in ("POP", "IMAP"):
-                fieldUUID = accountData['values'].get('POP_SMTP',
-                            accountData['values'].get('IMAP_SMTP', None))
-                if fieldUUID == uuid:
-                    emailAddr = accountData['values'].get('POP_EMAIL_ADDRESS',
-                                accountData['values'].get('IMAP_EMAIL_ADDRESS',
-                                None))
-                    if emailAddr:
-                        break
-
-        if not emailAddr:
-            # Can't determine a replyTo address, either because no IMAP or
-            # POP account considers this SMTP account as a default, or the
-            # accounts that do consider this SMTP account a default don't
-            # have an email address
-            msg = "Couldn't determine a reply-to address"
-            application.dialogs.Util.ok(self, "Can't test SMTP", msg)
-        else:
-            replyTo = self.view.findPath("//parcels/osaf/mail/TestReplyAddress")
-            replyTo.emailAddress = emailAddr
-
-            self.view.commit()
-            application.Globals.mailService.getSMTPInstance(account).testAccountSettings()
+        self.view.commit()
+        application.Globals.mailService.getSMTPInstance(account).testAccountSettings()
 
     def OnTestPOP(self, evt):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
