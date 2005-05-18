@@ -228,7 +228,7 @@ class Cloud(Item):
                 return None
 
             uuid = other._uuid
-            if uuid in items or uuid in references:
+            if other._isCopyExport() or uuid in items or uuid in references:
                 if uuid in copies:
                     return copies[uuid]
                 
@@ -244,9 +244,14 @@ class Cloud(Item):
                         if parent is None or parent is Nil:
                             raise ValueError, 'export parent (%s) not found while exporting %s: %s' %(otherParent.itsPath, other.itsPath, parent)
                     otherKind = other.itsKind
-                    kind = otherKind.findMatch(view, matches)
-                    if kind is None:
-                        kind = exportOther(None, otherKind, None)
+                    if otherKind is not None:
+                        kind = otherKind.findMatch(view, matches)
+                        if kind is None:
+                            kind = exportOther(None, otherKind, None)
+                            if kind is None or kind is Nil:
+                                raise ValueError, 'export kind (%s) not found while exporting %s: %s' %(otherKind.itsPath, other.itsPath, otherKind)
+                    else:
+                        kind = None
                     match = other.copy(other._name, parent,
                                        copies, 'remove', None, exportOther,
                                        kind)
