@@ -91,21 +91,21 @@ class wxSidebar(ControlBlocks.wxTable):
                 gridWindow.SetFocus()
                 gridWindow.Update()
 
-                if not hasattr (self, "hoverRow"):
+                if not hasattr (self, "hoverImageRow"):
                     assert not gridWindow.HasCapture()
                     gridWindow.CaptureMouse()
                     self.cellRect = cellRect
                     self.imageRect = imageRect
-                    self.hoverRow = row
+                    self.hoverImageRow = row
                 else:
                     event.Skip (False) #Gobble the event
-                
+
                 self.screenChecked = not item in self.blockItem.checkedItems
                 self.blockChecked = self.screenChecked
                 self.buttonPressed = True
                 self.RefreshRect (self.imageRect)
 
-        elif hasattr (self, "hoverRow"):
+        elif hasattr (self, "hoverImageRow"):
             if event.LeftUp():
                 if self.imageRect.InsideXY (event.GetX(), event.GetY()):
                     checkedItems = self.blockItem.checkedItems
@@ -118,14 +118,14 @@ class wxSidebar(ControlBlocks.wxTable):
                     wx.GetApp().UIRepositoryView.commit()
                 else:
                     self.RefreshRect (self.imageRect)
-                    del self.hoverRow
+                    del self.hoverImageRow
                     gridWindow.ReleaseMouse()
                 self.buttonPressed = False
 
             elif not event.LeftIsDown():
                 if not self.cellRect.InsideXY (event.GetX(), event.GetY()):
                     self.RefreshRect (self.imageRect)
-                    del self.hoverRow
+                    del self.hoverImageRow
                     self.buttonPressed = False
                     gridWindow.ReleaseMouse()
 
@@ -137,13 +137,13 @@ class wxSidebar(ControlBlocks.wxTable):
             
 
         elif (row != wx.NOT_FOUND) and event.Moving():
-            assert not hasattr (self, "hoverRow")
+            assert not hasattr (self, "hoverImageRow")
             assert not gridWindow.HasCapture()
             self.screenChecked = item in self.blockItem.checkedItems
             self.blockChecked = self.screenChecked
             self.cellRect = cellRect
             self.imageRect = imageRect
-            self.hoverRow = row
+            self.hoverImageRow = row
             self.buttonPressed = False
             self.RefreshRect (self.imageRect)
             """
@@ -246,7 +246,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             else:
                 imageName = key
     
-            if row == getattr (grid, "hoverRow", wx.NOT_FOUND):
+            if row == getattr (grid, "hoverImageRow", wx.NOT_FOUND):
                 imagePrefix = "SidebarMouseOver"
                 checked = grid.screenChecked
             else:
