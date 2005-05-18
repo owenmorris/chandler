@@ -100,8 +100,6 @@ class MailParcel(application.Parcel.Parcel):
     getCurrentSMTPAccount = classmethod(getCurrentSMTPAccount)
 
 
-
-
     def getCurrentMailAccount(cls, view, uuid=None):
         """
         This method returns either an C{IMAPAccount} or C{POPAccount} in the
