@@ -811,6 +811,10 @@ class RepositoryView(object):
             return True
 
         item._collectItems(items, filterItem)
+        if not (item in items or item in replace):
+            if filterItem(item) is True:
+                items.add(item)
+
         self._importValues(items, replace, view)
         self._importItems(items, replace, view)
 
