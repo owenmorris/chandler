@@ -513,7 +513,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
@@ -569,31 +568,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.currentColumns = gridTable.GetNumberCols()
 
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
-
     
-    """
-      There is some extreme widgets hackery going on here. So happens that under some circumstances
-    widgets needs to clear the selection before setting a new selection, e.g. when you have some rows
-    in a table selected and you click on another cell. However, we need to catch changes to the selection
-    in OnRangeSelect to keep track of the selection and broadcast selection changes to other blocks.
-    So under some circumstances you get two OnRangeSelect calls, one to clear the selection and another
-    to set the new selection. When the first OnRangeSelect is called to clear the selection we used to
-    broadcast a select item event with None as the selection. This has two unfortunate side effects:
-    it causes other views (e.g. the detail view) to draw blank and it causes the subsequent call to
-    OnRangeSelect to not occur, causing the selection to vanish.
-      After reading of the widgets source code I discovered that the selection is only cleared just
-    after a EVT_GRID_CELL_LEFT_CLICK event is sent where the event.ControlDown() is FALSE, hence the
-    following hackery.
-      I won't bore you with the 5 other promising approaches to fix this bug, but each ran into another
-    widgets bug or an unexpected mine field. -- DJA
-    """
-    
-    skipNextRangeSelect = False
-
-    def OnLeftClick (self, event):
-        self.skipNextRangeSelect = not event.ControlDown()
-        event.Skip()
-
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
             topLeftList = self.GetSelectionBlockTopLeft()
@@ -616,9 +591,21 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                if self.skipNextRangeSelect:
-                    self.skipNextRangeSelect = False
-                else:
+                """
+                  So happens that under some circumstances widgets needs to clear the selection before
+                setting a new selection, e.g. when you have some rows in a table selected and you click
+                on another cell. However, we need to catch changes to the selection in OnRangeSelect to
+                keep track of the selection and broadcast selection changes to other blocks. So under
+                some circumstances you get two OnRangeSelect calls, one to clear the selection and another
+                to set the new selection. When the first OnRangeSelect is called to clear the selection
+                we used to broadcast a select item event with None as the selection. This has two
+                unfortunate side effects: it causes other views (e.g. the detail view) to draw blank
+                and it causes the subsequent call to OnRangeSelect to not occur, causing the selection
+                to vanish.
+                  It turns out that ignoring all the clear selections except when control is down
+                skips the extra clear selections.
+                """
+                if (item is not None or event.Selecting() or event.ControlDown()):
                     self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
                 
         event.Skip()
