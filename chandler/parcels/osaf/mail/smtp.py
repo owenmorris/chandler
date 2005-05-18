@@ -51,11 +51,11 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
 
         return smtp.ESMTPSender.tryTLS(self, code, resp, items)
 
-    def smtpState_toOrData(self, code, resp):
-        if self.lastAddress is None and self.factory.testing:
+    def smtpState_from(self, code, resp):
+        if self.factory.testing:
             """
                If in testing mode, Overload the Twisted SMTPClient
-               to instead of sending an 'RCPT TO:' request,
+               to instead of sending an 'MAIL FROM:' request,
                send a 'QUIT' request and disconnect from the Server.
                This is followed by a call to sentMail which is a Twisted
                method indicating the mail was sent successfully
@@ -65,7 +65,7 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
             self._disconnectFromServer()
             return self.sentMail(200, None, None, None, None)
 
-        return smtp.ESMTPSender.smtpState_toOrData(self, code, resp)
+        return smtp.ESMTPSender.smtpState_from(self, code, resp)
 
 
 class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
@@ -310,28 +310,11 @@ class _SMTPTransport(object):
         if __debug__:
             self.parent.printCurrentView("transport.testSettings")
 
-        sender = Mail.MailParcel.getCurrentSMTPAccount(self.parent.view, \
-                                                self.parent.accountUUID,
-                                                includeInactives=True)[1]
-
-        if sender is None:
-            errorStr = constants.UPLOAD_NO_REPLY_ADDRESS
-            utils.alert(constants.TEST_ERROR, \
-                        self.parent.account.displayName, errorStr)
-            return
-
-        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
-            errorStr = constants.UPLOAD_BAD_REPLY_ADDRESS % sender.emailAddress
-
-            utils.alert(constants.TEST_ERROR, \
-                        self.parent.account.displayName, errorStr)
-            return
-
         d = defer.Deferred()
         d.addCallback(self.__testSuccess)
         d.addErrback(self.__testFailure)
 
-        SMTPClient.sendMailMessage(sender.emailAddress, [], "", d, \
+        SMTPClient.sendMailMessage("", [], "", d, \
                                    self.parent.account, True)
 
     def __testSuccess(self, result):

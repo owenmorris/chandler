@@ -29,7 +29,6 @@ DOWNLOAD_MAX = 50
 UPLOAD_FAILED = _("Unable to send: %s")
 UPLOAD_FAILED_FOR_RECIPIENTS = _("Send failed for the following recipients:")
 UPLOAD_SUCCESS = _("Message sent to [%s]")
-UPLOAD_NO_REPLY_ADDRESS = _("Unable to obtain a Reply-To Address")
 UPLOAD_BAD_REPLY_ADDRESS = _("The Reply-To Address %s is not valid")
 UPLOAD_FROM_REQUIRED = _("A From Address is required to send a Mail Message")
 UPLOAD_BAD_FROM_ADDRESS = _("%s is not a valid From Address")
