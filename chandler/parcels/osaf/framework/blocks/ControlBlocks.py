@@ -927,9 +927,11 @@ class Table (RectangularChild):
         for range in self.selection:
             for row in xrange (range[0], range[1] + 1):
                 readOnly, always = self.widget.ReadOnly (row, 0)
-                if readOnly or always:
+                if not readOnly or always:
                     break
-        return not readOnly
+
+        event.arguments['Enable'] = not readOnly
+        return True
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):
