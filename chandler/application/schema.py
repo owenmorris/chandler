@@ -3,16 +3,7 @@ from repository.item.Item import Item as Base
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from application.Parcel import Manager, Parcel
-
-import __main__
-defaultGlobalDict = __main__.__dict__
-
-all_aspects = Attribute.valueAspects + Attribute.refAspects + \
-    ('displayName','description')
-
-import os, repository, threading
-packdir = os.path.join(os.path.dirname(repository.__file__),'packs')    # XXX
-global_lock = threading.RLock()
+import __main__, repository, threading, os
 
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role',
@@ -20,17 +11,44 @@ __all__ = [
     'importString', 'parcel_for_module',
 ]
 
-# Initialize the core schema, if needed
-if nrv.findPath('//Schema/Core/Item') is None:
-    nrv.loadPack(os.path.join(packdir,'schema.pack'))
-if nrv.findPath('//Schema/Core/Parcel') is None:
-    nrv.loadPack(os.path.join(packdir,'chandler.pack'))
+def initRepository(rv,
+    packdir=os.path.join(os.path.dirname(repository.__file__),'packs')
+):
+    """Ensure repository view `rv` has been initialized with core schema"""
 
+    # Initialize the core schema, if needed
+    if rv.findPath('//Schema/Core/Item') is None:
+        rv.loadPack(os.path.join(packdir,'schema.pack'))
+    if rv.findPath('//Schema/Core/Parcel') is None:
+        rv.loadPack(os.path.join(packdir,'chandler.pack'))
+
+    anonymous_root = rv.findPath('//anonymous-root')
+    if anonymous_root is None:
+        anonymous_root = Base(
+            'anonymous-root', rv, rv.findPath('//Schema/Core/Item')
+        )
+
+def declareTemplate(item):
+    """Declare that `item` is a template, and should be copied when it is
+    imported into another repository view."""
+    if isinstance(item,Base):
+        item._status |= Base.COPYEXPORT
+    return item
+
+
+# ---------------------------
+# Setup null view and globals
+# ---------------------------
+
+initRepository(nrv)
 anonymous_root = nrv.findPath('//anonymous-root')
-if anonymous_root is None:
-    anonymous_root = Base(
-        'anonymous-root', nrv, nrv.findPath('//Schema/Core/Item')
-    )
+declareTemplate(anonymous_root)
+
+all_aspects = Attribute.valueAspects + Attribute.refAspects + \
+    ('displayName','description')
+
+global_lock = threading.RLock()
+
 
 
 class ActiveDescriptor(object):
@@ -181,6 +199,7 @@ class Role(ActiveDescriptor,CDescriptor):
                 attr = Attribute(
                     self.name, kind, nrv.findPath('//Schema/Core/Attribute'),
                 )
+                declareTemplate(attr)
                 kind.attributes.append(attr)
                 for aspect in all_aspects:
                     if hasattr(self,aspect):
@@ -236,6 +255,7 @@ class ItemClass(Activator):
                     cls.__name__, parcel_for_module(cls.__module__),
                     nrv.findPath('//Schema/Core/Kind')
                 )
+                declareTemplate(kind)
                 kind.superKinds = [
                     b._schema_kind for b in cls.__bases__ if issubclass(b,Item)
                 ]
@@ -268,7 +288,7 @@ class Item(Base):
         super(Item,self).__init__(name,parent,kind,_uuid,**values)
 
 
-def importString(name, globalDict=defaultGlobalDict):
+def importString(name, globalDict=__main__.__dict__):
     """Import an item specified by a string
 
     Example Usage::
@@ -343,12 +363,14 @@ def parcel_for_module(moduleName):
                     modName, parcel_for_module(parentName),
                     nrv.findPath('//Schema/Core/Parcel')
                 )
+                declareTemplate(parcel)
                 return parcel
         else:
             root = nrv.findPath('//parcels')
             if root is None:
                 Manager.get(nrv,["x"])  # force setup of parcels root
                 root = nrv.findPath('//parcels')
+                declareTemplate(root)
             return root
     finally:
         global_lock.release()

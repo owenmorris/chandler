@@ -384,6 +384,7 @@ loaded::
 
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> nrv = NullRepositoryView()
+    >>> r = schema.initRepository(nrv)  # XXX this should be documented
     >>> print nrv.findPath('//parcels/application/tests/TestItem')
     None
     >>> schema.synchronize(nrv, 'application.tests')
