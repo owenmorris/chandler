@@ -1289,7 +1289,8 @@ class Item(CItem):
 
             def collectChildren(_item):
                 if not _item in items:
-                    items.add(_item)
+                    if filter is None or filter(_item) is True:
+                        items.add(_item)
                     for child in _item.iterChildren():
                         collectItems(child)
 
