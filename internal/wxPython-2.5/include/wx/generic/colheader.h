@@ -345,10 +345,11 @@ public:
 		const wxColour		*targetColour,
 		long				drawStyle );
 
-	static void GenericDrawSortArrow(
+	static void GenericDrawArrow(
 		wxDC			*dc,
 		const wxRect		*boundsR,
-		bool				bSortAscending );
+		bool				bIsAscending,
+		bool				bIsVertical = true );
 	static void GenericGetSortArrowBounds(
 		const wxRect		*itemBoundsR,
 		wxRect			*targetBoundsR );

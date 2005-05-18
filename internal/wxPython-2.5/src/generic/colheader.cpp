@@ -2200,7 +2200,9 @@ bool			bSelected, bHasIcon;
 	if (bSelected && m_BSortEnabled)
 	{
 		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
-		GenericDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
+		dc->SetPen( *wxGREY_PEN );
+		dc->SetBrush( *wxGREY_BRUSH );
+		GenericDrawArrow( dc, &subItemBoundsR, m_BSortAscending, true );
 	}
 
 	return 0;
@@ -2540,37 +2542,60 @@ int		sizeX, sizeY, insetX;
 }
 
 // static
-void wxColumnHeaderItem::GenericDrawSortArrow(
+void wxColumnHeaderItem::GenericDrawArrow(
 	wxDC				*dc,
 	const wxRect			*boundsR,
-	bool					bSortAscending )
+	bool					bIsAscending,
+	bool					bIsVertical )
 {
 wxPoint		triPt[3];
 
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
 
-	if (bSortAscending)
+	if (bIsVertical)
 	{
-		triPt[0].x = boundsR->width / 2;
-		triPt[0].y = 0;
-		triPt[1].x = boundsR->width;
-		triPt[1].y = boundsR->height;
-		triPt[2].x = 0;
-		triPt[2].y = boundsR->height;
+		if (bIsAscending)
+		{
+			triPt[0].x = boundsR->width / 2;
+			triPt[0].y = 0;
+			triPt[1].x = boundsR->width;
+			triPt[1].y = boundsR->height;
+			triPt[2].x = 0;
+			triPt[2].y = boundsR->height;
+		}
+		else
+		{
+			triPt[0].x = 0;
+			triPt[0].y = 0;
+			triPt[1].x = boundsR->width;
+			triPt[1].y = 0;
+			triPt[2].x = boundsR->width / 2;
+			triPt[2].y = boundsR->height;
+		}
 	}
 	else
 	{
-		triPt[0].x = 0;
-		triPt[0].y = 0;
-		triPt[1].x = boundsR->width;
-		triPt[1].y = 0;
-		triPt[2].x = boundsR->width / 2;
-		triPt[2].y = boundsR->height;
+		if (bIsAscending)
+		{
+			triPt[0].x = 0;
+			triPt[0].y = boundsR->height / 2;
+			triPt[1].x = boundsR->width;
+			triPt[1].y = boundsR->height;
+			triPt[2].x = boundsR->width;
+			triPt[2].y = 0;
+		}
+		else
+		{
+			triPt[0].x = 0;
+			triPt[0].y = 0;
+			triPt[1].x = boundsR->width;
+			triPt[1].y = boundsR->height / 2;
+			triPt[2].x = 0;
+			triPt[2].y = boundsR->height;
+		}
 	}
 
-	dc->SetPen( *wxGREY_PEN );
-	dc->SetBrush( *wxGREY_BRUSH );
 	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
 }
 
