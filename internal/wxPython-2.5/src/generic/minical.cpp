@@ -639,7 +639,6 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// Get extent of month-name + year
     wxCoord monthw, monthh;
     wxString headertext = m_date.Format(wxT("%B %Y"));
-	headertext.MakeUpper();
 	dc.SetFont(m_boldFont);
     dc.GetTextExtent(headertext, &monthw, &monthh);
 
