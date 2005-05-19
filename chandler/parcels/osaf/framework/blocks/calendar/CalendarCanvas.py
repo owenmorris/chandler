@@ -1307,6 +1307,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
                                             event.startTime.hour,
                                             event.startTime.minute))
         event.allDay = True
+        event.anyTime = False
 
         self.parent.blockItem.contents.source.first().add(event)
         self.OnSelectItem(event)
@@ -1669,6 +1670,8 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             
         event.InitOutgoingAttributes()
         event.ChangeStart(newTime)
+        event.allDay = False
+        event.anyTime = False
         
         # only set the duration if its something larger than the default
         if duration and duration.hours >= 1:

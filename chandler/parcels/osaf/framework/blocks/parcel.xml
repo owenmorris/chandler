@@ -30,7 +30,9 @@
 
   <Attribute itsName="fontSize">
     <type itemref="Float"/>
-    <initialValue type="Float">12.0</initialValue>
+    <!-- we default to 11 points, which'll get scaled to the platform's default GUI
+         font - see Styles.py -->
+    <initialValue type="Float">11.0</initialValue>
   </Attribute>
 
   <!--
@@ -214,7 +216,7 @@
 
   <docSchema:CharacterStyle itsName="BigTextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>16</fontSize>
+    <fontSize>15</fontSize>
     <fontStyle>bold</fontStyle>
   </docSchema:CharacterStyle>
 

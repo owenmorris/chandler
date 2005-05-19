@@ -524,7 +524,6 @@
     <childrenBlocks itemref="doc:EditAllDay"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>300, 24</minimumSize>
     <border>5, 0, 0, 5</border>
   </ContentItemDetail>
   
@@ -534,9 +533,18 @@
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>60, 24</minimumSize>
+    <minimumSize>60, 20</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
+
+  <!--
+  <AEBlock itsName="EditAllDay"
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+    <blockName value="EditAllDay"/>
+    <stretchFactor>1</stretchFactor>
+    <viewAttribute value="allDay"/>
+  </AEBlock>
+  -->
 
   <CheckBox itsName="EditAllDay"
             itemClass="osaf.framework.blocks.detail.Detail.AllDayCheckBox">
@@ -551,7 +559,7 @@
 
   <ContentItemDetail itsName="CalendarReminderArea"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarAllDayAndReminder"/>
+    <blockName value="CalendarReminderArea"/>
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
     <childrenBlocks itemref="doc:EditReminder"/>
     <!-- Attributes -->
@@ -569,6 +577,27 @@
     <minimumSize>60, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
+
+  <!--
+  <PresentationStyle itsName="ReminderPresentationStyle">
+    <format>reminderPopup</format>
+    <choices>None</choices>
+    <choices>1 minute</choices>
+    <choices>5 minutes</choices>
+    <choices>10 minutes</choices>
+    <choices>30 minutes</choices>
+    <choices>60 minutes</choices>
+    <choices>90 minutes</choices>
+  </PresentationStyle>
+  
+  <AEBlock itsName="EditReminder">
+    <blockName value="EditReminder"/>
+    <minimumSize>100, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+    <presentationStyle itemref="doc:ReminderPresentationStyle"/>
+    <viewAttribute value="reminderDelta"/>
+  </AEBlock>
+  -->  
 
   <Choice itsName="EditReminder"
             itemClass="osaf.framework.blocks.detail.Detail.EditReminder">
@@ -606,6 +635,23 @@
     <minimumSize>60, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
+
+  <!--
+   <PresentationStyle itsName="TransparencyPresentationStyle">
+    <format>popup</format>
+    <choices>Confirmed</choices>
+    <choices>Tentative</choices>
+    <choices>FYI</choices>
+  </PresentationStyle>
+  
+  <AEBlock itsName="EditTransparency">
+    <blockName value="EditTransparency"/>
+    <stretchFactor>1</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <presentationStyle itemref="doc:TransparencyPresentationStyle"/>
+    <viewAttribute value="transparency"/>
+  </AEBlock>
+  -->
 
   <Choice itsName="EditTransparency"
             itemClass="osaf.framework.blocks.detail.Detail.EditTransparency">

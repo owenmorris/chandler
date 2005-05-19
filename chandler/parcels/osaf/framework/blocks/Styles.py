@@ -35,6 +35,8 @@ class ColorStyle(Style):
         
         
 fontCache = {}
+measurementsCache = {}
+
 platformDefaultFaceName = None
 platformSizeScalingFactor = 0.0
 
@@ -44,10 +46,14 @@ def getFont(characterStyle):
     if platformDefaultFaceName is None:
         defaultGuiFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
         platformDefaultFaceName = defaultGuiFont.GetFaceName()
-        platformSizeScalingFactor = defaultGuiFont.GetPointSize() / 12.0
+        platformSizeScalingFactor = defaultGuiFont.GetPointSize() / 11.0
 
+    # We default to an 11-point font, which gets scaled by the size of the
+    # platform's default GUI font (which we measured just above). It's 11
+    # because that's the size of the Mac's default GUI font, which is what
+    # Mimi thinks in terms of.
     family = wx.DEFAULT
-    size = 12
+    size = 11
     style = wx.NORMAL
     underline = False
     weight = wx.NORMAL
@@ -82,17 +88,29 @@ def getFont(characterStyle):
     scaledSize = int((platformSizeScalingFactor * size) + 0.5)
     
     # Do we have this already?
-    key = (scaledSize, family, style, weight, underline, name)
+    key = (scaledSize, family, style, weight, underline)
     try:
         font = fontCache[key]
     except KeyError:
         font = wx.Font(scaledSize, family, style, weight, underline, name)
+        assert key == getFontKey(font)
         fontCache[key] = font
 
-        # Gather a few measurements
-        font.cachedMeasurements = FontMeasurements(font)
-
     return font
+
+def getFontKey(font):
+    key = (font.GetPointSize(), font.GetFamily(), font.GetWeight(),
+           font.GetStyle(), font.GetUnderlined())
+    return key
+    
+def getMeasurements(font):
+    key = getFontKey(font)
+    try:
+        m = measurementsCache[key]
+    except KeyError:
+        m = FontMeasurements(font)
+        measurementsCache[key] = m
+    return m
 
 class FontMeasurements(object):
     """ Measurements that we cache with each font """    

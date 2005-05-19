@@ -22,9 +22,6 @@ from repository.schema.Types import DateTime
 from repository.schema.Types import RelativeDateTime
 import mx.DateTime
 
-# @@@BJS: Should we show borders for debugging?
-showBorders = False
-
 class Button(RectangularChild):
     def instantiateWidget(self):
         id = self.getWidgetID(self)
@@ -99,7 +96,12 @@ class Choice(RectangularChild):
                          (self.minimumSize.width, self.minimumSize.height),
                          self.choices)
         choice.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
-        choice.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
+        
+        try:
+            charStyle = self.characterStyle
+        except AttributeError:
+            charStyle = None
+        choice.SetFont(Styles.getFont(charStyle))
         
         return choice
 
@@ -876,8 +878,8 @@ class Table (RectangularChild):
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
-        for key in map.editorString.keys():
+        for ae in wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors'):
+            key = ae.itsName
             if key != defaultName and not '+' in key:
                 widget.RegisterDataType (key,
                                          GridCellAttributeRenderer (key),
@@ -953,8 +955,7 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
             
-        global showBorders
-        if showBorders:
+        if Block.showBorders:
             style |= wx.SIMPLE_BORDER
 
         staticText = wxStaticText (self.parentBlock.widget,
@@ -1432,6 +1433,7 @@ class wxAEBlock(wxRectangularChild):
                 logger.debug("wxAEBlock.onClick: showing existing control.")
             else:
                 logger.debug("wxAEBlock.onClick: ignoring click outside control")
+                event.Skip()
                 return
 
         # Begin editing
@@ -1441,7 +1443,7 @@ class wxAEBlock(wxRectangularChild):
         # consume the event
         # @@@BJS: might not want to do this, if that allows first-clicks to 
         # go into the textbox and place the insertion point...
-        # event.Skip()
+        event.Skip()
 
         # redraw
         # @@@BJS: needed? was: self.drawAEBlock()
@@ -1558,8 +1560,7 @@ class AEBlock(RectangularChild):
         drawing world that the actual Attribute Editor will live within.
         """
         style = wx.TAB_TRAVERSAL
-        global showBorders
-        if showBorders:
+        if Block.showBorders:
             style |= wx.SIMPLE_BORDER
         widget = wxAEBlock (self.parentBlock.widget,
                             -1,
@@ -1567,7 +1568,11 @@ class AEBlock(RectangularChild):
                             (self.minimumSize.width, self.minimumSize.height),
                             style)
 
-        widget.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
+        try:
+            charStyle = self.characterStyle
+        except AttributeError:
+            charStyle = None
+        widget.SetFont(Styles.getFont(charStyle))
         return widget
 
     def lookupEditor(self, oldEditor):
@@ -1576,7 +1581,11 @@ class AEBlock(RectangularChild):
         item = self.getItem()
         attributeName = self.getAttributeName()
         
-        presentationStyle = getattr(self, 'presentationStyle', None)            
+        try:
+            presentationStyle = self.presentationStyle
+        except AttributeError:
+            presentationStyle = None
+
         if (oldEditor is not None) and (oldEditor.typeName == typeName) and \
            (oldEditor.attributeName == attributeName) and \
            (oldEditor.presentationStyle is presentationStyle):
@@ -1591,8 +1600,12 @@ class AEBlock(RectangularChild):
     def onSetContentsEvent (self, event):
         self.contents = event.arguments['item']
 
-    def getItem(self):        
-        return getattr(self, 'contents', None)
+    def getItem(self):
+        try:
+            item = self.contents
+        except AttributeError:
+            item = None
+        return item
 
     def getAttributeName(self):
         attributeName = self.viewAttribute

@@ -42,7 +42,14 @@ class wxBoxContainer (wxRectangularChild):
 
 class BoxContainer (RectangularChild):
     def instantiateWidget (self): 
-        return wxBoxContainer (self.parentBlock.widget, Block.getWidgetID(self))
+        style = wx.TAB_TRAVERSAL
+        if Block.showBorders:
+            style |= wx.SIMPLE_BORDER
+        else:
+            style |= wx.NO_BORDER
+            
+        return wxBoxContainer (self.parentBlock.widget, Block.getWidgetID(self),
+                               wx.DefaultPosition, wx.DefaultSize, style)
     
 class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):

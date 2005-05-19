@@ -765,7 +765,7 @@ def RenderItem(repoView, item):
             output = []
             for j in value:
                 output.append("<a href=%s>%s</a>" % \
-                 (toLink(j.itsPath), j.getItemDisplayName()))
+                 (toLink(j.itsPath), getattr(j, "blockName", j.getItemDisplayName())))
             result += (", ".join(output))
 
             result += "</td></tr>\n"

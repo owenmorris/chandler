@@ -14,6 +14,9 @@ logger = logging.getLogger('cpia')
 logger.setLevel(logging.INFO)
 
 class Block(Item):
+    # @@@BJS: Should we show borders for debugging?
+    showBorders = False
+    
     def post (self, event, arguments):
         """
           Events that are posted by the block pass along the block

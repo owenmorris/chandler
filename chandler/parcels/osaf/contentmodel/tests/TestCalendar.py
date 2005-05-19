@@ -42,8 +42,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(event.allDay, False)
             self.assertEqual(event.getAttributeValue('allDay'), False)
             
-            self.assertEqual(event.anyTime, False)
-            self.assertEqual(event.getAttributeValue('anyTime'), False)
+            self.assertEqual(event.anyTime, True)
+            self.assertEqual(event.getAttributeValue('anyTime'), True)
 
         def _verifyCalendarItems(calendar, location, recurrence):
             self.assertEqual(calendar.displayName, "simple calendar")
@@ -120,12 +120,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # Test getDuration
         view = self.rep.view
         firstItem = Calendar.CalendarEvent(view=view)
+        firstItem.anyTime = False
         firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
         firstItem.endTime = DateTime.DateTime(2003, 2, 1, 11, 30)
         self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
 
         # Test setDuration
         secondItem = Calendar.CalendarEvent(view=view)
+        secondItem.anyTime = False
         secondItem.startTime = DateTime.DateTime(2003, 3, 5, 9)
         secondItem.duration = DateTime.DateTimeDelta(0, 1.5)
         self.assertEqual(secondItem.endTime,

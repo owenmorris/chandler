@@ -20,6 +20,8 @@ logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
 
 _TypeToEditorInstances = {}
+_TypeToEditorClasses = {}
+
 
 def getSingleton (typeName):
     """ Get (and cache) a single shared Attribute Editor for this type. """
@@ -44,15 +46,20 @@ def getInstance (typeName, item, attributeName, presentationStyle):
 
 def _getAEClass (type, format=None):
     """ Return the attribute editor class for this type """
-    map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+    # Once per run, build a map of type -> class
+    global _TypeToEditorClasses
+    if len(_TypeToEditorClasses) == 0:
+        for ae in wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors'):
+            _TypeToEditorClasses[ae.itsName] = ae.className
+        assert _TypeToEditorClasses['_default'] is not None, "Default attribute editor doesn't exist ('_default')"
+        
     # If we have a format specified, try to find a specific 
     # editor for type+form. If we don't, just use the type, 
     # and if we don't have a type-specific one, use the "_default".
-    classPath = ((format is not None) and map.editorString.get("%s+%s" % (type, format), None)) \
-              or map.editorString.get(type, None)
+    classPath = ((format is not None) and _TypeToEditorClasses.get("%s+%s" % (type, format), None)) \
+              or _TypeToEditorClasses.get(type, None)
     if classPath is None: # do this separately for now so I can set a breakpoint
-        classPath = map.editorString.get("_default", None)
-    assert classPath is not None, "Default attribute editor doesn't exist ('_default')"
+        classPath = _TypeToEditorClasses.get("_default", None)
 
     parts = classPath.split (".")
     assert len(parts) >= 2, " %s isn't a module and class" % classPath
@@ -217,16 +224,12 @@ class StringAttributeEditor (BaseAttributeEditor):
         if theText is None:
             # No sample text, or we have a value. Use the value.
             theText = self.GetAttributeValue(item, attributeName)
-            # style = wx.NORMAL
-            # textColor = wx.SystemSettings.GetColour (wx.SYS_COLOUR_BTNTEXT)
         elif len(theText) > 0:
             # theText is the sample text - switch to gray
-            # (not italic; was...) style = wx.ITALIC
+            # @@@ The "gray" color probably needs to be platform- (or theme-)
+            # specific...
             textColor = wx.Colour(153, 153, 153)
             dc.SetTextForeground (textColor)
-            font = dc.GetFont ()
-            #font.SetStyle (style)
-            dc.SetFont (font)
 
         if len(theText) > 0:
             # Draw inside the lines.
@@ -243,8 +246,21 @@ class StringAttributeEditor (BaseAttributeEditor):
         # create a text control for editing the string value
         logger.debug("StringAE.CreateControl")
         
+        size = wx.DefaultSize
+        if False:
+            try:
+                isMultiline = self.presentationStyle.multiLine
+            except:
+                isMultiline = False
+            if not isMultiline:
+                font = parent.GetFont()
+                try:
+                    size.height = Styles.getMeasurements(font).textCtrlHeight
+                except AttributeError:
+                    pass
+            
         control = myTextCtrl(parent, id, '', wx.DefaultPosition, 
-                             wx.DefaultSize,
+                             size,
                              wx.TE_PROCESS_TAB | wx.TE_AUTO_SCROLL)
         control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         control.Bind(wx.EVT_TEXT, self.onTextChanged)
@@ -381,7 +397,11 @@ class StringAttributeEditor (BaseAttributeEditor):
         Return True if a non-default value has been set for this attribute, 
         or False if this value is the default and deserves the sample text 
         (if any) instead. (Can be overridden.) """
-        return len(unicode(getattr(item, attributeName, u""))) > 0
+        try:
+            v = getattr(item, attributeName)
+        except AttributeError:
+            return False        
+        return len(unicode(v)) > 0
 
     def GetAttributeValue(self, item, attributeName):
         """ Get the attribute's current value, converted to a (unicode) string """
@@ -626,6 +646,10 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
     def UsePermanentControl(self):
         return True
     
+    def BeginControlEdit (self, item, attributeName, control):
+        value = self.GetAttributeValue(item, attributeName)
+        self.SetControlValue(control, value)
+
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
     """ A checkbox control. """
     def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
@@ -676,6 +700,7 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
 
     def CreateControl (self, parent, id):
         control = wx.Choice(parent, id)
+        control.SetFont(parent.GetFont())
         control.Bind(wx.EVT_CHOICE, self.onChoice)
         return control
         
@@ -701,6 +726,8 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
     def GetControlValue (self, control):
         """ Get the selected choice's text """
         choiceIndex = control.GetSelection()
+        if choiceIndex == -1:
+            return None
         value = self.item.getAttributeAspect(self.attributeName, 'type').values[choiceIndex]
         if isinstance(value, str): value = unicode(value) # @@@BJS Make sure we return unicode!
         return value

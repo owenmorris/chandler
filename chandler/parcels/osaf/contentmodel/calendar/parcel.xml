@@ -49,7 +49,7 @@
       <Attribute itsName="anyTime">
         <displayName>Any-Time</displayName>
         <type itemref="Boolean"/>
-        <initialValue type="Boolean" value="False" />
+        <initialValue type="Boolean" value="True" />
       </Attribute>
       
       <Attribute itsName="location">
