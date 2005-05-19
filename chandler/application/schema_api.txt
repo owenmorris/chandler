@@ -222,7 +222,7 @@ And, to avoid unintentional alterations, Role attributes can be set only once::
 Item Subclasses
 ---------------
 
-XXX Explain this.
+XXX Explain this::
 
     >>> class Person(schema.Item):
     ...     fullname = schema.One(str)
@@ -238,6 +238,15 @@ XXX Explain this.
     >>> Mary = Person(children=[Joe], fullname="Mary Quite Contrary")
     >>> list(Joe.parents)
     [Mary Quite Contrary]
+
+Items created without an explicit "parent" have a repository parent of
+``//anonymous-root``::
+
+    >>> Joe.itsParent
+    <Item ... anonymous-root ...>
+
+    >>> Joe.itsParent.itsPath
+    //anonymous-root
 
 
 --------------------
@@ -378,13 +387,33 @@ loaded::
         >>> kind.classes['python'] is TestItem
         True
 
+
+``initRepository(repoView)``
+    Ensure that the given repository view has been initialized with the core
+    schemas for Chandler, and with an "anonymous root" for items created
+    without an explicit parent.
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> nrv = NullRepositoryView()
+    >>> print nrv.findPath('//Schema/Core')
+    None
+    >>> print nrv.findPath('//anonymous-root')
+    None
+
+    >>> schema.initRepository(nrv)
+
+    >>> nrv.findPath('//Schema/Core/Item')
+    <Kind ... Item ...>
+    >>> nrv.findPath('//Schema/Core/Parcel')
+    <Kind ... Parcel ...>
+    >>> nrv.findPath('//anonymous-root')
+    <Item ... anonymous-root ...>
+
+
 ``synchronize(repoView, moduleName)``
     Ensure that the named module has been imported, and that its offered schema
     (if any) has been imported into the supplied repository view.
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
-    >>> nrv = NullRepositoryView()
-    >>> r = schema.initRepository(nrv)  # XXX this should be documented
     >>> print nrv.findPath('//parcels/application/tests/TestItem')
     None
     >>> schema.synchronize(nrv, 'application.tests')
