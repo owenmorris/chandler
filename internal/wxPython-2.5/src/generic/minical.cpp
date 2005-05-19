@@ -408,15 +408,6 @@ wxDateTime wxMiniCalendar::GetStartDate() const
     date.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
                           ? wxDateTime::Mon : wxDateTime::Sun);
 
-    if ( GetWindowStyle() & wxCAL_SHOW_SURROUNDING_WEEKS )
-    {
-        // We want to offset the calendar if we start on the first..
-        if ( date.GetDay() == 1 )
-        {
-            date -= wxDateSpan::Week();
-        }
-    }
-
     return date;
 }
 
