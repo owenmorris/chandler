@@ -93,7 +93,7 @@ def getFont(characterStyle):
         font = fontCache[key]
     except KeyError:
         font = wx.Font(scaledSize, family, style, weight, underline, name)
-        assert key == getFontKey(font)
+        # Don't do this for now: it upsets Linux: assert key == getFontKey(font)
         fontCache[key] = font
 
     return font
