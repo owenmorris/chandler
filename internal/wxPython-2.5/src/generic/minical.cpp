@@ -585,19 +585,19 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     m_normalFont = dc.GetFont();
     m_boldFont = wxFont(m_normalFont.GetPointSize(), m_normalFont.GetFamily(),
         m_normalFont.GetStyle(), wxBOLD, m_normalFont.GetUnderlined(), 
-		m_normalFont.GetFaceName(), m_normalFont.GetEncoding());
-	dc.SetFont(m_boldFont);
-	wxString todaytext = wxT("Today");
-	dc.GetTextExtent(todaytext, &todayw, &todayh);
+        m_normalFont.GetFaceName(), m_normalFont.GetEncoding());
+    dc.SetFont(m_boldFont);
+    wxString todaytext = wxT("Today");
+    dc.GetTextExtent(todaytext, &todayw, &todayh);
 
-	m_todayRect = wxRect(0, 0, 0, 0);
+    m_todayRect = wxRect(0, 0, 0, 0);
 
     // Draw today button
     m_todayRect = wxRect(buttonCoord, y, buttonCoord * 4, m_heightRow);
-	wxCoord todayx = ((m_widthCol * DAYS_PER_WEEK) - todayw) / 2;
-	wxCoord todayy = ((m_heightRow - todayh) / 2) + y;
-	dc.DrawText(todaytext, todayx, todayy);
-	dc.SetFont(m_normalFont);
+    wxCoord todayx = ((m_widthCol * DAYS_PER_WEEK) - todayw) / 2;
+    wxCoord todayy = ((m_heightRow - todayh) / 2) + y;
+    dc.DrawText(todaytext, todayx, todayy);
+    dc.SetFont(m_normalFont);
 
     // calculate the "month-arrows"
     wxPoint leftarrow[3];
@@ -622,35 +622,35 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     // Draw left arrow
     m_leftArrowRect = wxRect(0, y, buttonCoord - 1, m_heightRow);
-	dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
+    dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
     dc.DrawPolygon(3, leftarrow, larrowx , arrowy, wxWINDING_RULE);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     // Draw right arrow
     m_rightArrowRect = wxRect(buttonCoord * 4 + 1, y, buttonCoord - 1, m_heightRow);
-	dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
+    dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
     dc.DrawPolygon(3, rightarrow, rarrowx , arrowy, wxWINDING_RULE);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     y += m_heightRow;
 
-	// Get extent of month-name + year
+    // Get extent of month-name + year
     wxCoord monthw, monthh;
     wxString headertext = m_date.Format(wxT("%B %Y"));
-	dc.SetFont(m_boldFont);
+    dc.SetFont(m_boldFont);
     dc.GetTextExtent(headertext, &monthw, &monthh);
 
     // draw month-name centered above weekdays
     wxCoord monthx = ((m_widthCol * DAYS_PER_WEEK) - monthw) / 2;
     wxCoord monthy = ((m_heightRow - monthh) / 2) + y;
     dc.DrawText(headertext, monthx,  monthy);
-	dc.SetFont(m_normalFont);
+    dc.SetFont(m_normalFont);
 
     y += m_heightRow;
 
-	// first draw the week days
+    // first draw the week days
     if ( IsExposed(0, y, DAYS_PER_WEEK * m_widthCol, m_heightRow) )
     {
         dc.SetBackgroundMode(wxTRANSPARENT);
@@ -692,16 +692,16 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
             continue;
         }
 
-		// don't draw last week if none of the days appear in the month
+        // don't draw last week if none of the days appear in the month
         if ( nWeek == WEEKS_TO_DISPLAY && (date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date)) )
-	{
-	    date += wxDateSpan::Week();
-	    continue;
-	}
+    {
+        date += wxDateSpan::Week();
+        continue;
+    }
 
         for ( size_t wd = 0; wd < DAYS_PER_WEEK; wd++ )
         {
-	    dayPosition = (nWeek - 1) * DAYS_PER_WEEK + wd;
+        dayPosition = (nWeek - 1) * DAYS_PER_WEEK + wd;
             if ( IsDateShown(date) )
             {
                 // don't use wxDate::Format() which prepends 0s
@@ -730,36 +730,36 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                     // highlight selected day
                     if ( date.IsSameDate(m_date) )
                     {
-			dc.SetTextBackground(*wxLIGHT_GREY);
-			dc.SetBrush(wxBrush(*wxLIGHT_GREY, wxSOLID));
-			dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));						
-			dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
+            dc.SetTextBackground(*wxLIGHT_GREY);
+            dc.SetBrush(wxBrush(*wxLIGHT_GREY, wxSOLID));
+            dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));                        
+            dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
 
                         changedColours = true;
-		    }
-		    dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
-		    dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
+            }
+            dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
+            dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
-		    // today should be printed as bold
-		    if ( date.IsSameDate(wxDateTime::Today()) )
-		    {
-		        dc.SetFont(m_boldFont);
-		        changedFont = true;
-		    }
+            // today should be printed as bold
+            if ( date.IsSameDate(wxDateTime::Today()) )
+            {
+                dc.SetFont(m_boldFont);
+                changedFont = true;
+            }
                 }
 
                 dc.DrawText(dayStr, x, y + 1);
 
-		// draw free/busy indicator
-		if ( attr )
+        // draw free/busy indicator
+        if ( attr )
                 {
-		    double height = (m_heightRow - 6) * attr->GetBusy();
-		    dc.DrawRectangle(x-2, y + (m_heightRow - (int)height - 3), 2, (int)height);								
+            double height = (m_heightRow - 6) * attr->GetBusy();
+            dc.DrawRectangle(x-2, y + (m_heightRow - (int)height - 3), 2, (int)height);                                
                 }
 
                 dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
-		if ( changedColours )
+        if ( changedColours )
                 {
                     dc.SetTextForeground(GetForegroundColour());
                     dc.SetTextBackground(GetBackgroundColour());
@@ -1008,10 +1008,10 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
             }
             break;
 
-		case wxCAL_HITTEST_HEADER:
+        case wxCAL_HITTEST_HEADER:
             event.Skip();
-			break;
-		case wxCAL_HITTEST_TODAY:
+            break;
+        case wxCAL_HITTEST_TODAY:
         case wxCAL_HITTEST_DECMONTH:
         case wxCAL_HITTEST_INCMONTH:
         case wxCAL_HITTEST_SURROUNDING_WEEK:
@@ -1079,7 +1079,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     {
         if ( date )
         {
-			*date = wxDateTime::Today();
+            *date = wxDateTime::Today();
         }
 
         return wxCAL_HITTEST_TODAY;
