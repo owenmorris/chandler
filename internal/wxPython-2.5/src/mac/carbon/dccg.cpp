@@ -1610,14 +1610,14 @@ void  wxDC::Clear(void)
                     {
                         RGBColor	color;
                         GetThemeBrushAsColor( m_backgroundBrush.MacGetTheme(), 32, true, &color );
-                        CGContextSetRGBFillColor( cg , (float) color.red / 65536,
+                        CGContextSetRGBFillColor( cg, (float) color.red / 65536,
         		    (float) color.green / 65536, (float) color.blue / 65536, 1 );
                         CGContextFillRect( cg, rect );
                     }
 
                     // reset to normal value
                     RGBColor col = MAC_WXCOLORREF( GetBrush().GetColour().GetPixel() ) ;
-                    CGContextSetRGBFillColor( cg, col.red / 65536.0 , col.green / 65536.0 , col.blue / 65536.0 , 1.0 );
+                    CGContextSetRGBFillColor( cg, col.red / 65536.0, col.green / 65536.0, col.blue / 65536.0, 1.0 );
                 }
             break ;
             case kwxMacBrushThemeBackground :

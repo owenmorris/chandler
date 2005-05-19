@@ -256,12 +256,12 @@ bool wxClipboard::AddData( wxDataObject *data )
     #if wxUSE_UNICODE
                case wxDF_UNICODETEXT :
                     mactype = kScrapFlavorTypeUnicode ;
+                    sz -= 2;
                break ;
     #endif
     #if wxUSE_DRAG_AND_DROP
             case wxDF_METAFILE:
                     mactype = kScrapFlavorTypePicture ;
-                    sz -= 2;
                break ;
     #endif
                case wxDF_BITMAP:
