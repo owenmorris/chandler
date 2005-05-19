@@ -18,6 +18,7 @@ from repository.util.ClassLoader import ClassLoader
 from repository.util.Path import Path
 from repository.item.RefCollections import RefList
 import repository.item.Values
+from repository.schema.Attribute import Attribute
 
 logger = logging.getLogger('Parcel')
 logger.setLevel(logging.INFO)
@@ -238,6 +239,7 @@ class Manager(Item):
         self._ns2parcel = { }  # namespace -> "parcel descriptor" (see below)
         self._repo2ns = {'//parcels':NS_ROOT}  # repository path -> namespace
         self._file2ns = { }    # file path -> namespace
+        self._imported = set()    # imported namespaces
 
         # Do a Parcel-kind query for existing parcels; populate a dictionary
         # of "parcel descriptors" (pDesc) which cache parcel information.
@@ -428,6 +430,47 @@ class Manager(Item):
         return self._repo2ns[oldUri]
 
 
+    def __syncParcel(self, namespace):
+        """Synchronize the specified parcel's Python schema with self.repo
+
+        If the namespace is under NS_ROOT, this will import the corresponding
+        Python module and synchronize its schema with the repository.  If the
+        imported module has a parent module that has not yet been synchronized,
+        this method will load the parent parcel, thereby synchronizing the
+        parent module first.
+
+        ``self.__parcelsToReload`` is updated to include the given `namespace`
+        if it is not already present.  This ensures that the loader will not
+        skip a parcel just because it was already created by a Python schema
+        module.
+        """
+        if namespace in self._imported:
+            return  # skip already-processed parcels
+        else:
+            self._imported.add(namespace)
+
+        if namespace.startswith(NS_ROOT):
+            # The package we need to import and sync
+            pkg = namespace[len(NS_ROOT)+1:].replace('/','.')
+
+            # Mark for reload *before* the nested __loadParcel(parent) call,
+            # because otherwise the nested call may re-invoke __loadParcel()
+            # on this parcel, and then not reload it properly
+            if namespace not in self.__parcelsToReload:
+                self.__parcelsToReload.append(namespace)
+                
+            if '.' in pkg:
+                # load parent first - even though schema API does this too,
+                # the parcel loader will get confused and not load the
+                # parent parcel correctly, unless we process it here.  :(
+                parent_pkg = pkg.rsplit('.',1)[0]
+                if parent_pkg not in self._imported:
+                    self.__loadParcel(NS_ROOT+'/'+parent_pkg.replace('.','/'))
+
+            # Last, but not least, actually synchronize the package
+            schema.synchronize(self.repo, pkg)
+
+
     def __loadParcel(self, namespace):
         """
         Load a specific parcel (specified by namespace).
@@ -437,6 +480,9 @@ class Manager(Item):
 
         global globalDepth
         globalDepth = globalDepth + 1
+
+        if namespace not in self._imported:
+            self.__syncParcel(namespace)
 
         # Look for the parcel's namespace in the parcel descriptors
         if not self._ns2parcel.has_key(namespace):
@@ -1132,8 +1178,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             # If it's an Attribute, try to figure out the appropriate
             # type
-            if resultType.itsKind.itsUUID == self.manager.attrUUID:
-                
+            if isinstance(resultType,Attribute):
                 try:
                     resultType = resultType.type
                 except Exception, e:
@@ -1921,3 +1966,6 @@ def PrintItem(path, rep, recursive=False, level=0):
             PrintItem(childPath, rep, recursive=True, level=level+1)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+import schema
+
