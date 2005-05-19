@@ -481,8 +481,8 @@ class Manager(Item):
         global globalDepth
         globalDepth = globalDepth + 1
 
-        if namespace not in self._imported:
-            self.__syncParcel(namespace)
+        #if namespace not in self._imported:
+        #    self.__syncParcel(namespace)
 
         # Look for the parcel's namespace in the parcel descriptors
         if not self._ns2parcel.has_key(namespace):
