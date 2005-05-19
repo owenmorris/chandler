@@ -116,7 +116,7 @@ class wxSidebar(ControlBlocks.wxTable):
                     sidebar = self.blockItem
                     sidebar.postEventByName ("SelectItemBroadcast", {'item':sidebar.selectedItemToView})
                     wx.GetApp().UIRepositoryView.commit()
-                else:
+                elif not self.cellRect.InsideXY (event.GetX(), event.GetY()):
                     self.RefreshRect (self.imageRect)
                     del self.hoverImageRow
                     gridWindow.ReleaseMouse()
