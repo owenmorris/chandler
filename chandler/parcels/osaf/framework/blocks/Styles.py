@@ -99,8 +99,8 @@ def getFont(characterStyle):
     return font
 
 def getFontKey(font):
-    key = (font.GetPointSize(), font.GetFamily(), font.GetWeight(),
-           font.GetStyle(), font.GetUnderlined())
+    key = (font.GetPointSize(), font.GetFamily(), font.GetStyle(), 
+           font.GetWeight(), font.GetUnderlined())
     return key
     
 def getMeasurements(font):
