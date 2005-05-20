@@ -1,6 +1,6 @@
 
-VERSION=r263
-RELVER=$(VERSION)-2
+VERSION=r280
+RELVER=$(VERSION)-1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -62,6 +62,9 @@ upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	rm -rf  $(SRC)/$(BUILD)
+
+tests:
+	cd $(SRC)/tests; $(PYTHON) alltests.py
 
 # To build source tarballs: make srctarball M2SVNREV=<revision>
 srctarball:

@@ -1,0 +1,45 @@
+--- openssl-0.9.7g/util/mk1mf.pl	2004-05-16 21:28:30.000000000 -0700
++++ openssl-0.9.7g-patched/util/mk1mf.pl	2005-05-19 14:38:21.618664000 -0700
+@@ -483,16 +483,21 @@
+ # We parse in input file and 'store' info for later printing.
+ open(IN,"<$infile") || die "unable to open $infile:$!\n";
+ $_=<IN>;
+ for (;;)
+ 	{
+ 	chop;
+ 
+ 	($key,$val)=/^([^=]+)=(.*)/;
++	
++	# On some Windows machines, $val has linefeeds at the end, which confuses
++	# subsequent code in this file. So we strip all whitespace at the end.
++	$val =~ s/\s+$//;
++	
+ 	if ($key eq "RELATIVE_DIRECTORY")
+ 		{
+ 		if ($lib ne "")
+ 			{
+ 			$uc=$lib;
+ 			$uc =~ s/^lib(.*)\.a/$1/;
+ 			$uc =~ tr/a-z/A-Z/;
+ 			$lib_nam{$uc}=$uc;
+--- openssl-0.9.7g/Makefile.org	2005-03-15 01:46:13.000000000 -0800
++++ openssl-0.9.7g-patched/Makefile.org	2005-05-17 14:54:29.453608000 -0700
+@@ -318,17 +318,17 @@
+ # For Darwin AKA Mac OS/X (dyld)
+ do_darwin-shared: 
+ 	libs='-L. ${SHLIBDEPS}'; for i in ${SHLIBDIRS}; do \
+ 	if [ "${SHLIBDIRS}" = "ssl" -a -n "$(LIBKRB5)" ]; then \
+ 		libs="$(LIBKRB5) $$libs"; \
+ 	fi; \
+ 	( set -x; ${CC} --verbose -dynamiclib -o lib$$i${SHLIB_EXT} \
+ 		lib$$i.a $$libs -all_load -current_version ${SHLIB_MAJOR}.${SHLIB_MINOR} \
+-		-compatibility_version ${SHLIB_MAJOR}.`echo ${SHLIB_MINOR} | cut -d. -f1` \
++		-compatibility_version ${SHLIB_MAJOR}.${SHLIB_MINOR} \
+ 		-install_name ${INSTALLTOP}/lib/lib$$i${SHLIB_EXT} ) || exit 1; \
+ 	libs="-l`basename $$i${SHLIB_EXT} .dylib` $$libs"; \
+ 	echo "" ; \
+ 	done
+ 
+ do_cygwin-shared:
+ 	libs='-L. ${SHLIBDEPS}'; for i in ${SHLIBDIRS}; do \
+ 	if [ "${SHLIBDIRS}" = "ssl" -a -n "$(LIBKRB5)" ]; then \

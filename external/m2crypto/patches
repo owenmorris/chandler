@@ -1,6 +1,11 @@
---- M2Crypto-r263/setup.py	2005-05-04 21:07:40.000000000 -0700
-+++ M2Crypto-r263-patched/setup.py	2005-05-04 21:23:41.287371200 -0700
-@@ -12,6 +12,10 @@
+--- M2Crypto-r280/setup.py	2005-05-19 15:32:50.000000000 -0700
++++ M2Crypto-r280-patched/setup.py	2005-05-19 16:24:04.339048000 -0700
+@@ -7,29 +7,43 @@
+ """
+ 
+ _RCS_id = '$Id: setup.py,v 1.13 2004/03/28 11:30:01 ngps Exp $'
+ 
+ import os, sys
  from distutils.core import setup, Extension
  from distutils.command import build_ext
  
@@ -8,14 +13,12 @@
 +# XXX for Chandler.
 +from distutils.sysconfig import get_config_var
 +
- if sys.version_info < (2,4):
- 
-     # This copy of swig_sources is from Python 2.2.
-@@ -68,13 +72,23 @@
+ my_inc = os.path.join(os.getcwd(), 'SWIG')
  
  if os.name == 'nt':
      openssl_dir = 'c:\\pkg\\openssl'
 -    include_dirs = [my_inc, openssl_dir + '/include']
+-    swig_opts_str = '-I"' + openssl_dir + os.sep + 'include"'
 -    library_dirs = [openssl_dir + '\\lib']
 +    # XXX This is a hack to force search order that works
 +    # XXX for Chandler.
@@ -25,17 +28,26 @@
 +                    openssl_dir + '/include']
 +    library_dirs = [prefix_dir + '\\..\\lib',
 +                    openssl_dir + '\\lib']
++    swig_opts_str = '-I"' + prefix_dir + '\\..\\include"'
      libraries = ['ssleay32', 'libeay32']
-     
+-    
++   
  elif os.name == 'posix':
 -    include_dirs = [my_inc, '/usr/include']
+-    swig_opts_str = '-I/usr/include'
 -    library_dirs = ['/usr/lib']
 +    # XXX This is a hack to force search order that works
 +    # XXX for Chandler.    
 +    include_dirs = [get_config_var('INCLUDEDIR'),
 +                    my_inc, '/usr/include']
++    swig_opts_str = '-I' + get_config_var('INCLUDEDIR')
 +    library_dirs = [get_config_var('LIBDIR'),
 +                    '/usr/lib']
+     if sys.platform == 'cygwin':
+         # Cygwin SHOULD work (there's code in distutils), but
+         # if one first starts a Windows command prompt, then bash,
+         # the distutils code does not seem to work. If you start
+         # Cygwin directly, then it would work even without this change.
+         # Someday distutils will be fixed and this won't be needed.
+         library_dirs += ['/usr/bin']
      libraries = ['ssl', 'crypto']
- 
- m2crypto = Extension(name = '__m2crypto',

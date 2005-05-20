@@ -1,8 +1,8 @@
 
 include ../Makefile.inc
 
-VERSION=0.9.7d
-RELVER=$(VERSION)-2
+VERSION=0.9.7g
+RELVER=$(VERSION)-1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 
@@ -22,7 +22,8 @@ endif
 
 $(SRC)/$(BUILD)/ms/$(DOMASM):
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util ms include test $(BUILD)/;cd $(BUILD);\
+	cp -r crypto ssl apps certs tools util ms include test fips $(BUILD)/; \
+	cd $(BUILD);\
 	$(MK1MF);\
 	chmod a+x ms/$(DOMASM);
 
@@ -56,7 +57,7 @@ else
 
 $(SRC)/$(BUILD):
 	cd $(SRC); mkdir $(BUILD);\
-	cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include $(BUILD)/
+	cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include fips $(BUILD)/
 
 openssl: apply $(SRC)/$(BUILD)
 	cd $(SRC)/$(BUILD);\
