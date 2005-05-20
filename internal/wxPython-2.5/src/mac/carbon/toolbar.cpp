@@ -35,12 +35,12 @@ END_EVENT_TABLE()
 #include "wx/geometry.h"
 
 #ifdef __WXMAC_OSX__
-const short kwxMacToolBarToolDefaultWidth = 16 ;
-const short kwxMacToolBarToolDefaultHeight = 16 ;
+const short kwxMacToolBarToolDefaultWidth = 32 ;		// OSAF: used to be 16
+const short kwxMacToolBarToolDefaultHeight = 32 ;		// OSAF: used to be 16
 const short kwxMacToolBarTopMargin = 4 ;
 const short kwxMacToolBarLeftMargin = 4 ;
-const short kwxMacToolBorder = 0 ;
-const short kwxMacToolSpacing = 6 ;
+const short kwxMacToolBorder = 2;					// OSAF: used to be 0
+const short kwxMacToolSpacing = 2;					// OSAF: used to be 6
 #else
 const short kwxMacToolBarToolDefaultWidth = 24 ;
 const short kwxMacToolBarToolDefaultHeight = 22 ;
@@ -297,6 +297,10 @@ void wxToolBarTool::UpdateToggleImage( bool toggle )
         int h = m_bmpNormal.GetHeight() ;
         wxBitmap bmp( w , h ) ;
         wxMemoryDC dc ;
+
+//if (! bmp.HasAlpha())
+//	bmp.UseAlpha();
+
         dc.SelectObject( bmp ) ;
         dc.SetPen( wxNullPen ) ;
         dc.SetBackground( *wxWHITE ) ;
@@ -312,6 +316,10 @@ void wxToolBarTool::UpdateToggleImage( bool toggle )
     else
     {
         ControlButtonContentInfo info ;
+
+//if (! m_bmpNormal.HasAlpha())
+//	m_bmpNormal.UseAlpha();
+
         wxMacCreateBitmapButton( &info , m_bmpNormal ) ;
     	SetControlData( m_controlHandle , 0, kControlIconContentTag, sizeof( info ),
     			(Ptr)&info );
