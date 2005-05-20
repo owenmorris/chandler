@@ -81,6 +81,14 @@ realclean:
 	    $(MAKE) -C $$system -k _realclean; \
 	done
 
+cleanworld: clean
+	make -C ../internal DEBUG=$(DEBUG) clean
+	make -C ../chandler DEBUG=$(DEBUG) clean
+
+realcleanworld: realclean
+	make -C ../internal realclean
+	make -C ../chandler realclean
+
 upload:
 	@for system in $(SYSTEMS); \
 	do \
