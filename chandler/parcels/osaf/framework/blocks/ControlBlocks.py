@@ -1304,7 +1304,7 @@ class wxPyTimer(wx.PyTimer):
         event.SetId(Block.getWidgetID(self.blockItem))
         wx.GetApp().OnCommand(event)
 
-    def __del__(self):
+    def Destroy(self):
        Block.wxOnDestroyWidget (self)
 
 class Timer(Block):
