@@ -1,6 +1,6 @@
---- M2Crypto-r280/setup.py	2005-05-19 15:32:50.000000000 -0700
-+++ M2Crypto-r280-patched/setup.py	2005-05-19 16:24:04.339048000 -0700
-@@ -7,29 +7,43 @@
+--- M2Crypto-r280/setup.py	Thu May 19 15:32:50 2005
++++ M2Crypto-r280-patched/setup.py	Thu May 19 23:57:19 2005
+@@ -7,29 +7,49 @@
  """
  
  _RCS_id = '$Id: setup.py,v 1.13 2004/03/28 11:30:01 ngps Exp $'
@@ -38,10 +38,16 @@
 -    library_dirs = ['/usr/lib']
 +    # XXX This is a hack to force search order that works
 +    # XXX for Chandler.    
-+    include_dirs = [get_config_var('INCLUDEDIR'),
++    if sys.platform != 'darwin':
++        chandler_inc = get_config_var('INCLUDEDIR')
++        chandler_lib = get_config_var('LIBDIR')
++    else:
++        chandler_inc = get_config_var('INCLUDEDIR') + '/../../../../../../include'
++        chandler_lib = get_config_var('LIBDIR') + '/../../../../../../lib'
++    include_dirs = [chandler_inc, get_config_var('INCLUDEDIR'),
 +                    my_inc, '/usr/include']
-+    swig_opts_str = '-I' + get_config_var('INCLUDEDIR')
-+    library_dirs = [get_config_var('LIBDIR'),
++    swig_opts_str = '-I' + chandler_inc
++    library_dirs = [chandler_lib, get_config_var('LIBDIR'),
 +                    '/usr/lib']
      if sys.platform == 'cygwin':
          # Cygwin SHOULD work (there's code in distutils), but
