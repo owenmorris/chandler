@@ -22,7 +22,7 @@ mailtoAddr = "buildreport"
 alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
-defaultRsyncServer = "192.168.101.46"      #  IP of current server
+defaultRsyncServer = "192.168.101.25"      #  IP of current server
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
