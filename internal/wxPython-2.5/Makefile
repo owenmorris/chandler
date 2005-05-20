@@ -161,7 +161,7 @@ $(SRC)/$(BUILD)/Makefile:
 		--enable-unicode \
 		--enable-geometry \
 		--enable-sound \
-		--enable-display \
+		--disable-display \
 		--with-sdl \
 		--with-libpng \
 		--with-libtiff=builtin \
