@@ -40,7 +40,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
-ARCHIVES += $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7d-1.tar.gz
+ARCHIVES += $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.7g-1.tar.gz
 endif
 
 # readline is only needed for OSX
