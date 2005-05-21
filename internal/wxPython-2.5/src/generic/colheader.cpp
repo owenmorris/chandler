@@ -1458,9 +1458,10 @@ long			resultV, i;
 		// if specified, render any button arrows
 		for (i=0; i<m_ItemCount; i++)
 		{
-			itemRef = GetItemRef( itemIndex );
+			itemRef = GetItemRef( i );
 			if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
-				itemRef->DrawButtonArrow( &dc, &boundsR );
+				if (GetItemBounds( m_ItemSelected, &boundsR ))
+					itemRef->DrawButtonArrow( &dc, &boundsR );
 		}
 
 		// MSW case - add selection indicator - no appropriate native adornment exists
