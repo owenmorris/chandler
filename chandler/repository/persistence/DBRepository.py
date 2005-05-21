@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, cStringIO
+import os, atexit, cStringIO
 
 from threading import Thread, Lock, Condition, local
 from datetime import datetime
@@ -62,6 +62,7 @@ class DBRepository(OnDemandRepository):
         self._exclusiveLock = None
         self._env = None
         self._checkpointThread = None
+        self._atexit = False
 
     def _touchOpenFile(self):
 
@@ -89,10 +90,8 @@ class DBRepository(OnDemandRepository):
             self._status |= Repository.OPEN
             if kwds.get('ramdb', False):
                 self._status |= Repository.RAMDB
-            else:
-                self._touchOpenFile()
-                self._checkpointThread = DBCheckpointThread(self)
-                self._checkpointThread.start()
+
+            self._afterOpen()
 
     def _create(self, **kwds):
 
@@ -301,10 +300,18 @@ class DBRepository(OnDemandRepository):
                     raise
 
             self._status |= Repository.OPEN
-            self._touchOpenFile()
+            self._afterOpen()
 
+    def _afterOpen(self):
+
+        if self._status & Repository.RAMDB == 0:
+            self._touchOpenFile()
             self._checkpointThread = DBCheckpointThread(self)
             self._checkpointThread.start()
+
+        if not self._atexit:
+            self._atexit = True
+            atexit.register(self.close)
 
     def close(self):
 
@@ -666,24 +673,27 @@ class DBCheckpointThread(Thread):
             condition.wait(600.0)
             condition.release()
 
-            if self._alive:
-                try:
-                    for view in repository.getOpenViews():
-                        view._exclusive.acquire()
-                    repository._env.txn_checkpoint()
-                    repository.logger.info('%s: %s, completed checkpoint',
-                                           repository, datetime.now())
-                finally:
-                    for view in repository.getOpenViews():
-                        view._exclusive.release()
+            if not (self._alive and self.isAlive()):
+                break
+
+            try:
+                for view in repository.getOpenViews():
+                    view._exclusive.acquire()
+                repository._env.txn_checkpoint()
+                repository.logger.info('%s: %s, completed checkpoint',
+                                       repository, datetime.now())
+            finally:
+                for view in repository.getOpenViews():
+                    view._exclusive.release()
 
     def terminate(self):
         
-        condition = self._condition
+        if self._alive and self.isAlive():
+            condition = self._condition
 
-        condition.acquire()
-        self._alive = False
-        condition.notify()
-        condition.release()
+            condition.acquire()
+            self._alive = False
+            condition.notify()
+            condition.release()
 
-        self._repository._env.txn_checkpoint()
+            self._repository._env.txn_checkpoint()

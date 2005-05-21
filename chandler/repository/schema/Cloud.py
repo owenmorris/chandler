@@ -223,12 +223,13 @@ class Cloud(Item):
 
         exporting = self.getItems(item, cloudAlias, items, references)
 
-        def exportOther(copy, other, policy):
+        def exportOther(copy, other, policy, force=False):
             if other is None:
                 return None
 
             uuid = other._uuid
-            if other._isCopyExport() or uuid in items or uuid in references:
+            if (force and other._isCopyExport() or
+                uuid in items or uuid in references):
                 if uuid in copies:
                     return copies[uuid]
                 
@@ -240,21 +241,20 @@ class Cloud(Item):
                     otherParent = other.itsParent
                     parent = otherParent.findMatch(view, matches)
                     if parent is None:
-                        parent = exportOther(None, otherParent, None)
+                        parent = exportOther(None, otherParent, None, True)
                         if parent is None or parent is Nil:
                             raise ValueError, 'export parent (%s) not found while exporting %s: %s' %(otherParent.itsPath, other.itsPath, parent)
                     otherKind = other.itsKind
                     if otherKind is not None:
                         kind = otherKind.findMatch(view, matches)
                         if kind is None:
-                            kind = exportOther(None, otherKind, None)
+                            kind = exportOther(None, otherKind, None, True)
                             if kind is None or kind is Nil:
                                 raise ValueError, 'export kind (%s) not found while exporting %s: %s' %(otherKind.itsPath, other.itsPath, otherKind)
                     else:
                         kind = None
-                    match = other.copy(other._name, parent,
-                                       copies, 'remove', None, exportOther,
-                                       kind)
+                    match = other.copy(other._name, parent, copies, 'remove',
+                                       None, exportOther, kind)
                     matches[other] = match
                     return match
 
