@@ -510,7 +510,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()
 
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -542,15 +541,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             dirtyRect.SetBottomRight (self.CellToRect (range[1], self.GetNumberCols() - 1).GetBottomRight())
             dirtyRect.OffsetXY (self.GetRowLabelSize(), self.GetColLabelSize())
             self.RefreshRect (dirtyRect)
-
-    def OnKeyDown(self, event):
-        """
-          Work around a widgets grid bug on Linux: ignore single shift or control key down
-        to avoid beginning editing a cell
-        """
-        keyCode = event.GetKeyCode()
-        if (keyCode != wx.WXK_SHIFT and keyCode != wx.WXK_CONTROL):
-            event.Skip()
 
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
