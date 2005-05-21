@@ -1449,6 +1449,9 @@ long			resultV, i;
 #if defined(__WXMSW__)
 	if (! m_BUseGenericRenderer)
 	{
+	wxClientDC			dc( this );
+	wxColumnHeaderItem	*itemRef;
+
 		// render native control window
 		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
@@ -1465,9 +1468,6 @@ long			resultV, i;
 		if (m_BVisibleSelection && (m_ItemSelected >= 0))
 			if (GetItemBounds( m_ItemSelected, &boundsR ))
 			{
-			wxClientDC			dc( this );
-			wxColumnHeaderItem	*itemRef;
-
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
 				wxColumnHeaderItem::GenericDrawSelection(
