@@ -76,6 +76,15 @@ enum wxColumnHeaderSelectionDrawStyle
     CH_SELECTIONDRAWSTYLE_Bullet
 };
 
+enum wxColumnHeaderArrowButtonStyle
+{
+    CH_ARROWBUTTONSTYLE_None,
+    CH_ARROWBUTTONSTYLE_Left,
+    CH_ARROWBUTTONSTYLE_Right,
+    CH_ARROWBUTTONSTYLE_Up,
+    CH_ARROWBUTTONSTYLE_Down
+};
+
 //---------------------------------------------------------------------------
 
 class wxColumnHeader;
@@ -171,12 +180,22 @@ public:
         bool                bSortAscending = false );
     void DeleteItem(
         long                itemIndex );
+    long GetArrowButtonStyle(
+        long                itemIndex ) const;
+    void SetArrowButtonStyle(
+        long                itemIndex,
+        long                targetStyle );
     void GetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef ) const;
     void SetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef );
+    long GetBitmapJustification(
+        long                itemIndex ) const;
+    void SetBitmapJustification(
+        long                itemIndex,
+        long                targetJust );
     wxString GetLabelText(
         long                itemIndex ) const;
     void SetLabelText(

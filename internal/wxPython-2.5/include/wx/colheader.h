@@ -82,6 +82,16 @@ wxColumnHeaderSelectionDrawStyle;
 #define CH_SELECTIONDRAWSTYLE_FIRST		CH_SELECTIONDRAWSTYLE_None
 #define CH_SELECTIONDRAWSTYLE_LAST		CH_SELECTIONDRAWSTYLE_Bullet
 
+enum
+{
+	CH_ARROWBUTTONSTYLE_None,
+	CH_ARROWBUTTONSTYLE_Left,
+	CH_ARROWBUTTONSTYLE_Right,
+	CH_ARROWBUTTONSTYLE_Up,
+	CH_ARROWBUTTONSTYLE_Down
+}
+wxColumnHeaderArrowButtonStyle;
+
 // ----------------------------------------------------------------------------
 // wxColumnHeader events
 // ----------------------------------------------------------------------------

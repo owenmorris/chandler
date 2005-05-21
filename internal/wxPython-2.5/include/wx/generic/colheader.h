@@ -124,12 +124,23 @@ public:
 		bool				bSortEnabled,
 		bool				bSortAscending );
 
+	long GetArrowButtonStyle(
+		long				itemIndex ) const;
+	void SetArrowButtonStyle(
+		long				itemIndex,
+		long				targetStyle );
+
 	void GetBitmapRef(
 		long				itemIndex,
 		wxBitmap			&bitmapRef ) const;
 	void SetBitmapRef(
 		long				itemIndex,
 		wxBitmap			&bitmapRef );
+	long GetBitmapJustification(
+		long				itemIndex ) const;
+	void SetBitmapJustification(
+		long				itemIndex,
+		long				targetJust );
 
 	wxString GetLabelText(
 		long				itemIndex ) const;
@@ -140,7 +151,7 @@ public:
 		long				itemIndex ) const;
 	void SetLabelJustification(
 		long				itemIndex,
-		long				textJust );
+		long				targetJust );
 
 	wxSize GetUIExtent(
 		long				itemIndex ) const;
@@ -275,20 +286,26 @@ public:
 	void SetItemData(
 		const wxColumnHeaderItem		*info );
 
+	long GetArrowButtonStyle( void ) const;
+	void SetArrowButtonStyle(
+		long				targetStyle );
+
 	void GetBitmapRef(
 		wxBitmap			&bitmapRef ) const;
 	void SetBitmapRef(
 		wxBitmap			&bitmapRef,
 		const wxRect		*boundsR );
+	long GetBitmapJustification( void ) const;
+	void SetBitmapJustification(
+		long				targetJust );
 
 	void GetLabelText(
 		wxString			&textBuffer ) const;
 	void SetLabelText(
 		const wxString		&textBuffer );
-
 	long GetLabelJustification( void ) const;
 	void SetLabelJustification(
-		long				textJust );
+		long				targetJust );
 
 	void GetUIExtent(
 		long				&originX,
@@ -318,6 +335,10 @@ public:
 		bool				bUseUnicode,
 		bool				bVisibleSelection );
 #endif
+
+	void DrawButtonArrow(
+		wxDC			*dc,
+		const wxRect		*localBoundsR );
 
 	void ResizeToWidth(
 		long				extentX );
@@ -380,6 +401,8 @@ protected:
 	long					m_LabelTextVisibleCharCount;
 	long					m_TextJust;
 	wxBitmap				*m_BitmapRef;
+	long					m_BitmapJust;
+	long					m_ButtonArrowStyle;
 	long					m_OriginX;
 	long					m_ExtentX;
 	bool					m_BEnabled;

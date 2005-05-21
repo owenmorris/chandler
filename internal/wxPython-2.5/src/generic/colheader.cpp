@@ -936,6 +936,7 @@ long					originX;
 
 	// set invariant values
 	itemInfo.m_BEnabled = true;
+	itemInfo.m_BitmapJust = CH_JUST_Center;
 
 	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
@@ -1132,6 +1133,35 @@ wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 		return NULL;
 }
 
+long wxColumnHeader::GetArrowButtonStyle(
+	long				itemIndex ) const
+{
+wxColumnHeaderItem		*itemRef;
+long						targetStyle;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+		targetStyle = itemRef->GetArrowButtonStyle();
+	else
+		targetStyle = 0;
+
+	return targetStyle;
+}
+
+void wxColumnHeader::SetArrowButtonStyle(
+	long				itemIndex,
+	long				targetStyle )
+{
+wxColumnHeaderItem		*itemRef;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		itemRef->SetArrowButtonStyle( targetStyle );
+		RefreshItem( itemIndex );
+	}
+}
+
 void wxColumnHeader::GetBitmapRef(
 	long				itemIndex,
 	wxBitmap			&bitmapRef ) const
@@ -1163,6 +1193,35 @@ wxRect					boundsR;
 	{
 		GetItemBounds( itemIndex, &boundsR );
 		itemRef->SetBitmapRef( bitmapRef, &boundsR );
+		RefreshItem( itemIndex );
+	}
+}
+
+long wxColumnHeader::GetBitmapJustification(
+	long				itemIndex ) const
+{
+wxColumnHeaderItem		*itemRef;
+long						targetJust;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+		targetJust = itemRef->GetBitmapJustification();
+	else
+		targetJust = 0;
+
+	return targetJust;
+}
+
+void wxColumnHeader::SetBitmapJustification(
+	long				itemIndex,
+	long				targetJust )
+{
+wxColumnHeaderItem		*itemRef;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		itemRef->SetBitmapJustification( targetJust );
 		RefreshItem( itemIndex );
 	}
 }
@@ -1206,27 +1265,27 @@ long wxColumnHeader::GetLabelJustification(
 	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
-long						textJust;
+long						targetJust;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
-		textJust = itemRef->GetLabelJustification();
+		targetJust = itemRef->GetLabelJustification();
 	else
-		textJust = 0;
+		targetJust = 0;
 
-	return textJust;
+	return targetJust;
 }
 
 void wxColumnHeader::SetLabelJustification(
 	long				itemIndex,
-	long				textJust )
+	long				targetJust )
 {
 wxColumnHeaderItem		*itemRef;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
 	{
-		itemRef->SetLabelJustification( textJust );
+		itemRef->SetLabelJustification( targetJust );
 		RefreshItem( itemIndex );
 	}
 }
@@ -1355,7 +1414,7 @@ long		i;
 long wxColumnHeader::Draw( void )
 {
 wxRect		boundsR;
-long			resultV;
+long			resultV, i;
 
 	resultV = 0;
 
@@ -1366,7 +1425,6 @@ long			resultV;
 	if (m_BUseGenericRenderer)
 	{
 	wxPaintDC	dc( this );
-	long			i;
 
 		dc.SetFont( m_Font );
 
@@ -1394,12 +1452,21 @@ long			resultV;
 		// render native control window
 		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
+		// if specified, render any button arrows
+		for (i=0; i<m_ItemCount; i++)
+		{
+			itemRef = GetItemRef( itemIndex );
+			if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
+				itemRef->DrawButtonArrow( &dc, &boundsR );
+		}
+
 		// MSW case - add selection indicator - no appropriate native adornment exists
 		// FIXME: the DC has to be a wxClientDC instead of a wxPaintDC - why?
 		if (m_BVisibleSelection && (m_ItemSelected >= 0))
 			if (GetItemBounds( m_ItemSelected, &boundsR ))
 			{
-			wxClientDC		dc( this );
+			wxClientDC			dc( this );
+			wxColumnHeaderItem	*itemRef;
 
 				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
 
@@ -1415,7 +1482,6 @@ long			resultV;
 	if (! m_BUseGenericRenderer)
 	{
 	wxPaintDC	dc( this );
-	long			i;
 
 		dc.SetFont( m_Font );
 
@@ -1657,14 +1723,11 @@ long					resultV, nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 
-	// add sort arrows as needed
-	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
-	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
-		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
-
 	// NB: should sort arrows and bitmaps be MutEx?
 	if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
 	{
+		newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
+
 		// add bitmap reference
 		newFmt |= HDF_BITMAP;
 		itemData.mask |= HDI_BITMAP;
@@ -1672,10 +1735,17 @@ long					resultV, nWidth;
 	}
 	else
 	{
+		// add sort arrows as needed
+		newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
+
 		// add string reference
 		newFmt |= HDF_STRING;
 		itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
 	}
+
+	// add sort arrows as needed
+	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
+		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	if (! bCheckChanged || (itemData.fmt != newFmt))
 	{
@@ -1738,6 +1808,8 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	:
 	m_TextJust( 0 )
 	, m_BitmapRef( NULL )
+	, m_BitmapJust( 0 )
+	, m_ButtonArrowStyle( 0 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1754,6 +1826,8 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	:
 	m_TextJust( 0 )
 	, m_BitmapRef( NULL )
+	, m_BitmapJust( 0 )
+	, m_ButtonArrowStyle( 0 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1782,6 +1856,7 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_TextJust = m_TextJust;
 	info->m_LabelTextExtent = m_LabelTextExtent;
 	info->m_LabelTextVisibleCharCount = m_LabelTextVisibleCharCount;
+	info->m_ButtonArrowStyle = m_ButtonArrowStyle;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
 	info->m_BEnabled = m_BEnabled;
@@ -1792,6 +1867,7 @@ void wxColumnHeaderItem::GetItemData(
 
 	GetLabelText( info->m_LabelTextRef );
 
+	info->m_BitmapJust = m_BitmapJust;
 	if (info->m_BitmapRef != m_BitmapRef)
 		if (info->m_BitmapRef != NULL)
 			GetBitmapRef( *(info->m_BitmapRef) );
@@ -1806,6 +1882,7 @@ void wxColumnHeaderItem::SetItemData(
 	m_TextJust = info->m_TextJust;
 	m_LabelTextExtent = info->m_LabelTextExtent;
 	m_LabelTextVisibleCharCount = info->m_LabelTextVisibleCharCount;
+	m_ButtonArrowStyle = info->m_ButtonArrowStyle;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
 	m_BEnabled = info->m_BEnabled;
@@ -1816,8 +1893,20 @@ void wxColumnHeaderItem::SetItemData(
 
 	SetLabelText( info->m_LabelTextRef );
 
+	m_BitmapJust = info->m_BitmapJust;
 	if (info->m_BitmapRef != m_BitmapRef)
 		SetBitmapRef( *(info->m_BitmapRef), NULL );
+}
+
+long wxColumnHeaderItem::GetArrowButtonStyle( void ) const
+{
+	return m_ButtonArrowStyle;
+}
+
+void wxColumnHeaderItem::SetArrowButtonStyle(
+	long				targetStyle )
+{
+	m_ButtonArrowStyle = targetStyle;
 }
 
 void wxColumnHeaderItem::GetBitmapRef(
@@ -1863,6 +1952,17 @@ wxRect			targetBoundsR;
 	}
 }
 
+long wxColumnHeaderItem::GetBitmapJustification( void ) const
+{
+	return m_BitmapJust;
+}
+
+void wxColumnHeaderItem::SetBitmapJustification(
+	long				targetJust )
+{
+	m_BitmapJust = targetJust;
+}
+
 void wxColumnHeaderItem::GetLabelText(
 	wxString			&textBuffer ) const
 {
@@ -1882,9 +1982,9 @@ long wxColumnHeaderItem::GetLabelJustification( void ) const
 }
 
 void wxColumnHeaderItem::SetLabelJustification(
-	long				textJust )
+	long				targetJust )
 {
-	m_TextJust = textJust;
+	m_TextJust = targetJust;
 }
 
 void wxColumnHeaderItem::GetUIExtent(
@@ -2015,7 +2115,7 @@ ThemeButtonDrawInfo		drawInfo;
 Rect					qdBoundsR;
 long					nativeTextJust;
 SInt16				nativeFontID;
-bool					bSelected, bHasIcon;
+bool					bSelected, bHasButtonArrow, bHasBitmap;
 OSStatus				errStatus;
 
 //	if ((boundsR == NULL) || boundsR->IsEmpty())
@@ -2031,7 +2131,8 @@ OSStatus				errStatus;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasIcon = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
+	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
+	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -2068,7 +2169,7 @@ OSStatus				errStatus;
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
 	// render the label text as/if specified
-	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
+	if (! bHasBitmap && ! m_LabelTextRef.IsEmpty())
 	{
 	wxString		targetStr;
 	long			startX, originX, maxExtentX;
@@ -2102,7 +2203,10 @@ OSStatus				errStatus;
 		{
 		CFStringRef			cfLabelText;
 
-			cfLabelText = CFStringCreateWithCString( NULL, (const char*)(targetStr.c_str()), kCFStringEncodingMacRoman );
+			cfLabelText =
+				CFStringCreateWithCString(
+					NULL, (const char*)(targetStr.c_str()),
+					kCFStringEncodingMacRoman );
 			if (cfLabelText != NULL)
 			{
 				errStatus =
@@ -2116,12 +2220,16 @@ OSStatus				errStatus;
 		}
 	}
 
-	// render the bitmap, should one be present
-	if (bHasIcon)
+	// if specified, render the button arrow or bitmap
+	if (bHasButtonArrow)
+	{
+		DrawButtonArrow( dc, boundsR );
+	}
+	else if (bHasBitmap)
 	{
 	wxRect		subItemBoundsR;
 
-		GenericGetBitmapItemBounds( boundsR, m_TextJust, m_BitmapRef, &subItemBoundsR );
+		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2138,7 +2246,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 {
 wxRect		localBoundsR, subItemBoundsR;
 long			startX, originX, maxExtentX, descentY;
-bool			bSelected, bHasIcon;
+bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	wxUnusedVar( bUseUnicode );
 
@@ -2151,7 +2259,8 @@ bool			bSelected, bHasIcon;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasIcon = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
+	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
+	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
@@ -2159,7 +2268,7 @@ bool			bSelected, bHasIcon;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 	// draw (justified) label text (if specified)
-	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
+	if (! bHasBitmap && ! m_LabelTextRef.IsEmpty())
 	{
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
@@ -2188,10 +2297,14 @@ bool			bSelected, bHasIcon;
 		}
 	}
 
-	// render the bitmap, should one be present
-	if (bHasIcon)
+	// if specified, render the button arrow or bitmap
+	if (bHasButtonArrow)
 	{
-		GenericGetBitmapItemBounds( &localBoundsR, m_TextJust, m_BitmapRef, &subItemBoundsR );
+		DrawButtonArrow( dc, boundsR );
+	}
+	else if (bHasBitmap)
+	{
+		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -2206,6 +2319,24 @@ bool			bSelected, bHasIcon;
 	}
 
 	return 0;
+}
+
+void wxColumnHeaderItem::DrawButtonArrow(
+	wxDC			*dc,
+	const wxRect		*localBoundsR )
+{
+wxRect		subItemBoundsR;
+
+	if ((dc == NULL) || (localBoundsR == NULL))
+		return;
+
+	GenericGetBitmapItemBounds( localBoundsR, m_BitmapJust, NULL, &subItemBoundsR );
+	dc->SetPen( *wxBLACK_PEN );
+	dc->SetBrush( *wxBLACK_BRUSH );
+	GenericDrawArrow(
+		dc, &subItemBoundsR,
+		((m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Left) || (m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Up)),
+		((m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Up) || (m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Down)) );
 }
 
 void wxColumnHeaderItem::CalculateTextExtent(
@@ -2490,13 +2621,13 @@ long			borderWidth, offsetY;
 	default:
 		// underline style - similar to MSW rollover drawing
 		// overline style - similar to MSW tab highlighting
-		borderWidth = 6;
+		borderWidth = 3;
 		targetPen.SetWidth( borderWidth );
 		dc->SetPen( targetPen );
 
 		offsetY = 0;
 		if (drawStyle == CH_SELECTIONDRAWSTYLE_Underline)
-			offsetY = boundsR->height;
+			offsetY = boundsR->height - borderWidth;
 
 		dc->DrawLine(
 			boundsR->x,
