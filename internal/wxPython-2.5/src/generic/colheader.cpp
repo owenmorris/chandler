@@ -1460,7 +1460,7 @@ long			resultV, i;
 		{
 			itemRef = GetItemRef( i );
 			if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
-				if (GetItemBounds( m_ItemSelected, &boundsR ))
+				if (GetItemBounds( i, &boundsR ))
 					itemRef->DrawButtonArrow( &dc, &boundsR );
 		}
 
