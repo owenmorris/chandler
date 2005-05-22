@@ -26,25 +26,24 @@ class TestPanel( wx.Panel ):
         self.stepDir = -1
 
         # "no" to sort arrows for this list
-        cntlID = 1001
-        prompt = "ColumnHeader (%d)" %(cntlID)
+        self.baseCntlID = 1001
+        prompt = "ColumnHeader (%d)" %(self.baseCntlID)
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, self.colStartY), (200, 20) )
 
-        ch1 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 20), (self.baseWidth1, self.colHeight), 0 )
+        ch1 = wx.colheader.ColumnHeader( self, self.baseCntlID, (self.colStartX, self.colStartY + 20), (self.baseWidth1, self.colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
             ch1.AddItem( -1, v, wx.colheader.CH_JUST_Center, 50, 0, 0, 1 )
         ch1.SetSelectedItem( 0 )
         self.ch1 = ch1
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch1 )
-        #ch1.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
+        #ch1.SetToolTipString( "ColumnHeader (%d)" %(self.baseCntlID) )
 
         # "yes" to sort arrows for this list
-        cntlID = 1002
-        prompt = "ColumnHeader (%d)" %(cntlID)
+        prompt = "ColumnHeader (%d)" %(self.baseCntlID + 1)
         l2 = wx.StaticText( self, -1, prompt, (self.colStartX, self.colStartY + 80), (200, 20) )
 
-        ch2 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 100), (self.baseWidth2, self.colHeight), 0 )
+        ch2 = wx.colheader.ColumnHeader( self, self.baseCntlID + 1, (self.colStartX, self.colStartY + 100), (self.baseWidth2, self.colHeight), 0 )
         coffeeNames = [ "Juan", "Valdez", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
             ch2.AddItem( -1, v, wx.colheader.CH_JUST_Left + i, 90, 0, 1, 1 )
@@ -55,7 +54,24 @@ class TestPanel( wx.Panel ):
         #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # add demo UI controls
-        miscControlsY = 175
+        miscControlsY = 190
+        self.colStartX = 10
+
+        cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
+        cb1.SetValue( ch1.IsEnabled() )
+
+        cb2 = wx.CheckBox( self, -1, "Generic Renderer", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestGenericRendererCheckBox, cb2 )
+        cb2.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer ) )
+
+        cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
+        cb3.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection ) )
+
+        cb4 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 75), (200, 20), wx.NO_BORDER )
+        self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb4 )
+        cb4.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing ) )
 
         if (ch1.GetAttribute( wx.colheader.CH_ATTR_Unicode )):
                 prompt = "Unicode build"
@@ -76,41 +92,38 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 5 + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeDivision, btn )
 
+        self.colStartX += 165
+
         btn = wx.Button( self, -1, "Deselect", (self.colStartX, miscControlsY) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
 
         btn = wx.Button( self, -1, "Resize Bounds", (self.colStartX, miscControlsY + 30) )
         self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
-        styleList = ['None', 'Native', 'BoldLabel', 'ColourLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
-        wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 75), (150, -1) )
-        choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 95), choices = styleList )
-        choice.SetSelection( ch1.GetSelectionDrawStyle() )
-        self.Bind( wx.EVT_CHOICE, self.OnEvtChoice, choice )
-
         self.colStartX += 150
 
-        cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
-        cb1.SetValue( ch1.IsEnabled() )
+        styleList = ['None', 'Native', 'BoldLabel', 'ColourLabel', 'Grey', 'InvertBevel', 'Underline', 'Overline', 'Frame', 'Bullet']
+        wx.StaticText( self, -1, "Selection Style:", (self.colStartX, miscControlsY + 0), (150, -1) )
+        choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 20), choices = styleList )
+        choice.SetSelection( ch1.GetSelectionDrawStyle() )
+        self.Bind( wx.EVT_CHOICE, self.OnEvtChoiceSelectionStyle, choice )
 
-        cb2 = wx.CheckBox( self, -1, "Generic Renderer", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestGenericRendererCheckBox, cb2 )
-        cb2.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer ) )
-
-        cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
-        cb3.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection ) )
-
-        cb4 = wx.CheckBox( self, -1, "Proportional Resizing", (self.colStartX, miscControlsY + 75), (200, 20), wx.NO_BORDER )
-        self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb4 )
-        cb4.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing ) )
+        styleList = ['None', 'Left', 'Right', 'Up', 'Down']
+        wx.StaticText( self, -1, "Arrow Button Style:", (self.colStartX, miscControlsY + 50), (150, -1) )
+        choice = wx.Choice( self, -1, (self.colStartX, miscControlsY + 70), choices = styleList )
+        itemIndex = self.ch2.GetSelectedItem()
+        if ((itemIndex >= 0) and (itemIndex < self.ch2.GetItemCount())):
+            choice.SetSelection( self.ch2.GetArrowButtonStyle( itemIndex ) )
+        self.Bind( wx.EVT_CHOICE, self.OnEvtChoiceArrowButton, choice )
+        self.choiceAB = choice
 
         self.colStartX = 175
 
     def OnClickColumnHeader( self, event ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "(%d): clicked - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
+        if (ch.GetId() == self.baseCntlID + 1):
+            self.choiceAB.SetSelection( ch.GetSelectedItem() - 1 )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
 
     def OnButtonTestResizeBounds( self, event ):
@@ -199,11 +212,18 @@ class TestPanel( wx.Panel ):
         self.ch2.SetAttribute( wx.colheader.CH_ATTR_ProportionalResizing, curEnabled )
         self.l0.SetLabel( "proportional resizing (%d)" %(curEnabled) )
 
-    def OnEvtChoice( self, event ):
+    def OnEvtChoiceSelectionStyle( self, event ):
         ch = event.GetEventObject()
         self.ch1.SetSelectionDrawStyle( event.GetSelection() )
         self.ch2.SetSelectionDrawStyle( event.GetSelection() )
-        self.l0.SetLabel( "Choice hit (%d - %s)" %(event.GetSelection(), event.GetString()) )
+        self.l0.SetLabel( "SelectionDrawStyle item (%d - %s)" %(event.GetSelection(), event.GetString()) )
+
+    def OnEvtChoiceArrowButton( self, event ):
+        ch = event.GetEventObject()
+        itemIndex = self.ch2.GetSelectedItem()
+        if ((itemIndex >= 0) and (itemIndex < self.ch2.GetItemCount())):
+            self.ch2.SetArrowButtonStyle( itemIndex, event.GetSelection() )
+        self.l0.SetLabel( "ArrowButton item (%d - %s)" %(event.GetSelection(), event.GetString()) )
 
 #----------------------------------------------------------------------
 
@@ -223,7 +243,7 @@ overview = """<html><body>
 
 <p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot.</p>
 
-<p>Selections, bitmaps and sort arrows are optional</p>
+<p>Selections, bitmaps, button arrows and sort arrows are optional</p>
 
 <p>NB: not all of the selection styles are implemented</p>
 

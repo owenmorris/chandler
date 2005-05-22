@@ -301,7 +301,7 @@ bool		bResultV;
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
 			m_ItemList[i]->SetAttribute( CH_ITEM_ATTR_Enabled, bEnable );
 
-		RefreshItem( i );
+		RefreshItem( i, false );
 	}
 
 	// force a redraw
@@ -539,10 +539,7 @@ long			curSelectionIndex;
 				item->SetAttribute( CH_ITEM_ATTR_SortDirection, ! bSortFlag );
 
 				if (m_BVisibleSelection)
-				{
-					RefreshItem( itemIndex );
-					SetViewDirty();
-				}
+					RefreshItem( itemIndex, true );
 			}
 
 		// for testing: can induce text wrapping outside of bounds rect
@@ -596,10 +593,7 @@ void wxColumnHeader::SetSelectionDrawStyle(
 	m_SelectionDrawStyle = styleValue;
 
 	if (m_ItemSelected >= 0)
-	{
-		RefreshItem( m_ItemSelected );
-		SetViewDirty();
-	}
+		RefreshItem( m_ItemSelected, true );
 }
 
 bool wxColumnHeader::GetAttribute(
@@ -670,10 +664,7 @@ bool			bResult;
 			m_BVisibleSelection = bFlagValue;
 
 			if (m_ItemSelected >= 0)
-			{
-				RefreshItem( m_ItemSelected );
-				SetViewDirty();
-			}
+				RefreshItem( m_ItemSelected, true );
 		}
 		break;
 
@@ -774,7 +765,7 @@ long		deltaX, summerX, resultX, originX, incX;
 	}
 
 	for (i=0; i<m_ItemCount; i++)
-		RefreshItem( i );
+		RefreshItem( i, false );
 	SetViewDirty();
 
 	return true;
@@ -823,9 +814,8 @@ long						deltaV, newExtent1, newExtent2;
 	itemRef1->ResizeToWidth( newExtent1 );
 	itemRef2->ResizeToWidth( newExtent2 );
 
-	RefreshItem( itemIndex - 1 );
-	RefreshItem( itemIndex );
-	SetViewDirty();
+	RefreshItem( itemIndex - 1, true );
+	RefreshItem( itemIndex, true );
 
 	return true;
 }
@@ -859,7 +849,7 @@ bool		bSelected;
 			if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
 				m_ItemList[i]->SetAttribute( CH_ITEM_ATTR_Selected, bSelected );
 
-			RefreshItem( i );
+			RefreshItem( i, false );
 		}
 
 		m_ItemSelected = itemIndex;
@@ -1023,7 +1013,7 @@ bool				bIsSelected;
 	{
 		RecalculateItemExtents();
 		for (i=0; i<itemCount; i++)
-			RefreshItem( i + (m_ItemCount - itemCount) );
+			RefreshItem( i + (m_ItemCount - itemCount), false );
 	}
 
 	// if this moves the selection, reset it
@@ -1158,7 +1148,7 @@ wxColumnHeaderItem		*itemRef;
 	if (itemRef != NULL)
 	{
 		itemRef->SetArrowButtonStyle( targetStyle );
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1193,7 +1183,7 @@ wxRect					boundsR;
 	{
 		GetItemBounds( itemIndex, &boundsR );
 		itemRef->SetBitmapRef( bitmapRef, &boundsR );
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1222,7 +1212,7 @@ wxColumnHeaderItem		*itemRef;
 	if (itemRef != NULL)
 	{
 		itemRef->SetBitmapJustification( targetJust );
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1257,7 +1247,7 @@ wxColumnHeaderItem		*itemRef;
 	if (itemRef != NULL)
 	{
 		itemRef->SetLabelText( textBuffer );
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1286,7 +1276,7 @@ wxColumnHeaderItem		*itemRef;
 	if (itemRef != NULL)
 	{
 		itemRef->SetLabelJustification( targetJust );
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1328,7 +1318,7 @@ wxColumnHeaderItem		*itemRef;
 		itemRef->SetUIExtent( extentPt.x, extentPt.y );
 
 		RecalculateItemExtents();
-		RefreshItem( itemIndex );
+		RefreshItem( itemIndex, true );
 	}
 }
 
@@ -1360,7 +1350,7 @@ bool					bResultV;
 	if (bResultV)
 	{
 		if (itemRef->SetAttribute( flagEnum, bFlagValue ))
-			RefreshItem( itemIndex );
+			RefreshItem( itemIndex, true );
 	}
 
 	return bResultV;
@@ -1511,12 +1501,16 @@ void wxColumnHeader::SetViewDirty( void )
 }
 
 void wxColumnHeader::RefreshItem(
-	long			itemIndex )
+	long				itemIndex,
+	bool				bForceRedraw )
 {
 #if defined(__WXMSW__)
 	// NB: need to update native item
 	MSWItemRefresh( itemIndex, false );
 #endif
+
+	if (bForceRedraw)
+		SetViewDirty();
 }
 
 void wxColumnHeader::RecalculateItemExtents( void )
@@ -1930,7 +1924,7 @@ wxRect			targetBoundsR;
 
 	if ((boundsR != NULL) && ValidBitmapRef( &bitmapRef ))
 	{
-		GenericGetBitmapItemBounds( boundsR, m_TextJust, NULL, &targetBoundsR );
+		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, NULL, &targetBoundsR );
 		if ((bitmapRef.GetWidth() > targetBoundsR.width) || (bitmapRef.GetHeight() > targetBoundsR.height))
 		{
 		wxBitmap		localBitmap;
@@ -2132,8 +2126,8 @@ OSStatus				errStatus;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
+	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -2159,21 +2153,33 @@ OSStatus				errStatus;
 //	drawInfo.adornment = kThemeAdornmentArrowDownArrow;
 
 	// NB: DrawThemeButton height is fixed, regardless of the boundsRect argument!
-	if (! m_BSortEnabled)
+	if (! m_BSortEnabled || bHasButtonArrow)
 		MacDrawThemeBackgroundNoArrows( &qdBoundsR, bSelected && m_BEnabled );
 	else
+		// FIXME: should have HIDrawThemeButton version for CORE_GRAPHICS build
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
 	// end of the dead attempt to tinge the background
 //	errStatus = RestoreTheme( origCol, newCol );
 
-	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
+	// as specified, render (justified) either: button arrow, bitmap or label text
+	if (bHasButtonArrow)
+	{
+		DrawButtonArrow( dc, boundsR );
+	}
+	else if (bHasBitmap)
+	{
+	wxRect		subItemBoundsR;
 
-	// render the label text as/if specified
-	if (! bHasBitmap && ! m_LabelTextRef.IsEmpty())
+		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
+	}
+	else if (! m_LabelTextRef.IsEmpty())
 	{
 	wxString		targetStr;
 	long			startX, originX, maxExtentX;
+
+		nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
@@ -2221,19 +2227,6 @@ OSStatus				errStatus;
 		}
 	}
 
-	// if specified, render the button arrow or bitmap
-	if (bHasButtonArrow)
-	{
-		DrawButtonArrow( dc, boundsR );
-	}
-	else if (bHasBitmap)
-	{
-	wxRect		subItemBoundsR;
-
-		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
-		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
-	}
-
 	return (long)errStatus;
 }
 #endif
@@ -2260,16 +2253,25 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	// determine selection and bitmap rendering conditions
 	bSelected = m_BSelected && bVisibleSelection;
-	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 	bHasButtonArrow = (m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
+	bHasBitmap = ((dc != NULL) && ValidBitmapRef( m_BitmapRef ));
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
-	// draw (justified) label text (if specified)
-	if (! bHasBitmap && ! m_LabelTextRef.IsEmpty())
+	// as specified, render (justified) either: button arrow, bitmap or label text
+	if (bHasButtonArrow)
+	{
+		DrawButtonArrow( dc, boundsR );
+	}
+	else if (bHasBitmap)
+	{
+		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
+	}
+	else if (! m_LabelTextRef.IsEmpty())
 	{
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
@@ -2298,20 +2300,9 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 		}
 	}
 
-	// if specified, render the button arrow or bitmap
-	if (bHasButtonArrow)
-	{
-		DrawButtonArrow( dc, boundsR );
-	}
-	else if (bHasBitmap)
-	{
-		GenericGetBitmapItemBounds( boundsR, m_BitmapJust, m_BitmapRef, &subItemBoundsR );
-		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
-	}
-
 	// draw sort direction arrows (if specified)
 	// NB: what if icon avail? mutually exclusive?
-	if (bSelected && m_BSortEnabled)
+	if (bSelected && m_BSortEnabled && !bHasButtonArrow)
 	{
 		GenericGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
 		dc->SetPen( *wxGREY_PEN );
@@ -2336,7 +2327,7 @@ wxRect		subItemBoundsR;
 	dc->SetBrush( *wxBLACK_BRUSH );
 	GenericDrawArrow(
 		dc, &subItemBoundsR,
-		((m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Left) || (m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Up)),
+		((m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Up) || (m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Left)),
 		((m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Up) || (m_ButtonArrowStyle == CH_ARROWBUTTONSTYLE_Down)) );
 }
 
@@ -2549,6 +2540,8 @@ OSStatus			errStatus;
 	savedClipRgn = NewRgn();
 	GetClip( savedClipRgn );
 	ClipRect( &qdBoundsR );
+
+	// FIXME: should have HIDrawThemeButton version for CORE_GRAPHICS build
 
 	// first, render the entire area normally: fill, border and arrows
 	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
@@ -2772,7 +2765,7 @@ int		sizeX, sizeY, insetX;
 		}
 
 		// if a bitmap was specified and it's smaller than the default bounds,
-		// center and shrink to fit
+		// then center and shrink to fit
 		if (targetBitmap != NULL)
 		{
 		long		deltaV;

@@ -203,7 +203,8 @@ protected:
 	wxColumnHeaderItem * GetItemRef(
 		long				itemIndex ) const;
 	void RefreshItem(
-		long				itemIndex );
+		long				itemIndex,
+		bool				bForceRedraw = true );
 
 	wxSize GetLabelTextExtent(
 		wxDC				*dc,
