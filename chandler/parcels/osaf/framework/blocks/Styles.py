@@ -38,21 +38,23 @@ fontCache = {}
 measurementsCache = {}
 
 platformDefaultFaceName = None
+platformDefaultFamily = None
 platformSizeScalingFactor = 0.0
 
 def getFont(characterStyle):
     # First time, get a couple of defaults
-    global platformDefaultFaceName, platformSizeScalingFactor
+    global platformDefaultFaceName, platformDefaultFamily, platformSizeScalingFactor
     if platformDefaultFaceName is None:
         defaultGuiFont = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT)
         platformDefaultFaceName = defaultGuiFont.GetFaceName()
+        platformDefaultFamily = defaultGuiFont.GetFamily()
         platformSizeScalingFactor = defaultGuiFont.GetPointSize() / 11.0
 
     # We default to an 11-point font, which gets scaled by the size of the
     # platform's default GUI font (which we measured just above). It's 11
     # because that's the size of the Mac's default GUI font, which is what
     # Mimi thinks in terms of.
-    family = wx.DEFAULT
+    family = platformDefaultFamily
     size = 11
     style = wx.NORMAL
     underline = False
@@ -81,7 +83,7 @@ def getFont(characterStyle):
             elif lowerStyle == "underline":
                 underline = True
         
-    if family == wx.DEFAULT:
+    if family == platformDefaultFamily:
         name = platformDefaultFaceName
 
     # Scale the requested size by the platform's scaling factor (then round to int)

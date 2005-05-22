@@ -549,7 +549,7 @@ def RenderBlock(repoView, block):
         result += "<table class=block width=100%%>"
     else:
         result += "<table class=childlessblock width=100%%>"
-    result += "<tr class=block><td class=block valign=top><a href=%s?mode=blocks>%s</a></td></tr>" % (toLink(block.itsPath), name)
+    result += "<tr class=block><td class=block valign=top><a href=%s?mode=blocks>%s</a><a href=%s>.</a></td></tr>" % (toLink(block.itsPath), name, toLink(block.itsPath))
 
     if block.itsKind.itsName.lower().endswith('bar'):
         mode = 'horizontal'
@@ -900,7 +900,8 @@ def _getObjectValue(theObject, name):
     If it's a regular attribute (not callable), get its value.
     If it's callable, call it and get the resulting value (we call twice if necessary: once with
     no parameters, once with the object as a parameter).
-    Once we've got a value: if we'd gotten an index
+    Once we've got a value: if we'd gotten an index, treat the value as a list
+    and return the index-th thing
     """
     index = None
     global indexRE
@@ -935,12 +936,23 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
     
     displayedAttrs = { }
     for name in dir(theObject):
-        if name is None or name.endswith("Tuple") or not (name.startswith('Get') or name.startswith('Has') or name.startswith('Is')):
+        if name is None:
             continue
-        displayName = name.startswith("Get") and name[3:] or name
+        try:
+            attr = getattr(theObject, name)
+        except AttributeError:
+            continue
+        if callable(attr):
+            if (name.endswith("Tuple") or not (name.startswith('Get') or name.startswith('Has') or name.startswith('Is'))):
+                continue
+            displayName = "%s()" % name
+        elif name in ('__class__', '__dict__', '__doc__', '__module__', '__weakref__', 'this', 'thisown'):
+            continue
+        else:
+            displayName = name
         value = _getObjectValue(theObject, name)
-        if value is not None:
-            displayedAttrs[displayName] = (name, value)
+        
+        displayedAttrs[displayName] = (name, value)
 
     keys = displayedAttrs.keys()
     keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
@@ -960,15 +972,17 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
 
         if isinstance(value, list):
             results = []
-            for i in range(len(value)-1):
+            for i in range(len(value)):
                 v = value[i]
-                if str(v).find("; proxy of C++ ") != -1:
+                if isinstance(v, object):
                     results.append("<a href=%s?mode=object>%s</a>" % (toLink("%s/%s[%d]" % (objectPath[1:], name, i)), clean(v)))
                 else:
                     results.append("%s" % (clean(v)))
+                    # if isinstance(v, object): # str(v).find("; proxy of C++ ") != -1:
+
             result += ", ".join(results) + "<br>"
         else:            
-            if str(value).find("; proxy of C++ ") != -1:
+            if isinstance(value, object):
                 result += "<a href=%s?mode=object>%s</a><br>" % (toLink("%s/%s" % (objectPath[1:], name)), clean(value))
             else:
                 result += "%s<br>" % (clean(value))    
