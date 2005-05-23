@@ -806,6 +806,7 @@ class wxToolbarItem (wx.ToolBarToolBase):
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
+        # @@@DLD - remove this workaround for previous wxWidgets issues
         heightGutter = 9
         if self.buttonsLabeled:
             heightGutter += 14
