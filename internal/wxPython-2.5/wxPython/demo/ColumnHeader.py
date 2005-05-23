@@ -123,7 +123,7 @@ class TestPanel( wx.Panel ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "(%d): clicked - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
         if (ch.GetId() == self.baseCntlID + 1):
-            self.choiceAB.SetSelection( ch.GetSelectedItem() - 1 )
+            self.choiceAB.SetSelection( self.ch2.GetArrowButtonStyle( ch.GetSelectedItem() ) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
 
     def OnButtonTestResizeBounds( self, event ):
