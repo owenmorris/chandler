@@ -40,8 +40,8 @@ endif
 # auto-generated items list (all platforms)
 CLEANITEMSALL= \
 	$(SRC)/wxPython/docs/xml-raw/*.xml \
-	$(SRC)/wxPython/src/$(OSTAG)/media.py \
-	$(SRC)/wxPython/src/$(OSTAG)/media_wrap.cpp \
+	$(SRC)/wxPython/src/$(OSTAG)/*.py \
+	$(SRC)/wxPython/src/$(OSTAG)/*_wrap.cpp \
 	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos.py \
 	$(SRC)/wxPython/contrib/gizmos/$(OSTAG)/gizmos_wrap.cpp \
 	$(SRC)/wxPython/contrib/glcanvas/$(OSTAG)/glcanvas.py \
