@@ -805,13 +805,16 @@ class IconAttributeEditor (BaseAttributeEditor):
         return value
     
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
+        dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
-        imageName = self.GetAttributeValue(item, attributeName) + ".png"
-        image = wx.GetApp().GetImage(imageName)
-        if image is not None:
-            x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
-            y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
-            dc.DrawBitmap (image, x, y, True)
+        imageName = self.GetAttributeValue(item, attributeName)
+        if len(imageName):
+            imageName += ".png"
+            image = wx.GetApp().GetImage(imageName)
+            if image is not None:
+                x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
+                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+                dc.DrawBitmap (image, x, y, True)
 
 class EnumAttributeEditor (IconAttributeEditor):
     """
