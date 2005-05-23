@@ -31,7 +31,7 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/libdb*.dll \
                   $(SNAP)/bin/db/db_*.exe; \
 	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
@@ -66,9 +66,8 @@ clean:
 
 snap:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/icu-$(SNAP)-$(RELVER).tar.gz \
-		$(SNAP)/icu/bin $(SNAP)/icu/lib \
-		--exclude '*.a'; \
+        tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
+		$(SNAP)/icu/bin $(SNAP)/icu/lib; \
 	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif
