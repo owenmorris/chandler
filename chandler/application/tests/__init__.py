@@ -10,15 +10,8 @@ __all__ = [
     'TestClasses', 'TestClouds', 'TestCollections', 'TestCopying', 
     'TestDependency','TestItems', 'TestKindAndItem', 'TestLocalAttrs', 
     'TestNamespaceErrors', 'TestParcelErrors', 'TestParcelLoader','TestUuidOf',
-    'TestParcelPerf', 'test_schema_api',
+    'TestParcelPerf', 'TestSchemaAPI',
 ]
-
-def test_schema_api():
-    import doctest
-    return doctest.DocFileSuite(
-        'schema_api.txt', optionflags=doctest.ELLIPSIS, package='application',
-    )
-
 
 def suite():
     """Unit test suite; run by testing 'application.tests.suite'"""
@@ -28,3 +21,4 @@ def suite():
         [defaultTestLoader.loadTestsFromName(__name__+'.'+test_name)
             for test_name in __all__]
     )
+
