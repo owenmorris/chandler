@@ -223,8 +223,61 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         return m
 
 
-    def sendMailMessage(cls, from_addr, to_addrs, messageText, deferred, account, testing=False):
-        """XXX can only be called from twisted thread"""
+
+class _SMTPTransport(object):
+    #Can only be used in the Twisted Reactor Thread
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.mailMessage = None
+
+    def transportMail(self, mailMessage):
+        """Sends a mail message via SMTP using the account and mailMessage
+           passed to this classes __init__ method."""
+
+        if __debug__:
+            self.parent.printCurrentView("transport.__transportMail")
+
+        self.mailMessage = mailMessage
+
+        self.mailMessage.outgoingMessage(self.parent.account)
+
+        """Clear out any previous DeliveryErrors from a previous attempt"""
+        for item in self.mailMessage.deliveryExtension.deliveryErrors:
+            item.delete()
+
+        """Get the sender's Email Address will either be the Reply-To or From field"""
+        sender = self.__getSender()
+
+        if self.__mailMessageHasErrors(sender):
+            return
+
+
+        messageText = message.kindToMessageText(self.mailMessage)
+
+        d = defer.Deferred()
+        d.addCallback(self.parent.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
+        d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
+
+        self.__sendMail(sender.emailAddress, self.__getRcptTo(), messageText, d)
+
+
+    def testAccountSettings(self):
+        if __debug__:
+            self.parent.printCurrentView("transport.testSettings")
+
+        d = defer.Deferred()
+        d.addCallback(self.__testSuccess)
+        d.addErrback(self.__testFailure)
+
+        self.__sendMail("", [], "", d, True)
+
+
+    def __sendMail(self, from_addr, to_addrs, messageText, deferred, testing=False):
+        if __debug__:
+            self.parent.printCurrentView("transport.__sendMail")
+
+        account = self.parent.account
 
         username         = None
         password         = None
@@ -264,58 +317,6 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
 
         reactor.connectTCP(account.host, account.port, wrappingFactory)
 
-    sendMailMessage = classmethod(sendMailMessage)
-
-
-class _SMTPTransport(object):
-    #Can only be used in the Twisted Reactor Thread
-
-    def __init__(self, parent):
-        self.parent = parent
-        self.mailMessage = None
-
-    def transportMail(self, mailMessage):
-        """Sends a mail message via SMTP using the account and mailMessage
-           passed to this classes __init__ method."""
-
-        if __debug__:
-            self.parent.printCurrentView("transport.__transportMail")
-
-        self.mailMessage = mailMessage
-
-        self.mailMessage.outgoingMessage(self.parent.account)
-
-        """Clear out any previous DeliveryErrors from a previous attempt"""
-        for item in self.mailMessage.deliveryExtension.deliveryErrors:
-            item.delete()
-
-        """Get the sender's Email Address will either be the Reply-To or From field"""
-        sender = self.__getSender()
-
-        if self.__mailMessageHasErrors(sender):
-            return
-
-
-        messageText = message.kindToMessageText(self.mailMessage)
-
-        d = defer.Deferred()
-        d.addCallback(self.parent.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
-        d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
-
-        SMTPClient.sendMailMessage(sender.emailAddress, self.__getRcptTo(), \
-                                  messageText, d, self.parent.account)
-
-
-    def testAccountSettings(self):
-        if __debug__:
-            self.parent.printCurrentView("transport.testSettings")
-
-        d = defer.Deferred()
-        d.addCallback(self.__testSuccess)
-        d.addErrback(self.__testFailure)
-
-        SMTPClient.sendMailMessage("", [], "", d, \
-                                   self.parent.account, True)
 
     def __testSuccess(self, result):
         self.testing = False
