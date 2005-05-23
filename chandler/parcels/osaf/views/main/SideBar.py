@@ -119,7 +119,8 @@ class wxSidebar(ControlBlocks.wxTable):
                 elif not self.cellRect.InsideXY (event.GetX(), event.GetY()):
                     self.RefreshRect (self.imageRect)
                     del self.hoverImageRow
-                    gridWindow.ReleaseMouse()
+                    if gridWindow.HasCapture():
+                        gridWindow.ReleaseMouse()
                 self.buttonPressed = False
 
             elif not event.LeftIsDown():
@@ -127,7 +128,8 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.RefreshRect (self.imageRect)
                     del self.hoverImageRow
                     self.buttonPressed = False
-                    gridWindow.ReleaseMouse()
+                    if gridWindow.HasCapture():
+                        gridWindow.ReleaseMouse()
 
             elif (self.buttonPressed and
                   self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
@@ -186,6 +188,16 @@ class wxSidebar(ControlBlocks.wxTable):
             
             # Store current state
             self.hoverRow = hoverRow
+            
+    def OnHoverLeave (self):
+        # check if we had a hover row
+        try:
+            self.hoverRow
+        except AttributeError:
+            return
+        else:
+            # Clear the selection colour if necessary
+            self.SetRowHighlight(self.hoverRow, False)
             
     def SetRowHighlight (self, row, highlightOn):
         if highlightOn:

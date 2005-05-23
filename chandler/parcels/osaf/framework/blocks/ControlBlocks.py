@@ -7,7 +7,7 @@ import os, sys
 from application.Application import mixinAClass
 from Block import *
 from ContainerBlocks import *
-from DragAndDrop import DraggableWidget as DraggableWidget
+import DragAndDrop
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
@@ -325,7 +325,7 @@ class AttributeDelegate (ListDelegate):
         return heading
     
 
-class wxList (DraggableWidget, wx.ListCtrl):
+class wxList (DragAndDrop.DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnWXSelectItem, id=self.GetId())
@@ -359,8 +359,21 @@ class wxList (DraggableWidget, wx.ListCtrl):
         event.Skip()
 
     def OnItemDrag(self, event):
-        self.SetDragData (self.blockItem.contents [event.GetIndex()].itsUUID)
-                            
+        self.SetDragData (self.KindsCreatedByDrag())
+
+    def SelectedItems(self):
+        """
+        Return the list of items currently selected.
+        """
+        curIndex = -1
+        itemList = []
+        while True:
+            curIndex = self.GetNextItem(curIndex, wx.LIST_NEXT_ALL, wx.LIST_STATE_SELECTED)
+            itemList.append(self.blockItem.contents [curIndex])
+            if curIndex is -1:
+                break
+        return itemList
+
     def wxSynchronizeWidget(self):
         self.Freeze()
         self.ClearAll()
@@ -474,7 +487,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         return attribute
         
 
-class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
+class wxTable(DragAndDrop.DraggableWidget, DragAndDrop.DropReceiveWidget, wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -640,9 +653,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         # To fix bug 2159, tell the grid to release the mouse now because the
         # grid object may get destroyed before it has a chance to later on:
-        self.GetGridWindow().ReleaseMouse()
+        gridWindow = self.GetGridWindow()
+        if gridWindow.HasCapture():
+            gridWindow.ReleaseMouse()
 
-        self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
+        # make sure SelectedItemToView is up-to-date (shouldn't need to do this!)
+        if not self.blockItem.selection:
+            firstRow = event.GetRow()
+            self.blockItem.selection = [[firstRow, firstRow]]
+        self.SetDragData (self.KindsCreatedByDrag())
 
     def AddItem(self, itemUUID):
         item = self.blockItem.findUUID(itemUUID)
@@ -783,7 +802,22 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             newRowSelection = min(newRowSelection, totalItems - 1)
             self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
 
-
+    def SelectedItems(self):
+        """
+        Return the list of selected items.
+        """
+        selectionRanges = self.blockItem.selection
+        if not selectionRanges:
+            detailItem = self.blockItem.selectedItemToView
+            if detailItem is None:
+                return []
+            else:
+                return [detailItem]
+        itemList = []
+        for selectionRange in selectionRanges:
+            for index in xrange(selectionRange[0], selectionRange[1]+1):
+                itemList.append(self.blockItem.contents [index])
+        return itemList
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
@@ -1028,7 +1062,7 @@ class TreeAndListDelegate (ListDelegate):
 """
 
 
-class wxTreeAndList(DraggableWidget):
+class wxTreeAndList(DragAndDrop.DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxTreeAndList, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
@@ -1110,9 +1144,24 @@ class wxTreeAndList(DraggableWidget):
         
                 self.blockItem.postEventByName("SelectItemBroadcast", {'item':selection})
         event.Skip()
+        
+    def SelectedItems(self):
+        """
+        Return the list of selected items.
+        """
+        try:
+            idList = self.GetSelections() # multi-select API supported?
+        except:
+            idList = [self.GetSelection(), ] # use single-select API
+        # convert from ids, which are UUIDs, to items.
+        itemList = []
+        for id in idList:
+            itemUUID = self.GetItemData(id).GetData()
+            itemList.append(self.blockItem.findUUID(itemUUID))
+        return itemList
 
     def OnItemDrag(self, event):
-        self.SetDragData (self.GetItemData(event.GetItem()).GetData())
+        self.SetDragData (self.KindsCreatedByDrag())
         
     def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):

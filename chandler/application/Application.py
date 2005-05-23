@@ -429,12 +429,10 @@ class wxApplication (wx.App):
                         print indent, name
                         self.PrintTree (window, indent + "  ")
         
-    def GetImage (self, name):
+    def GetRawImage (self, name):
         """
-          Return None if image isn't found, otherwise loading an image
-        will log an error, puting up a dialog telling the user that some
-        file couldn't be found. The dialog is inappropriate for normal users.
-          Also look first for platform specific icons.
+          Return None if image isn't found, otherwise return the raw image.
+        Also look first for platform specific images.
         """
         root, extension = os.path.splitext (name)
         root = "application/images/" + root
@@ -446,7 +444,17 @@ class wxApplication (wx.App):
             except IOError:
                 return None
         stream = cStringIO.StringIO (file.read())
-        return wx.BitmapFromImage (wx.ImageFromStream (stream))
+        return wx.ImageFromStream (stream)
+
+    def GetImage (self, name):
+        """
+          Return None if image isn't found, otherwise loads a bitmap.
+        Looks first for platform specific bitmaps.
+        """
+        rawImage = self.GetRawImage (name)
+        if rawImage is None:
+            return None
+        return wx.BitmapFromImage (rawImage)
 
 
     def OnCommand(self, event):

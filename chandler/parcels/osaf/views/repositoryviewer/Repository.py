@@ -42,6 +42,8 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
         else:
             return element.hasChildren()
 
+    def KindAcceptedByDrop(self):
+        return ["Item"] # any item can be Dropped here
 
 class RepositoryItemDetail(ControlBlocks.ItemDetail):
 
