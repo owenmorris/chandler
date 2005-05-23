@@ -1,22 +1,21 @@
+# Account Preferences Dialog
+# Invoke this using the ShowAccountPreferencesDialog() method
+
 import os
 import wx
 import wx.xrc
+
 import application.Globals
-from repository.item.Query import KindQuery
-import osaf.contentmodel.mail.Mail as Mail
+import application.Parcel
 import application.dialogs.Util
+import osaf.contentmodel.mail.Mail as Mail
 import osaf.framework.sharing.WebDAV as WebDAV
 import osaf.framework.sharing.Sharing as Sharing
-import application.Parcel
 import osaf.current.Current as Current
+from repository.item.Query import KindQuery
 
-# Used to lookup the mail model parcel:
-MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
-# Used to lookup the sharing parcel:
-SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
 
 # Special handlers referenced in the PANELS dictionary below:
-
 
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
@@ -26,10 +25,10 @@ def IMAPSaveHandler(item, fields, values):
 
     # If either the host or username changes, we need to set this account item
     # to inactive and create a new one.
-    if (item.host and item.host != newServer) or (item.username and item.username != newUsername):
+    if (item.host and item.host != newServer) or \
+       (item.username and item.username != newUsername):
         item.isActive = False
         item = Mail.IMAPAccount(view=item.itsView)
-
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                             newAddressString,
@@ -37,7 +36,7 @@ def IMAPSaveHandler(item, fields, values):
 
     return item # Returning a non-None item tells the caller to continue
                 # processing this item.
-                # Returning None would tell the caller that processing this 
+                # Returning None would tell the caller that processing this
                 # item is complete.
 
 
@@ -54,7 +53,8 @@ def POPSaveHandler(item, fields, values):
 
     # If either the host or username changes, we need to set this account item
     # to inactive and create a new one.
-    if (item.host and item.host != newServer) or (item.username and item.username != newUsername):
+    if (item.host and item.host != newServer) or \
+       (item.username and item.username != newUsername):
         item.isActive = False
         item = Mail.POPAccount(view=item.itsView)
 
@@ -65,12 +65,12 @@ def POPSaveHandler(item, fields, values):
 
     return item # Returning a non-None item tells the caller to continue
                 # processing this item.
-                # Returning None would tell the caller that processing this 
+                # Returning None would tell the caller that processing this
                 # item is complete.
 
 
 def POPDeleteHandler(item, values, data):
-    # If this IMAP account is the default, then return False to indicate it
+    # If this POP account is the default, then return False to indicate it
     # can't be deleted; True otherwise.
     return not values['POP_DEFAULT']
 
@@ -84,7 +84,7 @@ def SMTPDeleteHandler(item, values, data):
                 isDefault = True
                 break
     return not isDefault
-    
+
 def WebDAVDeleteHandler(item, values, data):
     # If this WebDAV account is the default, then return False to indicate it
     # can't be deleted; True otherwise.
@@ -130,13 +130,13 @@ PANELS = {
             "IMAP_SECURE" : {
                 "attr" : "connectionSecurity",
                 "type" : "radioEnumeration",
-                "buttons" : { 
-                    "IMAP_SECURE_NO" : "NONE", 
-                    "IMAP_TLS" : "TLS", 
-                    "IMAP_SSL" : "SSL", 
+                "buttons" : {
+                    "IMAP_SECURE_NO" : "NONE",
+                    "IMAP_TLS" : "TLS",
+                    "IMAP_SSL" : "SSL",
                     },
                 "default" : "NONE",
-                "linkedTo" : ("IMAP_PORT", 
+                "linkedTo" : ("IMAP_PORT",
                               { "NONE":"143", "TLS":"143", "SSL":"993" } )
             },
             "IMAP_DEFAULT" : {
@@ -196,13 +196,13 @@ PANELS = {
             "POP_SECURE" : {
                 "attr" : "connectionSecurity",
                 "type" : "radioEnumeration",
-                "buttons" : { 
-                    "POP_SECURE_NO" : "NONE", 
-                    "POP_TLS" : "TLS", 
-                    "POP_SSL" : "SSL", 
+                "buttons" : {
+                    "POP_SECURE_NO" : "NONE",
+                    "POP_TLS" : "TLS",
+                    "POP_SSL" : "SSL",
                     },
                 "default" : "NONE",
-                "linkedTo" : ("POP_PORT", 
+                "linkedTo" : ("POP_PORT",
                               { "NONE":"110", "TLS":"110", "SSL":"995" } )
             },
             "POP_DEFAULT" : {
@@ -250,13 +250,13 @@ PANELS = {
             "SMTP_SECURE" : {
                 "attr" : "connectionSecurity",
                 "type" : "radioEnumeration",
-                "buttons" : { 
-                    "SMTP_SECURE_NO" : "NONE", 
-                    "SMTP_SECURE_TLS" : "TLS", 
-                    "SMTP_SECURE_SSL" : "SSL", 
+                "buttons" : {
+                    "SMTP_SECURE_NO" : "NONE",
+                    "SMTP_SECURE_TLS" : "TLS",
+                    "SMTP_SECURE_SSL" : "SSL",
                     },
                 "default" : "NONE",
-                "linkedTo" : ("SMTP_PORT", 
+                "linkedTo" : ("SMTP_PORT",
                               { "NONE":"25", "TLS":"25", "SSL":"465" } )
             },
             "SMTP_USE_AUTH" : {
@@ -331,6 +331,7 @@ PANELS = {
     },
 }
 
+
 # Generic defaults based on the attr type.  Use "default" on attr for
 # specific defaults.
 DEFAULTS = {'string': '', 'integer': 0, 'boolean': False}
@@ -355,13 +356,13 @@ class AccountPreferencesDialog(wx.Dialog):
         self.innerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.accountsPanel = self.resources.LoadPanel(self, "AccountsPanel")
         self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+
         self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-
         self.okCancelPanel = self.resources.LoadPanel(self, "OkCancelPanel")
-
         self.outerSizer.Add(self.okCancelPanel, 0,
          wx.ALIGN_BOTTOM|wx.ALIGN_RIGHT|wx.ALL, 5)
 
+        # Load the various account form panels:
         self.panels = {}
         for (key, value) in PANELS.iteritems():
             self.panels[key] = self.resources.LoadPanel(self, value['id'])
@@ -374,6 +375,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.accountsList = wx.xrc.XRCCTRL(self, "ACCOUNTS_LIST")
         self.choiceNewType = wx.xrc.XRCCTRL(self, "CHOICE_NEW_ACCOUNT")
 
+        # Populate the "new account" listbox:
         typeNames = []
         for (key, value) in PANELS.iteritems():
             # store a tuple with account type description, and name
@@ -401,16 +403,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.__PopulateAccountsList(account)
 
-
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
-
 
         self.Bind(wx.EVT_CHOICE, self.OnNewAccount,
                   id=wx.xrc.XRCID("CHOICE_NEW_ACCOUNT"))
         self.Bind(wx.EVT_BUTTON, self.OnDeleteAccount,
                   id=wx.xrc.XRCID("BUTTON_DELETE"))
-
 
         self.Bind(wx.EVT_LISTBOX, self.OnAccountSel,
          id=wx.xrc.XRCID("ACCOUNTS_LIST"))
@@ -422,7 +421,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.accountsList.SetFocus()
 
     def __PopulateAccountsList(self, account):
-        """ Find all AccountBase items and put them in the list; also build
+        """ Find all account items and put them in the list; also build
             up a data structure with the applicable attribute values we'll
             be editing. If account is passed in, show its details. """
 
@@ -431,51 +430,63 @@ class AccountPreferencesDialog(wx.Dialog):
 
         accountIndex = 0 # which account to select first
         pm = application.Parcel.Manager.get(self.view)
-        imapAccountKind = pm.lookup(MAIL_MODEL, "IMAPAccount")
-        popAccountKind = pm.lookup(MAIL_MODEL, "POPAccount")
-        smtpAccountKind = pm.lookup(MAIL_MODEL, "SMTPAccount")
-        webDavAccountKind = pm.lookup(SHARING_MODEL, "WebDAVAccount")
+
+        MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
+        SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
 
         accounts = []
 
+        imapAccountKind = pm.lookup(MAIL_MODEL, "IMAPAccount")
         for item in KindQuery().run([imapAccountKind]):
             if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
+        popAccountKind = pm.lookup(MAIL_MODEL, "POPAccount")
         for item in KindQuery().run([popAccountKind]):
             if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
+        smtpAccountKind = pm.lookup(MAIL_MODEL, "SMTPAccount")
         for item in KindQuery().run([smtpAccountKind]):
             if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
+        webDavAccountKind = pm.lookup(SHARING_MODEL, "WebDAVAccount")
         for item in KindQuery().run([webDavAccountKind]):
             if hasattr(item, 'displayName'):
                 accounts.append(item)
 
         i = 0
+
         for item in accounts:
+
+            # If an account was passed in, remember its index so we can
+            # select it
             if account == item:
                 accountIndex = i
+
+            # 'values' is a dict whose keys are the field names defined in
+            # the PANELS data structure above
             values = { }
+
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
 
                 if desc['type'] == 'currentPointer':
-
                     # See if this item is the current item for the given
-                    # pointer name.
+                    # pointer name, storing a boolean.
                     setting = Current.Current.isCurrent(self.view,
                                                         desc['pointer'], item)
 
                 elif desc['type'] == 'itemRef':
+                    # Store an itemRef as a UUID
                     try:
                         setting = item.getAttributeValue(desc['attr']).itsUUID
                     except:
                         setting = None
 
                 else:
+                    # Otherwise store a literal
                     try:
                         setting = item.getAttributeValue(desc['attr'])
                     except AttributeError:
@@ -485,10 +496,17 @@ class AccountPreferencesDialog(wx.Dialog):
                             setting = DEFAULTS[desc['type']]
 
                 values[field] = setting
-            self.data.append( { "item" : item.itsUUID, "values" : values,
-                                "type" : item.accountType, "isNew" : False } )
+
+            # Store a dictionary for this account, including the following:
+            self.data.append( { "item"   : item.itsUUID,
+                                "values" : values,
+                                "type"   : item.accountType,
+                                "isNew"  : False } )
+
             self.accountsList.Append(item.displayName)
+
             i += 1
+            # End of account loop
 
         if i > 0:
             self.accountsList.SetSelection(accountIndex)
@@ -499,18 +517,27 @@ class AccountPreferencesDialog(wx.Dialog):
         """ Take the data from the list and apply the values to the items. """
 
         # First store the current form values to the data structure
-        self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+        self.__StoreFormData(self.currentPanelType,
+                             self.currentPanel,
+                             self.data[self.currentIndex]['values'])
 
         for account in self.data:
+
             uuid = account['item']
+
             if uuid:
+                # We already have an account item created
                 item = self.view.findUUID(account['item'])
+
             else:
+                # We need to create an account item
+
                 if account['type'] == "IMAP":
                     item = Mail.IMAPAccount(view=self.view)
+
                 elif account['type'] == "POP":
                     item = Mail.POPAccount(view=self.view)
+
                 elif account['type'] == "SMTP":
                     item = Mail.SMTPAccount(view=self.view)
 
@@ -531,29 +558,40 @@ class AccountPreferencesDialog(wx.Dialog):
             panel = PANELS[account['type']]
 
             if panel.has_key("saveHandler"):
+                # Call custom save handler; if None returned, we don't do
+                # any more processing of that account within this loop
                 item = panel["saveHandler"](item, panel['fields'], values)
 
             if item is not None:
+                # Process each field defined in the PANEL data structure;
+                # applying the values to the appropriate attributes:
+
                 for (field, desc) in panel['fields'].iteritems():
 
                     if desc['type'] == 'currentPointer':
-
+                        # If this value is True, make this item current:
                         if values[field]:
-                            Current.Current.set(self.view, desc['pointer'],
+                            Current.Current.set(self.view,
+                                                desc['pointer'],
                                                 item)
 
                     elif desc['type'] == 'itemRef':
+                        # Find the item for this UUID and assign the itemref:
                         if values[field]:
                             item.setAttributeValue(desc['attr'],
                                 self.view.findUUID(values[field]))
 
                     else:
+                        # Otherwise, make the literal assignment:
                         try:
                             item.setAttributeValue(desc['attr'], values[field])
                         except:
                             pass
 
+
     def __ApplyDeletions(self):
+        # Since we don't delete items right away, we need to do it here:
+
         for data in self.deletions:
             uuid = data['item']
             if uuid:
@@ -563,44 +601,62 @@ class AccountPreferencesDialog(wx.Dialog):
     def __ApplyCancellations(self):
         # The only thing we need to do on Cancel is to remove any account items
         # we created this session:
+
         for accountData in self.data:
             if accountData['isNew']:
                 uuid = accountData['item']
                 item = self.view.findUUID(uuid)
                 item.delete()
-          
+
+
     def __Validate(self):
+        # Call any custom validation handlers that might be defined
 
         # First store the current form values to the data structure
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
          self.data[self.currentIndex]['values'])
 
         i = 0
+
         for account in self.data:
+
             uuid = account['item']
+
             if uuid:
                 item = self.view.findUUID(uuid)
+
             else:
                 item = None
+
             values = account['values']
             panel = PANELS[account['type']]
+
             if panel.has_key("validationHandler"):
+
                 valid = panel["validationHandler"](item, panel['fields'],
                  values)
+
                 if not valid:
                     # Show the invalid panel
                     self.accountsList.SetSelection(i)
                     self.__SwapDetailPanel(i)
                     return False
+
             i += 1
+
         return True
 
+
     def __GetDisplayName(self, index):
+        # Each panel type has a field that is designated the displayName; this
+        # method determines which field is the displayName, then gets the value
+
         data = self.data[self.currentIndex]
         accountType = data['type']
         panel = PANELS[accountType]
         values = self.data[self.currentIndex]['values']
         return values[panel["displayName"]]
+
 
     def __SwapDetailPanel(self, index):
         """ Given an index into the account list, store the current panel's
@@ -613,6 +669,7 @@ class AccountPreferencesDialog(wx.Dialog):
             # Get current form data and tuck it away
             self.__StoreFormData(self.currentPanelType, self.currentPanel,
              self.data[self.currentIndex]['values'])
+
             self.accountsList.SetString(self.currentIndex,
                                         self.__GetDisplayName(self.currentIndex))
             self.innerSizer.Detach(self.currentPanel)
@@ -633,9 +690,14 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # When a text field receives focus, call the handler.
         # When an exclusive radio button is clicked, call another handler.
+
         for field in PANELS[self.currentPanelType]['fields'].keys():
+
             fieldInfo = PANELS[self.currentPanelType]['fields'][field]
 
+            # This enables the clicking of a radio button to affect the value
+            # of another field.  In this case, the OnLinkedControl( ) method
+            # will get called.
             if fieldInfo['type'] == "radioEnumeration":
                 linkedTo = fieldInfo.get('linkedTo', None)
                 if linkedTo is not None:
@@ -651,6 +713,9 @@ class AccountPreferencesDialog(wx.Dialog):
                 wx.EVT_SET_FOCUS(control, self.OnFocusGained)
 
             elif isinstance(control, wx.RadioButton):
+                # Set up the callback for an "exclusive" radio button, i.e.,
+                # one who when checked within one account will get unchecked
+                # in all other accounts
                 if fieldInfo.get('exclusive', False):
                     try:
                         # On GTK if you want to have a radio button which can
@@ -662,67 +727,88 @@ class AccountPreferencesDialog(wx.Dialog):
                         hidden.Hide()
                     except:
                         pass
-                    wx.EVT_RADIOBUTTON(control, control.GetId(),
+                    wx.EVT_RADIOBUTTON(control,
+                                       control.GetId(),
                                        self.OnExclusiveRadioButton)
 
             elif isinstance(control, wx.CheckBox):
+                # This allows a checkbox to affect the value of another field
                 linkedTo = fieldInfo.get('linkedTo', None)
                 if linkedTo is not None:
-                    wx.EVT_CHECKBOX(control, control.GetId(),
+                    wx.EVT_CHECKBOX(control,
+                                    control.GetId(),
                                     self.OnLinkedControl)
 
+        # Hook up any other callbacks not tied to any fields, such as the
+        # account testing buttons:
         for callbackReg in PANELS[self.currentPanelType].get('callbacks', ()):
-            self.Bind(wx.EVT_BUTTON, getattr(self, callbackReg[1]),
+            self.Bind(wx.EVT_BUTTON,
+                      getattr(self, callbackReg[1]),
                       id=wx.xrc.XRCID(callbackReg[0]))
 
 
     def __StoreFormData(self, panelType, panel, data):
+        # Store data from the wx widgets into the "data" dictionary
+
         for field in PANELS[panelType]['fields'].keys():
-              
+
             fieldInfo = PANELS[panelType]['fields'][field]
             valueType = fieldInfo['type']
             valueRequired = fieldInfo.get('required', False)
 
             if fieldInfo['type'] == 'radioEnumeration':
-                # a radio button group is handled differently, since there
+                # A radio button group is handled differently, since there
                 # are multiple wx controls controlling a single attribute.
                 for (button, value) in fieldInfo['buttons'].iteritems():
                     control = wx.xrc.XRCCTRL(panel, button)
                     if control.GetValue() == True:
                         data[field] = value
                         break
-                        
                 continue
-            
+
             control = wx.xrc.XRCCTRL(panel, field)
-            
+
+            # Handle strings:
             if valueType == "string":
                 val = control.GetValue().strip()
                 if valueRequired and not val:
                     continue
+
+            # Handle booleans:
             elif valueType == "boolean":
                 val = (control.GetValue() == True)
+
+            # Handle current pointers, which are stored as booleans:
             elif valueType == "currentPointer":
                 val = (control.GetValue() == True)
+
+            # Handle itemrefs, which are stored as UUIDs:
             elif valueType == "itemRef":
                 index = control.GetSelection()
                 if index == -1:
                     val = None
                 else:
                     val = control.GetClientData(index)
+
+            # Handle integers:
             elif valueType == "integer":
                 try:
                     val = int(control.GetValue().strip())
                 except:
                     # Skip if not valid
                     continue
+
             data[field] = val
 
+
     def __FetchFormData(self, panelType, panel, data):
+        # Pull data out of the "data" dictionary and stick it into the widgets:
+
         for field in PANELS[panelType]['fields'].keys():
-            
+
             fieldInfo = PANELS[panelType]['fields'][field]
-            if fieldInfo['type'] == 'radioEnumeration' :
+
+            if fieldInfo['type'] == 'radioEnumeration':
                 # a radio button group is handled differently, since there
                 # are multiple wx controls controlling a single attribute.
                 for (button, value) in fieldInfo['buttons'].iteritems():
@@ -731,13 +817,20 @@ class AccountPreferencesDialog(wx.Dialog):
                         control.SetValue(True)
                         break
                 continue
-                    
+
             control = wx.xrc.XRCCTRL(panel, field)
+
             valueType = PANELS[panelType]['fields'][field]['type']
+
+            # Handle strings:
             if valueType == "string":
                 control.SetValue(data[field])
+
+            # Handle booleans:
             elif valueType == "boolean":
                 control.SetValue(data[field])
+
+            # Handle current pointers, which are stored as booleans:
             elif valueType == "currentPointer":
                 try:
                     # On GTK if you want to have a radio button which can
@@ -751,6 +844,10 @@ class AccountPreferencesDialog(wx.Dialog):
                         hidden.SetValue(True)
                 except:
                     pass
+
+            # Handle itemrefs, which are stored as UUIDs.  We need to find
+            # all items of the kind specified in the PANEL, filtering out those
+            # which have been marked for deletion, or are inactive.
             elif valueType == "itemRef":
                 items = []
                 count = 0
@@ -763,7 +860,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         if accountData['item'] == item.itsUUID:
                             deleted = True
                             break
-                         
+
                     if item.isActive and not deleted:
                         items.append(item)
                         if item.itsUUID == uuid:
@@ -771,17 +868,17 @@ class AccountPreferencesDialog(wx.Dialog):
                         count += 1
 
                 control.Clear()
-                
+
                 for item in items:
                     # Add items to the dropdown list...
-                    
+
                     # ...however we need to grab displayName from the form
                     # data rather than from the item (as long as it's an item
                     # that's being edited in the dialog).  If the item doesn't
                     # appear in self.data, then it's an item that isn't being
                     # edited by the dialog and therefore we can ask it directly
                     # for its displayName:
-                    
+
                     displayName = item.displayName
                     for accountData in self.data:
                         if item.itsUUID == accountData['item']:
@@ -790,15 +887,17 @@ class AccountPreferencesDialog(wx.Dialog):
                             displayName = \
                                 accountData['values'][displayNameField]
                             break
-                        
+
                     newIndex = control.Append(displayName)
                     control.SetClientData(newIndex, item.itsUUID)
 
                 if index != -1:
                     control.SetSelection(index)
 
+            # Handle integers:
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
+
 
     def OnOk(self, evt):
         if self.__Validate():
@@ -809,7 +908,7 @@ class AccountPreferencesDialog(wx.Dialog):
             application.Globals.mailService.refreshMailServiceCache()
 
     def OnCancel(self, evt):
-        self.__ApplyCancellations()      
+        self.__ApplyCancellations()
         self.EndModal(False)
 
     def OnNewAccount(self, evt):
@@ -860,12 +959,13 @@ class AccountPreferencesDialog(wx.Dialog):
         self.accountsList.SetSelection(index)
         self.__SwapDetailPanel(index)
 
+
     def OnDeleteAccount(self, evt):
         # First, make sure any values that have been modified in the form
         # are stored:
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
                              self.data[self.currentIndex]['values'])
-        
+
         index = self.accountsList.GetSelection()
         item = self.view.findUUID(self.data[index]['item'])
         deleteHandler = PANELS[item.accountType]['deleteHandler']
@@ -984,6 +1084,10 @@ class AccountPreferencesDialog(wx.Dialog):
         wx.CallAfter(control.SetSelection, -1, -1)
 
     def OnLinkedControl(self, evt):
+        # A "linked" control has been clicked -- we need to modify the value
+        # of the field this is linked to, but only if that field is already
+        # set to one of the predefined values.
+
         control = evt.GetEventObject()
 
         # Determine current panel
@@ -993,7 +1097,7 @@ class AccountPreferencesDialog(wx.Dialog):
         # If marked as linkedTo, change the linked field
         ##        "linkedTo" : ("IMAP_PORT", { True:993, False:143 } )
         for (field, fieldInfo) in panel['fields'].iteritems():
-            
+
             ids = []
             if fieldInfo['type'] == 'radioEnumeration':
                 for (button, fieldValue) in fieldInfo['buttons'].iteritems():
@@ -1004,7 +1108,7 @@ class AccountPreferencesDialog(wx.Dialog):
             else:
                 ids = [wx.xrc.XmlResource.GetXRCID(field)]
                 value = control.GetValue()
-                
+
             if control.GetId() in ids:
                 linkedTo = fieldInfo.get('linkedTo', None)
                 if linkedTo is not None:
@@ -1016,6 +1120,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         linkedControl.SetValue(linkedValues[value])
                 break
 
+
     def OnExclusiveRadioButton(self, evt):
         """ When an exclusive attribute (like default) is set on one account,
             set that attribute to False on all other accounts of the same kind.
@@ -1026,26 +1131,44 @@ class AccountPreferencesDialog(wx.Dialog):
         # Scan through fields, seeing if this control corresponds to one
         # If marked as exclusive, set all other accounts of this type to False
         panel = PANELS[self.currentPanelType]
+
         for (field, fieldInfo) in panel['fields'].iteritems():
+
             if wx.xrc.XmlResource.GetXRCID(field) == control.GetId():
+                # This control matches
+
+                # Double check it is an exclusive:
                 if fieldInfo.get('exclusive', False):
+
+                    # Set all other accounts sharing this current pointer to
+                    # False:
+
                     index = 0
                     for accountData in self.data:
+
+                        # Skip the current account
                         if index != self.currentIndex:
+
                             aPanel = PANELS[accountData['type']]
-                            for (aField, aFieldInfo) in aPanel['fields'].iteritems():
+                            for (aField, aFieldInfo) in \
+                                aPanel['fields'].iteritems():
                                 if aFieldInfo.get('type') == 'currentPointer':
                                     if aFieldInfo.get('pointer', '') == \
                                         fieldInfo.get('pointer'):
-                                            accountData['values'][aField] = False
+                                            accountData['values'][aField] = \
+                                                False
                         index += 1
                     break
 
 
 def ShowAccountPreferencesDialog(parent, account=None, view=None):
+
+    # Parse the XRC resource file:
     xrcFile = os.path.join(application.Globals.chandlerDirectory,
      'application', 'dialogs', 'AccountPreferences_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
+
+    # Display the dialog:
     win = AccountPreferencesDialog(parent, "Account Preferences",
      resources=resources, account=account, view=view)
     win.CenterOnScreen()
