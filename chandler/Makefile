@@ -20,15 +20,15 @@ endif
 # these get installed into release or debug
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.4-9.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-9.tar.gz \
-         $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.27-1.tar.gz \
+         $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.28-1.tar.gz \
          $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-4.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-3.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-3.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-4.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-r280-1.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
-         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-2.tar.gz \
-         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-1.tar.gz \
+         $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-3.tar.gz \
+         $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-2.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-8.tar.gz \
          $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.0.0-4.tar.gz \
