@@ -1,5 +1,5 @@
---- PyLucene-0.9.9-192/Makefile	2005-05-05 13:23:54.000000000 -0700
-+++ PyLucene-0.9.9-192-patched/Makefile	2005-05-05 13:34:42.000000000 -0700
+--- PyLucene-0.9.9-192/Makefile	Thu May  5 13:23:54 2005
++++ PyLucene-0.9.9-192-patched/Makefile	Mon May 23 14:03:52 2005
 @@ -270,7 +270,7 @@
  PYLUCENE_CP:=`cygpath -awp $(PYLUCENE_CP)`
  else
@@ -9,6 +9,29 @@
  endif
  
  STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+@@ -285,19 +285,19 @@
+ ifeq ($(OS),Darwin)
+ # with gcc 3.4.x, libdb_java segfaults when compiled with -O2
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -dynamic -bundle -o $@ -O $(LDFLAGS) -I$(GCJ_HOME)/include $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-$(DB_LIB_VER).dylib
+ else
+ 
+ ifeq ($(OS),Linux)
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -shared -o $@ $(CCFLAGS) $(PYDBG) -I$(GCJ_HOME)/include $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-$(DB_LIB_VER).so
+ else
+ 
+ ifeq ($(OS),Cygwin)
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -shared -o $@ $(CCFLAGS) $(PYDBG) -D_NO_OLDNAMES -D_off_t=off_t -DGCJ $(DB_INC) `cygpath -aw $(DB)/libdb_java/db_java_wrap.c` `cygpath -aw $(PREFIX_DB)/build_win32/$(BINDIR)/libdb$(subst .,,$(DB_LIB_VER))$(SUFFIX).dll`
+ endif
+ endif
 @@ -327,7 +327,7 @@
  else
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
@@ -18,6 +41,29 @@
  endif
  
  STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+@@ -346,19 +346,19 @@
+ ifeq ($(OS),Darwin)
+ # with gcc 3.4.x, libdb_java segfaults when compiled with -O2
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -dynamic -bundle -o $@ -O $(PYDBG) $(LDFLAGS) -I$(GCJ_HOME)/include $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-$(DB_LIB_VER).dylib
+ else
+ 
+ ifeq ($(OS),Linux)
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -shared -o $@ $(CCFLAGS) $(PYDBG) -I$(GCJ_HOME)/include $(DB_INC) $(DB)/libdb_java/db_java_wrap.c $(PREFIX_DB)/lib/libdb-$(DB_LIB_VER).so
+ else
+ 
+ ifeq ($(OS),Cygwin)
+ $(LIBDB_JAVA_LIB): patches.db-$(DB_LIB_VER)
+-	cd $(DB)/..; patch -Nup0 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
++	cd $(DB); patch -Nup1 < $(PYLUCENE)/patches.db-$(DB_LIB_VER); echo ok
+ 	$(CC) -shared -o $@ $(CCFLAGS) $(PYDBG) -D_NO_OLDNAMES -DGCJ $(DB_INC) `cygpath -aw $(DB)/libdb_java/db_java_wrap.c` `cygpath -aw $(PREFIX_DB)/build_win32/$(BINDIR)/libdb$(subst .,,$(DB_LIB_VER))$(SUFFIX).dll`
+ endif
+ endif
 @@ -869,13 +869,19 @@
  	mkdir -p $(PREFIX_DB)/lib
  	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/lib

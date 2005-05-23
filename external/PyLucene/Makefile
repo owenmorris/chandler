@@ -1,10 +1,10 @@
 
 VERSION=0.9.9-192
-RELVER=$(VERSION)-2
+RELVER=$(VERSION)-3
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
-DB_VER=4.3.27
+DB_VER=4.3.28
 DB_LIB_VER=$(basename $(DB_VER))
 
 include $(BUILD_ROOT)/Makefile.inc
