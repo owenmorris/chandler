@@ -372,7 +372,7 @@ wxSize		bestSize;
 	HDLAYOUT	hdl;
 	WINDOWPOS	wp;
 	HWND		targetViewRef;
-	RECT			boundsR;
+	RECT		boundsR;
 
 		targetViewRef = GetHwnd();
 		boundsR.left = boundsR.top = 0;
@@ -652,7 +652,11 @@ bool			bResult;
 			m_BUseGenericRenderer = bFlagValue;
 
 			for (i=0; i<m_ItemCount; i++)
+			{
 				m_ItemList[i]->InvalidateTextExtent();
+				RefreshItem( i, true );
+			}
+
 			SetViewDirty();
 		}
 #endif
@@ -793,7 +797,7 @@ bool wxColumnHeader::ResizeDivision(
 	long				originX )
 {
 wxColumnHeaderItem		*itemRef1, *itemRef2;
-long						deltaV, newExtent1, newExtent2;
+long					deltaV, newExtent1, newExtent2;
 
 	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
 		return false;
@@ -1078,7 +1082,7 @@ bool					bResultV;
 
 bool wxColumnHeader::GetItemBounds(
 	long				itemIndex,
-	wxRect			*boundsR ) const
+	wxRect				*boundsR ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -1127,7 +1131,7 @@ long wxColumnHeader::GetArrowButtonStyle(
 	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
-long						targetStyle;
+long					targetStyle;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
@@ -1191,7 +1195,7 @@ long wxColumnHeader::GetBitmapJustification(
 	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
-long						targetJust;
+long					targetJust;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
@@ -1255,7 +1259,7 @@ long wxColumnHeader::GetLabelJustification(
 	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
-long						targetJust;
+long					targetJust;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
@@ -1308,7 +1312,7 @@ bool					bResultV;
 
 void wxColumnHeader::SetUIExtent(
 	long				itemIndex,
-	wxSize			&extentPt )
+	wxSize				&extentPt )
 {
 wxColumnHeaderItem		*itemRef;
 
@@ -1366,7 +1370,7 @@ wxColumnHeaderHitTestResult		resultV;
 #if defined(__WXMSW__)
 RECT		boundsR;
 HWND		targetViewRef;
-long			itemCount, i;
+long		itemCount, i;
 
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
@@ -1404,7 +1408,7 @@ long		i;
 long wxColumnHeader::Draw( void )
 {
 wxRect		boundsR;
-long			resultV, i;
+long		resultV, i;
 
 	resultV = 0;
 
@@ -1531,7 +1535,7 @@ long		originX, i;
 
 wxSize wxColumnHeader::GetLabelTextExtent(
 	wxDC				*dc,
-	const wxString			&targetStr )
+	const wxString		&targetStr )
 {
 wxSize		resultV;
 
@@ -1542,7 +1546,7 @@ wxSize		resultV;
 
 #if defined(__WXMAC__)
 wxMacCFStringHolder	cfString( targetStr, m_Font.GetEncoding() );
-Point					xyPt;
+Point				xyPt;
 SInt16				baselineV;
 
 	xyPt.h = xyPt.v = 0;
@@ -1690,6 +1694,7 @@ HDITEM					itemData;
 HWND					targetViewRef;
 LONG						newFmt;
 long					resultV, nWidth;
+BOOL					bHasButtonArrow;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef == NULL)
@@ -1718,7 +1723,12 @@ long					resultV, nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 
+	bHasButtonArrow = (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
+
 	// NB: should sort arrows and bitmaps be MutEx?
+	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
+	if (! bHasButtonArrow)
+	{
 	if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
 	{
 		newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
@@ -1736,10 +1746,11 @@ long					resultV, nWidth;
 		// add string reference
 		newFmt |= HDF_STRING;
 		itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
+		}
 	}
 
 	// add sort arrows as needed
-	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
+	if (! bHasButtonArrow && itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
 		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	if (! bCheckChanged || (itemData.fmt != newFmt))
