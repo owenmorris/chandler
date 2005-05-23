@@ -65,7 +65,7 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestGenericRendererCheckBox, cb2 )
         cb2.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer ) )
 
-        cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (200, 20), wx.NO_BORDER )
+        cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
         cb3.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_VisibleSelection ) )
 
