@@ -645,7 +645,8 @@ class WebDAVConduit(ShareConduit):
             logger.info("...creating new client")
             (host, port, sharePath, username, password, useSSL) = self.__getSettings()
             self.client = WebDAV.Client(host, port=port, username=username,
-                                        password=password, useSSL=useSSL)
+                                        password=password, useSSL=useSSL,
+                                        repositoryView=self.view)
         return self.client
 
     def __releaseClient(self):

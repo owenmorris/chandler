@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel xmlns="http://osafoundation.org/parcels/core">
+    
+    <namespace value="http://osafoundation.org/parcels/osaf/framework/certstore"/>
+    
+</Parcel>

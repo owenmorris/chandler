@@ -242,7 +242,8 @@ class PublishCollectionDialog(wx.Dialog):
         sharePath = account.path.strip("/")
        
         client = WebDAV.Client(host, port=port, username=username,
-                               password=password, useSSL=useSSL)
+                               password=password, useSSL=useSSL,
+                               repositoryView=self.view)
         
  
         scheme = "http"

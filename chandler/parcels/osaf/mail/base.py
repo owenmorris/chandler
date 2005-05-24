@@ -163,7 +163,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         if self.account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             self.factory.startTLS   = True
-            self.factory.getContext = lambda : Globals.crypto.getSSLContext()
+            self.factory.getContext = lambda : Globals.crypto.getSSLContext(repositoryView=self.view)
             self.factory.sslChecker = SSL.Checker.Checker()
 
         wrappingFactory = policies.WrappingFactory(self.factory)

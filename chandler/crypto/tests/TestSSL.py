@@ -7,18 +7,38 @@ Unit test for SSL context, connection and related security checks.
 
 import unittest
 import socket
+import sys, os
 from M2Crypto import SSL
 import application.Globals as Globals
 import crypto
-import TestM2CryptoInitShutdown
+import crypto.Crypto as Crypto
 
-# XXX This should not inherit from InitShutdown because that makes us
-#     run it's tests too
-class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
+import repository.tests.RepositoryTestCase as RepositoryTestCase
+
+class TestSSL(RepositoryTestCase.RepositoryTestCase):
+    def setUp(self):
+        #XXX Same as TestM2CryptoInitShutdown.InitShutdown.setUp
+        pathComponents = sys.modules['crypto'].__file__.split(os.sep)
+        assert len(pathComponents) > 3
+        chandlerDir = os.sep.join(pathComponents[0:-2])
+        Globals.crypto = Crypto.Crypto()
+        Globals.crypto.init(os.path.join(chandlerDir, 'crypto'))        
+
+        super(TestSSL, self)._setup()
+        self.testdir = os.path.join(chandlerDir, 'crypto', 'tests')
+        super(TestSSL, self)._openRepository()
+
+        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/schema")
+
+    def tearDown(self):
+        super(TestSSL, self).tearDown()
+        
+        #XXX Same as TestM2CryptoInitShutdown.InitShutdown.tearDown
+        Globals.crypto.shutdown()
     
     def testSSL(self):
-        if not self.isOnline():
-            return
+        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/data")
 
         # Should have a list of these and randomly select to avoid
         # hitting the same sites over and over.
@@ -27,9 +47,12 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         site = 'www.thawte.com'
         fp   = 'D85FE7EC903564DEFD4BCFF82047726F14C09C31'
         
-        ctx = Globals.crypto.getSSLContext()
+        ctx = Globals.crypto.getSSLContext(self.rep.view)
         conn = SSL.Connection(ctx)
 
+        if not self.isOnline():
+            return
+            
         # We wrap the connect() in try/except and filter some common
         # network errors that are not SSL-related.
         try:
@@ -46,9 +69,8 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         conn.clear()
 
     def isOnline(self):
-        import socket
         try:
-            a = socket.gethostbyname('www.osafoundation.org')
+            socket.gethostbyname('www.osafoundation.org')
             return True
         except:
             return False

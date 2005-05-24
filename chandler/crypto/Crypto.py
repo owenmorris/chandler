@@ -8,7 +8,7 @@ Cryptographic services.
 import logging
 import os
 from M2Crypto import Rand, threading
-import ssl
+import crypto.ssl as ssl
 
 class Crypto(object):
     """
@@ -19,7 +19,6 @@ class Crypto(object):
         The crypto services must be initialized before they can be used.
         """
         assert profileDir
-        self.profileDir = profileDir
 
         self._log = logging.getLogger('crypto')
         self._log.setLevel(logging.INFO)
@@ -32,8 +31,6 @@ class Crypto(object):
         self._randpool = os.path.join(profileDir, 'randpool.dat')
         Rand.load_file(self._randpool, -1)
 
-        ssl.init(profileDir)
-
     def shutdown(self):
         """
         The crypto services must be shut down to clean things properly.
@@ -45,18 +42,11 @@ class Crypto(object):
         Rand.save_file(self._randpool)
         threading.cleanup()
 
-    def getSSLContext(self, protocol='sslv23', verify=True,
+    def getSSLContext(self, repositoryView, protocol='sslv23', verify=True,
                       verifyCallback=None):
         """
         Get an SSL Context.
         """
-        return ssl.getContext(self.profileDir, protocol, verify,
+        return ssl.getContext(repositoryView, protocol, verify,
                               verifyCallback, )
 
-    def getSSLClientContextFactory(self, method='sslv23', verify=True,
-                                   verifyCallBack=None):
-        """
-        Get an SSL Context factory.
-        """
-        return ssl.ClientContextFactory(self.profileDir, method, verify,
-                                        verifyCallBack)

@@ -25,7 +25,7 @@ DEFAULT_RETRIES = 3
 class Client(object):
 
     def __init__(self, host, port=80, username=None, password=None,
-     useSSL=False, ctx=None, retries=DEFAULT_RETRIES):
+     useSSL=False, ctx=None, retries=DEFAULT_RETRIES, repositoryView=None):
         self.host = host
         self.port = port
         self.username = username
@@ -34,13 +34,14 @@ class Client(object):
         self.ctx = ctx
         self.conn = None
         self.retries = retries
+        self.view = repositoryView
 
     def connect(self, host=None, port=None):
         logger.debug("Opening connection")
 
         if self.useSSL:
             if self.ctx is None:
-                self.ctx = Globals.crypto.getSSLContext()
+                self.ctx = Globals.crypto.getSSLContext(repositoryView=self.view)
             self.conn = ssl.HTTPSConnection(self.host,
                                             self.port,
                                             ssl_context=self.ctx)

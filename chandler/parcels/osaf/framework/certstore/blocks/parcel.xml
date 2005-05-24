@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<core:Parcel xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/certstore/blocks"
+             xmlns:schema="http://osafoundation.org/parcels/osaf/framework/certstore/schema"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             >
+    
+    <core:namespace value="http://osafoundation.org/parcels/osaf/framework/certstore/blocks"/>
+    
+    <MenuItem itsName="CertificateView">
+      <blockName>CertificateView</blockName>
+      <title>Manage Certificates</title>
+      <event itemref="doc:CertificateViewEvent"/>
+      <parentBlock itemref="main:TestMenu"/>
+    </MenuItem>
+  
+    <MenuItem itsName="CertificateImport">
+      <blockName>CertificateImport</blockName>
+      <title>Import Certificate</title>
+      <event itemref="doc:CertificateImportEvent"/>
+      <parentBlock itemref="main:TestMenu"/>
+    </MenuItem>
+
+    <BlockEvent itsName="CertificateViewEvent">
+      <blockName>CertificateViewBlock</blockName>
+      <dispatchEnum>SendToBlockByReference</dispatchEnum>
+      <destinationBlockReference itemref="doc:CertificateViewController"/>
+      <commitAfterDispatch>True</commitAfterDispatch>
+    </BlockEvent>
+
+    <BlockEvent itsName="CertificateImportEvent">
+      <blockName>CertificateImportBlock</blockName>
+      <dispatchEnum>SendToBlockByReference</dispatchEnum>
+      <destinationBlockReference itemref="doc:CertificateImportController"/>
+      <commitAfterDispatch>True</commitAfterDispatch>
+    </BlockEvent>
+
+    <Block itsName="CertificateViewController" itemClass="osaf.framework.certstore.certificate.CertificateViewController"/>
+
+    <Block itsName="CertificateImportController" itemClass="osaf.framework.certstore.certificate.CertificateImportController"/>
+
+    <detail:DetailTrunkSubtree>
+      <key itemref="schema:Certificate"/>
+
+      <rootBlocks itemref="detail:MarkupBar"/>
+      <rootBlocks itemref="doc:TypeArea"/>
+      <rootBlocks itemref="doc:TrustArea"/>
+      <rootBlocks itemref="doc:FingerprintArea"/>
+      <rootBlocks itemref="doc:AsTextArea"/>
+    </detail:DetailTrunkSubtree>
+
+    <ContentItemDetail itsName="TypeArea"
+      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+      <position>0.1</position>
+      <selectedItemsAttribute>type</selectedItemsAttribute>
+      <childrenBlocks itemref="doc:TypeLabel"/>
+      <childrenBlocks itemref="doc:TypeAttribute"/>
+      <stretchFactor>0</stretchFactor>
+    </ContentItemDetail>
+
+    <StaticText itsName="TypeLabel">
+      <title>Type</title>
+      <characterStyle itemref="LabelStyle"/>
+      <stretchFactor>0.0</stretchFactor>
+      <textAlignmentEnum>Right</textAlignmentEnum>
+      <minimumSize>70, 24</minimumSize>
+      <border>0.0, 0.0, 0.0, 5.0</border>
+    </StaticText>
+
+    <StaticText itsName="TypeAttribute"
+      itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+      <title>author</title>
+      <characterStyle itemref="LabelStyle"/>
+      <stretchFactor>0.0</stretchFactor>
+      <textAlignmentEnum>Left</textAlignmentEnum>
+    </StaticText>
+
+    <ContentItemDetail itsName="TrustArea"
+      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+      <position>0.2</position>
+      <selectedItemsAttribute>trust</selectedItemsAttribute>
+      <childrenBlocks itemref="doc:TrustLabel"/>
+      <childrenBlocks itemref="doc:TrustAttribute"/>
+      <stretchFactor>0</stretchFactor>
+    </ContentItemDetail>
+
+    <StaticText itsName="TrustLabel">
+      <title>Trust</title>
+      <characterStyle itemref="LabelStyle"/>
+      <stretchFactor>0.0</stretchFactor>
+      <textAlignmentEnum>Right</textAlignmentEnum>
+      <minimumSize>70, 24</minimumSize>
+      <border>0.0, 0.0, 0.0, 5.0</border>
+    </StaticText>
+
+    <EditText itsName="TrustAttribute"
+      itemClass="osaf.framework.certstore.certificate.EditIntegerAttribute">
+      <characterStyle itemref="TextStyle"/>
+      <lineStyleEnum>SingleLine</lineStyleEnum>
+      <textStyleEnum>PlainText</textStyleEnum>
+      <readOnly>False</readOnly>
+      <textAlignmentEnum>Left</textAlignmentEnum>
+      <minimumSize>50, 24</minimumSize>
+    </EditText>
+	
+    <ContentItemDetail itsName="FingerprintArea"
+      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+      <position>0.3</position>
+      <selectedItemsAttribute>fingerprint</selectedItemsAttribute>
+      <childrenBlocks itemref="doc:FingerprintLabel"/>
+      <childrenBlocks itemref="doc:FingerprintAttribute"/>
+      <stretchFactor>0</stretchFactor>
+    </ContentItemDetail>
+
+    <ContentItemDetail itsName="FingerprintLabel"
+      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+      <position>0.3</position>
+      <selectedItemsAttribute>fingerprintAlgorithm</selectedItemsAttribute>
+      <childrenBlocks itemref="doc:FingerprintAlgorithmAttribute"/>
+      <stretchFactor>0</stretchFactor>
+    </ContentItemDetail>
+
+    <StaticText itsName="FingerprintAlgorithmAttribute"
+	  itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+      <title>author</title>
+      <characterStyle itemref="LabelStyle"/>
+      <stretchFactor>0.0</stretchFactor>
+      <textAlignmentEnum>Right</textAlignmentEnum>
+      <minimumSize>70, 24</minimumSize>
+      <border>0.0, 0.0, 0.0, 5.0</border>
+    </StaticText>
+
+    <StaticText itsName="FingerprintAttribute"
+      itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+      <title>author</title>
+      <characterStyle itemref="LabelStyle"/>
+      <stretchFactor>0.0</stretchFactor>
+      <textAlignmentEnum>Left</textAlignmentEnum>
+    </StaticText>
+
+    <ContentItemDetail itsName="AsTextArea"
+      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+      <position>0.9</position>
+      <selectedItemsAttribute>asText</selectedItemsAttribute>
+      <childrenBlocks itemref="doc:AsTextAttribute"/>
+      <stretchFactor>1</stretchFactor>
+    </ContentItemDetail>
+
+    <EditText itsName="AsTextAttribute"
+      itemClass="osaf.framework.certstore.certificate.AsTextAttribute">
+      <characterStyle itemref="TextStyle"/>
+      <lineStyleEnum>MultiLine</lineStyleEnum>
+      <textStyleEnum>PlainText</textStyleEnum>
+      <readOnly>True</readOnly>
+      <textAlignmentEnum>Left</textAlignmentEnum>
+    </EditText>
+</core:Parcel>

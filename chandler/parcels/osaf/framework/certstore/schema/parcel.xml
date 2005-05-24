@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- the doc namespace refers to the current document -->
+<Parcel xmlns="http://osafoundation.org/parcels/core"
+        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/certstore/schema"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
+
+  <namespace value="http://osafoundation.org/parcels/osaf/framework/certstore/schema"/>
+  <displayName>Certificate store</displayName>
+  <description>This is a certstore parcel</description>
+
+  <!-- <version>0.1</version> -->
+
+  <!-- Attributes that exist on all Kinds in this file -->
+
+  <!-- Kind: Certificate -->
+
+  <Kind itsName="Certificate">
+    <superKinds itemref="content:ContentItem"/>
+    <classes key="python">osaf.framework.certstore.certificate.Certificate</classes>
+    
+    <displayName>Certificate</displayName>
+
+    <!-- redirection attributes -->
+    <Attribute itsName="who">
+      <redirectTo value="subjectCommonName"/>
+    </Attribute>
+
+    <Attribute itsName="displayName">
+      <redirectTo value="subjectCommonName"/>
+    </Attribute>
+
+    <Attribute itsName="about">
+      <redirectTo value="trust"/>
+	  <issues>type would make more sense, but it isn't supported for summary view.</issues>
+    </Attribute>
+
+    <Attribute itsName="date">
+      <redirectTo value="createdOn"/>
+    </Attribute>
+
+    <!-- Attributes unique to this kind -->
+    
+    <Attribute itsName="subjectCommonName">
+      <displayName>Subject commonName</displayName>
+      <description>Subject commonName.</description>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+	
+	<Attribute itsName="type">
+      <displayName>Certificate type</displayName>
+      <description>Certificate type.</description>
+      <Enumeration itsName="typeEnum">
+        <displayName>Type Enumeration</displayName>
+        <values>root</values>
+        <values>site</values>
+      </Enumeration>
+      <type itemref="doc:Certificate/type/typeEnum"/>
+      <initialValue type="doc:Certificate/type/typeEnum" value="root" />
+	</Attribute>
+
+
+    <Attribute itsName="trust">
+      <displayName>Trust</displayName>
+      <description>A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.</description>
+      <cardinality>single</cardinality>
+      <type itemref="Integer"/>
+    </Attribute>
+
+    <Attribute itsName="pem">
+      <displayName>PEM</displayName>
+      <description>An X.509 certificate in PEM format.</description>
+      <cardinality>single</cardinality>
+      <type itemref="Lob"/>
+    </Attribute>
+  
+    <Attribute itsName="asText">
+      <displayName>Human readable certificate value</displayName>
+      <description>An X.509 certificate in human readable format.</description>
+      <cardinality>single</cardinality>
+      <type itemref="Lob"/>
+    </Attribute>
+  
+    <Attribute itsName="fingerprintAlgorithm">
+      <displayName>fingerprint algorithm</displayName>
+      <description>A name of a hash algorithm that was used to compute fingerprint.</description>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itsName="fingerprint">
+      <displayName>fingerprint</displayName>
+      <description>A hash of the certificate using algorithm named in fingerprintAlgorithm attribute.</description>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <!-- pulling in attributes from elsewhere in this file -->
+
+    <!-- Typical clouds include a "default" cloud, and a "sharing" cloud -->
+
+  </Kind>  
+  
+</Parcel>

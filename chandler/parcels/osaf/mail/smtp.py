@@ -293,7 +293,7 @@ class _SMTPTransport(object):
             heloFallback = False
 
         if account.connectionSecurity == 'TLS':
-            tlsContext = Globals.crypto.getSSLContext()
+            tlsContext = Globals.crypto.getSSLContext(self.parent.view)
             securityRequired = True
 
         msg = StringIO.StringIO(messageText)
@@ -307,7 +307,7 @@ class _SMTPTransport(object):
             #XXX: This method actually begins the SSL exchange. Confusing name!
             factory.startTLS = True
             factory.sslChecker = SSL.Checker.Checker()
-            factory.getContext = lambda : Globals.crypto.getSSLContext()
+            factory.getContext = lambda : Globals.crypto.getSSLContext(self.parent.view)
 
         factory.protocol = _TwistedESMTPSender
         factory.testing  = testing

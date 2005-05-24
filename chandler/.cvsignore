@@ -13,3 +13,4 @@ profile.dat
 *.gz
 *.md5
 *.lock
+.project
