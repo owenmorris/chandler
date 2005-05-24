@@ -8,6 +8,7 @@ SYSTEMS=persistence/db \
         python \
         epydoc \
         PyLucene \
+        PyICU \
         persistence/libxml2 \
         openssl \
         egenix-mx \
