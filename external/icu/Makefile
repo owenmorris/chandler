@@ -13,28 +13,32 @@ ifeq ($(OS),Cygwin)
 build: expand compile installext
 
 compile:
-	cd $(BUILD); \
-        devenv.com `cygpath -aw $(SRC)/icu/source/allinone/allinone.sln` /project /build $(Snap)
+	mkdir -p $(BUILD)/lib $(BUILD)/bin $(BUILD)/exe
+	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
+        devenv.com allinone.sln /build $(Snap)
+	tar -C $(SRC)/icu/lib -cf - . | tar -C $(BUILD)/lib -xvf -
+	(cd $(SRC)/icu/bin; tar -cf - *.exe) | tar -C $(BUILD)/exe -xvf -
+	(cd $(SRC)/icu/bin; tar -cf - *.dll) | tar -C $(BUILD)/bin -xvf -
+	rm -f $(SRC)/icu/lib/* $(SRC)/icu/bin/*
 
 installext:
-	mkdir -p $(PREFIX)/bin/icu $(PREFIX)/include/db $(PREFIX)/lib
-	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include/db; tar xvf -)
-	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include/db; tar xvf -)
-	(cd $(BINDIR); tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
-	(cd $(BINDIR); tar cf - *.exe) | (cd $(PREFIX)/bin/db; tar xvf -)
-	(cd $(BINDIR); tar cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf -)
+	mkdir -p $(PREFIX)/bin/icu $(PREFIX)/include/icu $(PREFIX)/lib
+	tar -C $(SRC)/icu/include -cf - . | tar -C $(PREFIX)/include/icu -xvf -
+	tar -C $(BUILD)/lib -cf - . | tar -C $(PREFIX)/lib -xvf -
+	tar -C $(BUILD)/bin -cf - . | tar -C $(PREFIX)/bin -xvf -
+	tar -C $(BUILD)/exe -cf - . | tar -C $(PREFIX)/bin/icu -xvf -
 
 clean:
-	cd $(SRC)/$(BUILD); \
-        devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
-	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
+	rm -rf $(BUILD)
+	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
+        devenv.com allinone.sln /clean $(Snap)
 
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/bin/libdb*.dll \
-                  $(SNAP)/bin/db/db_*.exe; \
-	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
+                  $(SNAP)/bin/icu*.dll \
+                  $(SNAP)/bin/icu/*.exe; \
+	$(MD5) $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz > $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
