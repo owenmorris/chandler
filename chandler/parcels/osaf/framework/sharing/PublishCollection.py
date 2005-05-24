@@ -1,3 +1,6 @@
+# The collection publishing dialog
+# Invoke using the ShowPublishDialog( ) method.
+
 import wx
 import os, urlparse, urllib
 import application.Globals as Globals
@@ -6,41 +9,56 @@ import WebDAV
 from repository.item.Query import KindQuery
 
 class PublishCollectionDialog(wx.Dialog):
-    
+
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-                 resources=None, view=None, collection=None):
-        
+                 resources=None, view=None, collection=None, kinds=None):
+
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
         self.parent = parent
-        self.collection = collection
-        
-        self.mySizer = wx.BoxSizer(wx.VERTICAL)
-        
-        self.shareXML = Sharing.getShare(self.collection)
-        
-        if self.shareXML is None:
-            self.ShowPublishPanel()
-        else:
-            self.ShowManagePanel()
+        self.collection = collection    # The collection to share
+        self.filterKinds = kinds        # List of kinds (paths) to share
 
+        self.mySizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Is this collection already shared?
+        self.shareXML = Sharing.getShare(self.collection)
+
+        if self.shareXML is None:       # Not yet shared, show "Publish"
+            self.mainPanel = self.resources.LoadPanel(self,
+                                                      "PublishCollection")
+            self.buttonPanel = self.resources.LoadPanel(self,
+                                                        "PublishButtonsPanel")
+        else:                           # Already shared, show "Manage"
+            self.mainPanel = self.resources.LoadPanel(self, "ManageCollection")
+            self.buttonPanel = self.resources.LoadPanel(self,
+                                                        "ManageButtonsPanel")
+
+
+        # Create/Hide the status panel that appears when there is text to
+        # display
         self.statusPanel = self.resources.LoadPanel(self, "StatusPanel")
         self.statusPanel.Hide()
         self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
-       
+
+        # Fit all the pieces together
         self.mySizer.Add(self.mainPanel, 0, wx.GROW|wx.ALL, 5)
-        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)        
+        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
         self.SetSizer(self.mySizer)
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
-        
-       
+
+        if self.shareXML is None:       # Not yet shared, show "Publish"
+            self.ShowPublishPanel()
+        else:                           # Already shared, show "Manage"
+            self.ShowManagePanel()
+
+
     def ShowPublishPanel(self):
-        self.mainPanel = self.resources.LoadPanel(self, "PublishCollection")
-        self.buttonPanel = self.resources.LoadPanel(self, 
-                                                    "PublishButtonsPanel")       
+        # "Publish" mode -- i.e., the collection has not yet been shared
+
         self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
@@ -48,154 +66,313 @@ class PublishCollectionDialog(wx.Dialog):
                        "TEXT_COLLNAME").SetLabel(self.collection.displayName)
 
         self.currentAccount = Sharing.getWebDAVAccount(self.view)
+
+        # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
         self.accountsControl = wx.xrc.XRCCTRL(self, "CHOICE_ACCOUNT")
         self.accountsControl.Clear()
+
         for account in self.accounts:
             newIndex = self.accountsControl.Append(account.displayName)
             self.accountsControl.SetClientData(newIndex, account)
             if account is self.currentAccount:
                 self.accountsControl.SetSelection(newIndex)
-        self.Bind(wx.EVT_CHOICE, self.OnChangeAccount,
-                  id=wx.xrc.XRCID("CHOICE_ACCOUNT"))    
-                  
+
+        self.Bind(wx.EVT_CHOICE,
+                  self.OnChangeAccount,
+                  id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
+
+        # Populate the list of existing shares on the selected webdav server
         self.existingControl = wx.xrc.XRCCTRL(self, "LISTBOX_EXISTING")
-        self._refreshExisting()
+        try:
+            self._refreshExisting()
+        except WebDAV.WebDAVException, e:
+            self.existing = []
+            self._showStatus("Sharing error: %s\n" % e.message)
+
         self._suggestName()
 
-        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+        # Not supported yet:
         wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)        
-    
+        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
+
+        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+
+
+    def ShowManagePanel(self):
+        # "Manage" mode -- i.e., the collection has already been shared
+
+        self.Bind(wx.EVT_BUTTON, self.OnManageDone, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnCopy,
+                  id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
+
+        name = self.collection.displayName
+        wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
+
+        name = self.shareXML.conduit.account.displayName
+        wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
+
+        url = self.shareXML.conduit.getLocation()
+        wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
+
+        name = self.shareXML.displayName
+        wx.xrc.XRCCTRL(self, "TEXT_SHARINGNAME").SetLabel(name)
+
+
+        # Not yet supported
+        wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
+        wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
+        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
+
+        # Controls for managing filtered shares:
+
+        self.RadioItems = wx.xrc.XRCCTRL(self, "RADIO_ITEMS")
+        self.RadioItemsHidden = wx.xrc.XRCCTRL(self, "RADIO_ITEMS_HIDDEN")
+        self.RadioItemsHidden.Hide()
+        wx.EVT_RADIOBUTTON(self.RadioItems,
+                           self.RadioItems.GetId(),
+                           self.OnAllItemsClicked)
+
+        self.CheckboxMail = wx.xrc.XRCCTRL(self, "CHECK_MAIL")
+        wx.EVT_CHECKBOX(self.CheckboxMail,
+                        self.CheckboxMail.GetId(),
+                        self.OnFilterClicked)
+
+        self.CheckboxTasks = wx.xrc.XRCCTRL(self, "CHECK_TASKS")
+        wx.EVT_CHECKBOX(self.CheckboxTasks,
+                        self.CheckboxTasks.GetId(),
+                        self.OnFilterClicked)
+
+        self.CheckboxEvents = wx.xrc.XRCCTRL(self, "CHECK_EVENTS")
+        wx.EVT_CHECKBOX(self.CheckboxEvents,
+                        self.CheckboxEvents.GetId(),
+                        self.OnFilterClicked)
+
+        self.filterKinds = self.shareXML.filterKinds
+
+        self._loadFilterState()
+
+        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
+
     def OnChangeAccount(self, evt):
+        self._hideStatus()
+
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
         self.currentAccount = account
-        self._refreshExisting()
-        self._suggestName()
-        
-    def _suggestName(self):
-        collectionName = self.collection.displayName
         try:
-            username = self.currentAccount.username
-        except:
-            username = ""
-        if not username:
-            username = "User"
-        basename = "%s's %s" % (username, collectionName)
+            self._refreshExisting()
+        except WebDAV.WebDAVException, e:
+            self.existing = []
+            self._showStatus("WebDAV error: %s\n" % e.message)
+        self._suggestName()
+
+
+    def _suggestName(self):
+        # Figure out a name that doesn't already exist, by appending a hyphen
+        # and a number
+
+        basename = self.collection.displayName
         name = basename
-        
+
         counter = 1
         while name in self.existing:
             name = "%s-%d" % (basename, counter)
             counter += 1
-        
+
         self.publishNameControl = wx.xrc.XRCCTRL(self, "TEXTCTRL_NAME")
-            
+
         self.publishNameControl.SetValue(name)
         self.publishNameControl.SetFocus()
-        self.publishNameControl.SetSelection(-1, -1)            
-        
-        
-    def ShowManagePanel(self):
-        self.mainPanel = self.resources.LoadPanel(self, "ManageCollection")
-        self.buttonPanel = self.resources.LoadPanel(self, 
-                                                    "ManageButtonsPanel")
-        # self.buttonClipboard = wx.xrc.XRCCTRL(self, "BUTTON_CLIPBOARD")
-        # self.buttonDone = wx.xrc.XRCCTRL(self, "BUTTON_DONE")
-        self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnCopy,
-                  id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
-        wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(self.collection.displayName)
-        wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(self.shareXML.conduit.account.displayName)
-        wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(self.shareXML.conduit.getLocation())
-        wx.xrc.XRCCTRL(self, "TEXT_SHARINGNAME").SetLabel(self.shareXML.displayName)
-        self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
-        wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
-    
+        self.publishNameControl.SetSelection(-1, -1)
+
+
+    def OnManageDone(self, evt):
+        self._saveFilterState()
+        self.EndModal(False)
+
+
+    def _loadFilterState(self):
+        # Based on which kinds are listed in filterKinds, update the UI
+
+        if len(self.filterKinds) == 0:      # No filtering
+
+            self.RadioItems.SetValue(True)
+            self.CheckboxMail.SetValue(False)
+            self.CheckboxTasks.SetValue(False)
+            self.CheckboxEvents.SetValue(False)
+
+        else:                               # Filtering
+
+            # Unset the "My items" radio button
+            self.RadioItemsHidden.SetValue(True)
+
+            # Conditionally set the individual kind checkboxes:
+
+            path = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
+            if path in self.filterKinds:
+                self.CheckboxMail.SetValue(True)
+            else:
+                self.CheckboxMail.SetValue(False)
+
+            path = "//parcels/osaf/contentmodel/tasks/TaskMixin"
+            if path in self.filterKinds:
+                self.CheckboxTasks.SetValue(True)
+            else:
+                self.CheckboxTasks.SetValue(False)
+
+            path = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+            if path in self.filterKinds:
+                self.CheckboxEvents.SetValue(True)
+            else:
+                self.CheckboxEvents.SetValue(False)
+
+
+    def _saveFilterState(self):
+        # Examine the values in the UI and make the appropriate changes to the
+        # Share's filter
+
+        self.filterKinds = []
+
+        if not self.RadioItems.GetValue():  # Filtering
+
+            if self.CheckboxMail.GetValue():
+                path = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
+                self.filterKinds.append(path)
+
+            if self.CheckboxTasks.GetValue():
+                path = "//parcels/osaf/contentmodel/tasks/TaskMixin"
+                self.filterKinds.append(path)
+
+            if self.CheckboxEvents.GetValue():
+                path = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+                self.filterKinds.append(path)
+
+        self.shareXML.filterKinds = self.filterKinds
+
+
+    def OnAllItemsClicked(self, evt):
+        # Clear the filter kinds list
+
+        self.filterKinds = []
+        self._loadFilterState()
+
+
+    def OnFilterClicked(self, evt):
+        # If any individual kind checkbox is clicked, unset "My items"
+
+        self.RadioItems.SetValue(False)
+
     def OnPublish(self, evt):
+        # Publish the collection
+
+        # Update the UI by disabling/hiding various panels, and swapping in a
+        # new set of buttons
         self.mainPanel.Enable(False)
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
-        self.buttonPanel = self.resources.LoadPanel(self, 
+        self.buttonPanel = self.resources.LoadPanel(self,
                                                     "PublishingButtonsPanel")
         self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
         publishingButton = wx.xrc.XRCCTRL(self, "BUTTON_PUBLISHING")
         publishingButton.Enable(False)
-        
+        self.Bind(wx.EVT_BUTTON, self.OnPublishDone, id=wx.ID_CANCEL)
+
         self._clearStatus()
         self._resize()
         wx.Yield()
-        
+
         shareName = self.publishNameControl.GetValue()
         shareNameSafe = urllib.quote_plus(shareName)
-        
+
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
-        
-        shareXML = Sharing.newOutboundShare(self.view, self.collection,
-                                            shareName=shareNameSafe,
-                                            account=account)
-        self.shareXML = shareXML
-        shareXML.displayName = shareName
-        
-        iCalName = "%s.ics" % shareNameSafe
-        shareICal = Sharing.newOutboundShare(self.view, self.collection,
-                                             shareName=iCalName,
-                                             account=account)
-        self.shareICal = shareICal
-        shareICal.displayName = "%s.ics" % shareName
-        
-        format = ICalendar.ICalendarFormat(view=self.view)
-        shareICal.mode = "put"
-        shareICal.format = format
-        shareICal.hidden = True
-        
-        self._showStatus("Wait for Sharing URL...\n")
-        if not shareXML.exists():
-            self._showStatus("Creating collection on server...")
-            shareXML.create()
-            self._showStatus(" done.\n")
-            
-        self._showStatus("Publishing collection to server...")
-        shareXML.put()
-        self._showStatus(" done.\n")
 
-        self._showStatus("Publishing calendar file to server...")
-        shareICal.put()
-        self._showStatus(" done.\n")
-        
+        try:
+
+            # Create the main share object
+            shareXML = Sharing.newOutboundShare(self.view,
+                                                self.collection,
+                                                kinds=self.filterKinds,
+                                                shareName=shareNameSafe,
+                                                account=account)
+            self.shareXML = shareXML
+            shareXML.displayName = shareName
+
+            # Create the secondary (.ics) share object
+            iCalName = "%s.ics" % shareNameSafe
+            shareICal = Sharing.newOutboundShare(self.view,
+                                                 self.collection,
+                                                 kinds=self.filterKinds,
+                                                 shareName=iCalName,
+                                                 account=account)
+            self.shareICal = shareICal
+            shareICal.displayName = "%s.ics" % shareName
+
+            # For the .ics share, use ICalendarFormat instead
+            format = ICalendar.ICalendarFormat(view=self.view)
+            shareICal.mode = "put"
+            shareICal.format = format
+            shareICal.hidden = True
+
+            self._showStatus("Wait for Sharing URL...\n")
+            if not shareXML.exists():
+                self._showStatus("Creating collection on server...")
+                shareXML.create()
+                self._showStatus(" done.\n")
+
+            self._showStatus("Publishing collection to server...")
+            shareXML.put()
+            self._showStatus(" done.\n")
+
+            self._showStatus("Publishing calendar file to server...")
+            shareICal.put()
+            self._showStatus(" done.\n")
+
+        except Sharing.SharingError, e:
+
+            # Display the error
+            self._clearStatus()
+            self._showStatus("Sharing error: %s\n" % e.message)
+
+            # Clean up all share objects we created
+            try:
+                shareXML.delete(True)
+                shareICal.delete(True)
+            except:
+                pass
+
+            return
+
         self._showStatus("%s" % shareXML.getLocation())
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
-        self.buttonPanel = self.resources.LoadPanel(self, 
+        self.buttonPanel = self.resources.LoadPanel(self,
                                                     "PublishedButtonsPanel")
-        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)  
-        
-        self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnCopy, 
+        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
+
+        self.Bind(wx.EVT_BUTTON, self.OnPublishDone, id=wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
-        self._resize()        
-                
+        self._resize()
+
     def OnCancel(self, evt):
         self.EndModal(False)
-    
-    def OnDone(self, evt):
+
+    def OnPublishDone(self, evt):
         self.EndModal(True)
-        
+
     def OnCopy(self, evt):
-        gotClipboard = wx.TheClipboard.Open()        
+        gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             wx.TheClipboard.SetData(wx.TextDataObject(str(self.shareXML.getLocation())))
             wx.TheClipboard.Close()
-                
+
     def _clearStatus(self):
             self.textStatus.SetLabel("")
-            
+
     def _showStatus(self, msg):
         if not self.statusPanel.IsShown():
             self.mySizer.Insert(1, self.statusPanel, 0, wx.GROW, 5)
@@ -206,17 +383,19 @@ class PublishCollectionDialog(wx.Dialog):
         wx.Yield()
 
     def _hideStatus(self):
+        self._clearStatus()
         if self.statusPanel.IsShown():
             self.statusPanel.Hide()
-            # self.mySizer.Detach(self.statusPanel)
+            self.mySizer.Detach(self.statusPanel)
             self._resize()
+            wx.Yield()
         pass
-            
+
     def _resize(self):
         self.mySizer.Layout()
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
-        
+
     def _getSharingAccounts(self):
         accounts = []
         webDAVAccountKind = self.view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
@@ -231,7 +410,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.existingControl.Clear()
         for file in self.existing:
             self.existingControl.Append(file)
-                
+
     def _getExistingFiles(self):
         account = self.currentAccount
         host = account.host
@@ -240,12 +419,11 @@ class PublishCollectionDialog(wx.Dialog):
         password = account.password
         useSSL = account.useSSL
         sharePath = account.path.strip("/")
-       
+
         client = WebDAV.Client(host, port=port, username=username,
                                password=password, useSSL=useSSL,
                                repositoryView=self.view)
-        
- 
+
         scheme = "http"
         if account.useSSL:
             scheme = "https"
@@ -255,7 +433,7 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             url = "%s://%s:%d" % (scheme, account.host, account.port)
         url = urlparse.urljoin(url, sharePath + "/")
-        
+
         existing = []
         skipLen = 1
         if sharePath:
@@ -269,12 +447,12 @@ class PublishCollectionDialog(wx.Dialog):
         existing.sort()
         return existing
 
-def ShowPublishDialog(parent, view=None, collection=None):
+def ShowPublishDialog(parent, view=None, collection=None, kinds=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'parcels', 'osaf', 'framework', 'sharing',
      'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, "Collection Sharing",
-     resources=resources, view=view, collection=collection)
+     resources=resources, view=view, collection=collection, kinds=kinds)
     win.CenterOnScreen()
     win.ShowModal()

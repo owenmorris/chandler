@@ -113,6 +113,13 @@
             <inverseAttribute itemref="contact:Contact/shareeOf" />
         </Attribute>
 
+        <Attribute itsName="filterKinds">
+            <description value="The list of kinds to import/export" />
+            <cardinality value="list" />
+            <type itemref="String" />
+            <initialValue />
+        </Attribute>
+
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="contents">
@@ -130,6 +137,11 @@
             <includePolicy value="byCloud"/>
           </Endpoint>
           <endpoints itemref="share:Share/SharingCloud/sharees"/>
+          <Endpoint itsName="filterKinds">
+            <attribute value="filterKinds"/>
+            <includePolicy value="byCloud"/>
+          </Endpoint>
+          <endpoints itemref="share:Share/SharingCloud/filterKinds"/>
         </Cloud>
         <clouds alias="sharing" itemref="share:Share/SharingCloud"/>
 

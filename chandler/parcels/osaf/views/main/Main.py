@@ -470,15 +470,20 @@ class MainView(View):
     def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."
 
-        # @@@MOR: This new dialog is a work in progress...
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             reload(osaf.framework.sharing.PublishCollection)
             collection = self.getSidebarSelectedCollection()
+            sidebar = Block.findBlockByName("Sidebar")
+            if sidebar.filterKind is None:
+                kinds = []
+            else:
+                kinds = [str(sidebar.filterKind.itsPath)]
             osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
                 wx.GetApp().mainFrame,
                 view=self.itsView,
-                collection=collection)
+                collection=collection,
+                kinds = kinds)
             
         # Sharing.manualPublishCollection(self.itsView, collection)
 

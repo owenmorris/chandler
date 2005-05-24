@@ -54,12 +54,13 @@ class Share(ContentModel.ContentItem):
             self.displayName = contents.displayName
         except:
             self.displayName = ""
-        
+
         self.setConduit(conduit)
         self.format = format
 
         self.sharer = None
         self.sharees = []
+        self.filterKinds = []
 
     def setConduit(self, conduit):
         self.conduit = conduit
@@ -181,6 +182,12 @@ class ShareConduit(ContentModel.ContentItem):
         self.itsView.commit() # Make sure locally modified items have had
                               # their version numbers bumped up.
 
+        filterKinds = None
+        if len(self.share.filterKinds) > 0:
+            filterKinds = []
+            for path in self.share.filterKinds:
+                filterKinds.append(self.itsView.findPath(path))
+
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
@@ -190,13 +197,27 @@ class ShareConduit(ContentModel.ContentItem):
             # individually:
             if isinstance(self.share.contents, ItemCollection):
                 for item in self.share.contents:
-                    if not item.isPrivate:
-                        self.__conditionalPutItem(item, skipItems)
+
+                    if item.isPrivate:
+                        continue
+
+                    if filterKinds is not None:
+                        match = False
+                        for kind in filterKinds:
+                            if item.isItemOf(kind):
+                                match = True
+                                break
+
+                        if not match:
+                            continue
+
+                    self.__conditionalPutItem(item, skipItems)
 
             self.__conditionalPutItem(self.share, skipItems)
 
             for (itemPath, value) in self.resourceList.iteritems():
                 self._deleteItem(itemPath)
+                self.__removeFromManifest(itemPath)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             #@@@MOR This should be beefed up to only publish if at least one
@@ -269,6 +290,12 @@ class ShareConduit(ContentModel.ContentItem):
 
         if isinstance(self.share.contents, ItemCollection):
 
+            filterKinds = None
+            if len(self.share.filterKinds) > 0:
+                filterKinds = []
+                for path in self.share.filterKinds:
+                    filterKinds.append(self.itsView.findPath(path))
+
             # Conditionally fetch items, and add them to collection
             for itemPath in self.resourceList:
                 item = self.__conditionalGetItem(itemPath)
@@ -289,8 +316,26 @@ class ShareConduit(ContentModel.ContentItem):
                 uuid = self.manifest[unseenPath]['uuid']
                 item = self.itsView.findUUID(uuid)
                 if item is not None:
-                    logger.info("...removing %s from collection" % item)
-                    self.share.contents.remove(item)
+
+                    # If an item has disappeared from the server, only remove
+                    # it locally if it matches the current share filter.
+
+                    removeLocally = True
+
+                    if filterKinds is not None:
+                        match = False
+                        for kind in filterKinds:
+                            if item.isItemOf(kind):
+                                match = True
+                                break
+                        if match is False:
+                            removeLocally = False
+
+                    if removeLocally:
+                        logger.info("...removing %s from collection" % item)
+                        self.share.contents.remove(item)
+
+                    # In either case, remove from manifest
                     toRemove.append(unseenPath)
 
             for removePath in toRemove:
@@ -646,7 +691,7 @@ class WebDAVConduit(ShareConduit):
             (host, port, sharePath, username, password, useSSL) = self.__getSettings()
             self.client = WebDAV.Client(host, port=port, username=username,
                                         password=password, useSSL=useSSL,
-                                        repositoryView=self.view)
+                                        repositoryView=self.itsView)
         return self.client
 
     def __releaseClient(self):
@@ -1377,7 +1422,8 @@ class MixedFormat(ImportExportFormat):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Sharing helper methods
 
-def newOutboundShare(view, collection, shareName=None, account=None):
+def newOutboundShare(view, collection, kinds=None, shareName=None,
+                     account=None):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV
@@ -1403,6 +1449,12 @@ def newOutboundShare(view, collection, shareName=None, account=None):
     format = CloudXMLFormat(view=view)
     share = Share(view=view, conduit=conduit, format=format,
                   contents=collection)
+
+    if kinds is None:
+        share.filterKinds = []
+    else:
+        share.filterKinds = kinds
+
     share.displayName = collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
     share.sharer = Contacts.Contact.getCurrentMeContact(view)
