@@ -1,0 +1,4 @@
+*.pyc
+*.pyo
+_parcel.xml
+cacert.pem
