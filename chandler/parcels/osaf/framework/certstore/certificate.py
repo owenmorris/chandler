@@ -127,10 +127,11 @@ def ImportCertificate(repView, cpiaView):
             selections = dlg.GetSelections()
             dlg.Destroy()
             # XXX Number of selections depends on type of cert
-            if selections[0]:
-                trust |= TRUST_AUTHENTICITY
-            if selections[1]:
-                trust |= TRUST_SITE
+            for sel in selections:
+                if sel == 0:
+                    trust |= TRUST_AUTHENTICITY
+                if sel == 1:
+                    trust |= TRUST_SITE
         else:
             dlg.Destroy()
             return
