@@ -74,9 +74,9 @@ class TestPanel( wx.Panel ):
         cb4.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_ProportionalResizing ) )
 
         if (ch1.GetAttribute( wx.colheader.CH_ATTR_Unicode )):
-                prompt = "Unicode build"
+            prompt = "Unicode build"
         else:
-                prompt = "ANSI build"
+            prompt = "ANSI build"
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, miscControlsY + 150), (150, 20) )
 
         l0O = wx.StaticText( self, -1, "Last action:", (self.colStartX, miscControlsY + 175), (90, 20) )

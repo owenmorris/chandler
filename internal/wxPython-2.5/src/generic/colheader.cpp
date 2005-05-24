@@ -203,7 +203,7 @@ bool wxColumnHeader::Create(
 	const wxString		&name )
 {
 wxString		localName;
-wxSize		actualSize;
+wxSize			actualSize;
 bool			bResultV;
 
 	localName = name;
@@ -652,10 +652,7 @@ bool			bResult;
 			m_BUseGenericRenderer = bFlagValue;
 
 			for (i=0; i<m_ItemCount; i++)
-			{
 				m_ItemList[i]->InvalidateTextExtent();
-				RefreshItem( i, true );
-			}
 
 			SetViewDirty();
 		}
@@ -674,9 +671,7 @@ bool			bResult;
 
 	case CH_ATTR_ProportionalResizing:
 		if (m_BProportionalResizing != bFlagValue)
-		{
 			m_BProportionalResizing = bFlagValue;
-		}
 		break;
 
 	default:
@@ -898,7 +893,6 @@ long		i;
 			if (m_ItemSelected == itemIndex)
 				m_ItemSelected = CH_HITTEST_NoPart;
 
-			// NB: AddItem doesn't do this
 			SetViewDirty();
 		}
 	}
@@ -1420,6 +1414,9 @@ long		resultV, i;
 	{
 	wxPaintDC	dc( this );
 
+		// FIXME: what about tranparency ??
+		dc.Clear();
+
 		dc.SetFont( m_Font );
 
 		for (i=0; i<m_ItemCount; i++)
@@ -1443,34 +1440,36 @@ long		resultV, i;
 #if defined(__WXMSW__)
 	if (! m_BUseGenericRenderer)
 	{
-	wxClientDC			dc( this );
-	wxColumnHeaderItem	*itemRef;
-
 		// render native control window
 		wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
-		// if specified, render any button arrows
-		for (i=0; i<m_ItemCount; i++)
 		{
-			itemRef = GetItemRef( i );
-			if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
-				if (GetItemBounds( i, &boundsR ))
-					itemRef->DrawButtonArrow( &dc, &boundsR );
-		}
+		// NB: the DC has to be a wxClientDC instead of a wxPaintDC - why?
+		wxClientDC			dc( this );
+		wxColumnHeaderItem	*itemRef;
 
-		// MSW case - add selection indicator - no appropriate native adornment exists
-		// FIXME: the DC has to be a wxClientDC instead of a wxPaintDC - why?
-		if (m_BVisibleSelection && (m_ItemSelected >= 0))
-			if (GetItemBounds( m_ItemSelected, &boundsR ))
+			// if specified, render any button arrows
+			for (i=0; i<m_ItemCount; i++)
 			{
-				dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
-
-				wxColumnHeaderItem::GenericDrawSelection(
-					&dc, &boundsR,
-					&m_SelectionColour, m_SelectionDrawStyle );
-
-				dc.DestroyClippingRegion();
+				itemRef = GetItemRef( i );
+				if ((itemRef != NULL) && (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None))
+					if (GetItemBounds( i, &boundsR ))
+						itemRef->DrawButtonArrow( &dc, &boundsR );
 			}
+
+			// MSW case - add selection indicator - no appropriate native adornment exists
+			if (m_BVisibleSelection && (m_ItemSelected >= 0))
+				if (GetItemBounds( m_ItemSelected, &boundsR ))
+				{
+					dc.SetClippingRegion( boundsR.x, boundsR.y, boundsR.width, boundsR.height );
+
+					wxColumnHeaderItem::GenericDrawSelection(
+						&dc, &boundsR,
+						&m_SelectionColour, m_SelectionDrawStyle );
+
+					dc.DestroyClippingRegion();
+				}
+		}
 	}
 
 #elif defined(__WXMAC__)
@@ -1634,7 +1633,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( wxT("MSWItemInsert - GetHwnd failed (NULL)") );
+		// wxLogDebug( wxT("MSWItemInsert - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -1673,7 +1672,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( wxT("MSWItemDelete - GetHwnd failed (NULL)") );
+		// wxLogDebug( wxT("MSWItemDelete - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -1692,7 +1691,7 @@ long wxColumnHeader::MSWItemRefresh(
 wxColumnHeaderItem		*itemRef;
 HDITEM					itemData;
 HWND					targetViewRef;
-LONG						newFmt;
+LONG					newFmt;
 long					resultV, nWidth;
 BOOL					bHasButtonArrow;
 
@@ -1729,29 +1728,26 @@ BOOL					bHasButtonArrow;
 	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
 	if (! bHasButtonArrow)
 	{
-	if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
-	{
-		newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
-
-		// add bitmap reference
-		newFmt |= HDF_BITMAP;
-		itemData.mask |= HDI_BITMAP;
-		itemData.hbm = (HBITMAP)(itemRef->m_BitmapRef->GetHBITMAP());
-	}
-	else
-	{
-		// add sort arrows as needed
-		newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
-
-		// add string reference
-		newFmt |= HDF_STRING;
-		itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
+		if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
+		{
+			// add bitmap reference
+			newFmt |= HDF_BITMAP;
+			itemData.mask |= HDI_BITMAP;
+			itemData.hbm = (HBITMAP)(itemRef->m_BitmapRef->GetHBITMAP());
 		}
-	}
+		else
+		{
+			newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
 
-	// add sort arrows as needed
-	if (! bHasButtonArrow && itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
-		newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+			// add string reference
+			newFmt |= HDF_STRING;
+			itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
+		}
+
+		// add sort arrows as needed
+		if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
+			newFmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+	}
 
 	if (! bCheckChanged || (itemData.fmt != newFmt))
 	{
@@ -2111,8 +2107,8 @@ long		targetX, resultV;
 
 #if defined(__WXMAC__)
 long wxColumnHeaderItem::MacDrawItem(
-	wxWindow		*parentW,
-	wxDC			*dc,
+	wxWindow			*parentW,
+	wxDC				*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
 	bool				bVisibleSelection )
@@ -2120,7 +2116,7 @@ long wxColumnHeaderItem::MacDrawItem(
 ThemeButtonDrawInfo		drawInfo;
 Rect					qdBoundsR;
 long					nativeTextJust;
-SInt16				nativeFontID;
+SInt16					nativeFontID;
 bool					bSelected, bHasButtonArrow, bHasBitmap;
 OSStatus				errStatus;
 
@@ -2243,13 +2239,13 @@ OSStatus				errStatus;
 #endif
 
 long wxColumnHeaderItem::GenericDrawItem(
-	wxWindow		*parentW,
-	wxDC			*dc,
+	wxWindow			*parentW,
+	wxDC				*dc,
 	const wxRect		*boundsR,
 	bool				bUseUnicode,
 	bool				bVisibleSelection )
 {
-wxRect		localBoundsR, subItemBoundsR;
+wxRect			localBoundsR, subItemBoundsR;
 long			startX, originX, maxExtentX, descentY;
 bool			bSelected, bHasButtonArrow, bHasBitmap;
 
@@ -2325,7 +2321,7 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 }
 
 void wxColumnHeaderItem::DrawButtonArrow(
-	wxDC			*dc,
+	wxDC				*dc,
 	const wxRect		*localBoundsR )
 {
 wxRect		subItemBoundsR;
@@ -2343,10 +2339,10 @@ wxRect		subItemBoundsR;
 }
 
 void wxColumnHeaderItem::CalculateTextExtent(
-	wxDC			*dc,
+	wxDC				*dc,
 	bool				bForceRecalc )
 {
-wxCoord		targetWidth, targetHeight;
+wxCoord			targetWidth, targetHeight;
 long			startX, originX, maxExtentX;
 long			charCount;
 
@@ -2381,13 +2377,13 @@ long			charCount;
 }
 
 long wxColumnHeaderItem::MeasureLabelText(
-	wxDC			*dc,
+	wxDC				*dc,
 	const wxString		&targetStr,
 	long				maxWidth,
 	long				&charCount )
 {
 wxString		truncStr, ellipsisStr;
-wxCoord		targetWidth, targetHeight, ellipsisWidth;
+wxCoord			targetWidth, targetHeight, ellipsisWidth;
 bool			bContinue;
 
 	if ((dc == NULL) || (maxWidth <= 0))
@@ -2571,12 +2567,12 @@ OSStatus			errStatus;
 
 // static
 void wxColumnHeaderItem::GenericDrawSelection(
-	wxDC				*dc,
+	wxDC					*dc,
 	const wxRect			*boundsR,
 	const wxColour			*targetColour,
 	long					drawStyle )
 {
-wxPen		targetPen( *wxLIGHT_GREY, 1, wxSOLID );
+wxPen			targetPen( *wxLIGHT_GREY, 1, wxSOLID );
 long			borderWidth, offsetY;
 
 
@@ -2630,9 +2626,9 @@ long			borderWidth, offsetY;
 		targetPen.SetWidth( borderWidth );
 		dc->SetPen( targetPen );
 
-		offsetY = 0;
+		offsetY = 1;
 		if (drawStyle == CH_SELECTIONDRAWSTYLE_Underline)
-			offsetY = boundsR->height - borderWidth;
+			offsetY += boundsR->height - borderWidth;
 
 		dc->DrawLine(
 			boundsR->x,
@@ -2646,7 +2642,7 @@ long			borderWidth, offsetY;
 // static
 void wxColumnHeaderItem::GenericGetSortArrowBounds(
 	const wxRect			*itemBoundsR,
-	wxRect				*targetBoundsR )
+	wxRect					*targetBoundsR )
 {
 int		sizeX, sizeY, insetX;
 
@@ -2679,7 +2675,7 @@ int		sizeX, sizeY, insetX;
 
 // static
 void wxColumnHeaderItem::GenericDrawArrow(
-	wxDC				*dc,
+	wxDC					*dc,
 	const wxRect			*boundsR,
 	bool					bIsAscending,
 	bool					bIsVertical )
@@ -2739,8 +2735,8 @@ wxPoint		triPt[3];
 void wxColumnHeaderItem::GenericGetBitmapItemBounds(
 	const wxRect			*itemBoundsR,
 	long					targetJustification,
-	const wxBitmap		*targetBitmap,
-	wxRect				*targetBoundsR )
+	const wxBitmap			*targetBitmap,
+	wxRect					*targetBoundsR )
 {
 int		sizeX, sizeY, insetX;
 
