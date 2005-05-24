@@ -19,28 +19,7 @@ PREFIX_PYTHON=$(PREFIX)/bin
 MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/_PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/libPyICU$(SUFFIX).dll
-else
 
-ifeq ($(OS),Darwin)
-PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
-
-MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
-         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
-         $(SNAP)/lib/libPyICU$(SUFFIX).dylib
-
-else
-
-ifeq ($(OS),Linux)
-PREFIX_PYTHON=$(PREFIX)
-MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
-         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
-         $(SNAP)/lib/libPyICU$(SUFFIX).so
-
-endif
-endif
-endif
-
-ifeq ($(OS),Cygwin)
 build: expand
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
@@ -53,6 +32,33 @@ build: expand
             VERSION=$(VERSION) \
             all install
 else
+
+ifeq ($(OS),Darwin)
+PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
+
+MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
+         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
+         $(SNAP)/lib/libPyICU$(SUFFIX).dylib
+
+build: expand
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+	$(MAKE) -C $(SRC) \
+            PREFIX=$(PREFIX) \
+            PREFIX_PYTHON=$(PREFIX_PYTHON) \
+            PREFIX_ICU=$(PREFIX)/icu \
+            SWIG=$(SWIG) \
+            PYDBG=$(PYDBG) \
+            PYTHON_VER=$(PYTHON_VER) \
+            VERSION=$(VERSION) \
+            all install
+else
+
+ifeq ($(OS),Linux)
+PREFIX_PYTHON=$(PREFIX)
+MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU.so \
+         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*.so \
+         $(SNAP)/lib/libPyICU$(SUFFIX).so
+
 build: expand
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
@@ -63,6 +69,9 @@ build: expand
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
+
+endif
+endif
 endif
 
 clean:
