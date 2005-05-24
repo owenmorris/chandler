@@ -196,7 +196,7 @@ wxRendererXP::DrawComboBoxDropButton(wxWindow * win,
         wxUxThemeEngine::Get()->DrawThemeBackground
                                 (
                                     hTheme,
-                                    dc.GetHDC(),
+                                    (HDC) dc.GetHDC(),
                                     CP_DROPDOWNBUTTON,
                                     state,
                                     &r,
@@ -244,7 +244,7 @@ wxRendererXP::DrawSplitterSash(wxWindow *win,
 {
     if ( !win->HasFlag(wxSP_NO_XP_THEME) )
     {
-        wxUxThemeHandle hTheme(win, L"WINDOW");
+        wxUxThemeHandle hTheme(win, L"REBAR");
         if ( hTheme )
         {
             RECT rect;
@@ -265,8 +265,8 @@ wxRendererXP::DrawSplitterSash(wxWindow *win,
 
             wxUxThemeEngine::Get()->DrawThemeBackground
                                     (
-                                        (WXHTHEME)hTheme,
-                                        dc.GetHDC(),
+                                        hTheme,
+                                        (HDC) dc.GetHDC(),
                                         29, // WP_DIALOG: dlg background
                                         0, // no particular state
                                         &rect,
