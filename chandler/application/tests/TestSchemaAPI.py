@@ -8,13 +8,20 @@ from repository.schema import Types
 class Dummy(schema.Item):
     """Just a test fixture"""
     attr = schema.One(Types.String)
+    other = schema.Many()
+
+class Other(schema.Item):
+    thing = schema.One(Dummy, inverse=Dummy.other)
 
 
 class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
+
     def setUp(self):
         schema.reset()  # clear schema state before starting
 
+    def tearDown(self):
+        self.failUnless(schema.reset().check(), "check() failed")
 
 class SchemaTests(SchemaTestCase):
 
@@ -42,7 +49,13 @@ class SchemaTests(SchemaTestCase):
         self.failUnless(attr3 is attr1)
         self.failUnless(attr3 is attr1)
 
-        
+    def testAttrKindType(self):
+        self.assertEqual(Dummy.attr._schema_attr.getAspect('type'),Types.String)
+        self.assertEqual(Other.thing._schema_attr.getAspect('type'),
+                         Dummy._schema_kind)
+        self.assertRaises(TypeError, schema.Role, str)
+
+
 def test_schema_api():
     import doctest
     return doctest.DocFileSuite(

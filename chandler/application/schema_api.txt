@@ -5,7 +5,7 @@ Schema Definition Support
 .. contents:: **Table of Contents**
 
     >>> from application import schema
-
+    >>> from repository.schema import Types
 
 ------------
 Introduction
@@ -71,7 +71,7 @@ All role objects have at least the following attributes and methods:
     invoke ``aRole.inverse.addType(aRole.owner)``, so that the inverse role
     will accept instances of the first role's owning type.  This allows you
     to easily define bidirectional links without "forward references"; just
-    leave off the `types` argument in both role definitions, and specify an
+    leave off the `type` argument in both role definitions, and specify an
     `inverse` argument for the second::
 
         >>> class anotherEntity(schema.Item):
@@ -86,7 +86,7 @@ All role objects have at least the following attributes and methods:
     single type::
 
         >>> class Kind(schema.Item):
-        ...     name = schema.One(str)
+        ...     name = schema.One(Types.String)
         ...     subkinds = schema.Many()
         ...     superkinds = schema.Many(inverse=subkinds)
         ...     def __repr__(self):
@@ -115,7 +115,7 @@ All role objects have at least the following attributes and methods:
          |  Data and other attributes defined here:
          |
          |  name = <Role name of <class 'Kind'>>
-         |      Kind Name -- One(str)
+         |      Kind Name -- One(String)
          |
          |      This kind's name
          |
@@ -225,8 +225,8 @@ Item Subclasses
 XXX Explain this::
 
     >>> class Person(schema.Item):
-    ...     fullname = schema.One(str)
-    ...     age = schema.One(int)
+    ...     fullname = schema.One(Types.String)
+    ...     age = schema.One(Types.Integer)
     ...     parents = schema.Sequence()
     ...     children = schema.Sequence(inverse=parents)
     ...     def __repr__(self): return self.fullname

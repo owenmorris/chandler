@@ -2,6 +2,7 @@ from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
+from repository.schema import Types
 from application.Parcel import Manager, Parcel
 import __main__, repository, threading, os
 
@@ -80,8 +81,16 @@ class Role(ActiveDescriptor,CDescriptor):
             raise TypeError(
                 "Role objects are immutable; can't change %r once set" % attr
             )
+            
         self._setattr(attr,value)
         if attr=='type':
+            if not isinstance(value,type) or not issubclass(
+                value,(Base,Types.Type)
+            ):
+                self._setattr(attr,old) # roll it back
+                raise TypeError(
+                    "Attribute type must be Item class or Type",value
+                )
             self.setDoc()   # update docstring
 
     def __setInverse(self,inverse):
@@ -168,9 +177,17 @@ class Role(ActiveDescriptor,CDescriptor):
                 )
                 declareTemplate(attr)
                 kind.attributes.append(attr)
+
                 for aspect in all_aspects:
                     if hasattr(self,aspect):
-                        setattr(attr,aspect,getattr(self,aspect))
+                        val = getattr(self,aspect)
+                        if aspect=='displayName':
+                            val = val or self.name  # default displayName=name
+                        elif aspect=='type':
+                            if isinstance(self.type,ItemClass):
+                                val = val._schema_kind
+                        setattr(attr,aspect,val)
+
                 if not hasattr(self,'otherName') and self.inverse is not None:
                     attr.otherName = self.inverse.name
 
@@ -179,6 +196,7 @@ class Role(ActiveDescriptor,CDescriptor):
                 return attr
         finally:
             global_lock.release()
+
 
 class One(Role):
     cardinality = 'single'
