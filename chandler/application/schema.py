@@ -1,4 +1,4 @@
-from repository.persistence.RepositoryView import nullRepositoryView as nrv
+from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
@@ -10,39 +10,6 @@ __all__ = [
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module',
 ]
-
-def initRepository(rv,
-    packdir=os.path.join(os.path.dirname(repository.__file__),'packs')
-):
-    """Ensure repository view `rv` has been initialized with core schema"""
-
-    # Initialize the core schema, if needed
-    if rv.findPath('//Schema/Core/Item') is None:
-        rv.loadPack(os.path.join(packdir,'schema.pack'))
-    if rv.findPath('//Schema/Core/Parcel') is None:
-        rv.loadPack(os.path.join(packdir,'chandler.pack'))
-
-    anonymous_root = rv.findPath('//anonymous-root')
-    if anonymous_root is None:
-        anonymous_root = Base(
-            'anonymous-root', rv, rv.findPath('//Schema/Core/Item')
-        )
-
-def declareTemplate(item):
-    """Declare that `item` is a template, and should be copied when it is
-    imported into another repository view."""
-    if isinstance(item,Base):
-        item._status |= Base.COPYEXPORT
-    return item
-
-
-# ---------------------------
-# Setup null view and globals
-# ---------------------------
-
-initRepository(nrv)
-anonymous_root = nrv.findPath('//anonymous-root')
-declareTemplate(anonymous_root)
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
     ('displayName','description')
@@ -245,9 +212,11 @@ class ItemClass(Activator):
                 # the lock (i.e., this is double-checked locking)
                 return cls.__dict__['_schema_kind_']
 
-            elif '_schema_kind' in cls.__dict__:
-                # In case the class set its kind explicitly...
-                kind = cls._schema_kind_ = cls.__dict__['_schema_kind']
+            elif '_schema_kind_path' in cls.__dict__:
+                # In case the class set its kind with a path...
+                kind = cls._schema_kind_ = nrv.findPath(
+                    cls.__dict__['_schema_kind_path']
+                )
 
             else:
                 # Create a new kind
@@ -278,11 +247,13 @@ class Item(Base):
 
     __metaclass__ = ItemClass
 
-    _schema_kind = nrv.findPath('//Schema/Core/Item')   # bootstrap root class
+    _schema_kind_path = '//Schema/Core/Item'   # bootstrap root class
 
     def __init__(self,
-        name=None, parent=anonymous_root, kind=None, _uuid=None, **values
+        name=None, parent=None, kind=None, _uuid=None, **values
     ):
+        if parent is None and name is None:
+            parent = anonymous_root
         if kind is None:
             kind = self.__class__._schema_kind
         super(Item,self).__init__(name,parent,kind,_uuid,**values)
@@ -333,13 +304,13 @@ def parcel_for_module(moduleName):
     """Return the Parcel for the named module
 
     If the named module has a ``__parcel__`` attribute, its value will be
-    returned.  If the module does not have a ``__parcel__``, then a new parcel
-    will be created and stored in the module's ``__parcel__`` attribute.  If
-    the module has a ``__parcel_class__`` attribute, it will be used in place
-    of the ``application.Parcel.Parcel`` class, to create the parcel instance.
-    The ``__parcel_class__`` must accept three arguments: the parcel's name,
-    its parent parcel (which will be the ``parcel_for_module()`` of the
-    module's enclosing package), and the Parcel Kind (as found at
+    used to redirect to another parcel.  If the module does not have a
+    ``__parcel__``, then a new parcel will be created, cached, and returned.
+    If the module has a ``__parcel_class__`` attribute, it will be used in
+    place of the ``application.Parcel.Parcel`` class, to create the parcel
+    instance.  The ``__parcel_class__`` must accept three arguments: the
+    parcel's name, its parent parcel (which will be the ``parcel_for_module()``
+    of the module's enclosing package), and the Parcel Kind (as found at
     ``//Schema/Core/Parcel`` in the null repository view).
 
     If ``moduleName`` is an empty string, the ``//parcels`` root of the null
@@ -349,22 +320,33 @@ def parcel_for_module(moduleName):
     """
     global_lock.acquire()
     try:
-        if moduleName:
-            module = importString(moduleName)
+        if moduleName:                      
             try:
-                return module.__parcel__
-            except AttributeError:
-                if '.' in moduleName:
-                    parentName,modName = moduleName.rsplit('.',1)
-                else:
-                    parentName,modName = '',moduleName
-                mkParcel = getattr(module,'__parcel_class__',Parcel)
-                module.__parcel__ = parcel = mkParcel(
-                    modName, parcel_for_module(parentName),
-                    nrv.findPath('//Schema/Core/Parcel')
+                return nrv._parcel_cache[moduleName]
+            except KeyError:
+                module = importString(moduleName)               
+
+            if hasattr(module,'__parcel__'):
+                nrv._parcel_cache[moduleName] = parcel = parcel_for_module(
+                    module.__parcel__
                 )
-                declareTemplate(parcel)
                 return parcel
+
+            if '.' in moduleName:
+                parentName,modName = moduleName.rsplit('.',1)
+            else:
+                parentName,modName = '',moduleName
+
+            mkParcel = getattr(module,'__parcel_class__',Parcel)
+
+            nrv._parcel_cache[moduleName] = parcel = mkParcel(
+                modName, parcel_for_module(parentName),
+                nrv.findPath('//Schema/Core/Parcel')
+            )
+
+            declareTemplate(parcel)
+            return parcel
+
         else:
             root = nrv.findPath('//parcels')
             if root is None:
@@ -378,5 +360,68 @@ def parcel_for_module(moduleName):
 
 def synchronize(repoView,moduleName):
     """Ensure that the named module's schema is incorporated into `repoView`"""
+    importString(moduleName)
     repoView.importItem(parcel_for_module(moduleName))
+
+
+# -------------------------------
+# Initialization/Utility Routines
+# -------------------------------
+
+def initRepository(rv,
+    packdir=os.path.join(os.path.dirname(repository.__file__),'packs')
+):
+    """Ensure repository view `rv` has been initialized with core schema"""
+
+    # Initialize the core schema, if needed
+    if rv.findPath('//Schema/Core/Item') is None:
+        rv.loadPack(os.path.join(packdir,'schema.pack'))
+    if rv.findPath('//Schema/Core/Parcel') is None:
+        rv.loadPack(os.path.join(packdir,'chandler.pack'))
+
+    anonymous_root = rv.findPath('//anonymous-root')
+    if anonymous_root is None:
+        anonymous_root = Base(
+            'anonymous-root', rv, rv.findPath('//Schema/Core/Item')
+        )
+
+def declareTemplate(item):
+    """Declare that `item` is a template, and should be copied when it is
+    imported into another repository view."""
+    if isinstance(item,Base):
+        item._status |= Base.COPYEXPORT
+    return item
+
+def reset(rv=None):
+    """TESTING ONLY: Reset the schema API to use a different repository view
+
+    This routine allows you to pass in a repository view that will then
+    be used by the schema API; it also returns the previously-used view.
+    It exists so that unit tests can roll back the API's state to a known
+    condition before proceeding.
+    """
+    global nrv, anonymous_root
+
+    old_rv = nrv
+    if rv is None:
+        rv = NullRepositoryView()
+
+    nrv = rv
+    initRepository(nrv)
+    if not hasattr(nrv,'_parcel_cache'):
+        nrv._parcel_cache = {}
+    anonymous_root = nrv.findPath('//anonymous-root')
+    declareTemplate(anonymous_root)
+
+    return old_rv
+
+# ---------------------------
+# Setup null view and globals
+# ---------------------------
+
+nrv = anonymous_root = None
+reset(nrv)
+
+
+
 

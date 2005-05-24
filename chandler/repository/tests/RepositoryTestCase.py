@@ -12,6 +12,7 @@ import logging, os, sys, gettext
 from repository.persistence.DBRepository import DBRepository
 from repository.util.Path import Path
 from application.Parcel import Manager as ParcelManager
+from application import schema
 
 # set up the gettext locale, so we have a definition of _()
 os.environ['LANGUAGE'] = 'en'
@@ -20,6 +21,7 @@ gettext.install('chandler', 'locale')
 class RepositoryTestCase(TestCase):
 
     def _setup(self, ramdb=True):
+        schema.reset()
         self.rootdir = os.environ['CHANDLERHOME']
         self.schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')

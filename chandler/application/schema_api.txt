@@ -257,9 +257,7 @@ Importing the ``application.schema`` module automatically loads the core and
 Chandler schema packs into the null repository view, if they aren't already
 loaded::
 
-    >>> from repository.persistence.RepositoryView import nullRepositoryView
-    >>> rep = nullRepositoryView
-    >>> rep.findPath('//Schema/Core/Parcel')
+    >>> schema.nrv.findPath('//Schema/Core/Parcel')
     <Kind ...>
 
 
@@ -291,18 +289,19 @@ loaded::
 
 ``parcel_for_module(moduleName)``
     The ``parcel_for_module()`` API returns a parcel instance for the named
-    module.  If the module has a ``__parcel__`` attribute, this is always
-    returned::
+    module.  If the module has a ``__parcel__`` attribute, the parcel for
+    the named module is returned instead::
 
-        >>> application.tests.__parcel__ = 123
+        >>> application.tests.__parcel__ = "__builtin__"
         >>> schema.parcel_for_module("application.tests")
-        123
+        <Parcel ... __builtin__ ...>
 
     If the module has no ``__parcel__``, but it has a ``__parcel_class__``,
     then it is called to create a new parcel instance, passing in the name,
     parent parcel, and parcel kind::
 
         >>> del application.tests.__parcel__
+        >>> del schema.nrv._parcel_cache['application.tests']   # XXX
 
         >>> def __parcel_class__(name, parent, kind):
         ...     print "Creating", name, parent, kind
@@ -330,15 +329,16 @@ loaded::
     As you can see, the global lock is acquired during the recursive creation
     or retrieval of the parcel object, and released afterwards.
 
-    The created parcel object is cached in the module's ``__parcel__``
-    attribute, so that subsequent invocations just return the same object,
-    without re-invoking the ``__parcel_class__``::
+    The created parcel object is cached by the schema API so that subsequent
+    invocations just return the same object, without re-invoking the
+    ``__parcel_class__``::
 
         >>> schema.parcel_for_module("application.tests")
         456
 
         >>> # clean up dummy parcel setup
-        >>> del application.tests.__parcel__, application.tests.__parcel_class__
+        >>> del schema.nrv._parcel_cache["application.tests"]   # XXX
+        >>> del application.tests.__parcel_class__
 
     If the name is an empty string, the root of the ``//parcels`` namespace is
     returned::
@@ -346,7 +346,7 @@ loaded::
         >>> schema.parcel_for_module("")
         <Parcel ...: parcels ...>
 
-        >>> schema.parcel_for_module("") is rep.findPath('//parcels')
+        >>> schema.parcel_for_module("") is schema.nrv.findPath('//parcels')
         True
 
 ``Item._schema_kind``
@@ -366,20 +366,20 @@ loaded::
 
     And the generated kind has its class' module's parcel as its parent::
 
-        >>> kind.itsParent is application.tests.__parcel__
+        >>> kind.itsParent is schema.parcel_for_module('application.tests')
         True
 
-        >>> kind is rep.findPath('//parcels/application/tests/TestItem')
+        >>> kind is schema.nrv.findPath('//parcels/application/tests/TestItem')
         True
 
     Its superkinds are the ``_schema_kind`` values of its base classes::
 
-        >>> list(kind.superKinds) == [rep.findPath('//Schema/Core/Item')]
+        >>> list(kind.superKinds) == [schema.nrv.findPath('//Schema/Core/Item')]
         True
 
     Its kind is of course ``Kind``::
 
-        >>> kind.itsKind is rep.findPath('//Schema/Core/Kind')
+        >>> kind.itsKind is schema.nrv.findPath('//Schema/Core/Kind')
         True
 
     And its class is the class::
