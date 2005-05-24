@@ -10,14 +10,13 @@ ifeq ($(OS),Cygwin)
 ifeq ($(DEBUG),1)
 SUFFIX=d
 _SUFFIX=_d
-PYDBG=-DPy_DEBUG=1
 else
 SUFFIX=
 _SUFFIX=
 endif
 PREFIX_PYTHON=$(PREFIX)/bin
 MANIFEST=$(SNAP)/$(SITE)/PyICU.py $(SNAP)/$(SITE)/_PyICU$(_SUFFIX).pyd \
-         $(SNAP)/$(SITE)/_PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*$(_SUFFIX).pyd \
+         $(SNAP)/$(SITE)/PyICU_*.py $(SNAP)/$(SITE)/_PyICU_*$(_SUFFIX).pyd \
          $(SNAP)/$(SITE)/libPyICU$(SUFFIX).dll
 
 build: expand
@@ -25,9 +24,8 @@ build: expand
             PREFIX=$(PREFIX) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX) \
-            ICU_INC=`cygpath -aw $(PREFIX)/include/icu` \
+            ICU_INC=`cygpath -am $(PREFIX)/include/icu` \
             SWIG=$(SWIG) \
-            PYDBG=$(PYDBG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
