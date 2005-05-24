@@ -3,6 +3,7 @@ include Makefile.inc
 
 SYSTEMS=persistence/db \
         swig \
+        icu \
         readline \
         python \
         epydoc \
