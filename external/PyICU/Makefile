@@ -45,7 +45,6 @@ build: expand
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
             SWIG=$(SWIG) \
-            PYDBG=$(PYDBG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
@@ -63,7 +62,6 @@ build: expand
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             PREFIX_ICU=$(PREFIX)/icu \
             SWIG=$(SWIG) \
-            PYDBG=$(PYDBG) \
             PYTHON_VER=$(PYTHON_VER) \
             VERSION=$(VERSION) \
             all install
