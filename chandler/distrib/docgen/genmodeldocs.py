@@ -16,6 +16,14 @@ from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 
+#XXX@BK getext is required for mail code
+#   it must be imported before Sharing
+#   which imports the mail code
+import gettext, os
+# set up the gettext locale, so we have a definition of _()
+os.environ['LANGUAGE'] = 'en'
+gettext.install('chandler', 'locale')
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def main():
