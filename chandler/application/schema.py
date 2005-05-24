@@ -145,7 +145,7 @@ class Role(ActiveDescriptor,CDescriptor):
     @property
     def _schema_attr(self):
         try:
-            return self.__dict__['_schema_attr_']
+            return nrv._schema_cache[self]
         except KeyError:
             if self.owner is None or self.name is None:
                 raise TypeError(
@@ -155,15 +155,15 @@ class Role(ActiveDescriptor,CDescriptor):
 
         global_lock.acquire()
         try:
-            if '_schema_attr_' in self.__dict__:
+            if self in nrv._schema_cache:
                 # In case another thread set it up while we were waiting for
                 # the lock (i.e., this is double-checked locking)
                 # (This branch is also taken if creating 'kind' recursively
                 # invoked creation of this attribute)
-                return self.__dict__['_schema_attr_']
+                return nrv._schema_cache[self]
             else:
                 # Create a new Attribute
-                attr = Attribute(
+                attr = nrv._schema_cache[self] = Attribute(
                     self.name, kind, nrv.findPath('//Schema/Core/Attribute'),
                 )
                 declareTemplate(attr)
@@ -175,9 +175,8 @@ class Role(ActiveDescriptor,CDescriptor):
                     attr.otherName = self.inverse.name
 
                 # XXX self.registerAttribute(self.owner._schema_kind, attr)
-
-            self.__dict__['_schema_attr_'] = attr
-            return attr
+                self.__dict__['_schema_attr_'] = True   # disallow changes
+                return attr
         finally:
             global_lock.release()
 
@@ -201,26 +200,26 @@ class ItemClass(Activator):
     @property
     def _schema_kind(cls):
         try:
-            return cls.__dict__['_schema_kind_']
+            return nrv._schema_cache[cls]
         except KeyError:
             pass
 
         global_lock.acquire()
         try:
-            if '_schema_kind_' in cls.__dict__:
+            if cls in nrv._schema_cache:
                 # In case another thread set it up while we were waiting for
                 # the lock (i.e., this is double-checked locking)
-                return cls.__dict__['_schema_kind_']
+                return nrv._schema_cache[cls]
 
             elif '_schema_kind_path' in cls.__dict__:
                 # In case the class set its kind with a path...
-                kind = cls._schema_kind_ = nrv.findPath(
+                kind = nrv._schema_cache[cls] = nrv.findPath(
                     cls.__dict__['_schema_kind_path']
                 )
 
             else:
                 # Create a new kind
-                kind = Kind(
+                kind = nrv._schema_cache[cls] = Kind(
                     cls.__name__, parcel_for_module(cls.__module__),
                     nrv.findPath('//Schema/Core/Kind')
                 )
@@ -402,18 +401,24 @@ def reset(rv=None):
     """
     global nrv, anonymous_root
 
-    old_rv = nrv
-    if rv is None:
-        rv = NullRepositoryView()
-
-    nrv = rv
-    initRepository(nrv)
-    if not hasattr(nrv,'_parcel_cache'):
-        nrv._parcel_cache = {}
-    anonymous_root = nrv.findPath('//anonymous-root')
-    declareTemplate(anonymous_root)
-
-    return old_rv
+    global_lock.acquire()
+    try:
+        old_rv = nrv
+        if rv is None:
+            rv = NullRepositoryView()
+    
+        nrv = rv
+        initRepository(nrv)
+        if not hasattr(nrv,'_parcel_cache'):
+            nrv._parcel_cache = {}
+        if not hasattr(nrv,'_schema_cache'):
+            nrv._schema_cache = {}
+        anonymous_root = nrv.findPath('//anonymous-root')
+        declareTemplate(anonymous_root)
+    
+        return old_rv
+    finally:
+        global_lock.release()
 
 # ---------------------------
 # Setup null view and globals
