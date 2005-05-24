@@ -295,13 +295,15 @@ loaded::
         >>> application.tests.__parcel__ = "__builtin__"
         >>> schema.parcel_for_module("application.tests")
         <Parcel ... __builtin__ ...>
+        
+        >>> del application.tests.__parcel__    # clean up after the above test
+        >>> schema.reset()
+        <NullRepositoryView: null view>
 
     If the module has no ``__parcel__``, but it has a ``__parcel_class__``,
     then it is called to create a new parcel instance, passing in the name,
     parent parcel, and parcel kind::
 
-        >>> del application.tests.__parcel__
-        >>> del schema.nrv._parcel_cache['application.tests']   # XXX
 
         >>> def __parcel_class__(name, parent, kind):
         ...     print "Creating", name, parent, kind
@@ -337,8 +339,10 @@ loaded::
         456
 
         >>> # clean up dummy parcel setup
-        >>> del schema.nrv._parcel_cache["application.tests"]   # XXX
+        >>> schema.reset()
+        <NullRepositoryView: null view>
         >>> del application.tests.__parcel_class__
+        >>> del application.__parcel_class__
 
     If the name is an empty string, the root of the ``//parcels`` namespace is
     returned::
