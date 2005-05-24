@@ -743,7 +743,7 @@ class Class(Type):
         return type
 
     def recognizes(self, value):
-        return type(value) in (type, classobj)
+        return isinstance(value,(type, classobj))
 
     def handlerName(self):
         return 'class'
