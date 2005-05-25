@@ -1,5 +1,0 @@
-build_*
-build
-*.pyc *.pyo
-*.gz
-*.md5
