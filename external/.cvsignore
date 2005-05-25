@@ -1,9 +1,0 @@
-debug
-debug*.tar.gz
-release
-release*.tar.gz
-sources*.tar
-gcc*
-mingw*
-*-expanded
-*.md5
