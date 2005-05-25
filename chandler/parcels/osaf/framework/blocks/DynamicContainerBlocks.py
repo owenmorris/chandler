@@ -555,7 +555,7 @@ class wxMenuBar (wx.MenuBar):
           Overriding __del__ doesn't work here since calling SetMenuBar (None) when the
         menuBar is being destroyed causes the application to crash -- probably because
         wxWidgets tries to access the MenuBar when it's almost already deleted. Overriding
-        Destroy catches the menuBar before it's deleted unstead of just before it's disposed.
+        Destroy catches the menuBar before it's deleted instead of just before it's disposed.
         """
         self.blockItem.getFrame().SetMenuBar(None)
         super (wxMenuBar, self).Destroy()
@@ -810,12 +810,15 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
         heightGutter = 9
         if self.buttonsLabeled:
             heightGutter += 14
-        return wxToolbar(self.parentBlock.widget, 
+        toolbar = wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
                          (-1, self.toolSize.height+heightGutter),
                          style=self.calculate_wxStyle())
-
+        # set the tool bitmap size right away
+        toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
+        return toolbar
+    
     def calculate_wxStyle (self):
         style = wx.TB_HORIZONTAL
         if self.buttons3D:
@@ -829,7 +832,7 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
             
 class ToolbarItem (Block.Block, DynamicChild):
     """
-      Under construction
+      Button (or other control) that lives in a Toolbar.
     """
     def instantiateWidget (self):
         def getBitmaps (self):
