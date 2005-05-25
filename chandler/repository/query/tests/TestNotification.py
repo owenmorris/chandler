@@ -295,8 +295,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         # add the reminderTime attribute
-        from mx import DateTime
-        ce.reminderTime = DateTime.now()
+        from datetime import datetime
+        ce.reminderTime = datetime.now()
         (added, removed) = monitor_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
         print len(q.resultSet)
@@ -317,7 +317,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         # add the existing reminderTime attribute
         monitor_client.action = ([],[])
-        ev.reminderTime = DateTime.now()
+        ev.reminderTime = datetime.now()
         (added, removed) = monitor_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
         self.rep.commit()

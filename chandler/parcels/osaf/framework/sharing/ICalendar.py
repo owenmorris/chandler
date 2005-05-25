@@ -6,7 +6,6 @@ from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
 import logging
-import mx
 import dateutil.tz
 import datetime
 import itertools
@@ -20,40 +19,22 @@ utc = dateutil.tz.tzutc()
 
 MAXRECUR = 10
 
-def convertToMX(dt, tz=None):
-    """Convert the given datetime into an mxDateTime.
-    
-    Convert dt to tz if it has a timezone.  tz defaults to localtime.
-    
-    >>> import datetime, mx.DateTime
-    >>> dt = datetime.datetime(2004, 12, 20, 18, tzinfo=utc)
-    >>> mxdt = convertToMX(dt, pacific)
-    >>> print mxdt
-    2004-12-20 10:00:00.00
-    >>> type(mxdt)
-    <type 'DateTime'>
-    
-    """
-    if not tz: tz = localtime
-    if getattr(dt, 'tzinfo', None): dt = dt.astimezone(tz)
-    return mx.DateTime.mktime(dt.timetuple())
-
 def convertToUTC(dt, asDate = False, tz = None):
-    """Convert the given mxDateTime (without tz) into datetime with tzinfo=UTC.
+    """Convert the given datetime (without tz) into datetime with tzinfo=UTC.
     
-    >>> import datetime, mx.DateTime
-    >>> mxdt = mx.DateTime.DateTime(2004, 12, 20, 12)
-    >>> dt = convertToUTC(mxdt, pacific)
+    >>> import datetime
+    >>> dt = datetime.datetime(2004, 12, 20, 12)
+    >>> dt = convertToUTC(dt, pacific)
     >>> print dt
     2004-12-20 20:00:00+00:00
     
     """
-    if not tz: tz = localtime
-    args = (dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
+    if tz is None:
+        tz = localtime
     if asDate:
-        return datetime.date(*args[0:3])
+        return dt.date()
     else:
-        return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
+        return dt.replace(tzinfo=tz).astimezone(utc)
 
 def itemsToVObject(view, items, cal=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
@@ -295,12 +276,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 eventItem.displayName = displayName
                 if isDate:
                     eventItem.allDay = True
-                eventItem.startTime   = convertToMX(dt)
+                eventItem.startTime   = dt
                 if vtype == u'VEVENT':
-                    eventItem.endTime = convertToMX(dt + duration)
+                    eventItem.endTime = dt + duration
                 elif vtype == u'VTODO':
                     if duration is not None:
-                        eventItem.dueDate = convertToMX(dt + duration)
+                        eventItem.dueDate = dt + duration
                 
                 eventItem.transparency = status
                 
@@ -314,7 +295,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                                                                        location)
                 
                 if reminderDelta is not None:
-                    eventItem.reminderTime = convertToMX(dt + reminderDelta)
+                    eventItem.reminderTime = dt + reminderDelta
 
                 item.add(eventItem)
                 logger.debug("Imported %s %s" % (eventItem.displayName,

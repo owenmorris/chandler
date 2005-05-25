@@ -8,7 +8,7 @@ import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
 import twisted.mail.pop3client as pop3
 
-#python / mx imports
+#python imports
 import email as email
 import logging as logging
 

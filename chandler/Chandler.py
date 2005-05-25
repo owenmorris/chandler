@@ -5,7 +5,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, os
 import application.Globals
-from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+from repository.persistence.RepositoryError \
+    import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+from PyICU import Locale
 from application.Application import SchemaMismatchError
 
 def locateProfileDir(chandlerDirectory):
@@ -63,7 +65,7 @@ def loadConfig(chandlerDirectory):
     Sets Globals.options and Globals.args
     """
                       # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
-    _configItems = { 'parcelPath':  ('-p', '--parcelPath',  's', None,  'PARCELPATH',         'Parcel search path'),
+    _configItems = { 'parcelPath':  ('-p', '--parcelPath','s', None,  'PARCELPATH',         'Parcel search path'),
                      'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
                      'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR',        'location of the Chandler Repository'),
                      'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
@@ -77,6 +79,7 @@ def loadConfig(chandlerDirectory):
                      'wing':       ('-w', '--wing',       'b', False, None, ''),
                      'komodo':     ('-k', '--komodo',     'b', False, None, ''),
                      'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
+                     'locale':     ('-l', '--locale',     's', None, None, 'Set the default locale'),
                       }
 
     from optparse import OptionParser
@@ -98,6 +101,8 @@ def loadConfig(chandlerDirectory):
     (application.Globals.options, application.Globals.args) = parser.parse_args()
 
     locateProfileDir(chandlerDirectory)
+    if application.Globals.options.locale is not None:
+        Locale.setDefault(Locale(application.Globals.options.locale))
 
 def main():
     message = "while trying to start."

@@ -9,15 +9,16 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
 
-import mx.DateTime
 import repository.schema.Types
 import repository.item.PersistentCollections
+
+from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
 from chandlerdb.util.uuid import UUID
 from repository.util.SingleRef import SingleRef
-from mx.DateTime import DateTime, DateTimeDelta, ISO, RelativeDateTime
+from datetime import datetime, timedelta
 
 
 class TypesTest(RepositoryTestCase.RepositoryTestCase):
@@ -35,7 +36,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.typenames=['String', 'Symbol', 'Integer', 'Long', 'Float',
                         'Complex', 'Boolean', 'UUID', 'SingleRef', 'Path',
                         'NoneType', 'Class', 'Enumeration', 'Struct',
-                        'DateTime', 'DateTimeDelta', 'RelativeDateTime',
+                        'DateTime', 'TimeDelta',
                         'Collection', 'Dictionary', 'List', 'Lob']
 
         # make dict of attribute and  type items.
@@ -59,7 +60,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                          'Boolean':'bool', 'UUID':'uuid', 'SingleRef':'ref',
                          'Path':'path', 'NoneType':None, 'Class':'class',
                          'Enumeration':'ref', 'Struct':'ref', 'DateTime':None,
-                         'DateTimeDelta':None, 'RelativeDateTime':None,
+                         'TimeDelta':None,
                          'Collection':None, 'Dictionary':'dict', 'List':'list',
                          'Lob':'lob' }
 
@@ -77,9 +78,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                           'Boolean':'bool', 'UUID':'UUID',
                           'SingleRef':'SingleRef',
                           'Path':'Path', 'Class':'type',
-                          'DateTime':'type(mx.DateTime.now())',
-                          'DateTimeDelta':'type(mx.DateTime.DateTimeDelta(0))',
-                          'RelativeDateTime':'type(mx.DateTime.RelativeDateTime())',
+                          'DateTime':'datetime',
+                          'TimeDelta':'timedelta',
                           'Dictionary':'repository.item.PersistentCollections.PersistentDict',
                           'List':'repository.item.PersistentCollections.PersistentList',
                           'Set':'repository.item.PersistentCollections.PersistentSet',
@@ -104,7 +104,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'Path':'//Schema/Core/Item', 'NoneType':None,
                         'Class':'repository.item.Item.Item', 'Enumeration':'ref',
                         'Struct':'ref', 'DateTime':'2004-01-08 12:34:56.15',
-                        'DateTimeDelta':'-08:45:12', 'RelativeDateTime':'12:09:32',
+                        'TimeDelta':'-8+45.12',
                         'Collection':None, 'Dictionary':'{"a":"b","c":"d"}',
                         'List':'["one", "two", 3]', 'Lob':'lob' }
         excludes = [ 'NoneType','Enumeration','Struct','Collection' ]
@@ -127,12 +127,11 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.path = Path(self.pathString)
         self.singleRef = SingleRef(self.uuid)
         self.itemClass = eval('repository.item.Item.Item')
-        self.dateTimeString = '2004-01-08 12:34:56-0800'
-        self.dateTime = mx.DateTime.ISO.ParseDateTime(self.dateTimeString)
-        self.dateTimeDeltaString= '-08:45:12'
-        self.dateTimeDelta = mx.DateTime.DateTimeDeltaFrom(self.dateTimeDeltaString)
-        self.relativeDateTimeString = '12:09:32'
-        self.relativeDateTime = mx.DateTime.RelativeDateTimeFrom(self.relativeDateTimeString)
+        self.dateTimeString = '2004-01-08 12:34:56 US/Mountain'
+        self.dateTime = datetime(2004, 1, 8, 12, 34, 56,
+                                 tzinfo=ICUtzinfo.getInstance('US/Mountain'))
+        self.timeDeltaString= '-8+45.000012'
+        self.timeDelta = timedelta(-8, 45, 12)
         
         self.enum = self.types['Enumeration'].newItem('myEnum', self.rep)
         self.enum.values = ['red', 'green', 'blue']
@@ -168,8 +167,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'Enumeration':'green',
                         'Struct':'ref',
                         'DateTime':self.dateTimeString,
-                        'DateTimeDelta':self.dateTimeDeltaString,
-                        'RelativeDateTime':self.relativeDateTimeString,
+                        'TimeDelta':self.timeDeltaString,
                         'Collection':None,
                         'Dictionary':'{"a":"b","c":"d"}',
                         'List':'[one, two, 3]', 'Lob':'lob' }
@@ -182,15 +180,13 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'NoneType':None, 'Class': self.itemClass,
                        'Enumeration':self.enum, 'Struct':self.struct,
                        'DateTime':self.dateTime,
-                       'DateTimeDelta':self.dateTimeDelta,
-                       'RelativeDateTime':self.relativeDateTime,
+                       'TimeDelta':self.timeDelta,
                        'Collection':None,
                        'Dictionary':{"a":"b","c":"d"},
                        'List':["one", "two", "3"], 'Lob':'lob' }
 
-        #@@@ RelativeDateTime is in this list due to a bug in mxDateTime
         excludes = [ 'NoneType', 'Collection', 'Enumeration', 'Struct',
-                     'Lob', 'RelativeDateTime']
+                     'Lob' ]
 
         for name in [ x for x in typeValues if x not in excludes ]:
             typeItem = self._find('//Schema/Core/%s' % name)
@@ -236,8 +232,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'Enumeration':('green', ['abcde']),
 #                       'Struct':(str(self.struct.itsUUID), ['abcde']),
                        'DateTime':(self.dateTime,["abacde"]),
-                       'DateTimeDelta':(self.dateTimeDelta, ["abcde"]),
-                       'RelativeDateTime':(self.relativeDateTime, ["abcde"]),
+                       'TimeDelta':(self.timeDelta, ["abcde"]),
                        'Collection':(None, [None]),
                        'Dictionary':({"a":"b","c":"d"}, ["abcde"]),
                        'List':(["one", "two", "3"], ["abcde"]),
@@ -295,8 +290,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         enumTypes = [ self.types['Enumeration'] ]
         structTypes = [ self.types['Struct'] ]
         dateTimeTypes = [ self.types['DateTime'] ]
-        dateTimeDeltaTypes = [ self.types['DateTimeDelta'] ]
-        relativeDateTimeTypes = [ self.types['RelativeDateTime'] ]
+        timeDeltaTypes = [ self.types['TimeDelta'] ]
         dictTypes = [ self.types['Dictionary'] ]
         listTypes = [ self.types['List'] ]
         lobTypes = [ self.types['Lob'] ]
@@ -314,8 +308,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 #                  self.enum:enumTypes,
 #                  self.struct:structTypes,
                   self.dateTime:dateTimeTypes,
-                  self.dateTimeDelta:dateTimeDeltaTypes,
-                  self.relativeDateTime:relativeDateTimeTypes,
+                  self.timeDelta:timeDeltaTypes,
                   self.lob:lobTypes}
 
         for v in values:
@@ -325,8 +318,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
             print 'values[v]', values[v]
             print 'equals ?', foundTypes == values[v]
             print "=============="
-            if values[v] != self.relativeDateTime:
-                self.assertEquals(foundTypes, values[v])
+            self.assertEquals(foundTypes, values[v])
 
         # special case because lists and dicts are unhashable
         foundTypes = typeKind.findTypes({"a":"b","c":"d"})

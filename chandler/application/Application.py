@@ -211,7 +211,7 @@ class wxApplication (wx.App):
         os.environ['LANGUAGE'] = 'en'
 #        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         """
-          @@@ Sets the python locale, used by wx.CalendarCtrl and mxDateTime
+          @@@ Sets the python locale, used by wx.CalendarCtrl
         for month and weekday names. When running on Linux, 'en' is not
         understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
         locale.setlocale(locale.LC_ALL, 'en')

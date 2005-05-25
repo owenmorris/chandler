@@ -22,7 +22,7 @@ import repository.query.Query as Query
 import repository
 import logging
 import wx
-import time, StringIO, urlparse, libxml2, os, mx
+import time, StringIO, urlparse, libxml2, os
 import chandlerdb
 import WebDAV, httplib
 import AccountInfoPrompt

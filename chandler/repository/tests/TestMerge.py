@@ -8,7 +8,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
-
+from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
@@ -443,8 +443,6 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapRefCollections2(self):
 
-        import mx.DateTime
-        
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.rep.loadPack(cineguidePack)
@@ -460,7 +458,7 @@ class TestMerge(RepositoryTestCase):
         m3 = k.movies.next(m2)
         m2.title = 'm2title'
         m3.title = 'm3title'
-        k.born = b2 = mx.DateTime.RelativeDateTimeFrom('1907-05-12')
+        k.born = b2 = date(1908, 05, 12)
         tf = m3.title
         k.movies.placeItem(m3, None)
         view.commit()
@@ -473,7 +471,7 @@ class TestMerge(RepositoryTestCase):
         m3 = k.movies.next(m2)
         m2.frenchTitle = 'm2titre'
         m3.frenchTitle = 'm3titre'
-        k.died = d2 = mx.DateTime.RelativeDateTimeFrom('2003-06-29')
+        k.died = d2 = date(2003, 06, 30)
         tl = m2.title
         k.movies.placeItem(m2, k.movies.last())
         main.commit()

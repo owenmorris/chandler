@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>TimeDelta</name>
+  <kind type="path">//Schema/Core/Struct</kind>
+  <class module="repository.schema.Types">TimeDelta</class>
+
+  <attribute name="fields" type="dict" cardinality="dict">
+    <value name="days"><values></values></value>
+    <value name="seconds"><values></values></value>
+    <value name="microseconds"><values></values></value>
+  </attribute>
+</item>

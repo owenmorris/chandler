@@ -30,8 +30,8 @@
   <doc:AttributeEditor itsName="ContactName"><className>osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="ContentItem"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="DateTime"><className>osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor</className></doc:AttributeEditor>
-  <doc:AttributeEditor itsName="DateTimeDelta"><className>osaf.framework.attributeEditors.AttributeEditors.DateTimeDeltaAttributeEditor</className></doc:AttributeEditor>
-  <doc:AttributeEditor itsName="DateTimeDelta+reminderPopup"><className>osaf.framework.attributeEditors.AttributeEditors.ReminderDeltaAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="TimeDelta"><className>osaf.framework.attributeEditors.AttributeEditors.TimeDeltaAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="TimeDelta+reminderPopup"><className>osaf.framework.attributeEditors.AttributeEditors.ReminderDeltaAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="NoneType+reminderPopup"><className>osaf.framework.attributeEditors.AttributeEditors.ReminderDeltaAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="EmailAddress"><className>osaf.framework.attributeEditors.AttributeEditors.EmailAddressAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Kind"><className>osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor</className></doc:AttributeEditor>

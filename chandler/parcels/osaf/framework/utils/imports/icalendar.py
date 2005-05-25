@@ -1,6 +1,5 @@
 import os
 import application.Globals as Globals
-import mx.DateTime as DateTime
 import datetime
 import application.Globals as Globals
 from repository.persistence.DBRepository import DBRepository
@@ -64,37 +63,20 @@ END:VCALENDAR"""
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
 
-def convertToMX(dt, tz=None):
-    """Convert the given datetime into an mxDateTime.
-    
-    Convert dt to local time if it has a timezone.
-    
-    >>> import datetime, mx.DateTime
-    >>> dt = datetime.datetime(2004, 12, 20, 18, tzinfo=utc)
-    >>> mxdt = convertToMX(dt, pacific)
-    >>> print mxdt
-    2004-12-20 10:00:00.00
-    >>> type(mxdt)
-    <type 'DateTime'>
-    
-    """
-    if not tz: tz = localtime
-    if getattr(dt, 'tzinfo', None): dt = dt.astimezone(tz)
-    return DateTime.mktime(dt.timetuple())
-    
 def convertToUTC(dt, tz = None):
-    """Convert the given mxDateTime (without tz) into datetime with tzinfo=UTC.
+    """Convert the given datetime (without tz) into datetime with tzinfo=UTC.
     
-    >>> import datetime, mx.DateTime
-    >>> mxdt = mx.DateTime.DateTime(2004, 12, 20, 12)
-    >>> dt = convertToUTC(mxdt, pacific)
+    >>> import datetime
+    >>> dt = datetime.datetime(2004, 12, 20, 12)
+    >>> dt = convertToUTC(dt, pacific)
     >>> print dt
     2004-12-20 20:00:00+00:00
     
     """
-    if not tz: tz = localtime
-    args = (dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
-    return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
+    if tz is None:
+        tz = localtime
+
+    return dt.replace(tzinfo=tz).astimezone(utc)
 
     
 def importICalendar(cal, rep, parent=None):
@@ -122,9 +104,9 @@ def importICalendar(cal, rep, parent=None):
         #lets not go crazy with large recurrence sets
         for dt in itertools.islice(event.rruleset, 10):
             newevent = Calendar.CalendarEvent(view=rep.view)
-            newevent.startTime = convertToMX(dt)
+            newevent.startTime = dt
             if duration:
-                newevent.endTime = convertToMX(dt + duration)
+                newevent.endTime = dt + duration
 
             test = getattr(event, 'description', [])
             if len(test) > 0:
@@ -134,11 +116,11 @@ def importICalendar(cal, rep, parent=None):
                 newevent.displayName = test[0].value
             test = getattr(event, 'dtstamp', [])
             if len(test) > 0:
-                newevent.createdOn = convertToMX(test[0].value)
+                newevent.createdOn = test[0].value
             test = getattr(event, 'valarm', [])
             if len(test) > 0:
                 #assume DURATION, not DATE-TIME
-                newevent.reminderTime = convertToMX(dt + test[0].trigger[0].value)
+                newevent.reminderTime = dt + test[0].trigger[0].value
     return True
 
 def importFile(filename, rep):

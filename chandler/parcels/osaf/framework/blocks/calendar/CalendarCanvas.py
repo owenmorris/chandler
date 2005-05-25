@@ -9,7 +9,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import wx
 import wx.colheader
 import wx.lib.colourselect as colourselect
-import mx.DateTime as DateTime
+
+from datetime import datetime, timedelta, date
+from PyICU import GregorianCalendar, DateFormatSymbols
 
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ContentModel as ContentModel
@@ -23,6 +25,9 @@ import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 from colorsys import *
 import copy
+
+dateFormatSymbols = DateFormatSymbols()
+
 
 # from ASPN/Python Cookbook
 class CachedAttribute(object):
@@ -370,15 +375,15 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             one from midnight wednesday morning to noon wednesday
         """
         # calculate how many unique days this appears on 
-        days = int(endTime.absdays) - int(startTime.absdays) + 1
+        days = endTime.toordinal() - startTime.toordinal() + 1
         
         for i in xrange(days):
             
             # first calculate the midnight time for the beginning and end
             # of the current day
-            absDay = int(startTime.absdays) + i
-            absDayStart = DateTime.DateTimeFromAbsDays(absDay)
-            absDayEnd = DateTime.DateTimeFromAbsDays(absDay + 1)
+            absDay = startTime.toordinal() + i
+            absDayStart = datetime.fromordinal(absDay)
+            absDayEnd = datetime.fromordinal(absDay + 1)
             
             boundsStartTime = max(startTime, absDayStart)
             boundsEndTime = min(endTime, absDayEnd)
@@ -402,7 +407,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         # ultimately, I'm not sure that we should be asking the calendarCanvas
         # directly for dayWidth and hourHeight, we probably need some system 
         # instead similar to getPositionFromDateTime where we pass in a duration
-        duration = (endTime - startTime).hours
+        duration = (endTime - startTime)
+        duration = duration.days * 24 + duration.seconds / 3600
         (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(duration * calendarCanvas.hourHeight))
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
@@ -463,10 +469,8 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             
             # only draw date/time on first item
             if drawTime:
-                # amazingly, there is no hour-without-the-zero in mx.DateTime!
-                # (If anyone knows a better way to do this, please fix..)
-                hour = str(int(time.Format('%I')))
-                timeString = hour + time.Format(':%M %p').lower()
+                timeString = "%d:%s" %((time.hour % 12) or 12,
+                                       time.strftime("%M %p"))
                 te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)
                 timeHeight = te[1]
                 
@@ -577,7 +581,8 @@ class CalendarEventHandler(object):
         self.wxSynchronizeWidget()
 
     def OnToday(self, event):
-        today = DateTime.today()
+        today = date.today()
+        today = datetime(today.year, today.month, today.day)
         self.blockItem.setRange(today)
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
@@ -600,9 +605,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     items based on a date range.
 
     @ivar rangeStart: beginning of the currently displayed range (persistent)
-    @type rangeStart: mx.DateTime.DateTime
+    @type rangeStart: datetime
     @ivar rangeIncrement: increment used to find the next or prev block of time
-    @type rangeIncrement: mx.DateTime.RelativeDateTime
+    @type rangeIncrement: timedelta
     """
     
     def __init__(self, *arguments, **keywords):
@@ -617,7 +622,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @param event: event sent on selected date changed event
         @type event: osaf.framework.blocks.Block.BlockEvent
         @param event['start']: start of the newly selected date range
-        @type event['start']: mx.DateTime.DateTime
+        @type event['start']: datetime
         """
         self.setRange(event.arguments['start'])
         self.widget.wxSynchronizeWidget()
@@ -634,7 +639,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """ Sets the range to include the given date.
 
         @param date: date to include
-        @type date: mx.DateTime.DateTime
+        @type date: datetime
         """
         self.rangeStart = date
         self.selectedDate = self.rangeStart
@@ -654,7 +659,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     # Get items from the collection
 
     def getDayItemsByDate(self, date):
-        nextDate = date + DateTime.RelativeDateTime(days=1)
+        nextDate = date + timedelta(days=1)
         for item in self.contents:
             try:
                 anyTime = item.anyTime
@@ -692,8 +697,8 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         that appear on the given date. We might be able to push this
         to Queries, but itemIsInRange is actually fairly complex.
         
-        @type date: mx.DateTime.DateTime
-        @type nextDate: mx.DateTime.DateTime
+        @type date: datetime
+        @type nextDate: datetime
         @return: the items in this collection that appear within the given range
         @rtype: list of Items
         """
@@ -715,7 +720,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     def GetCurrentDateRange(self):
         if self.dayMode:
             startDay = self.selectedDate
-            endDay = startDay + DateTime.RelativeDateTime(days = 1)
+            endDay = startDay + timedelta(days = 1)
         else:
             startDay = self.rangeStart
             endDay = startDay + self.rangeIncrement
@@ -969,7 +974,7 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
     def OnDaySelect(self, day):
             
         startDate = self.blockItem.rangeStart
-        selectedDate = startDate + DateTime.RelativeDateTime(days=day)
+        selectedDate = startDate + timedelta(days=day)
         
         # @@@ add method on block item for setting selected date
         self.blockItem.selectedDate = selectedDate
@@ -1018,7 +1023,8 @@ class wxWeekHeaderWidgets(wx.Panel):
         navigationRow.Add((5,5), 0, wx.EXPAND)
         navigationRow.Add(self.colorSelect, 0, wx.CENTER)
 
-        today = DateTime.today()
+        today = date.today()
+        today = datetime(today.year, today.month, today.day)
         styles = self.parent
 
         self.monthText = wx.StaticText(self, -1)
@@ -1110,24 +1116,31 @@ class wxWeekHeaderWidgets(wx.Panel):
         self.colorSelect.SetColour(self.parent.blockItem.calendarData.eventColor.wxColor())
 
         # Update the month button given the selected date
-        lastDate = startDate + DateTime.RelativeDateTime(days=6)
+        lastDate = startDate + timedelta(days=6)
+        months = dateFormatSymbols.getMonths()
         if (startDate.month == lastDate.month):
-            monthText = selectedDate.Format("%B %Y")
+            monthText = "%s %d" %(months[selectedDate.month - 1].toUnicode(),
+                                  selectedDate.year)
         else:
-            monthText = "%s - %s" % (startDate.Format("%B"),
-                                     lastDate.Format("%B %Y"))
+            monthText = "%s - %s %d" %(months[startDate.month - 1].toUnicode(),
+                                       months[lastDate.month - 1].toUnicode(),
+                                       lastDate.year)
      
         self.monthText.SetLabel(monthText)
 
-        today = DateTime.today()
-        for day in range(7):
-            currentDate = startDate + DateTime.RelativeDateTime(days=day)
+        today = date.today()
+        today = datetime(today.year, today.month, today.day)
+        shortWeekDays = dateFormatSymbols.getShortWeekdays()
+        firstDay = GregorianCalendar().getFirstDayOfWeek()
+        for day in xrange(7):
+            actualDay = ((day + firstDay - 1) % 7)
+            currentDate = startDate + timedelta(days=day)
             if currentDate == today:
                 dayName = "Today"
             else:
-                dayName = currentDate.Format('%a ') + str(currentDate.day)
+                dayName = "%s %02d" %(shortWeekDays[actualDay + 1].toUnicode(),
+                                      currentDate.day)
             self.weekHeader.SetLabelText(day+1, dayName)
-            
             
         self.currentSelectedDate = selectedDate
         self.currentStartDate = startDate
@@ -1269,7 +1282,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.fullHeight = 0
         size = self.GetSize()
         for day in range(self.parent.columns):
-            currentDate = startDay + DateTime.RelativeDateTime(days=day)
+            currentDate = startDay + timedelta(days=day)
             rect = wx.Rect((self.parent.dayWidth * day) + self.parent.xOffset, 0,
                            width, size.height)
             self.RebuildCanvasItemsByDay(currentDate, rect)
@@ -1302,10 +1315,9 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         event = Calendar.CalendarEvent(view=view)
         event.InitOutgoingAttributes()
-        event.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
-                                            newTime.day,
-                                            event.startTime.hour,
-                                            event.startTime.minute))
+        event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
+                                   event.startTime.hour,
+                                   event.startTime.minute))
         event.allDay = True
         event.anyTime = False
 
@@ -1320,11 +1332,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         item = self._currentDragBox.GetItem()
-        if (newTime.absdate != item.startTime.absdate):
-            item.ChangeStart(DateTime.DateTime(newTime.year, newTime.month,
-                                               newTime.day,
-                                               item.startTime.hour,
-                                               item.startTime.minute))
+        if (newTime.toordinal() != item.startTime.toordinal()):
+            item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
+                                      item.startTime.hour,
+                                      item.startTime.minute))
             self.Refresh()
 
     def OnEditItem(self, box):
@@ -1353,7 +1364,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         elif self.parent.dayWidth > 0:
             deltaDays = (xPosition - self.parent.xOffset) / self.parent.dayWidth
             startDay = self.parent.blockItem.rangeStart
-            newDay = startDay + DateTime.RelativeDateTime(days=deltaDays)
+            newDay = startDay + timedelta(days=deltaDays)
         else:
             newDay = self.parent.blockItem.rangeStart
         return newDay
@@ -1524,12 +1535,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         """
         Comparison function for sorting, mostly by start time
         """
-        dateResult = DateTime.cmp(item1.startTime, item2.startTime)
+        dateResult = cmp(item1.startTime, item2.startTime)
         
         # when two items start at the same time, we actually want to show the
         # SHORTER event last, so that painting draws it on top
         if dateResult == 0:
-            dateResult = DateTime.cmp(item2.endTime, item1.endTime)
+            dateResult = cmp(item2.endTime, item1.endTime)
         return dateResult
 
     def RebuildCanvasItems(self):
@@ -1638,7 +1649,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
             self._bgSelectionDragEnd = True
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
-                DateTime.RelativeDateTime(minutes=30)
+                timedelta(minutes=30)
             
         # set focus on the calendar so that we can receive key events
         # (as of this writing, wxPanel can't recieve focus, so this is a no-op)
@@ -1674,7 +1685,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         event.anyTime = False
         
         # only set the duration if its something larger than the default
-        if duration and duration.hours >= 1:
+        if duration and duration >= timedelta(hours=1):
             event.duration = duration
 
         # ugh, this is a hack to work around the whole ItemCollection stuff
@@ -1708,7 +1719,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         item = self._currentDragBox.GetItem()
         resizeMode = self.GetResizeMode()
-        delta = DateTime.DateTimeDelta(0, 0, 15)
+        delta = timedelta(minutes=15)
         
         # make sure we're changing by at least delta 
         if (resizeMode == ColumnarCanvasItem.RESIZE_MODE_END and 
@@ -1780,7 +1791,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
         newTime = self.getDateTimeFromPosition(position)
         item = self._currentDragBox.GetItem()
-        if ((newTime.absdate != item.startTime.absdate) or
+        if ((newTime.toordinal() != item.startTime.toordinal()) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
             item.ChangeStart(newTime)
@@ -1817,9 +1828,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         deltaHours = yPosition / self.hourHeight
         deltaMinutes = ((yPosition % self.hourHeight) * 60) / self.hourHeight
         deltaMinutes = int(deltaMinutes/15) * 15
-        newTime = startDay + DateTime.RelativeDateTime(days=deltaDays,
-                                                       hours=deltaHours,
-                                                       minutes=deltaMinutes)
+        newTime = startDay + timedelta(days=deltaDays,
+                                       hours=deltaHours,
+                                       minutes=deltaMinutes)
         return newTime
 
     def getPositionFromDateTime(self, datetime):
@@ -1830,7 +1841,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             raise ValueError, "Must be visible on the calendar"
             
         delta = datetime - startDay
-        x = (self.dayWidth * delta.day) + self.xOffset
+        x = (self.dayWidth * delta.days) + self.xOffset
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
         
@@ -1841,9 +1852,11 @@ class WeekBlock(CalendarBlock):
     def initAttributes(self):
         if not self.hasLocalAttributeValue('rangeStart'):
             self.dayMode = False
-            self.setRange(DateTime.today())
+            today = date.today()
+            today = datetime(today.year, today.month, today.day)
+            self.setRange(today)
         if not self.hasLocalAttributeValue('rangeIncrement'):
-            self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)
+            self.rangeIncrement = timedelta(days=self.daysPerView)
             
     def instantiateWidget(self):
         # @@@ KCP move to a callback that gets called from parcel loader
@@ -1856,9 +1869,12 @@ class WeekBlock(CalendarBlock):
     def setRange(self, date):
         if self.daysPerView == 7:
             # if in week mode, start at the beginning of the week
-            delta = DateTime.RelativeDateTime(days=-6,
-                                              weekday=(DateTime.Sunday, 0))
-            self.rangeStart = date + delta
+            calendar = GregorianCalendar()
+            calendar.setTime(date)
+            
+            delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
+                                    calendar.getFirstDayOfWeek()))
+            self.rangeStart = date - delta
         else:
             # otherwise, stick with the given date
             self.rangeStart = date

@@ -8,10 +8,11 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.item.Item as Item
-import mx.DateTime as DateTime
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
+
+from datetime import datetime, timedelta
 
 
 class TaskMixin(ContentModel.ContentItem):
@@ -46,7 +47,7 @@ class TaskMixin(ContentModel.ContentItem):
         self.taskStatus = 'todo'
 
         # default due date is 1 hour hence
-        self.dueDate = DateTime.now() + DateTime.DateTimeDelta(0,1)
+        self.dueDate = datetime.now() + timedelta(hours=1)
 
         # default the title to any super class "about" definition
         try:

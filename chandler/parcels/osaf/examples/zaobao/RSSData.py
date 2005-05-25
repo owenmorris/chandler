@@ -6,7 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application
 from osaf.contentmodel.ContentModel import ContentItem
 from osaf.contentmodel.ItemCollection import ItemCollection
-import mx.DateTime
+from datetime import datetime
+from dateutil.parser import parse
 import feedparser
 import os, logging
 from repository.item.Query import KindQuery
@@ -82,7 +83,7 @@ class RSSChannel(ItemCollection):
         # set lastModified
         modified = data.get('modified')
         if modified:
-            self.lastModified = mx.DateTime.mktime(modified)
+            self.lastModified = datetime.fromtimestamp(modified)
 
         # if the feed is bad, raise the sax exception
         try:
@@ -118,7 +119,7 @@ class RSSChannel(ItemCollection):
 
         date = data.get('date')
         if date:
-            self.date = mx.DateTime.DateTimeFrom(str(date))
+            self.date = parse(str(date))
 
     def _DoItems(self, items):
         # make children
@@ -189,10 +190,10 @@ class RSSItem(ContentItem):
 
         date = data.get('date')
         if date:
-            self.date = mx.DateTime.DateTimeFrom(str(date))
+            self.date = parse(str(date))
         else:
             # Give the item a date so we can sort on it
-            self.date = mx.DateTime.now()
+            self.date = datetime.now()
 
     def isSimilar(self, feedItem):
         """
@@ -209,7 +210,7 @@ class RSSItem(ContentItem):
             dateMatch = True
             haveFeedDate = 'date' in feedItem
             if haveFeedDate:
-                feedDate = mx.DateTime.DateTimeFrom(str(feedItem.date))
+                feedDate = parse(str(feedItem.date))
                 if self.date != feedDate:
                     dateMatch = False
 

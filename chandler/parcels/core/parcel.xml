@@ -15,8 +15,8 @@
   <namespaceMap key="Complex" value="//Schema/Core/Complex" />
   <namespaceMap key="CopyPolicy" value="//Schema/Core/CopyPolicy" />
   <namespaceMap key="CountPolicy" value="//Schema/Core/CountPolicy" />
+  <namespaceMap key="Date" value="//Schema/Core/Date" />
   <namespaceMap key="DateTime" value="//Schema/Core/DateTime" />
-  <namespaceMap key="DateTimeDelta" value="//Schema/Core/DateTimeDelta" />
   <namespaceMap key="DeletePolicy" value="//Schema/Core/DeletePolicy" />
   <namespaceMap key="Dictionary" value="//Schema/Core/Dictionary" />
   <namespaceMap key="Endpoint" value="//Schema/Core/Endpoint" />
@@ -35,12 +35,13 @@
   <namespaceMap key="Path" value="//Schema/Core/Path" />
   <namespaceMap key="Principal" value="//Schema/Core/Principal" />
   <namespaceMap key="Query" value="//Schema/Core/Query" />
-  <namespaceMap key="RelativeDateTime" value="//Schema/Core/RelativeDateTime" />
   <namespaceMap key="SingleRef" value="//Schema/Core/SingleRef" />
   <namespaceMap key="String" value="//Schema/Core/String" />
   <namespaceMap key="Struct" value="//Schema/Core/Struct" />
   <namespaceMap key="Symbol" value="//Schema/Core/Symbol" />
   <namespaceMap key="Taxon" value="//Schema/Core/Taxon" />
+  <namespaceMap key="Time" value="//Schema/Core/Time" />
+  <namespaceMap key="TimeDelta" value="//Schema/Core/TimeDelta" />
   <namespaceMap key="Tuple" value="//Schema/Core/Tuple" />
   <namespaceMap key="Type" value="//Schema/Core/Type" />
   <namespaceMap key="URL" value="//Schema/Core/URL" />

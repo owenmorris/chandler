@@ -13,8 +13,6 @@ import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.contentmodel.contacts.Contacts as Contacts
 
-import mx.DateTime as DateTime
-
 from repository.util.Path import Path
 
 

@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>DateTime</name>
+  <name>Date</name>
   <kind type="path">//Schema/Core/Struct</kind>
-  <class module="repository.schema.Types">DateTime</class>
+  <class module="repository.schema.Types">Date</class>
 
   <attribute name="fields" type="dict" cardinality="dict">
     <value name="year"><values></values></value>
     <value name="month"><values></values></value>
     <value name="day"><values></values></value>
-    <value name="hour"><values></values></value>
-    <value name="minute"><values></values></value>
-    <value name="second"><values></values></value>
-    <value name="microsecond"><values></values></value>
-    <value name="timezone"><values></values></value>
   </attribute>
 </item>

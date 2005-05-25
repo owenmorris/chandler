@@ -14,7 +14,7 @@ import twisted.protocols.policies as policies
 import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
 
-#python / mx imports
+#python imports
 import logging as logging
 
 #Chandler imports

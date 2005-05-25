@@ -19,6 +19,6 @@
         <callOnStartup>True</callOnStartup>
         <enabled>True</enabled>
         <repeat>True</repeat>
-        <delay>00:00:30:00</delay>
+        <delay>00:30:00</delay>
     </wakeupCall:WakeupCall>
 </Parcel>

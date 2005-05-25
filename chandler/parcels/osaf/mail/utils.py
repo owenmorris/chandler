@@ -5,13 +5,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains common utility methods shared across the Mail Domain (SMTP, IMAP4, POP3) and message parsing"""
 
-#python / mx imports
+#python imports
 import email as email
 import email.Message as Message
 import email.Utils as Utils
 import os
-import mx.DateTime as DateTime
 import logging
+from time import mktime
+from datetime import datetime
 
 #Chandler imports
 import application.Globals as Globals
@@ -57,21 +58,22 @@ def loadMailTests(view, dir):
 
 def getEmptyDate():
     """Returns a DateTime object set to 0 ticks.
-       @return: C{mx.DateTime} object"""
+       @return: C{datetime} object"""
 
-    return DateTime.DateFromTicks(0)
+    return datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
 def dateIsEmpty(date):
-    """Determines if a C{mx.DateTime} is empty (set to 0 ticks).
+    """Determines if a C{datetime} is empty (hh:mm:ss == 00:00:00.0)
 
        @param date: The date to check if it is empty
-       @type date: C{mx.DateTime}
+       @type date: C{datetime}
 
        @return bool: True if the date is empty, False otherwise
     """
     #XXX: Need to protect this better but having trouble with
-    #     the mx.DateTime API
-    if date is None or date.ticks() == DATE_IS_EMPTY:
+    #     the datetime API
+    if date is None or (date.hour == 0 and date.minute == 0 and
+                        date.second == 0 and date.microsecond == 0):
         return True
 
     return False
@@ -114,16 +116,17 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
                                           message, **keys)
 
 
-def dateTimeToRFC2882Date(dateTime):
-    """Converts a C{mx.DateTime} object to a
+def dateTimeToRFC2882Date(dt):
+    """Converts a C{datetime} object to a
        RFC2882 Date String
 
-       @param dateTime: a C{mx.DateTime} instance
-       @type dateTime: C{mx.DateTime}
+       @param dateTime: a C{datetime} instance
+       @type dateTime: C{datetime}
 
        @return: RFC2882 Date String
     """
-    return Utils.formatdate(dateTime.ticks(), True)
+    ticks = mktime(dt.timetuple())
+    return Utils.formatdate(ticks, True)
 
 
 def createMessageID():

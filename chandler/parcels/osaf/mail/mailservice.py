@@ -3,7 +3,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-#python / mx imports
+#python imports
 import logging as logging
 
 #Chandler imports

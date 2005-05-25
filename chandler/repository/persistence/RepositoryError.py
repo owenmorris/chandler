@@ -98,6 +98,20 @@ class LoadValueError(LoadError):
         return self.__doc__ %(self.args[0], self.args[1], self.args[2])
 
 
+class SaveError(RepositoryError):
+    "While saving %s, %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1])
+
+
+class SaveValueError(RepositoryError):
+    "While saving value for '%s' on %s: %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[1], self.args[0]._repr_(), self.args[2])
+
+
 class ItemImportError(RepositoryError):
     "While importing %s into %s, %s"
 

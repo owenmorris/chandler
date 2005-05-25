@@ -4,9 +4,11 @@
 """
 
 import os, logging
-import mx.DateTime as DateTime
 import xml.sax
 import xml.sax.handler
+
+from time import mktime
+from datetime import datetime
 
 import application
 import application.Globals as Globals
@@ -248,7 +250,7 @@ class Manager(Item):
         parcelKind = self.repo.findPath("//Schema/Core/Parcel")
         for parcel in KindQuery().run([parcelKind]):
             pDesc = {
-             "time" : parcel.modifiedOn.ticks(),
+             "time" : mktime(parcel.modifiedOn.timetuple()),
              "path" : str(parcel.itsPath),
              "file" : parcel.file,
              "aliases" : parcel.namespaceMap,
@@ -356,7 +358,7 @@ class Manager(Item):
 
                 # Set up the parcel descriptor
                 pDesc = {
-                 "time" : DateTime.now(),
+                 "time" : datetime.now(),
                  "path" : repoPath,
                  "file" : parcelFile,
                  "aliases" : handler.aliases,
@@ -625,7 +627,7 @@ class Manager(Item):
                 logger.info("Loading Schema items from parcels...")
                 for namespace in namespaces:
                     parcel = self.__loadParcel(namespace)
-                    parcel.modifiedOn = DateTime.now()
+                    parcel.modifiedOn = datetime.now()
                 logger.info("...done")
                 
             self.resetState()
@@ -772,7 +774,7 @@ class Parcel(Item):
 
     def __init__(self, name, parent, kind):
         super(Parcel, self).__init__(name, parent, kind)
-        self.createdOn = DateTime.now()
+        self.createdOn = datetime.now()
         self.modifiedOn = self.createdOn
 
     def _fillItem(self, name, parent, kind, **kwds):

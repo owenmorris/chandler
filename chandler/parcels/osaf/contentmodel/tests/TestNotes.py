@@ -13,8 +13,6 @@ import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.ContentModel as ContentModel
 
-import mx.DateTime as DateTime
-
 from repository.util.Path import Path
 
 

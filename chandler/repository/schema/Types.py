@@ -4,8 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import mx.DateTime
-
 import chandlerdb.util.uuid
 import repository.util.Path
 import repository.util.SingleRef
@@ -13,6 +11,8 @@ import repository.util.URL
 
 from new import classobj
 from struct import pack
+from datetime import datetime, date, time, timedelta
+from PyICU import ICUtzinfo
 
 from chandlerdb.schema.descriptor import CDescriptor
 from chandlerdb.util.uuid import _hash, _combine
@@ -743,7 +743,7 @@ class Class(Type):
         return type
 
     def recognizes(self, value):
-        return isinstance(value,(type, classobj))
+        return isinstance(value, (type, classobj))
 
     def handlerName(self):
         return 'class'
@@ -991,7 +991,7 @@ class Struct(Type):
         return hash
 
 
-class MXType(Struct):
+class DateStruct(Struct):
 
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
@@ -1003,8 +1003,7 @@ class MXType(Struct):
             return self.makeValue(data)
         else:
             itemHandler.fields = None
-        
-        return self._valueFromFields(flds)
+            return self._valueFromFields(flds)
 
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
@@ -1023,112 +1022,236 @@ class MXType(Struct):
                 break
 
         return offset, self._valueFromFields(flds)
+
+    def parseSecond(self, second):
+
+        values = second.split('.')
+        count = len(values)
+        
+        if count < 1:
+            raise ValueError, second
+
+        ss = values[0]
+
+        if count > 1:
+            v1 = values[1]
+            us = int(v1)
+            for i in xrange(len(v1), 6):
+                us *= 10
+        else:
+            us = 0
+
+        return int(ss), us
     
 
-class DateTime(MXType):
+class DateTime(DateStruct):
+
+    nvformat = "%d-%02d-%02d %d:%d:%d.%06d"
+    tzformat = "%d-%02d-%02d %d:%d:%d.%06d %s"
 
     def getImplementationType(self):
-        return DateTime.implementationType
+
+        return datetime
+
+    def getFieldValue(self, value, fieldName, default):
+
+        if fieldName == 'timezone':
+            tz = value.tzinfo
+            if tz is not None:
+                return value.tzname()
+            else:
+                return default
+
+        return super(DateTime, self).getFieldValue(value, fieldName, default)
+
+    def makeString(self, value):
+        
+        if value.tzinfo is None:
+            return DateTime.nvformat %(value.year, value.month, value.day,
+                                       value.hour, value.minute, value.second,
+                                       value.microsecond)
+        else:
+            return DateTime.tzformat %(value.year, value.month, value.day,
+                                       value.hour, value.minute, value.second,
+                                       value.microsecond, value.tzname())
 
     def makeValue(self, data):
-        return mx.DateTime.ISO.ParseDateTime(data)
-        
-    def makeString(self, value):
-        return mx.DateTime.ISO.str(value)
+
+        values = data.split(' ')
+        count = len(values)
+
+        if count < 2:
+            raise ValueError, data
+
+        if count >= 2:
+            try:
+                (yyyy, MM, dd) = values[0].split('-')
+                (HH, mm, second) = values[1].split(':')
+                tz = None
+            except ValueError, e:
+                e.args = (e.args[0], data)
+                raise
+
+        if count >= 3:
+            tz = ICUtzinfo.getInstance(values[2])
+
+        ss, us = self.parseSecond(second)
+
+        return datetime(int(yyyy), int(MM), int(dd),
+                        int(HH), int(mm), ss, us, tz)
 
     def _valueFromFields(self, flds):
-        return mx.DateTime.DateTime(flds['year'],
-                                    flds['month'],
-                                    flds['day'],
-                                    flds['hour'],
-                                    flds['minute'],
-                                    flds['second'])        
 
-    implementationType = type(mx.DateTime.now())
+        if 'timezone' in flds:
+            tz = ICUtzinfo.getInstance(flds['timezone'])
+        else:
+            tz = None
+
+        return datetime(flds['year'], flds['month'], flds['day'],
+                        flds['hour'], flds['minute'], flds['second'],
+                        flds['microsecond'], tz)
 
 
-class DateTimeDelta(MXType):
+class Date(DateStruct):
 
-    defaults = { 'day': 0.0, 'hour': 0.0, 'minute': 0.0, 'second': 0.0 }
-
-    def getDefaultValue(self, fieldName):
-        return DateTimeDelta.defaults[fieldName]
+    format = "%d-%02d-%02d"
 
     def getImplementationType(self):
-        return DateTimeDelta.implementationType
+
+        return date
+
+    def makeString(self, value):
+        
+        return Date.format %(value.year, value.month, value.day),
 
     def makeValue(self, data):
-        return mx.DateTime.DateTimeDeltaFrom(str(data))
-        
+
+        try:
+            yyyy, MM, dd = data.split('-')
+        except ValueError:
+            raise ValueError, data
+
+        return date(int(yyyy), int(MM), int(dd))
+
+    def _valueFromFields(self, flds):
+
+        return date(flds['year'], flds['month'], flds['day'])
+
+
+class Time(DateStruct):
+
+    nvformat = "%d:%d:%d.%06d"
+    tzformat = "%d:%d:%d.%06d %s"
+
+    def getImplementationType(self):
+
+        return time
+
+    def getFieldValue(self, value, fieldName, default):
+
+        if fieldName == 'timezone':
+            tz = value.tzinfo
+            if tz is not None:
+                return value.tzname()
+            else:
+                return default
+
+        return super(Time, self).getFieldValue(value, fieldName, default)
+
     def makeString(self, value):
-        return str(value)
+        
+        if value.tzinfo is None:
+            return Time.nvformat %(value.hour, value.minute, value.second,
+                                   value.microsecond)
+        else:
+            return Time.tzformat %(value.hour, value.minute, value.second,
+                                   value.microsecond, value.tzname())
+
+    def makeValue(self, data):
+
+        values = data.split(' ')
+        count = len(values)
+
+        if count < 1:
+            raise ValueError, data
+
+        if count >= 1:
+            (HH, mm, second) = values[0].split(':')
+            tz = None
+
+        if count >= 2:
+            tz = ICUtzinfo.getInstance(values[1])
+
+        ss, us = self.parseSecond(second)
+
+        return time(int(HH), int(mm), ss, us, tz)
+
+    def _valueFromFields(self, flds):
+
+        if 'timezone' in flds:
+            tz = ICUtzinfo.getInstance(flds['timezone'])
+        else:
+            tz = None
+
+        return time(flds['hour'], flds['minute'], flds['second'],
+                    flds['microsecond'], tz)
+
+
+class TimeDelta(DateStruct):
+
+    defaults = { 'days': 0, 'seconds': 0, 'microseconds': 0 }
+    format = "%d+%d.%06d"
+    strFormat = "%d days, %d:%02d:%02d.%06d"
+
+    def getDefaultValue(self, fieldName):
+        return TimeDelta.defaults[fieldName]
+
+    def getImplementationType(self):
+        return timedelta
+
+    def makeString(self, value):
+        return TimeDelta.format %(value.days, value.seconds, value.microseconds)
+
+    def makeValue(self, data):
+
+        try:
+            if ':' in data:
+                values = data.split(' ')
+                if len(values) >= 3:
+                    dd = int(values[0])
+                    time = values[2]
+                else:
+                    dd = 0
+                    time = values[0]
+
+                hh, mm, seconds = time.split(':')
+                ss, us = self.parseSecond(seconds)
+
+                return timedelta(days=dd, hours=int(hh), minutes=int(mm),
+                                 seconds=ss, microseconds=us)
+
+            dd, seconds = data.split('+')
+            ss, us = self.parseSecond(seconds)
+
+            return timedelta(int(dd), ss, us)
+        
+        except ValueError:
+            raise ValueError, data
 
     def _fieldXML(self, repository, value, fieldName, field, generator):
 
         default = self.getDefaultValue(fieldName)
         fieldValue = self.getFieldValue(value, fieldName, default)
         if default != fieldValue:
-            super(DateTimeDelta, self)._fieldXML(repository, value,
-                                                 fieldName, field, generator)
+            super(TimeDelta, self)._fieldXML(repository, value,
+                                             fieldName, field, generator)
 
     def _valueFromFields(self, flds):
 
-        return mx.DateTime.DateTimeDeltaFrom(days=flds.get('day', 0.0),
-                                             hours=flds.get('hour', 0.0),
-                                             minutes=flds.get('minute', 0.0),
-                                             seconds=flds.get('second', 0.0))
-          
-    implementationType = type(mx.DateTime.DateTimeDelta(0))
+        return timedelta(flds.get('days', 0),
+                         flds.get('seconds', 0),
+                         flds.get('microseconds', 0))
     
-
-class RelativeDateTime(MXType):
-
-    defaults = { 'years': 0, 'months': 0, 'days': 0,
-                 'year': None, 'month': None, 'day': None,
-                 'hours': 0, 'minutes': 0, 'seconds': 0,
-                 'hour': None, 'minute': None, 'second': None,
-                 'weekday': None, 'weeks': 0 }
-
-    def getDefaultValue(self, fieldName):
-        return RelativeDateTime.defaults[fieldName]
-
-    def getImplementationType(self):
-        return RelativeDateTime.implementationType
-
-    def makeValue(self, data):
-        return mx.DateTime.RelativeDateTimeFrom(str(data))
-
-    def makeString(self, value):
-        return str(value)
-
-    def _fieldXML(self, repository, value, fieldName, field, generator):
-
-        default = self.getDefaultValue(fieldName)
-        fieldValue = self.getFieldValue(value, fieldName, default)
-        if default != fieldValue:
-            super(RelativeDateTime, self)._fieldXML(repository, value,
-                                                    fieldName, field,
-                                                    generator)
-
-    def _valueFromFields(self, flds):
-
-        return mx.DateTime.RelativeDateTime(years=flds.get('years', 0),
-                                            months=flds.get('months', 0),
-                                            days=flds.get('days', 0),
-                                            year=flds.get('year', None),
-                                            month=flds.get('month', None),
-                                            day=flds.get('day', None),
-                                            hours=flds.get('hours', 0),
-                                            minutes=flds.get('minutes', 0),
-                                            seconds=flds.get('seconds', 0),
-                                            hour=flds.get('hour', None),
-                                            minute=flds.get('minute', None),
-                                            second=flds.get('second', None),
-                                            weekday=flds.get('weekday', None),
-                                            weeks=flds.get('weeks', 0))
-          
-    implementationType = type(mx.DateTime.RelativeDateTime())
-
 
 class Collection(Type):
 

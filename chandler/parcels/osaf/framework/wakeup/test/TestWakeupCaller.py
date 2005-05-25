@@ -13,7 +13,8 @@ import application.Globals as Globals
 import unittest as unittest
 import time
 import repository.schema.Types as Types
-import mx.DateTime as DateTime
+
+from datetime import datetime, timedelta
 
 DATA = [None, 0, False] #UUID, Number of times called, UUID's Equal
 
@@ -53,7 +54,7 @@ class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
         wakeupCall = WakeupCallerParcel.WakeupCall(view=self.rep.view)
 
         wakeupCall.wakeupCallClass = WakeupCallTest
-        wakeupCall.delay  = DateTime.DateTimeDeltaFrom("00:00:00:05")
+        wakeupCall.delay  = timedelta(seconds=5)
         wakeupCall.repeat = True
 
         DATA[0] = wakeupCall.itsUUID

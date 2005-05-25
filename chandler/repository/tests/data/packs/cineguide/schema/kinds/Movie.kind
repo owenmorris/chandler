@@ -16,6 +16,10 @@
     <ref alias="website" type="path">/CineGuide/Attributes/website</ref>
     <ref alias="next" type="path">/CineGuide/Attributes/next</ref>
     <ref alias="previous" type="path">/CineGuide/Attributes/previous</ref>
+    <ref alias="timestamp" type="path">/CineGuide/Attributes/timestamp</ref>
+    <ref alias="date" type="path">/CineGuide/Attributes/date</ref>
+    <ref alias="time" type="path">/CineGuide/Attributes/time</ref>
+    <ref alias="delta" type="path">/CineGuide/Attributes/delta</ref>
   </ref>
 
   <attribute name="displayAttribute">title</attribute>

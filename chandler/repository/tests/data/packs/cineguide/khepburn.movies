@@ -7,7 +7,7 @@
 
     <attribute name="title">A Bill of Divorcement</attribute>
     <attribute name="frenchTitle">Héritage</attribute>
-    <attribute name="released">1932-MM-DD</attribute>
+    <attribute name="released">1932</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="writers">
@@ -31,7 +31,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Morning Glory</attribute>
-    <attribute name="released">1933-MM-DD</attribute>
+    <attribute name="released">1933</attribute>
 
     <ref name="director" type="path">//CineGuide/LSherman</ref>
     <ref name="writers">
@@ -53,7 +53,7 @@
 
     <attribute name="title">Little Women</attribute>
     <attribute name="frenchTitle">Les Quatre Filles du Docteur Marsch</attribute>
-    <attribute name="released">1933-MM-DD</attribute>
+    <attribute name="released">1933</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="previous" type="path">//CineGuide/m2</ref>
@@ -78,7 +78,7 @@
 
     <attribute name="title">Spitfire</attribute>
     <attribute name="frenchTitle">Mademoiselle Hicks</attribute>
-    <attribute name="released">1934-MM-DD</attribute>
+    <attribute name="released">1934</attribute>
 
     <ref name="director" type="path">//CineGuide/JCromwell</ref>
     <ref name="writers">
@@ -99,7 +99,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Alice Adams</attribute>
-    <attribute name="released">1935-MM-DD</attribute>
+    <attribute name="released">1935</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevens</ref>
     <ref name="writers">
@@ -123,7 +123,7 @@
 
     <attribute name="title">Mary of Scotland</attribute>
     <attribute name="frenchTitle">Marie Stuart</attribute>
-    <attribute name="released">1936-MM-DD</attribute>
+    <attribute name="released">1936</attribute>
 
     <ref name="director" type="path">//CineGuide/JFord</ref>
     <ref name="actors">
@@ -139,7 +139,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Sylvia Scarlett</attribute>
-    <attribute name="released">1936-MM-DD</attribute>
+    <attribute name="released">1936</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
@@ -156,7 +156,7 @@
 
     <attribute name="title">Stage Door</attribute>
     <attribute name="frenchTitle">Pension d'Artistes</attribute>
-    <attribute name="released">1937-MM-DD</attribute>
+    <attribute name="released">1937</attribute>
 
     <ref name="director" type="path">//CineGuide/GLaCava</ref>
     <ref name="actors">
@@ -173,7 +173,7 @@
 
     <attribute name="title">Bringing Up Baby</attribute>
     <attribute name="frenchTitle">L'Impossible Monsieur Bébé</attribute>
-    <attribute name="released">1938-MM-DD</attribute>
+    <attribute name="released">1938</attribute>
 
     <ref name="director" type="path">//CineGuide/HHawks</ref>
     <ref name="actors">
@@ -190,7 +190,7 @@
 
     <attribute name="title">Woman of the Year</attribute>
     <attribute name="frenchTitle">La Femme de l'Année</attribute>
-    <attribute name="released">1942-MM-DD</attribute>
+    <attribute name="released">1942</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevens</ref>
     <ref name="actors">
@@ -207,7 +207,7 @@
 
     <attribute name="title">Keeper of the Flame</attribute>
     <attribute name="frenchTitle">La Flamme Sacrée</attribute>
-    <attribute name="released">1942-MM-DD</attribute>
+    <attribute name="released">1942</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
@@ -224,7 +224,7 @@
 
     <attribute name="title">Stagedoor Canteen</attribute>
     <attribute name="frenchTitle">Le Cabaret des Etoiles</attribute>
-    <attribute name="released">1943-MM-DD</attribute>
+    <attribute name="released">1943</attribute>
 
     <ref name="director" type="path">//CineGuide/FBorzage</ref>
     <ref name="actors">
@@ -241,7 +241,7 @@
 
     <attribute name="title">Dragon Seed</attribute>
     <attribute name="frenchTitle">Le Fils du Dragon</attribute>
-    <attribute name="released">1944-MM-DD</attribute>
+    <attribute name="released">1944</attribute>
 
     <ref name="director" type="path">//CineGuide/JConway</ref>
     <ref name="actors">
@@ -258,7 +258,7 @@
 
     <attribute name="title">Undercurrent</attribute>
     <attribute name="frenchTitle">Lame de Fond</attribute>
-    <attribute name="released">1946-MM-DD</attribute>
+    <attribute name="released">1946</attribute>
 
     <ref name="director" type="path">//CineGuide/VMinelli</ref>
     <ref name="actors">
@@ -275,7 +275,7 @@
 
     <attribute name="title">The Sea of Grass</attribute>
     <attribute name="frenchTitle">Le Maître de la Prairie</attribute>
-    <attribute name="released">1947-MM-DD</attribute>
+    <attribute name="released">1947</attribute>
 
     <ref name="director" type="path">//CineGuide/EKazan</ref>
     <ref name="actors">
@@ -292,7 +292,7 @@
 
     <attribute name="title">State of the Union</attribute>
     <attribute name="frenchTitle">L'Enjeu</attribute>
-    <attribute name="released">1948-MM-DD</attribute>
+    <attribute name="released">1948</attribute>
 
     <ref name="director" type="path">//CineGuide/FCapra</ref>
     <ref name="actors">
@@ -309,7 +309,7 @@
 
     <attribute name="title">Adam's Rib</attribute>
     <attribute name="frenchTitle">Madame Porte la Culotte</attribute>
-    <attribute name="released">1949-MM-DD</attribute>
+    <attribute name="released">1949</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
@@ -326,7 +326,7 @@
 
     <attribute name="title">African Queen</attribute>
     <attribute name="frenchTitle">La Reine Africaine</attribute>
-    <attribute name="released">1951-MM-DD</attribute>
+    <attribute name="released">1951</attribute>
 
     <ref name="director" type="path">//CineGuide/JHuston</ref>
     <ref name="actors">
@@ -343,7 +343,7 @@
 
     <attribute name="title">Pat and Mike</attribute>
     <attribute name="frenchTitle">Mademoiselle Gagne-Tout</attribute>
-    <attribute name="released">1952-MM-DD</attribute>
+    <attribute name="released">1952</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
@@ -360,7 +360,7 @@
 
     <attribute name="title">Summertime</attribute>
     <attribute name="frenchTitle">Vacances à Venise</attribute>
-    <attribute name="released">1955-MM-DD</attribute>
+    <attribute name="released">1955</attribute>
 
     <ref name="director" type="path">//CineGuide/DLean</ref>
     <ref name="actors">
@@ -377,7 +377,7 @@
 
     <attribute name="title">The Rainmaker</attribute>
     <attribute name="frenchTitle">Le Faiseur de Pluie</attribute>
-    <attribute name="released">1956-MM-DD</attribute>
+    <attribute name="released">1956</attribute>
 
     <ref name="director" type="path">//CineGuide/JAnthony</ref>
     <ref name="actors">
@@ -394,7 +394,7 @@
 
     <attribute name="title">The Iron Petticoat</attribute>
     <attribute name="frenchTitle">Whisky, Vodka et Jupon de Fer</attribute>
-    <attribute name="released">1956-MM-DD</attribute>
+    <attribute name="released">1956</attribute>
 
     <ref name="director" type="path">//CineGuide/RThomas</ref>
     <ref name="actors">
@@ -411,7 +411,7 @@
 
     <attribute name="title">Desk Set</attribute>
     <attribute name="frenchTitle">Une Femme de Tête</attribute>
-    <attribute name="released">1957-MM-DD</attribute>
+    <attribute name="released">1957</attribute>
 
     <ref name="director" type="path">//CineGuide/WLang</ref>
     <ref name="actors">
@@ -428,7 +428,7 @@
 
     <attribute name="title">Suddenly Last Summer</attribute>
     <attribute name="frenchTitle">Soudain l'Été Dernier</attribute>
-    <attribute name="released">1959-MM-DD</attribute>
+    <attribute name="released">1959</attribute>
 
     <ref name="director" type="path">//CineGuide/JLMankiewicz</ref>
     <ref name="actors">
@@ -444,7 +444,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Long Day's Journey into Night</attribute>
-    <attribute name="released">1962-MM-DD</attribute>
+    <attribute name="released">1962</attribute>
 
     <ref name="director" type="path">//CineGuide/SLumet</ref>
     <ref name="actors">
@@ -461,7 +461,7 @@
 
     <attribute name="title">Guess Who's Coming to Dinner</attribute>
     <attribute name="frenchTitle">Devine qui Vient Dîner ?</attribute>
-    <attribute name="released">1967-MM-DD</attribute>
+    <attribute name="released">1967</attribute>
 
     <ref name="director" type="path">//CineGuide/SKramer</ref>
     <ref name="actors">
@@ -478,7 +478,7 @@
 
     <attribute name="title">The Lion in Winter</attribute>
     <attribute name="frenchTitle">Un Lion en Hiver</attribute>
-    <attribute name="released">1968-MM-DD</attribute>
+    <attribute name="released">1968</attribute>
 
     <ref name="director" type="path">//CineGuide/AHarvey</ref>
     <ref name="actors">
@@ -495,7 +495,7 @@
 
     <attribute name="title">The Madwoman of Chaillot</attribute>
     <attribute name="frenchTitle">La Folle de Chaillot</attribute>
-    <attribute name="released">1969-MM-DD</attribute>
+    <attribute name="released">1969</attribute>
 
     <ref name="director" type="path">//CineGuide/BForbes</ref>
     <ref name="actors">
@@ -512,7 +512,7 @@
 
     <attribute name="title">The Trojan Women</attribute>
     <attribute name="frenchTitle">Les Troyennes</attribute>
-    <attribute name="released">1970-MM-DD</attribute>
+    <attribute name="released">1970</attribute>
 
     <ref name="director" type="path">//CineGuide/MCacoyannis</ref>
     <ref name="actors">
@@ -529,7 +529,7 @@
 
     <attribute name="title">Rooster Cogburn</attribute>
     <attribute name="frenchTitle">Une Bible et un Fusil</attribute>
-    <attribute name="released">1975-MM-DD</attribute>
+    <attribute name="released">1975</attribute>
 
     <ref name="director" type="path">//CineGuide/SMillar</ref>
     <ref name="actors">
@@ -545,7 +545,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Olly, Olly, Oxen Free</attribute>
-    <attribute name="released">1978-MM-DD</attribute>
+    <attribute name="released">1978</attribute>
 
     <ref name="director" type="path">//CineGuide/RAColla</ref>
     <ref name="actors">
@@ -562,7 +562,7 @@
 
     <attribute name="title">On Golden Pond</attribute>
     <attribute name="frenchTitle">La Maison du Lac</attribute>
-    <attribute name="released">1981-MM-DD</attribute>
+    <attribute name="released">1981</attribute>
 
     <ref name="director" type="path">//CineGuide/MRydell</ref>
     <ref name="actors">
@@ -578,7 +578,7 @@
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Georges Stevens: A Filmmaker's Journey</attribute>
-    <attribute name="released">1984-MM-DD</attribute>
+    <attribute name="released">1984</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevensJR</ref>
     <ref name="actors">
@@ -595,7 +595,7 @@
 
     <attribute name="title">The Man Upstairs</attribute>
     <attribute name="frenchTitle">Bijoux, Hot-Dogs et Tasses de Café</attribute>
-    <attribute name="released">1992-MM-DD</attribute>
+    <attribute name="released">1992</attribute>
 
     <ref name="director" type="path">//CineGuide/GShaefer</ref>
     <ref name="actors">
@@ -612,7 +612,7 @@
 
     <attribute name="title">Love Affair</attribute>
     <attribute name="frenchTitle">Rendez-Vous avec le Destin</attribute>
-    <attribute name="released">1994-MM-DD</attribute>
+    <attribute name="released">1994</attribute>
 
     <ref name="director" type="path">//CineGuide/GGCaron</ref>
     <ref name="actors">

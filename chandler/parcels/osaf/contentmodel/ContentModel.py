@@ -6,13 +6,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from datetime import datetime
+
 from application.Parcel import Parcel
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
 import repository.item.Item as Item
 import repository.item.Query as Query
-import mx.DateTime as DateTime
 import logging
 
 import application.Globals as Globals
@@ -81,7 +82,7 @@ class ContentItem(Item.Item):
 
         super (ContentItem, self).__init__(name, parent, kind)
 
-        self.createdOn = DateTime.now()
+        self.createdOn = datetime.now()
         if view is None:
             view = self.itsView
         self.creator = self.getCurrentMeContact(view)

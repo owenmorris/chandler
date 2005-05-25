@@ -12,8 +12,7 @@ import unittest, os
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.mail.Mail as Mail
 
-import mx.DateTime as DateTime
-
+from datetime import datetime
 from repository.util.Path import Path
 
 
@@ -155,7 +154,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         mailDeliveryErrorItem.errorCode = 25
         mailDeliveryErrorItem.errorString = "Test String"
-        mailDeliveryErrorItem.errorDate = DateTime.now()
+        mailDeliveryErrorItem.errorDate = datetime.now()
 
         mailDeliveryBaseItem.deliveryType = "POP"
         smtpDeliveryItem.deliveryType = "SMTP"
@@ -170,8 +169,8 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mimeSecurityItem.mimeType = "SIGNED"
 
         # Literal properties
-        mailMessageItem.dateSent = DateTime.now()
-        mailMessageItem.dateReceived = DateTime.now()
+        mailMessageItem.dateSent = datetime.now()
+        mailMessageItem.dateReceived = datetime.now()
         mailMessageItem.subject = "Hello"
         mailMessageItem.spamScore = 5
 

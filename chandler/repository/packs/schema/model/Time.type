@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>DateTimeDelta</name>
+  <name>Time</name>
   <kind type="path">//Schema/Core/Struct</kind>
-  <class module="repository.schema.Types">DateTimeDelta</class>
+  <class module="repository.schema.Types">Time</class>
 
   <attribute name="fields" type="dict" cardinality="dict">
-    <value name="day"><values></values></value>
     <value name="hour"><values></values></value>
     <value name="minute"><values></values></value>
     <value name="second"><values></values></value>
+    <value name="microsecond"><values></values></value>
+    <value name="timezone"><values></values></value>
   </attribute>
 </item>

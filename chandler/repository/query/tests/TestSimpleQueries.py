@@ -160,23 +160,19 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
         # since GenerateCalenderEventItems generates events offset from now(),
         # need to dynamically compute the date range for the query
-        import mx.DateTime
-        now = mx.DateTime.now()
+        from datetime import date, datetime
+        now = date.today()
         year = now.year
         month = now.month
-        startDateString = "%d-%d-%d" % (year,month,1)
-        startDate = mx.DateTime.ISO.ParseDate(startDateString)
-        startDateString = startDate.date
+        startDate = datetime(year, month, 1)
         if month == 12:
             month = 1
             year = year+1
         else:
             month = month+1
-        endDateString = "%d-%d-%d" % (year,month,1)
-        endDate = mx.DateTime.ISO.ParseDate(endDateString) -1
-        endDateString = endDate.date
+        endDate = datetime(year, month, 1)
         
-        queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date,endDate.date)
+        queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date(), endDate.date())
         results = self._compileQuery('testDateQuery',queryString)
         self._checkQuery(lambda i: not (i.startTime > startDate and i.startTime < endDate), results)
 

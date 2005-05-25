@@ -13,8 +13,6 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 
-import mx.DateTime as DateTime
-
 from repository.util.Path import Path
 
 class TaskTest(TestContentModel.ContentModelTestCase):

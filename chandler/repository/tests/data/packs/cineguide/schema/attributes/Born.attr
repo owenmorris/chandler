@@ -4,7 +4,7 @@
     <name>born</name>
     <kind type="path">//Schema/Core/Attribute</kind>
 
-    <ref name="type" type="path">//Schema/Core/RelativeDateTime</ref>
+    <ref name="type" type="path">//Schema/Core/Date</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
 </item>

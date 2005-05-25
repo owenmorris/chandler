@@ -5,8 +5,8 @@
     <kind type="path">//Schema/CineGuide/Kinds/Actor</kind>
 
     <attribute name="name">Katharine Hepburn</attribute>
-    <attribute name="born">1907-MM-DD</attribute>
-    <attribute name="died">2003-MM-DD</attribute>
+    <attribute name="born">1907-05-12</attribute>
+    <attribute name="died">2003-06-29</attribute>
 
     <attribute name="rectangle">
       <fields>

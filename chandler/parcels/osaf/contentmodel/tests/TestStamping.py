@@ -16,9 +16,9 @@ import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
-import mx.DateTime as DateTime
 import logging
 
+from datetime import datetime
 from repository.util.Path import Path
 
 verbose = False
@@ -37,7 +37,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     def setAttributes(self, item, doWho=True):
         anAbout = 'aTitleOrHeadline'
         item.about = anAbout
-        aDate = DateTime.now()
+        aDate = datetime.now()
         item.date = aDate
         aWhoList = []
         view = item.itsView

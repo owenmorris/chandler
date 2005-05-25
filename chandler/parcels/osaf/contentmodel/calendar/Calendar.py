@@ -13,7 +13,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
 
-import mx.DateTime as DateTime
+from datetime import datetime, timedelta
 
 
 class CalendarEventMixin(ContentModel.ContentItem):
@@ -48,10 +48,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
         Called when stamping adds these attributes, and from __init__ above.
         """
         # start at the nearest half hour, duration of an hour
-        now = DateTime.now()
-        self.startTime = DateTime.DateTime(now.year, now.month, now.day,
-                                           now.hour, int(now.minute/30) * 30)
-        self.duration = DateTime.DateTimeDelta(0, 1)
+        now = datetime.now()
+        self.startTime = datetime(now.year, now.month, now.day,
+                                  now.hour, (now.minute/30) * 30)
+        self.duration = timedelta(hours=1)
 
         # default the organizer to an existing value, or "me"
         try:
@@ -124,7 +124,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         return super (CalendarEventMixin, self).getAnyWhoFrom ()
 
     def GetDuration(self):
-        """Returns an mxDateTimeDelta, None if no startTime or endTime"""
+        """Returns a timedelta, None if no startTime or endTime"""
         
         if (self.hasLocalAttributeValue("startTime") and
             self.hasLocalAttributeValue("endTime")):
@@ -132,19 +132,19 @@ class CalendarEventMixin(ContentModel.ContentItem):
         else:
             return None
 
-    def SetDuration(self, dateTimeDelta):
-        """Set duration of event, expects value to be mxDateTimeDelta
+    def SetDuration(self, timeDelta):
+        """Set duration of event, expects value to be a timedelta
         
         endTime is updated based on the new duration, startTime remains fixed
         """
         if (self.startTime is not None):
-            self.endTime = self.startTime + dateTimeDelta
+            self.endTime = self.startTime + timeDelta
 
     duration = property(GetDuration, SetDuration,
-                                doc="mxDateTimeDelta: the length of an event")
+                        doc="timedelta: the length of an event")
 
     def GetReminderDelta(self):
-        """ Returns the difference between startTime and reminderTime, an mxDateTimeDelta """
+        """ Returns the difference between startTime and reminderTime, a timedelta """
         try:
             return self.startTime - self.reminderTime
         except AttributeError:

@@ -10,10 +10,10 @@ import twisted.internet.defer as defer
 import twisted.internet.error as error
 import twisted.protocols.policies as policies
 
-#python / mx imports
-import mx.DateTime as DateTime
+#python imports
 import cStringIO as StringIO
 import logging as logging
+from datetime import datetime
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
@@ -359,7 +359,7 @@ class _SMTPTransport(object):
         if __debug__:
             self.parent.printCurrentView("transport.__mailSuccess")
 
-        now = DateTime.now()
+        now = datetime.now()
         self.mailMessage.dateSent = now
         self.mailMessage.dateSentString = utils.dateTimeToRFC2882Date(now)
 
@@ -384,7 +384,7 @@ class _SMTPTransport(object):
         if __debug__:
             self.parent.printCurrentView("transport.__mailSomeFailed")
 
-        errorDate = DateTime.now()
+        errorDate = datetime.now()
 
         for recipient in result[1]:
             email, code, str = recipient
@@ -433,7 +433,7 @@ class _SMTPTransport(object):
 
         deliveryError = Mail.MailDeliveryError(view=self.parent.view)
 
-        deliveryError.errorDate   = DateTime.now()
+        deliveryError.errorDate   = datetime.now()
         deliveryError.errorCode   = result[0]
         deliveryError.errorString = result[1]
 

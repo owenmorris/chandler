@@ -10,7 +10,7 @@ import wx
 import wx.calendar
 import wx.minical
 
-from mx import DateTime
+from datetime import datetime
 
 import osaf.framework.blocks.Block as Block
 
@@ -42,33 +42,33 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
     def getSelectedDate(self):
         wxdate = self.GetDate()
-        mxdate = DateTime.DateTime(wxdate.GetYear(),
-                                   wxdate.GetMonth() + 1,
-                                   wxdate.GetDay())
-        return mxdate
+        date = datetime(wxdate.GetYear(),
+                        wxdate.GetMonth() + 1,
+                        wxdate.GetDay())
+        return date
 
-    def setSelectedDate(self, mxdate):
-        wxdate = wx.DateTimeFromDMY(mxdate.day,
-                                    mxdate.month - 1,
-                                    mxdate.year)
+    def setSelectedDate(self, date):
+        wxdate = wx.DateTimeFromDMY(date.day,
+                                    date.month - 1,
+                                    date.year)
         self.SetDate(wxdate)
 
-    def setSelectedDateRange(self, mxstart, mxend):
+    def setSelectedDateRange(self, start, end):
         self.resetMonth()
-        self.setSelectedDate(mxstart)
+        self.setSelectedDate(start)
 
-        if (mxstart.month != mxend.month):
-            endday = mxstart.days_in_month + 1
+        if (start.month != end.month):
+            endday = (datetime.replace(month=start.month+1) - start).days + 1
         else:
-            endday = mxend.day + 1
+            endday = end.day + 1
 
-        for day in range(mxstart.day, endday):
+        for day in range(start.day, endday):
             attr = wx.CalendarDateAttr(wx.WHITE, wx.BLUE, wx.WHITE,
                                        wx.SWISS_FONT)
             self.SetAttr(day, attr)
 
-        today = DateTime.today()
-        if ((today.year == mxstart.year) and (today.month == mxstart.month)):
+        today = datetime.today()
+        if ((today.year == start.year) and (today.month == start.month)):
             self.SetHoliday(today.day)
 
         self.Refresh()

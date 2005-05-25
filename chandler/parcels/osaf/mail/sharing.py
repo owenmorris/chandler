@@ -7,9 +7,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 
-#python / mx imports
-import mx.DateTime as DateTime
-
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ItemCollection as ItemCollection

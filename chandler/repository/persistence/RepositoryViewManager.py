@@ -6,7 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging
 
-from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryError \
+    import RepositoryError, VersionConflictError
 from repository.persistence.Repository import RepositoryThread
 from chandlerdb.util.uuid import UUID
 
@@ -283,13 +284,13 @@ class AbstractRepositoryViewManager(object):
         try:
            self.view.commit()
 
-        except RepositoryError, e:
-           """This condition needs to be flushed out more"""
-           self._viewCommitFailed(e)
-
         except VersionConflictError, e1:
            """This condition needs to be flushed out more"""
            self._viewCommitFailed(e1)
+
+        except RepositoryError, e:
+           """This condition needs to be flushed out more"""
+           self._viewCommitFailed(e)
 
         except Exception, e2:
            """Catch any unknown exceptions raised by the Repository"""

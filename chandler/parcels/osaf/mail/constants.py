@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains constants shared across the Mail Domain (SMTP, IMAP4, POP3) """
 
-#python / mx imports
+#python imports
 import version
 
 DEFAULT_CHARSET = "utf-8"

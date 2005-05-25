@@ -9,14 +9,15 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
 
-import mx.DateTime
 import repository.schema.Types
 import repository.item.PersistentCollections
+
+from datetime import datetime
+from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
-from mx.DateTime import DateTime, DateTimeDelta, ISO, RelativeDateTime
 
 
 class AliasTest(RepositoryTestCase.RepositoryTestCase):
@@ -42,7 +43,8 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
         self.alias.addValue('types',self.intType)
 
         self.dateTimeString = '2004-01-08 12:34:56-0800'
-        self.dateTime = mx.DateTime.ISO.ParseDateTime(self.dateTimeString)
+        self.dateTime = datetime(2004, 1, 8, 12, 34, 56,
+                                 tzinfo=ICUtzinfo.getInstance('US/Pacific'))
 
     def testIsAlias(self):
         self.assert_(self.alias.isAlias())

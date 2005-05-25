@@ -3,7 +3,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, sys, mx, wx
+import os, sys, wx
+from datetime import datetime, timedelta
 
 class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
@@ -106,9 +107,9 @@ class ReminderDialog(wx.Dialog):
         listCtrl.DeleteAllItems()
         self.remindersInList = {}
         nextReminder = None
-        now = mx.DateTime.now()
+        now = datetime.now()
         for reminder in reminders:
-            if reminder.reminderTime < mx.DateTime.now():
+            if reminder.reminderTime < datetime.now():
                 # Another pending reminder add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, reminder.displayName)
                 self.remindersInList[index] = reminder
@@ -137,8 +138,8 @@ class ReminderDialog(wx.Dialog):
         # otherwise, no reminder needed.
         closeIt = listCtrl.GetItemCount() == 0
         if not closeIt:
-            now = mx.DateTime.now()
-            nextReminderTime = now + mx.DateTime.RelativeDateTime(seconds=(60-now.second))
+            now = datetime.now()
+            nextReminderTime = now + timedelta(seconds=(60-now.second))
         elif nextReminder is not None:
             nextReminderTime = reminder.reminderTime
         else:
@@ -177,7 +178,7 @@ class ReminderDialog(wx.Dialog):
     def onSnooze(self, event):
         """ Snooze the selected reminders for five minutes """
         for reminder in self.getListItems(True):
-            reminder.reminderTime = mx.DateTime.now() + mx.DateTime.RelativeDateTime(minutes=5)
+            reminder.reminderTime = datetime.now() + timedelta(minutes=5)
         wx.GetApp().repository.view.commit()
     
     def getListItems(self, selectedOnly):

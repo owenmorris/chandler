@@ -25,10 +25,11 @@ import osaf.mail.message as MailMessage
 from repository.item.Item import Item
 from repository.item.Query import KindQuery
 import repository.item.Query as Query
-import mx.DateTime as DateTime
 import wx
 import sets
 import logging
+from PyICU import SimpleDateFormat, ICUError
+from datetime import datetime
 
 """
 Detail.py
@@ -1043,38 +1044,26 @@ class EditTimeAttribute (EditRedirectAttribute):
     """
     # (@@@BJS ... though we also modify allDay and anyTime ourselves)
 
-    dateTimeFormat = '%Y-%m-%d %I:%M %p'
-    dateFormat = '%Y-%m-%d'
+    #dateTimeFormat = '%Y-%m-%d %I:%M %p'
+    #dateFormat = '%Y-%m-%d'
+    #dateTimeFormatHint = 'yyyy-mm-dd HH:MM'
+    #dateFormatHint = 'yyyy-mm-dd'
+    
+    dateTimeFormat = 'yyyy-MM-dd hh:mm a'
+    dateFormat = 'yyyy-MM-dd'
     dateTimeFormatHint = 'yyyy-mm-dd HH:MM'
     dateFormatHint = 'yyyy-mm-dd'
     
     def parseDateTime (self, dateString):
-        theDate = None
-        dateOnly = False
 
-        # work around a problem when using hour of 12
-        # @@@DLD Check if this date parsing bug is fixed yet - due in version 2.1
-        if DateTime.__version__ < '2.1':
-            try:
-                twelveLocation = dateString.upper().index('12:')
-            except ValueError:
-                pass
-            else:
-                dateString = dateString[:twelveLocation]\
-                             + '00:' + dateString[twelveLocation+3:]
         try:
-            # convert to Date/Time. This quietly accepts input with and without times.
-            theDate = DateTime.Parser.DateTimeFromString (dateString)
-        except ValueError: 
-            pass
-        except DateTime.RangeError:
-            pass
-        else:
-            # Try to discern whether the user specified a time
-            # @@@ BJS: For now, we have a time if the returned value's time isn't midnight,
-            # _and_ there's a colon in the string.
-            dateOnly = (theDate == (theDate + DateTime.RelativeDateTime(hour=0, minute=0, second=0))) \
-                     and (dateString.find(':') == -1)
+            df = SimpleDateFormat(EditTimeAttribute.dateTimeFormat)
+            theDate = datetime.fromtimestamp(df.parse(dateString))
+            dateOnly = False
+        except ICUError:
+            df = SimpleDateFormat(EditTimeAttribute.dateFormat)
+            theDate = datetime.fromtimestamp(df.parse(dateString))
+            dateOnly = True
 
         return (theDate, dateOnly)
 
@@ -1112,7 +1101,8 @@ class EditTimeAttribute (EditRedirectAttribute):
             value = item.allDay and self.dateFormatHint or self.dateTimeFormatHint
         else:
             format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
-            value = dateTime.strftime (format)
+            df = SimpleDateFormat(format)
+            value = df.format(dateTime).toUnicode()
         widget.SetValue (value)
         logger.debug("EditTime: Got '%s' after Set '%s'" % (widget.GetValue(), value))
 
@@ -1176,7 +1166,7 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
                 item.reminderDelta = None
             else:
                 # @@@BJS Assumes the menu item is of the form "nn Minutes"
-                item.reminderDelta = DateTime.DateTimeDeltaFrom(minutes=int(reminderChoice.split(' ', 2)[0]))
+                item.reminderDelta = timedelta(minutes=int(reminderChoice.split(' ', 2)[0]))
 
 class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
     """

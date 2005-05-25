@@ -166,7 +166,7 @@ def stop():
 import osaf.contentmodel.ContentModel as cm
 import osaf.contentmodel.calendar.Calendar as cal
 import osaf.contentmodel.contacts.Contacts as con
-import mx.DateTime as dt
+import datetime as dt
 
 print """
 Shortcuts loaded:

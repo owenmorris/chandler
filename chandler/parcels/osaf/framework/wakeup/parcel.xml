@@ -34,8 +34,8 @@
 
     <Attribute itsName="delay">
       <displayName>Delay Between Calls</displayName>
-      <type itemref="DateTimeDelta"/>
-      <initialValue type="DateTimeDelta" value="00:00:00:00" />
+      <type itemref="TimeDelta"/>
+      <initialValue type="TimeDelta" value="0:00:00" />
     </Attribute>
     </Kind>
 </Parcel>

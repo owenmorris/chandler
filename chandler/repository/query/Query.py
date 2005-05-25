@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import QueryParser
 import repository.item.Item as Item
 import sets
-import mx.DateTime.ISO
+from datetime import date, datetime
 from chandlerdb.util.uuid import UUID
 import repository.item.Monitors as Monitors
 
@@ -16,6 +16,7 @@ log = logging.getLogger("repository.query")
 log.setLevel(logging.INFO)
 
 import time
+
 
 class Query(Item.Item):
 
@@ -446,7 +447,7 @@ class ForPlan(LogicalPlan):
             log.debug(u"%s %s %s" % (token, fn, args))
             if fn in unary_fns and len(args) == 1:
                 if fn == 'date':
-                    pred = "mx.DateTime.ISO.ParseDateTime(%s)" % self.compile_predicate(args[0])
+                    pred = "datetime(*map(int, %s.split('-')))" % self.compile_predicate(args[0])
                 else:
                     pred = "%s(%s)" % (fn, self.compile_predicate(args[0]))
             elif fn in binary_fns and len(args) == 2: 

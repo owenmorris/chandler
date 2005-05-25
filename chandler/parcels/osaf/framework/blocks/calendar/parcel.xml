@@ -28,7 +28,7 @@
       <type itemref="DateTime"/>
     </Attribute>
     <Attribute itsName="rangeIncrement">
-      <type itemref="RelativeDateTime"/>
+      <type itemref="TimeDelta"/>
     </Attribute>
     <Attribute itsName="daysPerView">
       <type itemref="Integer"/>

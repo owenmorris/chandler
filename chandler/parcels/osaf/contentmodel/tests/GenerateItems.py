@@ -9,7 +9,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import random
 
-from mx import DateTime
+from datetime import datetime, timedelta
 
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
@@ -41,12 +41,12 @@ def GenerateCalendarEvent(view, days=30):
     event.displayName = random.choice(HEADLINES)
     
     # Choose random days, hours
-    startDelta = DateTime.DateTimeDelta(random.randint(0, days),
-                                        random.randint(0, 24))
+    startDelta = timedelta(days=random.randint(0, days),
+                           hours=random.randint(0, 24))
 
-    now = DateTime.now()
-    closeToNow = DateTime.DateTime(now.year, now.month, now.day, now.hour,
-                                   int(now.minute/30) * 30)
+    now = datetime.now()
+    closeToNow = datetime(now.year, now.month, now.day, now.hour,
+                          int(now.minute/30) * 30)
     event.startTime = closeToNow + startDelta
 
     # Events are anyTime by default. Give a 5% chance of allDay instead,
@@ -58,12 +58,12 @@ def GenerateCalendarEvent(view, days=30):
         event.allDay = True
 
     # Choose random minutes
-    event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))
+    event.duration = timedelta(minutes=random.choice(DURATIONS))
     
     # Maybe a nice reminder?
     reminderInterval = random.choice(REMINDERS)
     if reminderInterval is not None:
-        event.reminderTime = event.startTime - DateTime.RelativeDateTime(minutes=reminderInterval)
+        event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
         
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
@@ -102,7 +102,7 @@ def GenerateMailMessage(view):
         message.toAddress.append(GenerateCalendarParticipant(view))
 
     message.subject  = random.choice(TITLES)
-    message.dateSent = DateTime.now()
+    message.dateSent = datetime.now()
 
 
 
@@ -138,17 +138,17 @@ def GenerateNote(view):
     """ Generate one Note item """
     note = Notes.Note(view=view)
     note.displayName = random.choice(TITLES)
-    delta = DateTime.DateTimeDelta(random.randint(0, 5),
-                                   random.randint(0, 24))
-    note.createdOn = DateTime.now() + delta
+    delta = timedelta(days=random.randint(0, 5),
+                      hours=random.randint(0, 24))
+    note.createdOn = datetime.now() + delta
     return note
 
 def GenerateTask(view):
     """ Generate one Task item """
     task = Task.Task(view=view)
-    delta = DateTime.DateTimeDelta(random.randint(0, 5),
-                                   random.randint(0, 24))
-    task.dueDate = DateTime.today() + delta    
+    delta = timedelta(days=random.randint(0, 5),
+                      hours=random.randint(0, 24))
+    task.dueDate = datetime.today() + delta    
     task.displayName = random.choice(TITLES)
     return task
 

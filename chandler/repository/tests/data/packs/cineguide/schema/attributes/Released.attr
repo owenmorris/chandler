@@ -4,6 +4,6 @@
     <name>released</name>
     <kind type="path">//Schema/Core/Attribute</kind>
 
-    <ref name="type" type="path">//Schema/Core/RelativeDateTime</ref>
+    <ref name="type" type="path">//Schema/Core/Integer</ref>
     <attribute name="cardinality">single</attribute>
 </item>

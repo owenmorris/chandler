@@ -9,7 +9,7 @@ import twisted.internet.reactor as reactor
 import twisted.internet.error as error
 import twisted.mail.imap4 as imap4
 
-#python / mx imports
+#python imports
 import email as email
 import logging as logging
 

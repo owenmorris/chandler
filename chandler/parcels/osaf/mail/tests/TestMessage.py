@@ -15,7 +15,8 @@ import email.Utils as emailUtils
 import unittest as unittest
 from repository.item.RefCollections import RefList
 
-import mx.DateTime as MXDateTime
+from time import mktime
+from datetime import datetime
 
 
 class MessageTest(MailTestCase.MailTestCase):
@@ -83,7 +84,7 @@ This is the body"""
         m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
 
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
-        m.dateSent = MXDateTime.mktime(emailUtils.parsedate(dateString))
+        m.dateSent = datetime.fromtimestamp(mktime(emailUtils.parsedate(dateString)))
         m.dateSentString = dateString
 
         m.body = utils.unicodeToText(m, "body", u"This is the body")
@@ -118,11 +119,11 @@ This is the body"""
             self.fail(str)
 
     def __compareDateTimes(self, dOne, dTwo):
-        ### XXX: Figure out what DateTime object is in Repository
+        ### XXX: Figure out what datetime object is in Repository
         self.assertNotEqual(dOne, None)
         self.assertNotEqual(dTwo, None)
 
-        self.assertEquals(dOne.strftime(), dTwo.strftime())
+        self.assertEquals(dOne, dTwo)
 
     def __compareMailMessages(self, mOne, mTwo):
         self.assertNotEqual(mOne, None)

@@ -55,14 +55,17 @@ class DBRepository(OnDemandRepository):
 
         self._openLock = None
         self._openFile = None
+
         if dbHome is not None:
             self._openDir = os.path.join(self.dbHome, '__open')
         else:
             self._openDir = None
+
         self._exclusiveLock = None
         self._env = None
         self._checkpointThread = None
-        self._atexit = False
+
+        atexit.register(self.close)
 
     def _touchOpenFile(self):
 
@@ -308,10 +311,6 @@ class DBRepository(OnDemandRepository):
             self._touchOpenFile()
             self._checkpointThread = DBCheckpointThread(self)
             self._checkpointThread.start()
-
-        if not self._atexit:
-            self._atexit = True
-            atexit.register(self.close)
 
     def close(self):
 

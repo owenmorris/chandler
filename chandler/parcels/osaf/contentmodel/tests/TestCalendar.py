@@ -8,13 +8,12 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
+from datetime import datetime, timedelta
 
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import repository.item
-
-import mx.DateTime as DateTime
 
 from repository.util.Path import Path
 
@@ -121,27 +120,26 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         view = self.rep.view
         firstItem = Calendar.CalendarEvent(view=view)
         firstItem.anyTime = False
-        firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
-        firstItem.endTime = DateTime.DateTime(2003, 2, 1, 11, 30)
-        self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
+        firstItem.startTime = datetime(2003, 2, 1, 10)
+        firstItem.endTime = datetime(2003, 2, 1, 11, 30)
+        self.assertEqual(firstItem.duration, timedelta(hours=1.5))
 
         # Test setDuration
         secondItem = Calendar.CalendarEvent(view=view)
         secondItem.anyTime = False
-        secondItem.startTime = DateTime.DateTime(2003, 3, 5, 9)
-        secondItem.duration = DateTime.DateTimeDelta(0, 1.5)
+        secondItem.startTime = datetime(2003, 3, 5, 9)
+        secondItem.duration = timedelta(hours=1.5)
         self.assertEqual(secondItem.endTime,
-                         DateTime.DateTime(2003, 3, 5, 10, 30))
+                         datetime(2003, 3, 5, 10, 30))
 
         # Test changeStartTime
-        firstItem.ChangeStart(DateTime.DateTime(2003, 3, 4, 12, 45))
-        self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
-        self.assertEqual(firstItem.startTime,
-                         DateTime.DateTime(2003, 3, 4, 12, 45))
+        firstItem.ChangeStart(datetime(2003, 3, 4, 12, 45))
+        self.assertEqual(firstItem.duration, timedelta(hours=1.5))
+        self.assertEqual(firstItem.startTime, datetime(2003, 3, 4, 12, 45))
 
         # Test reminderTime
-        firstItem.SetReminderDelta(DateTime.DateTimeDeltaFrom(minutes=30))
-        self.assertEqual(firstItem.reminderTime, DateTime.DateTime(2003, 3, 4, 12, 15))
+        firstItem.SetReminderDelta(timedelta(minutes=30))
+        self.assertEqual(firstItem.reminderTime, datetime(2003, 3, 4, 12, 15))
         firstItem.SetReminderDelta(None)
         self.failIf(firstItem.hasLocalAttributeValue('reminderTime'))
 

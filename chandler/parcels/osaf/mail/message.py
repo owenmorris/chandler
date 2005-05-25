@@ -3,14 +3,15 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.orgdler_0.1_license_terms.htm"
 
-#python / mx imports
+#python imports
 import email as email
 import email.Header as Header
 import email.Message as Message
 import email.Utils as emailUtils
-import mx.DateTime as DateTime
 import logging as logging
 import mimetypes
+from time import mktime
+from datetime import datetime
 
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
@@ -281,7 +282,7 @@ def kindToMessageObject(mailMessage):
 
     """Create a dateSent if none exists"""
     if not utils.hasValue(mailMessage.dateSentString):
-        mailMessage.dateSent = DateTime.now()
+        mailMessage.dateSent = datetime.now()
         mailMessage.dateSentString = utils.dateTimeToRFC2882Date(mailMessage.dateSent)
 
     populateHeader(messageObject, 'Message-ID', mailMessage.messageId)
@@ -350,10 +351,10 @@ def __parseHeaders(view, messageObject, m):
                 logging.warn("Message contains a Non-RFC Compliant Date format")
 
             """Set the sent date to the current Date"""
-            m.dateSent = DateTime.now()
+            m.dateSent = datetime.now()
 
         else:
-            m.dateSent = DateTime.mktime(parsed)
+            m.dateSent = datetime.fromtimestamp(mktime(parsed))
 
         ##XXX:  Do we need this the tz could be preserved
         m.dateSentString = date

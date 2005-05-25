@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os
 import wx
-import mx.DateTime as DateTime
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
@@ -15,6 +14,8 @@ import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import osaf.framework.blocks.Styles as Styles
 import logging
 from operator import itemgetter
+from datetime import datetime, timedelta
+from repository.schema.Types import TimeDelta
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
@@ -435,19 +436,19 @@ class DateTimeAttributeEditor (StringAttributeEditor):
         except AttributeError:
             value = "No date specified"
         else:
-            today = DateTime.today()
-            yesterday = today + DateTime.RelativeDateTime(days=-1)
-            beginningOfWeek = today + DateTime.RelativeDateTime(days=-8)
-            endOfWeek = today + DateTime.RelativeDateTime(days=-2)
+            today = datetime.today()
+            yesterday = today + timedelta(days=-1)
+            beginningOfWeek = today + timedelta(days=-8)
+            endOfWeek = today + timedelta(days=-2)
             if today.date == itemDate.date:
-                value = itemDate.Format('%I:%M %p')
+                value = itemDate.strftime('%I:%M %p')
             elif yesterday.date == itemDate.date:
                 value = 'Yesterday'
             elif itemDate.date >= beginningOfWeek.date and itemDate.date <= endOfWeek.date:
-                value = itemDate.Format('%A')
+                value = itemDate.strftime('%A')
                 pass
             else:
-                value = itemDate.Format('%b %d, %Y')
+                value = itemDate.strftime('%b %d, %Y')
         return value
 
     def ReadOnly (self, (item, attribute)):
@@ -557,8 +558,8 @@ class LocationAttributeEditor (StringAttributeEditor):
                 logger.debug("LocationAE.onKeyUp: completing with '%s'", completion[keysTyped:])
                 control.SetSelection (keysTyped, len (completion))
 
-class DateTimeDeltaAttributeEditor (StringAttributeEditor):
-    """ Knows that the data Type is DateTimeDelta. """
+class TimeDeltaAttributeEditor (StringAttributeEditor):
+    """ Knows that the data Type is TimeDelta. """
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
         try:
@@ -580,10 +581,10 @@ class DateTimeDeltaAttributeEditor (StringAttributeEditor):
 
     def _parse(self, inputString):
         """"
-          parse the durationString into a DateTimeDelta.
+          parse the durationString into a TimeDelta.
         """
-        # convert to DateTimeDelta
-        theDuration = DateTime.Parser.DateTimeDeltaFromString (inputString)
+        # convert to TimeDelta
+        theDuration = TimeDelta.makeValue(inputString)
         return theDuration
 
     durationFormatShort = '%H:%M'
@@ -762,7 +763,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             # "None"
             value = Calendar.CalendarEventMixin.NoReminderDelta
         else:
-            value = DateTime.DateTimeDeltaFrom(minutes=-minuteCount)
+            value = timedelta(minutes=-minuteCount)
         return value
 
     def SetControlValue (self, control, value):

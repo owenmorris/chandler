@@ -16,7 +16,7 @@ from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError \
-     import LoadError, LoadValueError, MergeError
+     import LoadError, LoadValueError, MergeError, SaveValueError
 from repository.persistence.DBContainer import HashTuple
 
 
@@ -222,14 +222,17 @@ class DBItemWriter(ItemWriter):
         if withSchema:
             self.writeSymbol(buffer, name)
 
-        if attrCard == 'single':
-            self.writeValue(buffer, item, value, withSchema, attrType)
-        elif attrCard == 'list':
-            self.writeList(buffer, item, value, withSchema, attrType)
-        elif attrCard == 'set':
-            self.writeSet(buffer, item, value, withSchema, attrType)
-        elif attrCard == 'dict':
-            self.writeDict(buffer, item, value, withSchema, attrType)
+        try:
+            if attrCard == 'single':
+                self.writeValue(buffer, item, value, withSchema, attrType)
+            elif attrCard == 'list':
+                self.writeList(buffer, item, value, withSchema, attrType)
+            elif attrCard == 'set':
+                self.writeSet(buffer, item, value, withSchema, attrType)
+            elif attrCard == 'dict':
+                self.writeDict(buffer, item, value, withSchema, attrType)
+        except Exception, e:
+            raise SaveValueError, (item, name, e)
 
         return self.store._values.saveValue(self.store.txn, item._uuid, version,
                                             uAttr, uValue, buffer.getvalue())
