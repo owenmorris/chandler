@@ -1,6 +1,0 @@
-*.pyc
-*.pyo
-*.log
-ca_cert.pem
-ca_rsa.pem
-randpool.dat
