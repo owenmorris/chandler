@@ -31,13 +31,25 @@ import constants as constants
 import utils as utils
 
 class AbstractDownloadClientFactory(protocol.ClientFactory):
-    """Base exception can be overiden for use by subclasses"""
+    """ Base class for Chandler download transport factories(IMAP, POP, etc.).
+        Encapsulates boiler plate logic for working with Twisted Client Factory
+        disconnects and Twisted protocol creation"""
+
+    """Base exception that will be raised on error.
+       can be overiden for use by subclasses"""
     exception = errors.MailException
 
     def __init__(self, delegate):
         """
+            @param delegate: A Chandler protocol class containing:
+                  1. An account object inherited from c{Mail.AccountBase}
+                  2. A loginClient method implementation callback
+                  3. A catchErrors method implementation errback
+            @type delegate: c{object}
+
         @return: C{None}
         """
+
         self.delegate = delegate
         self.connectionLost = False
         self.sendFinished = 0
@@ -49,22 +61,44 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.retries = -retries
 
     def buildProtocol(self, addr):
+        """Builds a Twisted Protocol instance assigning factory
+           and delegate as variables on the protocol instance
+
+          @param addr: an object implementing L{twisted.internet.interfaces.IAddress}
+
+          @return: an object extending  L{twisted.internet.protocol.Protocol}
+        """
         p = protocol.ClientFactory.buildProtocol(self, addr)
         p.delegate = self.delegate
+        p.factory  = self
 
         return p
 
     def clientConnectionFailed(self, connector, err):
+        """
+          Called when a connection has failed to connect.
+
+          @type err: L{twisted.python.failure.Failure}
+        """
         self._processConnectionError(connector, err)
 
     def clientConnectionLost(self, connector, err):
+        """
+          Called when an established connection is lost.
+
+          @type err: L{twisted.python.failure.Failure}
+        """
         self._processConnectionError(connector, err)
+
 
     def _processConnectionError(self, connector, err):
         self.connectionLost = True
 
         if self.retries < self.sendFinished <= 0:
-            logging.warn("**Connection Lost** Retrying server. Retry: %s" % -self.retries)
+            #XXX: Can remove this at some point
+            logging.warn("**Connection Lost** Retrying \
+                          server. Retry: %s" % -self.retries)
+
             connector.connect()
             self.retries += 1
 
@@ -76,6 +110,10 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
 
 
 class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager):
+    """ Base class for Chandler download transports (IMAP, POP, etc.)
+        Encapsulates logic for interactions between Twisted protocols (POP, IMAP)
+        and Chandler protocol clients"""
+
     """Subclasses overide these constants"""
     accountType = Mail.AccountBase
     clientType  = "AbstractDownloadClient"
@@ -84,9 +122,10 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
     def __init__(self, repository, account):
         """
-        Creates a C{TwistedDownloadClient} instance
-        @param account: An Instance of C{IMAPAccount}
-        @type account: C{IMAPAccount}
+        @param repository: An Instance of C{DBRepository}
+        @type repository: C{DBRepository}
+        @param account: An Instance of C{DownloadAccountBase}
+        @type account: C{DownloadAccount}
         @return: C{None}
         """
         assert isinstance(account, self.accountType)
@@ -112,14 +151,22 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
 
     def getMail(self):
+        """Retrieves mail from a download protocol (POP, IMAP)"""
         if __debug__:
             self.printCurrentView("getMail")
 
-        """Move code execution path from current thread in to the Reactor Asynch thread"""
+        """Move code execution path from current thread
+           to Reactor Asynch thread"""
+
         reactor.callFromThread(self.execInView, self._getMail)
 
 
     def testAccountSettings(self):
+        """Tests the account settings for a download protocol (POP, IMAP).
+           Raises an error if unable to establish or communicate properly
+           with the a server.
+        """
+
         if __debug__:
             self.printCurrentView("testAccountSettings")
 
@@ -128,6 +175,12 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         reactor.callFromThread(self.execInView, self._getMail)
 
     def printCurrentView(self, viewStr = None):
+        """Prints the current view as well the clientType and
+           viewStr to the log.
+
+           @type viewStr: C{str}, C{unicode}, or None
+        """
+
         if viewStr is None:
             str = self.clientType
         else:
@@ -141,7 +194,8 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         if self.inProcess:
             if self.testing:
-                self.log.warn("%s currently testing account settings" % self.clientType)
+                self.log.warn("%s currently testing account \
+                               settings" % self.clientType)
 
             else:
                 self.log.warn("%s currently downloading mail" % self.clientType)
@@ -152,6 +206,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         try:
             self.view.refresh()
+
         except Exception, e:
             return self.catchErrors(e)
 
@@ -173,9 +228,10 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
     def catchErrors(self, err):
         """
         This method captures all errors thrown while in the Twisted Reactor Thread.
-        @return: C{None}
+        @param err: The error thrown
+        @type err: C{failure.Failure} or c{Exception}
 
-        #XXX will need to be in a view when we store errors to repository
+        @return: C{None}
         """
         if __debug__:
             self.printCurrentView("catchErrors")
@@ -205,28 +261,41 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
     def loginClient(self):
         """
-        This method is a Twisted C{defer.Deferred} callback that logs in to an IMAP Server
-        based on the account information stored in a C{EmailAccountKind}.
+        Called after serverGreeting to log in a client to the server via
+        a protocol (IMAP, POP)
+
         @return: C{None}
         """
-        """Overidden method"""
         self.execInView(self._loginClient)
 
     def _loginClient(self):
         raise NotImplementedError()
 
     def shutdown(self):
+        """Called by the C{MailService} before Mail Transport Client
+           is unitialized. Overide this method to add any custom
+           behavior required before shutdown"""
         if __debug__:
             self.printCurrentView("%s shutdown" % self.clientType)
 
 
     def _beforeDisconnect(self):
+        """Overide this method to place any protocol specific
+           logic to be handled before disconnect i.e. send a 'Quit'
+           command.
+        """
+
         if __debug__:
             self.printCurrentView("_beforeDisconnect")
 
         return defer.succeed(True)
 
     def _disconnect(self, result=None):
+        """Disconnects a client from a server.
+           Has logic to make sure that the client is actually
+           connected.
+        """
+
         if __debug__:
             self.printCurrentView("_disconnect")
 
@@ -237,6 +306,12 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
 
     def _commitDownloadedMail(self):
+        """Commits mail to the C{Repository}.
+           If there are more messages to download
+           calls C{_getNextMessageSet} otherwise
+           calls C{_actionCompleted} to clean up
+           client references
+        """
         if __debug__:
             self.printCurrentView("_commitDownloadedMail")
 
@@ -259,9 +334,19 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             self._getNextMessageSet()
 
     def _getNextMessageSet(self):
+        """Overide this to add retrieval of
+           message set logic for POP. IMAP, etc
+        """
         raise NotImplementedError()
 
-    def _actionCompleted(self, success=True):
+    def _actionCompleted(self):
+        """Handles clean up after mail downloaded
+           by calling:
+               1. _beforeDisconnectClient
+               2. _disconnect
+               3. _resetClient
+        """
+
         if __debug__:
             self.printCurrentView("_actionCompleted")
 
@@ -270,6 +355,10 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         d.addCallback(lambda _: self._resetClient())
 
     def _resetClient(self):
+        """Resets Client object state variables to
+           default state.
+        """
+
         if __debug__:
             self.printCurrentView("_resetClient")
 
@@ -290,9 +379,21 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.numDownloaded  = 0
 
     def _getAccount(self):
+        """Overide this method to add custom account
+           look up logic. Accounts can not be passed across
+           threads so the C{UUID} must be used to fetch the 
+           account's data
+        """
+
         raise NotImplementedError()
 
     def _printInfo(self, info):
+        """Print tracing infor to the Chandler log
+           including host, port, and username
+
+           @param info: String data to add to the log message
+           @type info: C{String}
+        """
         if self.account.port != self.defaultPort:
             str = "[Server: %s:%d User: %s] %s" % (self.account.host,
                                                    self.account.port,

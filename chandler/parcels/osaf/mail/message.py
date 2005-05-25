@@ -27,7 +27,7 @@ Performance:
 
 
 Notes:
-1. Need to pay attention for when setting values in Message.Message object as they must 
+1. ***Need to pay attention for when setting values in Message.Message object as they must 
    be of type str
 
 XXX: get_param() returns a tuple
@@ -133,7 +133,7 @@ def populateStaticHeaders(messageObject):
 
     #XXX: Will need to detect the charset when sending i18n messages
     if not messageObject.has_key('Content-Type'):
-        messageObject['Content-Type'] = "text/plain; charset=us-ascii; format=flowed"
+        messageObject['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
 
     #XXX: Will need to detect the encoding when sending i18n messages
     if not messageObject.has_key('Content-Transfer-Encoding'):
@@ -250,7 +250,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
 
-    m.body = utils.strToText(m, "body", body, indexText=False)
+    m.body = utils.unicodeToText(m, "body", body, indexText=False)
 
     __parseHeaders(view, messageObject, m)
 
@@ -300,12 +300,12 @@ def kindToMessageObject(mailMessage):
         if payload.encoding is None:
             payload.encoding = constants.DEFAULT_CHARSET
 
-        payloadStr = utils.textToStr(payload)
+        payloadUStr = utils.textToUnicode(payload)
 
     except AttributeError:
-        payloadStr = ""
+        payloadUStr = u""
 
-    messageObject.set_payload(payloadStr)
+    messageObject.set_payload(payloadUStr)
 
     return messageObject
 
@@ -653,7 +653,7 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset), \
+        mimeText.body = utils.unicodeToText(mimeText, "body", getUnicodeValue(body, charset), \
                                         indexText=False)
 
         parentMIMEContainer.mimeParts.append(mimeText)

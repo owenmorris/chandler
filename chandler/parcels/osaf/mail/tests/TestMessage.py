@@ -31,7 +31,7 @@ Mime-Version: 1.0
 Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
 References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>
 Subject: test mail
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 
 This is the body"""
 
@@ -74,7 +74,7 @@ This is the body"""
 
         m.subject = "test mail"
         m.headers['Content-Length'] = "75"
-        m.headers['Content-Type'] = "text/plain; charset=us-ascii; format=flowed"
+        m.headers['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
         m.headers['Content-Transfer-Encoding'] = "7bit"
         m.headers['Mime-Version'] = "1.0"
 
@@ -86,7 +86,7 @@ This is the body"""
         m.dateSent = MXDateTime.mktime(emailUtils.parsedate(dateString))
         m.dateSentString = dateString
 
-        m.body = utils.strToText(m, "body", u"This is the body")
+        m.body = utils.unicodeToText(m, "body", u"This is the body")
         m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
@@ -140,7 +140,7 @@ This is the body"""
         self.assertEquals(mOne.headers['Content-Type'], mTwo.headers['Content-Type'])
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
-        self.assertEquals(utils.textToStr(mOne.body), utils.textToStr(mTwo.body))
+        self.assertEquals(utils.textToUnicode(mOne.body), utils.textToUnicode(mTwo.body))
         self.assertEquals(utils.binaryToData(mOne.rfc2822Message), utils.binaryToData(mTwo.rfc2822Message))
 
 

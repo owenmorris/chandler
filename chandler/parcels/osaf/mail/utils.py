@@ -77,23 +77,13 @@ def dateIsEmpty(date):
     return False
 
 
-def disableTwistedAUTH(items):
-    """Disables AUTH support
-    """
-
-    if items != None:
-        try:
-            del items["AUTH"]
-        except KeyError:
-            pass
-
-    return items
-
-
 def disableTwistedTLS(items, TLSKEY='STARTTLS'):
     """Disables SSL support for debugging so
        a tcpflow trace can be done on the Client / Server
        command exchange
+
+       @param TLSKEY: String key to remove from items list
+       @type TLSKEY: C{String}
     """
 
     if items != None and TLSKEY != None:
@@ -163,7 +153,7 @@ def isString(var):
 
     return False
 
-def strToText(contentItem, attribute, unicodeString, indexText=False, \
+def unicodeToText(contentItem, attribute, unicodeString, indexText=False, \
               encoding=constants.DEFAULT_CHARSET, replaceError=True):
     #XXX: Should rename this method to be more clear
     """Converts a C{unicode} string  to {Lob}.
@@ -176,8 +166,7 @@ def strToText(contentItem, attribute, unicodeString, indexText=False, \
                                                   replace=replaceError)
 
 
-def textToStr(text):
-    #XXX: Should rename this method to be more clear
+def textToUnicode(text):
     """Converts a text C{Lob} to a C{unicode} String"""
     assert isinstance(text, Lob), "Must pass a Lob instance"
     assert text.encoding, "Encoding must not be None for reader API"

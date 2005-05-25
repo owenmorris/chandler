@@ -21,7 +21,7 @@ class SMTPException(MailException):
     """Base class for all Chandler SMTP based exceptions"""
 
 class POPException(MailException):
-    """Base class for all Chandler SMTP based exceptions"""
+    """Base class for all Chandler POP based exceptions"""
 
 """Code return by M2Crypto when a certificate can not be verified"""
 M2CRYPTO_CERTIFICATE_VERIFY_FAILED  = 18

@@ -54,12 +54,16 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
     def serverGreeting(self, caps):
         """
         This method overides C{imap4.IMAP4Client}.
+        It assigns itself as the protocol for its delegate.
 
-        It calls back the factory registered deferred passing a reference to self(protocol) and
-        a reference to the Server capbilities
+        If caps is None does an explicit request to the
+        IMAP server for its capabilities.
 
-        @param caps: The list of server CAPABILITIES
-        @type caps: dict
+        Entry point for STARTTLS logic. Will call delegate.loginClient
+        or delegate.catchErrors if an error occurs.
+
+        @param caps: The list of server CAPABILITIES or None
+        @type caps: C{dict} or C{None}
         @return C{None}
         """
 
@@ -81,12 +85,16 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if self.factory.useTLS:
             """The Twisted IMAP4Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
-            d = self.startTLS(Globals.crypto.getSSLContext(repositoryView=self.view, protocol='sslv3'))
-            d.addCallbacks(lambda _: self.delegate.loginClient(), self.delegate.catchErrors)
+            d = self.startTLS(Globals.crypto.getSSLContext(\
+                              repositoryView=self.view, protocol='sslv3'))
+
+            d.addCallbacks(lambda _: self.delegate.loginClient(), \
+                                     self.delegate.catchErrors)
             return d
 
         if 'LOGINDISABLED' in caps:
-            self.delegate.catchErrors(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
+            e = errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS)
+            self.delegate.catchErrors(e)
 
         else:
             """Remove the STARTTLS from capabilities"""
@@ -95,9 +103,8 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
 
     def timeoutConnection(self):
         """Called by C{policies.TimeoutMixin} base class.
-           If the connection is not Done the method will
-           generate an C{IMAPException} and forward to delegate
-           errback
+           The method generates an C{IMAPException} and
+           forward to delegate.catchErrors
         """
         exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
         self.delegate.catchErrors(exc)
@@ -105,6 +112,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
 
 class IMAPClientFactory(base.AbstractDownloadClientFactory):
     protocol  = _TwistedIMAP4Client
+    """The exception to raise when an error occurs"""
     exception = errors.IMAPException
 
 
