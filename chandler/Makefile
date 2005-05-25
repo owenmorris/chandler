@@ -135,6 +135,14 @@ checkout:
 
 install: $(ARCHIVES) $(ARCHIVES_INST)
 
+
+# to install individual binaries, for example: make chandlerdb
+
+$(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
+	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
+	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(CHANDLERBIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
+
+
 ifeq ($(OS),Cygwin)
 strip:
 else
