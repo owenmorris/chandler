@@ -989,7 +989,7 @@ def setupEnvironment(buildenv):
         ver = buildenv['version']
         additional_paths = [ os.path.join(CHANDLERBIN, ver, 'lib'),
                              os.path.join(CHANDLERBIN, ver, 'db', 'lib'),
-                             os.path.join(CHANDLERBIN, ver, 'dbxml', 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'icu', 'lib'),
                              ld_library_path ]
         ld_library_path = os.pathsep.join(additional_paths)
         os.putenv('LD_LIBRARY_PATH', ld_library_path)
@@ -999,7 +999,7 @@ def setupEnvironment(buildenv):
         ver = buildenv['version']
         additional_paths = [ os.path.join(CHANDLERBIN, ver, 'lib'),
                              os.path.join(CHANDLERBIN, ver, 'db', 'lib'),
-                             os.path.join(CHANDLERBIN, ver, 'dbxml', 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'icu', 'lib'),
                              dyld_library_path ]
         dyld_library_path = os.pathsep.join(additional_paths)
         os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
