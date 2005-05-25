@@ -3,16 +3,9 @@ from twisted.internet.protocol import Factory
 from twisted.protocols import basic
 from twisted.internet import reactor
 import sys
-import os
 
-"""
-Notes:
-1. Add bad Auth sharing
-2. TLS
-"""
-
-USER = "brian"
-PASS = "1234Osaf"
+USER = "test"
+PASS = "twisted"
 
 PORT = 1100
 
@@ -55,11 +48,12 @@ LIST = "+OK Mailbox scan listing follows\r\n."
 CAP_START = "+OK Capability list follows:"
 
 
-class POPTestServer(basic.LineReceiver):
-    def __init__(self):
+class POP3TestServer(basic.LineReceiver):
+    def __init__(self, contextFactory = None):
         self.loggedIn = False
         self.caps = None
         self.tmpUser = None
+        self.ctx = contextFactory 
 
     def sendSTATResp(self, req):
         self.sendLine(STAT)
@@ -82,10 +76,10 @@ class POPTestServer(basic.LineReceiver):
 
         for cap in CAPABILITIES:
             self.caps.append(cap)
+        resp = '\r\n'.join(self.caps)
+        resp += "\r\n."
 
-        self.caps.append(".")
-
-        self.sendLine('\r\n'.join(self.caps))
+        self.sendLine(resp)
 
 
     def connectionMade(self):
@@ -119,7 +113,7 @@ class POPTestServer(basic.LineReceiver):
                 self.sendCapabilities()
 
         elif "STLS" in line.upper() and SSL_SUPPORT:
-            self.sendLine(TLS_ERROR)
+            self.startTLS()
 
         elif "USER" in line.upper():
             if INVALID_LOGIN_RESPONSE:
@@ -185,9 +179,27 @@ class POPTestServer(basic.LineReceiver):
 
             self.sendLine(UIDL)
 
+    def startTLS(self):
+        if self.ctx is None:
+            self.getContext()
+
+        if SSL_SUPPORT and self.ctx is not None:
+            self.sendLine('+OK Begin TLS negotiation now')
+            self.transport.startTLS(self.ctx)
+        else:
+            self.sendLine('+OK TLS not available')
 
     def disconnect(self):
         self.transport.loseConnection()
+
+    def getContext(self):
+        try:
+            from twisted.internet import ssl
+        except ImportError:
+           self.ctx = None
+        else:
+            self.ctx = ssl.ClientContextFactory()
+            self.ctx.method = ssl.SSL.TLSv1_METHOD
 
 
 usage = """popServer.py [arg] (default is Standard POP Server with no messages)
@@ -275,6 +287,7 @@ def processArg(arg):
         sys.exit()
 
 def main():
+
     if len(sys.argv) < 2:
         printMessage("POP3 with no messages")
     else:
@@ -284,7 +297,7 @@ def main():
             processArg(arg)
 
     f = Factory()
-    f.protocol = POPTestServer
+    f.protocol = POP3TestServer
     reactor.listenTCP(PORT, f)
     reactor.run()
 
