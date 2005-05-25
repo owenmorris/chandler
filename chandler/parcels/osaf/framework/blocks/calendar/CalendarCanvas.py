@@ -1130,15 +1130,19 @@ class wxWeekHeaderWidgets(wx.Panel):
 
         today = date.today()
         today = datetime(today.year, today.month, today.day)
-        shortWeekDays = dateFormatSymbols.getShortWeekdays()
+
+        # ICU makes this list 1-based, 1st element is an empty string, so that
+        # shortWeekdays[Calendar.SUNDAY] == 'short name for sunday'
+        shortWeekdays = dateFormatSymbols.getShortWeekdays()
         firstDay = GregorianCalendar().getFirstDayOfWeek()
+
         for day in xrange(7):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
             if currentDate == today:
                 dayName = "Today"
             else:
-                dayName = "%s %02d" %(shortWeekDays[actualDay + 1].toUnicode(),
+                dayName = "%s %02d" %(shortWeekdays[actualDay + 1].toUnicode(),
                                       currentDate.day)
             self.weekHeader.SetLabelText(day+1, dayName)
             
