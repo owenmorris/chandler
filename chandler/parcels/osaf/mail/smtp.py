@@ -52,6 +52,11 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
         return smtp.ESMTPSender.tryTLS(self, code, resp, items)
 
     def smtpState_from(self, code, resp):
+        """Overides C{smtp.ESMTPSender} to disconnects from the
+           SMTP server before sending the 'MAIL FROM:' command
+           to the server when in account testing mode
+        """
+
         if self.factory.testing:
             """
                If in testing mode, Overload the Twisted SMTPClient
@@ -73,6 +78,9 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def __init__(self, repository, account):
         """
+           @param repository: A C{DBRepository} instance
+           @type repository: C{DBRepository}
+
            @param account: An SMTP Account content model object
            @type account: C{Mail.MailParcel.SMTPAccountKind}
         """
@@ -87,17 +95,20 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         self.testing = False
 
     def shutdown(self):
+        """Cleans up resources before being deleted"""
         if __debug__:
             self.log.warn("SMTPClient shutdown")
 
 
     def sendMail(self, mailMessage):
         """
-            Sends a mail message via SMTP using the account and mailMessage
+           Sends a mail message via SMTP using the C{SMTPAccount}
            passed to this classes __init__ method
 
            @param mailMessage: A MailMessage content model object
            @type mailMessage: C{Mail.MailMessageMixin}
+
+           @return: C{None}
         """
         if __debug__:
             self.printCurrentView("sendMail")
@@ -107,6 +118,8 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         reactor.callFromThread(self.execInView, self.__sendMail, mailMessage.itsUUID)
 
     def testAccountSettings(self):
+        """Tests the user entered settings for C{SMTPAccount}"""
+
         if __debug__:
             self.printCurrentView("testAccountSettings")
 
@@ -223,20 +236,32 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         return m
 
 
-
 class _SMTPTransport(object):
-    #Can only be used in the Twisted Reactor Thread
+    """Protocol Transportation Delegate used by the C{SMTPClient} to upload a message
+       to a Server via the SMTP protocol"""
 
     def __init__(self, parent):
+        """
+        @param parent: A SMTP Client
+        @type parent: C{SMTPClient}
+        """
+
         self.parent = parent
         self.mailMessage = None
 
     def transportMail(self, mailMessage):
-        """Sends a mail message via SMTP using the account and mailMessage
-           passed to this classes __init__ method."""
+        """
+           Sends a mail message via SMTP using the C{SMTPAccount}
+           passed to this classes parent
+
+           @param mailMessage: A MailMessage content model object
+           @type mailMessage: C{Mail.MailMessageMixin}
+
+           @return: C{None}
+        """
 
         if __debug__:
-            self.parent.printCurrentView("transport.__transportMail")
+            self.parent.printCurrentView("transport.transportMail")
 
         self.mailMessage = mailMessage
 
@@ -263,6 +288,8 @@ class _SMTPTransport(object):
 
 
     def testAccountSettings(self):
+        """Tests the user entered settings for the parents C{SMTPAccount}"""
+
         if __debug__:
             self.parent.printCurrentView("transport.testSettings")
 
@@ -325,8 +352,7 @@ class _SMTPTransport(object):
     def __testFailure(self, exc):
         self.testing = False
 
-        """Just get the error string do not need the 
-           error code"""
+        """Just get the error string do not need the error code"""
         err = self.__getError(exc.value)[1]
         utils.alert(constants.TEST_ERROR, self.parent.account.displayName, err)
 
@@ -508,6 +534,8 @@ class _SMTPTransport(object):
                 #     if the user adds the cert to the chain
                 if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
                     errorString =  errors.STR_SSL_CERTIFICATE_ERROR
+                else:
+                    errorString = errors.STR_SSL_ERROR
 
             except:
                errorString = errors.STR_SSL_ERROR
@@ -537,6 +565,7 @@ class _SMTPTransport(object):
 
 
     def __getSender(self):
+        """Get the sender of the message"""
         if self.mailMessage.replyToAddress is not None:
             return self.mailMessage.replyToAddress
 
@@ -546,6 +575,7 @@ class _SMTPTransport(object):
         return None
 
     def __getRcptTo(self):
+        """Get all the recipients of this message (to, cc, bcc)"""
         to_addrs = []
 
         for address in self.mailMessage.toAddress:

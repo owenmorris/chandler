@@ -13,6 +13,11 @@ LF    = unicode("\n", DEFAULT_CHARSET)
 CR    = unicode("\r", DEFAULT_CHARSET)
 EMPTY = unicode("",   DEFAULT_CHARSET)
 
+"""First step on Localization is to centralize message strings and
+   use getText looks ups for translation. This will be replaced with
+   calls to the repository to retrieve LocalizableString types
+   in the near future """
+
 CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
 

@@ -24,7 +24,6 @@ import utils as utils
 """
 Performance:
    1. Reduce checks when downloading mail
-      only check when resending for performance
 
 
 Notes:
@@ -169,7 +168,6 @@ def populateChandlerHeaders(mailMessage, messageObject):
 
 
 def populateEmailAddresses(mailMessage, messageObject):
-    #XXX: Need to document
     populateHeader(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
     populateHeader(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
 
@@ -177,7 +175,6 @@ def populateEmailAddresses(mailMessage, messageObject):
     populateEmailAddressList(mailMessage.ccAddress, messageObject, 'Cc')
 
 def populateEmailAddressList(emailAddressList, messageObject, key):
-    #XXX: Need to document
     addrs = []
 
     for address in emailAddressList:

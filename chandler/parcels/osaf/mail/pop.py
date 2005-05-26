@@ -27,18 +27,39 @@ import utils as utils
 import base as base
 
 """
-1. Will need to just get the basic headers via a 
+1. Will need to just get the basic headers via a
    top, can also use a list [msg] to get the size.
    Then have a callback to sync the rest
    when downloading an individual mail use the feedparser for performance
+
+   Make POP downloading IMAP like in approach
 """
 
 
 class _TwistedPOP3Client(pop3.POP3Client):
+    """Overides C{imap4.IMAP4Client} to add
+       Chandler specific functionality including startTLS management
+       and Timeout management"""
+
+    timeout  = constants.TIMEOUT
     timeout  = constants.TIMEOUT
     allowInsecureLogin = True
 
     def serverGreeting(self, challenge):
+        """
+        This method overides C{pop3.POP3Client}.
+        It assigns itself as the protocol for its delegate.
+
+        Does an explicit request to the POP server for its capabilities.
+
+        Entry point for STARTTLS logic. Will call delegate.loginClient
+        or delegate.catchErrors if an error occurs.
+
+
+        @param challenge: The server challenge for APOP or None
+        @type challenge: C{str} or C{None}
+        @return C{defer.Deferred}
+        """
 
         self.delegate.proto = self
 
@@ -62,28 +83,44 @@ class _TwistedPOP3Client(pop3.POP3Client):
 
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
+    """Inherits from C{base.AbstractDownloadClientFactory}
+       and overides default protocol and exception values
+       with POP specific values"""
+
     protocol  = _TwistedPOP3Client
+    """The exception to raise when an error occurs"""
     exception = errors.POPException
 
 
 class POPClient(base.AbstractDownloadClient):
+    """Provides support for Downloading mail from an
+       POP3 Server as well as test Account settings.
+    """
+
+    """Overides default values in base class to provide
+       POP specific functionality"""
     accounType  = Mail.POPAccount
     clientType  = "POPClient"
     factoryType = POPClientFactory
     defaultPort = 110
 
     def _loginClient(self):
+        """Logs a client in to an POP servier using APOP (if available or plain text
+           login"""
+
         if __debug__:
             self.printCurrentView("_loginClient")
 
         assert self.account is not None
 
+        """Twisted expects ascii values so encode the utf-8 username and password"""
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
 
         d = self.proto.login(username, password)
-        #XXX: Can handle the failed login case here
+        #XXX: Can handle the failed login case here and prompt user to re-enter username 
+        #     and password
         d.addCallbacks(self.__statServer, self.catchErrors)
         return d
 
@@ -133,6 +170,12 @@ class POPClient(base.AbstractDownloadClient):
         self.execInView(self._getNextMessageSet)
 
     def _getNextMessageSet(self):
+        """Overides base class to add POP specific logic.
+           If the pending queue has one or messages to download
+           for n messages up to C{constants.DOWNLOAD_MAX} fetches
+           the mail from the POP server. If no message pending
+           calls actionCompleted() to clean up client resources.
+        """
         if __debug__:
             self.printCurrentView("_getNextMessageSet")
 
@@ -192,6 +235,8 @@ class POPClient(base.AbstractDownloadClient):
         return d
 
     def _beforeDisconnect(self):
+        """Overides base class to send a POP 'QUIT' command
+           before disconnecting from the POP server"""
         if __debug__:
             self.printCurrentView("_beforeDisconnect")
 
@@ -201,6 +246,7 @@ class POPClient(base.AbstractDownloadClient):
         return self.proto.quit()
 
     def _getAccount(self):
+        """Retrieves a C{Mail.POPAccount} instance from its C{UUID}"""
         if self.account is None:
             self.account = self.view.findUUID(self.accountUUID)
 
