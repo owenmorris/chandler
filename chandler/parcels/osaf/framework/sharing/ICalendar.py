@@ -32,7 +32,7 @@ def convertToUTC(dt, asDate = False, tz = None):
     if tz is None:
         tz = localtime
     if asDate:
-        return dt.date()
+        return datetime.datetime(dt.year, dt.month, dt.day)
     else:
         return dt.replace(tzinfo=tz).astimezone(utc)
 
@@ -252,6 +252,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             # If DTSTART's VALUE parameter is set to DATE, don't use rruleset
             isDate = type(event.dtstart[0].value) == datetime.date
             if isDate:
+                d = event.dtstart[0].value
+                event.dtstart[0].value = datetime.datetime(d.year, d.month, d.day)
                 recurrenceIter = [event.dtstart[0].value]
             else:
                 recurrenceIter = itertools.islice(event.rruleset, MAXRECUR)
