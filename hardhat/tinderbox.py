@@ -23,7 +23,6 @@ alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.25"      #  IP of current server
-svnRepository = "http://svn.osafoundation.org/chandler/"
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
@@ -108,8 +107,8 @@ def main():
         SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", 
          treeName, None)
 
-        ret = mod.Start(hardhatFile, buildDir, svnRepository, 
-         buildVersion, 0, log, upload=options.uploadStaging, skipTests=options.skipTests)
+        ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log, 
+                        upload=options.uploadStaging, skipTests=options.skipTests)
 
     except TinderbuildError, e:
         print e

@@ -18,12 +18,16 @@ path = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 svnProgram = hardhatutil.findInPath(path, "svn")
 treeName = "Chandler"
-mainModule = 'chandler'
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+
+reposRoot    = 'http://svn.osafoundation.org'
+reposBase    = 'trunk'
+reposModules = ['chandler', 'internal/installers']
+
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, svnRepository, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 
@@ -82,14 +86,16 @@ def Start(hardhatScript, workingDir, svnRepository, buildVersion, clobber, log, 
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
 
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "-q", "co", svnRepository + "trunk/internal/installers", "internal/installers"])
-        hardhatutil.dumpOutputList(outputList, log)
-
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "-q", "co", svnRepository + "trunk/chandler", "chandler"])
-        hardhatutil.dumpOutputList(outputList, log)
+        for module in reposModules:
+            svnSource = os.path.join(reposRoot, reposBase, module)
     
+            log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
+    
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+             [svnProgram, "-q", "co", svnSource, module])
+
+            hardhatutil.dumpOutputList(outputList, log) 
+
         os.chdir(chanDir)
     
         for releaseMode in releaseModes:
@@ -111,7 +117,7 @@ def Start(hardhatScript, workingDir, svnRepository, buildVersion, clobber, log, 
     
         print "Checking SVN for updates"
         log.write("Checking SVN for updates\n")
-        svnChanges = changesInSVN(chanDir, workingDir, svnRepository, log)
+        svnChanges = changesInSVN(chanDir, workingDir, log)
         
         if svnChanges:
             log.write("Changes in SVN require install\n")
@@ -141,11 +147,6 @@ def Start(hardhatScript, workingDir, svnRepository, buildVersion, clobber, log, 
 
     return ret + changes 
 
-
-# These modules are the ones to check out of SVN
-svnModules = (
-    'chandler',
-)
 
 def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
@@ -214,29 +215,21 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
     
 
-def changesInSVN(moduleDir, workingDir, svnRepository, log):
+def changesInSVN(moduleDir, workingDir, log):
     changesAtAll = False
-    for module in svnModules:
-        print module, "..."
-        log.write("- - - - " + module + " - - - - - - -\n")
+
+    for module in reposModules:
+        log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
+                                              
         moduleDir = os.path.join(workingDir, module)
-        os.chdir(moduleDir)
-        # print "seeing if we need to update", module
-        log.write("Seeing if we need to update " + module + "\n")
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "-q", "update"])
-        # hardhatutil.dumpOutputList(outputList, log)
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
+
+        hardhatutil.dumpOutputList(outputList, log) 
+
         if NeedsUpdate(outputList):
             changesAtAll = True
             print "" + module + " needs updating"
-            # update it
-            print "Getting changed sources"
-            log.write("Getting changed sources\n")
-            
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [svnProgram, "-q", "update"])
-            hardhatutil.dumpOutputList(outputList, log)
-        
         else:
             # print "NO, unchanged"
             log.write("Module unchanged" + "\n")
