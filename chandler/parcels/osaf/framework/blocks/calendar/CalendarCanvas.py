@@ -1930,6 +1930,13 @@ class wxInPlaceEditor(wx.TextCtrl):
         if '__WXGTK__' in wx.PlatformInfo:
             newSize.height = pointSize + 8
 
+        font = wx.Font(pointSize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+        self.SetFont(font)
+
+        if '__WXMAC__' in wx.PlatformInfo:
+            position.x -= 4
+            newSize.width += 4
+
         self.SetSize(newSize)
         self.Move(position)
 
