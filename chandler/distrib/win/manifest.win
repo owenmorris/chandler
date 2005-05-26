@@ -17,7 +17,15 @@ libdb43.dll
 libdb_java43.dll
 msvcp71.dll
 msvcr71.dll
-python24.dll
+python24.dll     
+icudt32.dll
+iculx32.dll
+icuin32.dll
+icutest.dll
+icuio32.dll
+icutu32.dll
+icule32.dll
+icuuc32.dll
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=chandler/release/bin

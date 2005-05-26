@@ -18,7 +18,16 @@ libdb_java43d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
-python24_d.dll
+python24_d.dll 
+icudt32.dll
+iculx32d.dll
+icuin32d.dll
+icutestd.dll
+icuio32d.dll
+icutu32d.dll
+icule32d.dll
+icuuc32d.dll
+
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=chandler/debug/bin

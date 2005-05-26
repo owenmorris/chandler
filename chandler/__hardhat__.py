@@ -37,7 +37,7 @@ def distribute(buildenv):
     buildVersionShort = \
      hardhatutil.RemovePunctuation(buildenv['buildVersion'])
 
-    # When the build version string is based on one of our CVS tags
+    # When the build version string is based on one of our tags
     # (which usually begin with "CHANDLER_") let's remove the "CHANDLER_"
     # prefix from the string so it doesn't end up in the generated filenames
     # (so we can avoid getting a distro file named:
