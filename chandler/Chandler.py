@@ -7,7 +7,6 @@ import sys, os
 import application.Globals
 from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
-from PyICU import Locale
 from application.Application import SchemaMismatchError
 
 def locateProfileDir(chandlerDirectory):
@@ -79,7 +78,8 @@ def loadConfig(chandlerDirectory):
                      'wing':       ('-w', '--wing',       'b', False, None, ''),
                      'komodo':     ('-k', '--komodo',     'b', False, None, ''),
                      'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
-                     'locale':     ('-l', '--locale',     's', None, None, 'Set the default locale'),
+                     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
+                     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
                       }
 
     from optparse import OptionParser
@@ -102,6 +102,7 @@ def loadConfig(chandlerDirectory):
 
     locateProfileDir(chandlerDirectory)
     if application.Globals.options.locale is not None:
+        from PyICU import Locale
         Locale.setDefault(Locale(application.Globals.options.locale))
 
 def main():

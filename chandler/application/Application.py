@@ -11,7 +11,7 @@ import Globals
 import application.Parcel
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
-     import VersionConflictError, MergeError
+     import VersionConflictError, MergeError, PermissionsError
 from crypto import Crypto
 import logging as logging
 import cStringIO
@@ -236,6 +236,10 @@ class wxApplication (wx.App):
         else:
             path = '__repository__'
 
+        wx.Yield()
+
+        self.repository = DBRepository(path)
+
         options = Globals.options
         kwds = { 'stderr': options.stderr,
                  'ramdb': options.ramdb,
@@ -244,15 +248,26 @@ class wxApplication (wx.App):
                  'exclusive': True,
                  'refcounted': True }
 
-        if Globals.options.repo:
-            kwds['fromPath'] = Globals.options.repo
-        wx.Yield()
-        self.repository = DBRepository(path)
+        if options.repo:
+            kwds['fromPath'] = options.repo
 
-        if Globals.options.create:
-            self.repository.create(**kwds)
-        else:
-            self.repository.open(**kwds)
+        while True:
+            try:
+                if options.encrypt:
+                    from getpass import getpass
+                    kwds['password'] = getpass("password> ")
+
+                if options.create:
+                    self.repository.create(**kwds)
+                else:
+                    self.repository.open(**kwds)
+            except PermissionsError, e:
+                if options.encrypt:
+                    print e.args[0]
+                    continue
+            else:
+                del kwds
+                break
 
         wx.Yield()
 

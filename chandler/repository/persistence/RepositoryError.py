@@ -21,6 +21,9 @@ class ExclusiveOpenDeniedError(RepositoryLockNotGrantedError):
 class RepositoryOpenDeniedError(RepositoryLockNotGrantedError):
     pass
 
+class PermissionsError(RepositoryError):
+    pass
+
 
 class VersionConflictError(RepositoryError):
     "Another view changed %s and saved those changes before this view - %s - got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved (0x%0.4x/0x%0.4x)."

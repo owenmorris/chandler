@@ -14,28 +14,29 @@ from chandlerdb.util import lock
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from repository.util.SAX import XMLGenerator
-from repository.persistence.Repository import Repository
-from repository.persistence.Repository import OnDemandRepository, Store
-from repository.persistence.RepositoryError import RepositoryError
-from repository.persistence.RepositoryError import ExclusiveOpenDeniedError
-from repository.persistence.RepositoryError import RepositoryOpenDeniedError
+from repository.persistence.Repository import \
+    Repository, OnDemandRepository, Store
+from repository.persistence.RepositoryError import \
+    RepositoryError, ExclusiveOpenDeniedError, RepositoryOpenDeniedError, \
+    PermissionsError
 from repository.persistence.DBRepositoryView import DBRepositoryView
-from repository.persistence.DBContainer import DBContainer, RefContainer
-from repository.persistence.DBContainer import NamesContainer, ACLContainer
-from repository.persistence.DBContainer import IndexesContainer
-from repository.persistence.DBContainer import ItemContainer, ValueContainer
-from repository.persistence.FileContainer import FileContainer, BlockContainer
-from repository.persistence.FileContainer import IndexContainer
+from repository.persistence.DBContainer import \
+    DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
+    ItemContainer, ValueContainer
+from repository.persistence.FileContainer import \
+    FileContainer, BlockContainer, IndexContainer
 from repository.persistence.DBItemIO import DBItemReader
 from repository.remote.CloudFilter import CloudFilter
 
-from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_LOG_AUTOREMOVE
-from bsddb.db import DB_LOCK_WRITE
-from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
-from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
-from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
-from bsddb.db import DBLockDeadlockError
+from bsddb.db import DBEnv, DB
+from bsddb.db import \
+    DB_CREATE, DB_BTREE, DB_THREAD, DB_LOG_AUTOREMOVE, \
+    DB_LOCK_WRITE, DB_ENCRYPT_AES, \
+    DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS, \
+    DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
+from bsddb.db import \
+    DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
+    DBLockDeadlockError, DBPermissionsError
 
 # missing from python interface at the moment
 DB_DSYNC_LOG = 0x00008000
@@ -165,6 +166,9 @@ class DBRepository(OnDemandRepository):
         locks = 32767
         cache = 0x4000000
         
+        if 'password' in kwds:
+            env.set_encrypt(kwds['password'], DB_ENCRYPT_AES)
+
         if create and not ramdb:
             db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
 
@@ -301,6 +305,9 @@ class DBRepository(OnDemandRepository):
                     self._create(**kwds)
                 else:
                     raise
+
+            except DBPermissionsError, e:
+                raise PermissionsError, e.args[1]
 
             self._status |= Repository.OPEN
             self._afterOpen()
