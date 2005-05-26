@@ -811,7 +811,7 @@ class RepositoryView(object):
             return True
 
         item._collectItems(items, filterItem)
-        if not (item in items or item in replace):
+        if not (item in items or item._uuid in replace):
             if filterItem(item) is True:
                 items.add(item)
 
@@ -827,9 +827,10 @@ class RepositoryView(object):
         for item in items:
             kind = item._kind
             if not (kind is None or kind in items):
-                localKind = replace.get(kind)
+                uuid = kind._uuid
+                localKind = replace.get(uuid)
                 if localKind is None:
-                    localKind = self.find(kind._uuid)
+                    localKind = self.find(uuid)
                     if localKind is None:
                         raise ImportKindError, (kind, item)
                 item._kind = localKind

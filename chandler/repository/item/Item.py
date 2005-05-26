@@ -1522,7 +1522,9 @@ class Item(CItem):
 
     def _copyExport(self, view, cloudAlias, matches):
 
-        if not self in matches:
+        uuid = self._uuid
+
+        if not uuid in matches:
             kind = self._kind
             if kind is None:
                 parent = self.itsParent.findMatch(view, matches)
@@ -1533,7 +1535,7 @@ class Item(CItem):
                 for cloud in kind.getClouds(cloudAlias):
                     cloud.exportItems(self, view, cloudAlias, matches)
 
-        return matches[self]
+        return matches[uuid]
             
     def __getName(self):
 
@@ -2198,17 +2200,19 @@ class Item(CItem):
 
     def findMatch(self, view, matches=None):
 
+        uuid = self._uuid
+
         if matches is not None:
-            match = matches.get(self)
+            match = matches.get(uuid)
         else:
             match = None
             
         if match is None:
-            match = view.find(self._uuid)
+            match = view.find(uuid)
             if match is None and self._name is not None:
                 match = view.find(self.itsPath)
                 if not (match is None or matches is None):
-                    matches[self] = match
+                    matches[uuid] = match
 
         return match
 

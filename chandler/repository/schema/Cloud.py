@@ -219,7 +219,6 @@ class Cloud(Item):
 
         items = {}
         references = {}
-        copies = {}
 
         exporting = self.getItems(item, cloudAlias, items, references)
 
@@ -230,8 +229,6 @@ class Cloud(Item):
             uuid = other._uuid
             if (force and other._isCopyExport() or
                 uuid in items or uuid in references):
-                if uuid in copies:
-                    return copies[uuid]
                 
                 match = other.findMatch(view, matches)
                 if match is not None:
@@ -253,11 +250,9 @@ class Cloud(Item):
                                 raise ValueError, 'export kind (%s) not found while exporting %s: %s' %(otherKind.itsPath, other.itsPath, otherKind)
                     else:
                         kind = None
-                    match = other.copy(other._name, parent, copies, 'remove',
-                                       None, exportOther, kind)
-                    matches[other] = match
-                    return match
 
+                    return other.copy(other._name, parent, matches, 'remove',
+                                      None, exportOther, kind)
                 else:
                     return other
 

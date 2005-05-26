@@ -131,20 +131,22 @@ class Attribute(Item):
 
     def findMatch(self, view, matches=None):
 
+        uuid = self._uuid
+
         if matches is not None:
-            match = matches.get(self)
+            match = matches.get(uuid)
         else:
             match = None
             
         if match is None:
-            match = view.find(self._uuid)
+            match = view.find(uuid)
             if match is None:
                 match = view.find(self.itsPath)
                 if not (match is None or matches is None):
                     if not (self is match or
                             self.hashItem() == match.hashItem()):
                         raise SchemaError, ("Attribute matches are incompatible: %s %s", self.itsPath, match.itsPath)
-                    matches[self] = match
+                    matches[uuid] = match
 
         return match
 
