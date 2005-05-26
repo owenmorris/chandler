@@ -1886,28 +1886,6 @@ def manualPublishCollection(view, collection):
                                     "Synchronization Error", msg)
 
 
-def loadDemoCalendar(view):
-    import ICalendar
-    conduit = SimpleHTTPConduit(view=view, shareName='DemoCalendar.ics',
-                                host='www.osafoundation.org',
-                                sharePath='/0.5')
-    format = ICalendar.ICalendarFormat(view=view)
-    share = Share(view=view, conduit=conduit, format=format)
-    share.hidden = True
-    share.active = False
-    try:
-        share.get()
-        collection = share.contents
-        mainView = Globals.views[0]
-        mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
-    except SharingError, err:
-        msg = "Error: %s" % err.message
-        application.dialogs.Util.ok(wx.GetApp().mainFrame, "Error", msg)
-
-    share.delete()
-    format.delete()
-    conduit.delete()
-
 
 
 class OneTimeFileSystemShare(OneTimeShare):

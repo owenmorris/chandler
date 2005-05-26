@@ -33,6 +33,7 @@ from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
+import osaf.framework.sharing.SubscribeDialog
 
 class MainView(View):
     """
@@ -440,19 +441,21 @@ class MainView(View):
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
 
+
     def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
 
-        import osaf.framework.sharing.SubscribeDialog
-
-        # @@@MOR Handy during development:
-        reload(osaf.framework.sharing.SubscribeDialog)
-
-        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame, self.itsView)
+        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame,
+                                                    self.itsView)
 
     def onSharingImportDemoCalendarEvent(self, event):
         # Triggered from "Tests | Import demo calendar..."
-        Sharing.loadDemoCalendar(self.itsView)
+
+        url="http://www.osafoundation.org/0.5/DemoCalendar.ics"
+
+        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame,
+                                                    self.itsView,
+                                                    url=url)
 
 
     def onEditCollectionRuleEvent(self, event):

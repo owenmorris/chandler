@@ -20,7 +20,7 @@ class SubscribeDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-         resources=None, view=None):
+         resources=None, view=None, url=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -42,6 +42,8 @@ class SubscribeDialog(wx.Dialog):
         self.mySizer.Fit(self)
 
         self.textUrl = wx.xrc.XRCCTRL(self, "TEXT_URL")
+        if url is not None:
+            self.textUrl.SetValue(url)
         wx.EVT_SET_FOCUS(self.textUrl, self.OnFocusGained)
         self.Bind(wx.EVT_TEXT, self.OnTyping, self.textUrl)
 
@@ -83,26 +85,26 @@ class SubscribeDialog(wx.Dialog):
 
         except Sharing.NotAllowed, err:
             self.__showAccountInfo(account)
-            share.conduit.delete()
-            share.format.delete()
-            share.delete()
+            share.conduit.delete(True)
+            share.format.delete(True)
+            share.delete(True)
         except Sharing.NotFound, err:
             self.__showStatus("That collection was not found")
-            share.conduit.delete()
-            share.format.delete()
-            share.delete()
+            share.conduit.delete(True)
+            share.format.delete(True)
+            share.delete(True)
         except Sharing.SharingError, err:
             self.__showStatus("Sharing Error:\n%s" % err.message)
             self.__showStatus("Exception:\n%s" % traceback.format_exc(10))
-            share.conduit.delete()
-            share.format.delete()
-            share.delete()
+            share.conduit.delete(True)
+            share.format.delete(True)
+            share.delete(True)
         except Exception, e:
             self.__showStatus("Exception:\n%s" % traceback.format_exc(10))
             logger.info("Sharing Exception: %s" % traceback.format_exc(10))
-            share.conduit.delete()
-            share.format.delete()
-            share.delete()
+            share.conduit.delete(True)
+            share.format.delete(True)
+            share.delete(True)
 
     def OnTyping(self, evt):
         self.__hideStatus()
@@ -157,12 +159,12 @@ class SubscribeDialog(wx.Dialog):
         wx.CallAfter(control.SetSelection, -1, -1)
 
 
-def Show(parent, view=None):
+def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'parcels', 'osaf', 'framework', 'sharing',
      'SubscribeDialog_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, "Subscribe to Shared Collection",
-     resources=resources, view=view)
+     resources=resources, view=view, url=url)
     win.CenterOnScreen()
     win.ShowModal()
