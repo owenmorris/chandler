@@ -54,14 +54,14 @@ $(SYSTEMS):
 # builds PyLucene and all systems from PyLucene onwards
 
 $(addprefix from-, $(SYSTEMS)):
-	$(MAKE) $(shell echo $(SYSTEMS) | sed "s/.*\($(subst from-,,$@).*\)/\1/")
+	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=.*\($(subst from-,,$@).*\)=\1=")
 
 # to do a build up to a given system instead of until the end
 # for example: make to-PyICU
 # builds all systems up to and including PyICU
 
 $(addprefix to-, $(SYSTEMS)):
-	$(MAKE) $(shell echo $(SYSTEMS) | sed "s/\(.*$(subst to-,,$@)\).*/\1/")
+	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
 
 
 all: env sources $(SYSTEMS)
