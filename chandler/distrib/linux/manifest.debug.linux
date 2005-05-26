@@ -8,7 +8,7 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-exclude=CVS,*.pyo,*.pyc
+exclude=.svn,*.pyo,*.pyc
 
 # Grab the python executable
 src=chandler/debug/bin

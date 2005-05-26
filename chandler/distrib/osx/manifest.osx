@@ -8,7 +8,7 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-exclude=CVS,tests,*.pyo,*.pyc
+exclude=.svn,tests,*.pyo,*.pyc
 
 # Grab the python modules 
 src=chandler/release/Library/Frameworks/Python.framework/Versions/2.4/lib
@@ -53,9 +53,9 @@ recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
 # XXX parcels depend on contentmodel tests
-exclude=CVS,*.pyo,*.pyc
+exclude=.svn,*.pyo,*.pyc
 parcels
-exclude=CVS,tests,*.pyo,*.pyc
+exclude=.svn,tests,*.pyo,*.pyc
 util
 
 glob=*
