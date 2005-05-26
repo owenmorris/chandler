@@ -230,7 +230,7 @@ class MailDeliveryError(ContentModel.ContentItem):
             return super(MailDeliveryError, self).__str__()
             # Stale items shouldn't go through the code below
 
-        return "| %d | %s | %s |" % (self.errorCode, self.errorString, self.errorDate.strftime())
+        return "| %d | %s | %s |" % (self.errorCode, self.errorString, str(self.errorDate))
 
 
 class MailDeliveryBase(ContentModel.ContentItem):
