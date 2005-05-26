@@ -1,6 +1,5 @@
 #-*- Mode: Makefile; -*-
 OS=$(shell uname)
-OS_VERSION=$(shell uname -r) 
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
@@ -81,7 +80,9 @@ GCJ_HOME=$(compiler)
 GCJ_VER=3
 endif
 else
+ifndef GCJ_VER
 GCJ_VER=3
+endif
 endif
 
 ifeq ($(CHANDLERHOME),)
@@ -185,7 +186,7 @@ endif
 
 ifeq ($(OS),Darwin)
 
-ifeq ($(strip $(OS_VERSION)),8.0.0)
+ifeq ($(word 1, $(sort 8.0.0 $(shell uname -r))),8.0.0)
 GCC_VERSION=4.1-20050501
 GCJ_VER=4
 else

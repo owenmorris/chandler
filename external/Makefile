@@ -48,6 +48,15 @@ binaries: env
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
 
+
+# to start build from a given system instead of from the beginning
+# for example: make from-PyLucene
+# builds PyLucene and all systems from PyLucene onwards
+
+$(addprefix from-, $(SYSTEMS)):
+	$(MAKE) $(shell echo $(SYSTEMS) | sed "s/.*\($(subst from-,,$@).*\)/\1/")
+
+
 all: env sources $(SYSTEMS)
 
 ifeq ($(OS),Cygwin)
