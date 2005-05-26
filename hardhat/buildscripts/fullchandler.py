@@ -103,7 +103,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             doBuild(releaseMode, workingDir, log, svnChanges, clean)
             
             if upload:
-                doUploadToStaging(releaseMode, workingDir, log)
+                doUploadToStaging(releaseMode, workingDir, buildVersion, log)
 
             clean = 'clean'
 
