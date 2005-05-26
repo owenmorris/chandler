@@ -14,18 +14,18 @@ import os, hardhatutil, hardhatlib, sys, re
 
 path = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-cvsProgram = hardhatutil.findInPath(path, "cvs")
+svnProgram = hardhatutil.findInPath(path, "svn")
 treeName = "Chandler"
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 releaseModes = ('debug', 'release')
 
-# These modules are the ones to check out of CVS, and build
-cvsModules = (
+# These modules are the ones to check out of SVN, and build
+svnModules = (
     'external', 'internal', 'chandler',
 )
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 
@@ -65,7 +65,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
     chanDir = os.path.join(workingDir, 'chandler')
     # test if we've been through the loop at least once
     if clobber:
-        for module in cvsModules:
+        for module in svnModules:
             modDir = os.path.join(workingDir, module)
             if os.path.exists(modDir):
                 hardhatutil.rmdirRecursive(modDir)
@@ -87,19 +87,19 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         log.write("- - - - tree setup - - - - - - -\n")
 
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout", cvsVintage, ' '.join(cvsModules)])
+         [svnProgram, "-q", "checkout", svnVintage, ' '.join(svnModules)])
         hardhatutil.dumpOutputList(outputList, log)
 
-        cvsChanges = {}
-        for mod in cvsModules:
-            cvsChanges[mod] = True
+        svnChanges = {}
+        for mod in svnModules:
+            svnChanges[mod] = True
 
         clean = ''
         for releaseMode in releaseModes:
-            doBuild(releaseMode, workingDir, log, cvsChanges, clean)
+            doBuild(releaseMode, workingDir, log, svnChanges, clean)
             
             if upload:
-                doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+                doUploadToStaging(releaseMode, workingDir, svnVintage, log)
 
             clean = 'clean'
 
@@ -111,31 +111,31 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         else:
             for releaseMode in releaseModes:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, cvsVintage, buildVersion, log)
+                              outputDir, svnVintage, buildVersion, log)
                 if ret != 'success':
                     break
 
         changes = "-first-run"
     else:
     
-        print "Checking CVS for updates"
-        log.write("Checking CVS for updates\n")
+        print "Checking SVM for updates"
+        log.write("Checking SVN for updates\n")
 
-        cvsChanges = changesInCVS(workingDir, cvsVintage, log)
-        if cvsChanges['external'] or cvsChanges['internal']:
-            log.write("Changes in CVS require build\n")
+        svnChanges = changesInSVN(workingDir, svnVintage, log)
+        if svnChanges['external'] or svnChanges['internal']:
+            log.write("Changes in SVN require build\n")
             changes = "-changes"
             clean = 'realclean'
             for releaseMode in releaseModes:        
-                doBuild(releaseMode, workingDir, log, cvsChanges, clean)
+                doBuild(releaseMode, workingDir, log, svnChanges, clean)
                 
                 if upload:
-                    doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+                    doUploadToStaging(releaseMode, workingDir, svnVintage, log)
 
                 clean = 'clean'
             
-        if cvsChanges['external'] or cvsChanges['internal'] or cvsChanges['chandler']:
-            log.write("Changes in CVS require making distributions\n")
+        if svnChanges['external'] or svnChanges['internal'] or svnChanges['chandler']:
+            log.write("Changes in SVN require making distributions\n")
             changes = "-changes"            
             for releaseMode in releaseModes:        
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
@@ -150,7 +150,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         else:
             for releaseMode in releaseModes:   
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, cvsVintage, buildVersion, log)
+                              outputDir, svnVintage, buildVersion, log)
                 if ret != 'success':
                     break
 
@@ -158,7 +158,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
 
     return ret + changes 
 
-def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
+def doTests(hardhatScript, mode, workingDir, outputDir, svnVintage, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
@@ -224,21 +224,21 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
 
 
-def changesInCVS(workingDir, cvsVintage, log):
+def changesInSVN(workingDir, cvsVintage, log):
     changesDict = {}
-#     print "Examining CVS"
-#     log.write("Examining CVS\n")
+#     print "Examining SVN"
+#     log.write("Examining SVN\n")
 
     os.chdir(workingDir)
     
-    for module in cvsModules:
+    for module in svnModules:
         changesDict[module] = False
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
         print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn", "update", "-d", cvsVintage, module])
+         [svnProgram, "-q", "update", svnVintage, module])
         # hardhatutil.dumpOutputList(outputList, log)
         if NeedsUpdate(outputList):
             changesDict[module] = True
@@ -248,7 +248,7 @@ def changesInCVS(workingDir, cvsVintage, log):
             log.write("Getting changed sources\n")
             
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [cvsProgram, "-q -z3", "update", "-dP", cvsVintage, module])
+            [svnProgram, "-q", "update", svnVintage, module])
             hardhatutil.dumpOutputList(outputList, log)
         
         else:
@@ -256,15 +256,15 @@ def changesInCVS(workingDir, cvsVintage, log):
             log.write("Module unchanged" + "\n")
 
     log.write(separator)
-    log.write("Done with CVS\n")
+    log.write("Done with SVN\n")
     return changesDict
 
 
-def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
+def doUploadToStaging(buildmode, workingDir, svnVintage, log):
     print "doUploadToStaging..."
     
     import re
-    m = re.compile("-D'(\d{4})\-(\d\d)\-(\d\d) (\d\d):(\d\d):(\d\d)'").match(cvsVintage)
+    m = re.compile("-D'(\d{4})\-(\d\d)\-(\d\d) (\d\d):(\d\d):(\d\d)'").match(svnVintage)
     if not m:
         print "upload error"
         log.write("***Error during upload - could not get timestamp***\n")
@@ -313,7 +313,7 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
         raise e
 
 
-def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
+def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
     # We only build external if there were changes in it
     # We build internal if external or internal were changed
     # We never build in chandler, because there is nothing to build
@@ -328,16 +328,16 @@ def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
     os.putenv('BUILD_ROOT', buildRoot)
 
     try:
-        for module in cvsModules:
+        for module in svnModules:
             print module, "..."
             log.write("- - - - " + module + " - - - - - - -\n")
 
-            if module == 'external' and not cvsChanges['external']:
+            if module == 'external' and not svnChanges['external']:
                 print 'Nothing to be done for module', module
                 log.write('Nothing to be done for module ' + module + '\n')
                 log.write(separator)
                 continue
-            if module == 'internal' and not cvsChanges['external'] and not cvsChanges['internal']:
+            if module == 'internal' and not svnChanges['external'] and not svnChanges['internal']:
                 print 'Nothing to be done for module', module
                 log.write('Nothing to be done for module ' + module + '\n')
                 log.write(separator)
@@ -362,7 +362,7 @@ def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
             hardhatutil.dumpOutputList(outputList, log)
 
             if module == 'internal':
-                # This hack is needed because on OSX, CVS fails in
+                # This hack is needed because on OSX, SVB fails in
                 # internal/wxPython-2.5/wxPython when build_debug
                 # directory exists and there is a sticky tag (like date).
                 # This is bug 2297.
@@ -396,7 +396,7 @@ def forceBuildNextCycle(log, workingDir):
     # cycle which will cause doBuild etc. to be called.
     print 'Removing toplevel Makefiles to trigger build next cycle'
     log.write('Removing toplevel makefiles to trigger build next cycle\n')
-    for module in cvsModules:
+    for module in svnModules:
         makefile = os.path.join(workingDir, module, 'Makefile')
         if os.path.exists(makefile):
             os.remove(makefile)
@@ -410,7 +410,7 @@ def doRealclean(log, workingDir):
         # the build to get new binaries tarballs next time, and if fixed
         # binaries were uploaded in the meanwhile we'll recover
         # automatically. This will also sort us out of corrupted debug/release.
-        for module in cvsModules:
+        for module in svnModules:
             print "Doing make realclean in " + module + "\n"
             log.write("Doing make realclean in " + module + "\n")
             moduleDir = os.path.join(workingDir, module)

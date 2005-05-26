@@ -8,7 +8,7 @@ from optparse import OptionParser
 import hardhatutil, hardhatlib
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 path = os.environ.get('PATH', os.environ.get('path'))
-cvsProgram = hardhatutil.findInPath(path, "cvs")
+svnProgram = hardhatutil.findInPath(path, "svn")
 
 
 def updateSmallFile(filename, search, replace):
@@ -32,11 +32,11 @@ def updateSmallFile(filename, search, replace):
 class Release:
     def __init__(self, version, release):
         self.version = version
-        self.cvsVersion = version.replace('.', '_')
+        self.svnVersion = version.replace('.', '_')
         self.release = release
 
         self.workDir = os.path.join(os.getenv('HOME'),
-                                    'CHANDLER_WORKDIR_' + self.cvsVersion)
+                                    'CHANDLER_WORKDIR_' + self.svnVersion)
         os.mkdir(self.workDir)
         os.chdir(self.workDir)
         
@@ -45,7 +45,7 @@ class Release:
 
     def checkoutMinimal(self):
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout",
+         [svnProgram, "-q", "checkout",
           'chandler/distrib/osx/bundle'])
         #hardhatutil.dumpOutputList(outputList, log)
         
@@ -71,12 +71,12 @@ class Release:
                         shortVersion)
 
 
-    def cvsChanges(self):
+    def svnChanges(self):
         self.checkoutMinimal()
         self.updatePList()
 
         print 'cd ' + self.workDir
-        print 'cvs diff -u chandler/distrib'
+        print 'svn diff -u chandler/distrib'
         print 'to see if the changes look correct, then commit them.'
         print 'Finally do:'
         print '  cvs rtag -D now CHANDLER_' + self.cvsVersion + ' chandler-all'
@@ -85,11 +85,11 @@ class Release:
 def main():
     parser = OptionParser()
 
-    parser.add_option('-c', '--cvs',
+    parser.add_option('-s', '--svn',
                       action='store_true',
-                      dest='cvs',
+                      dest='svn',
                       default=False,
-                      help='make cvs changes')
+                      help='make svn changes')
 
     parser.add_option('-r', '--release',
                       action='store_true',
@@ -110,8 +110,8 @@ def main():
 
     rel = Release(op.version, op.release)
 
-    if op.cvs:
-        rel.cvsChanges()
+    if op.svn:
+        rel.svnChanges()
         return
 
 

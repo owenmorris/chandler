@@ -23,6 +23,7 @@ alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.25"      #  IP of current server
+svnRepository = "http://svn.osafoundation.org/chandler/"
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
@@ -80,8 +81,8 @@ def main():
         os.mkdir(buildDir)
 
     path = os.environ.get('PATH', os.environ.get('path'))
-    cvsProgram = hardhatutil.findInPath(path, "cvs")
-    print "cvs =", cvsProgram
+    svnProgram = hardhatutil.findInPath(path, "svn")
+    print "svn =", svnProgram
     
     if not skipRsync:
         rsyncProgram = hardhatutil.findInPath(path, "rsync")
@@ -107,7 +108,7 @@ def main():
         SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", 
          treeName, None)
 
-        ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
+        ret = mod.Start(hardhatFile, buildDir, svnRepository, 
          buildVersion, 0, log, upload=options.uploadStaging, skipTests=options.skipTests)
 
     except TinderbuildError, e:
@@ -264,7 +265,7 @@ def main():
         
         else:
             print "There were no changes"
-            log.write("There were no changes in CVS\n")
+            log.write("There were no changes in SVN\n")
             status = "not_running"
 
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")

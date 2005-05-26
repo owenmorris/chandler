@@ -18,7 +18,7 @@ to a structured log, and alert hardhatlib of problems via Exceptions.
 
 """
 
-import os, sys, glob, fnmatch, errno, string, shutil, fileinput, re, popen2
+import os, sys, platform, glob, fnmatch, errno, string, shutil, fileinput, re, popen2
 import hardhatutil
 
 # Earlier versions of Python don't define these, so let's include them here:
@@ -83,7 +83,9 @@ def init(buildenv):
         buildenv['logfile'] = os.path.join(buildenv['root'], "hardhat.log")
 
     # normalize what python thinks the OS is to a string that we like:
-    buildenv['os'] = 'unknown'
+    buildenv['os']        = 'unknown'
+    buildenv['osversion'] = 'unknown'
+    
     if os.name == 'nt':
         buildenv['os'] = 'win'
         buildenv['oslabel'] = 'win'
@@ -99,6 +101,12 @@ def init(buildenv):
             # to warrant its own 'os' value:
             buildenv['os'] = 'osx'
             buildenv['oslabel'] = 'osx'
+            
+            macVersion = platform.mac_ver()
+            osVersion  = macVersion[0]
+            
+            buildenv['osversion'] = osVersion[:4]
+            
         if sys.platform == 'cygwin':
             buildenv['os'] = 'win'
             buildenv['oslabel'] = 'win'
@@ -122,7 +130,7 @@ def init(buildenv):
 
     buildenv['sh']    = hardhatutil.findInPath(buildenv['path'], "sh", 0)
     buildenv['make']  = hardhatutil.findInPath(buildenv['path'], "make", 0)
-    buildenv['cvs']   = hardhatutil.findInPath(buildenv['path'], "cvs")
+    buildenv['svn']   = hardhatutil.findInPath(buildenv['path'], "svn")
     buildenv['scp']   = hardhatutil.findInPath(buildenv['path'], "scp", 0)
     buildenv['tar']   = hardhatutil.findInPath(buildenv['path'], "tar", 0)
     buildenv['gzip']  = hardhatutil.findInPath(buildenv['path'], "gzip", 0)
@@ -441,7 +449,7 @@ def buildDependencies(buildenv, module_name, history):
 
 def scrub(buildenv, module_name):
     """
-    Calls cleanCVS to remove all local files that aren't under CVS control.
+    Calls svnClean to remove all local files that aren't under SVN control.
     This is helpful when you want to make sure that the module is really clean!
     Parameters:
         buildenv: the build environment dictionary
@@ -458,7 +466,7 @@ def scrub(buildenv, module_name):
         module_path = CHANDLERHOME
     else:
         module_path = os.path.join(CHANDLERHOME, module_name)
-    cvsClean(buildenv, [module_path])
+    svnClean(buildenv, [module_path])
     # log(buildenv, HARDHAT_MESSAGE, module_name, "Back from build")
 # end scrub()
 
@@ -481,7 +489,7 @@ def scrubDependencies(buildenv, module_name):
     dirsToScrub = []
     for dep in dependencies.keys():
         dirsToScrub.append(os.path.join(CHANDLERHOME, dep))
-    cvsClean(buildenv, dirsToScrub)
+    svnClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
 def getDependencies(buildenv, module_name, history):
@@ -843,31 +851,31 @@ def epydoc(buildenv, name, message, *args):
     
     return exit_code
 
-def cvsCheckout(buildenv, projectRoot):
-
-    cvs = buildenv['cvs']
-    cvsroot = os.getenv('CHANDLER_CVSROOT')
-
-    if cvsroot == None:
-        log(buildenv, HARDHAT_ERROR, "HardHat",
-            "CHANDLER_CVSROOT environment variable not set")
-        raise HardHatBuildEnvError
-        
-    command = [ cvs, '-z3', '-d', cvsroot, 'co chandler-system' ]
-    os.chdir(os.path.join(projectRoot, '..', '..'))
-
-    print os.path.abspath(".") + '>' + string.join(command)
-
-    exit_code = os.spawnv(os.P_WAIT, cvs, command)
-
-    if exit_code == 0:
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", "OK")
-    else:
-        log(buildenv, HARDHAT_ERROR, "HardHat",
-            "Command exited with code = " + str(exit_code) )
-        raise HardHatExternalCommandError
-    
-    return exit_code
+#def cvsCheckout(buildenv, projectRoot):
+#
+#    cvs = buildenv['cvs']
+#    cvsroot = os.getenv('CHANDLER_CVSROOT')
+#
+#    if cvsroot == None:
+#        log(buildenv, HARDHAT_ERROR, "HardHat",
+#            "CHANDLER_CVSROOT environment variable not set")
+#        raise HardHatBuildEnvError
+#        
+#    command = [ cvs, '-z3', '-d', cvsroot, 'co chandler-system' ]
+#    os.chdir(os.path.join(projectRoot, '..', '..'))
+#
+#    print os.path.abspath(".") + '>' + string.join(command)
+#
+#    exit_code = os.spawnv(os.P_WAIT, cvs, command)
+#
+#    if exit_code == 0:
+#        log(buildenv, HARDHAT_MESSAGE, "HardHat", "OK")
+#    else:
+#        log(buildenv, HARDHAT_ERROR, "HardHat",
+#            "Command exited with code = " + str(exit_code) )
+#        raise HardHatExternalCommandError
+#    
+#    return exit_code
 
 
 def findHardHatFile(dir):
@@ -1210,7 +1218,7 @@ def handleManifest(buildenv, filename, fatalErrors=True):
     params["dest"] = None
     params["recursive"] = True
     params["glob"] = "*"
-    params["exclude"] = "CVS"
+    params["exclude"] = "\.svn"
     srcdir = buildenv['root']
     destdir = buildenv['distdir']
 
@@ -1358,7 +1366,7 @@ def _copyTree(srcdir, destdir, recursive, patterns, excludes):
         for name in os.listdir(srcdir):
             full_name = os.path.join(srcdir, name)
             # we are only checking one pattern here; 
-            # directory excludes so far only being for one pattern - CVS
+            # directory excludes so far only being for one pattern - .svn
             # if we need to add more, this will have to change to match method of file excludes above
             if os.path.isdir(full_name) and not name in excludes:
                 _copyTree(full_name, os.path.join(destdir, name), True, 
@@ -1426,24 +1434,23 @@ def copyTree(srcdir, destdir, patterns, excludes):
     for name in os.listdir(srcdir):
         fullpath = os.path.join(srcdir, name)
         # we are only checking one pattern here; 
-        # directory excludes so far only being for one pattern - CVS
+        # directory excludes so far only being for one pattern - .svn
         # if we need to add more, this will have to change to match method of file excludes above
         if os.path.isdir(fullpath) and not fnmatch.fnmatch(name, excludes):
             copyTree(fullpath, os.path.join(destdir, name), patterns, excludes)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# CVS-cleaning methods
+# SVN-cleaning methods
 
-def cvsFindRemovables(dir):
+def svnFindRemovables(dir):
     """ Find all files in the given directory (and its children) that aren't 
-    checked into CVS and return them in a list """
+    checked into SVN and return them in a list """
 
     removables = []
     dir = os.path.abspath(dir)
-    cvsEntriesFile = os.path.join(dir, "CVS", "Entries")
-    cvsEntriesLogFile = os.path.join(dir, "CVS", "Entries.Log")
-    if(os.path.isfile(cvsEntriesFile)):
+    svnEntriesFile = os.path.join(dir, ".svn", "entries")
+    if(os.path.isfile(svnEntriesFile)):
 
         """
         According to http://www.cvshome.org/docs/manual/cvs_2.html#IDX42
@@ -1459,52 +1466,35 @@ def cvsFindRemovables(dir):
         removeables list.
         """
 
-        cvsFiles = {}
-        for line in fileinput.input(cvsEntriesFile):
+        svnFiles = {}
+        for line in fileinput.input(svnEntriesFile):
             line = line.strip()
-            fields = line.split("/")
+            fields = line.split("=")
             if len(fields) > 1 and fields[1]:
-                cvsFiles[fields[1]] = 1 # this one is in CVS
-
-        if(os.path.isfile(cvsEntriesLogFile)):
-            for line in fileinput.input(cvsEntriesLogFile):
-                line = line.strip()
-                if line[0] == "A" and line[1] == " ":
-                    # Consider this as if it were in "Entries"
-                    line = line[2:]
-                    fields = line.split("/")
-                    if len(fields) > 1 and fields[1]:
-                        cvsFiles[fields[1]] = 1 # this one is in CVS
-                else:
-                    if line[0] == "R" and line[1] == " ":
-                        # Consider this as if it were not in "Entries"
-                        line = line[2:]
-                        fields = line.split("/")
-                        if len(fields) > 1 and fields[1]:
-                            cvsFiles[fields[1]] = 0 # not in CVS
+                svnFiles[fields[1][1:-1]] = 1 # this one is in SVN
 
         for file in os.listdir(dir):
-            if file != "CVS": # always skip "CVS" directory
+            if file != ".svn": # always skip ".svn" directory
                 absFile = os.path.join(dir,file)
-                if not cvsFiles.has_key(file) or not cvsFiles[file]:
-                    # not in cvs, so add to removeables
+                if not svnFiles.has_key(file) or not svnFiles[file]:
+                    # not in svn, so add to removeables
                     removables.append(absFile)
                 else:
-                    # if in CVS, see if a directory and recurse
+                    # if in SVN, see if a directory and recurse
                     if os.path.isdir(absFile):
-                        childremovables = cvsFindRemovables(absFile)
+                        childremovables = svnFindRemovables(absFile)
                         removables += childremovables
     else:
-        print "Did not find CVS/Entries file in", dir
+        print "Did not find .svn/entries file in", dir
 
     return removables
 
-def cvsClean(buildenv, dirs):
+def svnClean(buildenv, dirs):
     allRemovables = []
     for dir in dirs:
         dir = os.path.abspath(dir)
         log(buildenv, HARDHAT_MESSAGE, "HardHat", "Examining " + dir + "...")
-        removables = cvsFindRemovables(dir)
+        removables = svnFindRemovables(dir)
         allRemovables += removables
     allRemovables.sort()
     if len(allRemovables) == 0:
@@ -1513,7 +1503,7 @@ def cvsClean(buildenv, dirs):
 
     if buildenv['interactive']:
         print
-        print "The following files and directories are not in CVS:"
+        print "The following files and directories are not in SVN:"
         print
         for removable in allRemovables:
             print removable

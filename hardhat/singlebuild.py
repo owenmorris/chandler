@@ -3,9 +3,9 @@
 # build client script for building a project
 
 # must be run from the hardhat directory, which will be updated to the
-# appropriate CVS vintage by this script, so it's a good idea to first
+# appropriate SVN vintage by this script, so it's a good idea to first
 # bring the hardhat directory (or at least this file) up to the latest
-# vintage with a "cvs update -A" before running it, since after running
+# vintage with a "svn update" before running it, since after running
 # it, it may get reverted to an earlier version
 
 import hardhatutil, time, smtplib, os, sys, getopt
@@ -19,8 +19,8 @@ def usage():
     print "python singlebuild.py [OPTION]..."
     print ""
     print "-b BUILDVER    string to put into the buildversion encoded in app"
-    print "-d DATE        date to use for CVS checkout"
-    print "-t TAG         tag to use for CVS checkout"
+    print "-d DATE        date to use for SVN checkout"
+    print "-t TAG         tag to use for SVN checkout"
     print "-p PROJECT     buildscript, defaults to ", project
     print "-m MAILTO      who to email when build is finished (optional)"
     print "-n BUILDNAME   buildname (optional)"
@@ -34,7 +34,7 @@ def main():
     
     nowString = time.strftime("%Y-%m-%d %H:%M:%S")
     nowShort = hardhatutil.RemovePunctuation(nowString)
-    # nowString is the current time, in a CVS-compatible format
+    # nowString is the current time, in a SVN-compatible format
     print nowString
     # nowShort is nowString without punctuation or whitespace
     print nowShort
@@ -46,10 +46,10 @@ def main():
         sys.exit(1)
 
     buildVersionArg = None
-    cvsDateArg = None
+    svnDateArg = None
     toAddrArg = None
     projectArg = None
-    cvsTagArg = None
+    svnTagArg = None
     buildName = 'buildname'
     noTests = 0
 
@@ -59,7 +59,7 @@ def main():
             buildVersionArg = arg
 
         if opt == "-d":
-            cvsDateArg = arg
+            svnDateArg = arg
 
         if opt == "-m":
             toAddrArg = arg
@@ -68,7 +68,7 @@ def main():
             projectArg = arg
 
         if opt == "-t":
-            cvsTagArg = arg
+            svnTagArg = arg
 
         if opt == "-n":
             buildName = arg
@@ -76,8 +76,8 @@ def main():
         if opt == "-s":
             noTests = 1
 
-    if cvsDateArg and cvsTagArg:
-        print "Please choose either a cvs date or tag, not both"
+    if svnDateArg and svnTagArg:
+        print "Please choose either a svn date or tag, not both"
         sys.exit(1)
 
     # defaults:
@@ -92,24 +92,24 @@ def main():
     buildVersion = nowString
 
     # default is "-D now", but override with date; override that with tag
-    cvsVintage = "-D'" + nowString + "'"
-    if cvsDateArg:
-        cvsVintage = "-D'" + cvsDateArg + "'"
-        buildVersion = cvsDateArg
-    if cvsTagArg:
-        cvsVintage = "-r" + cvsTagArg
-        buildVersion = cvsTagArg
+    svnVintage = "-D'" + nowString + "'"
+    if svnDateArg:
+        svnVintage = "-D'" + svnDateArg + "'"
+        buildVersion = svnDateArg
+    if svnTagArg:
+        svnVintage = "-r" + svnTagArg
+        buildVersion = svnTagArg
     if buildVersionArg:
         buildVersion = buildVersionArg
 
     print "nowString", nowString
     print "nowShort", nowShort
-    print "cvsVintage", cvsVintage
+    print "svnVintage", svnVintage
     print "buildVersion", buildVersion
     print "buildName", buildName
     print "skipTests=", noTests
 
-    # cvsVintage is what is used to do a checkout
+    # svnVintage is what is used to do a checkout
     # buildVersion is encoded into the application's internal version
 
     whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
@@ -133,13 +133,13 @@ def main():
     os.mkdir(buildDir)
 
     path = os.environ.get('PATH', os.environ.get('path'))
-    cvsProgram = hardhatutil.findInPath(path, "cvs")
+    svnProgram = hardhatutil.findInPath(path, "svn")
 
     log = open(logFile, "w+")
     try:
         # bring this hardhat directory up to date
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-z3", "update", "-dP", cvsVintage])
+         [svnProgram, "update", svnVintage])
 
         # load the buildscript file for the project
         mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
@@ -147,7 +147,7 @@ def main():
         # SendMail(fromAddr, toAddr, nowString, nowString, buildName,
         # "building", None)
 
-        mod.Start(hardhatFile, buildDir, cvsVintage, buildVersion, 1, log,
+        mod.Start(hardhatFile, buildDir, svnVintage, buildVersion, 1, log,
                   skipTests=noTests)
 
     except Exception, e:

@@ -11,7 +11,7 @@ stopFile = os.path.join(buildDir, "stop")
 def main():
     curDir = os.path.abspath(os.getcwd())
     path = os.environ.get('PATH', os.environ.get('path'))
-    cvsProgram = hardhatutil.findInPath(path, "cvs")
+    svnProgram = hardhatutil.findInPath(path, "svn")
 
     if os.path.exists(stopFile):
         os.remove(stopFile)
@@ -28,11 +28,11 @@ def main():
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
         
-        # check CVS for any new hardhat script
+        # check SVN for any new hardhat script
         try:
             # bring this hardhat directory up to date
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "-q", "update", "-D'"+ nowString + "'"])
+             [svnProgram, "-q", "update"])
             hardhatutil.dumpOutputList(outputList)
         except:
             raise TinderbuildError, "Error updating HardHat"

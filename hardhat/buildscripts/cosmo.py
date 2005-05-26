@@ -10,14 +10,14 @@ import hardhatutil, hardhatlib
 
 path       = os.environ.get('PATH', os.environ.get('path'))
 whereAmI   = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-cvsProgram = hardhatutil.findInPath(path, "cvs")
+svnProgram = hardhatutil.findInPath(path, "svn")
 antProgram = hardhatutil.findInPath(path, "ant")
 treeName   = "Cosmo"
 mainModule = 'server'
 logPath    = 'hardhat.log'
 separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, skipTests=False, upload=False):
 
       # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
@@ -40,7 +40,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         log.write("[tbox] Pulling source tree\n")
 
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout", cvsVintage, mainModule])
+         [svnProgram, "-q", "checkout", svnVintage, mainModule])
 
         hardhatutil.dumpOutputList(outputList, log) 
 
@@ -50,14 +50,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
 
         log.write("[tbox] Checking for source updates\n")
 
-        outputList = hardhatutil.executeCommandReturnOutputRetry([cvsProgram, "-q -z3", "update", "-Pd"])
+        outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "update"])
 
         if NeedsUpdate(outputList):
             sourceChanged = True
 
             log.write("[tbox] %s needs updating\n" % mainModule)
 
-            outputList = hardhatutil.executeCommandReturnOutputRetry([cvsProgram, "-q -z3", "update", "-dP", cvsVintage])
+            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "update", svnVintage])
 
             hardhatutil.dumpOutputList(outputList, log)
         else:

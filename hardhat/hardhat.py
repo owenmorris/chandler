@@ -39,10 +39,10 @@ def usage():
     print "-o|--ouput DIR        output directory used when creating a distribution (-D)"
     print "-r|--release          use release version (this is the default)"
     # print "-s          spawn an interactive shell"
-    print "-s|--scrub            scrub module (remove all local files not in CVS)"
+    print "-s|--scrub            scrub module (remove all local files not in SVN)"
     print "-S|--ScrubDeps        scrub module and its dependencies"
     print "-t|--test             run all unit tests in this directory and below"
-    print "-u|--update           checkout (update) source using CVS"
+    print "-u|--update           checkout (update) source using SVN"
     print "-v|--verbose          increase output information"
     print "-x|--run              execute module"
 
@@ -216,8 +216,8 @@ try:
             opts.extend(loo)
             args.extend(loa)
             
-        if opt == "-u" or opt == "--update":
-            hardhatlib.cvsCheckout(buildenv, projectRoot)
+        #if opt == "-u" or opt == "--update":
+        #    hardhatlib.svnCheckout(buildenv, projectRoot)
 
         if opt == "-v" or opt == "--verbose":
             buildenv['verbosity'] = buildenv['verbosity'] + 1

@@ -16,14 +16,14 @@ import os, hardhatutil, hardhatlib, sys, re
 
 path = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-cvsProgram = hardhatutil.findInPath(path, "cvs")
+svnProgram = hardhatutil.findInPath(path, "svn")
 treeName = "Chandler"
 mainModule = 'chandler'
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, svnRepository, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 
@@ -83,11 +83,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         log.write("- - - - tree setup - - - - - - -\n")
 
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout", cvsVintage, "internal/installers"])
+         [svnProgram, "-q", "co", svnRepository + "trunk/internal/installers", "internal/installers"])
         hardhatutil.dumpOutputList(outputList, log)
 
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout", cvsVintage, "chandler"])
+         [svnProgram, "-q", "co", svnRepository + "trunk/chandler", "chandler"])
         hardhatutil.dumpOutputList(outputList, log)
     
         os.chdir(chanDir)
@@ -101,7 +101,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
                 ret = 'success'
             else:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, cvsVintage, buildVersion, log)
+                              outputDir, buildVersion, log)
                 if ret != 'success':
                     break
 
@@ -109,23 +109,23 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
     else:
         os.chdir(chanDir)
     
-        print "Checking CVS for updates"
-        log.write("Checking CVS for updates\n")
-        cvsChanges = changesInCVS(chanDir, workingDir, cvsVintage, log)
+        print "Checking SVN for updates"
+        log.write("Checking SVN for updates\n")
+        svnChanges = changesInSVN(chanDir, workingDir, svnRepository, log)
         
-        if cvsChanges:
-            log.write("Changes in CVS require install\n")
+        if svnChanges:
+            log.write("Changes in SVN require install\n")
             changes = "-changes"
             for releaseMode in releaseModes:        
                 doInstall(releaseMode, workingDir, log)
                 
-        if cvsChanges:
-            log.write("Changes in CVS require making distributions\n")
+        if svnChanges:
+            log.write("Changes in SVN require making distributions\n")
             changes = "-changes"
             for releaseMode in releaseModes:
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
-        if not cvsChanges:
+        if not svnChanges:
             log.write("No changes\n")
             changes = "-nochanges"
 
@@ -135,19 +135,19 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         else:
             for releaseMode in releaseModes:   
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, cvsVintage, buildVersion, log)
+                              outputDir, buildVersion, log)
                 if ret != 'success':
                     break
 
     return ret + changes 
 
 
-# These modules are the ones to check out of CVS
-cvsModules = (
+# These modules are the ones to check out of SVN
+svnModules = (
     'chandler',
 )
 
-def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
+def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
@@ -161,6 +161,9 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
+
+        print "hardhatScript [%s]" % hardhatScript
+
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatScript, dashT])
         hardhatutil.dumpOutputList(outputList, log)
@@ -211,9 +214,9 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
     
 
-def changesInCVS(moduleDir, workingDir, cvsVintage, log):
+def changesInSVN(moduleDir, workingDir, svnRepository, log):
     changesAtAll = False
-    for module in cvsModules:
+    for module in svnModules:
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
         moduleDir = os.path.join(workingDir, module)
@@ -221,7 +224,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
         # print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn", "update", "-d", cvsVintage])
+         [svnProgram, "-q", "update"])
         # hardhatutil.dumpOutputList(outputList, log)
         if NeedsUpdate(outputList):
             changesAtAll = True
@@ -231,7 +234,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
             log.write("Getting changed sources\n")
             
             outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [cvsProgram, "-q -z3", "update", "-dP", cvsVintage])
+            [svnProgram, "-q", "update"])
             hardhatutil.dumpOutputList(outputList, log)
         
         else:
@@ -239,13 +242,13 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
             log.write("Module unchanged" + "\n")
 
     log.write(separator)
-    log.write("Done with CVS\n")
+    log.write("Done with SVN\n")
     return changesAtAll
 
 
 def doInstall(buildmode, workingDir, log, cleanFirst=False):
     # for our purposes, we do not really do a build
-    # we will update chandler from CVS, and grab new tarballs when they appear
+    # we will update chandler from SVN, and grab new tarballs when they appear
     if buildmode == "debug":
         dbgStr = "DEBUG=1"
     else:
