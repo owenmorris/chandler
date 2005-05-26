@@ -9,23 +9,28 @@
 import hardhatutil, time, smtplib, os, sys
 from optparse import OptionParser
 
-whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
+whereAmI    = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 hardhatFile = os.path.join(whereAmI, "hardhat.py")
 
-homeDir = os.environ['HOME']
-buildDir = os.path.join(homeDir, "tinderbuild")
-logFile = os.path.join(buildDir, "build.log")
+homeDir   = os.environ['HOME']
+buildDir  = os.path.join(homeDir, "tinderbuild")
+logFile   = os.path.join(buildDir, "build.log")
 HHlogFile = os.path.join(buildDir, "hardhat.log")
-stopFile = os.path.join(buildDir, "stop")
-fromAddr = "builds"
+stopFile  = os.path.join(buildDir, "stop")
+
+fromAddr   = "builds"
 mailtoAddr = "buildreport"
-alertAddr = "buildman"
-adminAddr = "builds"
-defaultDomain = "@osafoundation.org"
+alertAddr  = "buildman"
+adminAddr  = "builds"
+
+defaultDomain      = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.25"      #  IP of current server
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
+
+      # this is a sane default - the "true" value is pulled from the module being built
+    treeName = "Chandler"
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
@@ -58,42 +63,46 @@ def main():
         parser.print_help()
         parser.error("You must at least provide a name for your build")
 
-    buildName = args[0]
-    fromAddr += defaultDomain
+    curDir     = os.path.abspath(os.getcwd())
+    buildName  = args[0]
+    fromAddr  += defaultDomain
     mailtoAddr = options.toAddr
-    alertAddr = options.alertAddr
+    alertAddr  = options.alertAddr
+    
     if mailtoAddr.find('@') == -1:
         mailtoAddr += defaultDomain
+        
     if alertAddr.find('@') == -1:
         alertAddr += defaultDomain
-    skipRsync = options.skipRsync
+        
+    skipRsync     = options.skipRsync
     uploadStaging = options.uploadStaging
         
-    curDir = os.path.abspath(os.getcwd())
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
 
     outputDir = os.path.abspath(options.outputDir)
+    
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
 
     if not os.path.exists(buildDir):
         os.mkdir(buildDir)
 
-    path = os.environ.get('PATH', os.environ.get('path'))
+    path       = os.environ.get('PATH', os.environ.get('path'))
     svnProgram = hardhatutil.findInPath(path, "svn")
-    print "svn =", svnProgram
     
     if not skipRsync:
         rsyncProgram = hardhatutil.findInPath(path, "rsync")
-        print "rsync =", rsyncProgram
 
-    startInt = int(time.time())
+    startInt  = int(time.time())
     startTime = str(startInt)
-    os.chdir(curDir)
-
-    nowString = time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    nowString    = time.strftime("%Y-%m-%d %H:%M:%S")
     buildVersion = hardhatutil.RemovePunctuation(nowString)
+    
     print "Starting:", nowString, buildVersion
+
+    os.chdir(curDir)
 
     log = open(logFile, "w")
     log.write("Start: " + nowString + "\n")

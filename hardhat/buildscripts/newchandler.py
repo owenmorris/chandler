@@ -14,16 +14,18 @@ False = 0
 
 import os, hardhatutil, hardhatlib, sys, re
 
-path = os.environ.get('PATH', os.environ.get('path'))
+path     = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-svnProgram = hardhatutil.findInPath(path, "svn")
-treeName = "Chandler"
-logPath = 'hardhat.log'
-separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-reposRoot    = 'http://svn.osafoundation.org'
+svnProgram = hardhatutil.findInPath(path, "svn")
+treeName   = "Chandler"
+logPath    = 'hardhat.log'
+separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+
+reposRoot    = 'http://svn.osafoundation.org/chandler'
 reposBase    = 'trunk'
 reposModules = ['chandler', 'internal/installers']
+mainModule   = reposModules[0]
 
 releaseModes = ('debug', 'release')
 
@@ -90,14 +92,14 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             svnSource = os.path.join(reposRoot, reposBase, module)
     
             log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
-    
+                     
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [svnProgram, "-q", "co", svnSource, module])
 
             hardhatutil.dumpOutputList(outputList, log) 
 
         os.chdir(chanDir)
-    
+
         for releaseMode in releaseModes:
             doInstall(releaseMode, workingDir, log)
 
@@ -222,6 +224,9 @@ def changesInSVN(moduleDir, workingDir, log):
         log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
                                               
         moduleDir = os.path.join(workingDir, module)
+
+        print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
+        os.chdir(moduleDir)
 
         outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
 

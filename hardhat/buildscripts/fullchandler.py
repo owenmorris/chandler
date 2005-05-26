@@ -5,27 +5,22 @@ object, log.  True is returned if a new build was created, False is returned
 if no code has changed, and an exception is raised if there are problems.
 """
 
-# To appease older Pythons:
-True = 1
-False = 0
-
-
 import os, hardhatutil, hardhatlib, sys, re
 
-path = os.environ.get('PATH', os.environ.get('path'))
-whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
+path       = os.environ.get('PATH', os.environ.get('path'))
+whereAmI   = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 svnProgram = hardhatutil.findInPath(path, "svn")
-treeName = "Chandler"
-logPath = 'hardhat.log'
+
+treeName  = "Chandler"
+logPath   = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+
+reposRoot    = 'http://svn.osafoundation.org/chandler'
+reposBase    = 'trunk'
+reposModules = ['external', 'internal', 'chandler']
 releaseModes = ('debug', 'release')
 
-# These modules are the ones to check out of SVN, and build
-svnModules = (
-    'external', 'internal', 'chandler',
-)
-
-def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 
@@ -60,41 +55,50 @@ def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, ski
         traceback.print_exc()
         sys.exit(1)
     
-    # make sure workingDir is absolute
+      # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
-    chanDir = os.path.join(workingDir, 'chandler')
-    # test if we've been through the loop at least once
+    chanDir    = os.path.join(workingDir, 'chandler')
+    
+      # test if we've been through the loop at least once
     if clobber:
-        for module in svnModules:
+        for module in reposModules:
             modDir = os.path.join(workingDir, module)
             if os.path.exists(modDir):
                 hardhatutil.rmdirRecursive(modDir)
             
     os.chdir(workingDir)
 
-    # remove outputDir and create it
+      # remove outputDir and create it
     outputDir = os.path.join(workingDir, "output")
+    
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
+    
     os.mkdir(outputDir)
     
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
     
     if not os.path.exists(chanDir):
-        # Initialize sources
+          # Initialize sources
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
 
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "-q", "checkout", svnVintage, ' '.join(svnModules)])
-        hardhatutil.dumpOutputList(outputList, log)
-
         svnChanges = {}
-        for mod in svnModules:
-            svnChanges[mod] = True
+        clean      = ''
 
-        clean = ''
+        for module in reposModules:
+            svnSource = os.path.join(reposRoot, reposBase, module)
+    
+            log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
+                     
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+             [svnProgram, "-q", "co", svnSource, module])
+
+            hardhatutil.dumpOutputList(outputList, log) 
+
+            svnChanges[module] = True
+
         for releaseMode in releaseModes:
             doBuild(releaseMode, workingDir, log, svnChanges, clean)
             
@@ -111,17 +115,16 @@ def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, ski
         else:
             for releaseMode in releaseModes:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, svnVintage, buildVersion, log)
+                              outputDir, buildVersion, log)
                 if ret != 'success':
                     break
 
         changes = "-first-run"
     else:
-    
-        print "Checking SVM for updates"
+        print "Checking SVN for updates"
         log.write("Checking SVN for updates\n")
 
-        svnChanges = changesInSVN(workingDir, svnVintage, log)
+        svnChanges = changesInSVN(workingDir, log)
         if svnChanges['external'] or svnChanges['internal']:
             log.write("Changes in SVN require build\n")
             changes = "-changes"
@@ -130,7 +133,7 @@ def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, ski
                 doBuild(releaseMode, workingDir, log, svnChanges, clean)
                 
                 if upload:
-                    doUploadToStaging(releaseMode, workingDir, svnVintage, log)
+                    doUploadToStaging(releaseMode, workingDir, log)
 
                 clean = 'clean'
             
@@ -150,7 +153,7 @@ def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, ski
         else:
             for releaseMode in releaseModes:   
                 ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, svnVintage, buildVersion, log)
+                              outputDir, buildVersion, log)
                 if ret != 'success':
                     break
 
@@ -158,7 +161,7 @@ def Start(hardhatScript, workingDir, svnVintage, buildVersion, clobber, log, ski
 
     return ret + changes 
 
-def doTests(hardhatScript, mode, workingDir, outputDir, svnVintage, buildVersion, log):
+def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
@@ -172,8 +175,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, svnVintage, buildVersion
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [hardhatScript, dashT])
+        outputList = hardhatutil.executeCommandReturnOutput([hardhatScript, dashT])
         hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
@@ -224,33 +226,28 @@ def doCopyLog(msg, workingDir, logPath, log):
     log.write(separator)
 
 
-def changesInSVN(workingDir, cvsVintage, log):
+def changesInSVN(workingDir, log):
     changesDict = {}
 #     print "Examining SVN"
 #     log.write("Examining SVN\n")
 
     os.chdir(workingDir)
     
-    for module in svnModules:
-        changesDict[module] = False
-        print module, "..."
-        log.write("- - - - " + module + " - - - - - - -\n")
-        print "seeing if we need to update", module
-        log.write("Seeing if we need to update " + module + "\n")
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "-q", "update", svnVintage, module])
-        # hardhatutil.dumpOutputList(outputList, log)
+    for module in reposModules:
+        log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
+                                              
+        moduleDir = os.path.join(workingDir, module)
+
+        print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
+        os.chdir(moduleDir)
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
+
+        hardhatutil.dumpOutputList(outputList, log) 
+
         if NeedsUpdate(outputList):
             changesDict[module] = True
             print "" + module + " needs updating"
-            # update it
-            print "Getting changed sources"
-            log.write("Getting changed sources\n")
-            
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-            [svnProgram, "-q", "update", svnVintage, module])
-            hardhatutil.dumpOutputList(outputList, log)
-        
         else:
             # print "NO, unchanged"
             log.write("Module unchanged" + "\n")
@@ -260,7 +257,7 @@ def changesInSVN(workingDir, cvsVintage, log):
     return changesDict
 
 
-def doUploadToStaging(buildmode, workingDir, svnVintage, log):
+def doUploadToStaging(buildmode, workingDir, log):
     print "doUploadToStaging..."
     
     import re
@@ -328,7 +325,7 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
     os.putenv('BUILD_ROOT', buildRoot)
 
     try:
-        for module in svnModules:
+        for module in reposModules:
             print module, "..."
             log.write("- - - - " + module + " - - - - - - -\n")
 
@@ -361,15 +358,8 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
             outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, buildCmds ])
             hardhatutil.dumpOutputList(outputList, log)
 
-            if module == 'internal':
-                # This hack is needed because on OSX, SVB fails in
-                # internal/wxPython-2.5/wxPython when build_debug
-                # directory exists and there is a sticky tag (like date).
-                # This is bug 2297.
-                outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, 'clean' ])
-                hardhatutil.dumpOutputList(outputList, log)
-
             log.write(separator)
+            
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")
@@ -410,7 +400,7 @@ def doRealclean(log, workingDir):
         # the build to get new binaries tarballs next time, and if fixed
         # binaries were uploaded in the meanwhile we'll recover
         # automatically. This will also sort us out of corrupted debug/release.
-        for module in svnModules:
+        for module in reposModules:
             print "Doing make realclean in " + module + "\n"
             log.write("Doing make realclean in " + module + "\n")
             moduleDir = os.path.join(workingDir, module)
