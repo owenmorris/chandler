@@ -34,6 +34,8 @@ glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=chandler/release/db
 lib
+src=chandler/release/icu
+lib
 
 # Grab Chandler.py and others
 src=chandler
