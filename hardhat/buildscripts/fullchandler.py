@@ -103,7 +103,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             doBuild(releaseMode, workingDir, log, svnChanges, clean)
             
             if upload:
-                doUploadToStaging(releaseMode, workingDir, svnVintage, log)
+                doUploadToStaging(releaseMode, workingDir, log)
 
             clean = 'clean'
 
@@ -133,7 +133,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 doBuild(releaseMode, workingDir, log, svnChanges, clean)
                 
                 if upload:
-                    doUploadToStaging(releaseMode, workingDir, log)
+                    doUploadToStaging(releaseMode, workingDir, buildVersion, log)
 
                 clean = 'clean'
             
@@ -257,17 +257,9 @@ def changesInSVN(workingDir, log):
     return changesDict
 
 
-def doUploadToStaging(buildmode, workingDir, log):
+def doUploadToStaging(buildmode, workingDir, buildVersion, log):
     print "doUploadToStaging..."
     
-    import re
-    m = re.compile("-D'(\d{4})\-(\d\d)\-(\d\d) (\d\d):(\d\d):(\d\d)'").match(svnVintage)
-    if not m:
-        print "upload error"
-        log.write("***Error during upload - could not get timestamp***\n")
-        return
-    timestamp = "%s%s%s%s%s%s" % (m.group(1), m.group(2), m.group(3), m.group(4), m.group(5), m.group(6))
-        
     if buildmode == "debug":
         dbgStr = "DEBUG=1"
     else:
@@ -278,7 +270,7 @@ def doUploadToStaging(buildmode, workingDir, log):
     log.write('Setting BUILD_ROOT=' + buildRoot + '\n')
     os.putenv('BUILD_ROOT', buildRoot)
     os.chdir(buildRoot)
-    uploadDir = os.path.join(buildRoot, timestamp)
+    uploadDir = os.path.join(buildRoot, buildVersion)
     if not os.path.exists(uploadDir):
         os.mkdir(uploadDir)
 
