@@ -435,24 +435,6 @@ size_t wxMiniCalendar::GetWeek(const wxDateTime& date) const
     size_t retval = date.GetWeekOfMonth(GetWindowStyle() & wxCAL_MONDAY_FIRST
                                    ? wxDateTime::Monday_First
                                    : wxDateTime::Sunday_First);
-
-    if ( (GetWindowStyle() & wxCAL_SHOW_SURROUNDING_WEEKS) )
-    {
-        // we need to offset an extra week if we "start" on the 1st of the month
-        wxDateTime::Tm tm = date.GetTm();
-
-        wxDateTime datetest = wxDateTime(1, tm.mon, tm.year);
-
-        // rewind back
-        datetest.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
-                              ? wxDateTime::Mon : wxDateTime::Sun);
-
-        if ( datetest.GetDay() == 1 )
-        {
-            retval += 1;
-        }
-    }
-
     return retval;
 }
 
@@ -467,13 +449,14 @@ size_t wxMiniCalendar::GetWeek(const wxDateTime& date) const
 #else
 #define HORZ_MARGIN    15
 #endif
+#define EXTRA_MONTH_HEIGHT    5
 wxSize wxMiniCalendar::DoGetBestSize() const
 {
     // calc the size of the calendar
     ((wxMiniCalendar *)this)->RecalcGeometry(); // const_cast
 
     wxCoord width = DAYS_PER_WEEK * m_widthCol,
-            height = (WEEKS_TO_DISPLAY + 1) * m_heightRow + m_rowOffset + m_heightPreview + VERT_MARGIN;
+            height = (WEEKS_TO_DISPLAY + 1) * m_heightRow + m_rowOffset + EXTRA_MONTH_HEIGHT + m_heightPreview + VERT_MARGIN;
 
     if ( !HasFlag(wxBORDER_NONE) )
     {
@@ -644,11 +627,11 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     // draw month-name centered above weekdays
     wxCoord monthx = ((m_widthCol * DAYS_PER_WEEK) - monthw) / 2;
-    wxCoord monthy = ((m_heightRow - monthh) / 2) + y;
+    wxCoord monthy = ((m_heightRow - monthh) / 2) + y + 3;
     dc.DrawText(headertext, monthx,  monthy);
     dc.SetFont(m_normalFont);
 
-    y += m_heightRow;
+    y += m_heightRow + EXTRA_MONTH_HEIGHT;
 
     // first draw the week days
     if ( IsExposed(0, y, DAYS_PER_WEEK * m_widthCol, m_heightRow) )
@@ -812,7 +795,7 @@ void wxMiniCalendar::RefreshDate(const wxDateTime& date)
     // OnClick() below to work
     rect.x = 0;
 
-    rect.y = (m_heightRow * GetWeek(date)) + m_rowOffset + m_heightPreview;
+    rect.y = (m_heightRow * GetWeek(date)) + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview;
 
     rect.width = DAYS_PER_WEEK * m_widthCol;
     rect.height = m_heightRow;
@@ -1088,7 +1071,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
     // Header: Days
     int wday = pos.x / m_widthCol;
-    if ( y < (m_heightRow + m_rowOffset + m_heightPreview) )
+    if ( y < (m_heightRow + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview) )
     {
         if ( y > (m_rowOffset + m_heightPreview) )
         {
@@ -1110,7 +1093,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
         }
     }
 
-    int week = (y - (m_heightRow + m_rowOffset + m_heightPreview)) / m_heightRow;
+    int week = (y - (m_heightRow + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview)) / m_heightRow;
     if ( week >= WEEKS_TO_DISPLAY || wday >= DAYS_PER_WEEK )
     {
         return wxCAL_HITTEST_NOWHERE;
