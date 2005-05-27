@@ -1,18 +1,23 @@
 #!/usr/local/bin/python
 from twisted.internet.protocol import Factory
 from twisted.protocols import basic
+from twisted.test.ssl_helpers import ServerTLSContext
 from twisted.internet import reactor
 import sys
 
 USER = "test"
-PASS = "twisted"
+PASS = "test"
+
+CERT_FILE = "./certs/server.pem"
 
 PORT = 1100
+SSL_PORT = 9930
 
 SSL_SUPPORT = True
+START_SSL = False
 UIDL_SUPPORT = True
 INVALID_SERVER_RESPONSE = False
-INVALID_CAPABILITY_RESPONSE = False
+NO_CAPABILITY_RESPONSE = False
 INVALID_LOGIN_RESPONSE = False
 DENY_CONNECTION = False
 DROP_CONNECTION = False
@@ -41,6 +46,8 @@ AUTH_DECLINED = "-ERR LOGIN failed"
 AUTH_ACCEPTED = "+OK Mailbox open, 0 messages"
 TLS_ERROR = "-ERR server side error start TLS handshake"
 LOGOUT_COMPLETE = "+OK quit completed"
+BEGIN_TLS = "+OK Begin TLS negotiation now"
+TLS_NOT_AVAILABLE = "-ERR TLS nnot available"
 NOT_LOGGED_IN = "-ERR Unknown AUHORIZATION state command"
 STAT = "+OK 0 0"
 UIDL = "+OK Unique-ID listing follows\r\n."
@@ -107,13 +114,16 @@ class POP3TestServer(basic.LineReceiver):
             return
 
         elif "CAPA" in line.upper():
-            if INVALID_CAPABILITY_RESPONSE:
+            if NO_CAPABILITY_RESPONSE:
                 self.sendLine(INVALID_RESPONSE)
             else:
                 self.sendCapabilities()
 
         elif "STLS" in line.upper() and SSL_SUPPORT:
-            self.startTLS()
+            if BAD_TLS_RESPONSE: 
+                self.sendLine("+OK here is some garbage TLS not started")
+            else:
+                self.startTLS()
 
         elif "USER" in line.upper():
             if INVALID_LOGIN_RESPONSE:
@@ -181,32 +191,24 @@ class POP3TestServer(basic.LineReceiver):
 
     def startTLS(self):
         if self.ctx is None:
-            self.getContext()
+            self.ctx = ServerTLSContext(CERT_FILE)
 
         if SSL_SUPPORT and self.ctx is not None:
-            self.sendLine('+OK Begin TLS negotiation now')
+            self.sendLine(BEGIN_TLS)
             self.transport.startTLS(self.ctx)
         else:
-            self.sendLine('+OK TLS not available')
+            self.sendLine(TLS_NOT_AVAILABLE)
 
     def disconnect(self):
         self.transport.loseConnection()
 
-    def getContext(self):
-        try:
-            from twisted.internet import ssl
-        except ImportError:
-           self.ctx = None
-        else:
-            self.ctx = ssl.ClientContextFactory()
-            self.ctx.method = ssl.SSL.TLSv1_METHOD
-
 
 usage = """popServer.py [arg] (default is Standard POP Server with no messages)
+start_ssl  - Start in SSL mode only accept encypted traffic
 no_ssl  - Start with no SSL support
 no_uidl - Start with no UIDL support
 bad_resp - Send a non-RFC compliant response to the Client
-bad_cap_resp - send a non-RFC compliant response when the Client sends a 'CAPABILITY' request
+no_cap   - send a "-ERR" response to a 'CAPA' request
 bad_login_resp - send a non-RFC compliant response when the Client sends a 'LOGIN' request
 deny - Deny the connection
 drop - Drop the connection after sending the greeting
@@ -227,6 +229,11 @@ def processArg(arg):
         SSL_SUPPORT = False
         printMessage("NON-SSL")
 
+    elif arg.lower() == 'start_ssl':
+        global START_SSL
+        START_SSL = True
+        printMessage("Starting in SSL Mode")
+
     elif arg.lower() == 'no_uidl':
         global UIDL_SUPPORT
         UIDL_SUPPORT = False
@@ -237,10 +244,10 @@ def processArg(arg):
         INVALID_SERVER_RESPONSE = True
         printMessage("Invalid Server Response")
 
-    elif arg.lower() == 'bad_cap_resp':
-        global INVALID_CAPABILITY_RESPONSE
-        INVALID_CAPABILITY_RESPONSE = True
-        printMessage("Invalid Capability Response")
+    elif arg.lower() == 'no_cap':
+        global NO_CAPABILITY_RESPONSE
+        NO_CAPABILITY_RESPONSE = True
+        printMessage("No Capability Response")
 
     elif arg.lower() == 'bad_login_resp':
         global INVALID_LOGIN_RESPONSE
@@ -298,7 +305,12 @@ def main():
 
     f = Factory()
     f.protocol = POP3TestServer
-    reactor.listenTCP(PORT, f)
+
+    if START_SSL:
+        reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
+    else:
+        reactor.listenTCP(PORT, f)
+
     reactor.run()
 
 if __name__ == '__main__':
