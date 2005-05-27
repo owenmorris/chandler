@@ -378,7 +378,7 @@ def forceBuildNextCycle(log, workingDir):
     # cycle which will cause doBuild etc. to be called.
     print 'Removing toplevel Makefiles to trigger build next cycle'
     log.write('Removing toplevel makefiles to trigger build next cycle\n')
-    for module in svnModules:
+    for module in reposModules:
         makefile = os.path.join(workingDir, module, 'Makefile')
         if os.path.exists(makefile):
             os.remove(makefile)
