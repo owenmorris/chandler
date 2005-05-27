@@ -253,8 +253,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             isDate = type(event.dtstart[0].value) == datetime.date
             if isDate:
                 d = event.dtstart[0].value
-                event.dtstart[0].value = datetime.datetime(d.year, d.month, d.day)
-                recurrenceIter = [event.dtstart[0].value]
+                recurrenceIter = [datetime.datetime(d.year, d.month, d.day)]
             else:
                 recurrenceIter = itertools.islice(event.rruleset, MAXRECUR)
             
