@@ -114,10 +114,11 @@ def ebError(err, proto):
 
 
 def main():
-    hostname = "localhost" #raw_input('POP3 Server Hostname: ')
-    port = 1100 #raw_input('POP3 port: ')
-    username = "test" #raw_input('POP3 Username: ')
-    password = "test" #util.getPassword('POP3 Password: ')
+    hostname = raw_input('POP3 Server Hostname: ')
+    port = raw_input('POP3 port: ')
+    username = raw_input('POP3 Username: ')
+    password = util.getPassword('POP3 Password: ')
+    useSSL = raw_input('use SSL (Yes/No): ')
 
     onConn = defer.Deferred(
         ).addCallback(cbServerGreeting, username, password
@@ -125,9 +126,12 @@ def main():
         )
 
     factory = SimplePOP3ClientFactory(username, onConn)
-    
-    conn = reactor.connectTCP(hostname, int(port), factory)
-    #conn = reactor.connectSSL(hostname, int(port), factory, ClientTLSContext())
+
+    if useSSL.lower() == "yes":
+        conn = reactor.connectSSL(hostname, int(port), factory, ClientTLSContext())
+    else:
+        conn = reactor.connectTCP(hostname, int(port), factory)
+
     reactor.run()
 
 if __name__ == '__main__':
