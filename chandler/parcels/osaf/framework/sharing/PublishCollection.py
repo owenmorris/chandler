@@ -317,7 +317,9 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.hidden = True
 
             self._showStatus("Wait for Sharing URL...\n")
-            if not shareXML.exists():
+            if shareXML.exists():
+                raise Sharing.SharingError("Share already exists")
+            else:
                 self._showStatus("Creating collection on server...")
                 shareXML.create()
                 self._showStatus(" done.\n")
@@ -342,6 +344,17 @@ class PublishCollectionDialog(wx.Dialog):
                 shareICal.delete(True)
             except:
                 pass
+
+            # Re-enable the main panel and switch back to the "Share" button
+            self.mainPanel.Enable(True)
+            self.buttonPanel.Hide()
+            self.mySizer.Detach(self.buttonPanel)
+            self.buttonPanel = self.resources.LoadPanel(self,
+                                                        "PublishButtonsPanel")
+            self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
+            self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
+            self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+            self._resize()
 
             return
 
