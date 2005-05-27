@@ -23,13 +23,6 @@ clean:
 	rm -rf $(READLINE)/$(BUILD)
 	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
 
-realclean: clean
-	rm -rf $(READLINE)/$(BUILD)
-	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
-	rm -f readline-debug-*.tar.gz* readline-release-*.tar.gz*
-
-_realclean: realclean
- 
 ifeq ($(strip $(OS_VERSION)),8.0.0) 
 apply:
 	mv $(SRC)/shlib/Makefile $(SRC)/shlib/Makefile.backup
