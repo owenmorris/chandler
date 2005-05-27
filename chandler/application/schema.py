@@ -6,6 +6,8 @@ from repository.schema import Types
 from application.Parcel import Manager, Parcel
 import __main__, repository, threading, os
 
+ANONYMOUS_ROOT = "//userdata"
+
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
@@ -279,13 +281,13 @@ class Item(Base):
     _schema_kind_path = '//Schema/Core/Item'   # bootstrap root class
 
     def __init__(self,
-        name=None, parent=None, kind=None, _uuid=None, **values
+        name=None, parent=None, kind=None, *args, **values
     ):
         if parent is None and name is None:
             parent = anonymous_root
         if kind is None:
             kind = self.__class__._schema_kind
-        super(Item,self).__init__(name,parent,kind,_uuid,**values)
+        super(Item,self).__init__(name,parent,kind,*args,**values)
 
 
 def importString(name, globalDict=__main__.__dict__):
@@ -414,10 +416,10 @@ def initRepository(rv,
     if rv.findPath('//Schema/Core/Parcel') is None:
         rv.loadPack(os.path.join(packdir,'chandler.pack'))
 
-    anonymous_root = rv.findPath('//anonymous-root')
+    anonymous_root = rv.findPath(ANONYMOUS_ROOT)
     if anonymous_root is None:
         anonymous_root = Base(
-            'anonymous-root', rv, rv.findPath('//Schema/Core/Item')
+            ANONYMOUS_ROOT[2:], rv, rv.findPath('//Schema/Core/Item')
         )
 
 def declareTemplate(item):
@@ -449,7 +451,7 @@ def reset(rv=None):
             nrv._parcel_cache = {}
         if not hasattr(nrv,'_schema_cache'):
             nrv._schema_cache = {}
-        anonymous_root = nrv.findPath('//anonymous-root')
+        anonymous_root = nrv.findPath(ANONYMOUS_ROOT)
         declareTemplate(anonymous_root)
     
         return old_rv

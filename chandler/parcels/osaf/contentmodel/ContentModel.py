@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from datetime import datetime
 
 from application.Parcel import Parcel
+from application import schema
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
@@ -51,7 +52,7 @@ class ContentModel(Parcel):
     getContentItemParent = classmethod(getContentItemParent)
 
 
-class ContentItem(Item.Item):
+class ContentItem(schema.Item):
 
     """ Subclasses of ContentItem get the following behavior for free:
         1. parent will automatically be set to //userdata
