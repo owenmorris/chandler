@@ -100,6 +100,14 @@
             </Enumeration>
         </Attribute>
 
+        <Attribute itsName="timeout">
+            <displayName value="Timeout" />
+            <description value="The number of seconds before timing out a stalled connection" />
+            <type itemref="Integer" />
+            <initialValue type="Integer" value="60" />
+        </Attribute>
+
+
         <Attribute itsName="isActive">
             <displayName value="Is active" />
             <description value="Whether or not an account should be used for sending or fetching email" />
@@ -121,6 +129,13 @@
             <type itemref="mail:SMTPAccount" />
             <inverseAttribute itemref="mail:SMTPAccount/accounts" />
             <initialValue itemref="None" />
+        </Attribute>
+
+        <Attribute itsName="downloadMax">
+            <displayName value="Download Max" />
+            <description value="The maximum number of messages to download before forcing a repository commit" />
+            <type itemref="Integer" />
+            <initialValue type="Integer" value="50" />
         </Attribute>
 
         <Attribute itsName="replyToAddress">
