@@ -9,7 +9,7 @@ import __main__, repository, threading, os
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
-    'importString', 'parcel_for_module',
+    'importString', 'parcel_for_module', 'TypeReference',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -17,6 +17,16 @@ all_aspects = Attribute.valueAspects + Attribute.refAspects + \
 
 global_lock = threading.RLock()
 
+
+class TypeReference:
+    def __init__(self,path):
+        if nrv.findPath(path) is None:
+            raise NameError("Type %r not found in the core schema" % (path,))
+        self.path = path
+        self.__name__ = path.split('/')[-1]
+
+    def __repr__(self):
+        return "TypeReference(%r)" % self.path
 
 
 class ActiveDescriptor(object):
@@ -84,12 +94,10 @@ class Role(ActiveDescriptor,CDescriptor):
             
         self._setattr(attr,value)
         if attr=='type':
-            if not isinstance(value,type) or not issubclass(
-                value,(Base,Types.Type)
-            ):
+            if not isinstance(value,(ItemClass,TypeReference)):
                 self._setattr(attr,old) # roll it back
                 raise TypeError(
-                    "Attribute type must be Item class or Type",value
+                    "Attribute type must be Item class or TypeReference",value
                 )
             self.setDoc()   # update docstring
 
@@ -187,9 +195,8 @@ class Role(ActiveDescriptor,CDescriptor):
                             if isinstance(self.type,ItemClass):
                                 val = val._schema_kind
                             else:
-                                # XXX Ugh - types need to know their paths  :(
-                                t = nrv.findPath('//Schema/Core/'+val.__name__)
-                                assert t, ("Unrecognized type",val)
+                                t = nrv.findPath(val.path)
+                                assert t, ("Unrecognized type",val.path)
                                 val = t
                         setattr(attr,aspect,val)
 
@@ -456,6 +463,14 @@ def reset(rv=None):
 nrv = anonymous_root = None
 reset(nrv)
 
+core_types = """
+Boolean String Integer Long Float Tuple List Set Class Dictionary
+Date Time DateTime TimeDelta
+Lob Symbol URL Complex UUID Path
+""".split()
 
+for name in core_types:
+    globals()[name] = TypeReference("//Schema/Core/"+name)
 
+__all__.extend(core_types)
 

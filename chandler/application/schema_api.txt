@@ -5,7 +5,7 @@ Schema Definition Support
 .. contents:: **Table of Contents**
 
     >>> from application import schema
-    >>> from repository.schema import Types
+
 
 ------------
 Introduction
@@ -86,7 +86,7 @@ All role objects have at least the following attributes and methods:
     single type::
 
         >>> class Kind(schema.Item):
-        ...     name = schema.One(Types.String)
+        ...     name = schema.One(schema.String)
         ...     subkinds = schema.Many()
         ...     superkinds = schema.Many(inverse=subkinds)
         ...     def __repr__(self):
@@ -188,6 +188,37 @@ All role objects have at least the following attributes and methods:
         >>> print role3.inverse         # no change took place
         None
 
+``type``
+    The ``type`` of a role can be either a ``schema.Item`` subclass, or a
+    ``schema.TypeReference`` to a specific repository value type.  The
+    ``schema`` module supplies various pre-configured ``TypeReference``
+    objects for your convenience::
+
+        >>> schema.String
+        TypeReference('//Schema/Core/String')
+
+        >>> myType = schema.TypeReference('//Schema/Core/DateTime')
+
+        >>> print schema.Role(myType).__doc__
+        Role(DateTime)
+
+    Note that you cannot use arbitrary Python types or classes; you must either
+    supply a ``schema.TypeReference`` or a subclass of ``schema.Item``::
+
+        >>> schema.Role(str)
+        Traceback (most recent call last):
+        ...
+        TypeError: ('Attribute type must be Item class or TypeReference', ...)
+
+    And type references must be to types defined by the repository's core
+    schema::
+
+        >>> schema.TypeReference('//no/such/type')
+        Traceback (most recent call last):
+        ...
+        NameError: Type '//no/such/type' not found in the core schema
+
+
 Aspect Attributes
     Role objects support setting all of the aspects of a repository
     ``Attribute``, including ``required``, ``persist``, ``cardinality``,
@@ -225,8 +256,8 @@ Item Subclasses
 XXX Explain this::
 
     >>> class Person(schema.Item):
-    ...     fullname = schema.One(Types.String)
-    ...     age = schema.One(Types.Integer)
+    ...     fullname = schema.One(schema.String)
+    ...     age = schema.One(schema.Integer)
     ...     parents = schema.Sequence()
     ...     children = schema.Sequence(inverse=parents)
     ...     def __repr__(self): return self.fullname

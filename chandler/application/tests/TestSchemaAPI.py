@@ -7,7 +7,7 @@ from repository.persistence.RepositoryView import NullRepositoryView
 
 class Dummy(schema.Item):
     """Just a test fixture"""
-    attr = schema.One(Types.String)
+    attr = schema.One(schema.String)
     other = schema.Many()
 
 class Other(schema.Item):
