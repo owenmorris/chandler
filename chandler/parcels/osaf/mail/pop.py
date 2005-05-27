@@ -33,16 +33,15 @@ import base as base
    when downloading an individual mail use the feedparser for performance
 
    Make POP downloading IMAP like in approach
+   XXX: Use a List, ***ref collection, or Item Collection to maintain Account refs
 """
 
 
 class _TwistedPOP3Client(pop3.POP3Client):
-    """Overides C{imap4.IMAP4Client} to add
+    """Overides C{pop3.PO3Client} to add
        Chandler specific functionality including startTLS management
        and Timeout management"""
 
-    timeout  = constants.TIMEOUT
-    timeout  = constants.TIMEOUT
     allowInsecureLogin = True
 
     def serverGreeting(self, challenge):
@@ -62,6 +61,11 @@ class _TwistedPOP3Client(pop3.POP3Client):
         """
 
         self.delegate.proto = self
+
+        #XXX: If no capabilities what to do?
+        #XXX: IF no capa test TOP and UIDL for testing and startTLS
+        #XXX: Could cache server functionality support when setting account
+        #XXX: If DNS to a different server then perhaps different CAPA
 
         d = self.capabilities()
         d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
@@ -157,7 +161,7 @@ class POPClient(base.AbstractDownloadClient):
 
         total = len(uidList)
 
-        for i in range(total):
+        for i in xrange(total):
             uid = uidList[i]
 
             if not uid in self.account.downloadedMessageUIDS:
@@ -172,7 +176,7 @@ class POPClient(base.AbstractDownloadClient):
     def _getNextMessageSet(self):
         """Overides base class to add POP specific logic.
            If the pending queue has one or messages to download
-           for n messages up to C{constants.DOWNLOAD_MAX} fetches
+           for n messages up to C{POPAccount.downladMax} fetches
            the mail from the POP server. If no message pending
            calls actionCompleted() to clean up client resources.
         """
@@ -184,8 +188,8 @@ class POPClient(base.AbstractDownloadClient):
         if self.numToDownload == 0:
             return self._actionCompleted()
 
-        if self.numToDownload > constants.DOWNLOAD_MAX:
-            self.numToDownload = constants.DOWNLOAD_MAX
+        if self.numToDownload > self.downloadMax:
+            self.numToDownload = self.downloadMax
 
         msgNum, uid = self.pending.pop(0)
 
@@ -210,6 +214,7 @@ class POPClient(base.AbstractDownloadClient):
 
         repMessage.deliveryExtension.uid = uid
         #XXX: This is temporary will need a better way
+        #XXX: Could use an item collection with an index
         self.account.downloadedMessageUIDS[uid] = "True"
 
         self.numDownloaded += 1

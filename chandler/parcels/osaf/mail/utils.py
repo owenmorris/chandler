@@ -158,7 +158,6 @@ def isString(var):
 
 def unicodeToText(contentItem, attribute, unicodeString, indexText=False, \
               encoding=constants.DEFAULT_CHARSET, replaceError=True):
-    #XXX: Should rename this method to be more clear
     """Converts a C{unicode} string  to {Lob}.
     """
     assert isinstance(unicodeString, unicode), "Only Unicode string may be passed to this method"

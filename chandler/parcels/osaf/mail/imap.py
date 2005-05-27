@@ -53,8 +53,6 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
        Chandler specific functionality including startTLS management
        and Timeout management"""
 
-    timeout  = constants.TIMEOUT
-
     def serverGreeting(self, caps):
         """
         This method overides C{imap4.IMAP4Client}.
@@ -254,7 +252,7 @@ class IMAPClient(base.AbstractDownloadClient):
     def _getNextMessageSet(self):
         """Overides base class to add IMAP specific logic.
            If the pending queue has one or messages to download
-           for n messages up to C{constants.DOWNLOAD_MAX} fetches
+           for n messages up to C{IMAPAccount.downloadMax} fetches
            the mail from the IMAP server. If no message pending
            calls actionCompleted() to clean up client resources.
         """
@@ -266,8 +264,8 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.numToDownload == 0:
             return self._actionCompleted()
 
-        if self.numToDownload > constants.DOWNLOAD_MAX:
-            self.numToDownload = constants.DOWNLOAD_MAX
+        if self.numToDownload > self.downloadMax:
+            self.numToDownload =self.downloadMax 
 
         m = self.pending.pop(0)
         d = self.proto.fetchMessage(str(m[0]), uid=True)

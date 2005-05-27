@@ -94,12 +94,6 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         self.pending = []
         self.testing = False
 
-    def shutdown(self):
-        """Cleans up resources before being deleted"""
-        if __debug__:
-            self.log.warn("SMTPClient shutdown")
-
-
     def sendMail(self, mailMessage):
         """
            Sends a mail message via SMTP using the C{SMTPAccount}
@@ -326,7 +320,7 @@ class _SMTPTransport(object):
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          deferred, account.numRetries, constants.TIMEOUT,
+                                          deferred, account.numRetries, account.timeout,
                                           tlsContext, heloFallback, authRequired, securityRequired)
 
 
@@ -530,16 +524,16 @@ class _SMTPTransport(object):
             errorCode = errors.M2CRYPTO_CODE
 
             try:
-                #XXX: Special Case should be caught prompting the message to be resend
-                #     if the user adds the cert to the chain
-                if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                    errorString =  errors.STR_SSL_CERTIFICATE_ERROR
-                else:
-                    errorString = errors.STR_SSL_ERROR
+                errDesc = err.args[0]
+            except AttributeError, IndexError:
+                errDesc = ""
 
-            except:
-               errorString = errors.STR_SSL_ERROR
-
+            #XXX: Special Case should be caught prompting the message to be resent
+            #     if the user adds the cert to the chain
+            if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                errorString =  errors.STR_SSL_CERTIFICATE_ERROR
+            else:
+                errorString = errors.STR_SSL_ERROR
         else:
             errorCode = errors.UNKNOWN_CODE
             errorString = errors.STR_UNKNOWN_ERROR % (err.__module__, err.__doc__)

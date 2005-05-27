@@ -15,20 +15,21 @@ import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
 
 #python imports
-import logging as logging
+import logging
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import repository.item.Query as Query
+from repository.persistence.RepositoryError \
+    import RepositoryError, VersionConflictError
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.SSL as SSL
 
 #Chandler Mail Service imports
-import errors as errors
-import constants as constants
-import utils as utils
+import errors
+import constants
+import utils
 
 class AbstractDownloadClientFactory(protocol.ClientFactory):
     """ Base class for Chandler download transport factories(IMAP, POP, etc.).
@@ -70,6 +71,8 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         """
         p = protocol.ClientFactory.buildProtocol(self, addr)
         p.delegate = self.delegate
+        """Set the protocol timeout value to that specified in the account"""
+        p.timeout = self.delegate.account.timeout
         p.factory  = self
 
         return p
@@ -135,7 +138,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """These values exist for life of client"""
         self.accountUUID = account.itsUUID
         self.account = None
-        self.inProcess = False
+        self.currentlyDownloading = False
         self.testing = False
 
         """These values are reassigned per request"""
@@ -144,6 +147,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.lastUID = 0
         self.totalDownloaded = 0
         self.pending = []
+        self.downloadMax = 0
 
         """These values are reassigned per fetch"""
         self.numDownloaded = 0
@@ -158,6 +162,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """Move code execution path from current thread
            to Reactor Asynch thread"""
 
+        #XXX: Ask Phillip about how to get rid of boiler plate
         reactor.callFromThread(self.execInView, self._getMail)
 
 
@@ -174,25 +179,26 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         reactor.callFromThread(self.execInView, self._getMail)
 
-    def printCurrentView(self, viewStr = None):
-        """Prints the current view as well the clientType and
-           viewStr to the log.
+    if __debug__:
+        def printCurrentView(self, viewStr = None):
+            """Prints the current view as well the clientType and
+               viewStr to the log.
 
-           @type viewStr: C{str}, C{unicode}, or None
-        """
+               @type viewStr: C{str}, C{unicode}, or None
+            """
 
-        if viewStr is None:
-            str = self.clientType
-        else:
-            str = "%s.%s" % (self.clientType, viewStr)
+            if viewStr is None:
+                str = self.clientType
+            else:
+                str = "%s.%s" % (self.clientType, viewStr)
 
-        super(AbstractDownloadClient, self).printCurrentView(str)
+            super(AbstractDownloadClient, self).printCurrentView(str)
 
     def _getMail(self):
         if __debug__:
             self.printCurrentView("_getMail")
 
-        if self.inProcess:
+        if self.currentlyDownloading:
             if self.testing:
                 self.log.warn("%s currently testing account \
                                settings" % self.clientType)
@@ -202,18 +208,23 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
             return
 
-        self.inProcess = True
+        self.currentlyDownloading = True
 
         try:
             self.view.refresh()
 
-        except Exception, e:
+        except VersionConflictError, e:
             return self.catchErrors(e)
+
+        except RepositoryError, e1:
+            return self.catchErrors(e1)
 
         """Overidden method"""
         self._getAccount()
 
         self.factory = self.factoryType(self)
+        """Cache the maximum number of messages to download before forcing a commit"""
+        self.downloadMax = self.account.downloadMax
 
         if self.account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
@@ -245,11 +256,16 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         if errorType == errors.M2CRYPTO_ERROR:
             try:
-                if err.args[0] == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                    errorStr = errors.STR_SSL_CERTIFICATE_ERROR
+                errDesc = err.args[0]
+            except AttributeError, IndexError:
+                errDesc = ""
 
-            except:
-               errStr = errors.STR_SSL_ERROR
+            #XXX: Special Case should be caught prompting the message to be resent
+            #     if the user adds the cert to the chain
+            if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                errorStr = errors.STR_SSL_CERTIFICATE_ERROR
+            else:
+                errorStr = errors.STR_SSL_ERROR
 
         if self.testing:
             utils.alert(constants.TEST_ERROR, \
@@ -270,14 +286,6 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
     def _loginClient(self):
         raise NotImplementedError()
-
-    def shutdown(self):
-        """Called by the C{MailService} before Mail Transport Client
-           is unitialized. Overide this method to add any custom
-           behavior required before shutdown"""
-        if __debug__:
-            self.printCurrentView("%s shutdown" % self.clientType)
-
 
     def _beforeDisconnect(self):
         """Overide this method to place any protocol specific
@@ -301,7 +309,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         self.factory.sendFinished = 1
 
-        if not self.factory.connectionLost and self.proto:
+        if not self.factory.connectionLost and self.proto is not None:
             self.proto.transport.loseConnection()
 
 
@@ -323,8 +331,12 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         utils.NotifyUIAsync(msg)
 
         """We have downloaded the last batch of messages if the
-           number downloaded is less than the max"""
-        if self.numDownloaded < constants.DOWNLOAD_MAX:
+           number downloaded is less than the max.
+
+           Add a check to make sure the account was not
+           deactivated during the last fetch sequesnce.
+        """
+        if self.numDownloaded < self.downloadMax or not self.account.isActive:
             self._actionCompleted()
 
         else:
@@ -342,7 +354,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
     def _actionCompleted(self):
         """Handles clean up after mail downloaded
            by calling:
-               1. _beforeDisconnectClient
+               1. _beforeDisconnect
                2. _disconnect
                3. _resetClient
         """
@@ -362,8 +374,8 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         if __debug__:
             self.printCurrentView("_resetClient")
 
-        """Release the inProcess lock"""
-        self.inProcess = False
+        """Release the currentlyDownloading lock"""
+        self.currentlyDownloading = False
 
         """Reset testing to False"""
         self.testing = False
@@ -374,6 +386,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.lastUID         = 0
         self.totalDownloaded = 0
         self.pending         = []
+        self.downloadMax     = 0
 
         self.numToDownload  = 0
         self.numDownloaded  = 0
@@ -386,21 +399,3 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """
 
         raise NotImplementedError()
-
-    def _printInfo(self, info):
-        """Print tracing infor to the Chandler log
-           including host, port, and username
-
-           @param info: String data to add to the log message
-           @type info: C{String}
-        """
-        if self.account.port != self.defaultPort:
-            str = "[Server: %s:%d User: %s] %s" % (self.account.host,
-                                                   self.account.port,
-                                                   self.account.username, info)
-        else:
-            str = "[Server: %s User: %s] %s" % (self.account.host,
-                                                self.account.username, info)
-
-        self.log.info(str)
-

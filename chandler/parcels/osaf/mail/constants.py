@@ -5,6 +5,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains constants shared across the Mail Domain (SMTP, IMAP4, POP3) """
 
+#XXX: Look at moving much of the data to items
+
 #python imports
 import version
 
@@ -30,7 +32,6 @@ DOWNLOAD_NO_MESSAGES = _("No new messages found")
 DOWNLOAD_MESSAGES = _("%s messages downloaded to Chandler")
 DOWNLOAD_CHECK_MESSAGES = _("Checking for new mail messages")
 DOWNLOAD_REQUIRES_TLS = _("The Server only allows secure login. Please enable TLS or SSL.")
-DOWNLOAD_MAX = 50
 
 """Translatable message strings for uploads(SMTP)"""
 UPLOAD_FAILED = _("Unable to send: %s")
@@ -45,9 +46,6 @@ UPLOAD_TO_REQUIRED = _("A To Address is required to send an SMTP Mail Message")
 """Translatable message strings for account testing"""
 TEST_ERROR = _("%s Test Results\n\nPlease correct the following configuration error:\n\n%s")
 TEST_SUCCESS = _("%s Test Results\n\nTest was successful.")
-
-DATE_IS_EMPTY = -57600
-TIMEOUT = 60
 
 SHARING_HEADER  = "Sharing-URL"
 SHARING_DIVIDER = ";"

@@ -8,12 +8,18 @@ import logging as logging
 
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
+from repository.persistence.RepositoryError \
+    import RepositoryError, VersionConflictError
 
 #Chandler Mail Service imports
 import smtp as smtp
 import imap as imap
 import pop as pop
 import errors as errors
+
+"""
+XXX: Not thread safe code
+"""
 
 class MailService(object):
     """Central control point for all mail related code.
@@ -53,43 +59,29 @@ class MailService(object):
         """Initializes the MailService and creates the cache for
            suppported protocols POP, SMTP, IMAP"""
 
+        self.__clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
+
         if self.__started:
             raise errors.MailException("MailService is currently started")
-
-        self.__smtpInstances = {}
-        self.__imapInstances = {}
-        self.__popInstances  = {}
 
         self.__started = True
 
     def shutdown(self):
-        """Shutsdown the MailService and any clients in the 
+        """Shutsdown the MailService and deletes any clients in the 
            MailServices cache"""
 
-        for smtpInstance in self.__smtpInstances.values():
-            #XXX: Not crazy about the termonology
-            smtpInstance.shutdown()
-
-        self.__smtpInstances = None
-
-        for imapInstance in self.__imapInstances.values():
-            #XXX: Not crazy about the termonology
-            imapInstance.shutdown()
-
-        self.__imapInstances = None
-
-        for popInstance in self.__popInstances.values():
-            #XXX: Not crazy about the termonology
-            popInstance.shutdown()
-
-        self.__popInstances = None
+        del self.__clientInstances
 
         self.__started = False
+
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for
            any client instances that are associated with
            an inactive or deleted account."""
+
+        #XXX: Could move this in to an item collection notification
+        #     listen for changes on accounts
 
         self.refreshIMAPClientCache()
         self.refreshSMTPClientCache()
@@ -128,11 +120,13 @@ class MailService(object):
 
         assert isinstance(account, Mail.SMTPAccount)
 
-        if account.itsUUID in self.__smtpInstances:
-            return self.__smtpInstances.get(account.itsUUID)
+        smtpInstances = self.__clientInstances.get("SMTP")
+
+        if account.itsUUID in smtpInstances:
+            return smtpInstances.get(account.itsUUID)
 
         s = smtp.SMTPClient(self.__repository, account)
-        self.__smtpInstances[account.itsUUID] = s
+        smtpInstances[account.itsUUID] = s
 
         return s
 
@@ -148,11 +142,13 @@ class MailService(object):
 
         assert isinstance(account, Mail.IMAPAccount)
 
-        if account.itsUUID in self.__imapInstances:
-            return self.__imapInstances.get(account.itsUUID)
+        imapInstances = self.__clientInstances.get("IMAP")
+
+        if account.itsUUID in imapInstances:
+            return imapInstances.get(account.itsUUID)
 
         i = imap.IMAPClient(self.__repository, account)
-        self.__imapInstances[account.itsUUID] = i
+        imapInstances[account.itsUUID] = i
 
         return i
 
@@ -168,11 +164,13 @@ class MailService(object):
 
         assert isinstance(account, Mail.POPAccount)
 
-        if account.itsUUID in self.__popInstances:
-            return self.__popInstances.get(account.itsUUID)
+        popInstances = self.__clientInstances.get("POP")
+
+        if account.itsUUID in popInstances:
+            return popInstances.get(account.itsUUID)
 
         i = pop.POPClient(self.__repository, account)
-        self.__popInstances[account.itsUUID] = i
+        popInstances[account.itsUUID] = i
 
         return i
 
@@ -181,18 +179,24 @@ class MailService(object):
         method = None
 
         if type == "SMTP":
-            instances = self.__smtpInstances
+            instances = self.__clientInstances.get("SMTP")
             method = Mail.MailParcel.getActiveSMTPAccounts
 
         elif type == "IMAP":
-            instances = self.__imapInstances
+            instances = self.__clientInstances.get("IMAP")
             method = Mail.MailParcel.getActiveIMAPAccounts
 
         elif type == "POP":
-            instances = self.__popInstances
+            instances = self.__clientInstances.get("POP")
             method = Mail.MailParcel.getActivePOPAccounts
 
-        self.__view.refresh()
+        try:
+            #XXX :hat do you do if refresh fails
+            self.__view.refresh()
+        except RepositoryError:
+            return
+        except VersionConflictError:
+            return
 
         uuidList = []
         delList  = []
@@ -204,7 +208,6 @@ class MailService(object):
             if not accUUID in uuidList:
                 client = instances.get(accUUID)
                 instances.pop(accUUID)
-                client.shutdown()
                 del client
                 delList.append(accUUID)
 
