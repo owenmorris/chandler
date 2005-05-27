@@ -21,11 +21,14 @@ readline: $(SRC)/Makefile apply
 
 clean:
 	rm -rf $(READLINE)/$(BUILD)
-	rm $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
+	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
 
 realclean: clean
-	rm -rf build_debug build_release
+	rm -rf $(READLINE)/$(BUILD)
+	rm -f $(READLINE)/readline-$(VERSION)-$(SNAP)-expanded
 	rm -f readline-debug-*.tar.gz* readline-release-*.tar.gz*
+
+_realclean: realclean
  
 ifeq ($(strip $(OS_VERSION)),8.0.0) 
 apply:
