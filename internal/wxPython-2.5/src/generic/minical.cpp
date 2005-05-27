@@ -137,6 +137,7 @@ void wxMiniCalendar::Init()
 
     m_widthCol = 0;
     m_heightRow = 0;
+	m_todayHeight = 0;
 
     wxDateTime::WeekDay wd;
     for ( wd = wxDateTime::Sun; wd < wxDateTime::Inv_WeekDay; wxNextWDay(wd) )
@@ -456,7 +457,7 @@ wxSize wxMiniCalendar::DoGetBestSize() const
     ((wxMiniCalendar *)this)->RecalcGeometry(); // const_cast
 
     wxCoord width = DAYS_PER_WEEK * m_widthCol,
-            height = (WEEKS_TO_DISPLAY + 1) * m_heightRow + m_rowOffset + EXTRA_MONTH_HEIGHT + m_heightPreview + VERT_MARGIN;
+            height = WEEKS_TO_DISPLAY * m_heightRow + m_todayHeight + m_rowOffset + EXTRA_MONTH_HEIGHT + m_heightPreview + VERT_MARGIN;
 
     if ( !HasFlag(wxBORDER_NONE) )
     {
@@ -552,16 +553,17 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     y += m_heightPreview;
 
     // draw the sequential month-selector
+    m_todayHeight = m_heightRow + 2;
 
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(*wxBLACK);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));
     dc.DrawLine(0, y, GetClientSize().x, y);
-    dc.DrawLine(0, y + m_heightRow, GetClientSize().x, y + m_heightRow);
+    dc.DrawLine(0, y + m_todayHeight, GetClientSize().x, y + m_todayHeight);
     wxCoord buttonCoord = GetClientSize().x / 5;
-    dc.DrawLine(buttonCoord, y, buttonCoord, y + m_heightRow);
-    dc.DrawLine(buttonCoord * 4, y, buttonCoord * 4, y + m_heightRow);
+    dc.DrawLine(buttonCoord, y, buttonCoord, y + m_todayHeight);
+    dc.DrawLine(buttonCoord * 4, y, buttonCoord * 4, y + m_todayHeight);
 
     // Get extent of today button
     wxCoord todayw, todayh;
@@ -576,9 +578,9 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     m_todayRect = wxRect(0, 0, 0, 0);
 
     // Draw today button
-    m_todayRect = wxRect(buttonCoord, y, buttonCoord * 4, m_heightRow);
+    m_todayRect = wxRect(buttonCoord, y, buttonCoord * 4, m_todayHeight);
     wxCoord todayx = ((m_widthCol * DAYS_PER_WEEK) - todayw) / 2;
-    wxCoord todayy = ((m_heightRow - todayh) / 2) + y;
+    wxCoord todayy = ((m_todayHeight - todayh) / 2) + y;
     dc.DrawText(todaytext, todayx, todayy);
     dc.SetFont(m_normalFont);
 
@@ -597,27 +599,27 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     rightarrow[2] = wxPoint(0, arrowheight - 1);
 
     // draw the "month-arrows"
-    wxCoord arrowy = (m_heightRow - arrowheight) / 2 + y;
+    wxCoord arrowy = (m_todayHeight - arrowheight) / 2 + y;
     wxCoord larrowx = (buttonCoord - (arrowheight / 2)) / 2;
     wxCoord rarrowx = (buttonCoord / 2) + buttonCoord * 4;
     m_leftArrowRect = wxRect(0, 0, 0, 0);
     m_rightArrowRect = wxRect(0, 0, 0, 0);
 
     // Draw left arrow
-    m_leftArrowRect = wxRect(0, y, buttonCoord - 1, m_heightRow);
+    m_leftArrowRect = wxRect(0, y, buttonCoord - 1, m_todayHeight);
     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
     dc.DrawPolygon(3, leftarrow, larrowx , arrowy, wxWINDING_RULE);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
     // Draw right arrow
-    m_rightArrowRect = wxRect(buttonCoord * 4 + 1, y, buttonCoord - 1, m_heightRow);
+    m_rightArrowRect = wxRect(buttonCoord * 4 + 1, y, buttonCoord - 1, m_todayHeight);
     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
     dc.DrawPolygon(3, rightarrow, rarrowx , arrowy, wxWINDING_RULE);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 
-    y += m_heightRow;
+    y += m_todayHeight;
 
     // Get extent of month-name + year
     wxCoord monthw, monthh;
@@ -795,7 +797,7 @@ void wxMiniCalendar::RefreshDate(const wxDateTime& date)
     // OnClick() below to work
     rect.x = 0;
 
-    rect.y = (m_heightRow * GetWeek(date)) + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview;
+    rect.y = (m_heightRow * (GetWeek(date) - 1)) + m_todayHeight + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview;
 
     rect.width = DAYS_PER_WEEK * m_widthCol;
     rect.height = m_heightRow;
@@ -1071,7 +1073,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
     // Header: Days
     int wday = pos.x / m_widthCol;
-    if ( y < (m_heightRow + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview) )
+    if ( y < (m_todayHeight + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview) )
     {
         if ( y > (m_rowOffset + m_heightPreview) )
         {
@@ -1093,7 +1095,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
         }
     }
 
-    int week = (y - (m_heightRow + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview)) / m_heightRow;
+    int week = (y - (m_todayHeight + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview)) / m_heightRow;
     if ( week >= WEEKS_TO_DISPLAY || wday >= DAYS_PER_WEEK )
     {
         return wxCAL_HITTEST_NOWHERE;
