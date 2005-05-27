@@ -409,7 +409,10 @@ class ShareConduit(ContentModel.ContentItem):
 
 
     def __removeFromManifest(self, path):
-        del self.manifest[path]
+        try:
+            del self.manifest[path]
+        except:
+            pass
 
     def __externalItemExists(self, item):
         itemPath = self._getItemPath(item)
