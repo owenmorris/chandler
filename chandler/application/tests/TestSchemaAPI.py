@@ -3,7 +3,7 @@ this_module = "application.tests.TestSchemaAPI"     # change this if it moves
 
 from application import schema
 from repository.schema import Types
-
+from repository.persistence.RepositoryView import NullRepositoryView
 
 class Dummy(schema.Item):
     """Just a test fixture"""
@@ -50,10 +50,18 @@ class SchemaTests(SchemaTestCase):
         self.failUnless(attr3 is attr1)
 
     def testAttrKindType(self):
-        self.assertEqual(Dummy.attr._schema_attr.getAspect('type'),Types.String)
+        self.assertEqual(Dummy.attr._schema_attr.getAspect('type'),
+            schema.nrv.findPath('//Schema/Core/String'))
         self.assertEqual(Other.thing._schema_attr.getAspect('type'),
                          Dummy._schema_kind)
         self.assertRaises(TypeError, schema.Role, str)
+
+    def testImportAll(self):
+        rv = NullRepositoryView()
+        schema.initRepository(rv)
+        schema.synchronize(rv, this_module)
+        path = "//parcels/%s" % this_module.replace('.','/')
+        self.assertNotEqual( rv.findPath(path+'/Dummy'), None)
 
 
 def test_schema_api():

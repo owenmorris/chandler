@@ -186,6 +186,11 @@ class Role(ActiveDescriptor,CDescriptor):
                         elif aspect=='type':
                             if isinstance(self.type,ItemClass):
                                 val = val._schema_kind
+                            else:
+                                # XXX Ugh - types need to know their paths  :(
+                                t = nrv.findPath('//Schema/Core/'+val.__name__)
+                                assert t, ("Unrecognized type",val)
+                                val = t
                         setattr(attr,aspect,val)
 
                 if not hasattr(self,'otherName') and self.inverse is not None:
@@ -377,7 +382,13 @@ def parcel_for_module(moduleName):
 
 def synchronize(repoView,moduleName):
     """Ensure that the named module's schema is incorporated into `repoView`"""
-    importString(moduleName)
+    module = importString(moduleName)
+    for item in module.__dict__.values():
+        if isinstance(item,ItemClass):
+            # Import each kind
+            repoView.importItem(item._schema_kind)
+
+    # Import the parcel, too, in case there were no kinds
     repoView.importItem(parcel_for_module(moduleName))
 
 
