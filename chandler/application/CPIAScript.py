@@ -37,7 +37,7 @@ def RunScript(script=None):
     if script is not None:
         scriptDone = True
         try:
-            scriptDone = Globals.CPIAScript.execute()
+            scriptDone = script.execute()
         finally:
             if scriptDone:
                 Globals.CPIAScript = None # done
