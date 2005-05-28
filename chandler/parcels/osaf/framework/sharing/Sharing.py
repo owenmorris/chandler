@@ -179,6 +179,7 @@ class ShareConduit(ContentModel.ContentItem):
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
+        # @@@DLD bug 1998 - would refresh do here?
         self.itsView.commit() # Make sure locally modified items have had
                               # their version numbers bumped up.
 
@@ -227,6 +228,8 @@ class ShareConduit(ContentModel.ContentItem):
         # dirty our marker
         self.marker.setDirty(Item.NDIRTY)
 
+        # @@@DLD bug 1998 - why do we need a second commit here?
+        # Is this just for the setDirty above?
         self.itsView.commit()
 
         self.disconnect()
@@ -341,6 +344,7 @@ class ShareConduit(ContentModel.ContentItem):
             for removePath in toRemove:
                 self.__removeFromManifest(removePath)
 
+        # @@@DLD bug 1998 does this happen multiple times for a single collection share?
         self.itsView.commit()
 
         logger.info("Finished GET of %s" % location)
