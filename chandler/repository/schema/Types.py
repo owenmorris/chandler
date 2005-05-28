@@ -135,7 +135,7 @@ class Type(Item):
         return str(value)
 
     def recognizes(self, value):
-        return isinstance(value,self.getImplementationType())
+        return type(value) is self.getImplementationType()
 
     def eval(self, value):
         return value
