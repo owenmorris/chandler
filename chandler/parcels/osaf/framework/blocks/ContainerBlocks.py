@@ -438,15 +438,15 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             return True
         return False
 
-    def AddItem(self, itemUUID):
-        node = self.blockItem.findUUID(itemUUID)
-        try:
-            newItem = node.item
-        except AttributeError:
-            pass
-        else:
-            if isinstance(newItem, Block):
-                self.blockItem.ChangeCurrentTab(node)
+    def AddItems(self, itemList):
+        for node in itemList:
+            try:
+                newItem = node.item
+            except AttributeError:
+                pass
+            else:
+                if isinstance(newItem, Block):
+                    self.blockItem.ChangeCurrentTab(node)
 
     def OnHover(self, x, y):
         currentTab = self.HitTest((x, y))[0]

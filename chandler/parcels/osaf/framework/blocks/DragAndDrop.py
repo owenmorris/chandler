@@ -12,6 +12,26 @@ import time
 """
 Overview of Drag and Drop infrastructure:
 
+Two mixin classes are provided that should be mixed in to your widget class:
+    Use DraggableWidget for things that export data through Drag
+        and Drop or Cut and Copy.  
+    Use DropReceiveWidget for things that import data through
+        Drag and Drop or Paste.
+
+Since most of Chandler data are Items, the interface is Item-centric by default.
+    Widgets that mix in DraggableWidget should implement:
+        SelectedItems() to return a list of items currently selected (Copy, Drag)
+        DeleteSelection() to remove the selected items (Cut, Move)
+    Widgets that mix in DropReceiveWidget should implement:
+        AddItems() to insert a list of items (Paste, Drop)
+        KindAcceptedByDrop() to specify the Kind of items allowed
+
+It's possible to extend Drag and Drop for different kinds of items or deal with
+    non-item data. You will want to override some of these methods: 
+        CopyData() is used to get the selected data.
+        KindsCreatedByDrag() implements the known Kinds of Items
+        PasteData() is used to put the data into the selection.
+
 wxWidgets level:
     * wx.DropSource - the window you are dragging from
     * wx.DropTarget - the window you are dragging to
@@ -27,8 +47,11 @@ CPIA level:
        Usually there's a one-to-one correspondence between your CPIA 
     DropReceiveWidget and the wx.DropTarget.  However, the Grid case
     is a little tricky; the wx.DropTarget is the Table, but the
-    DropReceiveWidget is an individual Grid element (cell).
-   """
+    DropReceiveWidget is an individual Grid element (cell).  This
+    allows the Table to decide if the drop should be onto itself
+    or onto its Grid elements.  The default table implementation
+    drops onto itself, but the Sidebar drops onto its Grid elements.
+"""
    
    
 class DraggableWidget (object):
@@ -37,21 +60,26 @@ class DraggableWidget (object):
     Note that you need to list the Mixin before the base class in your
       class declaration for the right method override behavior.
     """
-    def SetDragData(self, kindsCreatedByDrag):
+    def DoDragAndDrop(self, copyOnly=None):
         """
-        Called to set up a widget's drag data at the beginning of a DnD.
+        Do a Drag And Drop operation, given the data in the selection.
+        If you want to disable Move, pass True for copyOnly.  Passing
+           False allows the Move.  Passing None (the default) will
+           allow the Move iff you have a DeleteSelection method.
         """
+        if copyOnly is None:
+            if not hasattr (self, 'DeleteSelection'):
+                copyOnly = True
+            else:
+                copyOnly = False
         # create a DropSource, and put our custom data into it
         # @@@DLD get better icons for the DnD cursors
-        dropSource = wx.DropSource(self, move=self._DROP_ICON("ApplicationBarSend.png"),
-                                   copy=self._DROP_ICON("ApplicationBarSync.png"),
-                                   none=self._DROP_ICON("ApplicationDelete.png"))
-        dataObject = wx.DataObjectComposite()
-        for dataKind, itemUUIDList in kindsCreatedByDrag.items():
-            kindFormat = wx.CustomDataFormat(dataKind)
-            customData = wx.CustomDataObject(kindFormat)
-            customData.SetData(','.join(map(str,itemUUIDList)))
-            dataObject.Add(customData)
+        iconParams = {'copy': self._DROP_ICON("ApplicationBarSync.png"),
+                      'none': self._DROP_ICON("ApplicationDelete.png")}
+        if not copyOnly:
+            iconParams['move'] = self._DROP_ICON("ApplicationBarSend.png")
+        dropSource = wx.DropSource(self, **iconParams)
+        dataObject = self.CopyData()
         dropSource.SetData(dataObject)
         # capture the mouse, so mouse moves don't trigger activities
         # in other windows, like the sidebar.
@@ -60,18 +88,35 @@ class DraggableWidget (object):
             # drag and drop the DropSource.  Many callbacks happen here.
             result = dropSource.DoDragDrop(flags=wx.Drag_AllowMove)
         finally:
-            self.ReleaseMouse()
+            if self.HasCapture():
+                self.ReleaseMouse()
         # if we moved the item, instead of the usual copy, remove the original
-        if result == wx.DragMove:
-            for itemUUID in itemUUIDList:
-                self.RemoveItem(itemUUID)
+        if not copyOnly and result == wx.DragMove:
+            self.DeleteSelection()
 
     def _DROP_ICON(self, filename):
+        # This macro from wxWidgets is going to be in wxPython soon.
         img = wx.GetApp().GetRawImage(filename)
         if wx.Platform == '__WXGTK__':
             return wx.IconFromBitmap(wx.BitmapFromImage(img))
         else:
             return wx.CursorFromImage(img)
+
+    def CopyData(self):
+        """
+        Called to get a widget's data at the beginning of a Copy or DnD.
+        Returns a wxDataObject variant for use in Drag and Drop, or Cut and Paste.
+        This implementation deals with Items using UUIDs; override for 
+            other kinds of data
+        """
+        dataObject = wx.DataObjectComposite()
+        kindsCreatedByDrag = self.KindsCreatedByDrag()
+        for dataKind, itemUUIDList in kindsCreatedByDrag.items():
+            kindFormat = wx.CustomDataFormat(dataKind)
+            customData = wx.CustomDataObject(kindFormat)
+            customData.SetData(','.join(itemUUIDList))
+            dataObject.Add(customData)
+        return dataObject
 
     def KindsCreatedByDrag(self):
         """
@@ -84,27 +129,43 @@ class DraggableWidget (object):
         def _ExportItem(exportDict, key, itemUUID):
             if not exportDict.has_key(key):
                 exportDict[key]=[]
-            exportDict[key].append(itemUUID)
+            exportDict[key].append(str(itemUUID))
 
         exportDict = {}
         items = self.SelectedItems()
         for item in items:
             itemUUID = item.itsUUID
             _ExportItem(exportDict, "Item", itemUUID)
-            if isinstance (item, ContentModel.ContentItem):
-                _ExportItem(exportDict, "ContentItem", itemUUID)
             if isinstance (item, ItemCollection.ItemCollection):
                 _ExportItem(exportDict, "ItemCollection", itemUUID)
+                # ItemCollections are not considered ContentItems to
+                #   keep you from dragging them into themselves.
+            elif isinstance (item, ContentModel.ContentItem):
+                _ExportItem(exportDict, "ContentItem", itemUUID)
         return exportDict
     
-    def RemoveItem(self, itemUUID):
-        """
-          Override this to remove the item from the widget when that
-        item is dragged out of the widget (and the drop is accepted by
-        another widget).
-        """
-        pass
-            
+    def CanCopy(self):
+        return len(self.SelectedItems()) > 0
+
+    def CanCut(self):
+        if not hasattr (self, 'DeleteSelection'):
+            return False
+        return self.CanCopy()
+
+    def Copy(self):
+        clipboard = wx.TheClipboard
+        if clipboard.Open():
+            data = self.CopyData()
+            clipboard.SetData(data)
+            clipboard.Close()
+
+    def Cut(self):
+        self.Copy()
+        try:
+            self.DeleteSelection()
+        except AttributeError:
+            pass # doesn't know DeleteSelection()
+
 class DropReceiveWidget (object):
     """
     Mixin class for widgets that want to receive drag and drop events.
@@ -134,9 +195,9 @@ class DropReceiveWidget (object):
         """
         return True
         
-    def AddItem(self, itemUUID):
+    def AddItems(self, itemList):
         """
-          Override this to add the dropped item to your widget.
+          Override this to add the dropped items to your widget.
         """
         pass
     
@@ -147,6 +208,35 @@ class DropReceiveWidget (object):
         """
         pass
 
+    def CanPaste(self):
+        clipboard = wx.TheClipboard
+        formatWeCanPaste = wx.CustomDataFormat(self.KindAcceptedByDrop())
+        supportsOurKinds = clipboard.IsSupported(formatWeCanPaste)
+        return supportsOurKinds
+
+    def Paste(self):
+        clipboard = wx.TheClipboard
+        if clipboard.Open():
+            acceptedFormat = wx.CustomDataFormat(self.KindAcceptedByDrop())
+            dataToPaste = wx.CustomDataObject(acceptedFormat)
+            if clipboard.GetData(dataToPaste):
+                self.PasteData(dataToPaste)
+            clipboard.Close()
+
+    def PasteData(self, data):
+        """
+        Paste the supplied data into ourself, either
+        because of a Paste operation, or a Drag and Drop.
+        Assumes that the data are Items, override for other kinds.
+        """
+        itemUUIDList = data.GetData()
+        itemList = []
+        for itemUUID in itemUUIDList.split(','):
+            item = self.blockItem.findUUID(itemUUID)
+            if item is not None:
+                itemList.append(item)
+        if len(itemList)>0:
+            self.AddItems(itemList)
             
 class DropTarget(wx.DropTarget):
     """
@@ -170,9 +260,8 @@ class DropTarget(wx.DropTarget):
     
     def OnData(self, x, y, d):
         if self.GetData():
-            itemUUIDList = self.data.GetData()
-            for itemUUID in itemUUIDList.split(','):
-                self.receiver.AddItem(itemUUID)
+            dataToPaste = self.data
+            self.receiver.PasteData(dataToPaste)
         return d
     
     def OnDragOver(self, x, y, d):

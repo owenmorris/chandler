@@ -730,12 +730,11 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         """
         return False
 
-    def AddItem(self, itemUUID):
+    def AddItems(self, itemList):
         """
         Handles drop target behavior -- @@@ not yet fully implemented
         """
-        item = self.blockItem.findUUID(itemUUID)
-        
+        pass
 
     def OnHover(self, x, y):
         """
@@ -745,7 +744,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
     # DraggableWidget
 
-    def RemoveItem(self, itemUUID):
+    def DeleteSelection(self):
         """
         Handles drag source behavior -- @@@ not yet implemented
         """

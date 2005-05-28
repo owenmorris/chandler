@@ -173,52 +173,6 @@ class EditText(RectangularChild):
         editText.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return editText
     
-    """
-    Edit Menu enabling and handling
-    """
-    def onUndoEventUpdateUI (self, event):
-        canUndo = self.widget.CanUndo()
-        event.arguments ['Enable'] = canUndo
-        if canUndo:
-            event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
-        else:
-            event.arguments ['Text'] = "Can't Undo\tCtrl+Z"            
-
-    def onUndoEvent (self, event):
-        self.widget.Undo()
-        self.OnDataChanged()
-
-    def onRedoEventUpdateUI (self, event):
-        event.arguments ['Enable'] = self.widget.CanRedo()
-
-    def onRedoEvent (self, event):
-        self.widget.Redo()
-        self.OnDataChanged()
-
-    def onCutEventUpdateUI (self, event):
-        event.arguments ['Enable'] = self.widget.CanCut()
-
-    def onCutEvent (self, event):
-        self.widget.Cut()
-        self.OnDataChanged()
-
-    def onCopyEventUpdateUI (self, event):
-        event.arguments ['Enable'] = self.widget.CanCopy()
-
-    def onCopyEvent (self, event):
-        self.widget.Copy()
-
-    def onPasteEventUpdateUI (self, event):
-        event.arguments ['Enable'] = self.widget.CanPaste()
-
-    def onPasteEvent (self, event):
-        self.widget.Paste()
-        self.OnDataChanged()
-    
-    def OnDataChanged (self):
-        # override in subclass for event when edit operations have taken place
-        pass
-
 class wxHTML(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
@@ -358,7 +312,7 @@ class wxList (DragAndDrop.DraggableWidget, wx.ListCtrl):
         event.Skip()
 
     def OnItemDrag(self, event):
-        self.SetDragData (self.KindsCreatedByDrag())
+        self.DoDragAndDrop()
 
     def SelectedItems(self):
         """
@@ -660,11 +614,11 @@ class wxTable(DragAndDrop.DraggableWidget, DragAndDrop.DropReceiveWidget, wx.gri
         if not self.blockItem.selection:
             firstRow = event.GetRow()
             self.blockItem.selection = [[firstRow, firstRow]]
-        self.SetDragData (self.KindsCreatedByDrag())
+        self.DoDragAndDrop(copyOnly=True)
 
-    def AddItem(self, itemUUID):
-        item = self.blockItem.findUUID(itemUUID)
-        self.blockItem.contents.add (item)
+    def AddItems(self, itemList):
+        for item in itemList:
+            self.blockItem.contents.add (item)
 
     def OnRightClick(self, event):
         self.blockItem.DisplayContextMenu(event.GetPosition(),
@@ -1160,7 +1114,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget):
         return itemList
 
     def OnItemDrag(self, event):
-        self.SetDragData (self.KindsCreatedByDrag())
+        self.DoDragAndDrop()
         
     def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):

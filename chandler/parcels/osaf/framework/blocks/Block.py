@@ -655,6 +655,29 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
         return flag
     CalculateWXFlag = classmethod(CalculateWXFlag)    
     
+    """
+    Can't do any kind of edit operation by default.
+    Override the ones that you can do.
+    The presence of these methods disables the
+      associated menu items if the message
+      bubbles all the way up to us.  
+    BoxContainer uses this class, so containers
+      will halt the bubble up.
+    """
+    def CanCopy(self):
+        return False
+
+    def CanCut(self):
+        return False
+
+    def CanPaste(self):
+        return False
+
+    def CanUndo(self):
+        return False
+
+    def CanRedo(self):
+        return False
 
 class RectangularChild (Block):
     def DisplayContextMenu(self, position, data):
@@ -666,5 +689,89 @@ class RectangularChild (Block):
             self.contextMenu.displayContextMenu(self.widget, position, data)
                 
         
+    """
+    Edit Menu enabling and handling.
+    These events are all sent with FocusBubbleUp, which
+    means we need to return True to halt the bubbling.
+    Returning False means we don't handle the event, it
+    should be bubbled up the hierarchy.
+    """
+    def onCopyEventUpdateUI (self, event):
+        return self._GenericEditUpdateUI (event, 'CanCopy')
+
+    def onCopyEvent (self, event):
+        try:
+            self.widget.Copy()
+        except AttributeError:
+            # don't know, so BubbleUp            
+            return False
+        # doesn't change the data
+        return True
+
+    def onCutEventUpdateUI (self, event):
+        return self._GenericEditUpdateUI (event, 'CanCut')
+
+    def onCutEvent (self, event):
+        return self._GenericEditEvent ('Cut')
+
+    def onPasteEventUpdateUI (self, event):
+        return self._GenericEditUpdateUI (event, 'CanPaste')
+
+    def onPasteEvent (self, event):
+        return self._GenericEditEvent ('Paste')
+
+    def onRedoEventUpdateUI (self, event):
+        return self._GenericEditUpdateUI (event, 'CanRedo')
+
+    def onRedoEvent (self, event):
+        return self._GenericEditEvent ('Redo')
+
+    def onUndoEventUpdateUI (self, event):
+        # enable "Undo" menu item
+        try:
+            canUndo = self.widget.CanUndo()
+        except AttributeError:
+            # don't know, so BubbleUp            
+            return False
+        event.arguments ['Enable'] = canUndo
+        if canUndo:
+            event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
+        else:
+            event.arguments ['Text'] = "Can't Undo\tCtrl+Z"            
+        return True
+
+    def onUndoEvent (self, event):
+        return self._GenericEditEvent ('Undo')
+
+    def _GenericEditUpdateUI (self, event, methodName):
+        try:
+            method = getattr (self.widget, methodName)
+        except AttributeError:
+            # don't know, so BubbleUp
+            return False
+        canDo = method()
+        # We know if we can, so enable or disable menu item
+        event.arguments ['Enable'] = canDo
+        return True
+
+    def _GenericEditEvent (self, methodName):
+        try:
+            method = getattr (self.widget, methodName)
+        except AttributeError:
+            # don't know, so BubbleUp
+            return False
+        method()
+        self._tryDataChanged()
+        return True
+    
+    def _tryDataChanged (self):
+        # notify that data has changed, if we can
+        try:
+            method = type(self).OnDataChanged
+        except AttributeError:
+            pass
+        else:
+            method()
+
 class BlockEvent(Item):
     pass

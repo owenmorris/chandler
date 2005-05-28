@@ -156,19 +156,36 @@ class wxSidebar(ControlBlocks.wxTable):
 
     def OnRequestDrop (self, x, y):
         x, y = self.CalcUnscrolledPosition(x, y)
-        self.dropRow = self.YToRow(y)
-        if self.dropRow == wx.NOT_FOUND:
+        self.whereToDropItem = self.YToRow(y)
+        if self.whereToDropItem == wx.NOT_FOUND:
+            del self.whereToDropItem
             return False
         return True
         
-    def AddItem (self, itemUUID):
-        item = self.blockItem.findUUID(itemUUID)
-        self.blockItem.contents[self.dropRow].add(item)
-        self.SetRowHighlight(self.dropRow, False)
+    def AddItems (self, itemList):
+        # Adding due to Drag and Drop?
+        try:
+            whereToDropItem = self.whereToDropItem
+        except AttributeError:
+            possibleCollections = self.SelectedItems()
+        else:
+            possibleCollections = [self.blockItem.contents[whereToDropItem]]
+            self.SetRowHighlight(self.whereToDropItem, False)
+            del self.whereToDropItem
+        for possibleCollection in possibleCollections:
+            for item in itemList:
+                try:
+                    possibleCollection.add(item)
+                except AttributeError:
+                    break # possible collection doesn't know how to 'add'
     
     def OnItemDrag (self, event):
         # @@@ You currently can't drag out of the sidebar
         pass
+
+    def CanCopy(self):
+        # You also can't Cut or Copy items from the sidebar
+        return False
 
     def OnHover (self, x, y):
         hoverRow = self.YToRow(y)
