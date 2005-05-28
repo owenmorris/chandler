@@ -232,6 +232,7 @@ class MainView(View):
         webdavAccount = Sharing.getWebDAVAccount(self.itsView)
 
         # commit changes, since we'll be switching to Twisted thread
+        # @@@DLD bug 1998 - update comment above and use refresh instead?
         self.RepositoryCommitWithStatus()
 
         # show status
@@ -422,6 +423,8 @@ class MainView(View):
             return
 
         view = self.itsView
+        # @@@DLD bug 1998 - why do we have to commit here?  Are we pushing our changes
+        # over to mail?
         view.commit()
 
         for account in Mail.MailParcel.getActiveIMAPAccounts(self.itsView):
@@ -622,6 +625,7 @@ class MainView(View):
         The "File | Sync | WebDAV" menu item
         """
         # commit repository changes before synch
+        # @@@DLD bug 1998 - update comment above and use refresh instead?
         self.RepositoryCommitWithStatus()
 
         # find all the shared collections and sync them.
