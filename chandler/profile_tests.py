@@ -5,19 +5,19 @@ Usage
 
 Profile tests in a specific module::
 
-    RunPython profile_tests.py repository.tests.TestText
+    RunPython -m profile_tests repository.tests.TestText
 
 Profile a specific test class::
 
-    RunPython profile_tests.py repository.tests.TestText.TestText
+    RunPython -m profile_tests repository.tests.TestText.TestText
 
 Profile a specific test method::
 
-    RunPython profile_tests.py repository.tests.TestText.TestText.testAppend
+    RunPython -m profile_tests repository.tests.TestText.TestText.testAppend
 
 Profile all tests in a suite::
 
-    RunPython profile_tests.py repository.tests.suite
+    RunPython -m profile_tests repository.tests.suite
 
 By default, the top 10 routines (by time consumed) will be printed,
 and the profile statistics will be saved in 'profile.dat'.  However, if
@@ -40,23 +40,28 @@ or the 'pstats' module chapter of your Python manual.
 """
 
 import sys
-if len(sys.argv)<2 or sys.argv[1] in ('-h','--help'):   # XXX
-    print __doc__
-    sys.exit(2)
-
+from run_tests import ScanningLoader
 from unittest import main
 from hotshot import Profile
 from hotshot.stats import load
 
-stats_file = "profile.dat"
 
-try:
-    Profile(stats_file).run("main(module=None)")
-except SystemExit:
-    # prevent unittest.main() from forcing an early exit
-    pass
+if __name__ == '__main__':
+    if len(sys.argv)<2 or sys.argv[1] in ('-h','--help'):   # XXX
+        print __doc__
+        sys.exit(2)
 
-s = load(stats_file)
-s.sort_stats("time")
-s.print_stats(10)
+    stats_file = "profile.dat"
+    
+    try:
+        Profile(stats_file).run(
+            "main(module=None, testLoader=ScanningLoader())"
+        )
+    except SystemExit:
+        # prevent unittest.main() from forcing an early exit
+        pass
+    
+    s = load(stats_file)
+    s.sort_stats("time")
+    s.print_stats(10)
 
