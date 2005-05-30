@@ -217,9 +217,7 @@ class CanvasItem(object):
         return self._item
     
 
-class wxCollectionCanvas(wx.ScrolledWindow,
-                         DragAndDrop.DropReceiveWidget,
-                         DragAndDrop.DraggableWidget):
+class wxCollectionCanvas(wx.ScrolledWindow):
 
     """ Canvas used for displaying an ItemCollection
 
@@ -722,34 +720,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def OnEndDragNone(self):
         pass
 
-    # DropReceiveWidget
-    
-    def OnRequestDrop(self, x, y):
-        """
-        Handles drop target behavior -- @@@ not yet implemented
-        """
-        return False
-
-    def AddItems(self, itemList):
-        """
-        Handles drop target behavior -- @@@ not yet fully implemented
-        """
-        pass
-
-    def OnHover(self, x, y):
-        """
-        Handles drop target behavior -- @@@ not yet implemented
-        """
-        pass
-
-    # DraggableWidget
-
-    def DeleteSelection(self):
-        """
-        Handles drag source behavior -- @@@ not yet implemented
-        """
-        pass
-
 class CollectionBlock(Block.RectangularChild):
     """
     @ivar selection: selected item (persistent)
@@ -786,12 +756,15 @@ class CollectionBlock(Block.RectangularChild):
         self.postEventByName('SelectItemBroadcast', {'item':self.selection})
 
     def onRemoveEvent(self, event):
+        self.DeleteSelection()
+
+    def DeleteSelection(self):
         if self.selection is not None:
-            self.contents.source.first.remove(self.selection)
+            self.contents.source.first().remove(self.selection)
             self.selection = None
             self.postSelectItemBroadcast ()
             self.itsView.commit()
 
     def onRemoveEventUpdateUI(self, event):
-        return (self.selection is not None)
+        event.arguments['Enable'] = (self.selection is not None)
     

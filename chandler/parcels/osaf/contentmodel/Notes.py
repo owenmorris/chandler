@@ -52,3 +52,12 @@ class Note(ContentModel.ContentItem):
         Get any non-empty definition for the "whoFrom" attribute.
         """
         return self.creator
+
+    def KindsCreatedByDrag(self, exportDict):
+        # Create data for this kind of item in the export dictionary
+        # The data is used for Drag and Drop or Cut and Paste
+        super(Note, self).KindsCreatedByDrag (exportDict)
+
+        # We're a Note, let the data dictionary we're being exported
+        self._ExportItemData(exportDict, 'Note')
+

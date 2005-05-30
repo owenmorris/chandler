@@ -782,6 +782,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         selectedCollection = collections.first()
         containingCollections = event.itemCollectionInclusions
         calDataKind = CalendarData.getKind(view=self.itsView)
+        firstSpecialCollection = None
         for coll in collections:
 
             # hack alert! The out-of-the-box collections aren't renameable, so
@@ -857,7 +858,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         return brushOffset
 
 
-class wxWeekPanel(wx.Panel, CalendarEventHandler):
+class wxWeekPanel(wx.Panel, 
+                  CalendarEventHandler, 
+                  DragAndDrop.DropReceiveWidget, 
+                  DragAndDrop.DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxWeekPanel, self).__init__ (*arguments, **keywords)
 
@@ -999,6 +1003,26 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # just cause a repaint - hopefully this cascades to child windows?
         self.Refresh()
         
+    """
+    Methods for Drag and Drop and Cut and Paste
+    """
+    def SelectedItems(self):
+        selection = self.blockItem.selection
+        if selection is None:
+            return []
+        return [selection]
+
+    def DeleteSelection(self):
+        try:
+            self.blockItem.DeleteSelection()
+        except AttributeError:
+            pass
+
+    def KindAcceptedByDrop(self):
+        return 'Note'
+
+    def AddItems(self, itemList):
+        """ @@@ Need to complete this for Paste to work """
 
 class wxWeekHeaderWidgets(wx.Panel):
 

@@ -145,3 +145,12 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         super (ItemCollection, self).unsubscribe (*arguments, **keywords)
         for item in self.source:
             item.unsubscribe (self)
+
+    def KindsCreatedByDrag(self, exportDict):
+        # Create data for this kind of item in the export dictionary
+        # The data is used for Drag and Drop or Cut and Paste
+        super(ItemCollection, self).KindsCreatedByDrag (exportDict)
+
+        # We're a ContentItem, let the data dictionary we're being exported
+        self._ExportItemData(exportDict, 'ItemCollection')
+

@@ -706,7 +706,6 @@ class RectangularChild (Block):
             # don't know, so BubbleUp            
             return False
         # doesn't change the data
-        return True
 
     def onCutEventUpdateUI (self, event):
         return self._GenericEditUpdateUI (event, 'CanCut')
@@ -738,13 +737,13 @@ class RectangularChild (Block):
             event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
         else:
             event.arguments ['Text'] = "Can't Undo\tCtrl+Z"            
-        return True
 
     def onUndoEvent (self, event):
         return self._GenericEditEvent ('Undo')
 
     def _GenericEditUpdateUI (self, event, methodName):
         try:
+            # get the method bound to the widget
             method = getattr (self.widget, methodName)
         except AttributeError:
             # don't know, so BubbleUp
@@ -752,7 +751,6 @@ class RectangularChild (Block):
         canDo = method()
         # We know if we can, so enable or disable menu item
         event.arguments ['Enable'] = canDo
-        return True
 
     def _GenericEditEvent (self, methodName):
         try:
@@ -762,16 +760,16 @@ class RectangularChild (Block):
             return False
         method()
         self._tryDataChanged()
-        return True
     
     def _tryDataChanged (self):
         # notify that data has changed, if we can
         try:
+            # use type() to skip repository lookup and get an unbound method
             method = type(self).OnDataChanged
         except AttributeError:
             pass
         else:
-            method()
+            method(self)
 
 class BlockEvent(Item):
     pass

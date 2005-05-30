@@ -121,6 +121,27 @@ class ContentItem(schema.Item):
         # default the displayName to 'untitled'
         self.displayName = _('untitled')
 
+    def _ExportItemData(self, exportDict, key):
+        # Export this item into the export data dictionary, as a UUID
+        try:
+            itemUUIDList = exportDict[key]
+        except KeyError:
+            itemUUIDList = []
+            exportDict[key] = itemUUIDList
+        itemUUIDList.append(str(self.itsUUID))
+
+    def KindsCreatedByDrag(self, exportDict):
+        # Create data for this kind of item in the export dictionary
+        # Overload to publish your own kind of item data
+        # The data is used for Drag and Drop or Cut and Paste
+        try:
+            super(ContentItem, self).KindsCreatedByDrag (exportDict)
+        except AttributeError:
+            pass
+
+        # We're a ContentItem, let the data dictionary we're being exported
+        self._ExportItemData(exportDict, 'ContentItem')
+
     """
     STAMPING SUPPORT
 

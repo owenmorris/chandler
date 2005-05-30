@@ -26,11 +26,15 @@ Since most of Chandler data are Items, the interface is Item-centric by default.
         AddItems() to insert a list of items (Paste, Drop)
         KindAcceptedByDrop() to specify the Kind of items allowed
 
-It's possible to extend Drag and Drop for different kinds of items or deal with
-    non-item data. You will want to override some of these methods: 
-        CopyData() is used to get the selected data.
-        KindsCreatedByDrag() implements the known Kinds of Items
-        PasteData() is used to put the data into the selection.
+It's possible to extend Drag and Drop for different kinds of items:
+    ContentItems implement KindsCreatedByDrag() to export data of their own kind.
+        The names used to identify the kinds exported are matched against the
+            names in KindAcceptedByDrop.
+
+It's also possible to extend Drag and Drop for non-item data. 
+    You will want to override these methods: 
+        DraggableWidget.CopyData() is used to get the selected data.
+        DropReceiveWidget.PasteData() is used to put the data into the selection.
 
 wxWidgets level:
     * wx.DropSource - the window you are dragging from
@@ -57,8 +61,6 @@ CPIA level:
 class DraggableWidget (object):
     """
     Mixin class for widgets that are draggable.
-    Note that you need to list the Mixin before the base class in your
-      class declaration for the right method override behavior.
     """
     def DoDragAndDrop(self, copyOnly=None):
         """
@@ -67,29 +69,44 @@ class DraggableWidget (object):
            False allows the Move.  Passing None (the default) will
            allow the Move iff you have a DeleteSelection method.
         """
+        # set up copyOnly flag - so we know if a 'move' is allowed
         if copyOnly is None:
             if not hasattr (self, 'DeleteSelection'):
                 copyOnly = True
             else:
                 copyOnly = False
-        # create a DropSource, and put our custom data into it
-        # @@@DLD get better icons for the DnD cursors
-        iconParams = {'copy': self._DROP_ICON("ApplicationBarSync.png"),
-                      'none': self._DROP_ICON("ApplicationDelete.png")}
-        if not copyOnly:
-            iconParams['move'] = self._DROP_ICON("ApplicationBarSend.png")
+
+        # set up cursor icons for user feedback
+        iconParams = {'copy': self._DROP_ICON("DragCopyCursor.png"),
+                      'none': self._DROP_ICON("DragNotCursor.png")}
+
+        # copyOnly mode - a 'move' operations are allowed, but we treat
+        #  them like 'copy' to get the right cursor defaults
+        flags = wx.Drag_AllowMove
+        if copyOnly:
+            # copy and move are the same - show the same cursor icon
+            iconParams['move'] = iconParams['copy']
+        else:
+            # copy and move a different, load separate 'move' cursor
+            moveCursor = self._DROP_ICON("DragMoveCursor.png")
+            if moveCursor is not None:
+                iconParams['move'] = moveCursor
+
+        # create the drop source, set up its data
         dropSource = wx.DropSource(self, **iconParams)
         dataObject = self.CopyData()
         dropSource.SetData(dataObject)
+
         # capture the mouse, so mouse moves don't trigger activities
         # in other windows, like the sidebar.
         self.CaptureMouse()
         try:
             # drag and drop the DropSource.  Many callbacks happen here.
-            result = dropSource.DoDragDrop(flags=wx.Drag_AllowMove)
+            result = dropSource.DoDragDrop(flags=flags)
         finally:
             if self.HasCapture():
                 self.ReleaseMouse()
+
         # if we moved the item, instead of the usual copy, remove the original
         if not copyOnly and result == wx.DragMove:
             self.DeleteSelection()
@@ -97,6 +114,8 @@ class DraggableWidget (object):
     def _DROP_ICON(self, filename):
         # This macro from wxWidgets is going to be in wxPython soon.
         img = wx.GetApp().GetRawImage(filename)
+        if img is None:
+            return None
         if wx.Platform == '__WXGTK__':
             return wx.IconFromBitmap(wx.BitmapFromImage(img))
         else:
@@ -120,32 +139,32 @@ class DraggableWidget (object):
 
     def KindsCreatedByDrag(self):
         """
-        Return a dictionary of data that can be dragged from this item.
+        Return a dictionary of data that can be dragged from this widget.
         Each entry has the Kind as its key, and a list of data (as UUIDs for items) for
           its value.
-        Default is to export Item, ContentItem, and ItemCollection (assuming the
-          item(s) really are these Kinds).
+        Uses SelectedItems to gather the items to export, then for each
+          export 'Item', and whatever else that ContentItem wants.
         """
-        def _ExportItem(exportDict, key, itemUUID):
-            if not exportDict.has_key(key):
-                exportDict[key]=[]
-            exportDict[key].append(str(itemUUID))
-
-        exportDict = {}
+        itemUUIDList = [] 
+        # everything is an item, so start out with the 'Item' list
+        exportDict = {'Item': itemUUIDList}
         items = self.SelectedItems()
         for item in items:
-            itemUUID = item.itsUUID
-            _ExportItem(exportDict, "Item", itemUUID)
-            if isinstance (item, ItemCollection.ItemCollection):
-                _ExportItem(exportDict, "ItemCollection", itemUUID)
-                # ItemCollections are not considered ContentItems to
-                #   keep you from dragging them into themselves.
-            elif isinstance (item, ContentModel.ContentItem):
-                _ExportItem(exportDict, "ContentItem", itemUUID)
+            # add to the 'Item' list of our dictionary
+            itemUUIDList.append(str(item.itsUUID))
+            try:
+                # ask the ContentItem to append its kinds too
+                item.KindsCreatedByDrag(exportDict)
+            except AttributeError:
+                pass
         return exportDict
     
     def CanCopy(self):
-        return len(self.SelectedItems()) > 0
+        try:
+            items = self.SelectedItems()
+        except AttributeError:
+            return False
+        return len(items) > 0
 
     def CanCut(self):
         if not hasattr (self, 'DeleteSelection'):
@@ -169,8 +188,6 @@ class DraggableWidget (object):
 class DropReceiveWidget (object):
     """
     Mixin class for widgets that want to receive drag and drop events.
-    Note that you need to list the Mixin before the base class in your
-      class declaration for the right method override behavior.
     """
     def __init__(self, *arguments, **keywords):
         super (DropReceiveWidget, self).__init__ (*arguments, **keywords)
@@ -186,7 +203,7 @@ class DropReceiveWidget (object):
         """
           Override to define which kinds you allow to be dropped.
         """
-        return "ContentItem" # Default is only ContentItems
+        return "Note" # Default is any kind of Note or subclass of Note.
     
     def OnRequestDrop(self, x, y):
         """
@@ -252,7 +269,6 @@ class DropTarget(wx.DropTarget):
         kindAllowed = receiver.KindAcceptedByDrop()
 
         self.data = wx.CustomDataObject(wx.CustomDataFormat(kindAllowed))
-        self.kindAllowed = kindAllowed # @@@DLD - remove
         self.SetDataObject(self.data)
     
     def OnDrop(self, x, y):
