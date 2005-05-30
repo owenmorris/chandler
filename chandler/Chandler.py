@@ -163,11 +163,15 @@ def main():
         twisted.python.log.startLogging(file(logFile, 'a+'), 0)
 
         """
-          Don't redirect stdio to a file. useBestVisual, uses best screen
-        resolutions on some old computers. See wxApp.SetUseBestVisual
+          redirect stdio and stderr to a dialog if we're running the debug version.
+        This is done to catch asserts, which otherwise will never get seen by
+        people who run Chandler using the launchers, e.g. Aparna. If you're
+        running release you can also set things up so that you can see
+        stderr and stdout if you run in a shell or from wing with a console.
+          useBestVisual, uses best screen resolutions on some old computers. See
+        wxApp.SetUseBestVisual
         """
-        app = wxApplication(redirect=False, useBestVisual=True)
-
+        app = wxApplication(redirect=__debug__, useBestVisual=True)
         app.MainLoop()
 
     if application.Globals.options.nocatch:
