@@ -186,7 +186,7 @@ class Role(ActiveDescriptor,CDescriptor):
                     self.name, kind, nrv.findPath('//Schema/Core/Attribute'),
                 )
                 declareTemplate(attr)
-                kind.attributes.append(attr)
+                kind.attributes.append(attr, attr.itsName)
 
                 for aspect in all_aspects:
                     if hasattr(self,aspect):

@@ -1318,20 +1318,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             has been assigned to a kind, or local attributes have been hooked
             up """
 
-        isItemAKind = (item.itsKind.itsUUID == self.manager.kindUUID)
+        if isinstance(item,Attribute) and isinstance(item.itsParent,Kind):
+            # Hook the attribute up to its containing kind
+            item.itsParent.addValue("attributes",item,alias=item.itsName)
 
-        if isItemAKind:
+        elif isinstance(item,Kind):
             # Assign superKind of //Schema/Core/Item if none assigned
             if not item.hasLocalAttributeValue("superKinds") or \
              (len(item.superKinds) == 0):
                 item.addValue("superKinds",
                  self.repository.findUUID(self.manager.itemUUID))
-
-            # Hook up any local attributes to this kind
-            for child in item.iterChildren():
-                if child.itsKind.itsUUID == self.manager.attrUUID:
-                    # child is an attribute
-                    item.addValue("attributes", child)
 
     def makeValue(self, item, valueType, attributeName, rawValue):
         """ Creates a value from a string, based on the type
