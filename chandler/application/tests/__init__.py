@@ -10,15 +10,16 @@ __all__ = [
     'TestClasses', 'TestClouds', 'TestCollections', 'TestCopying', 
     'TestDependency','TestItems', 'TestKindAndItem', 'TestLocalAttrs', 
     'TestNamespaceErrors', 'TestParcelErrors', 'TestParcelLoader','TestUuidOf',
-    'TestParcelPerf', 'TestSchemaAPI.suite',
+    'TestParcelPerf', 'TestSchemaAPI',
 ]
 
 def suite():
     """Unit test suite; run by testing 'application.tests.suite'"""
-
+    from run_tests import ScanningLoader
     from unittest import defaultTestLoader, TestSuite
+    loader = ScanningLoader()
     return TestSuite(
-        [defaultTestLoader.loadTestsFromName(__name__+'.'+test_name)
+        [loader.loadTestsFromName(__name__+'.'+test_name)
             for test_name in __all__]
     )
 

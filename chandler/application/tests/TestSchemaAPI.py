@@ -70,20 +70,20 @@ def test_schema_api():
         'schema_api.txt', optionflags=doctest.ELLIPSIS, package='application',
     )
 
-def suite():
+
+def additional_tests():
     return unittest.TestSuite(
-        [
-            test_schema_api(),
-            unittest.defaultTestLoader.loadTestsFromName(__name__)
-        ]
+        [ test_schema_api(), ]
     )
+
 
 if __name__=='__main__':
     # This module can't be safely run as __main__, so it has to be re-imported
     # and have *that* copy run.
+    from run_tests import ScanningLoader
     unittest.main(
-        module=None,
-        argv=["unittest", this_module+".suite"]
+        module=None, testLoader = ScanningLoader(),
+        argv=["unittest", this_module]
     )
 else:
     assert __name__ == this_module, (
