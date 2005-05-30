@@ -196,6 +196,8 @@ class Role(ActiveDescriptor,CDescriptor):
                         elif aspect=='type':
                             if isinstance(self.type,ItemClass):
                                 val = val._schema_kind
+                            elif self.type is None:
+                                continue
                             else:
                                 t = nrv.findPath(val.path)
                                 assert t, ("Unrecognized type",val.path)
