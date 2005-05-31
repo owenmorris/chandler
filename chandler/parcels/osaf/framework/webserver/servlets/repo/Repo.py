@@ -711,7 +711,7 @@ def RenderItem(repoView, item):
             else:
                 result += "<td valign=top>N/A</td>\n"
             if attribute.hasLocalAttributeValue('initialValue'):
-                result += "<td valign=top>%s</td>\n" % (attribute.initialValue)
+                result += "<td valign=top>%s</td>\n" % (attribute.initialValue,)
             else:
                 result += "<td valign=top>N/A</td>\n"
 
