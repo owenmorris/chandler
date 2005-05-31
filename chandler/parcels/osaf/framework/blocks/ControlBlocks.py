@@ -144,7 +144,7 @@ class wxEditText(ShownSynchronizer, wx.TextCtrl):
 
 class EditText(RectangularChild):
     def instantiateWidget(self):
-        style = 0
+        style = wx.STATIC_BORDER
         if self.textAlignmentEnum == "Left":
             style |= wx.TE_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -850,7 +850,7 @@ class Table (RectangularChild):
         super (Table, self).__init__ (*arguments, **keywords)
 
     def instantiateWidget (self):
-        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self))
+        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.NO_BORDER)
         widget.SetDefaultCellFont(Styles.getFont(getattr(self, "characterStyle", None)))
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"
