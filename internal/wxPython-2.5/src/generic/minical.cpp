@@ -137,7 +137,7 @@ void wxMiniCalendar::Init()
 
     m_widthCol = 0;
     m_heightRow = 0;
-	m_todayHeight = 0;
+    m_todayHeight = 0;
 
     wxDateTime::WeekDay wd;
     for ( wd = wxDateTime::Sun; wd < wxDateTime::Inv_WeekDay; wxNextWDay(wd) )
@@ -997,10 +997,12 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
             event.Skip();
             break;
         case wxCAL_HITTEST_TODAY:
+        case wxCAL_HITTEST_SURROUNDING_WEEK:
+            SetDateAndNotify(date);
+            break;
         case wxCAL_HITTEST_DECMONTH:
         case wxCAL_HITTEST_INCMONTH:
-        case wxCAL_HITTEST_SURROUNDING_WEEK:
-            SetDateAndNotify(date); // we probably only want to refresh the control. No notification.. (maybe as an option?)
+            SetDate(date);
             break;
 
         default:

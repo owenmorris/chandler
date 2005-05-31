@@ -231,7 +231,7 @@ private:
     wxCoord m_widthCol,
             m_heightRow,
             m_rowOffset,
-			m_todayHeight,
+            m_todayHeight,
             m_heightPreview;
 
     wxRect m_leftArrowRect,
