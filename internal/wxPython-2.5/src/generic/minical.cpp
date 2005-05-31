@@ -658,16 +658,15 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
         }
     }
 
-    // then the calendar itself
-    dc.SetTextForeground(*wxBLACK);
-    //dc.SetFont(*wxNORMAL_FONT);
-
     y += m_heightRow;
     wxDateTime date = GetStartDate();
 
     dc.SetBackgroundMode(wxSOLID);
 
     int dayPosition;
+    wxColour mainColour = wxColour(160, 160, 160);
+    dc.SetTextForeground(mainColour);
+    wxColour lightColour = wxColour(225, 225, 225);
     for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, y += m_heightRow )
     {
         // if the update region doesn't intersect this row, don't paint it
@@ -705,7 +704,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 {
                     // surrounding week or out-of-range
                     // draw "disabled"
-                    dc.SetTextForeground(*wxLIGHT_GREY);
+                    dc.SetTextForeground(lightColour);
                     changedColours = true;
                 }
                 else
@@ -729,6 +728,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                     if ( date.IsSameDate(wxDateTime::Today()) )
                     {
                         dc.SetFont(m_boldFont);
+                        dc.SetTextForeground(*wxBLACK);
                         changedFont = true;
                     }
                 }
@@ -746,7 +746,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
                 if ( changedColours )
                 {
-                    dc.SetTextForeground(GetForegroundColour());
+                    dc.SetTextForeground(mainColour);
                     dc.SetTextBackground(GetBackgroundColour());
                 }
 
