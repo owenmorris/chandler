@@ -26,7 +26,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
     def wxSynchronizeWidget(self):
         self.SetWindowStyle(wx.minical.CAL_SUNDAY_FIRST |
-                            wx.minical.CAL_SHOW_SURROUNDING_WEEKS)
+                            wx.minical.CAL_SHOW_SURROUNDING_WEEKS |
+                            wx.NO_BORDER)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -83,7 +84,7 @@ class MiniCalendar(Block.RectangularChild):
 
     def instantiateWidget(self):
         return wxMiniCalendar(self.parentBlock.widget,
-                              Block.Block.getWidgetID(self))
+                              Block.Block.getWidgetID(self), style = wx.NO_BORDER)
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.setSelectedDate(event.arguments['start'])
