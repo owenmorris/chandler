@@ -30,7 +30,7 @@ python
 # Grab wx, db and gcj libs
 src=chandler/debug
 dest=Contents/Resources
-glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
+glob=*.dylib,*.32,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=chandler/debug/db
 lib
