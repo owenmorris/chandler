@@ -772,11 +772,11 @@ class wxToolbarItem (wx.ToolBarToolBase):
         self.SetLabel (event.GetText())
         self.GetToolBar().Realize()
 
-    def OnToolEvent (self,event):
+    def selectTool(self):
         """
           Persist state of ToolbarItems. Currently limited to radio buttons,
         eventually we need to synchronize other kinds, e.g. Text, Combo, and
-        Choice types
+        Choice types.
         """
         block = self.blockItem
         if block.toolbarItemKind == "Radio":
@@ -788,18 +788,25 @@ class wxToolbarItem (wx.ToolBarToolBase):
             index = blockIndex - 1
             while index >= 0 and children [index].toolbarItemKind == "Radio":
                 children [index].selected = False
+                children [index].widget.wxSynchronizeWidget()
                 index -= 1
             """
               Select this toolbar item
             """
             children [blockIndex].selected = True
+            children [blockIndex].widget.wxSynchronizeWidget()
+            
             """
               Unselect all the items in the radio group after this toolbar item
             """
             index = blockIndex + 1
             while index < len (children) and children [index].toolbarItemKind == "Radio":
                 children [index].selected = False
+                children [index].widget.wxSynchronizeWidget()
                 index += 1
+
+    def OnToolEvent (self,event):
+        self.selectTool()
         event.Skip()
 
 
