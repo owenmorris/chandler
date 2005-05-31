@@ -91,25 +91,19 @@ def main():
 
     buildVersion = nowString
 
-    # default is "-D now", but override with date; override that with tag
-    svnVintage = "-D'" + nowString + "'"
     if svnDateArg:
-        svnVintage = "-D'" + svnDateArg + "'"
         buildVersion = svnDateArg
     if svnTagArg:
-        svnVintage = "-r" + svnTagArg
         buildVersion = svnTagArg
     if buildVersionArg:
         buildVersion = buildVersionArg
 
     print "nowString", nowString
     print "nowShort", nowShort
-    print "svnVintage", svnVintage
     print "buildVersion", buildVersion
     print "buildName", buildName
     print "skipTests=", noTests
 
-    # svnVintage is what is used to do a checkout
     # buildVersion is encoded into the application's internal version
 
     whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
@@ -138,8 +132,7 @@ def main():
     log = open(logFile, "w+")
     try:
         # bring this hardhat directory up to date
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [svnProgram, "update", svnVintage])
+        outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "update"])
 
         # load the buildscript file for the project
         mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
@@ -147,8 +140,7 @@ def main():
         # SendMail(fromAddr, toAddr, nowString, nowString, buildName,
         # "building", None)
 
-        mod.Start(hardhatFile, buildDir, svnVintage, buildVersion, 1, log,
-                  skipTests=noTests)
+        mod.Start(hardhatFile, buildDir, buildVersion, 1, log, skipTests=noTests, tagID=svnTagArg)
 
     except Exception, e:
         import traceback

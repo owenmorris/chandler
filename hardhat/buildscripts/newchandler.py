@@ -29,7 +29,7 @@ mainModule   = reposModules[0]
 
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False):
+def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, tagID=None):
 
     global buildenv, changes
 
@@ -63,7 +63,12 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         import traceback
         traceback.print_exc()
         sys.exit(1)
-    
+      
+    # if tagID is present then we have to modify reposBase as a tag has
+    # been requested instead of the trunk
+    if tagID:
+        reposBase='tags/%s' % tagID
+      
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, mainModule)

@@ -111,10 +111,10 @@ def main():
         # load (or reload) the buildscript file for the project
         mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
 
-        treeName = mod.treeName
+        treeName     = mod.treeName
+        sleepMinutes = mod.sleepMinutes
 
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", 
-         treeName, None)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None)
 
         ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log, 
                         upload=options.uploadStaging, skipTests=options.skipTests)
@@ -145,10 +145,8 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        SendMail(fromAddr, alertAddr, startTime, buildName,
-                 "The build failed", treeName, None)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
-         treeName, logContents)
+        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
         log = open(logFile, "w")
 
     else:
@@ -176,7 +174,7 @@ def main():
                 os.remove(outputDir+os.sep+"time.js")
             print "Calling CreateIndex with " + newDir
             log.write("Calling CreateIndex with " + newDir + "\n")
-            CreateIndex(outputDir, buildVersion, nowString, buildName)
+            CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
             print "Calling RotateDirectories"
             log.write("Calling RotateDirectories\n")
             RotateDirectories(outputDir)
@@ -285,8 +283,12 @@ def main():
         log.close()
         nowTime = str(int(time.time()))
 
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, 
-         logContents)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
+        
+        if sleepMinutes:
+            print "Sleeping %d minutes" % sleepMinutes
+            time.sleep(sleepMinutes * 60)
+
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
     nowTime  = str(int(time.time()))
@@ -333,9 +335,10 @@ _instructions = {
     '.dmg' : ['install', 'Download the dmg file, double-click to open, copy the application to your preferred location and run.'],
     '.rpm' : ['install', 'Download the rpm file, install and run.'],
     '.exe' : ['install', 'Download the installation executable, double-click to install and run.'],
+    '.jar' : ['jarfile', 'Download the jar file and place it in your local jar repository.']
 }
 
-def CreateIndex(outputDir, newDirName, nowString, buildName):
+def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
     """
     Generates HTML files that contain links and hash information
     for downloadable files.
@@ -345,7 +348,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
     head1 = '<html>\n<head>\n' +\
             '<META HTTP-EQUIV="Pragma" CONTENT="no-cache">\n' +\
-            '<title>Download Chandler ' + buildName + ' ' + newDirName + '</title>\n' +\
+            '<title>Download %s %s %s </title>\n' % (treeName, buildName, newDirName) +\
             '<link rel="Stylesheet" ' +\
             'href="http://www.osafoundation.org/css/OSAF.css" ' +\
             'type="text/css" charset="iso-8859-1">\n'
@@ -371,29 +374,31 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     devTarball  = None
 
     for distro in ('enduser', 'developer'):
-        lines = _readFile(os.path.join(outputDir, newDirName, distro))
+        distroFile = os.path.join(outputDir, newDirName, distro)
+        if os.path.exists(distroFile):
+            lines = _readFile(distroFile)
 
-        for line in lines:
-            actualDistroFile = line.strip()
-            actualDistro     = os.path.join(outputDir, newDirName, actualDistroFile)
+            for line in lines:
+                actualDistroFile = line.strip()
+                actualDistro     = os.path.join(outputDir, newDirName, actualDistroFile)
 
-            distroExt = os.path.splitext(actualDistroFile)[1]
+                distroExt = os.path.splitext(actualDistroFile)[1]
 
-            if _instructions.has_key(distroExt):
-                distroType = _instructions[distroExt][0]
-            else:
-                raise MissingFileError, ('Unknown distribution extension: %s' % distroExt)
-
-            if distroType == 'tarball':
-                if distro == 'enduser':
-                    userTarball = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                if _instructions.has_key(distroExt):
+                    distroType = _instructions[distroExt][0]
                 else:
-                    devTarball  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
-            else:
-                if distro == 'developer':
-                    devInstall  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                    raise MissingFileError, ('Unknown distribution extension: %s' % distroExt)
+
+                if distroType == 'tarball':
+                    if distro == 'enduser':
+                        userTarball = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                    else:
+                        devTarball  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
                 else:
-                    userInstall = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                    if distro == 'developer':
+                        devInstall  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                    else:
+                        userInstall = (actualDistroFile, actualDistro, _instructions[distroExt][1])
 
     if userInstall:
         index += '<h3>End-User Installer</h3>\n' +\
