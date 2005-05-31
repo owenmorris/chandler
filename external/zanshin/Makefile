@@ -15,7 +15,7 @@ build: expand
                            install --force
 
 zanshin-$(VERSION).tar.gz:
-	svn co http://svn.osafoundation.org/zanshin/tags/$(SVN_VERSION) zanshin-$(VERSION)
+	svn export http://svn.osafoundation.org/zanshin/tags/$(SVN_VERSION) zanshin-$(VERSION)
 	tar czf zanshin-$(VERSION).tar.gz zanshin-$(VERSION)
 
 sources: zanshin-$(VERSION).tar.gz
