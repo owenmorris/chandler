@@ -24,7 +24,6 @@ logPath      = 'hardhat.log'
 separator    = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
 reposRoot    = 'http://svn.osafoundation.org/chandler'
-reposBase    = 'trunk'
 reposModules = ['chandler', 'internal/installers']
 mainModule   = reposModules[0]
 
@@ -69,6 +68,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     # been requested instead of the trunk
     if tagID:
         reposBase='tags/%s' % tagID
+    else:
+        reposBase='trunk'
       
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
