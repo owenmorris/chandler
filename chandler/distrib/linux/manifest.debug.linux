@@ -22,6 +22,12 @@ dest=debug
 glob=libwx*
 lib
 
+# Grab icu libs
+src=chandler/release/icu
+dest=debug
+glob=libicu*
+lib
+
 # Grab the OpenSSL libs
 src=chandler/debug
 recursive=no

@@ -29,6 +29,12 @@ dest=release
 glob=libssl*,libcrypto*
 lib
 
+# Grab icu libs
+src=chandler/release/icu
+dest=release
+glob=libicu*
+lib
+
 # Recursively grab python libraries
 src=chandler/release/lib
 dest=release/lib
