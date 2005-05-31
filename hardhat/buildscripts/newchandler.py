@@ -17,10 +17,11 @@ import os, hardhatutil, hardhatlib, sys, re
 path     = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 
-svnProgram = hardhatutil.findInPath(path, "svn")
-treeName   = "Chandler"
-logPath    = 'hardhat.log'
-separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+svnProgram   = hardhatutil.findInPath(path, "svn")
+treeName     = "Chandler"
+sleepMinutes = 5
+logPath      = 'hardhat.log'
+separator    = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
 reposRoot    = 'http://svn.osafoundation.org/chandler'
 reposBase    = 'trunk'
