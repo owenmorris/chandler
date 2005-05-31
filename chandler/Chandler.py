@@ -9,6 +9,12 @@ from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 from application.Application import SchemaMismatchError
 
+def _makeRandomProfileDir(pattern):
+    import M2Crypto.BN as BN
+    profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
+    os.makedirs(profileDir, 0700)
+    return profileDir
+
 def locateProfileDir(chandlerDirectory):
     """
     Locate the Chandler repository.
@@ -44,16 +50,19 @@ def locateProfileDir(chandlerDirectory):
             dataDir    = os.path.expanduser('~')
             profileDir = os.path.join(dataDir, '.chandler')
 
-        if not os.path.isdir(profileDir):
-              # if not found, then figure out where to create one
-            if os.path.isdir(dataDir):
-                try:
-                    os.makedirs(profileDir, 0700)
-                except:
-                    profileDir = chandlerDirectory
-            else:
+        # Deal with the random part
+        pattern = '%s%s*.default' % (profileDir, os.sep)
+        try:
+            import glob
+            profileDir = glob.glob(pattern)[0]
+        except IndexError:
+            try:
+                profileDir = _makeRandomProfileDir(pattern)
+            except:
                 profileDir = chandlerDirectory
-  
+        except:
+            profileDir = chandlerDirectory
+            
         application.Globals.options.profileDir = profileDir
 
     print 'Using profile directory: %s' % application.Globals.options.profileDir
