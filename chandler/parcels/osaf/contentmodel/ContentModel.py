@@ -5,6 +5,7 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.contentmodel"
 
 from datetime import datetime
 
@@ -64,6 +65,67 @@ class ContentItem(schema.Item):
 
     myKindPath = "//parcels/osaf/contentmodel/ContentItem"
     myKindID = None
+
+    body = schema.One(
+        schema.Lob,
+        displayName="Body",
+        doc="All Content Items may have a body to contain notes.  It's "
+            "not decided yet whether this body would instead contain the "
+            "payload for resource items such as presentations or "
+            "spreadsheets -- resource items haven't been nailed down "
+            "yet -- but the payload may be different from the notes because "
+            "payload needs to know MIME type, etc."
+    )
+
+    creator = schema.One(
+        # Contact
+        displayName="Created By",
+        doc="Link to the contact who created the item."
+    )
+
+    modifiedOn = schema.One(
+        schema.DateTime,
+        displayName="Last Modified On",
+        doc="DateTime this item was last modified"
+    )
+
+    lastModifiedBy = schema.One(
+        # Contact
+        displayName="Last Modified By",
+        doc="Link to the contact who last modified the item.",
+    )
+
+    lastModified = schema.One(schema.String)
+
+    isPrivate = schema.One(schema.Boolean, initialValue=False)
+
+    isRead = schema.One(
+        schema.Boolean,
+        initialValue=False,
+        doc="A flag indicating whether the this item has "
+            "been 'viewed' by the user"
+    )
+
+    previousStamps = schema.Sequence(
+        schema.Item,
+        doc="A list of mixin items that were used as stamps on this "
+            "item previously."
+    )
+        
+    createdOn = schema.One(
+        schema.DateTime,
+        displayName="Created On",
+        doc="DateTime this item was created"
+    )
+
+    # Placeholders for bidirectional references
+    
+    itemCollectionInclusions = schema.Sequence()    # ItemCollection
+    itemCollectionExclusions = schema.Sequence()    # ItemCollection
+    currentItemOf = schema.One()                    # CurrentPointer       
+    shares = schema.Sequence(initialValue=())       # share
+
+
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
 

@@ -5,8 +5,10 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.contentmodel.contacts"
 
-import osaf.contentmodel.ContentModel as ContentModel
+from osaf.contentmodel import ContentModel
+from application import schema
 import repository.query.Query as Query
 from repository.item.Query import KindQuery
 
@@ -15,6 +17,11 @@ class Contact(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
 
+    itemsCreated = schema.Sequence(
+        displayName="Items Created",
+        doc = "List of content items created by this user.",
+        inverse=ContentModel.ContentItem.creator,
+    )
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Contact, self).__init__(name, parent, kind, view)

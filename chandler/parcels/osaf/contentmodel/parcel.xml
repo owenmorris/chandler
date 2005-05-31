@@ -48,11 +48,6 @@
         <examples>a Contact -- 'Terry Smith'</examples>
         <examples>a Task -- 'mail 1040 to IRS'</examples>
         <description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</description>
-        <Attribute itsName="body">
-            <displayName>Body</displayName>
-            <type itemref="Lob"/>
-            <description>All Content Items may have a body to contain notes.  It's not decided yet whether this body would instead contain the payload for resource items such as presentations or spreadsheets -- resource items haven't been nailed down yet -- but the payload may be different from the notes because payload needs to know MIME type, etc.</description>
-        </Attribute>
 
         <Attribute itsName="importance">
             <displayName>Importance</displayName>
@@ -70,59 +65,6 @@
 
         </Attribute>
 
-        <Attribute itsName="modifiedOn">
-            <displayName>Last Modified On</displayName>
-            <description>DateTime this item was last modified</description>
-            <type itemref="DateTime"/>
-        </Attribute>
-
-        <Attribute itsName="creator">
-            <displayName>Created By</displayName>
-            <description>Link to the contact who created the item.</description>
-            <type itemref="contact:Contact"/>
-            <inverseAttribute itemref="contact:Contact/itemsCreated"/>
-        </Attribute>
-
-        <Attribute itsName="lastModifiedBy">
-            <displayName>Last Modified By</displayName>
-            <description>Link to the contact who last modified the item.</description>
-            <type itemref="contact:Contact"/>
-            <inverseAttribute itemref="contact:Contact/itemsLastModified"/>
-        </Attribute>
-
-        <Attribute itsName="lastModified">
-            <type itemref="String"/>
-        </Attribute>
-
-        <Attribute itsName="isPrivate">
-            <type itemref="Boolean"/>
-            <initialValue type="Boolean">False</initialValue>
-        </Attribute>
-
-        <Attribute itsName="isRead">
-            <type itemref="Boolean"/>
-            <initialValue type="Boolean">False</initialValue>
-            <description value="A flag indicating whether the this item has been 'viewed' by the user"/>
-        </Attribute>
-
-        <Attribute itsName="previousStamps">
-            <description value="A list of mixin items that were used as stamps on this item previously." />
-            <type itemref="Item"/>
-            <cardinality value="list" />
-        </Attribute>
-
-        <Attribute itsName="itemCollectionInclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/inclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionExclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/exclusions"/>
-        </Attribute>
-
         <Attribute itsName="contentsOwner">
             <type itemref="blocks:Block"/>
             <cardinality>list</cardinality>
@@ -134,25 +76,6 @@
         <attributes itemref="blocks:Block/TPBDetailItemOwner"/>
 
         <attributes itemref="blocks:Block/TPBSelectedItemOwner"/>
-
-        <Attribute itsName="createdOn">
-            <displayName>Created On</displayName>
-            <description>DateTime this item was created</description>
-            <type itemref="DateTime"/>
-        </Attribute>
-
-        <Attribute itsName="currentItemOf">
-            <type itemref="cm:CurrentPointer"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:CurrentPointer/item"/>
-        </Attribute>
-
-        <Attribute itsName="shares">
-          <type itemref="share:Share"/>
-          <cardinality value="list" />
-          <inverseAttribute itemref="share:Share/contents"/>
-          <initialValue />
-        </Attribute>
 
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
@@ -301,20 +224,6 @@
     <Attribute itsName="_rule">
       <type itemref="String"/>
       <initialValue type="String"></initialValue>
-    </Attribute>
-
-    <Attribute itsName="inclusions">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionInclusions"/>
-      <initialValue/>
-    </Attribute>
-
-    <Attribute itsName="exclusions">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionExclusions"/>
-      <initialValue/>
     </Attribute>
 
     <Attribute itsName="kindFilter">

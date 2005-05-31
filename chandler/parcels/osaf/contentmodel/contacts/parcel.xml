@@ -43,14 +43,6 @@
             <initialValue type="String" value="" />
         </Attribute>
 
-        <Attribute itsName="itemsCreated">
-            <displayName>Items Created</displayName>
-            <description>List of content items created by this user.</description>
-            <cardinality>list</cardinality>
-            <type itemref="cm:ContentItem"/>
-            <inverseAttribute itemref="cm:ContentItem/creator"/>
-        </Attribute>
-
         <Attribute itsName="itemsLastModified">
             <displayName>Items Last Modified</displayName>
             <description>List of content items last modified by this user.</description>

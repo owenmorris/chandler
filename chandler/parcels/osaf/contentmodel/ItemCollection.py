@@ -1,15 +1,29 @@
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.contentmodel"
 
 import application.Globals as Globals
-import osaf.contentmodel.ContentModel as ContentModel
+from osaf.contentmodel import ContentModel
 import repository.query.Query as Query
 from chandlerdb.item.ItemError import NoSuchIndexError
+from application import schema
 
 class ItemCollection(ContentModel.ContentItem, Query.Query):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/ItemCollection"
+
+    inclusions = schema.Sequence(
+        ContentModel.ContentItem,
+        inverse=ContentModel.ContentItem.itemCollectionInclusions,
+        initialValue=(),
+    )
+
+    exclusions = schema.Sequence(
+        ContentModel.ContentItem,
+        inverse=ContentModel.ContentItem.itemCollectionExclusions,
+        initialValue=(),
+    )
 
     def add (self, item):
         """
