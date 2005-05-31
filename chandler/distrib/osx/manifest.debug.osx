@@ -30,11 +30,15 @@ python
 # Grab wx, db and gcj libs
 src=chandler/debug
 dest=Contents/Resources
-glob=*.dylib,*.32,*.r,*.rsrc,*.jnilib,*.la
+glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=chandler/debug/db
 lib
-src=chandler/debug/icu
+
+# Grab icu libs
+src=chandler/release/icu
+dest=Contents/Resources
+glob=libicu*
 lib
 
 # Grab Chandler.py and others
