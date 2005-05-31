@@ -122,9 +122,13 @@ class ContentItem(schema.Item):
     
     itemCollectionInclusions = schema.Sequence()    # ItemCollection
     itemCollectionExclusions = schema.Sequence()    # ItemCollection
-    currentItemOf = schema.One()                    # CurrentPointer       
-    shares = schema.Sequence(initialValue=())       # share
 
+    # We haven't ported the "other end" of these links, so we have to use
+    # 'otherName' settings to ensure that they get hooked up correctly.
+    # The 'otherName' settings should be removed once the other side of these
+    # links exist in the Python schema.
+    currentItemOf = schema.One(otherName="item")    # CurrentPointer       
+    shares = schema.Sequence(initialValue=(), otherName="contents") # share
 
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
