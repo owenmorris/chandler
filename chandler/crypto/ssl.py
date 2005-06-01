@@ -6,6 +6,8 @@ SSL/TLS-related functionality.
 """
 
 from M2Crypto import SSL, util, EVP, httpslib
+import M2Crypto.SSL.Checker as Checker
+import M2Crypto.m2 as m2
 
 class SSLVerificationError(Exception):
     pass
@@ -23,14 +25,32 @@ class SSLContextError(Exception):
     pass
 
 
+def postConnectionCheck(peerX509, expectedHost):
+    """
+    Do a post connection check on an SSL connection. This is done just
+    after the SSL connection has been established, but before exchanging
+    any real application data like username and password.
+
+    This implementation checks to make sure that the certificate that the
+    peer presented was issued for the host we tried to connect to, or in
+    other words, make sure that we are talking to the server we think we should
+    be talking to.
+    """
+    check = Checker.Checker()
+    # XXX This may raise exceptions about wrong host. Sometimes this is due
+    # XXX to server misconfiguration rather than an active attack. We should
+    # XXX really ask the user what they want to do. This is bug 3156.
+    return check(peerX509, expectedHost)
+
+
 def getContext(repositoryView, protocol='sslv23', verify=True,
                verifyCallback=None):
     """
     Get an SSL context. You should use this method to get a context
     in Chandler rather than creating them directly.
 
-    @param profileDir:     Location of the cacert.pem file
-    @type profileDir:      str
+    @param repositoryView: Repository View from which to get certificates.
+    @type repositoryView:  RepositoryView
     @param protocol:       An SSL protocol version string.
     @type protocol:        str
     @param verify:         Verify SSL/TLS connection. True by default.
@@ -65,11 +85,10 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
         #ctx.load_cert_chain('client.pem')
 
         if not verifyCallback:
-            verifyCallback = _verifyCallback
+            verifyCallback = _VerifyCallback(repositoryView)
 
-        # XXX crash with callback
         ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                       9)#, verifyCallback)
+                       9)#, verifyCallback) #XXX callback causes crash
 
     # Do not allow SSLv2 because it has security issues
     ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
@@ -83,85 +102,48 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     return ctx
 
 
-def postConnectionCheck(connection, certSha1Fingerprint=None,
-                        hostCheck=True):
-    """
-    After having established an SSL connection, but before exchanging
-    any data or login information, call this function
-    for a final SSL check. If things don't check up, this will raise
-    various SSLVerificationErrors.
+class _VerifyCallback(object):
+    # We need to use a class to transmit the repository view. Otherwise
+    # this could be an ordinary function instead of a class with __call__.
+    
+    trusted_until_shutdown_site_certs = []
 
-    @param certSha1Fingerprint: If this is specified, the certificate
-                                returned by peer must have this SHA1
-                                fingerprint. Typically you would do this
-                                check in case where you don't check
-                                certificate chain and don't care about
-                                peer host.
-    @type certSha1Fingerprint:  str
-    @param hostCheck:           If this is True, the host name
-                                specified in the peer certificate must
-                                match connected peer. This would typically
-                                be done against public servers, together with
-                                certificate chain validation.
-    @type hostCheck:            boolean
-    """
-    cert = connection.get_peer_cert()
-    if cert is None:
-        raise NoCertificate, 'peer did not return certificate'
+    def __init__(self, repositoryView):
+        self.repositoryView = repositoryView
 
-    if certSha1Fingerprint:
-        der = cert.as_der()
-        md = EVP.MessageDigest('sha1')
-        md.update(der)
-        digest = md.final() # XXX See if we can compare as numbers
-        hexstr = hex(util.octx_to_num(digest))
-        fingerprint = hexstr[2:len(hexstr)-1]
-        fpLen = len(fingerprint)
-        if fpLen < 40: # len(sha1 in hex) == 40
-            fingerprint = '0' * (40 - fpLen) + fingerprint # Pad with 0's
-        if fingerprint != certSha1Fingerprint:
-            raise WrongCertificate, 'peer certificate fingerprint does not match'
+    def __call__(ok, store):
+        if not ok:
+            err = store.get_error()
 
-    if hostCheck:
-        hostValidationPassed = False
+            # There are (at least) these errors that will happen when
+            # the certificate can't be verified because we don't have
+            # the issuing certificate.
+            # We are being conservative for now and failing validation if the
+            # error code is something else - this may need to be tweaked.
+            if err != m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY and \
+               err != m2.X509_V_ERR_CERT_UNTRUSTED and \
+               err != m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+                return ok
 
-        # XXX Is there any possibility that we would like to pass in a
-        # XXX different host and compare against it? Is connection.addr
-        # XXX what we set it in the beginning, or is it whatever we are
-        # XXX connected to at the moment (in which case this would be
-        # XXX a security hole)?
-        host = connection.addr[0]
+            x509 = store.get_current_cert()
 
-        # XXX See RFC 2818 (and maybe 3280) for matching rules
+            pem = x509.as_pem()
+            if pem in trusted_until_shutdown_site_certs:
+                return 1
 
-        # XXX subjectAltName might contain multiple fields
-        # subjectAltName=DNS:somehost
-        try:
-            if cert.get_ext('subjectAltName').get_value() != 'DNS:' + host:
-                raise WrongHost, 'subjectAltName does not match host'
-            hostValidationPassed = True
-        except LookupError:
-            pass
+            # XXX Need to see if certificate is permanently trusted and
+            # XXX stored in the repository.
+            # XXX For this we need self.repositoryView
 
-        # commonName=somehost
-        if not hostValidationPassed:
-            try:
-                if cert.get_subject().CN != host:
-                    raise WrongHost, 'peer certificate commonName does not match host'
-            except AttributeError:
-                raise WrongHost, 'no commonName in peer certificate'
+            # XXX Need to put up a dialog for the user where they
+            # XXX can decide what they want to do. This may in fact need
+            # XXX to live elsewhere - where we currently put up the connection
+            # XXX failure error for example.
 
+        return ok
 
-def _verifyCallback(ok, store):
-    if not ok:
-        raise SSLVerificationError # XXX Or should I do something else?
-    return ok
-
-
-from M2Crypto.SSL import Checker
 
 class HTTPSConnection(httpslib.HTTPSConnection):
     def connect(self):
         httpslib.HTTPSConnection.connect(self)
-        check = Checker.Checker()
-        check(self.sock.get_peer_cert(), self.sock.addr[0])
+        postConnectionCheck(self.sock.get_peer_cert(), self.sock.addr[0])

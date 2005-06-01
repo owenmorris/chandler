@@ -43,9 +43,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         # Should have a list of these and randomly select to avoid
         # hitting the same sites over and over.
         #site = 'www.verisign.com'
-        #fp   = '0FA5B0527BA98FC66276CA166BA22E44A73636C9'
         site = 'www.thawte.com'
-        fp   = 'D85FE7EC903564DEFD4BCFF82047726F14C09C31'
         
         ctx = Globals.crypto.getSSLContext(self.rep.view)
         conn = SSL.Connection(ctx)
@@ -64,7 +62,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
                 return
             raise
 
-        crypto.ssl.postConnectionCheck(conn, fp, hostCheck=True)
+        crypto.ssl.postConnectionCheck(conn.get_peer_cert(), site)
 
         conn.clear()
 

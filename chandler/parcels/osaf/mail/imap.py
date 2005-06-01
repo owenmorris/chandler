@@ -18,7 +18,6 @@ import repository.item.Query as Query
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
-import M2Crypto.SSL as SSL
 
 #Chandler Mail Service imports
 import message as message

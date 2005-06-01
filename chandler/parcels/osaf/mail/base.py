@@ -24,7 +24,7 @@ from repository.persistence.RepositoryError \
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
-import M2Crypto.SSL as SSL
+import crypto.ssl as ssl
 
 #Chandler Mail Service imports
 import errors
@@ -230,7 +230,8 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             #XXX: This method actually begins the SSL exchange. Confusing name!
             self.factory.startTLS   = True
             self.factory.getContext = lambda : Globals.crypto.getSSLContext(repositoryView=self.view)
-            self.factory.sslChecker = SSL.Checker.Checker()
+
+        self.factory.sslChecker = ssl.postConnectionCheck
 
         wrappingFactory = policies.WrappingFactory(self.factory)
         wrappingFactory.protocol = wrapper.TLSProtocolWrapper

@@ -20,7 +20,7 @@ import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryV
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
-import M2Crypto.SSL as SSL
+import crypto.ssl as ssl
 
 #Chandler Mail Service imports
 import constants as constants
@@ -327,8 +327,9 @@ class _SMTPTransport(object):
         if account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             factory.startTLS = True
-            factory.sslChecker = SSL.Checker.Checker()
             factory.getContext = lambda : Globals.crypto.getSSLContext(self.parent.view)
+
+        factory.sslChecker = ssl.postConnectionCheck
 
         factory.protocol = _TwistedESMTPSender
         factory.testing  = testing
