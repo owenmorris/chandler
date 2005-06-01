@@ -8,6 +8,7 @@ import application
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
+import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 import osaf.framework.sharing.Sharing as Sharing
 import osaf.framework.blocks.Trunk as Trunk
 import osaf.contentmodel.mail.Mail as Mail
@@ -86,7 +87,8 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         self.selection = item
         
         # Make sure the itemcollection that we monitor includes only the selected item.
-        if len(self.contents.inclusions) != 1 or self.contents.inclusions.first() is not item:
+        if item is not None and (len(self.contents.inclusions) != 1 or \
+                                 self.contents.inclusions.first() is not item):
             self.contents.inclusions.clear()
             self.contents.add(item)
 
@@ -131,7 +133,6 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         needsLayout = False
         children = self.childrenBlocks
         for child in children:
-            child.isShown = item is not None
             needsLayout = reNotifyInside(child, item) or needsLayout
         wx.GetApp().needsUpdateUI = True
         if needsLayout:
@@ -294,7 +295,10 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         Overrides to use the item's kind as our cache key
         """
         if item is None:
-            return None
+            # We use the subtree kind itself as the key for displaying nothing
+            # (Mimi wants a particular look when no item is selected)
+            trunkSubtreeKind = self.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
+            return trunkSubtreeKind, False
         else:
             return item.itsKind, False
     
@@ -399,7 +403,6 @@ class DetailSynchronizer(Item):
             if shouldShow:
                 widget.Show (shouldShow)
             else:
-                widget.SetMinSize(wx.Size(0,0))
                 widget.Hide()
             self.isShown = shouldShow
             return True
@@ -899,7 +902,7 @@ class FromEditField (EditTextAttribute):
         except AttributeError:
             whoString = ''
         widget.SetValue (whoString)
-        logger.debug("FromEditField: Got '%s' after Set '%s'" % (widget.GetValue(), whoString))
+        # logger.debug("FromEditField: Got '%s' after Set '%s'" % (widget.GetValue(), whoString))
 
 class EditRedirectAttribute (EditTextAttribute):
     """
@@ -1067,6 +1070,12 @@ class EditTimeAttribute (EditRedirectAttribute):
 
         return (theDate, dateOnly)
 
+    def __formatDateValue(self, dateValue, dateOnly):
+        format = dateOnly and self.dateFormat or self.dateTimeFormat
+        df = SimpleDateFormat(format)
+        value = df.format(dateValue).toUnicode()
+        return value
+        
     def saveAttributeFromWidget(self, item, widget, validate):
         """"
           Update the attribute from the user edited string in the widget.
@@ -1081,8 +1090,7 @@ class EditTimeAttribute (EditRedirectAttribute):
                 item.anyTime = dateOnly and not item.allDay
                 
                 # and reformat it to put back in the box.
-                format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
-                dateString = theDate.strftime (format)
+                dateString = self.__formatDateValue(theDate, item.allDay or item.anyTime)
             else:
                 # @@@DLD figure out reasonable exceptions to catch during conversion
                 dateString = dateString + '?'
@@ -1096,15 +1104,16 @@ class EditTimeAttribute (EditRedirectAttribute):
           Update the widget display based on the value in the attribute.
         """
         try:
+            # Get the value if we have one.
             dateTime = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
+            # We don't have one; use the hint appropriate to the current allDay setting
             value = item.allDay and self.dateFormatHint or self.dateTimeFormatHint
         else:
-            format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
-            df = SimpleDateFormat(format)
-            value = df.format(dateTime).toUnicode()
+            # We have a value. Format it appropriately and stick it in the box.
+            value = self.__formatDateValue(dateTime, item.allDay or item.anyTime)
         widget.SetValue (value)
-        logger.debug("EditTime: Got '%s' after Set '%s'" % (widget.GetValue(), value))
+        # logger.debug("EditTime: Got '%s' after Set '%s'" % (widget.GetValue(), value))
 
 class CalendarDurationArea (CalendarEventBlock):
     def shouldShow (self, item):
@@ -1114,27 +1123,12 @@ class EditDurationAttribute (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
         return not item.allDay
 
-class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
-    """
-      "All Day" checkbox
-    """
-    def synchronizeItemDetail (self, item):
-        hasChanged = super(AllDayCheckBox, self).synchronizeItemDetail(item)
-        if item is not None and self.isShown:
-            self.widget.SetValue(item.allDay)
-        return hasChanged
-    
-    def onToggleAllDayEvent (self, event):
-        item = self.selectedItem()
-        if item is not None:
-            item.allDay = self.widget.GetValue() == wx.CHK_CHECKED
-            # The detail view doesn't properly handle synchronizing, so
-            #we'll unrender the tree of blocks and call wxSynchronizeWidget
-            #on our TPB which wil render the tree of blocks and synchronize
-            #all of them
-            detailRoot = self.detailRoot()
-            detailRoot.unRender()
-            detailRoot.parentBlock.widget.wxSynchronizeWidget()
+class AllDayCheckBox(DetailSynchronizedAttributeEditorBlock):
+    def valueChanged(self):
+        # Unrender to update the rest of the DV items' visibility.
+        detailRoot = self.detailRoot()
+        detailRoot.unRender()
+        detailRoot.parentBlock.widget.wxSynchronizeWidget()
 
 class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """
@@ -1198,3 +1192,19 @@ class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
         
     def getHTMLText(self, item):
         return "<html><body>" + str(item) + "</body></html>"
+
+
+class EmptyPanel(ControlBlocks.ContentItemDetail):
+    """
+    A bordered panel, which we use when no item is selected in the calendar
+    """
+    def instantiateWidget (self):
+        # Make a box with a sunken border - wxBoxContainer will take care of
+        # getting the background color from our attribute.
+        widget = ContainerBlocks.wxBoxContainer(self.parentBlock.widget, -1,
+                                                wx.DefaultPosition, 
+                                                wx.DefaultSize, 
+                                                wx.BORDER_STATIC)
+        widget.SetBackgroundColour(wx.WHITE)
+        return widget
+

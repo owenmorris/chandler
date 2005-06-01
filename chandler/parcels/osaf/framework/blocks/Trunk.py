@@ -62,13 +62,12 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
           If necessary, replace our children with a trunk of blocks appropriate for our content
         """
         TPBSelectedItem = self.TPBSelectedItem
-        if TPBSelectedItem is None:
-            newView = None
-            rerender = False
+        (keyItem, rerender) = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
+        newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
+        if keyItem is None:
             TPBDetailItem = None
+            newContents = None
         else:
-            keyItem, rerender = self.trunkDelegate._mapItemToCacheKeyItem(TPBSelectedItem)
-            newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
             """
               Seems like we should always mark new views with an event boundary
             """

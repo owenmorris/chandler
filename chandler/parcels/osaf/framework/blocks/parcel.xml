@@ -1719,7 +1719,7 @@
   <Kind itsName="AEBlock">
     <displayName value="Attribute Editor Block Kind"/>
     <description>Block that instantiates an appropriate Attribute Editor.</description>
-    <superKinds itemref="docSchema:RectangularChild"/>
+    <superKinds itemref="docSchema:BoxContainer"/>
     <classes key="python">osaf.framework.blocks.ControlBlocks.AEBlock</classes>
     
     <Attribute itsName="presentationStyle">

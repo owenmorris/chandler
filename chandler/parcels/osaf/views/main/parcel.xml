@@ -1406,7 +1406,6 @@
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>
     <trunkDelegate itemref="doc:CalendarDetailTrunkDelegate"/>
-    <colorStyle itemref="WhiteBackground"/>
   </TrunkParentBlock>
 
   <DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">

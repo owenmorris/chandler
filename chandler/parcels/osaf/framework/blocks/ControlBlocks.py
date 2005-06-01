@@ -794,7 +794,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         """
           Create an edit control to edit the text
         """
-        self.control = self.delegate.CreateControl(parent, id)
+        self.control = self.delegate.CreateControl(True, None, parent, id, None, None)
         self.SetControl (self.control)
         if evtHandler:
             self.control.PushEventHandler (evtHandler)
@@ -1346,198 +1346,7 @@ Issues
     but I think these problems can be fixed there.
 
 """
-
-class wxAEBlock(wxRectangularChild):
-    """
-      Widget that invokes an Attribute Editor for a Block.
-    """
-    def __init__(self, *arguments, **keywords):
-        super (wxAEBlock, self).__init__ (*arguments, **keywords)
-
-        # set minimum size hints
-        minW, minH = arguments[3] # grab the size
-        self.SetSizeHints(minW=minW, minH=minH)
-
-        # install event handlers
-        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-        # init python attributes
-        self.editor = None  # remembers the current attribute editor
-        self.control = None  # remembers the instantiated edit control widget
-
-    def wxSynchronizeWidget(self):
-        """
-           Synchronize the current value from the widget with the data model.
-        """
-        # superclass sync will handle shown-ness
-        super(wxAEBlock, self).wxSynchronizeWidget()
-
-        # Make sure we've got the appropriate editor. (We could do the lookup 
-        # at init time, but then value-based lookups won't be right.)
-        block = self.blockItem
-        newEditor = block.isShown and self.blockItem.lookupEditor(self.editor) or None
-        if self.editor is not newEditor:
-            self.destroyControl()
-            self.editor = newEditor
-            
-            if newEditor is None:
-                return
-            
-            # Give the editor a chance to create its control early
-            if self.editor.UsePermanentControl():
-                self.createControl()
-                self.editor.BeginControlEdit(self.blockItem.getItem(), 
-                                             self.blockItem.getAttributeName(),
-                                             self.control)
-
-        # redraw
-        self.Refresh()
-
-    def onClick(self, event):
-        """
-          A click has occured.  Prepare to edit the value, if editable.
-        """
-        editor = self.editor
-        assert editor is not None
         
-        block = self.blockItem
-        item = block.getItem()
-        attributeName = block.getAttributeName()
-
-        if self.control is None:
-            # Create the control
-            # return if editing is not allowed
-            if block.readOnly:  # the block could be readOnly
-                logger.debug("wxAEBlock.onClick: ignoring: block is readonly.")
-                return
-            if editor.ReadOnly ((item, attributeName)):  # The editor might not allow editing
-                logger.debug("wxAEBlock.onClick: ignoring: editor is readonly.")
-                return
-    
-            # create the control to use for editing
-            logger.debug("wxAEBlock.onClick: creating control.")
-            self.createControl()
-        else:
-            # Show the control we've already got
-            if not self.control.IsShown():
-                self.control.Show()
-                logger.debug("wxAEBlock.onClick: showing existing control.")
-            else:
-                logger.debug("wxAEBlock.onClick: ignoring click outside control")
-                event.Skip()
-                return
-
-        # Begin editing
-        editor.BeginControlEdit(item, attributeName, self.control)
-        self.control.SetFocus()
-
-        # consume the event
-        # @@@BJS: might not want to do this, if that allows first-clicks to 
-        # go into the textbox and place the insertion point...
-        event.Skip()
-
-        # redraw
-        # @@@BJS: needed? was: self.drawAEBlock()
-        # if not, refactor drawAEBlock into OnPaint
-
-    def OnPaint(self, paintEvent):
-        """
-          Need to update a portion of ourself.  Ask the control to draw in the update region.
-        """
-        if self.editor is not None: # Ignore paints until we've been sync'd.
-            self.drawAEBlock(wx.PaintDC(self))
-
-    def drawAEBlock(self, dc=None):
-        """
-        Draw ourself.
-        """
-        assert self.editor is not None
-        
-        block = self.blockItem
-        if block.isShown:
-            item = block.getItem ()
-            if item is not None:
-                blockRect = self.GetRect() # use the rect of the AE Block
-                rect = wx.Rect(0, 0, blockRect.width, blockRect.height)
-                attributeName = block.getAttributeName()
-                
-                if dc is None:
-                    dc = wx.ClientDC(self)
-                    
-                font = self.GetFont()
-                dc.SetFont(font)
-                dc.SetBrush(wx.TRANSPARENT_BRUSH)
-                self.editor.Draw(dc, rect, item, attributeName)
-
-    def createControl(self):
-        # create the control to use for editing
-        assert self.control is None
-        self.control = self.editor.CreateControl(self, -1)
-        
-        # @@@BJS: Todo: get the editor's control to handle both these events, and notify us
-        self.control.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromControl)
-        self.control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromControl)
-        self.control.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromControl)
-
-    def destroyControl(self):
-        if self.editor is None:
-            assert self.control is None
-            return
-        
-        if self.control is None:
-            return
-        
-        wx.CallAfter(self.control.Destroy)
-        self.control = None
-
-    def onGainFocusFromControl(self, event):
-        """
-          The control got the focus
-        """
-        logger.debug("wxAEBlock: control gained focus")
-
-    def onLoseFocusFromControl(self, event):
-        """
-          The control lost focus - we're finishing editing in the control.
-        """
-        if event is not None:
-            logger.debug("wxAEBlock: control lost focus")
-            event.Skip()
-            logger.debug("wxAEBlock: back from skip")
-        
-        # @@@BJS: needed? return if there's no control
-        assert self.control
-        if self.control is None:
-            logger.debug("wxAEBlock: skipping onLoseFocus because we have no control.")
-            return
-        
-        # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
-        if self.control.IsBeingDeleted() or self.control.GetParent().IsBeingDeleted():
-            logger.debug("wxAEBlock: skipping onLoseFocus because the control's being deleted.")
-            return
-
-        logger.debug("wxAEBlock: processing onLoseFocus.")
-        item = self.blockItem.getItem()
-        attributeName = self.blockItem.getAttributeName()
-        logger.debug("wxAEBlock: calling ECE")
-        self.editor.EndControlEdit(item, attributeName, self.control)
-        logger.debug("wxAEBlock: back from ECE")
-        if not self.editor.UsePermanentControl():
-            self.control.Hide()
-        logger.debug("wxAEBlock: returning from losefocus")
-
-    def OnKeyUpFromControl(self, event):
-        if event.m_keyCode == wx.WXK_RETURN:
-            # @@@ On PC, Hide causes loss of focus. On Mac, it doesn't
-            # Do the extra EndControlEdit here.
-            self.editor.EndControlEdit(self.blockItem.getItem(), self.blockItem.getAttributeName(), self.control)
-            if not self.editor.UsePermanentControl():
-                self.control.Hide()
-            # @@@ Should do the tab thing
-        else:
-            event.Skip()
-
 class AEBlock(RectangularChild):
     """
       Attribute Editor Block
@@ -1548,49 +1357,133 @@ class AEBlock(RectangularChild):
 
     def instantiateWidget(self):
         """
-          Create the Attribute Editor shell widget, that defines the
-        drawing world that the actual Attribute Editor will live within.
+        Ask our attribute editor to create a widget for us.
         """
-        style = wx.TAB_TRAVERSAL
-        if Block.showBorders:
-            style |= wx.SIMPLE_BORDER
-        widget = wxAEBlock (self.parentBlock.widget,
-                            -1,
-                            wx.DefaultPosition,
-                            (self.minimumSize.width, self.minimumSize.height),
-                            style)
+        existingWidget = getattr(self, 'widget', None) 
+        if existingWidget is not None:
+            return existingWidget
+        
+        forEditing = getattr(self, 'forEditing', False)
 
+        # Tell the control what font we expect it to use
         try:
             charStyle = self.characterStyle
         except AttributeError:
             charStyle = None
-        widget.SetFont(Styles.getFont(charStyle))
-        return widget
+        font = Styles.getFont(charStyle)
 
-    def lookupEditor(self, oldEditor):
-        # get the Attribute Editor for this Type
+        editor = self.lookupEditor()
+        widget = editor.CreateControl(forEditing, self.onValueChanged,
+                                      self.parentBlock.widget, -1, self, font)
+        widget.SetFont(font)
+        logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
+        
+        # Cache a little information in the widget.
+        widget.editor = editor
+        
+        widget.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromWidget)
+        widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
+        widget.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromWidget)
+        widget.Bind(wx.EVT_LEFT_UP, self.onGainFocusFromWidget)
+            
+        editor.BeginControlEdit(editor.item, editor.attributeName, widget)
+        
+        return widget
+        
+    def ChangeWidgetIfNecessary(self, forEditing, grabFocus):
+        """
+        Make sure we've got the right widget, given
+        the item+attribute we're configured for, our
+        presentationstyle, and the state we're in (editing or not).
+        """
+        def rerender():
+            # self.parentBlock.parentBlock.widget.Freeze()
+            try:
+                # Destroy the old widget
+                existingWidget = getattr(self, 'widget', None) 
+                if existingWidget is not None:
+                    oldEditor = existingWidget.editor
+                    oldEditor.EndControlEdit(oldEditor.item, 
+                                             oldEditor.attributeName, 
+                                             existingWidget)
+                    logger.debug("Destroying old widget for %s.%s", oldEditor.item, oldEditor.attributeName)
+                    # logger.debug("Unrendering in 2 seconds...")
+                    # time.sleep(2)
+                    self.unRender()
+                
+                # Set up the new one.
+                # logger.debug("Rendering in 2 seconds...")
+                # time.sleep(2)
+                logger.debug("Rendering new widget.")
+                self.render()
+                
+                logger.debug("Done rendering - syncing parent sizers")
+                w = self.widget
+                while True:
+                    if w.GetSizer() is not None:
+                        w.blockItem.synchronizeWidget()
+                    if w.blockItem.eventBoundary:
+                        break
+                    w = w.GetParent()
+                    
+                if self.forEditing and grabFocus:
+                    logger.debug("Grabbing focus.")
+                    self.widget.SetFocus()
+
+                logger.debug("Done rerendering.")
+            finally:
+                pass #self.parentBlock.parentBlock.widget.Thaw()
+                
+        editor = self.lookupEditor()
+        existingWidget = getattr(self, 'widget', None)
+        if editor.MustChangeControl(forEditing, existingWidget):
+            self.forEditing = forEditing
+            logger.debug("Must change control!")
+            wx.CallAfter(rerender)
+
+    def lookupEditor(self):
+        """
+        Make sure we've got the right attribute editor for this type
+        """
+        # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
         item = self.getItem()
         attributeName = self.getAttributeName()
-        
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
             presentationStyle = None
 
-        if (oldEditor is not None) and (oldEditor.typeName == typeName) and \
-           (oldEditor.attributeName == attributeName) and \
-           (oldEditor.presentationStyle is presentationStyle):
-            assert oldEditor.item is item # this shouldn't've changed.
-            return oldEditor
-        
+        # If we have one already, and it's the right one, return it.
+        try:
+            oldEditor = self.widget.attributeEditor
+        except AttributeError:
+            pass
+        else:
+            if (oldEditor is not None) and (oldEditor.typeName == typeName) \
+               and (oldEditor.attributeName == attributeName) and \
+               (oldEditor.presentationStyle is presentationStyle):
+                assert oldEditor.item is item # this shouldn't've changed.
+                return oldEditor
+
+        # We need a new editor - create one.
         selectedEditor = AttributeEditors.getInstance\
                        (typeName, item, attributeName, presentationStyle)
+        
+        # Note the characteristics that made us pick this editor
+        selectedEditor.typeName = typeName
+        selectedEditor.attributeName = attributeName
+        selectedEditor.presentationStyle = getattr(self, 'presentationStyle', None)
+        selectedEditor.item = item
 
         return selectedEditor
 
     def onSetContentsEvent (self, event):
         self.contents = event.arguments['item']
+        
+        assert not hasattr(self, 'widget')
+        
+        # @@@ more here?
 
     def getItem(self):
         try:
@@ -1627,3 +1520,49 @@ class AEBlock(RectangularChild):
         
         return typeName
 
+    def onGainFocusFromWidget(self, event):
+        """
+          The widget got the focus - make sure we're in edit mode.
+        """
+        logger.debug("AEBlock: widget gained focus or got clicked on")
+        # Attempt to fix bug 2878: Make sure we get the focus (in case we're a popup; this'll force
+        # any other existing focus'd AE to commit its value)
+        #if wx.Window.FindFocus() is not self.widget:
+        #    wx.Window.SetFocus(self.widget)
+            
+        self.ChangeWidgetIfNecessary(True, True)
+        event.Skip()
+
+    def onLoseFocusFromWidget(self, event):
+        """
+          The widget lost focus - we're finishing editing.
+        """
+        logger.debug("AEBlock: widget losing focus")
+        if event is not None:
+            event.Skip()
+        
+        # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
+        widget = getattr(self, 'widget', None)
+        if widget is None or widget.IsBeingDeleted() or widget.GetParent().IsBeingDeleted():
+            logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
+            return
+
+        self.ChangeWidgetIfNecessary(False, False)
+
+    def OnKeyUpFromWidget(self, event):
+        if event.m_keyCode == wx.WXK_RETURN:
+            self.ChangeWidgetIfNecessary(False, True)
+            
+            # Do the tab thing
+            # @@@ Should we?
+            self.widget.Navigate()
+        else:
+            event.Skip()
+
+    def onValueChanged(self, event):
+        """ Called when the attribute editor changes the value """
+        # @@@ eventually, this should probably send an associated
+        # event; for now, it does nothing, but subclasses (like the AllDay
+        # block) can override it to respond to changes.
+        logger.debug("onValueChanged")
+        pass

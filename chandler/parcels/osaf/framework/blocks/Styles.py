@@ -128,16 +128,27 @@ class FontMeasurements(object):
             (ignored, self.height, self.descent, self.leading) = \
              dc.GetFullTextExtent("M", font)
 
-            # How big is a one-line textbox in this font?
-            textCtrl = wx.TextCtrl(aWidget, -1, '')
-            self.textCtrlHeight = textCtrl.GetSize()[1]
-            textCtrl.Destroy()
+            # @@@ These result in too-big boxes - so fake it.
+            if False:
+                # How big is an instance of each of these controls with this font?
+                for (fieldName, ctrl) in {
+                    'textCtrlHeight': wx.TextCtrl(aWidget, -1, '', wx.DefaultPosition,
+                                                  wx.DefaultSize, wx.STATIC_BORDER),
+                    'choiceCtrlHeight': wx.Choice(aWidget, -1, wx.DefaultPosition,
+                                                  wx.DefaultSize, ['M']),
+                    'checkboxCtrlHeight': wx.CheckBox(aWidget, -1, 'M')
+                    }.items():
+                    setattr(self, fieldName, ctrl.GetSize()[1])
+                    ctrl.Destroy()
+                
+                # We end up just getting the size of the box if we ask a checkbox,
+                # so make sure we're at least as big as the text
+                self.checkboxCtrlHeight += self.descent
+            else:
+                self.textCtrlHeight = self.height + 6
+                self.choiceCtrlHeight = self.height + 8
+                self.checkboxCtrlHeight  = self.height + 6
 
-            # How big is a popup in this font?
-            choiceCtrl = wx.Choice(aWidget, -1, wx.DefaultPosition,
-                                   wx.DefaultSize, ["M"])
-            self.choiceCtrlHeight = choiceCtrl.GetSize()[1]
-            choiceCtrl.Destroy()
         finally:
             aWidget.SetFont(oldWidgetFont)
             

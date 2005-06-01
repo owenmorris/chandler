@@ -13,6 +13,7 @@ import repository.query.Query as Query
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import osaf.framework.blocks.Styles as Styles
 import logging
+import colorsys
 from operator import itemgetter
 from datetime import datetime, timedelta
 from repository.schema.Types import TimeDelta
@@ -23,14 +24,13 @@ logger.setLevel(logging.INFO)
 _TypeToEditorInstances = {}
 _TypeToEditorClasses = {}
 
-
 def getSingleton (typeName):
     """ Get (and cache) a single shared Attribute Editor for this type. """
     try:
         instance = _TypeToEditorInstances [typeName]
     except KeyError:
         aeClass = _getAEClass (typeName)
-        instance = aeClass (True, typeName, item=None, attributeName=None, presentationStyle=None)
+        instance = aeClass()
         _TypeToEditorInstances [typeName] = instance
     return instance
 
@@ -41,8 +41,8 @@ def getInstance (typeName, item, attributeName, presentationStyle):
     except AttributeError:
         format = None
     aeClass = _getAEClass(typeName, format)
-    logger.debug("getAEClass(%s [%s, %s]) --> %s" % (attributeName, typeName, format, aeClass))    
-    instance = aeClass (False, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)        
+    logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
+    instance = aeClass()        
     return instance
 
 def _getAEClass (type, format=None):
@@ -72,32 +72,7 @@ def _getAEClass (type, format=None):
 
 class BaseAttributeEditor (object):
     """ Base class for Attribute Editors. """
-    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
-        """ 
-        Create a shared, or unshared instance of an Attribute Editor. 
         
-        @param isShared: tells if this Attribute Editor is shared among
-                  several values (e.g. Grid uses a single AE for a whole
-                  column).
-        @type isShared: boolean
-        @param typeName: the string name of this type
-        @type typeName: str
-        @param presentationStyle: gives style information to the AE
-        @type presentationStyle: reference to PresentationStyle item, or
-                  None when isShared is True (default presentation).
-        Unshared instances may store data in attributes of self, but
-        that may cause trouble for shared Attribute Editors instances.
-        """
-        self.isShared = isShared
-        
-        # Note the characteristics that made us pick this editor
-        self.typeName = typeName
-        self.attributeName = attributeName
-        self.presentationStyle = presentationStyle
-        
-        # And the item we're editing, if we have it
-        self.item = item
-
     def ReadOnly (self, (item, attribute)):
         """ Return True if this Attribute Editor refuses to edit """
         # By default, everything's editable.
@@ -107,16 +82,38 @@ class BaseAttributeEditor (object):
         """ Draw the value of the attribute in the specified rect of the dc """
         raise NotImplementedError
     
+    def IsFixedWidth(self):
+        """
+        Return True if this control is of fixed size, and shouldn't be 
+        expanded to fill its space
+        """
+        # Most classes that don't use a TextCtrl will be fixed width, so we
+        # default to True.
+        return True
+    
     def UsePermanentControl(self):
         """ 
         Does this attribute editor use a permanent control (or
         will the control be created when the user clicks)? 
         """
+        # @@@ still needed?
         return False
-
-    def CreateControl (self, parent, id):
+    
+    def MustChangeControl(self, forEditing, existingControl):
+        """
+        Return False if this control is good enough for displaying
+        (forEditing == False) or editing (forEditing == True) in this
+        editor, or True if we have to render us up a new one.
+        Note that existingControl may be None.
+        """
+        # Default to "if we have a control, it's good enough".
+        return existingControl is None
+    
+    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+                       id, parentBlock, font):
         """ 
-        Create and return a control to use for editing the attribute value. 
+        Create and return a control to use for displaying (forEdit=False)
+        or editing (forEdit=True) the attribute value.
         """
         raise NotImplementedError
     
@@ -173,16 +170,31 @@ class BaseAttributeEditor (object):
             # if isinstance(value, str): value = unicode(value)
             assert not isinstance(value, str)
             setattr(item, attributeName, value)
+            self.AttributeChanged()
+    
+    def AttributeChanged(self):
+        """ Called by the attribute editor when it changes the underlying
+            value. """
+        pass # for now.
 
-class myTextCtrl(wx.TextCtrl):
+class AETextCtrl(wx.TextCtrl):
     def Destroy(self):
         # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
         # (in which case we're a PyDeadObject)
-        if isinstance(self, wx.TextCtrl):
-            super(myTextCtrl, self).Destroy()
+        if isinstance(self, AETextCtrl):
+            super(AETextCtrl, self).Destroy()
         else:
             pass # (give me a place to set a breakpoint)
-
+    
+class AEStaticText(wx.StaticText):
+    """ 
+    Wrap wx.StaticText to give it the same GetValue/SetValue behavior
+    that other wx controls have. (This was simpler than putting lotsa special
+    cases around the StringAttributeEditor...)
+    """
+    GetValue = wx.StaticText.GetLabel
+    SetValue = wx.StaticText.SetLabel
+    
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
     Uses a Text Control to edit attributes in string form. 
@@ -195,6 +207,16 @@ class StringAttributeEditor (BaseAttributeEditor):
         except AttributeError:
             uc = False
         return uc
+
+    def IsFixedWidth(self, blockItem):
+        """
+        Return True if this control shouldn't be resized to fill its space
+        """
+        try:
+            fixedWidth = self.blockItem.stretchFactor == 0
+        except AttributeError:
+            fixedWidth = False # yes, let our textctrl fill the space.
+        return fixedWidth
 
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """
@@ -243,38 +265,51 @@ class StringAttributeEditor (BaseAttributeEditor):
                 
             dc.DestroyClippingRegion()
         
-    def CreateControl (self, parent, id):
-        # create a text control for editing the string value
+    def MustChangeControl(self, forEditing, existingControl):
+        must = existingControl is None or \
+             (not self.UsePermanentControl() and \
+             (forEditing != isinstance(existingControl, AETextCtrl)))
+        logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
+        return must
+
+    def CreateControl(self, forEditing, changeCallback, parentWidget, 
+                       id, parentBlock, font):
         logger.debug("StringAE.CreateControl")
+        useTextCtrl = forEditing
+        if not forEditing:
+            try:
+                useTextCtrl = parentBlock.presentationStyle.useControl
+            except AttributeError:
+                pass
+                
+        # Figure out the size we should be
+        # @@@ There's a wx catch-22 here: The text ctrl on Windows will end up
+        # horizonally scrolled to expose the last character of the text if this
+        # size is too small for the value we put into it. If the value is too
+        # large, the sizer won't ever let the control get smaller than this.
+        # For now, use 200, a not-too-happy medium that doesn't eliminate either problem.
         
         size = wx.DefaultSize
-        if False:
-            try:
-                isMultiline = self.presentationStyle.multiLine
-            except:
-                isMultiline = False
-            if not isMultiline:
-                font = parent.GetFont()
-                try:
-                    size.height = Styles.getMeasurements(font).textCtrlHeight
-                except AttributeError:
-                    pass
-            
-        control = myTextCtrl(parent, id, '', wx.DefaultPosition, 
-                             size,
-                             wx.TE_PROCESS_TAB | wx.TE_AUTO_SCROLL)
-        control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
-        control.Bind(wx.EVT_TEXT, self.onTextChanged)
-        control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
+        if font is not None and parentWidget is not None:
+            measurements = Styles.getMeasurements(font)
+            size = wx.Size(200, # parentWidget.GetRect().width,
+                           measurements.textCtrlHeight)
         
-        if not self.isShared:
-            # Inflate us to our parent's size
-            parentRect = parent.GetRect()
-            control.SetSizeHints(minW=parentRect.width, minH=parentRect.height)
-            controlSize = wx.Rect(wx.DefaultPosition[0], wx.DefaultPosition[0], parentRect.width, parentRect.height)
-            logger.debug("StringAE.CreateControl: created; control size is %s", controlSize)    
-            control.SetRect(controlSize)
+        if useTextCtrl:
+            control = AETextCtrl(parentWidget, id, '', wx.DefaultPosition, 
+                                 size,
+                                 wx.TE_PROCESS_ENTER | wx.TAB_TRAVERSAL | \
+                                 wx.TE_AUTO_SCROLL | wx.STATIC_BORDER)
+            control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+            control.Bind(wx.EVT_TEXT, self.onTextChanged)      
+            control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
+        else:            
+            border = parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER
+            control = AEStaticText(parentWidget, id, '', wx.DefaultPosition, 
+                                   size,
+                                   wx.TAB_TRAVERSAL | border)
+        
         return control
 
     def BeginControlEdit (self, item, attributeName, control):
@@ -290,8 +325,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         else:
             self.showingSample = False
             self.__changeTextQuietly(control, value)
-            control.SetSelection (-1,-1)
-            # @@@BJS is this necessary?: control.SetInsertionPointEnd ()
+            if isinstance(control, AETextCtrl):
+                control.SetSelection (-1,-1)
+                # @@@BJS is this necessary?: control.SetInsertionPointEnd ()
 
         logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
 
@@ -341,16 +377,36 @@ class StringAttributeEditor (BaseAttributeEditor):
         logger.debug("__changeTextQuietly: to '%s'", text)
         # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
         control.SetValue(text)
-        logger.debug("AE(%s): Got '%s' after Set '%s'" % (self.attributeName, control.GetValue(), text))
-        
+                
         del self.ignoreTextChanged
         
     def __setSampleText(self, control, sampleText):
         logger.debug("__setSampleText: installing sampletext")
         self.showingSample = True
         self.__changeTextQuietly(control, sampleText)
-        control.SetSelection (-1,-1)
-        control.SetStyle(0, len(sampleText), wx.TextAttr(wx.Colour(153, 153, 153)))
+        
+        # Calculate a gray level to use: Mimi wants 50% of the brightness
+        # of the text color, but 50% of black is still black.
+        textColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        backColor = control.GetBackgroundColour()
+        
+        def __shadeBetween(shade, color1, color2):
+            shade1 = shade(color1)
+            shade2 = shade(color2)
+            smaller = min(shade1, shade2)
+            delta = abs(shade1 - shade2)
+            return smaller + (delta / 2)
+        grayColor = wx.Colour(__shadeBetween(wx.Colour.Red, textColor, backColor),
+                              __shadeBetween(wx.Colour.Green, textColor, backColor),
+                              __shadeBetween(wx.Colour.Blue, textColor, backColor))
+                
+        if isinstance(control, AETextCtrl):
+            control.SetSelection (-1,-1)
+            # @@@ Trying to make the text in the editbox gray doesn't seem to work on Win.
+            # (I'm doing it anyway, because it seems to work on Mac.)
+            control.SetStyle(0, len(sampleText), wx.TextAttr(grayColor))
+        else:
+            control.SetForegroundColour(grayColor)
 
     def onKeyDown(self, event):
         """ Note whether the sample's been replaced. """
@@ -428,6 +484,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         else:
             if cardinality == "single":
                 setattr (item, attributeName, valueString)
+                self.AttributeChanged()
 
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
@@ -492,13 +549,16 @@ class RepositoryAttributeEditor (StringAttributeEditor):
             except AttributeError:
                 # attribute currently has no value, can't figure out the type
                 setattr (item, attributeName, valueString) # hope that a string will work
+                self.AttributeChanged()
                 return
             else:
                 # ask the repository for the type associated with this value
                 attrType = ItemHandler.ItemHandler.typeHandler (item.itsView, value)
+
         # now we can convert the string to the right type
         value = attrType.makeValue (valueString)
         setattr (item, attributeName, value)
+        self.AttributeChanged()
 
 class LocationAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is a Location. """
@@ -517,10 +577,16 @@ class LocationAttributeEditor (StringAttributeEditor):
             value = Calendar.Location.getLocation (item.itsView, valueString)
             if getattr(item, attributeName, None) is not value:
                 setattr (item, attributeName, value)
+        
+        self.AttributeChanged()
 
-    def CreateControl (self, parent, id):
-        control = super(LocationAttributeEditor, self).CreateControl(parent, id)
-        control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+                       id, parentBlock, font):
+        control = super(LocationAttributeEditor, self).\
+                CreateControl(forEditing, changeCallback, parentWidget,
+                              id, parentBlock, font)
+        if forEditing:
+            control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         return control
 
     def onKeyUp(self, event):
@@ -578,6 +644,7 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
             pass
         else:
             setattr (item, attributeName, value)
+            self.AttributeChanged()
 
     def _parse(self, inputString):
         """"
@@ -653,20 +720,32 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
 
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
     """ A checkbox control. """
-    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
-        super(CheckboxAttributeEditor, self).__init__(isShared, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)
-        
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, parent, id):
-        control = wx.CheckBox(parent, id)
+    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+                       id, parentBlock, font):
+        
+        # Figure out the size we should be
+        size = wx.DefaultSize
+        if font is not None and parentBlock is not None:
+            measurements = Styles.getMeasurements(font)
+            try:
+                parentWidth = parentBlock.minimumSize.width
+            except:
+                parentWidth = wx.DefaultSize.width
+            size = wx.Size(parentWidth,
+                           measurements.checkboxCtrlHeight)
+
+        control = wx.CheckBox(parentWidget, id, u"", 
+                              wx.DefaultPosition, size)
         control.Bind(wx.EVT_CHECKBOX, self.onChecked)
         return control
         
     def DestroyControl (self, control, losingFocus=False):
+        # @@@ still needed?
         # Only destroy the control if we're not just losing focus
         if losingFocus:
             return False # we didn't destroy the control
@@ -690,18 +769,27 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         control.SetValue(value)
 
 class ChoiceAttributeEditor (BasePermanentAttributeEditor):
-    """ A pop-up control. The list of choices comes from presentationStyle.choices """
-    def __init__(self, isShared, typeName, item=None, attributeName=None, presentationStyle=None):
-        super(ChoiceAttributeEditor, self).__init__(isShared, typeName, item=item, attributeName=attributeName, presentationStyle=presentationStyle)
-        
+    """ A pop-up control. The list of choices comes from presentationStyle.choices """        
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, parent, id):
-        control = wx.Choice(parent, id)
-        control.SetFont(parent.GetFont())
+    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+                       id, parentBlock, font):
+
+        # Figure out the size we should be
+        size = wx.DefaultSize
+        if font is not None and parentBlock is not None:
+            measurements = Styles.getMeasurements(font)
+            try:
+                parentWidth = parentBlock.minimumSize.width
+            except:
+                parentWidth = wx.DefaultSize.width
+            size = wx.Size(parentWidth,
+                           measurements.choiceCtrlHeight)
+
+        control = wx.Choice(parentWidget, id, wx.DefaultPosition, size)
         control.Bind(wx.EVT_CHOICE, self.onChoice)
         return control
         
@@ -761,7 +849,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             minuteCount = int(value.split(u" ")[0])
         except ValueError:
             # "None"
-            value = Calendar.CalendarEventMixin.NoReminderDelta
+            value = None
         else:
             value = timedelta(minutes=-minuteCount)
         return value
@@ -776,7 +864,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             control.Clear()
             control.AppendItems(choices)
 
-            if value == Calendar.CalendarEventMixin.NoReminderDelta:
+            if value is None:
                 choiceIndex = 0 # the "None" choice
             else:
                 reminderChoice = (value.minutes == 1) and _("1 minute") or (_("%i minutes") % value.minutes)
@@ -786,9 +874,11 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
                     choiceIndex = 0 # the "None" choice
             control.Select(choiceIndex)
         
-    def SetAttributeValue (self, item, attributeName, value):
+    # @@@ Not needed, I think:
+    def xxxSetAttributeValue (self, item, attributeName, value):
         if value is None and hasattr(item, attributeName):
             delattr(item, attributeName)
+            self.AttributeChanged()
         else:
             super(ReminderDeltaAttributeEditor, \
                   self).SetAttributeValue(item, attributeName, value)
