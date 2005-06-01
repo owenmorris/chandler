@@ -1,5 +1,5 @@
 
-VERSION=r280
+VERSION=282
 RELVER=$(VERSION)-1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 
@@ -22,6 +22,10 @@ build: expand apply
 	cp -f $(BUILD_ROOT)/$(SNAP)/bin/libeay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto
 	cp -f $(BUILD_ROOT)/$(SNAP)/bin/ssleay32.dll $(BUILD_ROOT)/$(SNAP)/$(SITE)/M2Crypto
 
+# The tests do not run properly with Windows Python (Cygwin would work) since
+# we don't have win32process module.
+tests:
+
 else
 build: expand apply
 	cd $(SRC); \
@@ -31,16 +35,19 @@ build: expand apply
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
+
+tests:
+	cd $(SRC)/tests; $(PYTHON) alltests.py
+
 endif
 
 M2Crypto-$(VERSION).tar.gz:
-	$(CURL) http://builds.osafoundation.org/external/M2Crypto-$(VERSION).tar.gz
-	$(CURL) http://builds.osafoundation.org/external/M2Crypto-$(VERSION).tar.gz.md5
+	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
+	tar czf M2Crypto-$(VERSION).tar.gz M2Crypto-$(VERSION)
 
 sources: M2Crypto-$(VERSION).tar.gz
 
 M2Crypto-$(VERSION)-expanded: M2Crypto-$(VERSION).tar.gz
-	tar xvzf M2Crypto-$(VERSION).tar.gz
 	touch M2Crypto-$(VERSION)-expanded
 
 expand: M2Crypto-$(VERSION)-expanded
@@ -62,12 +69,3 @@ upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	rm -rf  $(SRC)/$(BUILD)
-
-tests:
-	cd $(SRC)/tests; $(PYTHON) alltests.py
-
-# To build source tarballs: make srctarball M2SVNREV=<revision>
-srctarball:
-	svn co -r$(M2SVNREV) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-r$(M2SVNREV) 
-	tar --exclude=.svn -czvf M2Crypto-r$(M2SVNREV).tar.gz M2Crypto-r$(M2SVNREV)
-	md5sum -b M2Crypto-r$(M2SVNREV).tar.gz > M2Crypto-r$(M2SVNREV).tar.gz.md5
