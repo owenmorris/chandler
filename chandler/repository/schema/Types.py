@@ -1102,7 +1102,7 @@ class DateTime(DateStruct):
 
     def _valueFromFields(self, flds):
 
-        if 'timezone' in flds:
+        if 'timezone' in flds and flds['timezone'] is not None:
             tz = ICUtzinfo.getInstance(flds['timezone'])
         else:
             tz = None
