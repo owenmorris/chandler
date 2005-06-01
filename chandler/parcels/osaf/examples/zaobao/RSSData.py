@@ -7,6 +7,7 @@ import application
 from osaf.contentmodel.ContentModel import ContentItem
 from osaf.contentmodel.ItemCollection import ItemCollection
 from datetime import datetime
+import time
 from dateutil.parser import parse
 import feedparser
 import os, logging
@@ -83,7 +84,7 @@ class RSSChannel(ItemCollection):
         # set lastModified
         modified = data.get('modified')
         if modified:
-            self.lastModified = datetime.fromtimestamp(modified)
+            self.lastModified = datetime.fromtimestamp(time.mktime(modified))
 
         # if the feed is bad, raise the sax exception
         try:
