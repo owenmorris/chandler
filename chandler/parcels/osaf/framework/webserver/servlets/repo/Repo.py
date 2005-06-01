@@ -524,7 +524,10 @@ def RenderKindQuery(repoView, item):
     output = []
     try:
         for i in repository.item.Query.KindQuery().run([item]):
-            output.append("<a href=%s>'%s'</a>  (%s) %s" % (toLink(i.itsPath), i.getItemDisplayName(), i.itsKind.itsName, i.itsPath))
+            output.append("<a href=%s>'%s'</a>  (%s) %s %s" % \
+                          (toLink(i.itsPath), i.getItemDisplayName(), 
+                           i.itsKind.itsName, i.itsPath, 
+                           hasattr(i, 'widget') and " (rendered)" or ""))
         result += ("<br>".join(output))
     except Exception, e:
         result += "Caught a %s exception: %s<br> %s" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
