@@ -20,7 +20,8 @@ SYSTEMS=persistence/db \
         yapps \
 	vobject \
 	dateutil \
-	m2crypto
+	m2crypto \
+	zanshin
 
 .PHONY: sources expand binaries $(SYSTEMS)
 
