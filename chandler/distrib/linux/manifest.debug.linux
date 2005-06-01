@@ -35,6 +35,13 @@ dest=debug
 glob=libssl*,libcrypto*
 lib
 
+# Grab the PyICU libs
+src=chandler/release
+recursive=no
+dest=release
+glob=libPy*
+lib
+
 # Recursively grab python libraries
 src=chandler/debug/lib
 dest=debug/lib
