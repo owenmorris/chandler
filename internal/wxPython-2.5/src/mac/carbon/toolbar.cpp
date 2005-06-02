@@ -35,12 +35,12 @@ END_EVENT_TABLE()
 #include "wx/geometry.h"
 
 #ifdef __WXMAC_OSX__
-const short kwxMacToolBarToolDefaultWidth = 32 ;		// OSAF: used to be 16
-const short kwxMacToolBarToolDefaultHeight = 32 ;		// OSAF: used to be 16
+const short kwxMacToolBarToolDefaultWidth = 16 ;
+const short kwxMacToolBarToolDefaultHeight = 16 ;
 const short kwxMacToolBarTopMargin = 4 ;
 const short kwxMacToolBarLeftMargin = 4 ;
-const short kwxMacToolBorder = 2;					// OSAF: used to be 0
-const short kwxMacToolSpacing = 2;					// OSAF: used to be 6
+const short kwxMacToolBorder = 0;
+const short kwxMacToolSpacing = 6;
 #else
 const short kwxMacToolBarToolDefaultWidth = 24 ;
 const short kwxMacToolBarToolDefaultHeight = 22 ;
