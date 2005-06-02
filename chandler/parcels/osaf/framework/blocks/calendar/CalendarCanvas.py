@@ -669,10 +669,15 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
+
+            # @@@MOR Since two datetime objects with differing timezone
+            # naivete can't be compared, ignore startTime's timezone (via
+            # the replace( ) calls below); pardon my naivete if this is wrong.
+
             if (item.hasLocalAttributeValue('startTime') and
                 (allDay or anyTime) and
-                (item.startTime >= date) and
-                (item.startTime < nextDate)):
+                (item.startTime.replace(tzinfo=None) >= date) and
+                (item.startTime.replace(tzinfo=None) < nextDate)):
                 yield item
 
     def itemIsInRange(self, item, start, end):
