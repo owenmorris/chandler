@@ -1,5 +1,5 @@
 
-VERSION=0.0.2
+VERSION=46
 RELVER=$(VERSION)-1
 
 ZANSHIN=$(BUILD_ROOT)/zanshin
@@ -15,7 +15,7 @@ build: expand
                            install --force
 
 zanshin-$(VERSION).tar.gz:
-	svn export http://svn.osafoundation.org/zanshin/tags/$(VERSION) zanshin-$(VERSION)
+	svn export http://svn.osafoundation.org/zanshin/trunk -r $(VERSION) zanshin-$(VERSION)
 	tar czf zanshin-$(VERSION).tar.gz zanshin-$(VERSION)
 
 sources: zanshin-$(VERSION).tar.gz
