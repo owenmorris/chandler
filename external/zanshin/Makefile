@@ -31,7 +31,7 @@ snap:
 	find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
 	tar -cvzf $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/zanshin \
-		--exclude test; \
+		--exclude tests; \
 	$(MD5) $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz > $(ZANSHIN)/zanshin-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: zanshin-$(SNAP)-$(RELVER).tar.gz
