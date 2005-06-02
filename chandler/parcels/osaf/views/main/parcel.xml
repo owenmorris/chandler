@@ -1159,7 +1159,6 @@
         <core:Endpoint itsName="itemTupleKeyToCacheKey">
             <attribute value="itemTupleKeyToCacheKey"/>
             <includePolicy value="byRef"/>
-            <cloudAlias value="default"/>
         </core:Endpoint>
         <endpoints itemref="doc:SidebarTrunkDelegate/DefaultCloud/itemTupleKeyToCacheKey"/>
     </core:Cloud>

@@ -30,7 +30,6 @@
         <Cloud itsName="TestKindCloud">
             <Endpoint itsName="myChildren">
                 <includePolicy value="byCloud"/>
-                <cloudAlias value="default"/>
                 <attribute value="myChildren"/>
             </Endpoint>
             <endpoints itemref="me:TestKind/TestKindCloud/myChildren"/>

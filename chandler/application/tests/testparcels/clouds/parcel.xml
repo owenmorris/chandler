@@ -43,7 +43,6 @@
         <Cloud itsName="Cloud">
             <Endpoint itsName="childWidgets">
                 <attribute value="childWidgets"/>
-                <cloudAlias value="default"/>
                 <includePolicy value="byCloud"/>
             </Endpoint>
             <Endpoint itsName="sprockets">

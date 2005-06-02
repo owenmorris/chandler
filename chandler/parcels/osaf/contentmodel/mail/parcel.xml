@@ -705,7 +705,6 @@
           <Endpoint itsName="mimeParts">
             <attribute value="mimeParts" />
             <includePolicy value="byCloud" />
-            <cloudAlias value="default" />
           </Endpoint>
           <endpoints itemref="mail:MailMessageMixin/Cloud/mimeParts"/>
         </Cloud>
