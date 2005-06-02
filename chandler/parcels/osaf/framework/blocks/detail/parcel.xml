@@ -631,8 +631,7 @@
     <useControl>True</useControl>
   </PresentationStyle>
 
-  <AEBlock itsName="EditCalendarDuration"
-           itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
+  <AEBlock itsName="EditCalendarDuration">
     <blockName value="EditCalendarDuration"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <presentationStyle itemref="doc:DurationPresentation"/>

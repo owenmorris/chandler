@@ -15,8 +15,8 @@ import osaf.framework.blocks.Styles as Styles
 import logging
 import colorsys
 from operator import itemgetter
-from datetime import datetime, timedelta
-from repository.schema.Types import TimeDelta
+from datetime import datetime, time, timedelta
+from PyICU import SimpleDateFormat, ICUError
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
@@ -140,46 +140,20 @@ class BaseAttributeEditor (object):
     def GetControlValue (self, control):
         """ Get the value from the control. """
         value = control.GetValue()
-        # @@@ BJS For now, make sure the strings we return are Unicode.
-        # This'll go away when we build wx with the "unicode" flag.
-        if isinstance(value, str):
-            logger.debug("GetControlValue: got a str, not unicode ('%s')",
-                         value)
-            value = unicode(value)
         return value
 
     def SetControlValue (self, control, value):
         """ Set the value in the control. """
-        # @@@BJS For now, make sure the strings we put in the controls 
-        # are Unicode.
-        if isinstance(value, str):
-            logger.debug("SetControlValue: setting a str, not unicode ('%s')",
-                         value)
-            value = unicode(value)            
         control.SetValue (value)
 
     def GetAttributeValue (self, item, attributeName):
         """ Get the value from the specified attribute of the item. """
         value = getattr(item, attributeName, None)
-        # @@@BJS For now, make sure the strings we put in the content model 
-        # are Unicode. This'll go away when we build wx with the unicode flag.
-        if isinstance(value, str):
-            logger.debug("GetAttributeValue: %s.%s is a str, not unicode: ('%s')",
-                         item, attributeName, value)
-            value = unicode(value)
         return value
 
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
         if not self.ReadOnly((item, attributeName)):
-            # @@@BJS For now, make sure the strings we put in the content model 
-            # are Unicode. This'll go away when we build wx with the 
-            # "unicode" flag.
-            # if isinstance(value, str): value = unicode(value)
-            if isinstance(value, str):
-                logger.debug("SetAttributeValue: %s.%s to a str, not unicode: ('%s')",
-                             item, attributeName, value)
-                value = unicode(value)
             setattr(item, attributeName, value)
             self.AttributeChanged()
     
@@ -472,7 +446,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         return len(unicode(v)) > 0
 
     def GetAttributeValue(self, item, attributeName):
-        """ Get the attribute's current value, converted to a (unicode) string """
+        """ Get the attribute's current value """
         try:
             valueString = unicode(getattr(item, attributeName))
         except AttributeError:
@@ -636,7 +610,7 @@ class LocationAttributeEditor (StringAttributeEditor):
                 control.SetSelection (keysTyped, len (completion))
 
 class TimeDeltaAttributeEditor (StringAttributeEditor):
-    """ Knows that the data Type is TimeDelta. """
+    """ Knows that the data Type is timedelta. """
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
         try:
@@ -659,22 +633,18 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
 
     def _parse(self, inputString):
         """"
-          parse the durationString into a TimeDelta.
+          parse the durationString into a timedelta.
         """
-        # convert to TimeDelta
-        theDuration = TimeDelta.makeValue(inputString)
+        df = SimpleDateFormat("H:mm")
+        theDuration = datetime.fromtimestamp(df.parse(inputString))
         return theDuration
-
-    durationFormatShort = '%H:%M'
-    durationFormatLong = '%d:%H:%M:%S'
 
     def _format(self, aDuration):
         # if we got a value different from the default
-        if aDuration.day == 0 and aDuration.second == 0:
-            format = self.durationFormatShort
-        else:
-            format = self.durationFormatLong
-        return aDuration.strftime (format)
+        df = SimpleDateFormat("H:mm")
+        durationTime = datetime(2005,1,1) + aDuration
+        value = df.format(durationTime).toUnicode()
+        return value
 
 class ContactNameAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
@@ -813,11 +783,12 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
         return True
     
     def onChoice(self, event):
-        logger.debug("ChoiceAE.onChoice: new choice is %s",
-                     self.GetControlValue(event.GetEventObject()))
         control = event.GetEventObject()
+        newChoice = self.GetControlValue(control)
+        logger.debug("ChoiceAE.onChoice: new choice is %s",
+                     newChoice)
         self.SetAttributeValue(self.item, self.attributeName, \
-                               self.GetControlValue(control))
+                               newChoice)
 
     def GetChoices(self):
         """ Get the choices we're presenting """
@@ -829,7 +800,6 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
         if choiceIndex == -1:
             return None
         value = self.item.getAttributeAspect(self.attributeName, 'type').values[choiceIndex]
-        if isinstance(value, str): value = unicode(value) # @@@BJS Make sure we return unicode!
         return value
 
     def SetControlValue (self, control, value):
@@ -885,8 +855,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
                     choiceIndex = 0 # the "None" choice
             control.Select(choiceIndex)
         
-    # @@@ Not needed, I think:
-    def xxxSetAttributeValue (self, item, attributeName, value):
+    def SetAttributeValue (self, item, attributeName, value):
         if value is None and hasattr(item, attributeName):
             delattr(item, attributeName)
             self.AttributeChanged()

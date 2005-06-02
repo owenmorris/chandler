@@ -13,8 +13,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
 
-from datetime import datetime, timedelta
-
+from datetime import datetime, time, timedelta
 
 class CalendarEventMixin(ContentModel.ContentItem):
     myKindID = None
@@ -143,19 +142,32 @@ class CalendarEventMixin(ContentModel.ContentItem):
     duration = property(GetDuration, SetDuration,
                         doc="timedelta: the length of an event")
 
+    def getEffectiveStartTime(self):
+        """ 
+        Get the effective start time of this event: ignore the time
+        component of the startTime attribute if this is an allDay 
+        or anyTime event.
+        """
+        # If startTime's time is invalid, ignore it.
+        if self.anyTime or self.allDay:
+            result = datetime.combine(self.startTime, time(0))
+        else:
+            result = self.startTime
+        return result
+        
     def GetReminderDelta(self):
         """ Returns the difference between startTime and reminderTime, a timedelta """
         try:
-            return self.startTime - self.reminderTime
+            return self.getEffectiveStartTime() - self.reminderTime
         except AttributeError:
             return None
    
     def SetReminderDelta(self, reminderDelta):
-        if (self.startTime is not None):
+        effectiveStart = self.getEffectiveStartTime()
+        if effectiveStart is not None:
             if reminderDelta is not None:
-                self.reminderTime = self.startTime - reminderDelta
+                self.reminderTime = effectiveStart + reminderDelta
             else:
-                
                 try:
                     del self.reminderTime
                 except AttributeError:

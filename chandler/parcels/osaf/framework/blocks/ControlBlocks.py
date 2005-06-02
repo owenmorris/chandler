@@ -1336,7 +1336,8 @@ class Timer(Block):
         # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
         # don't bother firing.
         if when is not None:
-            millisecondsUntilFiring = (when - datetime.now()).seconds * 1000
+            td = when - datetime.now()
+            millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
             elif millisecondsUntilFiring > sys.maxint:

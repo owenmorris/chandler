@@ -115,7 +115,7 @@ class ReminderDialog(wx.Dialog):
                 self.remindersInList[index] = reminder
 
                 # Make a relative expression of its time ("3 minutes from now")
-                deltaMessage = self.RelativeDateTimeMessage(now - reminder.startTime)
+                deltaMessage = self.RelativeDateTimeMessage(now - reminder.getEffectiveStartTime())
                 listCtrl.SetStringItem(index, 1, deltaMessage)
                 
                 # Select it if it was selected before
@@ -147,7 +147,7 @@ class ReminderDialog(wx.Dialog):
         return (nextReminderTime, closeIt)
     
     def RelativeDateTimeMessage(self, delta):
-        deltaMinutes = delta.minutes
+        deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 1 > deltaMinutes >= 0:
             return _("Now")
         

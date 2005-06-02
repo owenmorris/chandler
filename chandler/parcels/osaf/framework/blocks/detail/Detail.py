@@ -1047,28 +1047,29 @@ class EditTimeAttribute (EditRedirectAttribute):
     """
     # (@@@BJS ... though we also modify allDay and anyTime ourselves)
 
-    #dateTimeFormat = '%Y-%m-%d %I:%M %p'
-    #dateFormat = '%Y-%m-%d'
-    #dateTimeFormatHint = 'yyyy-mm-dd HH:MM'
-    #dateFormatHint = 'yyyy-mm-dd'
-    
-    dateTimeFormat = 'yyyy-MM-dd hh:mm a'
-    dateFormat = 'yyyy-MM-dd'
-    dateTimeFormatHint = 'yyyy-mm-dd HH:MM'
+    # Hint strings for normal and allday/anytime modes
+    dateTimeFormatHint = 'yyyy-mm-dd HH:MM AM'
     dateFormatHint = 'yyyy-mm-dd'
     
+    dateTimeFormat = "yyyy-M-d h:mm a"
+    dateFormat = "yyyy-M-d"
+    possibleFormats = (dateTimeFormat,
+                       "yyyy-M-d h:mma",
+                       "yyyy-M-d H:mm",
+                       dateFormat) # (must be last - see below)
+    
     def parseDateTime (self, dateString):
-
-        try:
-            df = SimpleDateFormat(EditTimeAttribute.dateTimeFormat)
-            theDate = datetime.fromtimestamp(df.parse(dateString))
-            dateOnly = False
-        except ICUError:
-            df = SimpleDateFormat(EditTimeAttribute.dateFormat)
-            theDate = datetime.fromtimestamp(df.parse(dateString))
-            dateOnly = True
-
-        return (theDate, dateOnly)
+        for f in EditTimeAttribute.possibleFormats:
+            try:
+                df = SimpleDateFormat(f)
+                theDate = datetime.fromtimestamp(df.parse(dateString))
+                dateOnly = (f == self.dateFormat)
+                return (theDate, dateOnly)
+            except ICUError:
+                # Re-raise if we haven't found one by the end.
+                if (f == self.dateFormat):
+                    raise
+                # else continue
 
     def __formatDateValue(self, dateValue, dateOnly):
         format = dateOnly and self.dateFormat or self.dateTimeFormat
@@ -1082,7 +1083,10 @@ class EditTimeAttribute (EditRedirectAttribute):
         """
         if validate:
             dateString = widget.GetValue().strip('?')
-            (theDate, dateOnly) = self.parseDateTime (dateString)
+            try:
+                (theDate, dateOnly) = self.parseDateTime (dateString)
+            except ICUError:
+                theDate = None
             
             if theDate is not None:
                 # save the new Date/Time into the startTime attribute
@@ -1119,69 +1123,12 @@ class CalendarDurationArea (CalendarEventBlock):
     def shouldShow (self, item):
         return not item.allDay
 
-class EditDurationAttribute (DetailSynchronizedAttributeEditorBlock):
-    def shouldShow (self, item):
-        return not item.allDay
-
 class AllDayCheckBox(DetailSynchronizedAttributeEditorBlock):
     def valueChanged(self):
         # Unrender to update the rest of the DV items' visibility.
         detailRoot = self.detailRoot()
         detailRoot.unRender()
         detailRoot.parentBlock.widget.wxSynchronizeWidget()
-
-class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
-    """
-    A choice popup for Reminder Values
-    """
-    def synchronizeItemDetail (self, item):
-        hasChanged = super(EditReminder, self).synchronizeItemDetail(item)
-        if item is not None and self.isShown:
-            try:
-                reminderDelta = item.reminderDelta
-            except AttributeError:
-                reminderDelta = None
-            if reminderDelta is None:
-                reminderChoice = _("None")
-            else:
-                reminderChoice = (reminderDelta.minutes == 1) and _("1 minute") or (_("%i minutes") % reminderDelta.minutes)
-            choiceIndex = self.widget.FindString(reminderChoice)
-            # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
-            if choiceIndex == -1:
-                choiceIndex = self.widget.FindString(_("None"))
-            self.widget.Select(choiceIndex)
-        return hasChanged
-
-    def onReminderChangedEvent (self, event):
-        item = self.selectedItem()
-        if item is not None:
-            reminderChoice = self.widget.GetStringSelection()
-            if reminderChoice == _('None'):
-                item.reminderDelta = None
-            else:
-                # @@@BJS Assumes the menu item is of the form "nn Minutes"
-                item.reminderDelta = timedelta(minutes=int(reminderChoice.split(' ', 2)[0]))
-
-class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
-    """
-    A choice popup for Transparency Values (free, busy, etc.)
-    """
-    def synchronizeItemDetail (self, item):
-        hasChanged = super(EditTransparency, self).synchronizeItemDetail(item)
-        if item is not None and self.isShown:
-            try:
-                choiceIndex = item.getAttributeAspect('transparency', 'type').values.index(item.transparency)
-            except AttributeError:
-                choiceIndex = 0
-            self.widget.Select(choiceIndex)
-        return hasChanged
-
-    def onTransparencyChangedEvent (self, event):
-        item = self.selectedItem()
-        if item is not None:
-            choiceIndex = self.widget.GetSelection()
-            item.transparency = item.getAttributeAspect('transparency', 'type').values[choiceIndex]
-
 
 
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
