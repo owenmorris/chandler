@@ -36,9 +36,9 @@ glob=libssl*,libcrypto*
 lib
 
 # Grab the PyICU libs
-src=chandler/release
+src=chandler/debug
 recursive=no
-dest=release
+dest=debug
 glob=libPy*
 lib
 
