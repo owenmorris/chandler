@@ -19,22 +19,12 @@ utc = dateutil.tz.tzutc()
 
 MAXRECUR = 10
 
-def convertToUTC(dt, asDate = False, tz = None):
-    """Convert the given datetime (without tz) into datetime with tzinfo=UTC.
-    
-    >>> import datetime
-    >>> dt = datetime.datetime(2004, 12, 20, 12)
-    >>> dt = convertToUTC(dt, pacific)
-    >>> print dt
-    2004-12-20 20:00:00+00:00
-    
-    """
-    if tz is None:
-        tz = localtime
+def dateForVObject(dt, asDate = False):
+    """Convert the given datetime into a date or datetime with tzinfo=UTC."""
     if asDate:
-        return datetime.datetime(dt.year, dt.month, dt.day)
+        return dt.date()
     else:
-        return dt.replace(tzinfo=tz).astimezone(utc)
+        return dt.replace(tzinfo=localtime).astimezone(utc)
 
 def itemsToVObject(view, items, cal=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
@@ -66,14 +56,14 @@ def itemsToVObject(view, items, cal=None):
         except AttributeError:
             pass
         try:
-            comp.add('dtstart').value = convertToUTC(item.startTime,item.allDay)
+            comp.add('dtstart').value = dateForVObject(item.startTime,item.allDay)
         except AttributeError:
             pass
         try:
             if taskorevent == 'TASK':
-                comp.add('due').value = convertToUTC(item.dueDate,item.allDay)
+                comp.add('due').value = dateForVObject(item.dueDate,item.allDay)
             else:
-                comp.add('dtend').value = convertToUTC(item.endTime,item.allDay)
+                comp.add('dtend').value = dateForVObject(item.endTime,item.allDay)
         except AttributeError:
             pass
         try:
@@ -93,7 +83,7 @@ def itemsToVObject(view, items, cal=None):
             pass
         try:
             comp.add('valarm').add('trigger').value = \
-              convertToUTC(item.reminderTime) - convertToUTC(item.startTime)
+              dateForVObject(item.reminderTime) - dateForVObject(item.startTime)
         except AttributeError:
             pass
     return cal
@@ -258,6 +248,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 recurrenceIter = itertools.islice(event.rruleset, MAXRECUR)
             
             for dt in recurrenceIter:
+                #give the repository a naive datetime, no timezone
+                dt = dt.astimezone(localtime).replace(tzinfo=None)
                 if uidMatchItem is not None:
                     logger.debug("matched UID")
                     eventItem = uidMatchItem
@@ -273,7 +265,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         eventItem.uid = unicode(eventItem.itsUUID)
                     
                 logger.debug("eventItem is %s" % str(eventItem))
-                              
+                
+                #Default to NOT any time
+                eventItem.anyTime = False
+                
                 eventItem.displayName = displayName
                 if isDate:
                     eventItem.allDay = True

@@ -543,7 +543,7 @@ class FileSystemConduit(ShareConduit):
 
         if text is None:
             return None
-        out = file(path, 'w')
+        out = file(path, 'wb') #outputting in binary mode to preserve ics CRLF
         out.write(text)
         out.close()
         stat = os.stat(path)
