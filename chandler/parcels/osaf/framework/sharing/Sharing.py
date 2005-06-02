@@ -24,10 +24,9 @@ import logging
 import wx
 import time, StringIO, urlparse, libxml2, os
 import chandlerdb
-from zanshin.http import ConnectionError
-from zanshin.webdav import WebDAVError, PermissionsError
-from WebDAV import ChandlerServerHandle
-from zanshin.tests.util import runTestSynchronously as blockUntil
+import zanshin.webdav
+import WebDAV
+import zanshin.util
 import twisted.web.http
 import AccountInfoPrompt
 
@@ -703,7 +702,7 @@ class WebDAVConduit(ShareConduit):
             (host, port, sharePath, username, password, useSSL) = \
             self.__getSettings()
             
-            self.serverHandle = ChandlerServerHandle(host, port=port,
+            self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
                 repositoryView=self.itsView)
                 
@@ -774,11 +773,11 @@ class WebDAVConduit(ShareConduit):
         resource = self.__resourceFromPath("")
 
         try:
-            result = blockUntil(resource.exists)
-        except ConnectionError, err:
+            result = zanshin.util.blockUntil(resource.exists)
+        except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.args[0])
 
-        except PermissionsError, err:
+        except zanshin.webdav.PermissionsError, err:
             message = "Not authorized to PUT %s" % self.getLocation()
             raise NotAllowed(message=err.message)
             
@@ -793,11 +792,11 @@ class WebDAVConduit(ShareConduit):
             url = self.getLocation()
             try:
                 if url[-1] != '/': url += '/'
-                resource = blockUntil(self.serverHandle.mkcol, url)
-            except ConnectionError, err:
+                resource = zanshin.util.blockUntil(self.serverHandle.mkcol, url)
+            except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
                 
-            except WebDAVError, err:
+            except zanshin.webdav.WebDAVError, err:
                 if err.status == twisted.web.http.METHOD_NOT_ALLOWED:
                     # already exists
                     message = "Collection at %s already exists" % url
@@ -863,16 +862,17 @@ class WebDAVConduit(ShareConduit):
         container = self.__getContainerResource()
         
         try:
-            newResource = blockUntil(container.createFile, itemName, body=text)
-        except ConnectionError, err:
+            newResource = zanshin.util.blockUntil(container.createFile,
+                                itemName, body=text)
+        except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
         # 201 = new, 204 = overwrite
 
-        except PermissionsError:
+        except zanshin.webdav.PermissionsError:
             message = "Not authorized to PUT %s" % itemName
             raise NotAllowed(message=message)
             
-        except WebDAVError, err:
+        except zanshin.webdav.WebDAVError, err:
 
             if err.status == twisted.web.http.FORBIDDEN or err.status == twisted.web.http.CONFLICT:
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
@@ -891,17 +891,17 @@ class WebDAVConduit(ShareConduit):
         
         if resource != None:
             try:
-                deleteResp = blockUntil(resource.delete)
-            except ConnectionError, err:
+                deleteResp = zanshin.util.blockUntil(resource.delete)
+            except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
 
     def _getItem(self, itemPath, into=None):
         resource = self.__resourceFromPath(itemPath)
 
         try:
-            resp = blockUntil(resource.get)
+            resp = zanshin.util.blockUntil(resource.get)
 
-        except ConnectionError, err:
+        except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
         if resp.status == twisted.web.http.NOT_FOUND:
@@ -936,12 +936,13 @@ class WebDAVConduit(ShareConduit):
             shareCollection = self.__getContainerResource()
 
             try:
-                children = blockUntil(shareCollection.getAllChildren)
+                children = zanshin.util.blockUntil(
+                                shareCollection.getAllChildren)
 
-            except ConnectionError, err:
+            except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
 
-            except WebDAVError, e:
+            except zanshin.webdav.WebDAVError, e:
 
                 if e.status == twisted.web.http.NOT_FOUND:
                     raise NotFound(message="Not found: %s" % shareCollection.path)
@@ -962,10 +963,10 @@ class WebDAVConduit(ShareConduit):
             # @@@ [grant] Error handling and reporting here
             # are crapski
             try:
-                blockUntil(resource.propfind, depth=0)
-            except ConnectionError, err:
+                zanshin.util.blockUntil(resource.propfind, depth=0)
+            except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
-            except PermissionsError, err:
+            except zanshin.webdav.PermissionsError, err:
                 message = "Not authorized to get %s" % location
                 raise NotAllowed(message=message)
 #            except NotFoundError:
@@ -1021,14 +1022,15 @@ class SimpleHTTPConduit(WebDAVConduit):
             logger.info("...last modified: %s" % self.lastModified)
 
         try:
-            resp = blockUntil(self._getServerHandle().get, location, extraHeaders=extraHeaders)
+            resp = zanshin.util.blockUntil(self._getServerHandle().get,
+                        location, extraHeaders=extraHeaders)
 
             if resp.status == twisted.web.http.NOT_MODIFIED:
                 # The remote resource is as we saw it before
                 logger.info("...not modified")
                 return
 
-        except ConnectionError, err:
+        except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
         if resp.status == twisted.web.http.NOT_FOUND:

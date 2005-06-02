@@ -3,17 +3,10 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from twisted.internet.error import TimeoutError, UserError, DNSLookupError
-from twisted.internet.defer import Deferred
-from twisted.internet import reactor
-from twisted.python.failure import Failure
+import twisted.internet.reactor as reactor
 import zanshin.webdav
-from zanshin.http import Request, ConnectionError
-from twisted.web.http import NOT_FOUND
-from zanshin.tests.util import runTestSynchronously as blockUntil
 
 import logging
-from repository.persistence.RepositoryViewManager import AbstractRepositoryViewManager
 import application.Globals as Globals
 import crypto.ssl as ssl
 import chandlerdb.util.uuid
@@ -43,6 +36,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
             if self.factory.sslContextFactory == None:
                 self.factory.getContext = lambda: \
                     Globals.crypto.getSSLContext(repositoryView=repositoryView)
+                self.factory.sslChecker = ssl.postConnectionCheck
 
 
 
@@ -84,8 +78,9 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # or other failures (e.g., nonexistent path, mistyped
     # host).
     try:
-        resourceList = blockUntil(topLevelResource.propfind, depth=1)
-    except ConnectionError, err:
+        resourceList = zanshin.util.blockUntil(topLevelResource.propfind,
+                         depth=1)
+    except zanshin.webdav.ConnectionError, err:
         return (CANT_CONNECT, err.message)
     except zanshin.webdav.WebDAVError, err:
         return (NO_ACCESS, err.status)
@@ -125,15 +120,15 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.
     try:
-        tmpResource = blockUntil(topLevelResource.createFile, testFilename,
-                                     body='Write access test')
+            tmpResource = zanshin.util.blockUntil(topLevelResource.createFile,
+                             testFilename, body='Write access test')
     except zanshin.webdav.WebDAVError, e:
         return (READ_ONLY, e.status)
         
     # Remove the temporary resource, and ignore failures (since there's
     # not much we can do here, anyway).
     try:
-        blockUntil(tmpResource.delete)
+        zanshin.util.blockUntil(tmpResource.delete)
     except:
         pass
         

@@ -5,9 +5,9 @@ import wx
 import os, urlparse, urllib
 import application.Globals as Globals
 import Sharing, ICalendar
-from WebDAV import ChandlerServerHandle
-from zanshin.webdav import WebDAVError
-from zanshin.tests.util import runTestSynchronously as blockUntil
+import WebDAV
+import zanshin.webdav
+import zanshin.util
 from repository.item.Query import KindQuery
 
 class PublishCollectionDialog(wx.Dialog):
@@ -88,7 +88,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.existingControl = wx.xrc.XRCCTRL(self, "LISTBOX_EXISTING")
         try:
             self._refreshExisting()
-        except WebDAVError, e:
+        except zanshin.webdav.WebDAVError, e:
             self.existing = []
             self._showStatus("Sharing error: %s\n" % e.message)
 
@@ -165,7 +165,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.currentAccount = account
         try:
             self._refreshExisting()
-        except WebDAVError, e:
+        except zanshin.webdav.WebDAVError, e:
             self.existing = []
             self._showStatus("WebDAV error: %s\n" % e.message)
         self._suggestName()
@@ -435,11 +435,11 @@ class PublishCollectionDialog(wx.Dialog):
         useSSL = account.useSSL
         sharePath = account.path.strip("/")
 
-        handle = ChandlerServerHandle(host, port=port, username=username,
+        handle = WebDAV.ChandlerServerHandle(host, port=port, username=username,
                    password=password, useSSL=useSSL, repositoryView=self.view)
 
         if len(sharePath) > 0:
-            sharePath = "/" + sharePath + "/"
+            sharePath = "/%s/" % (sharePath)
         else:
             sharePath = "/"
             
@@ -447,7 +447,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         parent = handle.getResource(sharePath)
         skipLen = len(sharePath)
-        for resource in blockUntil(parent.getAllChildren):
+        for resource in zanshin.util.blockUntil(parent.getAllChildren):
             path = resource.path[skipLen:]
             path = path.strip("/")
             if path:
