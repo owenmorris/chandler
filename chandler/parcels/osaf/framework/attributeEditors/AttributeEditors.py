@@ -142,15 +142,20 @@ class BaseAttributeEditor (object):
         value = control.GetValue()
         # @@@ BJS For now, make sure the strings we return are Unicode.
         # This'll go away when we build wx with the "unicode" flag.
-        if isinstance(value, str): value = unicode(value)
-        assert not isinstance(value, str)
+        if isinstance(value, str):
+            logger.debug("GetControlValue: got a str, not unicode ('%s')",
+                         value)
+            value = unicode(value)
         return value
 
     def SetControlValue (self, control, value):
         """ Set the value in the control. """
         # @@@BJS For now, make sure the strings we put in the controls 
         # are Unicode.
-        assert not isinstance(value, str)
+        if isinstance(value, str):
+            logger.debug("SetControlValue: setting a str, not unicode ('%s')",
+                         value)
+            value = unicode(value)            
         control.SetValue (value)
 
     def GetAttributeValue (self, item, attributeName):
@@ -158,7 +163,10 @@ class BaseAttributeEditor (object):
         value = getattr(item, attributeName, None)
         # @@@BJS For now, make sure the strings we put in the content model 
         # are Unicode. This'll go away when we build wx with the unicode flag.
-        assert not isinstance(value, str)
+        if isinstance(value, str):
+            logger.debug("GetAttributeValue: %s.%s is a str, not unicode: ('%s')",
+                         item, attributeName, value)
+            value = unicode(value)
         return value
 
     def SetAttributeValue (self, item, attributeName, value):
@@ -168,7 +176,10 @@ class BaseAttributeEditor (object):
             # are Unicode. This'll go away when we build wx with the 
             # "unicode" flag.
             # if isinstance(value, str): value = unicode(value)
-            assert not isinstance(value, str)
+            if isinstance(value, str):
+                logger.debug("SetAttributeValue: %s.%s to a str, not unicode: ('%s')",
+                             item, attributeName, value)
+                value = unicode(value)
             setattr(item, attributeName, value)
             self.AttributeChanged()
     
