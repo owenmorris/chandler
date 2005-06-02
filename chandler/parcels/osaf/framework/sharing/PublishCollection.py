@@ -5,7 +5,9 @@ import wx
 import os, urlparse, urllib
 import application.Globals as Globals
 import Sharing, ICalendar
-import WebDAV
+from WebDAV import ChandlerServerHandle
+from zanshin.webdav import WebDAVError
+from zanshin.tests.util import runTestSynchronously as blockUntil
 from repository.item.Query import KindQuery
 
 class PublishCollectionDialog(wx.Dialog):
@@ -86,7 +88,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.existingControl = wx.xrc.XRCCTRL(self, "LISTBOX_EXISTING")
         try:
             self._refreshExisting()
-        except WebDAV.WebDAVException, e:
+        except WebDAVError, e:
             self.existing = []
             self._showStatus("Sharing error: %s\n" % e.message)
 
@@ -163,7 +165,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.currentAccount = account
         try:
             self._refreshExisting()
-        except WebDAV.WebDAVException, e:
+        except WebDAVError, e:
             self.existing = []
             self._showStatus("WebDAV error: %s\n" % e.message)
         self._suggestName()
@@ -433,30 +435,26 @@ class PublishCollectionDialog(wx.Dialog):
         useSSL = account.useSSL
         sharePath = account.path.strip("/")
 
-        client = WebDAV.Client(host, port=port, username=username,
-                               password=password, useSSL=useSSL,
-                               repositoryView=self.view)
+        handle = ChandlerServerHandle(host, port=port, username=username,
+                   password=password, useSSL=useSSL, repositoryView=self.view)
 
-        scheme = "http"
-        if account.useSSL:
-            scheme = "https"
-
-        if account.port == 80:
-            url = "%s://%s" % (scheme, account.host)
+        if len(sharePath) > 0:
+            sharePath = "/" + sharePath + "/"
         else:
-            url = "%s://%s:%d" % (scheme, account.host, account.port)
-        url = urlparse.urljoin(url, sharePath + "/")
-
+            sharePath = "/"
+            
         existing = []
-        skipLen = 1
-        if sharePath:
-            skipLen += len(sharePath) + 1
-        for (resource, etag) in client.ls(url, ignoreCollections=False):
-            resource = resource[skipLen:]
-            resource = resource.strip("/")
-            if resource:
-                resource = urllib.unquote_plus(resource)
-                existing.append(resource)
+
+        parent = handle.getResource(sharePath)
+        skipLen = len(sharePath)
+        for resource in blockUntil(parent.getAllChildren):
+            path = resource.path[skipLen:]
+            path = path.strip("/")
+            if path:
+                path = urllib.unquote_plus(path)
+                existing.append(path)
+        
+        # @@@ [grant] Localized sort?
         existing.sort()
         return existing
 

@@ -24,7 +24,11 @@ import logging
 import wx
 import time, StringIO, urlparse, libxml2, os
 import chandlerdb
-import WebDAV, httplib
+from zanshin.http import ConnectionError
+from zanshin.webdav import WebDAVError, PermissionsError
+from WebDAV import ChandlerServerHandle
+from zanshin.tests.util import runTestSynchronously as blockUntil
+import twisted.web.http
 import AccountInfoPrompt
 
 logger = logging.getLogger('Sharing')
@@ -169,7 +173,7 @@ class ShareConduit(ContentModel.ContentItem):
         try:
             del self.resourceList[self._getItemPath(item)]
         except:
-            logger.info("...external item didn't previously exist")
+            logger.info("...external item %s didn't previously exist" % self._getItemPath(item))
 
     def put(self, skipItems=None):
         """ Transfer entire 'contents', transformed, to server. """
@@ -364,7 +368,7 @@ class ShareConduit(ContentModel.ContentItem):
     def _getItemPath(self, item):
         """ Return a string that uniquely identifies a resource in the remote
             share, such as a URL path or a filesystem path.  These strings
-            will be used for accessing the manfist and resourceList dicts.
+            will be used for accessing the manifest and resourceList dicts.
         """
         pass
 
@@ -681,7 +685,7 @@ class WebDAVConduit(ShareConduit):
 
     def onItemLoad(self, view=None):
         # view is ignored
-        self.client = None
+        self.serverHandle = None
 
     def __getSettings(self):
         if self.account is None:
@@ -692,27 +696,34 @@ class WebDAVConduit(ShareConduit):
                     self.account.path.strip("/"), self.account.username,
                     self.account.password, self.account.useSSL)
 
-    def _getClient(self):
-        if self.client is None:
-            logger.info("...creating new client")
-            (host, port, sharePath, username, password, useSSL) = self.__getSettings()
-            self.client = WebDAV.Client(host, port=port, username=username,
-                                        password=password, useSSL=useSSL,
-                                        repositoryView=self.itsView)
-        return self.client
+    def _getServerHandle(self):
+        # @@@ [grant] Collections and the trailing / issue.
+        if self.serverHandle == None:
+            logger.info("...creating new webdav ServerHandle")
+            (host, port, sharePath, username, password, useSSL) = \
+            self.__getSettings()
+            
+            self.serverHandle = ChandlerServerHandle(host, port=port,
+                username=username, password=password, useSSL=useSSL,
+                repositoryView=self.itsView)
+                
+        return self.serverHandle
 
-    def __releaseClient(self):
-        self.client = None
+    def __releaseServerHandle(self):
+        self.serverHandle = None
 
     def getLocation(self):  # must implement
         """ Return the url of the share """
 
         (host, port, sharePath, username, password, useSSL) = self.__getSettings()
-        scheme = "http"
         if useSSL:
             scheme = "https"
+            defaultPort = 443
+        else:
+            scheme = "http"
+            defaultPort = 80
 
-        if port == 80:
+        if port == defaultPort:
             url = "%s://%s" % (scheme, host)
         else:
             url = "%s://%s:%d" % (scheme, host, port)
@@ -742,92 +753,103 @@ class WebDAVConduit(ShareConduit):
         else:
             print "Error" #@@@MOR Raise something
 
-    def __getItemURL(self, item):
-        """ Return the full url of an item """
-        url = self.getLocation()
+    def __getSharePath(self):
+        return "/" + self.__getSettings()[2]
+            
+    def __resourceFromPath(self, path):
+
+        serverHandle = self._getServerHandle()
+        sharePath = self.__getSharePath()
         
-        style = self.share.format.fileStyle()
-        if style == ImportExportFormat.STYLE_DIRECTORY:
-            return "%s/%s" % (url, self._getItemPath(item))
-        else:
-            return url
-        
-    def __URLFromPath(self, path):
-        url = self.getLocation()
-        
-        style = self.share.format.fileStyle()
-        if style == ImportExportFormat.STYLE_DIRECTORY:
-            return "%s/%s" % (url, path)
-        else:
-            return url
-      
+        resourcePath = "%s/%s" % (sharePath, self.shareName)
+
+        if self.share.format.fileStyle() == ImportExportFormat.STYLE_DIRECTORY:
+            resourcePath += "/" + path
+
+        return serverHandle.getResource(resourcePath)
 
     def exists(self):
-        super(WebDAVConduit, self).exists()
+        result = super(WebDAVConduit, self).exists()
+        
+        resource = self.__resourceFromPath("")
 
         try:
-            resp = self._getClient().head(self.getLocation())
-            resp.read()
-        except WebDAV.ConnectionError, err:
-            raise CouldNotConnect(message=err.message)
+            result = blockUntil(resource.exists)
+        except ConnectionError, err:
+            raise CouldNotConnect(message=err.args[0])
 
-        if resp.status == httplib.UNAUTHORIZED:
+        except PermissionsError, err:
             message = "Not authorized to PUT %s" % self.getLocation()
-            raise NotAllowed(message=message)
-
-        if resp.status == httplib.NOT_FOUND:
-            return False
-        else:
-            return True
+            raise NotAllowed(message=err.message)
+            
+        return result
 
     def create(self):
         super(WebDAVConduit, self).create()
-
+        
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
             try:
-                resp = self._getClient().mkcol(url)
-                resp.read() # Always need to read each response
-            except WebDAV.ConnectionError, err:
+                if url[-1] != '/': url += '/'
+                resource = blockUntil(self.serverHandle.mkcol, url)
+            except ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
-
-            if resp.status == httplib.METHOD_NOT_ALLOWED:
-                # already exists
-                message = "Collection at %s already exists" % url
-                raise AlreadyExists(message=message)
-
-            if resp.status == httplib.UNAUTHORIZED:
-                # not authorized
-                message = "Not authorized to create collection %s" % url
-                raise NotAllowed(message=message)
-
-            if resp.status == httplib.CONFLICT:
-                # this happens if you try to create a collection within a
-                # nonexistent collection
-                message = "Parent collection for %s not found" % url
-                raise NotFound(message=message)
-
-            if resp.status == httplib.FORBIDDEN:
-                # the server doesn't allow the creation of a collection here
-                message = "Server doesn't allow the creation of collections at %s" % url
-                raise IllegalOperation(message=message)
-
-            if resp.status != httplib.CREATED:
-                 message = "WebDAV error, status = %d" % resp.status
-                 raise IllegalOperation(message=message)
+                
+            except WebDAVError, err:
+                if err.status == twisted.web.http.METHOD_NOT_ALLOWED:
+                    # already exists
+                    message = "Collection at %s already exists" % url
+                    raise AlreadyExists(message=message)
+    
+                if err.status == twisted.web.http.UNAUTHORIZED:
+                    # not authorized
+                    message = "Not authorized to create collection %s" % url
+                    raise NotAllowed(message=message)
+    
+                if err.status == twisted.web.http.CONFLICT:
+                    # this happens if you try to create a collection within a
+                    # nonexistent collection
+                    message = "Parent collection for %s not found" % url
+                    raise NotFound(message=message)
+    
+                if err.status == twisted.web.http.FORBIDDEN:
+                    # the server doesn't allow the creation of a collection here
+                    message = "Server doesn't allow the creation of collections at %s" % url
+                    raise IllegalOperation(message=message)
+    
+                if err.status != twisted.web.http.CREATED:
+                     message = "WebDAV error, status = %d" % err.status
+                     raise IllegalOperation(message=message)
 
     def destroy(self):
         print " @@@MOR unimplemented"
 
     def open(self):
         super(WebDAVConduit, self).open()
+        
+    def __getContainerResource(self):
+        
+        serverHandle = self._getServerHandle()
+        
+        style = self.share.format.fileStyle()
+
+        if style == ImportExportFormat.STYLE_DIRECTORY:
+            path = self.getLocation()
+        else:
+            path = self.__getSharePath()
+
+        # Make sure we have a container
+        if path and path[-1] != '/':
+            path += '/'
+
+        return serverHandle.getResource(path)
+        
 
     def _putItem(self, item): # must implement
         """ putItem should publish an item and return etag/date, etc.
         """
-        url = self.__getItemURL(item)
 
         try:
             text = self.share.format.exportProcess(item)
@@ -837,80 +859,62 @@ class WebDAVConduit(ShareConduit):
         if text is None:
             return None
 
+        itemName = self._getItemPath(item)
+        container = self.__getContainerResource()
+        
         try:
-            resp = self._getClient().put(url, text)
-            resp.read() # Always need to read each response
-        except WebDAV.ConnectionError, err:
+            newResource = blockUntil(container.createFile, itemName, body=text)
+        except ConnectionError, err:
             raise CouldNotConnect(message=err.message)
-
         # 201 = new, 204 = overwrite
 
-        if resp.status == httplib.UNAUTHORIZED:
-            message = "Not authorized to PUT %s" % url
+        except PermissionsError:
+            message = "Not authorized to PUT %s" % itemName
             raise NotAllowed(message=message)
+            
+        except WebDAVError, err:
 
-        if resp.status == httplib.FORBIDDEN or resp.status == httplib.CONFLICT:
-            # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
-            message = "Parent collection for %s is not found" % url
-            raise NotFound(message=message)
+            if err.status == twisted.web.http.FORBIDDEN or err.status == twisted.web.http.CONFLICT:
+                # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
+                message = "Parent collection for %s is not found" % itemName
+                raise NotFound(message=message)
 
-        etag = resp.getheader('ETag', None)
-        if not etag:
-            # mod_dav doesn't give us back an etag upon PUT
 
-            try:
-                resp = self._getClient().head(url)
-                resp.read() # Always need to read each response
-            except WebDAV.ConnectionError, err:
-                raise CouldNotConnect(message=err.message)
-
-            etag = resp.getheader('ETag', None)
-            if not etag:
-                print "HEAD didn't give me an etag"
-                raise SharingError() #@@@MOR
-            etag = self.__cleanEtag(etag)
-        return etag
-
-    def __cleanEtag(self, etag):
-        # Certain webdav servers use a weak etag for a few seconds after
-        # putting a resource, and then change it to a strong etag.  This
-        # tends to be confusing, because it appears that an item has changed
-        # on the server, when in fact we were the last ones to touch it.
-        # Let's ignore weak etags by stripping their leading W/
-        if etag.startswith("W/"):
-            return etag[2:]
+        etag = newResource.etag
+        
+        # @@@ [grant] Get mod-date?
         return etag
 
     def _deleteItem(self, itemPath): # must implement
-        itemURL = self.__URLFromPath(itemPath)
-        logger.info("...removing from server: %s" % itemURL)
-
-        try:
-            resp = self._getClient().delete(itemURL)
-            deleteResp = resp.read()
-        except WebDAV.ConnectionError, err:
-            raise CouldNotConnect(message=err.message)
+        resource = self.__resourceFromPath(itemPath)
+        logger.info("...removing from server: %s" % resource.path)
+        
+        if resource != None:
+            try:
+                deleteResp = blockUntil(resource.delete)
+            except ConnectionError, err:
+                raise CouldNotConnect(message=err.message)
 
     def _getItem(self, itemPath, into=None):
-        itemURL = self.__URLFromPath(itemPath)
+        resource = self.__resourceFromPath(itemPath)
 
         try:
-            resp = self._getClient().get(itemURL)
-            text = resp.read()
+            resp = blockUntil(resource.get)
 
-        except WebDAV.ConnectionError, err:
+        except ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
-        if resp.status == httplib.NOT_FOUND:
-            message = "Not found: %s" % url
+        if resp.status == twisted.web.http.NOT_FOUND:
+            message = "Not found: %s" % resource.path
             raise NotFound(message=message)
 
-        if resp.status == httplib.UNAUTHORIZED:
-            message = "Not authorized to get %s" % url
+        if resp.status == twisted.web.http.UNAUTHORIZED:
+            message = "Not authorized to get %s" % resource.path
             raise NotAllowed(message=message)
 
-        etag = resp.getheader('ETag', None)
-        etag = self.__cleanEtag(etag)
+        text = resp.body
+        
+        etag = resource.etag
 
         try:
             item = self.share.format.importProcess(text, item=into)
@@ -923,51 +927,54 @@ class WebDAVConduit(ShareConduit):
     def _getResourceList(self, location): # must implement
         """ Return information (etags) about all resources within a collection
         """
+        
         resourceList = {}
-
+        
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
+            shareCollection = self.__getContainerResource()
 
             try:
-                resources = self._getClient().ls(location + "/")
+                children = blockUntil(shareCollection.getAllChildren)
 
-            except WebDAV.ConnectionError, err:
+            except ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
 
-            except WebDAV.WebDAVException, e:
+            except WebDAVError, e:
 
-                if e.status == httplib.NOT_FOUND:
-                    raise NotFound(message="Not found: %s" % location)
+                if e.status == twisted.web.http.NOT_FOUND:
+                    raise NotFound(message="Not found: %s" % shareCollection.path)
 
-                if e.status == httplib.UNAUTHORIZED:
-                    raise NotAllowed(message="Not allowed: %s" % location)
+                if e.status == twisted.web.http.UNAUTHORIZED:
+                    raise NotAllowed(message="Not allowed: %s" % shareCollection.path)
 
                 raise
 
-            for (path, etag) in resources:
-                path = path.split("/")[-1]
-                etag = self.__cleanEtag(etag)
-                resourceList[path] = { 'data' : etag }
+            for child in children:
+                if child != shareCollection:
+                    path = child.path.split("/")[-1]
+                    etag = child.etag
+                    resourceList[path] = { 'data' : etag }
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-
+            resource = self._getServerHandle().getResource(location)
+            # @@@ [grant] Error handling and reporting here
+            # are crapski
             try:
-                resp = self._getClient().head(location)
-                resp.read() # Always need to read each response
-            except WebDAV.ConnectionError, err:
+                blockUntil(resource.propfind, depth=0)
+            except ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
-
-            if resp.status == httplib.NOT_FOUND:
-                message = "Not found: %s" % url
-                raise NotFound(message=message)
-
-            if resp.status == httplib.UNAUTHORIZED:
-                message = "Not authorized to get %s" % url
+            except PermissionsError, err:
+                message = "Not authorized to get %s" % location
                 raise NotAllowed(message=message)
-
-            etag = resp.getheader('ETag', None)
-            etag = self.__cleanEtag(etag)
+#            except NotFoundError:
+#                message = "Not found: %s" % url
+#                raise NotFound(message=message)
+#
+            
+            etag = resource.etag
+            # @@@ [grant] count use resource.path here
             path = urlparse.urlparse(location)[2]
             path = path.split("/")[-1]
             resourceList[path] = { 'data' : etag }
@@ -975,11 +982,11 @@ class WebDAVConduit(ShareConduit):
         return resourceList
 
     def connect(self):
-        self.__releaseClient()
-        self._getClient()
+        self.__releaseServerHandle()
+        self._getServerHandle() # @@@ [grant] Probably not necessary
 
     def disconnect(self):
-        self.__releaseClient()
+        self.__releaseServerHandle()
 
 
     def _dumpState(self):
@@ -1014,22 +1021,21 @@ class SimpleHTTPConduit(WebDAVConduit):
             logger.info("...last modified: %s" % self.lastModified)
 
         try:
-            resp = self._getClient().get(location, extraHeaders=extraHeaders)
-            text = resp.read()
+            resp = blockUntil(self._getServerHandle().get, location, extraHeaders=extraHeaders)
 
-            if resp.status == httplib.NOT_MODIFIED:
+            if resp.status == twisted.web.http.NOT_MODIFIED:
                 # The remote resource is as we saw it before
                 logger.info("...not modified")
                 return
 
-        except WebDAV.ConnectionError, err:
+        except ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
-        if resp.status == httplib.NOT_FOUND:
+        if resp.status == twisted.web.http.NOT_FOUND:
             message = "Not found: %s" % location
             raise NotFound(message=message)
 
-        if resp.status == httplib.UNAUTHORIZED:
+        if resp.status == twisted.web.http.UNAUTHORIZED:
             message = "Not authorized to get %s" % location
             raise NotAllowed(message=message)
 
