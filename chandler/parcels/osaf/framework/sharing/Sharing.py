@@ -19,6 +19,7 @@ from repository.util.Lob import Lob
 from repository.item.Item import Item
 from repository.schema.Types import Type
 import repository.query.Query as Query
+import M2Crypto.BIO
 import repository
 import logging
 import wx
@@ -776,7 +777,9 @@ class WebDAVConduit(ShareConduit):
             result = zanshin.util.blockUntil(resource.exists)
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.args[0])
-
+        except M2Crypto.BIO.BIOError, err:
+            message = "%s" % (err)
+            raise CouldNotConnect(message=message)
         except zanshin.webdav.PermissionsError, err:
             message = "Not authorized to PUT %s" % self.getLocation()
             raise NotAllowed(message=err.message)
@@ -795,7 +798,10 @@ class WebDAVConduit(ShareConduit):
                 resource = zanshin.util.blockUntil(self.serverHandle.mkcol, url)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
-                
+            except M2Crypto.BIO.BIOError, err:
+                message = "%s" % (err)
+                raise CouldNotConnect(message=message)
+    
             except zanshin.webdav.WebDAVError, err:
                 if err.status == twisted.web.http.METHOD_NOT_ALLOWED:
                     # already exists
@@ -866,6 +872,9 @@ class WebDAVConduit(ShareConduit):
                                 itemName, body=text)
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
+        except M2Crypto.BIO.BIOError, err:
+            message = "%s" % (err)
+            raise CouldNotConnect(message=message)
         # 201 = new, 204 = overwrite
 
         except zanshin.webdav.PermissionsError:
@@ -894,6 +903,9 @@ class WebDAVConduit(ShareConduit):
                 deleteResp = zanshin.util.blockUntil(resource.delete)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
+            except M2Crypto.BIO.BIOError, err:
+                message = "%s" % (err)
+                raise CouldNotConnect(message=message)
 
     def _getItem(self, itemPath, into=None):
         resource = self.__resourceFromPath(itemPath)
@@ -903,6 +915,9 @@ class WebDAVConduit(ShareConduit):
 
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
+        except M2Crypto.BIO.BIOError, err:
+            message = "%s" % (err)
+            raise CouldNotConnect(message=message)
 
         if resp.status == twisted.web.http.NOT_FOUND:
             message = "Not found: %s" % resource.path
@@ -941,7 +956,9 @@ class WebDAVConduit(ShareConduit):
 
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
-
+            except M2Crypto.BIO.BIOError, err:
+                message = "%s" % (err)
+                raise CouldNotConnect(message=message)
             except zanshin.webdav.WebDAVError, e:
 
                 if e.status == twisted.web.http.NOT_FOUND:
@@ -966,6 +983,9 @@ class WebDAVConduit(ShareConduit):
                 zanshin.util.blockUntil(resource.propfind, depth=0)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
+            except M2Crypto.BIO.BIOError, err:
+                message = "%s" % (err)
+                raise CouldNotConnect(message=message)
             except zanshin.webdav.PermissionsError, err:
                 message = "Not authorized to get %s" % location
                 raise NotAllowed(message=message)
@@ -1032,6 +1052,9 @@ class SimpleHTTPConduit(WebDAVConduit):
 
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
+        except M2Crypto.BIO.BIOError, err:
+            message = "%s" % (err)
+            raise CouldNotConnect(message=message)
 
         if resp.status == twisted.web.http.NOT_FOUND:
             message = "Not found: %s" % location

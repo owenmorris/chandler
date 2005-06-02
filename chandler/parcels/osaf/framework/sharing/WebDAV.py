@@ -9,6 +9,7 @@ import zanshin.webdav
 import logging
 import application.Globals as Globals
 import crypto.ssl as ssl
+import M2Crypto.BIO
 import chandlerdb.util.uuid
 
 logger = logging.getLogger('WebDAV')
@@ -26,13 +27,14 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         super(ChandlerServerHandle, self).__init__(host=host, port=port,
             username=username, password=password, useSSL=useSSL)
             
-        if useSSL and repositoryView != None and \
-            not hasattr(self.factory, "wrappingFactory"):
+        if useSSL and repositoryView != None:
             
             self.factory.startTLS = True # Starts SSL immediately.
-            self.factory.wrappingFactory = TLSWrappingFactory(self.factory)
-            self.factory.wrappingFactory.protocol = TLSProtocolWrapper
-
+            
+            # zanshin.webdav is already smart enough to set up a wrapping
+            # factory if it can find M2Crypto. However, to do certificate
+            # verification, it needs the following customizations (e.g.,
+            # to check the user's certstore for trusted certs).
             if self.factory.sslContextFactory == None:
                 self.factory.getContext = lambda: \
                     Globals.crypto.getSSLContext(repositoryView=repositoryView)
@@ -48,7 +50,7 @@ READ_ONLY    = 1
 READ_WRITE   = 2
 
 def checkAccess(host, port=80, useSSL=False, username=None, password=None,
-                path=None):
+                path=None, repositoryView=None):
     """ Check the permissions for a webdav account by reading and writing
         to that server.
 
@@ -60,7 +62,8 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     """
 
     handle = ChandlerServerHandle(host=host, port=port, username=username,
-                   password=password, useSSL=useSSL)
+                   password=password, useSSL=useSSL,
+                   repositoryView=repositoryView)
 
     # Make sure path begins/ends with /
     path = path.strip("/")
@@ -84,6 +87,8 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (CANT_CONNECT, err.message)
     except zanshin.webdav.WebDAVError, err:
         return (NO_ACCESS, err.status)
+    except M2Crypto.BIO.BIOError, err:
+        return (CANT_CONNECT, "%s" % (err))
         
     
     # Unique the child names returned by the server. (Note that
