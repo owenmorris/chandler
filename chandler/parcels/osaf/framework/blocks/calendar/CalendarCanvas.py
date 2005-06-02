@@ -863,10 +863,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         return brushOffset
 
 
-class wxWeekPanel(wx.Panel, 
-                  CalendarEventHandler, 
+class wxWeekPanel(CalendarEventHandler, 
                   DragAndDrop.DropReceiveWidget, 
-                  DragAndDrop.DraggableWidget):
+                  DragAndDrop.DraggableWidget,
+                  DragAndDrop.ItemClipboardHandler,
+                  wx.Panel):
     def __init__(self, *arguments, **keywords):
         super (wxWeekPanel, self).__init__ (*arguments, **keywords)
 
@@ -1022,9 +1023,6 @@ class wxWeekPanel(wx.Panel,
             self.blockItem.DeleteSelection()
         except AttributeError:
             pass
-
-    def KindAcceptedByDrop(self):
-        return 'Note'
 
     def AddItems(self, itemList):
         """ @@@ Need to complete this for Paste to work """

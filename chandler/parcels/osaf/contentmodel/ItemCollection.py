@@ -160,11 +160,11 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         for item in self.source:
             item.unsubscribe (self)
 
-    def KindsCreatedByDrag(self, exportDict):
-        # Create data for this kind of item in the export dictionary
+    def ExportItemData(self, clipboardHandler):
+        # Create data for this kind of item in the clipboard handler
         # The data is used for Drag and Drop or Cut and Paste
-        super(ItemCollection, self).KindsCreatedByDrag (exportDict)
+        super(ItemCollection, self).ExportItemData (clipboardHandler)
 
-        # We're a ContentItem, let the data dictionary we're being exported
-        self._ExportItemData(exportDict, 'ItemCollection')
+        # Let the clipboard handler know we've got an ItemCollection to export
+        clipboardHandler.ExportItemFormat(self, 'ItemCollection')
 

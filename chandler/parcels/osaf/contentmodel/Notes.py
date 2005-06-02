@@ -53,11 +53,11 @@ class Note(ContentModel.ContentItem):
         """
         return self.creator
 
-    def KindsCreatedByDrag(self, exportDict):
-        # Create data for this kind of item in the export dictionary
+    def ExportItemData(self, clipboardHandler):
+        # Create data for this kind of item in the clipboard handler
         # The data is used for Drag and Drop or Cut and Paste
-        super(Note, self).KindsCreatedByDrag (exportDict)
+        super(Note, self).ExportItemData (clipboardHandler)
 
-        # We're a Note, let the data dictionary we're being exported
-        self._ExportItemData(exportDict, 'Note')
+        # Let the clipboard handler know we've got a Note to export
+        clipboardHandler.ExportItemFormat(self, 'Note')
 

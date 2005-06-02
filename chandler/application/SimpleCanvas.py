@@ -101,7 +101,7 @@ class wxCanvasDropTarget (wx.PyDropTarget):
     def __init__(self, canvas, dropTargetDataObject):
         super (wxCanvasDropTarget, self).__init__ ()
         self.canvas = canvas
-        self.data = dropTargetDataObject
+        self.dataObject = dropTargetDataObject
         self.SetDataObject (dropTargetDataObject)
 
     def OnData (self, x, y, result):
@@ -110,7 +110,7 @@ class wxCanvasDropTarget (wx.PyDropTarget):
         """
         if (self.GetData()):
             x, y = self.canvas.CalcUnscrolledPosition (x, y)
-            result = self.canvas.OnData (self.data, x, y, result)
+            result = self.canvas.OnData (self.dataObject, x, y, result)
         return result
 
     

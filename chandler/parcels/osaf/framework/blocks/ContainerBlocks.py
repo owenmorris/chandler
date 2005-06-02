@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from Block import Block, RectangularChild, wxRectangularChild
-from DragAndDrop import DropReceiveWidget as DropReceiveWidget
+import DragAndDrop
 from DynamicContainerBlocks import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
@@ -298,7 +298,9 @@ class SplitterWindow(RectangularChild):
                                  style=wxSplitterWindow.CalculateWXStyle(self))
                 
 
-class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
+class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget, 
+                            DragAndDrop.ItemClipboardHandler, 
+                            wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedViewContainer, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging, id=self.GetId())
@@ -400,7 +402,9 @@ class FrameWindow (ViewContainer):
     pass
 
 
-class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
+class wxTabbedContainer(DragAndDrop.DropReceiveWidget, 
+                        DragAndDrop.ItemClipboardHandler,
+                        wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
         self.selectedTab = 0

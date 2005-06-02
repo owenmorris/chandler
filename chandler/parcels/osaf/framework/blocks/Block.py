@@ -692,9 +692,10 @@ class RectangularChild (Block):
     """
     Edit Menu enabling and handling.
     These events are all sent with FocusBubbleUp, which
-    means we need to return True to halt the bubbling.
-    Returning False means we don't handle the event, it
-    should be bubbled up the hierarchy.
+        means we need to return False to continue the bubbling
+        if we don't handle these events.
+    The block handles menu enabling and bubbling, delegating
+        the actual Cut & Paste operations to the widget.
     """
     def onCopyEventUpdateUI (self, event):
         return self._GenericEditUpdateUI (event, 'CanCopy')

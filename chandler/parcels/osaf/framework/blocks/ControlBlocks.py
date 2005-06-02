@@ -131,15 +131,30 @@ class ContextMenuItem(RectangularChild):
         wxContextMenu.Bind(wx.EVT_MENU, wx.GetApp().OnCommand, id=id)
 
     
-class wxEditText(ShownSynchronizer, wx.TextCtrl):
+class wxEditText(ShownSynchronizer, 
+                 DragAndDrop.DraggableWidget,
+                 DragAndDrop.DropReceiveWidget,
+                 DragAndDrop.TextClipboardHandler,
+                 wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         minW, minH = arguments[-1] # assumes minimum size passed as last arg
         self.SetSizeHints(minW=minW, minH=minH)
 
     def OnEnterPressed(self, event):
         self.blockItem.postEventByName ('EnterPressed', {'text':self.GetValue()})
+        event.Skip()
+
+    def OnMouseEvents(self, event):
+        # trigger a Drag and Drop if we're a single line and all selected
+        if self.IsSingleLine() and event.LeftDown():
+            selStart, selEnd = self.GetSelection()
+            if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
+                if event.LeftIsDown(): # still down?
+                    self.DoDragAndDrop()
+                    return # don't skip, eat the click.
         event.Skip()
 
 class EditText(RectangularChild):
@@ -278,7 +293,9 @@ class AttributeDelegate (ListDelegate):
         return heading
     
 
-class wxList (DragAndDrop.DraggableWidget, wx.ListCtrl):
+class wxList (DragAndDrop.DraggableWidget, 
+              DragAndDrop.ItemClipboardHandler,
+              wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnWXSelectItem, id=self.GetId())
@@ -440,7 +457,10 @@ class wxTableData(wx.grid.PyGridTableBase):
         return attribute
         
 
-class wxTable(DragAndDrop.DraggableWidget, DragAndDrop.DropReceiveWidget, wx.grid.Grid):
+class wxTable(DragAndDrop.DraggableWidget, 
+              DragAndDrop.DropReceiveWidget, 
+              DragAndDrop.ItemClipboardHandler,
+              wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -1015,7 +1035,7 @@ class TreeAndListDelegate (ListDelegate):
 """
 
 
-class wxTreeAndList(DragAndDrop.DraggableWidget):
+class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandler):
     def __init__(self, *arguments, **keywords):
         super (wxTreeAndList, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
