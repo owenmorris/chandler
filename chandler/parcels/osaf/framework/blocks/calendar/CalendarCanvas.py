@@ -176,7 +176,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             pen = wx.Pen(color, 1)
         elif (item.transparency == "tentative"):
             if '__WXMAC__' in wx.PlatformInfo:
-                """ @@@ the dash array may need to be a global, due to wx persistance limitations
+                # @@@ the dash array may need to be a global, due to wx persistance limitations
                 pen = wx.Pen(color, 4, wx.USER_DASH)
                 pen.SetDashes([255, 255, 0, 0, 255, 255, 0, 0])
             else:
