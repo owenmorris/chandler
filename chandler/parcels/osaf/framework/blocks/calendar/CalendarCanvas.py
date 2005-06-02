@@ -162,20 +162,26 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         the mouse started relative to this origin
         """
         return self._bounds.GetPosition()
-        
+
     def GetMaxEditorSize(self):
         return self._bounds.GetSize()
-    
+
     def GetStatusPen(self, color):
         # probably should use styles to determine a good pen color
         item = self.GetItem()
-        
+
         if (item.transparency == "confirmed"):
             pen = wx.Pen(color, 4)
         elif (item.transparency == "fyi"):
             pen = wx.Pen(color, 1)
         elif (item.transparency == "tentative"):
-            pen = wx.Pen(color, 4, wx.DOT)
+            if '__WXMAC__' in wx.PlatformInfo:
+                """ @@@ the dash array may need to be a global, due to wx persistance limitations
+                pen = wx.Pen(color, 4, wx.USER_DASH)
+                pen.SetDashes([255, 255, 0, 0, 255, 255, 0, 0])
+            else:
+                pen = wx.Pen(color, 4, wx.DOT)
+
         return pen
         
     # Drawing utility -- scaffolding, we'll try using editor/renderers
@@ -453,13 +459,13 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
 
             pen = self.GetStatusPen(outlineColor)
-    
-            cornerRadius = 0
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
+            cornerRadius = 0
             dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),
                         itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))
-    
+            dc.SetPen(wx.BLACK_PEN)
+
             # Shift text
             x = itemRect.x + self.textMargin + 3
             y = itemRect.y + self.textMargin
@@ -554,12 +560,12 @@ class HeaderCanvasItem(CalendarCanvasItem):
                 
         # draw little rectangle to the left of the item
         pen = self.GetStatusPen(outlineColor)
-        
         pen.SetCap(wx.CAP_BUTT)
         dc.SetPen(pen)
         dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
                     itemRect.x + 2, itemRect.y + itemRect.height - 3)
-        
+        dc.SetPen(wx.BLACK_PEN)
+
         # Shift text
         textRect = copy.copy(itemRect)
         textRect.x += 5
@@ -822,7 +828,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
 
-
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
     def OnInit(self):
@@ -846,7 +851,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def GetPlatformBrushOffset(self):
         """
-        On mac, the brushes are relative to the toplevel window. We have
+        On Mac, the brushes are relative to the toplevel window. We have
         to walk up the parent window chain to find our offset within the parent
         window.
         Other platforms, the brush is offset from the current window.
@@ -1069,7 +1074,6 @@ class wxWeekHeaderWidgets(wx.Panel):
         navigationRow.Add(monthSizer, 0, wx.ALIGN_CENTER)
         navigationRow.Add((0,0), 1)
         
-        # 
         # top row - left/right buttons, anchored to the right
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
@@ -1081,7 +1085,6 @@ class wxWeekHeaderWidgets(wx.Panel):
         navigationRow.Add(self.nextButton, 0, wx.CENTER)
         navigationRow.Add((5,5), 0)
         
-        #
         # finally the last row, with the header
         self.weekHeader = wx.colheader.ColumnHeader(self)
         
@@ -1202,7 +1205,6 @@ class wxWeekHeaderWidgets(wx.Panel):
         return self.parent.OnDaySelect(colIndex-1)
 
 
-
 class wxWeekHeaderCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekHeaderCanvas, self).__init__ (*arguments, **keywords)
@@ -1317,7 +1319,6 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             rect = wx.Rect((self.parent.dayWidth * day) + self.parent.xOffset, 0,
                            width, size.height)
             self.RebuildCanvasItemsByDay(currentDate, rect)
-
 
 
     def RebuildCanvasItemsByDay(self, date, rect):
@@ -1681,12 +1682,12 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             self._bgSelectionDragEnd = True
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
                 timedelta(minutes=30)
-            
+
         # set focus on the calendar so that we can receive key events
-        # (as of this writing, wxPanel can't recieve focus, so this is a no-op)
+        # (as of this writing, wxPanel can't receive focus, so this is a no-op)
         self.SetFocus()
         super(wxWeekColumnCanvas, self).OnSelectNone(unscrolledPosition)
-        
+
     def OnEditItem(self, box):
         styles = self.parent
         position = self.CalcScrolledPosition(box.GetEditorPosition())
@@ -1960,6 +1961,8 @@ class wxInPlaceEditor(wx.TextCtrl):
         font = wx.Font(pointSize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
         self.SetFont(font)
 
+        # move the frame so that the default Mac Aqua focus "halo"
+        # is aligned with the outer event frame
         if '__WXMAC__' in wx.PlatformInfo:
             position.x -= 4
             newSize.width += 4
