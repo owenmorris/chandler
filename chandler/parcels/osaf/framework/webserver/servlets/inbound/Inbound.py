@@ -197,7 +197,7 @@ def RenderChannelList(repoView, theItem):
         except:
             displayName = "No Title"
         result += "<span class=header><a href=%s>%s</a></span></br>" % (item.link, displayName)
-        result += "<b>%s</b> | %s</br>" % (item.channel.displayName, item.date.localtime().strftime('%A, %B %d @ %I:%M %p'))
+        result += "<b>%s</b> | %s</br>" % (item.channel.displayName, item.date.strftime('%A, %B %d @ %I:%M %p'))
 
         try:
             uStr = item.content.getReader().read()
