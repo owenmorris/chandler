@@ -26,7 +26,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-1.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.2-1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-3.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-4.tar.gz \
-         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-r280-1.tar.gz \
+         $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-282-1.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
          $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.1-1.tar.gz \
          $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-3.tar.gz \
@@ -38,7 +38,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-1.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.1-2.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.5-2.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.2-2.tar.gz \
-         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-0.0.1-1.tar.gz \
+         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-0.0.2-1.tar.gz \
          $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
