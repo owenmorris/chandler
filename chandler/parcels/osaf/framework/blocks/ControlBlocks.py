@@ -792,6 +792,45 @@ class wxTable(DragAndDrop.DraggableWidget,
                 itemList.append(self.blockItem.contents [index])
         return itemList
 
+    """
+    Cut and Paste support for Grid cells.
+    When a single cell is selected, these methods delegate the
+        cut and paste operations to the attribute editor.
+    """
+    def _DelegateCellEdit(self, operation):
+        # maybe we're in grid select - see if the widget there can do it.
+        method = getattr(super(wxTable, self), operation) # super method to fall back on
+        cursorPos = (self.GetGridCursorRow(), self.GetGridCursorCol())
+        editor = self.GetCellEditor(*cursorPos)
+        try:
+            editingCell = editor.editingCell
+        except AttributeError:
+            return method()
+        if editingCell == cursorPos:
+            try:
+                method = getattr(editor.control, operation)
+            except AttributeError:
+                pass
+        return method()
+
+    def CanCopy(self):
+        return self._DelegateCellEdit('CanCopy')
+
+    def Copy(self):
+        return self._DelegateCellEdit('Copy')
+
+    def CanCut(self):
+        return self._DelegateCellEdit('CanCut')
+
+    def Cut(self):
+        return self._DelegateCellEdit('Cut')
+
+    def CanPaste(self):
+        return self._DelegateCellEdit('CanPaste')
+
+    def Paste(self):
+        return self._DelegateCellEdit('Paste')
+
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()
