@@ -11,7 +11,7 @@ ANONYMOUS_ROOT = "//userdata"
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
-    'importString', 'parcel_for_module', 'TypeReference',
+    'importString', 'parcel_for_module', 'TypeReference', 'Enumeration'
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -106,11 +106,12 @@ class Role(ActiveDescriptor,CDescriptor):
             )
 
         self._setattr(attr,value)
-        if attr=='type':
-            if not isinstance(value,(ItemClass,TypeReference)):
+        if attr=='type' and value is not None:
+            if not hasattr(value,"_create_schema_item"):
                 self._setattr(attr,old) # roll it back
                 raise TypeError(
-                    "Attribute type must be Item class or TypeReference",value
+                    "Attribute type must be Item/Enumeration class or "
+                    "TypeReference",value
                 )
             self.setDoc()   # update docstring
 
@@ -254,6 +255,49 @@ class Item(Base):
         super(Item,self).__init__(name,parent,kind,*args,**values)
 
 
+class EnumerationClass(Activator):
+    """Metaclass for enumerations"""
+
+    def __init__(cls,name,bases,cdict):
+        for name,value in cdict.items():
+            if name.startswith('__'):
+                continue
+            elif name!='values':
+                raise TypeError(
+                    "Only 'values' may be defined in an enumeration class",
+                    name, value
+                )
+        super(EnumerationClass,cls).__init__(name,bases,cdict)
+        try:
+            Enumeration
+        except NameError:
+            return  # Enumeration itself doesn't need values
+
+        if bases<>(Enumeration,):
+            raise TypeError("Enumerations cannot subclass or be subclassed")
+
+        values = cdict.get('values',())
+        wrong = [v for v in values if not isinstance(v,str)]
+        if not isinstance(values,tuple) or not values or wrong:
+            raise TypeError(
+                "'values' must be a tuple of 1 or more strings"
+            )
+
+    def _create_schema_item(cls):
+        return Types.Enumeration(
+            cls.__name__, parcel_for_module(cls.__module__),
+            itemFor(Types.Enumeration)
+        )
+
+    def _init_schema_item(cls,enum):
+        enum.values = list(cls.values)
+
+
+class Enumeration(object):
+    """Base class for defining enumerations"""
+    __metaclass__ = EnumerationClass
+
+
 def importString(name, globalDict=__main__.__dict__):
     """Import an item specified by a string
 
@@ -362,7 +406,7 @@ def synchronize(repoView,moduleName):
     """Ensure that the named module's schema is incorporated into `repoView`"""
     module = importString(moduleName)
     for item in module.__dict__.values():
-        if isinstance(item,ItemClass):
+        if hasattr(item,'_create_schema_item'):
             # Import each kind
             repoView.importItem(itemFor(item))
 
@@ -465,6 +509,8 @@ def reset(rv=None):
                 Parcel: nrv.findPath('//Schema/Core/Parcel'),
                 Base: nrv.findPath('//Schema/Core/Item'),
                 Item: nrv.findPath('//Schema/Core/Item'),
+                Enumeration: nrv.findPath('//Schema/Core/Enumeration'),
+                Types.Enumeration: nrv.findPath('//Schema/Core/Enumeration'),
             }
         anonymous_root = nrv.findPath(ANONYMOUS_ROOT)
         declareTemplate(anonymous_root)

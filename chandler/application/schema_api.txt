@@ -208,7 +208,7 @@ All role objects have at least the following attributes and methods:
         >>> schema.Role(str)
         Traceback (most recent call last):
         ...
-        TypeError: ('Attribute type must be Item class or TypeReference', ...)
+        TypeError: ('Attribute type must be Item/Enumeration class or TypeReference', ...)
 
     And type references must be to types defined by the repository's core
     schema::
@@ -278,6 +278,52 @@ Items created without an explicit "parent" have a repository parent of
 
     >>> Joe.itsParent.itsPath
     //userdata
+
+
+Enumerations
+============
+
+    >>> class Importance(schema.Enumeration):
+    ...     values = 'high', 'medium', 'low'
+
+    >>> imp = schema.itemFor(Importance)
+    >>> imp
+    <Enumeration ... Importance ...>
+
+    >>> test_role = schema.Role(Importance)
+
+    >>> imp.values
+    ['high', 'medium', 'low']
+
+    >>> class Rating(Importance):
+    ...     values = "good", "bad"
+    Traceback (most recent call last):
+      ...
+    TypeError: Enumerations cannot subclass or be subclassed
+
+    >>> class BrokenEnum(schema.Enumeration):
+    ...     values = "error"
+    Traceback (most recent call last):
+      ...
+    TypeError: 'values' must be a tuple of 1 or more strings
+
+    >>> class BrokenEnum2(schema.Enumeration):
+    ...     values = ["x", "y"]
+    Traceback (most recent call last):
+      ...
+    TypeError: 'values' must be a tuple of 1 or more strings
+
+    >>> class BrokenEnum2(schema.Enumeration):
+    ...     values = ()
+    Traceback (most recent call last):
+      ...
+    TypeError: 'values' must be a tuple of 1 or more strings
+
+    >>> class BrokenEnum3(schema.Enumeration):
+    ...     def foo(self): pass
+    Traceback (most recent call last):
+      ...
+    TypeError: ("Only 'values' may be defined in an enumeration class", 'foo', <function foo ...>)
 
 
 --------------------

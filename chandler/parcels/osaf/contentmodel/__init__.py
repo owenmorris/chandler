@@ -6,7 +6,7 @@ from ContentModel import ContentModel as __parcel_class__
 # Import classes whose schemas are part of this parcel
 # (this will eventually include all ContentItem subclasses in
 # this package)
-from ContentModel import ContentItem
+from ContentModel import ContentItem, ImportanceEnum
 from contacts.Contacts import Contact
 
 # Import ItemCollection class under another name, so it doesnt't

@@ -13,6 +13,8 @@ class Dummy(schema.Item):
 class Other(schema.Item):
     thing = schema.One(Dummy, inverse=Dummy.other)
 
+class AnEnum(schema.Enumeration):
+    values = "yes", "no"
 
 class SchemaTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
@@ -60,8 +62,9 @@ class SchemaTests(SchemaTestCase):
         rv = NullRepositoryView()
         schema.initRepository(rv)
         schema.synchronize(rv, this_module)
-        path = "//parcels/%s" % this_module.replace('.','/')
-        self.assertNotEqual( rv.findPath(path+'/Dummy'), None)
+        path = "//parcels/%s/" % this_module.replace('.','/')
+        self.assertNotEqual( rv.findPath(path+'Dummy'), None)
+        self.assertNotEqual( rv.findPath(path+'AnEnum'), None)
 
 
 def test_schema_api():

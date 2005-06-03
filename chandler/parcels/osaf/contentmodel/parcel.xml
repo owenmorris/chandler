@@ -49,22 +49,6 @@
         <examples>a Task -- 'mail 1040 to IRS'</examples>
         <description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</description>
 
-        <Attribute itsName="importance">
-            <displayName>Importance</displayName>
-            <description>Most items are of normal importance (no value need be show), however some things may be flagged either highly important or merely 'fyi'. This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</description>
-
-            <Enumeration itsName="ImportanceEnum">
-                <displayName>Importance Enum</displayName>
-                <values>important</values>
-                <values>normal</values>
-                <values>fyi</values>
-            </Enumeration>
-
-            <type itemref="cm:ContentItem/importance/ImportanceEnum"/>
-            <initialValue type="cm:ContentItem/importance/ImportanceEnum">normal</initialValue>
-
-        </Attribute>
-
         <Attribute itsName="contentsOwner">
             <type itemref="blocks:Block"/>
             <cardinality>list</cardinality>

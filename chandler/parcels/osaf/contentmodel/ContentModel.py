@@ -53,6 +53,12 @@ class ContentModel(Parcel):
     getContentItemParent = classmethod(getContentItemParent)
 
 
+class ImportanceEnum(schema.Enumeration):
+    """Importance Enum"""
+    # XXX schema.kindInfo(displayName="Importance Enum")
+    values = "important", "normal", "fyi"
+
+
 class ContentItem(schema.Item):
 
     """ Subclasses of ContentItem get the following behavior for free:
@@ -93,6 +99,16 @@ class ContentItem(schema.Item):
         # Contact
         displayName="Last Modified By",
         doc="Link to the contact who last modified the item.",
+    )
+
+    importance = schema.One(ImportanceEnum,
+        displayName="Importance",
+        doc="Most items are of normal importance (no value need be show), "
+            "however some things may be flagged either highly important or "
+            "merely 'fyi'. This attribute is also used in the mail schema, so "
+            "we shouldn't make any changes here that would break e-mail "
+            "interoperability features.",
+        initialValue="normal",
     )
 
     lastModified = schema.One(schema.String)
