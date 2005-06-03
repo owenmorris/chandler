@@ -46,12 +46,12 @@ class CPIAScript:
     """ Script to be executed at Startup """
     # for now, we simply execute CPIA events by name
     def __init__(self, scriptText):
-        self.scriptLines = scriptText.splitlines()
+        self.scriptLines = scriptText.split(',')
         self.line = 0
 
     def execute(self):
         # execute a line from the script, returning True when done
-        nextLine = self.scriptLines[self.line]
+        nextLine = self.scriptLines[self.line].strip()
         self.line += 1
 
         # simply post the event named in the script
