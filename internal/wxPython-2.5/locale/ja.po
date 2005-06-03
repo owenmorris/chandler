@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: $Id$\n"
+"Project-Id-Version: $Id: ja.po 5166 2005-04-29 01:36:53Z davids $\n"
 "POT-Creation-Date: 2005-04-11 22:24+0200\n"
 "PO-Revision-Date: 2005-03-01 04:19+0900\n"
 "Last-Translator: Hiroshi Saito <saito@inetrt.skcapi.co.jp>\n"
