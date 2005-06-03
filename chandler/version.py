@@ -1,2 +1,2 @@
-build = "development trunk"
-release = "0.5.03"
+build = "foo"
+release = "0.5-2"
