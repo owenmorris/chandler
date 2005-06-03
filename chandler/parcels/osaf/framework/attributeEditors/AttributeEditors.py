@@ -855,14 +855,6 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
                     choiceIndex = 0 # the "None" choice
             control.Select(choiceIndex)
         
-    def SetAttributeValue (self, item, attributeName, value):
-        if value is None and hasattr(item, attributeName):
-            delattr(item, attributeName)
-            self.AttributeChanged()
-        else:
-            super(ReminderDeltaAttributeEditor, \
-                  self).SetAttributeValue(item, attributeName, value)
-
 class IconAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True # The Icon editor doesn't support editing.
