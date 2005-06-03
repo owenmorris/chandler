@@ -1051,7 +1051,7 @@ class AccountPreferencesDialog(wx.Dialog):
         path = data['WEBDAV_PATH']
         access = WebDAV.checkAccess(host, port=port, useSSL=useSSL,
                                     username=username, password=password,
-                                    path=path)
+                                    path=path, repositoryView=self.view)
         result = access[0]
         reason = access[1]
 
