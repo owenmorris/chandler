@@ -4,12 +4,12 @@ from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from repository.schema import Types
 from application.Parcel import Manager, Parcel
-import __main__, repository, threading, os
+import __main__, repository, threading, os, sys
 
 ANONYMOUS_ROOT = "//userdata"
 
 __all__ = [
-    'ActiveDescriptor', 'Activator', 'Role', 'itemFor',
+    'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference', 'Enumeration'
 ]
@@ -198,7 +198,7 @@ class Role(ActiveDescriptor,CDescriptor):
                         continue    # don't set type to None
                     else:
                         val = itemFor(val)  # works for Kind and TypeReference
-                        
+
                 setattr(attr,aspect,val)
 
         if not hasattr(self,'otherName') and self.inverse is not None:
@@ -222,6 +222,8 @@ class Mapping(Role):
 
 
 class ItemClass(Activator):
+
+    _kind_class = Kind
 
     def _create_schema_item(cls):
         return Kind(
@@ -257,6 +259,8 @@ class Item(Base):
 
 class EnumerationClass(Activator):
     """Metaclass for enumerations"""
+
+    _kind_class = Types.Enumeration
 
     def __init__(cls,name,bases,cdict):
         for name,value in cdict.items():
@@ -296,6 +300,52 @@ class EnumerationClass(Activator):
 class Enumeration(object):
     """Base class for defining enumerations"""
     __metaclass__ = EnumerationClass
+
+
+def kindInfo(**attrs):
+    """Declare metadata for a class' schema item
+
+    The attributes defined by the keyword arguments will be set on the
+    enclosing class' schema Item.  For example, the following class'
+    repository Kind will have a ``displayName`` of ``"Example Item"``, and
+    a ``displayAttribute`` of ``"someAttr"``::
+
+        class SomeItem(schema.Item):
+            schema.kindInfo(
+                displayName = "Example Item",
+                displayAttribute = "someAttr",
+            )
+
+    ``kindInfo()`` can only be used in the body of a class that derives from
+    ``schema.Item`` or ``schema.Enumeration``, and it will only accept keywords
+    that are valid attributes of the ``Kind`` or ``Enumeration`` kinds,
+    respectively.
+    """
+
+    from zope.interface.advice import getFrameInfo, addClassAdvisor
+    kind, module, _locals, _globals = getFrameInfo(sys._getframe(1))
+
+    if kind=='exec':
+        # Fix for class-in-doctest-exec
+        if '__module__' in _locals and _locals is not _globals:
+            kind="class"
+
+    if kind != "class":
+        raise SyntaxError(
+            "kindInfo() must be called in the body of a class statement"
+        )
+
+    _locals['__kind_info__'] = {}
+    def callback(cls):
+        for k,v in attrs.items():
+            if not hasattr(cls._kind_class, k):
+                raise TypeError(
+                    "%r is not an attribute of %s" %
+                    (k, cls._kind_class.__name__)
+                )
+            cls.__kind_info__[k] = v
+        return cls
+    addClassAdvisor(callback)
 
 
 def importString(name, globalDict=__main__.__dict__):
@@ -447,6 +497,10 @@ def itemFor(obj):
             raise
         else:
             declareTemplate(item)
+            if isinstance(obj,type) and getattr(obj,'__doc__',None):
+                item.description = obj.__doc__
+            for k,v in getattr(obj,'__kind_info__',{}).items():
+                setattr(item,k,v)
             obj._init_schema_item(item) # set up possibly-recursive data
             return item
     finally:

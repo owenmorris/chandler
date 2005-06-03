@@ -280,15 +280,52 @@ Items created without an explicit "parent" have a repository parent of
     //userdata
 
 
+Additional Metadata
+===================
+
+    >>> class CalendarItem(schema.Item):
+    ...     """This is just a demo"""
+    ...     schema.kindInfo(
+    ...         displayName = "Calendar Item",
+    ...         displayAttribute = "XYZ"
+    ...     )
+    >>> schema.itemFor(CalendarItem).displayName
+    'Calendar Item'
+    >>> schema.itemFor(CalendarItem).displayAttribute
+    'XYZ'
+    >>> schema.itemFor(CalendarItem).description
+    'This is just a demo'
+
+    >>> class BadMetadata(schema.Item):
+    ...     schema.kindInfo(madeUpName="xyz")
+    Traceback (most recent call last):
+      ...
+    TypeError: 'madeUpName' is not an attribute of Kind
+
+    >>> schema.kindInfo(displayName="x")
+    Traceback (most recent call last):
+      ...
+    SyntaxError: kindInfo() must be called in the body of a class statement
+
+
+
 Enumerations
 ============
 
     >>> class Importance(schema.Enumeration):
+    ...     """Description goes here"""
+    ...     schema.kindInfo(displayName="Importance Enum")
     ...     values = 'high', 'medium', 'low'
 
     >>> imp = schema.itemFor(Importance)
     >>> imp
     <Enumeration ... Importance ...>
+
+    >>> imp.displayName
+    'Importance Enum'
+
+    >>> imp.description
+    'Description goes here'
 
     >>> test_role = schema.Role(Importance)
 
@@ -325,6 +362,12 @@ Enumerations
       ...
     TypeError: ("Only 'values' may be defined in an enumeration class", 'foo', <function foo ...>)
 
+    >>> class BadMetadata(schema.Enumeration):
+    ...     schema.kindInfo(displayAttribute="xyz")
+    ...     values = 'one', 'two'
+    Traceback (most recent call last):
+      ...
+    TypeError: 'displayAttribute' is not an attribute of Enumeration
 
 --------------------
 Schema API Internals
@@ -372,7 +415,7 @@ loaded::
         >>> application.tests.__parcel__ = "__builtin__"
         >>> schema.parcel_for_module("application.tests")
         <Parcel ... __builtin__ ...>
-        
+
         >>> del application.tests.__parcel__    # clean up after the above test
         >>> schema.reset()
         <NullRepositoryView: null view>

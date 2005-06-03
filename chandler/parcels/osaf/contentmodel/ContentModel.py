@@ -55,7 +55,9 @@ class ContentModel(Parcel):
 
 class ImportanceEnum(schema.Enumeration):
     """Importance Enum"""
-    # XXX schema.kindInfo(displayName="Importance Enum")
+    schema.kindInfo(
+        displayName="Importance Enum"
+    )
     values = "important", "normal", "fyi"
 
 
