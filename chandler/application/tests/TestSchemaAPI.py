@@ -28,13 +28,13 @@ class SchemaTests(SchemaTestCase):
     def testResetCache(self):
         # Parcel/kind/attr caches should be cleared between resets
         parcel1 = schema.parcel_for_module(this_module)
-        kind1 = Dummy._schema_kind
-        attr1 = Dummy.attr._schema_attr
+        kind1 = schema.itemFor(Dummy)
+        attr1 = schema.itemFor(Dummy.attr)
 
         old = schema.reset()
         parcel2 = schema.parcel_for_module(this_module)
-        kind2 = Dummy._schema_kind
-        attr2 = Dummy.attr._schema_attr
+        kind2 = schema.itemFor(Dummy)
+        attr2 = schema.itemFor(Dummy.attr)
 
         self.failIf(parcel2 is parcel1)
         self.failIf(kind2 is kind1)
@@ -43,17 +43,17 @@ class SchemaTests(SchemaTestCase):
         # But switching back to an old state should restore the cache
         schema.reset(old)
         parcel3 = schema.parcel_for_module(this_module)
-        kind3 = Dummy._schema_kind
-        attr3 = Dummy.attr._schema_attr
+        kind3 = schema.itemFor(Dummy)
+        attr3 = schema.itemFor(Dummy.attr)
         self.failUnless(parcel3 is parcel1)
         self.failUnless(attr3 is attr1)
         self.failUnless(attr3 is attr1)
 
     def testAttrKindType(self):
-        self.assertEqual(Dummy.attr._schema_attr.getAspect('type'),
+        self.assertEqual(schema.itemFor(Dummy.attr).getAspect('type'),
             schema.nrv.findPath('//Schema/Core/String'))
-        self.assertEqual(Other.thing._schema_attr.getAspect('type'),
-                         Dummy._schema_kind)
+        self.assertEqual(schema.itemFor(Other.thing).getAspect('type'),
+                         schema.itemFor(Dummy))
         self.assertRaises(TypeError, schema.Role, str)
 
     def testImportAll(self):

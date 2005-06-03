@@ -384,20 +384,22 @@ loaded::
         >>> schema.parcel_for_module("") is schema.nrv.findPath('//parcels')
         True
 
-``Item._schema_kind``
-    Item subclasses have a read-only ``_schema_kind`` property that returns the
-    repository ``Kind`` object that represents that class in the null view::
 
-        >>> schema.Item._schema_kind
+``itemFor(obj)``
+    Return the repository item that corresponds to the supplied object.  For
+    example, ``itemFor(AnItemClass)`` returns the repository ``Kind`` that
+    represents that class in the null view::
+
+        >>> schema.itemFor(schema.Item)
         <Kind ... Item ...>
 
         >>> class TestItem(schema.Item):
         ...     __module__ = 'application.tests'  # pretend we're here
 
-        >>> TestItem._schema_kind
+        >>> schema.itemFor(TestItem)
         <Kind ... TestItem ...>
 
-        >>> kind = TestItem._schema_kind
+        >>> kind = schema.itemFor(TestItem)
 
     And the generated kind has its class' module's parcel as its parent::
 
@@ -407,7 +409,7 @@ loaded::
         >>> kind is schema.nrv.findPath('//parcels/application/tests/TestItem')
         True
 
-    Its superkinds are the ``_schema_kind`` values of its base classes::
+    Its superkinds are the ``schema.itemFor()`` of its base classes::
 
         >>> list(kind.superKinds) == [schema.nrv.findPath('//Schema/Core/Item')]
         True
@@ -422,6 +424,46 @@ loaded::
         >>> kind.classes['python'] is TestItem
         True
 
+
+    Meanwhile, ``schema.itemFor(aRole)`` returns a repository ``Attribute``
+    object representing that attribute in the null view::
+
+        >>> schema.itemFor(Kind.subkinds)
+        <Attribute ... subkinds ...>
+
+        >>> schema.itemFor(Kind.subkinds).otherName
+        'superkinds'
+
+        >>> schema.itemFor(Kind.superkinds).otherName
+        'subkinds'
+
+        >>> schema.itemFor(Kind.subkinds).itsParent is schema.itemFor(Kind)
+        True
+
+        >>> schema.itemFor(Kind.subkinds) in schema.itemFor(Kind).attributes
+        True
+
+        >>> schema.itemFor(Kind.subkinds).cardinality
+        'set'
+
+        >>> schema.itemFor(Kind.subkinds).description is Kind.subkinds.doc
+        True
+
+    Roles must be activated in a class, however, in order to generate their
+    ``Attribute``::
+
+        >>> schema.itemFor(schema.One())
+        Traceback (most recent call last):
+        ...
+        TypeError: role object used outside of schema.Item subclass
+
+    And once a role's ``Attribute`` is generated, you cannot change any of its
+    attributes any more::
+
+        >>> Kind.subkinds.redirectTo = "xyz"
+        Traceback (most recent call last):
+        ...
+        TypeError: Role object cannot be modified after use
 
 ``initRepository(repoView)``
     Ensure that the given repository view has been initialized with the core
@@ -455,47 +497,6 @@ loaded::
     >>> print nrv.findPath('//parcels/application/tests/TestItem')
     <Kind ... TestItem ...>
 
-``Role._schema_attr``
-    Role objects have a read-only ``_schema_attr`` property that returns the
-    repository ``Attribute`` object representing that attribute in the null
-    view.
-
-        >>> Kind.subkinds._schema_attr
-        <Attribute ... subkinds ...>
-
-        >>> Kind.subkinds._schema_attr.otherName
-        'superkinds'
-
-        >>> Kind.superkinds._schema_attr.otherName
-        'subkinds'
-
-        >>> Kind.subkinds._schema_attr.itsParent is Kind._schema_kind
-        True
-
-        >>> Kind.subkinds._schema_attr in Kind._schema_kind.attributes
-        True
-
-        >>> Kind.subkinds._schema_attr.cardinality
-        'set'
-
-        >>> Kind.subkinds._schema_attr.description is Kind.subkinds.doc
-        True
-
-    Roles must be activated in a class, however, in order to generate their
-    Attribute::
-
-        >>> schema.One()._schema_attr
-        Traceback (most recent call last):
-        ...
-        TypeError: role object used outside of schema.Item subclass
-
-    And once a role's ``Attribute`` is generated, you cannot change any of its
-    attributes any more::
-
-        >>> Kind.subkinds.redirectTo = "xyz"
-        Traceback (most recent call last):
-        ...
-        TypeError: Role object cannot be modified after use
 
 Descriptor Activation
 ---------------------

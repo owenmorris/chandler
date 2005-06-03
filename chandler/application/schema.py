@@ -9,7 +9,7 @@ import __main__, repository, threading, os
 ANONYMOUS_ROOT = "//userdata"
 
 __all__ = [
-    'ActiveDescriptor', 'Activator', 'Role',
+    'ActiveDescriptor', 'Activator', 'Role', 'itemFor',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference',
 ]
@@ -21,6 +21,8 @@ global_lock = threading.RLock()
 
 
 class TypeReference:
+    """Reference a core schema type (e.g. Integer) by its repository path"""
+
     def __init__(self,path):
         if nrv.findPath(path) is None:
             raise NameError("Type %r not found in the core schema" % (path,))
@@ -29,6 +31,15 @@ class TypeReference:
 
     def __repr__(self):
         return "TypeReference(%r)" % self.path
+
+    def _create_schema_item(self):
+        item = nrv.findPath(self.path)
+        if item is None:
+            raise TypeError("Unrecognized type", self.path)
+        return item
+
+    def _init_schema_item(self,item):
+        pass
 
 
 class ActiveDescriptor(object):
@@ -93,7 +104,7 @@ class Role(ActiveDescriptor,CDescriptor):
             raise TypeError(
                 "Role objects are immutable; can't change %r once set" % attr
             )
-            
+
         self._setattr(attr,value)
         if attr=='type':
             if not isinstance(value,(ItemClass,TypeReference)):
@@ -161,57 +172,36 @@ class Role(ActiveDescriptor,CDescriptor):
             (self.__class__.__name__, getattr(self.type,'__name__',None))
         )
 
-    @property
-    def _schema_attr(self):
-        try:
-            return nrv._schema_cache[self]
-        except KeyError:
-            if self.owner is None or self.name is None:
-                raise TypeError(
-                    "role object used outside of schema.Item subclass"
-                )
-            kind = self.owner._schema_kind
+    def _create_schema_item(self):
+        if self.owner is None or self.name is None:
+            raise TypeError(
+                "role object used outside of schema.Item subclass"
+            )
 
-        global_lock.acquire()
-        try:
-            if self in nrv._schema_cache:
-                # In case another thread set it up while we were waiting for
-                # the lock (i.e., this is double-checked locking)
-                # (This branch is also taken if creating 'kind' recursively
-                # invoked creation of this attribute)
-                return nrv._schema_cache[self]
-            else:
-                # Create a new Attribute
-                attr = nrv._schema_cache[self] = Attribute(
-                    self.name, kind, nrv.findPath('//Schema/Core/Attribute'),
-                )
-                declareTemplate(attr)
-                kind.attributes.append(attr, attr.itsName)
+        attr = Attribute(self.name, None, itemFor(Attribute))
+        self.__dict__['_schema_attr_'] = True   # disallow changes
+        return attr
 
-                for aspect in all_aspects:
-                    if hasattr(self,aspect):
-                        val = getattr(self,aspect)
-                        if aspect=='displayName':
-                            val = val or self.name  # default displayName=name
-                        elif aspect=='type':
-                            if isinstance(self.type,ItemClass):
-                                val = val._schema_kind
-                            elif self.type is None:
-                                continue
-                            else:
-                                t = nrv.findPath(val.path)
-                                assert t, ("Unrecognized type",val.path)
-                                val = t
-                        setattr(attr,aspect,val)
+    def _init_schema_item(self, attr):
+        kind = attr.itsParent = itemFor(self.owner)
+        kind.attributes.append(attr, attr.itsName)
+        # XXX self.registerAttribute(kind, attr)
 
-                if not hasattr(self,'otherName') and self.inverse is not None:
-                    attr.otherName = self.inverse.name
+        for aspect in all_aspects:
+            if hasattr(self,aspect):
+                val = getattr(self,aspect)
+                if aspect=='displayName':
+                    val = val or self.name  # default displayName=name
+                elif aspect=='type':
+                    if val is None:
+                        continue    # don't set type to None
+                    else:
+                        val = itemFor(val)  # works for Kind and TypeReference
+                        
+                setattr(attr,aspect,val)
 
-                # XXX self.registerAttribute(self.owner._schema_kind, attr)
-                self.__dict__['_schema_attr_'] = True   # disallow changes
-                return attr
-        finally:
-            global_lock.release()
+        if not hasattr(self,'otherName') and self.inverse is not None:
+            attr.otherName = self.inverse.name
 
 
 class One(Role):
@@ -231,48 +221,22 @@ class Mapping(Role):
 
 
 class ItemClass(Activator):
-    @property
-    def _schema_kind(cls):
-        try:
-            return nrv._schema_cache[cls]
-        except KeyError:
-            pass
 
-        global_lock.acquire()
-        try:
-            if cls in nrv._schema_cache:
-                # In case another thread set it up while we were waiting for
-                # the lock (i.e., this is double-checked locking)
-                return nrv._schema_cache[cls]
+    def _create_schema_item(cls):
+        return Kind(
+            cls.__name__, parcel_for_module(cls.__module__), itemFor(Kind)
+        )
 
-            elif '_schema_kind_path' in cls.__dict__:
-                # In case the class set its kind with a path...
-                kind = nrv._schema_cache[cls] = nrv.findPath(
-                    cls.__dict__['_schema_kind_path']
-                )
+    def _init_schema_item(cls,kind):
+        kind.superKinds = [
+            itemFor(b) for b in cls.__bases__ if issubclass(b,Item)
+        ]
+        kind.attributes = []
+        kind.classes = {'python': cls }
 
-            else:
-                # Create a new kind
-                kind = nrv._schema_cache[cls] = Kind(
-                    cls.__name__, parcel_for_module(cls.__module__),
-                    nrv.findPath('//Schema/Core/Kind')
-                )
-                declareTemplate(kind)
-                kind.superKinds = [
-                    b._schema_kind for b in cls.__bases__ if issubclass(b,Item)
-                ]
-                kind.attributes = []
-                kind.classes = {'python': cls }
-                cls._schema_kind_ = kind
-
-                for attr in cls.__dict__.values():
-                    if isinstance(attr,Role):
-                        attr._schema_attr
-
-            return kind
-
-        finally:
-            global_lock.release()
+        for attr in cls.__dict__.values():
+            if isinstance(attr,Role):
+                itemFor(attr)
 
 
 class Item(Base):
@@ -280,15 +244,13 @@ class Item(Base):
 
     __metaclass__ = ItemClass
 
-    _schema_kind_path = '//Schema/Core/Item'   # bootstrap root class
-
     def __init__(self,
         name=None, parent=None, kind=None, *args, **values
     ):
         if parent is None and name is None:
             parent = anonymous_root
         if kind is None:
-            kind = self.__class__._schema_kind
+            kind = itemFor(self.__class__)
         super(Item,self).__init__(name,parent,kind,*args,**values)
 
 
@@ -333,6 +295,11 @@ def importString(name, globalDict=__main__.__dict__):
     return item
 
 
+
+# --------------------
+# Repository interface
+# --------------------
+
 def parcel_for_module(moduleName):
     """Return the Parcel for the named module
 
@@ -353,11 +320,11 @@ def parcel_for_module(moduleName):
     """
     global_lock.acquire()
     try:
-        if moduleName:                      
+        if moduleName:
             try:
                 return nrv._parcel_cache[moduleName]
             except KeyError:
-                module = importString(moduleName)               
+                module = importString(moduleName)
 
             if hasattr(module,'__parcel__'):
                 nrv._parcel_cache[moduleName] = parcel = parcel_for_module(
@@ -397,10 +364,50 @@ def synchronize(repoView,moduleName):
     for item in module.__dict__.values():
         if isinstance(item,ItemClass):
             # Import each kind
-            repoView.importItem(item._schema_kind)
+            repoView.importItem(itemFor(item))
 
     # Import the parcel, too, in case there were no kinds
     repoView.importItem(parcel_for_module(moduleName))
+
+
+def itemFor(obj):
+    """Return the schema Item corresponding to ``obj`` in the null view"""
+
+    try:
+        item = nrv._schema_cache[obj]
+    except KeyError:
+        pass
+    else:
+        if item is not None:
+            return item
+
+    global_lock.acquire()
+    try:
+        # Double-checked locking; somebody might've updated the cache while
+        # we were waiting to acquire the lock
+        if obj in nrv._schema_cache:
+            item = nrv._schema_cache[obj]
+            if item is None:
+                # If we get here, it's because itemFor() has re-entered itself
+                # looking for the same item, which can only happen if an
+                # object's _create_schema_item() is cyclically recursive.
+                # Don't do that.
+                raise RuntimeError("Recursive schema item initialization")
+            return item
+
+        nrv._schema_cache[obj] = None   # guard against re-entry
+        try:
+            item = nrv._schema_cache[obj] = obj._create_schema_item()
+        except:
+            del nrv._schema_cache[obj]  # remove the guard
+            raise
+        else:
+            declareTemplate(item)
+            obj._init_schema_item(item) # set up possibly-recursive data
+            return item
+    finally:
+        global_lock.release()
+
 
 
 # -------------------------------
@@ -446,19 +453,27 @@ def reset(rv=None):
         old_rv = nrv
         if rv is None:
             rv = NullRepositoryView()
-    
+
         nrv = rv
         initRepository(nrv)
         if not hasattr(nrv,'_parcel_cache'):
             nrv._parcel_cache = {}
         if not hasattr(nrv,'_schema_cache'):
-            nrv._schema_cache = {}
+            nrv._schema_cache = {
+                Kind: nrv.findPath('//Schema/Core/Kind'),
+                Attribute: nrv.findPath('//Schema/Core/Attribute'),
+                Parcel: nrv.findPath('//Schema/Core/Parcel'),
+                Base: nrv.findPath('//Schema/Core/Item'),
+                Item: nrv.findPath('//Schema/Core/Item'),
+            }
         anonymous_root = nrv.findPath(ANONYMOUS_ROOT)
         declareTemplate(anonymous_root)
-    
+
         return old_rv
     finally:
         global_lock.release()
+
+
 
 # ---------------------------
 # Setup null view and globals
