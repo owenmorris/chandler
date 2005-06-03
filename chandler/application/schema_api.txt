@@ -296,6 +296,21 @@ Additional Metadata
     >>> schema.itemFor(CalendarItem).description
     'This is just a demo'
 
+    >>> class MultipleMetadata(schema.Item):
+    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(displayAttribute="Bar")
+    >>> schema.itemFor(MultipleMetadata).displayName
+    'Foo'
+    >>> schema.itemFor(MultipleMetadata).displayAttribute
+    'Bar'
+
+    >>> class ConflictingMetadata(schema.Item):
+    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(displayName="Bar")
+    Traceback (most recent call last):
+      ...
+    ValueError: 'displayName' defined multiple times for this class
+    
     >>> class BadMetadata(schema.Item):
     ...     schema.kindInfo(madeUpName="xyz")
     Traceback (most recent call last):
@@ -306,7 +321,6 @@ Additional Metadata
     Traceback (most recent call last):
       ...
     SyntaxError: kindInfo() must be called in the body of a class statement
-
 
 
 Enumerations

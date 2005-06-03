@@ -320,6 +320,9 @@ def kindInfo(**attrs):
     ``schema.Item`` or ``schema.Enumeration``, and it will only accept keywords
     that are valid attributes of the ``Kind`` or ``Enumeration`` kinds,
     respectively.
+
+    (Note: if your class includes a ``__metaclass__`` definition, any calls to
+    ``kindInfo`` must come *after* the ``__metaclass__`` assignment.)
     """
 
     from zope.interface.advice import getFrameInfo, addClassAdvisor
@@ -335,7 +338,12 @@ def kindInfo(**attrs):
             "kindInfo() must be called in the body of a class statement"
         )
 
-    _locals['__kind_info__'] = {}
+    info = _locals.setdefault('__kind_info__',{})
+    for k,v in attrs.items():
+        if k in info:
+            raise ValueError("%r defined multiple times for this class" % (k,))
+        info[k] = v
+
     def callback(cls):
         for k,v in attrs.items():
             if not hasattr(cls._kind_class, k):
@@ -343,7 +351,6 @@ def kindInfo(**attrs):
                     "%r is not an attribute of %s" %
                     (k, cls._kind_class.__name__)
                 )
-            cls.__kind_info__[k] = v
         return cls
     addClassAdvisor(callback)
 
