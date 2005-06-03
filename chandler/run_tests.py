@@ -64,7 +64,10 @@ class ScanningLoader(TestLoader):
             for dir in module.__path__:
                 for file in os.listdir(dir):
                     if file.endswith('.py') and file!='__init__.py':
-                        submodule = module.__name__+'.'+file[:-3]
+                        if file.lower().startswith('test'):
+                            submodule = module.__name__+'.'+file[:-3]
+                        else:
+                            continue
                     else:
                         subpkg = os.path.join(dir,file,'__init__.py')
                         if os.path.exists(subpkg):
