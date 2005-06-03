@@ -23,7 +23,7 @@ glob=libwx*
 lib
 
 # Grab icu libs
-src=chandler/release/icu
+src=chandler/debug/icu
 dest=debug
 glob=libicu*
 lib

@@ -36,7 +36,7 @@ src=chandler/debug/db
 lib
 
 # Grab icu libs
-src=chandler/release/icu
+src=chandler/debug/icu
 dest=Contents/Resources
 glob=libicu*
 lib
