@@ -22,7 +22,6 @@ import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryV
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 import osaf.contentmodel.mail.Mail as Mail
-import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 
@@ -229,7 +228,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         if self.account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             self.factory.startTLS   = True
-            self.factory.getContext = lambda : Globals.crypto.getSSLContext(repositoryView=self.view)
+            self.factory.getContext = lambda : ssl.getContext(repositoryView=self.view)
 
         self.factory.sslChecker = ssl.postConnectionCheck
 

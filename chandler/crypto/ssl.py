@@ -5,7 +5,7 @@ SSL/TLS-related functionality.
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
-from M2Crypto import SSL
+import M2Crypto.SSL as SSL
 import M2Crypto.SSL.Checker as Checker
 import M2Crypto.m2 as m2
 

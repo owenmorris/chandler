@@ -6,12 +6,10 @@ Unit test for SSL context, connection and related security checks.
 """
 
 import unittest
-import socket
-import sys, os
-from M2Crypto import SSL
-import application.Globals as Globals
+import socket, sys, os
+import M2Crypto.SSL as SSL
 import crypto
-import crypto.Crypto as Crypto
+import crypto.ssl as ssl
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 
@@ -21,8 +19,8 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         pathComponents = sys.modules['crypto'].__file__.split(os.sep)
         assert len(pathComponents) > 3
         chandlerDir = os.sep.join(pathComponents[0:-2])
-        Globals.crypto = Crypto.Crypto()
-        Globals.crypto.init(os.path.join(chandlerDir, 'crypto'))        
+        self.profileDir = os.path.join(chandlerDir, 'crypto')
+        crypto.startup(self.profileDir)        
 
         super(TestSSL, self)._setup()
         self.testdir = os.path.join(chandlerDir, 'crypto', 'tests')
@@ -35,7 +33,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         super(TestSSL, self).tearDown()
         
         #XXX Same as TestM2CryptoInitShutdown.InitShutdown.tearDown
-        Globals.crypto.shutdown()
+        crypto.shutdown(self.profileDir)
     
     def testSSL(self):
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/data")
@@ -45,7 +43,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         #site = 'www.verisign.com'
         site = 'www.thawte.com'
         
-        ctx = Globals.crypto.getSSLContext(self.rep.view)
+        ctx = ssl.getContext(self.rep.view)
         conn = SSL.Connection(ctx)
 
         if not self.isOnline():
@@ -54,7 +52,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         # We wrap the connect() in try/except and filter some common
         # network errors that are not SSL-related.
         try:
-            self.assert_(conn.connect((site, 443)) >= 0)
+            assert conn.connect((site, 443)) >= 0
         except socket.gaierror, e:
             if e.args[0] == 7: #'No address associated with nodename'
                 return
@@ -62,7 +60,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
                 return
             raise
 
-        crypto.ssl.postConnectionCheck(conn.get_peer_cert(), site)
+        ssl.postConnectionCheck(conn.get_peer_cert(), site)
 
         conn.clear()
 

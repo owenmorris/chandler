@@ -5,19 +5,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 #twisted imports
 import twisted.internet.defer as defer
-import twisted.internet.reactor as reactor
-import twisted.internet.error as error
 import twisted.mail.imap4 as imap4
 
 #python imports
 import email as email
-import logging as logging
 
 #Chandler imports
-import repository.item.Query as Query
 import osaf.contentmodel.mail.Mail as Mail
-import application.Globals as Globals
-import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+import crypto.ssl as ssl
 
 #Chandler Mail Service imports
 import message as message
@@ -85,8 +80,8 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if self.factory.useTLS:
             """The Twisted IMAP4Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
-            d = self.startTLS(Globals.crypto.getSSLContext(\
-                              repositoryView=self.view, protocol='sslv3'))
+            d = self.startTLS(ssl.getContext(repositoryView=self.view,
+                                                      protocol='sslv3'))
 
             d.addCallbacks(lambda _: self.delegate.loginClient(), \
                                      self.delegate.catchErrors)
@@ -214,9 +209,9 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if self.__getNextUID() == 0:
-             msgSet = imap4.MessageSet(1, None)
+            msgSet = imap4.MessageSet(1, None)
         else:
-             msgSet = imap4.MessageSet(self.__getNextUID(), None)
+            msgSet = imap4.MessageSet(self.__getNextUID(), None)
 
         d = self.proto.fetchFlags(msgSet, uid=True)
 

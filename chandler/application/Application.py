@@ -12,10 +12,10 @@ import application.Parcel
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, PermissionsError
-from crypto import Crypto
 import logging as logging
 import cStringIO
 import CPIAScript
+import crypto
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
@@ -223,8 +223,7 @@ class wxApplication (wx.App):
           Crypto initialization
         """
         if splash: splash.updateGauge('crypto')
-        Globals.crypto = Crypto.Crypto()
-        Globals.crypto.init(Globals.options.profileDir)
+        crypto.startup(Globals.options.profileDir)
         """
           Open the repository.
         Load the Repository after the path has been altered, but before
@@ -645,7 +644,7 @@ class wxApplication (wx.App):
         finally:
             wx.GetApp().UIRepositoryView.repository.close()
 
-        Globals.crypto.shutdown()
+        crypto.shutdown(Globals.options.profileDir)
 
     def OnMainThreadCallbackEvent(self, event):
         """

@@ -12,13 +12,11 @@ import twisted.protocols.policies as policies
 
 #python imports
 import cStringIO as StringIO
-import logging as logging
 from datetime import datetime
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.contentmodel.mail.Mail as Mail
-import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 
@@ -314,7 +312,7 @@ class _SMTPTransport(object):
             heloFallback = False
 
         if account.connectionSecurity == 'TLS':
-            tlsContext = Globals.crypto.getSSLContext(self.parent.view)
+            tlsContext = ssl.getContext(self.parent.view)
             securityRequired = True
 
         msg = StringIO.StringIO(messageText)
@@ -327,7 +325,7 @@ class _SMTPTransport(object):
         if account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             factory.startTLS = True
-            factory.getContext = lambda : Globals.crypto.getSSLContext(self.parent.view)
+            factory.getContext = lambda : ssl.getContext(self.parent.view)
 
         factory.sslChecker = ssl.postConnectionCheck
 

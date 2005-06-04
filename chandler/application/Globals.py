@@ -18,7 +18,6 @@ wxApplication = None          # The application object. Use wx.GetApp() as the p
                               # way to get the application object when possible.
 mainViewRoot = None           # The main View
 views = []                    # A list of nested views
-crypto = None                 # Cryptographic services
 wakeupCaller = None           # WakeupCaller Service
 mailService = None            # Mail Service (IMAP, POP, SMTP)
 options = None                # Command line options

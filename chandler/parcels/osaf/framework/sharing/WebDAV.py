@@ -3,11 +3,9 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import twisted.internet.reactor as reactor
 import zanshin.webdav
 
 import logging
-import application.Globals as Globals
 import crypto.ssl as ssl
 import M2Crypto.BIO
 import chandlerdb.util.uuid
@@ -37,7 +35,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
             # to check the user's certstore for trusted certs).
             if self.factory.sslContextFactory == None:
                 self.factory.getContext = lambda: \
-                    Globals.crypto.getSSLContext(repositoryView=repositoryView)
+                    ssl.getContext(repositoryView=repositoryView)
                 self.factory.sslChecker = ssl.postConnectionCheck
 
 
