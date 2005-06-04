@@ -195,9 +195,36 @@ class MainView(View):
         """
         wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
+            # XXX This is not right, the alert should have a caption
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
              "", statusMessage)
             self.setStatusMessage ('')
+
+    def askTrustSiteCertificate(self, pem):
+        # XXX need to suppress mail error dialogs? Or terminate
+        # XXX the mail fetch in our caller?
+        import M2Crypto.X509 as X509
+        import osaf.framework.certstore.certificate as certificate
+        x509 = X509.load_cert_string(pem)
+        fingerprint = certificate._fingerprint(x509)
+        # XXX Need to design real dialog
+        dlg = wx.SingleChoiceDialog(wx.GetApp().mainFrame,
+                                   'Do you want to trust this certificate?\n' +
+                                   'SHA1 fingerprint: ' + fingerprint +
+                                   '\n' + x509.as_text(),
+                                   'Trust Site Certificate?',
+                                   choices=['Trust the authenticity of this certificate until program exit.',
+                                            'Trust the authenticity of this certificate permanently.'])
+        if dlg.ShowModal() == wx.ID_OK:
+            selection = dlg.GetSelection()
+            dlg.Destroy()
+        
+            if selection == 0:
+                import crypto.ssl as ssl
+                ssl.trusted_until_shutdown_site_certs += [pem]
+            else:
+                certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
+            # XXX need to retry connection
 
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 

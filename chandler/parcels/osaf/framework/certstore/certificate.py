@@ -12,7 +12,6 @@ import application.Globals as Globals
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.framework.blocks.detail.Detail as Detail
-import M2Crypto.BIO as BIO
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
@@ -74,23 +73,76 @@ def _fingerprint(x509, md='sha1'):
     return hex(util.octx_to_num(digest))
 
 
+def _isSiteCertificate(x509):
+    # XXX This will need tweaks
+    site = False
+    try:
+        host = x509.get_ext('subjectAltName').get_value()
+        host = host.lower()
+        if host[:4] == 'dns:':
+            site = True
+    except LookupError:
+        pass
+        
+    if not site:
+        try:
+            commonName = x509.get_subject().CN
+            if commonName.find('.') > -1 and commonName.find(' ') < 0:
+                site = True
+        except AttributeError:
+            pass
+            
+    return site
+
+
+def _certificateType(x509):
+    # Determine certificate type.
+    # XXX This will need tweaking, for example
+    # XXX X509_check_ca, X509_check_purpose
+    type = None
+    try:
+        if x509.get_ext('basicConstraints').get_value() == 'CA:TRUE':
+            type = 'root'
+        elif _isSiteCertificate(x509):
+            type = 'site'
+    except LookupError:
+        print 'lookuperror'
+        subject = x509.get_subject()
+        issuer = x509.get_issuer()
+        if subject == issuer:
+            type = 'root'
+        elif _isSiteCertificate(x509):
+            type = 'site'
+                
+    if type is None:
+        raise Exception, 'could not determine certificate type'
+        
+    return type
+
+
 def _importCertificate(x509, fingerprint, trust, repView):
     subjectCommonName = x509.get_subject().CN
     pem = x509.as_pem()
     asText = x509.as_text()
-
+    
+    type = _certificateType(x509)
+    if type == 'root':
+        if not x509.verify():
+            raise ValueError, 'X.509 certificate does not verify'
+    
     cert = Certificate(view=repView)
     text = cert.getAttributeAspect('pem', 'type').makeValue(pem,
                                                            compression=None)
     cert.pem = text
     text = cert.getAttributeAspect('asText', 'type').makeValue(asText)
     cert.asText = text
-    cert.type = 'root'#XXX check the cert before blindly assigning this
+    cert.type = type
     cert.trust = trust
     cert.fingerprintAlgorithm = 'sha1'
     cert.fingerprint = fingerprint
     cert.subjectCommonName = subjectCommonName
-    repView.refresh()
+    
+    repView.commit()
 
 
 def ImportCertificate(repView, cpiaView):

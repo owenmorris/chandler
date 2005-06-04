@@ -5,6 +5,8 @@ SSL
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
+import osaf.framework.certstore.certificate as certificate
+
 def addCertificates(repView, ctx):
     """
     Add certificates to SSL Context.
@@ -12,8 +14,7 @@ def addCertificates(repView, ctx):
     @param repView: repository view
     @param ctx: SSL.Context
     """
-    #qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where ((i.type == "root" and i.trust == 3) or (i.type="site" and i.trust == 1))'
-    qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where True'
+    qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "root" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE)
     
     # XXX Should be done using ref collections instead?
     import repository.query.Query as Query

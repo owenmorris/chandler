@@ -267,4 +267,6 @@ def generateDocs(buildenv):
                           'repository/persistence',
                           'repository/util',
                           'repository/query',
-                          'repository/schema')
+                          'repository/schema',
+                          'crypto')
+

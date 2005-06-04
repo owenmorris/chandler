@@ -5,21 +5,9 @@ SSL/TLS-related functionality.
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
-from M2Crypto import SSL, util, EVP, httpslib
+from M2Crypto import SSL
 import M2Crypto.SSL.Checker as Checker
 import M2Crypto.m2 as m2
-
-class SSLVerificationError(Exception):
-    pass
-
-class NoCertificate(SSLVerificationError):
-    pass
-
-class WrongCertificate(SSLVerificationError):
-    pass
-
-class WrongHost(SSLVerificationError):
-    pass
 
 class SSLContextError(Exception):
     pass
@@ -88,7 +76,7 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
             verifyCallback = _VerifyCallback(repositoryView)
 
         ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
-                       9)#, verifyCallback) #XXX callback causes crash
+                       9, verifyCallback)
 
     # Do not allow SSLv2 because it has security issues
     ctx.set_options(SSL.op_all | SSL.op_no_sslv2)
@@ -102,16 +90,18 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     return ctx
 
 
+trusted_until_shutdown_site_certs = []
+
 class _VerifyCallback(object):
     # We need to use a class to transmit the repository view. Otherwise
     # this could be an ordinary function instead of a class with __call__.
     
-    trusted_until_shutdown_site_certs = []
-
     def __init__(self, repositoryView):
         self.repositoryView = repositoryView
 
-    def __call__(ok, store):
+    def __call__(self, ok, store):
+        global trusted_until_shutdown_site_certs
+        
         if not ok:
             err = store.get_error()
 
@@ -127,23 +117,44 @@ class _VerifyCallback(object):
 
             x509 = store.get_current_cert()
 
+            # Check temporarily trusted certificates
             pem = x509.as_pem()
             if pem in trusted_until_shutdown_site_certs:
                 return 1
 
-            # XXX Need to see if certificate is permanently trusted and
-            # XXX stored in the repository.
-            # XXX For this we need self.repositoryView
+            # Check permanently trusted certificates
+            self.repositoryView.commit()
+            # XXX Should be done using ref collections instead?
+            import repository.query.Query as Query
+            # XXX Now we depend on parcels
+            import osaf.framework.certstore.certificate as certificate
+        
+            qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "site" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY)
+            
+            qName = 'sslTrustedSiteCertificatesQuery'
+            q = self.repositoryView.findPath('//Queries/%s' %(qName))
+            if q is None:
+                p = self.repositoryView.findPath('//Queries')
+                k = self.repositoryView.findPath('//Schema/Core/Query')
+                q = Query.Query(qName, p, k, qString)
+                
+            for cert in q:
+                print 'trusted site cert:', cert.subjectCommonName #XXX
+                if cert.pemAsString() == pem:
+                    return 1
+            else:
+                print 'no trusted site certs found'#XXX why don't we find?
 
-            # XXX Need to put up a dialog for the user where they
-            # XXX can decide what they want to do. This may in fact need
-            # XXX to live elsewhere - where we currently put up the connection
-            # XXX failure error for example.
+            # Post an asynchronous event to the main thread where
+            # we ask the user if they would like to trust this
+            # certificate.
+            # XXX This should probably be moved to mail code so that
+            # XXX we can terminate connection and prevent the error dialogs.
+            # XXX We would also be able to redo the connection there.
+            import application.Globals as Globals
+            Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
+                                                      'askTrustSiteCertificate',
+                                                      pem)
+            
 
         return ok
-
-
-class HTTPSConnection(httpslib.HTTPSConnection):
-    def connect(self):
-        httpslib.HTTPSConnection.connect(self)
-        postConnectionCheck(self.sock.get_peer_cert(), self.sock.addr[0])
