@@ -106,24 +106,24 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
 
     # Try to figure out a unique path (although the odds of
     # even more than one try being needs are probably negligible)..
-    tries = 10
+    triesLeft = 10
     testFilename = unicode(chandlerdb.util.uuid.UUID())
     
     # Random string to use for trying a put
     while testFilename in childNames:
-        tries -= 1
+        triesLeft -= 1
 
-        if numTries == 0:
+        if triesLeft == 0:
             # @@@ [grant] This can't be right, but it's what was in the
             # original (pre-zanshin) code.
             return -1
 
-            testFilename = chandlerdb.util.uuid.UUID()
+        testFilename = chandlerdb.util.uuid.UUID()
     
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.
     try:
-            tmpResource = zanshin.util.blockUntil(topLevelResource.createFile,
+        tmpResource = zanshin.util.blockUntil(topLevelResource.createFile,
                              testFilename, body='Write access test')
     except zanshin.webdav.WebDAVError, e:
         return (READ_ONLY, e.status)
