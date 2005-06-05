@@ -15,7 +15,7 @@ import repository.tests.RepositoryTestCase as RepositoryTestCase
 
 class TestSSL(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        #XXX Same as TestM2CryptoInitShutdown.InitShutdown.setUp
+        #XXX Same as TestCryptoStartupShutdown.InitShutdown.setUp
         pathComponents = sys.modules['crypto'].__file__.split(os.sep)
         assert len(pathComponents) > 3
         chandlerDir = os.sep.join(pathComponents[0:-2])
@@ -32,7 +32,7 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
     def tearDown(self):
         super(TestSSL, self).tearDown()
         
-        #XXX Same as TestM2CryptoInitShutdown.InitShutdown.tearDown
+        #XXX Same as TestCryptoStartupShutdown.InitShutdown.tearDown
         crypto.shutdown(self.profileDir)
     
     def testSSL(self):
@@ -44,8 +44,29 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         site = 'www.thawte.com'
         
         ctx = ssl.getContext(self.rep.view)
+        socket.setdefaulttimeout(20)
         conn = SSL.Connection(ctx)
 
+        if socket.getdefaulttimeout() is not None:
+            # A workaround for M2Crypto bug 2341. If Chandler
+            # unit tests are run with run_tests.py, the feedparser
+            # calls socket.setdefaulttimeout() which will break
+            # this test case. But since we are just testing to make
+            # sure that:
+            #   1) SSL certificate verification works and
+            #   2) post connection check works
+            # we can safely force this test to run in blocking mode.
+            #
+            # Also, the SSL.Connection code is not used in Chandler.
+            # In Chandler we use TwistedProtocolWrapper, which
+            # works even when socket.setdefaulttimeout() has been
+            # called. 
+            # XXX We should really test it here, but we first need
+            # XXX to figure out how to run these kinds of twisted tests
+            # XXX because reactor.run()/stop() can be called only once
+            # XXX in a program.
+            conn.setblocking(1)
+            
         if not self.isOnline():
             return
             
