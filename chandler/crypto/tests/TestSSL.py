@@ -44,7 +44,6 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         site = 'www.thawte.com'
         
         ctx = ssl.getContext(self.rep.view)
-        socket.setdefaulttimeout(20)
         conn = SSL.Connection(ctx)
 
         if socket.getdefaulttimeout() is not None:
