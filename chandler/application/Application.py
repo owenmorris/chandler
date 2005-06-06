@@ -474,14 +474,14 @@ class wxApplication (wx.App):
     def OnCommand(self, event):
         """
           Catch commands and pass them along to the blocks.
-        Our events have ids between MINIMUM_WX_ID and MAXIMUM_WX_ID
+        Our events have ids greater than wx.ID_HIGHEST
         Delay imports to avoid circular references.
         """
         from osaf.framework.blocks.Block import Block
 
         wxID = event.GetId()
 
-        if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
+        if wxID > wx.ID_HIGHEST:
             block = Block.widgetIDToBlock (wxID)
             updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
             try:

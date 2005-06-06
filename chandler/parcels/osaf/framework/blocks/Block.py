@@ -212,9 +212,6 @@ class Block(Item):
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
-    MINIMUM_WX_ID = 2500
-    MAXIMUM_WX_ID = 4999
-
     def wxOnDestroyWidget (theClass, widget):
         if hasattr (widget, 'blockItem'):
             widget.blockItem.onDestroyWidget()
@@ -255,17 +252,17 @@ class Block(Item):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
         """
-        return wx.GetApp().UIRepositoryView.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
+        return wx.GetApp().UIRepositoryView.find (theClass.IdToUUID [wxID - (wx.ID_HIGHEST + 1)])
  
     widgetIDToBlock = classmethod (widgetIDToBlock)
 
     def getWidgetID (theClass, object):
         """
           wxWindows needs a integer for a id. Commands between
-        wxID_LOWEST and wxID_HIGHEST are reserved. wxPython doesn't export
-        wxID_LOWEST and wxID_HIGHEST, which are 4999 and 5999 respectively.
-        Passing -1 for an ID will allocate a new ID starting with 0. So
-        I will use the range starting at 2500 for our events.
+        wx.ID_LOWEST and wx.ID_HIGHEST are reserved for wxWidgets.
+        Calling wxNewId allocates incremental ids starting at 100.
+        Passing -1 for new IDs starting with -1 and decrementing.
+        Some rouge dialogs use IDs outside wx.ID_LOWEST and wx.ID_HIGHEST.
           Use IdToUUID to lookup the Id for a event's UUID. Use UUIDtoIds to
         lookup the UUID of a block that corresponds to an event id -- DJA
         """
@@ -275,8 +272,7 @@ class Block(Item):
         except KeyError:
             length = len (Block.IdToUUID)
             Block.IdToUUID.append (UUID)
-            id = length + Block.MINIMUM_WX_ID
-            assert (id <= Block.MAXIMUM_WX_ID)
+            id = length + wx.ID_HIGHEST + 1
             assert not Block.UUIDtoIds.has_key (UUID)
             Block.UUIDtoIds [UUID] = id
         return id
