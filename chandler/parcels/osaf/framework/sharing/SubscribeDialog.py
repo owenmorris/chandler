@@ -71,6 +71,13 @@ class SubscribeDialog(wx.Dialog):
 
         share = Sharing.newInboundShare(view, url)
 
+        if share is None:
+            return
+
+        if self.accountPanel.IsShown():
+            share.conduit.account.username = self.textUsername.GetValue()
+            share.conduit.account.password = self.textPassword.GetValue()
+
         try:
             self.__showStatus("In progress...")
             wx.Yield()
@@ -84,7 +91,7 @@ class SubscribeDialog(wx.Dialog):
             self.EndModal(True)
 
         except Sharing.NotAllowed, err:
-            self.__showAccountInfo(account)
+            self.__showAccountInfo(share.conduit.account)
             share.conduit.delete(True)
             share.format.delete(True)
             share.delete(True)
