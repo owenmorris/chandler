@@ -120,7 +120,7 @@
     <Kind itsName="DownloadAccountBase">
         <superKinds itemref="mail:AccountBase" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.DownloadAccountBase" />
-        <displayName value="Downloaad Account Base" />
+        <displayName value="Download Account Base" />
         <description value="Base Account for protocols that download mail" />
 
         <Attribute itsName="defaultSMTPAccount">
