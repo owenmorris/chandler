@@ -249,7 +249,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             
             for dt in recurrenceIter:
                 #give the repository a naive datetime, no timezone
-                dt = dt.astimezone(localtime).replace(tzinfo=None)
+                try:
+                    dt = dt.astimezone(localtime).replace(tzinfo=None)
+                except ValueError: # astimezone will fail for naive datetimes
+                    pass
                 if uidMatchItem is not None:
                     logger.debug("matched UID")
                     eventItem = uidMatchItem
