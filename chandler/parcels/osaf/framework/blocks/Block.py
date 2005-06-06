@@ -212,8 +212,8 @@ class Block(Item):
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
-    MINIMUM_WX_ID = 0
-    MAXIMUM_WX_ID = 2000
+    MINIMUM_WX_ID = 2500
+    MAXIMUM_WX_ID = 4999
 
     def wxOnDestroyWidget (theClass, widget):
         if hasattr (widget, 'blockItem'):
