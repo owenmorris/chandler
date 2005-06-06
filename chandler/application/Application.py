@@ -449,7 +449,7 @@ class wxApplication (wx.App):
         Also look first for platform specific images.
         """
         root, extension = os.path.splitext (name)
-        root = "application/images/" + root
+        root = os.sep.join([Globals.chandlerDirectory, "application", "images",  root])
         try:
             file = open(root + "-" + sys.platform + extension, "rb")
         except IOError:
