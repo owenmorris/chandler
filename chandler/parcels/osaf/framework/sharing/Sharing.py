@@ -1067,13 +1067,14 @@ class SimpleHTTPConduit(WebDAVConduit):
         logger.info("...received; processing...")
 
         try:
+            text = resp.body
             self.share.format.importProcess(text, item=self.share)
         except Exception, e:
             raise TransformationFailed(message=str(e))
 
-        lastModified = resp.getheader('Last-Modified', None)
-        self.lastModified = lastModified
-        logger.info("...imported, new last modified: %s" % lastModified)
+        lastModified = resp.headers.getHeader('Last-Modified')
+        self.lastModified = lastModified[-1]
+        logger.info("...imported, new last modified: %s" % self.lastModified)
 
     def put(self, skipItems=None):
         logger.info("'put( )' not support in SimpleHTTPConduit")
@@ -1549,14 +1550,16 @@ def newInboundShare(view, url):
     share = None
     if account is not None:
         shareName = path.strip("/").split("/")[-1]
-        conduit = WebDAVConduit(view=view, shareName=shareName,
-                                account=account)
         mode = "both"
         if url.endswith(".ics"):
             import ICalendar
             format = ICalendar.ICalendarFormat(view=view)
+            conduit = SimpleHTTPConduit(view=view, shareName=shareName,
+                                        account=account)
             mode = "get"
         else:
+            conduit = WebDAVConduit(view=view, shareName=shareName,
+                                    account=account)
             format = CloudXMLFormat(view=view)
         share = Share(view=view, conduit=conduit, format=format)
         share.hidden = False
