@@ -22,6 +22,7 @@
 				Name="VCNMakeTool"
 				BuildCommandLine="echo DB Release Static version built."
 				ReBuildCommandLine="echo DB Release Static version built. "
+				CleanCommandLine="echo DB Release Static version cleaned. "
 				Output="build_all.exe"/>
 		</Configuration>
 		<Configuration
@@ -35,6 +36,7 @@
 				Name="VCNMakeTool"
 				BuildCommandLine="echo DB Debug version built."
 				ReBuildCommandLine="echo DB Debug version built. "
+				CleanCommandLine="echo DB Debug version cleaned. "
 				Output="build_all.exe"/>
 		</Configuration>
 		<Configuration
@@ -48,6 +50,7 @@
 				Name="VCNMakeTool"
 				BuildCommandLine="echo DB Debug Static version built."
 				ReBuildCommandLine="echo DB Debug Static version built. "
+				CleanCommandLine="echo DB Debug Static version cleaned. "
 				Output="build_all.exe"/>
 		</Configuration>
 		<Configuration
@@ -61,6 +64,7 @@
 				Name="VCNMakeTool"
 				BuildCommandLine="echo DB Release version built."
 				ReBuildCommandLine="echo DB Release version built. "
+				CleanCommandLine="echo DB Release version cleaned. "
 				Output="build_all.exe"/>
 		</Configuration>
 	</Configurations>
