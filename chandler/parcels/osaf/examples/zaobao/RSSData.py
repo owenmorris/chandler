@@ -159,7 +159,7 @@ class RSSChannel(ItemCollection):
                     self.addRSSItem(rssItem)
                     count += 1
                 except:
-                    logging.error("Error adding an RSS item")
+                    logger.error("Error adding an RSS item")
 
         return count
 
