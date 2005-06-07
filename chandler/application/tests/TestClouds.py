@@ -39,14 +39,6 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             "//parcels/clouds/data/sprocketC",
         ]
 
-        sB = self.rep.findPath("//parcels/clouds/data/sprocketB")
-        cloud = widgetA.itsKind.getClouds('default')[0]
-        for item, other, attribute, policy, indent in cloud.traceItem(sB, trace):
-            print "%s%s was added by following '%s' %s on %s" %('  ' * indent,
-                                                                item._repr_(),
-                                                                attribute,
-                                                                policy,
-                                                                other._repr_())
 
         for item in items:
             path = str(item.itsPath)
