@@ -72,10 +72,10 @@ class RSSChannel(ItemCollection):
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)
         if lastModified:
-            lastModified = lastModified.tuple()
+            lastModified = lastModified.timetuple()
 
         if not data:
-            # fetch the dat
+            # fetch the data
             data = feedparser.parse(str(self.url), etag, lastModified)
 
         # set etag
@@ -84,7 +84,7 @@ class RSSChannel(ItemCollection):
         # set lastModified
         modified = data.get('modified')
         if modified:
-            self.lastModified = datetime.fromtimestamp(time.mktime(modified))
+            self.lastModified = datetime.fromtimestamp(time.mktime(modified)).replace(tzinfo=None)
 
         # if the feed is bad, raise the sax exception
         try:
@@ -133,6 +133,16 @@ class RSSChannel(ItemCollection):
 
         for newItem in items:
 
+            # Convert date to datetime object
+            if newItem.date:
+                newItem.date = parse(str(newItem.date))
+            else:
+                # Give the item a date so we can sort on it
+                newItem.date = datetime.now()
+
+            # Disregard timezone for now
+            newItem.date = newItem.date.replace(tzinfo=None)
+
             found = False
             for oldItem in self.items.resultSet:
                 # check to see if this doesn't already exist
@@ -148,9 +158,8 @@ class RSSChannel(ItemCollection):
                 try:
                     self.addRSSItem(rssItem)
                     count += 1
-                except Exception, e:
-                    print "Error adding an item: " + str(e)
-                    raise
+                except:
+                    logging.error("Error adding an RSS item")
 
         return count
 
@@ -189,12 +198,7 @@ class RSSItem(ContentItem):
         if content:
             self.content = self.getAttributeAspect('content', 'type').makeValue(content, indexed=True)
 
-        date = data.get('date')
-        if date:
-            self.date = parse(str(date))
-        else:
-            # Give the item a date so we can sort on it
-            self.date = datetime.now()
+        self.date = data.date
 
     def isSimilar(self, feedItem):
         """
@@ -211,8 +215,7 @@ class RSSItem(ContentItem):
             dateMatch = True
             haveFeedDate = 'date' in feedItem
             if haveFeedDate:
-                feedDate = parse(str(feedItem.date))
-                if self.date != feedDate:
+                if self.date != feedItem.date:
                     dateMatch = False
 
             if self.displayName == feedItem.title and \
@@ -220,7 +223,7 @@ class RSSItem(ContentItem):
                dateMatch:
                     return True
 
-        except Exception, e:
-            print "oops: " + str(e)
+        except:
+            logger.error("RSS item comparison failed")
 
         return False
