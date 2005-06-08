@@ -18,6 +18,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
                       int       nCmdShow)
 {
     LPSTR       		bufferPtr;
+    CString     		commandLine;
     int         		index;
     DWORD       		length;
     CString     		pathToChandler;
@@ -41,20 +42,23 @@ int APIENTRY WinMain (HINSTANCE hInstance,
      */
     pathToChandler = pathToExe + _T(LAUNCHER);
 
+	commandLine = pathToChandler + _T(" ") + lpCmdLine;
+
 	GetStartupInfo (&startupInfo);
 	startupInfo.dwFlags &= ~STARTF_USESHOWWINDOW;
 
-	success = CreateProcess (pathToChandler,  // Path to executable
-							 lpCmdLine,		// command line
-							 NULL,			// Default process security attributes
-							 NULL,			// Default thread security attributes
-							 true,			// inherit handles from the parent
-							 0,				// Normal priority
-							 NULL,			// Use the same environment as the parent
-							 NULL,			// Launch in the current directory
-							 &startupInfo,	// Startup Information
-							 &processInfo); // Process information stored upon return
+	success = CreateProcess (pathToChandler,		// Path to executable
+							 LPSTR (LPCSTR (commandLine)),	// command line
+							 NULL,					// Default process security attributes
+							 NULL,					// Default thread security attributes
+							 true,					// inherit handles from the parent
+							 0,						// Normal priority
+							 NULL,					// Use the same environment as the parent
+							 NULL,					// Launch in the current directory
+							 &startupInfo,			// Startup Information
+							 &processInfo);			// Process information stored upon return
 	if (!success) {
+		int error = GetLastError();
 		CString  message;
 
 		message.Format (_T("Chandler couldn't be started because of an unexpected problem "

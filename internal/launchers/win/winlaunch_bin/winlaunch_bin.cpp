@@ -34,7 +34,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     HMODULE     module;
     CString     path;
     CString     pathToChandler;
-    CString     pathToExe;
+    CString     pathToExe;	
     int         result = -1;
     BOOL        success;
 
@@ -137,14 +137,19 @@ int APIENTRY WinMain (HINSTANCE hInstance,
         /*
          * Pass along the command line arguments to chandler.
          */
-        Py_Initialize();
-        PySys_SetArgv (__argc,__argv);
-        path = pathToChandler;
+		int argc = __argc;
+		char ** argv = __argv;
+
+		path = pathToChandler;
         path += _T("\\Chandler.py");
+		argv [0] = LPSTR (LPCSTR (path));
+
         filePtr = fopen (path, "r");
         if (!filePtr) {
             MissingFileOrFolderErrorDialog (path);
         } else {
+			Py_Initialize();
+			PySys_SetArgv (argc, argv);
             result = PyRun_SimpleFileEx (filePtr, path, /*close file is */ true);
             /*
              * We don't write out a message when PyRun_SimpleFile returns failure

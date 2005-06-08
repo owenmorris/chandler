@@ -41,7 +41,8 @@
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(OutDir)\chandlerDebug.exe $(ProjectDir)..\..\..\..\chandler\chandlerDebug.exe"/>
+				CommandLine="copy $(OutDir)\chandlerDebug.exe $(ProjectDir)..\..\..\..\chandler\chandlerDebug.exe"
+				ExcludedFromBuild="TRUE"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -88,7 +89,8 @@
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(OutDir)\chandler.exe $(ProjectDir)..\..\..\..\chandler\chandler.exe"/>
+				CommandLine="copy $(OutDir)\chandler.exe $(ProjectDir)..\..\..\..\chandler\chandler.exe"
+				ExcludedFromBuild="TRUE"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
