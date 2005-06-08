@@ -84,7 +84,7 @@ class Role(ActiveDescriptor,CDescriptor):
         if self.owner is None:
             self.owner = cls
             CDescriptor.__init__(self,name)
-        if issubclass(cls,Item) and self.inverse is not None:
+        if isinstance(cls,ItemClass) and self.inverse is not None:
             self.inverse.type = cls
 
     def _setattr(self,attr,value):
@@ -125,7 +125,7 @@ class Role(ActiveDescriptor,CDescriptor):
             except:
                 self._setattr('_inverse',None)  # roll back the change
                 raise
-            if self.owner is not None and issubclass(self.owner,Item):
+            if self.owner is not None and isinstance(self.owner,ItemClass):
                 inverse.type = self.owner
 
     inverse = property(
@@ -233,7 +233,7 @@ class ItemClass(Activator):
     def _init_schema_item(cls,kind):
         kind.superKinds = [
             itemFor(b) for b in cls.__bases__
-                if issubclass(b,Item) or b in nrv._schema_cache
+                if isinstance(b,ItemClass) or b in nrv._schema_cache
         ]
         kind.attributes = []
         kind.classes = {'python': cls }
