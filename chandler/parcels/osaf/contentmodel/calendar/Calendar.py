@@ -158,7 +158,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     def GetReminderDelta(self):
         """ Returns the difference between startTime and reminderTime, a timedelta """
         try:
-            return self.getEffectiveStartTime() - self.reminderTime
+            return self.reminderTime - self.getEffectiveStartTime()
         except AttributeError:
             return None
    

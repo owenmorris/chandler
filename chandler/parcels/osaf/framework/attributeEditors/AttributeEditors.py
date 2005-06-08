@@ -41,7 +41,7 @@ def getInstance (typeName, item, attributeName, presentationStyle):
     except AttributeError:
         format = None
     aeClass = _getAEClass(typeName, format)
-    logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
+    # logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
     instance = aeClass()        
     return instance
 
@@ -175,7 +175,7 @@ class AEStaticText(wx.StaticText):
     """ 
     Wrap wx.StaticText to give it the same GetValue/SetValue behavior
     that other wx controls have. (This was simpler than putting lotsa special
-    cases around the StringAttributeEditor...)
+    cases all over the StringAttributeEditor...)
     """
     GetValue = wx.StaticText.GetLabel
     SetValue = wx.StaticText.SetLabel
@@ -311,9 +311,10 @@ class StringAttributeEditor (BaseAttributeEditor):
             self.showingSample = False
             self.__changeTextQuietly(control, value)
             if isinstance(control, AETextCtrl):
-                control.SetSelection (-1,-1)
-                # @@@BJS is this necessary?: control.SetInsertionPointEnd ()
-
+                # @@@BJS I don't think either of these are needed.
+                #control.SetSelection (-1,-1)
+                #control.SetInsertionPointEnd ()
+                pass
         logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
 
     def EndControlEdit (self, item, attributeName, control):
@@ -343,7 +344,7 @@ class StringAttributeEditor (BaseAttributeEditor):
     def onTextChanged(self, event):
         if not getattr(self, "ignoreTextChanged", False):
             control = event.GetEventObject()
-            if self.sampleText is not None:
+            if getattr(self, 'sampleText', None) is not None:
                 logger.debug("StringAE.onTextChanged: not ignoring.")                    
                 currentText = control.GetValue()
                 if self.showingSample:
@@ -398,7 +399,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         # If we're showing sample text and this key would only change the 
         # selection, ignore it.
         if self.showingSample and event.GetKeyCode() in \
-            (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_BACK):
+           (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_BACK):
              logger.debug("onKeyDown: Ignoring selection-changer %s (%s) while showing the sample text", event.GetKeyCode(), wx.WXK_LEFT)
              return # skip out without calling event.Skip()
 
@@ -408,12 +409,12 @@ class StringAttributeEditor (BaseAttributeEditor):
     def onClick(self, event):
         """ Ignore clicks if we're showing the sample """
         control = event.GetEventObject()
-        if self.showingSample and control == wx.Control.FindFocus():
-            logger.debug("onClick: ignoring click because we're showing the sample.")
+        if self.showingSample:
+            if control == wx.Control.FindFocus():
+                logger.debug("onClick: ignoring click because we're showing the sample.")
+                control.SetSelection(-1, -1) # Make sure the whole thing's still selected
         else:
             event.Skip()
-        if self.showingSample:
-            control.SetSelection(-1, -1) # Make sure the whole thing's still selected
             
     def GetSampleText(self, item, attributeName):
         """ Return this attribute's sample text, or None if there isn't any. """
@@ -468,9 +469,17 @@ class StringAttributeEditor (BaseAttributeEditor):
             pass
         else:
             if cardinality == "single":
-                setattr (item, attributeName, valueString)
-                self.AttributeChanged()
-
+                if self.GetAttributeValue(item, attributeName) != valueString:
+                    setattr (item, attributeName, valueString)
+                    self.AttributeChanged()
+    
+    def getShowingSample(self):
+        return getattr(self, '_showingSample', False)
+    def setShowingSample(self, value):
+        self._showingSample = value
+    showingSample = property(getShowingSample, setShowingSample,
+                    doc="Are we currently displaying the sample text?")
+            
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -549,10 +558,8 @@ class LocationAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is a Location. """
     def SetAttributeValue (self, item, attributeName, valueString):
         if not valueString:
-            # @@@BJS There's a repository bug that makes this hasattr necessary;
-            # once it's fixed, replace this with try: delattr(item, attributeName) except AttributeError: pass
-            #if hasattr(item, attributeName):
-            #    delattr (item, attributeName)
+            if not hasattr(item, attributeName):
+                return # no change
             try:
                 delattr(item, attributeName)
             except AttributeError:
@@ -560,8 +567,9 @@ class LocationAttributeEditor (StringAttributeEditor):
         else:
             # lookup an existing item by name, if we can find it, 
             value = Calendar.Location.getLocation (item.itsView, valueString)
-            if getattr(item, attributeName, None) is not value:
-                setattr (item, attributeName, value)
+            if getattr(item, attributeName, None) is value:
+                return # no change
+            setattr (item, attributeName, value)
         
         self.AttributeChanged()
 
@@ -628,8 +636,9 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
         except ValueError:
             pass
         else:
-            setattr (item, attributeName, value)
-            self.AttributeChanged()
+            if self.GetAttributeValue(item, attributeName) != value:
+                setattr (item, attributeName, value)
+                self.AttributeChanged()
 
     def _parse(self, inputString):
         """"
@@ -820,14 +829,13 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
 
 class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
     def GetControlValue (self, control):
-        """ Get the reminder delta value for the current selection """
-        
+        """ Get the reminder delta value for the current selection """        
         # @@@ For now, assumes that the menu will be a number of minutes, 
         # followed by a space (eg, "1 minute", "15 minutes", etc), or something
         # that doesn't match this (eg, "None") for no-alarm.
-        value = control.GetStringSelection()
+        menuChoice = control.GetStringSelection()
         try:
-            minuteCount = int(value.split(u" ")[0])
+            minuteCount = int(menuChoice.split(u" ")[0])
         except ValueError:
             # "None"
             value = None
@@ -848,7 +856,8 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             if value is None:
                 choiceIndex = 0 # the "None" choice
             else:
-                reminderChoice = (value.minutes == 1) and _("1 minute") or (_("%i minutes") % value.minutes)
+                minutes = ((value.days * 1440) + (value.seconds / 60))
+                reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
                 choiceIndex = control.FindString(reminderChoice)
                 # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
                 if choiceIndex == -1:

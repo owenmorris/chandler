@@ -1445,11 +1445,22 @@ class AEBlock(RectangularChild):
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
         widget.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromWidget)
         widget.Bind(wx.EVT_LEFT_UP, self.onGainFocusFromWidget)
-            
-        editor.BeginControlEdit(editor.item, editor.attributeName, widget)
-        
+                    
         return widget
         
+    def synchronizeWidget (self):
+        """
+        Override to call the editor to do the synchronization
+        """
+        if not wx.GetApp().ignoreSynchronizeWidget:
+            oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
+            wx.GetApp().ignoreSynchronizeWidget = True
+            try:
+                editor = self.lookupEditor()
+                editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
+            finally:
+                wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+
     def ChangeWidgetIfNecessary(self, forEditing, grabFocus):
         """
         Make sure we've got the right widget, given
@@ -1457,7 +1468,16 @@ class AEBlock(RectangularChild):
         presentationstyle, and the state we're in (editing or not).
         """
         def rerender():
-            # self.parentBlock.parentBlock.widget.Freeze()
+            # Find the widget that corresponds to the view we're in
+            evtBoundaryWidget = self.widget
+            while evtBoundaryWidget is not None:
+                if evtBoundaryWidget.blockItem.eventBoundary:
+                    break
+                evtBoundaryWidget = evtBoundaryWidget.GetParent()
+            assert evtBoundaryWidget
+                
+            # Tell it not to update
+            evtBoundaryWidget.Freeze()
             try:
                 # Destroy the old widget
                 existingWidget = getattr(self, 'widget', None) 
@@ -1466,39 +1486,31 @@ class AEBlock(RectangularChild):
                     oldEditor.EndControlEdit(oldEditor.item, 
                                              oldEditor.attributeName, 
                                              existingWidget)
-                    logger.debug("Destroying old widget for %s.%s", oldEditor.item, oldEditor.attributeName)
-                    # logger.debug("Unrendering in 2 seconds...")
-                    # time.sleep(2)
+                    # logger.debug("Destroying old widget for %s.%s", oldEditor.item, oldEditor.attributeName)
                     self.unRender()
                 
-                # Set up the new one.
-                # logger.debug("Rendering in 2 seconds...")
-                # time.sleep(2)
-                logger.debug("Rendering new widget.")
+                # Set up the new one, then sync the view to update the sizers
                 self.render()
+                if evtBoundaryWidget:
+                    evtBoundaryWidget.blockItem.synchronizeWidget()
+                # don't need this now, but might if AEs get used outside the DV: 
+                # else: 
+                #   self.render()
                 
-                logger.debug("Done rendering - syncing parent sizers")
-                w = self.widget
-                while True:
-                    if w.GetSizer() is not None:
-                        w.blockItem.synchronizeWidget()
-                    if w.blockItem.eventBoundary:
-                        break
-                    w = w.GetParent()
-                    
                 if self.forEditing and grabFocus:
-                    logger.debug("Grabbing focus.")
+                    #logger.debug("Grabbing focus.")
                     self.widget.SetFocus()
 
-                logger.debug("Done rerendering.")
+                #logger.debug("Done rerendering.")
             finally:
-                pass #self.parentBlock.parentBlock.widget.Thaw()
+                if evtBoundaryWidget:
+                    evtBoundaryWidget.Thaw()
                 
         editor = self.lookupEditor()
         existingWidget = getattr(self, 'widget', None)
         if editor.MustChangeControl(forEditing, existingWidget):
             self.forEditing = forEditing
-            logger.debug("Must change control!")
+            #logger.debug("Must change control!")
             wx.CallAfter(rerender)
 
     def lookupEditor(self):
@@ -1516,7 +1528,7 @@ class AEBlock(RectangularChild):
 
         # If we have one already, and it's the right one, return it.
         try:
-            oldEditor = self.widget.attributeEditor
+            oldEditor = self.widget.editor
         except AttributeError:
             pass
         else:
@@ -1527,13 +1539,17 @@ class AEBlock(RectangularChild):
                 return oldEditor
 
         # We need a new editor - create one.
+        # logger.debug("Creating new AE for %s (%s.%s)", typeName, item, attributeName)
         selectedEditor = AttributeEditors.getInstance\
                        (typeName, item, attributeName, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
         selectedEditor.attributeName = attributeName
-        selectedEditor.presentationStyle = getattr(self, 'presentationStyle', None)
+        try:
+            selectedEditor.presentationStyle = self.presentationStyle
+        except AttributeError:
+            selectedEditor.presentationStyle = None
         selectedEditor.item = item
 
         return selectedEditor

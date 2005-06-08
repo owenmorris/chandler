@@ -7,7 +7,7 @@ import application.Globals as Globals
 from osaf.framework.blocks.Views import View
 from datetime import timedelta
 from time import time
-import wx, os, sys, traceback
+import wx, os, sys, traceback, logging
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.mail.imap
@@ -34,6 +34,9 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
+
+logger = logging.getLogger("mainview")
+logger.setLevel(logging.INFO)
 
 class MainView(View):
     """
@@ -707,7 +710,7 @@ class MainView(View):
         
 class ReminderTimer(Timer):
     def synchronizeWidget (self):
-        # print "*** Synchronizing ReminderTimer widget!"
+        # logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget()
         if not wx.GetApp().ignoreSynchronizeWidget:            
             pending = self.getPendingReminders()
@@ -733,7 +736,7 @@ class ReminderTimer(Timer):
         return timesAndReminders
     
     def onCollectionChanged(self, event):
-        # print "*** Got reminders collection changed!"
+        # logger.debug("*** Got reminders collection changed!")
         pending = self.getPendingReminders()
         closeIt = False
         reminderDialog = self.getReminderDialog(False)
@@ -749,13 +752,13 @@ class ReminderTimer(Timer):
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
-        # print "*** Got reminders time event!"
+        # logger.debug("*** Got reminders time event!")
         pending = self.getPendingReminders()
         reminderDialog = self.getReminderDialog(True)
         assert reminderDialog is not None
         (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
         if closeIt:
-            # print "*** closing the dialog!"
+            # logger.debug("*** closing the dialog!")
             self.closeReminderDialog()
         self.setFiringTime(nextReminderTime)
 
@@ -779,3 +782,6 @@ class ReminderTimer(Timer):
             del self.widget.reminderDialog
             reminderDialog.Destroy()
 
+    def setFiringTime(self, when):
+        # logger.debug("*** next reminder due %s" % when)
+        super(ReminderTimer, self).setFiringTime(when)
