@@ -232,7 +232,8 @@ class ItemClass(Activator):
 
     def _init_schema_item(cls,kind):
         kind.superKinds = [
-            itemFor(b) for b in cls.__bases__ if issubclass(b,Item)
+            itemFor(b) for b in cls.__bases__
+                if issubclass(b,Item) or b in nrv._schema_cache
         ]
         kind.attributes = []
         kind.classes = {'python': cls }

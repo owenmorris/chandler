@@ -4,6 +4,7 @@ this_module = "application.tests.TestSchemaAPI"     # change this if it moves
 from application import schema
 from repository.schema import Types
 from repository.persistence.RepositoryView import NullRepositoryView
+from repository.query.Query import Query
 
 class Dummy(schema.Item):
     """Just a test fixture"""
@@ -12,6 +13,9 @@ class Dummy(schema.Item):
 
 class Other(schema.Item):
     thing = schema.One(Dummy, inverse=Dummy.other)
+
+class Mixed(Dummy, Query):
+    pass
 
 class AnEnum(schema.Enumeration):
     values = "yes", "no"
@@ -26,6 +30,12 @@ class SchemaTestCase(unittest.TestCase):
         self.failUnless(schema.reset().check(), "check() failed")
 
 class SchemaTests(SchemaTestCase):
+
+    def testDeriveFromCore(self):
+        self.assertEqual(
+            list(schema.itemFor(Mixed).superKinds),
+            [schema.itemFor(Dummy), schema.itemFor(Query)]
+        )
 
     def testResetCache(self):
         # Parcel/kind/attr caches should be cleared between resets
