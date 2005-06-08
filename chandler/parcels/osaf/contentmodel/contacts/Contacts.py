@@ -12,16 +12,98 @@ from application import schema
 import repository.query.Query as Query
 from repository.item.Query import KindQuery
 
-class Contact(ContentModel.ContentItem):
 
+class ContactName(ContentModel.ContentItem):
+
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
+
+    firstName = schema.One(schema.String, initialValue="")
+    lastName  = schema.One(schema.String, initialValue="")
+    contact = schema.One()  # Contact
+
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (ContactName, self).__init__(name, parent, kind, view)
+
+
+class Contact(ContentModel.ContentItem):
+    """An entry in an address book.
+
+    Typically represents either a person or a company.
+
+    * issue: We might want to keep track of lots of sharing information like
+      'Permissions I've given them', 'Items of mine they've subscribed to',
+      'Items of theirs I've subscribed to', etc.
+    """
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
 
+    schema.kindInfo(displayName="Contact", displayAttribute="emailAddress")
+    
     itemsCreated = schema.Sequence(
         displayName="Items Created",
         doc = "List of content items created by this user.",
         inverse=ContentModel.ContentItem.creator,
     )
+
+    contactName = schema.One(
+        ContactName, inverse=ContactName.contact, initialValue=None
+    )
+
+    emailAddress = schema.One(schema.String, 
+        displayName = "Email Address",
+        initialValue = ""
+    )
+
+    itemsLastModified = schema.Sequence(
+        ContentModel.ContentItem,
+        displayName="Items Last Modified",
+        doc="List of content items last modified by this user.",
+        inverse=ContentModel.ContentItem.lastModifiedBy
+    )
+
+    requestedTasks = schema.Sequence(   # TaskMixin
+        displayName="Requested Tasks",
+        doc="List of tasks requested by this user.",
+        otherName="requestor"
+    )
+
+    taskRequests= schema.Sequence(  # TaskMixin
+        displayName="Task Requests",
+        doc="List of tasks requested for this user.",
+        otherName="requestee"
+    )
+
+    organizedEvents= schema.Sequence(   # CalendarEventMixin
+        displayName="Organized Events",
+        doc="List of events this user has organized.",
+        otherName="organizer"
+    )
+
+    participatingEvents= schema.Sequence(   # CalendarEventMixin
+        displayName="Participating Events",
+        doc="List of events this user is a participant.",
+        otherName="participants"
+    )
+
+    sharerOf= schema.Sequence(  # Share
+        displayName="Sharer Of",
+        doc="List of shares shared by this user.",
+        otherName="sharer"
+    )
+
+    shareeOf= schema.Sequence(  # Share
+        displayName="Sharee Of",
+        doc="List of shares for which this user is a sharee.",
+        otherName="sharees"
+    )
+
+    # <!-- redirections -->
+
+    who   = schema.Role(redirectTo="contactName")
+    about = schema.Role(redirectTo="displayName")
+    date  = schema.Role(redirectTo="createdOn")
+
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Contact, self).__init__(name, parent, kind, view)
@@ -120,10 +202,4 @@ class Contact(ContentModel.ContentItem):
 
         return value
 
-class ContactName(ContentModel.ContentItem):
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (ContactName, self).__init__(name, parent, kind, view)

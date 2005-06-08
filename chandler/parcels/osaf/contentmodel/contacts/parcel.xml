@@ -24,95 +24,6 @@
     <Kind itsName="Contact">
         <superKinds itemref="cm:ContentItem"/>
         <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
-        <displayName>Contact</displayName>
-        <description>An entry in an address book. Typically represents either a person or a company.</description>
-
-        <issues>We might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
-
-        <displayAttribute itemref="contact:Contact/emailAddress"/>
-
-        <Attribute itsName="contactName">
-            <type itemref="contact:ContactName" />
-            <inverseAttribute itemref="contact:ContactName/contact"/>
-            <initialValue itemref="None"/>
-        </Attribute>
-
-        <Attribute itsName="emailAddress">
-            <displayName>Email Address</displayName>
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="itemsLastModified">
-            <displayName>Items Last Modified</displayName>
-            <description>List of content items last modified by this user.</description>
-            <cardinality>list</cardinality>
-            <type itemref="cm:ContentItem"/>
-            <inverseAttribute itemref="cm:ContentItem/lastModifiedBy"/>
-        </Attribute>
-
-        <Attribute itsName="requestedTasks">
-            <displayName>Requested Tasks</displayName>
-            <description>List of tasks requested by this user.</description>
-            <cardinality>list</cardinality>
-            <type itemref="task:TaskMixin"/>
-            <inverseAttribute itemref="task:TaskMixin/requestor"/>
-        </Attribute>
-
-        <Attribute itsName="taskRequests">
-            <displayName>Task Requests</displayName>
-            <description>List of tasks requested for this user.</description>
-            <cardinality>list</cardinality>
-            <type itemref="task:TaskMixin"/>
-            <inverseAttribute itemref="task:TaskMixin/requestee"/>
-        </Attribute>
-
-        <Attribute itsName="organizedEvents">
-            <displayName>Organized Events</displayName>
-            <description>List of events this user has organized.</description>
-            <cardinality>list</cardinality>
-            <type itemref="cal:CalendarEventMixin"/>
-            <inverseAttribute itemref="cal:CalendarEventMixin/organizer"/>
-        </Attribute>
-
-        <Attribute itsName="participatingEvents">
-            <displayName>Participating Events</displayName>
-            <description>List of events this user is a participant.</description>
-            <cardinality>list</cardinality>
-            <type itemref="cal:CalendarEventMixin"/>
-            <inverseAttribute itemref="cal:CalendarEventMixin/participants"/>
-        </Attribute>
-
-        <Attribute itsName="sharerOf">
-            <displayName>Sharer Of</displayName>
-            <description>List of shares shared by this user.</description>
-            <cardinality>list</cardinality>
-            <type itemref="share:Share"/>
-            <inverseAttribute itemref="share:Share/sharer"/>
-        </Attribute>
-
-        <Attribute itsName="shareeOf">
-            <displayName>Sharee Of</displayName>
-            <description>List of shares for which this user is a sharee.</description>
-            <cardinality>list</cardinality>
-            <type itemref="share:Share"/>
-            <inverseAttribute itemref="share:Share/sharees"/>
-        </Attribute>
-
-        <!-- redirections -->
-
-        <Attribute itsName="who">
-            <redirectTo>contactName</redirectTo>
-        </Attribute>
-
-        <Attribute itsName="about">
-            <redirectTo>displayName</redirectTo>
-        </Attribute>
-
-        <Attribute itsName="date">
-            <redirectTo>createdOn</redirectTo>
-        </Attribute>
-
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="contactName">
@@ -133,21 +44,6 @@
         <superKinds itemref="cm:ContentItem"/>
         <classes key="python">osaf.contentmodel.contacts.Contacts.ContactName</classes>
         <description value="A very simple (and incomplete) representation of a person's name" />
-
-        <Attribute itsName="firstName">
-            <type itemref="String" />
-            <initialValue type="String" value=""/>
-        </Attribute>
-
-        <Attribute itsName="lastName">
-            <type itemref="String" />
-            <initialValue type="String" value=""/>
-        </Attribute>
-
-        <Attribute itsName="contact">
-            <type itemref="contact:Contact"/>
-            <inverseAttribute itemref="contact:Contact/contactName"/>
-        </Attribute>
 
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
