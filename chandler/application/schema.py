@@ -543,6 +543,8 @@ def declareTemplate(item):
         item._status |= Base.COPYEXPORT
     return item
 
+
+
 def reset(rv=None):
     """TESTING ONLY: Reset the schema API to use a different repository view
 
@@ -564,15 +566,22 @@ def reset(rv=None):
         if not hasattr(nrv,'_parcel_cache'):
             nrv._parcel_cache = {}
         if not hasattr(nrv,'_schema_cache'):
-            nrv._schema_cache = {
-                Kind: nrv.findPath('//Schema/Core/Kind'),
-                Attribute: nrv.findPath('//Schema/Core/Attribute'),
-                Parcel: nrv.findPath('//Schema/Core/Parcel'),
-                Base: nrv.findPath('//Schema/Core/Item'),
-                Item: nrv.findPath('//Schema/Core/Item'),
-                Enumeration: nrv.findPath('//Schema/Core/Enumeration'),
-                Types.Enumeration: nrv.findPath('//Schema/Core/Enumeration'),
-            }
+            item_kind = nrv.findPath('//Schema/Core/Item')
+            nrv._schema_cache = {Base: item_kind, Item: item_kind}
+
+            # Make all core kinds available for subclassing, etc.
+            for core_item in nrv.findPath('//Schema/Core').iterChildren():
+                if isinstance(core_item,Kind):
+                    cls = core_item.classes['python']
+                    if cls is not Base:
+                        assert cls not in nrv._schema_cache, (
+                            "Two kinds w/same non-Item class in core schema",
+                            cls,
+                            core_item.itsPath,
+                            nrv._schema_cache[cls].itsPath
+                        )
+                        nrv._schema_cache[cls] = core_item
+
         anonymous_root = nrv.findPath(ANONYMOUS_ROOT)
         declareTemplate(anonymous_root)
 
