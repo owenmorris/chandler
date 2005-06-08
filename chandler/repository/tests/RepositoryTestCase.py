@@ -20,6 +20,8 @@ gettext.install('chandler', 'locale')
 
 class RepositoryTestCase(TestCase):
 
+    logLevel = logging.WARNING      # a nice quiet default
+
     def _setup(self, ramdb=True):
         schema.reset()
         self.rootdir = os.environ['CHANDLERHOME']
@@ -46,14 +48,13 @@ class RepositoryTestCase(TestCase):
             self.ramdb = False
             self.rep.open(ramdb=False,
                           fromPath=preloadedRepositoryPath,
-                          stderr=True,
                           refcounted=True)
+            self.rep.logger.setLevel(self.logLevel)
             self.rep.logger.info('Using preloaded repository')
         else:
             self.rep.create(ramdb=self.ramdb,
-                            stderr=True,
                             refcounted=True)
-
+            self.rep.logger.setLevel(self.logLevel)
             self.rep.loadPack(self.schemaPack)
             self.rep.loadPack(self.chandlerPack)
             self.rep.commit()
