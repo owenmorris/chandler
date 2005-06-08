@@ -147,7 +147,11 @@ class ContentItem(schema.Item):
     # links exist in the Python schema.
     currentItemOf = schema.One(otherName="item")    # CurrentPointer       
     shares = schema.Sequence(initialValue=(), otherName="contents") # share
+    contentsOwner = schema.Sequence(otherName="contents")           # Block
 
+    viewContainer = schema.Sequence(otherName="views")  # ViewContainer
+    TPBDetailItemOwner = schema.Sequence(otherName="TPBDetailItem") # Block
+    TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
 

@@ -49,18 +49,6 @@
         <examples>a Task -- 'mail 1040 to IRS'</examples>
         <description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</description>
 
-        <Attribute itsName="contentsOwner">
-            <type itemref="blocks:Block"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="blocks:Block/contents"/>
-        </Attribute>
-
-        <attributes itemref="blocks:Block/viewContainer"/>
-
-        <attributes itemref="blocks:Block/TPBDetailItemOwner"/>
-
-        <attributes itemref="blocks:Block/TPBSelectedItemOwner"/>
-
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="displayName">
@@ -194,62 +182,6 @@
     <classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</classes>
     <superKinds itemref="cm:ContentItem"/>
     <superKinds itemref="Query"/>
-
-    <displayName>Item Collection</displayName>
-
-    <Attribute itsName="_rule">
-      <type itemref="String"/>
-      <initialValue type="String"></initialValue>
-    </Attribute>
-
-    <Attribute itsName="kindFilter">
-      <type itemref="String"/>
-      <cardinality>list</cardinality>
-      <initialValue/>
-    </Attribute>
-
-    <Attribute itsName="ruleIsStale">
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean" value="True"/>
-    </Attribute>
-
-    <Attribute itsName="indexName">
-      <type itemref="String"/>
-      <initialValue type="String">__adhoc__</initialValue>
-    </Attribute>
-
-    <Attribute itsName="renameable">
-      <type itemref="Boolean"/>
-    </Attribute>
-
-    <Attribute itsName="source">
-      <type itemref="cm:ItemCollection"/>
-      <inverseAttribute itemref="cm:ItemCollection/destination"/>
-      <cardinality>list</cardinality>
-      <initialValue />
-    </Attribute>
-  
-    <Attribute itsName="destination">
-      <type itemref="cm:ItemCollection"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ItemCollection/source"/>
-      <cardinality>list</cardinality>
-    </Attribute>
-
-
-    <Attribute itsName="invitees">
-        <description value="The people who are being invited to share in this item; filled in when the user types in the DV's 'invite' box, then cleared on send (entries copied to the share object)." />
-        <issues value="Bad that we have just one of these per item collection, though an item collection could have multiple shares post-0.5" />
-        <type itemref="mail:EmailAddress" />
-        <cardinality value="list" />
-        <initialValue />
-        <inverseAttribute itemref="mail:EmailAddress/inviteeOf" />
-    </Attribute>
-
-    <!-- redirections -->
-    <Attribute itsName="about">
-      <redirectTo>displayName</redirectTo>
-    </Attribute>
 
     <!-- Default Cloud -->
     <Cloud itsName="DefaultCloud">
