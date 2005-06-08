@@ -5,15 +5,37 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.contentmodel"
 
 import application
 import repository.item.Item as Item
-import osaf.contentmodel.ContentModel as ContentModel
+from osaf.contentmodel import ContentModel
+from application import schema
 
 class Note(ContentModel.ContentItem):
 
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/Note"
+
+    ##
+    ## Attribute declarations
+    ##
+
+    # ensure that the displayName carries over
+    schema.kindInfo(displayName="Note")
+
+    # temporarily make this a real attribute instead of a redirection,
+    # because we want don't want to redirect this anywhere
+    who = schema.One(
+        schema.String,
+        initialValue = ""
+    )
+
+    # redirections
+    about = schema.One(redirectTo = "displayName")
+
+    date = schema.One(redirectTo = "createdOn")
+
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Note, self).__init__(name, parent, kind, view)
