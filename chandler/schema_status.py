@@ -45,6 +45,7 @@ diff_attrs = []
 diff_path = []
 missing = []
 derived_non_schema = []
+not_imported = []
 all = set()
 bad = set()
 
@@ -84,11 +85,17 @@ for cls, kinds in classKinds.items():
     supers = [sk.itsName for sk in item.superKinds]
 
     for kind in kinds:
+        path = '.'.join(str(kind.itsPath).split('/')[3:-1])
+        module = schema.importString(path)
+        if cls not in module.__dict__.values():
+            not_imported.append(classname)
+
         if kind.itsPath<>item.itsPath:
             diff_path.append(classname)
         if kind.itsName<>item.itsName:
             print
             print classname, "has a different name than", kind.itsPath
+
         if attrs<>set(attr.itsName for attr in getattr(kind,'attributes',())):
             diff_attrs.append(classname)
         if supers<>[sk.itsName for sk in kind.superKinds]:
@@ -111,8 +118,10 @@ for title,items in [
         derived_non_schema),
     ("Classes whose schema couldn't be loaded (e.g. due to name conflicts)",
         unloadable),
-    ("Classes whose path isn't correct (missing __parcel__ or import?)",
+    ("Classes whose path isn't correct (missing __parcel__?)",
         diff_path),
+    ("Classes that aren't in the parcel module (missing import?)",
+        not_imported),
     ("Classes whose superclasses don't match their parcel.xml superKinds",
         diff_supers),
     ("Classes with different or missing attributes (compared to parcel.xml)",
