@@ -236,6 +236,6 @@ _realclean::
 	elif [ "$(SRC)" = "/" ]; then \
 	    echo SRC is set to $(SRC); false; \
 	else \
-	    rm -rf $(SRC)* $(SRC)/../*-expanded; \
-	    rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC); \
+	    rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded; \
+	    rm -rf $(SRC)*;  \
 	fi
