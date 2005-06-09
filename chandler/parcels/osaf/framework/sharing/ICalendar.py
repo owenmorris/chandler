@@ -1,3 +1,5 @@
+__parcel__ = "osaf.framework.sharing"
+
 import Sharing
 import application.Parcel
 import osaf.contentmodel.ItemCollection as ItemCollection

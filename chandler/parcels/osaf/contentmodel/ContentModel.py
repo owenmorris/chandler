@@ -14,11 +14,24 @@ from application import schema
 from repository.util.Path import Path
 from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
+from repository.schema.Kind import Kind
 import repository.item.Item as Item
 import repository.item.Query as Query
 import logging
 
 import application.Globals as Globals
+
+class ContentKind(Kind):
+    """This kind is a metakind for creating other kinds.  Kinds which are
+    an instance of ContentKind will have an attribute 'detailView' of type
+    Block.  We could also make this attribute a bidiref."""
+
+    __metaclass__ = schema.ItemClass
+
+    schema.kindInfo(displayName="Metakind 'Content Kind'")
+
+    detailView = schema.One()   # Block
+
 
 class ContentModel(Parcel):
 

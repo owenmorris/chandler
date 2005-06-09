@@ -23,21 +23,6 @@
     <version>0.5</version>
     <author>Open Source Applications Foundation</author>
 
-    <Kind itsName="ContentKind">
-        <displayName value="Metakind 'Content Kind'"/>
-        <description>
-    This kind is a metakind for creating other kinds.  Kinds which are
-    an instance of ContentKind will have an attribute 'detailView' of type
-    Block.  We could also make this attribute a bidiref.
-        </description>
-        <superKinds itemref="Kind"/>
-        <Attribute itsName="detailView">
-            <type itemref="blocks:Block"/>
-        </Attribute>
-    </Kind>
-
-
-
     <!-- Content Item -->
 
     <Kind itsName="ContentItem">

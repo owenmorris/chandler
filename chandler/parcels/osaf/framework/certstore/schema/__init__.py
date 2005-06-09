@@ -1,0 +1,1 @@
+from osaf.framework.certstore.certificate import Certificate

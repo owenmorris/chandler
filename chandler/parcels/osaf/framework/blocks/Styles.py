@@ -2,17 +2,19 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 from repository.item.Item import Item
 from osaf.contentmodel.ContentModel import ContentItem
 import application.Globals as Globals
+from application import schema
 import wx
 import logging
 
 logger = logging.getLogger('styles')
 logger.setLevel(logging.INFO)
 
-class Style(ContentItem):
+class Style(schema.Item):
 
     def __init__(self, *arguments, **keywords):
         super (Style, self).__init__ ( *arguments, **keywords)

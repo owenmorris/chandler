@@ -1,9 +1,10 @@
-
+__parcel__ = "osaf.framework.webserver"
 import twisted
 from twisted.web import server, resource, static, script
 from twisted.internet import reactor
 import application
 import application.Globals as Globals
+from application import schema
 from repository.item.Item import Item
 from repository.item.Query import KindQuery
 from repository.util.ClassLoader import ClassLoader
@@ -29,7 +30,7 @@ class WebParcel(application.Parcel.Parcel):
             for server in KindQuery().run([serverKind]):
                 server.startup()
 
-class Server(Item):
+class Server(schema.Item):
     def startup(self):
         parcel = application.Parcel.Manager.getParentParcel(self)
         parcelDir = os.path.dirname(parcel.file)
@@ -70,6 +71,6 @@ class Server(Item):
             logger.error("Twisted error: %s" % str(e))
             print e
 
-class Resource(Item):
+class Resource(schema.Item):
     def getResource(self):
         return self.resourceClass()
