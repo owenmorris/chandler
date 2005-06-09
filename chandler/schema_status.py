@@ -45,14 +45,17 @@ diff_attrs = []
 diff_path = []
 missing = []
 derived_non_schema = []
-not_imported = []
 all = set()
 bad = set()
+imports_needed = {}
 
-for cls, kinds in classKinds.items():
-    classname = "%s.%s" % (
+def name_of(cls):
+    return "%s.%s" % (
         getattr(cls,'__module__','*generated*'),cls.__name__
     )
+
+for cls, kinds in classKinds.items():
+    classname = name_of(cls)
     all.add(classname)
 
     if classname.startswith('repository.schema.Kind.class_'):
@@ -69,15 +72,18 @@ for cls, kinds in classKinds.items():
         continue
 
     for kind in kinds:
-        path = '.'.join(str(kind.itsPath).split('/')[3:-1])
-        module = schema.importString(path)
+        modname = '.'.join(str(kind.itsPath).split('/')[3:-1])
+        module = schema.importString(modname)
         if cls not in module.__dict__.values():
-            not_imported.append(classname)
+            imports_needed.setdefault(modname,[]).append(classname)
 
     if not isinstance(cls,schema.ItemClass) and cls not in schema.nrv._schema_cache:
         if schema.Base in cls.__bases__:
             non_schema.append(classname)
         else:
+            for b in cls.__mro__:
+                if schema.Base in b.__bases__:
+                    non_schema.append(name_of(b))
             derived_non_schema.append(classname)
         continue
 
@@ -121,8 +127,6 @@ for title,items in [
         unloadable),
     ("Classes whose path isn't correct (missing/wrong __parcel__?)",
         diff_path),
-    ("Classes that aren't in their parcel's module (missing/wrong import?)",
-        not_imported),
     ("Classes whose superclasses don't match their parcel.xml superKinds",
         diff_supers),
     ("Classes with different or missing attributes (compared to parcel.xml)",
@@ -131,6 +135,11 @@ for title,items in [
     items = set(items)
     bad |= items
     report(title,items)
+
+for modname,classnames in imports_needed.items():
+    report("Classes that should be imported by "+modname+":", classnames)
+    bad |= set(classnames)
+
 
 good = all - bad
 report(
