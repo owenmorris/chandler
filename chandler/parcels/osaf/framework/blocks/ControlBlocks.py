@@ -1434,7 +1434,8 @@ class AEBlock(RectangularChild):
 
         editor = self.lookupEditor()
         widget = editor.CreateControl(forEditing, self.onValueChanged,
-                                      self.parentBlock.widget, -1, self, font)
+                                      self.parentBlock.widget, 
+                                      Block.getWidgetID(self), self, font)
         widget.SetFont(font)
         logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
         
