@@ -68,12 +68,19 @@ for cls, kinds in classKinds.items():
         bad.add(classname)
         continue
 
+    for kind in kinds:
+        path = '.'.join(str(kind.itsPath).split('/')[3:-1])
+        module = schema.importString(path)
+        if cls not in module.__dict__.values():
+            not_imported.append(classname)
+
     if not isinstance(cls,schema.ItemClass) and cls not in schema.nrv._schema_cache:
         if schema.Base in cls.__bases__:
             non_schema.append(classname)
         else:
             derived_non_schema.append(classname)
         continue
+
     try:
         item = schema.itemFor(cls)
     except:
@@ -85,17 +92,11 @@ for cls, kinds in classKinds.items():
     supers = [sk.itsName for sk in item.superKinds]
 
     for kind in kinds:
-        path = '.'.join(str(kind.itsPath).split('/')[3:-1])
-        module = schema.importString(path)
-        if cls not in module.__dict__.values():
-            not_imported.append(classname)
-
         if kind.itsPath<>item.itsPath:
             diff_path.append(classname)
         if kind.itsName<>item.itsName:
             print
             print classname, "has a different name than", kind.itsPath
-
         if attrs<>set(attr.itsName for attr in getattr(kind,'attributes',())):
             diff_attrs.append(classname)
         if supers<>[sk.itsName for sk in kind.superKinds]:
@@ -118,16 +119,17 @@ for title,items in [
         derived_non_schema),
     ("Classes whose schema couldn't be loaded (e.g. due to name conflicts)",
         unloadable),
-    ("Classes whose path isn't correct (missing __parcel__?)",
+    ("Classes whose path isn't correct (missing/wrong __parcel__?)",
         diff_path),
-    ("Classes that aren't in the parcel module (missing import?)",
+    ("Classes that aren't in their parcel's module (missing/wrong import?)",
         not_imported),
     ("Classes whose superclasses don't match their parcel.xml superKinds",
         diff_supers),
     ("Classes with different or missing attributes (compared to parcel.xml)",
         diff_attrs),
 ]:
-    bad |= set(items)
+    items = set(items)
+    bad |= items
     report(title,items)
 
 good = all - bad
