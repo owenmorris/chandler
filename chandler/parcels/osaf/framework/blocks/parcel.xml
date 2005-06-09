@@ -149,7 +149,7 @@
   -->
   <Kind itsName="Style">
     <classes key="python">osaf.framework.blocks.Styles.Style</classes>
-    <superKinds itemref="Item"/>
+    <superKinds itemref="contentModel:ContentItem"/>
   </Kind>
 
   <Kind itsName="CharacterStyle">

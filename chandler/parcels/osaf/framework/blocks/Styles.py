@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger('styles')
 logger.setLevel(logging.INFO)
 
-class Style(schema.Item):
+class Style(ContentItem):
 
     def __init__(self, *arguments, **keywords):
         super (Style, self).__init__ ( *arguments, **keywords)
