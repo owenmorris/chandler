@@ -4,7 +4,7 @@
       xmlns:core="http://osafoundation.org/parcels/core"
       xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
       xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-      xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao/schema"
+      xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
       xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
       xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 

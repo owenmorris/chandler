@@ -2,9 +2,9 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.examples.zaobao.schema"
+__parcel__    = "osaf.examples.zaobao"
 
-import application
+from application import schema
 from osaf.contentmodel.ContentModel import ContentItem
 from osaf.contentmodel.ItemCollection import ItemCollection
 from datetime import datetime
@@ -16,6 +16,7 @@ from repository.item.Query import KindQuery
 
 logger = logging.getLogger('ZaoBao')
 logger.setLevel(logging.INFO)
+
 
 # sets a given attribute overriding the name with newattr
 def SetAttribute(self, data, attr, newattr=None):
@@ -47,7 +48,7 @@ def NewChannelFromURL(view, url, update = True):
         return None
 
     channel = RSSChannel(view=view)
-    channel.url = url
+    channel.url = channel.getAttributeAspect('url', 'type').makeValue(url)
 
     if update:
         try:
@@ -60,7 +61,67 @@ def NewChannelFromURL(view, url, update = True):
 
 class RSSChannel(ItemCollection):
     myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/schema/RSSChannel"
+    myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
+
+    schema.kindInfo(displayName="RSS Channel")
+
+    link = schema.One(
+        schema.URL,
+        displayName="link"
+    )
+
+    category = schema.One(
+        schema.String,
+        displayName="Category"
+    )
+
+    author = schema.One(
+        schema.String,
+        displayName="Author"
+    )
+
+    date = schema.One(
+        schema.DateTime,
+        displayName="Date"
+    )
+
+    url = schema.One(
+        schema.URL,
+        displayName="URL"
+    )
+
+    etag = schema.One(
+        schema.String,
+        displayName="eTag"
+    )
+
+    lastModified = schema.One(
+        schema.DateTime,
+        displayName="Last Modified"
+    )
+
+    copyright = schema.One(
+        schema.String,
+        displayName="Copyright"
+    )
+
+    language = schema.One(
+        schema.String,
+        displayName="Language"
+    )
+
+    isUnread = schema.One(
+        schema.Boolean,
+        displayName="Is Unread"
+    )
+
+    items = schema.One(
+        ItemCollection,
+        displayName="Items"
+    )
+
+    who = schema.Role(redirectTo="author")
+    about = schema.Role(redirectTo="about")
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSChannel, self).__init__(name, parent, kind, view)
@@ -173,7 +234,43 @@ class RSSChannel(ItemCollection):
 ##
 class RSSItem(ContentItem):
     myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/schema/RSSItem"
+    myKindPath = "//parcels/osaf/examples/zaobao/RSSItem"
+
+    schema.kindInfo(displayName="RSS Item")
+
+    link = schema.One(
+        schema.URL,
+        displayName="link"
+    )
+
+    category = schema.One(
+        schema.String,
+        displayName="Category"
+    )
+
+    author = schema.One(
+        schema.String,
+        displayName="Author"
+    )
+
+    date = schema.One(
+        schema.DateTime,
+        displayName="Date"
+    )
+
+    channel = schema.One(
+        RSSChannel,
+        displayName="Channel"
+    )
+
+    content = schema.One(
+        schema.Lob,
+        displayName="Content"
+    )
+
+    about = schema.Role(redirectTo="displayName")
+    who = schema.Role(redirectTo="author")
+    body = schema.Role(redirectTo="content")
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSItem, self).__init__(name, parent, kind, view)
