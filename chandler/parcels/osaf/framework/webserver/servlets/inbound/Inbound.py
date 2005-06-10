@@ -21,8 +21,8 @@ class InboundParcel(application.Parcel.Parcel):
 
         chanKind = RSSChannel.getKind(view)
         for channel in repository.item.Query.KindQuery().run([chanKind]):
-            if channel.url in urls:
-                urls.remove(channel.url)
+            if str(channel.url) in urls:
+                urls.remove(str(channel.url))
         for url in urls:
             try:
                 url = url.strip()
@@ -30,7 +30,8 @@ class InboundParcel(application.Parcel.Parcel):
                     continue
                 logger.info("Adding channel from file: %s" % url)
                 newChannel = RSSChannel(view=view)
-                newChannel.url = url
+                newChannel.url = newChannel.getAttributeAspect('url',
+                                 'type').makeValue(url)
             except Exception, e:
                 logger.exception(e)
 
@@ -110,7 +111,7 @@ class InboundResource(resource.Resource):
 def RenderChannelList(repoView, theItem):
     result = ""
 
-    ChannelKind = repoView.findPath("//parcels/osaf/examples/zaobao/schema/RSSChannel")
+    ChannelKind = repoView.findPath("//parcels/osaf/examples/zaobao/RSSChannel")
 
     data = []
     # data is a list of dictionaries containing info about channels; each
