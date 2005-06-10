@@ -6,15 +6,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-#XXX@BK getext is required for mail code
-#   it must be imported before Sharing
-#   which imports the mail code
-import gettext, os
-# set up the gettext locale, so we have a definition of _()
-os.environ['LANGUAGE'] = 'en'
-gettext.install('chandler', 'locale')
-
-import unittest, sys, logging
+import unittest, sys, logging, os
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
