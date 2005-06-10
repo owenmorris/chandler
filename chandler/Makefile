@@ -21,7 +21,6 @@ endif
 ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-1.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-9.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.28-1.tar.gz \
-         $(CHANDLERARCHIVES)/egenix-mx-base-$(SNAP)-2.1.0-4.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-3.tar.gz \
          $(CHANDLERARCHIVES)/icu-$(SNAP)-3.2-1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-3.tar.gz \
