@@ -11,7 +11,6 @@ SYSTEMS=persistence/db \
         PyICU \
         persistence/libxml2 \
         openssl \
-        egenix-mx \
         jabber-py \
         SOAPpy \
         zope \
