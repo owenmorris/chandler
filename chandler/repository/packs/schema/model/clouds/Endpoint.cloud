@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item>
+    <name>Endpoint</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints">
+      <!-- 
+         - plus local endpoints below:
+         -     cloud
+        -->
+    </ref>
+
+    <ref name="kind" otherAlias="export"
+         type="path">//Schema/Core/Endpoint</ref>
+  </item>
+
+  <item>
+    <name>cloud</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Endpoint</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="cloud" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>cloud</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+  </item>
+
+</items>

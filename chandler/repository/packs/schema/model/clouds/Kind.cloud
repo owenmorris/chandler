@@ -62,4 +62,19 @@
     <attribute name="includePolicy">byCloud</attribute>
   </item>
 
+  <item>
+    <name>clouds</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Kind</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="clouds" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>clouds</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+  </item>
+
 </items>

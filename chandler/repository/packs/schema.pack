@@ -33,6 +33,8 @@
         <item file="Attribute.cloud" />
         <item file="Item.cloud" />
         <item file="Struct.cloud" />
+        <item file="Cloud.cloud" />
+        <item file="Endpoint.cloud" />
       </item>
 
       <item file="Mixins.namespace" />

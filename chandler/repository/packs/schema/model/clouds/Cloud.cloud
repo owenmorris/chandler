@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item>
+    <name>Cloud</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints">
+      <!-- 
+         - plus local endpoints below:
+         -     endpoints, kind, superClouds
+        -->
+    </ref>
+
+    <ref name="kind" otherAlias="export"
+         type="path">//Schema/Core/Cloud</ref>
+  </item>
+
+  <item>
+    <name>endpoints</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Cloud</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="endpoints" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>endpoints</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+  </item>
+
+  <item>
+    <name>kind</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Cloud</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="kind" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>kind</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+  </item>
+
+  <item>
+    <name>superClouds</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Cloud</parent>
+
+    <ref name="clouds">
+      <ref otherAlias="superClouds" type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute">
+      <value>superClouds</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+  </item>
+
+</items>
