@@ -30,6 +30,13 @@ class Lob(object):
     def getOutputStream(self, compression=None, encryption=None, key=None,
                         append=False):
 
+        if compression is None:
+            compression = self._compression
+        if encryption is None:
+            encryption = self._encryption
+        if key is None:
+            key = self._key
+
         outputStream = self._getOutputStream(append)
 
         if encryption:

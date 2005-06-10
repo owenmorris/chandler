@@ -1194,6 +1194,3 @@ class NullViewRefList(TransientRefList):
     def _isTransient(self):
 
         return self._transient
-
-
-nullRepositoryView = NullRepositoryView()

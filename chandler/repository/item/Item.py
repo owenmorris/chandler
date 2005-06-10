@@ -16,8 +16,6 @@ from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, \
      PersistentTuple, PersistentSet
 
-from repository.persistence.RepositoryView import nullRepositoryView
-
 from repository.util.SingleRef import SingleRef
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
@@ -36,10 +34,8 @@ class Item(CItem):
         @type name: a string or C{None} to create an anonymous item.
         @param parent: The parent of this item. All items require a parent
         unless they are a repository root in which case the parent argument
-        is the repository.
-        @type parent: an item or the item's repository view. C{parent} is
-        optional. When ommitted, the item is made a root of either the
-        C{kind}'s view or of the global null view.
+        is a repository view.
+        @type parent: an item or the item's repository view.
         @param kind: The kind for this item. This kind has definitions for
         all the Chandler attributes that are to be used with this item.
         This parameter can be C{None} for Chandler attribute-less operation.
@@ -69,7 +65,7 @@ class Item(CItem):
             if kind is not None:
                 parent = kind.itsView
             else:
-                parent = nullRepositoryView
+                raise ValueError, 'parent cannot be None'
 
         if name is None and not parent._isItem():
             raise AnonymousRootError, self

@@ -1,5 +1,5 @@
 """
-Test importing of items across views and nullRepositoryView
+Test importing of items across views and null repository view
 """
 
 __revision__  = "$Revision$"
@@ -12,7 +12,9 @@ import unittest, os
 from repository.item.Item import Item
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.util.Path import Path
-from repository.persistence.RepositoryView import nullRepositoryView as nv
+from repository.persistence.RepositoryView import NullRepositoryView
+
+nv = NullRepositoryView()
 
 
 class TestImport(RepositoryTestCase):
