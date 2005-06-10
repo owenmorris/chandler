@@ -31,6 +31,42 @@ class WebParcel(application.Parcel.Parcel):
                 server.startup()
 
 class Server(schema.Item):
+    """
+         The web server Kind.  Instances of this Kind are found via KindQuery
+         at startup and activated.  You may define a server item in your own
+         parcel, and it will run as well as the default one defined in the
+         webserver/servers parcel.
+    """
+
+    port = schema.One(
+        schema.Integer,
+        displayName="Port",
+        doc="The port to listen on"
+    )
+
+    path = schema.One(
+        schema.String,
+        displayName="Path",
+        doc="The filesystem path pointing to the server's doc root.  This "
+            "path is relative to the directory of the parcel.xml that "
+            "defines the server item"
+    )
+
+    resources = schema.Sequence(
+        initialValue=(),
+        displayName="Resources",
+        doc = "You may define custom twisted resources and associate them "
+              "with this server"
+    )
+
+    directories = schema.Sequence(
+        initialValue=(),
+        displayName="Directories",
+        doc = "You may specify other file system directories which will be "
+              "used to server specific URL locations.  (See the Directory "
+              "Kind)"
+    )
+
     def startup(self):
         parcel = application.Parcel.Manager.getParentParcel(self)
         parcelDir = os.path.dirname(parcel.file)
@@ -72,5 +108,56 @@ class Server(schema.Item):
             print e
 
 class Resource(schema.Item):
+    """
+         The web resource Kind.  Resources are a twisted.web concept (see
+         "Resource Objects" within this page:
+         http://www.twistedmatrix.com/documents/current/howto/using-twistedweb
+         ).  A resource is a python class which handles HTTP requests and
+         returns an HTML string.  For example, if you want your web server
+         to send all HTTP requests for the location /xyzzy to be handled
+         by a custom resource, define a resource item, set its location
+         attribute to "/xyzzy", its resourceClass to "yourpackage.yourmodule.
+         yourresource", and assign the server attribute to the desired
+         server.
+    """
+
+    location = schema.One(schema.String, displayName="Location")
+
+    server = schema.One(
+        Server,
+        displayName="Server",
+        initialValue=None,
+        inverse=Server.resources
+    )
+
+    resourceClass = schema.One(
+        schema.Class,
+        displayName="Resource Class",
+        initialValue=None)
+
     def getResource(self):
         return self.resourceClass()
+
+
+class Directory(schema.Item):
+    """
+         The web directory Kind.  Defining instances of Directory, and
+         associating them with a server is a way to "graft" a different
+         file system directory into the server's document tree.  For example
+         if you want HTTP requests for the /images/ location to not be
+         served from the server's docroot/images directory, but rather from
+         some other directory, you can define a Directory item with location
+         of "/images" and path of /path/to/your/images/ and set its server
+         attribute to a web server item.
+    """
+
+    location = schema.One(schema.String, displayName="Location")
+
+    path = schema.One(schema.String, displayName="Path")
+
+    server = schema.One(
+        Server,
+        displayName="Server",
+        initialValue=None,
+        inverse=Server.directories
+    )
