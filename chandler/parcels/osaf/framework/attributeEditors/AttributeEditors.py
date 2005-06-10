@@ -281,10 +281,18 @@ class StringAttributeEditor (BaseAttributeEditor):
                            measurements.textCtrlHeight)
         
         if useTextCtrl:
+            style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL | wx.STATIC_BORDER
+            try:
+                lineStyleEnum = parentBlock.presentationStyle.lineStyleEnum
+            except AttributeError:
+                lineStyleEnum = ""
+            if lineStyleEnum == "MultiLine":
+                style |= wx.TE_MULTILINE
+            else:
+                style |= wx.TE_PROCESS_ENTER
+                
             control = AETextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                 size,
-                                 wx.TE_PROCESS_ENTER | wx.TAB_TRAVERSAL | \
-                                 wx.TE_AUTO_SCROLL | wx.STATIC_BORDER)
+                                 size, style)
             control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
             control.Bind(wx.EVT_TEXT, self.onTextChanged)      
             control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -480,6 +488,32 @@ class StringAttributeEditor (BaseAttributeEditor):
     showingSample = property(getShowingSample, setShowingSample,
                     doc="Are we currently displaying the sample text?")
             
+class LobAttributeEditor (StringAttributeEditor):
+    def GetAttributeValue (self, item, attributeName):
+        try:
+            lob = getattr(item, attributeName)
+        except AttributeError:
+            value = ''
+        else:
+            # Read the unicode stream
+            value = lob.getPlainTextReader().read()
+        return value
+
+    def SetAttributeValue(self, item, attributeName, value):
+        try:
+            lob = getattr(item, attributeName)
+        except AttributeError:
+            assert False
+        
+        oldValue = self.GetAttributeValue(item, attributeName)
+        if oldValue != value:
+            logger.debug("LobAE.Set: value changing to: \"%s\"" % value)
+            writer = lob.getWriter()
+            writer.write(value)
+            writer.close()
+            self.AttributeChanged()
+            logger.debug("LobAE.set: after changing, new value is \"%s\"" % self.GetAttributeValue(item, attributeName))
+        
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -619,6 +653,11 @@ class LocationAttributeEditor (StringAttributeEditor):
 
 class TimeDeltaAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is timedelta. """
+
+    hourMinuteFormat = SimpleDateFormat("H:mm")
+    zeroHours = hourMinuteFormat.parse("0:00")
+    dummyDate = datetime(2005,1,1)
+    
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
         try:
@@ -644,15 +683,14 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
         """"
           parse the durationString into a timedelta.
         """
-        df = SimpleDateFormat("H:mm")
-        theDuration = datetime.fromtimestamp(df.parse(inputString))
+        seconds = self.hourMinuteFormat.parse(inputString) - self.zeroHours
+        theDuration = timedelta(seconds=seconds)
         return theDuration
 
     def _format(self, aDuration):
         # if we got a value different from the default
-        df = SimpleDateFormat("H:mm")
-        durationTime = datetime(2005,1,1) + aDuration
-        value = df.format(durationTime).toUnicode()
+        durationTime = self.dummyDate + aDuration
+        value = self.hourMinuteFormat.format(durationTime).toUnicode()
         return value
 
 class ContactNameAttributeEditor (StringAttributeEditor):

@@ -1673,6 +1673,11 @@
       <type itemref="Boolean"/>
     </Attribute>
 
+    <Attribute itsName="lineStyleEnum">
+      <description>SingleLine vs MultiLine for textbox-based editors</description>
+      <type itemref="docSchema:EditText/lineStyleEnumType"/>
+    </Attribute>
+
     <Cloud itsName="DefaultCloud">
       <Endpoint itsName="sampleText">
           <attribute value="sampleText"/>
@@ -1694,6 +1699,11 @@
           <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/useControl"/>
+      <Endpoint itsName="lineStyleEnum">
+          <attribute value="lineStyleEnum"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/lineStyleEnum"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:PresentationStyle/DefaultCloud"/>
 

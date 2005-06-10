@@ -730,18 +730,20 @@
   </StaticText>
 
   <!-- NotesArea -->
-  <EditText itsName="NotesArea"
-                   itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
-    <blockName value="NotesArea"/>
-    <position>0.9</position>
-    <characterStyle itemref="blocks:TextStyle"/>
+
+  <PresentationStyle itsName="NotesPresentation">
+    <useControl>True</useControl>
     <lineStyleEnum>MultiLine</lineStyleEnum>
-    <textStyleEnum>RichText</textStyleEnum>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>3</stretchFactor>
-    <minimumSize>300, 80</minimumSize>
+  </PresentationStyle>
+  
+  <AEBlock itsName="NotesArea"
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+    <blockName value="NotesArea"/>
+    <characterStyle itemref="blocks:TextStyle"/>
+    <presentationStyle itemref="doc:NotesPresentation"/>
+    <viewAttribute value="body"/>
     <border>2, 2, 2, 2</border>
-  </EditText>
+  </AEBlock>
 
   <!-- An empty panel, used when there's no item selected in the detail view -->
   <ContentItemDetail itsName="EmptyPanel"

@@ -1513,6 +1513,11 @@ class AEBlock(RectangularChild):
             self.forEditing = forEditing
             #logger.debug("Must change control!")
             wx.CallAfter(rerender)
+        else:
+            # Just write back the value
+            #logger.debug("Not changing control!")
+            editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
+                                  existingWidget)
 
     def lookupEditor(self):
         """
@@ -1614,7 +1619,7 @@ class AEBlock(RectangularChild):
         """
           The widget lost focus - we're finishing editing.
         """
-        logger.debug("AEBlock: widget losing focus")
+        logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
         if event is not None:
             event.Skip()
         
@@ -1630,9 +1635,13 @@ class AEBlock(RectangularChild):
         if event.m_keyCode == wx.WXK_RETURN:
             self.ChangeWidgetIfNecessary(False, True)
             
-            # Do the tab thing
-            # @@@ Should we?
-            self.widget.Navigate()
+            # Do the tab thing if we're not a multiline thing
+            try:
+                isMultiLine = self.presentationStyle.lineStyleEnum == "MultiLine"
+            except AttributeError:
+                isMultiLine = False
+            if not isMultiLine:
+                self.widget.Navigate()
         else:
             event.Skip()
 
