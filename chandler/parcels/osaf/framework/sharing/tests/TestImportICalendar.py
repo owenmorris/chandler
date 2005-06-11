@@ -15,13 +15,15 @@ import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.query.Query as Query
-
+import datetime
 
 class ICalendarTestCase(unittest.TestCase):
 
     def runTest(self):
         self._setup()
-        self.Import(self.repo.view)
+        self.SummaryAndDateTimeImported()
+        self.DateImportAsAllDay()
+        self.ItemsToVobject()
         self._teardown()
 
     def _setup(self):
@@ -64,29 +66,75 @@ class ICalendarTestCase(unittest.TestCase):
         repo.commit()
         return repo
 
-    def Import(self, view):
+    def Import(self, view, filename):
 
         path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                             'parcels', 'osaf', 'framework', 'sharing', 'tests')
 
         sandbox = self.repo.findPath("//sandbox")
 
-        conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
-         sharePath=path, shareName="Chandler.ics", view=view)
-        format = ICalendar.ICalendarFormat(name="format", parent=sandbox)
-        self.share = Sharing.Share(name="share", parent=sandbox,
-         conduit=conduit, format=format)
+        conduit = Sharing.FileSystemConduit(parent=sandbox, sharePath=path,
+                                            shareName=filename, view=view)
+        format = ICalendar.ICalendarFormat(parent=sandbox)
+        self.share = Sharing.Share(parent=sandbox, conduit=conduit,
+                                   format=format)
         self.share.get()
+        return format
 
-        # @@@ Put some checking of the imported items here
-        
-        event=format.findUID('BED962E5-6042-11D9-BE74-000A95BB2738')
+    def SummaryAndDateTimeImported(self):
+        format = self.Import(self.repo.view, 'Chandler.ics')
+        event = format.findUID('BED962E5-6042-11D9-BE74-000A95BB2738')
         self.assert_(event.displayName == u'3 hour event',
          "SUMMARY of first VEVENT not imported correctly, displayName is %s"
          % event.displayName)
-        
-        # Also, put in a test of updating from a modified ics file.
+        evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ICalendar.utc)
+        evtime = evtime.astimezone(ICalendar.localtime).replace(tzinfo=None)
+        self.assert_(event.startTime == evtime,
+         "startTime not set properly, startTime is %s"
+         % event.startTime)
 
+    def DateImportAsAllDay(self):
+        format = self.Import(self.repo.view, 'AllDay.ics')
+        event = format.findUID('testAllDay')
+        self.assert_(event.startTime == datetime.datetime(2005,1,1),
+         "startTime not set properly for all day event, startTime is %s"
+         % event.startTime)
+        self.assert_(event.allDay == True,
+         "allDay not set properly for all day event, allDay is %s"
+         % event.allDay)
+         
+    def ItemsToVobject(self):
+        """Tests itemsToVObject, which converts Chandler items to vobject."""
+        event = Calendar.CalendarEvent(view = self.repo.view)
+        event.displayName = "test"
+        event.startTime = datetime.datetime(2010, 1, 1, 10)
+        event.endTime = datetime.datetime(2010, 1, 1, 11)        
+
+        cal = ICalendar.itemsToVObject(self.repo.view, [event])
+
+        self.assert_(cal.vevent[0].summary[0].value == "test",
+         "summary not set properly, summary is %s"
+         % cal.vevent[0].summary[0].value)
+
+        start = event.startTime.replace(tzinfo=ICalendar.localtime)
+
+        self.assert_(cal.vevent[0].dtstart[0].value == start,
+         "dtstart not set properly, dtstart is %s"
+         % cal.vevent[0].summary[0].value)
+
+        event = Calendar.CalendarEvent(view = self.repo.view)
+        event.displayName = "test2"
+        event.startTime = datetime.datetime(2010, 1, 1)
+        event.allDay = True        
+
+        cal = ICalendar.itemsToVObject(self.repo.view, [event])
+
+        self.assert_(cal.vevent[0].dtstart[0].value == datetime.date(2010,1,1),
+         "dtstart for allDay event not set properly, dtstart is %s"
+         % cal.vevent[0].summary[0].value)
+
+         
+# test import/export unicode
 
 if __name__ == "__main__":
     unittest.main()
