@@ -693,6 +693,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                 if firstSelectedRow is None:
                     firstSelectedRow = range[0]
                 self.SelectBlock (range[0], 0, range[1], newColumns, True)
+        else:
+            self.blockItem.selection = []
         self.EndBatch() 
 
         #Update all displayed values
