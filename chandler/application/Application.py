@@ -8,7 +8,6 @@ import gettext, os, sys, threading, time
 from new import classobj
 import wx
 import Globals
-import application.Parcel
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, PermissionsError
@@ -199,7 +198,7 @@ class wxApplication (wx.App):
         splash screen.
         """
         splash = None
-        if not (__debug__ and application.Globals.options.nocatch):
+        if not (__debug__ and Globals.options.nocatch):
             splashBitmap = self.GetImage ("splash.png")
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
@@ -294,6 +293,7 @@ class wxApplication (wx.App):
                 logger.info("Schema version of repository doesn't match app")
                 raise SchemaMismatchError, path
 
+        import application.Parcel
         application.Parcel.Manager.get(self.UIRepositoryView,
                                        path=parcelPath).loadParcels()
 
@@ -723,7 +723,7 @@ class wxApplication (wx.App):
     def ShowDebuggerWindow(self):
         import wx.py
         rootObjects = {
-         "globals" : application.Globals,
+         "globals" : Globals,
          "parcelsRoot" : self.UIRepositoryView.findPath("//parcels"),
          "repository" : self.UIRepositoryView.repository,
          "wxApplication" : self,
