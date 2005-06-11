@@ -359,13 +359,14 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _mapItemToCacheKeyItem(self, item):
         key = item
         rerender = False
+        sidebar = Block.Block.findBlockByName ("Sidebar")
+        """
+          collectionList should be in the order that the source items are overlayed in the Calendar view
+        """
+        collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
         if isinstance (item, ItemCollection.ItemCollection):
-            sidebar = Block.Block.findBlockByName ("Sidebar")
-            """
-              collectionList should be in the order that the source items are overlayed in the Calendar view
-            """
-            collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
             collectionList.insert (0, item)
+        if len (collectionList) > 0:
             """
               tupleList is sorted so we always end up with on collection for any order of collections
             in the source
