@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item withSchema="True">
+<item>
   <name>annotations</name>
   <kind type="path">//Schema/Core/Attribute</kind>
   <class module="repository.schema.Attribute">Attribute</class>
 
-  <ref name="type" otherName="typeFor" 
-       type="path" otherCard="list">/Core/String</ref>
+  <ref name="type" type="path">/Core/String</ref>
 
   <attribute name="cardinality">list</attribute>
 </item>

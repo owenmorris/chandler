@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.schema.TypeHandler import TypeHandler
+from repository.schema.Kind import Kind
 from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, PersistentSet
 from repository.item.Values import Values, References, ItemValue
@@ -587,7 +588,9 @@ class ItemHandler(ValueHandler):
 
     def setupClass(self, view):
 
-        if self.kind is not None:
+        if self.update and isinstance(self.item, Kind):
+            self.item.flushCaches('attributes', True)
+        elif self.kind is not None:
             self.kind._setupClass(type(self.item))
 
     def kindEnd(self, itemHandler, attrs):

@@ -22,9 +22,11 @@ class Attribute(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Attribute, self)._fillItem(name, parent, kind, **kwds)
-        
-        refList = self._refList('inheritingKinds', 'inheritedAttributes', False)
-        self._references['inheritingKinds'] = refList
+
+        if not kwds.get('update'):
+            refList = self._refList('inheritingKinds', 'inheritedAttributes',
+                                    False)
+            self._references['inheritingKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
 

@@ -608,7 +608,7 @@ class Kind(Item):
                     item.setDirty(Item.RDIRTY, name,
                                   attrDict=references, noMonitors=True)
 
-    def flushCaches(self, reason):
+    def flushCaches(self, reason, silent=False):
         """
         Flush the caches setup on this Kind and its subKinds.
 
@@ -624,7 +624,7 @@ class Kind(Item):
 
         The caches of the subKinds of this kind are flushed recursively.
         """
-
+        
         self.inheritedAttributes.clear()
         del self.notFoundAttributes[:]
         self._initialValues = None
@@ -637,12 +637,13 @@ class Kind(Item):
 
         for subKind in self.getAttributeValue('subKinds', self._references,
                                               None, []):
-            subKind.flushCaches(reason)
+            subKind.flushCaches(reason, silent)
 
         if reason is not None:
             logger = self.itsView.logger
             for cls in Kind._kinds.get(self._uuid, []):
-                logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', reason, cls.__module__, cls.__name__, self.itsPath)
+                if not silent:
+                    logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', reason, cls.__module__, cls.__name__, self.itsPath)
                 self._setupDescriptors(cls, reason)
 
         if 'schemaHash' in self._values:
