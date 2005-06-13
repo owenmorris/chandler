@@ -10,6 +10,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
+import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import osaf.framework.blocks.Styles as Styles
 import logging
@@ -162,7 +163,24 @@ class BaseAttributeEditor (object):
             value. """
         pass # for now.
 
-class AETextCtrl(wx.TextCtrl):
+class AETextCtrl(DragAndDrop.DraggableWidget,
+                 DragAndDrop.DropReceiveWidget,
+                 DragAndDrop.TextClipboardHandler,
+                 wx.TextCtrl):
+    def __init__(self, *arguments, **keywords):
+        super (AETextCtrl, self).__init__ (*arguments, **keywords)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+
+    def OnMouseEvents(self, event):
+        # trigger a Drag and Drop if we're a single line and all selected
+        if self.IsSingleLine() and event.LeftDown():
+            selStart, selEnd = self.GetSelection()
+            if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
+                if event.LeftIsDown(): # still down?
+                    self.DoDragAndDrop()
+                    return # don't skip, eat the click.
+        event.Skip()
+
     def Destroy(self):
         # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
         # (in which case we're a PyDeadObject)
@@ -314,10 +332,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         # set up the value (which may be the sample!) and select all the text
         value = self.GetAttributeValue(item, attributeName)
         if self.sampleText is not None and len(value) == 0:
-            self.__setSampleText(control, self.sampleText)
+            self.__changeTextQuietly(control, self.sampleText, True, False)
         else:
-            self.showingSample = False
-            self.__changeTextQuietly(control, value)
+            self.__changeTextQuietly(control, value, False, False)
             if isinstance(control, AETextCtrl):
                 # @@@BJS I don't think either of these are needed.
                 #control.SetSelection (-1,-1)
@@ -344,10 +361,9 @@ class StringAttributeEditor (BaseAttributeEditor):
     
     def SetControlValue(self, control, value):
         if len(value) != 0 or self.sampleText is None:
-            self.showingSample = False
-            self.__changeTextQuietly(control, value)
+            self.__changeTextQuietly(control, value, False, False)
         else:
-            self.__setSampleText(control, self.sampleText)
+            self.__changeTextQuietly(control, self.sampleText, True, False)
 
     def onTextChanged(self, event):
         if not getattr(self, "ignoreTextChanged", False):
@@ -358,50 +374,55 @@ class StringAttributeEditor (BaseAttributeEditor):
                 if self.showingSample:
                     logger.debug("onTextChanged: removing sample")
                     if currentText != self.sampleText:
-                        self.showingSample = False
+                        self.__changeTextQuietly(control, currentText, False, True)
                 elif len(currentText) == 0:
-                    self.__setSampleText(control, self.sampleText)
+                    self.__changeTextQuietly(control, self.sampleText, True, False)
             else:
                 logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
             logger.debug("StringAE.onTextChanged: ignoring (self-changed)")
-
-    def __changeTextQuietly(self, control, text):
+        
+    def __changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
-        logger.debug("__changeTextQuietly: to '%s'", text)
-        # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
-        control.SetValue(text)
+        try:
+            logger.debug("__changeTextQuietly: to '%s', sample=%s", text, isSample)
+            # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
+            normalTextColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+            if isSample:
+                self.showingSample = True
+    
+                # Calculate a gray level to use: Mimi wants 50% of the brightness
+                # of the text color, but 50% of black is still black.
+                backColor = control.GetBackgroundColour()
                 
-        del self.ignoreTextChanged
-        
-    def __setSampleText(self, control, sampleText):
-        logger.debug("__setSampleText: installing sampletext")
-        self.showingSample = True
-        self.__changeTextQuietly(control, sampleText)
-        
-        # Calculate a gray level to use: Mimi wants 50% of the brightness
-        # of the text color, but 50% of black is still black.
-        textColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
-        backColor = control.GetBackgroundColour()
-        
-        def __shadeBetween(shade, color1, color2):
-            shade1 = shade(color1)
-            shade2 = shade(color2)
-            smaller = min(shade1, shade2)
-            delta = abs(shade1 - shade2)
-            return smaller + (delta / 2)
-        grayColor = wx.Colour(__shadeBetween(wx.Colour.Red, textColor, backColor),
-                              __shadeBetween(wx.Colour.Green, textColor, backColor),
-                              __shadeBetween(wx.Colour.Blue, textColor, backColor))
-                
-        if isinstance(control, AETextCtrl):
-            control.SetSelection (-1,-1)
-            # @@@ Trying to make the text in the editbox gray doesn't seem to work on Win.
-            # (I'm doing it anyway, because it seems to work on Mac.)
-            control.SetStyle(0, len(sampleText), wx.TextAttr(grayColor))
-        else:
-            control.SetForegroundColour(grayColor)
+                def __shadeBetween(shade, color1, color2):
+                    shade1 = shade(color1)
+                    shade2 = shade(color2)
+                    smaller = min(shade1, shade2)
+                    delta = abs(shade1 - shade2)
+                    return smaller + (delta / 2)
+                textColor = wx.Colour(__shadeBetween(wx.Colour.Red, normalTextColor, backColor),
+                                      __shadeBetween(wx.Colour.Green, normalTextColor, backColor),
+                                      __shadeBetween(wx.Colour.Blue, normalTextColor, backColor))
+            else:
+                self.showingSample = False
+                textColor = normalTextColor
+            
+            if not alreadyChanged:
+                control.SetValue(text)
+    
+            if isinstance(control, AETextCtrl):
+                if isSample: 
+                    control.SetSelection (-1,-1)
 
+                # @@@ Trying to make the text in the editbox gray doesn't seem to work on Win.
+                # (I'm doing it anyway, because it seems to work on Mac.)
+                control.SetStyle(0, len(text), wx.TextAttr(textColor))
+            else:
+                control.SetForegroundColour(textColor)
+        finally:
+            del self.ignoreTextChanged
+ 
     def onKeyDown(self, event):
         """ Note whether the sample's been replaced. """
         # If we're showing sample text and this key would only change the 
@@ -592,18 +613,20 @@ class LocationAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is a Location. """
     def SetAttributeValue (self, item, attributeName, valueString):
         if not valueString:
-            if not hasattr(item, attributeName):
-                return # no change
             try:
                 delattr(item, attributeName)
             except AttributeError:
-                pass
+                return # no change
         else:
             # lookup an existing item by name, if we can find it, 
-            value = Calendar.Location.getLocation (item.itsView, valueString)
-            if getattr(item, attributeName, None) is value:
+            newValue = Calendar.Location.getLocation (item.itsView, valueString)
+            try:
+                oldValue = getattr(item, attributeName)
+            except AttributeError:
+                oldValue = None
+            if oldValue is newValue:
                 return # no change
-            setattr (item, attributeName, value)
+            setattr (item, attributeName, newValue)
         
         self.AttributeChanged()
 
@@ -767,8 +790,9 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
             size = wx.Size(parentWidth,
                            measurements.checkboxCtrlHeight)
 
+        style = wx.TAB_TRAVERSAL
         control = wx.CheckBox(parentWidget, id, u"", 
-                              wx.DefaultPosition, size)
+                              wx.DefaultPosition, size, style)
         control.Bind(wx.EVT_CHECKBOX, self.onChecked)
         return control
         
@@ -817,7 +841,8 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
             size = wx.Size(parentWidth,
                            measurements.choiceCtrlHeight)
 
-        control = wx.Choice(parentWidget, id, wx.DefaultPosition, size)
+        style = wx.TAB_TRAVERSAL
+        control = wx.Choice(parentWidget, id, wx.DefaultPosition, size, [], style)
         control.Bind(wx.EVT_CHOICE, self.onChoice)
         return control
         

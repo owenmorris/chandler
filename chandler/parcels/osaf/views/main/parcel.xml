@@ -1186,6 +1186,7 @@
   -->
   <Timer itsName="ReminderTimer"
          itemClass="osaf.views.main.Main.ReminderTimer">
+    <blockName>ReminderTimer</blockName>
     <event itemref="doc:ReminderTime"/>
     <contents itemref="doc:ReminderItems"/>
   </Timer> 
