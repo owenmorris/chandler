@@ -138,7 +138,7 @@ class Role(ActiveDescriptor,CDescriptor):
         return object.__repr__(self)
 
     def __getDoc(self):
-        return self.__dict__.get('doc')
+        return self.__dict__.get('doc','')
 
     def __setDoc(self,val):
         self.__dict__['doc'] = val

@@ -136,6 +136,11 @@ All role objects have at least the following attributes and methods:
         >>> Kind.name.doc is Kind.name.description
         True
 
+    The ``doc`` and ``description`` are always strings, even if empty::
+
+        >>> schema.Role().description
+        ''
+
 ``inverse``
     The role object that represents the "other side" of the relationship, or
     ``None`` if not yet set.  Setting a role's inverse automatically attempts
