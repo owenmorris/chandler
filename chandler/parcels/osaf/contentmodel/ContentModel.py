@@ -75,7 +75,6 @@ class ImportanceEnum(schema.Enumeration):
 
 
 class ContentItem(schema.Item):
-
     """ Subclasses of ContentItem get the following behavior for free:
         1. parent will automatically be set to //userdata
         2. kind will be determined from the particular subclass's myKindPath
@@ -83,6 +82,20 @@ class ContentItem(schema.Item):
         All subclasses should have myKindID initialized to None, and set
         myKindPath to a string describing their kind's repository path.
     """
+
+    schema.kindInfo(
+        displayName = "Content Item",
+        examples = [
+            "an Calendar Event -- 'Lunch with Tug'",
+            "a Contact -- 'Terry Smith'",
+            "a Task -- 'mail 1040 to IRS'",
+        ],
+        description =
+            "Content Item is the abstract super-kind for things like "
+            "Contacts, Calendar Events, Tasks, Mail Messages, and Notes. "
+            "Content Items are user-level items, which a user might file, "
+            "categorize, share, and delete.",
+    )
 
     myKindPath = "//parcels/osaf/contentmodel/ContentItem"
     myKindID = None
@@ -166,6 +179,10 @@ class ContentItem(schema.Item):
     TPBDetailItemOwner = schema.Sequence(otherName="TPBDetailItem") # Block
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
+    schema.addClouds(
+        sharing = schema.Cloud("displayName", body, "issues", createdOn)
+    )
+
     def __init__(self, name=None, parent=None, kind=None, view=None):
 
         if view is None and parent is None and kind is None:
@@ -180,7 +197,6 @@ class ContentItem(schema.Item):
             if view is None:
                 view = parent.itsView
             kind = self.getKind(view)
-
 
         super (ContentItem, self).__init__(name, parent, kind)
 

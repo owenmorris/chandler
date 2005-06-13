@@ -3,6 +3,8 @@ from repository.item.Item import Item as Base
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from repository.schema import Types
+from repository.schema.Cloud import Cloud as _Cloud
+from repository.schema.Cloud import Endpoint as _Endpoint
 from application.Parcel import Manager, Parcel
 import __main__, repository, threading, os, sys
 
@@ -11,7 +13,8 @@ ANONYMOUS_ROOT = "//userdata"
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
-    'importString', 'parcel_for_module', 'TypeReference', 'Enumeration'
+    'importString', 'parcel_for_module', 'TypeReference', 'Enumeration',
+    'Cloud', 'Endpoint', 'addClouds',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -221,7 +224,122 @@ class Mapping(Role):
     cardinality = 'dict'
 
 
+class Endpoint(object):
+    """Represent an endpoint"""
+
+    def __init__(self, name, attribute, includePolicy="byValue",
+        cloudAlias=None, method = None
+    ):
+        values = nrv.findPath('//Schema/Core/IncludePolicy').values
+        if includePolicy not in values:
+            raise ValueError(
+                "Unrecognized includePolicy: %r" % (includePolicy,)
+            )
+        if isinstance(attribute,str):
+            attribute = attribute,  # make it a tuple
+        elif not isinstance(attribute,(list,tuple)):
+            raise TypeError(
+                "Attribute must be a string, or a list/tuple of strings",
+                attribute
+            )
+        self.name = name
+        self.attribute = attribute
+        self.includePolicy = includePolicy
+        self.cloudAlias = cloudAlias
+        self.method = method
+        
+    def make_endpoint(self, cloud, alias):
+        ep = _Endpoint(
+            self.name, cloud, itemFor(_Endpoint),
+            attribute=list(self.attribute), includePolicy=self.includePolicy,
+        )
+        if self.cloudAlias is not None:
+            ep.cloudAlias = self.cloudAlias
+        if self.method is not None:
+            ep.method = self.method
+        declareTemplate(ep)
+        return ep
+
+
+class AttributeAsEndpoint(Endpoint):
+    """Adapt a Role or attribute name to use as an Endpoint factory"""
+    
+    def __new__(cls, attr, policy):
+        if isinstance(attr, Endpoint):
+            if attr.includePolicy != policy:
+                raise ValueError("Endpoint policy doesn't match group")
+            return attr
+        return super(AttributeAsEndpoint,cls).__new__(cls,None,(),policy)          
+        
+    def __init__(self, attr, policy):
+        if isinstance(attr,str):
+            super(AttributeAsEndpoint,self).__init__(attr,(attr,), policy)
+        elif isinstance(attr,Role):
+            self.attr = attr
+            super(AttributeAsEndpoint,self).__init__(None,(),policy)
+        else:
+            raise TypeError("Not an endpoint: %r" % (attr,))
+
+    def make_endpoint(self, cloud, alias):
+        if self.name is None:
+            name = self.attr.name
+            if name is None:
+                raise TypeError(
+                    "role object used outside of schema.Item subclass",
+                    self.attr
+                )
+            else:
+                self.name = name
+                self.attribute = name,
+        return super(AttributeAsEndpoint,self).make_endpoint(cloud, alias)
+
+
+class Cloud:
+    """Represent a cloud as a set of endpoints grouped by policy
+
+    The constructor takes zero or more "by value" endpoints, attributes, or
+    attribute names, and keyword arguments to create policy groups.  For
+    example::
+
+        class anItem(OtherItem):
+            foo = schema.One(schema.String)
+            bar = schema.Sequence(Something)
+
+            schema.addClouds(
+                sharing = schema.Cloud(
+                    foo, "displayName",
+                    byCloud = [bar, OtherItem.someAttr],
+                )
+            )
+
+    This creates a 'sharing' cloud that includes the ``foo`` and ``displayName``
+    attributes by value, and the ``bar`` and ``someAttr`` attributes by cloud.
+    Each keyword argument name must be a valid ``//Schema/Core/IncludePolicy``
+    value, and the keyword argument value must be a list or tuple of Endpoint
+    objects, attribute objects, or attribute names.
+    """
+
+    def __init__(self,*byValue,**groups):
+        self.endpoints = [AttributeAsEndpoint(ep,'byValue') for ep in byValue]        
+        for policy,group in groups.items():
+            if not isinstance(v, (list,tuple)):
+                raise TypeError("Endpoint groups must be lists or tuples")
+            self.endpoints.extend(
+                [AttributeAsEndpoint(ep,policy) for ep in group]
+            )
+
+    def make_cloud(self,kind,alias):
+        cloud = _Cloud(alias.title()+"Cloud", kind, itemFor(_Cloud))
+        declareTemplate(cloud)
+        cloud.endpoints = []
+        for ep in self.endpoints:
+            ep = ep.make_endpoint(cloud, alias)
+            cloud.endpoints.append(ep, ep.itsName)
+        return cloud
+
+        
 class ItemClass(Activator):
+    """Metaclass for schema.Item"""
 
     _kind_class = Kind
 
@@ -235,9 +353,13 @@ class ItemClass(Activator):
             itemFor(b) for b in cls.__bases__
                 if isinstance(b,ItemClass) or b in nrv._schema_cache
         ]
-        kind.attributes = []
-        kind.classes = {'python': cls }
 
+        kind.clouds = []
+        for alias, cloud_def in cls.__dict__.get('__kind_clouds__',{}).items():
+            kind.clouds.append(cloud_def.make_cloud(kind,alias), alias)
+
+        kind.classes = {'python': cls }
+        kind.attributes = []
         for attr in cls.__dict__.values():
             if isinstance(attr,Role):
                 itemFor(attr)
@@ -303,6 +425,26 @@ class Enumeration(object):
     __metaclass__ = EnumerationClass
 
 
+def _update_info(name,attr,data):
+    from zope.interface.advice import getFrameInfo, addClassAdvisor
+    kind, module, _locals, _globals = getFrameInfo(sys._getframe(2))
+
+    if kind=='exec':
+        # Fix for class-in-doctest-exec
+        if '__module__' in _locals and _locals is not _globals:
+            kind="class"
+
+    if kind != "class":
+        raise SyntaxError(
+            name+"() must be called in the body of a class statement"
+        )
+
+    info = _locals.setdefault(attr,{})
+    for k,v in data.items():
+        if k in info:
+            raise ValueError("%r defined multiple times for this class" % (k,))
+        info[k] = v
+    
 def kindInfo(**attrs):
     """Declare metadata for a class' schema item
 
@@ -325,25 +467,7 @@ def kindInfo(**attrs):
     (Note: if your class includes a ``__metaclass__`` definition, any calls to
     ``kindInfo`` must come *after* the ``__metaclass__`` assignment.)
     """
-
-    from zope.interface.advice import getFrameInfo, addClassAdvisor
-    kind, module, _locals, _globals = getFrameInfo(sys._getframe(1))
-
-    if kind=='exec':
-        # Fix for class-in-doctest-exec
-        if '__module__' in _locals and _locals is not _globals:
-            kind="class"
-
-    if kind != "class":
-        raise SyntaxError(
-            "kindInfo() must be called in the body of a class statement"
-        )
-
-    info = _locals.setdefault('__kind_info__',{})
-    for k,v in attrs.items():
-        if k in info:
-            raise ValueError("%r defined multiple times for this class" % (k,))
-        info[k] = v
+    _update_info('kindInfo','__kind_info__',attrs)
 
     def callback(cls):
         for k,v in attrs.items():
@@ -353,7 +477,31 @@ def kindInfo(**attrs):
                     (k, cls._kind_class.__name__)
                 )
         return cls
+
+    from zope.interface.advice import addClassAdvisor
     addClassAdvisor(callback)
+
+
+def addClouds(**clouds):
+    """Declare clouds for a class' Kind
+
+    Takes keyword arguments whose names define the clouds' aliases, and
+    whose values are the ``schema.Cloud`` instances.  For example::
+        
+        class anItem(OtherItem):
+            foo = schema.One(schema.String)
+            bar = schema.Sequence(Something)
+
+            schema.addClouds(
+                sharing = schema.Cloud(foo, "displayName"),
+                default = schema.Cloud(byCloud = [bar]),
+            )    
+    """
+    for cloud in clouds.values():
+        if not isinstance(cloud,Cloud):
+            raise TypeError("Not a schema.Cloud", cloud)
+    _update_info('addClouds','__kind_clouds__',clouds)
+
 
 
 def importString(name, globalDict=__main__.__dict__):
@@ -465,7 +613,7 @@ def synchronize(repoView,moduleName):
     module = importString(moduleName)
     for item in module.__dict__.values():
         if hasattr(item,'_create_schema_item'):
-            # Import each kind
+            # Import each kind            
             repoView.importItem(itemFor(item))
 
     # Import the parcel, too, in case there were no kinds
