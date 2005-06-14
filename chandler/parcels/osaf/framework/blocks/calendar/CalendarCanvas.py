@@ -1494,7 +1494,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # Draw the lines separating hours
         halfHourHeight = self.hourHeight/2
         for hour in range(24):
-            
+
             # Draw the hour legend
             if (hour > 0):
                 if (hour == 1):
@@ -1509,7 +1509,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                 dc.DrawText(hourString,
                             self.xOffset - wText - 5,
                              hour * self.hourHeight - (hText/2))
-            
+
             # Draw the line between hours
             dc.SetPen(styles.majorLinePen)
             dc.DrawLine(self.xOffset,
@@ -1525,9 +1525,9 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
                          hour * self.hourHeight + halfHourHeight)
 
         # Draw lines between days
-        
+        # @@@ the "legendBorderX" assignment could be simplified to "self.xOffset" !!!
         legendBorderWidth = 3
-        legendBorderX = self.xOffset - legendBorderWidth + 1
+        legendBorderX = self.xOffset + 3 - legendBorderWidth
 
         dc.SetPen(wx.Pen(styles.majorLineColor, legendBorderWidth))
         dc.DrawLine(legendBorderX, 0,
@@ -1543,8 +1543,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         
         dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
                     legendBorderX, workdayHourEnd * self.hourHeight)
-                 
-        
+
         dc.SetPen(styles.minorLinePen)
         for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
