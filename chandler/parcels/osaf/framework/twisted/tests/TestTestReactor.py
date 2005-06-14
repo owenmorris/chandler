@@ -103,7 +103,7 @@ class TestTestReactor(testreactor.ReactorTestCase):
     def isSimulated(self):
         """Reactor time is simulated if the clock doesn't go forward"""
         now = reactor.getTime()
-        time.sleep(0.001)               # Ensure "real time" advances
+        time.sleep(0.1)                 # Ensure "real time" advances
         return reactor.getTime()==now   # If reactor doesn't, it's simulated
 
     def testRealTimeIsReal(self):
