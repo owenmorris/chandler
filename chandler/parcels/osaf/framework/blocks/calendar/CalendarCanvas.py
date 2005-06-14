@@ -1150,12 +1150,12 @@ class wxWeekHeaderWidgets(wx.Panel):
         lastDate = startDate + timedelta(days=6)
         months = dateFormatSymbols.getMonths()
         if (startDate.month == lastDate.month):
-            monthText = "%s %d" %(months[selectedDate.month - 1].toUnicode(),
-                                  selectedDate.year)
+            monthText = u"%s %d" %(months[selectedDate.month - 1],
+                                   selectedDate.year)
         else:
-            monthText = "%s - %s %d" %(months[startDate.month - 1].toUnicode(),
-                                       months[lastDate.month - 1].toUnicode(),
-                                       lastDate.year)
+            monthText = u"%s - %s %d" %(months[startDate.month - 1],
+                                        months[lastDate.month - 1],
+                                        lastDate.year)
      
         self.monthText.SetLabel(monthText)
 
@@ -1173,8 +1173,8 @@ class wxWeekHeaderWidgets(wx.Panel):
             if currentDate == today:
                 dayName = "Today"
             else:
-                dayName = "%s %02d" %(shortWeekdays[actualDay + 1].toUnicode(),
-                                      currentDate.day)
+                dayName = u"%s %02d" %(shortWeekdays[actualDay + 1],
+                                       currentDate.day)
             self.weekHeader.SetLabelText(day+1, dayName)
             
         self.currentSelectedDate = selectedDate

@@ -713,7 +713,7 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
     def _format(self, aDuration):
         # if we got a value different from the default
         durationTime = self.dummyDate + aDuration
-        value = self.hourMinuteFormat.format(durationTime).toUnicode()
+        value = unicode(self.hourMinuteFormat.format(durationTime))
         return value
 
 class ContactNameAttributeEditor (StringAttributeEditor):

@@ -1074,7 +1074,7 @@ class EditTimeAttribute (EditRedirectAttribute):
     def __formatDateValue(self, dateValue, dateOnly):
         format = dateOnly and self.dateFormat or self.dateTimeFormat
         df = SimpleDateFormat(format)
-        value = df.format(dateValue).toUnicode()
+        value = unicode(df.format(dateValue))
         return value
         
     def saveAttributeFromWidget(self, item, widget, validate):
