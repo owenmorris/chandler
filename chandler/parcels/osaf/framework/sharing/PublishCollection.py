@@ -84,16 +84,6 @@ class PublishCollectionDialog(wx.Dialog):
                   self.OnChangeAccount,
                   id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
 
-        # Populate the list of existing shares on the selected webdav server
-        self.existingControl = wx.xrc.XRCCTRL(self, "LISTBOX_EXISTING")
-        try:
-            self._refreshExisting()
-        except zanshin.webdav.WebDAVError, e:
-            self.existing = []
-            self._showStatus("Sharing error: %s\n" % e.message)
-
-        self._suggestName()
-
         # Not supported yet:
         wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
         wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
@@ -117,10 +107,6 @@ class PublishCollectionDialog(wx.Dialog):
 
         url = self.shareXML.conduit.getLocation()
         wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
-
-        name = self.shareXML.displayName
-        wx.xrc.XRCCTRL(self, "TEXT_SHARINGNAME").SetLabel(name)
-
 
         # Not yet supported
         wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
@@ -163,12 +149,6 @@ class PublishCollectionDialog(wx.Dialog):
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
         self.currentAccount = account
-        try:
-            self._refreshExisting()
-        except zanshin.webdav.WebDAVError, e:
-            self.existing = []
-            self._showStatus("WebDAV error: %s\n" % e.message)
-        self._suggestName()
 
 
     def _suggestName(self):
@@ -183,11 +163,7 @@ class PublishCollectionDialog(wx.Dialog):
             name = "%s-%d" % (basename, counter)
             counter += 1
 
-        self.publishNameControl = wx.xrc.XRCCTRL(self, "TEXTCTRL_NAME")
-
-        self.publishNameControl.SetValue(name)
-        self.publishNameControl.SetFocus()
-        self.publishNameControl.SetSelection(-1, -1)
+        return name
 
 
     def OnManageDone(self, evt):
@@ -285,7 +261,16 @@ class PublishCollectionDialog(wx.Dialog):
         self._resize()
         wx.Yield()
 
-        shareName = self.publishNameControl.GetValue()
+        # Populate the list of existing shares on the selected webdav server
+        try:
+            self.existing = self._getExistingFiles()
+        except zanshin.webdav.WebDAVError, e:
+            self.existing = []
+            self._showStatus("Sharing error: %s\n" % e.message)
+
+        suggestedName = self._suggestName()
+
+        shareName = suggestedName
         shareNameSafe = urllib.quote_plus(shareName)
 
         accountIndex = self.accountsControl.GetSelection()
@@ -337,8 +322,8 @@ class PublishCollectionDialog(wx.Dialog):
         except Sharing.SharingError, e:
 
             # Display the error
-            self._clearStatus()
-            self._showStatus("Sharing error: %s\n" % e.message)
+            # self._clearStatus()
+            self._showStatus("\nSharing error: %s\n" % e.message)
 
             # Clean up all share objects we created
             try:
@@ -420,11 +405,6 @@ class PublishCollectionDialog(wx.Dialog):
                                        str(y.displayName).lower()))
         return accounts
 
-    def _refreshExisting(self):
-        self.existing = self._getExistingFiles()
-        self.existingControl.Clear()
-        for file in self.existing:
-            self.existingControl.Append(file)
 
     def _getExistingFiles(self):
         account = self.currentAccount
