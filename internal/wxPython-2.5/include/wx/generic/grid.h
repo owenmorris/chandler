@@ -1946,6 +1946,7 @@ protected:
                          const wxGridCellCoords& bottomRight )
         { HighlightBlock( topLeft.GetRow(), topLeft.GetCol(),
                        bottomRight.GetRow(), bottomRight.GetCol() ); }
+    void SelectCell( int row, int column );
 
     // ------ functions to get/send data (see also public functions)
     //
