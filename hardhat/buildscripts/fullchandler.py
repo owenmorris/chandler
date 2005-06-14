@@ -229,8 +229,6 @@ def doCopyLog(msg, workingDir, logPath, log):
 
 def changesInSVN(workingDir, log):
     changesDict = {}
-#     print "Examining SVN"
-#     log.write("Examining SVN\n")
 
     os.chdir(workingDir)
     
@@ -238,6 +236,8 @@ def changesInSVN(workingDir, log):
         log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
                                               
         moduleDir = os.path.join(workingDir, module)
+
+        changesDict[module] = False
 
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
@@ -248,10 +248,9 @@ def changesInSVN(workingDir, log):
 
         if NeedsUpdate(outputList):
             changesDict[module] = True
-            print "" + module + " needs updating"
+	    log.write("%s needs updating\n" % module)
         else:
-            # print "NO, unchanged"
-            log.write("Module unchanged" + "\n")
+            log.write("%s unchanged\n" % module)
 
     log.write(separator)
     log.write("Done with SVN\n")
