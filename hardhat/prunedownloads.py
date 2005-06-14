@@ -23,9 +23,9 @@ longPolicyDays   = 30
 smtpServer       = 'mail.osafoundation.org'
 downloadsServer  = 'builds'
 fromAddr         = 'builds'
-toAddr           = 'heikki'
+toAddr           = 'bear'
 defaultDomain    = 'osafoundation.org'
-startDir         = '/www/docs/chandler/continuous'
+startDir         = '/home/builder/www/docs/chandler/continuous'
 tboxDirGlob      = ['*-win', '*-osx', '*-linux']
 
 import datetime, time, smtplib, os, glob

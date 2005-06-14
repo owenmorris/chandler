@@ -18,9 +18,9 @@ keepLatestBuilds = 10
 smtpServer       = 'mail.osafoundation.org'
 downloadsServer  = 'builds'
 fromAddr         = 'builds'
-toAddr           = 'heikki'
+toAddr           = 'bear'
 defaultDomain    = 'osafoundation.org'
-startDir         = '/www/docs/external/staging'
+startDir         = '/home/builder/www/docs/external/staging'
 tboxDirGlob      = ['windows', 'macosx', 'linux']
 
 import datetime, time, smtplib, os, glob
@@ -86,7 +86,7 @@ def prune():
         # now the real pruning happens here
         archivedirs = glob.glob('[0-9]*')
         archivedirs.sort()
-        archivedirs = archivedirs[;-keepLatestBuilds]
+        archivedirs = archivedirs[:-keepLatestBuilds]
         for archive in archivedirs:
             if len(archive) != 14 or not os.path.isdir(archive):
                 continue 

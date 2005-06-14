@@ -282,29 +282,45 @@ class perf:
 
         indexpage.append('<table>\n')
         indexpage.append('<colgroup><col class="build"></col><col></col><col class="size"></col><col class="avg"></col></colgroup>\n')
-        indexpage.append('<tr><th>Build</th><th>Variance</th><th>Sample Size</th><th>Sample Average</th></tr>\n')
+        indexpage.append('<tr><th></th><th></th><th colspan="2">Sample</th><th colspan="9">Difference of Sample Average to Prior Day (avg - pd)</th>')
+        indexpage.append('<tr><th>Build</th><th>Variance</th><th>Count</th><th>Average</th><th>0</th><th>-1</th><th>-2</th><th>-3</th><th>-4</th><th>-5</th><th>-6</th><th>-7</th><th>-8</th></tr>\n')
 
         for buildkey in k_builds:
           builditem = testitem[buildkey]
 
             # make one pass thru to gather the data points
           values = []
+          day_values = {}
       
           for datekey in builditem.keys():
             dateitem = builditem[datekey]
 
             k_hours = dateitem.keys()
             k_hours.sort()
-          
+
+            date_values = []
+
             for hour in k_hours:
               for datapoint in dateitem[hour]:
                 #print "%s %s %s %s %f" % (testkey, buildkey, datekey, hour, datapoint[7])
                 values.append(datapoint[7])
+                date_values.append(datapoint[7])
+
+            dv_count = len(date_values)
+            dv_total = 0
+            
+            if dv_count > 0:
+              for item in date_values:
+                dv_total = dv_total + item
+                
+            day_values[datekey] = (dv_count, dv_total)
 
           (v, n, avg) = self.variance(values)
 
           #print "variance: %02.5f average: %02.3f count: %d" % (v, avg, n)
-        
+
+          tv_dates = []
+
             # now run thru again to gererate the html - but now we have averages to use for markup
           k_dates = builditem.keys()
           k_dates.sort()
@@ -317,10 +333,24 @@ class perf:
           for datekey in k_dates:
             dateitem = builditem[datekey]
       
+            dv_count, dv_total = day_values[datekey]
+            if dv_count > 0:
+              dv_avg = dv_total / dv_count
+            else:
+              dv_avg = dv_total
+
+            if dv_avg <> 0:
+              c_perc = (dv_avg - avg) / dv_avg
+            c_diff = avg - dv_avg
+
+            tv_dates.append((datekey, dv_avg, c_perc, c_diff))
+
             detailpage.append('<h4>%s-%s-%s</h4>\n' % (datekey[:4], datekey[4:6], datekey[6:8]))
+            detailpage.append('<p>%d items in days sample for an average of %2.3f' % (dv_count, dv_avg))
             detailpage.append('<table>\n')
             detailpage.append('<colgroup><col class="time"></col><col class="run"></col><col class="avg"></col></colgroup>\n')
-            detailpage.append('<tr><th>Time</th><th>Runs</th><th>Average</th></tr>\n')
+            detailpage.append('<tr><th></th><th></th><th></th><th></th><th colspan="2">Change (Day)</th>')
+            detailpage.append('<tr><th>Time</th><th>Runs</th><th>Average</th><th>Percent</th><th>Percent</th><th>Value</th></tr>\n')
 
             k_hours = dateitem.keys()
             k_hours.sort()
@@ -337,10 +367,16 @@ class perf:
                   else:
                     if perc > 33:
                       s = 'warn'
-                  
-                detailpage.append('<tr><td>%02d:%02d:%02d</td><td>%d</td><td class="%s">%02.3f</td><td>%d</td></tr>\n' % 
-                                  (datapoint[1].hour, datapoint[1].minute, datapoint[1].second, datapoint[5], s, datapoint[7], perc))
-                detailpage.append('<!-- value: %02.5f count: %d avg: %02.5f %02.5f -->\n' % (datapoint[7], n, avg, perc))
+
+                if dv_avg <> 0:
+                  c_perc = (dv_avg - datapoint[7]) / dv_avg
+                c_diff = datapoint[7] - dv_avg
+                
+                detailpage.append('<tr><td>%02d:%02d:%02d</td><td class="number_left">%d</td><td class="%s">%02.3f</td>' \
+                                  '<td class="number">%d</td><td class="number_left">%02.3f</td><td class="number">%02.3f</td></tr>\n' % 
+                                  (datapoint[1].hour, datapoint[1].minute, datapoint[1].second, datapoint[5], s, datapoint[7], perc, c_perc, c_diff))
+                detailpage.append('<!-- value: %02.5f count: %d avg: %02.5f %02.5f c_perc: %02.5f c_diff: %02.5f -->\n' % 
+                                  (datapoint[7], n, avg, perc, c_perc, c_diff))
 
             detailpage.append('</table>\n')
 
@@ -351,11 +387,19 @@ class perf:
               s = 'warn'
             else:
               s = 'ok'
-                         
-          indexpage.append('<tr><td><a href="detail_%s_%s.html#%s_%s">%s</a></td><td class="%s">%02.3f</td><td>%d</td><td>%02.3f</td></tr>\n' %
-                           (startdate, enddate, testkey, buildkey, buildkey, s, v, n, avg))
-  
-        indexpage.append('</table>\n')        
+
+          t  = ''
+          dt = ''
+          for item in tv_dates:
+            dt += '<!-- datekey: %s dv_avg: %02.5f c_perc: %02.5f c_diff %02.5f -->\n' % (item) 
+            t  += '<td class="number_left">%02.3f</td>' % item[3]
+
+          indexpage.append('<tr><td><a href="detail_%s_%s.html#%s_%s">%s</a></td><td class="%s" style="border-right: 2px;">%02.3f</td>' \
+                           '<td class="number">%d</td><td class="number">%02.3f</td>%s</tr>\n' %
+                           (startdate, enddate, testkey, buildkey, buildkey, s, v, n, avg, t))
+          indexpage.append(dt)
+
+        indexpage.append('</table>\n')
 
     indexfile = file(os.path.join(self._options['html_data'], 'index.html'), 'w')
 

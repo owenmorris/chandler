@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 # Copyright (c) 2004 Open Source Applications Foundation
 #
@@ -21,6 +21,8 @@
 # DEALINGS IN THE SOFTWARE.
 #
 # Author(s): Heikki Toivonen (heikki@osafoundation.org)
+
+# 29 April 2005 - modified by bear (bear@osafoundation.org) to use the new paths
 
 import os, glob, sha, re, shutil, sys
 
@@ -69,7 +71,7 @@ debug = False
     hash = s.hexdigest()
 """
 
-rootDir = '/www/docs/external'
+rootDir = '/home/builder/www/docs/external'
 stagingRootDir = rootDir + '/staging'
 destRootDir = rootDir
 
@@ -91,6 +93,10 @@ def availableBinaryTarballsForPlatform(platform):
     os.chdir(stagingRootDir + '/' + platform)
     archiveDirs = glob.glob('[0-9]*')
     archiveDirs.sort()
+
+    if debug:
+        print platform
+    
     for archive in archiveDirs:
         os.chdir(stagingRootDir + '/' + platform)
 
@@ -98,8 +104,12 @@ def availableBinaryTarballsForPlatform(platform):
             print archive
             
         if len(archive) != 14 or not os.path.isdir(archive):
+            if debug:
+                print 'is not dir'
             continue
         if not os.path.isfile(archive + '/completed'):
+            if debug:
+                print 'is not completed'
             continue
 
         os.chdir(stagingRootDir + '/' + platform + '/' + archive)
@@ -167,6 +177,7 @@ def buildFrontPage():
 
     print '<p>Staging:     [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (stagingRootUrl + '/windows', stagingRootUrl + '/macosx', stagingRootUrl + '/linux')
     print '<p>Destination: [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (destRootUrl + '/windows', destRootUrl + '/macosx', destRootUrl + '/linux')
+
 
     if not available:
         print '<p>No tarballs available to copy.</p>'

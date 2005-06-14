@@ -39,7 +39,7 @@ __svn__          = "$Id$"
 
 import os, glob, string
 
-workingDirectory = '/Users/bear/temp/continuous' #'/home/builder/www/chandler/continuous'
+workingDirectory = '/home/builder/www/docs/chandler/continuous'
 platforms        = ['osx', 'win', 'linux']
         
 def main():
@@ -74,10 +74,10 @@ def main():
                     if item[:9] == 'Chandler_':
                         target = item.replace('_' + buildDate, '')
                         targetFile = os.path.join(targetDir, target)                      
-                        
+                                                          
                         if os.path.islink(targetFile):
                             os.unlink(targetFile) 
-                        
+                                
                         os.symlink(os.path.join(sourceDir, item), targetFile)
 
 main()
