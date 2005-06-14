@@ -7717,6 +7717,10 @@ SOURCE=..\..\include\wx\generic\choicdgg.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\generic\colheader.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\generic\colrdlgg.h
 # End Source File
 # Begin Source File
@@ -7786,6 +7790,10 @@ SOURCE=..\..\include\wx\generic\logg.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\generic\mdig.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\generic\minical.h
 # End Source File
 # Begin Source File
 
@@ -8153,6 +8161,10 @@ SOURCE=..\..\include\wx\cmndata.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\colheader.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\colordlg.h
 # End Source File
 # Begin Source File
@@ -8466,6 +8478,10 @@ SOURCE=..\..\include\wx\menuitem.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\metafile.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\minical.h
 # End Source File
 # Begin Source File
 

@@ -612,6 +612,10 @@ SOURCE=..\..\src\generic\calctrl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\generic\colheader.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\generic\datectlg.cpp
 # End Source File
 # Begin Source File
@@ -633,6 +637,10 @@ SOURCE=..\..\src\generic\helpext.cpp
 # Begin Source File
 
 SOURCE=..\..\src\generic\laywin.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\generic\minical.cpp
 # End Source File
 # Begin Source File
 
@@ -855,6 +863,10 @@ SOURCE=..\..\include\wx\generic\calctrl.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\generic\colheader.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\generic\datectrl.h
 # End Source File
 # Begin Source File
@@ -876,6 +888,10 @@ SOURCE=..\..\include\wx\generic\helpext.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\generic\laywin.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\generic\minical.h
 # End Source File
 # Begin Source File
 
@@ -903,6 +919,10 @@ SOURCE=..\..\include\wx\calctrl.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\wx\colheader.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\wx\datectrl.h
 # End Source File
 # Begin Source File
@@ -924,6 +944,10 @@ SOURCE=..\..\include\wx\joystick.h
 # Begin Source File
 
 SOURCE=..\..\include\wx\laywin.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\wx\minical.h
 # End Source File
 # Begin Source File
 

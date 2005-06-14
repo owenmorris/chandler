@@ -3,7 +3,7 @@ include ../Makefile.inc
 
 # version info
 VERSION=2.6.0.0
-RELVER=$(VERSION)-10
+RELVER=$(VERSION)-11
 WXMAJORVERSIONCOMPACT=26
 
 SRC=$(INTERNAL)/wxPython-2.5
@@ -17,12 +17,14 @@ DIST_OPT=--debug
 FINAL=0
 SUFFIX=d
 PYTHON_SUFFIX=_d
+W32_BUILD_TYPE='DLL Unicode Debug'
 else
 CONF_OPT=--enable-optimized
 DIST_OPT=
 FINAL=1
 SUFFIX=
 PYTHON_SUFFIX=
+W32_BUILD_TYPE='DLL Unicode Release'
 endif
 
 # platform info
@@ -72,9 +74,10 @@ setup: $(SRC)/include/wx/msw/setup.h
 wxWidgets: setup
 	cd $(SRC); \
 		export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
-		devenv.com build/msw/msw.sln /build $(Snap)
+		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -105,7 +108,7 @@ clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)*
 	rm -f $(SRC)/include/wx/msw/setup.h
 	rm -f $(SRC)/lib/vc_dll/msw$(UNICODE_SUFFIX)$(SUFFIX)/setup.h
-	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
+	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/wx_osaf.sln /clean $(W32_BUILD_TYPE)
 
 cleanmanifest:
 	cd $(BUILD_ROOT); \

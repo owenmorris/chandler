@@ -3864,7 +3864,7 @@ wxEND_HANDLERS_TABLE()
 wxCONSTRUCTOR_5( wxGrid , wxWindow* , Parent , wxWindowID , Id , wxPoint , Position , wxSize , Size , long , WindowStyle )
 
 /*
- TODO : Expose more information of a list's layout etc. via appropriate objects (Å‡ la NotebookPageInfo)
+ TODO : Expose more information of a list's layout etc. via appropriate objects (‡ la NotebookPageInfo)
 */
 #else
 IMPLEMENT_DYNAMIC_CLASS( wxGrid, wxScrolledWindow )
