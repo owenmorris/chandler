@@ -223,67 +223,19 @@ class wxApplication (wx.App):
         """
         if splash: splash.updateGauge('crypto')
         crypto.startup(Globals.options.profileDir)
-        """
-          Open the repository.
-        Load the Repository after the path has been altered, but before
-        the parcels are loaded. 
-        """
+
+
+
         if splash: splash.updateGauge('repository')
-        if Globals.options.profileDir:
-            path = os.sep.join([Globals.options.profileDir, '__repository__'])
-        else:
-            path = '__repository__'
+        # The repository opening code was moved to a method so that it can
+        # be called again if there is a schema mismatch and the user chooses
+        # to reopen the repository in create mode.
+        self.OpenRepository()
 
-        wx.Yield()
 
-        self.repository = DBRepository(path)
-
-        options = Globals.options
-        kwds = { 'stderr': options.stderr,
-                 'ramdb': options.ramdb,
-                 'create': True,
-                 'recover': options.recover,
-                 'exclusive': True,
-                 'refcounted': True }
-
-        if options.repo:
-            kwds['fromPath'] = options.repo
-
-        while True:
-            try:
-                if options.encrypt:
-                    from getpass import getpass
-                    kwds['password'] = getpass("password> ")
-
-                if options.create:
-                    self.repository.create(**kwds)
-                else:
-                    self.repository.open(**kwds)
-            except PermissionsError, e:
-                if options.encrypt:
-                    print e.args[0]
-                    continue
-            else:
-                del kwds
-                break
-
-        wx.Yield()
-
-        self.UIRepositoryView = self.repository.getCurrentView()
-
-        if not self.UIRepositoryView.findPath('//Packs/Schema'):
-            """
-              Bootstrap an empty repository by loading only the stuff that
-            can't be loaded in a data parcel.
-            """
-            self.UIRepositoryView.loadPack("repository/packs/schema.pack")
-            wx.Yield()
-            self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
         """
-          Load Parcels
+          Verify Schema Version
         """
-        if splash: splash.updateGauge('parcels')
-        wx.Yield()
 
         # Fetch the top-level parcel item to check schema version info
         parcelRoot = self.repository.findPath("//parcels")
@@ -291,7 +243,35 @@ class wxApplication (wx.App):
             if (not hasattr(parcelRoot, 'version') or
                 parcelRoot.version != SCHEMA_VERSION):
                 logger.info("Schema version of repository doesn't match app")
-                raise SchemaMismatchError, path
+
+                message = \
+"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
+
+Would you like to remove all data from your repository?
+"""
+
+                dialog = wx.MessageDialog(None,
+                                          message,
+                                          "Cannot open repository",
+                                          wx.YES_NO | wx.ICON_INFORMATION)
+                response = dialog.ShowModal()
+                dialog.Destroy()
+
+                if response == wx.ID_YES:
+                    # Blow away the repository
+                    self.repository.close()
+                    Globals.options.create = True
+                    self.OpenRepository()
+                else:
+                    raise SchemaMismatchError
+
+
+        """
+          Load Parcels
+        """
+
+        if splash: splash.updateGauge('parcels')
+        wx.Yield()
 
         import application.Parcel
         application.Parcel.Manager.get(self.UIRepositoryView,
@@ -376,6 +356,66 @@ class wxApplication (wx.App):
 
 
         return True                     #indicates we succeeded with initialization
+
+
+
+    def OpenRepository(self):
+
+        """
+          Open the repository.
+        Load the Repository after the path has been altered, but before
+        the parcels are loaded. 
+        """
+        if Globals.options.profileDir:
+            path = os.sep.join([Globals.options.profileDir, '__repository__'])
+        else:
+            path = '__repository__'
+
+        wx.Yield()
+
+        self.repository = DBRepository(path)
+
+        options = Globals.options
+        kwds = { 'stderr': options.stderr,
+                 'ramdb': options.ramdb,
+                 'create': True,
+                 'recover': options.recover,
+                 'exclusive': True,
+                 'refcounted': True }
+
+        if options.repo:
+            kwds['fromPath'] = options.repo
+
+        while True:
+            try:
+                if options.encrypt:
+                    from getpass import getpass
+                    kwds['password'] = getpass("password> ")
+
+                if options.create:
+                    self.repository.create(**kwds)
+                else:
+                    self.repository.open(**kwds)
+            except PermissionsError, e:
+                if options.encrypt:
+                    print e.args[0]
+                    continue
+            else:
+                del kwds
+                break
+
+        wx.Yield()
+
+        self.UIRepositoryView = self.repository.getCurrentView()
+
+        if not self.UIRepositoryView.findPath('//Packs/Schema'):
+            """
+              Bootstrap an empty repository by loading only the stuff that
+            can't be loaded in a data parcel.
+            """
+            self.UIRepositoryView.loadPack("repository/packs/schema.pack")
+            wx.Yield()
+            self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
 
     def LoadMainViewRoot (self, delete=False):
         """
@@ -842,5 +882,4 @@ class StartupSplash(wx.Frame):
 
 class SchemaMismatchError(Exception):
     """ The schema version in the repository doesn't match the application. """
-    def __init__(self, path):
-        self.path = path
+    pass
