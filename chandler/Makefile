@@ -134,6 +134,10 @@ checkout:
 	@echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
 install: $(ARCHIVES) $(ARCHIVES_INST)
+	if [ -f "$CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
+	then \
+	    chmod +x $CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
+	fi
 
 
 # to install individual binaries, for example: make chandlerdb
