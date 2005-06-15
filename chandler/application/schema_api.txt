@@ -265,6 +265,12 @@ XXX Explain this::
     ...     age = schema.One(schema.Integer)
     ...     parents = schema.Sequence()
     ...     children = schema.Sequence(inverse=parents)
+    ...
+    ...     schema.addClouds(
+    ...         # endpoints can be defined using Role objects or strings
+    ...         sharing = schema.Cloud(byCloud=[parents,children]),
+    ...         export = schema.Cloud(byRef=["children"]),
+    ...     )
     ...     def __repr__(self): return self.fullname
 
     >>> Joe = Person(fullname="Joe Schmoe", age=39)
@@ -284,6 +290,33 @@ Items created without an explicit "parent" have a repository parent of
     >>> Joe.itsParent.itsPath
     //userdata
 
+Clouds are associated with the class' kind, with names that are generated
+by capitalizing the cloud alias and adding 'Cloud' to them (matching previous
+OSAF naming conventions)::
+
+    >>> clouds = schema.itemFor(Person).clouds
+    >>> list(clouds)
+    [<Cloud ... SharingCloud ...>, <Cloud ... ExportCloud ...>]
+
+    >>> sharing = clouds.getByAlias('sharing')
+    >>> list(sharing.endpoints)
+    [<Endpoint ... parents ...>, <Endpoint ... children ...>]
+
+    >>> parents = sharing.endpoints.getByAlias('parents')
+    >>> parents.includePolicy
+    'byCloud'
+    >>> parents.attribute
+    ['parents']
+    
+    >>> export = clouds.getByAlias('export')
+    >>> list(export.endpoints)
+    [<Endpoint ... children ...>]
+
+    >>> children = export.endpoints.getByAlias('children')
+    >>> children.includePolicy
+    'byRef'
+    >>> children.attribute
+    ['children']
 
 Additional Metadata
 ===================

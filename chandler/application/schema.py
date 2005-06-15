@@ -322,7 +322,7 @@ class Cloud:
     def __init__(self,*byValue,**groups):
         self.endpoints = [AttributeAsEndpoint(ep,'byValue') for ep in byValue]        
         for policy,group in groups.items():
-            if not isinstance(v, (list,tuple)):
+            if not isinstance(group, (list,tuple)):
                 raise TypeError("Endpoint groups must be lists or tuples")
             self.endpoints.extend(
                 [AttributeAsEndpoint(ep,policy) for ep in group]
