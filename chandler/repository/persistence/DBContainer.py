@@ -895,6 +895,8 @@ class ItemContainer(DBContainer):
     def getItemValues(self, version, uuid):
 
         item = self.get(pack('>16sl', uuid._uuid, ~version))
+        if item is None:
+            return None
 
         vCount, dCount = unpack('>ll', item[-8:])
         offset = -(vCount * 20 + dCount * 4 + 8)

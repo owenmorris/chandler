@@ -37,6 +37,9 @@ class DBItemWriter(ItemWriter):
         if not (item.isNew() or item._version == 0):
             self.oldValues = self.store._items.getItemValues(item._version,
                                                              item._uuid)
+            if self.oldValues is None:
+                raise AssertionError, ("Record now found for %s, version %s",
+                                       item._repr_(), item._version)
         else:
             self.oldValues = None
 
