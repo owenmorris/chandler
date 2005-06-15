@@ -77,7 +77,9 @@ wxWidgets: setup
 		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx
+	ifeq ($(DEBUG),1)
+		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx
+	endif
 
 wxPython:
 	cd $(SRC)/wxPython; \
