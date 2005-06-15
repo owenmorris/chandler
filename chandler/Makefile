@@ -134,9 +134,9 @@ checkout:
 	@echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
 install: $(ARCHIVES) $(ARCHIVES_INST)
-	if [ -f "$CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
+	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
 	then \
-	    chmod +x $CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
+	    chmod +x $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
 	fi
 
 
