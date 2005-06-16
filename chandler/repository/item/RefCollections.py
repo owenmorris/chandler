@@ -351,6 +351,12 @@ class RefList(LinkedMap):
         if not load:
             other._references._getRef(self._otherName, self._item)
 
+#        if not loading:
+#            item = self._item
+#            onSetChange = getattr(type(item), 'onSetChange', None)
+#            if onSetChange is not None:
+#                onSetChange(item, 'add', item, self._name, other)
+
         return other
 
     def __setitem__(self, key, value):
@@ -462,7 +468,14 @@ class RefList(LinkedMap):
             for index in self._indexes.itervalues():
                 index.removeKey(key)
 
-        return super(RefList, self).__delitem__(key)
+        link = super(RefList, self).__delitem__(key)
+
+#        item = self._item
+#        onSetChange = getattr(type(item), 'onSetChange', None)
+#        if onSetChange is not None:
+#            onSetChange(item, 'remove', item, self._name, other)
+
+        return link
 
     def _load(self, key):
 

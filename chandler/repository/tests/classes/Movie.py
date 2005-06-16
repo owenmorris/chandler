@@ -20,3 +20,8 @@ class Movie(Item):
     def kindChanged(self, op, item, attribute):
 
         self.monitorAttribute = attribute
+
+    def onSetChange(self, op, item, name, other):
+
+        #print op, item, name, other
+        pass

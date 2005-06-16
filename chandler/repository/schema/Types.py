@@ -1253,6 +1253,65 @@ class TimeDelta(DateStruct):
                          flds.get('microseconds', 0))
     
 
+class TimeZone(Type):
+
+    def getImplementationType(self):
+
+        return ICUtzinfo
+
+    def handlerName(self):
+
+        return 'tzinfo'
+
+    def makeValue(self, data):
+
+        if data == Type.NoneString:
+            return None
+        
+        return ICUtzinfo.getInstance(data)
+
+    def makeString(self, value):
+
+        if value is None:
+            return Type.NoneString
+        
+        return str(value)
+    
+    def recognizes(self, value):
+
+        return value is None or type(value) is ICUtzinfo
+
+    def _compareTypes(self, other):
+
+        return 0
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+            size = 1
+        else:
+            buffer.write('\1')
+            size = 1 + itemWriter.writeString(buffer, str(value))
+
+        return size
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        offset, string = itemReader.readString(offset+1, data)
+        return offset, ICUtzinfo.getInstance(string)
+
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return _hash(str(value))
+
+
 class Collection(Type):
 
     def getParsedValue(self, itemHandler, data):
