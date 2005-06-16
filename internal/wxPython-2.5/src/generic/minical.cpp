@@ -732,6 +732,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                         dc.SetFont(m_boldFont);
                         dc.SetTextForeground(*wxBLACK);
                         changedFont = true;
+                        changedColours = true;
                     }
                 }
 
