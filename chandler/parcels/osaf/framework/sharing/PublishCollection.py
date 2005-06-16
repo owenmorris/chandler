@@ -447,3 +447,4 @@ def ShowPublishDialog(parent, view=None, collection=None, kinds=None):
      resources=resources, view=view, collection=collection, kinds=kinds)
     win.CenterOnScreen()
     win.ShowModal()
+    win.Destroy()

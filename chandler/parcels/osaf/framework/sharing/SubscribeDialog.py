@@ -176,3 +176,4 @@ def Show(parent, view=None, url=None):
      resources=resources, view=view, url=url)
     win.CenterOnScreen()
     win.ShowModal()
+    win.Destroy()
