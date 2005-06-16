@@ -175,7 +175,7 @@ All role objects have at least the following attributes and methods:
         >>> role2.inverse = schema.Role()
         Traceback (most recent call last):
         ...
-        ValueError: Role inverse cannot be changed once set
+        TypeError: Role objects are immutable; can't change 'inverse' once set
 
         >>> role2.inverse is role1      # no change took place
         True
@@ -188,14 +188,33 @@ All role objects have at least the following attributes and methods:
         >>> role3.inverse = role2
         Traceback (most recent call last):
         ...
-        ValueError: Role inverse cannot be changed once set
+        TypeError: Role objects are immutable; can't change 'inverse' once set
 
         >>> print role3.inverse         # no change took place
         None
 
+    Inverse roles can also use forward reference strings; these can be either
+    a fully-qualified name to import, or a simple undotted string that is
+    the name of an attribute on the role's type::
+
+        >>> class File(schema.Item):
+        ...     folder = schema.One("Folder", inverse="contents")
+        >>> class Folder(File):
+        ...     contents = schema.Many(File, inverse=File.folder)
+
+    Notice that the second attribute uses normal references instead of forward
+    references.  This ensures that the forward references are resolved::
+
+        >>> File.folder.type
+        <class 'Folder'>
+
+        >>> File.folder.inverse
+        <Role contents of <class 'Folder'>>
+
 ``type``
-    The ``type`` of a role can be either a ``schema.Item`` subclass, or a
-    ``schema.TypeReference`` to a specific repository value type.  The
+    The ``type`` of a role can be either a ``schema.Item`` subclass, a
+    ``schema.TypeReference`` to a specific repository value type, or a string
+    (which is automatically converted to a ``schema.ForwardReference``).  The
     ``schema`` module supplies various pre-configured ``TypeReference``
     objects for your convenience::
 
@@ -208,7 +227,8 @@ All role objects have at least the following attributes and methods:
         Role(DateTime)
 
     Note that you cannot use arbitrary Python types or classes; you must either
-    supply a ``schema.TypeReference`` or a subclass of ``schema.Item``::
+    supply a ``schema.TypeReference``, a subclass of ``schema.Item``, or a
+    string representing a forward reference::
 
         >>> schema.Role(str)
         Traceback (most recent call last):
@@ -223,6 +243,19 @@ All role objects have at least the following attributes and methods:
         ...
         NameError: Type '//no/such/type' not found in the core schema
 
+    Types expressed as a string are automatically converted to
+    ``ForwardReference`` objects::
+
+        >>> testRole = schema.Role("application.schema.Item")
+        >>> testRole.type
+        ForwardReference('application.schema.Item',<...Role object...>)
+
+    Forward references compare equal to the type they reference::
+
+        >>> testRole.type == schema.Item
+        True
+        >>> testRole.type != schema.Item
+        False
 
 Aspect Attributes
     Role objects support setting all of the aspects of a repository
@@ -307,7 +340,7 @@ OSAF naming conventions)::
     'byCloud'
     >>> parents.attribute
     ['parents']
-    
+
     >>> export = clouds.getByAlias('export')
     >>> list(export.endpoints)
     [<Endpoint ... children ...>]
@@ -348,7 +381,7 @@ Additional Metadata
     Traceback (most recent call last):
       ...
     ValueError: 'displayName' defined multiple times for this class
-    
+
     >>> class BadMetadata(schema.Item):
     ...     schema.kindInfo(madeUpName="xyz")
     Traceback (most recent call last):

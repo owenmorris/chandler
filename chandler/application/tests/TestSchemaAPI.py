@@ -9,10 +9,10 @@ from repository.query.Query import Query
 class Dummy(schema.Item):
     """Just a test fixture"""
     attr = schema.One(schema.String)
-    other = schema.Many()
+    other = schema.Many("Other", inverse="thing")
 
 class Other(schema.Item):
-    thing = schema.One(Dummy, inverse=Dummy.other)
+    thing = schema.One(Dummy, inverse="other")
 
 class Mixed(Dummy, Query):
     pass

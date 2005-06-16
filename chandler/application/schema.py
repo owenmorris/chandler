@@ -23,6 +23,74 @@ all_aspects = Attribute.valueAspects + Attribute.refAspects + \
 global_lock = threading.RLock()
 
 
+class ForwardReference:
+    """Forward reference to a not-yet defined object"""
+
+    def __init__(self,name,role):
+        self.name = name
+        self.role = role
+        self.__name__ = name.split('.')[-1]
+
+    def __repr__(self):
+        return "ForwardReference(%r,%r)" % (self.name,self.role)
+
+    def _create_schema_item(self):
+        return itemFor(self.referent())
+
+    def _init_schema_item(self,item):
+        pass
+
+    def __hash__(self):
+        return id(self)
+
+    def referent(self):
+        if self.role.owner is None:
+            if '.' in self.name:
+                return importString(self.name)
+        else:
+            module = sys.modules[self.role.owner.__module__] 
+            if '.' in self.name:
+                return importString(self.name, module.__dict__)
+            elif self.role.type is self:
+                # Reference is to type, look in module
+                return getattr(module,self.name)
+
+        if self.role.inverse is self:
+            # Reference is to role, look in type
+            type = self.role.type
+            if isinstance(type,ForwardReference):
+                type = type.referent()
+            return getattr(type, self.name)
+        else:
+            raise TypeError(
+                "Can't resolve local forward reference %r from %r"
+                % (self.name,self.role)
+            )
+
+    def __eq__(self,other):
+        if self is other:
+            return True
+        elif isinstance(other,ForwardReference) and self.name==other.name:
+            return True
+        elif isinstance(other,ItemClass):
+            fullname = other.__module__+'.'+other.__name__
+            return self.name==fullname or fullname.endswith('.'+self.name)
+        elif isinstance(other,Role) and other.owner is not None:
+            fullname = '%s.%s.%s' % (
+                other.owner.__module__, other.owner.__name__, other.name
+            )
+            return self.name==fullname or fullname.endswith('.'+self.name)
+        try:
+            me = self.referent()
+        except ImportError:
+            return False
+        else:
+            return other is me
+
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
+    
 class TypeReference:
     """Reference a core schema type (e.g. Integer) by its repository path"""
 
@@ -65,7 +133,7 @@ class Activator(type):
 class Role(ActiveDescriptor,CDescriptor):
     """Descriptor for a schema-defined attribute"""
 
-    owner = type = _inverse = None
+    owner = type = _inverse = _frozen = None
 
     __slots__ = ['__dict__']
     __slots__.extend(all_aspects)
@@ -76,6 +144,8 @@ class Role(ActiveDescriptor,CDescriptor):
     def __init__(self,type=None,**kw):
         super(Role,self).__init__(kw.get('name'))
         if type is not None:
+            if isinstance(type,str):
+                type = ForwardReference(type, self)
             self.type = type
         for k,v in kw.items():
             if k!='name':   # XXX workaround CDescriptor not allowing name set
@@ -88,27 +158,33 @@ class Role(ActiveDescriptor,CDescriptor):
             self.owner = cls
             CDescriptor.__init__(self,name)
         if isinstance(cls,ItemClass) and self.inverse is not None:
+            if isinstance(self.inverse,ForwardReference):
+                return
+            elif isinstance(self.inverse.inverse,ForwardReference):
+                self.inverse.inverse = self
             self.inverse.type = cls
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
         super(Role,self).__setattr__(attr,value)
 
-    def __setattr__(self,attr,value):
-        if '_schema_attr_' in self.__dict__:
-            raise TypeError(
-                "Role object cannot be modified after use"
-            )
+    def __setattr__(self,attr,value):       
         if not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
                 % (attr,type(self).__name__))
-        old = self.__dict__.get(attr)
+                
+        old = getattr(self,attr,None)
         if old is not None and old<>value:
             raise TypeError(
                 "Role objects are immutable; can't change %r once set" % attr
             )
+        elif old is None and self._frozen:
+            raise TypeError(
+                "Role object cannot be modified after use"
+            )
 
         self._setattr(attr,value)
+
         if attr=='type' and value is not None:
             if not hasattr(value,"_create_schema_item"):
                 self._setattr(attr,old) # roll it back
@@ -119,17 +195,26 @@ class Role(ActiveDescriptor,CDescriptor):
             self.setDoc()   # update docstring
 
     def __setInverse(self,inverse):
+
+        # Handle initial forward reference setting
+        if isinstance(inverse,str):
+            inverse = ForwardReference(inverse,self)
+            if self._inverse is None:
+                self._inverse = inverse     # initial setup, allow anything
+                return
+
         if self._inverse is not inverse:    # No-op if no change
-            if self._inverse is not None:
-                raise ValueError("Role inverse cannot be changed once set")
             self._inverse = inverse
-            try:
-                inverse.inverse = self
-            except:
-                self._setattr('_inverse',None)  # roll back the change
-                raise
-            if self.owner is not None and isinstance(self.owner,ItemClass):
-                inverse.type = self.owner
+            if not isinstance(inverse.inverse,ForwardReference):
+                # Only backpatch if the other end isn't a forward ref
+                try:
+                    inverse.inverse = self
+                except:
+                    self._setattr('_inverse',None)  # roll back the change
+                    raise
+
+                if self.owner is not None and isinstance(self.owner,ItemClass):
+                    inverse.type = self.owner
 
     inverse = property(
         lambda s: s._inverse, __setInverse, doc="""The inverse of this role"""
@@ -140,14 +225,12 @@ class Role(ActiveDescriptor,CDescriptor):
             return "<Role %s of %s>" % (self.name,self.owner)
         return object.__repr__(self)
 
-    def __getDoc(self):
-        return self.__dict__.get('doc','')
-
     def __setDoc(self,val):
         self.__dict__['doc'] = val
         self.setDoc()
 
-    doc = description = property(__getDoc,__setDoc)
+    doc = property(lambda self: self.__dict__.get('doc',None),__setDoc)
+    description = property(lambda self: self.__dict__.get('doc',''),__setDoc)
 
     def __getDisplayName(self):
         return self.__dict__.get('displayName')
@@ -182,8 +265,10 @@ class Role(ActiveDescriptor,CDescriptor):
                 "role object used outside of schema.Item subclass"
             )
 
+        if isinstance(self.inverse,ForwardReference):
+            self.inverse = self.inverse.referent()  # force resolution now
+
         attr = Attribute(self.name, None, itemFor(Attribute))
-        self.__dict__['_schema_attr_'] = True   # disallow changes
         return attr
 
     def _init_schema_item(self, attr):
@@ -207,6 +292,8 @@ class Role(ActiveDescriptor,CDescriptor):
         if not hasattr(self,'otherName') and self.inverse is not None:
             attr.otherName = self.inverse.name
 
+        if not self._frozen:
+            self._frozen = True   # disallow changes
 
 class One(Role):
     cardinality = 'single'
@@ -576,7 +663,7 @@ def parcel_for_module(moduleName):
             except KeyError:
                 module = importString(moduleName)
 
-            if hasattr(module,'__parcel__'):
+            if getattr(module,'__parcel__',moduleName) != moduleName:
                 nrv._parcel_cache[moduleName] = parcel = parcel_for_module(
                     module.__parcel__
                 )
