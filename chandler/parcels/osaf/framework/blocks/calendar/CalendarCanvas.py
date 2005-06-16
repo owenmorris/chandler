@@ -1111,7 +1111,7 @@ class wxWeekHeaderWidgets(wx.Panel):
             # ugly back-calculation of the previously selected day
             reldate = self.parent.blockItem.selectedDate - \
                       self.parent.blockItem.rangeStart
-            self.weekHeader.SetSelectedItem(reldate.day+1)
+            self.weekHeader.SetSelectedItem(reldate.days+1)
         else:
             self.weekHeader.SetSelectedItem(0)
 

@@ -10,6 +10,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
+import repository.util.Lob as Lob
 import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import osaf.framework.blocks.Styles as Styles
@@ -520,20 +521,23 @@ class LobAttributeEditor (StringAttributeEditor):
             value = lob.getPlainTextReader().read()
         return value
 
-    def SetAttributeValue(self, item, attributeName, value):
-        try:
-            lob = getattr(item, attributeName)
-        except AttributeError:
-            assert False
-        
+    def SetAttributeValue(self, item, attributeName, value):            
         oldValue = self.GetAttributeValue(item, attributeName)
         if oldValue != value:
-            logger.debug("LobAE.Set: value changing to: \"%s\"" % value)
-            writer = lob.getWriter()
-            writer.write(value)
-            writer.close()
+            try:
+                lob = getattr(item, attributeName)
+            except AttributeError:
+                #logger.debug("LobAE.Set: Making new lob for \"%s\"" % value)
+                lobType = item.getAttributeAspect (attributeName, "type")
+                lob = lobType.makeValue(value)
+                setattr(item, attributeName, lob)
+            else:
+                #logger.debug("LobAE.Set: writing new value to lob: \"%s\"" % value)
+                writer = lob.getWriter()
+                writer.write(value)
+                writer.close()
             self.AttributeChanged()
-            logger.debug("LobAE.set: after changing, new value is \"%s\"" % self.GetAttributeValue(item, attributeName))
+            #logger.debug("LobAE.set: after changing, new value is \"%s\"" % self.GetAttributeValue(item, attributeName))
         
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
