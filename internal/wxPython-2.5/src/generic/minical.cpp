@@ -664,9 +664,11 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     dc.SetBackgroundMode(wxSOLID);
 
     int dayPosition;
-    wxColour mainColour = wxColour(160, 160, 160);
+    wxColour mainColour = wxColour(128, 128, 128);
+    wxColour lightColour = wxColour(191, 191, 191);
+    wxColour highlightColour = wxColour(204, 204, 204);
+
     dc.SetTextForeground(mainColour);
-    wxColour lightColour = wxColour(225, 225, 225);
     for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, y += m_heightRow )
     {
         // if the update region doesn't intersect this row, don't paint it
@@ -714,9 +716,9 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                     // highlight selected day
                     if ( date.IsSameDate(m_date) )
                     {
-                        dc.SetTextBackground(*wxLIGHT_GREY);
-                        dc.SetBrush(wxBrush(*wxLIGHT_GREY, wxSOLID));
-                        dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxSOLID));                        
+                        dc.SetTextBackground(highlightColour);
+                        dc.SetBrush(wxBrush(highlightColour, wxSOLID));
+                        dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
                         dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
 
                         changedColours = true;
