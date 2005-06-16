@@ -156,6 +156,10 @@ class PublishCollectionDialog(wx.Dialog):
         # and a number
 
         basename = self.collection.displayName
+        if self.filterKinds:
+            print self.filterKinds
+            # if "//parcels/osaf/contentmodel/calendar/CalendarEventMixin" in \
+            # basename = "%s %s" % (basename, 
         name = basename
 
         counter = 1

@@ -1122,6 +1122,25 @@ class WebDAVAccount(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
 
+    def getLocation(self):
+        """ Return the base url of the account """
+
+        if self.useSSL:
+            scheme = "https"
+            defaultPort = 443
+        else:
+            scheme = "http"
+            defaultPort = 80
+
+        if self.port == defaultPort:
+            url = "%s://%s" % (scheme, self.host)
+        else:
+            url = "%s://%s:%d" % (scheme, self.host, self.port)
+
+        sharePath = self.path.strip("/")
+        url = urlparse.urljoin(url, sharePath + "/")
+        return url
+
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class ImportExportFormat(ContentModel.ContentItem):

@@ -44,7 +44,12 @@ class SubscribeDialog(wx.Dialog):
         self.textUrl = wx.xrc.XRCCTRL(self, "TEXT_URL")
         if url is not None:
             self.textUrl.SetValue(url)
-        wx.EVT_SET_FOCUS(self.textUrl, self.OnFocusGained)
+        else:
+            account = Sharing.getWebDAVAccount(self.view)
+            if account:
+                url = account.getLocation()
+                self.textUrl.SetValue(url)
+
         self.Bind(wx.EVT_TEXT, self.OnTyping, self.textUrl)
 
         self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
@@ -56,7 +61,9 @@ class SubscribeDialog(wx.Dialog):
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
+
         self.textUrl.SetFocus()
+        self.textUrl.SetInsertionPointEnd()
 
 
     def OnSubscribe(self, evt):
@@ -159,12 +166,6 @@ class SubscribeDialog(wx.Dialog):
 
     def OnCancel(self, evt):
         self.EndModal(False)
-
-    def OnFocusGained(self, evt):
-        """ Select entire text field contents when focus is gained. """
-        control = evt.GetEventObject()
-        wx.CallAfter(control.SetSelection, -1, -1)
-
 
 def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
