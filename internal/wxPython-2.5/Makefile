@@ -77,9 +77,10 @@ wxWidgets: setup
 		devenv.com build/msw/wx_osaf.sln /build $(W32_BUILD_TYPE)
 	mkdir -p $(PREFIX)/$(SITE)/wx
 	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc*.dll $(PREFIX)/$(SITE)/wx
-	ifeq ($(DEBUG),1)
-		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx
-	endif
+	if [ -f "$(SRC)/lib/vc_dll/wxbase$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)_vc_custom.bsc" ]; \
+	then \
+		install $(SRC)/lib/vc_dll/*.bsc $(PREFIX)/$(SITE)/wx; \
+	fi
 
 wxPython:
 	cd $(SRC)/wxPython; \
@@ -109,6 +110,7 @@ clean:
 	rm -rf $(SRC)/wxPython/contrib/build/animate/wxPythonAnimate/Release
 	rm -rf $(SRC)/wxPython/$(BUILD)*
 	rm -f $(SRC)/include/wx/msw/setup.h
+	rm -f $(SRC)/lib/vc_dll/*.bsc
 	rm -f $(SRC)/lib/vc_dll/msw$(UNICODE_SUFFIX)$(SUFFIX)/setup.h
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/wx_osaf.sln /clean $(W32_BUILD_TYPE)
 
