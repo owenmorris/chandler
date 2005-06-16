@@ -16,7 +16,7 @@ class ClassLoader(object):
             name = name[lastDot+1:]
 
         try:
-            m = __import__(module, globals(), locals(), name)
+            m = __import__(module, globals(), locals(), ['__name__'])
         except ImportError:
             raise
         except:
