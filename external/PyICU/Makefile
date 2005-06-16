@@ -1,5 +1,6 @@
 
-VERSION=0.2
+VERSION=0.2-$(SVNVER)
+SVNVER=27
 RELVER=$(VERSION)-1
 PYICU=$(BUILD_ROOT)/PyICU
 SRC=$(PYICU)/PyICU-$(VERSION)
@@ -85,14 +86,10 @@ upload: $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz
 	scp $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
-PyICU-$(VERSION).tar.gz:
-	$(CURL) http://builds.o11n.org/external/PyICU-$(VERSION).tar.gz
-	$(CURL) http://builds.o11n.org/external/PyICU-$(VERSION).tar.gz.md5
+sources: PyICU-$(VERSION)-expanded
 
-sources: PyICU-$(VERSION).tar.gz
-
-PyICU-$(VERSION)-expanded: PyICU-$(VERSION).tar.gz
-	tar xvzf PyICU-$(VERSION).tar.gz
+PyICU-$(VERSION)-expanded:
+	svn export -r $(SVNVER) http://svn.osafoundation.org/pyicu/trunk PyICU-$(VERSION)
 	touch PyICU-$(VERSION)-expanded
 
 expand: PyICU-$(VERSION)-expanded
