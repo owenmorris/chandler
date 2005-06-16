@@ -195,10 +195,11 @@ report(
     "Classes w/other issues (use names as arguments, to get more details):",
     details
 )
+bad |= set(details)
 
 good = all - bad
 report(
-    "Ready to add Clouds and/or other metadata, then remove from parcel.xml",
+    "Ready to add optional metadata, then remove from parcel.xml",
     good
 )
 
