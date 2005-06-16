@@ -354,7 +354,6 @@ Would you like to remove all data from your repository?
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
-
         return True                     #indicates we succeeded with initialization
 
 

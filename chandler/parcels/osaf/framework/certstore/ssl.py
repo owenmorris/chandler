@@ -6,6 +6,11 @@ SSL
 """
 
 import osaf.framework.certstore.certificate as certificate
+import osaf.framework.certstore.notification as notification
+
+# XXX Should be done using ref collections instead?
+import repository.query.Query as Query
+
 
 def addCertificates(repView, ctx):
     """
@@ -14,17 +19,15 @@ def addCertificates(repView, ctx):
     @param repView: repository view
     @param ctx: SSL.Context
     """
-    qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "root" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE)
     
-    # XXX Should be done using ref collections instead?
-    import repository.query.Query as Query
-
     qName = 'sslCertificateQuery'
     q = repView.findPath('//Queries/%s' %(qName))
     if q is None:
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, qString)
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "root" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE))
+        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/schema/dummyCertNotification')
+        q.subscribe(notificationItem, 'handle', True, True)
         
     store = ctx.get_cert_store()
     for cert in q:

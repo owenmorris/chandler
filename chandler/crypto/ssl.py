@@ -110,9 +110,10 @@ class _VerifyCallback(object):
             # the issuing certificate.
             # We are being conservative for now and failing validation if the
             # error code is something else - this may need to be tweaked.
-            if err != m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY and \
-               err != m2.X509_V_ERR_CERT_UNTRUSTED and \
-               err != m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+            unknownIssuer = [m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
+                             m2.X509_V_ERR_CERT_UNTRUSTED,
+                             m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE]
+            if err not in unknownIssuer:
                 return ok
 
             x509 = store.get_current_cert()
@@ -123,27 +124,19 @@ class _VerifyCallback(object):
                 return 1
 
             # Check permanently trusted certificates
+            
+            # XXX Why does this need to be commit()? refresh() does not
+            # XXX seem pick up changes made in main thread.
             self.repositoryView.commit()
-            # XXX Should be done using ref collections instead?
-            import repository.query.Query as Query
+            
             # XXX Now we depend on parcels
             import osaf.framework.certstore.certificate as certificate
         
-            qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "site" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY)
-            
-            qName = 'sslTrustedSiteCertificatesQuery'
-            q = self.repositoryView.findPath('//Queries/%s' %(qName))
-            if q is None:
-                p = self.repositoryView.findPath('//Queries')
-                k = self.repositoryView.findPath('//Schema/Core/Query')
-                q = Query.Query(qName, p, k, qString)
-                
-            for cert in q:
-                print 'trusted site cert:', cert.subjectCommonName #XXX
-                if cert.pemAsString() == pem:
-                    return 1
-            else:
-                print 'no trusted site certs found'#XXX why don't we find?
+            q = self.repositoryView.findPath('//Queries/%s' %(certificate.TRUSTED_SITE_CERTS_QUERY_NAME))
+            if q is not None:
+                for cert in q:
+                    if cert.pemAsString() == pem:
+                        return 1
 
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to trust this

@@ -13,12 +13,20 @@ import application.Globals as Globals
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.framework.blocks.detail.Detail as Detail
+import osaf.framework.certstore.notification as notification
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
 
+# XXX Should be done using ref collections instead?
+import repository.query.Query as Query
+
+
 TRUST_AUTHENTICITY = 1
 TRUST_SITE         = 2
+
+TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
+ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where True'
 
 class Certificate(ContentModel.ContentItem):
     myKindID = None
@@ -55,6 +63,9 @@ class Certificate(ContentModel.ContentItem):
     siteBit = property(getSiteBit, setSiteBit,
                        doc='Site bit.')
 
+
+###
+# XXX begin store.py
 
 class CertificateViewController(Block.Block):
     def onCertificateViewBlockEvent(self, event):
@@ -107,10 +118,9 @@ def _certificateType(x509):
         elif _isSiteCertificate(x509):
             type = 'site'
     except LookupError:
-        print 'lookuperror'
         subject = x509.get_subject()
         issuer = x509.get_issuer()
-        if subject == issuer:
+        if subject.CN == issuer.CN:
             type = 'root'
         elif _isSiteCertificate(x509):
             type = 'site'
@@ -120,10 +130,33 @@ def _certificateType(x509):
         
     return type
 
+def _allCertificatesQuery(repView):
+    qName = 'allCertificatesQuery'
+    q = repView.findPath('//Queries/%s' %(qName))
+    if q is None:
+        p = repView.findPath('//Queries')
+        k = repView.findPath('//Schema/Core/Query')
+        q = Query.Query(qName, p, k, ALL_CERTS_QUERY)
+        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/schema/dummyCertNotification')
+        q.subscribe(notificationItem, 'handle', True, True)
+
+    return q
+
+def _isInRepository(repView, pem):
+    # XXX This could be optimized by querying based on some cheap field,
+    # XXX like subjectCommonName, which would typically return just 0 or 1
+    # XXX hit. But I don't want to leave query items laying around either.
+    q = _allCertificatesQuery(repView)
+    for cert in q:
+        if cert.pemAsString() == pem:
+            return True
 
 def _importCertificate(x509, fingerprint, trust, repView):
-    subjectCommonName = x509.get_subject().CN
     pem = x509.as_pem()
+    if _isInRepository(repView, pem):
+        raise ValueError, 'X.509 certificate is already in the repository'
+        
+    subjectCommonName = x509.get_subject().CN
     asText = x509.as_text()
     
     type = _certificateType(x509)
@@ -133,7 +166,7 @@ def _importCertificate(x509, fingerprint, trust, repView):
     
     cert = Certificate(view=repView)
     text = cert.getAttributeAspect('pem', 'type').makeValue(pem,
-                                                           compression=None)
+                                                            compression=None)
     cert.pem = text
     text = cert.getAttributeAspect('asText', 'type').makeValue(asText)
     cert.asText = text
@@ -142,6 +175,15 @@ def _importCertificate(x509, fingerprint, trust, repView):
     cert.fingerprintAlgorithm = 'sha1'
     cert.fingerprint = fingerprint
     cert.subjectCommonName = subjectCommonName
+
+    qName = TRUSTED_SITE_CERTS_QUERY_NAME
+    q = repView.findPath('//Queries/%s' %(qName))
+    if q is None:
+        p = repView.findPath('//Queries')
+        k = repView.findPath('//Schema/Core/Query')
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "site" and i.trust == %d' % (TRUST_AUTHENTICITY))
+        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/schema/dummyCertNotification')
+        q.subscribe(notificationItem, 'handle', True, True)
     
     repView.commit()
 
@@ -164,22 +206,24 @@ def ImportCertificate(repView, cpiaView):
         x509 = X509.load_cert(path)
         
         fingerprint = _fingerprint(x509)
+        type = _certificateType(x509)
+        # Note: the order of choices must match the selections code below
+        choices = ["Trust the authenticity of this certificate."]
+        if type == 'root':
+            choices += ["Trust this certificate to sign site certificates."]
 
-        # XXX Determine rootness before so we don't show bogus options, and
-        # XXX can customize the text.
         dlg = wx.MultiChoiceDialog(wx.GetApp().mainFrame,
                                    "Do you want to import this certificate?\n" +
-                                   "Type: root\n" + # XXX determine type
-                                   "SHA1 fingerprint: " + fingerprint +
+                                   "Type: " + type +
+                                   "\nSHA1 fingerprint: " + fingerprint +
                                    "\n" + x509.as_text(),
                                    "Import check",
-                                   choices=["Trust the authenticity of this certificate.",
-                                            "Trust this certificate to sign site certificates."])
+                                   choices=choices)
         trust = 0
         if dlg.ShowModal() == wx.ID_OK:
             selections = dlg.GetSelections()
             dlg.Destroy()
-            # XXX Number of selections depends on type of cert
+            # Note: this code must match the choices above
             for sel in selections:
                 if sel == 0:
                     trust |= TRUST_AUTHENTICITY
@@ -191,6 +235,8 @@ def ImportCertificate(repView, cpiaView):
 
         _importCertificate(x509, fingerprint, trust, repView)
     except:
+        # XXX Inform the user what went wrong so they can figure out how to
+        # XXX fix this.
         application.dialogs.Util.ok(wx.GetApp().mainFrame, "Error", 
             "Could not add certificate from: " + path + 
             "\nCheck the path and try again.")
@@ -198,26 +244,20 @@ def ImportCertificate(repView, cpiaView):
 
 
 def CreateSidebarView(repView, cpiaView):
-    qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where True'
     sidebar = ItemCollection.ItemCollection(view=repView)
     sidebar.displayName = 'Certificate Store'
-    sidebar._rule = qString
+    sidebar._rule = ALL_CERTS_QUERY
 
-    # XXX Should be done using ref collections instead?
-    import repository.query.Query as Query
-
-    qName = 'certificateStoreQuery'
-    q = repView.findPath('//Queries/%s' %(qName))
-    if q is None:
-        p = repView.findPath('//Queries')
-        k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, qString)
+    q = _allCertificatesQuery(repView)
+    
     for item in q:
         sidebar.add(item)
 
     cpiaView.postEventByName('AddToSidebarWithoutCopying',
                              {'items': [sidebar]})
 
+# XXX end store.py
+###############
 
 class EditIntegerAttribute (Detail.EditTextAttribute):
     #XXX Get rid of this as soon as boolean editors work with properties

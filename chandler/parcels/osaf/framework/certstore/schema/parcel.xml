@@ -100,6 +100,17 @@
 
     <!-- Typical clouds include a "default" cloud, and a "sharing" cloud -->
 
-  </Kind>  
+  </Kind>
   
+  <Kind itsName="NotificationItem">
+    <superKinds itemref="Item"/>
+    <classes key="python">osaf.framework.certstore.notification.NotificationItem</classes>
+
+    <displayName>Notification Item</displayName>
+    <description>A notification item, mainly intended as a dummy for query subscriptions.</description>
+
+  </Kind>
+  
+  <doc:NotificationItem itsName="dummyCertNotification"/>
+   
 </Parcel>
