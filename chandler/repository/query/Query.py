@@ -603,9 +603,9 @@ class ForPlan(LogicalPlan):
             try:
                 c = eval(self._predicate)
                 if c:
-                    if len(self.__item._sameViewSubscribeCallbacks) > 0:
-                        if  len(self.affectedAttributes) > 1:
-                            print "monitoring of multi-item paths is not yet supported"
+#                    if len(self.__item._sameViewSubscribeCallbacks) > 0:
+#                        if  len(self.affectedAttributes) > 1:
+#                            print "monitoring of multi-item paths is not yet supported"
                     yield i
             except AttributeError, ae:
                 log.debug(u"AttributeError, %s" % ae)
