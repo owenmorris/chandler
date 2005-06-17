@@ -2212,12 +2212,10 @@ class Item(CItem):
 
         return match
 
-    def _unloadItem(self, reloadable):
+    def _unloadItem(self, reloadable, view):
 
         if self.isDirty():
             raise DirtyItemError, self
-
-        view = self.getRepositoryView()
 
         if hasattr(type(self), 'onItemUnload'):
             self.onItemUnload(view)

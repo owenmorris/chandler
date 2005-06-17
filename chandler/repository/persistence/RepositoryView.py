@@ -602,7 +602,7 @@ class RepositoryView(object):
 
         return instance
 
-    def refresh(self, mergeFn=None):
+    def refresh(self, mergeFn=None, version=None):
         """
         Refresh this view to the changes made in other views.
 
@@ -1035,14 +1035,14 @@ class OnDemandRepositoryView(RepositoryView):
                         itemRefs = item._refCount()
                         pythonRefs = sys.getrefcount(item)
                         if pythonRefs - itemRefs <= 3:
-                            item._unloadItem(False)
+                            item._unloadItem(False, self)
                         else:
                             self.logger.warn('not pruning %s (refCount %d)',
                                              item._repr_(),
                                              pythonRefs - itemRefs)
                 else:
                     for i in xrange(count):
-                        registry[heapq.heappop(heap)[1]]._unloadItem(False)
+                        registry[heapq.heappop(heap)[1]]._unloadItem(False, self)
 
 
 class NullRepositoryView(RepositoryView):

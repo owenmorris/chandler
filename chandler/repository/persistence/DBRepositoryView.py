@@ -59,7 +59,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 item._status &= ~Item.DELETED
             else:
                 item.setDirty(0)
-                item._unloadItem(not item.isNew())
+                item._unloadItem(not item.isNew(), self)
 
         for item in self._log:
             if not item.isNew():
@@ -161,10 +161,10 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return self._indexWriter
 
-    def refresh(self, mergeFn=None):
+    def refresh(self, mergeFn=None, version=None):
 
         store = self.repository.store
-        newVersion = store.getVersion()
+        newVersion = version or store.getVersion()
         
         if newVersion > self._version:
             histNotifications = RepositoryNotifications()
@@ -181,7 +181,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 except:
                     for item in self._log:
                         item.setDirty(0)
-                        item._unloadItem(True)
+                        item._unloadItem(True, self)
                     raise
                 else:
                     # unload items unchanged until changed by merging
@@ -206,7 +206,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             for item in unloads.itervalues():
                 self.logger.debug('unloading version %d of %s',
                                   item._version, item)
-                item._unloadItem(refCounted or item.isPinned())
+                item._unloadItem(refCounted or item.isPinned(), self)
             for item in unloads.itervalues():
                 if refCounted or item.isPinned():
                     self.logger.debug('reloading version %d of %s',
@@ -221,7 +221,15 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self.logger.warning('%s %d notifications ran in %s',
                                     self, count, timedelta(seconds=duration))
 
-        self.prune(10000)
+            self.prune(10000)
+
+        elif newVersion < self._version:
+            if self._log:
+                self.cancel()
+            for item in [item for item in self._registry.itervalues()
+                         if item._version > newVersion]:
+                item._unloadItem(False, self)
+            self._version = newVersion
 
     def commit(self, mergeFn=None):
 
