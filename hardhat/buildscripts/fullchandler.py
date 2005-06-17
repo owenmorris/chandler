@@ -418,6 +418,10 @@ def NeedsUpdate(outputList):
         if line.lower().find("xercessamples") != -1:
             # same type of hack as above
             continue
+        if line.lower().startswith('restored'):
+            # treat a restored file as if it is a modified file
+            print "needs update because of", line
+            return True
 
         s = line[:4]  # in subversion, there are 3 possible positions
                       # the update flags are found
