@@ -26,7 +26,6 @@ import errors as errors
 import message as message
 import utils as utils
 
-
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
     """Turn off Twisted SMTPClient logging if not in __debug__ mode"""
@@ -127,22 +126,23 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         if __debug__:
             self.printCurrentView("_viewCommitSuccess")
 
-        reactor.callFromThread(self.__actionComplete)
+        reactor.callFromThread(self._actionComplete)
 
-    def __actionComplete(self):
+    def _actionComplete(self):
         if __debug__:
-            self.printCurrentView("__actionComplete")
+            self.printCurrentView("_actionComplete")
 
-        key = None
+        if not self.testing:
+            key = None
 
-        mailMessage = self.curTransport.mailMessage
-
-        if mailMessage.deliveryExtension.state == "FAILED":
-            key = "displaySMTPSendError"
-        else:
-            key = "displaySMTPSendSuccess"
-
-        utils.NotifyUIAsync(mailMessage, callable=key)
+            mailMessage = self.curTransport.mailMessage
+    
+            if mailMessage.deliveryExtension.state == "FAILED":
+                key = "displaySMTPSendError"
+            else:
+                key = "displaySMTPSendSuccess"
+    
+            utils.NotifyUIAsync(mailMessage, callable=key)
 
         self.curTransport = None
 
@@ -287,6 +287,9 @@ class _SMTPTransport(object):
 
         d = defer.Deferred()
         d.addCallback(self.__testSuccess)
+        # XXX This probably should not be needed because we should just succeed in
+        # XXX disconnect
+        d.addErrback(ssl.verifyErrorFilter)
         d.addErrback(self.__testFailure)
 
         self.__sendMail("", [], "", d, True)
@@ -311,8 +314,21 @@ class _SMTPTransport(object):
             authRequired = True
             heloFallback = False
 
+        if testing:
+            # XXX The disconnect callback (self.parent._actionComplete) does
+            # XXX not seem to work for testing, we get as many
+            # XXX SSL certificate trust dialogs as we do automatic retries.
+            reconnect = self.parent.testAccountSettings
+        else:
+            reconnect = lambda: self.parent.sendMail(self.mailMessage)
+
+        verifyCallback = ssl._VerifyCallback(self.parent.view,
+                                             self.parent._actionComplete,
+                                             reconnect)
+
         if account.connectionSecurity == 'TLS':
-            tlsContext = ssl.getContext(self.parent.view)
+            tlsContext = ssl.getContext(self.parent.view,
+                                        verifyCallback=verifyCallback)
             securityRequired = True
 
         msg = StringIO.StringIO(messageText)
@@ -325,7 +341,8 @@ class _SMTPTransport(object):
         if account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             factory.startTLS = True
-            factory.getContext = lambda : ssl.getContext(self.parent.view)
+            factory.getContext = lambda : ssl.getContext(self.parent.view,
+                                                         verifyCallback=verifyCallback)
 
         factory.sslChecker = ssl.postConnectionCheck
 
@@ -527,8 +544,6 @@ class _SMTPTransport(object):
             except AttributeError, IndexError:
                 errDesc = ""
 
-            #XXX: Special Case should be caught prompting the message to be resent
-            #     if the user adds the cert to the chain
             if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
                 errorString =  errors.STR_SSL_CERTIFICATE_ERROR
             else:

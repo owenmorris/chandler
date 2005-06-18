@@ -203,9 +203,7 @@ class MainView(View):
              "", statusMessage)
             self.setStatusMessage ('')
 
-    def askTrustSiteCertificate(self, pem):
-        # XXX need to suppress mail error dialogs? Or terminate
-        # XXX the mail fetch in our caller?
+    def askTrustSiteCertificate(self, pem, reconnect):
         import M2Crypto.X509 as X509
         import osaf.framework.certstore.certificate as certificate
         x509 = X509.load_cert_string(pem)
@@ -218,16 +216,19 @@ class MainView(View):
                                    'Trust Site Certificate?',
                                    choices=['Trust the authenticity of this certificate until program exit.',
                                             'Trust the authenticity of this certificate permanently.'])
-        if dlg.ShowModal() == wx.ID_OK:
-            selection = dlg.GetSelection()
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                selection = dlg.GetSelection()
+            
+                if selection == 0:
+                    import crypto.ssl as ssl
+                    ssl.trusted_until_shutdown_site_certs += [pem]
+                else:
+                    certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
+    
+                reconnect()
+        finally:
             dlg.Destroy()
-        
-            if selection == 0:
-                import crypto.ssl as ssl
-                ssl.trusted_until_shutdown_site_certs += [pem]
-            else:
-                certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
-            # XXX need to retry connection
 
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 

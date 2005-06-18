@@ -92,16 +92,21 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
 
 trusted_until_shutdown_site_certs = []
 
+# XXX Make this public class
 class _VerifyCallback(object):
-    # We need to use a class to transmit the repository view. Otherwise
-    # this could be an ordinary function instead of a class with __call__.
+    # We need to use a class to transmit the repository view and
+    # callbacks. Otherwise this could be an ordinary function 
+    # instead of a class with __call__.
     
-    def __init__(self, repositoryView):
+    def __init__(self, repositoryView, disconnect=None,
+                 reconnect=None):
         self.repositoryView = repositoryView
-
+        self.disconnect = disconnect
+        self.reconnect = reconnect
+        
     def __call__(self, ok, store):
         global trusted_until_shutdown_site_certs
-        
+                
         if not ok:
             err = store.get_error()
 
@@ -138,16 +143,44 @@ class _VerifyCallback(object):
                     if cert.pemAsString() == pem:
                         return 1
 
+            # XXX Should maybe require disconnect and reconnect, but for now,
+            # XXX make it work so that manual reconnect works (even if you get
+            # XXX multiple trust dialogs).
+            if self.disconnect is not None:
+                # Silently terminate current connection, prevent retries and error messages
+                self.disconnect()
+            if self.disconnect is None or self.reconnect is None:
+                # If we can't disconnect, we should not automatically reconnect
+                # because doing so could cause multiple copies of mail being
+                # sent, for example, in case the underlying code was doing
+                # automatic retries.
+                self.reconnect = lambda: 0
+                
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to trust this
-            # certificate.
-            # XXX This should probably be moved to mail code so that
-            # XXX we can terminate connection and prevent the error dialogs.
-            # XXX We would also be able to redo the connection there.
+            # certificate. The main thread will then initiate a retry when the
+            # new certificate has been added.
             import application.Globals as Globals
             Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
                                                       'askTrustSiteCertificate',
-                                                      pem)
-            
-
+                                                      pem,
+                                                      self.reconnect)
+                
         return ok
+
+
+def verifyErrorFilter(err):
+    """
+    This function is intended to be chained into twisted deferred errbacks.
+    This should be called before the application level errback, and will filter
+    out SSL verification errors that we know how to deal with. For example:
+        
+        d = defer.Deferred()
+        d.addCallback(self._testSuccess)
+        d.addErrback(ssl.verifyErrorFilter)
+        d.addErrback(self._testFailure)
+    """
+    import M2Crypto
+    if err.check(M2Crypto.BIO.BIOError) is None or \
+       err.value[0] != m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+        err.raiseException()

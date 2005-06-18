@@ -30,6 +30,7 @@ import errors
 import constants
 import utils
 
+
 class AbstractDownloadClientFactory(protocol.ClientFactory):
     """ Base class for Chandler download transport factories(IMAP, POP, etc.).
         Encapsulates boiler plate logic for working with Twisted Client Factory
@@ -228,7 +229,15 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         if self.account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
             self.factory.startTLS   = True
-            self.factory.getContext = lambda : ssl.getContext(repositoryView=self.view)
+            if self.testing:
+                reconnect = self.testAccountSettings
+            else:
+                reconnect = self.getMail
+            verifyCallback = ssl._VerifyCallback(self.view,
+                                                 self._actionCompleted,
+                                                 reconnect)
+            self.factory.getContext = lambda : ssl.getContext(repositoryView=self.view,
+                                                              verifyCallback=verifyCallback)
 
         self.factory.sslChecker = ssl.postConnectionCheck
 
@@ -257,11 +266,9 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         if errorType == errors.M2CRYPTO_ERROR:
             try:
                 errDesc = err.args[0]
-            except AttributeError, IndexError:
+            except (AttributeError, IndexError):
                 errDesc = ""
 
-            #XXX: Special Case should be caught prompting the message to be resent
-            #     if the user adds the cert to the chain
             if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
                 errorStr = errors.STR_SSL_CERTIFICATE_ERROR
             else:
@@ -370,7 +377,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """Resets Client object state variables to
            default state.
         """
-
+        
         if __debug__:
             self.printCurrentView("_resetClient")
 
