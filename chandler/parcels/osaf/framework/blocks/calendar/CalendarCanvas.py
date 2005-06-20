@@ -792,7 +792,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         collections = self.contents.source
         selectedCollection = collections.first()
-        containingCollections = event.itemCollectionInclusions
         calDataKind = CalendarData.getKind(view=self.itsView)
         firstSpecialCollection = None
         for coll in collections:
