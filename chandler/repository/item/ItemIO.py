@@ -29,7 +29,7 @@ class ItemWriter(object):
             size += self._className(None, None)
 
         if status & Item.DELETED == 0:
-            all = (status & Item.NEW) != 0 or item._version == 0
+            all = (status & (Item.NEW | Item.MERGED)) != 0 or item._version == 0
             size += self._values(item, version, withSchema, all)
             size += self._references(item, version, withSchema, all)
             size += self._children(item, version, all)

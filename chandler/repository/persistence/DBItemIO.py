@@ -34,7 +34,8 @@ class DBItemWriter(ItemWriter):
 
         self.values = []
 
-        if not (item.isNew() or item._version == 0):
+        if not ((item._status & (Item.NEW | Item.MERGED)) != 0 or
+                item._version == 0):
             self.oldValues = self.store._items.getItemValues(item._version,
                                                              item._uuid)
             if self.oldValues is None:
