@@ -325,6 +325,10 @@ def doRealclean(log, workingDir):
 
 def NeedsUpdate(outputList):
     for line in outputList:
+        if line.lower().startswith('at revision'):
+            # used to prevent the message that SVN produces when
+            # nothing was updated from tripping the 'A' check below
+            continue
         if line.lower().find("ide scripts") != -1:
             # this hack is for skipping some Mac-specific files that
             # under Windows always appear to be needing an update
@@ -332,13 +336,27 @@ def NeedsUpdate(outputList):
         if line.lower().find("xercessamples") != -1:
             # same type of hack as above
             continue
-        if line[0] == "U":
+        if line.lower().startswith('restored'):
+            # treat a restored file as if it is a modified file
             print "needs update because of", line
             return True
-        if line[0] == "P":
+
+        s = line[:4]  # in subversion, there are 3 possible positions
+                      # the update flags are found
+
+        if s.find("U") != -1:
             print "needs update because of", line
             return True
-        if line[0] == "A":
+        if s.find("P") != -1:
+            print "needs update because of", line
+            return True
+        if s.find("A") != -1:
+            print "needs update because of", line
+            return True
+        if s.find("G") != -1:
+            print "needs update because of", line
+            return True
+        if s.find("!") != -1:
             print "needs update because of", line
             return True
     return False
