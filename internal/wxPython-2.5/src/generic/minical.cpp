@@ -451,6 +451,7 @@ size_t wxMiniCalendar::GetWeek(const wxDateTime& date) const
 #define HORZ_MARGIN    15
 #endif
 #define EXTRA_MONTH_HEIGHT    5
+#define SEPARATOR_MARGIN      3
 wxSize wxMiniCalendar::DoGetBestSize() const
 {
     // calc the size of the calendar
@@ -521,8 +522,8 @@ void wxMiniCalendar::RecalcGeometry()
     }
 
     // leave some margins
-    m_widthCol += 6;
-    m_heightRow += 2;
+    m_widthCol += 8;
+    m_heightRow += 4;
     if ( (GetWindowStyle() & wxCAL_SHOW_PREVIEW) != 0 )
     {
         m_heightPreview = NUMBER_TO_PREVIEW * m_heightRow;
@@ -667,6 +668,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     wxColour mainColour = wxColour(128, 128, 128);
     wxColour lightColour = wxColour(191, 191, 191);
     wxColour highlightColour = wxColour(204, 204, 204);
+	wxColour lineColour = wxColour(229, 229, 229);
 
     dc.SetTextForeground(mainColour);
     for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, y += m_heightRow )
@@ -719,7 +721,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                         dc.SetTextBackground(highlightColour);
                         dc.SetBrush(wxBrush(highlightColour, wxSOLID));
                         dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
-                        dc.DrawRoundedRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow, 2);
+                        dc.DrawRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow);
 
                         changedColours = true;
                     }
@@ -760,6 +762,13 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
             }
             //else: just don't draw it
             date += wxDateSpan::Day();
+        }
+
+		// draw lines between each set of weeks
+        if ( nWeek != WEEKS_TO_DISPLAY && nWeek != 1)
+        {
+			dc.SetPen(wxPen(lineColour, 1, wxSOLID));
+			dc.DrawLine(SEPARATOR_MARGIN, y - 1,  DAYS_PER_WEEK * m_widthCol - SEPARATOR_MARGIN, y - 1);
         }
     }
 
