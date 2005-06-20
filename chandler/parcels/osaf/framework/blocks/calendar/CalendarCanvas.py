@@ -415,7 +415,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         # directly for dayWidth and hourHeight, we probably need some system 
         # instead similar to getPositionFromDateTime where we pass in a duration
         duration = (endTime - startTime)
-        duration = duration.days * 24 + duration.seconds / 3600
+        duration = duration.days * 24 + duration.seconds / float(3600)
         (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(duration * calendarCanvas.hourHeight))
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
