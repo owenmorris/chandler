@@ -14,6 +14,12 @@
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
       <ref alias="displayName" type="path">/Core/displayName</ref>
+
+      <!-- 
+         - plus local attributes below:
+         -     monitors, queries, watcherDispatch, watchers, watches
+        -->
+
     </ref>
 
     <attribute name="classes" cardinality="dict" type="class">
@@ -49,6 +55,54 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">_resultSet</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>watcherDispatch</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Set</ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="companion">watchers</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>watchers</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">watches</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>watches</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">watchers</attribute>
   </item>
 
 </items>

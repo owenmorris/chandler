@@ -21,7 +21,7 @@ class ExclusiveOpenDeniedError(RepositoryLockNotGrantedError):
 class RepositoryOpenDeniedError(RepositoryLockNotGrantedError):
     pass
 
-class PermissionsError(RepositoryError):
+class RepositoryPasswordError(RepositoryError):
     pass
 
 

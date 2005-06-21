@@ -880,6 +880,8 @@ class RepositoryView(object):
     itsName = property(__getName)
     itsPath = property(_getPath)
     itsView = property(lambda self: self)
+    itsVersion = property(lambda self: self._version,
+                          lambda self, value: self.refresh(version=value))
     itsParent = None
     
     logger = property(getLogger)

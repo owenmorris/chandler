@@ -18,7 +18,7 @@ from repository.persistence.Repository import \
     Repository, OnDemandRepository, Store
 from repository.persistence.RepositoryError import \
     RepositoryError, ExclusiveOpenDeniedError, RepositoryOpenDeniedError, \
-    PermissionsError
+    RepositoryPasswordError
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
@@ -36,7 +36,7 @@ from bsddb.db import \
     DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
 from bsddb.db import \
     DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
-    DBLockDeadlockError, DBPermissionsError
+    DBLockDeadlockError, DBPermissionsError, DBInvalidArgError
 
 # missing from python interface at the moment
 DB_DSYNC_LOG = 0x00008000
@@ -306,8 +306,15 @@ class DBRepository(OnDemandRepository):
                 else:
                     raise
 
+            except DBInvalidArgError, e:
+                if "no encryption key" in e.args[1]:
+                    raise RepositoryPasswordError, e.args[1]
+                raise
+
             except DBPermissionsError, e:
-                raise PermissionsError, e.args[1]
+                if "Invalid password" in e.args[1]:
+                    raise RepositoryPasswordError, e.args[1]
+                raise
 
             self._status |= Repository.OPEN
             self._afterOpen()

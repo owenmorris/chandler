@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<item withSchema="True">
+  <name>AbstractSet</name>
+  <kind type="path">//Schema/Core/Type</kind>
+  <class module="repository.schema.Types">AbstractSet</class>
+</item>

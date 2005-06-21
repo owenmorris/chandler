@@ -281,6 +281,15 @@ class RefList(LinkedMap):
 
         self._setDirty()
 
+    def add(self, item, alias=None):
+        """
+        Add an item to this ref collection.
+
+        This is method is a synonym for the L{append} method.
+        """
+
+        self.append(item, alias)
+
     def append(self, item, alias=None):
         """
         Append an item to this ref collection.
@@ -351,11 +360,8 @@ class RefList(LinkedMap):
         if not load:
             other._references._getRef(self._otherName, self._item)
 
-#        if not loading:
-#            item = self._item
-#            onSetChange = getattr(type(item), 'onSetChange', None)
-#            if onSetChange is not None:
-#                onSetChange(item, 'add', item, self._name, other)
+        if not loading:
+            self._item._collectionChanged('add', self._name, other)
 
         return other
 
@@ -469,11 +475,7 @@ class RefList(LinkedMap):
                 index.removeKey(key)
 
         link = super(RefList, self).__delitem__(key)
-
-#        item = self._item
-#        onSetChange = getattr(type(item), 'onSetChange', None)
-#        if onSetChange is not None:
-#            onSetChange(item, 'remove', item, self._name, other)
+        self._item._collectionChanged('remove', self._name, other)
 
         return link
 

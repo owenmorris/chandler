@@ -8,6 +8,7 @@ import chandlerdb.util.uuid
 import repository.util.Path
 import repository.util.SingleRef
 import repository.util.URL
+import repository.item.Sets as Sets
 
 from new import classobj
 from struct import pack
@@ -1613,6 +1614,50 @@ class Set(Collection):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
         return itemReader.readSet(offset, data, withSchema, None, view, name)
+
+
+class AbstractSet(Type):
+
+    def getImplementationType(self):
+
+        return Sets.AbstractSet
+
+    def handlerName(self):
+
+        return 'set'
+
+    def makeValue(self, data):
+
+        return Sets.AbstractSet.makeValue(data)
+
+    def makeString(self, value):
+
+        return Sets.AbtractSet.makeString(value)
+    
+    def recognizes(self, value):
+
+        return isinstance(value, Sets.AbstractSet)
+
+    def _compareTypes(self, other):
+
+        return 0
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        string = Sets.AbstractSet.makeString(value)
+        return itemWriter.writeString(buffer, string)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        offset, string = itemReader.readString(offset, data)
+        return offset, Sets.AbstractSet.makeValue(string)
+
+    def hashValue(self, value):
+
+        if value is None:
+            return 0
+
+        return _hash(repr(value))
 
 
 class Lob(Type):

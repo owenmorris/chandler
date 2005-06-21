@@ -224,11 +224,10 @@ class DBRepositoryView(OnDemandRepositoryView):
             self.prune(10000)
 
         elif newVersion < self._version:
-            if self._log:
-                self.cancel()
+            self.cancel()
             for item in [item for item in self._registry.itervalues()
                          if item._version > newVersion]:
-                item._unloadItem(False, self)
+                item._unloadItem(True, self)
             self._version = newVersion
 
     def commit(self, mergeFn=None):

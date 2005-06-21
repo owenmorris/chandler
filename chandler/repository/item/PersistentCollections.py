@@ -125,6 +125,35 @@ class PersistentCollection(object):
                 item = owner[0]
                 if not item.hasValue(companion, value):
                     item.addValue(companion, value)
+            elif isinstance(value, (list, set, tuple)):
+                for v in value:
+                    self._storeValue(v)
+            elif isinstance(value, dict):
+                for v in value.itervalues():
+                    self._storeValue(v)
+
+    def _useValue(self, value):
+
+        if isinstance(value, PersistentCollection):
+            return value
+
+        from repository.item.Item import Item
+
+        if isinstance(value, Item):
+            return SingleRef(value._uuid)
+        elif isinstance(value, list):
+            return [self._useValue(v) for v in value]
+        elif isinstance(value, set):
+            return set([self._useValue(v) for v in value])
+        elif isinstance(value, tuple):
+            return tuple([self._useValue(v) for v in value])
+        elif isinstance(value, dict):
+            d = {}
+            for k, v in value.itervalues():
+                d[k] = self._useValue(v)
+            return d
+        else:
+            return value
 
     def _iterItems(self, items=None):
 
@@ -183,30 +212,15 @@ class PersistentList(list, PersistentCollection):
 
     def __contains__(self, value):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        return super(PersistentList, self).__contains__(value)
+        return super(PersistentList, self).__contains__(self._useValue(value))
 
     def index(self, value):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        return super(PersistentList, self).index(value)
+        return super(PersistentList, self).index(self._useValue(value))
 
     def count(self, value):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        return super(PersistentList, self).count(value)
+        return super(PersistentList, self).count(self._useValue(value))
 
     def __setitem__(self, index, value):
 
@@ -281,20 +295,17 @@ class PersistentList(list, PersistentCollection):
 
         return value
 
-    def remove(self, value):
+    def remove(self, value, setDirty=True):
 
-        from repository.item.Item import Item
+        super(PersistentList, self).remove(self._useValue(value))
+        if setDirty:
+            self._setDirty()
 
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        super(PersistentList, self).remove(value)
-        self._setDirty()
-
-    def reverse(self):
+    def reverse(self, setDirty=True):
 
         super(PersistentList, self).reverse()
-        self._setDirty()
+        if setDirty:
+            self._setDirty()
 
     def sort(self, *args):
 
@@ -506,12 +517,7 @@ class PersistentTuple(tuple, PersistentCollection):
 
     def __contains__(self, value):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        return super(PersistentTuple, self).__contains__(value)
+        return super(PersistentTuple, self).__contains__(self._useValue(value))
 
     def __iter__(self):
 
@@ -561,12 +567,7 @@ class PersistentSet(set, PersistentCollection):
 
     def __contains__(self, value):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        return super(PersistentSet, self).__contains__(value)
+        return super(PersistentSet, self).__contains__(self._useValue(value))
 
     def __iter__(self):
 
@@ -600,29 +601,21 @@ class PersistentSet(set, PersistentCollection):
 
     def remove(self, value, setDirty=True):
 
-        from repository.item.Item import Item
-
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        super(PersistentSet, self).remove(value)
+        super(PersistentSet, self).remove(self._useValue(value))
         if setDirty:
             self._setDirty()
 
-    def discard(self, value):
+    def discard(self, value, setDirty=True):
 
-        from repository.item.Item import Item
+        super(PersistentSet, self).discard(self._useValue(value))
+        if setDirty:
+            self._setDirty()
 
-        if isinstance(value, Item):
-            value = SingleRef(value._uuid)
-
-        super(PersistentSet, self).discard(value)
-        self._setDirty()
-
-    def clear(self):
+    def clear(self, setDirty=True):
 
         super(PersistentSet, self).clear()
-        self._setDirty()
+        if setDirty:
+            self._setDirty()
 
     def update(self, value, setDirty=True):
 

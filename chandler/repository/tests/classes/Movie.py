@@ -21,7 +21,7 @@ class Movie(Item):
 
         self.monitorAttribute = attribute
 
-    def onSetChange(self, op, item, name, other):
+    def collectionChanged(self, op, item, name, other, *args):
 
-        #print op, item, name, other
-        pass
+        print op, self, item, name, other, args
+

@@ -20,6 +20,7 @@
     <ref alias="date" type="path">/CineGuide/Attributes/date</ref>
     <ref alias="time" type="path">/CineGuide/Attributes/time</ref>
     <ref alias="delta" type="path">/CineGuide/Attributes/delta</ref>
+    <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
   </ref>
 
   <attribute name="displayAttribute">title</attribute>

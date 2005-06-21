@@ -91,6 +91,10 @@ class Values(dict):
 
         if self._getFlags(key) & Values.READONLY:
             raise ReadOnlyAttributeError, (self._item, key)
+        
+        oldValue = self.get(key, None)
+        if oldValue is not None and isinstance(oldValue, ItemValue):
+            oldValue._setItem(None, None)
 
         return super(Values, self).__setitem__(key, value)
 
@@ -98,6 +102,10 @@ class Values(dict):
 
         if self._getFlags(key) & Values.READONLY:
             raise ReadOnlyAttributeError, (self._item, key)
+
+        value = self.get(key, None)
+        if value is not None and isinstance(value, ItemValue):
+            value._setItem(None, None)
 
         return super(Values, self).__delitem__(key)
 
@@ -980,8 +988,9 @@ class ItemValue(object):
 
     def _setItem(self, item, attribute):
 
-        if self._item is not None and self._item is not item:
-            raise OwnedValueError, (self._item, self._attribute, self)
+        if item is not None:
+            if self._item is not None and self._item is not item:
+                raise OwnedValueError, (self._item, self._attribute, self)
         
         self._item = item
         self._attribute = attribute

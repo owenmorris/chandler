@@ -462,6 +462,61 @@ class Item(CItem):
             if refList is not None and item._uuid in refList:
                 refList.placeItem(item, None, indexName)
 
+    def _collectionChanged(self, op, name, other):
+
+        if op == 'remove':
+            if name == 'watchers':
+                dispatch = self._values.get('watcherDispatch', None)
+                if dispatch is not None:
+                    for key, watchers in dispatch.iteritems():
+                        watchers = [watcher for watcher in watchers
+                                    if watcher[0] != other]
+                        dispatch[key] = set(watchers)
+
+        dispatch = self._values.get('watcherDispatch', None)
+        if dispatch:
+            watchers = dispatch.get(name, None)
+            if watchers:
+                for (watcher, args) in watchers:
+                    if len(args) == 2 and args[0] == 'set':
+                        getattr(watcher, args[1]).sourceChanged(op, self, name,
+                                                                other, False)
+                    else:
+                        watcher.collectionChanged(op, self, name, other, *args)
+
+    def _registerCollectionWatch(self, watcher, name, args):
+
+        dispatch = self._values.get('watcherDispatch', None)
+        watcher = (watcher, tuple(args))
+        if dispatch is None:
+            self.watcherDispatch = { name: set([watcher]) }
+        else:
+            watchers = dispatch.get(name, None)
+            if watchers is None:
+                dispatch[name] = set([watcher])
+            else:
+                watchers.add(watcher)
+
+    def _unregisterCollectionWatch(self, watcher, name, args):
+
+        dispatch = self._values.get('watcherDispatch', None)
+        if dispatch:
+            watcher = (watcher, tuple(args))
+            try:
+                watchers = dispatch[name]
+                watchers.remove(watcher)
+            except KeyError:
+                pass
+
+    def collectionChanged(self, op, item, name, other, *args):
+        pass
+
+    def watchCollection(self, owner, name, *args):
+        owner._registerCollectionWatch(self, name, args)
+
+    def unwatchCollection(self, owner, name, *args):
+        owner._unregisterCollectionWatch(self, name, args)
+
     def getAttributeValue(self, name, _attrDict=None, _attrID=None,
                           default=Default):
         """
