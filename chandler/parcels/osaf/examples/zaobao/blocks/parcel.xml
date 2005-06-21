@@ -15,7 +15,7 @@
   <BlockEvent itsName="NewZaoBaoChannelEvent">
     <blockName>NewZaoBaoChannel</blockName>
     <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:ZaoBaoController"/>
+    <destinationBlockReference itemref="doc:ZaoBaoControllerItem"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
   
@@ -26,7 +26,7 @@
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
 
-  <Block itsName="ZaoBaoController" itemClass="osaf.examples.zaobao.blocks.ZaoBaoController">
+  <Block itsName="ZaoBaoControllerItem" itemClass="osaf.examples.zaobao.blocks.ZaoBaoController">
   </Block>
   
   <!-- detail view stuff -->
