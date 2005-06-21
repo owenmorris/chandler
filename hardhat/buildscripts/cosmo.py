@@ -27,9 +27,9 @@ reposModules = [('jsp',    'commons/trunk/jsp'),
 reposBuild   = [('jsp',    'jar:install'),  # install step done here so cosmo build 
                 ('spring', 'jar:install'),  # always built against latest
                 ('struts', 'jar:install'),
-                ('cosmo',  '-Dmaven.test.skip=true clean test:dbsetup build'),
+                ('cosmo',  'clean build'),
                ]
-reposTest    = [('cosmo',  'test:dbsetup test'),
+reposTest    = [('cosmo',  'test'),
                ]
 reposDist    = [('cosmo',  'dist:release', 'dist',   'cosmo*.tar.gz'),
                ]

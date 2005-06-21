@@ -164,20 +164,23 @@ def main():
 
             status = "success"
 
+            srcDir = os.path.join(buildDir, "output", buildVersion)
             newDir = os.path.join(outputDir, buildVersion)
-            print "Renaming " + os.path.join(buildDir, "output", buildVersion) + " to " + newDir 
-            log.write("Renaming " + os.path.join(buildDir, "output", buildVersion) + " to " + newDir + "\n")
-            os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
-            if os.path.exists(outputDir+os.sep+"index.html"):
-                os.remove(outputDir+os.sep+"index.html")
-            if os.path.exists(outputDir+os.sep+"time.js"):
-                os.remove(outputDir+os.sep+"time.js")
-            print "Calling CreateIndex with " + newDir
-            log.write("Calling CreateIndex with " + newDir + "\n")
-            CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
-            print "Calling RotateDirectories"
-            log.write("Calling RotateDirectories\n")
-            RotateDirectories(outputDir)
+
+            if os.path.exists(srcDir):
+                print "Renaming " + srcDir + " to " + newDir 
+                log.write("Renaming " + srcDir + " to " + newDir + "\n")
+                os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
+                if os.path.exists(outputDir+os.sep+"index.html"):
+                    os.remove(outputDir+os.sep+"index.html")
+                if os.path.exists(outputDir+os.sep+"time.js"):
+                    os.remove(outputDir+os.sep+"time.js")
+                print "Calling CreateIndex with " + newDir
+                log.write("Calling CreateIndex with " + newDir + "\n")
+                CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
+                print "Calling RotateDirectories"
+                log.write("Calling RotateDirectories\n")
+                RotateDirectories(outputDir)
 
             buildNameNoSpaces = buildName.replace(" ", "")
             
