@@ -14,7 +14,7 @@ __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference', 'Enumeration',
-    'Cloud', 'Endpoint', 'addClouds',
+    'Cloud', 'Endpoint', 'addClouds', 'Struct',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -157,12 +157,12 @@ class Role(ActiveDescriptor,CDescriptor):
         if self.owner is None:
             self.owner = cls
             CDescriptor.__init__(self,name)
-        if isinstance(cls,ItemClass) and self.inverse is not None:
-            if isinstance(self.inverse,ForwardReference):
-                return
-            elif isinstance(self.inverse.inverse,ForwardReference):
-                self.inverse.inverse = self
-            self.inverse.type = cls
+            if isinstance(cls,ItemClass) and self.inverse is not None:
+                if isinstance(self.inverse,ForwardReference):
+                    return
+                elif isinstance(self.inverse.inverse,ForwardReference):
+                    self.inverse.inverse = self
+                self.inverse.type = cls
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
@@ -447,9 +447,11 @@ class ItemClass(Activator):
 
         kind.classes = {'python': cls }
         kind.attributes = []
-        for attr in cls.__dict__.values():
+        for name,attr in cls.__dict__.items():
             if isinstance(attr,Role):
-                itemFor(attr)
+                ai = itemFor(attr)
+                if ai not in kind.attributes:
+                    kind.attributes.append(ai,name)
 
 
 class Item(Base):
@@ -466,6 +468,69 @@ class Item(Base):
             kind = itemFor(self.__class__)
         super(Item,self).__init__(name,parent,kind,*args,**values)
 
+
+class StructClass(Activator):
+    """Metaclass for enumerations"""
+
+    _kind_class = Types.Struct
+
+    def __init__(cls,name,bases,cdict):
+        super(StructClass,cls).__init__(name,bases,cdict)
+        try:
+            Struct
+        except NameError:
+            return  # Struct itself doesn't need fields
+
+        if bases<>(Struct,):
+            raise TypeError("Structs cannot subclass or be subclassed")
+
+        values = cdict.get('__slots__',())
+        wrong = [v for v in values if not isinstance(v,str)]
+        if not isinstance(values,tuple) or not values or wrong:
+            raise TypeError(
+                "'__slots__' must be a tuple of 1 or more strings"
+            )
+
+    def _create_schema_item(cls):
+        return SchemaStruct(
+            cls.__name__, parcel_for_module(cls.__module__),
+            itemFor(Types.Struct)
+        )
+
+    def _init_schema_item(cls,typ):
+        typ.fields = dict.fromkeys(cls.__slots__)
+        typ.implementationTypes = {'python': cls}
+
+
+class SchemaStruct(Types.Struct):
+
+    def makeString(self, value):
+        return repr(tuple(getattr(value,attr) for attr in value.__slots__))
+
+    def makeValue(self,value):
+        return self.getImplementationType()(*eval(value)) # XXX
+        
+
+class Struct(object):
+    __metaclass__ = StructClass
+    __slots__ = ()
+
+    def __init__(self,*args,**kw):
+        for k,v in kw.items():
+            setattr(self,k,v)
+        for k,v in zip(self.__slots__,args):
+            setattr(self,k,v)
+        if len(args)>len(self.__slots__):
+            raise TypeError("Unexpected arguments", args[len(self.__slots__):])
+        #for k in self.__slots__:
+        #    if not hasattr(self,k):
+        #        raise TypeError("No value supplied for %r field" % k)
+
+    def __repr__(self):
+        return "%s%r" % (
+            self.__class__.__name__,
+            tuple(getattr(self,attr) for attr in self.__slots__)
+        )
 
 class EnumerationClass(Activator):
     """Metaclass for enumerations"""
@@ -803,7 +868,9 @@ def reset(rv=None):
             nrv._parcel_cache = {}
         if not hasattr(nrv,'_schema_cache'):
             item_kind = nrv.findPath('//Schema/Core/Item')
-            nrv._schema_cache = {Base: item_kind, Item: item_kind}
+            nrv._schema_cache = {
+                Base: item_kind, Item: item_kind, SchemaStruct: Types.Struct
+            }
 
             # Make all core kinds available for subclassing, etc.
             for core_item in nrv.findPath('//Schema/Core').iterChildren():
@@ -835,8 +902,8 @@ nrv = anonymous_root = None
 reset(nrv)
 
 core_types = """
-Boolean String Integer Long Float Tuple List Set Class Dictionary
-Date Time DateTime TimeDelta
+Boolean String Integer Long Float Tuple List Set Class Dictionary Anything
+Date Time DateTime TimeDelta 
 Lob Symbol URL Complex UUID Path
 """.split()
 

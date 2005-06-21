@@ -454,6 +454,38 @@ Enumerations
       ...
     TypeError: 'displayAttribute' is not an attribute of Enumeration
 
+
+
+Structs
+=======
+
+    >>> class Size(schema.Struct):
+    ...     __slots__ = 'width', 'height'
+
+    >>> Size(1,2).width
+    1
+    >>> Size(1,2).height
+    2
+    >>> Size(3,4)
+    Size(3, 4)
+
+    >>> Size(4,5,6)
+    Traceback (most recent call last):
+      ...
+    TypeError: ('Unexpected arguments', (6,))
+
+    >>> class Wrong(Size): pass
+    Traceback (most recent call last):
+      ...
+    TypeError: Structs cannot subclass or be subclassed
+
+    >>> schema.itemFor(Size)
+    <SchemaStruct ... Size ...>
+
+    >>> schema.itemFor(Size).itsKind.itsPath
+    //Schema/Core/Struct
+
+
 --------------------
 Schema API Internals
 --------------------
