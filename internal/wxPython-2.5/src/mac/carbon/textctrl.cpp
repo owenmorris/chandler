@@ -40,12 +40,13 @@
 #include "wx/button.h"
 #include "wx/toplevel.h"
 #include "wx/textctrl.h"
-#include "wx/notebook.h"
 #include "wx/tabctrl.h"
 #include "wx/settings.h"
 #include "wx/filefn.h"
 #include "wx/utils.h"
 #include "wx/sysopt.h"
+#include "wx/menu.h"
+#include "wx/notebook.h"
 
 #if defined(__BORLANDC__) && !defined(__WIN32__)
   #include <alloc.h>
@@ -361,7 +362,6 @@ private :
 
 #define TE_UNLIMITED_LENGTH 0xFFFFFFFFUL
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxTextCtrl, wxControl)
 
 BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
@@ -374,13 +374,16 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
     EVT_MENU(wxID_UNDO, wxTextCtrl::OnUndo)
     EVT_MENU(wxID_REDO, wxTextCtrl::OnRedo)
 
+#if defined(_USE_CONTEXT_MENU_)
+    EVT_CONTEXT_MENU(wxTextCtrl::OnContextMenu)
+#endif
+
     EVT_UPDATE_UI(wxID_CUT, wxTextCtrl::OnUpdateCut)
     EVT_UPDATE_UI(wxID_COPY, wxTextCtrl::OnUpdateCopy)
     EVT_UPDATE_UI(wxID_PASTE, wxTextCtrl::OnUpdatePaste)
     EVT_UPDATE_UI(wxID_UNDO, wxTextCtrl::OnUpdateUndo)
     EVT_UPDATE_UI(wxID_REDO, wxTextCtrl::OnUpdateRedo)
 END_EVENT_TABLE()
-#endif
 
 // Text item
 void wxTextCtrl::Init()
@@ -388,11 +391,18 @@ void wxTextCtrl::Init()
   m_editable = true ;
   m_dirty = false;
 
+#if defined(_USE_CONTEXT_MENU_)
+  m_privateContextMenu = NULL;
+#endif
+
   m_maxLength = TE_UNLIMITED_LENGTH ;
 }
 
 wxTextCtrl::~wxTextCtrl()
 {
+#if defined(_USE_CONTEXT_MENU_)
+    delete m_privateContextMenu;
+#endif
 }
 
 
@@ -655,7 +665,7 @@ void wxTextCtrl::WriteText(const wxString& str)
     if ( !wxIsMainThread() )
     {
         // unfortunately CW 8 is not able to correctly deduce the template types, so we have
-        // to instantiate explicitely
+        // to instantiate explicitly
         wxMacMPRemoteGUICall<wxTextCtrl,wxString>( this , &wxTextCtrl::WriteText , str ) ;
         return ;
     }
@@ -1025,6 +1035,32 @@ void wxTextCtrl::OnUpdateRedo(wxUpdateUIEvent& event)
 {
     event.Enable( CanRedo() );
 }
+
+#if defined(_USE_CONTEXT_MENU_)
+void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
+{
+#if defined(wxUSE_TEXTCTRL)
+        if (m_privateContextMenu == NULL)
+        {
+            m_privateContextMenu = new wxMenu;
+            m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
+            m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
+            m_privateContextMenu->AppendSeparator();
+            m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
+            m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
+            m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
+            m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
+            m_privateContextMenu->AppendSeparator();
+            m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
+        }
+
+        PopupMenu(m_privateContextMenu);
+        return;
+#endif
+
+    event.Skip();
+}
+#endif
 
 bool wxTextCtrl::MacSetupCursor( const wxPoint& pt )
 {
@@ -1426,7 +1462,7 @@ wxString wxMacMLTEControl::GetStringValue() const
                 SetHandleSize( theText , ( actualSize + 1 ) * sizeof( UniChar ) ) ;
                 HLock( theText ) ;
                 (((UniChar*)*theText)[actualSize]) = 0 ;
-                wxMBConvUTF16BE converter ;
+                wxMBConvUTF16 converter ;
                 size_t noChars = converter.MB2WC( NULL , (const char*)*theText , 0 ) ;
                 ptr = new wxChar[noChars + 1] ;
 
@@ -1898,7 +1934,7 @@ void wxMacMLTEControl::SetTXNData( const wxString& st , TXNOffset start , TXNOff
     TXNSetData( m_txn , kTXNUnicodeTextData,  (void*)st.wc_str(), len * 2,
       start, end);
 #else
-    wxMBConvUTF16BE converter ;
+    wxMBConvUTF16 converter ;
     ByteCount byteBufferLen = converter.WC2MB( NULL , st.wc_str() , 0 ) ;
     UniChar *unibuf = (UniChar*) malloc(byteBufferLen) ;
     converter.WC2MB( (char*) unibuf , st.wc_str() , byteBufferLen ) ;
