@@ -2,9 +2,11 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 import os, sys
 from application.Application import mixinAClass
+from application import schema
 from Block import *
 from ContainerBlocks import *
 import DragAndDrop
@@ -15,13 +17,27 @@ import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
-import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
+from osaf.framework.blocks import DrawingUtilities
 import Styles
 
 from datetime import datetime
 
 
+class textAlignmentEnumType(schema.Enumeration):
+    values = "Left", "Center", "Right"
+
+class buttonKindEnumType(schema.Enumeration):
+     values = "Text", "Image", "Toggle"
+
 class Button(RectangularChild):
+
+    characterStyle = schema.One(Styles.CharacterStyle)
+    title = schema.One(schema.String)
+    buttonKind = schema.One(buttonKindEnumType)
+    icon = schema.One(schema.String)
+    rightClicked = schema.One(BlockEvent)
+    event = schema.One(BlockEvent)
+
     def instantiateWidget(self):
         id = self.getWidgetID(self)
         parentWidget = self.parentBlock.widget
@@ -63,6 +79,10 @@ class wxCheckBox(ShownSynchronizer, wx.CheckBox):
     pass
 
 class CheckBox(RectangularChild):
+
+    event = schema.One(BlockEvent)
+    title = schema.One(schema.String)
+
     def instantiateWidget(self):
         try:
             id = Block.getWidgetID(self)
@@ -82,6 +102,11 @@ class wxChoice(ShownSynchronizer, wx.Choice):
     pass
 
 class Choice(RectangularChild):
+
+    characterStyle = schema.One(Styles.CharacterStyle)
+    event = schema.One(BlockEvent)
+    choices = schema.Sequence(schema.String)
+
     def instantiateWidget(self):
         try:
             id = Block.getWidgetID(self)
@@ -105,6 +130,11 @@ class Choice(RectangularChild):
         return choice
 
 class ComboBox(RectangularChild):
+
+    selection = schema.One(schema.String)
+    choices = schema.Sequence(schema.String)
+    itemSelected = schema.One(BlockEvent)
+
     def instantiateWidget(self):
         return wx.ComboBox (self.parentBlock.widget,
                             -1,
@@ -124,6 +154,10 @@ class ContextMenu(RectangularChild):
         
 
 class ContextMenuItem(RectangularChild):
+
+    event = schema.One(BlockEvent)
+    title = schema.One(schema.String)
+
     def addItem(self, wxContextMenu, data):
         id = Block.getWidgetID(self)
         self.data = data
@@ -157,7 +191,21 @@ class wxEditText(ShownSynchronizer,
                     return # don't skip, eat the click.
         event.Skip()
 
+
+class textStyleEnumType(schema.Enumeration):
+      values = "PlainText", "RichText"
+
+
 class EditText(RectangularChild):
+
+    characterStyle = schema.One(Styles.CharacterStyle)
+    lineStyleEnum = schema.One(lineStyleEnumType)
+    textStyleEnum = schema.One(textStyleEnumType, initialValue = 'PlainText')
+    readOnly = schema.One(schema.Boolean, initialValue = False)
+    textAlignmentEnum = schema.One(
+        textAlignmentEnumType, initialValue = 'Left',
+    )
+
     def instantiateWidget(self):
         style = wx.STATIC_BORDER
         if self.textAlignmentEnum == "Left":
@@ -194,6 +242,9 @@ class wxHTML(wx.html.HtmlWindow):
 
 
 class HTML(RectangularChild):
+
+    url = schema.One(schema.String)
+
     def instantiateWidget (self):
         htmlWindow = wxHTML (self.parentBlock.widget,
                              Block.getWidgetID(self),
@@ -373,6 +424,13 @@ class wxList (DragAndDrop.DraggableWidget,
 
 
 class List(RectangularChild):
+
+    columnHeadings = schema.Sequence(schema.String, required = True)
+    columnData = schema.Sequence(schema.String)
+    columnWidths = schema.Sequence(schema.Integer, required = True)
+    elementDelegate = schema.One(schema.String, initialValue = '')
+    selection = schema.One(schema.Item, initialValue = None)
+
     def __init__(self, *arguments, **keywords):
         super (List, self).__init__ (*arguments, **keywords)
         self.selection = None
@@ -907,6 +965,19 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         return self.delegate.GetControlValue (self.control)
 
 class Table (RectangularChild):
+
+    columnHeadings = schema.Sequence(schema.String, required = True)
+    columnHeadingTypes = schema.Sequence(schema.String)
+    columnData = schema.Sequence(schema.String)
+    columnWidths = schema.Sequence(schema.Integer, required = True)
+    columnReadOnly = schema.Sequence(schema.Boolean)
+    elementDelegate = schema.One(schema.String, initialValue = '')
+    selection = schema.Sequence(schema.List, initialValue = [])
+    selectedItemToView = schema.One(schema.Item, initialValue = None)
+    hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
+    characterStyle = schema.One(Styles.CharacterStyle)
+    headerCharacterStyle = schema.One(Styles.CharacterStyle)
+
     def __init__(self, *arguments, **keywords):
         super (Table, self).__init__ (*arguments, **keywords)
 
@@ -965,7 +1036,18 @@ class Table (RectangularChild):
         event.arguments['Enable'] = not readOnly
         return True
 
+
+class radioAlignEnumType(schema.Enumeration):
+      values = "Across", "Down"
+
 class RadioBox(RectangularChild):
+
+    title = schema.One(schema.String)
+    choices = schema.Sequence(schema.String)
+    radioAlignEnum = schema.One(radioAlignEnumType)
+    itemsPerLine = schema.One(schema.Integer)
+    event = schema.One(BlockEvent)
+
     def instantiateWidget(self):
         if self.radioAlignEnum == "Across":
             dimension = wx.RA_SPECIFY_COLS
@@ -985,6 +1067,13 @@ class wxStaticText(ShownSynchronizer, wx.StaticText):
     pass
 
 class StaticText(RectangularChild):
+
+    textAlignmentEnum = schema.One(
+        textAlignmentEnumType, initialValue = 'Left',
+    )
+    characterStyle = schema.One(Styles.CharacterStyle)
+    title = schema.One(schema.String)
+
     def instantiateWidget (self):
         if self.textAlignmentEnum == "Left":
             style = wx.ALIGN_LEFT
@@ -1276,6 +1365,18 @@ class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
 
 
 class Tree(RectangularChild):
+
+    columnHeadings = schema.Sequence(schema.String, required = True)
+    columnData = schema.Sequence(schema.String)
+    columnWidths = schema.Sequence(schema.Integer, required = True)
+    elementDelegate = schema.One(schema.String, initialValue = '')
+    selection = schema.One(schema.Item, initialValue = None)
+    hideRoot = schema.One(schema.Boolean, initialValue = True)
+    noLines = schema.One(schema.Boolean, initialValue = True)
+    useButtons = schema.One(schema.Boolean, initialValue = True)
+    openedContainers = schema.Mapping(schema.Boolean, initialValue = {})
+    rootPath = schema.One(schema.Item, initialValue = None)
+
     def instantiateWidget(self):
         try:
             self.columnWidths
@@ -1312,6 +1413,9 @@ class wxItemDetail(wx.html.HtmlWindow):
 
 
 class ItemDetail(RectangularChild):
+
+    selection = schema.One(schema.Item, initialValue = None)
+
     def __init__(self, *arguments, **keywords):
         super (ItemDetail, self).__init__ (*arguments, **keywords)
         self.selection = None
@@ -1342,6 +1446,13 @@ class ContentItemDetail(BoxContainer):
     Keeps track of the current selected item
     Supports Color Style
     """
+    colorStyle = schema.One(Styles.ColorStyle)
+    selectedItemsAttribute = schema.One(
+        schema.String,
+        doc = 'Specifies which attribute of the selected Item should be '
+              'associated with this block.',
+        initialValue = '',
+    )
     
 class wxPyTimer(wx.PyTimer):
     """ 
@@ -1365,6 +1476,12 @@ class Timer(Block):
     A Timer block. Fires (sending a BlockEvent) at a particular time.
     A passed time will fire "shortly".
     """
+
+    event = schema.One(
+        BlockEvent,
+        doc = "The event we'll send when we go off",
+    )
+
     def instantiateWidget (self):
         timer = wxPyTimer(self.parentBlock.widget)
         return timer
@@ -1409,13 +1526,17 @@ Issues
 
 """
         
-class AEBlock(RectangularChild):
+class AEBlock(BoxContainer):
     """
       Attribute Editor Block
     
       Instantiates an Attribute Editor that's appropriate for the
     attribute specified in this block.
     """
+
+    characterStyle = schema.One(Styles.CharacterStyle)
+    readOnly = schema.One(schema.Boolean, initialValue = False)
+    presentationStyle = schema.One(PresentationStyle)
 
     def instantiateWidget(self):
         """

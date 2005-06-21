@@ -2,16 +2,21 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 from Block import Block, RectangularChild, wxRectangularChild
+from DocumentTypes import PositionType
 import DragAndDrop
 from DynamicContainerBlocks import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from osaf.contentmodel.ItemCollection import ItemCollection
+from application import schema
 import wx
 import time
 
+class orientationEnumType(schema.Enumeration):
+    values = "Horizontal", "Vertical"
 
 class wxBoxContainer (wxRectangularChild):
     def wxSynchronizeWidget(self):
@@ -40,7 +45,14 @@ class wxBoxContainer (wxRectangularChild):
                                wxRectangularChild.CalculateWXBorder(childBlock))
             self.Layout()
 
-class BoxContainer (RectangularChild):
+
+
+class BoxContainer(RectangularChild):
+
+    orientationEnum = schema.One(
+        orientationEnumType, initialValue = 'Horizontal',
+    )
+
     def instantiateWidget (self): 
         style = wx.TAB_TRAVERSAL
         if Block.showBorders:
@@ -117,6 +129,9 @@ class wxLayoutChooser(wxBoxContainer):
     
 
 class LayoutChooser(BoxContainer):
+
+    choices = schema.Sequence(Block)
+
     NONE_SELECTED = -1
     
     def instantiateWidget (self):
@@ -288,8 +303,16 @@ class wxSplitterWindow(wx.SplitterWindow):
             style |= wx.SP_3D
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
+
  
 class SplitterWindow(RectangularChild):
+
+    splitPercentage = schema.One(schema.Float, initialValue = 0.5)
+    allowResize = schema.One(schema.Boolean, initialValue = True)
+    orientationEnum = schema.One(
+        orientationEnumType, initialValue = 'Horizontal',
+    )
+
     def instantiateWidget (self):
         return wxSplitterWindow (self.parentBlock.widget,
                                  Block.getWidgetID(self), 
@@ -346,7 +369,20 @@ class wxTabbedViewContainer(DragAndDrop.DropReceiveWidget,
 class wxViewContainer (wxBoxContainer):
     pass
 
+
+class tabPositionEnumType(schema.Enumeration):
+      values = "Top","Bottom","Right","Left"
+
+
 class ViewContainer(BoxContainer):
+    tabPositionEnum = schema.One(
+        tabPositionEnumType, initialValue = 'Top',
+    )
+    hasTabs = schema.One(schema.Boolean, initialValue = False)
+    selectionIndex = schema.One(schema.Integer, initialValue = 0)
+    views = schema.Sequence(Block, otherName = 'viewContainer')
+
+
     def instantiateWidget (self):
         """
           Somewhat of a hack: When the ViewContainer is the root of all the blocks
@@ -399,7 +435,7 @@ class FrameWindow (ViewContainer):
     Right now we special case MainFrame, but we should better work that into the block
     framework.
     """
-    pass
+    position = schema.One(PositionType, initialValue = PositionType(-1, -1))
 
 
 class wxTabbedContainer(DragAndDrop.DropReceiveWidget, 
@@ -482,6 +518,10 @@ class wxTabbedContainer(DragAndDrop.DropReceiveWidget,
                 
 
 class TabbedContainer(RectangularChild):
+
+    tabPosEnum = schema.One(tabPositionEnumType, initialValue = 'Top')
+    tabNames = schema.Sequence(schema.String)
+
     def instantiateWidget (self):
         return wxTabbedContainer (self.parentBlock.widget, 
                                   Block.getWidgetID(self),

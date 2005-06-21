@@ -2,8 +2,10 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
+from application import schema
 import Block as Block
 import logging
 import wx
@@ -11,7 +13,7 @@ from repository.item.Item import Item
 import os
 
 
-class RefCollectionDictionary(Item):
+class RefCollectionDictionary(schema.Item):
     """
       Provides dictionary access to a reference collection attribute 
     L{RefList<repository.item.RefCollections.RefList>}.
@@ -177,7 +179,7 @@ class RefCollectionDictionary(Item):
             barList.append (entry.itsName or entry.itsUUID.str64())
         return str (barList)
 
-class DynamicBlock(Item):
+class DynamicBlock(schema.Item):
     """
       Mixin class for any Dynamic Block, both DynamicContainers
     and DynamicChild blocks.
@@ -356,8 +358,21 @@ class DynamicBlock(Item):
         # Since menus have changed, we need to reissue UpdateUI events
         wx.GetApp().needsUpdateUI = True
 
-class DynamicChild (DynamicBlock):
-    # Abstract mixin class used to detect DynamicChild blocks
+
+class operationEnumType(schema.Enumeration):
+      values = "InsertBefore", "Replace", "Delete"
+
+
+class DynamicChild(DynamicBlock):
+    dynamicParent = schema.One(
+        Block.Block, initialValue = None, otherName = 'dynamicChildren',
+    )
+    title = schema.One(schema.String, initialValue = '')
+    operation = schema.One(operationEnumType, initialValue = 'InsertBefore')
+    location = schema.One(schema.String)
+    itemLocation = schema.One(schema.String, initialValue = '')
+    helpString = schema.One(schema.String, initialValue = '')
+
     def isDynamicChild (self):
         return True
 
@@ -368,6 +383,12 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     This list of children is in "dynamicChildren" and the
     back pointer is in "dynamicParent".
     """
+
+    dynamicChildren = schema.Sequence(
+        Block.Block, otherName = 'dynamicParent',
+    )
+
+    collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
 
     def itemNameAccessor(self, item):
         """
@@ -601,7 +622,16 @@ class wxMenuBar (wx.MenuBar):
             success = self.Append (newItem.widget, title)
             assert success
 
+
+class menuItemKindEnumType(schema.Enumeration):
+      values = "Normal", "Separator", "Check", "Radio"
+
 class MenuItem (Block.Block, DynamicChild):
+
+    menuItemKind = schema.One(menuItemKindEnumType, initialValue = 'Normal')
+    accel = schema.One(schema.String, initialValue = '')
+    event = schema.One(Block.BlockEvent)
+
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
         try:
@@ -810,7 +840,14 @@ class wxToolbarItem (wx.ToolBarToolBase):
         event.Skip()
 
 
-class Toolbar (Block.RectangularChild, DynamicContainer):
+class Toolbar(Block.RectangularChild, DynamicContainer):
+
+    colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
+    toolSize = schema.One('osaf.framework.blocks.DocumentTypes.SizeType')
+    separatorWidth = schema.One(schema.Integer, initialValue = 5)
+    buttons3D = schema.One(schema.Boolean, initialValue = False)
+    buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
+
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
         # @@@DLD - remove this workaround for previous wxWidgets issues
@@ -836,11 +873,35 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
             style |= wx.TB_TEXT
         return style
     
-            
-class ToolbarItem (Block.Block, DynamicChild):
+
+
+class toolbarItemKindEnumType(schema.Enumeration):
+    values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice"
+
+
+class ToolbarItem(Block.Block, DynamicChild):
     """
       Button (or other control) that lives in a Toolbar.
     """
+    prototype = schema.One(
+        Block.Block, doc = 'The prototype block to be placed in the Toolbar',
+    )
+    selected = schema.One(schema.Boolean)
+    label = schema.One(
+        schema.String,
+        doc = 'The label that goes under this ToolbarItem',
+        initialValue = '',
+    )
+    toggle = schema.One(
+        schema.Boolean,
+        doc = 'For Buttons, makes it stay pressed down until pressed again.',
+        initialValue = False,
+    )
+    bitmap = schema.One(schema.String)
+    disabledBitmap = schema.One(schema.String)
+    event = schema.One(Block.BlockEvent)
+    toolbarItemKind = schema.One(toolbarItemKindEnumType)
+
     def instantiateWidget (self):
         def getBitmaps (self):
             bitmap = wx.GetApp().GetImage (self.bitmap)

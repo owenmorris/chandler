@@ -10,9 +10,14 @@ import application.Globals as Globals
 from application import schema
 import wx
 import logging
+from DocumentTypes import ColorType
 
 logger = logging.getLogger('styles')
 logger.setLevel(logging.INFO)
+
+class fontFamilyEnumType(schema.Enumeration):
+    values = "DefaultUIFont", "SerifFont", "SansSerifFont", "FixedPitchFont"
+
 
 class Style(ContentItem):
 
@@ -22,6 +27,13 @@ class Style(ContentItem):
 
 class CharacterStyle(Style):
 
+    fontFamily = schema.One(
+        fontFamilyEnumType, initialValue = 'DefaultUIFont',
+    )
+    fontSize = schema.One(schema.Float, initialValue = 11.0)
+    fontStyle = schema.One(schema.String, initialValue = '')
+    fontName = schema.One(schema.String, initialValue = '')
+
     def __init__(self, *arguments, **keywords):
         super (CharacterStyle, self).__init__ ( *arguments, **keywords)
 
@@ -30,6 +42,15 @@ class ColorStyle(Style):
     Class for Color Style
     Attributes for backgroundColor and foregroundColor
     """
+
+    foregroundColor = schema.One(
+        ColorType, initialValue = ColorType(0, 0, 0, 255),
+    )
+
+    backgroundColor = schema.One(
+        ColorType, initialValue = ColorType(255, 255, 255, 255),
+    )
+    
     myKindPath = "//parcels/osaf/framework/blocks/ColorStyle"
     myKindID = None
     def __init__(self, *arguments, **keywords):

@@ -7,7 +7,7 @@ from ContentModel import ContentModel as __parcel_class__
 # (this will eventually include all ContentItem subclasses in
 # this package)
 from ContentModel import (
-    ContentKind, ContentItem, ImportanceEnum, Group, Project
+    ContentKind, ContentItem, ImportanceEnum, Group, Project, CurrentPointer
 )
 from Notes import Note
 from contacts.Contacts import Contact

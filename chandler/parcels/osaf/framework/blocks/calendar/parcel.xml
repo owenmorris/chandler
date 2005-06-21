@@ -15,14 +15,22 @@
   <version>0.3</version>
 
   <Kind itsName="CollectionCanvas">
-    <classes key="python">osaf.framework.blocks.calendar.CollectionCanvas.CollectionBlock</classes>
+    <classes key="python">osaf.framework.blocks.calendar.CollectionCanvas.CollectionCanvas</classes>
     <superKinds itemref="blocks:RectangularChild"/>
-    <attributes itemref="blocks:selection"/>
+    <Attribute itsName="selection">
+      <type itemref="Item"/>
+      <initialValue itemref="None"/>
+    </Attribute>
+  </Kind>
+
+  <Kind itsName="CalendarBlock">
+    <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.CalendarBlock</classes>
+    <superKinds itemref="doc:CollectionCanvas"/>
   </Kind>
 
   <Kind itsName="CanvasWeek">
-    <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.WeekBlock</classes>
-    <superKinds itemref="doc:CollectionCanvas"/>
+    <classes key="python">osaf.framework.blocks.calendar.CalendarCanvas.CanvasWeek</classes>
+    <superKinds itemref="doc:CalendarBlock"/>
 
     <Attribute itsName="rangeStart">
       <type itemref="DateTime"/>

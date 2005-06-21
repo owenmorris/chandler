@@ -2,20 +2,85 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 import application.Globals as Globals
+from application import schema
 from repository.item.Item import Item
 from chandlerdb.util.uuid import UUID
+from osaf.contentmodel.ContentModel import ContentItem
 import wx
 import logging
 import hotshot
+from DocumentTypes import SizeType, RectType, PositionType, ColorType
 
 logger = logging.getLogger('cpia')
 logger.setLevel(logging.INFO)
 
-class Block(Item):
+
+class TrunkSubtree(schema.Item):
+    key = schema.One(schema.Item, required = True)
+    rootBlocks = schema.Sequence('Block', inverse = 'parentTrunkSubtrees')
+
+
+class Block(schema.Item):
     # @@@BJS: Should we show borders for debugging?
     showBorders = False
+
+    contents = schema.One(ContentItem, otherName="contentsOwner")
+
+    viewAttribute = schema.One(schema.String)
+
+    parentBlock = schema.One("Block",
+        inverse="childrenBlocks",
+        initialValue = None
+    )
+  
+    childrenBlocks = schema.Sequence(
+        "Block",
+        inverse = parentBlock,
+        initialValue = []
+    )
+
+    isShown = schema.One(schema.Boolean, initialValue=True)
+
+    eventBoundary = schema.One(schema.Boolean, initialValue=False)
+
+    contextMenu = schema.One("ControlBlocks.ContextMenu") 
+
+    TPBDetailItemOwner = schema.Sequence(
+        "Block", 
+        otherName = "TPBDetailItem"  # TrunkParentBlock/TPBDetailItem
+    )
+
+    TPBSelectedItemOwner = schema.Sequence(
+        "Block",
+        otherName = "TPBSelectedItem"     # TrunkParentBlock/TPBSelectedItem
+    )
+
+    viewContainer = schema.Sequence(
+        "Block",
+        otherName = "views"     # ViewContainer/views
+    )
+
+    blockName = schema.One(schema.String)
+    eventsForNamedDispatch = schema.Sequence("BlockEvent")
+
+    itemCollectionInclusions = ContentItem.itemCollectionInclusions
+    itemCollectionExclusions = ContentItem.itemCollectionExclusions
+
+    parentTrunkSubtrees = schema.Sequence(
+        TrunkSubtree,
+        otherName = "rootBlocks"    # reference to parent tree of blocks
+    )  
+
+    position = schema.One(schema.Float)  #<!-- for tree-of-blocks sorting -->
+
+    schema.addClouds(
+        default = schema.Cloud(
+            byCloud=[contents,childrenBlocks,eventsForNamedDispatch]
+        )
+    )
     
     def post (self, event, arguments):
         """
@@ -675,7 +740,21 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
     def CanRedo(self):
         return False
 
+class alignmentEnumType(schema.Enumeration):
+    values = (
+        "grow", "growConstrainAspectRatio", "alignCenter", "alignTopCenter",
+        "alignMiddleLeft", "alignBottomCenter", "alignMiddleRight",
+        "alignTopLeft", "alignTopRight", "alignBottomLeft", "alignBottomRight",
+    )
+
 class RectangularChild (Block):
+
+    size = schema.One(SizeType, initialValue = SizeType(0, 0))
+    minimumSize = schema.One(SizeType, initialValue = SizeType(-1, -1))
+    border = schema.One(RectType, initialValue = RectType(0.0, 0.0, 0.0, 0.0))
+    alignmentEnum = schema.One(alignmentEnumType, initialValue = 'grow')
+    stretchFactor = schema.One(schema.Float, initialValue = 1.0)
+
     def DisplayContextMenu(self, position, data):
         try:
             self.contextMenu
@@ -768,5 +847,75 @@ class RectangularChild (Block):
         else:
             method(self)
 
-class BlockEvent(Item):
-    pass
+
+class dispatchEnumType(schema.Enumeration):
+    values = (
+        "BroadcastInsideMyEventBoundary",
+        "BroadcastInsideActiveViewEventBoundary",
+        "BroadcastEverywhere", "FocusBubbleUp", "ActiveViewBubbleUp",
+        "SendToBlockByReference", "SendToBlockByName",
+    )
+
+class BlockEvent(schema.Item):
+    dispatchEnum = schema.One(
+        dispatchEnumType, initialValue = 'SendToBlockByReference',
+    )
+    commitAfterDispatch = schema.One(schema.Boolean, initialValue = False)
+    destinationBlockReference = schema.One(Block)
+    dispatchToBlockName = schema.One(schema.String)
+    methodName = schema.One(schema.String)
+    blockName = schema.One(schema.String)
+
+
+class ChoiceEvent(BlockEvent):
+    choice = schema.One(schema.String, required = True)
+
+class KindParameterizedEvent(BlockEvent):
+    kindParameter = schema.One(
+        schema.TypeReference('//Schema/Core/Kind'),
+        required = True,
+    )
+
+
+class operationType(schema.Enumeration):
+      values = "add", "remove", "toggle"
+
+class ModifyContentsEvent(BlockEvent):
+    items = schema.Sequence(schema.Item, initialValue = [])
+    operation = schema.One(operationType, initialValue = 'add')
+    copyItems = schema.One(schema.Boolean, initialValue = True)
+    selectFirstItem = schema.One(schema.Boolean, initialValue = False)
+    disambiguateItemNames = schema.One(schema.Boolean, initialValue = False)
+
+
+class EventList(schema.Item):
+    eventsForNamedDispatch = schema.Sequence(BlockEvent)
+
+
+class lineStyleEnumType(schema.Enumeration):
+      values = "SingleLine", "MultiLine"
+
+
+class PresentationStyle(schema.Item):
+    sampleText = schema.One(
+        schema.String,
+        doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
+    )
+    format = schema.One(
+        schema.String,
+        doc = 'customization of presentation format',
+    )
+    choices = schema.Sequence(
+        schema.String,
+        doc = 'options for multiple-choice values',
+    )
+    useControl = schema.One(
+        schema.Boolean,
+        doc = 'True if we should always present the control (instead of waiting for a click to look editable)',
+    )
+    lineStyleEnum = schema.One(
+        lineStyleEnumType,
+        doc = 'SingleLine vs MultiLine for textbox-based editors',
+    )
+
+

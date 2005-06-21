@@ -10,10 +10,10 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
-import repository.util.Lob as Lob
-import osaf.framework.blocks.DragAndDrop as DragAndDrop
-import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
-import osaf.framework.blocks.Styles as Styles
+from repository.util.Lob import Lob
+from osaf.framework.blocks import DragAndDrop
+from osaf.framework.blocks import DrawingUtilities
+from osaf.framework.blocks import Styles
 import logging
 import colorsys
 from operator import itemgetter

@@ -2,15 +2,17 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 import sys
 import application
-import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
-import osaf.framework.blocks.ControlBlocks as ControlBlocks
-import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
+from application import schema
+from osaf.framework.blocks import Block
+from osaf.framework.blocks import DynamicContainerBlocks
+from osaf.framework.blocks import ControlBlocks
+from osaf.framework.blocks import ContainerBlocks
 import osaf.framework.sharing.Sharing as Sharing
-import osaf.framework.blocks.Trunk as Trunk
+from osaf.framework.blocks import Trunk
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
@@ -46,6 +48,8 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
     """
     # @@@ There's a lot of overlap between onSetContentsEvent and onSelectItemEvent, and scrungy old
     # code related to selection down the block tree - we'll revisit it all in 0.6
+
+    selection = schema.One(schema.Item, initialValue = None)
 
     def onSetContentsEvent (self, event):
         logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
@@ -290,6 +294,9 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 
     Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
     """    
+
+    trunkStub = schema.One(Block.Block)
+
     def _mapItemToCacheKeyItem(self, item):
         """ 
         Overrides to use the item's kind as our cache key

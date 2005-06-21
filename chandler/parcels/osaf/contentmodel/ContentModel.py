@@ -162,6 +162,10 @@ class ContentItem(schema.Item):
         doc="DateTime this item was created"
     )
 
+    contentsOwner = schema.Sequence(
+        "osaf.framework.blocks.Block.Block", inverse="contents"
+    )
+
     # Placeholders for bidirectional references
     
     itemCollectionInclusions = schema.Sequence()    # ItemCollection
@@ -171,10 +175,9 @@ class ContentItem(schema.Item):
     # 'otherName' settings to ensure that they get hooked up correctly.
     # The 'otherName' settings should be removed once the other side of these
     # links exist in the Python schema.
+
     currentItemOf = schema.One(otherName="item")    # CurrentPointer       
     shares = schema.Sequence(initialValue=(), otherName="contents") # share
-    contentsOwner = schema.Sequence(otherName="contents")           # Block
-
     viewContainer = schema.Sequence(otherName="views")  # ViewContainer
     TPBDetailItemOwner = schema.Sequence(otherName="TPBDetailItem") # Block
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
@@ -634,3 +637,11 @@ class Group(ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Group, self).__init__(name, parent, kind, view)
+
+class CurrentPointer(schema.Item):
+    item = schema.One(
+        ContentItem,
+        initialValue = None,
+        inverse = ContentItem.currentItemOf,
+    )
+

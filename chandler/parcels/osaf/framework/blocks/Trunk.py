@@ -2,11 +2,13 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks"
 
 import sys
-import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
+from osaf.framework.blocks import Block
+from osaf.framework.blocks import ContainerBlocks
 from repository.item.Item import Item
+from application import schema
 import osaf.contentmodel.ContentModel as ContentModel
 import logging
 
@@ -38,6 +40,18 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     A block that can swap in different sets of child blocks ("trunks") based
     on its detailContents. It uses a TrunkDelegate to do the heavy lifting.
     """    
+    colorStyle = schema.One('osaf.framework.blocks.Styles.ColorStyle')
+
+    trunkDelegate = schema.One(
+        'TrunkDelegate', inverse = 'trunkParentBlock', required = True
+    )
+    TPBDetailItem = schema.One(
+        schema.Item, initialValue = None, otherName = 'TPBDetailItemOwner'
+    )
+    TPBSelectedItem = schema.One(
+        schema.Item, initialValue = None, otherName = 'TPBSelectedItemOwner'
+    )
+
     def instantiateWidget(self):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
@@ -95,7 +109,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             logger.debug("NOT changing tree to display %s", TPBSelectedItem)
 
 
-class TrunkDelegate(Item):
+class TrunkDelegate(schema.Item):
     """
     A mechanism to map an item to a view: call its getTrunkForKeyItem(item)
     to get the view for that item.
@@ -104,6 +118,15 @@ class TrunkDelegate(Item):
     it'll be returned as-is (except that a copy will be made if the original's
     in the read-only part of the repository).
     """
+
+    trunkParentBlock = schema.One(
+        TrunkParentBlock,
+        inverse = TrunkParentBlock.trunkDelegate,
+        required = True,
+    )
+
+    keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
+
     def getTrunkForKeyItem(self, keyItem):
         """ 
         Given an item, return the view to be used to display it.

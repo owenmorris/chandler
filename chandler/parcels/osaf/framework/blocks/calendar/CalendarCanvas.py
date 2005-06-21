@@ -17,13 +17,14 @@ from PyICU import GregorianCalendar, DateFormatSymbols
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ContentModel as ContentModel
 
-import osaf.framework.blocks.DragAndDrop as DragAndDrop
-import osaf.framework.blocks.Block as Block
-import osaf.framework.blocks.Styles as Styles
+from osaf.framework.blocks import DragAndDrop
+from osaf.framework.blocks import Block
+from osaf.framework.blocks import Styles
 import CollectionCanvas
 
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
+from application import schema
 from colorsys import *
 import copy
 
@@ -44,6 +45,9 @@ class CachedAttribute(object):
         return result
 
 class CalendarData(ContentModel.ContentItem):
+
+    calendarColor = schema.One(Styles.ColorStyle)
+
     myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
     myKindID = None
     def __init__(self, *args, **keywords):
@@ -605,7 +609,7 @@ class ClosureTimer(wx.Timer):
     def Notify(self):
         self._callback()
 
-class CalendarBlock(CollectionCanvas.CollectionBlock):
+class CalendarBlock(CollectionCanvas.CollectionCanvas):
     """ Abstract block used as base Kind for Calendar related blocks.
 
     This base class can be used for any block that displays a collection of
@@ -1876,7 +1880,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
         
-class WeekBlock(CalendarBlock):
+class CanvasWeek(CalendarBlock):
+
+    rangeStart = schema.One(schema.DateTime)
+    rangeIncrement = schema.One(schema.TimeDelta)
+    daysPerView = schema.One(schema.Integer)
+    dayMode = schema.One(schema.Boolean)
+    selectedDate = schema.One(schema.DateTime)
+    lastHue = schema.One(schema.Float, initialValue = -1.0)
+
     def __init__(self, *arguments, **keywords):
         super(WeekBlock, self).__init__ (*arguments, **keywords)
 
@@ -1914,6 +1926,8 @@ class WeekBlock(CalendarBlock):
             self.selectedDate = date
         else:
             self.selectedDate = self.rangeStart
+
+WeekBlock = CanvasWeek  # Backward compatibility
 
 class wxInPlaceEditor(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):

@@ -23,32 +23,6 @@
     <values>FixedPitchFont</values>
   </Enumeration>
    
-  <Attribute itsName="fontFamily">
-    <type itemref="docSchema:fontFamilyEnumType"/>
-    <initialValue type="docSchema:fontFamilyEnumType">DefaultUIFont</initialValue>
-  </Attribute>
-
-  <Attribute itsName="fontSize">
-    <type itemref="Float"/>
-    <!-- we default to 11 points, which'll get scaled to the platform's default GUI
-         font - see Styles.py -->
-    <initialValue type="Float">11.0</initialValue>
-  </Attribute>
-
-  <!--
-    Currently, fontStyle is a string containing any of the following words:
-    bold light italic underline, but others will be included in the future
-  -->
-  <Attribute itsName="fontStyle">
-    <type itemref="String"/> 
-    <initialValue type="String"></initialValue>
-  </Attribute>
-
-  <Attribute itsName="fontName">
-    <type itemref="String"/>
-    <initialValue type="String"></initialValue>
-  </Attribute>
-
   <Struct itsName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct">
     <fields key="red"></fields>
     <fields key="green"></fields>
@@ -83,67 +57,11 @@
     <values>Right</values>
   </Enumeration>
     
-  <Attribute itsName="textAlignmentEnum">
-    <type itemref="docSchema:textAlignmentEnumType"/>
-    <initialValue type="docSchema:textAlignmentEnumType">Left</initialValue>
-  </Attribute>
-  
   <Enumeration itsName="orientationEnumType">
     <values>Horizontal</values>
     <values>Vertical</values>
   </Enumeration>
-
-  <Attribute itsName="orientationEnum">
-    <type itemref="docSchema:orientationEnumType"/>
-    <initialValue type="docSchema:orientationEnumType">Horizontal</initialValue>
-  </Attribute>
-
-  <Attribute itsName="readOnly">
-    <type itemref="Boolean"/>
-    <initialValue type="Boolean">False</initialValue>
-  </Attribute>
-
-  <Attribute itsName="columnHeadings">
-    <type itemref="String"/>
-    <cardinality>list</cardinality>
-    <required>True</required>
-  </Attribute>
-
-  <Attribute itsName="columnHeadingTypes">
-    <type itemref="String"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-  
-  <Attribute itsName="columnData">
-    <type itemref="String"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-  
-  <Attribute itsName="columnWidths">
-    <type itemref="Integer"/>
-    <cardinality>list</cardinality>
-    <required>True</required>
-  </Attribute>
-
-  <Attribute itsName="columnReadOnly">
-    <type itemref="Boolean"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-
-  <Attribute itsName="elementDelegate">
-    <type itemref="String"/>
-    <initialValue type="String"></initialValue>
-  </Attribute>
-
-  <Attribute itsName="event">
-    <type itemref="docSchema:BlockEvent"/>
-  </Attribute>
-    
-  <Attribute itsName="selection">
-    <type itemref="Item"/>
-    <initialValue itemref="None"/>
-  </Attribute>
-
+   
   <!--
     Named styles
   -->
@@ -156,16 +74,34 @@
     <classes key="python">osaf.framework.blocks.Styles.CharacterStyle</classes>
     <superKinds itemref="docSchema:Style"/>
 
-    <attributes itemref="docSchema:fontFamily"/>
-    <attributes itemref="docSchema:fontSize"/>
-    <attributes itemref="docSchema:fontStyle"/>
-    <attributes itemref="docSchema:fontName"/>
+    <Attribute itsName="fontFamily">
+      <type itemref="docSchema:fontFamilyEnumType"/>
+      <initialValue type="docSchema:fontFamilyEnumType">DefaultUIFont</initialValue>
+    </Attribute>
+
+    <Attribute itsName="fontSize">
+      <type itemref="Float"/>
+      <!-- we default to 11 points, which'll get scaled to the platform's default GUI
+           font - see Styles.py -->
+      <initialValue type="Float">11.0</initialValue>
+    </Attribute>
+
+    <!--
+      Currently, fontStyle is a string containing any of the following words:
+      bold light italic underline, but others will be included in the future
+    -->
+    <Attribute itsName="fontStyle">
+      <type itemref="String"/> 
+      <initialValue type="String"></initialValue>
+    </Attribute>
+
+    <Attribute itsName="fontName">
+      <type itemref="String"/>
+      <initialValue type="String"></initialValue>
+    </Attribute>
+
   </Kind>
   
-  <Attribute itsName="characterStyle">
-    <type itemref="docSchema:CharacterStyle"/>
-  </Attribute>
-
   <!-- 
     Color style 
   -->
@@ -174,8 +110,16 @@
     <classes key="python">osaf.framework.blocks.Styles.ColorStyle</classes>
     <superKinds itemref="docSchema:Style"/>
 
-    <attributes itemref="docSchema:foregroundColor"/>
-    <attributes itemref="docSchema:backgroundColor"/>
+    <Attribute itsName="foregroundColor">
+      <type itemref="docSchema:ColorType"/>
+      <initialValue type="docSchema:ColorType">0,0,0,255</initialValue>
+    </Attribute>
+
+    <Attribute itsName="backgroundColor">
+      <type itemref="docSchema:ColorType"/>
+      <initialValue type="docSchema:ColorType">255,255,255,255</initialValue>
+    </Attribute>
+  
     <Cloud itsName="SharingCloud">
         <Endpoint itsName="foregroundColor">
             <attribute value="foregroundColor"/>
@@ -189,24 +133,6 @@
     <clouds alias="sharing" itemref="docSchema:ColorStyle/SharingCloud"/>
   </Kind>
 
-  <Attribute itsName="foregroundColor">
-    <type itemref="docSchema:ColorType"/>
-    <initialValue type="docSchema:ColorType">0,0,0,255</initialValue>
-  </Attribute>
-
-  <Attribute itsName="backgroundColor">
-    <type itemref="docSchema:ColorType"/>
-    <initialValue type="docSchema:ColorType">255,255,255,255</initialValue>
-  </Attribute>
-  
-  <Attribute itsName="colorStyle">
-    <type itemref="docSchema:ColorStyle"/>
-  </Attribute>
-
-  <Attribute itsName="blockName">
-    <type itemref="String"/>
-  </Attribute>
-  
   <!--
     A few specific styles
   -->
@@ -242,11 +168,7 @@
     Block Events
   -->
 
-  <Kind itsName="BlockEvent">
-    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
-    <superKinds itemref="Item"/>
-
-    <Enumeration itsName="dispatchEnumType">
+  <Enumeration itsName="dispatchEnumType">
       <values>BroadcastInsideMyEventBoundary</values>
       <values>BroadcastInsideActiveViewEventBoundary</values>
       <values>BroadcastEverywhere</values>
@@ -254,11 +176,15 @@
       <values>ActiveViewBubbleUp</values>
       <values>SendToBlockByReference</values>
       <values>SendToBlockByName</values>
-    </Enumeration>
+  </Enumeration>
+
+  <Kind itsName="BlockEvent">
+    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <superKinds itemref="Item"/>
 
     <Attribute itsName="dispatchEnum">
-      <type itemref="docSchema:BlockEvent/dispatchEnumType"/>
-      <initialValue type="docSchema:BlockEvent/dispatchEnumType">SendToBlockByReference</initialValue>
+      <type itemref="docSchema:dispatchEnumType"/>
+      <initialValue type="docSchema:dispatchEnumType">SendToBlockByReference</initialValue>
     </Attribute>
 
     <Attribute itsName="commitAfterDispatch">
@@ -278,7 +204,9 @@
       <type itemref="String"/>
     </Attribute>
 
-    <attributes itemref="docSchema:blockName"/>    
+    <Attribute itsName="blockName">
+        <type itemref="String"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="destinationBlockReference">
@@ -291,7 +219,7 @@
   </Kind>
 
   <Kind itsName="ChoiceEvent">
-    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.ChoiceEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itsName="choice">
@@ -301,7 +229,7 @@
   </Kind>
   
   <Kind itsName="KindParameterizedEvent">
-    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.KindParameterizedEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itsName="kindParameter">
@@ -319,25 +247,25 @@
     <clouds alias="default" itemref="docSchema:KindParameterizedEvent/DefaultCloud"/>
   </Kind>
 
+  <Enumeration itsName="operationType">
+      <values>add</values>
+      <values>remove</values>
+      <values>toggle</values>
+  </Enumeration>
+
   <Kind itsName="ModifyContentsEvent">
-    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.ModifyContentsEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itsName="items">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <initialValue />
+      <!--initialValue /-->
     </Attribute>
 
-    <Enumeration itsName="operationType">
-      <values>add</values>
-      <values>remove</values>
-      <values>toggle</values>
-    </Enumeration>
-
     <Attribute itsName="operation">
-      <type itemref="docSchema:ModifyContentsEvent/operationType"/>
-      <initialValue type="docSchema:ModifyContentsEvent/operationType">add</initialValue>
+      <type itemref="docSchema:operationType"/>
+      <initialValue type="docSchema:operationType">add</initialValue>
     </Attribute>
 
     <Attribute itsName="copyItems">
@@ -365,14 +293,12 @@
     <clouds alias="default" itemref="docSchema:ModifyContentsEvent/DefaultCloud"/>
   </Kind>
 
-  <Attribute itsName="eventsForNamedDispatch">
-    <type itemref="docSchema:BlockEvent"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-
   <Kind itsName="EventList">
     <superKinds itemref="Item"/>
-    <attributes itemref="docSchema:eventsForNamedDispatch"/>
+    <Attribute itsName="eventsForNamedDispatch">
+      <type itemref="docSchema:BlockEvent"/>
+      <cardinality>list</cardinality>
+    </Attribute>
   </Kind>
 
   <!--
@@ -540,7 +466,7 @@
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:Block/parentBlock"/>
-      <initialValue />
+      <!--initialValue /-->
     </Attribute>
 
     <Attribute itsName="isShown">
@@ -575,8 +501,15 @@
         <inverseAttribute itemref="docSchema:ViewContainer/views"/>
     </Attribute>
 
-    <attributes itemref="docSchema:blockName"/>
-    <attributes itemref="docSchema:eventsForNamedDispatch"/>
+    <Attribute itsName="blockName">
+        <type itemref="String"/>
+    </Attribute>
+  
+    <Attribute itsName="eventsForNamedDispatch">
+      <type itemref="docSchema:BlockEvent"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
     <attributes itemref="contentModel:ContentItem/itemCollectionInclusions"/>
     <attributes itemref="contentModel:ContentItem/itemCollectionExclusions"/>
 
@@ -590,9 +523,9 @@
       <type itemref="Float"/>
     </Attribute>
 
-    <Cloud itsName="DefaultCloud">
+    <!--Cloud itsName="DefaultCloud">
         <Endpoint itsName="contents">
-            <!-- This attribute's type is contentModel:ItemCollection -->
+            <! This attribute's type is contentModel:ItemCollection >
             <attribute value="contents"/>
             <includePolicy value="byCloud"/>
         </Endpoint>
@@ -608,8 +541,8 @@
         </Endpoint>
         <endpoints itemref="docSchema:Block/DefaultCloud/eventsForNamedDispatch"/>
     </Cloud>
-    <!-- Link this cloud with the Block kind -->
-    <clouds alias="default" itemref="docSchema:Block/DefaultCloud"/>
+    <!  Link this cloud with the Block kind >
+    <clouds alias="default" itemref="docSchema:Block/DefaultCloud"/-->
 
   </Kind>
   
@@ -624,6 +557,20 @@
   <!--
     RectangularChild is a rectangular child of a container
   -->
+  <Enumeration itsName="alignmentEnumType">
+      <values>grow</values>
+      <values>growConstrainAspectRatio</values>
+      <values>alignCenter</values>
+      <values>alignTopCenter</values>
+      <values>alignMiddleLeft</values>
+      <values>alignBottomCenter</values>
+      <values>alignMiddleRight</values>
+      <values>alignTopLeft</values>
+      <values>alignTopRight</values>
+      <values>alignBottomLeft</values>
+      <values>alignBottomRight</values>
+  </Enumeration>
+
   <Kind itsName="RectangularChild">
     <classes key="python">osaf.framework.blocks.Block.RectangularChild</classes>
     <superKinds itemref="docSchema:Block"/>
@@ -643,23 +590,9 @@
       <initialValue type="docSchema:RectType">0.0, 0.0, 0.0, 0.0</initialValue>
     </Attribute>
     
-    <Enumeration itsName="alignmentEnumType">
-      <values>grow</values>
-      <values>growConstrainAspectRatio</values>
-      <values>alignCenter</values>
-      <values>alignTopCenter</values>
-      <values>alignMiddleLeft</values>
-      <values>alignBottomCenter</values>
-      <values>alignMiddleRight</values>
-      <values>alignTopLeft</values>
-      <values>alignTopRight</values>
-      <values>alignBottomLeft</values>
-      <values>alignBottomRight</values>
-    </Enumeration>
-
     <Attribute itsName="alignmentEnum">
-      <type itemref="docSchema:RectangularChild/alignmentEnumType"/>
-      <initialValue type="docSchema:RectangularChild/alignmentEnumType">grow</initialValue>
+      <type itemref="docSchema:alignmentEnumType"/>
+      <initialValue type="docSchema:alignmentEnumType">grow</initialValue>
     </Attribute>
 
     <Attribute itsName="stretchFactor">
@@ -675,7 +608,10 @@
     <classes key="python">osaf.framework.blocks.ContainerBlocks.BoxContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <attributes itemref="docSchema:orientationEnum"/>
+    <Attribute itsName="orientationEnum">
+      <type itemref="docSchema:orientationEnumType"/>
+      <initialValue type="docSchema:orientationEnumType">Horizontal</initialValue>
+    </Attribute>
   </Kind>
   
   <!--
@@ -721,6 +657,12 @@
     They include MenuItems, Menus, and ToolbarItems.
     Used as a mixin class for other blocks.
   -->
+  <Enumeration itsName="operationEnumType">
+      <values>InsertBefore</values>
+      <values>Replace</values>
+      <values>Delete</values>
+  </Enumeration>
+    
   <Kind itsName="DynamicChild">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.DynamicChild</classes>
 
@@ -735,15 +677,9 @@
       <initialValue type="String"></initialValue>
     </Attribute>
     
-    <Enumeration itsName="operationEnumType">
-      <values>InsertBefore</values>
-      <values>Replace</values>
-      <values>Delete</values>
-    </Enumeration>
-    
     <Attribute itsName="operation">
-      <type itemref="docSchema:DynamicChild/operationEnumType"/>
-      <initialValue type="docSchema:DynamicChild/operationEnumType">InsertBefore</initialValue>
+      <type itemref="docSchema:operationEnumType"/>
+      <initialValue type="docSchema:operationEnumType">InsertBefore</initialValue>
     </Attribute>
     
     <Attribute itsName="location">
@@ -764,21 +700,22 @@
   <!--
     MenuItem
   -->
+  <Enumeration itsName="menuItemKindEnumType">
+      <values>Normal</values>
+      <values>Separator</values>
+      <values>Check</values>
+      <values>Radio</values>
+  </Enumeration>
+
   <Kind itsName="MenuItem">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.MenuItem</classes>
     <superKinds itemref="docSchema:Block"/>
     <superKinds itemref="docSchema:DynamicChild"/>
 
-    <Enumeration itsName="menuItemKindEnumType">
-      <values>Normal</values>
-      <values>Separator</values>
-      <values>Check</values>
-      <values>Radio</values>
-    </Enumeration>
     
     <Attribute itsName="menuItemKind">
-      <type itemref="docSchema:MenuItem/menuItemKindEnumType"/>
-      <initialValue type="docSchema:MenuItem/menuItemKindEnumType">Normal</initialValue>
+      <type itemref="docSchema:menuItemKindEnumType"/>
+      <initialValue type="docSchema:menuItemKindEnumType">Normal</initialValue>
     </Attribute>
     
     <Attribute itsName="accel">
@@ -786,7 +723,9 @@
       <initialValue type="String"></initialValue>
     </Attribute>
     
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
@@ -803,8 +742,7 @@
   -->
   <Kind itsName="Menu">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.Menu</classes>
-    <superKinds itemref="docSchema:Block"/>
-    <superKinds itemref="docSchema:DynamicContainer"/>
+    <superKinds itemref="docSchema:MenuBar"/>
     <superKinds itemref="docSchema:DynamicChild"/>
   </Kind>
   
@@ -820,22 +758,22 @@
   <!--
     Button
   -->
+  <Enumeration itsName="buttonKindEnumType">
+      <values>Text</values>
+      <values>Image</values>
+      <values>Toggle</values>
+  </Enumeration>
+
   <Kind itsName="Button">
     <classes key="python">osaf.framework.blocks.ControlBlocks.Button</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itsName="title">
       <type itemref="String"/>
-    </Attribute>
-    
-    <Enumeration itsName="buttonKindEnumType">
-      <values>Text</values>
-      <values>Image</values>
-      <values>Toggle</values>
-    </Enumeration>
+    </Attribute>   
     
     <Attribute itsName="buttonKind">
-      <type itemref="docSchema:Button/buttonKindEnumType"/>
+      <type itemref="docSchema:buttonKindEnumType"/>
     </Attribute>
     
     <Attribute itsName="icon">
@@ -846,8 +784,13 @@
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
 
-    <attributes itemref="docSchema:characterStyle"/>    
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
+
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
@@ -870,8 +813,14 @@
   <Kind itsName="Choice">
     <classes key="python">osaf.framework.blocks.ControlBlocks.Choice</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
-    <attributes itemref="docSchema:characterStyle"/>    
-    <attributes itemref="docSchema:event"/>
+
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
+
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
     
     <Attribute itsName="choices">
       <type itemref="String"/>
@@ -899,7 +848,9 @@
   <Kind itsName="CheckBox">
     <classes key="python">osaf.framework.blocks.ControlBlocks.CheckBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
     
     <Attribute itsName="title">
       <type itemref="String"/>
@@ -974,7 +925,9 @@
       <type itemref="String"/>
     </Attribute>
     
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
@@ -988,32 +941,43 @@
   <!--
     EditText
   -->
+  <Enumeration itsName="lineStyleEnumType">
+      <values>SingleLine</values>
+      <values>MultiLine</values>
+  </Enumeration>
+
+  <Enumeration itsName="textStyleEnumType">
+      <values>PlainText</values>
+      <values>RichText</values>
+  </Enumeration>
+
+
   <Kind itsName="EditText">
     <classes key="python">osaf.framework.blocks.ControlBlocks.EditText</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Enumeration itsName="lineStyleEnumType">
-      <values>SingleLine</values>
-      <values>MultiLine</values>
-    </Enumeration>
-
     <Attribute itsName="lineStyleEnum">
-      <type itemref="docSchema:EditText/lineStyleEnumType"/>
+      <type itemref="docSchema:lineStyleEnumType"/>
     </Attribute>
-
-    <Enumeration itsName="textStyleEnumType">
-      <values>PlainText</values>
-      <values>RichText</values>
-    </Enumeration>
 
     <Attribute itsName="textStyleEnum">
-      <type itemref="docSchema:EditText/textStyleEnumType"/>
-      <initialValue type="docSchema:EditText/textStyleEnumType" value="PlainText"/>
+      <type itemref="docSchema:textStyleEnumType"/>
+      <initialValue type="docSchema:textStyleEnumType" value="PlainText"/>
     </Attribute>
 
-    <attributes itemref="docSchema:readOnly"/>
-    <attributes itemref="docSchema:textAlignmentEnum"/>
-    <attributes itemref="docSchema:characterStyle"/>
+    <Attribute itsName="readOnly">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">False</initialValue>
+    </Attribute>
+
+    <Attribute itsName="textAlignmentEnum">
+      <type itemref="docSchema:textAlignmentEnumType"/>
+      <initialValue type="docSchema:textAlignmentEnumType">Left</initialValue>
+    </Attribute>
+
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
@@ -1044,12 +1008,32 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnData"/>
-    <attributes itemref="docSchema:columnWidths"/>
+    <Attribute itsName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
 
-    <attributes itemref="docSchema:elementDelegate"/>
-    <attributes itemref="docSchema:selection"/>
+    <Attribute itsName="columnData">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+  
+    <Attribute itsName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
+
+    <Attribute itsName="elementDelegate">
+        <type itemref="String"/>
+        <initialValue type="String"></initialValue>
+    </Attribute>
+
+    <Attribute itsName="selection">
+      <type itemref="Item"/>
+      <initialValue itemref="None"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="selection">
@@ -1071,7 +1055,7 @@
     <Attribute itsName="selection">
       <cardinality>list</cardinality>
       <type itemref="List"/>
-      <initialValue />
+      <!--initialValue /-->
     </Attribute>
     
     <Attribute itsName="selectedItemToView">
@@ -1084,18 +1068,42 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
-    <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnHeadingTypes"/>
-    <attributes itemref="docSchema:columnData"/>
-    <attributes itemref="docSchema:columnWidths"/>
-    <attributes itemref="docSchema:columnReadOnly"/>
+    <Attribute itsName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
 
-    <attributes itemref="docSchema:elementDelegate"/>
-    <attributes itemref="docSchema:Table/selection"/>
-    <attributes itemref="docSchema:Table/selectedItemToView"/>
-    <attributes itemref="docSchema:Table/hideColumnHeadings"/>
+    <Attribute itsName="columnHeadingTypes">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+  
+    <Attribute itsName="columnData">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+  
+    <Attribute itsName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
 
-    <attributes itemref="docSchema:characterStyle"/>
+    <Attribute itsName="columnReadOnly">
+      <type itemref="Boolean"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itsName="elementDelegate">
+      <type itemref="String"/>
+      <initialValue type="String"></initialValue>
+    </Attribute>
+
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
+
     <Attribute itsName="headerCharacterStyle">
       <type itemref="docSchema:CharacterStyle"/>
     </Attribute>
@@ -1146,7 +1154,7 @@
     <Attribute itsName="openedContainers">
       <type itemref="Boolean"/>
       <cardinality>dict</cardinality>
-      <initialValue />
+      <!--initialValue /-->
     </Attribute>
 
     <Attribute itsName="rootPath">
@@ -1154,12 +1162,32 @@
       <initialValue itemref="None"/>
     </Attribute>
 
-    <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnData"/>
-    <attributes itemref="docSchema:columnWidths"/>
+    <Attribute itsName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
 
-    <attributes itemref="docSchema:elementDelegate"/>
-    <attributes itemref="docSchema:selection"/>
+    <Attribute itsName="columnData">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+  
+    <Attribute itsName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
+
+    <Attribute itsName="elementDelegate">
+      <type itemref="String"/>
+      <initialValue type="String"></initialValue>
+    </Attribute>
+
+    <Attribute itsName="selection">
+      <type itemref="Item"/>
+      <initialValue itemref="None"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="selection">
@@ -1174,6 +1202,11 @@
   <!--
     RadioBox
   -->
+  <Enumeration itsName="radioAlignEnumType">
+      <values>Across</values>
+      <values>Down</values>
+  </Enumeration>
+    
   <Kind itsName="RadioBox">
     <classes key="python">osaf.framework.blocks.ControlBlocks.RadioBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
@@ -1187,20 +1220,17 @@
       <cardinality>list</cardinality>
     </Attribute>
     
-    <Enumeration itsName="radioAlignEnumType">
-      <values>Across</values>
-      <values>Down</values>
-    </Enumeration>
-    
     <Attribute itsName="radioAlignEnum">
-      <type itemref="docSchema:RadioBox/radioAlignEnumType"/>
+      <type itemref="docSchema:radioAlignEnumType"/>
     </Attribute>
     
     <Attribute itsName="itemsPerLine">
       <type itemref="Integer"/>
     </Attribute>
 
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
@@ -1229,7 +1259,10 @@
       <initialValue type="Boolean">True</initialValue>
     </Attribute>
     
-    <attributes itemref="docSchema:orientationEnum"/>
+    <Attribute itsName="orientationEnum">
+      <type itemref="docSchema:orientationEnumType"/>
+      <initialValue type="docSchema:orientationEnumType">Horizontal</initialValue>
+    </Attribute>
   </Kind>  
 
   <!--
@@ -1243,8 +1276,14 @@
       <type itemref="String"/>
     </Attribute>
     
-    <attributes itemref="docSchema:textAlignmentEnum"/>
-    <attributes itemref="docSchema:characterStyle"/>
+    <Attribute itsName="textAlignmentEnum">
+      <type itemref="docSchema:textAlignmentEnumType"/>
+      <initialValue type="docSchema:textAlignmentEnumType">Left</initialValue>
+    </Attribute>
+
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
@@ -1267,20 +1306,21 @@
   <!--
     ViewContainer
   -->
-  <Kind itsName="ViewContainer">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.ViewContainer</classes>
-    <superKinds itemref="docSchema:BoxContainer"/>
-
-    <Enumeration itsName="tabPositionEnumType">
+  <Enumeration itsName="tabPositionEnumType">
       <values>Top</values>
       <values>Bottom</values>
       <values>Right</values>
       <values>Left</values>
-    </Enumeration>
+  </Enumeration>
+
+  <Kind itsName="ViewContainer">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.ViewContainer</classes>
+    <superKinds itemref="docSchema:BoxContainer"/>
+
 
     <Attribute itsName="tabPositionEnum">
-      <type itemref="docSchema:ViewContainer/tabPositionEnumType"/>
-      <initialValue type="docSchema:ViewContainer/tabPositionEnumType">Top</initialValue>
+      <type itemref="docSchema:tabPositionEnumType"/>
+      <initialValue type="docSchema:tabPositionEnumType">Top</initialValue>
     </Attribute>
 
     <Attribute itsName="hasTabs">
@@ -1329,16 +1369,9 @@
     <classes key="python">osaf.framework.blocks.ContainerBlocks.TabbedContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Enumeration itsName="tabPosEnumType">
-      <values>Top</values>
-      <values>Bottom</values>
-      <values>Right</values>
-      <values>Left</values>
-    </Enumeration>
-
     <Attribute itsName="tabPosEnum">
-      <type itemref="docSchema:TabbedContainer/tabPosEnumType"/>
-      <initialValue type="docSchema:TabbedContainer/tabPosEnumType">Top</initialValue>
+      <type itemref="docSchema:tabPositionEnumType"/>
+      <initialValue type="docSchema:tabPositionEnumType">Top</initialValue>
     </Attribute>
     
     <Attribute itsName="tabNames">
@@ -1374,7 +1407,9 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
-    <attributes itemref="docSchema:colorStyle"/>
+    <Attribute itsName="colorStyle">
+      <type itemref="docSchema:ColorStyle"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="colorStyle">
@@ -1389,6 +1424,16 @@
   <!--
     ToolbarItem
   -->
+  <Enumeration itsName="toolbarItemKindEnumType">
+      <values>Button</values>
+      <values>Separator</values>
+      <values>Check</values>
+      <values>Radio</values>
+      <values>Text</values>
+      <values>Combo</values>
+      <values>Choice</values>
+  </Enumeration>
+    
   <Kind itsName="ToolbarItem">
     <classes key="python">osaf.framework.blocks.DynamicContainerBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:Block"/>
@@ -1402,18 +1447,8 @@
       <type itemref="String"/>
     </Attribute>
     
-    <Enumeration itsName="toolbarItemKindEnumType">
-      <values>Button</values>
-      <values>Separator</values>
-      <values>Check</values>
-      <values>Radio</values>
-      <values>Text</values>
-      <values>Combo</values>
-      <values>Choice</values>
-    </Enumeration>
-    
     <Attribute itsName="toolbarItemKind">
-      <type itemref="docSchema:ToolbarItem/toolbarItemKindEnumType"/>
+      <type itemref="docSchema:toolbarItemKindEnumType"/>
     </Attribute>
     
     <Attribute itsName="prototype">
@@ -1433,7 +1468,9 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
     
-    <attributes itemref="docSchema:event"/>
+    <Attribute itsName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
 
     <Attribute itsName="selected">
       <type itemref="Boolean"/>
@@ -1461,7 +1498,10 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.ItemDetail</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <attributes itemref="docSchema:selection"/>
+    <Attribute itsName="selection">
+      <type itemref="Item"/>
+      <initialValue itemref="None"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="selection">
@@ -1491,7 +1531,7 @@
     <Attribute itsName="keyUUIDToTrunk">
       <type itemref="docSchema:Block"/>
       <cardinality>dict</cardinality>
-      <initialValue/>
+      <!--initialValue/-->
     </Attribute>
 
     <Cloud itsName="DefaultCloud">
@@ -1527,8 +1567,10 @@
       <inverseAttribute itemref="docSchema:Block/TPBSelectedItemOwner"/>
       <initialValue itemref="None"/>
     </Attribute>
-
-    <attributes itemref="docSchema:colorStyle"/>
+ 
+    <Attribute itsName="colorStyle">
+      <type itemref="docSchema:ColorStyle"/>
+    </Attribute>
 
     <!-- Share the same trunkDelegate amongst all copies of the parent block -->
     <Cloud itsName="DefaultCloud">
@@ -1608,14 +1650,20 @@
       <initialValue type="String"/>
     </Attribute>
 
-    <attributes itemref="docSchema:colorStyle"/>    
+    <Attribute itsName="colorStyle">
+      <type itemref="docSchema:ColorStyle"/>
+    </Attribute>
+
   </Kind>    
 
   <Kind itsName="DetailRoot">
     <classes key="python">osaf.framework.blocks.detail.Detail.DetailRoot</classes>
     <superKinds itemref="docSchema:ContentItemDetail"/>
     
-    <attributes itemref="docSchema:selection"/>
+    <Attribute itsName="selection">
+      <type itemref="Item"/>
+      <initialValue itemref="None"/>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="selection">
@@ -1650,6 +1698,7 @@
 
   <!-- Presentation Style Kind, used by Attribute Editor blocks -->
   <Kind itsName="PresentationStyle">
+    <classes key="python">osaf.framework.blocks.Block.PresentationStyle</classes>
     <displayName itsValue="Presentation Style"/>
 
     <Attribute itsName="sampleText">
@@ -1675,7 +1724,7 @@
 
     <Attribute itsName="lineStyleEnum">
       <description>SingleLine vs MultiLine for textbox-based editors</description>
-      <type itemref="docSchema:EditText/lineStyleEnumType"/>
+      <type itemref="docSchema:lineStyleEnumType"/>
     </Attribute>
 
     <Cloud itsName="DefaultCloud">
@@ -1720,8 +1769,14 @@
       <type itemref="docSchema:PresentationStyle"/>
     </Attribute>
 
-    <attributes itemref="docSchema:characterStyle"/>
-    <attributes itemref="docSchema:readOnly"/>
+    <Attribute itsName="characterStyle">
+      <type itemref="docSchema:CharacterStyle"/>
+    </Attribute>
+
+    <Attribute itsName="readOnly">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">False</initialValue>
+    </Attribute>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">

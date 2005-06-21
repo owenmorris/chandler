@@ -5,12 +5,14 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 
-import osaf.framework.blocks.DragAndDrop as DragAndDrop
-import osaf.framework.blocks.Block as Block
-import osaf.contentmodel.ItemCollection as ItemCollection
+from osaf.framework.blocks import DragAndDrop
+from osaf.framework.blocks import Block
+from osaf.contentmodel import ItemCollection
+from application import schema
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -720,13 +722,16 @@ class wxCollectionCanvas(wx.ScrolledWindow):
     def OnEndDragNone(self):
         pass
 
-class CollectionBlock(Block.RectangularChild):
+class CollectionCanvas(Block.RectangularChild):
     """
     @ivar selection: selected item (persistent)
     @type selection: Item
     @ivar widget: widget associated with this block (not persistent)
     @type widget: wx.Window (usually wx.CollectionCanvas)
     """
+
+    selection = schema.One(schema.Item, initialValue = None)
+
     def __init__(self, *arguments, **keywords):
         super(CollectionBlock, self).__init__(*arguments, **keywords)
         self.selection = None
@@ -767,4 +772,6 @@ class CollectionBlock(Block.RectangularChild):
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)
-    
+
+
+CollectionBlock = CollectionCanvas      # backward compatibility
