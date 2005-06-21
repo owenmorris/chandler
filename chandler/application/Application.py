@@ -10,7 +10,7 @@ import wx
 import Globals
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
-     import VersionConflictError, MergeError, PermissionsError
+     import VersionConflictError, MergeError, RepositoryPasswordError
 import logging as logging
 import cStringIO
 import CPIAScript
@@ -395,7 +395,7 @@ Would you like to remove all data from your repository?
                     self.repository.create(**kwds)
                 else:
                     self.repository.open(**kwds)
-            except PermissionsError, e:
+            except RepositoryPasswordError, e:
                 if options.encrypt:
                     print e.args[0]
                     continue
