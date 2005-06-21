@@ -427,6 +427,11 @@ class MainView(View):
         # Test menu item
         self.RepositoryCommitWithStatus ()
         
+    def onWxTestHarnessEvent(self, event):
+        # Test menu item
+        mainWidget = Globals.views[0].widget
+        self.setStatusMessage("Hit Me!!!!")
+
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Some Content Items" and
         # "Test | Generate Many Content Items" menu items

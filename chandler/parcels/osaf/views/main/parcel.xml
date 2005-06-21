@@ -234,6 +234,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="WxTestHarness">
+    <blockName>WxTestHarness</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
  <BlockEvent itsName="ImportIcalendar">
     <blockName>ImportIcalendar</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -419,6 +425,7 @@
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:WxTestHarnessItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ShareMenu"/>
     <childrenBlocks itemref="doc:SkinsMenu"/>
@@ -806,6 +813,13 @@
     <title>Check Repository</title>
     <event itemref="doc:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="WxTestHarnessItem">
+    <blockName>WxTestHarnessItem</blockName>
+    <title>Wx Test Harness</title>
+    <event itemref="doc:WxTestHarness"/>
+    <helpString>invoke the current flavor of wx debugging</helpString>
   </MenuItem>
 
   <MenuItem itsName="ImportIcalendarItem">

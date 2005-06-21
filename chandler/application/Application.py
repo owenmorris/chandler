@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 import util.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "17"
+SCHEMA_VERSION = "18"
 
 """
   Event used to post callbacks on the UI thread
@@ -76,7 +76,7 @@ class MainFrame(wx.Frame):
         super (MainFrame, self).__init__(*arguments, **keywords)
 
         # useful in debugging Mac background drawing problems
-        # self.MacSetMetalAppearance(True)
+        #self.MacSetMetalAppearance(True)
 
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
