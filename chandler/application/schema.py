@@ -498,7 +498,7 @@ class StructClass(Activator):
         )
 
     def _init_schema_item(cls,typ):
-        typ.fields = dict.fromkeys(cls.__slots__)
+        typ.fields = dict((k,{}) for k in cls.__slots__)
         typ.implementationTypes = {'python': cls}
 
 
