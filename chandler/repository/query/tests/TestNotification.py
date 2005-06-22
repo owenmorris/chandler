@@ -310,7 +310,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         monitor_client.action = ([],[])
         ev = CalendarEvent("test event", view=self.rep.view)
         (added, removed) = monitor_client.action
-        self.assert_(len(added) == 0 and len(removed) == 0)
+        self.assert_(len(added) == 0 and len(removed) == 1)
         self.rep.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 0)

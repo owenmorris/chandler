@@ -1650,7 +1650,10 @@ class AbstractSet(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name):
 
         offset, string = itemReader.readString(offset, data)
-        return offset, Sets.AbstractSet.makeValue(string)
+        value = Sets.AbstractSet.makeValue(string)
+        value.itsView = view
+
+        return offset, value
 
     def hashValue(self, value):
 

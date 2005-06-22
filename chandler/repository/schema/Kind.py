@@ -17,7 +17,7 @@ from repository.item.PersistentCollections import PersistentCollection
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
-from repository.item.Monitors import Monitors, Monitor
+from repository.item.Monitors import Monitor
 from repository.schema.TypeHandler import TypeHandler
 
 

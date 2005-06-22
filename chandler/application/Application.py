@@ -398,7 +398,9 @@ Would you like to remove all data from your repository?
             except RepositoryPasswordError, e:
                 if options.encrypt:
                     print e.args[0]
-                    continue
+                else:
+                    options.encrypt = True
+                continue
             else:
                 del kwds
                 break

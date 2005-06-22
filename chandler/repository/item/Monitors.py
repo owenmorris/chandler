@@ -40,7 +40,7 @@ class Monitors(Item):
         except KeyError:
             return view.findPath('//Schema/Core/Items/Monitors')
 
-    def invoke(cls, op, item, attribute):
+    def invoke(cls, op, item, attribute, *args):
 
         #print op, item.itsPath, attribute, item.getAttributeValue(attribute)
 
@@ -49,10 +49,16 @@ class Monitors(Item):
         except KeyError:
             return
         except AttributeError:
-            print 'no monitor singleton'
+            print 'no monitor singleton', op, item, attribute
             return
 
-        for monitorItem, method, args, kwds in monitors:
+        for monitorItem, method, monitorArgs, kwds in monitors:
+            if monitorArgs:
+                if args:
+                    args = list(args)
+                    args.extend(monitorArgs)
+                else:
+                    args = monitorArgs
             getattr(monitorItem, method)(op, item, attribute, *args, **kwds)
 
     def attach(cls, item, method, op, attribute, *args, **kwds):
@@ -69,7 +75,7 @@ class Monitors(Item):
     def detach(cls, item, method, op, attribute, *args, **kwds):
 
         instance = cls.getInstance(item.itsView)
-        monitor = [item, method, args, kwds]
+        monitor = (item, method, args, kwds)
 
         instance.monitoring[op][attribute].remove(monitor)
 

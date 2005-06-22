@@ -24,7 +24,8 @@ from repository.util.LinkedMap import LinkedMap
 class Item(CItem):
     'The root class for all items.'
 
-    def __init__(self, name=None, parent=None, kind=None, _uuid=None, **values):
+    def __init__(self, name=None, parent=None, kind=None,
+                 _uuid=None, _noMonitors=False, **values):
         """
         Construct an Item.
 
@@ -79,6 +80,9 @@ class Item(CItem):
 
         for name, value in values.iteritems():
             self.setAttributeValue(name, value)
+
+        if not (_noMonitors or (kind is None) or (Item._monitorsClass is None)):
+            Item._monitorsClass.invoke('schema', self, 'kind', None)
 
     def _fillItem(self, name, parent, kind, **kwds):
 
@@ -462,6 +466,17 @@ class Item(CItem):
             if refList is not None and item._uuid in refList:
                 refList.placeItem(item, None, indexName)
 
+    def _kindChanged(self, op, item, attribute, prevKind, name):
+
+        if op == 'schema' and attribute == 'kind':
+            kind = item._kind
+            set = getattr(self, name)
+
+            if prevKind is not None:
+                set.sourceChanged('remove', self, name, False, item, prevKind)
+            if kind is not None:
+                set.sourceChanged('add', self, name, False, item, kind)
+
     def _collectionChanged(self, op, name, other):
 
         if op == 'remove':
@@ -480,7 +495,7 @@ class Item(CItem):
                 for (watcher, args) in watchers:
                     if len(args) == 2 and args[0] == 'set':
                         getattr(watcher, args[1]).sourceChanged(op, self, name,
-                                                                other, False)
+                                                                False, other)
                     else:
                         watcher.collectionChanged(op, self, name, other, *args)
 
@@ -1543,8 +1558,6 @@ class Item(CItem):
             for child in self.iterChildren():
                 child.delete(recursive=True, deletePolicy=deletePolicy)
 
-            self._values.clear()
-
             for name in self._references.keys():
                 policy = (deletePolicy or
                           self.getAttributeAspect(name, 'deletePolicy',
@@ -1556,20 +1569,18 @@ class Item(CItem):
                             others.extend([other for other in value])
                         else:
                             others.append(value)
-                    
-                self.removeAttributeValue(name, self._references)
+
+            for other in others:
+                if other.refCount(True) == 0:
+                    other.delete(recursive, deletePolicy)
+
+            self.__setKind(None)
 
             self.itsParent._removeItem(self)
             self._setRoot(None, view)
 
             self._status |= Item.DELETED | Item.STALE
             self._status &= ~Item.DELETING
-
-            for other in others:
-                if other.refCount(True) == 0:
-                    other.delete(recursive, deletePolicy)
-
-            self._kind = None
 
     def _copyExport(self, view, cloudAlias, matches):
 
@@ -1766,7 +1777,8 @@ class Item(CItem):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
 
-            Item._monitorsClass.invoke('schema', self, 'kind')
+            if kind is not None or prevKind is not None:
+                Item._monitorsClass.invoke('schema', self, 'kind', prevKind)
 
     def mixinKinds(self, *kinds):
         """

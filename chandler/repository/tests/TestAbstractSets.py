@@ -11,7 +11,7 @@ import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.tests.classes.Movie import Movie
-from repository.item.Sets import Union, Intersection, Difference, Set
+from repository.item.Sets import Union, Intersection, Difference, Set, KindSet
 
 class movie(Movie):
 
@@ -144,6 +144,25 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(m.calls[0] == ('remove', m, 'set', w))
 
         self.assert_(len(list(m.set)) == 6)
+
+    def testKindSet(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        m.set = KindSet(self.m5.itsKind)
+        k = self.m4.actors.first()
+        count = len(list(m.set))
+
+        l = k.movies.last()
+        l.delete()
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('remove', m, 'set', l))
+
+        del m.calls[:]
+        l = self.m5.itsKind.newItem(None, self.m5.itsParent)
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('add', m, 'set', l))
+
+        self.assert_(len(list(m.set)) == count)
 
 
 if __name__ == "__main__":
