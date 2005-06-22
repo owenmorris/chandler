@@ -53,6 +53,8 @@ class Monitors(Item):
             return
 
         for monitorItem, method, monitorArgs, kwds in monitors:
+            if monitorItem is None:
+                continue
             if monitorArgs:
                 if args:
                     args = list(args)
