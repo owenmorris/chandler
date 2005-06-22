@@ -51,6 +51,10 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
 
     selection = schema.One(schema.Item, initialValue = None)
 
+    schema.addClouds(
+        default = schema.Cloud(byRef=[selection])
+    )
+
     def onSetContentsEvent (self, event):
         logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
         self.__changeSelection(event.arguments['item'])
@@ -295,7 +299,12 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
     Delegate for the trunk builder on DetailRoot; the cache key is the given item's Kind
     """    
 
+    # A stub block to copy as the root of each tree-of-blocks we build.
     trunkStub = schema.One(Block.Block)
+
+    schema.addClouds(
+        default = schema.Cloud(byRef=[trunkStub])
+    )
 
     def _mapItemToCacheKeyItem(self, item):
         """ 

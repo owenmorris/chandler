@@ -19,6 +19,12 @@ logger.setLevel(logging.INFO)
 
 
 class TrunkSubtree(schema.Item):
+    """A mapping between an Item and the "root blocks" that should appear when
+    an Item inheriting from that Kind is displayed. (A "root block" should
+    have a "position" attribute to enable it to be sorted with other root
+    blocks.)
+    """
+
     key = schema.One(schema.Item, required = True)
     rootBlocks = schema.Sequence('Block', inverse = 'parentTrunkSubtrees')
 
@@ -865,7 +871,9 @@ class BlockEvent(schema.Item):
     dispatchToBlockName = schema.One(schema.String)
     methodName = schema.One(schema.String)
     blockName = schema.One(schema.String)
-
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[destinationBlockReference])
+    )
 
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
@@ -875,6 +883,10 @@ class KindParameterizedEvent(BlockEvent):
         schema.TypeReference('//Schema/Core/Kind'),
         required = True,
     )
+    schema.addClouds(
+        default = schema.Cloud(byRef=[kindParameter])
+    )
+    
 
 
 class operationType(schema.Enumeration):
@@ -886,6 +898,9 @@ class ModifyContentsEvent(BlockEvent):
     copyItems = schema.One(schema.Boolean, initialValue = True)
     selectFirstItem = schema.One(schema.Boolean, initialValue = False)
     disambiguateItemNames = schema.One(schema.Boolean, initialValue = False)
+    schema.addClouds(
+        default = schema.Cloud(byRef=[items])
+    )
 
 
 class EventList(schema.Item):
@@ -897,6 +912,9 @@ class lineStyleEnumType(schema.Enumeration):
 
 
 class PresentationStyle(schema.Item):
+    schema.kindInfo(
+        displayName = "Presentation Style"
+    )
     sampleText = schema.One(
         schema.String,
         doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
@@ -917,5 +935,9 @@ class PresentationStyle(schema.Item):
         lineStyleEnumType,
         doc = 'SingleLine vs MultiLine for textbox-based editors',
     )
-
+    schema.addClouds(
+        default = schema.Cloud(
+            byValue=[sampleText,format,choices,useControl,lineStyleEnum]
+        )
+    )
 

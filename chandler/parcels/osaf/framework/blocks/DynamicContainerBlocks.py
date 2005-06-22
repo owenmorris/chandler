@@ -364,6 +364,12 @@ class operationEnumType(schema.Enumeration):
 
 
 class DynamicChild(DynamicBlock):
+    """Dynamic Children are built dynamically when the Active View changes.
+
+    They include MenuItems, Menus, and ToolbarItems.
+    Used as a mixin class for other blocks.
+    """
+
     dynamicParent = schema.One(
         Block.Block, initialValue = None, otherName = 'dynamicChildren',
     )
@@ -389,6 +395,10 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     )
 
     collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
+
+    schema.addClouds(
+        default = schema.Cloud(byCloud = [dynamicChildren])
+    )
 
     def itemNameAccessor(self, item):
         """
@@ -631,6 +641,9 @@ class MenuItem (Block.Block, DynamicChild):
     menuItemKind = schema.One(menuItemKindEnumType, initialValue = 'Normal')
     accel = schema.One(schema.String, initialValue = '')
     event = schema.One(Block.BlockEvent)
+    schema.addClouds(
+        default = schema.Cloud(byCloud = [event])
+    )
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
@@ -847,6 +860,9 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
     separatorWidth = schema.One(schema.Integer, initialValue = 5)
     buttons3D = schema.One(schema.Boolean, initialValue = False)
     buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
+    schema.addClouds(
+        default = schema.Cloud(byRef=[colorStyle])
+    )
 
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
@@ -901,6 +917,10 @@ class ToolbarItem(Block.Block, DynamicChild):
     disabledBitmap = schema.One(schema.String)
     event = schema.One(Block.BlockEvent)
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
+    
+    schema.addClouds(
+        default = schema.Cloud(byRef=[prototype], byCloud=[event])
+    )
 
     def instantiateWidget (self):
         def getBitmaps (self):

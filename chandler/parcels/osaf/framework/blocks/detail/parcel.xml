@@ -81,11 +81,6 @@
     <contents itemref="doc:DetailViewSelectedItemCollection"/>
   </DetailRoot>
 
-  <!-- All our subtrees are of this kind, so we can find 'em. -->
-  <core:Kind itsName="DetailTrunkSubtree">
-    <superKinds itemref="TrunkSubtree"/>
-  </core:Kind>
-
   <!-- Spacer that we copy and use between labels and editors -->
   <StaticText itsName="HorizontalSpacer">
     <blockName value="HorizontalSpacer"/>

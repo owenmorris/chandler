@@ -131,6 +131,9 @@ class wxLayoutChooser(wxBoxContainer):
 class LayoutChooser(BoxContainer):
 
     choices = schema.Sequence(Block)
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[choices])
+    )
 
     NONE_SELECTED = -1
     
@@ -375,6 +378,7 @@ class tabPositionEnumType(schema.Enumeration):
 
 
 class ViewContainer(BoxContainer):
+
     tabPositionEnum = schema.One(
         tabPositionEnumType, initialValue = 'Top',
     )
@@ -382,6 +386,9 @@ class ViewContainer(BoxContainer):
     selectionIndex = schema.One(schema.Integer, initialValue = 0)
     views = schema.Sequence(Block, otherName = 'viewContainer')
 
+    schema.addClouds(
+        default = schema.Cloud(byRef=[views])
+    )
 
     def instantiateWidget (self):
         """

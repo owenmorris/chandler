@@ -82,6 +82,9 @@ class CheckBox(RectangularChild):
 
     event = schema.One(BlockEvent)
     title = schema.One(schema.String)
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[event])
+    )
 
     def instantiateWidget(self):
         try:
@@ -106,6 +109,9 @@ class Choice(RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
     event = schema.One(BlockEvent)
     choices = schema.Sequence(schema.String)
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[characterStyle])
+    )
 
     def instantiateWidget(self):
         try:
@@ -157,6 +163,9 @@ class ContextMenuItem(RectangularChild):
 
     event = schema.One(BlockEvent)
     title = schema.One(schema.String)
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[event])
+    )
 
     def addItem(self, wxContextMenu, data):
         id = Block.getWidgetID(self)
@@ -204,6 +213,9 @@ class EditText(RectangularChild):
     readOnly = schema.One(schema.Boolean, initialValue = False)
     textAlignmentEnum = schema.One(
         textAlignmentEnumType, initialValue = 'Left',
+    )
+    schema.addClouds(
+        default = schema.Cloud(byRef=[characterStyle])
     )
 
     def instantiateWidget(self):
@@ -430,6 +442,9 @@ class List(RectangularChild):
     columnWidths = schema.Sequence(schema.Integer, required = True)
     elementDelegate = schema.One(schema.String, initialValue = '')
     selection = schema.One(schema.Item, initialValue = None)
+    schema.addClouds(
+        default = schema.Cloud(byRef=[selection])
+    )
 
     def __init__(self, *arguments, **keywords):
         super (List, self).__init__ (*arguments, **keywords)
@@ -978,6 +993,13 @@ class Table (RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
 
+    schema.addClouds(
+        default = schema.Cloud(
+            byCloud=[selectedItemToView],
+            byRef=[characterStyle,headerCharacterStyle]
+        )
+    )
+
     def __init__(self, *arguments, **keywords):
         super (Table, self).__init__ (*arguments, **keywords)
 
@@ -1040,6 +1062,7 @@ class Table (RectangularChild):
 class radioAlignEnumType(schema.Enumeration):
       values = "Across", "Down"
 
+
 class RadioBox(RectangularChild):
 
     title = schema.One(schema.String)
@@ -1047,6 +1070,9 @@ class RadioBox(RectangularChild):
     radioAlignEnum = schema.One(radioAlignEnumType)
     itemsPerLine = schema.One(schema.Integer)
     event = schema.One(BlockEvent)
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[event])
+    )
 
     def instantiateWidget(self):
         if self.radioAlignEnum == "Across":
@@ -1073,6 +1099,10 @@ class StaticText(RectangularChild):
     )
     characterStyle = schema.One(Styles.CharacterStyle)
     title = schema.One(schema.String)
+
+    schema.addClouds(
+        default = schema.Cloud(byRef=[characterStyle])
+    )
 
     def instantiateWidget (self):
         if self.textAlignmentEnum == "Left":
@@ -1377,6 +1407,10 @@ class Tree(RectangularChild):
     openedContainers = schema.Mapping(schema.Boolean, initialValue = {})
     rootPath = schema.One(schema.Item, initialValue = None)
 
+    schema.addClouds(
+        default = schema.Cloud(byRef=[selection])
+    )
+
     def instantiateWidget(self):
         try:
             self.columnWidths
@@ -1415,6 +1449,9 @@ class wxItemDetail(wx.html.HtmlWindow):
 class ItemDetail(RectangularChild):
 
     selection = schema.One(schema.Item, initialValue = None)
+    schema.addClouds(
+        default = schema.Cloud(byRef=[selection])
+    )
 
     def __init__(self, *arguments, **keywords):
         super (ItemDetail, self).__init__ (*arguments, **keywords)
@@ -1482,6 +1519,10 @@ class Timer(Block):
         doc = "The event we'll send when we go off",
     )
 
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[event])
+    )
+
     def instantiateWidget (self):
         timer = wxPyTimer(self.parentBlock.widget)
         return timer
@@ -1533,10 +1574,18 @@ class AEBlock(BoxContainer):
       Instantiates an Attribute Editor that's appropriate for the
     attribute specified in this block.
     """
+    schema.kindInfo(
+        displayName="Attribute Editor Block Kind",
+        description="Block that instantiates an appropriate Attribute Editor."
+    )
 
     characterStyle = schema.One(Styles.CharacterStyle)
     readOnly = schema.One(schema.Boolean, initialValue = False)
     presentationStyle = schema.One(PresentationStyle)
+
+    schema.addClouds(
+        default = schema.Cloud(byRef=[characterStyle, presentationStyle])
+    )
 
     def instantiateWidget(self):
         """

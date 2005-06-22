@@ -30,8 +30,15 @@ class CharacterStyle(Style):
     fontFamily = schema.One(
         fontFamilyEnumType, initialValue = 'DefaultUIFont',
     )
+
+    # we default to 11 points, which'll get scaled to the platform's
+    # default GUI font
     fontSize = schema.One(schema.Float, initialValue = 11.0)
+
+    # Currently, fontStyle is a string containing any of the following words:
+    # bold light italic underline, but others will be included in the future
     fontStyle = schema.One(schema.String, initialValue = '')
+
     fontName = schema.One(schema.String, initialValue = '')
 
     def __init__(self, *arguments, **keywords):
@@ -50,7 +57,11 @@ class ColorStyle(Style):
     backgroundColor = schema.One(
         ColorType, initialValue = ColorType(255, 255, 255, 255),
     )
-    
+
+    schema.addClouds(
+        sharing = schema.Cloud(foregroundColor, backgroundColor)
+    )
+
     myKindPath = "//parcels/osaf/framework/blocks/ColorStyle"
     myKindID = None
     def __init__(self, *arguments, **keywords):

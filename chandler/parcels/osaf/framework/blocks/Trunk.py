@@ -52,6 +52,13 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         schema.Item, initialValue = None, otherName = 'TPBSelectedItemOwner'
     )
 
+    schema.addClouds(
+        default = schema.Cloud(
+            byCloud=[trunkDelegate,TPBDetailItem,TPBSelectedItem],
+            byRef = [colorStyle]
+        )
+    )
+
     def instantiateWidget(self):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
@@ -119,6 +126,13 @@ class TrunkDelegate(schema.Item):
     in the read-only part of the repository).
     """
 
+    schema.kindInfo(
+        issues=[
+            "We'd like to use itemrefs as keys, so reference tracking & "
+            "cleanup would work"
+        ]
+    )
+
     trunkParentBlock = schema.One(
         TrunkParentBlock,
         inverse = TrunkParentBlock.trunkDelegate,
@@ -126,6 +140,10 @@ class TrunkDelegate(schema.Item):
     )
 
     keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
+
+    schema.addClouds(
+        default = schema.Cloud(byCloud=[trunkParentBlock])
+    )
 
     def getTrunkForKeyItem(self, keyItem):
         """ 
