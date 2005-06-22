@@ -142,7 +142,7 @@ class Set(AbstractSet):
 
     def __repr__(self):
 
-        return "Set(%s)" %(self._reprSource(self._source))
+        return "%s(%s)" %(type(self).__name__, self._reprSource(self._source))
         
     def _setItem(self, item, attribute):
 
@@ -325,7 +325,8 @@ class KindSet(AbstractSet):
 
     def __repr__(self):
 
-        return "KindSet(UUID('%s'), %s)" %(self._kind.str64(), self._recursive)
+        return "%s(UUID('%s'), %s)" %(type(self).__name__,
+                                      self._kind.str64(), self._recursive)
         
     def _setItem(self, item, attribute):
 
