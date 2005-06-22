@@ -10,15 +10,129 @@ __parcel__ = "osaf.contentmodel.calendar"
 import application
 import repository.query.Query as Query
 
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.contacts.Contacts as Contacts
+from application import schema
+
+from osaf.contentmodel import ContentModel
+from osaf.contentmodel import Notes
+from osaf.contentmodel.contacts import Contacts
 
 from datetime import datetime, time, timedelta
 
+class TimeTransparencyEnum(schema.Enumeration):
+    """Time Transparency Enum
+
+    The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.
+
+    It'd be nice to not maintain the transparency choices separately from the enum values"""
+    
+    schema.kindInfo(
+        displayName="Time Transparency"
+    )
+    values="confirmed", "tentative", "fyi"
+
+
 class CalendarEventMixin(ContentModel.ContentItem):
+    """
+    This is the set of CalendarEvent-specific attributes. This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated
+    """
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+
+    schema.kindInfo(
+        displayName="Calendar Event Mixin Kind"
+    )
+
+    startTime = schema.One(
+        schema.DateTime,
+        displayName="Start-Time/Do-on",
+        doc="For items that represent *only* Tasks, this attribute serves as "
+            "the 'Do-on' attribute. For items that represent only Calendar "
+            "Events, this attribute serves as the 'Start-time' attribute. "
+            "I think this unified attribute may match the way iCalendar "
+            "models these attributes, but we should check to make sure. "
+            "- Brian"
+    )
+
+    endTime = schema.One(
+        schema.DateTime,
+        displayName="End-Time"
+    )
+
+    allDay = schema.One(
+        schema.Boolean,
+        displayName="All-Day",
+        initialValue=False
+    )
+
+    anyTime = schema.One(
+        schema.Boolean,
+        displayName="Any-Time",
+        initialValue=True
+    )
+
+    transparency = schema.One(
+        TimeTransparencyEnum,
+        displayName="Time Transparency",
+        initialValue="confirmed"
+    )
+
+    location = schema.One(
+        # Location
+        displayName="location",
+        doc="We might want to think about having Location be just a 'String', "
+            "rather than a reference to a 'Location' item."
+     )
+
+    reminderTime = schema.One(
+        schema.DateTime,
+        displayName="ReminderTime",
+        doc="This may not be general enough"
+    )
+
+    recurrence = schema.Sequence(
+        # RecurrencePattern
+        displayName="Recurrence Patterns",
+        doc="This is a placeholder and probably not used for 0.5"
+    )
+
+    organizer = schema.One(
+        Contacts.Contact,
+        displayName="Meeting Organizer",
+        inverse=Contacts.Contact.organizedEvents
+    )
+
+    participants = schema.Sequence(
+        Contacts.Contact,
+        displayName="Participants",
+        inverse=Contacts.Contact.participatingEvents
+    )
+
+    uid = schema.One(
+        schema.String,
+        displayName="UID",
+        doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
+            "set UID to a string representation of UUID, but we need to be "
+            "able to import iCalendar events with arbitrary UIDs."
+    )
+
+    calendar = schema.Sequence(
+        # Calendar
+        displayName="Calendar",
+        doc="Is this used?"
+    )
+
+    resources = schema.Sequence(
+        schema.String,
+        displayName="Resources",
+        doc="Is this used?"
+    )
+
+    # Redirections
+
+    who = schema.One(redirectTo="participants")
+    whoFrom = schema.One(redirectTo="organizer")
+    about = schema.One(redirectTo="displayName")
+    date = schema.One(redirectTo="startTime")
 
     """
       Calendar Event Mixin is the bag of Event-specific attributes.
@@ -195,16 +309,49 @@ class CalendarEventMixin(ContentModel.ContentItem):
         self.endTime = self.startTime + duration
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
+    """
+    @note: CalendarEvent should maybe have a 'Timezone' attribute.
+    @note: Do we want to have 'Duration' as a derived attribute on Calendar Event?
+    @note: Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?
+    """
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
+
+    schema.kindInfo(displayName="Calendar Event")
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (CalendarEvent, self).__init__(name, parent, kind, view)
         self.participants = []
 
+class Calendar(ContentModel.ContentItem):
+    """
+    @note: Calendar should have an attribute that points to all the Calendar Events.
+    @note: Calendar should maybe have a 'Timezone' attribute.
+    """
+    
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
+
+    schema.kindInfo(displayName="Calendar", displayAttribute="displayName")
+
+    def __init__(self, name=None, parent=None, kind=None, view=None):
+        super (Calendar, self).__init__(name, parent, kind, view)
+
 class Location(ContentModel.ContentItem):
+    """
+       @note: Location may not be calendar specific.
+    """
+    
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/Location"
+
+    schema.kindInfo(displayName="Location", displayAttribute="displayName")
+
+    eventsAtLocation = schema.Sequence(
+        CalendarEventMixin,
+        displayName="Calendar Events",
+        inverse=CalendarEventMixin.location
+    )
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Location, self).__init__(name, parent, kind, view)
@@ -259,16 +406,15 @@ class Location(ContentModel.ContentItem):
 
     getLocation = classmethod (getLocation)
 
-class Calendar(ContentModel.ContentItem):
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Calendar, self).__init__(name, parent, kind, view)
-
 class RecurrencePattern(ContentModel.ContentItem):
+    """
+    @note: RecurrencePattern is still a placeholder, and might be general enough to live with PimSchema. RecurrencePattern should have an attribute that points to a CalendarEvent.
+    """
+    
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/RecurrencePattern"
+
+    schema.kindInfo(displayName="Recurrence Pattern")
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (RecurrencePattern, self).__init__(name, parent, kind, view)

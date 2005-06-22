@@ -11,6 +11,8 @@ from ContentModel import (
 )
 from Notes import Note
 from contacts.Contacts import Contact
+from calendar.Calendar import CalendarEvent, CalendarEventMixin
+from calendar.Calendar import Calendar, Location, RecurrencePattern
 
 # Import ItemCollection class under another name, so it doesnt't
 # clash with the ItemCollection *module*.  The schema API and parcel

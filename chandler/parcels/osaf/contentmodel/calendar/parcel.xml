@@ -7,9 +7,6 @@
 
 <Parcel itsName="calendar"
         xmlns="http://osafoundation.org/parcels/core"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
         xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar">
 
   <displayName>Calendar Content Model</displayName>
@@ -24,121 +21,6 @@
   <author>Open Source Applications Foundation</author>
 
   <Kind itsName="CalendarEventMixin">
-    <superKinds itemref="content:ContentItem"/>
-    <displayName>Calendar Event Mixin Kind</displayName>
-    <description>This is the set of CalendarEvent-specific attributes. This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
-
-      <Attribute itsName="startTime">
-        <issues>For items that represent *only* Tasks, this attribute serves as the 'Do-on' attribute. For items that represent only Calendar Events, this attribute serves as the 'Start-time' attribute. I think this unified attribute may match the way iCalendar models these attributes, but we should check to make sure. - Brian</issues>
-        <displayName>Start-Time/Do-on</displayName>
-        <type itemref="DateTime"/>
-      </Attribute>
-
-      <Attribute itsName="endTime">
-        <displayName>End-Time</displayName>
-        <type itemref="DateTime"/>
-      </Attribute>
-
-      <Attribute itsName="allDay">
-        <displayName>All-Day</displayName>
-        <type itemref="Boolean"/>
-        <initialValue type="Boolean" value="False" />
-      </Attribute>
-      
-      <Attribute itsName="anyTime">
-        <displayName>Any-Time</displayName>
-        <type itemref="Boolean"/>
-        <initialValue type="Boolean" value="True" />
-      </Attribute>
-      
-      <Attribute itsName="location">
-        <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
-        <displayName>location</displayName>
-        <type itemref="cal:Location"/>
-        <inverseAttribute itemref="cal:Location/eventsAtLocation"/>
-      </Attribute>
-
-      <Attribute itsName="recurrence">
-        <issues>This is a placeholder and probably not used for 0.5</issues>
-        <displayName>Recurrence Patterns</displayName>
-        <cardinality>list</cardinality>
-        <type itemref="cal:RecurrencePattern"/>
-      </Attribute>
-
-      <Attribute itsName="reminderTime">
-        <issues>This may not be general enough</issues>
-        <displayName>ReminderTime</displayName>
-        <type itemref="DateTime"/>
-      </Attribute>
-
-      <Attribute itsName="organizer">
-        <displayName>Meeting Organizer</displayName>
-        <type itemref="contact:Contact"/>
-        <inverseAttribute itemref="contact:Contact/organizedEvents"/>
-      </Attribute>
-
-      <Attribute itsName="participants">
-        <displayName>Participants</displayName>
-        <cardinality>list</cardinality>
-        <type itemref="contact:Contact"/>
-        <inverseAttribute itemref="contact:/Contact/participatingEvents"/>
-      </Attribute>
-
-      <Attribute itsName="transparency">
-        <displayName>Time Transparency</displayName>
-
-        <Enumeration itsName="TimeTransparencyEnum">
-          <displayName>Time Transparency</displayName>
-          <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
-          <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
-          <values>confirmed</values>
-          <values>tentative</values>
-          <values>fyi</values>
-        </Enumeration>
-        
-        <type itemref="cal:CalendarEventMixin/transparency/TimeTransparencyEnum"/>
-        <initialValue type="cal:CalendarEventMixin/transparency/TimeTransparencyEnum" value="confirmed" />
-      </Attribute>
-
-    <Attribute itsName="uid">
-      <displayName>UID</displayName>
-      <issues>iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can set UID to a string representation of UUID, but we need to be able to import iCalendar events with arbitrary UIDs.</issues>
-      <type itemref="String"/>
-    </Attribute>
-
-    <Attribute itsName="calendar">
-      <displayName>Calendar</displayName>
-      <issues>Is this used?</issues>
-      <cardinality>list</cardinality>
-      <type itemref="cal:Calendar"/>
-    </Attribute>
-
-    <Attribute itsName="resources">
-      <displayName>Resources</displayName>
-      <issues>Is this used?</issues>
-      <cardinality>list</cardinality>
-      <type itemref="String"/>
-    </Attribute>
-
-
-    <!-- redirections -->
-    <Attribute itsName="who">
-      <redirectTo>participants</redirectTo>
-    </Attribute>
-
-    <Attribute itsName="whoFrom">
-      <redirectTo>organizer</redirectTo>
-    </Attribute>
-
-    <Attribute itsName="about">
-      <redirectTo>displayName</redirectTo>
-    </Attribute>
-
-    <Attribute itsName="date">
-      <redirectTo>startTime</redirectTo>
-    </Attribute>
-
     <Cloud itsName="Cloud">
 
       <Endpoint itsName="organizer">
@@ -202,50 +84,6 @@
     </Cloud>
     <clouds alias="sharing" itemref="cal:CalendarEventMixin/SharingCloud"/>
 
-  </Kind>
-
-  <Kind itsName="CalendarEvent">
-    <displayName>Calendar Event</displayName>
-    <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
-    <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
-    <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
-    <superKinds itemref="cal:CalendarEventMixin"/>
-    <superKinds itemref="content:Note"/>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
-
-  </Kind>
-
-  <Kind itsName="Location">
-    <superKinds itemref="content:ContentItem"/>
-    <displayName>Location</displayName>
-    <issues>Location may not be calendar specific</issues>
-    <displayAttribute itemref="displayName"/>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.Location</classes>
-
-      <Attribute itsName="eventsAtLocation">
-        <displayName>Calendar Events</displayName>
-        <cardinality>list</cardinality>
-        <type itemref="cal:CalendarEventMixin"/>
-        <inverseAttribute itemref="cal:CalendarEventMixin/location"/>
-      </Attribute>
-
-  </Kind>
-
-  <Kind itsName="Calendar">
-    <superKinds itemref="content:ContentItem"/>
-    <displayName>Calendar</displayName>
-    <issues>Calendar should have an attribute that points to all the Calendar Events.</issues>
-    <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
-    <displayAttribute itemref="displayName"/>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.Calendar</classes>
-  </Kind>
-
-  <Kind itsName="RecurrencePattern">
-    <superKinds itemref="content:ContentItem"/>
-    <issues>Recurrence Pattern is still a placeholder, and  might be general enough to live with PimSchema.</issues>
-    <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
-    <displayName>Recurrence Pattern</displayName>
-    <classes key="python">osaf.contentmodel.calendar.Calendar.RecurrencePattern</classes>
   </Kind>
 
 </Parcel>
