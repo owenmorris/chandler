@@ -1,0 +1,63 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "image", "image.vcproj", "{370DDD47-0DB0-46AE-8D81-45314B05EE7D}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		DLL Debug = DLL Debug
+		DLL Release = DLL Release
+		DLL Unicode Debug = DLL Unicode Debug
+		DLL Unicode Release = DLL Unicode Release
+		DLL Universal Debug = DLL Universal Debug
+		DLL Universal Release = DLL Universal Release
+		DLL Universal Unicode Debug = DLL Universal Unicode Debug
+		DLL Universal Unicode Release = DLL Universal Unicode Release
+		Release = Release
+		Unicode Debug = Unicode Debug
+		Unicode Release = Unicode Release
+		Universal Debug = Universal Debug
+		Universal Release = Universal Release
+		Universal Unicode Debug = Universal Unicode Debug
+		Universal Unicode Release = Universal Unicode Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Debug.ActiveCfg = Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Debug.Build.0 = Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Debug.ActiveCfg = DLL Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Debug.Build.0 = DLL Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Release.ActiveCfg = DLL Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Release.Build.0 = DLL Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Unicode Debug.ActiveCfg = DLL Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Unicode Debug.Build.0 = DLL Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Unicode Release.ActiveCfg = DLL Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Unicode Release.Build.0 = DLL Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Debug.ActiveCfg = DLL Universal Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Debug.Build.0 = DLL Universal Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Release.ActiveCfg = DLL Universal Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Release.Build.0 = DLL Universal Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Unicode Debug.ActiveCfg = DLL Universal Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Unicode Debug.Build.0 = DLL Universal Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Unicode Release.ActiveCfg = DLL Universal Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.DLL Universal Unicode Release.Build.0 = DLL Universal Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Release.ActiveCfg = Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Release.Build.0 = Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Unicode Debug.ActiveCfg = Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Unicode Debug.Build.0 = Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Unicode Release.ActiveCfg = Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Unicode Release.Build.0 = Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Debug.ActiveCfg = Universal Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Debug.Build.0 = Universal Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Release.ActiveCfg = Universal Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Release.Build.0 = Universal Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Unicode Debug.ActiveCfg = Universal Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Unicode Debug.Build.0 = Universal Unicode Debug|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Unicode Release.ActiveCfg = Universal Unicode Release|Win32
+		{370DDD47-0DB0-46AE-8D81-45314B05EE7D}.Universal Unicode Release.Build.0 = Universal Unicode Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
