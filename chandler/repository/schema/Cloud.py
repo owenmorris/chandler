@@ -9,6 +9,7 @@ import re
 from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
+from repository.item.Sets import AbstractSet
 from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
@@ -491,7 +492,7 @@ class Endpoint(Item):
 
         def append(values, value):
             if value is not None:
-                if isinstance(value, Item) or isinstance(value, RefList):
+                if isinstance(value, (Item, RefList, AbstractSet)):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
                     values.append(value._iterItems())
@@ -505,7 +506,7 @@ class Endpoint(Item):
                 for v in value._iterItems():
                     append(values, v.getAttributeValue(name, None, None, None))
                 value = values
-            elif isinstance(value, RefList):
+            elif isinstance(value, (RefList, AbstractSet)):
                 values = []
                 for v in value:
                     append(values, v.getAttributeValue(name, None, None, None))
@@ -523,10 +524,10 @@ class Endpoint(Item):
                 value = value.getAttributeValue(name, None, None, None)
                 if value is None:
                     break
-                if not (isinstance(value, Item) or
-                        isinstance(value, RefList) or
-                        isinstance(value, PersistentCollection)):
-                    raise TypeError, type(value)
+                if not isinstance(value, (Item, PersistentCollection,
+                                          RefList, AbstractSet)):
+                    value = None
+                    break
 
         if value is None:
             return []
