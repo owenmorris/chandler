@@ -1833,9 +1833,9 @@ wxImage::RGBValue wxImage::HSVtoRGB(wxImage::HSVValue hsv)
               break;
         }
     }
-    return wxImage::RGBValue((unsigned char)red * 255,
-                             (unsigned char)green * 255,
-                             (unsigned char)blue * 255);
+    return wxImage::RGBValue((unsigned char)(red * 255.0),
+                             (unsigned char)(green * 255.0),
+                             (unsigned char)(blue * 255.0));
 }
 
 void wxImage::RotateHue(double angle)

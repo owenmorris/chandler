@@ -130,23 +130,23 @@ key value from a RGB tripple.", "");
 
 %{
 // Pull the nested class out to the top level for SWIG's sake
-#define wxImage_RGB wxImage::RGBValue
-#define wxImage_HSV wxImage::HSVValue
+#define wxImage_RGBValue wxImage::RGBValue
+#define wxImage_HSVValue wxImage::HSVValue
 %}
  
-class wxImage_RGB
+class wxImage_RGBValue
 {
 public:
-    wxImage_RGB(byte r=0, byte g=0, byte b=0);    
+    wxImage_RGBValue(byte r=0, byte g=0, byte b=0);    
     byte red;  
     byte green;
     byte blue;
 };
     
-class wxImage_HSV
+class wxImage_HSVValue
 {
 public:
-    wxImage_HSV(double h=0.0, double s=0.0, double v=0.0);
+    wxImage_HSVValue(double h=0.0, double s=0.0, double v=0.0);
     double hue;  
     double saturation;
     double value;
@@ -579,8 +579,8 @@ MustHaveApp(ConvertToMonoBitmap);
         "Rotates the hue of each pixel of the image. Hue is a double in the
 range -1.0..1.0 where -1.0 is -360 degrees and 1.0 is 360 degrees", "");
         
-    static wxImage_HSV RGBtoHSV(wxImage_RGB rgb);
-    static wxImage_RGB HSVtoRGB(wxImage_HSV hsv);
+    static wxImage_HSVValue RGBtoHSV(wxImage_RGBValue rgb);
+    static wxImage_RGBValue HSVtoRGB(wxImage_HSVValue hsv);
 
     %pythoncode { def __nonzero__(self): return self.Ok() }
 };

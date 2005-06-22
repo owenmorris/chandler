@@ -503,8 +503,8 @@
 %rename(IMAGE_ALPHA_OPAQUE)                 wxIMAGE_ALPHA_OPAQUE;
 %rename(ImageHandler)                       wxImageHandler;
 %rename(ImageHistogram)                     wxImageHistogram;
-%rename(Image_RGB)                          wxImage_RGB;
-%rename(Image_HSV)                          wxImage_HSV;
+%rename(Image_RGBValue)                     wxImage_RGBValue;
+%rename(Image_HSVValue)                     wxImage_HSVValue;
 %rename(Image)                              wxImage;
 %rename(NullImage)                          wxNullImage;
 %rename(IMAGE_RESOLUTION_INCHES)            wxIMAGE_RESOLUTION_INCHES;
