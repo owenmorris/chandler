@@ -158,7 +158,7 @@ private:
     void SetDateAndNotify(const wxDateTime& date);
 
     // get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
-    size_t GetWeek(const wxDateTime& date) const;
+    size_t GetWeek(const wxDateTime& date, bool useRelative = true) const;
 
     // get the date from which we start drawing days
     wxDateTime GetStartDate() const;

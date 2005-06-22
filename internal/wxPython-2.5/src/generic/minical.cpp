@@ -75,6 +75,7 @@ wxBEGIN_FLAGS( wxMiniCalendarStyle )
     wxFLAGS_MEMBER(wxCAL_MONDAY_FIRST)
     wxFLAGS_MEMBER(wxCAL_SHOW_SURROUNDING_WEEKS)
     wxFLAGS_MEMBER(wxCAL_SHOW_PREVIEW)
+    wxFLAGS_MEMBER(wxCAL_HIGHLIGHT_WEEK)
 
 wxEND_FLAGS( wxMiniCalendarStyle )
 
@@ -431,11 +432,21 @@ bool wxMiniCalendar::IsDateInRange(const wxDateTime& date) const
         && ( ( m_highdate.IsValid() ) ? ( date <= m_highdate ) : true ) );
 }
 
-size_t wxMiniCalendar::GetWeek(const wxDateTime& date) const
+size_t wxMiniCalendar::GetWeek(const wxDateTime& date, bool useRelative) const
 {
-    size_t retval = date.GetWeekOfMonth(GetWindowStyle() & wxCAL_MONDAY_FIRST
+	size_t retval;
+	if ( useRelative )
+	{
+        retval = date.GetWeekOfMonth(GetWindowStyle() & wxCAL_MONDAY_FIRST
                                    ? wxDateTime::Monday_First
                                    : wxDateTime::Sunday_First);
+	}
+	else
+	{
+        retval = date.GetWeekOfYear(GetWindowStyle() & wxCAL_MONDAY_FIRST
+                                   ? wxDateTime::Monday_First
+                                   : wxDateTime::Sunday_First);
+	}
     return retval;
 }
 
@@ -704,6 +715,19 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 wxMiniCalendarDateAttr *attr = NULL;
                 wxCoord x = wd * m_widthCol + (m_widthCol - width) / 2;
 
+                // either highlight the selected week or the selected day depending upon the style
+                if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(m_date, false) ) ) ||
+                    ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(m_date) ) ) )
+                {
+                    dc.SetTextBackground(highlightColour);
+                    dc.SetBrush(wxBrush(highlightColour, wxSOLID));
+                    dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
+                    dc.DrawRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow);
+
+                    changedColours = true;
+                }
+
+				
                 if ( date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date) )
                 {
                     // surrounding week or out-of-range
@@ -715,16 +739,6 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 {
                     attr = m_attrs[dayPosition];
 
-                    // highlight selected day
-                    if ( date.IsSameDate(m_date) )
-                    {
-                        dc.SetTextBackground(highlightColour);
-                        dc.SetBrush(wxBrush(highlightColour, wxSOLID));
-                        dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
-                        dc.DrawRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow);
-
-                        changedColours = true;
-                    }
                     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
                     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
@@ -757,7 +771,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
                 if ( changedFont )
                 {
-                    dc.SetFont(GetFont());
+                    dc.SetFont(m_normalFont);
                 }
             }
             //else: just don't draw it
