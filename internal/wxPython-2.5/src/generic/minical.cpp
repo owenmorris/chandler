@@ -1122,7 +1122,6 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     }
     int week;
     bool found = false;
-    int month;
     for ( month = 0; month < MONTHS_TO_DISPLAY; month++ )
     {
         if ( y > ( initialHeight + month * monthHeight + headerHeight ) && 
