@@ -10,7 +10,7 @@ from application import schema
 import osaf.contentmodel.ContentModel as ContentModel
 import WakeupCaller
 
-class WakeupCall(schema.Item):
+class WakeupCall(ContentModel.ContentItem):
 
     schema.kindInfo(displayName = "Wakeup Call")
 
