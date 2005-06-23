@@ -14,13 +14,18 @@ from repository.item.Query import KindQuery
 
 
 class ContactName(ContentModel.ContentItem):
+    "A very simple (and incomplete) representation of a person's name"
+    
+    firstName = schema.One(schema.String, initialValue="")
+    lastName  = schema.One(schema.String, initialValue="")
+    contact = schema.One("Contact", inverse="contactName")
+
+    schema.addClouds(
+        sharing = schema.Cloud(firstName, lastName)
+    )
 
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
-
-    firstName = schema.One(schema.String, initialValue="")
-    lastName  = schema.One(schema.String, initialValue="")
-    contact = schema.One()  # Contact
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (ContactName, self).__init__(name, parent, kind, view)
@@ -35,9 +40,6 @@ class Contact(ContentModel.ContentItem):
       'Permissions I've given them', 'Items of mine they've subscribed to',
       'Items of theirs I've subscribed to', etc.
     """
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
-
     schema.kindInfo(displayName="Contact", displayAttribute="emailAddress")
     
     itemsCreated = schema.Sequence(
@@ -62,28 +64,32 @@ class Contact(ContentModel.ContentItem):
         inverse=ContentModel.ContentItem.lastModifiedBy
     )
 
-    requestedTasks = schema.Sequence(   # TaskMixin
+    requestedTasks = schema.Sequence(
+        "osaf.contentmodel.tasks.Task.TaskMixin",
         displayName="Requested Tasks",
         doc="List of tasks requested by this user.",
-        otherName="requestor"
+        inverse="requestor"
     )
 
-    taskRequests= schema.Sequence(  # TaskMixin
+    taskRequests= schema.Sequence(
+        "osaf.contentmodel.tasks.Task.TaskMixin",
         displayName="Task Requests",
         doc="List of tasks requested for this user.",
-        otherName="requestee"
+        otherName="requestee"   # XXX other end points to ContentItem???
     )
 
-    organizedEvents= schema.Sequence(   # CalendarEventMixin
+    organizedEvents= schema.Sequence(
+        "osaf.contentmodel.calendar.Calendar.CalendarEventMixin",
         displayName="Organized Events",
         doc="List of events this user has organized.",
-        otherName="organizer"
+        inverse="organizer"
     )
 
-    participatingEvents= schema.Sequence(   # CalendarEventMixin
+    participatingEvents= schema.Sequence(
+        "osaf.contentmodel.calendar.Calendar.CalendarEventMixin",
         displayName="Participating Events",
         doc="List of events this user is a participant.",
-        otherName="participants"
+        inverse="participants"
     )
 
     sharerOf= schema.Sequence(  # Share
@@ -104,6 +110,12 @@ class Contact(ContentModel.ContentItem):
     about = schema.Role(redirectTo="displayName")
     date  = schema.Role(redirectTo="createdOn")
 
+    schema.addClouds(
+        sharing = schema.Cloud(emailAddress, byCloud=[contactName])
+    )
+
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Contact, self).__init__(name, parent, kind, view)

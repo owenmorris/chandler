@@ -6,12 +6,19 @@ Notification
 """
 __parcel__ = "osaf.framework.certstore.schema"
 
-import repository.item.Item as Item
+from application import schema
 
-class NotificationItem(Item.Item):
+class NotificationItem(schema.Item):
     """
     A notification item, mainly intended as a dummy for query subscriptions.
     """
+
+    schema.kindInfo(
+        displayName = "Notification Item",
+        description = "A notification item, mainly intended as a dummy for "
+                      "query subscriptions."
+    )
+
     def __init__(self, name=None, parent=None, kind=None):
         super(NotificationItem, self).__init__(name, parent, kind)
 

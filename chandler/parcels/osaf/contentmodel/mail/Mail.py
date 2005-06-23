@@ -8,9 +8,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.contentmodel.mail"
 
 import application
+from application import schema
 import repository.item.Item as Item
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
+from osaf.contentmodel import ContentModel, Notes
 import osaf.current.Current as Current
 import application.Globals as Globals
 import repository.query.Query as Query
@@ -151,7 +151,97 @@ class MailParcel(application.Parcel.Parcel):
     getActiveSMTPAccounts = classmethod(getActiveSMTPAccounts)
 
 
+
+class connectionSecurityEnum(schema.Enumeration):
+    schema.kindInfo(displayName="Connection Security Enumeration")
+    values = "NONE", "TLS", "SSL"
+
+class accountTypeEnum(schema.Enumeration):
+    values = "POP", "IMAP", "SMTP"
+
+class deliveryTypeEnum(schema.Enumeration):
+    values = "POP", "IMAP", "SMTP"
+
 class AccountBase(ContentModel.ContentItem):
+
+    schema.kindInfo(
+        displayName="Account base kind",
+        description="The base kind for various account kinds, such as "
+                    "IMAP, SMTP, WebDav"
+    )
+
+    numRetries = schema.One(
+        schema.Integer,
+        displayName = 'Number of Retries',
+        doc = 'How many times to retry before giving up',
+        initialValue = 1,
+    )
+    username = schema.One(
+        schema.String,
+        displayName = 'Username',
+        doc = 'The account login name',
+        initialValue = '',
+    )
+    password = schema.One(
+        schema.String,
+        displayName = 'Password',
+        doc = 'This could either be a password or some other sort of '
+              'authentication info. We can use it for whatever is needed '
+              'for this account type.',
+        issues = [
+            'This should not be a simple string. We need some solution for '
+            'encrypting it.'
+        ],
+        initialValue = '',
+    )
+    host = schema.One(
+        schema.String,
+        displayName = 'Host',
+        doc = 'The hostname of the account',
+        initialValue = '',
+    )
+    port = schema.One(
+        schema.Integer, displayName = 'Port', doc = 'The port number to use',
+    )
+    connectionSecurity = schema.One(
+        connectionSecurityEnum,
+        displayName = 'Connection Security',
+        doc = 'The security mechanism to leverage for a network connection',
+        initialValue = 'NONE',
+    )
+    pollingFrequency = schema.One(
+        schema.Integer,
+        displayName = 'Polling frequency',
+        doc = 'Frequency in seconds',
+        initialValue = 300,
+    )
+    mailMessages = schema.Sequence(
+        'MailMessageMixin',
+        displayName = 'Mail Messages',
+        doc = 'Mail Messages sent or retrieved with this account ',
+        initialValue = [],
+        inverse = 'parentAccount',
+    )
+    accountType = schema.One(
+        accountTypeEnum,
+        displayName = 'Account Type',
+        doc = 'POP, IMAP, or SMTP',
+    )
+    timeout = schema.One(
+        schema.Integer,
+        displayName = 'Timeout',
+        doc = 'The number of seconds before timing out a stalled connection',
+        initialValue = 60,
+    )
+    isActive = schema.One(
+        schema.Boolean,
+        displayName = 'Is active',
+        doc = 'Whether or not an account should be used for sending or '
+              'fetching email',
+        initialValue = True,
+    )
+
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/AccountBase"
 
@@ -164,6 +254,40 @@ class AccountBase(ContentModel.ContentItem):
 
 
 class DownloadAccountBase(AccountBase):
+
+    schema.kindInfo(
+        displayName="Download Account Base",
+        description="Base Account for protocols that download mail",
+    )
+
+    defaultSMTPAccount = schema.One(
+        'SMTPAccount',
+        displayName = 'Default SMTP Account',
+        doc = 'Which SMTP account to use for sending mail from this account',
+        initialValue = None,
+        inverse = 'accounts',
+    )
+    downloadMax = schema.One(
+        schema.Integer,
+        displayName = 'Download Max',
+        doc = 'The maximum number of messages to download before forcing a repository commit',
+        initialValue = 50,
+    )
+    replyToAddress = schema.One(
+        'EmailAddress',
+        displayName = 'Reply-To Address',
+        initialValue = None,
+        inverse = 'accounts',
+    )
+    emailAddress = schema.One(
+        displayName = 'Reply-To Address (Redirect)',
+        redirectTo = 'replyToAddress.emailAddress',
+    )
+    fullName = schema.One(
+        displayName = 'Full Name (Redirect)',
+        redirectTo = 'replyToAddress.fullName',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/DownloadAccountBase"
 
@@ -175,6 +299,44 @@ class DownloadAccountBase(AccountBase):
         super(DownloadAccountBase, self).__init__(name, parent, kind, view)
 
 class SMTPAccount(AccountBase):
+
+    schema.kindInfo(
+        displayName="SMTP Account",
+        description="An SMTP Account",
+    )
+
+    port = schema.One(
+        schema.Integer,
+        displayName = 'Port',
+        doc = 'The non-SSL port number to use',
+        issues = [
+            "In order to get a custom initialValue for this attribute for an "
+            "SMTPAccount, I defined a 'duplicate' attribute, also named "
+            "'port', which normally would have been inherited from AccountBase",
+        ],
+        initialValue = 25,
+    )
+    useAuth = schema.One(
+        schema.Boolean,
+        displayName = 'Use Authentication',
+        doc = 'Whether or not to use authentication when sending mail',
+        initialValue = False,
+    )
+    accounts = schema.Sequence(
+        DownloadAccountBase,
+        displayName = 'Accounts',
+        doc = 'Which accounts use this SMTP account as their default',
+        initialValue = [],
+        inverse = DownloadAccountBase.defaultSMTPAccount,
+    )
+    signature = schema.One(
+        schema.String,
+        issues = [
+            'Basic signiture addition to an outgoing message will be refined '
+            'in future releases',
+        ],
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/SMTPAccount"
 
@@ -188,6 +350,25 @@ class SMTPAccount(AccountBase):
         self.accountType = "SMTP"
 
 class IMAPAccount(DownloadAccountBase):
+
+    schema.kindInfo(
+        displayName = "IMAP Account",
+        description = "An IMAP Account",
+    )
+
+    port = schema.One(
+        schema.Integer,
+        displayName = 'Port',
+        doc = 'The non-SSL port number to use',
+        issues = [u"In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase"],
+        initialValue = 143,
+    )
+    messageDownloadSequence = schema.One(
+        schema.Long,
+        displayName = 'Message Download Sequence',
+        initialValue = 0L,
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/IMAPAccount"
 
@@ -202,6 +383,31 @@ class IMAPAccount(DownloadAccountBase):
 
 
 class POPAccount(DownloadAccountBase):
+
+    schema.kindInfo(
+        displayName = "POP Account",
+        description = "An POP Account",
+    )
+    port = schema.One(
+        schema.Integer,
+        displayName = 'Port',
+        doc = 'The non-SSL port number to use',
+        issues = [u"In order to get a custom initialValue for this attribute for a POPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase"],
+        initialValue = 110,
+    )
+    downloadedMessageUIDS = schema.Mapping(
+        schema.String,
+        displayName = 'Downloaded Message UID',
+        doc = 'Used for quick look up to discover if a message has already been downloaded',
+        initialValue = {},
+    )
+    leaveOnServer = schema.One(
+        schema.Boolean,
+        displayName = 'Leave Mail On Server',
+        doc = 'Whether or not to leave messages on the server after downloading',
+        initialValue = True,
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/POPAccount"
 
@@ -216,6 +422,29 @@ class POPAccount(DownloadAccountBase):
 
 
 class MailDeliveryError(ContentModel.ContentItem):
+
+    schema.kindInfo(
+        displayName="Mail Delivery Error kind",
+        description=
+            "Contains the error data associated with a MailDelivery Type"
+    )
+
+    errorCode = schema.One(
+        schema.Integer,
+        displayName = 'The Error Code',
+        doc = 'The Error Code returned by the Delivery Transport',
+        initialValue = 0,
+    )
+    errorString = schema.One(schema.String, initialValue = '')
+    errorDate = schema.One(schema.DateTime)
+    mailDelivery = schema.One(
+        'MailDeliveryBase',
+        displayName = 'Mail Delivery',
+        doc = 'The Mail Delivery that cause this error',
+        initialValue = None,
+        inverse = 'deliveryErrors',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryError"
 
@@ -235,6 +464,33 @@ class MailDeliveryError(ContentModel.ContentItem):
 
 
 class MailDeliveryBase(ContentModel.ContentItem):
+
+    schema.kindInfo(
+        displayName = "Mail Delivery base kind",
+        description =
+            "Parent kind for delivery-specific attributes of a MailMessage"
+    )
+
+    deliveryType = schema.One(
+        deliveryTypeEnum,
+        displayName = 'Delivery Type',
+        doc = 'One of POP, IMAP, or SMTP',
+    )
+    mailMessage = schema.One(
+        'MailMessageMixin',
+        displayName = 'Message',
+        doc = 'Message which this delivery item refers to',
+        initialValue = None,
+        inverse = 'deliveryExtension',
+    )
+    deliveryErrors = schema.Sequence(
+        MailDeliveryError,
+        displayName = 'Mail Delivery Errors',
+        doc = 'Mail Delivery Errors associated with this transport',
+        initialValue = [],
+        inverse = MailDeliveryError.mailDelivery,
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryBase"
 
@@ -246,7 +502,47 @@ class MailDeliveryBase(ContentModel.ContentItem):
         super(MailDeliveryBase, self).__init__(name, parent, kind, view)
 
 
+
+class historyEnum(schema.Enumeration):
+    values = "QUEUED", "FAILED", "SENT"
+
+class stateEnum(schema.Enumeration):
+    values = "DRAFT", "QUEUED", "SENT", "FAILED"
+
+
 class SMTPDelivery(MailDeliveryBase):
+
+    schema.kindInfo(
+        displayName = "SMTP Delivery",
+        description = "Tracks the status of an outgoing message",
+        issues = [
+            "Currently the parcel loader can't set a default value for the "
+            "state attribute",
+        ]
+    )
+
+    history = schema.Sequence(
+        historyEnum,
+        displayName = 'History',
+        initialValue = [],
+    )
+    tries = schema.One(
+        schema.Integer,
+        displayName = 'Number of tries',
+        doc = 'How many times we have tried to send it',
+        initialValue = 0,
+    )
+    state = schema.One(
+        stateEnum,
+        displayName = 'State',
+        doc = 'The current state of the message',
+        issues = [
+            "We don't appear to be able to set an initialValue for an "
+            "attribute whose enumeration is defined in the same file "
+            "(a deficiency in the parcel loader)",
+        ],
+    )
+   
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/SMTPDelivery"
 
@@ -280,6 +576,31 @@ class SMTPDelivery(MailDeliveryBase):
 
 
 class IMAPDelivery(MailDeliveryBase):
+
+    schema.kindInfo(
+        displayName = "IMAP Delivery",
+        description = "Tracks the state of an inbound message",
+    )
+
+    folder = schema.One(
+        schema.String, displayName = 'Folder', initialValue = '',
+    )
+    uid = schema.One(
+        schema.Long,
+        displayName = 'IMAP UID',
+        doc = 'The unique IMAP ID for the message',
+        initialValue = 0,
+    )
+    namespace = schema.One(
+        schema.String,
+        displayName = 'Namespace',
+        doc = 'The namespace of the message',
+        initialValue = '',
+    )
+    flags = schema.Sequence(
+        schema.String, displayName = 'Flags', initialValue = [],
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/IMAPDelivery"
 
@@ -295,6 +616,19 @@ class IMAPDelivery(MailDeliveryBase):
 
 
 class POPDelivery(MailDeliveryBase):
+
+    schema.kindInfo(
+        displayName = "POP Delivery",
+        description = "Tracks the state of an inbound message",
+    )
+
+    uid = schema.One(
+        schema.String,
+        displayName = 'POP UID',
+        doc = 'The unique POP ID for the message',
+        initialValue = '',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/POPDelivery"
 
@@ -310,6 +644,16 @@ class POPDelivery(MailDeliveryBase):
 
 
 class MIMEBase(ContentModel.ContentItem):
+    schema.kindInfo(
+        displayName="MIME Base Kind",
+        description="Super kind for MailMessage and the various MIME kinds",
+    )
+
+    mimeType = schema.One(schema.String, initialValue = '')
+    mimeContainer = schema.One(
+        'MIMEContainer', initialValue = None, inverse = 'mimeParts',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBase"
 
@@ -321,9 +665,20 @@ class MIMEBase(ContentModel.ContentItem):
 
         super(MIMEBase, self).__init__(name, parent, kind, view)
 
+
 class MIMENote(MIMEBase):
     # @@@MOR This used to subclass Notes.Note also, but since that superKind
     # was removed from MIMENote's superKinds list
+
+    schema.kindInfo(
+        displayName="MIME Note",
+        description="MIMEBase and Note, rolled into one",
+    )
+
+    filename = schema.One(
+        schema.String, displayName = 'File name', initialValue = '',
+    )
+    filesize = schema.One(schema.Long, displayName = 'File Size')
 
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMENote"
@@ -336,7 +691,19 @@ class MIMENote(MIMEBase):
 
         super(MIMENote, self).__init__(name, parent, kind, view)
 
+
 class MIMEContainer(MIMEBase):
+
+    schema.kindInfo(displayName="MIME Container Kind")
+
+    hasMimeParts = schema.One(initialValue = False)
+    mimeParts = schema.Sequence(
+        MIMEBase,
+        displayName = 'MIME Parts',
+        initialValue = [],
+        inverse = MIMEBase.mimeContainer,
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMEContainer"
 
@@ -347,8 +714,87 @@ class MIMEContainer(MIMEBase):
             parent = MailParcel.getMailItemParent(view)
 
         super(MIMEContainer, self).__init__(name, parent, kind, view)
+        
 
 class MailMessageMixin(MIMEContainer):
+    schema.kindInfo(
+        displayName="Mail Message Mixin",
+        displayAttribute="subject",
+        description="Used to mixin mail message attributes into a content item",
+        issues=[
+            "Once we have attributes and a cloud defined for Attachment, "
+            "we need to include attachments by cloud, and not by value.",
+
+            "Really not sure what to do with the 'downloadAccount' attribute "
+            "and how it should be included in the cloud.  For now it's by "
+            "value.",
+        ]
+    )
+    deliveryExtension = schema.One(
+        MailDeliveryBase,
+        initialValue = None,
+        inverse = MailDeliveryBase.mailMessage,
+    )
+    isOutbound = schema.One(schema.Boolean, initialValue = False)
+    isInbound = schema.One(schema.Boolean, initialValue = False)
+    parentAccount = schema.One(
+        AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
+    )
+    spamScore = schema.One(schema.Float, initialValue = 0.0)
+    rfc2822Message = schema.One(schema.Lob)
+    dateSentString = schema.One(schema.String, initialValue = '')
+    dateSent = schema.One(schema.DateTime)
+    messageId = schema.One(schema.String, initialValue = '')
+    toAddress = schema.Sequence(
+        'EmailAddress',
+        displayName = 'to',
+        initialValue = [],
+        inverse = 'messagesTo',
+    )
+    fromAddress = schema.One(
+        'EmailAddress',
+        displayName = 'from',
+        initialValue = None,
+        inverse = 'messagesFrom',
+    )
+    replyToAddress = schema.One(
+        'EmailAddress', initialValue = None, inverse = 'messagesReplyTo',
+    )
+    bccAddress = schema.Sequence(
+        'EmailAddress', initialValue = [], inverse = 'messagesBcc',
+    )
+    ccAddress = schema.Sequence(
+        'EmailAddress', initialValue = [], inverse = 'messagesCc',
+    )
+    subject = schema.One(schema.String, initialValue = '')
+    headers = schema.Mapping(
+        schema.String, doc = 'Catch-all for headers', initialValue = {},
+    )
+    chandlerHeaders = schema.Mapping(schema.String, initialValue = {})
+    who = schema.One(
+        doc = "Redirector to 'toAddress'", redirectTo = 'toAddress',
+    )
+    whoFrom = schema.One(
+        doc = "Redirector to 'fromAddress'", redirectTo = 'fromAddress',
+    )
+    about = schema.One(
+        doc = "Redirector to 'subject'", redirectTo = 'subject',
+    )
+    date = schema.One(
+        doc = "Redirector to 'dateSent'", redirectTo = 'dateSent',
+    )
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
+            subject
+        ),
+        default = schema.Cloud(
+            fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
+            byCloud = [MIMEContainer.mimeParts]
+        ),
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
 
@@ -490,6 +936,12 @@ class MailMessageMixin(MIMEContainer):
         Globals.views[0].postEventByName('SendMail', {'item': self})
 
 class MailMessage(MailMessageMixin, Notes.Note):
+    schema.kindInfo(
+        displayName = "Mail Message",
+        displayAttribute = "subject",
+        description = "MailMessageMixin, and Note, all rolled up into one",
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailMessage"
 
@@ -497,6 +949,9 @@ class MailMessage(MailMessageMixin, Notes.Note):
         super(MailMessage, self).__init__(name, parent, kind, view)
 
 class MIMEBinary(MIMENote):
+
+    schema.kindInfo(displayName = "MIME Binary Kind")
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBinary"
 
@@ -509,6 +964,20 @@ class MIMEBinary(MIMENote):
         super(MIMEBinary, self).__init__(name, parent, kind, view)
 
 class MIMEText(MIMENote):
+
+    schema.kindInfo(displayName = "MIME Text Kind")
+
+    charset = schema.One(
+        schema.String,
+        displayName = 'Character set encoding',
+        initialValue = 'utf-8',
+    )
+    lang = schema.One(
+        schema.String,
+        displayName = 'Character set Language',
+        initialValue = 'en',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMEText"
 
@@ -522,6 +991,9 @@ class MIMEText(MIMENote):
 
 
 class MIMESecurity(MIMEContainer):
+
+    schema.kindInfo(displayName="MIME Security Kind")
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMESecurity"
 
@@ -534,6 +1006,108 @@ class MIMESecurity(MIMEContainer):
         super(MIMESecurity, self).__init__(name, parent, kind, view)
 
 class EmailAddress(ContentModel.ContentItem):
+    
+    schema.kindInfo(
+        displayName = "Email Address Kind",
+        displayAttribute = "emailAddress",
+        examples = ["abe@osafoundation.org"],
+        description = "An item that represents a simple email address, plus "
+                      "all the info we might want to associate with it, like "
+                      "lists of message to and from this address.",
+        issues = [
+            "Someday we might want to have other attributes.  One example "
+            "might be an 'is operational' flag that tells whether this "
+            "address is still in service, or whether mail to this has been "
+            "bouncing lately. Another example might be a 'superceded by' "
+            "attribute, which would point to another Email Address item.",
+
+            "Depending on how we end up using the 'emailAddress' attribute, "
+            "we might want to break it into two attributes, one for the 'Abe "
+            "Lincoln' part, and one for the 'abe@osafoundation.org' part. "
+            "Alternatively, we might want to use one of Andi's compound "
+            "types, with two fields.",
+        ]
+    )
+
+    emailAddress = schema.One(
+        schema.String,
+        displayName = 'Email Address',
+        doc = 'An RFC 822 email address.',
+        examples = [
+            '"abe@osafoundation.org"',
+            '"Abe Lincoln {abe@osafoundation.org}" (except with angle '
+                'brackets instead of \'{\' and \'}\')'
+        ],
+        initialValue = '',
+    )
+    fullName = schema.One(
+        schema.String,
+        displayName = 'Full Name',
+        doc = 'A first and last name associated with this email address',
+        initialValue = '',
+    )
+    vcardType = schema.One(
+        schema.String,
+        displayName = 'vCard type',
+        doc = "Typical vCard types are values like 'internet', 'x400', and "
+              "'pref'. Chandler will use this attribute when doing "
+              "import/export of Contact records in vCard format.",
+        initialValue = '',
+    )
+    accounts = schema.Sequence(
+        DownloadAccountBase,
+        displayName = 'Used as Return Address by Email Account',
+        doc = 'A list of Email Accounts that use this Email Address as the '
+              'reply address for mail sent from the account.',
+        initialValue = [],
+        inverse = DownloadAccountBase.replyToAddress,
+    )
+    messagesBcc = schema.Sequence(
+        MailMessageMixin,
+        displayName = 'Messages Bcc',
+        doc = 'A list of messages with their Bcc: header referring to this address',
+        initialValue = [],
+        inverse = MailMessageMixin.bccAddress,
+    )
+    messagesCc = schema.Sequence(
+        MailMessageMixin,
+        displayName = 'Messages cc',
+        doc = 'A list of messages with their cc: header referring to this address',
+        initialValue = [],
+        inverse = MailMessageMixin.ccAddress,
+    )
+    messagesFrom = schema.Sequence(
+        MailMessageMixin,
+        displayName = 'Messages From',
+        doc = 'A list of messages with their From: header referring to this address',
+        initialValue = [],
+        inverse = MailMessageMixin.fromAddress,
+    )
+    messagesReplyTo = schema.Sequence(
+        MailMessageMixin,
+        displayName = 'Messages Reply To',
+        doc = 'A list of messages with their Reply-To: header referring to this address',
+        initialValue = [],
+        inverse = MailMessageMixin.replyToAddress,
+    )
+    messagesTo = schema.Sequence(
+        MailMessageMixin,
+        displayName = 'Messages To',
+        doc = 'A list of messages with their To: header referring to this address',
+        initialValue = [],
+        inverse = MailMessageMixin.toAddress,
+    )
+    inviteeOf = schema.Sequence(
+        'osaf.contentmodel.ItemCollection.ItemCollection',
+        displayName = 'Invitee Of',
+        doc = 'List of collections that the user is about to be invited to share with.',
+        inverse = 'invitees',
+    )
+
+    schema.addClouds(
+        sharing = schema.Cloud(emailAddress, fullName)
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/EmailAddress"
 

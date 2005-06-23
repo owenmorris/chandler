@@ -77,7 +77,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     )
 
     location = schema.One(
-        # Location
+        "Location",
         displayName="location",
         doc="We might want to think about having Location be just a 'String', "
             "rather than a reference to a 'Location' item."
@@ -90,7 +90,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     )
 
     recurrence = schema.Sequence(
-        # RecurrencePattern
+        "RecurrencePattern",
         displayName="Recurrence Patterns",
         doc="This is a placeholder and probably not used for 0.5"
     )
@@ -116,7 +116,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     )
 
     calendar = schema.Sequence(
-        # Calendar
+        "Calendar",
         displayName="Calendar",
         doc="Is this used?"
     )
@@ -125,6 +125,14 @@ class CalendarEventMixin(ContentModel.ContentItem):
         schema.String,
         displayName="Resources",
         doc="Is this used?"
+    )
+
+    schema.addClouds(
+        default = schema.Cloud(organizer,location,recurrence,participants),
+        sharing = schema.Cloud(
+            startTime, endTime, allDay, location,
+            byCloud = [organizer,participants]
+        )
     )
 
     # Redirections

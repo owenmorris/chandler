@@ -9,14 +9,82 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.contentmodel.tasks"
 
 import repository.item.Item as Item
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel import ContentModel, Notes
+from osaf.contentmodel.contacts import Contacts
 
 from datetime import datetime, timedelta
+from application import schema
+
+
+class TaskStatusEnum(schema.Enumeration):
+    schema.kindInfo(displayName="Task Status")
+    values = "todo", "blocked", "done", "deferred"
 
 
 class TaskMixin(ContentModel.ContentItem):
+    "This is the set of Task-specific attributes."
+    
+    schema.kindInfo(
+        displayName = "Task Mixin Kind",
+        description = 
+            "This Kind is 'mixed in' to others kinds to create Kinds that "
+            "can be instantiated"
+    )
+
+    recurrence = schema.Sequence(
+        displayName = 'Recurrence Patterns',
+        doc = 'This is a placeholder and probably not used for 0.5',
+    )
+    reminderTime = schema.One(
+        schema.DateTime,
+        displayName = 'ReminderTime',
+        doc = 'This may not be general enough',
+    )
+    requestor = schema.One(
+        Contacts.Contact,
+        displayName = 'Requestor',
+        issues = [
+            'Type could be Contact, EmailAddress or String',
+            'Think about using the icalendar terminology'
+        ],
+        inverse = Contacts.Contact.requestedTasks,
+    )
+    requestee = schema.Sequence(
+        ContentModel.ContentItem,
+        displayName = 'Requestee',
+        issues = [
+            'Type could be Contact, EmailAddress or String',
+            'Think about using the icalendar terminology'
+        ],
+        otherName = 'taskRequests',
+    )
+
+    taskStatus = schema.One(
+        TaskStatusEnum,
+        displayName = 'Task Status',
+    )
+    dueDate = schema.One(schema.DateTime, displayName = 'Due date')
+    who = schema.One(redirectTo = 'requestee')
+    whoFrom = schema.One(redirectTo = 'requestor')
+    about = schema.One(redirectTo = 'displayName')
+
+    # XXX these two links should probably point to TaskMixin instead of
+    #     Task, because as-is they won't support stamping.  Note that if
+    #     this is corrected, the opposite ends should be set using 'inverse'
+    #     instead of 'otherName'.
+    dependsOn = schema.Sequence(
+        'Task', displayName = 'Depends On', otherName = 'preventsProgressOn',
+    )
+    preventsProgressOn = schema.Sequence(
+        'Task', displayName = 'Blocks', otherName = 'dependsOn',
+    )
+
+    schema.addClouds(
+        default = schema.Cloud(
+            requestor, requestee, dependsOn, preventsProgressOn
+        )
+    )
+    
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/TaskMixin"
 
@@ -118,6 +186,31 @@ class TaskMixin(ContentModel.ContentItem):
         return super (TaskMixin, self).getAnyWhoFrom ()
 
 class TaskEventExtraMixin(ContentModel.ContentItem):
+
+    schema.kindInfo(
+        displayName = "Task Event Extra Mixin Kind",
+        description =
+            "The attributes specific to an item that is both a task and an "
+            "event.  This is additional 'due by' information. "
+    )
+
+    dueByDate = schema.One(
+        schema.DateTime,
+        displayName = 'Due by Date',
+        doc = 'The date when a Task Event is due.',
+    )
+    dueByRecurrence = schema.Sequence(
+        'osaf.contentmodel.calendar.Calendar.RecurrencePattern',
+        displayName = 'Due by Recurrence',
+        doc = 'Recurrence information for a Task Event.',
+    )
+    dueByTickler = schema.One(
+        schema.DateTime,
+        displayName = 'Due by Tickler',
+        doc = 'The reminder information for a Task Event.',
+    )
+
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/TaskEventExtraMixin"
 
@@ -153,6 +246,17 @@ class TaskEventExtraMixin(ContentModel.ContentItem):
             pass
 
 class Task(TaskMixin, Notes.Note):
+
+    schema.kindInfo(
+        displayName = "Task",
+        issues = [
+            "Do we want to support the idea of tasks having sub-tasks? If so, "
+            "then we need to add attributes for 'superTask' and 'subTasks'.",
+            
+            "Task should maybe have a 'Timezone' attribute.",
+        ]
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/Task"
 

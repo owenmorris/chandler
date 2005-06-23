@@ -626,18 +626,59 @@ class _SuperKindSignature(list):
         return '['+theList+']'
 
 class Project(ContentItem):
+
+    schema.kindInfo(
+        displayName = "Project",
+        examples = [
+            'my "Housewarming Party" project',
+            "my department's \"Move to new building\" project",
+            "my company's \"Open Seattle Store\" project",
+        ],
+        description =
+            "Users can create projects to help organize their work. Users can "
+            "take content items (like tasks and mail messages) and assign "
+            "them to different projects."
+    )
+
+    parentProject = schema.One(
+        'Project',
+        displayName = 'Parent Project',
+        doc = 'Projects can be organized into hierarchies. Each project can have one parent.',
+        inverse = 'subProjects',
+    )
+    subProjects = schema.Sequence(
+        'Project',
+        displayName = 'Sub Projects',
+        doc = 'Projects can be organized into hierarchies. Each project can have many sub-projects.',
+        inverse = 'parentProject',
+    )
+
     myKindPath = "//parcels/osaf/contentmodel/Project"
     myKindID = None
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Project, self).__init__(name, parent, kind, view)
 
+
 class Group(ContentItem):
+
+    schema.kindInfo(
+        displayName = '"Playlist"/"Item Collection"',
+        description =
+            "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject",
+        issues = [
+            'We still need to work out some issues about how '
+            '"playlists"/"item collections" are modeled.',
+            'We need to find a name for these things.',
+        ]
+    )
+
     myKindPath = "//parcels/osaf/contentmodel/Group"
     myKindID = None
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Group, self).__init__(name, parent, kind, view)
+
 
 class CurrentPointer(schema.Item):
     item = schema.One(

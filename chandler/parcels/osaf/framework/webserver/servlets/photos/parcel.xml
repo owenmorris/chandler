@@ -7,47 +7,6 @@
         xmlns:serv="http://osafoundation.org/parcels/osaf/framework/webserver/servers"
         xmlns:me="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/photos" >
 
-    <Kind itsName="PhotoMixin">
-        <displayName value="Photo Mixin" />
-        <Attribute itsName="caption">
-            <cardinality value="single"/>
-            <type itemref="String"/>
-        </Attribute>
-        <Attribute itsName="about">
-            <redirectTo value="caption" />
-        </Attribute>
-        <Attribute itsName="date">
-            <redirectTo value="dateTaken" />
-        </Attribute>
-        <Attribute itsName="file">
-            <cardinality value="single"/>
-            <type itemref="String"/>
-        </Attribute>
-        <Attribute itsName="dateTaken">
-            <type itemref="DateTime"/>
-        </Attribute>
-
-        <Cloud itsName="SharingCloud">
-            <Endpoint itsName="caption">
-                <attribute value="caption"/>
-            </Endpoint>
-            <endpoints itemref="me:PhotoMixin/SharingCloud/caption"/>
-            <Endpoint itsName="dateTaken">
-                <attribute value="dateTaken"/>
-            </Endpoint>
-            <endpoints itemref="me:PhotoMixin/SharingCloud/dateTaken"/>
-        </Cloud>
-        <clouds alias="sharing" itemref="me:PhotoMixin/SharingCloud"/>
-
-    </Kind>
-
-    <Kind itsName="Photo">
-        <displayName value="Photo" />
-        <superKinds itemref="me:PhotoMixin"/>
-        <superKinds itemref="cm:Note"/>
-    </Kind>
-
-
     <web:Resource itsName="photoResource">
         <displayName value="Photo Viewer"/>
         <location value="photos"/>

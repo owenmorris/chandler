@@ -120,6 +120,10 @@ class RSSChannel(ItemCollection):
         displayName="Items"
     )
 
+    schema.addClouds(
+        sharing = schema.Cloud(author, copyright, link, url)
+    )
+
     who = schema.Role(redirectTo="author")
     about = schema.Role(redirectTo="about")
 
@@ -276,6 +280,10 @@ class RSSItem(ContentItem):
     about = schema.Role(redirectTo="displayName")
     who = schema.Role(redirectTo="author")
     body = schema.Role(redirectTo="content")
+
+    schema.addClouds(
+        sharing = schema.Cloud(link, category, author, date)
+    )
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSItem, self).__init__(name, parent, kind, view)

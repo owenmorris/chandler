@@ -12,7 +12,7 @@ import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
 import osaf.framework.sharing.Sharing as Sharing
-
+from application import schema
 
 def GetRenderEditorTextRect (rect):
     image = wx.GetApp().GetImage ("SidebarAll.png")
@@ -318,7 +318,27 @@ class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
         self.control.SetRect (textRect);
 
 
-class Sidebar (ControlBlocks.Table):
+class Sidebar(ControlBlocks.Table):
+
+    filterKind = schema.One(
+        schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
+    )
+
+    # A dictionary of display names of items that don't show as Calendar Views
+    dontShowCalendarForItemsWithName = schema.Mapping(schema.Boolean)
+
+    # A dictionary mapping a name,kindpathComponent string to a new name.
+    # It would be much nicer if the key could be a (name, kindItem) tuple, but
+    # that's not possible with current parcel XML
+    nameAlternatives = schema.Mapping(schema.String)
+
+    # A list of the items in the sidebar that are checked
+    checkedItems = schema.Sequence(schema.Item, initialValue = [])
+
+    schema.addClouds(
+        default = schema.Cloud(byRef=[filterKind])
+    )
+
     def instantiateWidget (self):
         widget = wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
         widget.RegisterDataType ("Item", SSSidebarRenderer(), SSSidebarEditor("Item"))
@@ -357,6 +377,15 @@ class Sidebar (ControlBlocks.Table):
         
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
+
+    tableTemplatePath = schema.One(schema.String)
+    calendarTemplatePath = schema.One(schema.String)
+    itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
+
+    schema.addClouds(
+        default = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
+    )
+
     def _mapItemToCacheKeyItem(self, item):
         key = item
         rerender = False
@@ -443,6 +472,9 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
 
 class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
+
+    templatePath = schema.One(schema.String)
+
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             trunk = self.findPath (self.templatePath)

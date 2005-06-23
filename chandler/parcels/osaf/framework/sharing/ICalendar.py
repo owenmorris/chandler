@@ -12,6 +12,7 @@ import dateutil.tz
 import datetime
 import itertools
 import repository.query.Query as Query
+from application import schema
 
 logger = logging.getLogger('ICalendar')
 logger.setLevel(logging.INFO)
@@ -91,6 +92,9 @@ def itemsToVObject(view, items, cal=None):
     return cal
 
 class ICalendarFormat(Sharing.ImportExportFormat):
+
+    schema.kindInfo(displayName="iCalendar Import/Export Format Kind")
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
 

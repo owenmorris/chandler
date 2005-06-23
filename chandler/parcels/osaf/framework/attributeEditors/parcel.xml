@@ -12,14 +12,6 @@
 
   <version>0.3</version>
 
-  <Kind itsName="AttributeEditor">
-    <superKinds itemref="Item"/>
-    
-    <Attribute itsName="className">
-      <type itemref="String"/>
-    </Attribute>
-  </Kind>
-
   <contentModel:ItemCollection itsName="AttributeEditors">
     <_rule value="for i inevery '//parcels/osaf/framework/attributeEditors/AttributeEditor' where True"/>
   </contentModel:ItemCollection>

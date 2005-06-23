@@ -1,41 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <Parcel itsName="wakeup"
         xmlns="http://osafoundation.org/parcels/core"
+        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
         xmlns:wake="http://osafoundation.org/parcels/osaf/framework/wakeup">
-
-  <Kind itsName="WakeupCall">
-    <superKinds itemref="Item" />
-    <displayName>Wakeup Call</displayName>
-
-    <Attribute itsName="wakeupCallClass">
-      <displayName value="The WakeupCall Sub-Class" />
-      <description value="The osaf.framework.wakeup.WakupCaller.WakeupCall sub-class full path and name" />
-      <type itemref="Class"/>
-      <initialValue type="Class" value="osaf.framework.wakeup.WakeupCaller.WakeupCall" />
-    </Attribute>
-
-    <Attribute itsName="callOnStartup">
-      <displayName>Call on Start Time</displayName>
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean" value="False" />
-    </Attribute>
-
-    <Attribute itsName="repeat">
-      <displayName>Repeat Wakeup Call</displayName>
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean" value="False" />
-    </Attribute>
-
-    <Attribute itsName="enabled">
-      <displayName>Is The Wakeup Call Enabled</displayName>
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean" value="True" />
-    </Attribute>
-
-    <Attribute itsName="delay">
-      <displayName>Delay Between Calls</displayName>
-      <type itemref="TimeDelta"/>
-      <initialValue type="TimeDelta" value="0:00:00" />
-    </Attribute>
-    </Kind>
 </Parcel>

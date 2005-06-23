@@ -19,6 +19,7 @@ from repository.item.Query import KindQuery
 from repository.util.Lob import Lob
 from repository.item.Item import Item
 from repository.schema.Types import Type
+from application import schema
 import repository.query.Query as Query
 import M2Crypto.BIO
 import repository
@@ -42,7 +43,64 @@ CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+class modeEnum(schema.Enumeration):
+    schema.kindInfo(displayName="Mode Enumeration")
+    values = "put", "get", "both"
+
+
 class Share(ContentModel.ContentItem):
+    schema.kindInfo(
+        displayName="Share Kind",
+        description="Represents a shared collection",
+    )
+
+    hidden = schema.One(
+        schema.Boolean,
+        doc = 'This attribute is used to denote which shares have been '
+              'created by the user via the detail view (hidden=False) versus '
+              'those that are being created for other purposes (hidden=True), '
+              'such as transient import/export shares, .ics publishing, etc.',
+        initialValue = False,
+    )
+    active = schema.One(
+        schema.Boolean,
+        doc = "This attribute indicates whether this share should be synced "
+              "during a 'sync all' operation.",
+        initialValue = True,
+    )
+    mode = schema.One(
+        modeEnum,
+        doc = 'This attribute indicates the sync mode for the share:  '
+              'get, put, or both',
+        initialValue = 'both',
+    )
+
+    contents = schema.One(ContentModel.ContentItem, otherName = 'shares')
+    conduit = schema.One('ShareConduit', inverse = 'share')
+    format = schema.One('ImportExportFormat', inverse = 'share')
+
+    sharer = schema.One(
+        Contacts.Contact,
+        doc = 'The contact who initially published this share',
+        initialValue = None,
+        otherName = 'sharerOf',
+    )
+    sharees = schema.Sequence(
+        Contacts.Contact,
+        doc = 'The people who were invited to this share',
+        initialValue = [],
+        otherName = 'shareeOf',
+    )
+    filterKinds = schema.Sequence(
+        schema.String,
+        doc = 'The list of kinds to import/export',
+        initialValue = [],
+    )
+
+    schema.addClouds(
+        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterKinds])
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/Share"
 
@@ -133,6 +191,26 @@ class OneTimeShare(Share):
 
 
 class ShareConduit(ContentModel.ContentItem):
+
+    schema.kindInfo(displayName = "Share Conduit Kind")
+
+    share = schema.One(Share, inverse = Share.conduit)
+    sharePath = schema.One(
+        schema.String, doc = "The parent 'directory' of the share",
+    )
+    shareName = schema.One(
+        schema.String,
+        doc = "The 'directory' name of the share, relative to 'sharePath'",
+    )
+    manifest = schema.Mapping(
+        schema.Dictionary,
+        doc = "Keeps track of 'remote' item information, such as last "
+              "modified date or ETAG",
+    )
+
+    marker = schema.One(schema.SingleRef)
+
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ShareConduit"
 
@@ -492,6 +570,9 @@ class ShareConduit(ContentModel.ContentItem):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class FileSystemConduit(ShareConduit):
+
+    schema.kindInfo(displayName="File System Share Conduit Kind")
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/FileSystemConduit"
 
@@ -656,6 +737,15 @@ class FileSystemConduit(ShareConduit):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class WebDAVConduit(ShareConduit):
+
+    schema.kindInfo(displayName="WebDAV Share Conduit Kind")
+
+    account = schema.One('WebDAVAccount', inverse = 'conduits')
+    host = schema.One(schema.String)
+    port = schema.One(schema.Integer)
+    username = schema.One(schema.String)
+    password = schema.One(schema.String)
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVConduit"
 
@@ -1029,6 +1119,11 @@ class WebDAVConduit(ShareConduit):
         print " - - - - - - - - - "
 
 class SimpleHTTPConduit(WebDAVConduit):
+
+    schema.kindInfo(displayName="Simple HTTP Share Conduit Kind")
+
+    lastModified = schema.One(schema.String, initialValue = '')
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/SimpleHTTPConduit"
 
@@ -1119,6 +1214,56 @@ class TransformationFailed(SharingError):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class WebDAVAccount(ContentModel.ContentItem):
+    schema.kindInfo(
+        displayName="WebDAV Account",
+        description="A WebDAV 'Account'",
+        issues=[
+            "Long term we're probably not going to treat WebDAV as an "
+            "account, but rather how a web browser maintains URL-to-ACL "
+            "mappings."
+        ]
+    )
+    username = schema.One(
+        schema.String, displayName = 'Username', initialValue = '',
+    )   
+    password = schema.One(
+        schema.String,
+        displayName = 'Password',
+        issues = [
+            'This should not be a simple string. We need some solution for '
+            'encrypting it.'
+        ],
+        initialValue = '',
+    )
+    host = schema.One(
+        schema.String,
+        displayName = 'Host',
+        doc = 'The hostname of the account',
+        initialValue = '',
+    )
+    path = schema.One(
+        schema.String,
+        displayName = 'Path',
+        doc = 'Base path on the host to use for publishing',
+        initialValue = '',
+    )
+    port = schema.One(
+        schema.Integer,
+        displayName = 'Port',
+        doc = 'The non-SSL port number to use',
+        initialValue = 80,
+    )
+    useSSL = schema.One(
+        schema.Boolean,
+        displayName = 'Use secure connection (SSL/TLS)',
+        doc = 'Whether or not to use SSL/TLS',
+        initialValue = False,
+    )
+    accountType = schema.One(
+        displayName = 'Account Type', initialValue = 'WebDAV',
+    )
+    conduits = schema.Sequence(WebDAVConduit, inverse = WebDAVConduit.account)
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
 
@@ -1144,6 +1289,12 @@ class WebDAVAccount(ContentModel.ContentItem):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class ImportExportFormat(ContentModel.ContentItem):
+
+    schema.kindInfo(displayName="Import/Export Format Kind")
+
+    share = schema.One(Share, inverse = Share.format)
+
+    
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ImportExportFormat"
 
@@ -1156,6 +1307,11 @@ class ImportExportFormat(ContentModel.ContentItem):
 
 
 class CloudXMLFormat(ImportExportFormat):
+
+    schema.kindInfo(displayName="Cloud XML Import/Export Format Kind")
+
+    cloudAlias = schema.One(schema.String)
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/CloudXMLFormat"
 

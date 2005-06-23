@@ -38,18 +38,30 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
     source      = schema.Sequence(initialValue=())
     destination = schema.Sequence(inverse=source)
 
-    invitees = schema.Sequence( #mail:EmailAddress
+    invitees = schema.Sequence(
+        "osaf.contentmodel.mail.Mail.EmailAddress",
         doc="The people who are being invited to share in this item; filled "
             "in when the user types in the DV's 'invite' box, then cleared on "
             "send (entries copied to the share object).\n\n"
             "Issue: Bad that we have just one of these per item collection, "
             "though an item collection could have multiple shares post-0.5",
-        otherName="inviteeOf",
+        inverse="inviteeOf",
         initialValue=()
     )   
 
     # redirections 
     about = schema.Role(redirectTo="displayName")
+
+    schema.addClouds(
+        default = schema.Cloud(
+            invitees,
+            byCloud=[
+                inclusions, exclusions, kindFilter,
+                ContentModel.ContentItem.contentsOwner
+            ]
+        ),
+        sharing = schema.Cloud( none = ["displayName"] ),
+    )
 
     def add (self, item):
         """

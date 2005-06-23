@@ -8,6 +8,7 @@ __parcel__ = "osaf.framework.certstore.schema"
 
 import wx
 import application
+from application import schema
 import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
 import osaf.contentmodel.ItemCollection as ItemCollection
@@ -28,7 +29,59 @@ TRUST_SITE         = 2
 TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
 ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where True'
 
+
+class typeEnum(schema.Enumeration):
+    schema.kindInfo(displayName = "Type Enumeration")
+    values = "root", "site"
+
+
 class Certificate(ContentModel.ContentItem):
+
+    schema.kindInfo(displayName = "Certificate")
+
+    who = schema.One(redirectTo = 'subjectCommonName')
+    displayName = schema.One(redirectTo = 'subjectCommonName')
+    about = schema.One(
+        issues = [u"type would make more sense, but it isn't supported for summary view."],
+        redirectTo = 'trust',
+    )
+    date = schema.One(redirectTo = 'createdOn')
+    subjectCommonName = schema.One(
+        schema.String,
+        displayName = 'Subject commonName',
+        doc = 'Subject commonName.',
+    )
+    type = schema.One(
+        typeEnum,
+        displayName = 'Certificate type',
+        doc = 'Certificate type.',
+        initialValue = 'root',
+    )
+    trust = schema.One(
+        schema.Integer,
+        displayName = 'Trust',
+        doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
+    )
+    pem = schema.One(
+        schema.Lob,
+        displayName = 'PEM',
+        doc = 'An X.509 certificate in PEM format.',
+    )
+    asText = schema.One(
+        schema.Lob,
+        displayName = 'Human readable certificate value',
+        doc = 'An X.509 certificate in human readable format.',
+    )
+    fingerprintAlgorithm = schema.One(
+        schema.String,
+        displayName = 'fingerprint algorithm',
+        doc = 'A name of a hash algorithm that was used to compute fingerprint.',
+    )
+    fingerprint = schema.One(
+        schema.String,
+        doc = 'A hash of the certificate using algorithm named in fingerprintAlgorithm attribute.',
+    )
+
     myKindID = None
     myKindPath = "//parcels/osaf/framework/certstore/schema/Certificate"
 

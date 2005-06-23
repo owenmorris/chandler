@@ -18,46 +18,4 @@
     <description>Contact schema for the 0.5 release</description>
     <version>0.5</version>
     <author>Open Source Applications Foundation</author>
-
-    <!-- Contact -->
-
-    <Kind itsName="Contact">
-        <superKinds itemref="cm:ContentItem"/>
-        <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
-        <!-- Sharing Cloud -->
-        <Cloud itsName="SharingCloud">
-          <Endpoint itsName="contactName">
-            <attribute value="contactName"/>
-            <includePolicy value="byCloud"/>
-          </Endpoint>
-          <endpoints itemref="contact:Contact/SharingCloud/contactName"/>
-          <Endpoint itsName="emailAddress">
-            <attribute value="emailAddress"/>
-          </Endpoint>
-          <endpoints itemref="contact:Contact/SharingCloud/emailAddress"/>
-        </Cloud>
-        <clouds alias="sharing" itemref="contact:Contact/SharingCloud"/>
-
-    </Kind>
-
-    <Kind itsName="ContactName">
-        <superKinds itemref="cm:ContentItem"/>
-        <classes key="python">osaf.contentmodel.contacts.Contacts.ContactName</classes>
-        <description value="A very simple (and incomplete) representation of a person's name" />
-
-        <!-- Sharing Cloud -->
-        <Cloud itsName="SharingCloud">
-          <Endpoint itsName="firstName">
-            <attribute value="firstName"/>
-          </Endpoint>
-          <endpoints itemref="contact:ContactName/SharingCloud/firstName"/>
-          <Endpoint itsName="lastName">
-            <attribute value="lastName"/>
-          </Endpoint>
-          <endpoints itemref="contact:ContactName/SharingCloud/lastName"/>
-        </Cloud>
-        <clouds alias="sharing" itemref="contact:ContactName/SharingCloud"/>
-
-    </Kind>
-
 </Parcel>
