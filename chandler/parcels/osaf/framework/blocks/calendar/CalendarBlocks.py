@@ -12,6 +12,7 @@ import wx.calendar
 import wx.minical
 
 from datetime import datetime
+from application import schema
 
 from osaf.framework.blocks import Block
 
@@ -24,11 +25,10 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXSelectItem)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
                   self.OnWXDoubleClick)
-        self.doSelectWeek = True
 
     def wxSynchronizeWidget(self):
-        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER
-        if self.doSelectWeek:
+        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER | wx.minical.CAL_SHOW_PREVIEW
+        if self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
 
@@ -77,16 +77,13 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def selectWeek(self, doSelectWeek):
-        self.doSelectWeek = doSelectWeek
-        self.wxSynchronizeWidget()
-        self.Refresh()
-
     def resetMonth(self):
         for day in range(1,32):
             self.ResetAttr(day)
 
 class MiniCalendar(Block.RectangularChild):
+    doSelectWeek = schema.One(schema.Boolean, initialValue = True)
+    
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
 
@@ -98,6 +95,8 @@ class MiniCalendar(Block.RectangularChild):
         self.widget.setSelectedDate(event.arguments['start'])
         
     def onSelectWeekEvent(self, event):
-        self.widget.selectWeek(event.arguments['doSelectWeek'])
+        self.doSelectWeek = event.arguments['doSelectWeek']
+        self.widget.wxSynchronizeWidget()
+        self.widget.Refresh()
 
 
