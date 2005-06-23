@@ -25,15 +25,14 @@ from repository.item.Query import KindQuery
 from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
-from osaf.framework.blocks.ControlBlocks import Timer
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
-import application.dialogs.ReminderDialog as ReminderDialog
 from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
+import application.CPIAScript as CPIAScript
 
 logger = logging.getLogger("mainview")
 logger.setLevel(logging.INFO)
@@ -471,9 +470,41 @@ class MainView(View):
 
         view.refresh()
 
+    def ReloadPythonImports(self):
+        """
+        Try to reload all the modules that are reloadable.
+        """
+        # scan all the modules in sys.modules
+        for aModule in sys.modules.values():
+            # filter out ones that have no file (like None)
+            try:
+                modulePath = aModule.__file__
+            except AttributeError:
+                pass
+            else:
+                # filter modules that don't accept reloading
+                try:
+                    canReload = aModule.AcceptsReload
+                except AttributeError:
+                    pass
+                else:
+                    try:
+                        if canReload:
+                            reload(aModule)
+                    except Exception:
+                        type, value, stack = sys.exc_info()
+                        formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
+    
+                        message = ("Chandler encountered a problem during reload.\n" + \
+                                   "Here are the bottom 5 frames of the stack:\n%s") % formattedBacktrace
+                        print message
+
     def onReloadParcelsEvent(self, event):
         theApp = wx.GetApp()
         theApp.UnRenderMainView ()
+
+        # reload the python code now
+        self.ReloadPythonImports()
 
         application.Parcel.Manager.get(self.itsView).loadParcels()
 
@@ -504,6 +535,17 @@ class MainView(View):
             rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Edit rule", "Enter a rule for this collection", str(collection.getRule()))
             if rule:
                 collection.setRule(rule)
+
+    def onRunScriptEvent(self, event):
+        # Triggered from "Tests | Run script..."
+        try:
+            previousScript = self.script
+        except AttributeError:
+            previousScript = "New, About"
+        script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Run Script", "Enter a CPIA script to run.", previousScript)
+        if script:
+            self.script = script # remember for next time
+            CPIAScript.RunScript(CPIAScript.CPIAScript(script))
 
     def onShowPyCrustEvent(self, event):
         # Test menu item
@@ -714,80 +756,3 @@ class MainView(View):
                     collections.append (collection)
         return collections
         
-class ReminderTimer(Timer):
-    def synchronizeWidget (self):
-        # logger.debug("*** Synchronizing ReminderTimer widget!")
-        super(ReminderTimer, self).synchronizeWidget()
-        if not wx.GetApp().ignoreSynchronizeWidget:            
-            pending = self.getPendingReminders()
-            if len(pending) > 0:
-                self.setFiringTime(pending[0].reminderTime)
-    
-    def getPendingReminders (self):
-        # @@@BJS Eventually, the query should be able to do the sorting for us;
-        # for now, that doesn't seem to work so we're doing it here.
-        # ... this routine should just be "return self.contents.resultSet"
-        timesAndReminders = []
-        for item in self.contents:
-            try:
-                reminderTime = item.reminderTime
-            except AttributeError:
-                pass
-            else:
-                timesAndReminders.append((reminderTime, item))
-            
-        if len(timesAndReminders) != 0:
-            timesAndReminders.sort()
-            timesAndReminders = [ item[1] for item in timesAndReminders ]
-        return timesAndReminders
-    
-    def onCollectionChanged(self, event):
-        # logger.debug("*** Got reminders collection changed!")
-        pending = self.getPendingReminders()
-        closeIt = False
-        reminderDialog = self.getReminderDialog(False)
-        if reminderDialog is not None:
-            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
-        elif len(pending) > 0:
-            nextReminderTime = pending[0].reminderTime
-        else:
-            nextReminderTime = None
-        if closeIt:
-            self.closeReminderDialog();
-        self.setFiringTime(nextReminderTime)
-    
-    def onReminderTimeEvent(self, event):
-        # Run the reminders dialog and re-queue our timer if necessary
-        # logger.debug("*** Got reminders time event!")
-        pending = self.getPendingReminders()
-        reminderDialog = self.getReminderDialog(True)
-        assert reminderDialog is not None
-        (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
-        if closeIt:
-            # logger.debug("*** closing the dialog!")
-            self.closeReminderDialog()
-        self.setFiringTime(nextReminderTime)
-
-    def getReminderDialog(self, createIt):
-        try:
-            reminderDialog = self.widget.reminderDialog
-        except AttributeError:
-            if createIt:
-                reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
-                self.widget.reminderDialog = reminderDialog
-            else:
-                reminderDialog = None
-        return reminderDialog
-
-    def closeReminderDialog(self):
-        try:
-            reminderDialog = self.widget.reminderDialog
-        except AttributeError:
-            pass
-        else:
-            del self.widget.reminderDialog
-            reminderDialog.Destroy()
-
-    def setFiringTime(self, when):
-        # logger.debug("*** next reminder due %s" % when)
-        super(ReminderTimer, self).setFiringTime(when)

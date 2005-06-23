@@ -334,6 +334,12 @@
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
+  <BlockEvent itsName="RunScript">
+    <blockName>RunScript</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="ShowPyCrust">
     <blockName>ShowPyCrust</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -425,6 +431,7 @@
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:RunScriptItem"/>
     <childrenBlocks itemref="doc:WxTestHarnessItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ShareMenu"/>
@@ -836,6 +843,14 @@
     <helpString>Export Calendar Events to export.ics</helpString>
   </MenuItem>
 
+  <MenuItem itsName="RunScriptItem">
+    <blockName>RunScriptItem</blockName>
+    <title>Run script...</title>
+    <accel>Ctrl+S</accel>
+    <event itemref="doc:RunScript"/>
+    <helpString>Run a CPIA Script</helpString>
+  </MenuItem>
+
   <MenuItem itsName="ShowPyCrustItem">
     <blockName>ShowPyCrustItem</blockName>
     <title>Show PyCrust Debugger...</title>
@@ -846,6 +861,7 @@
   <MenuItem itsName="ReloadParcelsItem">
     <blockName>ReloadParcelsItem</blockName>
     <title>Reload Parcels</title>
+    <accel>Ctrl+R</accel>
     <event itemref="doc:ReloadParcels"/>
     <helpString>Reloads any parcels that have been modified</helpString>
   </MenuItem>
@@ -1199,7 +1215,7 @@
     Odds and ends refered to by the user interface
   -->
   <Timer itsName="ReminderTimer"
-         itemClass="osaf.views.main.Main.ReminderTimer">
+         itemClass="osaf.framework.blocks.ControlBlocks.ReminderTimer">
     <blockName>ReminderTimer</blockName>
     <event itemref="doc:ReminderTime"/>
     <contents itemref="doc:ReminderItems"/>

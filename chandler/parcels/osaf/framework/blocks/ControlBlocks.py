@@ -18,6 +18,7 @@ import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
+import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 
 from datetime import datetime
@@ -1547,6 +1548,84 @@ class Timer(Block):
         else:
             # print "*** setFiringTime: No new time."
             pass
+
+class ReminderTimer(Timer):
+    def synchronizeWidget (self):
+        # logger.debug("*** Synchronizing ReminderTimer widget!")
+        super(ReminderTimer, self).synchronizeWidget()
+        if not wx.GetApp().ignoreSynchronizeWidget:            
+            pending = self.getPendingReminders()
+            if len(pending) > 0:
+                self.setFiringTime(pending[0].reminderTime)
+    
+    def getPendingReminders (self):
+        # @@@BJS Eventually, the query should be able to do the sorting for us;
+        # for now, that doesn't seem to work so we're doing it here.
+        # ... this routine should just be "return self.contents.resultSet"
+        timesAndReminders = []
+        for item in self.contents:
+            try:
+                reminderTime = item.reminderTime
+            except AttributeError:
+                pass
+            else:
+                timesAndReminders.append((reminderTime, item))
+            
+        if len(timesAndReminders) != 0:
+            timesAndReminders.sort()
+            timesAndReminders = [ item[1] for item in timesAndReminders ]
+        return timesAndReminders
+    
+    def onCollectionChanged(self, event):
+        # logger.debug("*** Got reminders collection changed!")
+        pending = self.getPendingReminders()
+        closeIt = False
+        reminderDialog = self.getReminderDialog(False)
+        if reminderDialog is not None:
+            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        elif len(pending) > 0:
+            nextReminderTime = pending[0].reminderTime
+        else:
+            nextReminderTime = None
+        if closeIt:
+            self.closeReminderDialog();
+        self.setFiringTime(nextReminderTime)
+    
+    def onReminderTimeEvent(self, event):
+        # Run the reminders dialog and re-queue our timer if necessary
+        # logger.debug("*** Got reminders time event!")
+        pending = self.getPendingReminders()
+        reminderDialog = self.getReminderDialog(True)
+        assert reminderDialog is not None
+        (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+        if closeIt:
+            # logger.debug("*** closing the dialog!")
+            self.closeReminderDialog()
+        self.setFiringTime(nextReminderTime)
+
+    def getReminderDialog(self, createIt):
+        try:
+            reminderDialog = self.widget.reminderDialog
+        except AttributeError:
+            if createIt:
+                reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
+                self.widget.reminderDialog = reminderDialog
+            else:
+                reminderDialog = None
+        return reminderDialog
+
+    def closeReminderDialog(self):
+        try:
+            reminderDialog = self.widget.reminderDialog
+        except AttributeError:
+            pass
+        else:
+            del self.widget.reminderDialog
+            reminderDialog.Destroy()
+
+    def setFiringTime(self, when):
+        # logger.debug("*** next reminder due %s" % when)
+        super(ReminderTimer, self).setFiringTime(when)
 
 """
 Attribute Editor Block
