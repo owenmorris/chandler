@@ -27,7 +27,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXDoubleClick)
 
     def wxSynchronizeWidget(self):
-        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER | wx.minical.CAL_SHOW_PREVIEW
+        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER
         if self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
