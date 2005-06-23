@@ -434,19 +434,19 @@ bool wxMiniCalendar::IsDateInRange(const wxDateTime& date) const
 
 size_t wxMiniCalendar::GetWeek(const wxDateTime& date, bool useRelative) const
 {
-	size_t retval;
-	if ( useRelative )
-	{
+    size_t retval;
+    if ( useRelative )
+    {
         retval = date.GetWeekOfMonth(GetWindowStyle() & wxCAL_MONDAY_FIRST
                                    ? wxDateTime::Monday_First
                                    : wxDateTime::Sunday_First);
-	}
-	else
-	{
+    }
+    else
+    {
         retval = date.GetWeekOfYear(GetWindowStyle() & wxCAL_MONDAY_FIRST
                                    ? wxDateTime::Monday_First
                                    : wxDateTime::Sunday_First);
-	}
+    }
     return retval;
 }
 
@@ -469,7 +469,8 @@ wxSize wxMiniCalendar::DoGetBestSize() const
     ((wxMiniCalendar *)this)->RecalcGeometry(); // const_cast
 
     wxCoord width = DAYS_PER_WEEK * m_widthCol,
-            height = WEEKS_TO_DISPLAY * m_heightRow + m_todayHeight + m_rowOffset + EXTRA_MONTH_HEIGHT + m_heightPreview + VERT_MARGIN;
+            height = m_todayHeight + m_heightPreview + VERT_MARGIN +
+            MONTHS_TO_DISPLAY * ( WEEKS_TO_DISPLAY * m_heightRow + m_rowOffset + EXTRA_MONTH_HEIGHT );
 
     if ( !HasFlag(wxBORDER_NONE) )
     {
@@ -633,28 +634,39 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     y += m_todayHeight;
 
+
+    wxDateTime dateToDraw = m_date;
+    for (int i = 0; i < MONTHS_TO_DISPLAY; i++) {
+        DrawMonth(dc, dateToDraw, &y, i == 0);
+        dateToDraw += wxDateSpan::Month();
+    }
+}
+
+void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, bool highlightDay)
+{
+    dc.SetTextForeground(*wxBLACK);
     // Get extent of month-name + year
     wxCoord monthw, monthh;
-    wxString headertext = m_date.Format(wxT("%B %Y"));
+    wxString headertext = startDate.Format(wxT("%B %Y"));
     dc.SetFont(m_boldFont);
     dc.GetTextExtent(headertext, &monthw, &monthh);
 
     // draw month-name centered above weekdays
     wxCoord monthx = ((m_widthCol * DAYS_PER_WEEK) - monthw) / 2;
-    wxCoord monthy = ((m_heightRow - monthh) / 2) + y + 3;
+    wxCoord monthy = ((m_heightRow - monthh) / 2) + *y + 3;
     dc.DrawText(headertext, monthx,  monthy);
     dc.SetFont(m_normalFont);
 
-    y += m_heightRow + EXTRA_MONTH_HEIGHT;
+    *y += m_heightRow + EXTRA_MONTH_HEIGHT;
 
     // first draw the week days
-    if ( IsExposed(0, y, DAYS_PER_WEEK * m_widthCol, m_heightRow) )
+    if ( IsExposed(0, *y, DAYS_PER_WEEK * m_widthCol, m_heightRow) )
     {
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(m_colHeaderFg);
         dc.SetBrush(wxBrush(m_colHeaderBg, wxSOLID));
         dc.SetPen(wxPen(m_colHeaderBg, 1, wxSOLID));
-        dc.DrawRectangle(0, y, GetClientSize().x, m_heightRow);
+        dc.DrawRectangle(0, *y, GetClientSize().x, m_heightRow);
 
         bool startOnMonday = (GetWindowStyle() & wxCAL_MONDAY_FIRST) != 0;
         for ( size_t wd = 0; wd < DAYS_PER_WEEK; wd++ )
@@ -666,12 +678,15 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 n = wd;
             wxCoord dayw, dayh;
             dc.GetTextExtent(m_weekdays[n], &dayw, &dayh);
-            dc.DrawText(m_weekdays[n], (wd*m_widthCol) + ((m_widthCol- dayw) / 2), y); // center the day-name
+            dc.DrawText(m_weekdays[n], (wd*m_widthCol) + ((m_widthCol- dayw) / 2), *y); // center the day-name
         }
     }
 
-    y += m_heightRow;
-    wxDateTime date = GetStartDate();
+    *y += m_heightRow;
+    wxDateTime::Tm tm = startDate.GetTm();
+    wxDateTime date = wxDateTime(1, tm.mon, tm.year);
+    date.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
+        ? wxDateTime::Mon : wxDateTime::Sun);
 
     dc.SetBackgroundMode(wxSOLID);
 
@@ -679,20 +694,20 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     wxColour mainColour = wxColour(128, 128, 128);
     wxColour lightColour = wxColour(191, 191, 191);
     wxColour highlightColour = wxColour(204, 204, 204);
-	wxColour lineColour = wxColour(229, 229, 229);
+    wxColour lineColour = wxColour(229, 229, 229);
 
     dc.SetTextForeground(mainColour);
-    for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, y += m_heightRow )
+    for ( size_t nWeek = 1; nWeek <= WEEKS_TO_DISPLAY; nWeek++, *y += m_heightRow )
     {
         // if the update region doesn't intersect this row, don't paint it
-        if ( !IsExposed(0, y, DAYS_PER_WEEK * m_widthCol, m_heightRow - 1) )
+        if ( !IsExposed(0, *y, DAYS_PER_WEEK * m_widthCol, m_heightRow - 1) )
         {
             date += wxDateSpan::Week();
             continue;
         }
 
         // don't draw last week if none of the days appear in the month
-        if ( nWeek == WEEKS_TO_DISPLAY && (date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date)) )
+        if ( nWeek == WEEKS_TO_DISPLAY && (date.GetMonth() != startDate.GetMonth() || !IsDateInRange(date)) )
         {
             date += wxDateSpan::Week();
             continue;
@@ -715,20 +730,23 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                 wxMiniCalendarDateAttr *attr = NULL;
                 wxCoord x = wd * m_widthCol + (m_widthCol - width) / 2;
 
-                // either highlight the selected week or the selected day depending upon the style
-                if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(m_date, false) ) ) ||
-                    ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(m_date) ) ) )
+                if ( highlightDay )
                 {
-                    dc.SetTextBackground(highlightColour);
-                    dc.SetBrush(wxBrush(highlightColour, wxSOLID));
-                    dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
-                    dc.DrawRectangle(wd * m_widthCol, y, m_widthCol, m_heightRow);
-
-                    changedColours = true;
+                // either highlight the selected week or the selected day depending upon the style
+                    if ( ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) != 0 ) && ( GetWeek(date, false) == GetWeek(startDate, false) ) ) ||
+                        ( ( (GetWindowStyle() & wxCAL_HIGHLIGHT_WEEK) == 0 ) && ( date.IsSameDate(startDate) ) ) )
+                    {
+                        dc.SetTextBackground(highlightColour);
+                        dc.SetBrush(wxBrush(highlightColour, wxSOLID));
+                        dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
+                        dc.DrawRectangle(wd * m_widthCol, *y, m_widthCol, m_heightRow);
+    
+                        changedColours = true;
+                    }
                 }
 
-				
-                if ( date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date) )
+                
+                if ( date.GetMonth() != startDate.GetMonth() || !IsDateInRange(date) )
                 {
                     // surrounding week or out-of-range
                     // draw "disabled"
@@ -752,13 +770,13 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
                     }
                 }
 
-                dc.DrawText(dayStr, x, y + 1);
+                dc.DrawText(dayStr, x, *y + 1);
 
                 // draw free/busy indicator
                 if ( attr )
                 {
                     double height = (m_heightRow - 6) * attr->GetBusy();
-                    dc.DrawRectangle(x-2, y + (m_heightRow - (int)height - 3), 2, (int)height);                                
+                    dc.DrawRectangle(x-2, *y + (m_heightRow - (int)height - 3), 2, (int)height);                                
                 }
 
                 dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -778,37 +796,12 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
             date += wxDateSpan::Day();
         }
 
-		// draw lines between each set of weeks
+        // draw lines between each set of weeks
         if ( nWeek != WEEKS_TO_DISPLAY && nWeek != 1)
         {
-			dc.SetPen(wxPen(lineColour, 1, wxSOLID));
-			dc.DrawLine(SEPARATOR_MARGIN, y - 1,  DAYS_PER_WEEK * m_widthCol - SEPARATOR_MARGIN, y - 1);
+            dc.SetPen(wxPen(lineColour, 1, wxSOLID));
+            dc.DrawLine(SEPARATOR_MARGIN, *y - 1,  DAYS_PER_WEEK * m_widthCol - SEPARATOR_MARGIN, *y - 1);
         }
-    }
-
-    // Greying out out-of-range background
-    bool showSurrounding = (GetWindowStyle() & wxCAL_SHOW_SURROUNDING_WEEKS) != 0;
-
-    date = ( showSurrounding ) ? GetStartDate() : wxDateTime(1, m_date.GetMonth(), m_date.GetYear());
-    if ( !IsDateInRange(date) )
-    {
-        wxDateTime firstOOR = GetLowerDateLimit() - wxDateSpan::Day(); // first out-of-range
-
-        wxBrush oorbrush = *wxLIGHT_GREY_BRUSH;
-        oorbrush.SetStyle(wxFDIAGONAL_HATCH);
-
-        HighlightRange(&dc, date, firstOOR, wxTRANSPARENT_PEN, &oorbrush);
-    }
-
-    date = ( showSurrounding ) ? GetStartDate() + wxDateSpan::Weeks(WEEKS_TO_DISPLAY) - wxDateSpan::Day() : wxDateTime().SetToLastMonthDay(m_date.GetMonth(), m_date.GetYear());
-    if ( !IsDateInRange(date) )
-    {
-        wxDateTime firstOOR = GetUpperDateLimit() + wxDateSpan::Day(); // first out-of-range
-
-        wxBrush oorbrush = *wxLIGHT_GREY_BRUSH;
-        oorbrush.SetStyle(wxFDIAGONAL_HATCH);
-
-        HighlightRange(&dc, firstOOR, date, wxTRANSPARENT_PEN, &oorbrush);
     }
 }
 
@@ -1101,35 +1094,59 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
     // Header: Days
     int wday = pos.x / m_widthCol;
-    if ( y < (m_todayHeight + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview) )
+    int initialHeight = m_todayHeight + m_heightPreview;
+    int monthHeight = m_rowOffset + WEEKS_TO_DISPLAY * m_heightRow + EXTRA_MONTH_HEIGHT;
+    int headerHeight = m_rowOffset + EXTRA_MONTH_HEIGHT;
+
+    for ( int month = 0; month < MONTHS_TO_DISPLAY; month++)
     {
-        if ( y > (m_rowOffset + m_heightPreview) )
+
+        if ( y < (month * monthHeight + initialHeight + headerHeight) )
         {
-            if ( wd )
+            if ( y > (month * monthHeight + initialHeight) )
             {
-                if ( GetWindowStyle() & wxCAL_MONDAY_FIRST )
+                if ( wd )
                 {
-                    wday = wday == (DAYS_PER_WEEK - 1) ? 0 : wday + 1;
+                    if ( GetWindowStyle() & wxCAL_MONDAY_FIRST )
+                    {
+                        wday = wday == (DAYS_PER_WEEK - 1) ? 0 : wday + 1;
+                    }
+
+                    *wd = (wxDateTime::WeekDay)wday;
                 }
 
-                *wd = (wxDateTime::WeekDay)wday;
+                return wxCAL_HITTEST_HEADER;
             }
-
-            return wxCAL_HITTEST_HEADER;
         }
-        else
+    }
+    int week;
+    bool found = false;
+    for ( int month = 0; month < MONTHS_TO_DISPLAY; month++ )
+    {
+        if ( y > ( initialHeight + month * monthHeight + headerHeight ) && 
+            ( y < ( initialHeight + (month + 1) * monthHeight ) ) )
         {
-            return wxCAL_HITTEST_NOWHERE;
+            week = (y - initialHeight - month * monthHeight - headerHeight) / m_heightRow;
+            found = true;
+            break;
         }
     }
 
-    int week = (y - (m_todayHeight + EXTRA_MONTH_HEIGHT + m_rowOffset + m_heightPreview)) / m_heightRow;
-    if ( week >= WEEKS_TO_DISPLAY || wday >= DAYS_PER_WEEK )
+    if ( ( wday >= DAYS_PER_WEEK ) || !found )
     {
         return wxCAL_HITTEST_NOWHERE;
     }
 
-    wxDateTime dt = GetStartDate() + wxDateSpan::Days(DAYS_PER_WEEK * week + wday);
+    wxDateTime dt;
+    wxDateTime::Tm tm = m_date.GetTm();
+    dt = wxDateTime(1, tm.mon, tm.year);
+    for (int monthsToAdd = 0; monthsToAdd < month; monthsToAdd++)
+    {
+        dt += wxDateSpan::Month();
+    }
+    dt.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
+            ? wxDateTime::Mon : wxDateTime::Sun);
+    dt += wxDateSpan::Days(DAYS_PER_WEEK * week + wday);
 
     if ( IsDateShown(dt) )
     {
@@ -1150,6 +1167,7 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     {
         return wxCAL_HITTEST_NOWHERE;
     }
+    return wxCAL_HITTEST_NOWHERE;
 }
 
 //static

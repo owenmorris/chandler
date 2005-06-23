@@ -27,8 +27,8 @@ enum
     // show a preview of events on the selected day
     wxCAL_SHOW_PREVIEW               = 0x0004,
 
-	// select an entire week at a time
-	wxCAL_HIGHLIGHT_WEEK             = 0x0008
+    // select an entire week at a time
+    wxCAL_HIGHLIGHT_WEEK             = 0x0008
 };
 
 // ----------------------------------------------------------------------------

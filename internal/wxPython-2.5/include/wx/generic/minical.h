@@ -13,6 +13,7 @@ class WXDLLEXPORT wxStaticText;
 #define wxCalendarNameStr _T("MiniCalendar")
 #define DAYS_PER_WEEK 7
 #define WEEKS_TO_DISPLAY 6
+#define MONTHS_TO_DISPLAY 5
 #define NUMBER_TO_PREVIEW 5
 
 // ----------------------------------------------------------------------------
@@ -153,6 +154,9 @@ private:
 
     // (re)calc m_widthCol and m_heightRow
     void RecalcGeometry();
+    
+    // draw a single month
+    void DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, bool highlightDat = false);
 
     // set the date and send the notification
     void SetDateAndNotify(const wxDateTime& date);
