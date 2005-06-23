@@ -644,6 +644,12 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         """
         self.postEventByName ('SelectedDateChanged',{'start':self.selectedDate})
 
+    def postSelectWeek(self, doSelectWeek):
+        """
+        Convenience method for changing between day and week mode.
+        """
+        self.postEventByName ('SelectWeek', {'doSelectWeek':doSelectWeek})
+
     # Managing the date range
 
     def setRange(self, date):
@@ -999,12 +1005,14 @@ class wxWeekPanel(CalendarEventHandler,
         self.blockItem.selectedDate = selectedDate
         self.blockItem.dayMode = True
         self.blockItem.postDateChanged()
+        self.blockItem.postSelectWeek(False)
         self.wxSynchronizeWidget()
 
     def OnWeekSelect(self):
         self.blockItem.dayMode = False
         self.blockItem.selectedDate = self.blockItem.rangeStart
         self.blockItem.postDateChanged()
+        self.blockItem.postSelectWeek(True)
         self.wxSynchronizeWidget()
 
     def OnExpand(self):
@@ -1895,6 +1903,7 @@ class CanvasWeek(CalendarBlock):
     def initAttributes(self):
         if not self.hasLocalAttributeValue('rangeStart'):
             self.dayMode = False
+            self.postSelectWeek(True)
             today = date.today()
             today = datetime(today.year, today.month, today.day)
             self.setRange(today)

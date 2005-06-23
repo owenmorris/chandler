@@ -24,11 +24,13 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXSelectItem)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
                   self.OnWXDoubleClick)
+        self.doSelectWeek = True
 
     def wxSynchronizeWidget(self):
-        self.SetWindowStyle(wx.minical.CAL_SUNDAY_FIRST |
-                            wx.minical.CAL_SHOW_SURROUNDING_WEEKS |
-                            wx.NO_BORDER)
+        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER
+        if self.doSelectWeek:
+            style |= wx.minical.CAL_HIGHLIGHT_WEEK
+        self.SetWindowStyle(style)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -75,6 +77,11 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
+    def selectWeek(self, doSelectWeek):
+        self.doSelectWeek = doSelectWeek
+        self.wxSynchronizeWidget()
+        self.Refresh()
+
     def resetMonth(self):
         for day in range(1,32):
             self.ResetAttr(day)
@@ -89,5 +96,8 @@ class MiniCalendar(Block.RectangularChild):
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.setSelectedDate(event.arguments['start'])
+        
+    def onSelectWeekEvent(self, event):
+        self.widget.selectWeek(event.arguments['doSelectWeek'])
 
 

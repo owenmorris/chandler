@@ -67,6 +67,7 @@
     <eventsForNamedDispatch itemref="docSchema:Quit"/>
     <eventsForNamedDispatch itemref="docSchema:Redo"/>
     <eventsForNamedDispatch itemref="docSchema:SelectedDateChanged"/>
+    <eventsForNamedDispatch itemref="docSchema:SelectWeek"/>
     <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcast"/>
     <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcastInsideActiveView"/>
     <eventsForNamedDispatch itemref="docSchema:SetContents"/>
@@ -147,6 +148,11 @@
 
   <docSchema:BlockEvent itsName="SelectedDateChanged">
     <blockName>SelectedDateChanged</blockName>
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  </docSchema:BlockEvent>
+
+  <docSchema:BlockEvent itsName="SelectWeek">
+    <blockName>SelectWeek</blockName>
     <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </docSchema:BlockEvent>
 
