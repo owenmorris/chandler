@@ -1,0 +1,78 @@
+import amazon
+import application
+from osaf.contentmodel.ContentModel import ContentItem
+from osaf.contentmodel.ItemCollection import ItemCollection
+import wx
+
+amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
+
+def CreateCollection(repView, cpiaView):
+    keywords = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+        "New Amazon Collection",
+        "Enter your Amazon search keywords:",
+        "Theodore Leung")
+    newAmazonCollection = AmazonCollection(view=repView, keywords=keywords)
+    cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+    
+def CreateWishListCollection(repView, cpiaView):
+    emailAddr = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+        "New Amazon Wish List",
+        "What is the Amazon email address of the wish list?",
+        "")
+    newAmazonCollection = AmazonCollection(view=repView, email=emailAddr)
+    cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+
+def NewCollectionFromKeywords(view, keywords, update = True):
+    collection = AmazonCollection(keywords=keywords,view=view)
+    if update:
+        print "updating new amazon collection"
+    return collection
+
+class AmazonCollection(ItemCollection):
+    myKindID = None
+    myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
+    
+    def __init__(self,keywords=None,email=None, name=None, parent=None, kind=None, view=None):
+        super(AmazonCollection, self).__init__(name, parent, kind, view)
+        if keywords:
+            bags = amazon.searchByKeyword(keywords)
+            self.displayName = 'Amzn: ' + keywords
+        elif email:
+            results = amazon.searchWishListByEmail(email)
+            customerName = results[0]
+            bags = results[1]
+            self.displayName = 'Amzn: ' + customerName
+        else:
+            bags = {}
+        for aBag in bags:
+            self.add(AmazonItem(aBag, view=view))
+            
+            
+class AmazonItem(ContentItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
+    
+    def __init__(self,bag, name=None, parent=None, kind=None, view=None):
+        super(AmazonItem, self).__init__(name, parent, kind, view)
+        if bag:
+            self.ProductName = bag.ProductName
+            self.imageURL = bag.ImageUrlLarge
+            self.ReleaseDate = getattr(bag, 'ReleaseDate','')
+            if hasattr(bag,'Authors'):
+                if type(bag.Authors.Author) == type([]):
+                    self.Author = ', '.join(bag.Authors.Author)
+                else:
+                    self.Author = bag.Authors.Author
+            elif hasattr(bag,'Directors'):
+                if type(bag.Directors.Director) == type([]):
+                    self.Author = ', '.join(bag.Directors.Director)
+                else:
+                    self.Author = bag.Directors.Director
+            elif hasattr(bag,'Artists'):
+                if type(bag.Artists.Artist) == type([]):
+                    self.Author = ', '.join(bag.Artists.Artist)
+                else:
+                    self.Author = bag.Artists.Artist
+            else:
+                self.Author = ''
+            self.displayName = self.ProductName
