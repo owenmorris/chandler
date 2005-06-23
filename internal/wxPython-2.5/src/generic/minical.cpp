@@ -636,7 +636,8 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 
     wxDateTime dateToDraw = m_date;
-    for (int i = 0; i < MONTHS_TO_DISPLAY; i++) {
+    int i;
+    for (i = 0; i < MONTHS_TO_DISPLAY; i++) {
         DrawMonth(dc, dateToDraw, &y, i == 0);
         dateToDraw += wxDateSpan::Month();
     }
