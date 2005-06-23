@@ -126,7 +126,7 @@ else
             false; \
         fi
 endif
-	echo CHANDLERBIN is $(CHANDLERBIN)
+	@echo CHANDLERBIN is $(CHANDLERBIN)
 	@echo GCJ_HOME is $(GCJ_HOME)
 ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
