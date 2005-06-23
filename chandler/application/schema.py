@@ -18,7 +18,7 @@ __all__ = [
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
-    ('displayName','description')
+    ('displayName','description','issues','examples')
 
 global_lock = threading.RLock()
 
@@ -176,11 +176,12 @@ class Role(ActiveDescriptor,CDescriptor):
         old = getattr(self,attr,None)
         if old is not None and old<>value:
             raise TypeError(
-                "Role objects are immutable; can't change %r once set" % attr
+                "Role objects are immutable; can't change %r of %r once set"
+                % (attr,self)
             )
         elif old is None and self._frozen:
             raise TypeError(
-                "Role object cannot be modified after use"
+                "Role object %r cannot be modified after use" % self
             )
 
         self._setattr(attr,value)
@@ -429,6 +430,10 @@ class ItemClass(Activator):
     """Metaclass for schema.Item"""
 
     _kind_class = Kind
+
+    # Prevent __kind_info__ from being inherited by Item subclasses; each class
+    # must define its own, if it has any.
+    __kind_info__ = property(lambda cls: cls.__dict__.get('__kind_info__',{}))
 
     def _create_schema_item(cls):
         return Kind(
@@ -904,7 +909,7 @@ reset(nrv)
 core_types = """
 Boolean String Integer Long Float Tuple List Set Class Dictionary Anything
 Date Time DateTime TimeDelta 
-Lob Symbol URL Complex UUID Path
+Lob Symbol URL Complex UUID Path SingleRef
 """.split()
 
 for name in core_types:

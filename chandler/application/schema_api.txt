@@ -175,7 +175,7 @@ All role objects have at least the following attributes and methods:
         >>> role2.inverse = schema.Role()
         Traceback (most recent call last):
         ...
-        TypeError: Role objects are immutable; can't change 'inverse' once set
+        TypeError: Role objects are immutable; can't change 'inverse' ... once set
 
         >>> role2.inverse is role1      # no change took place
         True
@@ -188,7 +188,7 @@ All role objects have at least the following attributes and methods:
         >>> role3.inverse = role2
         Traceback (most recent call last):
         ...
-        TypeError: Role objects are immutable; can't change 'inverse' once set
+        TypeError: Role objects are immutable; can't change 'inverse' ... once set
 
         >>> print role3.inverse         # no change took place
         None
@@ -284,7 +284,7 @@ And, to avoid unintentional alterations, Role attributes can be set only once::
     >>> r.doc = "testing"
     Traceback (most recent call last):
       ...
-    TypeError: Role objects are immutable; can't change 'doc' once set
+    TypeError: Role objects are immutable; can't change 'doc' ... once set
 
 
 ---------------
@@ -354,6 +354,9 @@ OSAF naming conventions)::
 Additional Metadata
 ===================
 
+You can set additional attributes on your class' Kind by using
+``schema.kindInfo()`` in the body of your item class::
+
     >>> class CalendarItem(schema.Item):
     ...     """This is just a demo"""
     ...     schema.kindInfo(
@@ -367,6 +370,15 @@ Additional Metadata
     >>> schema.itemFor(CalendarItem).description
     'This is just a demo'
 
+These additional attributes are not normally inherited by subkinds::
+
+    >>> class CalendarItemSubclass(CalendarItem):
+    ...     pass
+    >>> hasattr(schema.itemFor(CalendarItemSubclass), 'displayName')
+    False
+
+You can make multiple calls to ``kindInfo()`` in the same class::
+
     >>> class MultipleMetadata(schema.Item):
     ...     schema.kindInfo(displayName="Foo")
     ...     schema.kindInfo(displayAttribute="Bar")
@@ -375,6 +387,8 @@ Additional Metadata
     >>> schema.itemFor(MultipleMetadata).displayAttribute
     'Bar'
 
+As long as you don't change anything you declared in a previous definition::
+
     >>> class ConflictingMetadata(schema.Item):
     ...     schema.kindInfo(displayName="Foo")
     ...     schema.kindInfo(displayName="Bar")
@@ -382,11 +396,16 @@ Additional Metadata
       ...
     ValueError: 'displayName' defined multiple times for this class
 
+You also have to only use keyword arguments that correspond to actual Kind
+attributes::
+
     >>> class BadMetadata(schema.Item):
     ...     schema.kindInfo(madeUpName="xyz")
     Traceback (most recent call last):
       ...
     TypeError: 'madeUpName' is not an attribute of Kind
+
+And calling ``kindInfo()`` is meaningless outside a class statement::
 
     >>> schema.kindInfo(displayName="x")
     Traceback (most recent call last):
@@ -669,7 +688,7 @@ loaded::
         >>> Kind.subkinds.redirectTo = "xyz"
         Traceback (most recent call last):
         ...
-        TypeError: Role object cannot be modified after use
+        TypeError: Role object <Role subkinds of <class 'Kind'>> cannot be modified after use
 
 ``initRepository(repoView)``
     Ensure that the given repository view has been initialized with the core
