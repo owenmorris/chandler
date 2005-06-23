@@ -428,8 +428,18 @@ class MainView(View):
         
     def onWxTestHarnessEvent(self, event):
         # Test menu item
-        mainWidget = Globals.views[0].widget
-        self.setStatusMessage("Hit Me!!!!")
+        #mainWidget = Globals.views[0].widget
+        mainWidget = wx.GetApp().mainFrame
+        if isinstance(mainWidget, wx.Window):
+            # @@@ ForceRedraw works; the other two fail to induce a window update !!!
+            #mainWidget.ForceRedraw()
+            #mainWidget.ClearBackground()
+            #mainWidget.Refresh( True )
+            #mainWidget.Layout()
+            statusMsg = "invalidated main view and back buffer"
+        else:
+            statusMsg = "wxDang"
+        self.setStatusMessage(statusMsg)
 
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Some Content Items" and
