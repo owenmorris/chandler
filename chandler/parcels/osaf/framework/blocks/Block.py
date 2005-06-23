@@ -305,7 +305,7 @@ class Block(schema.Item):
             else:
                 unsubscribe (contents, self)
         try:
-            eventsForNamedDispatch = self.widget.eventsForNamedDispatch
+            eventsForNamedDispatch = self.eventsForNamedDispatch
         except AttributeError:
             pass
         else:
