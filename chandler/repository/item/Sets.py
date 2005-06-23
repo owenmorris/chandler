@@ -159,6 +159,7 @@ class Set(AbstractSet):
             item = self._item
             if item is not None:
                 item.collectionChanged(op, item, self._attribute, other)
+                item._collectionChanged(op, self._attribute, other)
 
         return op
 
@@ -200,6 +201,7 @@ class BiSet(AbstractSet):
             item = self._item
             if item is not None:
                 item.collectionChanged(op, item, self._attribute, other)
+                item._collectionChanged(op, self._attribute, other)
 
         return op
 
@@ -354,5 +356,6 @@ class KindSet(AbstractSet):
             item = self._item
             if item is not None:
                 item.collectionChanged(op, item, self._attribute, other)
+                item._collectionChanged(op, self._attribute, other)
 
         return op
