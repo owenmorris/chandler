@@ -65,8 +65,6 @@ def locateProfileDir(chandlerDirectory):
             
         application.Globals.options.profileDir = profileDir
 
-    print 'Using profile directory: %s' % application.Globals.options.profileDir
-
 def loadConfig(chandlerDirectory):
     """
     Load and parse the command line options.
