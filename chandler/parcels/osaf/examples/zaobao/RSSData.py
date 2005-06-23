@@ -196,8 +196,13 @@ class RSSChannel(ItemCollection):
         for newItem in items:
 
             # Convert date to datetime object
-            if newItem.date:
-                newItem.date = parse(str(newItem.date))
+            try:
+                itemDate = newItem.date
+            except:
+                itemDate = None
+
+            if itemDate:
+                newItem.date = parse(str(itemDate))
             else:
                 # Give the item a date so we can sort on it
                 newItem.date = datetime.now()
