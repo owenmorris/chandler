@@ -30,6 +30,37 @@ import copy
 
 dateFormatSymbols = DateFormatSymbols()
 
+"""Widget overview
+
+CanvasWeek (old name: WeekBlock) is the Block for the entire week view
+its widget is wxWeekPanel
+that contains 3 widgets:
+    wxWeekHeaderWidgets
+    wxWeekHeaderCanvas
+    wxWeekColumnCanvas
+
+here is wxWeekPanel, taking up the center area of Chandler:
+----------------------------------------------------------
+| wxWeekHeaderWidgets                                       
+| [color selector]    June 2005                  <- ->      
+|                                                           
+| also has the row of week/7-days buttons as an inset widget:
+|-------------------------------------------
+|| wx.colheader.ColumnHeader  (instance name: weekHeader)
+||Week  Sun  Mon  Tue  Wed  Thu  Fri  +                     
+||------------------------------------------
+|---------------------------------------------------------
+| wxWeekHeaderCanvas
+|  where the all-day events go
+|---------------------------------------------------------
+| wxWeekColumnCanvas
+|  the main area that can have events at specific times
+|
+|  [much bigger, not drawn to scale]
+|
+|
+----------------------------------------------------------
+"""
 
 # from ASPN/Python Cookbook
 class CachedAttribute(object):
@@ -883,6 +914,7 @@ class wxWeekPanel(CalendarEventHandler,
                   DragAndDrop.DraggableWidget,
                   DragAndDrop.ItemClipboardHandler,
                   wx.Panel):
+    """The big middle panel"""
     def __init__(self, *arguments, **keywords):
         super (wxWeekPanel, self).__init__ (*arguments, **keywords)
 
@@ -1045,6 +1077,8 @@ class wxWeekPanel(CalendarEventHandler,
         """ @@@ Need to complete this for Paste to work """
 
 class wxWeekHeaderWidgets(wx.Panel):
+    """This is the topmost area with the month name, event color selector,
+    week navigation arrows, and the bar of Week/day selector buttons"""
 
     currentSelectedDate = None
     currentStartDate = None
@@ -1218,6 +1252,8 @@ class wxWeekHeaderWidgets(wx.Panel):
 
 
 class wxWeekHeaderCanvas(wxCalendarCanvas):
+    """This is the area where all-day events live: 
+    below the days-of-week bar, above specific times"""
     def __init__(self, *arguments, **keywords):
         super (wxWeekHeaderCanvas, self).__init__ (*arguments, **keywords)
 
@@ -1266,14 +1302,20 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
-        dc.SetPen(styles.majorLinePen)
-
-        drawInfo = self.parent
         # Draw lines between days
-        for day in range(drawInfo.columns):
-            dc.DrawLine(drawInfo.xOffset + (drawInfo.dayWidth * day), 0,
-                        drawInfo.xOffset + (drawInfo.dayWidth * day),
+        drawInfo = self.parent
+        def drawDayLine(dayNum):
+            dc.DrawLine(drawInfo.xOffset + (drawInfo.dayWidth * dayNum), 0,
+                        drawInfo.xOffset + (drawInfo.dayWidth * dayNum),
                         self.size.height)
+
+        # Week/7days divider needs major color, the rest are minor.
+        dc.SetPen(styles.majorLinePen)
+        drawDayLine(0)
+
+        dc.SetPen(styles.minorLinePen)
+        for dayNum in range(1, drawInfo.columns):
+            drawDayLine(dayNum)
 
         # Draw one extra line to parallel the scrollbar below
         dc.DrawLine(self.size.width - drawInfo.scrollbarWidth, 0,
@@ -1414,6 +1456,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         return newDay
 
 class wxWeekColumnCanvas(wxCalendarCanvas):
+    """This is the big area with time-of-day markers and specific-day events"""
 
     def __init__(self, *args, **kwargs):
         super(wxWeekColumnCanvas,self).__init__(*args, **kwargs)
@@ -1898,7 +1941,7 @@ class CanvasWeek(CalendarBlock):
     lastHue = schema.One(schema.Float, initialValue = -1.0)
 
     def __init__(self, *arguments, **keywords):
-        super(WeekBlock, self).__init__ (*arguments, **keywords)
+        super(CanvasWeek, self).__init__ (*arguments, **keywords)
 
     def initAttributes(self):
         if not self.hasLocalAttributeValue('rangeStart'):
@@ -1936,7 +1979,7 @@ class CanvasWeek(CalendarBlock):
         else:
             self.selectedDate = self.rangeStart
 
-WeekBlock = CanvasWeek  # Backward compatibility
+WeekBlock = CanvasWeek  # Backward compatibility ##@@@ think can remove? [brendano]
 
 class wxInPlaceEditor(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
