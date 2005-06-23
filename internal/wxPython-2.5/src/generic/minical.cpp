@@ -1097,8 +1097,8 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     int initialHeight = m_todayHeight + m_heightPreview;
     int monthHeight = m_rowOffset + WEEKS_TO_DISPLAY * m_heightRow + EXTRA_MONTH_HEIGHT;
     int headerHeight = m_rowOffset + EXTRA_MONTH_HEIGHT;
-
-    for ( int month = 0; month < MONTHS_TO_DISPLAY; month++)
+    int month;
+    for ( month = 0; month < MONTHS_TO_DISPLAY; month++)
     {
 
         if ( y < (month * monthHeight + initialHeight + headerHeight) )
@@ -1121,7 +1121,8 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     }
     int week;
     bool found = false;
-    for ( int month = 0; month < MONTHS_TO_DISPLAY; month++ )
+    int month;
+    for ( month = 0; month < MONTHS_TO_DISPLAY; month++ )
     {
         if ( y > ( initialHeight + month * monthHeight + headerHeight ) && 
             ( y < ( initialHeight + (month + 1) * monthHeight ) ) )
@@ -1140,7 +1141,8 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     wxDateTime dt;
     wxDateTime::Tm tm = m_date.GetTm();
     dt = wxDateTime(1, tm.mon, tm.year);
-    for (int monthsToAdd = 0; monthsToAdd < month; monthsToAdd++)
+    int monthsToAdd;
+    for (monthsToAdd = 0; monthsToAdd < month; monthsToAdd++)
     {
         dt += wxDateSpan::Month();
     }
