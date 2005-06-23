@@ -101,25 +101,23 @@ class MainFrame(wx.Frame):
         self.Destroy()
 
     def OnSize(self, event):
+        from osaf.framework.blocks.DocumentTypes import SizeType
         """
           Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
         if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.size.width = self.GetSize().x
-            Globals.mainViewRoot.size.height = self.GetSize().y
-            Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'size', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
+            Globals.mainViewRoot.size = SizeType (self.GetSize().x, self.GetSize().y)
         event.Skip()
 
     def OnMove(self, event):
+        from osaf.framework.blocks.DocumentTypes import PositionType
         """
           Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
         if not wx.GetApp().ignoreSynchronizeWidget:
-            Globals.mainViewRoot.position.x = self.GetPosition().x
-            Globals.mainViewRoot.position.y = self.GetPosition().y
-            Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'position', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
+            Globals.mainViewRoot.position = PositionType(self.GetPosition().x, self.GetPosition().y)
         event.Skip()
 
 
