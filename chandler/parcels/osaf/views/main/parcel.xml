@@ -1235,14 +1235,14 @@
     <border>4,0,0,0</border>
   </BoxContainer>
   
-  <BoxContainer itsName="SidebarContainer">
+  <SplitterWindow itsName="SidebarContainer">
     <blockName>SidebarContainer</blockName>
     <childrenBlocks itemref="doc:SidebarInstance"/>
     <childrenBlocks itemref="doc:MiniCalendar"/>
-    <orientationEnum>Vertical</orientationEnum>
+    <orientationEnum>Horizontal</orientationEnum>
     <stretchFactor>0</stretchFactor>
     <border>0,0,0,4.0</border>    
-  </BoxContainer>
+  </SplitterWindow>
 
   <doc:Sidebar itsName="SidebarInstance">
     <blockName>Sidebar</blockName>
@@ -1396,13 +1396,13 @@
     <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
   
-  <BoxContainer itsName="CPIATestSidebarContainer">
+  <SplitterWindow itsName="CPIATestSidebarContainer">
     <blockName>SidebarContainer</blockName>
     <childrenBlocks itemref="doc:SidebarInstance" copy="CPIATestSidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar" copy="CPIATestMiniCalendar"/>
-    <orientationEnum>Vertical</orientationEnum>
+    <orientationEnum>Horizontal</orientationEnum>
     <stretchFactor>0</stretchFactor>
-  </BoxContainer>
+  </SplitterWindow>
 
   <TabbedContainer itsName="CPIATestTabbedView"
                    itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
