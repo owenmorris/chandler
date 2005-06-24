@@ -891,6 +891,14 @@ def RenderItem(repoView, item):
         result += "<br />\n"
         result += RenderClouds(repoView, item)
 
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td><b>View-related information for this item:</b></td>\n"
+    result += "</tr>\n"
+    result += "<tr class='oddrow'>\n"
+    result += "<td>Item version: %d<br>Is item dirty: %s</td>\n" % (item.getVersion(), item.isDirty())
+    result += "</tr>\n"
+    result += "</table>\n"
 
     return result
 
