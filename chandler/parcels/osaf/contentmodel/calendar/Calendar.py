@@ -244,7 +244,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
         if (self.hasLocalAttributeValue("startTime") and
             self.hasLocalAttributeValue("endTime")):
-            return self.endTime - self.startTime
+            return self.getEffectiveEndTime() - self.getEffectiveStartTime()
         else:
             return None
 
@@ -254,7 +254,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         endTime is updated based on the new duration, startTime remains fixed
         """
         if (self.startTime is not None):
-            self.endTime = self.startTime + timeDelta
+            self.endTime = self.getEffectiveStartTime() + timeDelta
 
     duration = property(GetDuration, SetDuration,
                         doc="timedelta: the length of an event")
@@ -270,6 +270,19 @@ class CalendarEventMixin(ContentModel.ContentItem):
             result = datetime.combine(self.startTime, time(0))
         else:
             result = self.startTime
+        return result
+    
+    def getEffectiveEndTime(self):
+        """ 
+        Get the effective end time of this event: ignore the time
+        component of the endTime attribute if this is an allDay 
+        or anyTime event.
+        """
+        # If endTime's time is invalid, ignore it.
+        if self.anyTime or self.allDay:
+            result = datetime.combine(self.endTime, time(0))
+        else:
+            result = self.endTime
         return result
         
     def GetReminderDelta(self):

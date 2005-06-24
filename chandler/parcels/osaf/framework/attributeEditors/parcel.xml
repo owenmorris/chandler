@@ -23,6 +23,8 @@
   <doc:AttributeEditor itsName="ContactName"><className>osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="ContentItem"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="DateTime"><className>osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="DateTime+dateOnly"><className>osaf.framework.attributeEditors.AttributeEditors.DateAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="DateTime+timeOnly"><className>osaf.framework.attributeEditors.AttributeEditors.TimeAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="EmailAddress"><className>osaf.framework.attributeEditors.AttributeEditors.EmailAddressAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Integer"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Kind"><className>osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor</className></doc:AttributeEditor>

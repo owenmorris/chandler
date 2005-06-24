@@ -190,7 +190,14 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             dumpSynchronizeWidget = False
             if dumpSynchronizeWidget:
                 self.dumpShownHierarchy ('synchronizeWidget')
-        
+
+    def onResynchronizeEvent(self, event):
+        logger.debug("onResynchronizeEvent: resynching")
+        self.synchronizeWidget()
+
+    def onResynchronizeEventUpdateUI(self, event):
+        pass
+
     def onDestroyWidget (self):
         # Hack - @@@DLD - remove when wxWidgets issue is resolved.
         # set ourself to be shown, to work around Windows DetailView garbage problem.
@@ -386,10 +393,12 @@ class DetailSynchronizer(Item):
             assert False, "Detail Synchronizer can't find the DetailRoot!"
         
 
+    def onSetContentsEvent (self, event):
+        self.contents = event.arguments['item']
+
     def selectedItem (self):
         # return the selected item
-        rootBlock = self.detailRoot()
-        return rootBlock.selectedItem()
+        return self.contents
 
     def finishSelectionChanges (self):
         # finish any changes in progress in editable text fields.
@@ -737,40 +746,6 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
        # subclasses need to override this method
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
-class NoteBody (EditTextAttribute):
-    """
-    Body attribute of a ContentItem, e.g. a Note
-    """
-    def shouldShow (self, item):
-        # need to show even if there is no value, so we test
-        # the kind to see if it knows about the attribute.
-        knowsBody = item.itsKind.hasAttribute("body")
-        return knowsBody
-        
-    def saveAttributeFromWidget (self, item, widget, validate):
-        if validate:
-            attributeName = GetRedirectAttribute(item, 'body');
-            textType = item.getAttributeAspect(attributeName, 'type')
-            widgetText = widget.GetValue()
-            if widgetText:
-                #XXX: Ensures that any non-ascii text entered in to the detail view
-                #     is properly encoded to ascii. This is a short term fix
-                #     and will not address issues related to internationalization
-                if not isinstance(widgetText, unicode):
-                    widgetText = unicode(widgetText, 'utf-8', 'ignore')
-                asciiText = widgetText.encode('ascii', 'ignore')
-                if item.ItemBodyString() != asciiText: # only put back if it's changed.
-                    item.body = textType.makeValue(asciiText, encoding='ascii', indexed=True)
-        
-    def loadAttributeIntoWidget (self, item, widget):  
-        attributeName = GetRedirectAttribute(item, 'body');
-        if item.hasLocalAttributeValue(attributeName):
-            # get the character string out of the Text LOB
-            noteBody = item.ItemBodyString ()
-            widget.SetValue(noteBody)
-        else:
-            widget.Clear()
-
 class EditToAddressTextAttribute (EditTextAttribute):
     """
     An editable address attribute that resyncs the DV when changed
@@ -1046,105 +1021,16 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
 """
 Classes to support CalendarEvent details
 """
-class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def synchronizeItemDetail (self, item):
-        # @@@DLD - remove special case for AEBlock child (duration).
-        # Need to really resynchronize, because sizer needs to be redone
-        # for AEBlock showing duration attribute inside this block.
-        relayoutParent = super(CalendarEventBlock, self).synchronizeItemDetail(item)
-        self.synchronizeWidget()
-        return relayoutParent
-
-class EditTimeAttribute (EditRedirectAttribute):
-    """
-    An attribute-based edit field for Time Values
-    Our parent block knows which attribute we edit.
-    """
-    # (@@@BJS ... though we also modify allDay and anyTime ourselves)
-
-    # Hint strings for normal and allday/anytime modes
-    dateTimeFormatHint = 'yyyy-mm-dd HH:MM AM'
-    dateFormatHint = 'yyyy-mm-dd'
-    
-    dateTimeFormat = "yyyy-M-d h:mm a"
-    dateFormat = "yyyy-M-d"
-    possibleFormats = (dateTimeFormat,
-                       "yyyy-M-d h:mma",
-                       "yyyy-M-d H:mm",
-                       dateFormat) # (must be last - see below)
-    
-    def parseDateTime (self, dateString):
-        for f in EditTimeAttribute.possibleFormats:
-            try:
-                df = SimpleDateFormat(f)
-                theDate = datetime.fromtimestamp(df.parse(dateString))
-                dateOnly = (f == self.dateFormat)
-                return (theDate, dateOnly)
-            except ICUError:
-                # Re-raise if we haven't found one by the end.
-                if (f == self.dateFormat):
-                    raise
-                # else continue
-
-    def __formatDateValue(self, dateValue, dateOnly):
-        format = dateOnly and self.dateFormat or self.dateTimeFormat
-        df = SimpleDateFormat(format)
-        value = unicode(df.format(dateValue))
-        return value
-        
-    def saveAttributeFromWidget(self, item, widget, validate):
-        """"
-          Update the attribute from the user edited string in the widget.
-        """
-        if validate:
-            dateString = widget.GetValue().strip('?')
-            try:
-                (theDate, dateOnly) = self.parseDateTime (dateString)
-            except ICUError:
-                theDate = None
-            
-            if theDate is not None:
-                # save the new Date/Time into the startTime attribute
-                item.ChangeStart (theDate)
-                item.anyTime = dateOnly and not item.allDay
-                
-                # and reformat it to put back in the box.
-                dateString = self.__formatDateValue(theDate, item.allDay or item.anyTime)
-            else:
-                # @@@DLD figure out reasonable exceptions to catch during conversion
-                dateString = dateString + '?'
-                
-            # redisplay the processed Date/Time in the widget
-            widget.SetValue(dateString)
-
-
-    def loadAttributeIntoWidget(self, item, widget):
-        """"
-          Update the widget display based on the value in the attribute.
-        """
-        try:
-            # Get the value if we have one.
-            dateTime = item.getAttributeValue(self.whichAttribute())
-        except AttributeError:
-            # We don't have one; use the hint appropriate to the current allDay setting
-            value = item.allDay and self.dateFormatHint or self.dateTimeFormatHint
-        else:
-            # We have a value. Format it appropriately and stick it in the box.
-            value = self.__formatDateValue(dateTime, item.allDay or item.anyTime)
-        widget.SetValue (value)
-        # logger.debug("EditTime: Got '%s' after Set '%s'" % (widget.GetValue(), value))
-
-class CalendarDurationArea (CalendarEventBlock):
+class CalendarAtLabel (StaticTextLabel):
     def shouldShow (self, item):
-        return not item.allDay
-
-class AllDayCheckBox(DetailSynchronizedAttributeEditorBlock):
-    def valueChanged(self):
-        # Unrender to update the rest of the DV items' visibility.
-        detailRoot = self.detailRoot()
-        detailRoot.unRender()
-        detailRoot.parentBlock.widget.wxSynchronizeWidget()
-
+        return not self.contents.allDay
+        
+class CalendarTimeAEBlock(DetailSynchronizer, ControlBlocks.AEBlock):
+    def shouldShow (self, item):
+        return not self.contents.allDay
+    
+    def synchronizeItemDetail(self, item):
+        self.synchronizeWidget()
 
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):

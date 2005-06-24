@@ -56,6 +56,13 @@
     <destinationBlockReference itemref="doc:AcceptShareButton"/>
   </BlockEvent>
 
+  <BlockEvent itsName="Resynchronize">
+    <blockName>Resynchronize</blockName>
+    <dispatchToBlockName>DetailRoot</dispatchToBlockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+  </BlockEvent>
+
+
   <!--
     An item collection we use to get notifications about the DV
   -->  
@@ -70,9 +77,9 @@
   -->
   
   <!-- The DetailTrunkCache starts each specific DetailTrunk by cloning this stub. -->
-  <DetailRoot itsName="DetailTrunkStub"
+  <DetailRoot itsName="DetailRoot"
               itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
-    <blockName value="DetailTrunkStub"/>
+    <blockName value="DetailRoot"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
@@ -480,8 +487,8 @@
     <childrenBlocks itemref="doc:CalendarAllDaySpacer"/>
     <childrenBlocks itemref="doc:CalendarAllDayArea"/>
     <childrenBlocks itemref="doc:CalendarStartSpacer"/>
-    <childrenBlocks itemref="doc:CalendarStartTime"/>
-    <childrenBlocks itemref="doc:CalendarDurationArea"/>
+    <childrenBlocks itemref="doc:CalendarStartTimeArea"/>
+    <childrenBlocks itemref="doc:CalendarEndTimeArea"/>
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
     <childrenBlocks itemref="doc:CalendarReminderArea"/>
     <!-- Attributes -->
@@ -530,8 +537,7 @@
     <minimumSize>-1, 4</minimumSize>
   </StaticText>
 
-  <ContentItemDetail itsName="CalendarAllDayArea"
-                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+  <ContentItemDetail itsName="CalendarAllDayArea">
     <blockName value="CalendarAllDayArea"/>
     <childrenBlocks itemref="doc:CalDetailsAllDayLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="AllDayHorizontalSpacer" />
@@ -551,12 +557,12 @@
     <border>4, 0, 0, 0</border>
   </StaticText>
 
-  <AEBlock itsName="EditAllDay"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <AEBlock itsName="EditAllDay">
     <blockName value="EditAllDay"/>
     <stretchFactor>0</stretchFactor>
     <viewAttribute value="allDay"/>
     <border>2, 2, 2, 2</border>
+    <event itemref="doc:Resynchronize"/>
   </AEBlock>
   
   <StaticText itsName="CalendarStartSpacer">
@@ -567,21 +573,31 @@
     <minimumSize>-1, 4</minimumSize>
   </StaticText>
 
-  <ContentItemDetail itsName="CalendarStartTime"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarStartTime"/>
-    <childrenBlocks itemref="doc:StaticCalendarStartTime"/>
+  <StaticText itsName="CalendarAtLabel"
+              itemClass="osaf.framework.blocks.detail.Detail.CalendarAtLabel">
+    <blockName value="CalendarAtLabel"/>
+    <title>at</title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <border>4, 4, 0, 4</border>
+  </StaticText>
+
+  <ContentItemDetail itsName="CalendarStartTimeArea">
+    <blockName value="CalendarStartTimeArea"/>
+    <childrenBlocks itemref="doc:StaticCalendarStart"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarStartHorizontalSpacer" />
+    <childrenBlocks itemref="doc:EditCalendarStartDate"/>
+    <childrenBlocks itemref="doc:CalendarAtLabel" copy="CalendarStartAtLabel" />
     <childrenBlocks itemref="doc:EditCalendarStartTime"/>
-    <!-- Attributes -->
     <selectedItemsAttribute>startTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
   </ContentItemDetail>
  
-  <StaticText itsName="StaticCalendarStartTime">
-    <blockName value="StaticCalendarStartTime"/>
+  <StaticText itsName="StaticCalendarStart">
+    <blockName value="StaticCalendarStart"/>
     <title>starts</title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
@@ -589,53 +605,106 @@
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
   </StaticText>
-  
-  <EditText itsName="EditCalendarStartTime"
-            itemClass="osaf.framework.blocks.detail.Detail.EditTimeAttribute">
+
+  <PresentationStyle itsName="StartDatePresentation">
+    <!-- This hint isn't l10n-happy -->
+    <sampleText>mm/dd/yy</sampleText>
+    <useControl>True</useControl>
+    <format>dateOnly</format>
+  </PresentationStyle>
+
+  <AEBlock itsName="EditCalendarStartDate">
+    <blockName value="EditCalendarStartDate"/>
+    <characterStyle itemref="blocks:TextStyle"/>
+    <presentationStyle itemref="doc:StartDatePresentation"/>
+    <viewAttribute value="startTime"/>
+    <stretchFactor>0.0</stretchFactor>
+    <size>75, -1</size>
+    <border>2, 2, 2, 2</border>
+    <event itemref="doc:Resynchronize"/>
+  </AEBlock>
+
+  <PresentationStyle itsName="StartTimePresentation">
+    <!-- This hint isn't l10n-happy -->
+    <sampleText>hh:mm PM</sampleText>
+    <useControl>True</useControl>
+    <format>timeOnly</format>
+  </PresentationStyle>
+
+  <AEBlock itsName="EditCalendarStartTime"
+           itemClass="osaf.framework.blocks.detail.Detail.CalendarTimeAEBlock">
     <blockName value="EditCalendarStartTime"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 19</minimumSize>
-    <border>2, 2, 2, 2</border>
-  </EditText>
-
-  <ContentItemDetail itsName="CalendarDurationArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarDurationArea">
-    <blockName value="CalendarDurationArea"/>
-    <childrenBlocks itemref="doc:CalendarDurationLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarDurationHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditCalendarDuration"/>
+    <presentationStyle itemref="doc:StartTimePresentation"/>
+    <viewAttribute value="startTime"/>
     <stretchFactor>0.0</stretchFactor>
+    <size>85, -1</size>
+    <border>2, 2, 2, 2</border>
+    <event itemref="doc:Resynchronize"/>
+  </AEBlock>
+  
+  <ContentItemDetail itsName="CalendarEndTimeArea">
+    <blockName value="CalendarEndTimeArea"/>
+    <childrenBlocks itemref="doc:StaticCalendarEnd"/>
+    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarEndHorizontalSpacer" />
+    <childrenBlocks itemref="doc:EditCalendarEndDate"/>
+    <childrenBlocks itemref="doc:CalendarAtLabel" copy="CalendarEndAtLabel" />
+    <childrenBlocks itemref="doc:EditCalendarEndTime"/>
+    <selectedItemsAttribute>endTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
   </ContentItemDetail>
-
-  <StaticText itsName="CalendarDurationLabel">
-    <blockName value="CalendarDurationLabel"/>
-    <title>duration</title>
+  
+  <StaticText itsName="StaticCalendarEnd">
+    <blockName value="StaticCalendarEnd"/>
+    <title>ends</title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
   </StaticText>
-  
-  <PresentationStyle itsName="DurationPresentation">
-    <sampleText>HH:MM</sampleText>
+
+  <PresentationStyle itsName="EndDatePresentation">
+    <!-- This hint isn't l10n-happy -->
+    <sampleText>mm/dd/yy</sampleText>
     <useControl>True</useControl>
+    <format>dateOnly</format>
   </PresentationStyle>
 
-  <AEBlock itsName="EditCalendarDuration">
-    <blockName value="EditCalendarDuration"/>
+  <AEBlock itsName="EditCalendarEndDate">
+    <blockName value="EditCalendarEndDate"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:DurationPresentation"/>
-    <viewAttribute value="duration"/>
+    <presentationStyle itemref="doc:EndDatePresentation"/>
+    <viewAttribute value="endTime"/>
+    <stretchFactor>0.0</stretchFactor>
+    <size>75, -1</size>
     <border>2, 2, 2, 2</border>
+    <event itemref="doc:Resynchronize"/>
   </AEBlock>
 
-  <ContentItemDetail itsName="CalendarTransparencyArea"
-                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+  <PresentationStyle itsName="EndTimePresentation">
+    <!-- This hint isn't l10n-happy -->
+    <sampleText>hh:mm PM</sampleText>
+    <useControl>True</useControl>
+    <format>timeOnly</format>
+  </PresentationStyle>
+
+  <AEBlock itsName="EditCalendarEndTime"
+           itemClass="osaf.framework.blocks.detail.Detail.CalendarTimeAEBlock">
+    <blockName value="EditCalendarEndTime"/>
+    <characterStyle itemref="blocks:TextStyle"/>
+    <presentationStyle itemref="doc:EndTimePresentation"/>
+    <viewAttribute value="endTime"/>
+    <stretchFactor>0.0</stretchFactor>
+    <size>85, -1</size>
+    <border>2, 2, 2, 2</border>
+    <event itemref="doc:Resynchronize"/>
+  </AEBlock>
+  
+
+  <ContentItemDetail itsName="CalendarTransparencyArea">
     <blockName value="CalendarTransparencyArea"/>
     <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarTransparencyHorizontalSpacer" />
@@ -673,8 +742,7 @@
     <border>2, 2, 2, 2</border>
   </AEBlock>
 
-  <ContentItemDetail itsName="CalendarReminderArea"
-                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+  <ContentItemDetail itsName="CalendarReminderArea">
     <blockName value="CalendarReminderArea"/>
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarReminderHorizontalSpacer" />

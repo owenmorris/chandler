@@ -929,7 +929,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         """
           Create an edit control to edit the text
         """
-        self.control = self.delegate.CreateControl(True, None, parent, id, None, None)
+        self.control = self.delegate.CreateControl(True, parent, id, None, None)
         self.SetControl (self.control)
         if evtHandler:
             self.control.PushEventHandler (evtHandler)
@@ -1661,6 +1661,7 @@ class AEBlock(BoxContainer):
     characterStyle = schema.One(Styles.CharacterStyle)
     readOnly = schema.One(schema.Boolean, initialValue = False)
     presentationStyle = schema.One(PresentationStyle)
+    event = schema.One(BlockEvent)
 
     schema.addClouds(
         default = schema.Cloud(byRef=[characterStyle, presentationStyle])
@@ -1684,11 +1685,10 @@ class AEBlock(BoxContainer):
         font = Styles.getFont(charStyle)
 
         editor = self.lookupEditor()
-        widget = editor.CreateControl(forEditing, self.onValueChanged,
-                                      self.parentBlock.widget, 
+        widget = editor.CreateControl(forEditing, self.parentBlock.widget, 
                                       Block.getWidgetID(self), self, font)
         widget.SetFont(font)
-        logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
+        # logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
         
         # Cache a little information in the widget.
         widget.editor = editor
@@ -1696,7 +1696,7 @@ class AEBlock(BoxContainer):
         widget.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromWidget)
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
         widget.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromWidget)
-        widget.Bind(wx.EVT_LEFT_UP, self.onGainFocusFromWidget)
+        widget.Bind(wx.EVT_LEFT_DOWN, self.onClickFromWidget)
                     
         return widget
         
@@ -1721,7 +1721,7 @@ class AEBlock(BoxContainer):
         """
         def rerender():
             # Find the widget that corresponds to the view we're in
-            evtBoundaryWidget = self.widget
+            evtBoundaryWidget = getattr(self, 'widget', None)
             while evtBoundaryWidget is not None:
                 if evtBoundaryWidget.blockItem.eventBoundary:
                     break
@@ -1750,7 +1750,7 @@ class AEBlock(BoxContainer):
                 #   self.render()
                 
                 if self.forEditing and grabFocus:
-                    #logger.debug("Grabbing focus.")
+                    logger.debug("Grabbing focus.")
                     self.widget.SetFocus()
 
                 #logger.debug("Done rerendering.")
@@ -1764,12 +1764,15 @@ class AEBlock(BoxContainer):
             self.forEditing = forEditing
             #logger.debug("Must change control!")
             wx.CallAfter(rerender)
-        else:
-            # Just write back the value
-            #logger.debug("Not changing control!")
+            return True # we changed
+        
+        #logger.debug("Not changing control!")
+        if not forEditing:
+            # write back the value
             editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
                                   existingWidget)
-
+        return False # we didn't change
+        
     def lookupEditor(self):
         """
         Make sure we've got the right attribute editor for this type
@@ -1809,6 +1812,8 @@ class AEBlock(BoxContainer):
             selectedEditor.presentationStyle = None
         selectedEditor.item = item
 
+        # Register for value changes
+        selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
         return selectedEditor
 
     def onSetContentsEvent (self, event):
@@ -1826,7 +1831,10 @@ class AEBlock(BoxContainer):
         return item
 
     def getAttributeName(self):
-        attributeName = self.viewAttribute
+        try:
+            attributeName = self.viewAttribute
+        except AttributeError:
+            attributeName = None
         return attributeName
 
     def getItemAttributeTypeName(self):
@@ -1853,16 +1861,30 @@ class AEBlock(BoxContainer):
         
         return typeName
 
+    def onClickFromWidget(self, event):
+        """
+          The widget got clicked on - make sure we're in edit mode.
+        """
+        logger.debug("AEBlock: %s widget got clicked on", self.getAttributeName())
+            
+        changing = self.ChangeWidgetIfNecessary(True, True)
+
+        # If the widget didn't get focus as a result of the click,
+        # grab focus now.
+        # @@@ This was an attempt to fix bug 2878 on Mac, which doesn't focus
+        # on popups when you click on them (or tab to them!)
+        if not changing and wx.Window.FindFocus() is not self.widget:
+            logger.debug("Grabbing focus.")
+            wx.Window.SetFocus(self.widget)
+
+        event.Skip()
+
     def onGainFocusFromWidget(self, event):
         """
           The widget got the focus - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: widget gained focus or got clicked on")
-        # Attempt to fix bug 2878: Make sure we get the focus (in case we're a popup; this'll force
-        # any other existing focus'd AE to commit its value)
-        #if wx.Window.FindFocus() is not self.widget:
-        #    wx.Window.SetFocus(self.widget)
-            
+        logger.debug("AEBlock: %s widget gained focus", self.getAttributeName())
+        
         self.ChangeWidgetIfNecessary(True, True)
         event.Skip()
 
@@ -1877,7 +1899,7 @@ class AEBlock(BoxContainer):
         # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
         widget = getattr(self, 'widget', None)
         if widget is None or widget.IsBeingDeleted() or widget.GetParent().IsBeingDeleted():
-            logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
+            #logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
             return
 
         self.ChangeWidgetIfNecessary(False, False)
@@ -1887,19 +1909,25 @@ class AEBlock(BoxContainer):
             self.ChangeWidgetIfNecessary(False, True)
             
             # Do the tab thing if we're not a multiline thing
-            try:
-                isMultiLine = self.presentationStyle.lineStyleEnum == "MultiLine"
-            except AttributeError:
-                isMultiLine = False
-            if not isMultiLine:
-                self.widget.Navigate()
+            # @@@ Actually, don't; it doesn't mix well when one of the fields you'd
+            # "enter" through is multiline - it clears the content.
+            if False:
+                try:
+                    isMultiLine = self.presentationStyle.lineStyleEnum == "MultiLine"
+                except AttributeError:
+                    isMultiLine = False
+                if not isMultiLine:
+                    self.widget.Navigate()
         else:
             event.Skip()
 
-    def onValueChanged(self, event):
+    def onAttributeEditorValueChange(self):
         """ Called when the attribute editor changes the value """
-        # @@@ eventually, this should probably send an associated
-        # event; for now, it does nothing, but subclasses (like the AllDay
-        # block) can override it to respond to changes.
-        logger.debug("onValueChanged")
-        pass
+        logger.debug("onAttributeEditorValueChange: %s %s", self.getItem(), self.getAttributeName())
+        try:
+            event = self.event
+        except AttributeError:
+            pass
+        else:
+            self.post(event, {'item': self.getItem(), 'attribute': self.getAttributeName() })
+

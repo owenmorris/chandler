@@ -18,7 +18,8 @@ import logging
 import colorsys
 from operator import itemgetter
 from datetime import datetime, time, timedelta
-from PyICU import SimpleDateFormat, ICUError
+from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
+from osaf.framework.blocks.Block import ShownSynchronizer
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
@@ -98,7 +99,6 @@ class BaseAttributeEditor (object):
         Does this attribute editor use a permanent control (or
         will the control be created when the user clicks)? 
         """
-        # @@@ still needed?
         return False
     
     def MustChangeControl(self, forEditing, existingControl):
@@ -111,7 +111,7 @@ class BaseAttributeEditor (object):
         # Default to "if we have a control, it's good enough".
         return existingControl is None
     
-    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+    def CreateControl (self, forEditing, parentWidget, 
                        id, parentBlock, font):
         """ 
         Create and return a control to use for displaying (forEdit=False)
@@ -159,12 +159,27 @@ class BaseAttributeEditor (object):
             setattr(item, attributeName, value)
             self.AttributeChanged()
     
+    def SetChangeCallback(self, callback):
+        """ 
+        Set the callback function that we'll use to notify about attribute
+        value changes. 
+        """
+        self.changeCallBack = callback
+
     def AttributeChanged(self):
         """ Called by the attribute editor when it changes the underlying
             value. """
-        pass # for now.
+        try:
+            callback = self.changeCallBack
+        except AttributeError:
+            pass
+        else:
+            if callback is not None:
+                callback()
 
-class AETextCtrl(DragAndDrop.DraggableWidget,
+    
+class AETextCtrl(ShownSynchronizer,
+                 DragAndDrop.DraggableWidget,
                  DragAndDrop.DropReceiveWidget,
                  DragAndDrop.TextClipboardHandler,
                  wx.TextCtrl):
@@ -182,6 +197,7 @@ class AETextCtrl(DragAndDrop.DraggableWidget,
                     return # don't skip, eat the click.
         event.Skip()
 
+    """ Try without this:
     def Destroy(self):
         # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
         # (in which case we're a PyDeadObject)
@@ -189,8 +205,10 @@ class AETextCtrl(DragAndDrop.DraggableWidget,
             super(AETextCtrl, self).Destroy()
         else:
             pass # (give me a place to set a breakpoint)
+    """
     
-class AEStaticText(wx.StaticText):
+class AEStaticText(ShownSynchronizer,
+                   wx.StaticText):
     """ 
     Wrap wx.StaticText to give it the same GetValue/SetValue behavior
     that other wx controls have. (This was simpler than putting lotsa special
@@ -231,11 +249,10 @@ class StringAttributeEditor (BaseAttributeEditor):
         if self.UsePermanentControl():
             return
         
-        if False:
-            logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
-                         self.isShared and "shared" or "dv",
-                         attributeName, item,
-                         isInSelection and "is" or "not")
+        #logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
+                     #self.isShared and "shared" or "dv",
+                     #attributeName, item,
+                     #isInSelection and "is" or "not")
 
         # Erase the bounding box
         dc.SetBackgroundMode (wx.SOLID)
@@ -273,12 +290,12 @@ class StringAttributeEditor (BaseAttributeEditor):
         must = existingControl is None or \
              (not self.UsePermanentControl() and \
              (forEditing != isinstance(existingControl, AETextCtrl)))
-        logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
+        # logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
         return must
 
-    def CreateControl(self, forEditing, changeCallback, parentWidget, 
+    def CreateControl(self, forEditing, parentWidget, 
                        id, parentBlock, font):
-        logger.debug("StringAE.CreateControl")
+        # logger.debug("StringAE.CreateControl")
         useTextCtrl = forEditing
         if not forEditing:
             try:
@@ -292,13 +309,17 @@ class StringAttributeEditor (BaseAttributeEditor):
         # size is too small for the value we put into it. If the value is too
         # large, the sizer won't ever let the control get smaller than this.
         # For now, use 200, a not-too-happy medium that doesn't eliminate either problem.
-        
-        size = wx.DefaultSize
-        if font is not None and parentWidget is not None:
-            measurements = Styles.getMeasurements(font)
-            size = wx.Size(200, # parentWidget.GetRect().width,
-                           measurements.textCtrlHeight)
-        
+
+        if parentBlock is not None and parentBlock.stretchFactor == 0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
+            size = wx.Size(parentBlock.size.width, parentBlock.size.height)
+        else:
+            if font is not None: # and parentWidget is not None:
+                measurements = Styles.getMeasurements(font)
+                size = wx.Size(200, # parentWidget.GetRect().width,
+                               measurements.textCtrlHeight)
+            else:
+                size = wx.DefaultSize
+
         if useTextCtrl:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL | wx.STATIC_BORDER
             try:
@@ -315,7 +336,9 @@ class StringAttributeEditor (BaseAttributeEditor):
             control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
             control.Bind(wx.EVT_TEXT, self.onTextChanged)      
             control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-
+            control.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
+            control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+            
         else:            
             border = parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER
             control = AEStaticText(parentWidget, id, '', wx.DefaultPosition, 
@@ -328,14 +351,15 @@ class StringAttributeEditor (BaseAttributeEditor):
         self.sampleText = self.GetSampleText(item, attributeName)
         self.item = item
         self.attributeName = attributeName
-        logger.debug("BeginControlEdit: context for %s.%s is '%s'", item, attributeName, self.sampleText)
+        self.control = control
+        # logger.debug("BeginControlEdit: context for %s.%s is '%s'", item, attributeName, self.sampleText)
 
         # set up the value (which may be the sample!) and select all the text
         value = self.GetAttributeValue(item, attributeName)
         if self.sampleText is not None and len(value) == 0:
-            self.__changeTextQuietly(control, self.sampleText, True, False)
+            self._changeTextQuietly(control, self.sampleText, True, False)
         else:
-            self.__changeTextQuietly(control, value, False, False)
+            self._changeTextQuietly(control, value, False, False)
             if isinstance(control, AETextCtrl):
                 # @@@BJS I don't think either of these are needed.
                 #control.SetSelection (-1,-1)
@@ -345,7 +369,7 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def EndControlEdit (self, item, attributeName, control):
         # update the item attribute value, from the latest control value.
-        logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
+        # logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
         if item is not None:
             value = self.GetControlValue (control)
             logger.debug("EndControlEdit: value is '%s' ", value)
@@ -362,31 +386,40 @@ class StringAttributeEditor (BaseAttributeEditor):
     
     def SetControlValue(self, control, value):
         if len(value) != 0 or self.sampleText is None:
-            self.__changeTextQuietly(control, value, False, False)
+            self._changeTextQuietly(control, value, False, False)
         else:
-            self.__changeTextQuietly(control, self.sampleText, True, False)
+            self._changeTextQuietly(control, self.sampleText, True, False)
 
+    def onGainFocus(self, event):
+        if self.showingSample:
+            self.control.SetSelection(-1,-1)
+    
+    def onLoseFocus(self, event):
+        if self.showingSample:
+            self.control.SetSelection(0,0)
+    
     def onTextChanged(self, event):
         if not getattr(self, "ignoreTextChanged", False):
             control = event.GetEventObject()
             if getattr(self, 'sampleText', None) is not None:
-                logger.debug("StringAE.onTextChanged: not ignoring.")                    
+                # logger.debug("StringAE.onTextChanged: not ignoring.")                    
                 currentText = control.GetValue()
                 if self.showingSample:
-                    logger.debug("onTextChanged: removing sample")
+                    # logger.debug("onTextChanged: removing sample")
                     if currentText != self.sampleText:
-                        self.__changeTextQuietly(control, currentText, False, True)
+                        self._changeTextQuietly(control, currentText, False, True)
                 elif len(currentText) == 0:
-                    self.__changeTextQuietly(control, self.sampleText, True, False)
+                    self._changeTextQuietly(control, self.sampleText, True, False)
             else:
-                logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
+                pass # logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
-            logger.debug("StringAE.onTextChanged: ignoring (self-changed)")
+            pass # logger.debug("StringAE.onTextChanged: ignoring (self-changed)")
         
-    def __changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
+    def _changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
         try:
-            logger.debug("__changeTextQuietly: to '%s', sample=%s", text, isSample)
+            logger.debug("_changeTextQuietly: %s, to '%s', sample=%s", 
+                         self.attributeName, text, isSample)
             # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
             normalTextColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
             if isSample:
@@ -413,10 +446,10 @@ class StringAttributeEditor (BaseAttributeEditor):
                 control.SetValue(text)
     
             if isinstance(control, AETextCtrl):
-                if isSample: 
+                if isSample and wx.Window.FindFocus() == control:
                     control.SetSelection (-1,-1)
 
-                # @@@ Trying to make the text in the editbox gray doesn't seem to work on Win.
+                # Trying to make the text in the editbox gray doesn't seem to work on Win.
                 # (I'm doing it anyway, because it seems to work on Mac.)
                 control.SetStyle(0, len(text), wx.TextAttr(textColor))
             else:
@@ -430,10 +463,10 @@ class StringAttributeEditor (BaseAttributeEditor):
         # selection, ignore it.
         if self.showingSample and event.GetKeyCode() in \
            (wx.WXK_UP, wx.WXK_DOWN, wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_BACK):
-             logger.debug("onKeyDown: Ignoring selection-changer %s (%s) while showing the sample text", event.GetKeyCode(), wx.WXK_LEFT)
+             # logger.debug("onKeyDown: Ignoring selection-changer %s (%s) while showing the sample text", event.GetKeyCode(), wx.WXK_LEFT)
              return # skip out without calling event.Skip()
 
-        logger.debug("onKeyDown: processing %s (%s)", event.GetKeyCode(), wx.WXK_LEFT)
+        # logger.debug("onKeyDown: processing %s (%s)", event.GetKeyCode(), wx.WXK_LEFT)
         event.Skip()
         
     def onClick(self, event):
@@ -441,7 +474,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         control = event.GetEventObject()
         if self.showingSample:
             if control == wx.Control.FindFocus():
-                logger.debug("onClick: ignoring click because we're showing the sample.")
+                # logger.debug("onClick: ignoring click because we're showing the sample.")
                 control.SetSelection(-1, -1) # Make sure the whole thing's still selected
         else:
             event.Skip()
@@ -566,6 +599,165 @@ class DateTimeAttributeEditor (StringAttributeEditor):
         # more robust parsing of the date/time info the user enters.
         return True
 
+class DateAttributeEditor (StringAttributeEditor):
+    _format = DateFormat.createDateInstance(DateFormat.kShort)
+    
+    def GetAttributeValue (self, item, attributeName):
+        try:
+            dateTimeValue = getattr (item, attributeName) # getattr will work with properties
+        except AttributeError:
+            value = u''
+        else:
+            value = unicode(DateAttributeEditor._format.format(dateTimeValue))
+        return value
+
+    def SetAttributeValue(self, item, attributeName, valueString):
+        newValueString = valueString.replace('?','').strip()
+        if len(newValueString) == 0:
+            # Attempting to remove the start date field will set its value to the 
+            # "previous value" when the value is committed (removing focus or 
+            # "enter"). Attempting to remove the end-date field will set its 
+            # value to the "previous value" when the value is committed. In 
+            # brief, if the user attempts to delete the value for a start date 
+            # or end date, it automatically resets to what value was displayed 
+            # before the user tried to delete it.
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
+        else:
+            # First, get ICU to parse it into a float
+            try:
+                dateValue = DateAttributeEditor._format.parse(newValueString)
+            except ICUError:
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+            # Then, convert that float to a datetime (I've seen ICU parse bogus 
+            # values like "06/05/0506/05/05", which causes fromtimestamp() 
+            # to throw.)
+            try:
+                dateTimeValue = datetime.fromtimestamp(dateValue)
+            except ValueError:
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+
+            # If this results in a new value, put it back.
+            oldValue = getattr(item, attributeName)
+            value = datetime.combine(dateTimeValue.date(), oldValue.time())
+            if oldValue != value:
+                if attributeName == 'startTime':
+                    # Changing the start date or time such that the start 
+                    # date+time are later than the existing end date+time 
+                    # will change the end date & time to preserve the 
+                    # existing duration. (This is true even for anytime 
+                    # events: increasing the start date by three days 
+                    # will increase the end date the same amount.)
+                    if value > item.endTime:
+                        endTime = value + (item.endTime - item.getEffectiveStartTime())
+                    else:
+                        endTime = item.endTime
+                    item.ChangeStart(value)
+                    item.endTime = endTime
+                else:
+                    # Changing the end date or time such that it becomes 
+                    # earlier than the existing start date+time will 
+                    # change the start date+time to be the same as the 
+                    # end date+time (that is, an @time event, or a 
+                    # single-day anytime event if the event had already 
+                    # been an anytime event).
+                    if value < item.startTime:
+                        item.ChangeStart(value)
+                    setattr (item, attributeName, value)
+                self.AttributeChanged()
+                
+            # Refresh the value in place
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
+
+class TimeAttributeEditor (StringAttributeEditor):
+    _format = DateFormat.createTimeInstance(DateFormat.kShort)
+
+    def GetAttributeValue (self, item, attributeName):
+        noTime = getattr(item, 'allDay', False) \
+               or getattr(item, 'anyTime', False)
+        if noTime:
+            return u''
+
+        try:
+            dateTimeValue = getattr (item, attributeName) # getattr will work with properties
+        except AttributeError:
+            value = u''
+        else:
+            value = unicode(TimeAttributeEditor._format.format(dateTimeValue))
+        return value
+
+    def SetAttributeValue(self, item, attributeName, valueString):
+        newValueString = valueString.replace('?','').strip()
+        if len(newValueString) == 0:
+            # Clearing an event's start time (removing the value in it, causing 
+            # it to show "HH:MM") will remove the end time value (making it an 
+            # anytime event).
+            if not item.anyTime:
+                item.anyTime = True
+                self.AttributeChanged()
+            return
+        
+        # We have _something_; parse it.
+        try:
+            timeValue = TimeAttributeEditor._format.parse(newValueString)
+        except ICUError:
+            self._changeTextQuietly(self.control, "%s ?" % newValueString)
+            return
+
+        # If we got a new value, put it back.
+        oldValue = getattr(item, attributeName)
+        value = datetime.combine(oldValue.date(), datetime.fromtimestamp(timeValue).time())
+        if item.anyTime or oldValue != value:
+            # Something changed.                
+            # Implement the rules for changing one of the four values:
+            iAmStart = attributeName == 'startTime'
+            if item.anyTime:
+                # On an anytime event (single or multi-day; both times 
+                # blank & showing the "HH:MM" hint), entering a valid time 
+                # in either time field will set the other date and time 
+                # field to effect a one-hour event on the corresponding date. 
+                item.anyTime = False
+                if iAmStart:
+                    item.ChangeStart(value)
+                    item.endTime = value + timedelta(hours=1)
+                else:
+                    item.ChangeStart(value - timedelta(hours=1))
+                    item.endTime = value
+            else:
+                if iAmStart:
+                    # Changing the start date or time such that the start 
+                    # date+time are later than the existing end date+time 
+                    # will change the end date & time to preserve the 
+                    # existing duration. (This is true even for anytime 
+                    # events: increasing the start date by three days will 
+                    # increase the end date the same amount.)
+                    if value > item.endTime:
+                        endTime = value + (item.endTime - item.startTime)
+                    else:
+                        endTime = item.endTime
+                    item.ChangeStart(value)
+                    item.endTime = endTime
+                else:
+                    # Changing the end date or time such that it becomes 
+                    # earlier than the existing start date+time will change 
+                    # the start date+time to be the same as the end 
+                    # date+time (that is, an @time event, or a single-day 
+                    # anytime event if the event had already been an 
+                    # anytime event).
+                    if value < item.startTime:
+                        item.ChangeStart(value)
+                    setattr (item, attributeName, value)
+                item.anyTime = False
+            
+            self.AttributeChanged()
+            
+        # Refresh the value in the control
+        self.SetControlValue(self.control, 
+                         self.GetAttributeValue(item, attributeName))
+
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
     def ReadOnly (self, (item, attribute)):
@@ -634,10 +826,10 @@ class LocationAttributeEditor (StringAttributeEditor):
         
         self.AttributeChanged()
 
-    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+    def CreateControl (self, forEditing, parentWidget, 
                        id, parentBlock, font):
         control = super(LocationAttributeEditor, self).\
-                CreateControl(forEditing, changeCallback, parentWidget,
+                CreateControl(forEditing, parentWidget,
                               id, parentBlock, font)
         if forEditing:
             control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
@@ -647,7 +839,7 @@ class LocationAttributeEditor (StringAttributeEditor):
         """
           Handle a Key pressed in the control.
         """
-        logger.debug("LocationAttrEditor: onKeyUp")
+        # logger.debug("LocationAttrEditor: onKeyUp")
         
         control = event.GetEventObject()
         controlValue = self.GetControlValue (control)
@@ -663,17 +855,17 @@ class LocationAttributeEditor (StringAttributeEditor):
                 if aLoc.displayName[0:keysTyped] == controlValue:
                     if existingLocation is None:
                         existingLocation = aLoc
-                        logger.debug("LocationAE.onKeyUp: '%s' completes!", aLoc.displayName)
+                        # logger.debug("LocationAE.onKeyUp: '%s' completes!", aLoc.displayName)
                     else:
                         # We found a second candidate - we won't complete
-                        logger.debug("LocationAE.onKeyUp: ... but so does '%s'", aLoc.displayName)
+                        # logger.debug("LocationAE.onKeyUp: ... but so does '%s'", aLoc.displayName)
                         existingLocation = None
                         break
                 
             if existingLocation is not None:
                 completion = existingLocation.displayName
                 self.SetControlValue (control, completion)
-                logger.debug("LocationAE.onKeyUp: completing with '%s'", completion[keysTyped:])
+                # logger.debug("LocationAE.onKeyUp: completing with '%s'", completion[keysTyped:])
                 control.SetSelection (keysTyped, len (completion))
 
 class TimeDeltaAttributeEditor (StringAttributeEditor):
@@ -771,6 +963,9 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
         value = self.GetAttributeValue(item, attributeName)
         self.SetControlValue(control, value)
 
+class AECheckBox(ShownSynchronizer, wx.CheckBox):
+    pass
+
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
     """ A checkbox control. """
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
@@ -778,7 +973,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+    def CreateControl (self, forEditing, parentWidget, 
                        id, parentBlock, font):
         
         # Figure out the size we should be
@@ -793,8 +988,8 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
                            measurements.checkboxCtrlHeight)
 
         style = wx.TAB_TRAVERSAL
-        control = wx.CheckBox(parentWidget, id, u"", 
-                              wx.DefaultPosition, size, style)
+        control = AECheckBox(parentWidget, id, u"", 
+                             wx.DefaultPosition, size, style)
         control.Bind(wx.EVT_CHECKBOX, self.onChecked)
         return control
         
@@ -808,8 +1003,8 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         return True
     
     def onChecked(self, event):
-        logger.debug("CheckboxAE.onChecked: new choice is %s",
-                     self.GetControlValue(event.GetEventObject()))
+        #logger.debug("CheckboxAE.onChecked: new choice is %s", 
+                     #self.GetControlValue(event.GetEventObject()))
         control = event.GetEventObject()
         self.SetAttributeValue(self.item, self.attributeName, \
                                self.GetControlValue(control))
@@ -822,6 +1017,9 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         """ Set our state """
         control.SetValue(value)
 
+class AEChoice(ShownSynchronizer, wx.Choice):
+    pass
+
 class ChoiceAttributeEditor (BasePermanentAttributeEditor):
     """ A pop-up control. The list of choices comes from presentationStyle.choices """        
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
@@ -829,7 +1027,7 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, forEditing, changeCallback, parentWidget, 
+    def CreateControl (self, forEditing, parentWidget, 
                        id, parentBlock, font):
 
         # Figure out the size we should be
@@ -844,7 +1042,7 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
                            measurements.choiceCtrlHeight)
 
         style = wx.TAB_TRAVERSAL
-        control = wx.Choice(parentWidget, id, wx.DefaultPosition, size, [], style)
+        control = AEChoice(parentWidget, id, wx.DefaultPosition, size, [], style)
         control.Bind(wx.EVT_CHOICE, self.onChoice)
         return control
         
@@ -859,8 +1057,7 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
     def onChoice(self, event):
         control = event.GetEventObject()
         newChoice = self.GetControlValue(control)
-        logger.debug("ChoiceAE.onChoice: new choice is %s",
-                     newChoice)
+        # logger.debug("ChoiceAE.onChoice: new choice is %s", newChoice)
         self.SetAttributeValue(self.item, self.attributeName, \
                                newChoice)
 

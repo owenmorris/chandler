@@ -1330,7 +1330,7 @@
   </TrunkParentBlock>
 
   <DetailTrunkDelegate itsName="TableSummaryDetailTrunkDelegate">
-    <trunkStub itemref="detail:DetailTrunkStub"/>
+    <trunkStub itemref="detail:DetailRoot"/>
   </DetailTrunkDelegate>
 
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
@@ -1353,7 +1353,7 @@
   </TrunkParentBlock>
 
   <DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
-    <trunkStub itemref="detail:DetailTrunkStub"/>
+    <trunkStub itemref="detail:DetailRoot"/>
   </DetailTrunkDelegate>
 
   <!--
@@ -1516,7 +1516,7 @@
   </TrunkParentBlock>
 
   <DetailTrunkDelegate itsName="CPIATestSummaryTrunkDelegate">
-    <trunkStub itemref="detail:DetailTrunkStub"/>
+    <trunkStub itemref="detail:DetailRoot"/>
   </DetailTrunkDelegate>
 
   <!--
