@@ -1,5 +1,6 @@
 from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base
+from repository.item.Query import KindQuery
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
 from repository.schema import Types
@@ -472,6 +473,28 @@ class Item(Base):
         if kind is None:
             kind = itemFor(self.__class__)
         super(Item,self).__init__(name,parent,kind,*args,**values)
+
+    @classmethod
+    def getKind(cls, view=None):
+        """Get the kind of this class (or instance) in the specified view"""
+        null_kind = itemFor(cls)
+        if view is None or view is nrv:
+            return null_kind
+        real_kind = null_kind.findMatch(view)
+        if real_kind is None:
+            view.importItem(null_kind)
+            return null_kind.findMatch(view)
+        return real_kind
+
+    @classmethod
+    def iterItems(cls, view=None, exact=False):
+        """Yield instances of this type in the given view
+
+        If `exact` is a true value, yield only exact matches, not subclass
+        matches.  If `view` is omitted, the schema API's null repository view
+        is used.
+        """
+        return KindQuery(not exact).run([cls.getKind(view)])
 
 
 class StructClass(Activator):

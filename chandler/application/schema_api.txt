@@ -5,6 +5,7 @@ Schema Definition Support
 .. contents:: **Table of Contents**
 
     >>> from application import schema
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
 
 
 ------------
@@ -351,6 +352,34 @@ OSAF naming conventions)::
     >>> children.attribute
     ['children']
 
+Instances of an item class can be iterated over using the ``iterItems()`` class
+method::
+
+    >>> sorted(Person.iterItems(), key=lambda x:x.fullname)
+    [Joe Schmoe, Mary Quite Contrary]
+
+If no view is specified, the schema API's null repository view is searched, but
+you can also specify a particular view::
+
+    >>> rep = NullRepositoryView()
+    >>> schema.initRepository(rep)
+    >>> list(Person.iterItems(rep))
+    []
+
+By default, subclass instances are included in the results::
+
+    >>> class StrangePerson(Person): pass
+    >>> stranger = StrangePerson(fullname="The Stranger")
+    >>> sorted(Person.iterItems(), key=lambda x:x.fullname)
+    [Joe Schmoe, Mary Quite Contrary, The Stranger]
+
+But you can turn this off by setting ``exact=True``, so that only instances
+of the exact class are yielded::
+
+    >>> sorted(Person.iterItems(exact=True), key=lambda x:x.fullname)
+    [Joe Schmoe, Mary Quite Contrary]
+
+
 Additional Metadata
 ===================
 
@@ -695,7 +724,6 @@ loaded::
     schemas for Chandler, and with an "anonymous root" for items created
     without an explicit parent.
 
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> nrv = NullRepositoryView()
     >>> print nrv.findPath('//Schema/Core')
     None
