@@ -10,7 +10,7 @@ then
     CHANDLERBIN=$CHANDLERHOME
 fi
 
-export LD_LIBRARY_PATH=$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/lib
+export LD_LIBRARY_PATH=$CHANDLERBIN/release/db/lib:$CHANDLERBIN/release/lib:$CHANDLERBIN/release/icu/lib
 export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
 export PYTHONHOME=$CHANDLERBIN/release
 
