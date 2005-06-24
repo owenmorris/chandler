@@ -82,9 +82,6 @@ class Certificate(ContentModel.ContentItem):
         doc = 'A hash of the certificate using algorithm named in fingerprintAlgorithm attribute.',
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/certstore/schema/Certificate"
-
     def pemAsString(self):
         # M2Crypto needs this to be str rather than unicode - safe conversion
         return str(self.pem.getReader().read())

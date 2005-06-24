@@ -5,6 +5,7 @@ import repository.util.ClassLoader as ClassLoader
 import twisted.internet.reactor as reactor
 import logging as logging
 import chandlerdb.util.uuid as UUID
+import WakeupCallerParcel
 
 class WakeupCall(object):
     def receiveWakeupCall(self, wakeupCallItem):
@@ -92,9 +93,9 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         #     is called it has the same view to work with.
         #     At this point it is not needed but may be useful in the 
         #     future
+        prevView = self.repository.setCurrentView(self.repository.view)
         try:
-            prevView = self.repository.setCurrentView(self.repository.view)
-            wakeupCall = self.__getKind().findUUID(UUID)
+            wakeupCall = self.getCurrentView().findUUID(UUID)
             wakeupCallCallback(wakeupCall)
         finally:
             self.repository.setCurrentView(prevView)
@@ -114,9 +115,8 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
             wakeupCall.handle = None
 
     def __populate(self):
-        wakeupCallKind = self.__getKind()
-
-        for wakeupCall in Query.KindQuery().run([wakeupCallKind]):
+        view = self.getCurrentView()
+        for wakeupCall in WakeupCallerParcel.WakeupCall.iterItems(view):
             if not self.__isValid(wakeupCall):
                 error  = "An invalid WakeupCall was found with UUID: %s." % wakeupCall.itsUUID
                 error += "The WakeupCall must specify a WakeupCall.py sub-class ", \
@@ -126,17 +126,6 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
 
             else:
                 self.wakeupCallies[wakeupCall.itsUUID] = wakeupCall
-
-    def __getKind(self):
-
-        view = self.getCurrentView()
-        if self.wakeupCallKindID is None:
-            wakeupCallKind = view.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
-            self.wakeupCallKindID = wakeupCallKind.itsUUID
-        else:
-            wakeupCallKind = view.find(self.wakeupCallKindID)
-
-        return wakeupCallKind
 
     def __isValid(self, wakeupCall):
         if wakeupCall is None or wakeupCall.delay.seconds <= 0:

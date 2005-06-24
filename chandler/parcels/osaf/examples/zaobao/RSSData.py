@@ -12,7 +12,6 @@ import time
 from dateutil.parser import parse
 import feedparser
 import os, logging
-from repository.item.Query import KindQuery
 
 logger = logging.getLogger('ZaoBao')
 logger.setLevel(logging.INFO)
@@ -60,8 +59,6 @@ def NewChannelFromURL(view, url, update = True):
     return channel
 
 class RSSChannel(ItemCollection):
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
 
     schema.kindInfo(displayName="RSS Channel")
 
@@ -242,8 +239,6 @@ class RSSChannel(ItemCollection):
 # RSSItem
 ##
 class RSSItem(ContentItem):
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/zaobao/RSSItem"
 
     schema.kindInfo(displayName="RSS Item")
 

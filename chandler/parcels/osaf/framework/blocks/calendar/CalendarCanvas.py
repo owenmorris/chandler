@@ -79,11 +79,6 @@ class CalendarData(ContentModel.ContentItem):
 
     calendarColor = schema.One(Styles.ColorStyle)
 
-    myKindPath = "//parcels/osaf/framework/blocks/calendar/CalendarData"
-    myKindID = None
-    def __init__(self, *args, **keywords):
-        super(CalendarData, self).__init__(*args, **keywords)
-
     # need to convert hues from 0..360 to 0..1.0 range
     hueList = [k/360.0 for k in [210, 120, 60, 0, 240, 90, 330, 30, 180, 270]]
     
@@ -833,7 +828,6 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         """
         collections = self.contents.source
         selectedCollection = collections.first()
-        calDataKind = CalendarData.getKind(view=self.itsView)
         firstSpecialCollection = None
         for coll in collections:
 

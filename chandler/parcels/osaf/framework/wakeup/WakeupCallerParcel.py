@@ -41,6 +41,3 @@ class WakeupCall(ContentModel.ContentItem):
         initialValue = datetime.timedelta(0),
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/wakeup/WakeupCall"
-

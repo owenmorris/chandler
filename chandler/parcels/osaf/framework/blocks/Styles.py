@@ -62,11 +62,6 @@ class ColorStyle(Style):
         sharing = schema.Cloud(foregroundColor, backgroundColor)
     )
 
-    myKindPath = "//parcels/osaf/framework/blocks/ColorStyle"
-    myKindID = None
-    def __init__(self, *arguments, **keywords):
-        super (ColorStyle, self).__init__(*arguments, **keywords)
-        
         
 fontCache = {}
 measurementsCache = {}

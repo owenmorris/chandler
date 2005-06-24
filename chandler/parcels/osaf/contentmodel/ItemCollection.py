@@ -10,8 +10,6 @@ from chandlerdb.item.ItemError import NoSuchIndexError
 from application import schema
 
 class ItemCollection(ContentModel.ContentItem, Query.Query):
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/ItemCollection"
 
     schema.kindInfo(
         displayName="Item Collection"

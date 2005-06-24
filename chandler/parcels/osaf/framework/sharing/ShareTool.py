@@ -4,12 +4,7 @@ import wx.xrc
 import Sharing
 import ICalendar
 import application.Globals as Globals
-from repository.item.Query import KindQuery
 import application.dialogs.Util
-import application.Parcel
-
-SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
-CONTENTMODEL = "http://osafoundation.org/parcels/osaf/contentmodel"
 
 class ShareToolDialog(wx.Dialog):
 
@@ -77,8 +72,7 @@ class ShareToolDialog(wx.Dialog):
         # get all share items
         self.sharesList.Clear()
         self.shares = []
-        shareKind = self.view.findPath("//parcels/osaf/framework/sharing/Share")
-        for item in KindQuery().run([shareKind]):
+        for item in Sharing.Share.iterItems(self.view):
             self.shares.append(item)
             display = "'%s' -- %s" % (item.getItemDisplayName(),
              item.conduit.account.getItemDisplayName())
@@ -224,12 +218,9 @@ class ShareEditorDialog(wx.Dialog):
             self.textTitle.SetValue("Enter a descriptive title")
             self.textShareName.SetValue("Enter directory name to use")
 
-        pm = application.Parcel.Manager.get(self.view)
-        accountKind = pm.lookup(SHARING, "WebDAVAccount")
-
         self.accounts = []
         i = 0
-        for item in KindQuery().run([accountKind]):
+        for item in Sharing.WebDAVAccount.iterItems(self.view):
             self.accounts.append(item)
             self.choiceAccount.Append(item.getItemDisplayName())
             if account is item:
@@ -238,11 +229,10 @@ class ShareEditorDialog(wx.Dialog):
         self.choiceAccount.SetSelection(defaultChoice)
 
         if not join:
-            collKind = pm.lookup(CONTENTMODEL, "ItemCollection")
-
+            from osaf.contentmodel.ItemCollection import ItemCollection
             self.collections = []
             i = 1
-            for item in KindQuery().run([collKind]):
+            for item in ItemCollection.iterItems(self.view):
                 self.collections.append(item)
                 self.choiceColl.Append(item.getItemDisplayName())
                 if item.getItemDisplayName() == "Calendar Demo":

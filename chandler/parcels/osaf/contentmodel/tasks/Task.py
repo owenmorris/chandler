@@ -22,7 +22,12 @@ class TaskStatusEnum(schema.Enumeration):
 
 
 class TaskMixin(ContentModel.ContentItem):
-    "This is the set of Task-specific attributes."
+    """This is the set of Task-specific attributes.
+
+      Task Mixin is the bag of Task-specific attributes.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
     
     schema.kindInfo(
         displayName = "Task Mixin Kind",
@@ -85,17 +90,6 @@ class TaskMixin(ContentModel.ContentItem):
         )
     )
     
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/tasks/TaskMixin"
-
-    """
-      Task Mixin is the bag of Task-specific attributes.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
-    """
-    def __init__ (self, name=None, parent=None, kind=None, view=None):
-        super (TaskMixin, self).__init__(name, parent, kind, view)
-
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -186,6 +180,13 @@ class TaskMixin(ContentModel.ContentItem):
         return super (TaskMixin, self).getAnyWhoFrom ()
 
 class TaskEventExtraMixin(ContentModel.ContentItem):
+    """
+      Task Event Extra Mixin is the bag of attributes that
+    appears when you have an Item that is both a Task and a
+    CalendarEvent.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
 
     schema.kindInfo(
         displayName = "Task Event Extra Mixin Kind",
@@ -209,20 +210,6 @@ class TaskEventExtraMixin(ContentModel.ContentItem):
         displayName = 'Due by Tickler',
         doc = 'The reminder information for a Task Event.',
     )
-
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/tasks/TaskEventExtraMixin"
-
-    """
-      Task Event Extra Mixin is the bag of attributes that
-    appears when you have an Item that is both a Task and a
-    CalendarEvent.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
-    """
-    def __init__ (self, name=None, parent=None, kind=None, view=None):
-        super (TaskEventExtraMixin, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -257,8 +244,3 @@ class Task(TaskMixin, Notes.Note):
         ]
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/tasks/Task"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(Task, self).__init__(name, parent, kind, view)

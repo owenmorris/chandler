@@ -658,10 +658,8 @@ class LocationAttributeEditor (StringAttributeEditor):
             # displayName starts with the current string; if so, we'll complete
             # on it.
             view = wx.GetApp().UIRepositoryView
-            locationKind = view.findPath(Calendar.Location.myKindPath)
-            allLocations = ItemQuery.KindQuery().run([locationKind])
             existingLocation = None
-            for aLoc in allLocations:
+            for aLoc in Calendar.Location.iterItems(view):
                 if aLoc.displayName[0:keysTyped] == controlValue:
                     if existingLocation is None:
                         existingLocation = aLoc

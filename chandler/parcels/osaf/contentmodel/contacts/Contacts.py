@@ -10,7 +10,6 @@ __parcel__ = "osaf.contentmodel.contacts"
 from osaf.contentmodel import ContentModel
 from application import schema
 import repository.query.Query as Query
-from repository.item.Query import KindQuery
 
 
 class ContactName(ContentModel.ContentItem):
@@ -23,12 +22,6 @@ class ContactName(ContentModel.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(firstName, lastName)
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (ContactName, self).__init__(name, parent, kind, view)
 
 
 class Contact(ContentModel.ContentItem):
@@ -114,9 +107,6 @@ class Contact(ContentModel.ContentItem):
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
-
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Contact, self).__init__(name, parent, kind, view)
 
@@ -191,7 +181,7 @@ class Contact(ContentModel.ContentItem):
         for item in query:
         """
 
-        for item in KindQuery().run([view.findPath("//parcels/osaf/contentmodel/contacts/Contact")]):
+        for item in cls.iterItems(view):
             if item.emailAddress == address:
                 return item # Just return the first match
 

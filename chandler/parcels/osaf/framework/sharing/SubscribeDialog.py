@@ -6,7 +6,6 @@ import wx.xrc
 import Sharing
 import ICalendar
 import application.Globals as Globals
-from repository.item.Query import KindQuery
 import application.dialogs.Util
 import application.Parcel
 

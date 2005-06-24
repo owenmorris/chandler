@@ -156,11 +156,8 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mailDeliveryErrorItem.errorString = "Test String"
         mailDeliveryErrorItem.errorDate = datetime.now()
 
-        mailDeliveryBaseItem.deliveryType = "POP"
-        smtpDeliveryItem.deliveryType = "SMTP"
         smtpDeliveryItem.state = "DRAFT"
         smtpDeliveryItem.deliveryError = mailDeliveryErrorItem
-        imapDeliveryItem.deliveryType = "IMAP"
         imapDeliveryItem.uid = 0
         mimeBaseItem.mimeType = "SGML"
         mimeBinaryItem.mimeType = "APPLICATION"

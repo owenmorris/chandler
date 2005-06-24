@@ -6,7 +6,6 @@ import application
 import application.Globals as Globals
 from application import schema
 from repository.item.Item import Item
-from repository.item.Query import KindQuery
 from repository.util.ClassLoader import ClassLoader
 import os, sys
 import logging
@@ -26,8 +25,7 @@ class WebParcel(application.Parcel.Parcel):
 
         if activate:
             # Start up all webservers
-            serverKind = self.lookup("Server")
-            for server in KindQuery().run([serverKind]):
+            for server in Server.iterItems(self.itsView):
                 server.startup()
 
 class Server(schema.Item):

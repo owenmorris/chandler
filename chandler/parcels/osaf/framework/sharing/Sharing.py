@@ -15,7 +15,6 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.current.Current as Current
 from chandlerdb.util.uuid import UUID
 import application.dialogs.PublishCollection
-from repository.item.Query import KindQuery
 from repository.util.Lob import Lob
 from repository.item.Item import Item
 from repository.schema.Types import Type
@@ -49,6 +48,9 @@ class modeEnum(schema.Enumeration):
 
 
 class Share(ContentModel.ContentItem):
+    """ Represents a set of shared items, encapsulating contents, location,
+        access method, data format, sharer and sharees. """
+
     schema.kindInfo(
         displayName="Share Kind",
         description="Represents a shared collection",
@@ -100,12 +102,6 @@ class Share(ContentModel.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterKinds])
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/Share"
-
-    """ Represents a set of shared items, encapsulating contents, location,
-        access method, data format, sharer and sharees. """
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  contents=None, conduit=None, format=None):
@@ -191,6 +187,7 @@ class OneTimeShare(Share):
 
 
 class ShareConduit(ContentModel.ContentItem):
+    """ Transfers items in and out. """
 
     schema.kindInfo(displayName = "Share Conduit Kind")
 
@@ -209,12 +206,6 @@ class ShareConduit(ContentModel.ContentItem):
     )
 
     marker = schema.One(schema.SingleRef)
-
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/ShareConduit"
-
-    """ Transfers items in and out. """
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(ShareConduit, self).__init__(name, parent, kind, view)
@@ -573,9 +564,6 @@ class FileSystemConduit(ShareConduit):
 
     schema.kindInfo(displayName="File System Share Conduit Kind")
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/FileSystemConduit"
-
     SHAREFILE = "share.xml"
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
@@ -745,9 +733,6 @@ class WebDAVConduit(ShareConduit):
     port = schema.One(schema.Integer)
     username = schema.One(schema.String)
     password = schema.One(schema.String)
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/WebDAVConduit"
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  shareName=None, account=None, host=None, port=80,
@@ -1124,9 +1109,6 @@ class SimpleHTTPConduit(WebDAVConduit):
 
     lastModified = schema.One(schema.String, initialValue = '')
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/SimpleHTTPConduit"
-
     def get(self):
         self.connect()
 
@@ -1264,9 +1246,6 @@ class WebDAVAccount(ContentModel.ContentItem):
     )
     conduits = schema.Sequence(WebDAVConduit, inverse = WebDAVConduit.account)
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
-
     def getLocation(self):
         """ Return the base url of the account """
 
@@ -1294,10 +1273,6 @@ class ImportExportFormat(ContentModel.ContentItem):
 
     share = schema.One(Share, inverse = Share.format)
 
-    
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/ImportExportFormat"
-
     STYLE_SINGLE = 'single'
     STYLE_DIRECTORY = 'directory'
 
@@ -1312,13 +1287,9 @@ class CloudXMLFormat(ImportExportFormat):
 
     cloudAlias = schema.One(schema.String)
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/CloudXMLFormat"
-
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  cloudAlias='sharing'):
         super(CloudXMLFormat, self).__init__(name, parent, kind, view)
-
         self.cloudAlias = cloudAlias
 
     def fileStyle(self):
@@ -1602,9 +1573,6 @@ class CloudXMLFormat(ImportExportFormat):
 
 class MixedFormat(ImportExportFormat):
     """
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/MixedFormat"
-
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  cloudAlias='sharing'):
         super(CloudXMLFormat, self).__init__(name, parent, kind, view)
@@ -1774,8 +1742,6 @@ def findMatchingWebDAVAccount(view, url):
     @return: An account item, or None if no WebDAV account could be found.
     """
 
-    webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
-
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     # Get the parent directory of the given path:
@@ -1784,8 +1750,7 @@ def findMatchingWebDAVAccount(view, url):
     # ['dev1', 'foo'] becomes "dev1/foo"
     path = "/".join(path)
 
-
-    for account in KindQuery().run([webDAVAccountKind]):
+    for account in WebDAVAccount.iterItems(view):
         # Does this account's url info match?
         accountPath = account.path.strip('/')
         if account.useSSL == useSSL and account.host == host and account.port == port and accountPath == path:
@@ -2011,9 +1976,7 @@ def syncAll(view):
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
     """
-
-    shareKind = view.findPath("//parcels/osaf/framework/sharing/Share")
-    for share in KindQuery().run([shareKind]):
+    for share in Share.iterItems(view):
         if share.active:
             syncShare(share)
 
@@ -2026,8 +1989,7 @@ def checkForActiveShares(view):
     @return: True if there are non-hidden, active shares; False otherwise
     """
 
-    shareKind = view.findPath("//parcels/osaf/framework/sharing/Share")
-    for share in KindQuery().run([shareKind]):
+    for share in Share.iterItems(view):
         if share.active and not share.hidden:
             return True
     return False

@@ -14,9 +14,6 @@ from application import schema
 
 class Note(ContentModel.ContentItem):
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/Note"
-
     ##
     ## Attribute declarations
     ##
@@ -36,9 +33,6 @@ class Note(ContentModel.ContentItem):
 
     date = schema.One(redirectTo = "createdOn")
 
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Note, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for

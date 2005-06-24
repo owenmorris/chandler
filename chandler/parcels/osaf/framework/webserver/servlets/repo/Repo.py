@@ -255,9 +255,9 @@ def RenderInheritance(repoView):
         result += "</td>"
         result += "<td>"
         if klass is not None:
-            if hasattr(klass, 'myKindPath'):
-                checkKind = repoView.findPath(klass.myKindPath)
-                result += klass.myKindPath
+            if hasattr(klass, 'getKind'):
+                checkKind = klass.getKind(repoView)
+                result += str(checkKind.itsPath)
                 if checkKind is item:
                     result += " (ok)"
                 else:

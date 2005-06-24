@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import osaf.examples.zaobao.RSSData as RSSData
-from repository.item.Query import KindQuery, TextQuery
+from repository.item.Query import TextQuery
 import socket
 import logging
 from xml.sax import SAXParseException
@@ -17,9 +17,7 @@ class WakeupCall(WakeupCaller.WakeupCall):
         view = wakeupCallItem.itsView
         view.refresh()
 
-        chanKind = RSSData.RSSChannel.getKind(view)
-
-        for item in KindQuery().run([chanKind]):
+        for item in RSSData.RSSChannel.iterItems(view):
             try:
                 item.Update()
             except socket.timeout:

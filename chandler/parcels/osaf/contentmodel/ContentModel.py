@@ -75,13 +75,7 @@ class ImportanceEnum(schema.Enumeration):
 
 
 class ContentItem(schema.Item):
-    """ Subclasses of ContentItem get the following behavior for free:
-        1. parent will automatically be set to //userdata
-        2. kind will be determined from the particular subclass's myKindPath
-
-        All subclasses should have myKindID initialized to None, and set
-        myKindPath to a string describing their kind's repository path.
-    """
+    """Content Item"""
 
     schema.kindInfo(
         displayName = "Content Item",
@@ -96,9 +90,6 @@ class ContentItem(schema.Item):
             "Content Items are user-level items, which a user might file, "
             "categorize, share, and delete.",
     )
-
-    myKindPath = "//parcels/osaf/contentmodel/ContentItem"
-    myKindID = None
 
     body = schema.One(
         schema.Lob,
@@ -208,27 +199,6 @@ class ContentItem(schema.Item):
         if view is None:
             view = self.itsView
         self.creator = self.getCurrentMeContact(view)
-
-    def getKind(cls, view):
-        """ Look up a class's kind, based on its myKindPath attribute """
-
-        """ The UUID of the kind is cached in the class's myKindID 
-            attribute """
-
-        if cls.myKindID is not None:
-            myKind = view.findUUID(cls.myKindID)
-            if myKind is not None:
-                return myKind
-            # Our cached UUID is invalid
-            cls.myKindID = None
-
-        myKind = view.findPath(cls.myKindPath)
-        assert myKind, "%s not yet loaded" % cls.myKindPath
-        cls.myKindID = myKind.itsUUID
-        return myKind
-
-    getKind = classmethod(getKind)
-
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -653,12 +623,6 @@ class Project(ContentItem):
         inverse = 'parentProject',
     )
 
-    myKindPath = "//parcels/osaf/contentmodel/Project"
-    myKindID = None
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Project, self).__init__(name, parent, kind, view)
-
 
 class Group(ContentItem):
 
@@ -673,11 +637,6 @@ class Group(ContentItem):
         ]
     )
 
-    myKindPath = "//parcels/osaf/contentmodel/Group"
-    myKindID = None
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Group, self).__init__(name, parent, kind, view)
 
 
 class CurrentPointer(schema.Item):

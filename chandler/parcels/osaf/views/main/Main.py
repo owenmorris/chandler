@@ -21,7 +21,6 @@ import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
-from repository.item.Query import KindQuery
 from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
@@ -405,14 +404,12 @@ class MainView(View):
             self.setStatusMessage("Export aborted")
             return
 
-        eventKind = Calendar.CalendarEvent.getKind(self.itsView)
         self.setStatusMessage ("Exporting to %s" % filename)
         try:
             share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = ItemCollection(view=self.itsView)
-            events = KindQuery().run([eventKind])
-            for event in events:
+            for event in Calendar.CalendarEvent.iterItems(self.itsView):
                 collection.add(event)
             share.contents = collection
             share.put()
@@ -754,15 +751,11 @@ class MainView(View):
             qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where len (i.sharedURL) > 0"
             collQuery = Query.Query (self.itsView.repository, qString)
             collQuery.recursive = False
-            collections = []
-            for item in collQuery:
-                collections.append (item)
+            collections = list(collQuery)
         else:
-            itemCollectionKind = self.findPath("//parcels/osaf/contentmodel/ItemCollection")
-            allCollections = KindQuery().run([itemCollectionKind])
-            collections = []
-            for collection in allCollections:
-                if Sharing.isShared (collection):
-                    collections.append (collection)
+            collections = [
+                coll for coll in ItemCollection.iterItems(self.itsView)
+                     if Sharing.isShared(coll)
+            ]
         return collections
         

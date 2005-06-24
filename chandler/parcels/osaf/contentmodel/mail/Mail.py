@@ -14,7 +14,6 @@ from osaf.contentmodel import ContentModel, Notes
 import osaf.current.Current as Current
 import application.Globals as Globals
 import repository.query.Query as Query
-import repository.item.Query as ItemQuery
 import chandlerdb.util.uuid as UUID
 import email.Utils as Utils
 import re as re
@@ -47,12 +46,11 @@ class MailParcel(application.Parcel.Parcel):
         self.walk(Path(contentitemsPath, 'mailItems'),
                   makeContainer)
 
-
+    @classmethod
     def getMailItemParent(cls, view, inbound=False):
         return ContentModel.ContentModel.getContentItemParent(view)['mailItems']
 
-    getMailItemParent = classmethod(getMailItemParent)
-
+    @classmethod
     def getCurrentSMTPAccount(cls, view, uuid=None, includeInactives=False):
         """
             This method returns a tuple containing:
@@ -98,9 +96,7 @@ class MailParcel(application.Parcel.Parcel):
 
         return(smtpAccount, replyToAddress)
 
-    getCurrentSMTPAccount = classmethod(getCurrentSMTPAccount)
-
-
+    @classmethod
     def getCurrentMailAccount(cls, view, uuid=None):
         """
         This method returns either an C{IMAPAccount} or C{POPAccount} in the
@@ -121,34 +117,23 @@ class MailParcel(application.Parcel.Parcel):
 
         return account
 
-    getCurrentMailAccount = classmethod(getCurrentMailAccount)
-
-
+    @classmethod
     def getActivePOPAccounts(cls, view):
-        kind = "//parcels/osaf/contentmodel/mail/POPAccount"
-        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+        for item in POPAccount.iterItems(view):
             if item.isActive and item.host and item.username:
                 yield item
 
-    getActivePOPAccounts = classmethod(getActivePOPAccounts)
-
-
+    @classmethod
     def getActiveIMAPAccounts(cls, view):
-        kind = "//parcels/osaf/contentmodel/mail/IMAPAccount"
-        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+        for item in IMAPAccount.iterItems(view):
             if item.isActive and item.host and item.username:
                 yield item
 
-    getActiveIMAPAccounts = classmethod(getActiveIMAPAccounts)
-
-
+    @classmethod
     def getActiveSMTPAccounts(cls, view):
-        kind = "//parcels/osaf/contentmodel/mail/SMTPAccount"
-        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+        for item in SMTPAccount.iterItems(view):
             if item.isActive and item.host and item.username:
                 yield item
-
-    getActiveSMTPAccounts = classmethod(getActiveSMTPAccounts)
 
 
 
@@ -156,11 +141,6 @@ class connectionSecurityEnum(schema.Enumeration):
     schema.kindInfo(displayName="Connection Security Enumeration")
     values = "NONE", "TLS", "SSL"
 
-class accountTypeEnum(schema.Enumeration):
-    values = "POP", "IMAP", "SMTP"
-
-class deliveryTypeEnum(schema.Enumeration):
-    values = "POP", "IMAP", "SMTP"
 
 class AccountBase(ContentModel.ContentItem):
 
@@ -222,11 +202,6 @@ class AccountBase(ContentModel.ContentItem):
         initialValue = [],
         inverse = 'parentAccount',
     )
-    accountType = schema.One(
-        accountTypeEnum,
-        displayName = 'Account Type',
-        doc = 'POP, IMAP, or SMTP',
-    )
     timeout = schema.One(
         schema.Integer,
         displayName = 'Timeout',
@@ -241,9 +216,6 @@ class AccountBase(ContentModel.ContentItem):
         initialValue = True,
     )
 
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/AccountBase"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         if parent is None:
@@ -288,17 +260,10 @@ class DownloadAccountBase(AccountBase):
         redirectTo = 'replyToAddress.fullName',
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/DownloadAccountBase"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(DownloadAccountBase, self).__init__(name, parent, kind, view)
 
 class SMTPAccount(AccountBase):
+
+    accountType = "SMTP"
 
     schema.kindInfo(
         displayName="SMTP Account",
@@ -337,19 +302,10 @@ class SMTPAccount(AccountBase):
         ],
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/SMTPAccount"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(SMTPAccount, self).__init__(name, parent, kind, view)
-
-        self.accountType = "SMTP"
 
 class IMAPAccount(DownloadAccountBase):
+
+    accountType = "IMAP"
 
     schema.kindInfo(
         displayName = "IMAP Account",
@@ -369,20 +325,10 @@ class IMAPAccount(DownloadAccountBase):
         initialValue = 0L,
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/IMAPAccount"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(IMAPAccount, self).__init__(name, parent, kind, view)
-
-        self.accountType = "IMAP"
-
 
 class POPAccount(DownloadAccountBase):
+
+    accountType = "POP"
 
     schema.kindInfo(
         displayName = "POP Account",
@@ -407,18 +353,6 @@ class POPAccount(DownloadAccountBase):
         doc = 'Whether or not to leave messages on the server after downloading',
         initialValue = True,
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/POPAccount"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(POPAccount, self).__init__(name, parent, kind, view)
-
-        self.accountType = "POP"
 
 
 class MailDeliveryError(ContentModel.ContentItem):
@@ -445,9 +379,6 @@ class MailDeliveryError(ContentModel.ContentItem):
         inverse = 'deliveryErrors',
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryError"
-
     def __init__(self, name=None, parent=None, kind=None, view=None):
         if parent is None:
             if view is None:
@@ -471,11 +402,6 @@ class MailDeliveryBase(ContentModel.ContentItem):
             "Parent kind for delivery-specific attributes of a MailMessage"
     )
 
-    deliveryType = schema.One(
-        deliveryTypeEnum,
-        displayName = 'Delivery Type',
-        doc = 'One of POP, IMAP, or SMTP',
-    )
     mailMessage = schema.One(
         'MailMessageMixin',
         displayName = 'Message',
@@ -490,9 +416,6 @@ class MailDeliveryBase(ContentModel.ContentItem):
         initialValue = [],
         inverse = MailDeliveryError.mailDelivery,
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryBase"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         if parent is None:
@@ -543,18 +466,8 @@ class SMTPDelivery(MailDeliveryBase):
         ],
     )
    
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/SMTPDelivery"
-
     def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
         super(SMTPDelivery, self).__init__(name, parent, kind, view)
-
-
-        self.deliveryType = "SMTP"
         self.state = "DRAFT"
 
     def sendFailed(self):
@@ -601,19 +514,6 @@ class IMAPDelivery(MailDeliveryBase):
         schema.String, displayName = 'Flags', initialValue = [],
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/IMAPDelivery"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(IMAPDelivery, self).__init__(name, parent, kind, view)
-
-        self.deliveryType = "IMAP"
-
 
 class POPDelivery(MailDeliveryBase):
 
@@ -629,19 +529,6 @@ class POPDelivery(MailDeliveryBase):
         initialValue = '',
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/POPDelivery"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(POPDelivery, self).__init__(name, parent, kind, view)
-
-        self.deliveryType = "POP"
-
 
 class MIMEBase(ContentModel.ContentItem):
     schema.kindInfo(
@@ -653,9 +540,6 @@ class MIMEBase(ContentModel.ContentItem):
     mimeContainer = schema.One(
         'MIMEContainer', initialValue = None, inverse = 'mimeParts',
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBase"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         if parent is None:
@@ -680,17 +564,6 @@ class MIMENote(MIMEBase):
     )
     filesize = schema.One(schema.Long, displayName = 'File Size')
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMENote"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMENote, self).__init__(name, parent, kind, view)
-
 
 class MIMEContainer(MIMEBase):
 
@@ -703,20 +576,13 @@ class MIMEContainer(MIMEBase):
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEContainer"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMEContainer, self).__init__(name, parent, kind, view)
         
 
 class MailMessageMixin(MIMEContainer):
+    """
+      Mail Message Mixin is the bag of Message-specific attributes.
+
+    """
     schema.kindInfo(
         displayName="Mail Message Mixin",
         displayAttribute="subject",
@@ -784,6 +650,8 @@ class MailMessageMixin(MIMEContainer):
         doc = "Redirector to 'dateSent'", redirectTo = 'dateSent',
     )
 
+    mimeType = schema.One(schema.String, initialValue = 'message/rfc822')
+
     schema.addClouds(
         sharing = schema.Cloud(
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
@@ -794,23 +662,6 @@ class MailMessageMixin(MIMEContainer):
             byCloud = [MIMEContainer.mimeParts]
         ),
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
-
-    """
-      Mail Message Mixin is the bag of Message-specific attributes.
-
-    """
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MailMessageMixin, self).__init__(name, parent, kind, view)
-
-        self.mimeType = "message/rfc822"
 
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
@@ -942,26 +793,11 @@ class MailMessage(MailMessageMixin, Notes.Note):
         description = "MailMessageMixin, and Note, all rolled up into one",
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MailMessage"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super(MailMessage, self).__init__(name, parent, kind, view)
 
 class MIMEBinary(MIMENote):
 
     schema.kindInfo(displayName = "MIME Binary Kind")
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBinary"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMEBinary, self).__init__(name, parent, kind, view)
 
 class MIMEText(MIMENote):
 
@@ -978,32 +814,11 @@ class MIMEText(MIMENote):
         initialValue = 'en',
     )
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEText"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMEText, self).__init__(name, parent, kind, view)
-
 
 class MIMESecurity(MIMEContainer):
 
     schema.kindInfo(displayName="MIME Security Kind")
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/MIMESecurity"
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMESecurity, self).__init__(name, parent, kind, view)
 
 class EmailAddress(ContentModel.ContentItem):
     
@@ -1107,9 +922,6 @@ class EmailAddress(ContentModel.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(emailAddress, fullName)
     )
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/mail/EmailAddress"
 
     def __init__(self, name=None, parent=None, kind=None, view=None, clone=None):
         if parent is None:
@@ -1247,10 +1059,8 @@ class EmailAddress(ContentModel.ContentItem):
 
         else:
             # old slow query method
-            emailAddressKind = EmailAddress.getKind(view)
-            allAddresses = ItemQuery.KindQuery().run([emailAddressKind])
             addresses = []
-            for candidate in allAddresses:
+            for candidate in EmailAddress.iterItems(view):
                 if isValidAddress:
                     if cls.emailAddressesAreEqual(candidate.emailAddress, address):
                         # found an existing address!

@@ -8,7 +8,6 @@ import Sharing, ICalendar
 import WebDAV
 import zanshin.webdav
 import zanshin.util
-from repository.item.Query import KindQuery
 
 class PublishCollectionDialog(wx.Dialog):
 
@@ -397,14 +396,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Fit(self)
 
     def _getSharingAccounts(self):
-        accounts = []
-        webDAVAccountKind = self.view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
-        for account in KindQuery().run([webDAVAccountKind]):
-            accounts.append(account)
-        accounts.sort(lambda x, y: cmp(str(x.displayName).lower(),
-                                       str(y.displayName).lower()))
-        return accounts
-
+        return sorted(
+            Sharing.WebDAVAccount.iterItems(self.view),
+            key = lambda x: str(x.displayName).lower()
+        )
 
     def _getExistingFiles(self):
         account = self.currentAccount

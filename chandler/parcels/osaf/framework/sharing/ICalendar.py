@@ -95,9 +95,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
     schema.kindInfo(displayName="iCalendar Import/Export Format Kind")
 
-    myKindID = None
-    myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
-
     _calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
     _taskPath = "//parcels/osaf/contentmodel/EventTask"
     _lobPath = "//Schema/Core/Lob"

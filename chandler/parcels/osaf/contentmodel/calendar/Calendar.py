@@ -33,11 +33,13 @@ class TimeTransparencyEnum(schema.Enumeration):
 
 class CalendarEventMixin(ContentModel.ContentItem):
     """
-    This is the set of CalendarEvent-specific attributes. This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated
-    """
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+    This is the set of CalendarEvent-specific attributes. This Kind is 'mixed
+    in' to others kinds to create Kinds that can be instantiated.
 
+      Calendar Event Mixin is the bag of Event-specific attributes.
+    We only instantiate these Items when we "unstamp" an
+    Item, to save the attributes for later "restamping".
+    """
     schema.kindInfo(
         displayName="Calendar Event Mixin Kind"
     )
@@ -141,14 +143,6 @@ class CalendarEventMixin(ContentModel.ContentItem):
     whoFrom = schema.One(redirectTo="organizer")
     about = schema.One(redirectTo="displayName")
     date = schema.One(redirectTo="startTime")
-
-    """
-      Calendar Event Mixin is the bag of Event-specific attributes.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
-    """
-    def __init__ (self, name=None, parent=None, kind=None, view=None):
-        super (CalendarEventMixin, self).__init__(name, parent, kind, view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -322,14 +316,12 @@ class CalendarEvent(CalendarEventMixin, Notes.Note):
     @note: Do we want to have 'Duration' as a derived attribute on Calendar Event?
     @note: Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?
     """
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
-
     schema.kindInfo(displayName="Calendar Event")
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (CalendarEvent, self).__init__(name, parent, kind, view)
         self.participants = []
+
 
 class Calendar(ContentModel.ContentItem):
     """
@@ -337,22 +329,14 @@ class Calendar(ContentModel.ContentItem):
     @note: Calendar should maybe have a 'Timezone' attribute.
     """
     
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
-
     schema.kindInfo(displayName="Calendar", displayAttribute="displayName")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Calendar, self).__init__(name, parent, kind, view)
 
 class Location(ContentModel.ContentItem):
     """
        @note: Location may not be calendar specific.
     """
     
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/Location"
-
     schema.kindInfo(displayName="Location", displayAttribute="displayName")
 
     eventsAtLocation = schema.Sequence(
@@ -360,9 +344,6 @@ class Location(ContentModel.ContentItem):
         displayName="Calendar Events",
         inverse=CalendarEventMixin.location
     )
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Location, self).__init__(name, parent, kind, view)
 
     def __str__ (self):
         """
@@ -389,9 +370,7 @@ class Location(ContentModel.ContentItem):
         assert locationName, "Invalid locationName passed to getLocation factory"
 
         # get all Location objects whose displayName match the param
-        import repository.item.Query
-        k = view.findPath(Location.myKindPath)
-        its = repository.item.Query.KindQuery(recursive=False).run([k])
+        its = Location.iterItems(view, exact=True)
         locQuery = [ i for i in its if i.displayName == locationName ]
 
 ##         locQuery = view.findPath('//Queries/calendarLocationQuery')
@@ -419,10 +398,5 @@ class RecurrencePattern(ContentModel.ContentItem):
     @note: RecurrencePattern is still a placeholder, and might be general enough to live with PimSchema. RecurrencePattern should have an attribute that points to a CalendarEvent.
     """
     
-    myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/calendar/RecurrencePattern"
-
     schema.kindInfo(displayName="Recurrence Pattern")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (RecurrencePattern, self).__init__(name, parent, kind, view)

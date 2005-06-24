@@ -26,7 +26,6 @@ import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
-from repository.item.Query import KindQuery
 import repository.item.Query as Query
 import wx
 import sets
@@ -363,8 +362,8 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         try:
             subtrees = self.subtreeList
         except AttributeError:
-            trunkSubtreeKind = self.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
-            subtrees = list(KindQuery().run([trunkSubtreeKind]))
+            from osaf.framework.blocks.detail import DetailTrunkSubtree
+            subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
             self.subtreeList = subtrees
         return subtrees
         
