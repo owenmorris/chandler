@@ -1,8 +1,11 @@
+__parcel__ = "osaf.examples.amazon"
+
 import amazon
 import application
 from osaf.contentmodel.ContentModel import ContentItem
 from osaf.contentmodel.ItemCollection import ItemCollection
 import wx
+from application import schema
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 
@@ -29,6 +32,11 @@ def NewCollectionFromKeywords(view, keywords, update = True):
     return collection
 
 class AmazonCollection(ItemCollection):
+
+    schema.kindInfo(displayName = "Amazon Collection Kind")
+
+    keywords = schema.One(schema.String, displayName = 'Keywords')
+
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
     
@@ -49,6 +57,20 @@ class AmazonCollection(ItemCollection):
             
             
 class AmazonItem(ContentItem):
+
+    schema.kindInfo(displayName = "Amazon Item")
+
+    amazonCollection = schema.One(
+        AmazonCollection, displayName = 'Amazon Collection',
+    )
+    ProductName = schema.One(schema.String, displayName = 'Product Name')
+    Author = schema.One(schema.String, displayName = 'Author(s)')
+    ReleaseDate = schema.One(schema.String, displayName = 'Release Date')
+    imageURL = schema.One(schema.String, displayName = 'image path')
+    about = schema.One(redirectTo = 'ProductName')
+    who = schema.One(redirectTo = 'Author')
+    date = schema.One(redirectTo = 'ReleaseDate')
+
     myKindID = None
     myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
     

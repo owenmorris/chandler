@@ -1,5 +1,7 @@
+__parcel__ = "osaf.examples.amazon"
+
 import osaf.framework.blocks.Block as Block
-import osaf.examples.amazon.AmazonKinds as AmazonKinds
+import AmazonKinds
 import application.Globals as Globals
 import osaf.framework.blocks.detail.Detail as Detail
 

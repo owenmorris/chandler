@@ -18,7 +18,8 @@ from Views import View
 
 from detail.Detail import (
     DetailRoot, DetailTrunkDelegate, HTMLDetailArea, StaticRedirectAttribute,
-    StaticTextLabel
+    StaticTextLabel, DetailSynchronizedLabeledTextAttributeBlock,
+    StaticRedirectAttributeLabel,  LabeledTextAttributeBlock,
 )
 
 from ControlBlocks import (
