@@ -1745,7 +1745,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
             self._bgSelectionDragEnd = True
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
-                timedelta(minutes=30)
+                timedelta(hours=1)
 
         # set focus on the calendar so that we can receive key events
         # (as of this writing, wxPanel can't receive focus, so this is a no-op)
@@ -1773,16 +1773,13 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             duration = self._bgSelectionEndTime - self._bgSelectionStartTime
         else:
             newTime = self.getDateTimeFromPosition(unscrolledPosition)
-            duration = None
+            duration = timedelta(hours=1)
             
         event.InitOutgoingAttributes()
         event.ChangeStart(newTime)
         event.allDay = False
         event.anyTime = False
-        
-        # only set the duration if its something larger than the default
-        if duration and duration >= timedelta(hours=1):
-            event.duration = duration
+        event.duration = duration
 
         # ugh, this is a hack to work around the whole ItemCollection stuff
         # see bug 2749 for some background
