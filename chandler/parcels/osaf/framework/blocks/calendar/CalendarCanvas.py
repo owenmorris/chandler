@@ -45,10 +45,10 @@ here is wxWeekPanel, taking up the center area of Chandler:
 | [color selector]    June 2005                  <- ->      
 |                                                           
 | also has the row of week/7-days buttons as an inset widget:
-|-------------------------------------------
+|-------------------------------------------------------
 || wx.colheader.ColumnHeader  (instance name: weekHeader)
 ||Week  Sun  Mon  Tue  Wed  Thu  Fri  +                     
-||------------------------------------------
+||------------------------------------------------------
 |---------------------------------------------------------
 | wxWeekHeaderCanvas
 |  where the all-day events go
@@ -376,9 +376,9 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         """ Returns the mode of the resize, either RESIZE_MODE_START or
         RESIZE_MODE_END.
 
-        The resize mode is RESIZE_MODE_START if dragging from the top of the event,
-        and RESIZE_MODE_END if dragging from the bottom of the event. None indicates
-        that we are not resizing at all.
+        The resize mode is RESIZE_MODE_START if dragging from the top of the
+        event, and RESIZE_MODE_END if dragging from the bottom of the
+        event. None indicates that we are not resizing at all.
 
         @param point: drag start position in uscrolled coordinates
         @type point: wx.Point
@@ -977,16 +977,27 @@ class wxWeekPanel(CalendarEventHandler,
         self.brushes = DrawingUtilities.Gradients()
         
     def _doDrawingCalculations(self):
+        """sets a bunch of drawing variables"""
         self.size = self.GetSize()
-        
-        self.xOffset = (self.size.width - self.scrollbarWidth) / 8
         
         try:
             oldDayWidth = self.dayWidth
         except AttributeError:
             oldDayWidth = -1
-            
-        self.dayWidth = (self.size.width - self.scrollbarWidth - self.xOffset) / self.blockItem.daysPerView
+
+        self.dayWidth = (self.size.width - self.scrollbarWidth) / (self.blockItem.daysPerView + 1)
+
+        ### calculate column widths for the all-7-days week view case
+        # column layout rules are funky:
+        # - all 7 days are fixed at self.dayWidth
+        # - the last column (expando-button) is fixed
+        # - the "Week" column is the same as self.dayWidth, plus leftover pixels
+        columnCount = 9
+        dayWidths = (self.dayWidth,) * 7
+
+        self.middleWidth = self.dayWidth*7
+        self.xOffset = self.GetSize().width - self.middleWidth - self.scrollbarWidth
+        self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
 
         # the gradient brushes are based on dayWidth, so blow it away
         # when dayWidth changes
@@ -997,6 +1008,24 @@ class wxWeekPanel(CalendarEventHandler,
             self.columns = 1
         else:
             self.columns = self.blockItem.daysPerView        
+
+        #print self.size, self.xOffset, self.dayWidth, self.columns #convenient interactive way to learn what these variables are, since they're tricky to describe verbally
+
+
+    def _getDividerPositions(self):
+        """tuple of divider lines for the wxWeek{Header,Column}Canvas's.
+        unlike columnWidths, this IS sensitive whether you're viewing one day
+        vs. week"""
+        cw = self.columnWidths
+        if self.blockItem.dayMode:
+            lastDividerPos = sum(cw)
+            return (cw[0], lastDividerPos)
+        else:
+            ## e.g. 10,40,40,40 => 0,10,50,90
+            cumulSums =  [sum(cw[:i]) for i in range(len(cw))]
+            return cumulSums[1:]
+
+    dividerPositions = property(_getDividerPositions)
 
     def OnEraseBackground(self, event):
         pass
@@ -1155,20 +1184,8 @@ class wxWeekHeaderWidgets(wx.Panel):
             self.weekHeader.SetSelectedItem(0)
 
     def ResizeHeader(self):
-        # column layout rules are funky:
-        # - the "Week" column and the first 6 days are more or less fixed at self.dayWidth
-        # - the last column (expando-button) is fixed
-        # - the 7th day is flexy
-
-        size = self.GetSize()
-        columnCount = self.weekHeader.GetItemCount()
-        drawInfo = self.parent
-        for day in range(columnCount - 2):
-            self.weekHeader.SetUIExtent(day, (0, drawInfo.dayWidth))
-
-        lastWidth = size.width - (drawInfo.dayWidth * (columnCount-2)) - drawInfo.scrollbarWidth
-        self.weekHeader.SetUIExtent(columnCount-2, (0, lastWidth))
-        self.weekHeader.SetUIExtent(columnCount-1, (0, drawInfo.scrollbarWidth))
+        for (i,width) in enumerate(self.parent.columnWidths):
+            self.weekHeader.SetUIExtent(i, (0,width))
 
     def OnSize(self, event):
         self.ResizeHeader()
@@ -1299,9 +1316,8 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         # Draw lines between days
         drawInfo = self.parent
         def drawDayLine(dayNum):
-            dc.DrawLine(drawInfo.xOffset + (drawInfo.dayWidth * dayNum), 0,
-                        drawInfo.xOffset + (drawInfo.dayWidth * dayNum),
-                        self.size.height)
+            x = drawInfo.dividerPositions[dayNum]
+            dc.DrawLine(x, 0,   x, self.size.height)
 
         # Week/7days divider needs major color, the rest are minor.
         dc.SetPen(styles.majorLinePen)
@@ -1313,8 +1329,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         # Draw one extra line to parallel the scrollbar below
         dc.DrawLine(self.size.width - drawInfo.scrollbarWidth, 0,
-                    self.size.width - drawInfo.scrollbarWidth,
-                    self.size.height)
+                    self.size.width - drawInfo.scrollbarWidth, self.size.height)
 
         
     def DrawCells(self, dc):
@@ -1515,14 +1530,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         self.size.height = self.hourHeight * 24
         self.SetVirtualSize(self.size)
 
-        self.xOffset = self.size.width / 8
-        if self.parent.blockItem.dayMode:
-            self.parent.columns = 1
-        else:
-            self.parent.columns = self.parent.blockItem.daysPerView
-
-        self.dayWidth = (self.size.width - self.xOffset) / self.parent.columns
         self.dayHeight = self.hourHeight * 24
+
+        self.xOffset = self.parent.xOffset
+
+        if self.parent.blockItem.dayMode:
+            self.dayWidth = self.parent.middleWidth
+        else:
+            self.dayWidth = self.parent.dayWidth
+
 
     def DrawBackground(self, dc):
         styles = self.parent
