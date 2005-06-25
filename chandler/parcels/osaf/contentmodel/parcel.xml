@@ -7,7 +7,6 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="contentmodel"
-    itemClass="osaf.contentmodel.ContentModel.ContentModel"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
     xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"

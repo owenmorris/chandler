@@ -6,7 +6,6 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="mail"
-    itemClass="osaf.contentmodel.mail.Mail.MailParcel"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
     xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail">

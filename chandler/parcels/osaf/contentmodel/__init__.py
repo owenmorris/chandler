@@ -1,11 +1,6 @@
-# contentmodel parcel module
-
-# Define ContentModel to be our custom parcel class
-from ContentModel import ContentModel as __parcel_class__
-
 # Import classes whose schemas are part of this parcel
-# (this will eventually include all ContentItem subclasses in
-# this package)
+# (this should include all ContentItem subclasses in this package)
+#
 from ContentModel import (
     ContentKind, ContentItem, ImportanceEnum, Group, Project, CurrentPointer
 )

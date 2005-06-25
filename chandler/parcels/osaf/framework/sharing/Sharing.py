@@ -1856,7 +1856,7 @@ def isInboundMailSetUp(view):
     """
 
     # Find imap account, and make sure email address is valid
-    account = Mail.MailParcel.getCurrentMailAccount(view)
+    account = Mail.getCurrentMailAccount(view)
     if account is not None and account.replyToAddress and account.replyToAddress.emailAddress:
         return True
     return False
@@ -1872,7 +1872,7 @@ def isSMTPSetUp(view):
     """
 
     # Find smtp account, and make sure server field is set
-    (smtp, replyTo) = Mail.MailParcel.getCurrentSMTPAccount(view)
+    (smtp, replyTo) = Mail.getCurrentSMTPAccount(view)
     if smtp is not None and smtp.host:
         return True
     return False
@@ -1940,10 +1940,10 @@ def ensureAccountSetUp(view):
             return False
 
         if not InboundMailReady:
-            account = Mail.MailParcel.getCurrentMailAccount(view)
+            account = Mail.getCurrentMailAccount(view)
         elif not SMTPReady:
             """ Returns the defaultSMTPAccount or None"""
-            account = Mail.MailParcel.getCurrentSMTPAccount(view)
+            account = Mail.getCurrentSMTPAccount(view)
         else:
             account = getWebDAVAccount(view)
 

@@ -178,17 +178,9 @@ class MailService(object):
         instances = None
         method = None
 
-        if type == "SMTP":
-            instances = self.__clientInstances.get("SMTP")
-            method = Mail.MailParcel.getActiveSMTPAccounts
-
-        elif type == "IMAP":
-            instances = self.__clientInstances.get("IMAP")
-            method = Mail.MailParcel.getActiveIMAPAccounts
-
-        elif type == "POP":
-            instances = self.__clientInstances.get("POP")
-            method = Mail.MailParcel.getActivePOPAccounts
+        if type in Mail.ACCOUNT_TYPES:
+            instances = self.__clientInstances.get(type)
+            method = Mail.ACCOUNT_TYPES[type].getActiveAccounts
 
         try:
             #XXX :hat do you do if refresh fails

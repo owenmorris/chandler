@@ -107,8 +107,8 @@ class Contact(ContentModel.ContentItem):
         sharing = schema.Cloud(emailAddress, byCloud=[contactName])
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Contact, self).__init__(name, parent, kind, view)
+    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
+        super (Contact, self).__init__(name, parent, kind, view, **kw)
 
         # If I didn't get assigned a creator, then I must be the "me" contact
         # and I want to be my own creator:
@@ -128,6 +128,11 @@ class Contact(ContentModel.ContentItem):
         self.contactName.firstName = ''
         self.contactName.lastName = ''
 
+
+    # Cache "me" for fast lookup; used by getCurrentMeContact()
+    meContactID = None
+
+    @classmethod
     def getCurrentMeContact(cls, view):
         """ Lookup the current "me" Contact """
 
@@ -141,23 +146,16 @@ class Contact(ContentModel.ContentItem):
             # Our cached UUID is invalid
             cls.meContactID is None
 
-        parent = ContentModel.ContentModel.getContentItemParent(view)
+        parent = cls.getDefaultParent(view)
         me = parent.getItemChild("me")
         if me is None:
-            me = Contact(name="me", parent=parent)
-            me.displayName = "Me"
-            me.contactName = ContactName(parent=me)
-            me.contactName.firstName = "Chandler"
-            me.contactName.lastName = "User"
+            me = Contact(name="me", parent=parent, displayName="Me")
+            me.contactName = ContactName(
+                parent=me, firstName="Chandler", lastName = "User"
+            )
 
         cls.meContactID = me.itsUUID
-
         return me
-
-    getCurrentMeContact = classmethod(getCurrentMeContact)
-
-    # Cache "me" for fast lookup; used by getCurrentMeContact()
-    meContactID = None
 
 
     def getContactForEmailAddress(cls, view, address):

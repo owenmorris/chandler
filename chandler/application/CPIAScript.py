@@ -48,8 +48,8 @@ def RunScript(script=None):
                 Globals.CPIAScript = None # done
 
 def getAllBlockEvents():
-    blocksPath = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/blocks/BlockEvent')
-    return ItemQuery.KindQuery().run([blocksPath])
+    from osaf.framework.blocks import BlockEvent
+    return BlockEvent.iterItems(wx.GetApp().UIRepositoryView)
 
 class CPIAScript:
     """ Script to be executed at Startup """

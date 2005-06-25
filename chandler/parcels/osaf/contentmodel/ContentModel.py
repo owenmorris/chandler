@@ -33,39 +33,6 @@ class ContentKind(Kind):
     detailView = schema.One()   # Block
 
 
-class ContentModel(Parcel):
-
-    contentItemsPath = Path('//userdata')
-
-    # Cached UUID of //userdata
-    contentItemParentID = None
-
-    def getContentItemParent(cls, view):
-        """ Return //userdata or create if non-existent """
-
-        def makeContainer(parent, name, child):
-            if child is None:
-                return itemKind.newItem(name, parent)
-            else:
-                return child
-
-        if cls.contentItemParentID is not None:
-            parent = view.findUUID(cls.contentItemParentID)
-            if parent is not None:
-                return parent
-            # Our cached UUID is invalid
-            cls.contentItemParentID is None
-
-        parent = view.find(cls.contentItemsPath)
-        if parent is None:
-            itemKind = view.findPath('//Schema/Core/Item')
-            parent = view.walk(cls.contentItemsPath, makeContainer)
-        cls.contentItemParentID = parent.itsUUID
-        return parent
-
-    getContentItemParent = classmethod(getContentItemParent)
-
-
 class ImportanceEnum(schema.Enumeration):
     """Importance Enum"""
     schema.kindInfo(
@@ -178,23 +145,8 @@ class ContentItem(schema.Item):
         sharing = schema.Cloud("displayName", body, "issues", createdOn)
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-
-        if view is None and parent is None and kind is None:
-            raise AssertionError, 'view cannot be None when both parent and kind are None'
-
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = ContentModel.getContentItemParent(view)
-
-        if kind is None:
-            if view is None:
-                view = parent.itsView
-            kind = self.getKind(view)
-
-        super (ContentItem, self).__init__(name, parent, kind)
-
+    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
+        super(ContentItem, self).__init__(name, parent, kind, view, **kw)
         self.createdOn = datetime.now()
         if view is None:
             view = self.itsView

@@ -9,8 +9,6 @@ from repository.schema.Cloud import Endpoint as _Endpoint
 from application.Parcel import Manager, Parcel
 import __main__, repository, threading, os, sys
 
-ANONYMOUS_ROOT = "//userdata"
-
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
@@ -35,11 +33,8 @@ class ForwardReference:
     def __repr__(self):
         return "ForwardReference(%r,%r)" % (self.name,self.role)
 
-    def _create_schema_item(self):
-        return itemFor(self.referent())
-
-    def _init_schema_item(self,item):
-        pass
+    def _find_schema_item(self,view):
+        return itemFor(self.referent(),view)
 
     def __hash__(self):
         return id(self)
@@ -104,14 +99,11 @@ class TypeReference:
     def __repr__(self):
         return "TypeReference(%r)" % self.path
 
-    def _create_schema_item(self):
-        item = nrv.findPath(self.path)
+    def _find_schema_item(self,view):
+        item = view.findPath(self.path)
         if item is None:
             raise TypeError("Unrecognized type", self.path)
         return item
-
-    def _init_schema_item(self,item):
-        pass
 
 
 class ActiveDescriptor(object):
@@ -188,7 +180,7 @@ class Role(ActiveDescriptor,CDescriptor):
         self._setattr(attr,value)
 
         if attr=='type' and value is not None:
-            if not hasattr(value,"_create_schema_item"):
+            if not hasattr(value,"_find_schema_item"):
                 self._setattr(attr,old) # roll it back
                 raise TypeError(
                     "Attribute type must be Item/Enumeration class or "
@@ -261,7 +253,10 @@ class Role(ActiveDescriptor,CDescriptor):
             (self.__class__.__name__, getattr(self.type,'__name__',None))
         )
 
-    def _create_schema_item(self):
+    def _find_schema_item(self, view):
+        pass
+
+    def _create_schema_item(self, view):
         if self.owner is None or self.name is None:
             raise TypeError(
                 "role object used outside of schema.Item subclass"
@@ -270,11 +265,11 @@ class Role(ActiveDescriptor,CDescriptor):
         if isinstance(self.inverse,ForwardReference):
             self.inverse = self.inverse.referent()  # force resolution now
 
-        attr = Attribute(self.name, None, itemFor(Attribute))
+        attr = Attribute(self.name, None, itemFor(Attribute, view))
         return attr
 
-    def _init_schema_item(self, attr):
-        kind = attr.itsParent = itemFor(self.owner)
+    def _init_schema_item(self, attr, view):
+        kind = attr.itsParent = itemFor(self.owner, view)
         kind.attributes.append(attr, attr.itsName)
         # XXX self.registerAttribute(kind, attr)
 
@@ -287,7 +282,7 @@ class Role(ActiveDescriptor,CDescriptor):
                     if val is None:
                         continue    # don't set type to None
                     else:
-                        val = itemFor(val)  # works for Kind and TypeReference
+                        val = itemFor(val, view)  # works for Kind and TypeReference
 
                 setattr(attr,aspect,val)
 
@@ -339,7 +334,7 @@ class Endpoint(object):
         
     def make_endpoint(self, cloud, alias):
         ep = _Endpoint(
-            self.name, cloud, itemFor(_Endpoint),
+            self.name, cloud, itemFor(_Endpoint, cloud.itsView),
             attribute=list(self.attribute), includePolicy=self.includePolicy,
         )
         if self.cloudAlias is not None:
@@ -418,7 +413,7 @@ class Cloud:
             )
 
     def make_cloud(self,kind,alias):
-        cloud = _Cloud(alias.title()+"Cloud", kind, itemFor(_Cloud))
+        cloud = _Cloud(alias.title()+"Cloud", kind, itemFor(_Cloud,kind.itsView))
         declareTemplate(cloud)
         cloud.endpoints = []
         for ep in self.endpoints:
@@ -436,15 +431,28 @@ class ItemClass(Activator):
     # must define its own, if it has any.
     __kind_info__ = property(lambda cls: cls.__dict__.get('__kind_info__',{}))
 
-    def _create_schema_item(cls):
+    def __init__(cls, name, bases, cdict):
+        if '__default_path__' in cdict:
+            if isinstance(cls.__default_path__, basestring):
+                cls.__default_path__ = ItemRoot.fromString(cls.__default_path__)
+        super(ItemClass,cls).__init__(name,bases,cdict)
+
+    def _find_schema_item(cls, view):
+        parent = parcel_for_module(cls.__module__, view)
+        item = parent.getItemChild(cls.__name__)
+        if isinstance(item,Kind) and item.getItemClass() is cls:
+            return item
+        
+    def _create_schema_item(cls, view):
         return Kind(
-            cls.__name__, parcel_for_module(cls.__module__), itemFor(Kind)
+            cls.__name__, parcel_for_module(cls.__module__, view),
+            itemFor(Kind, view)
         )
 
-    def _init_schema_item(cls,kind):
+    def _init_schema_item(cls, kind, view):
         kind.superKinds = [
-            itemFor(b) for b in cls.__bases__
-                if isinstance(b,ItemClass) or b in nrv._schema_cache
+            itemFor(b, view) for b in cls.__bases__
+                if isinstance(b,ItemClass) or b in view._schema_cache
         ]
 
         kind.clouds = []
@@ -455,36 +463,79 @@ class ItemClass(Activator):
         kind.attributes = []
         for name,attr in cls.__dict__.items():
             if isinstance(attr,Role):
-                ai = itemFor(attr)
+                ai = itemFor(attr, view)
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
+
+
+class ItemRoot:
+    """Schema template for a named root"""
+
+    def __init__(self,*parts):
+        self.parts = parts
+
+    @classmethod
+    def fromString(cls, pathStr):
+        path = pathStr.split('/')
+        body = tuple(path[2:])
+        if path[0] or path[1] or '' in body or '.' in body or '..' in body:
+            raise ValueError(
+                "Root paths must begin with // and be absolute", pathStr
+            )
+        return cls(*body)
+
+
+    def _find_schema_item(self, view):
+        item = view
+        for part in self.parts:
+            try:
+                item = item[part]
+            except KeyError:
+                item = Item(part, item)
+            declareTemplate(item)
+        return item
+
+    def __repr__(self):
+        return "ItemRoot%r" % self.parts
+
 
 
 class Item(Base):
     """Base class for schema-defined Kinds"""
 
     __metaclass__ = ItemClass
+    __default_path__ = "//userdata"
 
     def __init__(self,
-        name=None, parent=None, kind=None, *args, **values
+        name=None, parent=None, kind=None, view=None, *args, **values
     ):
-        if parent is None and name is None:
-            parent = anonymous_root
-        if kind is None:
-            kind = itemFor(self.__class__)
+        if kind is None or parent is None:
+            if view is None:
+                if parent is not None:
+                    view = parent.itsView
+                elif kind is not None:
+                    view = kind.itsView
+                else:
+                    view = nrv
+    
+            if parent is None:
+                parent = self.getDefaultParent(view)
+    
+            if kind is None:
+                kind = self.getKind(view)
+
         super(Item,self).__init__(name,parent,kind,*args,**values)
+
+    @classmethod
+    def getDefaultParent(cls, view=None):
+        if hasattr(cls,'__default_path__'):
+            return itemFor(cls.__default_path__,view)
+        return None
 
     @classmethod
     def getKind(cls, view=None):
         """Get the kind of this class (or instance) in the specified view"""
-        null_kind = itemFor(cls)
-        if view is None or view is nrv:
-            return null_kind
-        real_kind = null_kind.findMatch(view)
-        if real_kind is None:
-            view.importItem(null_kind)
-            return null_kind.findMatch(view)
-        return real_kind
+        return itemFor(cls,view)
 
     @classmethod
     def iterItems(cls, view=None, exact=False):
@@ -494,7 +545,7 @@ class Item(Base):
         matches.  If `view` is omitted, the schema API's null repository view
         is used.
         """
-        return KindQuery(not exact).run([cls.getKind(view)])
+        return KindQuery(not exact).run([itemFor(cls,view)])
 
 
 class StructClass(Activator):
@@ -519,13 +570,19 @@ class StructClass(Activator):
                 "'__slots__' must be a tuple of 1 or more strings"
             )
 
-    def _create_schema_item(cls):
+    def _find_schema_item(cls, view):
+        parent = parcel_for_module(cls.__module__, view)
+        item = parent.getItemChild(cls.__name__)
+        if isinstance(item,Types.Struct):
+            return item
+        
+    def _create_schema_item(cls, view):
         return SchemaStruct(
-            cls.__name__, parcel_for_module(cls.__module__),
-            itemFor(Types.Struct)
+            cls.__name__, parcel_for_module(cls.__module__, view),
+            itemFor(Types.Struct, view)
         )
 
-    def _init_schema_item(cls,typ):
+    def _init_schema_item(cls,typ, view):
         typ.fields = dict((k,{}) for k in cls.__slots__)
         typ.implementationTypes = {'python': cls}
 
@@ -590,13 +647,19 @@ class EnumerationClass(Activator):
                 "'values' must be a tuple of 1 or more strings"
             )
 
-    def _create_schema_item(cls):
+    def _find_schema_item(cls, view):
+        parent = parcel_for_module(cls.__module__, view)
+        item = parent.getItemChild(cls.__name__)
+        if isinstance(item,Types.Enumeration):
+            return item
+
+    def _create_schema_item(cls, view):
         return Types.Enumeration(
-            cls.__name__, parcel_for_module(cls.__module__),
-            itemFor(Types.Enumeration)
+            cls.__name__, parcel_for_module(cls.__module__, view),
+            itemFor(Types.Enumeration, view)
         )
 
-    def _init_schema_item(cls,enum):
+    def _init_schema_item(cls, enum, view):
         enum.values = list(cls.values)
 
 
@@ -730,7 +793,52 @@ def importString(name, globalDict=__main__.__dict__):
 # Repository interface
 # --------------------
 
-def parcel_for_module(moduleName):
+class ModuleMaker:
+    def __init__(self,moduleName):
+        module = importString(moduleName)
+        self.moduleName = getattr(module,'__parcel__',moduleName)
+        if '.' in self.moduleName:
+            self.parentName, self.name = self.moduleName.rsplit('.',1)
+        else:
+            self.parentName, self.name = None, self.moduleName
+
+    def getParent(self,view):
+        if self.parentName:
+            return parcel_for_module(self.parentName,view)
+        else:
+            root = view.findPath('parcels')
+            if root is None:
+                Manager.get(view,["x"])  # force setup of parcels root
+                root = view.findPath('//parcels')
+                declareTemplate(root)
+            return root
+
+    def __hash__(self):
+        return hash(self.moduleName)
+
+    def __eq__(self,other):
+        return self.moduleName == other
+
+    def _find_schema_item(self,view):
+        parent = self.getParent(view)
+        item = parent.getItemChild(self.name)
+        if isinstance(item,Parcel):
+            return item
+
+    def _create_schema_item(self,view):
+        module = importString(self.moduleName)
+        mkParcel = getattr(module,'__parcel_class__',Parcel)
+        if isinstance(mkParcel, ItemClass):
+            kind = itemFor(mkParcel, view)
+        else:
+            kind = itemFor(Parcel, view)
+        return mkParcel(self.name, self.getParent(view), kind)
+
+    def _init_schema_item(self,item,view):
+        pass
+
+        
+def parcel_for_module(moduleName, view=None):
     """Return the Parcel for the named module
 
     If the named module has a ``__parcel__`` attribute, its value will be
@@ -743,68 +851,41 @@ def parcel_for_module(moduleName):
     of the module's enclosing package), and the Parcel Kind (as found at
     ``//Schema/Core/Parcel`` in the null repository view).
 
-    If ``moduleName`` is an empty string, the ``//parcels`` root of the null
-    repository view is returned.
-
     This routine is thread-safe and re-entrant.
     """
-    global_lock.acquire()
+    if view is None:
+        view = nrv
     try:
-        if moduleName:
-            try:
-                return nrv._parcel_cache[moduleName]
-            except KeyError:
-                module = importString(moduleName)
-
-            if getattr(module,'__parcel__',moduleName) != moduleName:
-                nrv._parcel_cache[moduleName] = parcel = parcel_for_module(
-                    module.__parcel__
-                )
-                return parcel
-
-            if '.' in moduleName:
-                parentName,modName = moduleName.rsplit('.',1)
-            else:
-                parentName,modName = '',moduleName
-
-            mkParcel = getattr(module,'__parcel_class__',Parcel)
-
-            nrv._parcel_cache[moduleName] = parcel = mkParcel(
-                modName, parcel_for_module(parentName),
-                nrv.findPath('//Schema/Core/Parcel')
-            )
-
-            declareTemplate(parcel)
-            return parcel
-
-        else:
-            root = nrv.findPath('//parcels')
-            if root is None:
-                Manager.get(nrv,["x"])  # force setup of parcels root
-                root = nrv.findPath('//parcels')
-                declareTemplate(root)
-            return root
-    finally:
-        global_lock.release()
+        return view._schema_cache[moduleName]   # fast path
+    except (AttributeError, KeyError):
+        return itemFor(ModuleMaker(moduleName), view)   # slow path
 
 
 def synchronize(repoView,moduleName):
     """Ensure that the named module's schema is incorporated into `repoView`"""
     module = importString(moduleName)
     for item in module.__dict__.values():
-        if hasattr(item,'_create_schema_item'):
-            # Import each kind            
-            repoView.importItem(itemFor(item))
+        if hasattr(item,'_find_schema_item'):
+            # Import each kind/struct/enum          
+            itemFor(item,repoView)
 
     # Import the parcel, too, in case there were no kinds
-    repoView.importItem(parcel_for_module(moduleName))
+    parcel_for_module(moduleName,repoView)
 
 
-def itemFor(obj):
+def itemFor(obj, view=None):
     """Return the schema Item corresponding to ``obj`` in the null view"""
 
+    if view is None:
+        view = nrv
+
     try:
-        item = nrv._schema_cache[obj]
+        item = view._schema_cache[obj]
+    except AttributeError:
+        initRepository(view)
+        item = view._schema_cache.get(obj)
+        if item is not None:
+            return item
     except KeyError:
         pass
     else:
@@ -815,8 +896,8 @@ def itemFor(obj):
     try:
         # Double-checked locking; somebody might've updated the cache while
         # we were waiting to acquire the lock
-        if obj in nrv._schema_cache:
-            item = nrv._schema_cache[obj]
+        if obj in view._schema_cache:
+            item = view._schema_cache[obj]
             if item is None:
                 # If we get here, it's because itemFor() has re-entered itself
                 # looking for the same item, which can only happen if an
@@ -825,19 +906,28 @@ def itemFor(obj):
                 raise RuntimeError("Recursive schema item initialization")
             return item
 
-        nrv._schema_cache[obj] = None   # guard against re-entry
+        view._schema_cache[obj] = None   # guard against re-entry
         try:
-            item = nrv._schema_cache[obj] = obj._create_schema_item()
+            item = view._schema_cache[obj] = obj._find_schema_item(view)
         except:
-            del nrv._schema_cache[obj]  # remove the guard
+            del view._schema_cache[obj]  # remove the guard
             raise
         else:
-            declareTemplate(item)
-            if isinstance(obj,type) and getattr(obj,'__doc__',None):
-                item.description = obj.__doc__
-            for k,v in getattr(obj,'__kind_info__',{}).items():
-                setattr(item,k,v)
-            obj._init_schema_item(item) # set up possibly-recursive data
+            if item is None:
+                # couldn't find it, try creating it
+                try:
+                    item = view._schema_cache[obj] = obj._create_schema_item(view)
+                except:
+                    del view._schema_cache[obj]  # remove the guard
+                    raise
+                else:
+                    declareTemplate(item)
+                    if isinstance(obj,type) and getattr(obj,'__doc__',None):
+                        item.description = obj.__doc__
+                    for k,v in getattr(obj,'__kind_info__',{}).items():
+                        setattr(item,k,v)
+                    # set up possibly-recursive data
+                    obj._init_schema_item(item,view) 
             return item
     finally:
         global_lock.release()
@@ -859,11 +949,25 @@ def initRepository(rv,
     if rv.findPath('//Schema/Core/Parcel') is None:
         rv.loadPack(os.path.join(packdir,'chandler.pack'))
 
-    anonymous_root = rv.findPath(ANONYMOUS_ROOT)
-    if anonymous_root is None:
-        anonymous_root = Base(
-            ANONYMOUS_ROOT[2:], rv, rv.findPath('//Schema/Core/Item')
-        )
+    if not hasattr(rv,'_schema_cache'):
+        item_kind = rv.findPath('//Schema/Core/Item')
+        rv._schema_cache = {
+            Base: item_kind, Item: item_kind, SchemaStruct: Types.Struct
+        }
+
+        # Make all core kinds available for subclassing, etc.
+        for core_item in rv.findPath('//Schema/Core').iterChildren():
+            if isinstance(core_item,Kind):
+                cls = core_item.classes['python']
+                if cls is not Base:
+                    assert cls not in rv._schema_cache, (
+                        "Two kinds w/same non-Item class in core schema",
+                        cls,
+                        core_item.itsPath,
+                        rv._schema_cache[cls].itsPath
+                    )
+                    rv._schema_cache[cls] = core_item
+
 
 def declareTemplate(item):
     """Declare that `item` is a template, and should be copied when it is
@@ -882,7 +986,7 @@ def reset(rv=None):
     It exists so that unit tests can roll back the API's state to a known
     condition before proceeding.
     """
-    global nrv, anonymous_root
+    global nrv
 
     global_lock.acquire()
     try:
@@ -892,31 +996,8 @@ def reset(rv=None):
 
         nrv = rv
         initRepository(nrv)
-        if not hasattr(nrv,'_parcel_cache'):
-            nrv._parcel_cache = {}
-        if not hasattr(nrv,'_schema_cache'):
-            item_kind = nrv.findPath('//Schema/Core/Item')
-            nrv._schema_cache = {
-                Base: item_kind, Item: item_kind, SchemaStruct: Types.Struct
-            }
-
-            # Make all core kinds available for subclassing, etc.
-            for core_item in nrv.findPath('//Schema/Core').iterChildren():
-                if isinstance(core_item,Kind):
-                    cls = core_item.classes['python']
-                    if cls is not Base:
-                        assert cls not in nrv._schema_cache, (
-                            "Two kinds w/same non-Item class in core schema",
-                            cls,
-                            core_item.itsPath,
-                            nrv._schema_cache[cls].itsPath
-                        )
-                        nrv._schema_cache[cls] = core_item
-
-        anonymous_root = nrv.findPath(ANONYMOUS_ROOT)
-        declareTemplate(anonymous_root)
-
         return old_rv
+
     finally:
         global_lock.release()
 
@@ -926,8 +1007,8 @@ def reset(rv=None):
 # Setup null view and globals
 # ---------------------------
 
-nrv = anonymous_root = None
-reset(nrv)
+nrv = None
+reset()
 
 core_types = """
 Boolean String Integer Long Float Tuple List Set Class Dictionary Anything

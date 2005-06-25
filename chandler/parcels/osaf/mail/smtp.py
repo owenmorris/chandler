@@ -79,7 +79,7 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
            @type repository: C{DBRepository}
 
            @param account: An SMTP Account content model object
-           @type account: C{Mail.MailParcel.SMTPAccountKind}
+           @type account: C{Mail.SMTPAccount}
         """
         assert isinstance(account, Mail.SMTPAccount)
 

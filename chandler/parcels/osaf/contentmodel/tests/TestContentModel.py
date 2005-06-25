@@ -38,7 +38,7 @@ class ContentItemTest(ContentModelTestCase):
         view = self.rep.view
         
         # Check that the globals got created by the parcel
-        self.assert_(ContentModel.ContentModel.getContentItemParent(view))
+        self.assert_(ContentModel.ContentItem.getDefaultParent(view))
         self.assert_(ContentModel.ContentItem.getKind(view))
         self.assert_(ContentModel.Project.getKind(view))
         self.assert_(ContentModel.Group.getKind(view))
@@ -56,7 +56,7 @@ class ContentItemTest(ContentModelTestCase):
         self.assert_(genericGroup)
 
         # Check each item's parent, make sure it has a path
-        contentItemParent = ContentModel.ContentModel.getContentItemParent(view)
+        contentItemParent = ContentModel.ContentItem.getDefaultParent(view)
         self.assertEqual(genericContentItem.itsParent, contentItemParent)
         self.assertEqual(genericProject.itsParent, contentItemParent)
         self.assertEqual(genericGroup.itsParent, contentItemParent)

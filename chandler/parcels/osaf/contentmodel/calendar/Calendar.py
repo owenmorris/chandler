@@ -331,9 +331,9 @@ class CalendarEvent(CalendarEventMixin, Notes.Note):
     """
     schema.kindInfo(displayName="Calendar Event")
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (CalendarEvent, self).__init__(name, parent, kind, view)
-        self.participants = []
+    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
+        kw.setdefault('participants',[])
+        super (CalendarEvent, self).__init__(name, parent, kind, view, **kw)
 
 
 class Calendar(ContentModel.ContentItem):

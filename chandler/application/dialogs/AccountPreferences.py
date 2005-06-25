@@ -12,7 +12,6 @@ import osaf.contentmodel.mail.Mail as Mail
 import osaf.framework.sharing.WebDAV as WebDAV
 import osaf.framework.sharing.Sharing as Sharing
 import osaf.current.Current as Current
-from repository.item.Query import KindQuery
 
 
 # Special handlers referenced in the PANELS dictionary below:
@@ -147,7 +146,7 @@ PANELS = {
             "IMAP_SMTP" : {
                 "type" : "itemRef",
                 "attr" : "defaultSMTPAccount",
-                "kind" : "//parcels/osaf/contentmodel/mail/SMTPAccount",
+                "kind" : Mail.SMTPAccount,
             },
         },
         "id" : "IMAPPanel",
@@ -213,7 +212,7 @@ PANELS = {
             "POP_SMTP" : {
                 "type" : "itemRef",
                 "attr" : "defaultSMTPAccount",
-                "kind" : "//parcels/osaf/contentmodel/mail/SMTPAccount",
+                "kind" : Mail.SMTPAccount,
             },
             "POP_LEAVE" : {
                 "attr" : "leaveOnServer",
@@ -427,32 +426,15 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Make sure we're sync'ed with any changes other threads have made
         self.view.refresh()
-
         accountIndex = 0 # which account to select first
-        pm = application.Parcel.Manager.get(self.view)
-
-        MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
-        SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
-
         accounts = []
 
-        imapAccountKind = pm.lookup(MAIL_MODEL, "IMAPAccount")
-        for item in KindQuery().run([imapAccountKind]):
-            if item.isActive and hasattr(item, 'displayName'):
-                accounts.append(item)
+        for cls in (Mail.IMAPAccount, Mail.POPAccount, Mail.SMTPAccount):
+            for item in cls.iterItems(self.view):
+                if item.isActive and hasattr(item, 'displayName'):
+                    accounts.append(item)
 
-        popAccountKind = pm.lookup(MAIL_MODEL, "POPAccount")
-        for item in KindQuery().run([popAccountKind]):
-            if item.isActive and hasattr(item, 'displayName'):
-                accounts.append(item)
-
-        smtpAccountKind = pm.lookup(MAIL_MODEL, "SMTPAccount")
-        for item in KindQuery().run([smtpAccountKind]):
-            if item.isActive and hasattr(item, 'displayName'):
-                accounts.append(item)
-
-        webDavAccountKind = pm.lookup(SHARING_MODEL, "WebDAVAccount")
-        for item in KindQuery().run([webDavAccountKind]):
+        for item in Sharing.WebDAVAccount.iterItems(self.view):
             if hasattr(item, 'displayName'):
                 accounts.append(item)
 
@@ -545,8 +527,8 @@ class AccountPreferencesDialog(wx.Dialog):
                     #     exists and makes the new account the defaultSMTPAccount
                     #     for the default IMAP ccount
 
-                    if Mail.MailParcel.getCurrentSMTPAccount(view=self.view)[0] is None:
-                        mailAccount = Mail.MailParcel.getCurrentMailAccount(view=self.view)
+                    if Mail.getCurrentSMTPAccount(view=self.view)[0] is None:
+                        mailAccount = Mail.getCurrentMailAccount(view=self.view)
 
                         if mailAccount is not None:
                             mailAccount.defaultSMTPAccount = item
@@ -853,8 +835,8 @@ class AccountPreferencesDialog(wx.Dialog):
                 count = 0
                 index = -1
                 uuid = data[field]
-                kind = PANELS[panelType]['fields'][field]['kind']
-                for item in KindQuery().run([self.view.findPath(kind)]):
+                kindClass = PANELS[panelType]['fields'][field]['kind']
+                for item in kindClass.iterItems(self.view):
                     deleted = False
                     for accountData in self.deletions:
                         if accountData['item'] == item.itsUUID:

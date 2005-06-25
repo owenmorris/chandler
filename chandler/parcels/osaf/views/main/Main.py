@@ -240,7 +240,7 @@ class MainView(View):
     
         # get default SMTP account
         item = event.arguments ['item']
-        account = Mail.MailParcel.getCurrentSMTPAccount(self.itsView)[0]
+        account = Mail.getCurrentSMTPAccount(self.itsView)[0]
 
         # put a sending message into the status bar
         self.setStatusMessage ('Sending mail...')
@@ -469,10 +469,10 @@ class MainView(View):
         # over to mail?
         view.commit()
 
-        for account in Mail.MailParcel.getActiveIMAPAccounts(self.itsView):
+        for account in Mail.IMAPAccount.getActiveAccounts(self.itsView):
             Globals.mailService.getIMAPInstance(account).getMail()
 
-        for account in Mail.MailParcel.getActivePOPAccounts(self.itsView):
+        for account in Mail.POPAccount.getActiveAccounts(self.itsView):
             Globals.mailService.getPOPInstance(account).getMail()
 
         view.refresh()

@@ -324,6 +324,20 @@ Items created without an explicit "parent" have a repository parent of
     >>> Joe.itsParent.itsPath
     //userdata
 
+Unless you set a ``__default_path__`` in your class, which is used to find
+and/or create a default parent::
+
+    >>> class Elsewhere(schema.Item):
+    ...     __default_path__ = "//userdata/miscellaneous"
+
+    >>> thingy = Elsewhere()
+    >>> thingy.itsParent.itsPath
+    //userdata/miscellaneous
+
+    >>> thingy.itsParent is Elsewhere.getDefaultParent()
+    True
+
+
 Clouds are associated with the class' kind, with names that are generated
 by capitalizing the cloud alias and adding 'Cloud' to them (matching previous
 OSAF naming conventions)::
@@ -629,15 +643,6 @@ loaded::
         >>> del application.tests.__parcel_class__
         >>> del application.__parcel_class__
 
-    If the name is an empty string, the root of the ``//parcels`` namespace is
-    returned::
-
-        >>> schema.parcel_for_module("")
-        <Parcel ...: parcels ...>
-
-        >>> schema.parcel_for_module("") is schema.nrv.findPath('//parcels')
-        True
-
 
 ``itemFor(obj)``
     Return the repository item that corresponds to the supplied object.  For
@@ -721,13 +726,10 @@ loaded::
 
 ``initRepository(repoView)``
     Ensure that the given repository view has been initialized with the core
-    schemas for Chandler, and with an "anonymous root" for items created
-    without an explicit parent.
+    schemas for Chandler.
 
     >>> nrv = NullRepositoryView()
     >>> print nrv.findPath('//Schema/Core')
-    None
-    >>> print nrv.findPath('//userdata')
     None
 
     >>> schema.initRepository(nrv)
@@ -736,20 +738,21 @@ loaded::
     <Kind ... Item ...>
     >>> nrv.findPath('//Schema/Core/Parcel')
     <Kind ... Parcel ...>
-    >>> nrv.findPath('//userdata')
-    <Item ... userdata ...>
 
 
 ``synchronize(repoView, moduleName)``
     Ensure that the named module has been imported, and that its offered schema
     (if any) has been imported into the supplied repository view.
 
+    >>> import application.tests
+    >>> application.tests.__TestItem = TestItem
     >>> print nrv.findPath('//parcels/application/tests/TestItem')
     None
     >>> schema.synchronize(nrv, 'application.tests')
     >>> print nrv.findPath('//parcels/application/tests/TestItem')
     <Kind ... TestItem ...>
 
+    >>> del application.tests.__TestItem
 
 Descriptor Activation
 ---------------------

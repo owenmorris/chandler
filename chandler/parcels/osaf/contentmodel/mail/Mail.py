@@ -27,114 +27,74 @@ Design Issues:
       2. Date sent string could probally be gotten rid of
 """
 
+MAIL_DEFAULT_PATH = "//userdata/mailItems"
 
 
-class MailParcel(application.Parcel.Parcel):
+def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
+    """
+        This function returns a tuple containing:
+        1. The an C{SMTPAccount} account
+        2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
+           parent which will either be a POP or IMAP Acccount.
 
-    def startupParcel(self):
-        super(MailParcel, self).startupParcel()
+    @param uuid: The C{uuid} of the C{SMTPAccount}. If no C{uuid} passed will return
+                 the current  C{SMTPAccount}
+    @type uuid: C{uuid}
+    @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
+    """
 
-        itemKind = self.findPath('//Schema/Core/Item')
-        contentitemsPath = ContentModel.ContentModel.contentItemsPath
+    smtpAccount = None
+    replyToAddress = None
 
-        def makeContainer(parent, name, child):
-            if child is None:
-                return itemKind.newItem(name, parent)
-            else:
-                return child
+    if uuid is not None:
+        smtpAccount = view.findUUID(uuid)
 
-        self.walk(Path(contentitemsPath, 'mailItems'),
-                  makeContainer)
+        if smtpAccount is not None:
+            for acc in smtpAccount.accounts:
+                if acc.isActive or includeInactives:
+                    if acc.host and acc.username and \
+                       hasattr(acc, 'replyToAddress'):
+                        replyToAddress = acc.replyToAddress
+                        break
 
-    @classmethod
-    def getMailItemParent(cls, view, inbound=False):
-        return ContentModel.ContentModel.getContentItemParent(view)['mailItems']
+        return (smtpAccount, replyToAddress)
 
-    @classmethod
-    def getCurrentSMTPAccount(cls, view, uuid=None, includeInactives=False):
-        """
-            This method returns a tuple containing:
-            1. The an C{SMTPAccount} account
-            2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
-               parent which will either be a POP or IMAP Acccount.
+    """Get the default Mail Account"""
+    parentAccount = Current.Current.get(view, "MailAccount")
 
-        @param uuid: The C{uuid} of the C{SMTPAccount}. If no C{uuid} passed will return
-                     the current  C{SMTPAccount}
-        @type uuid: C{uuid}
-        @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
-        """
+    if parentAccount is not None:
+        if hasattr(parentAccount, 'replyToAddress'):
+            replyToAddress = parentAccount.replyToAddress
 
-        smtpAccount = None
-        replyToAddress = None
+        """Get the default SMTP Account"""
+        try:
+            smtpAccount = parentAccount.defaultSMTPAccount
 
-        if uuid is not None:
-            smtpAccount = view.findUUID(uuid)
+        except ItemError.NoValueForAttributeError:
+            pass
 
-            if smtpAccount is not None:
-                for acc in smtpAccount.accounts:
-                    if acc.isActive or includeInactives:
-                        if acc.host and acc.username and \
-                           hasattr(acc, 'replyToAddress'):
-                            replyToAddress = acc.replyToAddress
-                            break
+    return(smtpAccount, replyToAddress)
 
-            return (smtpAccount, replyToAddress)
 
-        """Get the default Mail Account"""
-        parentAccount = Current.Current.get(view, "MailAccount")
+def getCurrentMailAccount(view, uuid=None):
+    """
+    This function returns either an C{IMAPAccount} or C{POPAccount} in the
+    Repository. If uuid is not None will try and retrieve the account that
+    has the uuid passed.  Otherwise the method will try and retrieve the
+    current C{IMAPAccount} or C{POPAccount}.
 
-        if parentAccount is not None:
-            if hasattr(parentAccount, 'replyToAddress'):
-                replyToAddress = parentAccount.replyToAddress
+    @param uuid: The C{uuid} of the account. If no C{uuid} passed will return the current account
+    @type uuid: C{uuid}
+    @return C{IMAPAccount} or C{POPAccount}
+    """
 
-            """Get the default SMTP Account"""
-            try:
-                smtpAccount = parentAccount.defaultSMTPAccount
+    if uuid is not None:
+        account = view.findUUID(uuid)
 
-            except ItemError.NoValueForAttributeError:
-                pass
+    else:
+        account = Current.Current.get(view, "MailAccount")
 
-        return(smtpAccount, replyToAddress)
-
-    @classmethod
-    def getCurrentMailAccount(cls, view, uuid=None):
-        """
-        This method returns either an C{IMAPAccount} or C{POPAccount} in the
-        Repository. If uuid is not None will try and retrieve the account that
-        has the uuid passed.  Otherwise the method will try and retrieve the
-        current C{IMAPAccount} or C{POPAccount}.
-
-        @param uuid: The C{uuid} of the account. If no C{uuid} passed will return the current account
-        @type uuid: C{uuid}
-        @return C{IMAPAccount} or C{POPAccount}
-        """
-
-        if uuid is not None:
-            account = view.findUUID(uuid)
-
-        else:
-            account = Current.Current.get(view, "MailAccount")
-
-        return account
-
-    @classmethod
-    def getActivePOPAccounts(cls, view):
-        for item in POPAccount.iterItems(view):
-            if item.isActive and item.host and item.username:
-                yield item
-
-    @classmethod
-    def getActiveIMAPAccounts(cls, view):
-        for item in IMAPAccount.iterItems(view):
-            if item.isActive and item.host and item.username:
-                yield item
-
-    @classmethod
-    def getActiveSMTPAccounts(cls, view):
-        for item in SMTPAccount.iterItems(view):
-            if item.isActive and item.host and item.username:
-                yield item
-
+    return account
 
 
 class connectionSecurityEnum(schema.Enumeration):
@@ -216,13 +176,13 @@ class AccountBase(ContentModel.ContentItem):
         initialValue = True,
     )
 
+    __default_path__ = MAIL_DEFAULT_PATH
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(AccountBase, self).__init__(name, parent, kind, view)
+    @classmethod
+    def getActiveAccounts(cls, view):
+        for item in cls.iterItems(view):
+            if item.isActive and item.host and item.username:
+                yield item
 
 
 class DownloadAccountBase(AccountBase):
@@ -379,12 +339,7 @@ class MailDeliveryError(ContentModel.ContentItem):
         inverse = 'deliveryErrors',
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(MailDeliveryError, self).__init__(name, parent, kind, view)
+    __default_path__ = MAIL_DEFAULT_PATH
 
     def __str__(self):
         if self.isStale():
@@ -417,13 +372,7 @@ class MailDeliveryBase(ContentModel.ContentItem):
         inverse = MailDeliveryError.mailDelivery,
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-        super(MailDeliveryBase, self).__init__(name, parent, kind, view)
-
+    __default_path__ = MAIL_DEFAULT_PATH
 
 
 class historyEnum(schema.Enumeration):
@@ -541,13 +490,7 @@ class MIMEBase(ContentModel.ContentItem):
         'MIMEContainer', initialValue = None, inverse = 'mimeParts',
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
-
-        super(MIMEBase, self).__init__(name, parent, kind, view)
+    __default_path__ = MAIL_DEFAULT_PATH
 
 
 class MIMENote(MIMEBase):
@@ -786,6 +729,7 @@ class MailMessageMixin(MIMEContainer):
         # message the main view to do the work
         Globals.views[0].postEventByName('SendMail', {'item': self})
 
+
 class MailMessage(MailMessageMixin, Notes.Note):
     schema.kindInfo(
         displayName = "Mail Message",
@@ -923,13 +867,12 @@ class EmailAddress(ContentModel.ContentItem):
         sharing = schema.Cloud(emailAddress, fullName)
     )
 
-    def __init__(self, name=None, parent=None, kind=None, view=None, clone=None):
-        if parent is None:
-            if view is None:
-                view = kind.itsView
-            parent = MailParcel.getMailItemParent(view)
+    __default_path__ = MAIL_DEFAULT_PATH
 
-        super(EmailAddress, self).__init__(name, parent, kind, view)
+    def __init__(self, name=None, parent=None, kind=None, view=None,
+        clone=None, **kw
+    ):
+        super(EmailAddress, self).__init__(name, parent, kind, view, **kw)
 
         # copy the attributes if a clone was supplied
         if clone is not None:
@@ -978,6 +921,7 @@ class EmailAddress(ContentModel.ContentItem):
         This code needs to be reworked!
         """
 
+    @classmethod
     def getEmailAddress(cls, view, nameOrAddressString, fullName=''):
         """
           Lookup or create an EmailAddress based on the supplied string.
@@ -1102,8 +1046,7 @@ class EmailAddress(ContentModel.ContentItem):
             else:
                 return None
 
-    getEmailAddress = classmethod(getEmailAddress)
-
+    @classmethod
     def format(cls, emailAddress):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"
 
@@ -1112,9 +1055,7 @@ class EmailAddress(ContentModel.ContentItem):
 
         return emailAddress.emailAddress
 
-    format = classmethod(format)
-
-
+    @classmethod
     def isValidEmailAddress(cls, emailAddress):
         """
         This method tests an email address for valid syntax as defined RFC 822.
@@ -1133,9 +1074,7 @@ class EmailAddress(ContentModel.ContentItem):
 
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
-
-    isValidEmailAddress = classmethod(isValidEmailAddress)
-
+    @classmethod
     def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
         """
         This method tests whether two email addresses are the same.
@@ -1159,8 +1098,8 @@ class EmailAddress(ContentModel.ContentItem):
 
         return emailAddressOne.lower() == emailAddressTwo.lower()
 
-    emailAddressesAreEqual = classmethod(emailAddressesAreEqual)
 
+    @classmethod
     def getCurrentMeEmailAddress(cls, view):
         """
           Lookup the "me" EmailAddress.
@@ -1168,11 +1107,18 @@ class EmailAddress(ContentModel.ContentItem):
         address.
         """
 
-        account = MailParcel.getCurrentMailAccount(view)
+        account = getCurrentMailAccount(view)
 
         if account is not None and hasattr(account, 'replyToAddress'):
             return account.replyToAddress
 
         return None
 
-    getCurrentMeEmailAddress = classmethod(getCurrentMeEmailAddress)
+
+# Map from account type strings to account types
+
+ACCOUNT_TYPES = {
+    'POP': POPAccount,
+    'SMTP': SMTPAccount,
+    'IMAP': IMAPAccount,
+}
