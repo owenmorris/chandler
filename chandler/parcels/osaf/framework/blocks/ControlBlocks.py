@@ -551,7 +551,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
-        self.EnableGridLines(False)
         self.EnableDragCell(True)
         self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
@@ -619,7 +618,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.currentRows = gridTable.GetNumberRows()
         self.currentColumns = gridTable.GetNumberCols()
-
+        self.EnableGridLines (self.blockItem.hasGridLines)
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
     
     def OnLeftClick (self, event):
@@ -993,6 +992,7 @@ class Table (RectangularChild):
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
+    hasGridLines = schema.One(schema.Boolean, initialValue = False)
 
     schema.addClouds(
         default = schema.Cloud(

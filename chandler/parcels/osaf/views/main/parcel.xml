@@ -1297,6 +1297,7 @@
     <blockName>TableSummaryView</blockName>
     <characterStyle itemref="SummaryRowStyle"/>
     <headerCharacterStyle itemref="SummaryHeaderStyle"/>
+    <hasGridLines>True</hasGridLines>
 
     <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
