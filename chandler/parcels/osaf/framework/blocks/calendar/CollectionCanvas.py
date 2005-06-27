@@ -760,6 +760,9 @@ class CollectionCanvas(Block.RectangularChild):
         """
         self.postEventByName('SelectItemBroadcast', {'item':self.selection})
 
+    def SelectCollectionInSidebar(self, collection):
+        self.postEventByName('RequestSelectSidebarItem', {'item':collection})
+
     def onRemoveEvent(self, event):
         self.DeleteSelection()
 

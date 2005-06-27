@@ -492,6 +492,11 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             pen = self.GetStatusPen(outlineColor)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
+            
+            # this refers to the left-hand top/bottom corners - for now
+            # with D-shaped events, they are always square, but eventually
+            # certain types of events will have rounded corners and we'll
+            # have to accomodate them
             cornerRadius = 0
             dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),
                         itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))
@@ -535,7 +540,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         Side effect: Destroys the clipping region.
         """
 
-        radius = 10
+        radius = 8
         diameter = radius * 2
 
         dc.DestroyClippingRegion()
@@ -819,13 +824,18 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
             return calData.defaultColors
         
         return calData.visibleColors
-            
+
+
     def getEventCalendarData(self, event):
         """
         Get the eventColors object which contains all the right color tints
         for the given event. If the given event doesn't have color data,
         then we return the default one associated with the view
         """
+        coll = self.getContainingCollection(event)
+        return self.StampedCalendarData(coll)
+    
+    def getContainingCollection(self, event):
         collections = self.contents.source
         selectedCollection = collections.first()
         firstSpecialCollection = None
@@ -835,10 +845,10 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
             # we'll rely on that to make sure we don't get 'All's color
             if (event in coll):
                 if getattr(coll, 'renameable', True):
-                    return self.StampedCalendarData(coll)
+                    return coll
                 else:
                     # save it for later, we might be returning it
-                    firstSpecialCollection = self.StampedCalendarData(coll)
+                    firstSpecialCollection = coll
                     
         if firstSpecialCollection:
             return firstSpecialCollection
@@ -875,6 +885,13 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def OnSelectItem(self, item):
         self.parent.blockItem.selection = item
         self.parent.blockItem.postSelectItemBroadcast()
+
+        # tell the sidebar to select the collection that contains
+        # this event - makes the sidebar track the "current" calendar
+        # as well as update the gradients correctly
+        coll = self.parent.blockItem.getContainingCollection(item)
+        if coll and coll != self.parent.blockItem.contents.source.first():
+            self.parent.blockItem.SelectCollectionInSidebar(coll)
         #self.parent.wxSynchronizeWidget()
     
     def GrabFocusHack(self):
