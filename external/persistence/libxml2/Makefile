@@ -1,6 +1,6 @@
 
-VERSION=2.6.16
-RELVER=$(VERSION)-4
+VERSION=2.6.19
+RELVER=$(VERSION)-1
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -70,7 +70,8 @@ $(SRC)/$(BUILD)/Makefile: apply
                      $(CONF_DBG)
 
 compile: $(SRC)/$(BUILD)/Makefile
-	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
+	cd $(SRC)/$(BUILD); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE); \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(MAKE) install
 
 py:
 	cd $(SRC)/python; \
