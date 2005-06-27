@@ -1039,26 +1039,22 @@ void wxTextCtrl::OnUpdateRedo(wxUpdateUIEvent& event)
 #if defined(_USE_CONTEXT_MENU_)
 void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
 {
-#if defined(wxUSE_TEXTCTRL)
-        if (m_privateContextMenu == NULL)
-        {
-            m_privateContextMenu = new wxMenu;
-            m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
-            m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
-            m_privateContextMenu->AppendSeparator();
-            m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
-            m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
-            m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
-            m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
-            m_privateContextMenu->AppendSeparator();
-            m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
-        }
+    if (m_privateContextMenu == NULL)
+    {
+        m_privateContextMenu = new wxMenu;
+        m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
+        m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
+        m_privateContextMenu->AppendSeparator();
+        m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
+        m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
+        m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
+        m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
+        m_privateContextMenu->AppendSeparator();
+        m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
+    }
 
+    if (m_privateContextMenu != NULL)
         PopupMenu(m_privateContextMenu);
-        return;
-#endif
-
-    event.Skip();
 }
 #endif
 
@@ -2274,6 +2270,7 @@ void wxMacMLTEClassicControl::MacUpdatePosition()
         TXNSetFrameBounds( m_txn, m_txnControlBounds.top, m_txnControlBounds.left,
             wxMax( m_txnControlBounds.bottom , m_txnControlBounds.top ) , 
             wxMax( m_txnControlBounds.right , m_txnControlBounds.left ) , m_txnFrameID);
+ #endif
 
         // the SetFrameBounds method unter classic sometimes does not correctly scroll a selection into sight after a 
         // movement, therefore we have to force it
@@ -2284,7 +2281,6 @@ void wxMacMLTEClassicControl::MacUpdatePosition()
         {
             TXNShowSelection( m_txn , false ) ;
         }
-#endif
     }
 }
 
@@ -2473,8 +2469,6 @@ wxMacMLTEClassicControl::wxMacMLTEClassicControl( wxTextCtrl *wxPeer,
     m_font = wxPeer->GetFont() ;
     m_windowStyle = style ;
     Rect bounds = wxMacGetBoundsForControl( wxPeer , pos , size ) ;
-    wxString st = str ;
-    wxMacConvertNewlines10To13( &st ) ;
 
     short featurSet;
 
@@ -2490,9 +2484,13 @@ wxMacMLTEClassicControl::wxMacMLTEClassicControl( wxTextCtrl *wxPeer,
 
     MacSetObjectVisibility( wxPeer->MacIsReallyShown() ) ;
 
-    wxMacWindowClipper clipper( m_peer ) ;
-    SetTXNData( st , kTXNStartOffset, kTXNEndOffset ) ;
-    TXNSetSelection( m_txn, 0, 0);
+    {
+        wxString st = str ;
+        wxMacConvertNewlines10To13( &st ) ;
+        wxMacWindowClipper clipper( m_peer ) ;
+        SetTXNData( st , kTXNStartOffset, kTXNEndOffset ) ;
+        TXNSetSelection( m_txn, 0, 0);
+    }
 }
 
 wxMacMLTEClassicControl::~wxMacMLTEClassicControl()
