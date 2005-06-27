@@ -1046,11 +1046,15 @@ class AccountPreferencesDialog(wx.Dialog):
             msg = "You have read access but not write access."
         elif result == WebDAV.READ_WRITE:
             msg = "Test was successful.\nThis account has read/write access."
+        elif result == WebDAV.IGNORE:
+            # Leave msg as None to ignore it
+            msg = None
         else:
             # This shouldn't happen
             msg = "Test failed with an unknown response."
 
-        application.dialogs.Util.ok(self, "WebDAV Test Results", msg)
+        if msg is not None:
+            application.dialogs.Util.ok(self, "WebDAV Test Results", msg)
 
 
     def OnAccountSel(self, evt):

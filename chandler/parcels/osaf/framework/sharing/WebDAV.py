@@ -9,6 +9,7 @@ import logging
 import crypto.ssl as ssl
 import M2Crypto.BIO
 import chandlerdb.util.uuid
+import twisted.internet.error as error
 
 logger = logging.getLogger('WebDAV')
 logger.setLevel(logging.INFO)
@@ -34,9 +35,26 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
             # verification, it needs the following customizations (e.g.,
             # to check the user's certstore for trusted certs).
             if self.factory.sslContextFactory == None:
+                verifyCallback = ssl._VerifyCallback(repositoryView)
+            
                 self.factory.getContext = lambda: \
-                    ssl.getContext(repositoryView=repositoryView)
+                     ssl.getContext(repositoryView=repositoryView,
+                                    verifyCallback=verifyCallback)
                 self.factory.sslChecker = ssl.postConnectionCheck
+                                
+    def _translateSSLError(self, failure):
+        if failure.check(M2Crypto.BIO.BIOError):
+            failure.value = error.SSLError(osError=failure.value)
+        
+        return failure
+        
+    def addRequest(self, request):
+        d = super(ChandlerServerHandle, self).addRequest(request)
+        
+        if d is not None:
+            d.addErrback(self._translateSSLError)
+            
+        return d
 
 
 
@@ -46,6 +64,7 @@ CANT_CONNECT = -1
 NO_ACCESS    = 0
 READ_ONLY    = 1
 READ_WRITE   = 2
+IGNORE       = 3
 
 def checkAccess(host, port=80, useSSL=False, username=None, password=None,
                 path=None, repositoryView=None):
@@ -85,8 +104,8 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (CANT_CONNECT, err.message)
     except zanshin.webdav.WebDAVError, err:
         return (NO_ACCESS, err.status)
-    except M2Crypto.BIO.BIOError, err:
-        return (CANT_CONNECT, "%s" % (err))
+    except error.SSLError, err:
+        return (IGNORE, None)
         
     
     # Unique the child names returned by the server. (Note that
