@@ -4088,6 +4088,22 @@ wxGrid::wxGridSelectionModes wxGrid::GetSelectionMode() const
     return m_selection->GetSelectionMode();
 }
 
+void wxGrid::EnableCursor( bool enableCursor )
+{
+    if( enableCursor != m_hasCursor )
+    {
+        m_hasCursor = enableCursor;
+
+        int row = m_currentCellCoords.GetRow();
+        int col = m_currentCellCoords.GetCol();
+        if ( GetColWidth(col) > 0 && GetRowHeight(row) > 0 )
+        {
+            wxRect rect = CellToRect(row, col);
+            m_gridWin->Refresh(true, &rect);
+        }
+    }
+}
+
 bool wxGrid::SetTable( wxGridTableBase *table, bool takeOwnership,
                        wxGrid::wxGridSelectionModes selmode )
 {
@@ -4204,6 +4220,7 @@ void wxGrid::Init()
     m_selectionForeground = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
 
     m_editable = true;  // default for whole grid
+    m_hasCursor = true;
 
     m_inOnKeyDown = false;
     m_batchCount = 0;
@@ -5544,7 +5561,9 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                        coords.GetCol(),
                        event ) )
         {
-            if ( !event.ControlDown() )
+            if ( !event.ControlDown() &&
+                 ( m_hasCursor || !m_selection || !m_selection->IsInSelection( coords.GetRow(), coords.GetCol() ) ) )
+                // Only clear the selection if we're going to change it
                 ClearSelection();
             if ( event.ShiftDown() )
             {
@@ -5586,13 +5605,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                     m_waitForSlowClick = m_currentCellCoords == coords && coords != wxGridNoCellCoords;
                     SetCurrentCell( coords );
                     if ( m_selection )
-                    {
-                        if ( m_selection->GetSelectionMode() !=
-                                wxGrid::wxGridSelectCells )
-                        {
-                            HighlightBlock( coords, coords );
-                        }
-                    }
+                        HighlightBlock( coords, coords );
                 }
             }
         }
@@ -5614,7 +5627,18 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
             {
                 // we want double click to select a cell and start editing
                 // (i.e. to behave in same way as sequence of two slow clicks):
-                m_waitForSlowClick = true;
+                if( m_hasCursor )
+                    m_waitForSlowClick = true;
+                else if ( coords == m_currentCellCoords && CanEnableCellControl() )
+                {
+                    EnableCellEditControl();
+
+                    wxGridCellAttr* attr = GetCellAttr(coords);
+                    wxGridCellEditor *editor = attr->GetEditor(this, coords.GetRow(), coords.GetCol());
+                    editor->StartingClick();
+                    editor->DecRef();
+                    attr->DecRef();
+                }
             }
         }
 
@@ -5633,7 +5657,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                 m_winCapture = NULL;
             }
 
-            if ( coords == m_currentCellCoords && m_waitForSlowClick && CanEnableCellControl())
+            if ( m_hasCursor && coords == m_currentCellCoords && m_waitForSlowClick && CanEnableCellControl() )
             {
                 ClearSelection();
                 EnableCellEditControl();
@@ -6988,36 +7012,36 @@ void wxGrid::DrawCellHighlight( wxDC& dc, const wxGridCellAttr *attr )
     int row = m_currentCellCoords.GetRow();
     int col = m_currentCellCoords.GetCol();
 
-    if ( GetColWidth(col) <= 0 || GetRowHeight(row) <= 0 )
-        return;
-
-    wxRect rect = CellToRect(row, col);
-
-    // hmmm... what could we do here to show that the cell is disabled?
-    // for now, I just draw a thinner border than for the other ones, but
-    // it doesn't look really good
-
-    int penWidth = attr->IsReadOnly() ? m_cellHighlightROPenWidth : m_cellHighlightPenWidth;
-
-    if (penWidth > 0)
+    if ( GetColWidth(col) > 0 && GetRowHeight(row) > 0 && m_hasCursor )
     {
-        // The center of th drawn line is where the position/width/height of
-        // the rectangle is actually at, (on wxMSW atr least,) so we will
-        // reduce the size of the rectangle to compensate for the thickness of
-        // the line.  If this is too strange on non wxMSW platforms then
-        // please #ifdef this appropriately.
-        rect.x += penWidth/2;
-        rect.y += penWidth/2;
-        rect.width -= penWidth-1;
-        rect.height -= penWidth-1;
+        wxRect rect = CellToRect(row, col);
+
+        // hmmm... what could we do here to show that the cell is disabled?
+        // for now, I just draw a thinner border than for the other ones, but
+        // it doesn't look really good
+
+        int penWidth = attr->IsReadOnly() ? m_cellHighlightROPenWidth : m_cellHighlightPenWidth;
+
+        if (penWidth > 0)
+        {
+            // The center of th drawn line is where the position/width/height of
+            // the rectangle is actually at, (on wxMSW atr least,) so we will
+            // reduce the size of the rectangle to compensate for the thickness of
+            // the line.  If this is too strange on non wxMSW platforms then
+            // please #ifdef this appropriately.
+            rect.x += penWidth/2;
+            rect.y += penWidth/2;
+            rect.width -= penWidth-1;
+            rect.height -= penWidth-1;
 
 
-        // Now draw the rectangle
-        // use the cellHighlightColour if the cell is inside a selection, this
-        // will ensure the cell is always visible.
-        dc.SetPen(wxPen(IsInSelection(row,col)?m_selectionForeground:m_cellHighlightColour, penWidth, wxSOLID));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRectangle(rect);
+            // Now draw the rectangle
+            // use the cellHighlightColour if the cell is inside a selection, this
+            // will ensure the cell is always visible.
+            dc.SetPen(wxPen(IsInSelection(row,col)?m_selectionForeground:m_cellHighlightColour, penWidth, wxSOLID));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRectangle(rect);
+        }
     }
 
 #if 0
@@ -8155,7 +8179,8 @@ void wxGrid::SelectCell( int row, int column )
 {
     wxGridCellCoords newCellCoords( row, column );
 
-    ClearSelection(); 
+    if ( m_hasCursor || !m_selection || !m_selection->IsInSelection( newCellCoords.GetRow(), newCellCoords.GetCol() ) )
+        ClearSelection(); 
     MakeCellVisible( newCellCoords );
 	HighlightBlock( newCellCoords, newCellCoords );
     SetCurrentCell( newCellCoords );

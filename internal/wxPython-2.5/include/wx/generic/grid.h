@@ -1104,6 +1104,9 @@ public:
     void SetSelectionMode(wxGrid::wxGridSelectionModes selmode);
     wxGrid::wxGridSelectionModes GetSelectionMode() const;
 
+    bool HasCursor() const { return m_hasCursor; }
+    void EnableCursor( bool enableCursor );
+
     // ------ grid dimensions
     //
     int      GetNumberRows() { return  m_numRows; }
@@ -1908,6 +1911,7 @@ protected:
 
     bool       m_editable;              // applies to whole grid
     bool       m_cellEditCtrlEnabled;   // is in-place edit currently shown?
+    bool       m_hasCursor;
 
     int m_scrollLineX; // X scroll increment
     int m_scrollLineY; // Y scroll increment

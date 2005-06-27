@@ -1633,6 +1633,8 @@ public:
     void SetSelectionMode(WXGRIDSELECTIONMODES selmode);
     WXGRIDSELECTIONMODES GetSelectionMode();
 
+    bool HasCursor();
+    void EnableCursor( bool enableCursor );
 
     // ------ grid dimensions
     //
