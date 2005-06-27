@@ -1627,31 +1627,14 @@ class ReminderTimer(Timer):
         # logger.debug("*** next reminder due %s" % when)
         super(ReminderTimer, self).setFiringTime(when)
 
-"""
-Attribute Editor Block
-
-This Block uses the type of the attribute to determine how to display itself. 
-
-Issues
-------
-* Item Location.  I'm trying to use the "contents" attribute on Block to find 
-    the Item, but "contents" isn't set up yet by the Detail View.  I'm currently 
-    using a Hack that knows about how the Detail View finds the selected item.
-
-* Attribute Location.  Currently using  "viewAttribute" attribute.
-
-* Finalization.  We're relying on EVT_KILL_FOCUS to know when to end editing.  We 
-    know the Detail View doesn't always operate in ways that cause this to be reliable,
-    but I think these problems can be fixed there.
-
-"""
-        
 class AEBlock(BoxContainer):
     """
-      Attribute Editor Block
-    
-      Instantiates an Attribute Editor that's appropriate for the
-    attribute specified in this block.
+    Attribute Editor Block: instantiates an Attribute Editor appropriate for
+    the value of the specified attribute; the Attribute Editor then creates
+    the widget. Issues:
+    - Finalization.  We're relying on EVT_KILL_FOCUS to know when to end 
+      editing.  We know the Detail View doesn't always operate in ways that 
+      cause this to be reliable, but I think these problems can be fixed there.
     """
     schema.kindInfo(
         displayName="Attribute Editor Block Kind",
@@ -1695,7 +1678,7 @@ class AEBlock(BoxContainer):
         
         widget.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromWidget)
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
-        widget.Bind(wx.EVT_KEY_UP, self.OnKeyUpFromWidget)
+        widget.Bind(wx.EVT_KEY_UP, self.onKeyUpFromWidget)
         widget.Bind(wx.EVT_LEFT_DOWN, self.onClickFromWidget)
                     
         return widget
@@ -1721,7 +1704,8 @@ class AEBlock(BoxContainer):
         """
         def rerender():
             # Find the widget that corresponds to the view we're in
-            evtBoundaryWidget = getattr(self, 'widget', None)
+            existingWidget = getattr(self, 'widget', None)
+            evtBoundaryWidget = existingWidget
             while evtBoundaryWidget is not None:
                 if evtBoundaryWidget.blockItem.eventBoundary:
                     break
@@ -1732,46 +1716,44 @@ class AEBlock(BoxContainer):
             evtBoundaryWidget.Freeze()
             try:
                 # Destroy the old widget
-                existingWidget = getattr(self, 'widget', None) 
                 if existingWidget is not None:
                     oldEditor = existingWidget.editor
+                    #logger.debug("Destroying old widget for %s.%s", 
+                                 #oldEditor.item, oldEditor.attributeName)
                     oldEditor.EndControlEdit(oldEditor.item, 
                                              oldEditor.attributeName, 
                                              existingWidget)
-                    # logger.debug("Destroying old widget for %s.%s", oldEditor.item, oldEditor.attributeName)
                     self.unRender()
                 
-                # Set up the new one, then sync the view to update the sizers
+                # Set up the new widget
                 self.render()
-                if evtBoundaryWidget:
-                    evtBoundaryWidget.blockItem.synchronizeWidget()
-                # don't need this now, but might if AEs get used outside the DV: 
-                # else: 
-                #   self.render()
                 
+                # Grab focus if we're supposed to.
                 if self.forEditing and grabFocus:
-                    logger.debug("Grabbing focus.")
+                    logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
+                                 self.getAttributeName())
                     self.widget.SetFocus()
 
-                #logger.debug("Done rerendering.")
+                # Sync the view to update the sizers
+                if evtBoundaryWidget:
+                    evtBoundaryWidget.blockItem.synchronizeWidget()
             finally:
                 if evtBoundaryWidget:
                     evtBoundaryWidget.Thaw()
                 
         editor = self.lookupEditor()
         existingWidget = getattr(self, 'widget', None)
-        if editor.MustChangeControl(forEditing, existingWidget):
+        changing = editor.MustChangeControl(forEditing, existingWidget)
+        if changing:
             self.forEditing = forEditing
-            #logger.debug("Must change control!")
+            logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Must change." % \
+                         self.getAttributeName())
             wx.CallAfter(rerender)
-            return True # we changed
-        
-        #logger.debug("Not changing control!")
-        if not forEditing:
-            # write back the value
-            editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
-                                  existingWidget)
-        return False # we didn't change
+        else:
+            logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Not changing." % \
+                         self.getAttributeName())
+
+        return changing
         
     def lookupEditor(self):
         """
@@ -1893,18 +1875,23 @@ class AEBlock(BoxContainer):
           The widget lost focus - we're finishing editing.
         """
         logger.debug("AEBlock: %s, widget losing focus" % self.blockName)
+        
         if event is not None:
             event.Skip()
         
         # Workaround for wx Mac crash bug, 2857: ignore the event if we're being deleted
         widget = getattr(self, 'widget', None)
         if widget is None or widget.IsBeingDeleted() or widget.GetParent().IsBeingDeleted():
-            #logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
+            logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
             return
 
-        self.ChangeWidgetIfNecessary(False, False)
+        if not self.ChangeWidgetIfNecessary(False, False):
+            # Make sure the value is written back to the item. 
+            editor = self.lookupEditor()
+            editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
+                                  widget)
 
-    def OnKeyUpFromWidget(self, event):
+    def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
             self.ChangeWidgetIfNecessary(False, True)
             
@@ -1918,8 +1905,7 @@ class AEBlock(BoxContainer):
                     isMultiLine = False
                 if not isMultiLine:
                     self.widget.Navigate()
-        else:
-            event.Skip()
+        event.Skip()
 
     def onAttributeEditorValueChange(self):
         """ Called when the attribute editor changes the value """

@@ -372,9 +372,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         # logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
         if item is not None:
             value = self.GetControlValue (control)
-            logger.debug("EndControlEdit: value is '%s' ", value)
             self.SetAttributeValue (item, attributeName, value)
-            logger.debug("EndControlEdit: value set.")
 
     def GetControlValue (self, control):
         # return the empty string, if we're showing the sample value.
@@ -393,10 +391,12 @@ class StringAttributeEditor (BaseAttributeEditor):
     def onGainFocus(self, event):
         if self.showingSample:
             self.control.SetSelection(-1,-1)
+        event.Skip()
     
     def onLoseFocus(self, event):
         if self.showingSample:
             self.control.SetSelection(0,0)
+        event.Skip()
     
     def onTextChanged(self, event):
         if not getattr(self, "ignoreTextChanged", False):
@@ -533,6 +533,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         else:
             if cardinality == "single":
                 if self.GetAttributeValue(item, attributeName) != valueString:
+                    # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
                     setattr (item, attributeName, valueString)
                     self.AttributeChanged()
     
