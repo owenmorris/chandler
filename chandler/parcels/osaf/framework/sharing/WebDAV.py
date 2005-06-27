@@ -8,6 +8,7 @@ import zanshin.webdav
 import logging
 import crypto.ssl as ssl
 import M2Crypto.BIO
+import M2Crypto.SSL.Checker
 import chandlerdb.util.uuid
 import twisted.internet.error as error
 
@@ -106,6 +107,8 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (NO_ACCESS, err.status)
     except error.SSLError, err:
         return (IGNORE, None)
+    except M2Crypto.SSL.Checker.SSLVerificationError, err:
+        return (CANT_CONNECT, err)
         
     
     # Unique the child names returned by the server. (Note that
