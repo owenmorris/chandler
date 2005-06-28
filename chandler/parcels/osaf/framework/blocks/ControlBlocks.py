@@ -1893,7 +1893,12 @@ class AEBlock(BoxContainer):
 
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
-            self.ChangeWidgetIfNecessary(False, True)
+            if not self.ChangeWidgetIfNecessary(False, True):
+                # write back the value
+                editor = self.lookupEditor()
+                editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
+                                      self.widget)
+                
             
             # Do the tab thing if we're not a multiline thing
             # @@@ Actually, don't; it doesn't mix well when one of the fields you'd
