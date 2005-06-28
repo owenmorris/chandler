@@ -1342,11 +1342,11 @@
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
-  <calendar:CanvasWeek itsName="CalendarSummaryView">
+  <calendar:CalendarContainer itsName="CalendarSummaryView">
     <contents itemref="doc:allItemCollection"/>
     <blockName>CalendarSummaryView</blockName>
     <daysPerView>7</daysPerView>
-  </calendar:CanvasWeek>
+  </calendar:CalendarContainer>
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>
@@ -1501,15 +1501,15 @@
     <columnReadOnly>True</columnReadOnly>
   </Table>
 
-  <calendar:CanvasWeek itsName="CPIATestWeek">
+  <calendar:CalendarContainer itsName="CPIATestWeek">
     <contents itemref="core:None"/>
     <daysPerView>7</daysPerView>
-  </calendar:CanvasWeek>
+  </calendar:CalendarContainer>
 
-  <calendar:CanvasWeek itsName="CPIATestDay">
+  <calendar:CalendarContainer itsName="CPIATestDay">
     <contents itemref="core:None"/>
     <daysPerView>1</daysPerView>
-  </calendar:CanvasWeek>
+  </calendar:CalendarContainer>
 
   <TrunkParentBlock itsName="CPIATestSummaryDetailTPB">
     <blockName>CPIATestSummaryDetailTPB</blockName>
