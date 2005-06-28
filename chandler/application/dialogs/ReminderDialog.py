@@ -59,7 +59,7 @@ class ReminderDialog(wx.Dialog):
         # Note when we're being destroyed, so we can ignore subsequent events
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
 
-        # Save controls using attribute names that hopefully wont collide with
+        # Save controls using an attribute name that hopefully won't collide with
         # any wx attributes
         self.reminderControls = { 'list': listCtrl, 'snooze': snoozeButton, 'dismiss': dismissButton, 'dismissAll': dismissAllButton }
 
@@ -184,7 +184,11 @@ class ReminderDialog(wx.Dialog):
     def getListItems(self, selectedOnly):
         """ Provide iteration over ListCtrl items """
         listCtrl = self.reminderControls['list']
+        # Note: because our caller may be updating the list, we don't act
+        # like a generator; return the whole list at once.
+        results = []
         for index in range(listCtrl.GetItemCount()):
             if not selectedOnly or listCtrl.GetItemState(index, wx.LIST_STATE_SELECTED):
-                yield self.remindersInList[index]
+                results.append(self.remindersInList[index])
+        return results
        
