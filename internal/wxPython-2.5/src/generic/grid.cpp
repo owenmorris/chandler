@@ -4090,7 +4090,7 @@ wxGrid::wxGridSelectionModes wxGrid::GetSelectionMode() const
 
 void wxGrid::EnableCursor( bool enableCursor )
 {
-    if( enableCursor != m_hasCursor )
+    if ( enableCursor != m_hasCursor )
     {
         m_hasCursor = enableCursor;
 
@@ -5561,10 +5561,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                        coords.GetCol(),
                        event ) )
         {
-            if ( !event.ControlDown() &&
-                 ( m_hasCursor || !m_selection || !m_selection->IsInSelection( coords.GetRow(), coords.GetCol() ) ) )
-                // Only clear the selection if we're going to change it
-                ClearSelection();
+            bool clearSelection = !event.ControlDown();
             if ( event.ShiftDown() )
             {
                 if ( m_selection )
@@ -5605,7 +5602,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                     m_waitForSlowClick = m_currentCellCoords == coords && coords != wxGridNoCellCoords;
                     SetCurrentCell( coords );
                     if ( m_selection )
-                        HighlightBlock( coords, coords );
+                        HighlightBlock( coords, coords, clearSelection );
                 }
             }
         }
@@ -5625,8 +5622,10 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                              coords.GetCol(),
                              event ) )
             {
-                // we want double click to select a cell and start editing
-                // (i.e. to behave in same way as sequence of two slow clicks):
+                // We want double click to select a cell and start editing
+                // (i.e. to behave in same way as sequence of two slow clicks)
+                // except when we don't have a cursor, in which case double
+                // click starts editing
                 if( m_hasCursor )
                     m_waitForSlowClick = true;
                 else if ( coords == m_currentCellCoords && CanEnableCellControl() )
@@ -5657,6 +5656,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                 m_winCapture = NULL;
             }
 
+            // Single click starts editing only if we have a cursor
             if ( m_hasCursor && coords == m_currentCellCoords && m_waitForSlowClick && CanEnableCellControl() )
             {
                 ClearSelection();
@@ -5685,8 +5685,13 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                                               event.MetaDown() );
                 }
 
-                m_selectingTopLeft = wxGridNoCellCoords;
-                m_selectingBottomRight = wxGridNoCellCoords;
+                //In the past we cleared the selection here, however, we now keep
+                //the selection around so that HighlightBlock can avoid clearing
+                //the selection with it doesn't change, which avoids flicker,
+                //expecially when we don't have a cursor.
+                //
+                //m_selectingTopLeft = wxGridNoCellCoords;
+                //m_selectingBottomRight = wxGridNoCellCoords;
 
                 // Show the edit control, if it has been hidden for
                 // drag-shrinking.
@@ -6628,8 +6633,10 @@ void wxGrid::SetCurrentCell( const wxGridCellCoords& coords )
 }
 
 
-void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol )
+void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol, bool clearSelection)
 {
+    // When clearSelection is true the current selection will be cleared if is different
+    // from the new selection. This eliminates unnecessary flicker.
     int temp;
     wxGridCellCoords updateTopLeft, updateBottomRight;
 
@@ -6663,6 +6670,10 @@ void wxGrid::HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCo
 
     updateTopLeft = wxGridCellCoords( topRow, leftCol );
     updateBottomRight = wxGridCellCoords( bottomRow, rightCol );
+
+    if ( clearSelection && (m_selectingTopLeft != updateTopLeft ||
+                            m_selectingBottomRight != updateBottomRight) )
+        ClearSelection();
 
     // First the case that we selected a completely new area
     if ( m_selectingTopLeft == wxGridNoCellCoords ||
@@ -8179,10 +8190,8 @@ void wxGrid::SelectCell( int row, int column )
 {
     wxGridCellCoords newCellCoords( row, column );
 
-    if ( m_hasCursor || !m_selection || !m_selection->IsInSelection( newCellCoords.GetRow(), newCellCoords.GetCol() ) )
-        ClearSelection(); 
     MakeCellVisible( newCellCoords );
-	HighlightBlock( newCellCoords, newCellCoords );
+	HighlightBlock( newCellCoords, newCellCoords, /* clearSelection is */ true );
     SetCurrentCell( newCellCoords );
     if( m_selection )
         m_selection->SelectBlock( m_selectingTopLeft.GetRow(), m_selectingTopLeft.GetCol(),

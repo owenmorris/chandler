@@ -1944,12 +1944,14 @@ protected:
     void SetCurrentCell( int row, int col )
         { SetCurrentCell( wxGridCellCoords(row, col) ); }
 
-    void HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol );
+    void HighlightBlock( int topRow, int leftCol, int bottomRow, int rightCol,
+                         bool clearSelection = false );
 
     void HighlightBlock( const wxGridCellCoords& topLeft,
-                         const wxGridCellCoords& bottomRight )
+                         const wxGridCellCoords& bottomRight,
+                         bool clearSelection = false )
         { HighlightBlock( topLeft.GetRow(), topLeft.GetCol(),
-                       bottomRight.GetRow(), bottomRight.GetCol() ); }
+                       bottomRight.GetRow(), bottomRight.GetCol(), clearSelection ); }
     void SelectCell( int row, int column );
 
     // ------ functions to get/send data (see also public functions)

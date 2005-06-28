@@ -353,6 +353,13 @@ Disables row sizing by dragging with the mouse. Equivalent to passing false to
 Enables or disables in-place editing of grid cell data. The grid will issue either a
 wxEVT\_GRID\_EDITOR\_SHOWN or wxEVT\_GRID\_EDITOR\_HIDDEN event.
 
+\membersection{wxGrid::EnableCursor}\label{wxgridenablecursor}
+
+\func{void}{EnableCursor}{\param{bool }{enableCursor}}
+
+Controls whether or not the grid displays the cursor. When the cursor is displayed a single
+click causes the cell be edited, otherwise double click to edit a cell.
+
 \membersection{wxGrid::EnableDragColSize}\label{wxgridenabledragcolsize}
 
 \func{void}{EnableDragColSize}{\param{bool }{enable = true}}
@@ -815,6 +822,12 @@ Returns a base pointer to the current table object.
 \func{int}{GetViewWidth}{\void}
 
 Returned number of whole cols visible.
+
+\membersection{wxGrid::HasCursor}\label{wxgridgehascursor}
+
+\func{bool}{HasCursor}{\void}
+
+Returns true if the grid displays the cursor.
 
 \membersection{wxGrid::HideCellEditControl}\label{wxgridhidecelleditcontrol}
 
