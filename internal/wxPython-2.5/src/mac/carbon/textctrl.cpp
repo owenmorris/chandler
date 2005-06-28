@@ -46,7 +46,6 @@
 #include "wx/utils.h"
 #include "wx/sysopt.h"
 #include "wx/menu.h"
-#include "wx/notebook.h"
 
 #if defined(__BORLANDC__) && !defined(__WIN32__)
   #include <alloc.h>
@@ -373,6 +372,8 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
     EVT_MENU(wxID_PASTE, wxTextCtrl::OnPaste)
     EVT_MENU(wxID_UNDO, wxTextCtrl::OnUndo)
     EVT_MENU(wxID_REDO, wxTextCtrl::OnRedo)
+    EVT_MENU(wxID_CLEAR, wxTextCtrl::OnDelete)
+    EVT_MENU(wxID_SELECTALL, wxTextCtrl::OnSelectAll)
 
 #if defined(_USE_CONTEXT_MENU_)
     EVT_CONTEXT_MENU(wxTextCtrl::OnContextMenu)
@@ -383,6 +384,8 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
     EVT_UPDATE_UI(wxID_PASTE, wxTextCtrl::OnUpdatePaste)
     EVT_UPDATE_UI(wxID_UNDO, wxTextCtrl::OnUpdateUndo)
     EVT_UPDATE_UI(wxID_REDO, wxTextCtrl::OnUpdateRedo)
+    EVT_UPDATE_UI(wxID_CLEAR, wxTextCtrl::OnUpdateDelete)
+    EVT_UPDATE_UI(wxID_SELECTALL, wxTextCtrl::OnUpdateSelectAll)
 END_EVENT_TABLE()
 
 // Text item
@@ -1011,6 +1014,19 @@ void wxTextCtrl::OnRedo(wxCommandEvent& WXUNUSED(event))
     Redo();
 }
 
+void wxTextCtrl::OnDelete(wxCommandEvent& WXUNUSED(event))
+{
+    long from, to;
+    GetSelection(& from, & to);
+    if (from != -1 && to != -1)
+        Remove(from, to);
+}
+
+void wxTextCtrl::OnSelectAll(wxCommandEvent& WXUNUSED(event))
+{
+    SetSelection(-1, -1);
+}
+
 void wxTextCtrl::OnUpdateCut(wxUpdateUIEvent& event)
 {
     event.Enable( CanCut() );
@@ -1034,6 +1050,18 @@ void wxTextCtrl::OnUpdateUndo(wxUpdateUIEvent& event)
 void wxTextCtrl::OnUpdateRedo(wxUpdateUIEvent& event)
 {
     event.Enable( CanRedo() );
+}
+
+void wxTextCtrl::OnUpdateDelete(wxUpdateUIEvent& event)
+{
+    long from, to;
+    GetSelection(& from, & to);
+    event.Enable(from != -1 && to != -1 && from != to && IsEditable()) ;
+}
+
+void wxTextCtrl::OnUpdateSelectAll(wxUpdateUIEvent& event)
+{
+    event.Enable(GetLastPosition() > 0);
 }
 
 #if defined(_USE_CONTEXT_MENU_)

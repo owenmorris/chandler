@@ -159,14 +159,22 @@ public:
     void OnPaste(wxCommandEvent& event);
     void OnUndo(wxCommandEvent& event);
     void OnRedo(wxCommandEvent& event);
+    void OnDelete(wxCommandEvent& event);
+    void OnSelectAll(wxCommandEvent& event);
 
     void OnUpdateCut(wxUpdateUIEvent& event);
     void OnUpdateCopy(wxUpdateUIEvent& event);
     void OnUpdatePaste(wxUpdateUIEvent& event);
     void OnUpdateUndo(wxUpdateUIEvent& event);
     void OnUpdateRedo(wxUpdateUIEvent& event);
+    void OnUpdateDelete(wxUpdateUIEvent& event);
+    void OnUpdateSelectAll(wxUpdateUIEvent& event);
 
     void OnEraseBackground(wxEraseEvent& event) ;
+
+#if defined(_USE_CONTEXT_MENU_)
+    void OnContextMenu(wxContextMenuEvent& event);
+#endif
 
     virtual bool MacCanFocus() const { return true ; }
     virtual bool MacSetupCursor( const wxPoint& pt ) ;
@@ -189,10 +197,6 @@ public:
 protected:
     // common part of all ctors
     void Init();
-
-#if defined(_USE_CONTEXT_MENU_)
-    void OnContextMenu(wxContextMenuEvent& event);
-#endif
 
   virtual wxSize            DoGetBestSize() const;
 
