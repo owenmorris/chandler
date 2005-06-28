@@ -11,15 +11,17 @@ from repository.item.Item import Item
 from repository.item.Monitors import Monitors
 from repository.schema.Attribute import Attribute
 from repository.schema.Kind import Kind
+from repository.tests.classes.Movie import Cartoon
 
-class MixinTest(RepositoryTestCase):
+
+class TestMixins(RepositoryTestCase):
     """
     Unit tests for mixin kinds
     """
 
     def setUp(self):
 
-        super(MixinTest, self).setUp()
+        super(TestMixins, self).setUp()
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
@@ -71,6 +73,24 @@ class MixinTest(RepositoryTestCase):
         mixin = kh.mixinKinds(('add', movie), ('add', attribute))
 
         self.assert_(m1.monitorAttribute == 'kind')
+
+    def testClassChange(self):
+
+        main = self.rep.view
+        m_kh = main.findPath('//CineGuide/KHepburn')
+        m_m1 = m_kh.movies.first()
+
+        view = self.rep.createView('view')
+        v_kh = view.findPath('//CineGuide/KHepburn')
+        v_m1 = v_kh.movies.first()
+        v_m1.__class__ = Cartoon
+        v_m1.title += ' - Cartoon'
+        view.commit()
+
+        main.refresh()
+        self.assert_(type(m_m1) is Cartoon)
+        self.assert_(m_m1.title.endswith('Cartoon'))
+        
 
 
 if __name__ == "__main__":

@@ -403,8 +403,7 @@ class DBItemReader(ItemReader):
         instance = view._reuseItemInstance(self.uItem)
         if instance is not None:
             if cls is not type(instance):
-                raise LoadError, (self.name or self.uItem,
-                                  'Class changed from %s to %s' %(type(instance), cls))
+                instance.__class__ = cls
             item = self.item = instance
             status |= item._status & item.PINNED
         else:

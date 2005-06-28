@@ -25,3 +25,6 @@ class Movie(Item):
 
         print op, self, item, name, other, args
 
+
+class Cartoon(Movie):
+    pass
