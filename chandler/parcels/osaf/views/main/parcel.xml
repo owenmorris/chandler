@@ -1335,7 +1335,7 @@
   </DetailTrunkDelegate>
 
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
-    <blockName>CalendarSummaryView</blockName>
+    <blockName>CalendarSummaryViewTemplate</blockName>
     <childrenBlocks itemref="doc:CalendarSummaryView"/>
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
