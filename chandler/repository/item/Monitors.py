@@ -57,11 +57,13 @@ class Monitors(Item):
                 continue
             if monitorArgs:
                 if args:
-                    args = list(args)
-                    args.extend(monitorArgs)
+                    _args = list(args)
+                    _args.extend(monitorArgs)
                 else:
-                    args = monitorArgs
-            getattr(monitorItem, method)(op, item, attribute, *args, **kwds)
+                    _args = monitorArgs
+            else:
+                _args = args
+            getattr(monitorItem, method)(op, item, attribute, *_args, **kwds)
 
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
