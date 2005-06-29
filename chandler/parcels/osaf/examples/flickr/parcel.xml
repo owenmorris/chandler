@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<core:Parcel itsName="flickr"
+        xmlns:core="http://osafoundation.org/parcels/core"
+	xmlns="http://osafoundation.org/parcels/osaf/framework/blocks" 
+	xmlns:doc="http://osafoundation.org/parcels/osaf/examples/flickr"
+	xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
+	xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+	xmlns:flickr="http://osafoundation.org/parcels/osaf/examples/flickr"
+	xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup">
+
+  <!-- Block definitions for Menu -->
+    
+  <MenuItem itsName="NewFlickrCollectionByOwner">
+    <blockName>NewFlickrCollectionByOwnerItem</blockName>
+    <title>New Flickr Collection by Owner</title>
+    <event itemref="doc:NewFlickrCollectionByOwnerEvent"/>
+    <parentBlock itemref="main:NewItemMenu"/>
+  </MenuItem>
+ 
+  <MenuItem itsName="NewFlickrCollectionByTag">
+    <blockName>NewFlickrCollectionByTagItem</blockName>
+    <title>New Flickr Collection by Tag</title>
+    <event itemref="doc:NewFlickrCollectionByTagEvent"/>
+    <parentBlock itemref="main:NewItemMenu"/>
+  </MenuItem>
+ 
+  <BlockEvent itsName="NewFlickrCollectionByOwnerEvent">
+    <blockName>NewFlickrCollectionByOwner</blockName>
+    <dispatchEnum>SendToBlockByReference</dispatchEnum>
+    <destinationBlockReference itemref="doc:controller"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </BlockEvent>
+
+  <BlockEvent itsName="NewFlickrCollectionByTagEvent">
+    <blockName>NewFlickrCollectionByTag</blockName>
+    <dispatchEnum>SendToBlockByReference</dispatchEnum>
+    <destinationBlockReference itemref="doc:controller"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </BlockEvent>
+
+  <flickr:FlickrCollectionController itsName="controller" />
+
+  <!-- Block definitions for detail view -->
+
+  <detail:DetailTrunkSubtree>
+    <!-- this DetailTrunkSubtree is for FlikrItems -->
+    <key itemref="flickr:Photo"/>
+
+    <!-- define UI Elements -->
+    <rootBlocks itemref="detail:MarkupBar"/>
+    <rootBlocks itemref="doc:PhotoBlockItem"/>
+    <rootBlocks itemref="doc:AuthorArea"/>
+    <!--rootBlocks itemref="doc:CategoryArea"/-->
+  </detail:DetailTrunkSubtree>
+  
+  <DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
+    <position>0</position>
+    <selectedItemsAttribute>owner</selectedItemsAttribute>
+    <childrenBlocks itemref="doc:AuthorLabel"/>
+    <childrenBlocks itemref="doc:AuthorAttribute"/>
+    <stretchFactor>0</stretchFactor>
+  </DetailSynchronizedLabeledTextAttributeBlock>
+
+  <StaticRedirectAttributeLabel itsName="AuthorLabel">
+    <title>author</title>
+    <characterStyle itemref="LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Right</textAlignmentEnum>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticRedirectAttributeLabel>
+
+  <StaticRedirectAttribute itsName="AuthorAttribute">
+    <title>author</title>
+    <characterStyle itemref="LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+  </StaticRedirectAttribute>
+
+  <flickr:PhotoBlock itsName="PhotoBlockItem">
+    <blockName value="articletext"/>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>    
+  </flickr:PhotoBlock>
+
+  <!-- Block definitions for WakeCallers -->
+
+<!-- 
+   <wakeupCall:WakeupCall itsName="Flickr">
+       <wakeupCallClass>flickr.flickrWakeup.WakeupCall</wakeupCallClass>
+       <callOnStartup>True</callOnStartup>
+       <enabled>True</enabled>
+       <repeat>True</repeat>
+       <delay>00:01:00:00</delay>
+   </wakeupCall:WakeupCall>
+-->    
+
+</core:Parcel>
