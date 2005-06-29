@@ -8,8 +8,6 @@
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              >
     
-    <core:namespace value="http://osafoundation.org/parcels/osaf/framework/certstore/blocks"/>
-    
     <MenuItem itsName="CertificateView">
       <blockName>CertificateView</blockName>
       <title>Manage Certificates</title>

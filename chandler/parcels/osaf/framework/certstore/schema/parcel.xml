@@ -5,7 +5,6 @@
         xmlns:doc="http://osafoundation.org/parcels/osaf/framework/certstore/schema"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
 
-  <namespace value="http://osafoundation.org/parcels/osaf/framework/certstore/schema"/>
   <displayName>Certificate store</displayName>
   <description>This is a certstore parcel</description>
 
