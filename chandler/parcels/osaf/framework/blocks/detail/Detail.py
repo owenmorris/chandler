@@ -11,7 +11,6 @@ from osaf.framework.blocks import Block
 from osaf.framework.blocks import DynamicContainerBlocks
 from osaf.framework.blocks import ControlBlocks
 from osaf.framework.blocks import ContainerBlocks
-from osaf.framework.blocks.detail import DetailTrunkSubtree
 import osaf.framework.sharing.Sharing as Sharing
 from osaf.framework.blocks import Trunk
 import osaf.contentmodel.mail.Mail as Mail
@@ -320,7 +319,8 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         if item is None:
             # We use the subtree kind itself as the key for displaying nothing
             # (Mimi wants a particular look when no item is selected)
-            return DetailTrunkSubtree, False
+            trunkSubtreeKind = self.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
+            return trunkSubtreeKind, False
         else:
             return item.itsKind, False
     
@@ -369,6 +369,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         try:
             subtrees = self.subtreeList
         except AttributeError:
+            from osaf.framework.blocks.detail import DetailTrunkSubtree
             subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
             self.subtreeList = subtrees
         return subtrees
