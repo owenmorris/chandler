@@ -106,7 +106,13 @@ class wxSidebar(ControlBlocks.wxTable):
                 self.buttonPressed = True
                 self.RefreshRect (self.imageRect)
 
+        elif event.LeftDClick():
+            assert gridWindow.HasCapture()
+            gridWindow.ReleaseMouse()
+            del self.hoverImageRow
+
         elif hasattr (self, "hoverImageRow"):
+            assert gridWindow.HasCapture()
             if event.LeftUp():
                 if self.imageRect.InsideXY (event.GetX(), event.GetY()):
                     checkedItems = self.blockItem.checkedItems
@@ -120,8 +126,7 @@ class wxSidebar(ControlBlocks.wxTable):
                 elif not self.cellRect.InsideXY (event.GetX(), event.GetY()):
                     self.RefreshRect (self.imageRect)
                     del self.hoverImageRow
-                    if gridWindow.HasCapture():
-                        gridWindow.ReleaseMouse()
+                    gridWindow.ReleaseMouse()
                 self.buttonPressed = False
 
             elif not event.LeftIsDown():
@@ -129,8 +134,7 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.RefreshRect (self.imageRect)
                     del self.hoverImageRow
                     self.buttonPressed = False
-                    if gridWindow.HasCapture():
-                        gridWindow.ReleaseMouse()
+                    gridWindow.ReleaseMouse()
 
             elif (self.buttonPressed and
                   self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
