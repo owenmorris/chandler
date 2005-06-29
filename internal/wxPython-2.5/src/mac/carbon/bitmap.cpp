@@ -271,9 +271,14 @@ IconRef wxBitmapRefData::GetIconRef()
     
         IconFamilyHandle iconFamily = NULL ;
         
+#ifdef WORDS_BIGENDIAN
         iconFamily = (IconFamilyHandle) NewHandle(8) ;
         (**iconFamily).resourceType = kIconFamilyType ;
         (**iconFamily).resourceSize = sizeof(OSType) + sizeof(Size);
+#else
+        // test this solution on big endian as well
+        iconFamily = (IconFamilyHandle) NewHandle(0) ;
+#endif
         
         int w = GetWidth() ;
         int h = GetHeight() ;
@@ -819,14 +824,14 @@ void wxBitmap::EndRawAccess()
 bool wxBitmap::CreateFromXpm(const char **bits)
 {
 #if wxUSE_IMAGE
-    wxCHECK_MSG( bits != NULL, FALSE, wxT("invalid bitmap data") )
+    wxCHECK_MSG( bits != NULL, false, wxT("invalid bitmap data") )
     wxXPMDecoder decoder;
     wxImage img = decoder.ReadData(bits);
-    wxCHECK_MSG( img.Ok(), FALSE, wxT("invalid bitmap data") )
+    wxCHECK_MSG( img.Ok(), false, wxT("invalid bitmap data") )
     *this = wxBitmap(img);
-    return TRUE;
+    return true;
 #else
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -943,7 +948,7 @@ bool wxBitmap::Create(void *data, wxBitmapType type, int width, int height, int 
     if ( handler == NULL ) {
         wxLogWarning(wxT("no bitmap handler for type %d defined."), type);
 
-        return FALSE;
+        return false;
     }
 
     return handler->Create(this, data, type, width, height, depth);
@@ -959,7 +964,7 @@ wxBitmap::wxBitmap(const wxImage& image, int depth)
     int width = image.GetWidth();
     int height = image.GetHeight();
 
-    m_refData = new wxBitmapRefData( width , height , depth ) ;;
+    m_refData = new wxBitmapRefData( width , height , depth ) ;
 
     // Create picture
 
@@ -1104,22 +1109,24 @@ wxImage wxBitmap::ConvertToImage() const
 bool wxBitmap::SaveFile(const wxString& filename, wxBitmapType type,
                         const wxPalette *palette) const
 {
+    bool success = false;
     wxBitmapHandler *handler = FindHandler(type);
 
     if ( handler )
     {
-        return handler->SaveFile(this, filename, type, palette);
+        success = handler->SaveFile(this, filename, type, palette);
     }
     else
     {
 #if wxUSE_IMAGE
         wxImage image = ConvertToImage();
-        return image.SaveFile(filename, type);
+        success = image.SaveFile(filename, type);
+#else
+        wxLogWarning(wxT("no bitmap handler for type %d defined."), type);
 #endif
     }
 
-    wxLogWarning(wxT("no bitmap handler for type %d defined."), type);
-    return false;
+    return success;
 }
 
 bool wxBitmap::Ok() const
@@ -1349,7 +1356,7 @@ bool wxMask::Create(const wxBitmap& bitmap)
     }
     m_memBuf.UngetWriteBuf( size ) ;
     RealizeNative() ;
-    return TRUE;
+    return true;
 }
 
 // Create a mask from a bitmap and a colour indicating
@@ -1381,7 +1388,7 @@ bool wxMask::Create(const wxBitmap& bitmap, const wxColour& colour)
     }
     m_memBuf.UngetWriteBuf( size ) ;
     RealizeNative() ;
-    return TRUE;
+    return true;
 }
 
 WXHBITMAP wxMask::GetHBITMAP() const
@@ -1399,18 +1406,18 @@ wxBitmapHandler::~wxBitmapHandler()
 
 bool wxBitmapHandler::Create(wxBitmap *bitmap, void *data, long type, int width, int height, int depth)
 {
-    return FALSE;
+    return false;
 }
 
 bool wxBitmapHandler::LoadFile(wxBitmap *bitmap, const wxString& name, long flags,
         int desiredWidth, int desiredHeight)
 {
-    return FALSE;
+    return false;
 }
 
 bool wxBitmapHandler::SaveFile(const wxBitmap *bitmap, const wxString& name, int type, const wxPalette *palette)
 {
-    return FALSE;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -1451,10 +1458,10 @@ bool  wxPICTResourceHandler::LoadFile(wxBitmap *bitmap, const wxString& name, lo
         dc.SelectObject( *bitmap ) ;
         mf.Play( &dc ) ;
         dc.SelectObject( wxNullBitmap ) ;
-        return TRUE ;
+        return true ;
     }
 #endif //wxUSE_METAFILE
-    return FALSE ;
+    return false ;
 }
 
 
