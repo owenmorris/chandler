@@ -952,13 +952,14 @@ def initRepository(rv,
     if not hasattr(rv,'_schema_cache'):
         item_kind = rv.findPath('//Schema/Core/Item')
         rv._schema_cache = {
-            Base: item_kind, Item: item_kind, SchemaStruct: Types.Struct
+            Base: item_kind, Item: item_kind, 
         }
 
         # Make all core kinds available for subclassing, etc.
         for core_item in rv.findPath('//Schema/Core').iterChildren():
             if isinstance(core_item,Kind):
                 cls = core_item.classes['python']
+                core_item._setupClass(cls)
                 if cls is not Base:
                     assert cls not in rv._schema_cache, (
                         "Two kinds w/same non-Item class in core schema",
@@ -967,6 +968,8 @@ def initRepository(rv,
                         rv._schema_cache[cls].itsPath
                     )
                     rv._schema_cache[cls] = core_item
+
+
 
 
 def declareTemplate(item):
