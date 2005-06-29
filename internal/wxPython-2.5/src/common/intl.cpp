@@ -496,7 +496,6 @@ public:
     ~wxPluralFormsCalculator() {}
 
     void  init(wxPluralFormsToken::Number nplurals, wxPluralFormsNode* plural);
-    wxString getString() const;
 
 private:
     wxPluralFormsToken::Number m_nplurals;
@@ -1792,7 +1791,7 @@ void wxLocale::AddCatalogLookupPathPrefix(const wxString& prefix)
          (langFull.Len() == LEN_FULL && langFull[LEN_LANG] == wxT('_')) )
     {
         // 0. Make sure the lang is according to latest ISO 639
-        //    (this is neccessary because glibc uses iw and in instead
+        //    (this is necessary because glibc uses iw and in instead
         //    of he and id respectively).
 
         // the language itself (second part is the dialect/sublang)
@@ -2278,10 +2277,15 @@ wxFontEncoding wxLocale::GetSystemEncoding()
 #if defined(__WIN32__) && !defined(__WXMICROWIN__)
     UINT codepage = ::GetACP();
 
-    // wxWidgets only knows about CP1250-1257, 932, 936, 949, 950
+    // wxWidgets only knows about CP1250-1257, 874, 932, 936, 949, 950
     if ( codepage >= 1250 && codepage <= 1257 )
     {
         return (wxFontEncoding)(wxFONTENCODING_CP1250 + codepage - 1250);
+    }
+
+    if ( codepage == 874 )
+    {
+        return wxFONTENCODING_CP874;
     }
 
     if ( codepage == 932 )

@@ -140,16 +140,28 @@ static void
 TIFFwxWarningHandler(const char* module, const char* fmt, va_list ap)
 {
     if (module != NULL)
-            wxLogWarning(_("tiff module: %s"), module);
-    wxLogWarning((wxChar *) fmt, ap);
+        wxLogWarning(_("tiff module: %s"), wxString::FromAscii(module).c_str());
+
+    // FIXME: this is not terrible informative but better than crashing!
+#if wxUSE_UNICODE
+    wxLogWarning(_("TIFF library warning."));
+#else
+    wxVLogWarning(fmt, ap);
+#endif
 }
 
 static void
 TIFFwxErrorHandler(const char* module, const char* fmt, va_list ap)
 {
     if (module != NULL)
-            wxLogError(_("tiff module: %s"), module);
-    wxVLogError((wxChar *) fmt, ap);
+        wxLogError(_("tiff module: %s"), wxString::FromAscii(module).c_str());
+
+    // FIXME: as above
+#if wxUSE_UNICODE
+    wxLogError(_("TIFF library error."));
+#else
+    wxVLogError(fmt, ap);
+#endif
 }
 
 } // extern "C"
@@ -343,9 +355,9 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
             image->HasOption(wxIMAGE_OPTION_RESOLUTIONY) )
     {
         TIFFSetField(tif, TIFFTAG_XRESOLUTION,
-                        image->GetOptionInt(wxIMAGE_OPTION_RESOLUTIONX));
+                        (float)image->GetOptionInt(wxIMAGE_OPTION_RESOLUTIONX));
         TIFFSetField(tif, TIFFTAG_YRESOLUTION,
-                        image->GetOptionInt(wxIMAGE_OPTION_RESOLUTIONY));
+                        (float)image->GetOptionInt(wxIMAGE_OPTION_RESOLUTIONY));
     }
 
     int spp = image->GetOptionInt(wxIMAGE_OPTION_SAMPLESPERPIXEL);
@@ -394,8 +406,6 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
 
     TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,TIFFDefaultStripSize(tif, (uint32) -1));
 
-    uint8 bitmask;
-
     unsigned char *ptr = image->GetData();
     for ( int row = 0; row < image->GetHeight(); row++ )
     {
@@ -411,7 +421,6 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
                 for ( int column = 0; column < linebytes; column++ )
                 {
                     uint8 reverse = 0;
-                    bitmask = 1;
                     for ( int bp = 0; bp < 8; bp++ )
                     {
                         if ( ptr[column*24 + bp*3] > 0 )
@@ -419,8 +428,6 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
                             // check only red as this is sufficient
                             reverse = reverse | 128 >> bp;
                         }
-
-                        bitmask <<= 1;
                     }
 
                     buf[column] = reverse;
