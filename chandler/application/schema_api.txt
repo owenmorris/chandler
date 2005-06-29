@@ -264,7 +264,7 @@ Aspect Attributes
     ``defaultValue``, ``initialValue``, ``inheritFrom``, ``redirectTo``,
     ``otherName``, ``companion``, ``deletePolicy``, ``copyPolicy``,
     ``countPolicy``, ``type``, ``superAttribute``, ``displayName``, and
-    ``description.  You can supply any of these as keyword arguments to a
+    ``description``.  You can supply any of these as keyword arguments to a
     Role constructor (such as ``schema.One``, ``schema.Many``, etc.), in order
     to set the corresponding value for the attribute.  Unspecified aspects will
     take on their normal default values, except for ``otherName``, which is
