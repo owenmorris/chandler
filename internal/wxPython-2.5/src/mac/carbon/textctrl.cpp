@@ -40,7 +40,6 @@
 #include "wx/button.h"
 #include "wx/toplevel.h"
 #include "wx/textctrl.h"
-#include "wx/tabctrl.h"
 #include "wx/settings.h"
 #include "wx/filefn.h"
 #include "wx/utils.h"
