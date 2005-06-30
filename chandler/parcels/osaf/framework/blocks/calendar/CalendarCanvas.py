@@ -11,8 +11,8 @@ import wx
 import wx.colheader
 import wx.lib.colourselect as colourselect
 
-from datetime import datetime, timedelta, date
-from PyICU import GregorianCalendar, DateFormatSymbols
+from datetime import datetime, timedelta, date, time
+from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat
 
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ContentModel as ContentModel
@@ -1553,6 +1553,22 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             self.dayWidth = self.parent.dayWidth
 
+    @staticmethod
+    def GetLocaleHourStrings(hourrange):
+        """
+        use PyICU to format the hour, because some locales
+        use a 24 hour clock
+        """
+        timeFormatter = DateFormat.createTimeInstance()
+        hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
+        dummyDate = date.today()
+        
+        for hour in hourrange:
+            hourdate = datetime.combine(dummyDate, time(hour))
+            timeString = timeFormatter.format(hourdate, hourFP)
+            (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
+            hourString = str(timeString)[start:end]
+            yield hour, hourString
 
     def DrawBackground(self, dc):
         styles = self.parent
@@ -1571,41 +1587,34 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         # Draw the lines separating hours
         halfHourHeight = self.hourHeight/2
-        for hour in range(24):
 
-            # Draw the hour legend
-            if (hour > 0):
-                if (hour == 1):
-                    hourString = "am 1"
-                elif (hour == 12): 
-                    hourString = "pm 12"
-                elif (hour > 12):
-                    hourString = str(hour - 12)
-                else:
-                    hourString = str(hour)
+        # we'll need these for hour formatting
+        for hour,hourString in self.GetLocaleHourStrings(range(24)):
+
+            if hour > 0:
+                # Draw the hour legend
                 wText, hText = dc.GetTextExtent(hourString)
                 dc.DrawText(hourString,
                             self.xOffset - wText - 5,
-                             hour * self.hourHeight - (hText/2))
-
+                            hour * self.hourHeight - (hText/2))
+            
             # Draw the line between hours
             dc.SetPen(styles.majorLinePen)
             dc.DrawLine(self.xOffset,
-                         hour * self.hourHeight,
+                        hour * self.hourHeight,
                         self.size.width,
-                         hour * self.hourHeight)
+                        hour * self.hourHeight)
 
             # Draw the line between half hours
             dc.SetPen(styles.minorLinePen)
             dc.DrawLine(self.xOffset,
-                         hour * self.hourHeight + halfHourHeight,
+                        hour * self.hourHeight + halfHourHeight,
                         self.size.width,
-                         hour * self.hourHeight + halfHourHeight)
+                        hour * self.hourHeight + halfHourHeight)
 
         # Draw lines between days
-        # @@@ the "legendBorderX" assignment could be simplified to "self.xOffset" !!!
         legendBorderWidth = 3
-        legendBorderX = self.xOffset + 3 - legendBorderWidth
+        legendBorderX = self.xOffset + 2 - legendBorderWidth
 
         dc.SetPen(wx.Pen(styles.majorLineColor, legendBorderWidth))
         dc.DrawLine(legendBorderX, 0,
@@ -1620,14 +1629,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.SetPen(pen)
         
         dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
-                    legendBorderX, workdayHourEnd * self.hourHeight)
+                    legendBorderX, workdayHourEnd * self.hourHeight + 1)
 
+        # draw lines between columns
         dc.SetPen(styles.minorLinePen)
         for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
 
-        (startDay, endDay) = self.GetCurrentDateRange()
         # draw selection stuff
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
             dc.SetPen(styles.majorLinePen)
