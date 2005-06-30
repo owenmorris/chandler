@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision: 5722 $ -->
+<!-- $Date: 2005-06-21 19:51:12 -0700 (Tue, 21 Jun 2005) $-->
+<!-- Copyright (c) 2005 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel itsName="refactor"
+        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/calendar/refactor"
+        xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
+
+
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
+             xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
+             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+             xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
+             xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+             xmlns:calrefactor="http://osafoundation.org/parcels/osaf/framework/blocks/calendar/refactor"
+             xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+
+
+        >
+
+<!--                xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks" -->
+
+  <description>calendar refactoring test view stuff</description>
+  <core:version>0.5</core:version> <!-- what does this do? -brendan -->
+
+
+
+<!-- litterWindow itsName="CalendarSummaryViewTemplate"> -->
+  <SplitterWindow itsName="CalendarRefactorTestView">
+    <blockName>CalendarRefactorTestView</blockName>
+    <displayName>calendar refactor test view</displayName>
+    <childrenBlocks itemref="doc:CalendarSummaryView"/>
+    <childrenBlocks itemref="doc:CalendarDetailTPB"/>
+    <eventBoundary>True</eventBoundary>
+    <orientationEnum>Vertical</orientationEnum>
+  </SplitterWindow>
+
+  <calendar:CalendarContainer itsName="CalendarSummaryView">
+    <contents itemref="main:allItemCollection"/>
+    <blockName>CalendarSummaryView</blockName>
+    <daysPerView>7</daysPerView>
+  </calendar:CalendarContainer>
+
+  <TrunkParentBlock itsName="CalendarDetailTPB">
+    <blockName>CalendarDetailTPB</blockName>
+    <trunkDelegate itemref="doc:CalendarDetailTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
+    <trunkStub itemref="detail:DetailRoot"/>
+  </DetailTrunkDelegate>
+
+
+</core:Parcel>

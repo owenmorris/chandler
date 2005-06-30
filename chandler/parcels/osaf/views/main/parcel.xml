@@ -15,6 +15,7 @@
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
              xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+             xmlns:calrefactor="http://osafoundation.org/parcels/osaf/framework/blocks/calendar/refactor"
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
@@ -193,6 +194,7 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="repository:CPIAView"/>
+<!--  should have here too....   <items itemref="calrefactor:CalendarRefactorTestView"/> -->
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
   
@@ -222,6 +224,25 @@
     <items itemref="repository:CPIAView"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
+
+  <!-- ********** calendar REFACTORING  **************** -->
+  <ModifyContentsEvent itsName="AddCalendarRefactorTestView">
+    <blockName>AddCalendarRefactorTestView</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="calrefactor:CalendarRefactorTestView"/>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </ModifyContentsEvent>
+
+  <!-- should move to the menu soon... -->
+  <MenuItem itsName="AddCalendarRefactorTestViewItem">
+    <blockName>AddCalendarRefactorTestViewItem</blockName>
+    <title>Add Calendar Refactoring Test View</title>
+    <event itemref="doc:AddCalendarRefactorTestView"/>
+  </MenuItem>
+  
+
     
   <BlockEvent itsName="ChangeLayout">
     <blockName>ChangeLayout</blockName>
@@ -883,6 +904,7 @@
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddCPIAViewItem"/>
+    <childrenBlocks itemref="doc:AddCalendarRefactorTestViewItem"/>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -917,7 +939,7 @@
     <event itemref="doc:AddCPIAView"/>
     <helpString>Adds the CPIA viewer to the sidebar</helpString>
   </MenuItem>
-  
+
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>

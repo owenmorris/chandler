@@ -5,7 +5,7 @@ __version__ = "$Revision: 5826 $"
 __date__ = "$Date: 2005-06-30 10:37:14 -0700 (Thu, 30 Jun 2005) $"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.framework.blocks.calendar"
+__parcel__ = "osaf.framework.blocks.calendar.refactor"
 
 import wx
 import wx.colheader
@@ -22,7 +22,7 @@ from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
 from osaf.framework.blocks import Styles
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
-import CollectionCanvas
+from osaf.framework.blocks.calendar import CollectionCanvas ##module not class!
 
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
