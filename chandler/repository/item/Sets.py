@@ -101,17 +101,18 @@ class AbstractSet(ItemValue):
                     item.watchCollection(view[source[0]], source[1],
                                          'set', attribute)
 
-    def _sourceChanged(self, source, op, sourceOwner, sourceName, other, *args):
+    def _sourceChanged(self, source, op, change, sourceOwner, sourceName, other,
+                       *args):
 
         if isinstance(source, AbstractSet):
-            return source.sourceChanged(op, sourceOwner, sourceName,
+            return source.sourceChanged(op, change, sourceOwner, sourceName,
                                         True, other, *args)
 
-        elif sourceOwner is self.itsView[source[0]] and sourceName == source[1]:
+        if (change == 'collection' and
+            sourceOwner is self.itsView[source[0]] and sourceName == source[1]):
             return op
 
-        else:
-            return None
+        return None
 
     @classmethod
     def makeValue(cls, string):
@@ -150,10 +151,11 @@ class Set(AbstractSet):
         self._setSourceItem(self._source,
                             item, attribute, oldItem, oldAttribute)
 
-    def sourceChanged(self, op, sourceOwner, sourceName, inner, other, *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      *args):
 
-        op = self._sourceChanged(self._source, op, sourceOwner, sourceName,
-                                 other, *args)
+        op = self._sourceChanged(self._source, op, change,
+                                 sourceOwner, sourceName, other, *args)
 
         if not (inner is True or op is None):
             item = self._item
@@ -189,12 +191,13 @@ class BiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, sourceOwner, sourceName, inner, other, *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      *args):
 
-        leftOp = self._sourceChanged(self._left, op, sourceOwner, sourceName,
-                                     other, *args)
-        rightOp = self._sourceChanged(self._right, op, sourceOwner, sourceName,
-                                      other, *args)
+        leftOp = self._sourceChanged(self._left, op, change,
+                                     sourceOwner, sourceName, other, *args)
+        rightOp = self._sourceChanged(self._right, op, change,
+                                      sourceOwner, sourceName, other, *args)
         op = self._op(leftOp, rightOp, other)
 
         if not (inner is True or op is None):
@@ -343,19 +346,28 @@ class KindSet(AbstractSet):
                     Monitors.attach(item, '_kindChanged',
                                     'schema', 'kind', attribute)
 
-    def sourceChanged(self, op, sourceOwner, sourceName, inner, other, kind):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      *args):
 
-        if self._recursive:
-            if not kind.isKindOf(self.itsView[self._kind]):
+        if change == 'kind':
+            if self._item is sourceOwner and self._attribute == sourceName:
+                kind = args[0]
+
+                if self._recursive:
+                    if not kind.isKindOf(self.itsView[self._kind]):
+                        op = None
+                else:
+                    if kind is not self.itsView[self._kind]:
+                        op = None
+
+                if not (inner is True or op is None):
+                    item = self._item
+                    if item is not None:
+                        item.collectionChanged(op, item, self._attribute, other)
+                        item._collectionChanged(op, self._attribute, other)
+            else:
                 op = None
         else:
-            if kind is not self.itsView[self._kind]:
-                op = None
-
-        if not (inner is True or op is None):
-            item = self._item
-            if item is not None:
-                item.collectionChanged(op, item, self._attribute, other)
-                item._collectionChanged(op, self._attribute, other)
+            op = None
 
         return op

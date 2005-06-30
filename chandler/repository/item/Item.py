@@ -473,9 +473,11 @@ class Item(CItem):
             set = getattr(self, name)
 
             if prevKind is not None:
-                set.sourceChanged('remove', self, name, False, item, prevKind)
+                set.sourceChanged('remove', 'kind',
+                                  self, name, False, item, prevKind)
             if kind is not None:
-                set.sourceChanged('add', self, name, False, item, kind)
+                set.sourceChanged('add', 'kind',
+                                  self, name, False, item, kind)
 
     def _collectionChanged(self, op, name, other):
 
@@ -494,8 +496,9 @@ class Item(CItem):
             if watchers:
                 for (watcher, args) in watchers:
                     if len(args) == 2 and args[0] == 'set':
-                        getattr(watcher, args[1]).sourceChanged(op, self, name,
-                                                                False, other)
+                        set = getattr(watcher, args[1])
+                        set.sourceChanged(op, 'collection',
+                                          self, name, False, other)
                     else:
                         watcher.collectionChanged(op, self, name, other, *args)
 
