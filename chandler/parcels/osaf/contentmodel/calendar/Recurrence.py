@@ -65,9 +65,6 @@ def fromDateUtilFrequency(val):
     #hack!
     return FrequencyEnum.values[val]
 
-class RecurrenceRuleSet(ContentModel.ContentItem):
-    pass
-
 class RecurrenceRule(ContentModel.ContentItem):
     """One rule defining recurrence for an item."""
     freq = schema.One(
@@ -78,7 +75,8 @@ class RecurrenceRule(ContentModel.ContentItem):
     isCount = schema.One(
         schema.Boolean,
         displayName = "isCount",
-        doc = "If True, calculate and export count instead of until"
+        doc = "If True, calculate and export count instead of until",
+        defaultValue = False
     )
     until = schema.One(
         schema.DateTime,
@@ -140,6 +138,9 @@ class RecurrenceRule(ContentModel.ContentItem):
         displayName="Second selector",
         defaultValue=None
     )
+    rruleFor = schema.One('RecurrenceRuleSet', inverse='rrules')
+    exruleFor = schema.One('RecurrenceRuleSet', inverse='exrules')
+        
 
     normalNames = "interval", "until", "bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno", "byhour", "byminute", "bysecond"
 
@@ -151,7 +152,15 @@ class RecurrenceRule(ContentModel.ContentItem):
         for key in self.specialNames:
             if getattr(self, key) is not None:
                 kwargs[key]=toDateUtil(getattr(self, key))
-        return rrule(dtstart=dtstart, **kwargs)
+        rule = rrule(dtstart=dtstart, **kwargs)
+        if not self.isCount or self.until is None:
+            return rule
+        else:
+            # modifying in place may screw up cache, fix when we turn
+            # on caching
+            rule._count =  rule.count()
+            rule._until = None
+            return rule       
 
     def setRuleFromDateUtil(self, rrule):
         """Extract attributes from rrule, set them in self."""
@@ -174,3 +183,51 @@ class RecurrenceRule(ContentModel.ContentItem):
             if getattr(rrule, '_' + key) is not None:
                 setattr(self, key, getattr(rrule, '_' + key))
 
+class RecurrenceRuleSet(ContentModel.ContentItem):
+    rrules = schema.Sequence(
+        RecurrenceRule,
+        displayName="Recurrence rules",
+        inverse = RecurrenceRule.rruleFor
+    )
+    exrules = schema.Sequence(
+        RecurrenceRule,
+        displayName="Exclusion rules",
+        inverse = RecurrenceRule.exruleFor
+    )
+    rdates = schema.Sequence(
+        schema.DateTime,
+        displayName="Recurrence Dates"
+    )
+    exdates = schema.Sequence(
+        schema.DateTime,
+        displayName="Exclusion Dates"
+    )
+    
+    def addRule(self, rule, rruleorexrule='rrule'):
+        """Add an rrule or exrule, defaults to rrule."""
+        rulelist = getattr(self, rruleorexrule + 's', [])
+        rulelist.append(rule)
+        setattr(self, rruleorexrule + 's', rulelist)
+        
+    def createDateUtilFromRule(self, dtstart):
+        """Return an appropriate dateutil.rrule.rruleset."""
+        ruleset = rruleset()
+        for rtype in 'rrule', 'exrule':
+            for rule in getattr(self, rtype + 's', []):
+                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart))
+        for datetype in 'rdate', 'exdate':
+            for date in getattr(self, datetype + 's', []):
+                getattr(ruleset, datetype)(date)
+        return ruleset
+
+    def setRuleFromDateUtil(self, rruleset):
+        """Extract rules and dates from rruleset, set them in self."""
+        for rtype in 'rrule', 'exrule':
+            rules = getattr(rruleset, '_' + rtype, [])
+            if rules is None: rules = []
+            itemlist = []
+            for rule in rules:
+                ruleItem=RecurrenceRule(parent=self)
+                ruleItem.setRuleFromDateUtil(rule)
+                itemlist.append(ruleItem)
+            setattr(self, rtype + 's', itemlist)
