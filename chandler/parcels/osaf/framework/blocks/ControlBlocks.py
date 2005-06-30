@@ -572,7 +572,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
-        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
@@ -620,10 +619,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.EnableGridLines (self.blockItem.hasGridLines)
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
     
-    def OnLeftClick (self, event):
-        self.GetGridWindow().SetFocus()
-        event.Skip()
-
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
             topLeftList = self.GetSelectionBlockTopLeft()

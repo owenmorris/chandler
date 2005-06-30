@@ -89,8 +89,6 @@ class wxSidebar(ControlBlocks.wxTable):
         if event.LeftDown():
             if (imageRect.InsideXY (event.GetX(), event.GetY())
                 and isinstance (item, ItemCollection.ItemCollection)):
-                gridWindow.SetFocus()
-                gridWindow.Update()
 
                 if not hasattr (self, "hoverImageRow"):
                     assert not gridWindow.HasCapture()
@@ -105,11 +103,6 @@ class wxSidebar(ControlBlocks.wxTable):
                 self.blockChecked = self.screenChecked
                 self.buttonPressed = True
                 self.RefreshRect (self.imageRect)
-
-        elif event.LeftDClick():
-            assert gridWindow.HasCapture()
-            gridWindow.ReleaseMouse()
-            del self.hoverImageRow
 
         elif hasattr (self, "hoverImageRow"):
             assert gridWindow.HasCapture()
