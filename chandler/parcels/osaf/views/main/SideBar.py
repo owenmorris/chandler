@@ -65,7 +65,7 @@ class wxSidebar(ControlBlocks.wxTable):
 
     def OnMouseEvents (self, event):
         """
-          This code is tricky, tred with care -- DJA
+          This code is tricky, tread with care -- DJA
         """
         event.Skip() #Let the grid also handle the event
         gridWindow = self.GetGridWindow()
