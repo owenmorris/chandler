@@ -12,15 +12,14 @@ from application.Parcel import Parcel as Parcel
 
 from application.Parcel import PrintItem as PrintItem
 
+ANON_PARCEL = "parcel:application.tests.testparcels.anonymous"
+
 class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
     def setUp(self):
-    
         super(AnonymousTestCase, self).setUp()
         self.manager.path.append(os.path.join(os.path.dirname(ParcelLoaderTestCase.__file__), 'testparcels'))
-        self.loadParcels(
-            ["http://testparcels.org/anonymous"]
-        )
+        self.loadParcels([ANON_PARCEL])
         
 
     def testParcel(self):
@@ -28,9 +27,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         Test to ensure that defining a top-level Parcel item
         with no itsName attribute works correctly.
         """
-
-        parcel = self.manager.lookup("http://testparcels.org/anonymous")
-        
+        parcel = self.manager.lookup(ANON_PARCEL)       
         self.assert_(parcel)
         self.assert_(isinstance(parcel, Parcel))
         self.assert_(parcel.itsName == "anonymous")
@@ -40,8 +37,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         Test to ensure an anonymous item (i.e. one without an itsName
         parameter specified in parcel.xml) can be set up correctly.
         """
-        item = self.manager.lookup("http://testparcels.org/anonymous",
-                                   "itemWithSubItem")
+        item = self.manager.lookup(ANON_PARCEL, "itemWithSubItem")
         self.assert_(item)
         
         itemChildren = [child for child in item.iterChildren()]
@@ -57,8 +53,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         specified as values of an attribute.
         """
 
-        item = self.manager.lookup("http://testparcels.org/anonymous",
-                                   "itemWithAttributes")
+        item = self.manager.lookup(ANON_PARCEL, "itemWithAttributes")
 
         #PrintItem("//parcels/anonymous", self.manager.repo, recursive=True)
         
@@ -87,8 +82,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         specified as values of an attribute.
         """
 
-        item = self.manager.lookup("http://testparcels.org/anonymous",
-                                   "anonymousItemWithAttributes")
+        item = self.manager.lookup(ANON_PARCEL, "anonymousItemWithAttributes")
 
         #PrintItem("//parcels/anonymous", self.manager.repo, recursive=True)
         

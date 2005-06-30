@@ -6,10 +6,10 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="calendar"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
+        xmlns="parcel:core"
+        xmlns:blocks="parcel:osaf.framework.blocks"
+        xmlns:cm="parcel:osaf.contentmodel"
+        xmlns:doc="parcel:osaf.framework.blocks.calendar">
 
   <description>calendar blocks</description>
   <version>0.3</version>

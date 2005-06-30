@@ -15,7 +15,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testContacts-load")
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/contacts']
+         ['parcel:osaf.contentmodel.contacts']
         )
         util.timing.end("application.tests.testParcelPerf.testContacts-load")
 
@@ -35,7 +35,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-load")
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+         ['parcel:osaf.contentmodel.calendar']
         )
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-load")
 
@@ -59,7 +59,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
                 count += 1 + load(child)
             return count
 
-        self.loadParcels(['http://osafoundation.org/parcels/osaf/contentmodel'])
+        self.loadParcels(['parcel:osaf.contentmodel'])
         self.rep.commit()
 
         ##TODO SHOULD NOT RUN IN RAMDB

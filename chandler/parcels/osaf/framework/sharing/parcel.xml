@@ -6,10 +6,10 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="sharing"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
+    xmlns="parcel:core"
+    xmlns:cm="parcel:osaf.contentmodel"
+    xmlns:contact="parcel:osaf.contentmodel.contacts"
+    xmlns:share="parcel:osaf.framework.sharing"
     >
 
     <displayName value="Sharing Parcel" />

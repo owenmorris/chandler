@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="framework"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:app="http://osafoundation.org/parcels/osaf/framework"
+        xmlns="parcel:core"
+        xmlns:app="parcel:osaf.framework"
         >
 
   <displayName>Application Schema</displayName>

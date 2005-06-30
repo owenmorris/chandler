@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="clouds"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:me="http://testparcels.org/clouds" >
 
     <namespace value="http://testparcels.org/clouds" />

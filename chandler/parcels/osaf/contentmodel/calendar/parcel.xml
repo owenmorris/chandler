@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="calendar"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar">
+        xmlns="parcel:core"
+        xmlns:cal="parcel:osaf.contentmodel.calendar">
 
   <displayName>Calendar Content Model</displayName>
   <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>

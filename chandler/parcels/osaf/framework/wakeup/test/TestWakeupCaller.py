@@ -73,8 +73,8 @@ class WakeupCallerTestCase(RepositoryTestCase.RepositoryTestCase):
 
     def setUp(self):
         super(WakeupCallerTestCase, self).setUp()
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/wakeup")
+        self.loadParcel("parcel:osaf.contentmodel")
+        self.loadParcel("parcel:osaf.framework.wakeup")
 
         self.rep.view.commit()
 

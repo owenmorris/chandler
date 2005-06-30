@@ -35,9 +35,9 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         crypto.shutdown(self.profileDir)
     
     def testCertificateVerification(self):
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore")
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/schema")
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/data")
+        self.loadParcel("parcel:osaf.framework.certstore")
+        self.loadParcel("parcel:osaf.framework.certstore.schema")
+        self.loadParcel("parcel:osaf.framework.certstore.data")
 
         ctx = ssl.getContext(self.rep.view)
         conn1 = SSL.Connection(ctx)

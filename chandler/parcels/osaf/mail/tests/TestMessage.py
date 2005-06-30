@@ -226,7 +226,7 @@ This is the body"""
 
     def setUp(self):
         super(MessageTest, self).setUp()
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/mail")
+        self.loadParcel("parcel:osaf.contentmodel.mail")
         self.__messageObject = None
         self.__mailMessage = None
 

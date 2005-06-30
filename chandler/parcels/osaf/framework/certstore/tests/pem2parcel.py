@@ -20,8 +20,8 @@ def fingerprint(x509):
 o = open('_parcel.xml', 'w')
 
 o.write('<?xml version="1.0" encoding="iso-8859-1"?>\n\n' +
-'<Parcel xmlns="http://osafoundation.org/parcels/core"\n' +
-'        xmlns:cert="http://osafoundation.org/parcels/osaf/framework/certstore/schema">\n\n')
+'<Parcel xmlns="parcel:core"\n' +
+'        xmlns:cert="parcel:osaf.framework.certstore.schema">\n\n')
 
 lastLine = ''
 pem = ''

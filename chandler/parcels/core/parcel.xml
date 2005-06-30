@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="core"
-         xmlns="http://osafoundation.org/parcels/core" >
+         xmlns="parcel:core" >
 
   <namespaceMap key="" value="//Schema/Core" />
   <namespaceMap key="Alias" value="//Schema/Core/Alias" />

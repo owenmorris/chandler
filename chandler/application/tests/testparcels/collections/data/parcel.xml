@@ -6,11 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="data"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:coll="http://testparcels.org/collections"
         xmlns:data="http://testparcels.org/collections/data" >
-
-  <namespace value="http://testparcels.org/collections/data" />
 
   <coll:Block itsName="parent">
     <foo alias="one" itemref="data:child1" />

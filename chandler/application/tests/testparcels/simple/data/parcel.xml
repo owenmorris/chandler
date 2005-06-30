@@ -6,10 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="data"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:simple="http://testparcels.org/simple" >
-
-  <namespace value="http://testparcels.org/simple/data" />
 
   <simple:TestKind itsName="item1">
     <TestAttribute>xyzzy</TestAttribute>

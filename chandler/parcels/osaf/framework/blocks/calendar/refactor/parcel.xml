@@ -6,28 +6,28 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="refactor"
-        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/calendar/refactor"
-        xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
+        xmlns:cm="parcel:osaf.contentmodel"
+        xmlns:doc="parcel:osaf.framework.blocks.calendar.refactor"
+        xmlns:main="parcel:osaf.views.main"
 
 
-             xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
-             xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
-             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-             xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
-             xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
-             xmlns:calrefactor="http://osafoundation.org/parcels/osaf/framework/blocks/calendar/refactor"
-             xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-             xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             xmlns:core="parcel:core"
+             xmlns="parcel:osaf.framework.blocks"
+             xmlns:repository="parcel:osaf.views.repositoryviewer"
+             xmlns:demo="parcel:osaf.views.demo"
+             xmlns:contentModel="parcel:osaf.contentmodel"
+             xmlns:mail="parcel:osaf.contentmodel.mail"
+             xmlns:tasks="parcel:osaf.contentmodel.tasks"
+             xmlns:calendar="parcel:osaf.framework.blocks.calendar"
+             xmlns:calrefactor="parcel:osaf.framework.blocks.calendar.refactor"
+             xmlns:calendarModel="parcel:osaf.contentmodel.calendar"
+             xmlns:contacts="parcel:osaf.contentmodel.contacts"
+             xmlns:detail="parcel:osaf.framework.blocks.detail"
 
 
         >
 
-<!--                xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks" -->
+<!--                xmlns:blocks="parcel:osaf.framework.blocks" -->
 
   <description>calendar refactoring test view stuff</description>
   <core:version>0.5</core:version> <!-- what does this do? -brendan -->

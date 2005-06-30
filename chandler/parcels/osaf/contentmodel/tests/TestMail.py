@@ -22,7 +22,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
     def testMail(self):
         """ Simple test for creating instances of email related kinds """
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/mail")
+        self.loadParcel("parcel:osaf.contentmodel.mail")
 
 
         # Test the globals

@@ -13,14 +13,11 @@ import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import repository.query.Query as Query
-from repository.item.Query import KindQuery
 from repository.util.URL import URL
 import wx
 
 
 class Photo(ContentModel.ContentItem):
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/flickr/Photo"
 
     schema.kindInfo(displayName="Flickr Photo")
 
@@ -57,14 +54,10 @@ class Photo(ContentModel.ContentItem):
     
 #copied from Location class
 class Tag(ContentModel.ContentItem):
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/flickr/Tag"
 
     schema.kindInfo(displayName="Flickr Tag")
 
     itemsWithTag = schema.Sequence(Photo, inverse=Photo.tags, displayName="Tag")
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (Tag, self).__init__(name, parent, kind, view)
 
     def __str__ (self):
         """
@@ -91,22 +84,10 @@ class Tag(ContentModel.ContentItem):
         assert tagName, "Invalid tagName passed to getTag factory"
 
         # get all Tag objects whose displayName match the param
-        k = view.findPath(Tag.myKindPath)
-        its = KindQuery(recursive=False).run([k])
-        locQuery = [ i for i in its if i.displayName == tagName ]
-
-##         locQuery = view.findPath('//Queries/calendarLocationQuery')
-##         if locQuery is None:
-##             queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
-##                       where i.displayName == $0'
-##             p = view.findPath('//Queries')
-##             k = view.findPath('//Schema/Core/Query')
-##             locQuery = Query.Query ('calendarLocationQuery', p, k, queryString)
-##         locQuery.args["$0"] = ( tagName, )
-
         # return the first match found, if any
-        for firstSpot in locQuery:
-            return firstSpot
+        for firstSpot in Tag.iterItems(view, exact=True):
+            if i.displayName == tagName:
+                return firstSpot
 
         # make a new Tag
         newTag = Tag(view=view)
@@ -116,19 +97,9 @@ class Tag(ContentModel.ContentItem):
     getTag = classmethod (getTag)
     
 def getPhotoByFlickrID(view, id):
-    k = view.findPath(Photo.myKindPath)
-    its = KindQuery(recursive=False).run([k])
-    photoQuery = [ i for i in its if i.flickrID == id ]    
-##    photoQuery = view.findPath('//Queries/photoQuery')
-##    if photoQuery is None:
-##        queryString = u'for i in "//parcels/osaf/examples/flickr/Photo" \
-##                                 where i.flickrID == $0'
-##        p = view.findPath('//Queries')
-##        k = view.findPath('//Schema/Core/Query')
-##        photoQuery = Query.Query ('photoQuery', p, k, queryString)
-##    photoQuery.args["$0"] = ( id, )
-    for x in photoQuery:
-        return x
+    for x in Photo.iterItems(view, exact=True):
+        if x.flickrID == id:
+            return x
     return None
 
 def getPhotoByFlickrTitle(view, title):
@@ -145,21 +116,17 @@ def getPhotoByFlickrTitle(view, title):
     return None
 
 class PhotoCollection(ContentModel.ContentItem):
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/flickr/PhotoCollection"
 
     schema.kindInfo(displayName="Collection of Flickr Photos")
 
     photos = schema.Sequence(Photo, displayName="Photos")
-    username = schema.One(schema.String, displayName="Username")
-    tag = schema.One(Tag, otherName="itemsWithTag", displayName="Tag")
-
-    def __init__(self,*args,**kwargs):
-        super(PhotoCollection,self).__init__(*args,**kwargs)
-        self.username = ''
-        self.tag = None
-
-        
+    username = schema.One(
+        schema.String, displayName="Username", initialValue=''
+    )
+    tag = schema.One(
+        Tag, otherName="itemsWithTag", displayName="Tag", initialValue=None
+    )
+       
     def getCollectionFromFlickr(self,repView):
         coll = ItemCollection.ItemCollection(view = repView)
         print "self.username =",self.username
@@ -248,9 +215,7 @@ class WakeupCall(WakeupCaller.WakeupCall):
         view.refresh()
 
         # We need the Kind object for PhotoCollection
-        photoCollectionKind = Photo.PhotoCollection.getKind(view)
-            
-        for myPhotoCollection in KindQuery().run([photoCollectionKind]):
+        for myPhotoCollection in Photo.PhotoCollection.iterItems(view):
             myPhotoCollection.update(view)
 
         # We want to commit the changes to the repository

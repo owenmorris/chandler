@@ -6,14 +6,14 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="detail"
-             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-             xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail">
+             xmlns="parcel:osaf.framework.blocks"
+             xmlns:core="parcel:core"
+             xmlns:blocks="parcel:osaf.framework.blocks"
+             xmlns:calendar="parcel:osaf.contentmodel.calendar"
+             xmlns:contact="parcel:osaf.contentmodel.contacts"
+             xmlns:content="parcel:osaf.contentmodel"
+             xmlns:mail="parcel:osaf.contentmodel.mail"
+             xmlns:doc="parcel:osaf.framework.blocks.detail">
 
   <core:version>0.3</core:version>
   

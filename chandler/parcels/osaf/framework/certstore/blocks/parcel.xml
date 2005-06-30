@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<core:Parcel xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/certstore/blocks"
-             xmlns:schema="http://osafoundation.org/parcels/osaf/framework/certstore/schema"
-             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+<core:Parcel xmlns:core="parcel:core"
+             xmlns="parcel:osaf.framework.blocks"
+             xmlns:main="parcel:osaf.views.main"
+             xmlns:doc="parcel:osaf.framework.certstore.blocks"
+             xmlns:schema="parcel:osaf.framework.certstore.schema"
+             xmlns:detail="parcel:osaf.framework.blocks.detail"
              >
     
     <MenuItem itsName="CertificateView">

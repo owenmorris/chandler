@@ -10,7 +10,7 @@
 
 <Parcel
     itsName="two"
-    xmlns="http://osafoundation.org/parcels/core"
+    xmlns="parcel:core"
     xmlns:one="http://testparcels.org/externalcopying/one"
     xmlns:two="http://testparcels.org/externalcopying/two">
 

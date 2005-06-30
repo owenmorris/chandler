@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="attributeEditors"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/attributeEditors">
+        xmlns="parcel:core"
+        xmlns:contentModel="parcel:osaf.contentmodel"
+        xmlns:doc="parcel:osaf.framework.attributeEditors">
 
   <version>0.3</version>
 

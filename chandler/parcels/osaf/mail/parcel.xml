@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="mail"
-     xmlns="http://osafoundation.org/parcels/core"
-     xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-     xmlns:current="http://osafoundation.org/parcels/osaf/current"
-     xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
+     xmlns="parcel:core"
+     xmlns:content="parcel:osaf.contentmodel.mail"
+     xmlns:current="parcel:osaf.current"
+     xmlns:mail="parcel:osaf.mail">
 
   <content:IMAPAccount itsName="PredefinedIMAPAccount">
     <displayName>Incoming IMAP mail</displayName>

@@ -92,10 +92,10 @@ class StampingTest(TestContentModel.ContentModelTestCase):
 
     def testStamping(self):
         # Make sure the contentModel is loaded.
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
+        self.loadParcel("parcel:osaf.contentmodel")
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
-        self.loadParcel("http://osafoundation.org/parcels/osaf/mail")
+        self.loadParcel("parcel:osaf.mail")
         view = self.rep.view
         
         # Get the stamp kinds

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <!-- the doc namespace refers to the current document -->
-<Parcel xmlns="http://osafoundation.org/parcels/core"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/framework/certstore/schema"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel">
+<Parcel xmlns="parcel:core"
+        xmlns:doc="parcel:osaf.framework.certstore.schema"
+        xmlns:content="parcel:osaf.contentmodel">
 
   <displayName>Certificate store</displayName>
   <description>This is a certstore parcel</description>

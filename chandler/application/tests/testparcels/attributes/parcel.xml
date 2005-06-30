@@ -6,10 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="attributes"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:attrs="http://testparcels.org/attributes">
-
-  <namespace value="http://testparcels.org/attributes" />
+        xmlns="parcel:core"
+        xmlns:attrs="parcel:application.tests.testparcels.attributes">
 
   <Attribute itsName="BooleanAttr">
     <type itemref="Boolean" />

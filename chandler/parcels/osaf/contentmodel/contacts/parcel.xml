@@ -6,12 +6,12 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="contacts"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-    xmlns:task="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
-    xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
+    xmlns="parcel:core"
+    xmlns:cm="parcel:osaf.contentmodel"
+    xmlns:contact="parcel:osaf.contentmodel.contacts"
+    xmlns:task="parcel:osaf.contentmodel.tasks"
+    xmlns:cal="parcel:osaf.contentmodel.calendar"
+    xmlns:share="parcel:osaf.framework.sharing"
     >
 
     <displayName>Contact Content Model</displayName>

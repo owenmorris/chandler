@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="one"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:one="http://testparcels.org/externalcopying/one"
         xmlns:two="http://testparcels.org/externalcopying/two">
 

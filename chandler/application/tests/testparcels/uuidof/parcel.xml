@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="uuidof"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns="parcel:core"
+        xmlns:cm="parcel:osaf.contentmodel"
         xmlns:me="http://testparcels.org/uuidof" >
 
     <namespace value="http://testparcels.org/uuidof" />

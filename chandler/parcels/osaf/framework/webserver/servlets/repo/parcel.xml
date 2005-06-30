@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="repo"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:web="http://osafoundation.org/parcels/osaf/framework/webserver"
-        xmlns:serv="http://osafoundation.org/parcels/osaf/framework/webserver/servers"
-        xmlns:me="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/repo" >
+        xmlns="parcel:core"
+        xmlns:web="parcel:osaf.framework.webserver"
+        xmlns:serv="parcel:osaf.framework.webserver.servers"
+        xmlns:me="parcel:osaf.framework.webserver.servlets.repo" >
 
     <web:Resource itsName="repoResource">
         <displayName value="Repository Viewer"/>

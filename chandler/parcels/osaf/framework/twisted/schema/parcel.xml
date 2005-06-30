@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="schema"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:events="http://osafoundation.org/parcels/osaf/framework/twisted/schema">
+        xmlns="parcel:core"
+        xmlns:events="parcel:osaf.framework.twisted.schema">
 
   <displayName>Twisted Schema</displayName>
   <description>Twisted</description>

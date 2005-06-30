@@ -17,7 +17,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
 
     def testCollectionEvents(self):
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
+        self.loadParcel("parcel:osaf.contentmodel.calendar")
 
         view = self.rep.view
         ic = ItemCollection.ItemCollection("TestCollectionEvents", view=view)
@@ -51,7 +51,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         log = logging.getLogger("Test")
         log.setLevel(logging.DEBUG)
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
+        self.loadParcel("parcel:osaf.contentmodel.calendar")
 
         log.debug("Generating calendar events")
         view = self.rep.view

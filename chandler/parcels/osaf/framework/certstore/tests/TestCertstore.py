@@ -85,7 +85,7 @@ rZehs7GgIFvKMquNzxPwHynD
 
     def disabled_testPreloadedCertificates(self):
         # XXX This test does not work right, verify fails in certain situations
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/data")
+        self.loadParcel("parcel:osaf.framework.certstore.data")
         
         qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "root"'
         
@@ -190,8 +190,8 @@ rZehs7GgIFvKMquNzxPwHynD
 
     def setUp(self):
         super(CertificateStoreTestCase, self).setUp()
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore")
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/certstore/schema")
+        self.loadParcel("parcel:osaf.framework.certstore")
+        self.loadParcel("parcel:osaf.framework.certstore.schema")
         
 if __name__ == "__main__":
     unittest.main()

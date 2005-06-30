@@ -10,6 +10,9 @@ import ParcelLoaderTestCase, os, sys, unittest
 from application.Parcel import ParcelException as ParcelException
 import application
 
+ITSNAME = "parcel:application.tests.testparcels.errors.itsname"
+DUPITEMS = "parcel:application.tests.testparcels.errors.dupitems"
+
 class ParcelErrorTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
     def setUp(self):
@@ -30,7 +33,7 @@ class ParcelErrorTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         path.
         """
 
-        self.assertRaises(ParcelException, self.loadParcels, ["http://testparcels.org/itsname"])
+        self.assertRaises(ParcelException, self.loadParcels, [ITSNAME])
         
     def testDuplicateItems(self):
         """
@@ -38,7 +41,7 @@ class ParcelErrorTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         that attempts to define the same Item twice.
         """
 
-        self.assertRaises(ParcelException, self.loadParcels, ["http://testparcels.org/dupitems"])
+        self.assertRaises(ParcelException, self.loadParcels, [DUPITEMS])
 
 if __name__ == "__main__":
     unittest.main()

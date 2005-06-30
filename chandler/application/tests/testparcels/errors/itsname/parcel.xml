@@ -6,10 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="thisIsWrong"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:moi="http://testparcels.org/itsname">
-
-  <namespace value="http://testparcels.org/itsname"/>
 
   <Kind itsName="MyKind">
     <superKinds itemref="Item"/>

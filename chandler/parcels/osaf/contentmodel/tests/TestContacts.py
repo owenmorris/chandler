@@ -22,7 +22,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
     def testContacts(self):
         """ Simple test for creating instances of contact related kinds """
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/contacts")
+        self.loadParcel("parcel:osaf.contentmodel.contacts")
         def _verifyContactName(name):
             self.assertEqual(name.firstName, 'Sylvia')
             self.assertEqual(name.getAttributeValue('firstName'),'Sylvia')
@@ -63,7 +63,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         
     def testGeneratedContacts(self):
 
-        self.loadParcels(["http://osafoundation.org/parcels/osaf/contentmodel/contacts", "http://osafoundation.org/parcels/osaf/contentmodel/mail"])
+        self.loadParcels(["parcel:osaf.contentmodel.contacts", "parcel:osaf.contentmodel.mail"])
 
         view = self.rep.view
         GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="data"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:photo="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/photos"
-        xmlns:me="http://osafoundation.org/parcels/osaf/framework/webserver/servlets/photos/data" >
+        xmlns="parcel:core"
+        xmlns:photo="parcel:osaf.framework.webserver.servlets.photos"
+        xmlns:me="parcel:osaf.framework.webserver.servlets.photos.data" >
 
     <photo:Photo itsName="TeamOSAF">
         <caption value="The OSAF Team" />

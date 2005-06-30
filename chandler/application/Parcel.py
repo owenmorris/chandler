@@ -3,7 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import os, logging
+import sys, os, logging
 import xml.sax
 import xml.sax.handler
 
@@ -26,8 +26,7 @@ logger = logging.getLogger('Parcel')
 logger.setLevel(logging.INFO)
 
 NS_ROOT = "http://osafoundation.org/parcels"
-CORE = "%s/core" % NS_ROOT
-CPIA = "%s/osaf/framework/blocks" % NS_ROOT
+CORE = "parcel:core"
 
 #@@@Temporary testing tool written by Morgen -- DJA
 timing = False
@@ -114,6 +113,23 @@ class Manager(Item):
 
     getParentParcel = classmethod(getParentParcel)
 
+    def _addParcelDescriptor(self, ns, pDesc):
+        self._ns2parcel[ns] = pDesc
+        self._repo2ns[pDesc["path"]] = ns
+        if ns.startswith(NS_ROOT+'/'):
+            ns = "parcel:%s" % ns[len(NS_ROOT)+1:].replace('/','.')
+            self._ns2parcel[ns] = pDesc
+            self._repo2ns[pDesc["path"]] = ns
+
+        if ns.startswith('parcel:'):
+            if '.' in ns:
+                parent,name = ns.rsplit('.',1)
+                if ns not in self._ns2parcel:
+                    self._addParcelDescriptor(ns, {
+                        "path" : pDesc["path"].rsplit('/',1)[0],
+                        "aliases" : {},
+                    })
+
 
     def lookup(self, namespace, name=None):
         """
@@ -140,7 +156,7 @@ class Manager(Item):
         via the "name" parameter will be relative to that virtual root instead
         of the parcel's real item.  This allows us to create a parcel which
         acts on behalf of the core schema; this parcel registers the namespace
-        CORE (http://osafoundation.org/parcels/core) and has a
+        CORE (parcel:core) and has a
         virtual root of //Schema/Core.  Lookups done through the CORE
         namespace will end up finding the items under //Schema/Core, and since
         this parcel also defines a namespace map we can rearrange the core
@@ -234,6 +250,14 @@ class Manager(Item):
              repoPath)
             return self.repo.findPath(repoPath)
 
+    def _parcelDescriptor(self, parcel):
+        return {
+             "time" : mktime(parcel.modifiedOn.timetuple()),
+             "path" : str(parcel.itsPath),
+             "file" : parcel.file,
+             "aliases" : parcel.namespaceMap,
+            }
+
     def __refreshRegistry(self):
         # Dictionaries used for quick lookup of mappings between namespace,
         # repository path, and parcel file name.  Populated first by looking
@@ -249,14 +273,8 @@ class Manager(Item):
         # overridden from parcel.xml files further down.
         parcelKind = self.repo.findPath("//Schema/Core/Parcel")
         for parcel in KindQuery().run([parcelKind]):
-            pDesc = {
-             "time" : mktime(parcel.modifiedOn.timetuple()),
-             "path" : str(parcel.itsPath),
-             "file" : parcel.file,
-             "aliases" : parcel.namespaceMap,
-            }
-            self._ns2parcel[parcel.namespace] = pDesc
-            self._repo2ns[pDesc["path"]] = parcel.namespace
+            pDesc = self._parcelDescriptor(parcel)
+            self._addParcelDescriptor(parcel.namespace, pDesc)
 
         self.registryLoaded = True
 
@@ -275,10 +293,6 @@ class Manager(Item):
             """ A SAX2 handler for parsing namespace information """
 
             def startElementNS(self, (uri, local), qname, attrs):
-                # TODO:  remove this remapping once all parcel.xml files
-                # are fixed
-                if uri == "//Schema/Core":
-                    uri = CORE
                 if local == "namespace" and uri == CORE:
                     if attrs.has_key((None, 'value')):
                         value = attrs.getValue((None, 'value'))
@@ -307,6 +321,18 @@ class Manager(Item):
             # newer than existing parcel items.  Add qualifying files to
             # the "filesToParse" list:
             for directory in self.path:
+                # When doing test cases, 'directory' might be a package
+                # directory, so ensure that we compute its repository path
+                # based on its full package name, not just relative to
+                # the directory searched in.
+                base_path = ''
+                for path_item in sys.path:
+                    if directory==path_item or directory.startswith(path_item+os.path.sep):
+                        if len(path_item)>len(base_path):
+                            base_path = path_item
+
+                base_path = base_path or directory
+
                 for root, dirs, files in os.walk(directory):
 
                     # Allows you to skip specific parcels
@@ -314,7 +340,7 @@ class Manager(Item):
                         continue
 
                     if 'parcel.xml' in files:
-                        repoPath = "//parcels/%s" % root[len(directory)+1:]
+                        repoPath = "//parcels/%s" % root[len(base_path)+1:]
                         repoPath = repoPath.replace(os.path.sep, "/")
                         parcelFile = os.path.join(root, 'parcel.xml')
 
@@ -353,8 +379,19 @@ class Manager(Item):
                     # (just append our name to it)
                     myName = repoPath[repoPath.rfind('/')+1:]
                     parentPath = repoPath[:repoPath.rfind('/')]
-                    namespace = "%s/%s" % \
-                    ( self._repo2ns[parentPath], myName )
+                    try:
+                        parentNS = self._repo2ns[parentPath]
+                    except KeyError:
+                        if parentPath.startswith('//parcels/'):
+                            parentNS = 'parcel:'+parentPath[10:].replace('/','.')
+                        else:
+                            raise
+                    if parentNS.startswith('parcel:'):
+                        namespace = "%s.%s" % (parentNS,myName)
+                    else:
+                        namespace = "%s/%s" % (parentNS, myName )
+                else:
+                    print "<namespace %s> being used in %s" %(namespace, parcelFile)
 
                 # Set up the parcel descriptor
                 pDesc = {
@@ -365,8 +402,7 @@ class Manager(Item):
                 }
 
                 # Update the quick-lookup dictionaries
-                self._ns2parcel[namespace] = pDesc
-                self._repo2ns[repoPath] = namespace
+                self._addParcelDescriptor(namespace,pDesc)
                 self._file2ns[parcelFile] = namespace
 
                 # Load this file during LoadParcels
@@ -418,20 +454,6 @@ class Manager(Item):
             yield parcels[inPathOrder]
 
 
-    def _convertOldUris(self, oldUri):
-        """
-        @@@ A temporary hack until we modify all the parcel.xml files
-        """
-
-        if oldUri == "//Schema/Core":
-            print "Deprecation warning:  %s" % oldUri
-            return CORE
-        if not self._repo2ns.has_key(oldUri):
-            return oldUri
-        print "Deprecation warning:  %s" % oldUri
-        return self._repo2ns[oldUri]
-
-
     def __syncParcel(self, namespace):
         """Synchronize the specified parcel's Python schema with self.repo
 
@@ -451,9 +473,12 @@ class Manager(Item):
         else:
             self._imported.add(namespace)
 
-        if namespace.startswith(NS_ROOT):
-            # The package we need to import and sync
-            pkg = namespace[len(NS_ROOT)+1:].replace('/','.')
+        if namespace.startswith('parcel:') or  namespace.startswith(NS_ROOT):
+            if namespace.startswith('parcel:'):
+                pkg = namespace[7:]
+            else:
+                # The package we need to import and sync          
+                pkg = namespace[len(NS_ROOT)+1:].replace('/','.')
 
             # Mark for reload *before* the nested __loadParcel(parent) call,
             # because otherwise the nested call may re-invoke __loadParcel()
@@ -467,7 +492,7 @@ class Manager(Item):
                 # parent parcel correctly, unless we process it here.  :(
                 parent_pkg = pkg.rsplit('.',1)[0]
                 if parent_pkg not in self._imported:
-                    self.__loadParcel(NS_ROOT+'/'+parent_pkg.replace('.','/'))
+                    self.__loadParcel('parcel:'+parent_pkg)
 
             # Last, but not least, actually synchronize the package
             schema.synchronize(self.repo, pkg)
@@ -488,8 +513,18 @@ class Manager(Item):
 
         # Look for the parcel's namespace in the parcel descriptors
         if not self._ns2parcel.has_key(namespace):
-            self.saveExplanation("Undefined namespace (%s)" % namespace)
-            raise NamespaceUndefinedException, namespace
+            if not namespace.startswith('parcel:'):
+                self.saveExplanation("Undefined namespace (%s)" % namespace)
+                raise NamespaceUndefinedException, namespace
+            else:
+                #print "Simulating load for", namespace
+                globalDepth -= 1
+                if namespace in self.__parcelsToReload:
+                    self.__parcelsToReload.remove(namespace)
+                parcel = schema.parcel_for_module(namespace[7:],self.repo)
+                self._addParcelDescriptor(namespace,self._parcelDescriptor(parcel))
+                return parcel
+
         pDesc = self._ns2parcel[namespace]
         repoPath = pDesc["path"]
         parcelFile = pDesc["file"]
@@ -962,8 +997,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.saveExplanation(explanation)
             raise ParcelException(explanation)
 
-        uri = self.manager._convertOldUris(uri)
-        
         currentItem = None
         currentValue = None
 
@@ -1028,6 +1061,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     raise ParcelException(explanation)
                 except ValueError:
                    self.reloadingCurrentItem = True
+                   self.itemsCreated.append(currentItem) # ensure we'll catch dupe reloads
             else:
                 self.reloadingCurrentItem = False
                     
@@ -1199,8 +1233,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         self.saveState()
 
-        uri = self.manager._convertOldUris(uri)
-
         elementUri = uri
         elementLocal = local
         
@@ -1296,8 +1328,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         # Save the prefix mapping, for use by itemref attributes,
         # and also used to determine which dependent parcels to load
         # later on.
-        uri = self.manager._convertOldUris(uri)
-
         self.mapping[prefix] = uri
 
     def endPrefixMapping(self, prefix):
@@ -1320,7 +1350,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         if isinstance(item,Attribute) and isinstance(item.itsParent,Kind):
             # Hook the attribute up to its containing kind
-            item.itsParent.addValue("attributes",item,alias=item.itsName)
+            if item not in getattr(item.itsParent,'attributes',()):
+                item.itsParent.addValue("attributes",item,alias=item.itsName)
 
         elif isinstance(item,Kind):
             # Assign superKind of //Schema/Core/Item if none assigned

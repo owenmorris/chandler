@@ -30,7 +30,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(task.getAttributeValue('importance'), 'important')
             self.assertEqual(task.about, "test headline")
         
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/tasks")
+        self.loadParcel("parcel:osaf.contentmodel.tasks")
 
         # Check that the globals got created by the parcel
         view = self.rep.view

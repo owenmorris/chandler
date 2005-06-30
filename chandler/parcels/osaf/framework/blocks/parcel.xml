@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="blocks"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:docSchema="http://osafoundation.org/parcels/osaf/framework/blocks"
-        xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel">
+        xmlns="parcel:core"
+        xmlns:docSchema="parcel:osaf.framework.blocks"
+        xmlns:contentModel="parcel:osaf.contentmodel">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>

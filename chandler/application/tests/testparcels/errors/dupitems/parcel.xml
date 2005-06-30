@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel xmlns="http://osafoundation.org/parcels/core"
+<Parcel xmlns="parcel:core"
         xmlns:moi="http://testparcels.org/dupitems">
-
-  <namespace value="http://testparcels.org/dupitems"/>
 
   <Item itsName="someItem">
       <displayName>This item is duplicated below...</displayName>

@@ -6,12 +6,12 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="tasks"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-        xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-        xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
+        xmlns="parcel:core"
+        xmlns:content="parcel:osaf.contentmodel"
+        xmlns:mail="parcel:osaf.contentmodel.mail"
+        xmlns:contact="parcel:osaf.contentmodel.contacts"
+        xmlns:cal="parcel:osaf.contentmodel.calendar"
+        xmlns:tasks="parcel:osaf.contentmodel.tasks">
 
   <displayName>Task Content Model</displayName>
   <description>Kinds and Attributes related to Task functionality. 

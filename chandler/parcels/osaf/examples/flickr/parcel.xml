@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <core:Parcel itsName="flickr"
-        xmlns:core="http://osafoundation.org/parcels/core"
-	xmlns="http://osafoundation.org/parcels/osaf/framework/blocks" 
-	xmlns:doc="http://osafoundation.org/parcels/osaf/examples/flickr"
-	xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
-	xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-	xmlns:flickr="http://osafoundation.org/parcels/osaf/examples/flickr"
-	xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup">
+        xmlns:core="parcel:core"
+	xmlns="parcel:osaf.framework.blocks" 
+	xmlns:doc="parcel:osaf.examples.flickr"
+	xmlns:main="parcel:osaf.views.main"
+	xmlns:detail="parcel:osaf.framework.blocks.detail"
+	xmlns:flickr="parcel:osaf.examples.flickr"
+	xmlns:wakeupCall="parcel:osaf.framework.wakeup">
 
   <!-- Block definitions for Menu -->
     
@@ -28,18 +28,18 @@
   <BlockEvent itsName="NewFlickrCollectionByOwnerEvent">
     <blockName>NewFlickrCollectionByOwner</blockName>
     <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:controller"/>
+    <destinationBlockReference itemref="doc:FlickrCollectionControllerItem"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
   <BlockEvent itsName="NewFlickrCollectionByTagEvent">
     <blockName>NewFlickrCollectionByTag</blockName>
     <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:controller"/>
+    <destinationBlockReference itemref="doc:FlickrCollectionControllerItem"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
-  <flickr:FlickrCollectionController itsName="controller" />
+  <flickr:FlickrCollectionController itsName="FlickrCollectionControllerItem"/>
 
   <!-- Block definitions for detail view -->
 

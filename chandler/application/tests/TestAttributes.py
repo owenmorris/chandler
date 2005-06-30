@@ -10,15 +10,14 @@ import ParcelLoaderTestCase, os, sys, unittest
 import application
 import repository.util.Lob
 
+ATTR_PARCEL = "parcel:application.tests.testparcels.attributes"
 class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
     def setUp(self):
     
         super(ParcelLoaderTestCase.ParcelLoaderTestCase, self).setUp()
         self.manager.path.append(os.path.join(os.path.dirname(ParcelLoaderTestCase.__file__), 'testparcels'))
-        self.loadParcels(
-            ["http://testparcels.org/attributes"]
-        )
+        self.loadParcels([ATTR_PARCEL])
         
 
     def testBoolean(self):
@@ -27,8 +26,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
 
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "booleanItem")
+        item = self.manager.lookup(ATTR_PARCEL, "booleanItem")
                                     
         self.assert_(item)
         self.assert_(isinstance(item.BooleanAttr, dict))
@@ -44,8 +42,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
         
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "intItem")
+        item = self.manager.lookup(ATTR_PARCEL, "intItem")
         self.assert_(item)
         self.assert_(isinstance(item.IntAttr, list))
         self.assert_(len(item.IntAttr) == 2)
@@ -60,8 +57,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
     
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "floatItem")
+        item = self.manager.lookup(ATTR_PARCEL, "floatItem")
         self.assert_(item)
         self.assert_(isinstance(item.FloatAttr, float))
         self.assert_(item.FloatAttr == -40.175)
@@ -72,8 +68,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
 
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "dictItem")
+        item = self.manager.lookup(ATTR_PARCEL, "dictItem")
         self.assert_(item)
         self.assert_(isinstance(item.DictAttr, list))
         self.assert_(len(item.DictAttr) == 3)
@@ -95,8 +90,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
 
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "listItem")
+        item = self.manager.lookup(ATTR_PARCEL, "listItem")
         self.assert_(item)
         self.assert_(isinstance(item.ListAttr, list))
         self.assert_(len(item.ListAttr) == 3)
@@ -113,8 +107,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
 
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "tupleItem")
+        item = self.manager.lookup(ATTR_PARCEL,  "tupleItem")
         self.assert_(item)
         self.assert_(isinstance(item.TupleAttr, tuple))
         self.assert_(item.TupleAttr == (3.25e-5, ["x", "y"]))
@@ -125,8 +118,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
 
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "stringItem")
+        item = self.manager.lookup(ATTR_PARCEL, "stringItem")
         self.assert_(item)
         self.assert_(isinstance(item.StringAttr, dict))
         self.assert_(item.StringAttr == {
@@ -141,8 +133,7 @@ class AttributesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         on an item by the parcel loader.
         """
         
-        item = self.manager.lookup("http://testparcels.org/attributes", 
-                                    "lobItem")
+        item = self.manager.lookup(ATTR_PARCEL, "lobItem")
         self.assert_(item)
         self.assert_(isinstance(item.LobAttr, repository.util.Lob.Lob))
         #@@@ Need a test of item.LobAttr's contents

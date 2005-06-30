@@ -7,14 +7,14 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="contentmodel"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-    xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-    xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
-    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-    xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
+    xmlns="parcel:core"
+    xmlns:contact="parcel:osaf.contentmodel.contacts"
+    xmlns:calendar="parcel:osaf.contentmodel.calendar"
+    xmlns:tasks="parcel:osaf.contentmodel.tasks"
+    xmlns:mail="parcel:osaf.contentmodel.mail"
+    xmlns:blocks="parcel:osaf.framework.blocks"
+    xmlns:cm="parcel:osaf.contentmodel"
+    xmlns:share="parcel:osaf.framework.sharing"
     >
 
     <displayName>Chandler Content Model</displayName>

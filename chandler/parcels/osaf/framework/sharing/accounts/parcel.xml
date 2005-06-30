@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="accounts"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
-    xmlns:current="http://osafoundation.org/parcels/osaf/current"
+    xmlns="parcel:core"
+    xmlns:share="parcel:osaf.framework.sharing"
+    xmlns:current="parcel:osaf.current"
     >
 
     <share:WebDAVAccount itsName="OSAFWebDAVAccount">

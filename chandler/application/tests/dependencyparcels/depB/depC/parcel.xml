@@ -6,9 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="depC"
-        xmlns="http://osafoundation.org/parcels/core">
-
-  <namespace value="http://testparcels.org/parcels/depB/depC" />
+        xmlns="parcel:core">
 
   <displayName>Dependency Test C</displayName>
   <description>Dependency Test Schema</description>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <core:Parcel
-      xmlns:core="http://osafoundation.org/parcels/core"
-      xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
-      xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-      xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
-      xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-      xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
+      xmlns:core="parcel:core"
+      xmlns:doc="parcel:osaf.examples.zaobao.blocks"
+      xmlns:detail="parcel:osaf.framework.blocks.detail"
+      xmlns:zaobao="parcel:osaf.examples.zaobao"
+      xmlns="parcel:osaf.framework.blocks"
+      xmlns:main="parcel:osaf.views.main">
 
   <core:displayName value="ZaoBao View Items"/>
   <core:description value="Events and menu items and such"/>

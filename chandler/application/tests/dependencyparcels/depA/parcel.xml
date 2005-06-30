@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="depA"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         xmlns:depC="http://testparcels.org/parcels/depB/depC">
 
   <namespace value="http://testparcels.org/parcels/depA" />

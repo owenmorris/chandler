@@ -21,7 +21,7 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
     def testLocations(self):
         """ Simple test for the Locations Factory - getLocation """
 
-        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
+        self.loadParcel("parcel:osaf.contentmodel.calendar")
 
         # Test the globals
         locationsPath = Path('//parcels/osaf/contentmodel/calendar')

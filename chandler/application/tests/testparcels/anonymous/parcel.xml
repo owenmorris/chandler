@@ -5,11 +5,9 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel xmlns="http://osafoundation.org/parcels/core"
-        xmlns:this="http://testparcels.org/anonymous">
+<Parcel xmlns="parcel:core"
+        xmlns:this="parcel:application.tests.testparcels.anonymous">
 
-  <namespace value="http://testparcels.org/anonymous" />
-  
   <Kind itsName="myKind">
       <Attribute itsName="myAttribute">
           <type itemref="this:myKind"/>

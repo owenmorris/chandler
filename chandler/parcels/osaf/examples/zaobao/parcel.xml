@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="zaobao"
-     xmlns="http://osafoundation.org/parcels/core"
-     xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao"
-     xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup"
+     xmlns="parcel:core"
+     xmlns:doc="parcel:osaf.examples.zaobao"
+     xmlns:wakeupCall="parcel:osaf.framework.wakeup"
      >
 
     <version>0.3</version>

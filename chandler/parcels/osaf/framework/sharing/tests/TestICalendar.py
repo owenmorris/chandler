@@ -45,8 +45,8 @@ class ICalendarTestCase(unittest.TestCase):
         root.addHandler(handler)
 
         namespaces = [
-         'http://osafoundation.org/parcels/osaf/framework/sharing',
-         'http://osafoundation.org/parcels/osaf/contentmodel/calendar',
+         'parcel:osaf.framework.sharing',
+         'parcel:osaf.contentmodel.calendar',
         ]
 
         self.repo = self._initRamDB(packs)

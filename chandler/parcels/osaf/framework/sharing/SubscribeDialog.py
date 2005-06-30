@@ -12,8 +12,8 @@ import application.Parcel
 logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
 
-SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
-CONTENTMODEL = "http://osafoundation.org/parcels/osaf/contentmodel"
+SHARING = "parcel:osaf.framework.sharing"
+CONTENTMODEL = "parcel:osaf.contentmodel"
 
 class SubscribeDialog(wx.Dialog):
 

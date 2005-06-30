@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <Parcel itsName="wakeup"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:wake="http://osafoundation.org/parcels/osaf/framework/wakeup">
+        xmlns="parcel:core"
+        xmlns:cm="parcel:osaf.contentmodel"
+        xmlns:wake="parcel:osaf.framework.wakeup">
 </Parcel>

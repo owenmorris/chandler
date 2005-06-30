@@ -7,7 +7,7 @@
 
 <Parcel
     itsName="externalcopying"
-    xmlns="http://osafoundation.org/parcels/core">
+    xmlns="parcel:core">
     
     <namespace value="http://testparcels.org/externalcopying"/>
 

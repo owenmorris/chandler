@@ -6,10 +6,10 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="demo"
-             xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
+             xmlns:core="parcel:core"
+             xmlns="parcel:osaf.framework.blocks"
+             xmlns:doc="parcel:osaf.views.demo"
+             xmlns:main="parcel:osaf.views.main">
 
   <core:version>0.3</core:version>
 

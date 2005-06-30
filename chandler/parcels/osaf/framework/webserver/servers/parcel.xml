@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="servers"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:web="http://osafoundation.org/parcels/osaf/framework/webserver" >
+        xmlns="parcel:core"
+        xmlns:web="parcel:osaf.framework.webserver" >
 
     <!-- This parcel defines a server on port 1888, serving up pages from
          the webserver/servers/maindocs directory.  If you define your own

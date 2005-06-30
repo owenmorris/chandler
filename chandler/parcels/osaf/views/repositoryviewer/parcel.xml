@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="repositoryviewer"
-             xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:doc="http://osafoundation.org/parcels/osaf/views/repositoryviewer">
+             xmlns:core="parcel:core"
+             xmlns="parcel:osaf.framework.blocks"
+             xmlns:doc="parcel:osaf.views.repositoryviewer">
 
   <core:version>0.3</core:version>
 

@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="current"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:me="http://osafoundation.org/parcels/osaf/current"
+    xmlns="parcel:core"
+    xmlns:cm="parcel:osaf.contentmodel"
+    xmlns:me="parcel:osaf.current"
     >
 
     <displayName>Registry of "current" items</displayName>

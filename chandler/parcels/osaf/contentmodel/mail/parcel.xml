@@ -6,9 +6,9 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="mail"
-    xmlns="http://osafoundation.org/parcels/core"
-    xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail">
+    xmlns="parcel:core"
+    xmlns:content="parcel:osaf.contentmodel"
+    xmlns:mail="parcel:osaf.contentmodel.mail">
 
     <displayName>Mail Content Model</displayName>
     <description>Content Model for the Mail Messages, Email Accounts, and other things related to email</description>

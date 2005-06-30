@@ -36,9 +36,9 @@ logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
 
 
-SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
-EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
+SHARING = "parcel:osaf.framework.sharing"
+EVENTS = "parcel:osaf.framework.blocks.Events"
+CONTENT = "parcel:osaf.contentmodel"
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

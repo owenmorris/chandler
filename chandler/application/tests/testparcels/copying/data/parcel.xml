@@ -7,7 +7,7 @@
 
 <Parcel
     itsName="data"
-    xmlns="http://osafoundation.org/parcels/core"
+    xmlns="parcel:core"
     xmlns:cp="http://testparcels.org/copying"
     xmlns:me="http://testparcels.org/copying/data"
     >

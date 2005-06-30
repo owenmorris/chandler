@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<core:Parcel xmlns:core="http://osafoundation.org/parcels/core"
-        xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-        xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
-        xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-        xmlns:amazon="http://osafoundation.org/parcels/osaf/examples/amazon"
-        xmlns:doc="http://osafoundation.org/parcels/osaf/examples/amazon">
+<core:Parcel xmlns:core="parcel:core"
+        xmlns="parcel:osaf.framework.blocks"
+        xmlns:main="parcel:osaf.views.main"
+        xmlns:detail="parcel:osaf.framework.blocks.detail"
+        xmlns:amazon="parcel:osaf.examples.amazon"
+        xmlns:doc="parcel:osaf.examples.amazon">
     
     <MenuItem itsName="NewAmazonCollection">
         <blockName>NewAmazonCollectionMenu</blockName>

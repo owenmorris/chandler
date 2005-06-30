@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="webserver"
-        xmlns="http://osafoundation.org/parcels/core"
+        xmlns="parcel:core"
         itemClass="osaf.framework.webserver.Web.WebParcel" />
