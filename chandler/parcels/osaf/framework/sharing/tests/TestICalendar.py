@@ -16,6 +16,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.query.Query as Query
 import datetime
+import vobject
 
 class ICalendarTestCase(unittest.TestCase):
 
@@ -24,6 +25,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.SummaryAndDateTimeImported()
         self.DateImportAsAllDay()
         self.ItemsToVobject()
+        self.writeICalendarUnicodeBug3338()
         self._teardown()
 
     def _setup(self):
@@ -52,7 +54,7 @@ class ICalendarTestCase(unittest.TestCase):
                                           path=parcelpath)
         self.manager.loadParcels(namespaces)
         # create a sandbox root
-        Item.Item("sandbox", self.repo, None)
+        self.sandbox = Item.Item("sandbox", self.repo, None)
         self.repo.commit()
 
     def _teardown(self):
@@ -132,6 +134,30 @@ class ICalendarTestCase(unittest.TestCase):
         self.assert_(cal.vevent[0].dtstart[0].value == datetime.date(2010,1,1),
          "dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent[0].summary[0].value)
+         
+    def writeICalendarUnicodeBug3338(self):
+        event = Calendar.CalendarEvent(view = self.repo.view)
+        event.displayName = u"unicode \u0633\u0644\u0627\u0645"
+        event.startTime = datetime.datetime(2010, 1, 1, 10)
+        event.endTime = datetime.datetime(2010, 1, 1, 11)
+
+        coll = ItemCollection.ItemCollection(name="testcollection", 
+                                             parent=self.sandbox)
+        coll.add(event)
+        filename = "unicode_export.ics"
+
+        conduit = Sharing.FileSystemConduit(name="conduit", sharePath=".",
+                            shareName=filename, view=self.repo.view)
+        format = ICalendar.ICalendarFormat(name="format", view=self.repo.view)
+        self.share = Sharing.Share(name="share",contents=coll, conduit=conduit,
+                                    format=format, view=self.repo.view)
+        if self.share.exists():
+            self.share.destroy()
+        self.share.create()
+        self.share.put()
+        cal=vobject.readComponents(file(filename, 'rb')).next()
+        self.assertEqual(cal.vevent[0].summary[0].value, event.displayName)
+        self.share.destroy()
 
          
 # test import/export unicode

@@ -615,7 +615,7 @@ class FileSystemConduit(ShareConduit):
         if text is None:
             return None
         out = file(path, 'wb') #outputting in binary mode to preserve ics CRLF
-        out.write(text)
+        out.write(text.encode('utf-8'))
         out.close()
         stat = os.stat(path)
         return stat.st_mtime
