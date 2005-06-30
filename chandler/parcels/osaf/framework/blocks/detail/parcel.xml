@@ -501,7 +501,7 @@
     <blockName value="CalendarLocationArea"/>
     <childrenBlocks itemref="doc:CalendarLocationSpaceHolder"/>
     <childrenBlocks itemref="doc:CalendarLocation"/>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 10</minimumSize>
     <border>0, 6, 0, 6</border>
   </ContentItemDetail>
@@ -559,7 +559,7 @@
 
   <AEBlock itsName="EditAllDay">
     <blockName value="EditAllDay"/>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <viewAttribute value="allDay"/>
     <border>2, 2, 2, 2</border>
     <event itemref="doc:Resynchronize"/>
@@ -735,7 +735,7 @@
   
   <AEBlock itsName="EditTransparency">
     <blockName value="EditTransparency"/>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
     <presentationStyle itemref="doc:TransparencyPresentationStyle"/>
     <viewAttribute value="transparency"/>
@@ -776,7 +776,7 @@
   
   <AEBlock itsName="EditReminder">
     <blockName value="EditReminder"/>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
     <presentationStyle itemref="doc:ReminderPresentationStyle"/>
     <viewAttribute value="reminderDelta"/>

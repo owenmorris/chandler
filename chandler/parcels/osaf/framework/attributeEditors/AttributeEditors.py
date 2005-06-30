@@ -235,7 +235,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         Return True if this control shouldn't be resized to fill its space
         """
         try:
-            fixedWidth = self.blockItem.stretchFactor == 0
+            fixedWidth = self.blockItem.stretchFactor == 0.0
         except AttributeError:
             fixedWidth = False # yes, let our textctrl fill the space.
         return fixedWidth
@@ -310,7 +310,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         # large, the sizer won't ever let the control get smaller than this.
         # For now, use 200, a not-too-happy medium that doesn't eliminate either problem.
 
-        if parentBlock is not None and parentBlock.stretchFactor == 0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
+        if parentBlock is not None and parentBlock.stretchFactor == 0.0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
             size = wx.Size(parentBlock.size.width, parentBlock.size.height)
         else:
             if font is not None: # and parentWidget is not None:

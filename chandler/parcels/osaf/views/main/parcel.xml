@@ -1002,7 +1002,7 @@
     <toolSize>26,26</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
     <separatorWidth>20</separatorWidth>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
   <ToolbarItem itsName="ApplicationBarAllButton">
@@ -1240,7 +1240,7 @@
     <childrenBlocks itemref="doc:SidebarInstance"/>
     <childrenBlocks itemref="doc:MiniCalendar"/>
     <orientationEnum>Horizontal</orientationEnum>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <border>0,0,0,4.0</border>    
   </SplitterWindow>
 
@@ -1269,7 +1269,7 @@
   </doc:Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
   </calendar:MiniCalendar>
 
   <TrunkParentBlock itsName="SidebarTPB">
@@ -1402,7 +1402,7 @@
     <childrenBlocks itemref="doc:SidebarInstance" copy="CPIATestSidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar" copy="CPIATestMiniCalendar"/>
     <orientationEnum>Horizontal</orientationEnum>
-    <stretchFactor>0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
   </SplitterWindow>
 
   <TabbedContainer itsName="CPIATestTabbedView"

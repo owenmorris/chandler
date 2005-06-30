@@ -1166,11 +1166,6 @@ class StatusBar(Block):
             rect = self.widget.GetFieldRect(1)
             self.widget.gauge.SetPosition((rect.x+2, rect.y+2))
                             
-    def onShowHideEvent(self, event):
-        self.isShown = not self.isShown
-        self.synchronizeWidget()
-
-
 """
   To use the TreeAndList you must provide a delegate to perform access
 to the data that is displayed. 
