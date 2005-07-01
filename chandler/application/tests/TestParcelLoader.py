@@ -24,7 +24,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.rep.commit()
 
         # Ensure the simple Parcel was created with the right Kind and attrs
-        simpleParcel = self.rep.findPath("//parcels/simple")
+        simpleParcel = self.rep.findPath("//parcels/application/tests/testparcels/simple")
         self.assertEqual(simpleParcel.itsKind,
          self.rep.findPath('//Schema/Core/Parcel'))
         self.assertEqual(simpleParcel.displayName, "Simple Parcel")
@@ -35,7 +35,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
          "Open Source Applications Foundation")
 
         # Ensure testAttribute was created with the right Kind and attrs
-        testAttribute = self.rep.findPath("//parcels/simple/TestAttribute")
+        testAttribute = self.rep.findPath("//parcels/application/tests/testparcels/simple/TestAttribute")
         self.assertEqual(testAttribute.itsKind,
          self.rep.findPath('//Schema/Core/Attribute'))
         self.assertEqual(testAttribute.type, 
@@ -44,7 +44,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assertEqual(testAttribute.cardinality, "single")
 
         # Ensure testKind was created with the right Kind and attrs
-        testKind = self.rep.findPath("//parcels/simple/TestKind")
+        testKind = self.rep.findPath("//parcels/application/tests/testparcels/simple/TestKind")
         self.assertEqual(testKind.itsKind,
          self.rep.findPath('//Schema/Core/Kind'))
         self.assertEqual(testKind.displayName, "Test Kind")
@@ -55,7 +55,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(testAttribute.kinds.has_key(testKind.itsUUID))
 
         # Ensure subKind was created with the right Kind and attrs
-        subKind = self.rep.findPath("//parcels/simple/SubKind")
+        subKind = self.rep.findPath("//parcels/application/tests/testparcels/simple/SubKind")
         self.assertEqual(subKind.itsKind,
          self.rep.findPath('//Schema/Core/Kind'))
         self.assertEqual(subKind.displayName, "Subclass Test Kind")
@@ -66,11 +66,11 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure that an empty defaultValue for a list attribute gets
         # sets properly
-        # item1 = self.rep.findPath("//parcels/simple/data/item1")
+        # item1 = self.rep.findPath("//parcels/application/tests/testparcels/simple/data/item1")
 
         # Ensure that initialValue for a list/dict attributes are
         # set properly
-        item3 = self.rep.findPath("//parcels/simple/data/item3")
+        item3 = self.rep.findPath("//parcels/application/tests/testparcels/simple/data/item3")
         self.assertEqual(type(item3.ListAttribute).__name__, "PersistentList")
         self.assertEqual(type(item3.DictAttribute).__name__, "PersistentDict")
         # make sure this attribute isn't readonly:

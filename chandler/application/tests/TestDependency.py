@@ -24,27 +24,27 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # PrintItem("//parcels", self.rep)
 
         # Ensure depA Parcel was created with the right Kind and attrs
-        depA = self.rep.findPath("//parcels/depA")
+        depA = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA")
         self.assertEqual(depA.itsKind,
          self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure testKind was created with the right Kind
-        testKind = self.rep.findPath("//parcels/depA/TestKind")
+        testKind = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA/TestKind")
         self.assertEqual(testKind.itsKind,
          self.rep.findPath('//Schema/Core/Kind'))
 
         # Ensure depB Parcel was created with the right Kind and attrs
-        depB = self.rep.findPath("//parcels/depB")
+        depB = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB")
         self.assertEqual(depB.itsKind,
          self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure depC Parcel was created with the right Kind and attrs
-        depC = self.rep.findPath("//parcels/depB/depC")
+        depC = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC")
         self.assertEqual(depC.itsKind,
          self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure testAttribute was created with the right Kind
-        testAttribute = self.rep.findPath("//parcels/depB/depC/TestAttribute")
+        testAttribute = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC/TestAttribute")
         self.assertEqual(testAttribute.itsKind,
          self.rep.findPath('//Schema/Core/Attribute'))
 

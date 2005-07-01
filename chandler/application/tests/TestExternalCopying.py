@@ -20,7 +20,7 @@ class ExternalCopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcels([EXTERNALCOPYING, PARCELONE, PARCELTWO])
 
-        PrintItem("//parcels/externalcopying", self.rep, recursive=True)
+        PrintItem("//parcels/application/tests/testparcels/externalcopying", self.rep, recursive=True)
 
         topLevelParcel = self.manager.lookup(EXTERNALCOPYING)
         self.assert_(topLevelParcel is not None)

@@ -21,26 +21,26 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.loadParcels(["http://testparcels.org/items", "http://testparcels.org/super"])
 
         # Ensure the Parcel was created
-        parcel = self.rep.findPath("//parcels/items")
+        parcel = self.rep.findPath("//parcels/application/tests/itemparcels/items")
         self.assertEqual(parcel.itsKind,
          self.rep.findPath("//Schema/Core/Parcel"))
 
         # Ensure testInstances were created
-        testInstance1 = self.rep.findPath("//parcels/items/TestInstance1")
+        testInstance1 = self.rep.findPath("//parcels/application/tests/itemparcels/items/TestInstance1")
         self.assertEqual(testInstance1.itsKind,
-         self.rep.findPath("//parcels/items/Kind2"))
+         self.rep.findPath("//parcels/application/tests/itemparcels/items/Kind2"))
 
-        testInstance2 = self.rep.findPath("//parcels/items/TestInstance2")
+        testInstance2 = self.rep.findPath("//parcels/application/tests/itemparcels/items/TestInstance2")
         self.assertEqual(testInstance2.itsKind,
-         self.rep.findPath("//parcels/items/Kind2"))
+         self.rep.findPath("//parcels/application/tests/itemparcels/items/Kind2"))
 
         self.assertEqual(testInstance1.RefAttribute, testInstance2)
         self.assertEqual(testInstance1.StringAttribute, "XYZZY")
         self.assertEqual(testInstance1.EnumAttribute, "B")
 
-        kind1 = self.rep.findPath("//parcels/super/Kind1")
+        kind1 = self.rep.findPath("//parcels/application/tests/itemparcels/super/Kind1")
         self.assert_(kind1)
-        kind2 = self.rep.findPath("//parcels/items/Kind2")
+        kind2 = self.rep.findPath("//parcels/application/tests/itemparcels/items/Kind2")
         self.assert_(kind2)
         self.assert_(kind1 in kind2.superKinds)
         self.assert_(kind2 in kind1.subKinds)

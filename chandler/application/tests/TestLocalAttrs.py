@@ -23,14 +23,14 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.rep.commit()
 
         # Ensure the Parcel was created
-        kind = self.rep.findPath("//parcels/localattrs/TestKind")
+        kind = self.rep.findPath("//parcels/application/tests/testparcels/localattrs/TestKind")
         self.assert_(kind)
-        attr = self.rep.findPath("//parcels/localattrs/TestKind/TestAttribute")
+        attr = self.rep.findPath("//parcels/application/tests/testparcels/localattrs/TestKind/TestAttribute")
         self.assert_(attr)
         found = False
         for name, attr, k in kind.iterAttributes():
             if str(attr.itsPath) == \
-             "//parcels/localattrs/TestKind/TestAttribute":
+             "//parcels/application/tests/testparcels/localattrs/TestKind/TestAttribute":
                 found = True
         self.assert_(found, "Local TestAttribute not found")
 

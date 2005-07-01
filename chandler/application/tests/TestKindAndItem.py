@@ -25,7 +25,7 @@ class KindAndItemTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.loadParcel("http://testparcels.org/kindanditem")
         self.rep.commit()
         
-        item = self.rep.findPath("//parcels/kindanditem/FirstOfItsKind")
+        item = self.rep.findPath("//parcels/application/tests/testparcels/kindanditem/FirstOfItsKind")
         self.assert_(item)
         self.assert_(item.__dict__.has_key('initCalled'))
 

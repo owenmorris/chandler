@@ -326,6 +326,7 @@ class Manager(Item):
                 # based on its full package name, not just relative to
                 # the directory searched in.
                 base_path = ''
+                directory = os.path.abspath(directory)
                 for path_item in sys.path:
                     if directory==path_item or directory.startswith(path_item+os.path.sep):
                         if len(path_item)>len(base_path):

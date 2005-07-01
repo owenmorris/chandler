@@ -17,7 +17,7 @@ class CollectionsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcels( ["http://testparcels.org/collections/data"] )
         self.rep.commit()
-        parcel = self.rep.findPath("//parcels/collections")
+        parcel = self.rep.findPath("//parcels/application/tests/testparcels/collections")
         parent = parcel.findPath("data/parent")
         child1 = parcel.findPath("data/child1")
         child2 = parcel.findPath("data/child2")

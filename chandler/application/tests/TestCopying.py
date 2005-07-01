@@ -24,7 +24,7 @@ class CopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
     def testCopying(self):
 
-        # PrintItem("//parcels/copying/data", self.rep, recursive=True)
+        # PrintItem("//parcels/application/tests/testparcels/copying/data", self.rep, recursive=True)
 
         parent = self.dataParcel.lookup("realParent")
         self.assert_(parent is not None)

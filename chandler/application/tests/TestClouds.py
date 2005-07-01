@@ -31,12 +31,12 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         items = widgetA.getItemCloud('default', trace=trace)
 
         expectedItems = [
-            "//parcels/clouds/data/widgetA",
-            "//parcels/clouds/data/widgetB",
-            "//parcels/clouds/data/sprocketA",
-            "//parcels/clouds/data/widgetC",
-            "//parcels/clouds/data/sprocketB",
-            "//parcels/clouds/data/sprocketC",
+            "//parcels/application/tests/testparcels/clouds/data/widgetA",
+            "//parcels/application/tests/testparcels/clouds/data/widgetB",
+            "//parcels/application/tests/testparcels/clouds/data/sprocketA",
+            "//parcels/application/tests/testparcels/clouds/data/widgetC",
+            "//parcels/application/tests/testparcels/clouds/data/sprocketB",
+            "//parcels/application/tests/testparcels/clouds/data/sprocketC",
         ]
 
 
