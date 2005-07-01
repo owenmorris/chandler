@@ -16,7 +16,6 @@ class ExternalCopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         EXTERNALCOPYING = "http://testparcels.org/externalcopying"
         PARCELONE = "%s/one" % EXTERNALCOPYING
         PARCELTWO = "%s/two" % EXTERNALCOPYING
-        sys.path.append(os.path.join(self.testdir, 'testparcels'))
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcels([EXTERNALCOPYING, PARCELONE, PARCELTWO])
 
