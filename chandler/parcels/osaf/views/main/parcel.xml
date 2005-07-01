@@ -1339,8 +1339,8 @@
     <blockName>CalendarSummaryViewTemplate</blockName>
 
 <!-- toggle which you want -->
-    <childrenBlocks itemref="doc:CalendarSummaryView"/> 
-<!--     <childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>  -->
+<!--    <childrenBlocks itemref="doc:CalendarSummaryView"/>  -->
+    <childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>
 
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
@@ -1355,12 +1355,12 @@
 
 <!-- experimental -->
 
-<calrefactor:CalendarContainer itsName="CalendarSummaryViewRefactor">
-      <blockName>CalendarSummaryViewRefactor</blockName>
-      <childrenBlocks itemref="doc:MainCalendarControl"/>
-      <childrenBlocks itemref="doc:WeekColumnHeader"/>
-      <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
-      <orientationEnum>Vertical</orientationEnum>
+  <calrefactor:CalendarContainer itsName="CalendarSummaryViewRefactor">
+    <blockName>CalendarSummaryViewRefactor</blockName>
+    <childrenBlocks itemref="doc:MainCalendarControl"/>
+    <childrenBlocks itemref="doc:WeekColumnHeader"/>
+    <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
+    <orientationEnum>Vertical</orientationEnum>
   </calrefactor:CalendarContainer>
 
   <SplitterWindow itsName="MainCalendarCanvasSplitter">
@@ -1375,7 +1375,7 @@
 
   <StaticText itsName="WeekColumnHeader">
     <blockName value="arel's newfangled week ColumnHeader"/>
-    <title value="arel's newfangled week ColumnHeader"/>
+    <title value="arel's newfangled week ColumnHeader goes here"/>
   </StaticText>
 
   <calrefactor:AllDayEventsCanvas itsName="AllDayEvents">

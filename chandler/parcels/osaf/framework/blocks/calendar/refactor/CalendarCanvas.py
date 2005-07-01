@@ -1438,7 +1438,7 @@ class AllDayEventsCanvas(Block.RectangularChild):
         return w
 
     def onSelectedDateChangedEvent(self, event):
-        print "allday evt cvs  receives SDC", event
+        print "allday evt cvs  receives SDC"#, event
     def onSelectItemBroadcast(self, event):
         print "allday evt cvs  receives SIB"
 
@@ -1463,9 +1463,9 @@ class TimedEventsCanvas(Block.RectangularChild):
         return w
 
     def onSelectedDateChangedEvent(self, event):
-        print "timed evt cvs  receives SDC", event
+        print "timed evt cvs  receives SDC"#, event
     def onSelectWeekEvent(self, event):
-        print "timed evt cvs  receives SW", event
+        print "timed evt cvs  receives SW"#, event
     def onSelectItemBroadcast(self, event):
         print "allday evt cvs  receives SIB", event
 
@@ -1510,9 +1510,9 @@ class CalendarControl(CalendarBlock): #Block.RectangularChild):
 
     def onSelectedDateChangedEvent(self, event):
         ## REFACTOR TODO: delete this method and use inherited from CalendarBlock
-        print "cal ctrl receives SDC:", event
+        print "cal ctrl receives SDC:"#, event
         self.setRange(event.arguments['start'])
-        print "cal ctrl after processing SDC: new \n\trangeStart=%s\n\tselDate=%s\n\trangeIncr=%s" %(self.rangeStart, self.selectedDate, self.rangeIncrement)
+        #print "cal ctrl after processing SDC: new \n\trangeStart=%s\n\tselDate=%s\n\trangeIncr=%s" %(self.rangeStart, self.selectedDate, self.rangeIncrement)
 
         self.widget.wxSynchronizeWidget()
         
@@ -1660,12 +1660,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             # ugly back-calculation of the previously selected day
             reldate = self.blockItem.selectedDate - \
                       self.blockItem.rangeStart
+            print "update header:",reldate.days+1
             self.weekColumnHeader.SetSelectedItem(reldate.days+1)
         else:
             self.weekColumnHeader.SetSelectedItem(0)
 
     def ResizeHeader(self):
-        # REFACTOR
+        # REFACTOR: was
         #        for (i,width) in enumerate(self.parent.columnWidths):
         width = 50
         for i in range(8):
@@ -1722,7 +1723,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         self.Layout()
 
-        #attempting to update correctly...
+        #REFACTOR: attempting to update correctly...
+        self.UpdateHeader()
         self.weekColumnHeader.Refresh()
         self.Refresh()
         
@@ -1757,19 +1759,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         selectedDate = startDate + timedelta(days=day)
         print "DAY SELECT: ", day, " for date:", selectedDate
         
-        # @@@ add method on block item for setting selected date
-#        self.blockItem.selectedDate = selectedDate
-#        self.blockItem.dayMode = True
-        print "111111111111111111:", selectedDate
         self.blockItem.postSelectWeek(False)
-        print "222222222222222222:", selectedDate
         self.blockItem.postDateChanged(selectedDate)
 
     def OnWeekSelect(self):
         """callback when the "week" button is clicked on column header."""
-        print "wx callback: OnWeekSelect"
-#        self.blockItem.dayMode = False
-#        self.blockItem.selectedDate = self.blockItem.rangeStart
+        #print "wx callback: OnWeekSelect"
         self.blockItem.postSelectWeek(True)
         self.blockItem.postDateChanged(self.blockItem.rangeStart)
 

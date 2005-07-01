@@ -874,6 +874,16 @@ class BlockEvent(schema.Item):
     schema.addClouds(
         default = schema.Cloud(byCloud=[destinationBlockReference])
     )
+    def __repr__(self):
+        # useful for debugging that i've done.  i dunno if event.arguments
+        # is guaranteed to be there?  -brendano
+
+        if hasattr(self, "arguments"):
+            return "%s, arguments=%s" %(self.blockName, repr(self.arguments))
+        else:
+            return super(BlockEvent, self).__repr__()
+
+
 
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
