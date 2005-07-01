@@ -1,3 +1,16 @@
+#### Under refactoring.
+# enable by toggling comments in main/parcel.xml (SummaryCalendarViewRefactor)
+# to do
+#
+#
+# 1) figure out where to put drawing calculations
+# 2) correct & dynamic spacing for CalendarControl
+# 3) port over AllDayEventsCanvas to be a block
+#   3.5 ?listen & send  SelectItemBroadcast's
+# 4) port over TimedEventsCanvas to be a block
+# 5) split off ColumnHeader out of CalendarControl
+#
+
 """ Canvas for calendaring blocks
 """
 
@@ -665,10 +678,10 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     @ivar rangeIncrement: increment used to find the next or prev block of time
     @type rangeIncrement: timedelta
 
-    @ivar selectedDate: within the current range.  REFACTOR: why the hell is
-    this in this class?  i THINK that selectedDate = rangeStart
-    always... unless, as in the old calcon class, they can be different... so
-    there you override set, get range()...
+    @ivar selectedDate: within the current range.  REFACTOR: why is this in
+    this class?  i THINK that selectedDate = rangeStart always... unless, as
+    in the old calcon class, they can be different... so there you override
+    set, get range()...
 
     @type selectedDate: datetime
     """
@@ -899,35 +912,12 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         self.calendarData.eventColor = ec
 
 
-
-     
-class OLDCalendarContainer(CalendarBlock):
-
-    daysPerView = schema.One(schema.Integer)
-    dayMode = schema.One(schema.Boolean)
-    lastHue = schema.One(schema.Float, initialValue = -1.0)
-
-    def __init__(self, *arguments, **keywords):
-        super(OLDCalendarContainer, self).__init__ (*arguments, **keywords)
-
-## REFACTOR being hacked apart and away
-            
-    def instantiateWidget(self):
-        # @@@ KCP move to a callback that gets called from parcel loader
-        # after item has all of its attributes assigned from parcel xml
-        self.initAttributes()
-        
-        w = OLDwxCalendarContainer(self.parentBlock.widget,
-                           Block.Block.getWidgetID(self))
-
-        ### widget-centric code still works
-
-
-
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
     date ranges, and so forth
+
+    ASSUMPTION: blockItem is a CalendarBlock (REFACTOR: right...?)
     """
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
@@ -942,15 +932,15 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         event.Skip()
 
     def OnSelectItem(self, item):
-        self.parent.blockItem.selection = item
-        self.parent.blockItem.postSelectItemBroadcast()
+        self.blockItem.postSelectItemBroadcast(item)
 
-        # tell the sidebar to select the collection that contains
+        # REFACTOR: dont know if this will work, yet
+        # tell the sidebar to select the collection    that contains
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
-        coll = self.parent.blockItem.getContainingCollection(item)
-        if coll and coll != self.parent.blockItem.contents.source.first():
-            self.parent.blockItem.SelectCollectionInSidebar(coll)
+        coll = self.blockItem.getContainingCollection(item)
+        if coll and coll != self.blockItem.contents.source.first():
+            self.blockItem.SelectCollectionInSidebar(coll)
         #self.parent.wxSynchronizeWidget()
     
     def GrabFocusHack(self):
@@ -977,289 +967,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             brushOffset = 0
 
         return brushOffset
-
-
-## REFACTOR: being refactored away
-class OLDwxCalendarContainer(CalendarEventHandler, 
-                  DragAndDrop.DropReceiveWidget, 
-                  DragAndDrop.DraggableWidget,
-                  DragAndDrop.ItemClipboardHandler,
-                  wx.Panel):
-    def __init__(self, *arguments, **keywords):
-        super (OLDwxCalendarContainer, self).__init__ (*arguments, **keywords)
-
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        
-
-
-    def _doDrawingCalculations(self):
-        """sets a bunch of drawing variables"""
-        self.size = self.GetSize()
-        
-        try:
-            oldDayWidth = self.dayWidth
-        except AttributeError:
-            oldDayWidth = -1
-
-        self.dayWidth = (self.size.width - self.scrollbarWidth) / (self.blockItem.daysPerView + 1)
-
-        ### calculate column widths for the all-7-days week view case
-        # column layout rules are funky (e.g. bug 3290)
-        # - all 7 days are fixed at self.dayWidth
-        # - the last column (expando-button) is fixed
-        # - the "Week" column is the same as self.dayWidth, plus leftover pixels
-        columnCount = 9
-        dayWidths = (self.dayWidth,) * 7
-
-        self.middleWidth = self.dayWidth*7
-        self.xOffset = self.GetSize().width - self.middleWidth - self.scrollbarWidth
-        self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
-
-        # the gradient brushes are based on dayWidth, so blow it away
-        # when dayWidth changes
-        if oldDayWidth != self.dayWidth:
-            self.brushes.ClearCache()
-        
-        if self.blockItem.dayMode:
-            self.columns = 1
-        else:
-            self.columns = self.blockItem.daysPerView        
-
-        #print self.size, self.xOffset, self.dayWidth, self.columns #convenient interactive way to learn what these variables are, since they're tricky to describe verbally
-
-
-    def _getDividerPositions(self):
-        """tuple of divider lines for the wxWeek{Header,Column}Canvas's.
-        unlike columnWidths, this IS sensitive whether you're viewing one day
-        vs. week"""
-        cw = self.columnWidths
-        if self.blockItem.dayMode:
-            lastDividerPos = sum(cw)
-            return (cw[0], lastDividerPos)
-        else:
-            ## e.g. 10,40,40,40 => 0,10,50,90
-            cumulSums =  [sum(cw[:i]) for i in range(len(cw))]
-            return cumulSums[1:]
-
-    dividerPositions = property(_getDividerPositions)
-
-    def OnEraseBackground(self, event):
-        pass
-
-    def OnInit(self):
-        self._doDrawingCalculations()
-        self.calendarControl.OnInit()
-        self.allDayEventsCanvas.OnInit()
-        self.timedEventsCanvas.OnInit()
-        
-    def OnSize(self, event):
-        self._doDrawingCalculations()
-        event.Skip()
-
-    def wxSynchronizeWidget(self):
-        
-        self._doDrawingCalculations()
-        #self.Layout()
-        self.calendarControl.wxSynchronizeWidget()
-        self.allDayEventsCanvas.wxSynchronizeWidget()
-        self.timedEventsCanvas.wxSynchronizeWidget()
-        
-    def PrintCanvas(self, dc):
-        self.timedEventsCanvas.PrintCanvas(dc)
-
-    def OnExpand(self):
-        self.allDayEventsCanvas.toggleSize()
-        self.Layout()
-        
-        
-    """
-    Methods for Drag and Drop and Cut and Paste
-    """
-    def SelectedItems(self):
-        selection = self.blockItem.selection
-        if selection is None:
-            return []
-        return [selection]
-
-    def DeleteSelection(self):
-        try:
-            self.blockItem.DeleteSelection()
-        except AttributeError:
-            pass
-
-    def AddItems(self, itemList):
-        """ @@@ Need to complete this for Paste to work """
-
-class OLDwxCalendarControl(wx.Panel):
-    """This is the topmost area with the month name, event color selector,
-    week navigation arrows, and the bar of Week/day selector buttons"""
-
-    currentSelectedDate = None
-    currentStartDate = None
-    
-    def OnInit(self):
-        self.SetBackgroundColour(self.parent.bgColor) ##REFACTOR: cal ctrl wants this
-
-##  REFACTOR: old funky layout code.  how do we put this back in to the block calcon?
-##         box = wx.BoxSizer(wx.VERTICAL)
-##         box.Add(self.calendarControl, 0, wx.EXPAND)
-##         box.Add(self.allDayEventsCanvas, 0, wx.EXPAND)
-##         box.Add(self.timedEventsCanvas, 1, wx.EXPAND)
-##         self.SetSizer(box)
-
-
-
-        # Set up sizers
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        navigationRow = wx.BoxSizer(wx.HORIZONTAL)
-        
-        sizer.Add((5,5), 0, wx.EXPAND)
-        sizer.Add(navigationRow, 0, wx.EXPAND)
-        sizer.Add((5,5), 0, wx.EXPAND)
-
-        # beginnings of  in the calendar
-        self.colorSelect = colourselect.ColourSelect(self, -1, size=wx.Size(30,15))
-        self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
-        navigationRow.Add((5,5), 0, wx.EXPAND)
-        navigationRow.Add(self.colorSelect, 0, wx.CENTER)
-
-        today = date.today()
-        today = datetime(today.year, today.month, today.day)
-        styles = self.parent
-
-        self.monthText = wx.StaticText(self, -1)
-        self.monthText.SetFont(styles.monthLabelFont)
-        self.monthText.SetForegroundColour(styles.monthLabelColor)
-
-        navigationRow.Add((0,0), 1)
-        
-        # add vertical margins above/below the month 
-        monthSizer = wx.BoxSizer(wx.VERTICAL)
-        monthSizer.Add((7,7),0)
-        monthSizer.Add(self.monthText, 0)
-        monthSizer.Add((5,5), 0)
-        
-        navigationRow.Add(monthSizer, 0, wx.ALIGN_CENTER)
-        navigationRow.Add((0,0), 1)
-        
-        # top row - left/right buttons, anchored to the right
-        self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
-        self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
-        self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
-        self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
-
-        navigationRow.Add(self.prevButton, 0, wx.CENTER)
-        navigationRow.Add((5,5), 0)
-        navigationRow.Add(self.nextButton, 0, wx.CENTER)
-        navigationRow.Add((5,5), 0)
-        
-        # finally the last row, with the header
-        self.weekColumnHeader = wx.colheader.ColumnHeader(self)
-        
-        # turn this off for now, because our sizing needs to be exact
-        self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
-        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", "+"]
-        for header in headerLabels:
-            self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
-        self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
-
-        # set up initial selection
-        self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,True)
-        self.UpdateHeader()
-        sizer.Add(self.weekColumnHeader, 0, wx.EXPAND)
-        
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.SetSizer(sizer)
-        sizer.SetSizeHints(self)
-        self.Layout()
-
-    def UpdateHeader(self):
-        if self.parent.blockItem.dayMode:
-            # ugly back-calculation of the previously selected day
-            reldate = self.parent.blockItem.selectedDate - \
-                      self.parent.blockItem.rangeStart
-            self.weekColumnHeader.SetSelectedItem(reldate.days+1)
-        else:
-            self.weekColumnHeader.SetSelectedItem(0)
-
-    def ResizeHeader(self):
-        for (i,width) in enumerate(self.parent.columnWidths):
-            self.weekColumnHeader.SetUIExtent(i, (0,width))
-
-    def OnSize(self, event):
-        self.ResizeHeader()
-        event.Skip()
-        
-    def wxSynchronizeWidget(self):
-        selectedDate = self.parent.blockItem.selectedDate
-        startDate = self.parent.blockItem.rangeStart
-
-        if (selectedDate == self.currentSelectedDate and
-            startDate == self.currentStartDate):
-            return
-
-        # update the calendar with the calender's color
-        self.colorSelect.SetColour(self.parent.blockItem.calendarData.eventColor.wxColor())
-
-        # Update the month button given the selected date
-        lastDate = startDate + timedelta(days=6)
-        months = dateFormatSymbols.getMonths()
-        if (startDate.month == lastDate.month):
-            monthText = u"%s %d" %(months[selectedDate.month - 1],
-                                   selectedDate.year)
-        else:
-            monthText = u"%s - %s %d" %(months[startDate.month - 1],
-                                        months[lastDate.month - 1],
-                                        lastDate.year)
-     
-        self.monthText.SetLabel(monthText)
-
-        today = date.today()
-        today = datetime(today.year, today.month, today.day)
-
-        # ICU makes this list 1-based, 1st element is an empty string, so that
-        # shortWeekdays[Calendar.SUNDAY] == 'short name for sunday'
-        shortWeekdays = dateFormatSymbols.getShortWeekdays()
-        firstDay = GregorianCalendar().getFirstDayOfWeek()
-
-        for day in xrange(7):
-            actualDay = ((day + firstDay - 1) % 7)
-            currentDate = startDate + timedelta(days=day)
-            if currentDate == today:
-                dayName = "Today"
-            else:
-                dayName = u"%s %02d" %(shortWeekdays[actualDay + 1],
-                                       currentDate.day)
-            self.weekColumnHeader.SetLabelText(day+1, dayName)
-            
-        self.currentSelectedDate = selectedDate
-        self.currentStartDate = startDate
-        
-        self.Layout()
-        
-    def OnDayColumnSelect(self, event):
-        """
-        dispatches to appropriate events in self.parent, 
-        based on the column selected
-        """
-        
-        colIndex = self.weekColumnHeader.GetSelectedItem()
-        
-        # column 0, week button
-        if (colIndex == 0):
-            return self.parent.OnWeekSelect()
-            
-        # last column, the "+" expand button
-        # (this may change...)
-        if (colIndex == 8):
-            # re-fix selection so that the expand button doesn't stay selected
-            self.UpdateHeader()
-            return self.parent.OnExpand()
-        
-        # all other cases mean a day was selected
-        # OnDaySelect takes a zero-based day, and our first day is in column 1
-        return self.parent.OnDaySelect(colIndex-1)
 
 
 class wxInPlaceEditor(wx.TextCtrl):
@@ -1343,8 +1050,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         # REFACTOR: put all the drawing constant-like things from wxcalcon.OnInit here for now...
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X) #REFACTOR: where's this used?
         
-        # This is where all the styles come from - eventually should probably
-        # be moved up to the block
+        # This is where all the styles come from
         if '__WXMAC__' in wx.PlatformInfo:
             
             bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
@@ -1433,8 +1139,7 @@ class AllDayEventsCanvas(Block.RectangularChild):
     calendarContainer = schema.One(schema.Item, required=True)
 
     def instantiateWidget(self):
-        ## REFACTOR: more args for id etc.
-        w = wxAllDayEventsCanvas(self.parentBlock.widget)
+        w = wxAllDayEventsCanvas(self.parentBlock.widget, Block.Block.getWidgetID(self))
         return w
 
     def onSelectedDateChangedEvent(self, event):
@@ -1505,7 +1210,7 @@ class CalendarControl(CalendarBlock): #Block.RectangularChild):
         self.dayMode = False
         self.setRange(self.startOfToday())
 
-        w = wxCalendarControl(self.parentBlock.widget)
+        w = wxCalendarControl(self.parentBlock.widget, Block.Block.getWidgetID(self))
         return w
 
     def onSelectedDateChangedEvent(self, event):
@@ -1546,7 +1251,7 @@ class CalendarControl(CalendarBlock): #Block.RectangularChild):
         else:
             self.selectedDate = self.rangeStart
 
-#### should NOT be needed here since cal ctrl doesnt need to know about specific days...?
+#### REFACTOR should NOT be needed here since cal ctrl doesnt need to know about specific days...?
             
 ##     def GetCurrentDateRange(self):
 ##         """unlike CalendarBlock.GetCurrentDateRange(), need to check dayMode"""
@@ -1560,13 +1265,6 @@ class CalendarControl(CalendarBlock): #Block.RectangularChild):
 
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
-##     def OnInit(self):
-##         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeft)
-##         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRight)
-##     def OnLeft(self, event):
-##         print "cal ctrl Left"
-##     def OnRight(self, event):
-##         print "cal ctrl Right"
     """This is the topmost area with the month name, event color selector,
     week navigation arrows, and the bar of Week/day selector buttons"""
 
@@ -1649,7 +1347,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def OnSelectColor(self, event):
         c = event.GetValue().Get()
 
-        # REFACTOR
+        # REFACTOR.  a new CPIA event?
 #        self.blockItem.setCalendarColor(c)
         
         # just cause a repaint - hopefully this cascades to child windows? REFACTOR: no more child windows!
