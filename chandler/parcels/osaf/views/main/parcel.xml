@@ -226,21 +226,23 @@
   </ModifyContentsEvent>
 
   <!-- ********** calendar REFACTORING  **************** -->
-  <ModifyContentsEvent itsName="AddCalendarRefactorTestView">
+<!--  <ModifyContentsEvent itsName="AddCalendarRefactorTestView">
     <blockName>AddCalendarRefactorTestView</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="calrefactor:CalendarRefactorTestView"/>
     <commitAfterDispatch>True</commitAfterDispatch>
-  </ModifyContentsEvent>
+  </ModifyContentsEvent> -->
 
   <!-- should move to the menu soon... -->
-  <MenuItem itsName="AddCalendarRefactorTestViewItem">
+<!--
+<MenuItem itsName="AddCalendarRefactorTestViewItem">
     <blockName>AddCalendarRefactorTestViewItem</blockName>
     <title>Add Calendar Refactoring Test View</title>
     <event itemref="doc:AddCalendarRefactorTestView"/>
   </MenuItem>
+  -->
   
 
     
@@ -904,7 +906,7 @@
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddCPIAViewItem"/>
-    <childrenBlocks itemref="doc:AddCalendarRefactorTestViewItem"/>
+    <!-- <childrenBlocks itemref="doc:AddCalendarRefactorTestViewItem"/> -->
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -1358,7 +1360,11 @@
 
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
     <blockName>CalendarSummaryViewTemplate</blockName>
-    <childrenBlocks itemref="doc:CalendarSummaryView"/>
+
+<!-- toggle which you want -->
+    <childrenBlocks itemref="doc:CalendarSummaryView"/> 
+<!--     <childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>  -->
+
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
@@ -1369,6 +1375,42 @@
     <blockName>CalendarSummaryView</blockName>
     <daysPerView>7</daysPerView>
   </calendar:CalendarContainer>
+
+<!-- experimental -->
+
+<calrefactor:CalendarContainer itsName="CalendarSummaryViewRefactor">
+      <blockName>CalendarSummaryViewRefactor</blockName>
+      <childrenBlocks itemref="doc:MainCalendarControl"/>
+      <childrenBlocks itemref="doc:WeekColumnHeader"/>
+      <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
+      <orientationEnum>Vertical</orientationEnum>
+  </calrefactor:CalendarContainer>
+
+  <SplitterWindow itsName="MainCalendarCanvasSplitter">
+      <childrenBlocks itemref="doc:AllDayEvents"/>
+      <childrenBlocks itemref="doc:TimedEvents"/>
+    <orientationEnum>Horizontal</orientationEnum>
+  </SplitterWindow>
+
+  <calrefactor:CalendarControl itsName="MainCalendarControl">
+    <blockName value="MainCalendarControl"/>
+  </calrefactor:CalendarControl>
+
+  <StaticText itsName="WeekColumnHeader">
+    <blockName value="arel's newfangled week ColumnHeader"/>
+    <title value="arel's newfangled week ColumnHeader"/>
+  </StaticText>
+
+  <calrefactor:AllDayEventsCanvas itsName="AllDayEvents">
+    <blockName value="all day events canvas"/>
+    <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+  </calrefactor:AllDayEventsCanvas>
+
+  <calrefactor:TimedEventsCanvas itsName="TimedEvents">
+    <blockName value="timed events canvas"/>
+    <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+  </calrefactor:TimedEventsCanvas>
+<!-- end experimental -->
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>

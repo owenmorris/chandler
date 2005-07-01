@@ -29,12 +29,12 @@
 
 <!--                xmlns:blocks="parcel:osaf.framework.blocks" -->
 
-  <description>calendar refactoring test view stuff</description>
   <core:version>0.5</core:version> <!-- what does this do? -brendan -->
 
+<!--  alternate "Test->Add Additional Views" thing isnt working... -->
 
-
-<!-- litterWindow itsName="CalendarSummaryViewTemplate"> -->
+<!--
+WAS: SplitterWindow itsName="CalendarSummaryViewTemplate"> 
   <SplitterWindow itsName="CalendarRefactorTestView">
     <blockName>CalendarRefactorTestView</blockName>
     <displayName>calendar refactor test view</displayName>
@@ -58,6 +58,6 @@
   <DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
     <trunkStub itemref="detail:DetailRoot"/>
   </DetailTrunkDelegate>
-
+-->
 
 </core:Parcel>
