@@ -3,7 +3,6 @@ from application.Parcel import Manager as ParcelManager
 from application.Parcel import Parcel
 from repository.schema.Kind import Kind
 from repository.persistence.RepositoryView import NullRepositoryView
-from genschema import generateClass
 import sys, logging, os
 
 # pre-import any command line arguments so errors can be reported sooner
@@ -23,7 +22,7 @@ manager = ParcelManager.get(
     rep, path=[os.path.join(os.path.dirname(__file__),'parcels')]
 )
 
-manager.loadParcels([]) #'http://osafoundation.org/parcels/osaf/contentmodel/mail'])
+manager.loadParcels() #['http://osafoundation.org/parcels/osaf/contentmodel'])
 
 classKinds = {}
 allKinds = set()
@@ -38,7 +37,7 @@ def scan_parcel(item):
 
 scan_parcel(rep.findPath('//parcels'))
 
-outf = open('classgen.py','w')
+
 goodKinds = 0
 unloadable = []
 non_schema = []
@@ -48,7 +47,6 @@ diff_clouds = []
 diff_path = []
 missing = []
 derived_non_schema = []
-diff_metadata = []
 all = set()
 bad = set()
 imports_needed = {}
@@ -64,14 +62,6 @@ def name_of(cls):
 
 def item_names_of(item,attr):
     return set(thing.itsName for thing in getattr(item,attr,()))
-
-def flag(cls, classname):
-    if classname not in bad:
-        bad.add(classname)
-        outf.write("\n\n# ---- %s ----\n\n" % classname)
-        for kind in classKinds[cls]:
-            generateClass(kind,outf)
-
     
 for cls, kinds in classKinds.items():
     classname = name_of(cls)
@@ -79,7 +69,7 @@ for cls, kinds in classKinds.items():
 
     if classname.startswith('repository.schema.Kind.class_'):
         missing.extend(kind.itsPath for kind in kinds)
-        flag(cls, classname)
+        bad.add(classname)
         continue
 
     if len(kinds)>1:
@@ -87,7 +77,7 @@ for cls, kinds in classKinds.items():
         print "Multiple kinds for class", classname+':'
         for kind in kinds:
             print "   ",kind.itsPath
-        flag(cls, classname)
+        bad.add(classname)
         continue
 
     for kind in kinds:
@@ -116,9 +106,6 @@ for cls, kinds in classKinds.items():
     attrs = item_names_of(item,'attributes')
     clouds = item_names_of(item,'clouds')
     supers = [sk.itsName for sk in item.superKinds]
-    values = dict(item._values.items())
-    if 'schemaHash' in values:
-        del values['schemaHash']
 
     for kind in kinds:
         if kind.itsPath<>item.itsPath:
@@ -126,65 +113,15 @@ for cls, kinds in classKinds.items():
         if kind.itsName<>item.itsName:
             print
             print classname, "has a different name than", kind.itsPath
+
         if attrs<>item_names_of(kind,'attributes'):
             diff_attrs.append(classname)
-            flag(cls, classname)
-            #if attrs:
-            #    print "Class",classname
-            #    print "   ", sorted(attrs)
-            #    print "Kind", kind.itsPath
-            #    print "   ", sorted(item_names_of(kind,'attributes'))
         else:
-            #if _hash<>kind.hashItem():
-            #    print
-            #    print classname, "hashes differently from", kind.itsPath
-
-            kvalues = dict(kind._values.items())
-            if 'schemaHash' in kvalues:
-                del kvalues['schemaHash']
-            if values<>kvalues:
-                diff_metadata.append(classname)
-                print
-                print
-                print classname,"has different metadata:"
-                print [(k,v) for k,v in values.items() if k not in kvalues or kvalues[k]<>v]
-                print [(k,v) for k,v in kvalues.items() if k not in values or values[k]<>v]
-                flag(cls, classname)
-
             for attr in attrs:
                 a_item = item.attributes.getByAlias(attr)
                 a_kind = kind.attributes.getByAlias(attr)
-                    
-                v_item = dict(a_item._values.items())
-                v_kind = dict(a_item._values.items())
-                if 'schemaHash' in v_item: del v_item['schemaHash']
-                if 'schemaHash' in v_kind: del v_kind['schemaHash']
-
-                if v_item <> v_kind:
+                if a_item.hashItem() <> a_kind.hashItem():
                     mismatch(classname,"attributes",attr)
-                    flag(cls, classname)
-                    print v_item
-                    print v_kind                    
-                else:
-                    '''if a_item.hashItem()<>a_kind.hashItem():
-                        print a_item.itsPath,"has a different hash"
-                        print a_item.type.makeString(getattr(a_item,'initialValue',None))
-                        print a_kind.type.makeString(getattr(a_kind,'initialValue',None))
-                        print v_item
-                        print v_kind'''               
-                    t_item = getattr(a_item,'type',None)
-                    t_kind = getattr(a_kind,'type',None)
-                    if (t_item is None) <> (t_kind is None):
-                        mismatch(classname,"attributes",attr)
-                        flag(cls, classname)
-                    else:
-                        t_item = getattr(t_item,'itsPath',None)
-                        t_kind = getattr(t_kind,'itsPath',None)
-                        if t_item <> t_kind:
-                            mismatch(classname,"attributes",attr)
-                            flag(cls, classname)
-                            print classname, t_item, t_kind
-                    
 
         if clouds<>item_names_of(kind,'clouds'):
             diff_clouds.append(classname)
@@ -205,7 +142,7 @@ def report(title,items):
     if items:
         print
         print
-        print len(items),title
+        print title
         for name in sorted(items):
             print "   ",name
 
@@ -224,8 +161,6 @@ for title,items in [
         diff_attrs),
     ("Classes with different or missing clouds (compared to parcel.xml)",
         diff_clouds),
-    ("Classes with different or missing metadata (compared to parcel.xml)",
-        diff_metadata),
 ]:
     items = set(items)
     bad |= items
@@ -263,15 +198,13 @@ report(
 bad |= set(details)
 
 good = all - bad
-#report(
-#    "Ready to add optional metadata, then remove from parcel.xml",
-#    good
-#)
+report(
+    "Ready to add optional metadata, then remove from parcel.xml",
+    good
+)
 
 print
 print
 print len(classKinds), "classes for", len(allKinds),
 print "kinds (%s good)" % len(good)
-
-outf.close()
 
