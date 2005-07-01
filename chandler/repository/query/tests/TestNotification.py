@@ -20,9 +20,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/contacts',
-          'http://osafoundation.org/parcels/osaf/contentmodel',
-          'http://testparcels.org/notification']
+         ['parcel:osaf.contentmodel.contacts',
+          'parcel:osaf.contentmodel',
+          'parcel:repository.query.tests.parcels.notification']
         )
 
         view = self.rep.view
@@ -69,9 +69,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/contacts',
-          'http://osafoundation.org/parcels/osaf/contentmodel',
-          'http://testparcels.org/notification']
+         ['parcel:osaf.contentmodel.contacts',
+          'parcel:osaf.contentmodel',
+          'parcel:repository.query.tests.parcels.notification']
         )
 
         view = self.rep.view
@@ -152,7 +152,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel']
+         ['parcel:osaf.contentmodel']
         )
 
         #create test data
@@ -268,7 +268,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-            ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+            ['parcel:osaf.contentmodel.calendar']
         )
 
         view = self.rep.view

@@ -12,7 +12,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testOutBoxQueryWithMail(self):
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/mail']
+         ['parcel:osaf.contentmodel.mail']
         )
 
         import osaf.contentmodel.mail.Mail as Mail
@@ -94,7 +94,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/contacts']
+         ['parcel:osaf.contentmodel.contacts']
         )
 
         view = self.rep.view
@@ -110,7 +110,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+         ['parcel:osaf.contentmodel.calendar']
         )
 
         view = self.rep.view
@@ -150,7 +150,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+         ['parcel:osaf.contentmodel.calendar']
         )
 
         view = self.rep.view

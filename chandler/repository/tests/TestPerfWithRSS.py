@@ -41,7 +41,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         super(TestPerfWithRSS, self).setUp()
 
         # sys.path.insert(1, parcelDir)
-        self.loadParcel("http://osafoundation.org/parcels/osaf/examples/zaobao")
+        self.loadParcel("parcel:osaf.examples.zaobao")
 
         self.rep.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")

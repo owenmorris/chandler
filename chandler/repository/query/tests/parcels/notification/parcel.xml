@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel itsName="notification"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:notification="http://testparcels.org/notification">
-
-  <namespace value="http://testparcels.org/notification"/>
+        xmlns="parcel:core"
+        xmlns:notification="parcel:repository.query.tests.parcels.notification">
 
   <displayName>Notification</displayName>
   <description>Query Notification Test Parcel</description>

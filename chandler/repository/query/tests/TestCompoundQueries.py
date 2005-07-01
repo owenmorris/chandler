@@ -26,7 +26,7 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['http://osafoundation.org/parcels/osaf/contentmodel']
+         ['parcel:osaf.contentmodel']
         )
 
         #create test data
