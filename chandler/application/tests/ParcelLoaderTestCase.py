@@ -13,6 +13,12 @@ import repository.tests.RepositoryTestCase as RepositoryTestCase
 
 import application
 
+# Fix for hardhat running test cases with sys.path including a subpackage :(
+mydir = os.path.dirname(__file__)
+if mydir in sys.path:
+    sys.path.remove(mydir)
+
+
 class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
 
     def setUp(self):
