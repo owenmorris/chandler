@@ -1339,8 +1339,8 @@
     <blockName>CalendarSummaryViewTemplate</blockName>
 
 <!-- toggle which you want -->
-<!--    <childrenBlocks itemref="doc:CalendarSummaryView"/>  -->
-    <childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>
+    <childrenBlocks itemref="doc:CalendarSummaryView"/> 
+<!--    <childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/> -->
 
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
