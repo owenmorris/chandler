@@ -390,8 +390,8 @@ class Manager(Item):
                         namespace = "%s.%s" % (parentNS,myName)
                     else:
                         namespace = "%s/%s" % (parentNS, myName )
-                else:
-                    print "<namespace %s> being used in %s" %(namespace, parcelFile)
+                #else:
+                #    print "<namespace %s> being used in %s" %(namespace, parcelFile)
 
                 # Set up the parcel descriptor
                 pDesc = {
