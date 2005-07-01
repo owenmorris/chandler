@@ -869,6 +869,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     Base class for all calendar canvases - handles basic item selection, 
     date ranges, and so forth
     """
+    legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
         super (wxCalendarCanvas, self).__init__ (*arguments, **keywords)
 
@@ -917,6 +918,32 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             brushOffset = 0
 
         return brushOffset
+
+    def DrawDayLines(self, dc):
+        """
+        Draw lines between days
+        """
+
+        styles = self.parent
+        drawInfo = self.parent
+
+        # the legend border is major
+        dc.SetPen(wx.Pen(styles.majorLineColor, self.legendBorderWidth))
+        
+        # thick pens with the line centered at x. Offset the legend border
+        # because we want the righthand side of the line to be at X
+        legendBorderX = drawInfo.dividerPositions[0] - self.legendBorderWidth/2
+        dc.DrawLine(legendBorderX, 0,
+                    legendBorderX, self.size.height)
+        
+        def drawDayLine(dayNum):
+            x = drawInfo.dividerPositions[dayNum]
+            dc.DrawLine(x, 0,   x, self.size.height)
+
+        # the rest are minor, 1 pixel wide
+        dc.SetPen(styles.minorLinePen)
+        for dayNum in range(1, drawInfo.columns):
+            drawDayLine(dayNum)
 
 
 class wxCalendarContainer(CalendarEventHandler, 
@@ -1318,7 +1345,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     # Drawing code
     def DrawBackground(self, dc):
-        styles = self.parent
+        drawInfo = self.parent
         
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
@@ -1327,24 +1354,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
-        # Draw lines between days
-        drawInfo = self.parent
-        def drawDayLine(dayNum):
-            x = drawInfo.dividerPositions[dayNum]
-            dc.DrawLine(x, 0,   x, self.size.height)
+        self.DrawDayLines(dc)
 
-        # Week/7days divider needs major color, the rest are minor.
-        dc.SetPen(styles.majorLinePen)
-        drawDayLine(0)
-
-        dc.SetPen(styles.minorLinePen)
-        for dayNum in range(1, drawInfo.columns):
-            drawDayLine(dayNum)
-
-        # Draw one extra line to parallel the scrollbar below
+        # Draw one extra line after the last day of the week,
+        # to line up with the scrollbar below
         dc.DrawLine(self.size.width - drawInfo.scrollbarWidth, 0,
                     self.size.width - drawInfo.scrollbarWidth, self.size.height)
-
         
     def DrawCells(self, dc):
         
@@ -1384,7 +1399,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
-            width = self.size.width - self.parent.scrollbarWidth
+            width = self.size.width - self.parent.scrollbarWidth - self.parent.xOffset
         else:
             startDay = self.parent.blockItem.rangeStart
             width = self.parent.dayWidth
@@ -1612,30 +1627,27 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         self.size.width,
                         hour * self.hourHeight + halfHourHeight)
 
-        # Draw lines between days
-        legendBorderWidth = 3
-        legendBorderX = self.xOffset + 2 - legendBorderWidth
-
-        dc.SetPen(wx.Pen(styles.majorLineColor, legendBorderWidth))
-        dc.DrawLine(legendBorderX, 0,
-                    legendBorderX, self.size.height)
-                    
+        self.DrawDayLines(dc)
+        
+        legendBorderX = self.xOffset - self.legendBorderWidth/2
+        pen = wx.Pen(styles.legendColor, self.legendBorderWidth)
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        
         # hardcode this for now - eventually this should be a preference
         workdayHourStart = 9 # 9am
         workdayHourEnd = 17  # 5pm
         
-        pen = wx.Pen(styles.legendColor, legendBorderWidth)
-        pen.SetCap(wx.CAP_BUTT)
-        dc.SetPen(pen)
-        
         dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
                     legendBorderX, workdayHourEnd * self.hourHeight + 1)
 
+        """
         # draw lines between columns
         dc.SetPen(styles.minorLinePen)
         for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
                         self.xOffset + (self.dayWidth * day), self.size.height)
+        """
 
         # draw selection stuff
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
