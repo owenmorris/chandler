@@ -20,7 +20,6 @@ class KindAndItemTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         <http://bugzilla.osafoundation.org/show_bug.cgi?id=1144">.
         """
 
-        sys.path.append(os.path.join(self.testdir, 'testparcels'))
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcel("http://testparcels.org/kindanditem")
         self.rep.commit()

@@ -11,7 +11,7 @@
 
   <namespace value="http://testparcels.org/kindanditem" />
   <Kind itsName="KindOne">
-    <classes key="python">classes.super.Super.Super</classes>
+    <classes key="python">application.tests.testparcels.classes.super.Super.Super</classes>
     <superKinds itemref="Item"/>
     <displayName value="Kind One" />
   </Kind>    
