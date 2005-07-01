@@ -194,7 +194,6 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="repository:CPIAView"/>
-<!--  should have here too....   <items itemref="calrefactor:CalendarRefactorTestView"/> -->
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
   
@@ -225,27 +224,6 @@
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
 
-  <!-- ********** calendar REFACTORING  **************** -->
-<!--  <ModifyContentsEvent itsName="AddCalendarRefactorTestView">
-    <blockName>AddCalendarRefactorTestView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="calrefactor:CalendarRefactorTestView"/>
-    <commitAfterDispatch>True</commitAfterDispatch>
-  </ModifyContentsEvent> -->
-
-  <!-- should move to the menu soon... -->
-<!--
-<MenuItem itsName="AddCalendarRefactorTestViewItem">
-    <blockName>AddCalendarRefactorTestViewItem</blockName>
-    <title>Add Calendar Refactoring Test View</title>
-    <event itemref="doc:AddCalendarRefactorTestView"/>
-  </MenuItem>
-  -->
-  
-
-    
   <BlockEvent itsName="ChangeLayout">
     <blockName>ChangeLayout</blockName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
@@ -906,7 +884,6 @@
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddCPIAViewItem"/>
-    <!-- <childrenBlocks itemref="doc:AddCalendarRefactorTestViewItem"/> -->
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
