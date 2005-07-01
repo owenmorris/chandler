@@ -48,7 +48,10 @@ def toDateUtilStruct(structlist):
     outlist = []
     for struct in structlist:
         day=toDateUtilWeekday(struct.weekday)
-        outlist.append(day(struct.selector))
+        if struct.selector == 0: # dateutil's weekday doesn't like 0
+            outlist.append(day)
+        else:
+            outlist.append(day(struct.selector))
     return outlist
 
 def toDateUtil(val):
@@ -142,13 +145,16 @@ class RecurrenceRule(ContentModel.ContentItem):
     exruleFor = schema.One('RecurrenceRuleSet', inverse='exrules')
         
 
-    normalNames = "interval", "until", "bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno", "byhour", "byminute", "bysecond"
+    normalNames = "interval", "until"
+    listNames = "bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno",\
+                "byhour", "byminute", "bysecond"
 
     specialNames = "wkst", "byweekday", "freq"
 
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rrule."""
-        kwargs = dict((k, getattr(self, k)) for k in self.normalNames if getattr(self, k) is not None)
+        kwargs = dict((k, getattr(self, k)) for k in 
+                                            self.listNames + self.normalNames)
         for key in self.specialNames:
             if getattr(self, key) is not None:
                 kwargs[key]=toDateUtil(getattr(self, key))
@@ -182,6 +188,10 @@ class RecurrenceRule(ContentModel.ContentItem):
         for key in self.normalNames:
             if getattr(rrule, '_' + key) is not None:
                 setattr(self, key, getattr(rrule, '_' + key))
+        for key in self.listNames:
+            if getattr(rrule, '_' + key) is not None:
+                # cast tuples to list, or will the repository do this for us?
+                setattr(self, key, list(getattr(rrule, '_' + key)))
 
 class RecurrenceRuleSet(ContentModel.ContentItem):
     rrules = schema.Sequence(
@@ -231,3 +241,7 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
                 ruleItem.setRuleFromDateUtil(rule)
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)
+        for datetype in 'rdate', 'exdate':
+            setattr(self, datetype + 's', getattr(rruleset, '_' + datetype, []))
+
+        

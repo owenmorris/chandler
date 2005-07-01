@@ -36,6 +36,12 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(rrule[0], getattr(self, freq)['start'])
         self.assertEqual(rrule[-1], getattr(self, freq)['end'])
         self.assertEqual(rrule.count(), getattr(self, freq)['count'])
+    
+    def _testCombined(self, rruleset):
+        #not count1 + count2, because the two rules share self.start
+        self.assertEqual(rruleset.count(), self.weekly['count'] +
+                                           self.monthly['count'] - 1)
+        self.assertEqual(rruleset[-1], self.weekly['end'])
 
     def _createBasicItem(self, freq):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
@@ -68,10 +74,12 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         self._testRRule('weekly', rrule)
         self.rep.check()
         
-        # Every other week on Tuesday and Thursday, for 4 occurrences.
+        # Every other week in which Tuesday or Thursday falls on the 5th or 8th
+        # of the month, for 4 occurrences.  Yes, this is absurd :)
         complexRule = dateutil.rrule.rrule(WEEKLY, interval=2, count=4, wkst=SU,
-                                           byweekday=(TU,TH),dtstart=self.start)
-        lastDate = datetime(2005, 7, 21, 13)
+                                           byweekday=(TU,TH), bymonthday=[5,8],
+                                           dtstart=self.start)
+        lastDate = datetime(2006, 1, 5, 13)
 
         # Note that dtstart is a Monday and is NOT included, which is not RFC
         # compliant.  VObject works around this for now, someday dateutil will
@@ -109,42 +117,70 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
         ruleItem = self._createBasicItem('weekly')
         ruleSetItem.addRule(ruleItem)
-        ruleSet = ruleSetItem.createDateUtilFromRule(self.weekly['start'])
+        ruleSet = ruleSetItem.createDateUtilFromRule(self.start)
         
         #rrulesets support the rrule interface
         self._testRRule('weekly', ruleSet)
         
         ruleItem = self._createBasicItem('monthly')
         ruleSetItem.addRule(ruleItem)
-        ruleSet = ruleSetItem.createDateUtilFromRule(self.monthly['start'])
+        self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
         
-        #not 25, or count1 + count2, because the two rules share self.start
-        self.assertEqual(ruleSet.count(), 24)
-        self.assertEqual(ruleSet[-1], self.weekly['end'])
-
     def testRuleSetFromDateUtil(self):
         ruleSet = dateutil.rrule.rruleset()
         for freq in 'weekly', 'monthly':
             ruleSet.rrule(self._createBasicDateUtil(freq))
         ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
+        self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
 
-    def testExRule(self):
-        pass
-    
     def testRDate(self):
-        pass
+        ruleSet = dateutil.rrule.rruleset()
+        for freq in 'weekly', 'monthly':
+            ruleSet.rrule(self._createBasicDateUtil(freq))
+        ruleSet.rdate(self.start + timedelta(days=1))
+        ruleSet.rdate(self.start + timedelta(days=2))
+        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem.setRuleFromDateUtil(ruleSet)
+        
+        self.assertEqual(ruleSetItem.rdates[0], self.start + timedelta(days=1))
+        
+        identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
+        self.assertEqual(identityTransformed[2], self.start + timedelta(days=2))
+        self.assertEqual(identityTransformed.count(), self.weekly['count'] +
+                                                      self.monthly['count'] - 1
+                                                      + 2)
 
+    def testExDate(self):
+        ruleSet = dateutil.rrule.rruleset()
+        for freq in 'weekly', 'monthly':
+            ruleSet.rrule(self._createBasicDateUtil(freq))
+        ruleSet.exdate(self.start)
+        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem.setRuleFromDateUtil(ruleSet)
+        identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
+        self.assertNotEqual(self.start, identityTransformed[0])
+        
+    def testExRule(self):
+        ruleSet = dateutil.rrule.rruleset()
+        for freq in 'weekly', 'monthly':
+            ruleSet.rrule(self._createBasicDateUtil(freq))
+        exrule = dateutil.rrule.rrule(WEEKLY, count=10, dtstart=self.start)
+        ruleSet.exrule(exrule)
+        
+        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem.setRuleFromDateUtil(ruleSet)
+        identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
+        # The monthly rule dates aren't in the exclusion rule
+        self.assertEqual(identityTransformed[0],self.start + timedelta(days=31))
+        self.assertEqual(identityTransformed.count(), self.weekly['count'] +
+                                                      self.monthly['count'] - 1
+                                                      - 10)
+        
 
 #tests to write:
 """
 
-factor out testCombined
-createDateUtil inverse for ruleset
-
 Check behavior when bad enums are set
 
-test multiple RRULEs in one rruleset
-
-setRuleFromDateUtil(rruleset)
 """
