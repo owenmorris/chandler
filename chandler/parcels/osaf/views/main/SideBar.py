@@ -242,7 +242,9 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         if isinstance (item, ItemCollection.ItemCollection):
-            if len (item) == 0:
+            sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
+            (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
+            if len (filteredCollection) == 0:
                 dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
             """
               Draw the sharing state icon
