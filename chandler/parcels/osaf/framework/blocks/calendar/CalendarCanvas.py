@@ -1157,15 +1157,15 @@ class wxCalendarControl(wx.Panel):
         
         navigationRow = wx.BoxSizer(wx.HORIZONTAL)
         
-        sizer.Add((5,5), 0, wx.EXPAND)
+        sizer.Add((7,7), 0, wx.EXPAND)
         sizer.Add(navigationRow, 0, wx.EXPAND)
         sizer.Add((5,5), 0, wx.EXPAND)
 
         # beginnings of  in the calendar
         self.colorSelect = colourselect.ColourSelect(self, -1, size=wx.Size(30,15))
         self.Bind(colourselect.EVT_COLOURSELECT, self.parent.OnSelectColor)
-        navigationRow.Add((5,5), 0, wx.EXPAND)
-        navigationRow.Add(self.colorSelect, 0, wx.CENTER)
+        navigationRow.Add((7,7), 0, wx.EXPAND)
+        navigationRow.Add(self.colorSelect, 0, wx.ALIGN_CENTER)
 
         today = date.today()
         today = datetime(today.year, today.month, today.day)
@@ -1177,13 +1177,7 @@ class wxCalendarControl(wx.Panel):
 
         navigationRow.Add((0,0), 1)
         
-        # add vertical margins above/below the month 
-        monthSizer = wx.BoxSizer(wx.VERTICAL)
-        monthSizer.Add((7,7),0)
-        monthSizer.Add(self.monthText, 0)
-        monthSizer.Add((5,5), 0)
-        
-        navigationRow.Add(monthSizer, 0, wx.ALIGN_CENTER)
+        navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
         navigationRow.Add((0,0), 1)
         
         # top row - left/right buttons, anchored to the right
@@ -1192,10 +1186,10 @@ class wxCalendarControl(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
 
-        navigationRow.Add(self.prevButton, 0, wx.CENTER)
+        navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
         navigationRow.Add((5,5), 0)
-        navigationRow.Add(self.nextButton, 0, wx.CENTER)
-        navigationRow.Add((5,5), 0)
+        navigationRow.Add(self.nextButton, 0, wx.ALIGN_CENTER)
+        navigationRow.Add((7,7), 0)
         
         # finally the last row, with the header
         self.weekColumnHeader = wx.colheader.ColumnHeader(self)
@@ -1751,7 +1745,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
             # we've now found all conflicts for item, do we need to calculate
             # depth or anything?
-            # first theory: leaf children have a maximum conflict depth?
             canvasItem.CalculateConflictDepth()
 
 
