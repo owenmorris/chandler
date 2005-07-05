@@ -68,6 +68,7 @@ public:
 
     // Toolbar
 #if wxUSE_TOOLBAR
+    virtual void SetToolBar(wxToolBar *toolbar);
     virtual wxToolBar* CreateToolBar(long style = -1,
                                      wxWindowID id = -1,
                                      const wxString& name = wxToolBarNameStr);

@@ -245,7 +245,8 @@ void wxFrame::DoGetClientSize(int *x, int *y) const
         }
         else
         {
-            if ( y )  *y -= h;
+            // TODO REMOVE native toolbar now, TODO REMOVE
+			// if ( y )  *y -= h;
         }
     }
 #endif // wxUSE_TOOLBAR
@@ -290,12 +291,17 @@ void wxFrame::DoSetClientSize(int clientwidth, int clientheight)
 
 
 #if wxUSE_TOOLBAR
+void wxFrame::SetToolBar(wxToolBar *toolbar)
+{
+    m_frameToolBar = toolbar ;
+    if ( toolbar && toolbar->GetWindowStyleFlag() & wxTB_HORIZONTAL )
+        toolbar->MacInstallNativeToolbar( true ) ;
+}
+
 wxToolBar* wxFrame::CreateToolBar(long style, wxWindowID id, const wxString& name)
 {
     if ( wxFrameBase::CreateToolBar(style, id, name) )
-    {
         PositionToolBar();
-    }
 
     return m_frameToolBar;
 }
@@ -328,8 +334,9 @@ void wxFrame::PositionToolBar()
         }
         else
         {
+			// TODO REMOVE, 0 height for 'shadow' toolbar
             // Use the 'real' position
-            GetToolBar()->SetSize(tx , ty , cw , th, wxSIZE_NO_ADJUSTMENTS );
+            //GetToolBar()->SetSize(tx , ty , cw , th, wxSIZE_NO_ADJUSTMENTS );
         }
     }
 }
