@@ -1765,7 +1765,10 @@ class Item(CItem):
                             except AttributeError:
                                 newAttr = None
                             if curAttr is not newAttr:
-                                self.removeAttributeValue(name, attrDict)
+                                try:
+                                    self.removeAttributeValue(name, attrDict)
+                                except NoLocalValueForAttributeError:
+                                    pass
 
                     removeOrphans(self._values)
                     removeOrphans(self._references)

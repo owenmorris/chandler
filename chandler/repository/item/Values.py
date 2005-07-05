@@ -576,7 +576,10 @@ class References(Values):
 
         item = self._item
         for name in self.keys():
-            item.removeAttributeValue(name, _attrDict=item._references)
+            try:
+                item.removeAttributeValue(name, _attrDict=item._references)
+            except NoLocalValueForAttributeError:
+                pass
 
     def _setItem(self, item):
 

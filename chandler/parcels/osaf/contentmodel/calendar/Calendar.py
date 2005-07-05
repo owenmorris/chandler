@@ -15,6 +15,7 @@ from application import schema
 from osaf.contentmodel import ContentModel
 from osaf.contentmodel import Notes
 from osaf.contentmodel.contacts import Contacts
+from osaf.contentmodel.calendar import Recurrence
 
 from datetime import datetime, time, timedelta
 
@@ -30,6 +31,9 @@ class TimeTransparencyEnum(schema.Enumeration):
     )
     values="confirmed", "tentative", "fyi"
 
+class ModificationEnum(schema.Enumeration):
+    schema.kindInfo(displayName="Modification")
+    values="this", "thisandfuture"
 
 class CalendarEventMixin(ContentModel.ContentItem):
     """
@@ -91,10 +95,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
         doc="This may not be general enough"
     )
 
-    recurrence = schema.Sequence(
-        "RecurrencePattern",
-        displayName="Recurrence Patterns",
-        doc="This is a placeholder and probably not used for 0.5"
+    rruleset = schema.One(
+        Recurrence.RecurrenceRuleSet,
+        displayName="Recurrence Rule Set",
+        doc="Rule or rules for when future occurrences take place",
+        inverse=Recurrence.RecurrenceRuleSet.events,
+        defaultValue=None
     )
 
     organizer = schema.One(
@@ -109,7 +115,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         inverse=Contacts.Contact.participatingEvents
     )
 
-    uid = schema.One(
+    icalUID = schema.One(
         schema.String,
         displayName="UID",
         doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
@@ -117,6 +123,41 @@ class CalendarEventMixin(ContentModel.ContentItem):
             "able to import iCalendar events with arbitrary UIDs."
     )
 
+    modifies = schema.One(
+        ModificationEnum,
+        displayName="Modifies how",
+        defaultValue=None
+    )
+    
+    modifications = schema.Sequence(
+        "CalendarEventMixin",
+        displayName="Events modifying recurrence",
+        defaultValue=None,
+        inverse="modificationFor"
+    )
+    
+    modificationFor = schema.One(
+        "CalendarEventMixin",
+        displayName="Modification for",
+        defaultValue=None,
+        inverse="modifications"
+    )
+
+    occurrences = schema.Sequence(
+        "CalendarEventMixin",
+        displayName="Occurrences",
+        defaultValue=None,
+        inverse="occurrenceFor"
+    )
+    
+    occurrenceFor = schema.One(
+        "CalendarEventMixin",
+        displayName="Occurrence for",
+        defaultValue=None,
+        inverse="occurrences"
+    )
+
+    
     calendar = schema.Sequence(
         "Calendar",
         displayName="Calendar",
@@ -130,7 +171,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     )
 
     schema.addClouds(
-        default = schema.Cloud(organizer,location,recurrence,participants),
+        default = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
             startTime, endTime, allDay, location,
             byCloud = [organizer,participants]
@@ -143,6 +184,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
     whoFrom = schema.One(redirectTo="organizer")
     about = schema.One(redirectTo="displayName")
     date = schema.One(redirectTo="startTime")
+
+    def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
+        super(CalendarEventMixin, self).__init__(name, parent, kind, view, **kw)
+        self.occurrenceFor = self
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -187,6 +232,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
             self.displayName = self.getAnyAbout ()
         except AttributeError:
             pass
+        
+        self.occurrenceFor = self
         
         """ @@@ Commenting out this block
 
@@ -322,6 +369,25 @@ class CalendarEventMixin(ContentModel.ContentItem):
         duration = self.duration
         self.startTime = dateTime
         self.endTime = self.startTime + duration
+        
+    def getNextOccurrence(self):
+        """Return the next occurrence for the recurring event self is part of.
+        
+        If self is the only occurrence, or last occurrence, return None.
+        
+        """
+        if self.rruleset is None:
+            return None
+        else:
+            #nextRecurrenceID=self.createDateUtilFromRule().after(self.startTime)
+            if self.occurrences is None or len(self.occurrences) < 2:
+                ev = CalendarEvent(view=self.itsView)
+                ev.startTime = datetime(2005, 7, 11, 13)
+                ev.occurrenceFor = self
+                return ev
+            else:
+                #trivial implementation
+                return list(self.occurrences)[1]
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     """

@@ -212,6 +212,11 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
         schema.DateTime,
         displayName="Exclusion Dates"
     )
+    events = schema.Sequence(
+        "osaf.contentmodel.calendar.Calendar.CalendarEventMixin",
+        displayName="Events",
+        inverse="rruleset"
+    )
     
     def addRule(self, rule, rruleorexrule='rrule'):
         """Add an rrule or exrule, defaults to rrule."""

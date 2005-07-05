@@ -50,9 +50,9 @@ def itemsToVObject(view, items, cal=None):
         else:
             continue
         
-        if item.getAttributeValue('uid', default=None) is None:
-            item.uid = unicode(item.itsUUID)
-        comp.add('uid').value = item.uid
+        if item.getAttributeValue('icalUID', default=None) is None:
+            item.icalUID = unicode(item.itsUUID)
+        comp.add('uid').value = item.icalUID
 
         try:
             comp.add('summary').value = item.displayName
@@ -107,8 +107,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
     def findUID(self, uid):
         view = self.itsView
-        queryString='union(for i in "%s" where i.uid == $0, \
-                           for i in "%s" where i.uid == $0)' % \
+        queryString='union(for i in "%s" where i.icalUID == $0, \
+                           for i in "%s" where i.icalUID == $0)' % \
                            (self._calendarEventPath, self._taskPath)
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
@@ -265,10 +265,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
                     if first:
-                        eventItem.uid = event.uid[0].value
+                        eventItem.icalUID = event.uid[0].value
                         first = False
                     else:
-                        eventItem.uid = unicode(eventItem.itsUUID)
+                        eventItem.icalUID = unicode(eventItem.itsUUID)
                     
                 logger.debug("eventItem is %s" % str(eventItem))
                 
