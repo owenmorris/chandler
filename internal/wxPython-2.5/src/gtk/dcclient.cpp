@@ -143,8 +143,6 @@ void gdk_wx_draw_bitmap(GdkDrawable  *drawable,
 // Implement Pool of Graphic contexts. Creating them takes too much time.
 //-----------------------------------------------------------------------------
 
-#define GC_POOL_SIZE 200
-
 enum wxPoolGCType
 {
    wxGC_ERROR = 0,
@@ -1156,7 +1154,7 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
     else
     {
 #if GTK_CHECK_VERSION(2,2,0)
-        if (use_bitmap.HasPixbuf())
+        if (!gtk_check_version(2,2,0) && use_bitmap.HasPixbuf())
         {
             gdk_draw_pixbuf(m_window, m_penGC,
                             use_bitmap.GetPixbuf(),
@@ -1219,7 +1217,6 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
     bool use_bitmap_method = false;
     bool is_mono = false;
 
-    // TODO: use the mask origin when drawing transparently
     if (xsrcMask == -1 && ysrcMask == -1)
     {
         xsrcMask = xsrc;
@@ -1349,6 +1346,7 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
                 GdkGC *gc = gdk_gc_new( new_mask );
                 col.pixel = 0;
                 gdk_gc_set_foreground( gc, &col );
+                gdk_gc_set_ts_origin( gc, -xsrcMask, -ysrcMask);
                 gdk_draw_rectangle( new_mask, gc, TRUE, 0, 0, bm_ww, bm_hh );
                 col.pixel = 0;
                 gdk_gc_set_background( gc, &col );
@@ -1366,20 +1364,28 @@ bool wxWindowDC::DoBlit( wxCoord xdest, wxCoord ydest,
             if (is_mono)
             {
                 if (new_mask)
+                {
                     gdk_gc_set_clip_mask( m_textGC, new_mask );
+                    gdk_gc_set_clip_origin( m_textGC, cx, cy );
+                }
                 else
+                {
                     gdk_gc_set_clip_mask( m_textGC, mask );
-                // was: gdk_gc_set_clip_origin( m_textGC, xx, yy );
-                gdk_gc_set_clip_origin( m_textGC, cx, cy );
+                    gdk_gc_set_clip_origin( m_textGC, cx-xsrcMask, cy-ysrcMask );
+                }                                
             }
             else
             {
                 if (new_mask)
+                {
                     gdk_gc_set_clip_mask( m_penGC, new_mask );
+                    gdk_gc_set_clip_origin( m_penGC, cx, cy );
+                }
                 else
+                {
                     gdk_gc_set_clip_mask( m_penGC, mask );
-                // was: gdk_gc_set_clip_origin( m_penGC, xx, yy );
-                gdk_gc_set_clip_origin( m_penGC, cx, cy );
+                    gdk_gc_set_clip_origin( m_penGC, cx-xsrcMask, cy-ysrcMask );
+                }                
             }
         }
 
@@ -1744,11 +1750,8 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
 #else
     const wxWCharBuffer wdata = wxConvLocal.cMB2WC( string );
     if ( !wdata )
-    {
-        if (width) (*width) = 0;
-        if (height) (*height) = 0;
         return;
-    }
+
     const wxCharBuffer data = wxConvUTF8.cWC2MB( wdata );
     const char *dataUTF8 = (const char *)data;
 #endif
@@ -1761,19 +1764,21 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
 
     pango_layout_set_text( m_layout, dataUTF8, strlen(dataUTF8) );
 
-    int w,h;
-    pango_layout_get_pixel_size( m_layout, &w, &h );
-
-    if (width)
-        *width = (wxCoord) w;
-    if (height)
-        *height = (wxCoord) h;
     if (descent)
     {
+        int h;
+        pango_layout_get_pixel_size( m_layout, width, &h );
         PangoLayoutIter *iter = pango_layout_get_iter(m_layout);
         int baseline = pango_layout_iter_get_baseline(iter);
         pango_layout_iter_free(iter);
         *descent = h - PANGO_PIXELS(baseline);
+
+        if (height)
+            *height = (wxCoord) h;
+    }
+    else
+    {
+        pango_layout_get_pixel_size( m_layout, width, height );
     }
 
     // Reset old font description
@@ -1801,8 +1806,8 @@ wxCoord wxWindowDC::GetCharWidth() const
 {
 #ifdef __WXGTK20__
     pango_layout_set_text( m_layout, "H", 1 );
-    int w,h;
-    pango_layout_get_pixel_size( m_layout, &w, &h );
+    int w;
+    pango_layout_get_pixel_size( m_layout, &w, NULL );
     return w;
 #else
     GdkFont *font = m_font.GetInternalFont( m_scaleY );
@@ -1816,8 +1821,8 @@ wxCoord wxWindowDC::GetCharHeight() const
 {
 #ifdef __WXGTK20__
     pango_layout_set_text( m_layout, "H", 1 );
-    int w,h;
-    pango_layout_get_pixel_size( m_layout, &w, &h );
+    int h;
+    pango_layout_get_pixel_size( m_layout, NULL, &h );
     return h;
 #else
     GdkFont *font = m_font.GetInternalFont( m_scaleY );
@@ -2003,7 +2008,6 @@ void wxWindowDC::SetPen( const wxPen &pen )
         }
     }
 
-#if (GTK_MINOR_VERSION > 0) || (GTK_MAJOR_VERSION > 1)
     if (req_dash && req_nb_dash)
     {
         wxGTKDash *real_req_dash = new wxGTKDash[req_nb_dash];
@@ -2020,7 +2024,6 @@ void wxWindowDC::SetPen( const wxPen &pen )
             gdk_gc_set_dashes( m_penGC, 0, (wxGTKDash*)req_dash, req_nb_dash );
         }
     }
-#endif // GTK+ > 1.0
 
     GdkCapStyle capStyle = GDK_CAP_ROUND;
     switch (m_pen.GetCap())
@@ -2164,7 +2167,6 @@ void wxWindowDC::SetLogicalFunction( int function )
     {
         case wxXOR:          mode = GDK_XOR;           break;
         case wxINVERT:       mode = GDK_INVERT;        break;
-#if (GTK_MINOR_VERSION > 0) || (GTK_MAJOR_VERSION > 1)
         case wxOR_REVERSE:   mode = GDK_OR_REVERSE;    break;
         case wxAND_REVERSE:  mode = GDK_AND_REVERSE;   break;
         case wxCLEAR:        mode = GDK_CLEAR;         break;
@@ -2181,7 +2183,6 @@ void wxWindowDC::SetLogicalFunction( int function )
 
         // unsupported by GTK
         case wxNOR:          mode = GDK_COPY;          break;
-#endif // GTK+ > 1.0
         default:
            wxFAIL_MSG( wxT("unsupported logical function") );
            mode = GDK_COPY;
@@ -2392,9 +2393,13 @@ wxSize wxWindowDC::GetPPI() const
 
 int wxWindowDC::GetDepth() const
 {
+#ifdef __WXGTK20__
+    return gdk_drawable_get_depth(m_window);
+#else
     wxFAIL_MSG(wxT("not implemented"));
 
     return -1;
+#endif
 }
 
 

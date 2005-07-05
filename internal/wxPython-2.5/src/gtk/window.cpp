@@ -507,7 +507,7 @@ void wxgtk_combo_size_request_callback(GtkWidget *widget,
         (gcombo->button, &entry_req );
     
     requisition->width = w - entry_req.width;
-    requisition->height = entry_req.height+4;  // TODO: why +4?
+    requisition->height = entry_req.height;
 }
 }
 
@@ -1704,6 +1704,7 @@ static gint gtk_window_button_press_callback( GtkWidget *widget,
     // GdkDisplay is a GTK+ 2.2.0 thing
 #if defined(__WXGTK20__) && GTK_CHECK_VERSION(2, 2, 0)
     if ( gdk_event->type == GDK_2BUTTON_PRESS &&
+            !gtk_check_version(2,2,0) &&
             gdk_event->button >= 1 && gdk_event->button <= 3 )
     {
         // Reset GDK internal timestamp variables in order to disable GDK
@@ -4370,7 +4371,8 @@ void wxWindowGTK::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     if (m_wxwindow)
         gtk_widget_modify_style(m_wxwindow, style);
-    gtk_widget_modify_style(m_widget, style);
+    else
+        gtk_widget_modify_style(m_widget, style);
 }
 
 bool wxWindowGTK::SetBackgroundStyle(wxBackgroundStyle style)

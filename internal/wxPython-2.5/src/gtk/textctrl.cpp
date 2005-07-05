@@ -42,7 +42,6 @@ extern bool g_isIdle;
 // data
 //-----------------------------------------------------------------------------
 
-extern bool       g_blockEventsOnDrag;
 extern wxCursor   g_globalCursor;
 extern wxWindowGTK *g_delayedFocus;
 
@@ -51,6 +50,24 @@ extern wxWindowGTK *g_delayedFocus;
 // ----------------------------------------------------------------------------
 
 #ifdef __WXGTK20__
+extern "C" {
+static void wxGtkOnRemoveTag(GtkTextBuffer *buffer,
+                             GtkTextTag *tag,
+                             GtkTextIter *start,
+                             GtkTextIter *end,
+                             gpointer user_data)
+{
+    gchar *name;
+    g_object_get (tag, "name", &name, NULL);
+
+    if (!name || strncmp(name, "WX", 2)) // anonymous tag or not starting with "WX"
+        g_signal_stop_emission_by_name(buffer, "remove_tag");
+
+    g_free(name);
+}
+}
+
+extern "C" {
 static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
                                        const wxTextAttr& attr,
                                        GtkTextIter *start,
@@ -58,6 +75,11 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
 {
     static gchar buf[1024];
     GtkTextTag *tag;
+
+    gulong remove_handler_id = g_signal_connect( text_buffer, "remove_tag",
+                                                 G_CALLBACK(wxGtkOnRemoveTag), NULL);
+    gtk_text_buffer_remove_all_tags(text_buffer, start, end);
+    g_signal_handler_disconnect( text_buffer, remove_handler_id );
 
     if (attr.HasFont())
     {
@@ -101,7 +123,9 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
         gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
     }
 }
+}
 
+extern "C" {
 static void wxGtkTextInsert(GtkWidget *text,
                             GtkTextBuffer *text_buffer,
                             const wxTextAttr& attr,
@@ -120,7 +144,9 @@ static void wxGtkTextInsert(GtkWidget *text,
 
     wxGtkTextApplyTagsFromAttr(text_buffer, attr, &start, &iter);
 }
+}
 #else
+extern "C" {
 static void wxGtkTextInsert(GtkWidget *text,
                             const wxTextAttr& attr,
                             const char *txt,
@@ -137,6 +163,7 @@ static void wxGtkTextInsert(GtkWidget *text,
                         : NULL;
 
     gtk_text_insert( GTK_TEXT(text), font, colFg, colBg, txt, len );
+}
 }
 #endif // GTK 1.x
 
@@ -855,7 +882,7 @@ void wxTextCtrl::CalculateScrollbar()
 
 wxString wxTextCtrl::GetValue() const
 {
-    wxCHECK_MSG( m_text != NULL, wxT(""), wxT("invalid text ctrl") );
+    wxCHECK_MSG( m_text != NULL, wxEmptyString, wxT("invalid text ctrl") );
 
     wxString tmp;
     if (m_windowStyle & wxTE_MULTILINE)
@@ -1043,7 +1070,7 @@ wxString wxTextCtrl::GetLineText( long lineNo ) const
 
         if (text)
         {
-            wxString buf(wxT(""));
+            wxString buf;
             long i;
             int currentLine = 0;
             for (i = 0; currentLine != lineNo && text[i]; i++ )
@@ -1697,7 +1724,7 @@ bool wxTextCtrl::IsModified() const
 
 void wxTextCtrl::Clear()
 {
-    SetValue( wxT("") );
+    SetValue( wxEmptyString );
 }
 
 void wxTextCtrl::OnChar( wxKeyEvent &key_event )
@@ -1868,6 +1895,7 @@ bool wxTextCtrl::SetStyle( long start, long end, const wxTextAttr& style )
             // nothing to do
             return true;
         }
+
 #ifdef __WXGTK20__
         gint l = gtk_text_buffer_get_char_count( m_buffer );
 
@@ -1884,8 +1912,6 @@ bool wxTextCtrl::SetStyle( long start, long end, const wxTextAttr& style )
         wxTextAttr attr = wxTextAttr::Combine(style, m_defaultStyle, this);
 
         wxGtkTextApplyTagsFromAttr( m_buffer, attr, &starti, &endi );
-
-        return true;
 #else
         // VERY dirty way to do that - removes the required text and re-adds it
         // with styling (FIXME)
@@ -1924,13 +1950,13 @@ bool wxTextCtrl::SetStyle( long start, long end, const wxTextAttr& style )
         gtk_editable_set_position( GTK_EDITABLE(m_text), old_pos ); */
         SetInsertionPoint( old_pos );
 #endif
+
         return true;
     }
-    else // singe line
-    {
-        // cannot do this for GTK+'s Entry widget
-        return false;
-    }
+
+    // else single line
+    // cannot do this for GTK+'s Entry widget
+    return false;
 }
 
 void wxTextCtrl::DoApplyWidgetStyle(GtkRcStyle *style)

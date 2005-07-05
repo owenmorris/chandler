@@ -37,6 +37,7 @@
 #include "wx/gtk/private.h"
 #include "wx/timer.h"
 #include "wx/settings.h"
+#include "wx/evtloop.h"
 
 #include <glib.h>
 #include <gdk/gdk.h>
@@ -472,21 +473,23 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
         {
             m_widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 #if GTK_CHECK_VERSION(2,1,0)
-            if (style & wxFRAME_TOOL_WINDOW)
+            if (!gtk_check_version(2,1,0))
             {
-                gtk_window_set_type_hint(GTK_WINDOW(m_widget),
-                                         GDK_WINDOW_TYPE_HINT_UTILITY);
+                if (style & wxFRAME_TOOL_WINDOW)
+                {
+                    gtk_window_set_type_hint(GTK_WINDOW(m_widget),
+                                             GDK_WINDOW_TYPE_HINT_UTILITY);
                 
-                // On some WMs, like KDE, a TOOL_WINDOW will still show
-                // on the taskbar, but on Gnome a TOOL_WINDOW will not.
-                // For consistency between WMs and with Windows, we 
-                // should set the NO_TASKBAR flag which will apply
-                // the set_skip_taskbar_hint if it is available,
-                // ensuring no taskbar entry will appear.
-                style |= wxFRAME_NO_TASKBAR;
+                    // On some WMs, like KDE, a TOOL_WINDOW will still show
+                    // on the taskbar, but on Gnome a TOOL_WINDOW will not.
+                    // For consistency between WMs and with Windows, we 
+                    // should set the NO_TASKBAR flag which will apply
+                    // the set_skip_taskbar_hint if it is available,
+                    // ensuring no taskbar entry will appear.
+                    style |= wxFRAME_NO_TASKBAR;
+                }
             }
 #endif
-
         }
     }
 
@@ -500,9 +503,22 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     }
 
 #if GTK_CHECK_VERSION(2,2,0)
-    if (style & wxFRAME_NO_TASKBAR)
+    if (!gtk_check_version(2,2,0))
     {
-        gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_widget), TRUE);
+        if (style & wxFRAME_NO_TASKBAR)
+        {
+            gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_widget), TRUE);
+        }
+    }
+#endif
+
+#if GTK_CHECK_VERSION(2,4,0)
+    if (!gtk_check_version(2,4,0))
+    {
+        if (style & wxSTAY_ON_TOP)
+        {
+            gtk_window_set_keep_above(GTK_WINDOW(m_widget), TRUE);
+        }
     }
 #endif
 
@@ -668,7 +684,7 @@ bool wxTopLevelWindowGTK::ShowFullScreen(bool show, long style )
     //     to switch to fullscreen, which is not always available. We must
     //     check if WM supports the spec and use legacy methods if it
     //     doesn't.
-    if (method == wxX11_FS_WMSPEC)
+    if ( (method == wxX11_FS_WMSPEC) && !gtk_check_version(2,2,0) )
     {
         if (show)
             gtk_window_fullscreen( GTK_WINDOW( m_widget ) );
@@ -1187,7 +1203,7 @@ void wxTopLevelWindowGTK::AddGrab()
     {
         m_grabbed = TRUE;
         gtk_grab_add( m_widget );
-        gtk_main();
+        wxEventLoop().Run();
         gtk_grab_remove( m_widget );
     }
 }
