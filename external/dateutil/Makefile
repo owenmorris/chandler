@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
-VERSION=0.5
-RELVER=$(VERSION)-2
+VERSION=0.9
+RELVER=$(VERSION)-1
 DATEUTIL=$(BUILD_ROOT)/dateutil
 MANIFEST=$(SNAP)/$(SITE)/dateutil
 BUILD=build_$(SNAP)
@@ -23,7 +23,7 @@ apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 
-build: expand apply
+build: expand
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
