@@ -59,6 +59,14 @@ class CalendarEventMixin(ContentModel.ContentItem):
             "- Brian"
     )
 
+    recurrenceID = schema.One(
+        schema.DateTime,
+        displayName="Recurrence ID",
+        defaultValue=None,
+        doc="Date time this occurrence was originally scheduled. startTime and"
+            "recurrenceID for everything but modifications"
+    )
+
     endTime = schema.One(
         schema.DateTime,
         displayName="End-Time"
@@ -369,8 +377,47 @@ class CalendarEventMixin(ContentModel.ContentItem):
         duration = self.duration
         self.startTime = dateTime
         self.endTime = self.startTime + duration
+
+    def getFirstInRule(self):
+        """Return the nearse thisandfuture modifications or master."""
+        if self.modificationFor != None:
+            if self.modifies != 'thisandfuture':
+                return self
+            else:
+                return self.modificationFor
+        elif self.occurrenceFor in (self, None):
+            # could be None if a master's first date has a "this" modification
+            return self
+        else:
+            return self.occurrenceFor
+
+    def getMaster(self):
+        """Return the master event in modifications or occurrences."""
+        if self.modificationFor is not None:
+            return self.modificationFor.getMaster()
+        elif self.occurrenceFor is not self:
+            return self.occurrenceFor.getMaster()
+        else:
+            return self
+
+    def createDateUtilFromRule(self):
+        """Construct a dateutil.rrule.rruleset from self.rruleset.
         
-    def getNextOccurrence(self):
+        The resulting rruleset will apply only to the modification or master
+        for which self is an occurrence or modification, for instance, if an
+        event has a thisandfuture modification, and self is an occurrence for
+        that modification, the returned rule will be the modification's rule,
+        not the master's rule.
+        
+        """
+        if self.getFirstInRule() != self:
+            return self.getFirstInRule().createDateUtilFromRule()
+        else:
+            dtstart = self.getEffectiveStartTime()
+            set = self.rruleset.createDateUtilFromRule(dtstart)
+            return self.rruleset.createDateUtilFromRule(dtstart)
+
+    def getNextOccurrence(self, fromTime=None):
         """Return the next occurrence for the recurring event self is part of.
         
         If self is the only occurrence, or last occurrence, return None.
@@ -379,15 +426,23 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if self.rruleset is None:
             return None
         else:
-            #nextRecurrenceID=self.createDateUtilFromRule().after(self.startTime)
-            if self.occurrences is None or len(self.occurrences) < 2:
-                ev = CalendarEvent(view=self.itsView)
-                ev.startTime = datetime(2005, 7, 11, 13)
-                ev.occurrenceFor = self
-                return ev
+            after = fromTime or self.startTime
+            nextRecurrenceID=self.createDateUtilFromRule().after(after)
+            if nextRecurrenceID is None:
+                pass #deal with modifications
             else:
-                #trivial implementation
-                return list(self.occurrences)[1]
+                firstInRule = self.getFirstInRule()
+                for occurrence in firstInRule.occurrences:
+                    if occurrence.recurrenceID == nextRecurrenceID:
+                        return occurrence
+                
+                # generate a new occurrence
+                ev = CalendarEvent(view=self.itsView)
+                ev.startTime = nextRecurrenceID
+                ev.rruleset = self.rruleset
+                ev.recurrenceID = ev.startTime
+                ev.occurrenceFor = self            
+                return ev
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     """

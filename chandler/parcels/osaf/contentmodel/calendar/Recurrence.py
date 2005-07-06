@@ -1,7 +1,7 @@
 """ Classes used for recurrence"""
 
-__revision__  = "$Revision: 5771 $"
-__date__      = "$Date: 2005-06-24 19:13:27 -0700 (Fri, 24 Jun 2005) $"
+__revision__  = "$Revision$"
+__date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.contentmodel.calendar"
