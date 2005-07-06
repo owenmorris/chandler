@@ -120,6 +120,9 @@ class Manager(Item):
             ns = "parcel:%s" % ns[len(NS_ROOT)+1:].replace('/','.')
             self._ns2parcel[ns] = pDesc
             self._repo2ns[pDesc["path"]] = ns
+        elif ns.startswith('parcel:'):
+            altns = NS_ROOT+'/'+ns[7:].replace('.','/')
+            self._ns2parcel.setdefault(altns, pDesc)
 
         if ns.startswith('parcel:'):
             if '.' in ns:
