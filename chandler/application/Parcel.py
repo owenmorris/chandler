@@ -296,11 +296,11 @@ class Manager(Item):
             """ A SAX2 handler for parsing namespace information """
 
             def startElementNS(self, (uri, local), qname, attrs):
-                if local == "namespace" and uri == CORE:
+                if local == "namespace" and uri in (CORE,NS_ROOT+'/core'):
                     if attrs.has_key((None, 'value')):
                         value = attrs.getValue((None, 'value'))
                         self.namespace = value
-                if local == "namespaceMap" and uri == CORE:
+                if local == "namespaceMap" and uri in (CORE,NS_ROOT+'/core'):
                     if attrs.has_key((None, 'key')):
                         key = attrs.getValue((None, 'key'))
                         if attrs.has_key((None, 'value')):
