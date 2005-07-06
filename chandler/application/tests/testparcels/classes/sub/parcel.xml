@@ -7,10 +7,8 @@
 
 <Parcel itsName="sub"
         xmlns="parcel:core"
-        xmlns:sub="http://testparcels.org/sub"
-        xmlns:super="http://testparcels.org/super" >
-
-  <namespace value="http://testparcels.org/sub" />
+        xmlns:sub="parcel:application.tests.testparcels.classes.sub"
+        xmlns:super="parcel:application.tests.testparcels.classes.super" >
 
   <Kind itsName="MySubKind">
     <displayName>My Sub Kind</displayName>

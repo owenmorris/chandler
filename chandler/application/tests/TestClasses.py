@@ -19,7 +19,7 @@ class ClassesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         sys.path.append(os.path.join(self.testdir, 'testparcels'))
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
-        self.loadParcel("http://testparcels.org/sub")
+        self.loadParcel("parcel:application.tests.testparcels.classes.sub")
         self.rep.commit()
         # PrintItem("//parcels", self.rep)
         itemSuper = self.rep.findPath("//parcels/application/tests/testparcels/classes/super/itemSuper")
