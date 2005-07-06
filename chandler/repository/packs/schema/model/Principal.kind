@@ -32,7 +32,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="members">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -47,7 +47,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="principals">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>

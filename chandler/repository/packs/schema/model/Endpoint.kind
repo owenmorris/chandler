@@ -35,7 +35,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="clouds">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -50,7 +50,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="attribute">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -65,7 +65,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="includePolicy">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -82,7 +82,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="cloud">..</ref>
     </ref>
 
     <attribute name="cardinality">single</attribute>
@@ -97,7 +97,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="cloudAlias">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -114,7 +114,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="method">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 

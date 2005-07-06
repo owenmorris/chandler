@@ -29,7 +29,7 @@
     <parent type="path">//Schema/Core/ParcelManager</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="path">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>

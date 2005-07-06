@@ -26,7 +26,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.itemKind = self._find("//Schema/Core/Item")
         self.attrKind = self.itemKind.itsParent['Attribute']
 
-        self.kind1 = self.kind.newItem('kind1',self.rep)
+        self.kind1 = self.kind.newItem('kind1', self.rep)
         self.kind1.addValue('superKinds', self.itemKind)
         self.kind1Attr1 = Attribute('k1a1', self.rep, self.attrKind)
         self.kind1Attr1.cardinality = 'list'
@@ -54,19 +54,6 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         itemKindClass = self.itemKind.getItemClass()
         self.assertEquals(kindClass.__name__,"Kind")
         self.assertEquals(itemKindClass.__name__,"Item")
-
-    def testResolve(self):
-        """ Test child attribute and aliased attribute resolution """
-        # resolve a non-child, non aliased attribute
-        self.assert_(self.kind1.resolve('attributes') is None)
-        # resolve a non existent attribute
-        self.assert_(self.kind1.resolve('bogus') is None)
-
-        # resolve a child non attribute
-        self.assertEquals(self.kind1.resolve('kind2'), self.kind2.itsUUID)
-
-        # resolve an attribute (alias)
-        self.assert_(self.kind1.resolve('k1a1') is self.kind1Attr1.itsUUID)
 
     def testGetAttribute(self):
         """ Test getAttribute and has Attribute """

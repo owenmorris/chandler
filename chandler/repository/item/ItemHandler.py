@@ -6,8 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind
-from repository.item.PersistentCollections import \
-     PersistentCollection, PersistentList, PersistentDict, PersistentSet
+from repository.item.PersistentCollections import PersistentCollection, \
+    PersistentList, PersistentDict, PersistentSet, PersistentTuple
 from repository.item.Values import Values, References, ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
 from chandlerdb.item.item import Nil
@@ -190,7 +190,7 @@ class ValueHandler(ContentHandler, TypeHandler):
 
         if typeName == 'dict':
             self.collections.append(PersistentDict((None, None, None)))
-        elif typeName == 'list':
+        elif typeName in ('list', 'tuple'):
             self.collections.append(PersistentList((None, None, None)))
         elif typeName == 'set':
             self.collections.append(PersistentSet((None, None, None)))
@@ -215,6 +215,9 @@ class ValueHandler(ContentHandler, TypeHandler):
                 typeName = self.getTypeName(attribute, attrs, 'str')
                 if typeName in ('list', 'dict', 'set'):
                     value = self.collections.pop()
+                elif typeName == 'tuple':
+                    value = PersistentTuple((None, None, None),
+                                            self.collections.pop())
                 else:
                     value = self.makeValue(typeName, self.data)
                     if attrs.get('eval', 'False') == 'True':
@@ -251,6 +254,9 @@ class ValueHandler(ContentHandler, TypeHandler):
                 
             if typeName in ('list', 'dict', 'set'):
                 value = self.collections.pop()
+            elif typeName == 'tuple':
+                value = PersistentTuple((None, None, None),
+                                        self.collections.pop())
             else:
                 value = self.makeValue(typeName, self.data)
                 if attrs.get('eval', 'False') == 'True':

@@ -9,7 +9,7 @@
     <ref name="attributes">
       <!-- 
          - plus local attributes below:
-         -     TODO PUT NAMES HERE: monitoring, items
+         -     _queryString, _resultSet, stale, _args
         -->
     </ref>
 
@@ -29,7 +29,7 @@
     <parent type="path">//Schema/Core/Query</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="_queryString">..</ref>
     </ref>
 
     <ref name="type" type="path">//Schema/Core/String</ref>
@@ -44,7 +44,7 @@
     <parent type="path">//Schema/Core/Query</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="_resultSet">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -59,7 +59,7 @@
     <parent type="path">//Schema/Core/Query</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="stale">..</ref>
     </ref>
 
     <ref name="type" type="path">//Schema/Core/Boolean</ref>
@@ -74,7 +74,7 @@
     <parent type="path">//Schema/Core/Query</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="_args">..</ref>
     </ref>
 
     <ref name="type" type="path">//Schema/Core/Tuple</ref>

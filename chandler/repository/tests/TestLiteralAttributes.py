@@ -13,7 +13,7 @@ import RepositoryTestCase, os, unittest
 from repository.item.Item import Item
 from repository.schema.Attribute import Attribute
 
-class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
+class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
 
     def testLiteralAttributes(self):
@@ -97,7 +97,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         attrKind = itemKind.itsParent['Attribute']
         multiAttribute = Attribute('strings', myKind, attrKind)   
         multiAttribute.cardinality = 'list'
-        myKind.addValue('attributes', multiAttribute)             
+        myKind.addValue('attributes', multiAttribute, alias='strings')
                                                                   
         # create an item of the new kind
         item = myKind.newItem('item', self.rep)                   
@@ -185,7 +185,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         attrKind = itemKind.itsParent['Attribute']
         multiAttribute = Attribute('strings', myKind, attrKind)
         multiAttribute.cardinality = 'dict'
-        myKind.addValue('attributes', multiAttribute)
+        myKind.addValue('attributes', multiAttribute, alias='strings')
                                                                   
         # create an item of the new kind
         item = myKind.newItem('item', self.rep)

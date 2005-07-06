@@ -42,12 +42,12 @@ class TestMerge(RepositoryTestCase):
         ap = attribute.newItem('ap', p)
         ap.otherName = 'ac'
         ap.cardinality = 'list'
-        p.addValue('attributes', ap)
+        p.addValue('attributes', ap, alias='ap')
 
         ac = attribute.newItem('ac', c)
         ac.otherName = 'ap'
         ac.cardinality = 'single'
-        c.addValue('attributes', ac)
+        c.addValue('attributes', ac, alias='ac')
 
         p.newItem('p', self.rep)
 

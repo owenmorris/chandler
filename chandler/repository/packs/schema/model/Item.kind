@@ -35,7 +35,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="monitors">..</ref>
     </ref>
 
     <attribute name="cardinality">single</attribute>
@@ -50,7 +50,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="queries">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -65,7 +65,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="watcherDispatch">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -83,7 +83,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="watchers">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -98,7 +98,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="watches">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>

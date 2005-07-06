@@ -575,11 +575,11 @@ class References(Values):
     def clear(self):
 
         item = self._item
+        refs = item._references
         for name in self.keys():
-            try:
-                item.removeAttributeValue(name, _attrDict=item._references)
-            except NoLocalValueForAttributeError:
-                pass
+            # if it wasn't removed by a reflexive bi-ref
+            if name in self:
+                item.removeAttributeValue(name, refs)
 
     def _setItem(self, item):
 

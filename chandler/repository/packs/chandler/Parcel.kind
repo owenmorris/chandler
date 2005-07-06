@@ -31,7 +31,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="author">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -44,7 +44,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="publisher">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -57,7 +57,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="status">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -70,7 +70,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="summary">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -83,7 +83,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="icon">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -96,7 +96,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="version">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -109,7 +109,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="createdOn">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/DateTime</ref>
@@ -122,7 +122,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="modifiedOn">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/DateTime</ref>
@@ -135,7 +135,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="namespace">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -149,7 +149,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="namespaceMap">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -163,7 +163,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="file">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/String</ref>
@@ -177,7 +177,7 @@
     <parent type="path">//Schema/Core/Parcel</parent>
 
     <ref name="kinds">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="originalValues">..</ref>
     </ref>
 
     <ref name="type" type="path">/Core/Dictionary</ref>

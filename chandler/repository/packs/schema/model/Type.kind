@@ -34,7 +34,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="implementationTypes">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 

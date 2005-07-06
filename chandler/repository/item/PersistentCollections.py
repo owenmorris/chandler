@@ -177,6 +177,40 @@ class PersistentCollection(object):
                     for v in value._iterItems(items):
                         yield v
 
+    def filterItem(self, item, level=0, key=0, _remove=True):
+        """
+        Remove occurrences of an item in a persistent collection.
+
+        Depending on the C{level} parameter, the item or a collection
+        containing the item is destructively removed from this persistent
+        collection.
+
+        If C{level} is greater than zero then the collection is recursively
+        iterated as a collection of collections and is assumed to have at
+        least as many nesting levels as C{level}. When C{level} reaches
+        zero, C{item} is sought according to C{key} to the collection's
+        type. C{key} is a list or tuple position or a dictionary key and it
+        doesn't apply with sets. If C{item} is found, the collection
+        containing it is removed from its container collection if C{level}
+        was greater than one when C{filterItem} was invoked. Only C{item}
+        itself is removed once, according to C{key} otherwise.
+
+        For example:
+
+            - [(i1, 0, 1, 2), (i2, 0, 5)].filterItem(i1, 1) -> [(i2, 0, 5)]
+
+            - { 'a': [(5, i1, 0), (6, i2, 'a')], 'b': [(12, i2, 'b')]}.filterItem(i2, 2, 1) -> { 'a': [(5, i1, 0)], 'b': [] }
+
+        @param item: the item to filter.
+        @type item: an Item instance
+        @param level: the nesting level of the item to filter.
+        @type level: an integer
+        @param key: the list position or dictionary key of the item to filter.
+        @type key: an integer or a dictionary key
+        """
+        
+        raise NotImplementedError, "%s.filterItem" %(type(self))
+
 
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
@@ -329,6 +363,10 @@ class PersistentList(list, PersistentCollection):
         
         return value
 
+    def _get(self, key):
+
+        return super(PersistentList, self).__getitem__(key)
+
     def __getslice__(self, start, end):
 
         value = super(PersistentList, self).__getslice__(start, end)
@@ -348,6 +386,26 @@ class PersistentList(list, PersistentCollection):
     def _itervalues(self):
 
         return super(PersistentList, self).__iter__()
+
+    def filterItem(self, item, level=0, key=0, _remove=True):
+
+        sup = super(PersistentList, self)
+
+        if level == 0:
+            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+                if _remove:
+                    self.__delitem__(key)
+                return True
+
+        else:
+            count = len(self)
+            values = [value for value in sup.__iter__()
+                      if not value.filterItem(item, level - 1, key, False)]
+            if len(values) < count:
+                sup.__setslice__(0, count, values)
+                self._setDirty()
+
+        return False
 
 
 class PersistentDict(dict, PersistentCollection):
@@ -444,6 +502,10 @@ class PersistentDict(dict, PersistentCollection):
         
         return value
 
+    def _get(self, key):
+
+        return super(PersistentDict, self).__getitem__(key)
+
     def itervalues(self):
 
         for value in super(PersistentDict, self).itervalues():
@@ -469,6 +531,27 @@ class PersistentDict(dict, PersistentCollection):
     def _values(self):
 
         return super(PersistentDict, self).values()
+
+    def filterItem(self, item, level=0, key=0, _remove=True):
+
+        sup = super(PersistentDict, self)
+
+        if level == 0:
+            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+                if _remove:
+                    self.__delitem__(key)
+                return True
+
+        else:
+            dirty = False
+            for k, value in sup.items():
+                if value.filterItem(item, level - 1, key, False):
+                    sup.__delitem__(k)
+                    dirty = True
+            if dirty:
+                self._setDirty()
+
+        return False
 
 
 class PersistentTuple(tuple, PersistentCollection):
@@ -515,6 +598,10 @@ class PersistentTuple(tuple, PersistentCollection):
         
         return value
 
+    def _get(self, key):
+
+        return super(PersistentTuple, self).__getitem__(key)
+
     def __contains__(self, value):
 
         return super(PersistentTuple, self).__contains__(self._useValue(value))
@@ -531,6 +618,25 @@ class PersistentTuple(tuple, PersistentCollection):
     def _itervalues(self):
 
         return super(PersistentTuple, self).__iter__()
+
+    def filterItem(self, item, level=0, key=0, _remove=True):
+
+        sup = super(PersistentTuple, self)
+
+        if level == 0:
+            if sup.__getitem__(key) == SingleRef(item.itsUUID):
+                if _remove:
+                    raise TypeError, 'tuple is immutable'
+                return True
+
+        else:
+            count = len(self)
+            values = [value for value in sup.__iter__()
+                      if not value.filterItem(item, level - 1, key, False)]
+            if len(values) < count:
+                raise TypeError, 'tuple is immutable'
+
+        return False
 
 
 class PersistentSet(set, PersistentCollection):
@@ -654,3 +760,24 @@ class PersistentSet(set, PersistentCollection):
 
         if setDirty:
             self._setDirty()
+
+    def filterItem(self, item, level=0, key=0, _remove=True):
+
+        sup = super(PersistentSet, self)
+
+        if level == 0:
+            if sup.__contains__(SingleRef(item.itsUUID)):
+                if _remove:
+                    self.remove(item)
+                return True
+
+        else:
+            count = len(self)
+            values = [value for value in sup.__iter__()
+                      if not value.filterItem(item, level - 1, key, False)]
+            if len(values) < count:
+                sup.clear()
+                sup.update(values)
+                self._setDirty()
+
+        return False

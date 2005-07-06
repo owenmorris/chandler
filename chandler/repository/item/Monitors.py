@@ -31,6 +31,16 @@ class Monitors(Item):
         except KeyError:
             pass
 
+    def _collectionChanged(self, op, name, other):
+
+        if op == 'remove':
+            if name == 'items':
+                monitoring = self._values.get('monitoring', None)
+                if monitoring is not None:
+                    monitoring.filterItem(other, 3)
+
+        super(Monitors, self)._collectionChanged(op, name, other)
+                            
     def getInstance(cls, view):
 
         try:
@@ -53,8 +63,6 @@ class Monitors(Item):
             return
 
         for monitorItem, method, monitorArgs, kwds in monitors:
-            if monitorItem is None:
-                continue
             if monitorArgs:
                 if args:
                     _args = list(args)
@@ -68,7 +76,7 @@ class Monitors(Item):
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
         instance = cls.getInstance(item.itsView)
-        monitor = [item, method, args, kwds]
+        monitor = (item, method, args, kwds)
         try:
             instance.monitoring[op][attribute].append(monitor)
         except KeyError, e:

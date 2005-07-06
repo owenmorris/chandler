@@ -19,6 +19,7 @@ from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
 from repository.item.Monitors import Monitor
 from repository.schema.TypeHandler import TypeHandler
+from repository.item.Query import KindQuery
 
 
 class Kind(Item):
@@ -271,6 +272,12 @@ class Kind(Item):
                 if cls is not itemClass:
                     result = self._checkClass(cls, False) and result
 
+        attrs = self._references.get('attributes', None)
+        if attrs:
+            if attrs._aliases is None or len(attrs) != len(attrs._aliases):
+                self.itsView.logger.warn("Attributes list aliases for %s doesn't attributes list", self.itsPath)
+                result = False
+
         return result
 
     def _checkClass(self, cls, isItemClass):
@@ -318,18 +325,6 @@ class Kind(Item):
 
         return result
         
-    def resolve(self, name):
-
-        child = self.getItemChild(name)
-        if child:
-            return child._uuid
-
-        references = self._references
-        if 'attributes' in references:
-            return references['attributes'].resolveAlias(name)
-
-        return None
-
     def getAttribute(self, name, noError=False, item=None):
         """
         Get an attribute definition item.
@@ -358,12 +353,9 @@ class Kind(Item):
                     return self.itsView.find(attrId)
 
         refs = self._references
-        child = self.getItemChild(name)
+        attrs = refs.get('attributes', None)
 
-        if 'attributes' in refs:
-            attrs = refs['attributes']
-            if child is not None and child in attrs:
-                return child
+        if attrs is not None:
             attribute = attrs.getByAlias(name)
         else:
             attribute = None
@@ -381,10 +373,12 @@ class Kind(Item):
 
     def hasAttribute(self, name):
 
-        uuid = self.resolve(name)
+        attributes = self._references.get('attributes', None)
+        if attributes is not None:
+            uuid = attributes.resolveAlias(name)
+
         if uuid is not None:
-            if self.hasValue('attributes', uuid, self._references):
-                return True
+            return True
         elif self.inheritedAttributes.resolveAlias(name):
             return True
         else:
@@ -392,22 +386,23 @@ class Kind(Item):
 
     def getOtherName(self, name, _attrID=None, item=None, default=Default):
 
-        if 'otherNames' in self._values:
-            try:
-                return self._values['otherNames'][name]
-            except KeyError:
-                pass
-
-        if _attrID is not None:
-            attribute = self.find(_attrID)
+        otherNames = self._values.get('otherNames', None)
+        if otherNames is not None:
+            otherName = otherNames[name]
         else:
-            attribute = self.getAttribute(name, False, item)
+            otherName = None
 
-        otherName = attribute._values.get('otherName', None)
         if otherName is None:
-            if default is not Default:
-                return default
-            raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
+            if _attrID is not None:
+                attribute = self.find(_attrID)
+            else:
+                attribute = self.getAttribute(name, False, item)
+
+            otherName = attribute._values.get('otherName', None)
+            if otherName is None:
+                if default is not Default:
+                    return default
+                raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
 
         return otherName
 
@@ -419,32 +414,33 @@ class Kind(Item):
         this kind. The C{kind} element is the kind the attribute was
         inherited from or this kind.
 
+        The name of an attribute is defined to be the alias with which it was
+        added into the kind's C{attributes} attribute. This alias name may
+        of course be the same as the corresponding attribute's item name.
+
         @param inherited: if C{True}, iterate also over attributes that are
         inherited by this kind via its superKinds.
         @type inherited: boolean
         @param localOnly: if C{True}, only pairs for local attributes are
         returned. Local attributes are defined as direct children items
         of the kinds they're defined on and are not meant to be shared
-        except through inheritance. The name of a local attribute is defined
-        to be the name of its corresponding attribute item.
+        except through inheritance.
         @type localOnly: boolean
         @param globalOnly: if C{True}, only pairs for the global attributes
         are returned. Global attributes are not defined as direct children
-        items and are intended to be shareable by multiple kinds. The name
-        of a global attribute is defined to be the alias with which it was
-        added into the kind's C{attributes} attribute. This alias name may
-        of course be the same as the corresponding attribute's item name.
+        items and are intended to be shareable by multiple kinds.
         @type globalOnly: boolean
         """
 
-        attributes = self.getAttributeValue('attributes', self._references,
-                                            None, None)
+        references = self._references
+        attributes = references.get('attributes', None)
+
         if attributes is not None:
 
             if not globalOnly:
-                for attribute in self.iterChildren():
-                    if attribute._uuid in attributes:
-                        yield (attribute._name, attribute, self)
+                for attribute in attributes:
+                    if attribute.itsParent is self:
+                        yield (attributes.getAlias(attribute), attribute, self)
 
             if not localOnly:
                 for attribute in attributes:
@@ -452,7 +448,6 @@ class Kind(Item):
                         yield (attributes.getAlias(attribute), attribute, self)
 
         if inherited:
-            references = self._references
             inheritedAttributes = self.getAttributeValue('inheritedAttributes',
                                                          references)
             for superKind in self.getAttributeValue('superKinds', references):
@@ -463,7 +458,8 @@ class Kind(Item):
             for uuid in inheritedAttributes.iterkeys():
                 link = inheritedAttributes._get(uuid)
                 name = link._alias
-                if not self.resolve(name):
+                if (attributes is None or
+                    attributes.resolveAlias(name) is None):
                     attribute = link.getValue(self)
                     for kind in attribute.getAttributeValue('kinds', attribute._references):
                         if self.isKindOf(kind):
@@ -489,6 +485,11 @@ class Kind(Item):
             self._values['notFoundAttributes'].append(name)
 
         return None
+
+    def iterItems(self, recursive=False):
+
+        for item in KindQuery(recursive).run((self,)):
+            yield item
 
     def getItemKind(self):
 

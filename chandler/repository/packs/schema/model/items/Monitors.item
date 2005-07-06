@@ -11,18 +11,18 @@
   <attribute name="monitoring">
     <value name="set">
       <value name="attributes" type="list">
-        <value type="list">
+        <value type="tuple">
           <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
           <value type="str">schemaChange</value>
-          <value type="list" />
+          <value type="tuple" />
           <value type="dict" />
         </value>
       </value>
       <value name="superKinds" type="list">
-        <value type="list">
+        <value type="tuple">
           <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
           <value type="str">schemaChange</value>
-          <value type="list" />
+          <value type="tuple" />
           <value type="dict" />
         </value>
       </value>

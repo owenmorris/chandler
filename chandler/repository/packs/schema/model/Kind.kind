@@ -38,7 +38,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="notFoundAttributes">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -56,7 +56,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="inheritedAttributes">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -72,7 +72,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="superKinds">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -88,7 +88,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="subKinds">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -103,7 +103,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="kindOf">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -119,7 +119,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="ofKind">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -135,7 +135,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="attributes">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -150,7 +150,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="classes">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -170,7 +170,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="displayAttribute">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -188,7 +188,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="clouds">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
@@ -203,7 +203,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="otherNames">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -219,7 +219,7 @@
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
+      <ref type="path" otherAlias="mixins">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 

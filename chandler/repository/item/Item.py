@@ -485,10 +485,7 @@ class Item(CItem):
             if name == 'watchers':
                 dispatch = self._values.get('watcherDispatch', None)
                 if dispatch is not None:
-                    for key, watchers in dispatch.iteritems():
-                        watchers = [watcher for watcher in watchers
-                                    if watcher[0] != other]
-                        dispatch[key] = set(watchers)
+                    dispatch.filterItem(other, 2)
 
         dispatch = self._values.get('watcherDispatch', None)
         if dispatch:
@@ -1760,15 +1757,11 @@ class Item(CItem):
                     def removeOrphans(attrDict):
                         for name in attrDict.keys():
                             curAttr = self._kind.getAttribute(name, False, self)
-                            try:
-                                newAttr = kind.getAttribute(name)
-                            except AttributeError:
-                                newAttr = None
+                            newAttr = kind.getAttribute(name, True)
                             if curAttr is not newAttr:
-                                try:
+                                # if it wasn't removed by a reflexive bi-ref
+                                if name in attrDict:
                                     self.removeAttributeValue(name, attrDict)
-                                except NoLocalValueForAttributeError:
-                                    pass
 
                     removeOrphans(self._values)
                     removeOrphans(self._references)
