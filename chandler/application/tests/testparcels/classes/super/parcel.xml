@@ -12,7 +12,7 @@
 
   <Kind itsName="MySuperKind">
     <displayName>My Super Kind</displayName>
-    <classes key="python">classes.super.Super.Super</classes>
+    <classes key="python">application.tests.testparcels.classes.super.Super.Super</classes>
     <attributes itemref="super:linksTo"/>
     <attributes itemref="super:linkedFrom"/>
   </Kind>

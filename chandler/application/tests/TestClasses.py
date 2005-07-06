@@ -17,7 +17,6 @@ class ClassesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         Test to ensure class associations are handled properly
         """
-        sys.path.append(os.path.join(self.testdir, 'testparcels'))
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcel("parcel:application.tests.testparcels.classes.sub")
         self.rep.commit()
