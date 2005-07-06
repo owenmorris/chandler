@@ -220,7 +220,8 @@ class EditText(RectangularChild):
     )
 
     def instantiateWidget(self):
-        style = wx.STATIC_BORDER
+        # Remove STATIC_BORDER: it wrecks padding on WinXP; was: style = wx.STATIC_BORDER
+        style = 0
         if self.textAlignmentEnum == "Left":
             style |= wx.TE_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -1706,12 +1707,12 @@ class AEBlock(BoxContainer):
             try:
                 # Destroy the old widget
                 if existingWidget is not None:
-                    oldEditor = existingWidget.editor
+                    #oldEditor = existingWidget.editor
                     #logger.debug("Destroying old widget for %s.%s", 
                                  #oldEditor.item, oldEditor.attributeName)
-                    oldEditor.EndControlEdit(oldEditor.item, 
-                                             oldEditor.attributeName, 
-                                             existingWidget)
+                    #oldEditor.EndControlEdit(oldEditor.item, 
+                                             #oldEditor.attributeName, 
+                                             #existingWidget)
                     self.unRender()
                 
                 # Set up the new widget
@@ -1874,12 +1875,25 @@ class AEBlock(BoxContainer):
             logger.debug("AEBlock: skipping onLoseFocus because the widget is being deleted.")
             return
 
-        if not self.ChangeWidgetIfNecessary(False, False):
-            # Make sure the value is written back to the item. 
-            editor = self.lookupEditor()
-            editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
-                                  widget)
+        # Make sure the value is written back to the item. 
+        editor = self.lookupEditor()
+        editor.EndControlEdit(self.getItem(), self.getAttributeName(), widget)
 
+        self.ChangeWidgetIfNecessary(False, False)
+
+    """ This doesn't work yet...
+    def onDestroyWidget (self):
+        # Last-chance write-back.
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            editor = getattr(widget, 'editor', None)
+            if editor is not None:
+                forEditing = getattr(self, 'forEditing', False)
+                logger.debug("AEBlock('%s').onDestroyWidget: writing back (forEditing=%s, widget=%s", self.getAttributeName(), forEditing, widget)
+                editor.EndControlEdit(self.getItem(), self.getAttributeName(), widget)
+        super(AEBlock, self).onDestroyWidget()
+    """
+            
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
             if not self.ChangeWidgetIfNecessary(False, True):

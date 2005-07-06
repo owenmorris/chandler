@@ -1436,6 +1436,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
                                    event.startTime.hour,
                                    event.startTime.minute))
+        event.endTime = event.startTime + timedelta(hours=1)
         event.allDay = True
         event.anyTime = False
 

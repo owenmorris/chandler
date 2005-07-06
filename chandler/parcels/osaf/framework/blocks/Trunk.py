@@ -9,6 +9,7 @@ from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
 from repository.item.Item import Item
 from application import schema
+import wx
 import osaf.contentmodel.ContentModel as ContentModel
 import logging
 
@@ -103,6 +104,16 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         if (newView is not oldView) or rerender:
             logger.debug("changing tree to display %s", TPBSelectedItem)
             if oldView is not None:
+                if False:
+                    # Is the focus'd block inside the tree we're unrendering?
+                    oldViewWidget = getattr(oldView, 'widget', None)
+                    if oldViewWidget is not None:
+                        w = wx.Window.FindFocus()
+                        while w is not None and w is not oldViewWidget:
+                            w = w.GetParent()
+                        if w is oldViewWidget:
+                            logger.debug("unrendering focused widget!")
+                    logger.debug("unrendering view %s", oldView)
                 oldView.unRender()
 
             self.childrenBlocks = []

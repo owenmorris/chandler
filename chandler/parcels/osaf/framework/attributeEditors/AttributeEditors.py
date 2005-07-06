@@ -313,15 +313,29 @@ class StringAttributeEditor (BaseAttributeEditor):
         if parentBlock is not None and parentBlock.stretchFactor == 0.0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
             size = wx.Size(parentBlock.size.width, parentBlock.size.height)
         else:
-            if font is not None: # and parentWidget is not None:
-                measurements = Styles.getMeasurements(font)
-                size = wx.Size(200, # parentWidget.GetRect().width,
-                               measurements.textCtrlHeight)
-            else:
-                size = wx.DefaultSize
+            if True: # Work-in progress: the old way:
+                if font is not None: # and parentWidget is not None:
+                    measurements = Styles.getMeasurements(font)
+                    size = wx.Size(200, # parentWidget.GetRect().width,
+                                   measurements.textCtrlHeight)
+                else:
+                    size = wx.DefaultSize
+            else: # the new way, not ready yet.
+                if font is not None:
+                    measurements = Styles.getMeasurements(font)
+                    try:
+                        width = parentWidget.GetRect().width
+                    except:
+                        logger.debug('**** making an AETextCtrl using the 200 width hack! ****')
+                        width = 200
+                    # height = useTextCtrl and measurements.textCtrlHeight or measurements.height
+                    height = measurements.textCtrlHeight
+                    size = wx.Size(width, height)
+                else:
+                    size = wx.DefaultSize
 
         if useTextCtrl:
-            style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL | wx.STATIC_BORDER
+            style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
             try:
                 lineStyleEnum = parentBlock.presentationStyle.lineStyleEnum
             except AttributeError:
@@ -418,8 +432,8 @@ class StringAttributeEditor (BaseAttributeEditor):
     def _changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
         try:
-            logger.debug("_changeTextQuietly: %s, to '%s', sample=%s", 
-                         self.attributeName, text, isSample)
+            #logger.debug("_changeTextQuietly: %s, to '%s', sample=%s", 
+                         #self.attributeName, text.split('\n')[0], isSample)
             # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
             normalTextColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
             if isSample:

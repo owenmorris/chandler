@@ -11,6 +11,7 @@ from osaf.framework.blocks import Block
 from osaf.framework.blocks import DynamicContainerBlocks
 from osaf.framework.blocks import ControlBlocks
 from osaf.framework.blocks import ContainerBlocks
+from osaf.framework.blocks.detail import DetailTrunkSubtree
 import osaf.framework.sharing.Sharing as Sharing
 from osaf.framework.blocks import Trunk
 import osaf.contentmodel.mail.Mail as Mail
@@ -84,6 +85,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         # the control's state on the way out. To work around this, the control
         # does nothing in its EVT_KILL_FOCUS handler if it's being deleted,
         # and we'll force the final update here.
+        #logger.debug("DetailRoot: unrendering.")
         self.finishSelectionChanges() 
         
         # then call our parent which'll do the actual unrender, triggering the
@@ -317,10 +319,11 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         Overrides to use the item's kind as our cache key
         """
         if item is None:
-            # We use the subtree kind itself as the key for displaying nothing
-            # (Mimi wants a particular look when no item is selected)
-            trunkSubtreeKind = self.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
-            return trunkSubtreeKind, False
+            # We use the subtree kind itself as the key for displaying "nothing";
+            # Mimi wants a particular look when no item is selected; we've got a 
+            # particular tree of blocks defined in parcel.xml for this Kind,
+            # which will never get used for a real Item.
+            return DetailTrunkSubtree.getKind(self.itsView), False
         else:
             return item.itsKind, False
     
@@ -369,7 +372,6 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         try:
             subtrees = self.subtreeList
         except AttributeError:
-            from osaf.framework.blocks.detail import DetailTrunkSubtree
             subtrees = list(DetailTrunkSubtree.iterItems(self.itsView))
             self.subtreeList = subtrees
         return subtrees
@@ -875,13 +877,11 @@ class FromEditField (EditTextAttribute):
                     # Determine which kind of item to assign based on the
                     # types of the redirected-to attributes:
                     type = item.getAttributeAspect('whoFrom', 'type')
-                    contactKind = \
-                     item.findPath("//parcels/osaf/contentmodel/contacts/Contact")
+                    contactKind = Contacts.Contact.getKind(self.itsView)
                     if type is contactKind:
                         item.whoFrom = item.getCurrentMeContact(item.itsView)
                     else:
-                        emailAddressKind = \
-                         item.findPath("//parcels/osaf/contentmodel/mail/EmailAddress")
+                        emailAddressKind = Mail.EmailAddress.getKind(self.itsView)
                         if type is emailAddressKind:
                             item.whoFrom = item.getCurrentMeEmailAddress()
                 except AttributeError:
@@ -1025,13 +1025,10 @@ class CalendarAtLabel (StaticTextLabel):
     def shouldShow (self, item):
         return not self.contents.allDay
         
-class CalendarTimeAEBlock(DetailSynchronizer, ControlBlocks.AEBlock):
+class CalendarTimeAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
         return not self.contents.allDay
     
-    def synchronizeItemDetail(self, item):
-        self.synchronizeWidget()
-
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
         self.selection = item
