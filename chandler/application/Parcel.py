@@ -1479,6 +1479,11 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         (old, new) = ValueSet.getValueSets(item)
         copiedAnAssignment = False
 
+        # For bug 3361, improper handling of assignments when an initialValue
+        # is a list/tuple.  The fix is to blow away the initialValue of an
+        # item's attribute the first time parcel.xml sets the value.
+        seenAttributes = {}
+
         for assignment in assignments:
             assignmentCallable = None
             assignmentArgs = None
@@ -1492,6 +1497,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 key = assignment["key"]
             else:
                 key = None
+
 
             self.saveState(line=line, file=file)
 
@@ -1663,8 +1669,32 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             logger.debug("Reload: item %s, assigning %s = '%s'" % \
                              (item.itsPath, attributeName, value))
 
+                # If this is the first time we're assigning to this
+                # attribute for this item within this method, let's
+                # remove whatever initialValue is there.
+                # Note: If in reloading mode, removing the value completely
+                # isn't safe because of changes that could have been made
+                # during a previous run (outside of parcel.xml).  Therefore
+                # in reload mode be aware that if you didn't previously have
+                # an assignment to a given list attribute in XML, but now you
+                # have added one, the item's attribute value is going to be
+                # the initialValue list plus whatever attributes you have
+                # added in XML (which actually makes sense because by reloading
+                # you are modifying an existing item, not creating a new one).
+                if not reloading and not seenAttributes.has_key(attributeName):
+                    if hasattr(item, attributeName):
+                        try:
+                            item.removeAttributeValue(attributeName)
+                        except:
+                            # This could fail for various reasons, none of
+                            # which are important
+                            pass
+                    seenAttributes[attributeName] = 1
+
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
+
+
                 
             if assignmentCallable is not None:
                 if copiedAnAssignment:
