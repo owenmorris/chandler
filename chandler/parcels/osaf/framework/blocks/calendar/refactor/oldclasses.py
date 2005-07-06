@@ -38,56 +38,6 @@ class OLDwxCalendarContainer(CalendarEventHandler,
         
 
 
-    def _doDrawingCalculations(self):
-        """sets a bunch of drawing variables"""
-        self.size = self.GetSize()
-        
-        try:
-            oldDayWidth = self.dayWidth
-        except AttributeError:
-            oldDayWidth = -1
-
-        self.dayWidth = (self.size.width - self.scrollbarWidth) / (self.blockItem.daysPerView + 1)
-
-        ### calculate column widths for the all-7-days week view case
-        # column layout rules are funky (e.g. bug 3290)
-        # - all 7 days are fixed at self.dayWidth
-        # - the last column (expando-button) is fixed
-        # - the "Week" column is the same as self.dayWidth, plus leftover pixels
-        columnCount = 9
-        dayWidths = (self.dayWidth,) * 7
-
-        self.middleWidth = self.dayWidth*7
-        self.xOffset = self.GetSize().width - self.middleWidth - self.scrollbarWidth
-        self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
-
-        # the gradient brushes are based on dayWidth, so blow it away
-        # when dayWidth changes
-        if oldDayWidth != self.dayWidth:
-            self.brushes.ClearCache()
-        
-        if self.blockItem.dayMode:
-            self.columns = 1
-        else:
-            self.columns = self.blockItem.daysPerView        
-
-        #print self.size, self.xOffset, self.dayWidth, self.columns #convenient interactive way to learn what these variables are, since they're tricky to describe verbally
-
-
-    def _getDividerPositions(self):
-        """tuple of divider lines for the wxWeek{Header,Column}Canvas's.
-        unlike columnWidths, this IS sensitive whether you're viewing one day
-        vs. week"""
-        cw = self.columnWidths
-        if self.blockItem.dayMode:
-            lastDividerPos = sum(cw)
-            return (cw[0], lastDividerPos)
-        else:
-            ## e.g. 10,40,40,40 => 0,10,50,90
-            cumulSums =  [sum(cw[:i]) for i in range(len(cw))]
-            return cumulSums[1:]
-
-    dividerPositions = property(_getDividerPositions)
 
     def OnEraseBackground(self, event):
         pass
@@ -313,30 +263,12 @@ class OLDwxCalendarControl(wx.Panel):
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
-        super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
+        pass
 
-        self.SetMinSize((-1,25))
-        self.size = self.GetSize()
-        self.fixed = True
-
-    def OnInit(self):
-        super (wxAllDayEventsCanvas, self).OnInit()
-        
-        # Event handlers
-        self.Bind(wx.EVT_SIZE, self.OnSize)
                     
     
-    def OnSize(self, event):
-        self.size = self.GetSize()
-        self.RebuildCanvasItems()
         
-        self.Refresh()
-        event.Skip()
-        
-    def wxSynchronizeWidget(self):
-        self.RebuildCanvasItems()
-        self.Refresh()
-
+    ### DIE
     def toggleSize(self):
         # Toggles size between fixed and large enough to show all tasks
         if self.fixed:
@@ -349,108 +281,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.SetMinSize(self.oldFixedSize)
         self.fixed = not self.fixed
 
-    # Drawing code
-    def DrawBackground(self, dc):
-        styles = self.parent
-        
-        # Use the transparent pen for painting the background
-        dc.SetPen(wx.TRANSPARENT_PEN)
-        
-        # Paint the entire background
-        dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
-
-        # Draw lines between days
-        drawInfo = self.parent
-        def drawDayLine(dayNum):
-            x = drawInfo.dividerPositions[dayNum]
-            dc.DrawLine(x, 0,   x, self.size.height)
-
-        # Week/7days divider needs major color, the rest are minor.
-        dc.SetPen(styles.majorLinePen)
-        drawDayLine(0)
-
-        dc.SetPen(styles.minorLinePen)
-        for dayNum in range(1, drawInfo.columns):
-            drawDayLine(dayNum)
-
-        # Draw one extra line to parallel the scrollbar below
-        dc.DrawLine(self.size.width - drawInfo.scrollbarWidth, 0,
-                    self.size.width - drawInfo.scrollbarWidth, self.size.height)
 
         
-    def DrawCells(self, dc):
-        
-        styles = self.parent
-
-        dc.SetFont(styles.eventLabelFont)
-        
-        selectedBox = None
-        brushOffset = self.GetPlatformBrushOffset()
-
-        for canvasItem in self.canvasItemList:
-            # save the selected box to be drawn last
-            item = canvasItem.GetItem()
-            if self.parent.blockItem.selection is item:
-                selectedBox = canvasItem
-            else:
-                canvasItem.Draw(dc, styles, brushOffset, False)
-        
-        if selectedBox:
-            selectedBox.Draw(dc, styles, brushOffset, True)
-
-        # Draw a line across the bottom of the header
-        dc.SetPen(styles.majorLinePen)
-        dc.DrawLine(0, self.size.height - 1,
-                    self.size.width, self.size.height - 1)
-        dc.DrawLine(0, self.size.height - 4,
-                    self.size.width, self.size.height - 4)
-        dc.SetPen(styles.minorLinePen)
-        dc.DrawLine(0, self.size.height - 2,
-                    self.size.width, self.size.height - 2)
-        dc.DrawLine(0, self.size.height - 3,
-                    self.size.width, self.size.height - 3)
 
             
-    def RebuildCanvasItems(self):
-        self.canvasItemList = []
-
-        if self.parent.blockItem.dayMode:
-            startDay = self.parent.blockItem.selectedDate
-            width = self.size.width - self.parent.scrollbarWidth
-        else:
-            startDay = self.parent.blockItem.rangeStart
-            width = self.parent.dayWidth
-
-        self.fullHeight = 0
-        size = self.GetSize()
-        for day in range(self.parent.columns):
-            currentDate = startDay + timedelta(days=day)
-            rect = wx.Rect((self.parent.dayWidth * day) + self.parent.xOffset, 0,
-                           width, size.height)
-            self.RebuildCanvasItemsByDay(currentDate, rect)
 
 
-    def RebuildCanvasItemsByDay(self, date, rect):
-        x = rect.x
-        y = rect.y
-        w = rect.width
-        h = 15
-
-        for item in self.parent.blockItem.getDayItemsByDate(date):
-            itemRect = wx.Rect(x, y, w, h)
-            
-            canvasItem = HeaderCanvasItem(itemRect, item)
-            self.canvasItemList.append(canvasItem)
-            
-            # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.GetItem() == item:
-                self._currentDragBox = canvasItem
-
-            y += itemRect.height
-            
-        if (y > self.fullHeight):
-            self.fullHeight = y
                     
     def OnCreateItem(self, unscrolledPosition):
         view = self.parent.blockItem.itsView
@@ -487,28 +323,64 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.editor.SetItem(box.GetItem(), position, size, size.height)
 
 
-    def getDateTimeFromPosition(self, position):
-        # bound the position by the available space that the user 
-        # can see/scroll to
-        yPosition = max(position.y, 0)
-        xPosition = max(position.x, self.parent.xOffset)
+
+
+
+############################ out from CalendarContainer block.
+    def _doDrawingCalculations(self):
+        """sets a bunch of drawing variables"""
+        ### REFACTOR: move to a widget if it just doesnt work here
+        ### it's somewhat unnatural in a Block
+
+        self.size = self.widget.GetSize()
         
-        if (self.fixed):
-            height = self.GetMinSize().GetWidth()
-        else:
-            height = self.fullHeight
-            
-        yPosition = min(yPosition, height)
-        xPosition = min(xPosition, self.parent.xOffset + self.parent.dayWidth * self.parent.columns - 1)
+        try:
+            oldDayWidth = self.dayWidth
+        except AttributeError:
+            oldDayWidth = -1
 
-        if self.parent.blockItem.dayMode:
-            newDay = self.parent.blockItem.selectedDate
-        elif self.parent.dayWidth > 0:
-            deltaDays = (xPosition - self.parent.xOffset) / self.parent.dayWidth
-            startDay = self.parent.blockItem.rangeStart
-            newDay = startDay + timedelta(days=deltaDays)
-        else:
-            newDay = self.parent.blockItem.rangeStart
-        return newDay
+        self.dayWidth = ((self.size.width - self.scrollbarWidth) / 
+                         (self.calendarControl.daysPerView + 1))
 
+        ### calculate column widths for the all-7-days week view case
+        # column layout rules are funky (e.g. bug 3290)
+        # - all 7 days are fixed at self.dayWidth
+        # - the last column (expando-button) is fixed
+        # - the "Week" column is the same as self.dayWidth, plus leftover pixels
+        columnCount = 9
+        dayWidths = (self.dayWidth,) * 7
+
+        self.middleWidth = self.dayWidth*7
+        self.xOffset = self.size.width - self.middleWidth - self.scrollbarWidth
+        self.columnWidths = (self.xOffset,) +dayWidths+ (self.scrollbarWidth,)
+
+        # the gradient brushes are based on dayWidth, so blow it away
+        # when dayWidth changes
+        if oldDayWidth != self.dayWidth:
+            self.brushes.ClearCache()
+        
+        if self.calendarControl.dayMode:
+            self.columns = 1
+        else:
+            self.columns = self.calendarControl.daysPerView        
+
+        #print self.size, self.xOffset, self.dayWidth, self.columns #convenient interactive way to learn what these variables are, since they're tricky to describe verbally
+
+
+    def _getDividerPositions(self):
+        """tuple of divider lines for the canvases.
+        unlike columnWidths, this IS sensitive whether you're viewing one day
+        vs. week"""
+        if not hasattr(self, 'columnWidths'):
+            self._doDrawingCalculations()
+        cw = self.columnWidths
+        if self.calendarControl.dayMode:
+            lastDividerPos = sum(cw)
+            return (cw[0], lastDividerPos)
+        else:
+            ## e.g. 10,40,40,40 => 0,10,50,90
+            cumulSums =  [sum(cw[:i]) for i in range(len(cw))]
+            return cumulSums[1:]
+
+    dividerPositions = property(_getDividerPositions)
 

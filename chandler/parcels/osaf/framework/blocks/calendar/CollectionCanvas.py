@@ -748,17 +748,29 @@ class CollectionCanvas(Block.RectangularChild):
         self.selection = None
         self.postSelectItemBroadcast()
 
+
+    # REFACTOR: cruft?: the event "SelectItem" doesn't appear to exist
     def onSelectItemEvent(self, event):
         """
         Sets the block selection and synchronizes the widget.
         """
         self.selection = event.arguments['item']
 
-    def postSelectItemBroadcast(self):
+    def onSelectItemEvent(self, event):
+        pass
+
+        # REFACTOR: implement
+        #self.selection = event.arguments['item']
+        #self.widget.wxSynchronize ?
+
+        
+    def postSelectItemBroadcast(self, newSelection=None):
         """
         Convenience method for posting a selection changed event.
         """
-        self.postEventByName('SelectItemBroadcast', {'item':self.selection})
+        if not newSelection:
+            newSelection = self.selection
+        self.postEventByName('SelectItemBroadcast', {'item': newSelection})
 
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
