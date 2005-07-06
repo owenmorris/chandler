@@ -7,9 +7,8 @@
 
 <Parcel itsName="kindanditem"
              xmlns="parcel:core"
-             xmlns:kindanditem="http://testparcels.org/kindanditem" >
+             xmlns:kindanditem="parcel:application.tests.testparcels.kindanditem" >
 
-  <namespace value="http://testparcels.org/kindanditem" />
   <Kind itsName="KindOne">
     <classes key="python">application.tests.testparcels.classes.super.Super.Super</classes>
     <superKinds itemref="Item"/>

@@ -21,7 +21,7 @@ class KindAndItemTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
 
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
-        self.loadParcel("http://testparcels.org/kindanditem")
+        self.loadParcel("parcel:application.tests.testparcels.kindanditem")
         self.rep.commit()
         
         item = self.rep.findPath("//parcels/application/tests/testparcels/kindanditem/FirstOfItsKind")
