@@ -75,6 +75,8 @@ public:
         : wxToolBarToolBase(tbar, control)
     {
         Init() ;
+        if (control != NULL)
+            SetControlHandle( (ControlRef) control->GetHandle() );
     }
     
     ~wxToolBarTool()
@@ -412,7 +414,7 @@ void wxToolBarTool::UpdateToggleImage( bool toggle )
     }
 
     IconTransformType transform = toggle ? kTransformSelected : kTransformNone ;
-	SetControlData( m_controlHandle, 0, kControlIconTransformTag, sizeof( transform ),
+    SetControlData( m_controlHandle, 0, kControlIconTransformTag, sizeof( transform ),
 			(Ptr)&transform );
     HIViewSetNeedsDisplay( m_controlHandle , true ) ;
 
@@ -478,12 +480,12 @@ bool wxToolBar::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, cons
     if ( !wxToolBarBase::Create( parent , id , pos , size , style ) )
         return FALSE ;
 
-    OSStatus err = 0;
+    OSStatus result = 0;
 
     {
         wxString labelStr;
         labelStr.Format(wxT("%xd"), (int)this);
-        err = HIToolbarCreate( wxMacCFStringHolder(labelStr, wxFont::GetDefaultEncoding() ) , 0 ,
+        result = HIToolbarCreate( wxMacCFStringHolder(labelStr, wxFont::GetDefaultEncoding() ) , 0 ,
 						(HIToolbarRef*) &m_macHIToolbarRef  );
     }
 
@@ -507,7 +509,7 @@ bool wxToolBar::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, cons
         HIToolbarSetDisplaySize( (HIToolbarRef) m_macHIToolbarRef , displaySize ) ;
     }
 
-    return (err == 0);
+    return (result == 0);
 }
 
 wxToolBar::~wxToolBar()
@@ -533,8 +535,8 @@ void wxToolBar::DoGetSize( int *width, int *height ) const
         if (tlw != NULL)
         {
             HIToolbarRef curToolbarRef = NULL;
-            OSStatus err = GetWindowToolbar(tlw, &curToolbarRef );
-            if ((err == 0) && (curToolbarRef == m_macHIToolbarRef))
+            OSStatus result = GetWindowToolbar(tlw, &curToolbarRef );
+            if ((result == 0) && (curToolbarRef == m_macHIToolbarRef))
                 *height = 0;
         }
     }
@@ -578,8 +580,8 @@ bool wxToolBar::MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled)
     if (tlw != NULL)
     {
         HIToolbarRef curToolbarRef = NULL;
-        OSStatus err = GetWindowToolbar( tlw, &curToolbarRef );
-        bResultV = ((err == 0) && (curToolbarRef != NULL));
+        OSStatus result = GetWindowToolbar( tlw, &curToolbarRef );
+        bResultV = ((result == 0) && (curToolbarRef != NULL));
         if (bResultV && (ownToolbarInstalled != NULL))
             *ownToolbarInstalled = (curToolbarRef == m_macHIToolbarRef);
     }
@@ -605,8 +607,8 @@ bool	bResult = false;
  
     // check the existing toolbar
     HIToolbarRef curToolbarRef = NULL;
-    OSStatus err = GetWindowToolbar( tlw, &curToolbarRef );
-    if (err != 0)
+    OSStatus result = GetWindowToolbar( tlw, &curToolbarRef );
+    if (result != 0)
         curToolbarRef = NULL;
 
     // remember the preference
@@ -751,8 +753,8 @@ bool wxToolBar::Realize()
             HIToolbarItemRef hiItemRef = tool->GetToolbarItemRef();
             if (hiItemRef != NULL)
             {
-                OSStatus err = HIToolbarAppendItem( (HIToolbarRef) m_macHIToolbarRef, hiItemRef );
-                if (err == 0)
+                OSStatus result = HIToolbarAppendItem( (HIToolbarRef) m_macHIToolbarRef, hiItemRef );
+                if (result == 0)
                     InstallEventHandler(
                         HIObjectGetEventTarget(hiItemRef), GetwxMacToolBarEventHandlerUPP(),
                         GetEventTypeCount(toolBarEventList), toolBarEventList, tool, NULL);
@@ -894,9 +896,9 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
 
     WindowRef window = (WindowRef) MacGetTopLevelWindowRef();
     wxSize toolSize = GetToolSize();
-    Rect toolrect = { 0, 0 , toolSize.y , toolSize.x };
+    Rect toolrect = { 0, 0, toolSize.y, toolSize.x };
     ControlRef controlHandle = NULL;
-    OSStatus err = 0;
+    OSStatus result = 0;
 
     switch (tool->GetStyle())
     {
@@ -913,8 +915,8 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
         #ifdef __WXMAC_OSX__
                 // in flat style we need a visual separator
                 HIToolbarItemRef item;
-                err = HIToolbarItemCreate( kHIToolbarSeparatorIdentifier, kHIToolbarItemCantBeRemoved | kHIToolbarItemIsSeparator | kHIToolbarItemAllowDuplicates, &item );
-                if (err == noErr)
+                result = HIToolbarItemCreate( kHIToolbarSeparatorIdentifier, kHIToolbarItemCantBeRemoved | kHIToolbarItemIsSeparator | kHIToolbarItemAllowDuplicates, &item );
+                if (result == 0)
                     tool->SetToolbarItemRef( item );
                 CreateSeparatorControl( window, &toolrect, &controlHandle );
                 tool->SetControlHandle( controlHandle );
@@ -933,10 +935,10 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
                 HIToolbarItemRef item ;
                 wxString	labelStr;
                 labelStr.Format(wxT("%xd"), (int)tool);
-                err = HIToolbarItemCreate(
+                result = HIToolbarItemCreate(
                     wxMacCFStringHolder(labelStr, wxFont::GetDefaultEncoding()),
                     kHIToolbarItemCantBeRemoved | kHIToolbarItemAnchoredLeft | kHIToolbarItemAllowDuplicates, &item );
-                if (err  == noErr)
+                if (result  == 0)
                 {
                     HIToolbarItemSetLabel( item, wxMacCFStringHolder(tool->GetLabel(), m_font.GetEncoding()) );
                     HIToolbarItemSetIconRef( item, info.u.iconRef );
@@ -950,6 +952,8 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
                 CreateBevelButtonControl(
                     window, &toolrect, CFSTR(""), kControlBevelButtonNormalBevel, behaviour, &info, 
                     0, 0, 0, &controlHandle );
+
+                // FIXME: no label support
         #endif
 
                 wxMacReleaseBitmapButton( &info );
@@ -958,7 +962,8 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
                 UMASetControlTitle( m_controlHandle, label, wxFont::GetDefaultEncoding() );
                 */
 
-                InstallControlEventHandler( (ControlRef) controlHandle, GetwxMacToolBarToolEventHandlerUPP(),
+                InstallControlEventHandler(
+                    (ControlRef) controlHandle, GetwxMacToolBarToolEventHandlerUPP(),
                     GetEventTypeCount(eventList), eventList, tool, NULL );
 
                 tool->SetControlHandle( controlHandle );
@@ -967,30 +972,70 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
 
         case wxTOOL_STYLE_CONTROL :
             wxASSERT( tool->GetControl() != NULL );
-            // right now there's nothing to do here
+
+            // FIXME: doesn't work yet...
+        #ifdef __WXMAC_OSX__
+            {
+                HIToolbarItemRef item;
+                wxString	labelStr;
+                labelStr.Format(wxT("%xd"), (int)tool);
+                result = HIToolbarItemCreate(
+                    wxMacCFStringHolder(labelStr, wxFont::GetDefaultEncoding()),
+                    kHIToolbarItemCantBeRemoved | kHIToolbarItemAnchoredLeft | kHIToolbarItemAllowDuplicates, &item );
+                if (result  == 0)
+                {
+                    HIToolbarItemSetLabel( item, wxMacCFStringHolder( tool->GetLabel(), m_font.GetEncoding()) );
+                    HIToolbarItemSetCommandID( item, tool->GetId() );
+                    tool->SetToolbarItemRef( item );
+
+                    controlHandle = (ControlRef) tool->GetControlHandle();
+                    wxASSERT_MSG( controlHandle != NULL, wxT("NULL tool control") );
+
+                    // FIXME: is this necessary ??
+                    ::GetControlBounds( controlHandle, &toolrect );
+                    UMAMoveControl( controlHandle, -toolrect.left, -toolrect.top );
+
+                    // FIXME: is this necessary ??
+                    InstallControlEventHandler(
+                        controlHandle, GetwxMacToolBarToolEventHandlerUPP(),
+                        GetEventTypeCount(eventList), eventList, tool, NULL );
+                }
+            }
+        #else
+            // FIXME: right now there's nothing to do here
+        #endif
             break;
 
         default :
             break;
     }
- 
-    if ( controlHandle )
-    {
-        ControlRef container = (ControlRef) GetHandle();
-        wxASSERT_MSG( container != NULL, wxT("No valid mac container control") );
 
-        UMAShowControl( controlHandle );
-        ::EmbedControl( controlHandle, container );
+    if (result == 0)
+    {
+        if ( controlHandle )
+        {
+            ControlRef container = (ControlRef) GetHandle();
+            wxASSERT_MSG( container != NULL, wxT("No valid Mac container control") );
+
+            UMAShowControl( controlHandle );
+            ::EmbedControl( controlHandle, container );
+        }
+
+        if ( tool->CanBeToggled() && tool->IsToggled() )
+            tool->UpdateToggleImage( true );
+
+        // nothing special to do here - we relayout in Realize() later
+        tool->Attach(this);
+        InvalidateBestSize();
+    }
+    else
+    {
+        wxString errMsg;
+        errMsg.Format( wxT("wxToolBar::DoInsertTool - failure [%ld]"), (long)result );
+        wxASSERT_MSG( false, errMsg.c_str() );
     }
 
-    if ( tool->CanBeToggled() && tool->IsToggled() )
-        tool->UpdateToggleImage( true );
-
-    // nothing special to do here - we relayout in Realize() later
-    tool->Attach(this);
-    InvalidateBestSize();
-
-    return (err == 0);
+    return (result == 0);
 }
 
 void wxToolBar::DoSetToggle(wxToolBarToolBase *WXUNUSED(tool), bool WXUNUSED(toggle))
