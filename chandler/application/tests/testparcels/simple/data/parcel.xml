@@ -7,7 +7,7 @@
 
 <Parcel itsName="data"
         xmlns="parcel:core"
-        xmlns:simple="http://testparcels.org/simple" >
+        xmlns:simple="parcel:application.tests.testparcels.simple" >
 
   <simple:TestKind itsName="item1">
     <TestAttribute>xyzzy</TestAttribute>

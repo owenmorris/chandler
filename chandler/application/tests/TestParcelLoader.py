@@ -19,7 +19,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
 
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
-        self.loadParcel("http://testparcels.org/simple/data")
+        self.loadParcel("parcel:application.tests.testparcels.simple.data")
 
         self.rep.commit()
 

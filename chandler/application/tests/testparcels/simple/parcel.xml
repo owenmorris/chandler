@@ -7,9 +7,7 @@
 
 <Parcel itsName="simple"
         xmlns="parcel:core"
-        xmlns:simple="http://testparcels.org/simple" >
-
-  <namespace value="http://testparcels.org/simple" />
+        xmlns:simple="parcel:application.tests.testparcels.simple" >
 
   <displayName value="Simple Parcel" />
   <description value="Simple Parcel Loader Test Schema" />
