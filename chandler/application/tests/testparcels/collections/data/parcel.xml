@@ -7,8 +7,8 @@
 
 <Parcel itsName="data"
         xmlns="parcel:core"
-        xmlns:coll="http://testparcels.org/collections"
-        xmlns:data="http://testparcels.org/collections/data" >
+        xmlns:coll="parcel:application.tests.testparcels.collections"
+        xmlns:data="parcel:application.tests.testparcels.collections.data" >
 
   <coll:Block itsName="parent">
     <foo alias="one" itemref="data:child1" />

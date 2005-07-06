@@ -7,9 +7,7 @@
 
 <Parcel itsName="collections"
         xmlns="parcel:core"
-        xmlns:coll="http://testparcels.org/collections" >
-
-  <namespace value="http://testparcels.org/collections" />
+        xmlns:coll="parcel:application.tests.testparcels.collections" >
 
   <Kind itsName="Block">
     <superKinds itemref="Item"/>
