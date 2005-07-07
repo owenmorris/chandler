@@ -739,12 +739,13 @@ class CollectionCanvas(Block.RectangularChild):
     # Event handling
     
     def onSetContentsEvent (self, event):
-        item = event.arguments ['item']
-        assert isinstance (item, ItemCollection.ItemCollection)
-        self.contents = item
         """
           Clear the selection each time we view a new contents
         """
+        item = event.arguments ['item']
+        assert isinstance (item, ItemCollection.ItemCollection)
+        self.contents = item
+
         self.selection = None
         self.postSelectItemBroadcast()
 
@@ -756,12 +757,11 @@ class CollectionCanvas(Block.RectangularChild):
         """
         self.selection = event.arguments['item']
 
-    def onSelectItemEvent(self, event):
-        pass
-
-        # REFACTOR: implement
-        #self.selection = event.arguments['item']
-        #self.widget.wxSynchronize ?
+    def onSelectItemBroadcastEvent(self, event):
+        # @@@ is it ok to have selection on an item not in the current range?
+        # at the very least, can optimize by not always calling wxsync()
+        self.selection = event.arguments['item']
+        self.widget.wxSynchronize()
 
         
     def postSelectItemBroadcast(self, newSelection=None):

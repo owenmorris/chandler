@@ -288,39 +288,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
 
                     
-    def OnCreateItem(self, unscrolledPosition):
-        view = self.parent.blockItem.itsView
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        event = Calendar.CalendarEvent(view=view)
-        event.InitOutgoingAttributes()
-        event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                   event.startTime.hour,
-                                   event.startTime.minute))
-        event.allDay = True
-        event.anyTime = False
-
-        self.parent.blockItem.contents.source.first().add(event)
-        self.OnSelectItem(event)
-        view.commit()
-        return event
-
-    def OnDraggingItem(self, unscrolledPosition):
-        if self.parent.blockItem.dayMode:
-            return
-        
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.GetItem()
-        if (newTime.toordinal() != item.startTime.toordinal()):
-            item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                      item.startTime.hour,
-                                      item.startTime.minute))
-            self.Refresh()
-
-    def OnEditItem(self, box):
-        position = box.GetEditorPosition()
-        size = box.GetMaxEditorSize()
-
-        self.editor.SetItem(box.GetItem(), position, size, size.height)
 
 
 

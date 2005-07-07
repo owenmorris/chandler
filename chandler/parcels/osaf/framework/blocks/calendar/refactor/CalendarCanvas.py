@@ -689,7 +689,8 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta)
     selectedDate = schema.One(schema.DateTime)
-    
+    lastHue = schema.One(schema.Float, initialValue = -1.0)
+ 
     def __init__(self, *arguments, **keywords):
         super(CalendarBlock, self).__init__(*arguments, **keywords)
 
@@ -1322,21 +1323,48 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         xPosition = min(xPosition, d.xOffset + d.dayWidth * d.columns - 1)
 
         if self.blockItem.dayMode:
-            newDay = self.rangeStart
+            newDay = self.blockItem.rangeStart
         elif drawInfo.dayWidth > 0:
             deltaDays = (xPosition - drawInfo.xOffset) / drawInfo.dayWidth
-            newDay = self.rangeStart + timedelta(days=deltaDays)
+            newDay = self.blockItem.rangeStart + timedelta(days=deltaDays)
         else:
-            newDay = self.rangeStart
+            newDay = self.blockItem.rangeStart
         return newDay
 
 
     def OnCreateItem(self, unscrolledPosition):
-        print "OnCreateItem stub"
+        view = self.blockItem.itsView
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        event = Calendar.CalendarEvent(view=view)
+        event.InitOutgoingAttributes()
+        event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
+                                   event.startTime.hour,
+                                   event.startTime.minute))
+        event.allDay = True
+        event.anyTime = False
+
+        self.blockItem.contents.source.first().add(event)
+        self.OnSelectItem(event)
+        view.commit()
+        return event
+
     def OnDraggingItem(self, unscrolledPosition):
-        print "OnDraggingItem stub"
+        if self.blockItem.dayMode:
+            return
+        
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        item = self._currentDragBox.GetItem()
+        if (newTime.toordinal() != item.startTime.toordinal()):
+            item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
+                                      item.startTime.hour,
+                                      item.startTime.minute))
+            self.Refresh()
+
     def OnEditItem(self, box):
-        print "OnEditItem stub"
+        position = box.GetEditorPosition()
+        size = box.GetMaxEditorSize()
+
+        self.editor.SetItem(box.GetItem(), position, size, size.height)
 
 
 
@@ -1358,7 +1386,7 @@ class TimedEventsCanvas(Block.RectangularChild):
 
 class wxTimedEventsCanvas(wx.StaticText):
     def __init__(self, parent, *args, **kwds):
-        super(wxTimedEventsCanvas, self).__init__(parent, -1, "this is the TimedEventsCanvas")
+        super(wxTimedEventsCanvas, self).__init__(parent, -1, "the TimedEventsCanvas goes here")
     def OnInit(self):
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeft)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRight)
