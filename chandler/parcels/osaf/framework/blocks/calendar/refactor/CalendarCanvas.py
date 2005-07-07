@@ -18,8 +18,8 @@
 """ Canvas for calendaring blocks
 """
 
-__version__ = "$Revision: 5838 $"
-__date__ = "$Date: 2005-06-30 19:40:14 -0700 (Thu, 30 Jun 2005) $"
+__version__ = "$Revision$"
+__date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar.refactor"
@@ -693,16 +693,17 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     @ivar rangeIncrement: increment used to find the next or prev block of time
     @type rangeIncrement: timedelta
 
-    @ivar selectedDate: within the current range.  REFACTOR: why is this in
-    this class?  tons of the pre-refactor code used this variable though it was
-    only declared in the subclass.  The rule is now:
-    selectedDate = rangeStart for basic behavior, but selectedDate can range
-    within the date range, e.g. when on a week view and you want to have a
-    specific selected date inside that.
+    @ivar selectedDate: within the current range. REFACTOR: why is this in
+    this class? tons of the pre-refactor code used this variable though it was
+    only declared in the subclass. The rule is now: selectedDate = rangeStart
+    for basic behavior, but selectedDate can range within the date range, e.g.
+    when on a week view and you want to have a specific selected date inside
+    that. TODO: get rid of switches testing for its existence
 
     @type selectedDate: datetime
     """
     # @@@ method capitalization policy is inconsistent!
+    
 
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta)
@@ -1115,8 +1116,6 @@ class wxInPlaceEditor(wx.TextCtrl):
 
 class CalendarContainer(ContainerBlocks.BoxContainer):
 
-    selectedDate = schema.One(schema.DateTime)
-    lastHue = schema.One(schema.Float, initialValue = -1.0)
     calendarControl = schema.One(schema.Item, required=True)
 
     def __init__(self, *arguments, **keywords):
@@ -1561,7 +1560,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     legendBorderX, workdayHourEnd * self.hourHeight + 1)
 
         """
-        # draw lines between columns ##@@@ broken for self.parent post-refactoring
+        # draw lines between columns \
         dc.SetPen(styles.minorLinePen)
         for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
@@ -1887,7 +1886,7 @@ class CalendarControl(CalendarBlock):
     ## TODO: integrate alecf's r5851 widget changes
 
     dayMode = schema.One(schema.Boolean)
-    daysPerView = schema.One(schema.Integer, initialValue=7) #REFACTOR should move to parcel.xml like old calcon
+    daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     calendarContainer = schema.One(schema.Item)
 
     def __init__(self, *arguments, **keywords):
@@ -1934,18 +1933,6 @@ class CalendarControl(CalendarBlock):
             self.selectedDate = date
         else:
             self.selectedDate = self.rangeStart
-
-#### REFACTOR should NOT be needed here since cal ctrl doesnt need to know about specific days...?
-            
-##     def GetCurrentDateRange(self):
-##         """unlike CalendarBlock.GetCurrentDateRange(), need to check dayMode"""
-##         if self.dayMode:
-##             startDay = self.selectedDate
-##             endDay = startDay + timedelta(days = 1)
-##         else:
-##             startDay = self.rangeStart
-##             endDay = startDay + self.rangeIncrement
-##         return (startDay, endDay)                   
 
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
@@ -2030,11 +2017,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def OnSelectColor(self, event):
         c = event.GetValue().Get()
 
-        # REFACTOR.  a new CPIA event?  each canvas tracks its own color currently
-#        self.blockItem.setCalendarColor(c)
+        self.blockItem.setCalendarColor(c)
         
-        # REFACTOR: need to tell canvases to Refresh()
-        self.Refresh()
+        #refresh on CalendarContainer's widget.
+        #this seems to cascade down to make all children windows Refresh()
+        self.blockItem.parentBlock.widget.Refresh()
+        
 
     def UpdateHeader(self):
         if self.blockItem.dayMode:
@@ -2063,8 +2051,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             startDate == self.currentStartDate):
             return
 
-        # update the calendar with the calender's color  REFACTOR
-#        self.colorSelect.SetColour(self.parent.blockItem.calendarData.eventColor.wxColor())
+        # update the calendar with the calender's color
+        self.colorSelect.SetColour(self.blockItem.calendarData.eventColor.wxColor())
 
         # Update the month button given the selected date
         lastDate = startDate + timedelta(days=6)
@@ -2102,7 +2090,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         self.Layout()
 
-        #REFACTOR: attempting to update correctly...
+        #REFACTOR: attempting to update correctly... maybe elim some Refresh()'s?
         self.UpdateHeader()
         self.weekColumnHeader.Refresh()
         self.Refresh()
