@@ -4,8 +4,6 @@
 #
 
 """ TODO/regressions
- * color chooser doesnt do anything
- * no drag and drop
  * subblock sizing is incorrect.  i'm not sure if the BoxContainer block is
    capable of doing sizing correctly, because that requires setting different
    arguments on wxBoxSizer.Add()'s for different subwidgets.  Of course,
@@ -955,7 +953,10 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         self.calendarData.eventColor = ec
 
 
-class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
+class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
+                  DragAndDrop.DropReceiveWidget, 
+                  DragAndDrop.DraggableWidget,
+                  DragAndDrop.ItemClipboardHandler):
     """
     Base class for all calendar canvases - handles basic item selection, 
     date ranges, and so forth
@@ -1044,6 +1045,24 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetPen(styles.minorLinePen)
         for dayNum in range(1, drawInfo.columns):
             drawDayLine(dayNum)
+    
+    """
+    Methods for Drag and Drop and Cut and Paste
+    """
+    def SelectedItems(self):
+        selection = self.blockItem.selection
+        if selection is None:
+            return []
+        return [selection]
+
+    def DeleteSelection(self):
+        try:
+            self.blockItem.DeleteSelection()
+        except AttributeError:
+            pass
+
+    def AddItems(self, itemList):
+        """ @@@ Need to complete this for Paste to work """
 
 
 class wxInPlaceEditor(wx.TextCtrl):
