@@ -23,7 +23,7 @@ class LaunchChandlerTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         if os.environ.get('CHANDLER_LAUNCH_TEST'):
 
             # Script to execute
-            scriptToExecute = "ReloadParcels, Quit"
+            scriptToExecute = "Quit"
     
             # Set up the environment for non-catching and a fresh repository
             chandlerArgs = ['Chandler.py', '--nocatch', '--create']
