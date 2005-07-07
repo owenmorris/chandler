@@ -164,6 +164,10 @@ class Photo(object):
                 self.__tags = [photo.tags.tag.text]
             except:
                 pass
+        except AttributeError, ae:
+            # handle the case where a photo has no tags
+            pass 
+        
 
 
     def __str__(self):

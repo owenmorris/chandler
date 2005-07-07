@@ -48,9 +48,10 @@ class Photo(ContentModel.ContentItem):
         self.dateUploaded = photo.dateuploaded
         self.dateCreated = photo.datecreated
         try:
-            self.tags = [Tag.getTag(self.itsView, tag) for tag in photo.tags]
-        except:
-            print "tags failed"
+            if photo.tags:
+                self.tags = [Tag.getTag(self.itsView, tag) for tag in photo.tags]
+        except Exception, e:
+            print "tags failed", e
     
 #copied from Location class
 class Tag(ContentModel.ContentItem):
@@ -129,8 +130,6 @@ class PhotoCollection(ContentModel.ContentItem):
        
     def getCollectionFromFlickr(self,repView):
         coll = ItemCollection.ItemCollection(view = repView)
-        print "self.username =",self.username
-        print "self.tag =", self.tag
         if self.username:
             flickrUsername = flickr.people_findByUsername(self.username)
             flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
@@ -140,7 +139,7 @@ class PhotoCollection(ContentModel.ContentItem):
             coll.displayName = self.tag.displayName
             
         self.sidebarCollection = coll
-        print "collection created"
+
         for i in flickrPhotos:
             photoItem = getPhotoByFlickrID(repView, i.id)
             if photoItem is None:
