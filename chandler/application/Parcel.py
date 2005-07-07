@@ -1681,6 +1681,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 # the initialValue list plus whatever attributes you have
                 # added in XML (which actually makes sense because by reloading
                 # you are modifying an existing item, not creating a new one).
+
+                """ @@@MOR Disabling since this is causing a strange problem
                 if not reloading and not seenAttributes.has_key(attributeName):
                     if hasattr(item, attributeName):
                         try:
@@ -1690,6 +1692,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             # which are important
                             pass
                     seenAttributes[attributeName] = 1
+                """
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
