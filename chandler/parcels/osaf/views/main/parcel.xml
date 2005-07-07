@@ -1364,37 +1364,44 @@
     <orientationEnum>Vertical</orientationEnum>
   </calrefactor:CalendarContainer>
 
-  <SplitterWindow itsName="MainCalendarCanvasSplitter">
+
+    <calrefactor:CalendarControl itsName="MainCalendarControl">
+      <blockName value="MainCalendarControl"/>
+      <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+      <stretchFactor value="0"/>
+      <!-- set contents to an empty collection somehow... -->
+    </calrefactor:CalendarControl>
+  
+    <StaticText itsName="WeekColumnHeader">
+      <blockName value="arel's newfangled week ColumnHeader"/>
+      <title value="arel's newfangled week ColumnHeader goes here"/>
+      <stretchFactor value="0"/>
+    </StaticText>
+  
+  
+    <SplitterWindow itsName="MainCalendarCanvasSplitter">
       <childrenBlocks itemref="doc:AllDayEvents"/>
       <childrenBlocks itemref="doc:TimedEvents"/>
-    <orientationEnum>Horizontal</orientationEnum>
-  </SplitterWindow>
-
-  <calrefactor:CalendarControl itsName="MainCalendarControl">
-    <blockName value="MainCalendarControl"/>
-    <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
-    <!-- set contents to an empty collection somehow... -->
-  </calrefactor:CalendarControl>
-
-  <StaticText itsName="WeekColumnHeader">
-    <blockName value="arel's newfangled week ColumnHeader"/>
-    <title value="arel's newfangled week ColumnHeader goes here"/>
-    <size>300,50</size> <!-- how do you make this smaller?? -->
-  </StaticText>
-
-  <calrefactor:AllDayEventsCanvas itsName="AllDayEvents">
-    <blockName value="all day events canvas"/>
-    <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
-    <contents itemref="doc:allItemCollection"/>
-
-  </calrefactor:AllDayEventsCanvas>
-
-  <calrefactor:TimedEventsCanvas itsName="TimedEvents">
-    <blockName value="timed events canvas"/>
-    <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
-    <contents itemref="doc:allItemCollection"/>
-    
-  </calrefactor:TimedEventsCanvas>
+      
+      <!-- as small as possible; AllDayEvents's SetMinSize() overrides. -->
+      <splitPercentage value="0.01"/>
+      <orientationEnum>Horizontal</orientationEnum>      
+      <stretchFactor value="1"/>
+    </SplitterWindow>
+  
+      <calrefactor:AllDayEventsCanvas itsName="AllDayEvents">
+        <blockName value="all day events canvas"/>
+        <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+        <stretchFactor value="0"/>
+        <contents itemref="doc:allItemCollection"/>
+      </calrefactor:AllDayEventsCanvas>
+  
+      <calrefactor:TimedEventsCanvas itsName="TimedEvents">
+        <blockName value="timed events canvas"/>
+        <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+        <stretchFactor value="1"/>
+        <contents itemref="doc:allItemCollection"/>
+      </calrefactor:TimedEventsCanvas>
 <!-- end experimental -->
 
   <TrunkParentBlock itsName="CalendarDetailTPB">

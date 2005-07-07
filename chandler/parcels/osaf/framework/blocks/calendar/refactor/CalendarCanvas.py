@@ -3,13 +3,13 @@
 # to do
 #
 
-""" TODO/regressions
- * subblock sizing is incorrect.  i'm not sure if the BoxContainer block is
-   capable of doing sizing correctly, because that requires setting different
-   arguments on wxBoxSizer.Add()'s for different subwidgets.  Of course,
-   maybe BoxContainer should be extended to have this capability.
- * errors on chandler exit
- * split off ColumnHeader out of CalendarControl
+""" TODO/regressions 
+
+* errors in ItemCollection.py: unsubscribe(). whenever
+exiting the calendar view. suspect has to do with 2 blocks contents' both
+pointing to allitemCollection?
+  
+* split off ColumnHeader out of CalendarControl (arel's new blocks/ColumnHeaderBlocks.py)
 """
 
 
@@ -1291,17 +1291,18 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if selectedBox:
             selectedBox.Draw(dc, styles, brushOffset, True)
 
+        # removing because we now have the splitter between the sections
         # Draw a line across the bottom of the header
-        dc.SetPen(styles.majorLinePen)
-        dc.DrawLine(0, self.size.height - 1,
-                    self.size.width, self.size.height - 1)
-        dc.DrawLine(0, self.size.height - 4,
-                    self.size.width, self.size.height - 4)
-        dc.SetPen(styles.minorLinePen)
-        dc.DrawLine(0, self.size.height - 2,
-                    self.size.width, self.size.height - 2)
-        dc.DrawLine(0, self.size.height - 3,
-                    self.size.width, self.size.height - 3)
+        #dc.SetPen(styles.majorLinePen)
+        #dc.DrawLine(0, self.size.height - 1,
+                    #self.size.width, self.size.height - 1)
+        #dc.DrawLine(0, self.size.height - 4,
+                    #self.size.width, self.size.height - 4)
+        #dc.SetPen(styles.minorLinePen)
+        #dc.DrawLine(0, self.size.height - 2,
+                    #self.size.width, self.size.height - 2)
+        #dc.DrawLine(0, self.size.height - 3,
+                    #self.size.width, self.size.height - 3)
 
     def RebuildCanvasItems(self):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
@@ -2016,7 +2017,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # turn this off for now, because our sizing needs to be exact
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
-        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", "+"]
+        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", ""]
         for header in headerLabels:
             self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
