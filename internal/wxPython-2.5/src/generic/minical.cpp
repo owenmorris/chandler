@@ -461,7 +461,7 @@ size_t wxMiniCalendar::GetWeek(const wxDateTime& date, bool useRelative) const
 #else
 #define HORZ_MARGIN    15
 #endif
-#define EXTRA_MONTH_HEIGHT    5
+#define EXTRA_MONTH_HEIGHT    4
 #define SEPARATOR_MARGIN      3
 wxSize wxMiniCalendar::DoGetBestSize() const
 {
@@ -683,7 +683,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
         }
     }
 
-    *y += m_heightRow;
+    *y += (m_heightRow - 1);
     wxDateTime::Tm tm = startDate.GetTm();
     wxDateTime date = wxDateTime(1, tm.mon, tm.year);
     date.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
