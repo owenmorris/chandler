@@ -25,7 +25,8 @@ class WeekdayEnum(schema.Enumeration):
     schema.kindInfo(
         displayName="Weekdays"
     )
-    values="monday","tuesday","wednesday","thursday","friday","saturday","sunday"
+    values="monday","tuesday","wednesday","thursday","friday", \
+           "saturday","sunday"
 
 class WeekdayAndPositionStruct(schema.Struct):
     """Weekday and an integer selecting the first, last, etc. day.
@@ -193,6 +194,14 @@ class RecurrenceRule(ContentModel.ContentItem):
                 # cast tuples to list, or will the repository do this for us?
                 setattr(self, key, list(getattr(rrule, '_' + key)))
 
+    def onValueChanged(self, name):
+        """If the rule changes, update any associated events."""
+        if name in self.listNames + self.normalNames + self.specialNames:
+            for ruletype in ('rruleFor', 'exruleFor'):
+                if self.hasLocalAttributeValue(ruletype):
+                    getattr(self, ruletype).onValueChanged('rrules')
+
+
 class RecurrenceRuleSet(ContentModel.ContentItem):
     rrules = schema.Sequence(
         RecurrenceRule,
@@ -249,4 +258,12 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
         for datetype in 'rdate', 'exdate':
             setattr(self, datetype + 's', getattr(rruleset, '_' + datetype, []))
 
-        
+    def onValueChanged(self, name):
+        """If the RuleSet changes, update the associated event."""
+        if name in ('rrules', 'exrules', 'rdates', 'exdates'):
+            if self.hasLocalAttributeValue('events'):
+                for event in self.events:
+                    event.getFirstInRule().cleanFuture()
+                    # assume we have only one conceptual event per rrule
+                    break
+                

@@ -73,9 +73,8 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.rep.check()
         for modOrMaster in [calmod, evtaskmod, event]:
             self.assertEqual(modOrMaster.getMaster(), event)
-        
 
-    def testRRuleSet(self):
+    def testSimpleRuleBehavoir(self):
         event = self._createEvent()
         event.startTime = self.start
         event.anyTime = False
@@ -85,18 +84,33 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(event.getNextOccurrence(), None)
         
         event.rruleset = self._createRuleSetItem('weekly')
+        #self.assertEqual(event.isCustomRule(), False)
         
         second = event.getNextOccurrence()
         secondStart = datetime(2005, 7, 11, 13)
         self.assertEqual(event.createDateUtilFromRule()[1], secondStart)
         self.assertEqual(second.startTime, secondStart)
         
-        #make sure getNextOccurrence returns the same item when called twice
+        # make sure getNextOccurrence returns the same item when called twice
         self.assertEqual(second, event.getNextOccurrence())
         
         third = event.getNextOccurrence(fromTime=secondStart)
-        thirdStart = datetime(2005, 7, 18, 13)        
+        thirdStart = datetime(2005, 7, 18, 13)
         self.assertEqual(third.startTime, thirdStart)
+        
+        second.cleanFuture()
+        self.assertEqual(len(event.occurrences), 2)
+        
+        newRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY, count = 2,
+                                       dtstart = self.start)
+        
+        # without currentlyModifying, what's the API for modifying future?
+        # In this case, changing the rule, it can only mean thisandfuture.
+        event.setRuleFromDateUtil(newRule)
+        
+        # setting the rule should delete occurrences
+        self.assertEqual(len(event.occurrences), 1)
+        
 
 #tests to write:
 """
@@ -105,12 +119,8 @@ Test modification logic
 
 Test modification model (max 2 levels deep...)
 
-# timezone - Timezone
+test cleanFuture for modifications
 
-# setRuleFromDateUtil(rule) -> create an appropriate RecurrenceRuleSet from a dateutil rrule or rruleset, set it to self.rruleset
-# deleteEvent() -> delete all modifications and occurrences for this event, delete self
-# removeOne() -> remove this item, exclude its recurrenceID from the parent rule
-# removeFuture() -> remove this item, delete future occurrences and modifications, modify master's rule to end before this occurrence
 # getOccurrencesBetween(start, end) -> check for virtual events that end after start and start before end, create any that don't already exist, return an iterable of events ordered by startTime
 # isCustomRule() -> return boolean depending on whether the rule must be represented as custom in the UI
 # getCustomDescription() -> return a string describing the recurrence rule, like "TuTh every second week for 5 weeks", or "complex" if no description is available for the rule
@@ -119,20 +129,28 @@ Test modification model (max 2 levels deep...)
 test getNextOccurrence logic for finding modification or occurrence, make sure 
     new occurrences get attributes copied, have the proper kind
 
-should we makes sure GeneratedOccurrences can't be committed as modifications?
+should we make sure GeneratedOccurrences can't be committed as modifications?
 should icalUID be checked for equality in modification and master?
 
 test recurrence behavior around DST (duration vs. endTime)
 
-test changing a ruleset -> changing linked events
-
 reminders - lots of work :)
-change endTime implementation
+
+tzical -> pyicu timezone
 
 Test createDateUtilFromRule for more complicated modifications
 
-# update spec: occurrences better explanation, getMaster override in GeneratedOccurrence
+# update spec: occurrences better explanation, getMaster override in GeneratedOccurrence, timezone stored entirely in startTime
+# update spec: when creating an occurrence, references whose inverse has cardinality single lost
+# update spec: changing a ruleset -> changes events automatically?
+# update spec: add cleanFuture()
 
-API and tests for proxying items # instead of currentlyModifying
+API and tests for proxying items # remove currentlyModifying from the spec
+
+# deleteEvent() -> delete all modifications and occurrences for this event, delete self
+# removeOne() -> remove this item, exclude its recurrenceID from the parent rule
+# removeFuture() -> remove this item, delete future occurrences and modifications, modify master's rule to end before this occurrence
+
+what behavior is appropriate when python del is called on an occurrence or modification?
 
 """

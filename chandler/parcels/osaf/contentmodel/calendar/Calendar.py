@@ -17,6 +17,8 @@ from osaf.contentmodel import Notes
 from osaf.contentmodel.contacts import Contacts
 from osaf.contentmodel.calendar import Recurrence
 
+from repository.schema.Types import TimeZone
+
 from datetime import datetime, time, timedelta
 
 class TimeTransparencyEnum(schema.Enumeration):
@@ -63,7 +65,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         schema.DateTime,
         displayName="Recurrence ID",
         defaultValue=None,
-        doc="Date time this occurrence was originally scheduled. startTime and"
+        doc="Date time this occurrence was originally scheduled. startTime and "
             "recurrenceID for everything but modifications"
     )
 
@@ -134,7 +136,9 @@ class CalendarEventMixin(ContentModel.ContentItem):
     modifies = schema.One(
         ModificationEnum,
         displayName="Modifies how",
-        defaultValue=None
+        defaultValue=None,
+        doc = "Describes whether a modification applies to future events, or "
+              "just one event"
     )
     
     modifications = schema.Sequence(
@@ -417,6 +421,15 @@ class CalendarEventMixin(ContentModel.ContentItem):
             set = self.rruleset.createDateUtilFromRule(dtstart)
             return self.rruleset.createDateUtilFromRule(dtstart)
 
+    def setRuleFromDateUtil(self, rule):
+        """Set self.rruleset from rule."""
+        if self.rruleset is None:
+            ruleItem=Recurrence.RecurrenceRuleSet(None, view=self.itsView)
+            ruleItem.setRuleFromDateUtil(rule)
+            self.rruleset = ruleItem
+        else:
+            self.rruleset.setRuleFromDateUtil(rule)
+
     def getNextOccurrence(self, fromTime=None):
         """Return the next occurrence for the recurring event self is part of.
         
@@ -441,8 +454,19 @@ class CalendarEventMixin(ContentModel.ContentItem):
                 ev.startTime = nextRecurrenceID
                 ev.rruleset = self.rruleset
                 ev.recurrenceID = ev.startTime
-                ev.occurrenceFor = self            
+                ev.occurrenceFor = self
                 return ev
+    
+    def cleanFuture(self):
+        """Delete future occurrences and modifications.
+        
+        Appropriate when a change to self should invalidate future events.
+        
+        """
+        for event in self.getMaster().occurrences:
+            if event.startTime > self.startTime:
+                event.delete()
+
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     """
