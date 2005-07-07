@@ -740,8 +740,12 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                         dc.SetTextBackground(highlightColour);
                         dc.SetBrush(wxBrush(highlightColour, wxSOLID));
                         dc.SetPen(wxPen(highlightColour, 1, wxSOLID));
-                        dc.DrawRectangle(wd * m_widthCol, *y, m_widthCol, m_heightRow);
-    
+                        int startX = (wd == 0) ? SEPARATOR_MARGIN + 1 : wd * m_widthCol;
+                        int endX = m_widthCol;
+                        if ( wd == ( DAYS_PER_WEEK - 1 ) )
+                            endX -= (SEPARATOR_MARGIN - 1);
+                        dc.DrawRectangle(startX, *y, endX, m_heightRow); 
+
                         changedColours = true;
                     }
                 }
@@ -800,7 +804,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
         // draw lines between each set of weeks
         if ( nWeek != WEEKS_TO_DISPLAY && nWeek != 1)
         {
-            dc.SetPen(wxPen(lineColour, 1, wxSOLID));
+            dc.SetPen(wxPen(lineColour, 2, wxSOLID));
             dc.DrawLine(SEPARATOR_MARGIN, *y - 1,  DAYS_PER_WEEK * m_widthCol - SEPARATOR_MARGIN, *y - 1);
         }
     }
