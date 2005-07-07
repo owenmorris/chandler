@@ -479,7 +479,7 @@ class TimedCanvasItem(CalendarCanvasItem):
             clipRect = wx.Rect(cx,cy,cwidth,cheight)
 
         gradientLeft, gradientRight, outlineColor, textColor = \
-            styles.blockItem.getEventColors(item, selected)
+            styles.calendarControl.getEventColors(item, selected)
         
         dc.SetTextForeground(textColor)
         
@@ -760,7 +760,6 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         #when on week mode, have to figure out which week to select
         #the following dayMode-switchable behavior could be subclassed out
         if hasattr(self, 'dayMode') and not self.dayMode:
-            print "week mode special case!"
             calendar = GregorianCalendar()
             calendar.setTime(date)
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
@@ -974,7 +973,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.editor.Hide()
         
     def GetCurrentDateRange(self):
-        return self.parent.blockItem.GetCurrentDateRange()
+        return self.blockItem.GetCurrentDateRange()
 
     def GetPlatformBrushOffset(self):
         """
@@ -1015,8 +1014,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             x = drawInfo.dividerPositions[dayNum]
             dc.DrawLine(x, 0,   x, self.size.height)
 
-        print "columns: ", drawInfo.columns
-        print "divpos's: ", drawInfo.dividerPositions
         # the rest are minor, 1 pixel wide
         dc.SetPen(styles.minorLinePen)
         for dayNum in range(1, drawInfo.columns):
@@ -1101,8 +1098,6 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
 
     def instantiateWidget(self):
-
-        
         # This is where all the styles come from
         if '__WXMAC__' in wx.PlatformInfo:
             
@@ -1181,17 +1176,15 @@ class AllDayEventsCanvas(CalendarBlock):
             self.rangeIncrement = timedelta(days=1)
         else:
             self.rangeIncrement = timedelta(days=7)
-        print "allday: rangeStart, selDate, increment: ", (self.rangeStart, self.selectedDate, self.rangeIncrement)
         self.widget.wxSynchronizeWidget()
 
     def onSelectedDateChangedEvent(self, event):
-        print "allday evt cvs  receives SDC"#, event
         self.setRange(event.arguments['start'])
-        print "allday: rangeStart, selDate, increment: ", (self.rangeStart, self.selectedDate, self.rangeIncrement)
         self.widget.wxSynchronizeWidget()
 
     def onSelectItemBroadcast(self, event):
         print "allday evt cvs  receives SIB"
+        self.selection = event.arguments['item'] #??? untested, this is the goal
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     def __init__(self, *arguments, **keywords):
@@ -1370,31 +1363,514 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
 
 
-class TimedEventsCanvas(Block.RectangularChild):
+class TimedEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
+    dayMode = schema.One(schema.Boolean)
 
     def instantiateWidget(self):
         w = wxTimedEventsCanvas(self.parentBlock.widget)
         return w
 
-    def onSelectedDateChangedEvent(self, event):
-        print "timed evt cvs  receives SDC"#, event
     def onSelectWeekEvent(self, event):
-        print "timed evt cvs  receives SW"#, event
-    def onSelectItemBroadcast(self, event):
-        print "allday evt cvs  receives SIB"#, event
+## attempted optimization
+##         newDayMode = not event.arguments['doSelectWeek']
+##         areSame = bool(self.dayMode) == bool(newDayMode)
+##         if areSame: return
+        self.dayMode = not event.arguments['doSelectWeek']
+        if self.dayMode:
+            self.rangeIncrement = timedelta(days=1)
+        else:
+            self.rangeIncrement = timedelta(days=7)
+        self.widget.wxSynchronizeWidget()
 
-class wxTimedEventsCanvas(wx.StaticText):
-    def __init__(self, parent, *args, **kwds):
-        super(wxTimedEventsCanvas, self).__init__(parent, -1, "the TimedEventsCanvas goes here")
+    def onSelectedDateChangedEvent(self, event):
+        self.setRange(event.arguments['start'])
+        self.widget.wxSynchronizeWidget()
+
+    def onSelectItemBroadcast(self, event):
+        print "timed evt cvs  receives SIB"
+        # TODO: copy from AllDay the final code there
+
+class wxTimedEventsCanvas(wxCalendarCanvas):
+    def __init__(self, parent, *arguments, **keywords):
+        super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
+
+        # @@@ rationalize drawing calculations...
+        self.hourHeight = 40
+        
+        self._scrollYRate = 10
+        
+        self._bgSelectionStartTime = None
+        self._bgSelectionEndTime = None
+        
+        # determines if we're dragging the start or the end of an event, usually
+        # the end
+        self._bgSelectionDragEnd = True
+
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
+
+    def wxSynchronizeWidget(self):
+        self._doDrawingCalculations()
+        self.RebuildCanvasItems()
+        self.Refresh()
+
+    def OnSize(self, event):
+        self._doDrawingCalculations()
+        self.RebuildCanvasItems()
+        self.Refresh()
+
+
     def OnInit(self):
-        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeft)
-        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRight)
-    def OnLeft(self, event):
-        print "timed evt cvs Left"
-    def OnRight(self, event):
-        print "timed evt cvs Right"
+        super (wxTimedEventsCanvas, self).OnInit()
+        
+        self.SetScrollRate(0, self._scrollYRate)
+        self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
+        
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
+
+    def ScaledScroll(self, dx, dy):
+        (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
+        scrollX += dx
+        scrollY += dy
+        
+        # rounding ensures we scroll at least one unit
+        if dy < 0:
+            rounding = -self._scrollYRate
+        else:
+            rounding = self._scrollYRate
+
+        scaledY = (scrollY // self._scrollYRate) + rounding
+        self.Scroll(scrollX, scaledY)
+        
+    def _doDrawingCalculations(self):
+
+        # @@@ magic numbers
+
+        # FIXME: on wxPython-Mac v2.6.0, this returns negative and otherwise bogus dimension values: e.g., [-15, 960]
+        #self.size = self.GetVirtualSize()
+        self.size = self.GetSize()
+        self.size.width -= wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        self.size.height = self.hourHeight * 24
+        self.SetVirtualSize(self.size)
+
+        self.dayHeight = self.hourHeight * 24
+
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        self.xOffset = drawInfo.xOffset
+
+        if self.blockItem.dayMode:
+            self.dayWidth = drawInfo.middleWidth
+        else:
+            self.dayWidth = drawInfo.dayWidth
     
+    @staticmethod
+    def GetLocaleHourStrings(hourrange):
+        """
+        use PyICU to format the hour, because some locales
+        use a 24 hour clock
+        """
+        timeFormatter = DateFormat.createTimeInstance()
+        hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
+        dummyDate = date.today()
+        
+        for hour in hourrange:
+            hourdate = datetime.combine(dummyDate, time(hour))
+            timeString = timeFormatter.format(hourdate, hourFP)
+            (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
+            hourString = str(timeString)[start:end]
+            yield hour, hourString
+
+    def DrawBackground(self, dc):
+        styles = self.blockItem.calendarContainer
+        self._doDrawingCalculations()
+
+        # Use the transparent pen for painting the background
+        dc.SetPen(wx.TRANSPARENT_PEN)
+
+        # Paint the entire background
+        dc.SetBrush(wx.WHITE_BRUSH)
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
+
+        # Set text properties for legend
+        dc.SetTextForeground(styles.legendColor)
+        dc.SetFont(styles.legendFont)
+
+        # Draw the lines separating hours
+        halfHourHeight = self.hourHeight/2
+
+        # we'll need these for hour formatting
+        for hour,hourString in self.GetLocaleHourStrings(range(24)):
+
+            if hour > 0:
+                # Draw the hour legend
+                wText, hText = dc.GetTextExtent(hourString)
+                dc.DrawText(hourString,
+                            self.xOffset - wText - 5,
+                            hour * self.hourHeight - (hText/2))
+            
+            # Draw the line between hours
+            dc.SetPen(styles.majorLinePen)
+            dc.DrawLine(self.xOffset,
+                        hour * self.hourHeight,
+                        self.size.width,
+                        hour * self.hourHeight)
+
+            # Draw the line between half hours
+            dc.SetPen(styles.minorLinePen)
+            dc.DrawLine(self.xOffset,
+                        hour * self.hourHeight + halfHourHeight,
+                        self.size.width,
+                        hour * self.hourHeight + halfHourHeight)
+
+        self.DrawDayLines(dc)
+        
+        legendBorderX = self.xOffset - self.legendBorderWidth/2
+        pen = wx.Pen(styles.legendColor, self.legendBorderWidth)
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        
+        # hardcode this for now - eventually this should be a preference
+        workdayHourStart = 9 # 9am
+        workdayHourEnd = 17  # 5pm
+        
+        dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
+                    legendBorderX, workdayHourEnd * self.hourHeight + 1)
+
+        """
+        # draw lines between columns
+        dc.SetPen(styles.minorLinePen)
+        for day in xrange(1, self.parent.columns):
+            dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
+                        self.xOffset + (self.dayWidth * day), self.size.height)
+        """
+
+        # draw selection stuff
+        if (self._bgSelectionStartTime and self._bgSelectionEndTime):
+            dc.SetPen(styles.majorLinePen)
+            dc.SetBrush(styles.selectionBrush)
+            
+            rects = \
+                TimedCanvasItem.GenerateBoundsRects(self,
+                                                       self._bgSelectionStartTime,
+                                                       self._bgSelectionEndTime)
+            for rect in rects:
+                dc.DrawRectangleRect(rect)
+
+    @staticmethod
+    def sortByStartTime(item1, item2):
+        """
+        Comparison function for sorting, mostly by start time
+        """
+        dateResult = cmp(item1.startTime, item2.startTime)
+        
+        # when two items start at the same time, we actually want to show the
+        # SHORTER event last, so that painting draws it on top
+        if dateResult == 0:
+            dateResult = cmp(item2.endTime, item1.endTime)
+        return dateResult
+
+    def RebuildCanvasItems(self):
+        
+        self.canvasItemList = []
+
+        (startDay, endDay) = self.GetCurrentDateRange()
+        
+        # we sort the items so that when drawn, the later events are drawn last
+        # so that we get proper stacking
+        visibleItems = list(self.blockItem.getItemsInRange(startDay, endDay))
+        visibleItems.sort(self.sortByStartTime)
+                
+        
+        # First generate a sorted list of TimedCanvasItems
+        for item in visibleItems:
+                                               
+            canvasItem = TimedCanvasItem(item, self)
+            self.canvasItemList.append(canvasItem)
+
+            if self._currentDragBox and self._currentDragBox.GetItem() == item:
+                self._currentDragBox = canvasItem                
+
+        # now generate conflict info
+        self.CheckConflicts()
+        
+        for canvasItem in self.canvasItemList:
+            # drawing rects should be updated to reflect conflicts
+            canvasItem.UpdateDrawingRects()
+            
+        # canvasItemList has to be sorted by depth
+        # should be relatively quick because the canvasItemList is already
+        # sorted by startTime. If no conflicts, this is an O(n) operation
+        # (note that as of Python 2.4, sorts are stable, so this remains safe)
+        self.canvasItemList.sort(key=TimedCanvasItem.GetIndentLevel)
+        
+    def DrawCells(self, dc):
+        styles = self.blockItem.calendarContainer
+        
+        # Set up fonts and brushes for drawing the events
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetBrush(wx.WHITE_BRUSH)
+
+        selectedBox = None        
+        # finally, draw the items
+        boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
+        brushOffset = self.GetPlatformBrushOffset()
+        for canvasItem in self.canvasItemList:
+
+            item = canvasItem.GetItem()
+            
+            # save the selected box to be drawn last
+            if self.blockItem.selection is item:
+                selectedBox = canvasItem
+            else:
+                canvasItem.Draw(dc, boundingRect, styles,  brushOffset, False)
+            
+        # now draw the current item on top of everything else
+        if selectedBox:
+            selectedBox.Draw(dc, boundingRect, styles, brushOffset, True)
+
+    def CheckConflicts(self):
+        for itemIndex, canvasItem in enumerate(self.canvasItemList):
+            # since these are sorted, we only have to check the items 
+            # that come after the current one
+            for innerItem in self.canvasItemList[itemIndex+1:]:
+                # we know we're done when we stop hitting conflicts
+                # 
+                # have a guarantee that innerItem.startTime >= item.endTime
+                # Since item.endTime < item.startTime, we know we're
+                # done
+                if innerItem.GetItem().startTime >= canvasItem.GetItem().endTime: break
+                
+                # item and innerItem MUST conflict now
+                canvasItem.AddConflict(innerItem)
+            
+            # we've now found all conflicts for item, do we need to calculate
+            # depth or anything?
+            canvasItem.CalculateConflictDepth()
+
+    def OnKeyPressed(self, event):
+        # create an event here - unfortunately the panel can't get focus, so it
+        # can't recieve keystrokes yet...
+        pass
+            
+    # handle mouse related actions: move, resize, create, select
+    
+    def OnSelectItem(self, item):
+        if item:
+            # clear background selection when an existing item is selected
+            self._bgSelectionStartTime = self._bgSelectionEndTime = None
+        
+        super(wxTimedEventsCanvas, self).OnSelectItem(item)
+        
+    def OnSelectNone(self, unscrolledPosition):
+        selectedTime = self.getDateTimeFromPosition(unscrolledPosition)
+        
+        # only select something new if there's no existing selection, or if 
+        # we're outside of an existing selection
+        if (not self._bgSelectionStartTime or
+            selectedTime < self._bgSelectionStartTime or
+            selectedTime > self._bgSelectionEndTime):
+            self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
+            self._bgSelectionDragEnd = True
+            self._bgSelectionEndTime = self._bgSelectionStartTime + \
+                timedelta(hours=1)
+
+        # set focus on the calendar so that we can receive key events
+        # (as of this writing, wxPanel can't receive focus, so this is a no-op)
+        self.SetFocus()
+        super(wxTimedEventsCanvas, self).OnSelectNone(unscrolledPosition)
+
+    def OnEditItem(self, box):
+        styles = self.blockItem.calendarContainer
+        position = self.CalcScrolledPosition(box.GetEditorPosition())
+        size = box.GetMaxEditorSize()
+
+        textPos = wx.Point(position.x + 8, position.y + 15)
+        textSize = wx.Size(size.width - 13, size.height - 20)
+
+        self.editor.SetItem(box.GetItem(), textPos, textSize, styles.eventLabelFont.GetPointSize()) 
+
+    def OnCreateItem(self, unscrolledPosition):
+        # @@@ this code might want to live somewhere else, refactored
+        view = self.blockItem.itsView
+        event = Calendar.CalendarEvent(view=view)
+        
+        # if a region is selected, then use that for the event span
+        if (self._bgSelectionStartTime):
+            newTime = self._bgSelectionStartTime
+            duration = self._bgSelectionEndTime - self._bgSelectionStartTime
+        else:
+            newTime = self.getDateTimeFromPosition(unscrolledPosition)
+            duration = timedelta(hours=1)
+            
+        event.InitOutgoingAttributes()
+        event.ChangeStart(newTime)
+        event.allDay = False
+        event.anyTime = False
+        event.duration = duration
+
+        # ugh, this is a hack to work around the whole ItemCollection stuff
+        # see bug 2749 for some background
+        self.blockItem.contents.source.first().add(event)
+        
+        self.OnSelectItem(event)
+
+        # @@@ Bug#1854 currently this is too slow,
+        # and the event causes flicker
+        #view.commit()
+        canvasItem = TimedCanvasItem(event, self)
+        
+        # only problem here is that we haven't checked for conflicts
+        canvasItem.UpdateDrawingRects()
+        canvasItem.SetResizeMode(canvasItem.RESIZE_MODE_END)
+        return canvasItem
+        
+    def OnBeginResizeItem(self):
+        self._lastUnscrolledPosition = self._dragStartUnscrolled
+        self.StartDragTimer()
+        pass
+        
+    def OnEndResizeItem(self):
+        self.StopDragTimer()
+        self._originalDragBox.ResetResizeMode()
+        pass
+        
+    def OnResizingItem(self, unscrolledPosition):
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        item = self._currentDragBox.GetItem()
+        resizeMode = self.GetResizeMode()
+        delta = timedelta(minutes=15)
+        
+        # make sure we're changing by at least delta 
+        if (resizeMode == TimedCanvasItem.RESIZE_MODE_END and 
+            newTime > (item.startTime + delta)):
+            item.endTime = newTime
+        elif (resizeMode == TimedCanvasItem.RESIZE_MODE_START and 
+              newTime < (item.endTime - delta)):
+            item.startTime = newTime
+        self.Refresh()
+    
+    def OnDragTimer(self):
+        """
+        This timer goes off while we're dragging/resizing
+        """
+        scrolledPosition = self.CalcScrolledPosition(self._dragCurrentUnscrolled)
+        self.ScrollIntoView(scrolledPosition)
+    
+    def StartDragTimer(self):
+        self.scrollTimer = ClosureTimer(self.OnDragTimer)
+        self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
+    
+    def StopDragTimer(self):
+        self.scrollTimer.Stop()
+        self.scrollTimer = None
+        
+    def OnBeginDragItem(self):
+        self.StartDragTimer()
+        pass
+        
+    def OnEndDragItem(self):
+        self.StopDragTimer()
+        pass
+        
+    def OnDraggingNone(self, unscrolledPosition):
+        dragDateTime = self.getDateTimeFromPosition(unscrolledPosition)
+        if self._bgSelectionDragEnd:
+            self._bgSelectionEndTime = dragDateTime
+        else:
+            self._bgSelectionStartTime = dragDateTime
+            
+        if (self._bgSelectionEndTime < self._bgSelectionStartTime):
+            # swap values, drag the other end
+            self._bgSelectionDragEnd = not self._bgSelectionDragEnd
+            (self._bgSelectionStartTime, self._bgSelectionEndTime) = \
+                (self._bgSelectionEndTime, self._bgSelectionStartTime)
+        self.Refresh()
+            
+        
+    def OnDraggingItem(self, unscrolledPosition):
+        # at the start of the drag, the mouse was somewhere inside the
+        # dragbox, but not necessarily exactly at x,y
+        #
+        # so account for the original offset within the ORIGINAL dragbox so the 
+        # mouse cursor stays in the same place relative to the original box
+        
+        # We need to figure out where the original drag started,
+        # so the mouse stays in the same position relative to
+        # the origin of the item
+        (boxX,boxY) = self._originalDragBox.GetDragOrigin()
+        dy = self._dragStartUnscrolled.y - boxY
+        
+        # dx is tricky: we want the user to be able to drag left/right within
+        # the confines of the current day, but if they cross a day threshold,
+        # then we want to shift the whole event over one day
+        # to do this, we need to round dx to the nearest dayWidth
+        dx = self._dragStartUnscrolled.x - boxX
+        dx = int(dx/self.dayWidth) * self.dayWidth
+        position = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
+        
+        newTime = self.getDateTimeFromPosition(position)
+        item = self._currentDragBox.GetItem()
+        if ((newTime.toordinal() != item.startTime.toordinal()) or
+            (newTime.hour != item.startTime.hour) or
+            (newTime.minute != item.startTime.minute)):
+            item.ChangeStart(newTime)
+            self.RebuildCanvasItems()
+            
+            # this extra paint is actually unnecessary because ContainerBlock is
+            # giving us too many paints on a drag anyway. Why? hmm.
+            #self.Refresh()
+
+    def GetResizeMode(self):
+        """
+        Helper method for drags
+        """
+        return self._originalDragBox.getResizeMode(self._dragStartUnscrolled)
+
+    def getDateTimeFromPosition(self, position):
+        #that is, the drawing info not already within this object
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+
+        # bound the position by the available space that the user 
+        # can see/scroll to
+        yPosition = max(position.y, 0)
+        xPosition = max(position.x, self.xOffset)
+        
+        yPosition = min(yPosition, self.hourHeight * 24 - 1)
+        xPosition = min(xPosition, self.xOffset + self.dayWidth * drawInfo.columns - 1)
+        
+        (startDay, endDay) = self.GetCurrentDateRange()
+
+        # @@@ fixes Bug#1831, but doesn't really address the root cause
+        # (the window is drawn with (0,0) virtual size on mac)
+        if self.dayWidth > 0:
+            deltaDays = (xPosition - self.xOffset) / self.dayWidth
+        else:
+            deltaDays = 0
+        
+        deltaHours = yPosition / self.hourHeight
+        deltaMinutes = ((yPosition % self.hourHeight) * 60) / self.hourHeight
+        deltaMinutes = int(deltaMinutes/15) * 15
+        newTime = startDay + timedelta(days=deltaDays,
+                                       hours=deltaHours,
+                                       minutes=deltaMinutes)
+        return newTime
+
+    def getPositionFromDateTime(self, datetime):
+        (startDay, endDay) = self.GetCurrentDateRange()
+        
+        if datetime < startDay or \
+           datetime > endDay:
+            raise ValueError, "Must be visible on the calendar"
+            
+        delta = datetime - startDay
+        x = (self.dayWidth * delta.days) + self.xOffset
+        y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
+        return wx.Point(x, y)
+
     
 class CalendarControl(CalendarBlock):
 
@@ -1420,13 +1896,11 @@ class CalendarControl(CalendarBlock):
         return w
 
     def onSelectedDateChangedEvent(self, event):
-        print "cal ctrl receives SDC:"#, event
         super(CalendarControl, self).onSelectedDateChangedEvent(event)
         
     def onSelectWeekEvent(self, event):
         """i believe, as of now only calctrl sends SelectWeek events anyways.. but just in case...
         this code probably wont work from external SW events right now."""
-        print "cal ctrl receives SW"
         self.dayMode = not event.arguments['doSelectWeek']
         self.widget.wxSynchronizeWidget()
 
@@ -1476,8 +1950,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.currentSelectedDate = None
         self.currentStartDate = None
 
-
         self.SetBackgroundColour(self.blockItem.parentBlock.bgColor)
+        self.SetMaxSize((-1, 80)) 
 
         # Set up sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1549,10 +2023,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def OnSelectColor(self, event):
         c = event.GetValue().Get()
 
-        # REFACTOR.  a new CPIA event?
+        # REFACTOR.  a new CPIA event?  each canvas tracks its own color currently
 #        self.blockItem.setCalendarColor(c)
         
-        # just cause a repaint - hopefully this cascades to child windows? REFACTOR: no more child windows!
+        # REFACTOR: need to tell canvases to Refresh()
         self.Refresh()
 
     def UpdateHeader(self):
@@ -1565,9 +2039,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.weekColumnHeader.SetSelectedItem(0)
 
     def ResizeHeader(self):
-        # width = 50 #temp hack for refactoring
-        # for i in range(8):
-
         drawInfo = self
         for (i,width) in enumerate(drawInfo.columnWidths):
             self.weekColumnHeader.SetUIExtent(i, (0,width))

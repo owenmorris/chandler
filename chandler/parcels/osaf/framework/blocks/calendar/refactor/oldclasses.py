@@ -351,3 +351,19 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     dividerPositions = property(_getDividerPositions)
 
+
+class wxTimedEventsCanvas(wxCalendarCanvas):
+    """This is the big area with time-of-day markers and specific-day events"""
+
+    def __init__(self, *args, **kwargs):
+        super(wxTimedEventsCanvas,self).__init__(*args, **kwargs)
+        
+        
+        
+
+
+        
+
+    
+
+        

@@ -683,6 +683,7 @@ _wxFlagMappings = {
 }
 
 class wxRectangularChild (ShownSynchronizer, wx.Panel):
+    @classmethod
     def CalculateWXBorder(self, block):
         border = 0
         spacerRequired = False
@@ -702,8 +703,8 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
         assert not spacerRequired
         
         return int (border)
-    CalculateWXBorder = classmethod(CalculateWXBorder)
 
+    @classmethod
     def CalculateWXFlag (theClass, block):
         # Map from the alignmentEnum string to wx constant(s)
         flag = _wxFlagMappings[block.alignmentEnum]
@@ -720,7 +721,6 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
             flag |= wx.RIGHT
 
         return flag
-    CalculateWXFlag = classmethod(CalculateWXFlag)    
     
     """
     Can't do any kind of edit operation by default.
