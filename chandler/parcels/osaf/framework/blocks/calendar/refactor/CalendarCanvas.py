@@ -2,14 +2,18 @@
 # enable by toggling comments in main/parcel.xml (SummaryCalendarViewRefactor)
 # to do
 #
-#
-# 1) figure out where to put drawing calculations
-# 2) correct & dynamic spacing for CalendarControl
-# 3) port over AllDayEventsCanvas to be a block
-#   3.5 ?listen & send  SelectItemBroadcast's
-# 4) port over TimedEventsCanvas to be a block
-# 5) split off ColumnHeader out of CalendarControl
-#
+
+""" TODO/regressions
+ * color chooser doesnt do anything
+ * no drag and drop
+ * subblock sizing is incorrect.  i'm not sure if the BoxContainer block is
+   capable of doing sizing correctly, because that requires setting different
+   arguments on wxBoxSizer.Add()'s for different subwidgets.  Of course,
+   maybe BoxContainer should be extended to have this capability.
+ * errors on chandler exit
+ * split off ColumnHeader out of CalendarControl
+"""
+
 
 """ Canvas for calendaring blocks
 """
@@ -44,6 +48,8 @@ from colorsys import *
 import copy
 
 dateFormatSymbols = DateFormatSymbols()
+
+TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
 """Widget overview
 
@@ -181,23 +187,33 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     - conflict management
     """
     
+    timeHeight = 0
+    
     def __init__(self, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(*args, **keywords)
         self._parentConflicts = []
         self._childConflicts = []
-        # the rating of conflicts - i.e. how far to indent this
+        # the rating of conflicts - i.e. how far to indent this.  Just
+        # a simple zero-based ordering - not a pixel count!
         self._conflictDepth = 0
-                
-        # the total depth of all conflicts - i.e. the maximum simultaneous 
-        # conflicts with this item, including this one
-        self._totalConflictDepth = 1
-        
+                        
     def GetEditorPosition(self):
         """
         This returns a location to show the editor. By default it is the same
         as the default bounding box
         """
-        return self._bounds.GetPosition()
+        position = self.GetBoundsRects()[0].GetPosition()	
+                  
+        # now offset to account for the time	
+        position += (self.textMargin + 3, self.timeHeight + self.textMargin)	
+        return position	
+                  
+    def GetMaxEditorSize(self):	
+        size = self.GetBoundsRects()[0].GetSize()	
+       
+        # now offset to account for the time	
+        size -= (13, self.timeHeight + self.textMargin*2)	
+        return size
         
     def GetDragOrigin(self):
         """
@@ -207,9 +223,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         """
         return self._bounds.GetPosition()
 
-    def GetMaxEditorSize(self):
-        return self._bounds.GetSize()
-
+    
     def GetStatusPen(self, color):
         # probably should use styles to determine a good pen color
         item = self.GetItem()
@@ -220,14 +234,26 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             pen = wx.Pen(color, 1)
         elif (item.transparency == "tentative"):
             if '__WXMAC__' in wx.PlatformInfo:
-                # @@@ the dash array may need to be a global, due to wx persistance limitations
                 pen = wx.Pen(color, 4, wx.USER_DASH)
-                pen.SetDashes([255, 255, 0, 0, 255, 255, 0, 0])
+                pen.SetDashes(TRANSPARENCY_DASHES)
             else:
                 pen = wx.Pen(color, 4, wx.DOT)
 
         return pen
-        
+
+    def GetAnyTimeOrAllDay(self):	
+        item = self.GetItem()	
+        try:	
+            anyTime = item.anyTime	
+        except AttributeError:	
+            anyTime = False	
+        try:	
+            allDay = item.allDay	
+        except AttributeError:	
+            allDay = False	
+       
+        return anyTime or allDay
+             
     # Drawing utility -- scaffolding, we'll try using editor/renderers
     @staticmethod
     def DrawWrappedText(dc, text, rect):
@@ -285,7 +311,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.DrawText(smallWord, x, y)
                 return
                 
-    def AddConflict(self, child):
+    def AddConflict(self, child):	
+        """	
+        Register a conflict with another event - this should only be done	
+        to add conflicts with 'child' events, because the child is notified	
+        about the parent conflicts	
+        """
         # we might want to keep track of the inverse conflict as well,
         # for conflict bars
         child._parentConflicts.append(self)
@@ -299,6 +330,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
          1,2,3: choose 0
          0,1,2: choose 3        
         """
+        if not seq: return 0
+        
         for index, value in enumerate(seq):
             if index != value:
                 return index
@@ -307,9 +340,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return index+1
         
     def CalculateConflictDepth(self):
-        if not self._parentConflicts:
-            return 0
-        
+        """
+        Calculate the 'depth', or indentation level, of the current item	
+        This is done with the assumption that all parent conflicts have	
+        already had their conflict depths calculated.	
+        """
         # We'll find out the depth of all our parents, and then
         # see if there's an empty gap we can fill
         # this relies on parentDepths being sorted, which 
@@ -320,25 +355,158 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return self._conflictDepth
         
     def GetIndentLevel(self):
-        # this isn't right. but its a start
-        # it should be some wierd combination of 
-        # maximum indent level of all children + 1
+        """
+        The calculated conflictdepth is the indentation level
+        """
         return self._conflictDepth
         
-    def GetMaxDepth(self):
+    def GetMaxDepth(self):	
+        """	
+        This determines how 'deep' this item is: the maximum	
+        Indent Level of ALL items that CONFLICT with this one.	
+        e.g. 3 items might conflict, and they all might be indented by	
+        one due to an earlier conflict, so the maximum 'depth' is 4.	
+        """
         maxparents = maxchildren = 0
         if self._childConflicts:
             maxchildren = max([child.GetIndentLevel() for child in self._childConflicts])
         if self._parentConflicts:
             maxparents = max([parent.GetIndentLevel() for parent in self._parentConflicts])
         return max(self.GetIndentLevel(), maxchildren, maxparents)
+
         
+    def Draw(self, dc, styles, brushOffset, selected):	
+        item = self._item	
+       
+        time = item.startTime	
+        isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
+        # Draw one event - an event consists of one or more bounds	
+       
+        clipRect = None	
+        (cx,cy,cwidth,cheight) = dc.GetClippingBox()	
+        if not cwidth == cheight == 0:	
+            clipRect = wx.Rect(cx,cy,cwidth,cheight)	
+       
+        gradientLeft, gradientRight, outlineColor, textColor = \
+            styles.calendarControl.getEventColors(item, selected)
+       
+        dc.SetTextForeground(textColor)
+       
+        for rectIndex, itemRect in enumerate(self.GetBoundsRects()):
+       
+            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset,
+                                                    itemRect.width,
+                                                    gradientLeft, gradientRight)	
+            dc.SetBrush(brush)	
+            dc.SetPen(wx.Pen(outlineColor))	
+       
+            # properly round the corners - first and last	
+            # boundsRect gets some rounding, and they	
+            # may actually be the same boundsRect	
+            hasTopRightRounded = hasBottomRightRounded = False	
+            drawEventText = False	
+            if rectIndex == 0:	
+                hasTopRightRounded = True	
+                drawEventText = True	
+       
+            if rectIndex == len(self.GetBoundsRects())-1:	
+                hasBottomRightRounded = True	
+       
+            self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)	
+       
+            pen = self.GetStatusPen(outlineColor)	
+            pen.SetCap(wx.CAP_BUTT)	
+            dc.SetPen(pen)	
+       
+            # this refers to the left-hand top/bottom corners - for now	
+            # with D-shaped events, they are always square, but eventually	
+            # certain types of events will have rounded corners and we'll	
+            # have to accomodate them	
+            cornerRadius = 0	
+            dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),	
+                        itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))	
+            dc.SetPen(wx.BLACK_PEN)	
+       
+            # Shift text	
+            x = itemRect.x + self.textMargin + 3	
+            y = itemRect.y + self.textMargin	
+            width = itemRect.width - (self.textMargin + 10)	
+            height = 15	
+            timeRect = wx.Rect(x, y, width, height)	
+       
+            # only draw date/time on first item	
+            if drawEventText:	
+                if not isAnyTimeOrAllDay:	
+                    timeString = "%d:%s" %((time.hour % 12) or 12,	
+                                           time.strftime("%M %p"))	
+                    te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
+                    timeHeight = te[1]	
+       
+                    # draw the time if there is room	
+                    if (timeHeight < itemRect.height/2):	
+                        dc.SetFont(styles.eventTimeFont)	
+                        self.timeHeight = \
+                            self.DrawWrappedText(dc, timeString, timeRect)	
+                        y += self.timeHeight	
+                    else:	
+                        self.timeHeight = 0	
+       
+                # now draw the text of the event	
+                textRect = wx.Rect(x, y,	
+                                   width,	
+                                   itemRect.height - (y - itemRect.y))	
+       
+                dc.SetFont(styles.eventLabelFont)	
+                self.DrawWrappedText(dc, item.displayName, textRect)	
+       
+        dc.DestroyClippingRegion()	
+        if clipRect:	
+            dc.SetClippingRect(clipRect)	
+       
+    def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):	
+        """	
+        Make a D-shaped rectangle, optionally specifying if the top and bottom	
+        right side of the rectangle should have rounded corners. Uses	
+        clip rect tricks to make sure it is drawn correctly	
+       
+        Side effect: Destroys the clipping region.	
+        """	
+       
+        radius = 8	
+        diameter = radius * 2	
+       
+        dc.DestroyClippingRegion()	
+        dc.SetClippingRect(rect)	
+       
+        roundRect = wx.Rect(rect.x, rect.y, rect.width, rect.height)	
+       
+        # first widen the whole thing left, this makes sure the	
+        # left rounded corners aren't drawn	
+        roundRect.x -= radius	
+        roundRect.width += radius	
+       
+        # now optionally push the other rounded corners off the top or bottom	
+        if not hasBottomRightRounded:	
+            roundRect.height += radius	
+       
+        if not hasTopRightRounded:	
+            roundRect.y -= radius	
+            roundRect.height += radius	
+       
+        # finally draw the clipped rounded rect	
+        dc.DrawRoundedRectangleRect(roundRect, radius)	
+       
+        # draw the lefthand side border, to stay consistent all	
+        # the way around the rectangle	
+        dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)    
 
 class TimedCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 3
+    
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2
+    
     def __init__(self, item, calendarCanvas, *arguments, **keywords):
         super(TimedCanvasItem, self).__init__(None, item)
         
@@ -349,8 +517,18 @@ class TimedCanvasItem(CalendarCanvasItem):
 
     def UpdateDrawingRects(self):
         item = self.GetItem()
-        indent = self.GetIndentLevel() * 5
-        width = self.GetMaxDepth() * 5
+       
+        dayWidth = self._calendarCanvas.dayWidth
+        if self._calendarCanvas.blockItem.dayMode:
+            # in day mode, canvasitems are drawn side-by-side	
+            maxDepth = self.GetMaxDepth()	
+            width = dayWidth / (maxDepth + 1)	
+            indent = width * self.GetIndentLevel()	
+        else:	
+            # in week mode, stagger the canvasitems by 5 pixels            
+            indent = self.GetIndentLevel() * 5
+            width = dayWidth - self.GetMaxDepth() * 5
+
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           item.startTime,
                                                           item.endTime, indent, width))
@@ -363,7 +541,9 @@ class TimedCanvasItem(CalendarCanvasItem):
         r = self._boundsRects[0]
         self._resizeTopBounds = wx.Rect(r.x, r.y,
                                         r.width, self.resizeBufferSize)
-        
+
+    def GetBoundsRects(self):
+        return self._boundsRects
 
     def isHitResize(self, point):
         """ Hit testing of a resize region.
@@ -441,7 +621,7 @@ class TimedCanvasItem(CalendarCanvasItem):
             try:
                 rect = TimedCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
                 rect.x += indent
-                rect.width -= width
+                rect.width = width
                 yield rect
             except ValueError:
                 pass
@@ -463,164 +643,14 @@ class TimedCanvasItem(CalendarCanvasItem):
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
-    def Draw(self, dc, boundingRect, styles, brushOffset, selected):
-        item = self._item
-
-        time = item.startTime
-
-        # Draw one event - an event consists of one or more bounds
-        lastRect = self._boundsRects[-1]
-            
-        clipRect = None   
-        (cx,cy,cwidth,cheight) = dc.GetClippingBox()
-        if not cwidth == cheight == 0:
-            clipRect = wx.Rect(cx,cy,cwidth,cheight)
-
-        gradientLeft, gradientRight, outlineColor, textColor = \
-            styles.calendarControl.getEventColors(item, selected)
-        
-        dc.SetTextForeground(textColor)
-        
-        for rectIndex, itemRect in enumerate(self._boundsRects):        
-            
-            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset, 
-                                                    itemRect.width, 
-                                                    gradientLeft, gradientRight)
-            dc.SetBrush(brush)
-            dc.SetPen(wx.Pen(outlineColor))
-
-            # properly round the corners - first and last
-            # boundsRect gets some rounding, and they
-            # may actually be the same boundsRect
-            hasTopRightRounded = hasBottomRightRounded = False
-            drawTime = False
-            if rectIndex == 0:
-                hasTopRightRounded = True
-                drawTime = True
-            if rectIndex == len(self._boundsRects)-1:
-                hasBottomRightRounded = True
-
-            self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
-
-            pen = self.GetStatusPen(outlineColor)
-            pen.SetCap(wx.CAP_BUTT)
-            dc.SetPen(pen)
-            
-            # this refers to the left-hand top/bottom corners - for now
-            # with D-shaped events, they are always square, but eventually
-            # certain types of events will have rounded corners and we'll
-            # have to accomodate them
-            cornerRadius = 0
-            dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),
-                        itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))
-            dc.SetPen(wx.BLACK_PEN)
-
-            # Shift text
-            x = itemRect.x + self.textMargin + 3
-            y = itemRect.y + self.textMargin
-            width = itemRect.width - (self.textMargin + 10)
-            height = 15
-            timeRect = wx.Rect(x, y, width, height)
-            
-            # only draw date/time on first item
-            if drawTime:
-                timeString = "%d:%s" %((time.hour % 12) or 12,
-                                       time.strftime("%M %p"))
-                te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)
-                timeHeight = te[1]
-                
-                # draw the time if there is room
-                if (timeHeight < itemRect.height/2):
-                    dc.SetFont(styles.eventTimeFont)
-                    textHeight = self.DrawWrappedText(dc, timeString, timeRect)
-                    y += textHeight
-                
-                textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
-                
-                dc.SetFont(styles.eventLabelFont)
-                self.DrawWrappedText(dc, item.displayName, textRect)
-        
-        dc.DestroyClippingRegion()
-        if clipRect:
-            dc.SetClippingRect(clipRect)
-
-    def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):
-        """
-        Make a D-shaped rectangle, optionally specifying if the top and bottom
-        right side of the rectangle should have rounded corners. Uses
-        clip rect tricks to make sure it is drawn correctly
-        
-        Side effect: Destroys the clipping region.
-        """
-
-        radius = 8
-        diameter = radius * 2
-
-        dc.DestroyClippingRegion()
-        dc.SetClippingRect(rect)
-        
-        roundRect = wx.Rect(rect.x, rect.y, rect.width, rect.height)
-        
-        # first widen the whole thing left, this makes sure the 
-        # left rounded corners aren't drawn
-        roundRect.x -= radius
-        roundRect.width += radius
-        
-        # now optionally push the other rounded corners off the top or bottom
-        if not hasBottomRightRounded:
-            roundRect.height += radius
-            
-        if not hasTopRightRounded:
-            roundRect.y -= radius
-            roundRect.height += radius
-        
-        # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangleRect(roundRect, radius)
-        
-        # draw the lefthand side border, to stay consistent all
-        # the way around the rectangle
-        dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
 
 class AllDayCanvasItem(CalendarCanvasItem):
+    textMargin = 2
     def __init__(self, *args, **kwargs):
         super(AllDayCanvasItem, self).__init__(*args, **kwargs)
 
-    def Draw(self, dc, styles, brushOffset, selected):
-        item = self._item
-        itemRect = self._bounds
-        
-        #styles.calendarControl is hacky
-        gradientLeft, gradientRight, outlineColor, textColor = \
-            styles.calendarControl.getEventColors(item, selected)
-        
-        if selected:
-            brush = styles.brushes.GetGradientBrush(itemRect.x + brushOffset,
-                                                    itemRect.width,
-                                                    gradientLeft,
-                                                    gradientRight)
-            pen = wx.Pen(outlineColor)
-        else:
-            brush = wx.TRANSPARENT_BRUSH
-            pen = wx.TRANSPARENT_PEN
-
-        dc.SetTextForeground(textColor)
-        dc.SetPen(pen)
-        dc.SetBrush(brush)
-        dc.DrawRectangleRect(itemRect)
-                
-        # draw little rectangle to the left of the item
-        pen = self.GetStatusPen(outlineColor)
-        pen.SetCap(wx.CAP_BUTT)
-        dc.SetPen(pen)
-        dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
-                    itemRect.x + 2, itemRect.y + itemRect.height - 3)
-        dc.SetPen(wx.BLACK_PEN)
-
-        # Shift text
-        textRect = copy.copy(itemRect)
-        textRect.x += 5
-        textRect.width -= 7
-        self.DrawWrappedText(dc, item.displayName, textRect)
+    def GetBoundsRects(self):
+        return [self._bounds]
 
 class CalendarEventHandler(object):
     """
@@ -645,16 +675,6 @@ class CalendarEventHandler(object):
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
 
-class ClosureTimer(wx.Timer):
-    """
-    Helper class because targets may need to recieve multiple different timers
-    """
-    def __init__(self, callback, *args, **kwargs):
-        super(ClosureTimer, self).__init__(*args, **kwargs)
-        self._callback = callback
-        
-    def Notify(self):
-        self._callback()
 
 class CalendarBlock(CollectionCanvas.CollectionCanvas):
     """ Abstract block used as base Kind for Calendar related blocks.
@@ -965,7 +985,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         if coll and coll != self.blockItem.contents.source.first():
             self.blockItem.SelectCollectionInSidebar(coll)
         #self.parent.wxSynchronizeWidget()
-    
+
+    def OnEditItem(self, box):
+        styles = self.blockItem.calendarContainer
+        position = self.CalcScrolledPosition(box.GetEditorPosition())
+        size = box.GetMaxEditorSize()
+
+        self.editor.SetItem(box.GetItem(), position, size, styles.eventLabelFont.GetPointSize())
+
     def GrabFocusHack(self):
         self.editor.SaveItem()
         self.editor.Hide()
@@ -1352,12 +1379,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                                       item.startTime.minute))
             self.Refresh()
 
-    def OnEditItem(self, box):
-        position = box.GetEditorPosition()
-        size = box.GetMaxEditorSize()
-
-        self.editor.SetItem(box.GetItem(), position, size, size.height)
-
 
 
 
@@ -1540,7 +1561,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                     legendBorderX, workdayHourEnd * self.hourHeight + 1)
 
         """
-        # draw lines between columns
+        # draw lines between columns ##@@@ broken for self.parent post-refactoring
         dc.SetPen(styles.minorLinePen)
         for day in xrange(1, self.parent.columns):
             dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
@@ -1615,7 +1636,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
         selectedBox = None        
         # finally, draw the items
-        boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
         brushOffset = self.GetPlatformBrushOffset()
         for canvasItem in self.canvasItemList:
 
@@ -1625,11 +1645,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if self.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, boundingRect, styles,  brushOffset, False)
+                canvasItem.Draw(dc, styles,  brushOffset, False)
             
         # now draw the current item on top of everything else
         if selectedBox:
-            selectedBox.Draw(dc, boundingRect, styles, brushOffset, True)
+            selectedBox.Draw(dc, styles, brushOffset, True)
 
     def CheckConflicts(self):
         for itemIndex, canvasItem in enumerate(self.canvasItemList):
@@ -1682,16 +1702,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # (as of this writing, wxPanel can't receive focus, so this is a no-op)
         self.SetFocus()
         super(wxTimedEventsCanvas, self).OnSelectNone(unscrolledPosition)
-
-    def OnEditItem(self, box):
-        styles = self.blockItem.calendarContainer
-        position = self.CalcScrolledPosition(box.GetEditorPosition())
-        size = box.GetMaxEditorSize()
-
-        textPos = wx.Point(position.x + 8, position.y + 15)
-        textSize = wx.Size(size.width - 13, size.height - 20)
-
-        self.editor.SetItem(box.GetItem(), textPos, textSize, styles.eventLabelFont.GetPointSize()) 
 
     def OnCreateItem(self, unscrolledPosition):
         # @@@ this code might want to live somewhere else, refactored
@@ -1761,7 +1771,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.ScrollIntoView(scrolledPosition)
     
     def StartDragTimer(self):
-        self.scrollTimer = ClosureTimer(self.OnDragTimer)
+        self.scrollTimer = wx.PyTimer(self.OnDragTimer)
         self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
     
     def StopDragTimer(self):
@@ -2167,8 +2177,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if oldDayWidth != self.dayWidth:
             styles.brushes.ClearCache()
         
-
-        #print self.size, self.xOffset, self.dayWidth, self.columns #convenient interactive way to learn what these variables are, since they're tricky to describe verbally
 
     def _getColumns(self):
         if self.blockItem.dayMode:
