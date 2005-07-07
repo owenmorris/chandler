@@ -173,13 +173,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         super(CalendarCanvasItem, self).__init__(*args, **keywords)
         self._parentConflicts = []
         self._childConflicts = []
-        # the rating of conflicts - i.e. how far to indent this
+        # the rating of conflicts - i.e. how far to indent this. Just
+        # a simple zero-based ordering - not a pixel count!
         self._conflictDepth = 0
                 
-        # the total depth of all conflicts - i.e. the maximum simultaneous 
-        # conflicts with this item, including this one
-        self._totalConflictDepth = 1
-        
     def GetEditorPosition(self):
         """
         This returns a location to show the editor. By default it is the same
@@ -292,8 +289,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if width <= maxWidth:
                 dc.DrawText(smallWord, x, y)
                 return
-                
+
     def AddConflict(self, child):
+        """
+        Register a conflict with another event - this should only be done
+        to add conflicts with 'child' events, because the child is notified
+        about the parent conflicts
+        """
         # we might want to keep track of the inverse conflict as well,
         # for conflict bars
         child._parentConflicts.append(self)
@@ -307,6 +309,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
          1,2,3: choose 0
          0,1,2: choose 3        
         """
+        if not seq: return 0
+        
         for index, value in enumerate(seq):
             if index != value:
                 return index
@@ -315,8 +319,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         return index+1
         
     def CalculateConflictDepth(self):
-        if not self._parentConflicts:
-            return 0
+        """
+        Calculate the 'depth', or indentation level, of the current item
+        This is done with the assumption that all parent conflicts have
+        already had their conflict depths calculated.
+        """
         
         # We'll find out the depth of all our parents, and then
         # see if there's an empty gap we can fill
@@ -475,8 +482,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 class ColumnarCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
     textMargin = 3
+    
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2
+    
     def __init__(self, item, calendarCanvas, *arguments, **keywords):
         super(ColumnarCanvasItem, self).__init__(None, item)
         
@@ -487,8 +496,17 @@ class ColumnarCanvasItem(CalendarCanvasItem):
 
     def UpdateDrawingRects(self):
         item = self.GetItem()
-        indent = self.GetIndentLevel() * 5
-        width = self.GetMaxDepth() * 5
+        dayWidth = self._calendarCanvas.dayWidth
+        if self._calendarCanvas.parent.blockItem.dayMode:
+            # in day mode, canvasitems are drawn side-by-side
+            maxDepth = self.GetMaxDepth()
+            width = dayWidth / (maxDepth + 1)
+            indent = width * self.GetIndentLevel()
+        else:
+            # in week mode, stagger the canvasitems by 5 pixels
+            indent = self.GetIndentLevel() * 5
+            width = dayWidth - self.GetMaxDepth() * 5
+            
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           item.startTime,
                                                           item.endTime, indent, width))
@@ -582,7 +600,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             try:
                 rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
                 rect.x += indent
-                rect.width -= width
+                rect.width = width
                 yield rect
             except ValueError:
                 pass
@@ -633,17 +651,6 @@ class CalendarEventHandler(object):
         self.blockItem.setRange(today)
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
-
-class ClosureTimer(wx.Timer):
-    """
-    Helper class because targets may need to recieve multiple different timers
-    """
-    def __init__(self, callback, *args, **kwargs):
-        super(ClosureTimer, self).__init__(*args, **kwargs)
-        self._callback = callback
-        
-    def Notify(self):
-        self._callback()
 
 class CalendarBlock(CollectionCanvas.CollectionCanvas):
     """ Abstract block used as base Kind for Calendar related blocks.
@@ -1851,7 +1858,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.ScrollIntoView(scrolledPosition)
     
     def StartDragTimer(self):
-        self.scrollTimer = ClosureTimer(self.OnDragTimer)
+        self.scrollTimer = wx.PyTimer(self.OnDragTimer)
         self.scrollTimer.Start(100, wx.TIMER_CONTINUOUS)
     
     def StopDragTimer(self):
