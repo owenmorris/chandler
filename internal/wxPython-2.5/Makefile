@@ -3,7 +3,7 @@ include ../Makefile.inc
 
 # version info
 VERSION=2.6.0.0
-RELVER=$(VERSION)-15
+RELVER=$(VERSION)-16
 WXMAJORVERSIONCOMPACT=26
 
 SRC=$(INTERNAL)/wxPython-2.5
