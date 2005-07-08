@@ -35,10 +35,10 @@ END_EVENT_TABLE()
 #ifdef __WXMAC_OSX__
 const short kwxMacToolBarToolDefaultWidth = 16 ;
 const short kwxMacToolBarToolDefaultHeight = 16 ;
-const short kwxMacToolBarTopMargin = 4 ;
-const short kwxMacToolBarLeftMargin = 4 ;
-const short kwxMacToolBorder = 0 ;
-const short kwxMacToolSpacing = 6 ;
+const short kwxMacToolBarTopMargin = 1 ;		// used to be 4
+const short kwxMacToolBarLeftMargin = 1 ;		// used to be 4
+const short kwxMacToolBorder = 0 ;				// used to be 0
+const short kwxMacToolSpacing = 2 ;			// used to be 6
 #else
 const short kwxMacToolBarToolDefaultWidth = 24 ;
 const short kwxMacToolBarToolDefaultHeight = 22 ;
@@ -953,6 +953,7 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
                     window, &toolrect, CFSTR(""), kControlBevelButtonNormalBevel, behaviour, &info, 
                     0, 0, 0, &controlHandle );
 
+                // FIXME: this needs to be enabled when this instance isn't the native toolbar
                 // FIXME: no label support
         #endif
 
@@ -1017,8 +1018,9 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
             ControlRef container = (ControlRef) GetHandle();
             wxASSERT_MSG( container != NULL, wxT("No valid Mac container control") );
 
-            UMAShowControl( controlHandle );
+            // FIXME: only show the control when this instance is the native toolbar
             ::EmbedControl( controlHandle, container );
+            UMAShowControl( controlHandle );
         }
 
         if ( tool->CanBeToggled() && tool->IsToggled() )
