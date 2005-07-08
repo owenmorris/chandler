@@ -20,12 +20,11 @@
         <Cloud itsName="CloudOne">
             <Endpoint itsName="myBuddies">
                 <includePolicy value="byCloud"/>
-                <cloudAlias value="default"/>
                 <attribute value="myBuddies"/>
             </Endpoint>
             <endpoints itemref="one:TestKindOne/CloudOne/myBuddies"/>
         </Cloud>
-        <clouds alias="default" itemref="one:TestKindOne/CloudOne"/>
+        <clouds alias="copying" itemref="one:TestKindOne/CloudOne"/>
     </Kind>
 
     <one:TestKindOne itsName="kindOneInstance">

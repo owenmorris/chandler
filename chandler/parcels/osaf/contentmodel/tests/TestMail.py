@@ -185,7 +185,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         #Test cloud membership
 
-        items = mailMessageItem.getItemCloud('default')
+        items = mailMessageItem.getItemCloud('copying')
         self.assertEqual(len(items), 1)
 
     def __populateAccount(self, account):

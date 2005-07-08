@@ -83,7 +83,7 @@ class Block(schema.Item):
     position = schema.One(schema.Float)  #<!-- for tree-of-blocks sorting -->
 
     schema.addClouds(
-        default = schema.Cloud(
+        copying = schema.Cloud(
             byCloud=[contents,childrenBlocks,eventsForNamedDispatch]
         )
     )
@@ -370,7 +370,7 @@ class Block(schema.Item):
     def onModifyContentsEvent(self, event):
         def modifyContents (item):
             if event.copyItems:
-                item = item.copy(parent=userdata, cloudAlias='default')
+                item = item.copy(parent=userdata, cloudAlias='copying')
 
             operation = event.operation
             if operation == 'toggle':
@@ -872,7 +872,7 @@ class BlockEvent(schema.Item):
     methodName = schema.One(schema.String)
     blockName = schema.One(schema.String)
     schema.addClouds(
-        default = schema.Cloud(byCloud=[destinationBlockReference])
+        copying = schema.Cloud(byCloud=[destinationBlockReference])
     )
     def __repr__(self):
         # useful for debugging that i've done.  i dunno if event.arguments
@@ -894,7 +894,7 @@ class KindParameterizedEvent(BlockEvent):
         required = True,
     )
     schema.addClouds(
-        default = schema.Cloud(byRef=[kindParameter])
+        copying = schema.Cloud(byRef=[kindParameter])
     )
     
 
@@ -909,7 +909,7 @@ class ModifyContentsEvent(BlockEvent):
     selectFirstItem = schema.One(schema.Boolean, initialValue = False)
     disambiguateItemNames = schema.One(schema.Boolean, initialValue = False)
     schema.addClouds(
-        default = schema.Cloud(byRef=[items])
+        copying = schema.Cloud(byRef=[items])
     )
 
 
@@ -946,7 +946,7 @@ class PresentationStyle(schema.Item):
         doc = 'SingleLine vs MultiLine for textbox-based editors',
     )
     schema.addClouds(
-        default = schema.Cloud(
+        copying = schema.Cloud(
             byValue=[sampleText,format,choices,useControl,lineStyleEnum]
         )
     )

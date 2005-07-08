@@ -52,7 +52,7 @@
             <endpoints itemref="me:Widget/Cloud/childWidgets"/>
             <endpoints itemref="me:Widget/Cloud/sprockets"/>
         </Cloud>
-        <clouds alias="default" itemref="me:Widget/Cloud"/>
+        <clouds alias="test" itemref="me:Widget/Cloud"/>
     </Kind>
 
     <Kind itsName="Sprocket">

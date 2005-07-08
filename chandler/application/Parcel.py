@@ -508,6 +508,9 @@ class Manager(Item):
 
         If the given parcel's parent isn't loaded yet, load the parent first.
         """
+        # To ensure parcels with a dual identity don't get loaded twice
+        if namespace.startswith(NS_ROOT):
+            namespace = 'parcel:' + namespace[len(NS_ROOT)+1:].replace('/','.')
 
         global globalDepth
         globalDepth = globalDepth + 1
@@ -748,7 +751,7 @@ class Manager(Item):
 
         # (either) Copy the item using cloud-copy:
 
-        copy = reference.copy(name=copyName, parent=item, cloudAlias="default")
+        copy = reference.copy(name=copyName, parent=item, cloudAlias="copying")
 
         # (or) Copy the item using attribute-copy:
         # copy = reference.copy(name=copyName, parent=item)
@@ -1681,8 +1684,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 # the initialValue list plus whatever attributes you have
                 # added in XML (which actually makes sense because by reloading
                 # you are modifying an existing item, not creating a new one).
-
-                """ @@@MOR Disabling since this is causing a strange problem
                 if not reloading and not seenAttributes.has_key(attributeName):
                     if hasattr(item, attributeName):
                         try:
@@ -1692,7 +1693,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             # which are important
                             pass
                     seenAttributes[attributeName] = 1
-                """
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)

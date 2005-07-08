@@ -52,7 +52,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
     selection = schema.One(schema.Item, initialValue = None)
 
     schema.addClouds(
-        default = schema.Cloud(byRef=[selection])
+        copying = schema.Cloud(byRef=[selection])
     )
 
     def onSetContentsEvent (self, event):
@@ -311,7 +311,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
     trunkStub = schema.One(Block.Block)
 
     schema.addClouds(
-        default = schema.Cloud(byRef=[trunkStub])
+        copying = schema.Cloud(byRef=[trunkStub])
     )
 
     def _mapItemToCacheKeyItem(self, item):

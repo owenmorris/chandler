@@ -397,7 +397,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     collectionSpecifier = schema.One(redirectTo = 'dynamicChildren')
 
     schema.addClouds(
-        default = schema.Cloud(byCloud = [dynamicChildren])
+        copying = schema.Cloud(byCloud = [dynamicChildren])
     )
 
     def itemNameAccessor(self, item):
@@ -642,7 +642,7 @@ class MenuItem (Block.Block, DynamicChild):
     accel = schema.One(schema.String, initialValue = '')
     event = schema.One(Block.BlockEvent)
     schema.addClouds(
-        default = schema.Cloud(byCloud = [event])
+        copying = schema.Cloud(byCloud = [event])
     )
 
     def instantiateWidget (self):
@@ -861,7 +861,7 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
     buttons3D = schema.One(schema.Boolean, initialValue = False)
     buttonsLabeled = schema.One(schema.Boolean, initialValue = False)
     schema.addClouds(
-        default = schema.Cloud(byRef=[colorStyle])
+        copying = schema.Cloud(byRef=[colorStyle])
     )
 
     def instantiateWidget (self):
@@ -919,7 +919,7 @@ class ToolbarItem(Block.Block, DynamicChild):
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
     
     schema.addClouds(
-        default = schema.Cloud(byRef=[prototype], byCloud=[event])
+        copying = schema.Cloud(byRef=[prototype], byCloud=[event])
     )
 
     def instantiateWidget (self):

@@ -34,7 +34,7 @@
             </Endpoint>
             <endpoints itemref="me:TestKind/TestKindCloud/myChildren"/>
         </Cloud>
-        <clouds alias="default" itemref="me:TestKind/TestKindCloud"/>
+        <clouds alias="copying" itemref="me:TestKind/TestKindCloud"/>
     </Kind>
 
 

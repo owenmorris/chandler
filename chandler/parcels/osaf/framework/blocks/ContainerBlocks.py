@@ -132,7 +132,7 @@ class LayoutChooser(BoxContainer):
 
     choices = schema.Sequence(Block)
     schema.addClouds(
-        default = schema.Cloud(byCloud=[choices])
+        copying = schema.Cloud(byCloud=[choices])
     )
 
     NONE_SELECTED = -1
@@ -387,7 +387,7 @@ class ViewContainer(BoxContainer):
     views = schema.Sequence(Block, otherName = 'viewContainer')
 
     schema.addClouds(
-        default = schema.Cloud(byRef=[views])
+        copying = schema.Cloud(byRef=[views])
     )
 
     def instantiateWidget (self):
@@ -425,7 +425,8 @@ class ViewContainer(BoxContainer):
                     userData = self.findPath ('//userdata')
                     if view.itsParent != userData:
                         self.views.remove (view)
-                        view = view.copy (parent = userData, cloudAlias="default")
+                        view = view.copy (parent=userData,
+                                          cloudAlias="copying")
                         self.views.append (view)
                     self.postEventByName('SelectItemBroadcast', {'item':view})
                 break
@@ -585,7 +586,7 @@ class TabbedView(TabbedContainer):
         "Create a new tab"
         originalItem = self.findPath('parcels/osaf/views/main/untitledItemCollection')
         userdata = self.findPath('//userdata')
-        newItem = originalItem.copy(parent=userdata, cloudAlias='default')
+        newItem = originalItem.copy(parent=userdata, cloudAlias='copying')
         newItem.contents.displayName = self._getUniqueName("Untitled")
         
         self.widget.selectedTab = self.widget.GetPageCount()

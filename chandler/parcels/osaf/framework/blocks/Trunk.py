@@ -54,7 +54,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
     )
 
     schema.addClouds(
-        default = schema.Cloud(
+        copying = schema.Cloud(
             byCloud=[trunkDelegate,TPBDetailItem,TPBSelectedItem],
             byRef = [colorStyle]
         )
@@ -153,7 +153,7 @@ class TrunkDelegate(schema.Item):
     keyUUIDToTrunk = schema.Mapping(Block.Block, initialValue = {})
 
     schema.addClouds(
-        default = schema.Cloud(byCloud=[trunkParentBlock])
+        copying = schema.Cloud(byCloud=[trunkParentBlock])
     )
 
     def getTrunkForKeyItem(self, keyItem):
@@ -209,7 +209,7 @@ class TrunkDelegate(schema.Item):
             result = item
         else:
             # @@@ BJS Morgen has opined that "default" is a bad name for a cloud; use "copy" instead?
-            result = item.copy(parent = userData, cloudAlias="default")
+            result = item.copy(parent = userData, cloudAlias="copying")
             
         return result
 

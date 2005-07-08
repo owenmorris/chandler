@@ -85,7 +85,7 @@ class TaskMixin(ContentModel.ContentItem):
     )
 
     schema.addClouds(
-        default = schema.Cloud(
+        copying = schema.Cloud(
             requestor, requestee, dependsOn, preventsProgressOn
         )
     )

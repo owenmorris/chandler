@@ -600,7 +600,7 @@ class MailMessageMixin(MIMEContainer):
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
             subject
         ),
-        default = schema.Cloud(
+        copying = schema.Cloud(
             fromAddress, toAddress, ccAddress, bccAddress, replyToAddress,
             byCloud = [MIMEContainer.mimeParts]
         ),

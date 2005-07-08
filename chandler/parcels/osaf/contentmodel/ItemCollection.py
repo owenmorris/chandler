@@ -51,7 +51,7 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
     about = schema.Role(redirectTo="displayName")
 
     schema.addClouds(
-        default = schema.Cloud(
+        copying = schema.Cloud(
             invitees,
             byCloud=[
                 inclusions, exclusions, kindFilter,

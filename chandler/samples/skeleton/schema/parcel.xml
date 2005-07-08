@@ -44,7 +44,7 @@
     <attributes itemref="doc:attr1"/>
 
 
-    <!-- Typical clouds include a "default" cloud, and a "sharing" cloud -->
+    <!-- Typical clouds include a "copying" cloud, and a "sharing" cloud -->
     <Cloud itsName="SharingCloud">
         <Endpoint itsName="attr1">
             <attribute value="attr1"/>

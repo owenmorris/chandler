@@ -28,7 +28,7 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # This is how you determine which items would get copied if you
         # were doing a cloud copy:
         trace={}
-        items = widgetA.getItemCloud('default', trace=trace)
+        items = widgetA.getItemCloud('test', trace=trace)
 
         expectedItems = [
             "//parcels/application/tests/testparcels/clouds/data/widgetA",
@@ -50,7 +50,7 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # When you actually do a copy, here is how you can retrieve the set
         # of copies:
         copies = {}
-        copy = widgetA.copy(cloudAlias="default", copies=copies)
+        copy = widgetA.copy(cloudAlias="test", copies=copies)
         expectedItems = [
             "wA",
             "wB",

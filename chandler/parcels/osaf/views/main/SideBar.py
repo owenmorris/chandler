@@ -335,7 +335,7 @@ class Sidebar(ControlBlocks.Table):
     checkedItems = schema.Sequence(schema.Item, initialValue = [])
 
     schema.addClouds(
-        default = schema.Cloud(byRef=[filterKind])
+        copying = schema.Cloud(byRef=[filterKind])
     )
 
     def instantiateWidget (self):
@@ -382,7 +382,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
 
     schema.addClouds(
-        default = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
+        copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
 
     def _mapItemToCacheKeyItem(self, item):

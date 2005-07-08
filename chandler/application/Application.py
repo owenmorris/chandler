@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 import util.timing
 
 # Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "22"
+SCHEMA_VERSION = "23"
 
 """
   Event used to post callbacks on the UI thread
@@ -430,14 +430,14 @@ Would you like to remove all data from your repository?
             except AttributeError:
                 pass
             self.UIRepositoryView.refresh()
-            mainViewRoot.delete (cloudAlias="default")
+            mainViewRoot.delete (cloudAlias="copying")
             self.UIRepositoryView.commit()
             mainViewRoot = None
         if mainViewRoot is None:
             template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
             mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
                                           name = "MainViewRoot",
-                                          cloudAlias="default")
+                                          cloudAlias="copying")
             try:
                 mainViewRoot.frame = frame
             except UnboundLocalError:

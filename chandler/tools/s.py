@@ -137,7 +137,6 @@ Kind = r.findPath("//Schema/Core/Kind")
 Item = r.findPath("//Schema/Core/Item")
 parcels = r.findPath("//parcels")
 CORE = application.Parcel.CORE
-CPIA = application.Parcel.CPIA
 
 # Handy dandy methods:
 def pp(item, rec=False):

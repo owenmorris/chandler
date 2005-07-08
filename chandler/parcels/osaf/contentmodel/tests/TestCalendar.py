@@ -87,7 +87,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Check cloud membership - event + location
 
-        items = calendarEventItem.getItemCloud('default')
+        items = calendarEventItem.getItemCloud('copying')
         self.assertEqual(len(items), 2)
 
         # Re-examine items

@@ -737,7 +737,7 @@ def addClouds(**clouds):
 
             schema.addClouds(
                 sharing = schema.Cloud(foo, "displayName"),
-                default = schema.Cloud(byCloud = [bar]),
+                copying = schema.Cloud(byCloud = [bar]),
             )    
     """
     for cloud in clouds.values():
