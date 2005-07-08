@@ -1,9 +1,5 @@
 Notes about Linux build issues:
 
-- I found that my RedHat 8.0 install didn't have the gtk+-devel RPM 
-installed, and that includes a required file /usr/bin/gtk-config.  Make
-sure you have that before building wxWindows.
+Visit the wiki page http://wiki.osafoundation.org/bin/view/Chandler/ChandlerPlatforms 
+for details on the various platforms that Chandler has been built for and runs on.
 
-- The pkg-config that comes with RH8 is too old according to the glib
-that we're building, so I included a newer pkg-config as part of our
-source tree.

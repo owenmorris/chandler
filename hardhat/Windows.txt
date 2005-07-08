@@ -1,7 +1,7 @@
 Notes about Windows build issues:
 
-- OSAF is building everything using Visual Studio 7, and so the __hardhat__.py
+- OSAF is building everything using Visual Studio .NET, and so the __hardhat__.py
   files use devenv.exe to build the various "solutions" we have set up.  If
-  you don't have access to Visual Studio 7 we will be making frequent pre-built
+  you don't have access to Visual Studio .NEt we will be making frequent pre-built
   distributions of all the Chandler modules available on the website, so you
   don't need to build everything from scratch.

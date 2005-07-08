@@ -7,6 +7,13 @@ __license__     = "GPL -- see LICENSE.txt"
 
 HardHat README.txt
 
+NOTE: HardHat is slowly being phased out and currently it is used only
+for running the unit tests and for building the distribution files.
+While the directions below are accurate (as far as I can see :) they
+should not be used.  If you have any questions please contact me
+
+  -- bear bear@osafoundation.org (aka Mike Taylor)
+
 
 HardHat is the Chandler project build tool, consisting of a set
 of Python scripts which orchestrate the building of all the modules
@@ -49,44 +56,33 @@ Requirements:
 - You will need to have Python installed on your system to run HardHat.  If 
   you don't already have Python, download it from http://python.org/ 
 
-- Under Linux, you will need the gcc compiler and the GTK development packages
+- Under Linux, you will need the gcc compiler
 
-- Under Windows, you will need VisualStudio 7
+- Under Windows, you will need VisualStudio .NET
 
 - Under Mac OSX, you will need to have the Developers' package installed
-
 
 If you don't already have the Chandler source code, you can download a source
 distribution from:
 
    http://downloads.osafoundation.org/
 
+Or, if you would like to fetch the source from our SVN repository:
 
-Or, if you would like to fetch the source from our CVS repository:
-
-- Set your CVSROOT environment variable to:
-  :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep
-
-- cvs login
-  (When prompted for a password, enter "anonymous")
-
-- cvs checkout -r TAG chandler-system 
-  (Replace "TAG" with one of the available CVS tags listed at
-  http://downloads.osafoundation.org/chandler/cvs/ , for example:
-  cvs checkout -r CHANDLER_0_1 chandler-system)
-
+- svn checkout http://svn.osafoundation.org/chandler/trunk osaf
 
 
 Running HardHat (the Chandler build tool):
 
-At this point you should now have "hardhat" and "osaf" directories that you
-either checked out of CVS or downloaded and unpacked from a distribution file.
+At this point you should now have directories named "hardhat", "chandler", 
+"internal" and "external" inside of the "osaf" directory that you either 
+checked out of SVN or downloaded and unpacked from a distribution file.
 
 - Put the hardhat directory in your PATH (optional)
 
-The following commands must be run from the osaf/chandler/Chandler
-directory.  If you didn't put the hardhat directory in your PATH you will
-need to specify the path to hardhat.py when running these commands:
+The following commands must be run from the osaf/chandler/ directory.  
+If you didn't put the hardhat directory in your PATH you will need to specify 
+the path to hardhat.py when running these commands:
 
 - Build entire tree:
 hardhat.py -B 

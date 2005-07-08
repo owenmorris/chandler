@@ -8,6 +8,7 @@ Notes about MacOSX build issues:
   linker, telling it where to look for frameworks.  Distutils builds the 
   linking command lines based on information in the Python Makefile, so to
   get distutils to add the -F argument I modified the Python configure script
-  to include -F in the LDSHARED variable.  See:  
+  to include -F in the LDSHARED variable.
 
-  http://cvs.osafoundation.org/index.cgi/osaf/chandler/python/configure.diff?r1=1.1&r2=1.2
+  For details on the configuration of how we build Python, see the 
+  http://svn.osafoundation.org/chandler/trunk/external/python/Makefile
