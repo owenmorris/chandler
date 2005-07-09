@@ -169,6 +169,11 @@ class CalendarEventMixin(ContentModel.ContentItem):
         inverse="occurrences"
     )
 
+    isGenerated = schema.One(
+        schema.Boolean,
+        displayName="Generated",
+        defaultValue=False
+    )
     
     calendar = schema.Sequence(
         "Calendar",
@@ -383,7 +388,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         self.endTime = self.startTime + duration
 
     def getFirstInRule(self):
-        """Return the nearse thisandfuture modifications or master."""
+        """Return the nearest thisandfuture modifications or master."""
         if self.modificationFor != None:
             if self.modifies != 'thisandfuture':
                 return self
@@ -422,7 +427,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
             return self.rruleset.createDateUtilFromRule(dtstart)
 
     def setRuleFromDateUtil(self, rule):
-        """Set self.rruleset from rule."""
+        """Set self.rruleset from rule.  Rule may be an rrule or rruleset."""
         if self.rruleset is None:
             ruleItem=Recurrence.RecurrenceRuleSet(None, view=self.itsView)
             ruleItem.setRuleFromDateUtil(rule)
@@ -430,7 +435,28 @@ class CalendarEventMixin(ContentModel.ContentItem):
         else:
             self.rruleset.setRuleFromDateUtil(rule)
 
-    def getNextOccurrence(self, fromTime=None):
+    def _createOccurrence(self, recurrenceID):
+        """Generate an occurrence for recurrenceID, return it."""
+        first = self.getFirstInRule()
+        new = first.copy(parent=first)
+        
+        #now get all reference attributes whose inverse has multiple cardinality 
+        for attr, val in first.iterAttributeValues(referencesOnly=True):
+            inversekind = first.getAttributeAspect(attr, 'type')
+            inverse=first.getAttributeAspect(attr, 'otherName')
+            if inversekind is not None:
+                inverseAttr=inversekind.getAttribute(inverse)
+                if inverseAttr.cardinality != 'single':
+                    setattr(new, attr, val)
+            
+        new.isGenerated = True
+        new.ChangeStart(recurrenceID)
+        new.recurrenceID = new.startTime
+        new.occurrenceFor = first
+        return new
+        
+
+    def getNextOccurrence(self, after=None):
         """Return the next occurrence for the recurring event self is part of.
         
         If self is the only occurrence, or last occurrence, return None.
@@ -439,23 +465,64 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if self.rruleset is None:
             return None
         else:
-            after = fromTime or self.startTime
+            after = after or self.startTime
             nextRecurrenceID=self.createDateUtilFromRule().after(after)
-            if nextRecurrenceID is None:
-                pass #deal with modifications
-            else:
-                firstInRule = self.getFirstInRule()
-                for occurrence in firstInRule.occurrences:
-                    if occurrence.recurrenceID == nextRecurrenceID:
-                        return occurrence
+            if nextRecurrenceID == None: return None
+            # TODO: deal with modifications
+            # test if nextRecurrenceID matches a modification that actually
+            # occurred before now, if so, get a new recurrenceID
+            # find all modifications after startTime and before nextRecurrenceID
+            # if any exist, return the first one
+            firstInRule = self.getFirstInRule()
+            for occurrence in firstInRule.occurrences:
+                if occurrence.recurrenceID == nextRecurrenceID:
+                    return occurrence
+            return self._createOccurrence(nextRecurrenceID)
+
+    def _generateRule(self):
+        """Yield all occurrences in this rule."""
+        event = first = self.getFirstInRule()
+        while event is not None:
+            yield event
+            event = event.getNextOccurrence()
+            if event is not None and event.occurrenceFor != first:
+                event = None
+
+    def getOccurrencesBetween(self, after, before):
+        """Return a list of events ordered by startTime.
+        
+        Get events starting on or before "before", ending on or after "after".
+        Generate any events needing generating. 
+        
+        """
+        def cmpEventStarts(event1, event2):
+            return cmp(event1.startTime, event2.startTime)
+        def isBetween(event):
+            return event.startTime <= before and event.endTime >= after
                 
-                # generate a new occurrence
-                ev = CalendarEvent(view=self.itsView)
-                ev.startTime = nextRecurrenceID
-                ev.rruleset = self.rruleset
-                ev.recurrenceID = ev.startTime
-                ev.occurrenceFor = self
-                return ev
+        master = self.getMaster()
+        if not master.hasLocalAttributeValue('rruleset'):
+            if isBetween(master):
+                return [master]
+            else: return []
+
+        mods = [master]
+        if master.hasLocalAttributeValue('modifications'):
+            mods.extend(mod for mod in master.modifications
+                                    if mod.modifies == 'thisandfuture'
+                                    and mod.startTime <= before)
+        mods.sort(cmp=cmpEventStarts)
+        # cut out mods which end before "after"
+        index = -1
+        for i, mod in enumerate(mods):
+            if mod.startTime >= after:
+                index = i
+                break
+        if index == -1: mods = mods[-1:] # no mods start before after
+        elif index == 0: pass
+        else: mods = mods[index - 1:]
+        
+        return [e for mod in mods for e in mod._generateRule() if isBetween(e)]
     
     def cleanFuture(self):
         """Delete future occurrences and modifications.
@@ -466,7 +533,24 @@ class CalendarEventMixin(ContentModel.ContentItem):
         for event in self.getMaster().occurrences:
             if event.startTime > self.startTime:
                 event.delete()
-
+                
+    def isCustomRule(self):
+        """Determine if self.rruleset represents a custom rule.
+        
+        For the moment, simple daily, weekly, or monthly repeating events, 
+        optionally with an UNTIL date, or the abscence of a rule, are the only
+        rules which are not custom.
+        
+        """
+        if self.hasLocalAttributeValue('rruleset'):
+            return self.rruleset.isCustomRule()
+        else: return False
+    
+    def getCustomDescription(self):
+        """Return a string describing custom rules."""
+        if self.hasLocalAttributeValue('rruleset'):
+            return self.rruleset.getCustomDescription()
+        else: return ''
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     """

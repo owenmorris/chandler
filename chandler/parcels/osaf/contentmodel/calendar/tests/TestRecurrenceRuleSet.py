@@ -92,6 +92,10 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         # make sure isCount was stored and until was set properly
         self.assert_(ruleItem.isCount)
         self.assertEqual(ruleItem.until, lastDate)
+        
+        # make sure byhour, byminute, and bysecond aren't set
+        for ignored in ("byhour", "byminute", "bysecond"):
+            self.assertEqual(getattr(ruleItem, ignored), None)
 
         # make sure setRuleFromDateUtil(rrule).createDateUtilFromRule(dtstart)
         # represents the same dates as rrule
@@ -133,6 +137,13 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
+        
+        # test setting a rule instead of a ruleset
+        ruleSetItem.setRuleFromDateUtil(self._createBasicDateUtil('weekly'))
+        self._testRRule('weekly',ruleSetItem.createDateUtilFromRule(self.start))
+        
+        # test raising an exception when setting a non-rrule or rruleset
+        self.assertRaises(TypeError, ruleSetItem.setRuleFromDateUtil, 0)
 
     def testRDate(self):
         ruleSet = dateutil.rrule.rruleset()

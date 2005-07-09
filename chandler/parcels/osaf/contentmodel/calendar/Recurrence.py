@@ -149,8 +149,11 @@ class RecurrenceRule(ContentModel.ContentItem):
     normalNames = "interval", "until"
     listNames = "bysetpos", "bymonth", "bymonthday", "byyearday", "byweekno",\
                 "byhour", "byminute", "bysecond"
-
     specialNames = "wkst", "byweekday", "freq"
+
+    # dateutil automatically sets these from dtstart, we don't want these
+    # unless their length is greater than 1.
+    interpretedNames = "byhour", "byminute", "bysecond"
 
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rrule."""
@@ -190,7 +193,9 @@ class RecurrenceRule(ContentModel.ContentItem):
             if getattr(rrule, '_' + key) is not None:
                 setattr(self, key, getattr(rrule, '_' + key))
         for key in self.listNames:
-            if getattr(rrule, '_' + key) is not None:
+            if getattr(rrule, '_' + key) is not None and \
+                                        (key not in self.interpretedNames or \
+                                         len(getattr(rrule, '_' + key)) > 1):
                 # cast tuples to list, or will the repository do this for us?
                 setattr(self, key, list(getattr(rrule, '_' + key)))
 
@@ -244,10 +249,21 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
                 getattr(ruleset, datetype)(date)
         return ruleset
 
-    def setRuleFromDateUtil(self, rruleset):
-        """Extract rules and dates from rruleset, set them in self."""
+    def setRuleFromDateUtil(self, ruleSetOrRule):
+        """Extract rules and dates from ruleSetOrRule, set them in self.
+        
+        If a dateutil.rrule.rrule is passed in instead of an rruleset, treat
+        it as the new rruleset.
+        
+        """
+        if isinstance(ruleSetOrRule, rrule):
+            set = rruleset()
+            set.rrule(ruleSetOrRule)
+            ruleSetOrRule = set
+        elif not isinstance(ruleSetOrRule, rruleset):
+            raise TypeError, "ruleSetOrRule must be an rrule or rruleset"
         for rtype in 'rrule', 'exrule':
-            rules = getattr(rruleset, '_' + rtype, [])
+            rules = getattr(ruleSetOrRule, '_' + rtype, [])
             if rules is None: rules = []
             itemlist = []
             for rule in rules:
@@ -255,8 +271,32 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
                 ruleItem.setRuleFromDateUtil(rule)
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)
-        for datetype in 'rdate', 'exdate':
-            setattr(self, datetype + 's', getattr(rruleset, '_' + datetype, []))
+        for typ in 'rdate', 'exdate':
+            setattr(self, typ + 's', getattr(ruleSetOrRule, '_' + typ, []))
+
+    def isCustomRule(self):
+        """Determine if this is a custom rule.
+        
+        For the moment, simple daily, weekly, or monthly repeating events, 
+        optionally with an UNTIL date, or the abscence of a rule, are the only
+        rules which are not custom.
+        
+        """
+        if self.hasLocalAttributeValue('rrules'):
+            if len(self.rrules) > 1:
+                return True # multiple rules
+            for recurtype in 'exrules', 'rdates', 'exdates':
+                if self.hasLocalAttributeValue(recurtype):
+                    return True # more complicated rules
+            rule = list(self.rrules)[0]
+            if rule.interval != 1: return True
+            for attr in RecurrenceRule.listNames+("byweekday",):
+                if getattr(rule, attr): return True
+        return False
+
+    def getCustomDescription(self):
+        """Return a string describing custom rules."""
+        return "not yet implemented"
 
     def onValueChanged(self, name):
         """If the RuleSet changes, update the associated event."""
