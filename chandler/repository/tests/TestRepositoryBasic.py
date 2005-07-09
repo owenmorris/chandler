@@ -59,11 +59,9 @@ TODO is there more pack testing we need to do?
         """
         self.rep.create()
         self.assert_(self.rep.check())
-        schemaPack = os.path.join(self.rootdir, 'repository',
-                                  'packs', 'schema.pack')
         util.timing.reset()
         util.timing.begin("repository.TestRepositoryBasic.testLoadPack")
-        self.rep.loadPack(schemaPack)
+        self.rep.getCurrentView()
         util.timing.end("repository.TestRepositoryBasic.testLoadPack")
         util.timing.results(verbose=False)
         self.assert_(self.rep.check())

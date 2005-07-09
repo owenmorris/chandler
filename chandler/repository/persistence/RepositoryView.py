@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import logging, heapq, sys, gc, threading
+import logging, heapq, sys, gc, threading, os
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import CItem
@@ -13,6 +13,7 @@ from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.util.Lob import Lob
 from repository.persistence.RepositoryError import *
 from repository.item.Children import Children
+from repository.item.Indexes import NumericIndex
 from repository.item.RefCollections import TransientRefList
 
 
@@ -24,6 +25,11 @@ class RepositoryView(object):
     views until the view is refreshed during a L{commit}.
     """
     
+    # 0.5.0: first tracked core schema version
+    # 0.5.1: added indexes to abstract sets
+    
+    CORE_SCHEMA_VERSION = 0x00050100
+
     def __init__(self, repository, name, version):
         """
         Initializes a repository view.
@@ -112,6 +118,27 @@ class RepositoryView(object):
             repository.store.attachView(self)
             repository._openViews.append(self)
 
+        self._loadSchema()
+
+    def _loadSchema(self):
+
+        schema = self.findPath('Packs/Schema')
+
+        if schema is None:
+            import repository
+            path = os.path.join(os.path.dirname(repository.__file__),
+                                'packs', 'schema.pack')
+            schema = self.loadPack(path)
+            schema.version = RepositoryView.CORE_SCHEMA_VERSION
+
+        else:
+            schema_version = RepositoryView.CORE_SCHEMA_VERSION
+            version = getattr(schema, 'version', 0)
+            if version != schema_version:
+                raise RepositorySchemaVersionError, (schema_version, version)
+
+        return schema
+
     def __len__(self):
 
         return len(self._registry)
@@ -148,20 +175,23 @@ class RepositoryView(object):
             if repository._threaded.view is self:
                 del repository._threaded.view
             repository._openViews.remove(self)
-        
-        for item in self._registry.itervalues():
-            if hasattr(type(item), 'onViewClose'):
-                item.onViewClose(self)
-            item._setStale()
 
-        self._registry.clear()
-        self._roots = None
-        self._deletedRegistry.clear()
-        self._instanceRegistry.clear()
-        self._status &= ~(RepositoryView.OPEN | CItem.CDIRTY)
+        self.clear()
 
         if repository is not None:
             repository.store.detachView(self)
+
+    def clear(self):
+
+        for item in self._registry.itervalues():
+            if hasattr(type(item), 'onViewClear'):
+                item.onViewClear(self)
+            item._setStale()
+
+        self._registry.clear()
+        self._roots.clear()
+        self._deletedRegistry.clear()
+        self._instanceRegistry.clear()
 
     def prune(self, size):
         """
@@ -399,10 +429,15 @@ class RepositoryView(object):
         @type path: a string
         @param parent: the item to load the items in the pack under
         @type parent: an item
+        @return: the loaded pack, an item of kind Pack
         """
 
         from repository.persistence.PackHandler import PackHandler
-        PackHandler(path, parent, self).parseFile(path)
+
+        handler = PackHandler(path, parent, self)
+        handler.parseFile(path)
+
+        return handler.pack
 
     def dir(self, item=None, path=None):
         """
@@ -1051,12 +1086,12 @@ class NullRepositoryView(RepositoryView):
 
     def __init__(self):
 
-        super(NullRepositoryView, self).__init__(None, "null view", 0)
-
         self._logger = logging.getLogger('repository')
         if not (self._logger.root.handlers or self._logger.handlers):
             self._logger.addHandler(logging.StreamHandler())
         
+        super(NullRepositoryView, self).__init__(None, "null view", 0)
+
     def setCurrentView(self):
 
         raise AssertionError, "Null view cannot be made current"
@@ -1081,6 +1116,10 @@ class NullRepositoryView(RepositoryView):
     def _createChildren(self, parent, new):
 
         return Children(parent, new)
+
+    def _createNumericIndex(self, **kwds):
+
+        return NumericIndex(**kwds)
     
     def _getLobType(self):
 

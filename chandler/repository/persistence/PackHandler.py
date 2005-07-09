@@ -81,9 +81,9 @@ class PackHandler(ContentHandler):
     def packEnd(self, attrs):
 
         if not attrs.has_key('file'):
-            itemKind = self.view.findPath('Schema/Core/Item')
-            self.pack._kind = itemKind         #kludge
-            self.pack.description = self.path
+            packKind = self.view.findPath('Schema/Core/Pack')
+            self.pack.itsKind = packKind
+            self.pack.path = self.path
             for hook in self.hooks.pop():
                 hook(self.view)
 

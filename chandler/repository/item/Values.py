@@ -1006,19 +1006,23 @@ class ItemValue(object):
 
         return self._item
 
-    def _refCount(self):
-
-        return 1
-
     def _getAttribute(self):
 
         return self._attribute
+
+    def _getOwner(self):
+
+        return (self._item, self._attribute)
+
+    def _refCount(self):
+
+        return 1
 
     def _isReadOnly(self):
 
         return self._readOnly and self._item is not None
 
-    def _setDirty(self):
+    def _setDirty(self, noMonitors=False):
 
         if self._isReadOnly():
             raise ReadOnlyAttributeError, (self._item, self._attribute)
@@ -1026,7 +1030,8 @@ class ItemValue(object):
         self._dirty = True
         item = self._item
         if item is not None:
-            item.setDirty(item.VDIRTY, self._attribute, item._values)
+            item.setDirty(item.VDIRTY, self._attribute,
+                          item._values, noMonitors)
 
     def _copy(self, item, attribute):
 

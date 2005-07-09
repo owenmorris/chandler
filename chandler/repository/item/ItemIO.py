@@ -58,17 +58,14 @@ class ItemWriter(object):
     def writeUUID(self, buffer, value):
         raise NotImplementedError, "%s.writeUUID" %(type(self))
 
-    def writeList(self, buffer, item, value, withSchema, attrType):
+    def writeList(self, buffer, item, version, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeList" %(type(self))
 
-    def writeSet(self, buffer, item, value, withSchema, attrType):
+    def writeSet(self, buffer, item, version, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeSet" %(type(self))
 
-    def writeDict(self, buffer, item, value, withSchema, attrType):
+    def writeDict(self, buffer, item, version, value, withSchema, attrType):
         raise NotImplementedError, "%s.writeDict" %(type(self))
-
-    def writeStruct(self, buffer, item, value, withSchema, attrType):
-        raise NotImplementedError, "%s.writeStruct" %(type(self))
 
     def _kind(self, kind):
         raise NotImplementedError, "%s._kind" %(type(self))

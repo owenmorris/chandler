@@ -39,6 +39,7 @@ class TestImport(RepositoryTestCase):
     def testImport(self):
 
         self._loadCG()
+        nv.clear()
         nv.importItem(self.kh)
         nv.importItem(self.rep.view['Packs'])
         nv.importItem(self.rep.view['parcels'])
@@ -53,6 +54,7 @@ class TestImport(RepositoryTestCase):
     def testCreate(self):
 
         self._loadCG()
+        nv.clear()
         nv.importItem(self.kh)
         nv.importItem(self.rep.view['Packs'])
         nv.importItem(self.rep.view['parcels'])
@@ -72,7 +74,7 @@ class TestImport(RepositoryTestCase):
         self.assert_(m9.itsView is kh.itsView)
         self.assert_(m9.itsView is self.rep.view)
         self.assert_(m9.itsView is not nv)
-        self.assert_(kh.movies.last('t') is m9)
+        self.assert_(kh.movies.lastInIndex('t') is m9)
 
         self.assert_(self.rep.check())
         self.assert_(nv.check())
@@ -94,7 +96,6 @@ class TestImport(RepositoryTestCase):
 
         view = self.rep.view
 
-        nv.loadPack(self.schemaPack)
         nv.loadPack(self.chandlerPack)
         nv.loadPack(cineguidePack)
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('n', 'numeric')

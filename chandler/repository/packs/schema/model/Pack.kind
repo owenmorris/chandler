@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item>
+    <name>Pack</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes">
+      <!-- 
+         - plus local attributes below:
+         -     version, path
+        -->
+    </ref>
+
+    <ref name="superKinds">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+  </item>
+
+  <item>
+    <name>version</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Pack</parent>
+
+    <ref name="kinds">
+      <ref type="path" otherAlias="version">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/Integer</ref>
+    <attribute name="initialValue" type="int">0</attribute>
+  </item>
+
+  <item>
+    <name>path</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Pack</parent>
+
+    <ref name="kinds">
+      <ref type="path" otherAlias="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/String</ref>
+  </item>
+
+</items>

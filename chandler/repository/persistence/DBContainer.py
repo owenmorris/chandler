@@ -13,7 +13,7 @@ from chandlerdb.persistence.container import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from repository.persistence.Repository import Repository
-from repository.persistence.RepositoryError import RepositoryFormatError
+from repository.persistence.RepositoryError import RepositoryFormatVersionError
 
 from bsddb.db import DB
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
@@ -1083,10 +1083,10 @@ class ValueContainer(DBContainer, CValueContainer):
         if kwds.get('create', False):
             self.setVersion(0)
         else:
+            format_version = ValueContainer.FORMAT_VERSION
             x, version, format = self.getVersionInfo(Repository.itsUUID)
-            if format != ValueContainer.FORMAT_VERSION:
-                raise RepositoryFormatError, (ValueContainer.FORMAT_VERSION,
-                                              format)
+            if format != format_version:
+                raise RepositoryFormatVersionError, (format_version, format)
 
     def close(self):
 

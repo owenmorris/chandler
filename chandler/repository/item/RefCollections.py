@@ -8,12 +8,12 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
-from repository.item.Indexes import NumericIndex, AttributeIndex, CompareIndex
+from repository.item.Indexed import Indexed
 from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
 
 
-class RefList(LinkedMap):
+class RefList(LinkedMap, Indexed):
     """
     This class implements a double-linked list of bi-directional item
     references backed by a C{dict} mapping UUIDs to item references with
@@ -31,12 +31,13 @@ class RefList(LinkedMap):
         
         super(RefList, self).__init__(new)
 
+        self._item = None
         self._name = name
         self._otherName = otherName
-        self._item = None
+        self._indexes = None
+
         if item is not None:
             self._setItem(item)
-        self._indexes = None
 
         if readOnly:
             self._flags |= RefList.READONLY
@@ -115,9 +116,13 @@ class RefList(LinkedMap):
         else:
             self._flags &= ~RefList.SETDIRTY
 
-    def _getRepository(self):
+    def _getView(self):
 
         return self._item.itsView
+
+    def _getOwner(self):
+
+        return (self._item, self._name)
 
     def __repr__(self):
 
@@ -145,102 +150,6 @@ class RefList(LinkedMap):
             key = key._uuid
         
         return super(RefList, self).__contains__(key)
-
-    def addIndex(self, indexName, indexType, **kwds):
-        """
-        Add an index to this ref collection.
-
-        A ref collection index provides positional access into the
-        collection and maintains a key order which is be determined by the
-        sequence of collection mutation operations or by constraints
-        on values.
-
-        A ref collection may have any number of indexes. Each index has a
-        name which is used with the L{placeItem}, L{getByIndex},
-        L{getIndexEntryValue}, L{setIndexEntryValue}, L{resolveIndex},
-        L{first}, L{last}, L{next}, L{previous} methods.
-
-        Because the implementation of an index depends on the persistence
-        layer, the type of index is chosen with the C{indexType} parameter
-        which can have one of the following values:
-
-            - C{numeric}: a simple index reflecting the sequence of mutation
-              operations.
-
-            - C{attribute}: an index sorted on the value of an attribute
-              of items in the collection. The name of the attribute is
-              provided via the C{attribute} keyword.
-
-            - C{compare}: an index sorted on the return value of a method
-              invoked on items in the collection. The method is a comparison
-              method whose name is provided with the C{compare} keyword, and
-              it is invoked on C{i0}, with the other item being compared,
-              C{i1}, and is expected to return a positive number if, in the
-              context of this index, C{i0 > i1}, a negative number if C{i0 <
-              i1}, or zero if C{i0 == i1}.
-
-        @param indexName: the name of the index
-        @type indexName: a string
-        @param indexType: the type of index
-        @type indexType: a string
-        """
-
-        if self._indexes is not None:
-            if indexName in self._indexes:
-                raise IndexAlreadyExists, (self._item, self._name, indexName)
-        else:
-            self._indexes = {}
-
-        index = self._createIndex(indexType, **kwds)
-        self._indexes[indexName] = index
-
-        if not self._getRepository().isLoading():
-            self.fillIndex(index)
-            self._setDirty(noMonitors=True)
-
-            if indexType == 'attribute':
-                from repository.item.Monitors import Monitors
-                Monitors.attach(self._item, '_reIndex',
-                                'set', kwds['attribute'], self._name, indexName)
-
-        return index
-
-    def _createIndex(self, indexType, **kwds):
-
-        if indexType == 'numeric':
-            return NumericIndex(**kwds)
-
-        if indexType == 'attribute':
-            return AttributeIndex(self, self._createIndex('numeric', **kwds),
-                                  **kwds)
-
-        if indexType == 'compare':
-            return CompareIndex(self, self._createIndex('numeric', **kwds),
-                                **kwds)
-
-        raise NotImplementedError, "indexType: %s" %(indexType)
-
-    def removeIndex(self, indexName):
-
-        if self._indexes is None or indexName not in self._indexes:
-            raise NoSuchIndexError, (self._item, self._name, indexName)
-
-        del self._indexes[indexName]
-        self._setDirty(noMonitors=True)
-
-    def fillIndex(self, index):
-
-        for key in self.iterkeys():
-            link = self._get(key)
-            index.insertKey(key, link._previousKey)
-
-    def _restoreIndexes(self, view):
-
-        for index in self._indexes.itervalues():
-            if index.isPersistent():
-                index._restore(self._item._version)
-            else:
-                self.fillIndex(index)
 
     def extend(self, valueList):
         """
@@ -339,7 +248,7 @@ class RefList(LinkedMap):
 
         key = other._uuid
         load = kwds.get('load', True)
-        loading = self._getRepository().isLoading()
+        loading = self._getView().isLoading()
         
         old = super(RefList, self).get(key, None, load)
         if not (loading or old is None):
@@ -355,7 +264,7 @@ class RefList(LinkedMap):
                 for index in self._indexes.itervalues():
                     index.insertKey(key, link._previousKey)
             if old is None:
-                self._setDirty(noMonitors=kwds.get('noMonitors', False))
+                self._setDirty(kwds.get('noMonitors', False))
 
         if not load:
             other._references._getRef(self._otherName, self._item)
@@ -385,18 +294,17 @@ class RefList(LinkedMap):
         in instead of the collection's default intrinsic order
         """
         
-        key = item._uuid
-        if after is not None:
-            afterKey = after._uuid
-        else:
-            afterKey = None
-
         if not indexNames:
-            super(RefList, self).place(key, afterKey)
+            key = item._uuid
+            if after is not None:
+                afterKey = after._uuid
+            else:
+                afterKey = None
+
+            self.place(key, afterKey)
+
         else:
-            for indexName in indexNames:
-                self._index(indexName).moveKey(key, afterKey)
-            self._setDirty()
+            self.placeInIndex(item, after, *indexNames)
 
     def insertItem(self, item, after, *indexNames):
         """
@@ -488,11 +396,11 @@ class RefList(LinkedMap):
         if ref is None:
             return False
         
-        repository = self._getRepository()
+        view = self._getView()
             
         try:
-            loading = repository._setLoading(True)
-            other = repository.find(key)
+            loading = view._setLoading(True)
+            other = view.find(key)
             if other is None:
                 raise DanglingRefError, (self._item, self._name, key)
             
@@ -501,7 +409,7 @@ class RefList(LinkedMap):
                     
             return True
         finally:
-            repository._setLoading(loading, True)
+            view._setLoading(loading, True)
 
         return False
 
@@ -521,7 +429,7 @@ class RefList(LinkedMap):
             raise ReadOnlyAttributeError, (self._item, self._name)
 
         if key is not None:
-            self._setDirty(noMonitors=True)
+            self._setDirty(True)
 
     def get(self, key, default=None, load=True):
         """
@@ -557,55 +465,11 @@ class RefList(LinkedMap):
 
         return super(RefList, self).setAlias(item._uuid, alias)
 
-    def getByIndex(self, indexName, position):
-        """
-        Get an item through its position in an index.
-
-        C{position} is 0-based and may be negative to begin search from end
-        going backwards with C{-1} being the index of the last element.
-
-        C{IndexError} is raised if C{position} is out of range.
-
-        @param indexName: the name of the index to search
-        @type indexName: a string
-        @param position: the position of the item in the index
-        @type position: integer
-        @return: an C{Item} instance
-        """
-
-        return self[self._index(indexName).getKey(position)]
-
     def removeByIndex(self, indexName, position):
-        """
-        Remove an item through its position in an index.
-
-        C{position} is 0-based and may be negative to begin search from end
-        going backwards with C{-1} being the index of the last element.
-
-        C{IndexError} is raised if C{position} is out of range.
-
-        @param indexName: the name of the index to search
-        @type indexName: a string
-        @param position: the position of the item in the index
-        @type position: integer
-        """
 
         del self[self._index(indexName).getKey(position)]
 
     def insertByIndex(self, indexName, position, item):
-        """
-        Insert an item at a position in an index.
-
-        C{position} is 0-based and may be negative to begin search from end
-        going backwards with C{-1} being the index of the last element.
-
-        C{IndexError} is raised if C{position} is out of range.
-
-        @param indexName: the name of the index to search
-        @type indexName: a string
-        @param position: the position of the item in the index
-        @type position: integer
-        """
 
         if position == 0:
             after = None
@@ -614,80 +478,9 @@ class RefList(LinkedMap):
         self.insertItem(item, after, indexName)
 
     def replaceByIndex(self, indexName, position, with):
-        """
-        Replace an item with another item in its position in an index.
-
-        C{position} is 0-based and may be negative to begin search from end
-        going backwards with C{-1} being the index of the last element.
-
-        C{IndexError} is raised if C{position} is out of range.
-
-        @param indexName: the name of the index to search
-        @type indexName: a string
-        @param position: the position of the item in the index to replace
-        @type position: integer
-        @param with: the item to substitute in
-        @type with: an C{Item} instance
-        """
 
         item = self[self._index(indexName).getKey(position)]
         self.replaceItem(self, item, with, indexName)
-
-    def resolveIndex(self, indexName, position):
-
-        return self._index(indexName).getKey(position)
-
-    def getIndexPosition(self, indexName, item):
-        """
-        Return the position of an item in an index of this collection.
-
-        Raises C{NoSuchItemInCollectionError} if the item is not in this
-        collection.
-
-        @param indexName: the name of the index to search
-        @type indexName: a string
-        @param item: the item sought
-        @type item: an C{Item} instance
-        @return: the 0-based position of the item in the index.
-        """
-
-        if item in self:
-            return self._index(indexName).getPosition(item._uuid)
-        else:
-            raise NoSuchItemInCollectionError, (self._item, self._name, item)
-
-    def getIndexEntryValue(self, indexName, item):
-        """
-        Get an index entry value.
-
-        Each entry in a index may store one integer value. This value is
-        initialized to zero.
-
-        @param indexName: the name of the index
-        @type indexName: a string
-        @param item: the item's whose index entry is to be set
-        @type item: an L{Item<repository.item.Item.Item>} instance
-        @return: the index entry value
-        """
-        
-        return self._index(indexName).getEntryValue(item._uuid)
-
-    def setIndexEntryValue(self, indexName, item, value):
-        """
-        Set an index entry value.
-
-        Each index entry may store one integer value.
-
-        @param indexName: the name of the index
-        @type indexName: a string
-        @param item: the item whose index entry is to be set
-        @type item: an L{Item<repository.item.Item.Item>} instance
-        @param value: the value to set
-        @type value: int
-        """
-
-        self._index(indexName).setEntryValue(item._uuid, value)
-        self._setDirty()
 
     def refCount(self, loaded):
         """
@@ -746,55 +539,38 @@ class RefList(LinkedMap):
         
         raise NotImplementedError, 'RefList.copy is not supported'
 
-    def first(self, indexName=None):
+    def first(self):
         """
         Get the first item referenced in this ref collection.
 
-        @param indexName: the name of an index to use instead of the
-        collection's default intrinsic order
-        @type indexName: a string
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        if indexName is None:
-            firstKey = self.firstKey()
-        else:
-            firstKey = self._index(indexName).getFirstKey()
-            
+        firstKey = self.firstKey()
         if firstKey is not None:
             return self[firstKey]
 
         return None
 
-    def last(self, indexName=None):
+    def last(self):
         """
         Get the last item referenced in this ref collection.
 
-        @param indexName: the name of an index to use instead of the
-        collection's default intrinsic order
-        @type indexName: a string
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        if indexName is None:
-            lastKey = self.lastKey()
-        else:
-            lastKey = self._index(indexName).getLastKey()
-            
+        lastKey = self.lastKey()
         if lastKey is not None:
             return self[lastKey]
 
         return None
 
-    def next(self, previous, indexName=None):
+    def next(self, previous):
         """
         Get the next referenced item relative to previous.
 
         @param previous: the previous item relative to the item sought.
         @type previous: a C{Item} instance
-        @param indexName: the name of an index to use instead of the
-        collection's default intrinsic order
-        @type indexName: a string
         @return: an C{Item} instance or C{None} if C{previous} is the last
         referenced item in the collection.
         """
@@ -802,10 +578,7 @@ class RefList(LinkedMap):
         key = previous._uuid
 
         try:
-            if indexName is None:
-                nextKey = self.nextKey(key)
-            else:
-                nextKey = self._index(indexName).getNextKey(key)
+            nextKey = self.nextKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -818,15 +591,12 @@ class RefList(LinkedMap):
 
         return None
 
-    def previous(self, next, indexName=None):
+    def previous(self, next):
         """
         Get the previous referenced item relative to next.
 
         @param next: the next item relative to the item sought.
         @type next: a C{Item} instance
-        @param indexName: the name of an index to use instead of the
-        collection's default intrinsic order
-        @type indexName: a string
         @return: an C{Item} instance or C{None} if next is the first
         referenced item in the collection.
         """
@@ -834,10 +604,7 @@ class RefList(LinkedMap):
         key = next._uuid
 
         try:
-            if indexName is None:
-                previousKey = self.previousKey(key)
-            else:
-                previousKey = self._index(indexName).getPreviousKey(key)
+            previousKey = self.previousKey(key)
         except KeyError:
             if key in self:
                 raise
@@ -850,45 +617,6 @@ class RefList(LinkedMap):
 
         return None
 
-    def iterkeys(self, indexName=None):
-
-        if indexName is None:
-            for key in super(RefList, self).iterkeys():
-                yield key
-
-        else:
-            index = self._index(indexName)
-            nextKey = index.getFirstKey()
-            while nextKey is not None:
-                key = nextKey
-                nextKey = index.getNextKey(nextKey)
-                yield key
-
-    def itervalues(self, indexName=None):
-
-        for key in self.iterkeys(indexName):
-            yield self[key]
-
-    def iteritems(self, indexName=None):
-
-        for key in self.iterkeys(indexName):
-            yield (key, self[key])
-
-    def setDescending(self, indexName, descending=True):
-
-        self._index(indexName).setDescending(descending)
-        self._setDirty(noMonitors=True)
-
-    def _index(self, indexName):
-
-        if self._indexes is None:
-            raise NoSuchIndexError, (self._item, self._name, indexName)
-
-        try:
-            return self._indexes[indexName]
-        except KeyError:
-            raise NoSuchIndexError, (self._item, self._name, indexName)
-
     def check(self, logger, name, item):
         """
         Debugging: verify this ref collection for consistency.
@@ -899,7 +627,7 @@ class RefList(LinkedMap):
         """
 
         l = len(self)
-        logger = self._getRepository().logger
+        logger = self._getView().logger
 
         if item is not self._item or name != self._name:
             logger.error('Ref collection not owned by %s.%s: %s',

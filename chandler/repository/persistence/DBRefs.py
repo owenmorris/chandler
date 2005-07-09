@@ -225,7 +225,7 @@ class DBRefList(RefList, PersistentRefs):
 
         return PersistentRefs.link(value)
 
-    def _getRepository(self):
+    def _getView(self):
 
         return self.view
 
@@ -317,13 +317,6 @@ class DBRefList(RefList, PersistentRefs):
         if self._indexes:
             for name, index in self._indexes.iteritems():
                 index._clearDirties()
-
-    def _createIndex(self, indexType, **kwds):
-
-        if indexType == 'numeric':
-            return DBNumericIndex(self._getRepository(), **kwds)
-
-        return super(DBRefList, self)._createIndex(indexType, **kwds)
 
     def _copy_(self, orig):
 

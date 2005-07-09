@@ -28,6 +28,7 @@
 
     <item path="//Schema/Core" cwd="model" afterLoadHooks="True">
       <item file="Query.kind" />
+      <item file="Pack.kind" />
       <item file="Clouds.namespace" cwd="clouds">
         <item file="Kind.cloud" />
         <item file="Attribute.cloud" />

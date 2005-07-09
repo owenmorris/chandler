@@ -34,7 +34,6 @@ class SharingTestCase(unittest.TestCase):
 
         rootdir = os.environ['CHANDLERHOME']
         packs = (
-         os.path.join(rootdir, 'repository', 'packs', 'schema.pack'),
          os.path.join(rootdir, 'repository', 'packs', 'chandler.pack'),
         )
         parcelpath = [os.path.join(rootdir, 'parcels')]

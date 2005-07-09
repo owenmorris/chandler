@@ -29,9 +29,9 @@ def makePreloadedRepository(path, schema=True, parcels=False):
 
     if schema:
         # Load all core schemas
-        schemaPack = os.path.join(rootdir, 'chandler', 'repository',
-                                  'packs', 'schema.pack')
-        rep.loadPack(schemaPack)
+        chandlerPack = os.path.join(rootdir, 'chandler', 'repository',
+                                    'packs', 'chandler.pack')
+        rep.loadPack(chandlerPack)
 
     if parcels:
         manager = application.Parcel.Manager.get(rep.view, \
@@ -48,8 +48,6 @@ def testCreate(rep, rootdir):
     rep.delete()
     t1 = time.time()
     rep.create()
-    schemaPack = os.path.join(rootdir, 'repository', 'packs', 'schema.pack')
-    rep.loadPack(schemaPack)
     rep.commit()
     print time.time() - t1
 

@@ -684,7 +684,7 @@ class Kind(Item):
             
         generator.characters(data)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -694,7 +694,8 @@ class Kind(Item):
             buffer.write(value.itsUUID._uuid)
             return 17
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None

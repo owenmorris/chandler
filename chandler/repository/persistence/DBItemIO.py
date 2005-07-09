@@ -107,14 +107,15 @@ class DBItemWriter(ItemWriter):
         buffer.write(value._uuid)
         return 16
 
-    def writeValue(self, buffer, item, value, withSchema, attrType):
+    def writeValue(self, buffer, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.SINGLE | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, True,
                               withSchema, attrType)
-        return attrType.writeValue(self, buffer, item, value, withSchema)
+        return attrType.writeValue(self, buffer, item, version,
+                                   value, withSchema)
 
-    def writeList(self, buffer, item, value, withSchema, attrType):
+    def writeList(self, buffer, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.LIST | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
@@ -122,11 +123,12 @@ class DBItemWriter(ItemWriter):
         buffer.write(pack('>I', len(value)))
         size = 4
         for v in value:
-            size += self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, version,
+                                    v, withSchema, attrType)
 
         return size
 
-    def writeSet(self, buffer, item, value, withSchema, attrType):
+    def writeSet(self, buffer, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.SET | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
@@ -134,11 +136,12 @@ class DBItemWriter(ItemWriter):
         buffer.write(pack('>I', len(value)))
         size = 4
         for v in value:
-            size += self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, version,
+                                    v, withSchema, attrType)
 
         return size
 
-    def writeDict(self, buffer, item, value, withSchema, attrType):
+    def writeDict(self, buffer, item, version, value, withSchema, attrType):
 
         flags = DBItemWriter.DICT | DBItemWriter.VALUE
         attrType = self._type(buffer, flags, item, value, False,
@@ -146,8 +149,21 @@ class DBItemWriter(ItemWriter):
         buffer.write(pack('>I', len(value)))
         size = 4
         for k, v in value._iteritems():
-            size += self.writeValue(buffer, item, k, False, None)
-            size += self.writeValue(buffer, item, v, withSchema, attrType)
+            size += self.writeValue(buffer, item, version,
+                                    k, False, None)
+            size += self.writeValue(buffer, item, version,
+                                    v, withSchema, attrType)
+
+        return size
+
+    def writeIndexes(self, buffer, item, version, value):
+
+        if value._indexes:
+            buffer.write(pack('>H', len(value._indexes)))
+            size = 2 + value._saveIndexes(self, buffer, version)
+        else:
+            buffer.write('\0\0')
+            size = 2
 
         return size
 
@@ -227,13 +243,17 @@ class DBItemWriter(ItemWriter):
 
         try:
             if attrCard == 'single':
-                self.writeValue(buffer, item, value, withSchema, attrType)
+                self.writeValue(buffer, item, version,
+                                value, withSchema, attrType)
             elif attrCard == 'list':
-                self.writeList(buffer, item, value, withSchema, attrType)
+                self.writeList(buffer, item, version,
+                               value, withSchema, attrType)
             elif attrCard == 'set':
-                self.writeSet(buffer, item, value, withSchema, attrType)
+                self.writeSet(buffer, item, version,
+                              value, withSchema, attrType)
             elif attrCard == 'dict':
-                self.writeDict(buffer, item, value, withSchema, attrType)
+                self.writeDict(buffer, item, version,
+                               value, withSchema, attrType)
         except Exception, e:
             raise SaveValueError, (item, name, e)
 
@@ -323,15 +343,7 @@ class DBItemWriter(ItemWriter):
                 self.writeSymbol(buffer,
                                  item._kind.getOtherName(name, attribute._uuid))
             size += value._saveValues(version)
-            if value._indexes:
-                buffer.write(pack('>H', len(value._indexes)))
-                for name, index in value._indexes.iteritems():
-                    self.writeSymbol(buffer, name)
-                    self.writeSymbol(buffer, index.getIndexType())
-                    index._writeValue(self, buffer)
-                    size += index._saveValues(version)
-            else:
-                buffer.write('\0\0')
+            size += self.writeIndexes(buffer, item, version, value)
 
         size += self.store._values.saveValue(self.store.txn, item._uuid,
                                              version, attribute._uuid, uValue,
@@ -578,16 +590,16 @@ class DBItemReader(ItemReader):
 
         if flags & DBItemWriter.SINGLE:
             return self.readValue(offset, data, withSchema, attrType,
-                                  view, name)
+                                  view, name, afterLoadHooks)
         elif flags & DBItemWriter.LIST:
             return self.readList(offset, data, withSchema, attrType,
-                                 view, name)
+                                 view, name, afterLoadHooks)
         elif flags & DBItemWriter.SET:
             return self.readSet(offset, data, withSchema, attrType,
-                                view, name)
+                                view, name, afterLoadHooks)
         elif flags & DBItemWriter.DICT:
             return self.readDict(offset, data, withSchema, attrType,
-                                 view, name)
+                                 view, name, afterLoadHooks)
         else:
             raise LoadValueError, (self.name or self.uItem, name,
                                    "invalid cardinality: 0x%x" %(flags))
@@ -612,16 +624,7 @@ class DBItemReader(ItemReader):
                 otherName = kind.getOtherName(name, attribute._uuid)
             value = view._createRefList(None, name, otherName,
                                         True, False, False, uuid)
-            count, = unpack('>H', data[offset:offset+2])
-            offset += 2
-            if count > 0:
-                for i in xrange(count):
-                    offset, indexName = self.readSymbol(offset, data)
-                    offset, indexType = self.readSymbol(offset, data)
-                    index = value.addIndex(indexName, indexType, loading=True)
-                    offset = index._readValue(self, offset, data)
-
-                afterLoadHooks.append(value._restoreIndexes)
+            offset = self.readIndexes(offset, data, value, afterLoadHooks)
 
             return offset, value
 
@@ -642,16 +645,19 @@ class DBItemReader(ItemReader):
 
         return offset+1, attrType
 
-    def readValue(self, offset, data, withSchema, attrType, view, name):
+    def readValue(self, offset, data, withSchema, attrType, view, name,
+                  afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
         if attrType is None:
             raise LoadValueError, (self.name or self.uItem, name,
                                    "value type is None")
         
-        return attrType.readValue(self, offset, data, withSchema, view, name)
+        return attrType.readValue(self, offset, data, withSchema, view, name,
+                                  afterLoadHooks)
 
-    def readList(self, offset, data, withSchema, attrType, view, name):
+    def readList(self, offset, data, withSchema, attrType, view, name,
+                 afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
         count, = unpack('>I', data[offset:offset+4])
@@ -660,12 +666,13 @@ class DBItemReader(ItemReader):
         value = PersistentList((None, None, None))
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name)
+                                       view, name, afterLoadHooks)
             value.append(v, False)
 
         return offset, value
 
-    def readSet(self, offset, data, withSchema, attrType, view, name):
+    def readSet(self, offset, data, withSchema, attrType, view, name,
+                afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
         count, = unpack('>I', data[offset:offset+4])
@@ -674,12 +681,13 @@ class DBItemReader(ItemReader):
         value = PersistentSet((None, None, None))
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name)
+                                       view, name, afterLoadHooks)
             value.add(v, False)
 
         return offset, value
 
-    def readDict(self, offset, data, withSchema, attrType, view, name):
+    def readDict(self, offset, data, withSchema, attrType, view, name,
+                 afterLoadHooks):
 
         offset, attrType = self._type(offset, data, attrType, view, name)
         count, = unpack('>I', data[offset:offset+4])
@@ -688,12 +696,24 @@ class DBItemReader(ItemReader):
         value = PersistentDict((None, None, None))
         for i in xrange(count):
             offset, k = self.readValue(offset, data, False, None,
-                                       view, name)
+                                       view, name, afterLoadHooks)
             offset, v = self.readValue(offset, data, withSchema, attrType,
-                                       view, name)
+                                       view, name, afterLoadHooks)
             value.__setitem__(k, v, False)
 
         return offset, value
+
+    def readIndexes(self, offset, data, value, afterLoadHooks):
+
+        count, = unpack('>H', data[offset:offset+2])
+        offset += 2
+
+        if count > 0:
+            for i in xrange(count):
+                offset = value._loadIndex(self, offset, data)
+            afterLoadHooks.append(value._restoreIndexes)
+
+        return offset
 
 
 class DBItemMergeReader(DBItemReader):

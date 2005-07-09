@@ -113,7 +113,7 @@ class Repository(object):
 
         if kwds.get('refcounted', False):
             self._status |= Repository.REFCOUNTED
-            
+
     def _isRepository(self):
 
         return True

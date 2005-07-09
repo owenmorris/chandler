@@ -460,11 +460,9 @@ class Item(CItem):
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
-            refList = self.getAttributeValue(collectionName, self._references,
-                                             None, None)
-                                             
-            if refList is not None and item._uuid in refList:
-                refList.placeItem(item, None, indexName)
+            collection = getattr(self, collectionName, None)
+            if collection is not None and item in collection:
+                collection.placeInIndex(item, None, indexName)
 
     def _kindChanged(self, op, item, attribute, prevKind, name):
 

@@ -212,7 +212,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         q = Query.Query('testResetQuery', p, k)
         self.assert_(len([ i for i in q]) == 0)
         q.queryString = 'for i in "//Schema/Core/Kind" where True'
-        self.assert_(len([ i for i in q ]) == 16)
+        self.assert_(len([ i for i in q ]) == 17)
         q.queryString = 'for i in "//Schema/Core/Kind" where contains(i.itsName,"o")'
         self.assert_(len([ i for i in q ]) == 6)
 
@@ -222,14 +222,14 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testResetQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
-        self.assert_(len([ i for i in q ]) == 16)
+        self.assert_(len([ i for i in q ]) == 17)
         self.rep.check()
         self.rep.commit()
         uuid = q.itsUUID
 
         self._reopenRepository()
         q1 = self.rep.findUUID(uuid)
-        self.assert_(len([ i for i in q1 ]) == 16)
+        self.assert_(len([ i for i in q1 ]) == 17)
 
     def testCopyQuery(self):
         """ Test to see that we can copy a query """
@@ -237,10 +237,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testCopyQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
-        self.assert_(len([ i for i in q ]) == 16)
+        self.assert_(len([ i for i in q ]) == 17)
 
         c = q.copy('testCopyQuery1')
-        self.assert_(len([ i for i in c ]) == 16)
+        self.assert_(len([ i for i in c ]) == 17)
         self.assert_(c is not q)
         for i in q:
             if i not in c:

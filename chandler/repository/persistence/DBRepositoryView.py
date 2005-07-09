@@ -18,7 +18,7 @@ from repository.persistence.RepositoryView \
 from repository.persistence.Repository \
      import Repository, RepositoryNotifications
 from repository.persistence.DBLob import DBLob
-from repository.persistence.DBRefs import DBRefList, DBChildren
+from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
 from repository.persistence.DBContainer import HashTuple
 from repository.persistence.DBItemIO \
      import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
@@ -28,10 +28,10 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def openView(self):
 
-        super(DBRepositoryView, self).openView()
-
         self._log = set()
         self._indexWriter = None
+
+        super(DBRepositoryView, self).openView()
 
     def _logItem(self, item):
         
@@ -114,6 +114,10 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBChildren(self, parent, new)
 
+    def _createNumericIndex(self, **kwds):
+
+        return DBNumericIndex(self, **kwds)
+    
     def _registerItem(self, item):
 
         super(DBRepositoryView, self)._registerItem(item)

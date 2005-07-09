@@ -36,10 +36,16 @@ class VersionConflictError(RepositoryError):
         return self.args[0]
 
 
-class RepositoryFormatError(RepositoryError):
+class RepositoryVersionError(RepositoryError):
 
     def __str__(self):
-        return "Repository format version mismatch, expected version 0x%08x, but got 0x%08x" %(self.args[0], self.args[1])
+        return self.__doc__ %(self.args[0], self.args[1])
+
+class RepositoryFormatVersionError(RepositoryVersionError):
+    "Repository format version mismatch, expected version 0x%08x, but got 0x%08x"
+
+class RepositorySchemaVersionError(RepositoryVersionError):
+    "Repository core schema version mismatch, expected version 0x%08x, but got 0x%08x"
 
 
 class NoSuchItemError(RepositoryError):

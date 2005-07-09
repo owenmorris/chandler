@@ -66,15 +66,16 @@ class Alias(Type):
 
         raise TypeError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if 'types' not in self._references:
-            return super(Alias, self).writeValue(itemWriter, buffer,
-                                                 item, value, withSchema)
+            return super(Alias, self).writeValue(itemWriter, buffer, item,
+                                                 version, value, withSchema)
 
         for t in self.types:
             if t.recognizes(value):
-                return t.writeValue(itemWriter, buffer, item, value, withSchema)
+                return t.writeValue(itemWriter, buffer, item,
+                                    version, value, withSchema)
 
         raise TypeError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)
 

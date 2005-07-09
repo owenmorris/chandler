@@ -25,8 +25,6 @@ class RepositoryTestCase(TestCase):
     def _setup(self, ramdb=True):
         schema.reset()
         self.rootdir = os.environ['CHANDLERHOME']
-        self.schemaPack = os.path.join(self.rootdir, 'repository',
-                                  'packs', 'schema.pack')
         self.chandlerPack = os.path.join(self.rootdir, 'repository',
                                          'packs', 'chandler.pack')
 
@@ -55,7 +53,6 @@ class RepositoryTestCase(TestCase):
             self.rep.create(ramdb=self.ramdb,
                             refcounted=True)
             self.rep.logger.setLevel(self.logLevel)
-            self.rep.loadPack(self.schemaPack)
             self.rep.loadPack(self.chandlerPack)
             self.rep.commit()
 

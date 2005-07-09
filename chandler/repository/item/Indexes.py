@@ -404,7 +404,7 @@ class CompareIndex(SortedIndex):
         super(CompareIndex, self)._writeValue(itemWriter, buffer)
         itemWriter.writeSymbol(buffer, self._compare)
 
-    def __readValue(self, itemReader, offset, data):
+    def _readValue(self, itemReader, offset, data):
 
         offset = super(CompareIndex, self)._readValue(itemReader, offset, data)
         offset, self._compare = itemReader.readSymbol(offset, data)

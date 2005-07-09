@@ -92,6 +92,12 @@ class LinkedMap(dict):
         if self._aliases is not None:
             self._aliases.clear()
 
+    def clear(self):
+
+        self._clear_()
+        self._firstKey = None
+        self._lastKey = None
+
     def _copy_(self, orig):
 
         self._clear_()

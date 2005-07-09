@@ -24,7 +24,7 @@ class Monitors(Item):
             self.setPinned()
             Monitors.instances[view] = self
 
-    def onViewClose(self, view):
+    def onViewClear(self, view):
 
         try:
             del Monitors.instances[view]

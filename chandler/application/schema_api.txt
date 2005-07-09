@@ -729,7 +729,7 @@ loaded::
     schemas for Chandler.
 
     >>> nrv = NullRepositoryView()
-    >>> print nrv.findPath('//Schema/Core')
+    >>> print nrv.findPath('//Schema/Core/Parcel')
     None
 
     >>> schema.initRepository(nrv)

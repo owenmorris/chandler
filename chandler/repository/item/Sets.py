@@ -9,14 +9,17 @@ from chandlerdb.util.uuid import UUID
 from repository.item.Values import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
+from repository.item.Indexed import Indexed
 
 
-class AbstractSet(ItemValue):
+class AbstractSet(ItemValue, Indexed):
 
     def __init__(self, view):
 
         super(AbstractSet, self).__init__()
+
         self._view = view
+        self._indexes = None
 
     def __contains__(self, item):
         raise NotImplementedError, "%s.__contains__" %(type(self))
@@ -26,6 +29,15 @@ class AbstractSet(ItemValue):
 
     def _setChanged(self, op, setOwner, setName, other):
         raise NotImplementedError, "%s._setChanged" %(type(self))
+
+    def __getitem__(self, uuid):
+
+        return self._getView()[uuid]
+
+    def iterkeys(self):
+
+        for item in self:
+            yield item.itsUUID
 
     def dir(self):
         """
@@ -101,6 +113,11 @@ class AbstractSet(ItemValue):
                     item.watchCollection(view[source[0]], source[1],
                                          'set', attribute)
 
+    def _setSourceView(self, source, view):
+
+        if isinstance(source, AbstractSet):
+            source._setView(view)
+
     def _sourceChanged(self, source, op, change, sourceOwner, sourceName, other,
                        *args):
 
@@ -114,15 +131,46 @@ class AbstractSet(ItemValue):
 
         return None
 
+    def _collectionChanged(self, op, other):
+
+        item = self._item
+
+        if item is not None:
+            if self._indexes:
+                key = other.itsUUID
+                if op == 'add':
+                    for index in self._indexes.itervalues():
+                        index.insertKey(key, index.getLastKey())
+                elif op == 'remove':
+                    for index in self._indexes.itervalues():
+                        index.removeKey(key)
+                else:
+                    raise ValueError, op
+
+            item.collectionChanged(op, item, self._attribute, other)
+            item._collectionChanged(op, self._attribute, other)
+
+    def removeByIndex(self, indexName, position):
+
+        raise TypeError, "%s contents are computed" %(type(self))
+
+    def insertByIndex(self, indexName, position, item):
+
+        raise TypeError, "%s contents are computed" %(type(self))
+
+    def replaceByIndex(self, indexName, position, with):
+
+        raise TypeError, "%s contents are computed" %(type(self))
+
     @classmethod
     def makeValue(cls, string):
-        return eval(string, globals(), locals())
+        return eval(string)
 
     @classmethod
     def makeString(cls, value):
         return repr(value)
 
-    itsView = property(_getView, _setView)
+    itsView = property(_getView, lambda self, view: self._setView(view))
 
 
 class Set(AbstractSet):
@@ -151,6 +199,11 @@ class Set(AbstractSet):
         self._setSourceItem(self._source,
                             item, attribute, oldItem, oldAttribute)
 
+    def _setView(self, view):
+
+        super(Set, self)._setView(view)
+        self._setSourceView(self._source, view)
+
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       *args):
 
@@ -158,10 +211,7 @@ class Set(AbstractSet):
                                  sourceOwner, sourceName, other, *args)
 
         if not (inner is True or op is None):
-            item = self._item
-            if item is not None:
-                item.collectionChanged(op, item, self._attribute, other)
-                item._collectionChanged(op, self._attribute, other)
+            self._collectionChanged(op, other)
 
         return op
 
@@ -187,6 +237,12 @@ class BiSet(AbstractSet):
         self._setSourceItem(self._left, item, attribute, oldItem, oldAttribute)
         self._setSourceItem(self._right, item, attribute, oldItem, oldAttribute)
 
+    def _setView(self, view):
+
+        super(BiSet, self)._setView(view)
+        self._setSourceView(self._left, view)
+        self._setSourceView(self._right, view)
+
     def _op(self, leftOp, rightOp, other):
 
         raise NotImplementedError, "%s._op" %(type(self))
@@ -201,10 +257,7 @@ class BiSet(AbstractSet):
         op = self._op(leftOp, rightOp, other)
 
         if not (inner is True or op is None):
-            item = self._item
-            if item is not None:
-                item.collectionChanged(op, item, self._attribute, other)
-                item._collectionChanged(op, self._attribute, other)
+            self._collectionChanged(op, other)
 
         return op
 
@@ -361,10 +414,7 @@ class KindSet(AbstractSet):
                         op = None
 
                 if not (inner is True or op is None):
-                    item = self._item
-                    if item is not None:
-                        item.collectionChanged(op, item, self._attribute, other)
-                        item._collectionChanged(op, self._attribute, other)
+                    self._collectionChanged(op, other)
             else:
                 op = None
         else:

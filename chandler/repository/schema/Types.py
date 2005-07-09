@@ -57,7 +57,7 @@ class TypeKind(Kind):
             except KeyError:
                 TypeHandler.typeHandlers[view] = { None: self }
 
-    def onViewClose(self, view):
+    def onViewClear(self, view):
 
         TypeHandler.clear(view)
 
@@ -176,10 +176,11 @@ class Type(Item):
     def getParsedValue(self, itemHandler, data):
         return self.makeValue(data)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         raise NotImplementedError, "%s._writeValue" %(type(self))
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         raise NotImplementedError, "%s._readValue" %(type(self))
 
     def hashValue(self, value):
@@ -238,11 +239,12 @@ class String(Type):
 
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         return itemWriter.writeString(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         
         return itemReader.readString(offset, data)
 
@@ -289,11 +291,12 @@ class Symbol(Type):
 
         return True
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         return itemWriter.writeSymbol(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         
         return itemReader.readSymbol(offset, data)
 
@@ -312,10 +315,11 @@ class Integer(Type):
     def _compareTypes(self, other):
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         return itemWriter.writeInteger(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         return itemReader.readInteger(offset, data)
 
     def hashValue(self, value):
@@ -343,10 +347,11 @@ class Long(Type):
             return -1
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         return itemWriter.writeLong(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         return itemReader.readLong(offset, data)
 
     def hashValue(self, value):
@@ -370,10 +375,11 @@ class Float(Type):
     def _compareTypes(self, other):
         return 1
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         return itemWriter.writeFloat(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         return itemReader.readFloat(offset, data)
 
     def hashValue(self, value):
@@ -391,14 +397,15 @@ class Complex(Type):
     def makeValue(self, data):
         return complex(data[1:-1])
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         size = itemWriter.writeFloat(buffer, value.real)
         size += itemWriter.writeFloat(buffer, value.imag)
 
         return size
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         offset, real = itemReader.readFloat(offset, data)
         offset, imag = itemReader.readFloat(offset, data)
@@ -428,11 +435,12 @@ class Boolean(Type):
         else:
             raise ValueError, "'%s' is not 'T|true' or 'F|false'" %(data)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         return itemWriter.writeBoolean(buffer, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         return itemReader.readBoolean(offset, data)
 
@@ -483,7 +491,7 @@ class UUID(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -493,7 +501,8 @@ class UUID(Type):
             buffer.write(value._uuid)
             return 17
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None
@@ -550,7 +559,7 @@ class SingleRef(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -560,7 +569,8 @@ class SingleRef(Type):
             buffer.write(value._uuid._uuid)
             return 17
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None
@@ -623,7 +633,7 @@ class Path(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -634,7 +644,8 @@ class Path(Type):
 
         return size
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None
@@ -678,7 +689,7 @@ class URL(Type):
 
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -689,7 +700,8 @@ class URL(Type):
 
         return size
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None
@@ -725,11 +737,12 @@ class NoneType(Type):
     def _compareTypes(self, other):
         return -1
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         buffer.write('\0')
         return 1
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         if data[offset] != '\0':
             raise AssertionError, 'invalid byte for None'
         return offset+1, None
@@ -755,10 +768,11 @@ class Class(Type):
     def makeString(self, value):
         return '.'.join((value.__module__, value.__name__))
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
         return itemWriter.writeString(buffer, self.makeString(value))
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         offset, string = itemReader.readString(offset, data)
         return offset, ClassLoader.loadClass(string)
 
@@ -783,24 +797,25 @@ class Enumeration(Type):
     def recognizes(self, value):
 
         try:
-            return self.getAttributeValue('values', _attrDict=self._values).index(value) >= 0
+            return self.getAttributeValue('values', self._values).index(value) >= 0
         except ValueError:
             return False
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if withSchema:
             return itemWriter.writeString(buffer, value)
         else:
             return itemWriter.writeInteger(buffer, self.getAttributeValue('values', _attrDict=self._values).index(value))
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
         
         if withSchema:
             return itemReader.readString(offset, data)
         else:
             offset, integer = itemReader.readInteger(offset, data)
-            return offset, self.getAttributeValue('values', _attrDict=self._values)[integer]
+            return offset, self.getAttributeValue('values', self._values)[integer]
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
@@ -931,7 +946,7 @@ class Struct(Type):
 
         return ",".join(strings)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         size = 0
 
@@ -945,14 +960,15 @@ class Struct(Type):
             
                 fieldType = field.get('type', None)
                 size += itemWriter.writeSymbol(buffer, fieldName)
-                size += itemWriter.writeValue(buffer, item, fieldValue,
-                                              withSchema, fieldType)
+                size += itemWriter.writeValue(buffer, item, version,
+                                              fieldValue, withSchema, fieldType)
 
         size += itemWriter.writeSymbol(buffer, '')
 
         return size
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         fields = self.getAttributeValue('fields', self._values, None, None)
         value = self.getImplementationType()()
@@ -963,7 +979,8 @@ class Struct(Type):
                 fieldType = fields[fieldName].get('type', None)
                 offset, fieldValue = itemReader.readValue(offset, data,
                                                           withSchema, fieldType,
-                                                          view, name)
+                                                          view, name,
+                                                          afterLoadHooks)
                 setattr(value, fieldName, fieldValue)
             else:
                 return offset, value
@@ -1006,7 +1023,8 @@ class DateStruct(Struct):
             itemHandler.fields = None
             return self._valueFromFields(flds)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         fields = self.getAttributeValue('fields', self._values, None, None)
 
@@ -1017,7 +1035,8 @@ class DateStruct(Struct):
                 fieldType = fields[fieldName].get('type', None)
                 offset, fieldValue = itemReader.readValue(offset, data,
                                                           withSchema, fieldType,
-                                                          view, name)
+                                                          view, name,
+                                                          afterLoadHooks)
                 flds[fieldName] = fieldValue
             else:
                 break
@@ -1286,7 +1305,7 @@ class TimeZone(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         if value is None:
             buffer.write('\0')
@@ -1297,7 +1316,8 @@ class TimeZone(Type):
 
         return size
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         if data[offset] == '\0':
             return offset+1, None
@@ -1418,13 +1438,16 @@ class Dictionary(Collection):
 
         return PersistentDict((None, None, None))
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        return itemWriter.writeDict(buffer, item, value, withSchema, None)
+        return itemWriter.writeDict(buffer, item, version,
+                                    value, withSchema, None)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
-        return itemReader.readDict(offset, data, withSchema, None, view, name)
+        return itemReader.readDict(offset, data, withSchema, None, view, name,
+                                   afterLoadHooks)
 
     def hashValue(self, value):
         
@@ -1484,13 +1507,16 @@ class List(Collection):
 
         return PersistentList((None, None, None))
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        return itemWriter.writeList(buffer, item, value, withSchema, None)
+        return itemWriter.writeList(buffer, item, version,
+                                    value, withSchema, None)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
-        return itemReader.readList(offset, data, withSchema, None, view, name)
+        return itemReader.readList(offset, data, withSchema, None, view, name,
+                                   afterLoadHooks)
 
 
 class Tuple(Collection):
@@ -1549,14 +1575,16 @@ class Tuple(Collection):
         values = super(Tuple, self).getParsedValue(itemHandler, data)
         return PersistentTuple((None, None, None), values, False)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        return itemWriter.writeList(buffer, item, value, withSchema, None)
+        return itemWriter.writeList(buffer, item, version,
+                                    value, withSchema, None)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         offset, value = itemReader.readList(offset, data, withSchema,
-                                            None, view, name)
+                                            None, view, name, afterLoadHooks)
         return offset, PersistentTuple((None, None, None), value, False)
 
 
@@ -1607,13 +1635,16 @@ class Set(Collection):
 
         return PersistentSet((None, None, None))
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
-        return itemWriter.writeSet(buffer, item, value, withSchema, None)
+        return itemWriter.writeSet(buffer, item, version,
+                                   value, withSchema, None)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
-        return itemReader.readSet(offset, data, withSchema, None, view, name)
+        return itemReader.readSet(offset, data, withSchema, None, view, name,
+                                  afterLoadHooks)
 
 
 class AbstractSet(Type):
@@ -1642,16 +1673,22 @@ class AbstractSet(Type):
 
         return 0
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         string = Sets.AbstractSet.makeString(value)
-        return itemWriter.writeString(buffer, string)
+        size = itemWriter.writeString(buffer, string)
+        size += itemWriter.writeIndexes(buffer, item, version, value)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        return size
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         offset, string = itemReader.readString(offset, data)
         value = Sets.AbstractSet.makeValue(string)
         value.itsView = view
+
+        offset = itemReader.readIndexes(offset, data, value, afterLoadHooks)
 
         return offset, value
 
@@ -1711,11 +1748,12 @@ class Lob(Type):
 
         value._xmlValue(generator)
 
-    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
         return value._writeValue(itemWriter, buffer, withSchema)
 
-    def readValue(self, itemReader, offset, data, withSchema, view, name):
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
 
         value = self.getImplementationType()(self.itsView)
         return value._readValue(itemReader, offset, data, withSchema)

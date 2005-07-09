@@ -944,9 +944,7 @@ def initRepository(rv,
     """Ensure repository view `rv` has been initialized with core schema"""
 
     # Initialize the core schema, if needed
-    if rv.findPath('//Schema/Core/Item') is None:
-        rv.loadPack(os.path.join(packdir,'schema.pack'))
-    if rv.findPath('//Schema/Core/Parcel') is None:
+    if rv.findPath('//Packs/Chandler') is None:
         rv.loadPack(os.path.join(packdir,'chandler.pack'))
 
     if not hasattr(rv,'_schema_cache'):

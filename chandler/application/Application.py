@@ -407,13 +407,11 @@ Would you like to remove all data from your repository?
 
         self.UIRepositoryView = self.repository.getCurrentView()
 
-        if not self.UIRepositoryView.findPath('//Packs/Schema'):
+        if not self.UIRepositoryView.findPath('//Packs/Chandler'):
             """
               Bootstrap an empty repository by loading only the stuff that
             can't be loaded in a data parcel.
             """
-            self.UIRepositoryView.loadPack("repository/packs/schema.pack")
-            wx.Yield()
             self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
 
     def LoadMainViewRoot (self, delete=False):
