@@ -25,29 +25,35 @@ WXDLLEXPORT_DATA(extern const wxChar*) wxToolBarNameStr;
 
 class WXDLLEXPORT wxToolBar: public wxToolBarBase
 {
-  DECLARE_DYNAMIC_CLASS(wxToolBar)
- public:
-  /*
-   * Public interface
-   */
+    DECLARE_DYNAMIC_CLASS(wxToolBar)
 
-   wxToolBar() { Init(); }
+public:
+    wxToolBar()
+    {
+        Init();
+    }
 
-  inline wxToolBar(wxWindow *parent, wxWindowID id,
-                   const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-                   long style = wxNO_BORDER|wxTB_HORIZONTAL,
-                   const wxString& name = wxToolBarNameStr)
-  {
-    Init();
-    Create(parent, id, pos, size, style, name);
-  }
-  ~wxToolBar();
+    inline wxToolBar(
+          wxWindow *parent, wxWindowID id,
+          const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+          long style = wxNO_BORDER | wxTB_HORIZONTAL,
+          const wxString& name = wxToolBarNameStr)
+    {
+        Init();
+        Create(parent, id, pos, size, style, name);
+    }
 
-  bool Create(wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-            long style = wxNO_BORDER|wxTB_HORIZONTAL,
-            const wxString& name = wxToolBarNameStr);
+    ~wxToolBar();
+
+    bool Create(
+          wxWindow *parent, wxWindowID id,
+          const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+          long style = wxNO_BORDER | wxTB_HORIZONTAL,
+          const wxString& name = wxToolBarNameStr);
 
     // override/implement base class virtuals
+    virtual bool Show(bool show = true);
+    virtual bool IsShown() const;
     virtual void DoGetSize(int *width, int *height) const;
     virtual bool Realize();
 
@@ -66,12 +72,11 @@ class WXDLLEXPORT wxToolBar: public wxToolBarBase
 
     bool MacInstallNativeToolbar(bool usesNative);
     bool MacWantsNativeToolbar();
-    bool MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled);
+    bool MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled) const;
 
 protected:
     // common part of all ctors
     void Init();
-
 
     // implement base class pure virtuals
     virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool);
@@ -81,23 +86,23 @@ protected:
     virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
     virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
 
-    virtual wxToolBarToolBase *CreateTool(int id,
-                                          const wxString& label,
-                                          const wxBitmap& bmpNormal,
-                                          const wxBitmap& bmpDisabled,
-                                          wxItemKind kind,
-                                          wxObject *clientData,
-                                          const wxString& shortHelp,
-                                          const wxString& longHelp);
+    virtual wxToolBarToolBase *CreateTool(
+        int id,
+        const wxString& label,
+        const wxBitmap& bmpNormal,
+        const wxBitmap& bmpDisabled,
+        wxItemKind kind,
+        wxObject *clientData,
+        const wxString& shortHelp,
+        const wxString& longHelp);
     virtual wxToolBarToolBase *CreateTool(wxControl *control);
 
     DECLARE_EVENT_TABLE()
-	
-	bool m_macUsesNativeToolbar ;
-	void* m_macHIToolbarRef ;
+
+    bool m_macUsesNativeToolbar;
+    void* m_macHIToolbarRef;
 };
 
 #endif // wxUSE_TOOLBAR
 
-#endif
-    // _WX_TOOLBAR_H_
+#endif // _WX_TOOLBAR_H_

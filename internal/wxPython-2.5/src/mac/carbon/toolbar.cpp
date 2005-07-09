@@ -554,6 +554,40 @@ wxToolBar::~wxToolBar()
     }
 }
 
+bool wxToolBar::Show( bool show )
+{
+    WindowRef tlw = MAC_WXHWND(GetParent()->MacGetTopLevelWindowRef());
+    if (tlw == NULL)
+        return false;
+
+    bool bResult, ownToolbarInstalled;
+
+    MacTopLevelHasNativeToolbar( &ownToolbarInstalled );
+    if (ownToolbarInstalled)
+    {
+        bResult = (HIViewIsVisible( (HIViewRef)m_macHIToolbarRef ) != show);
+        ShowHideWindowToolbar( tlw, show, false );
+    }
+    else
+        bResult = wxToolBarBase::Show( show );
+
+    return bResult;
+}
+
+bool wxToolBar::IsShown() const
+{
+    bool bResult, ownToolbarInstalled;
+
+    MacTopLevelHasNativeToolbar( &ownToolbarInstalled );
+
+    if (ownToolbarInstalled)
+        bResult = HIViewIsVisible( (HIViewRef)m_macHIToolbarRef );
+    else
+        bResult = wxToolBarBase::IsShown();
+
+    return bResult;
+}
+
 void wxToolBar::DoGetSize( int *width, int *height ) const
 {
     wxToolBarBase::DoGetSize( width, height );
@@ -564,7 +598,7 @@ void wxToolBar::DoGetSize( int *width, int *height ) const
         if (tlw != NULL)
         {
             HIToolbarRef curToolbarRef = NULL;
-            OSStatus result = GetWindowToolbar(tlw, &curToolbarRef );
+            OSStatus result = GetWindowToolbar(tlw, &curToolbarRef);
             if ((result == 0) && (curToolbarRef == m_macHIToolbarRef))
                 *height = 0;
         }
@@ -598,7 +632,7 @@ bool wxToolBar::MacWantsNativeToolbar()
     return m_macUsesNativeToolbar;
 }
 
-bool wxToolBar::MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled)
+bool wxToolBar::MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled) const
 {
     bool bResultV = false;
 
@@ -663,7 +697,7 @@ bool wxToolBar::MacInstallNativeToolbar(bool usesNative)
             // FIXME: which is best, which is necessary?
 //            SetSize( wxSIZE_AUTO_WIDTH, 0 );
             m_peer->SetVisibility( false, true );
-            Show( false );
+            wxToolBarBase::Show( false );
         }
     }
     else
@@ -678,7 +712,7 @@ bool wxToolBar::MacInstallNativeToolbar(bool usesNative)
 
             // FIXME: which is best, which is necessary?
             m_peer->SetVisibility( true, true );
-//            Show( true );
+//            wxToolBarBase::Show( true );
         }
     }
 
