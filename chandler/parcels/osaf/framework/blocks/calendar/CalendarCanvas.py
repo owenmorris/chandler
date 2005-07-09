@@ -793,6 +793,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     def StampedCalendarData(self, collection):
         if not isinstance(collection, CalendarData):
             collection.StampKind('add', CalendarData.getKind(view=collection.itsView))
+        if not hasattr(collection, 'calendarColor'):
             # XXX really, the object should be lazily creating this.
             
             colorstyle = Styles.ColorStyle(view=self.itsView)

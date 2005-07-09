@@ -19,7 +19,6 @@
              xmlns:calendarModel="parcel:osaf.contentmodel.calendar"
              xmlns:contacts="parcel:osaf.contentmodel.contacts"
              xmlns:detail="parcel:osaf.framework.blocks.detail"
-             xmlns:sharing="parcel:osaf.framework.sharing"
              >
 
   <core:version>0.3</core:version>
@@ -412,11 +411,11 @@
   <Menu itsName="CollectionMenu">
     <blockName>CollectionMenu</blockName>
     <title>&amp;Collection</title>
+    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:ManageSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:CopyCollectionURLItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
-    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:RenameItem"/>
   </Menu>
   
@@ -784,7 +783,7 @@
 
   <MenuItem itsName="SharingSubscribeToCollectionItem">
     <blockName>SharingSubscribeToCollectionItem</blockName>
-    <title>Subscribe to collection...</title>
+    <title>Subscribe...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published collection</helpString>
   </MenuItem>
@@ -960,7 +959,7 @@
 
   <MenuItem itsName="ManageSidebarCollectionItem">
     <blockName>ManageSidebarCollectionItem</blockName>
-    <title>Manage</title>
+    <title>Manage share...</title>
     <event itemref="doc:ManageSidebarCollection"/>
     <helpString>Manage the selected collection</helpString>
   </MenuItem>
@@ -1612,13 +1611,5 @@
       </contacts:ContactName>
 
   </contacts:Contact>
-
-    <sharing:WebDAVAccount itsName="OahuDAVAccount">
-        <displayName value="Oahu WebDAV"/>
-        <host value="oahu.osafoundation.org"/>
-        <path value="/dav"/>
-        <useSSL value="False"/>
-        <port value="80"/>
-    </sharing:WebDAVAccount>
 
 </core:Parcel>

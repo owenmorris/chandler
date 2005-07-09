@@ -58,6 +58,7 @@ class ContentItem(schema.Item):
             "categorize, share, and delete.",
     )
 
+
     body = schema.One(
         schema.Lob,
         displayName="Body",
@@ -113,7 +114,7 @@ class ContentItem(schema.Item):
         doc="A list of mixin items that were used as stamps on this "
             "item previously."
     )
-        
+
     createdOn = schema.One(
         schema.DateTime,
         displayName="Created On",
@@ -476,6 +477,20 @@ class ContentItem(schema.Item):
     def setStatusMessage (cls, message, *args):
         Globals.views[0].setStatusMessage (message, *args)
     setStatusMessage = classmethod (setStatusMessage)
+
+
+    def getSharedState(self):
+
+        if hasattr(self, 'queries'):
+            for collection in self.queries:
+                for share in collection.shares:
+                    # We're in at least on share
+                    return "read-write"
+
+        # Must not be in any shares
+        return "unshared"
+
+    sharedState = property(getSharedState)
 
 """
 STAMPING SUPPORT CLASSES

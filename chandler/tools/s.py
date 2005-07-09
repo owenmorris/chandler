@@ -25,10 +25,6 @@ Usage:
     Once you've done one of the above, you can then do things like:
 
         >>> r.check() # repository validation check; if True: all good
-        >>> lp("http://osafoundation.org/parcels/osaf/framework/blocks")
-        >>> lp(CPIA) # same effect as previous line, i.e., load CPIA parcel
-        >>> lp() # load all parcels
-        >>> tree = pm.lookup(CPIA, "Tree") # fetch the blocks/Tree item
         >>> pp(tree) # pretty-print the item
 
 """

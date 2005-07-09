@@ -567,14 +567,14 @@ class MainView(View):
             collection = self.getSidebarSelectedCollection()
             sidebar = Block.findBlockByName("Sidebar")
             if sidebar.filterKind is None:
-                kinds = []
+                filterKindPath = None 
             else:
-                kinds = [str(sidebar.filterKind.itsPath)]
+                filterKindPath = str(sidebar.filterKind.itsPath)
             osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
                 wx.GetApp().mainFrame,
                 view=self.itsView,
                 collection=collection,
-                kinds = kinds)
+                filterKindPath=filterKindPath)
             
         # Sharing.manualPublishCollection(self.itsView, collection)
 
@@ -611,46 +611,37 @@ class MainView(View):
         changed to the entire summary view's collection.
         The "Collection | Share collection " menu item
         """
-    
+
         self.onShareCollectionEvent(event)
-        return
-    
-        # Make sure we have all the accounts; returns False if the user cancels out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
-            return
 
-        # @@@ BJS For 0.5, simplify sharing: if the application filter isn't All, switch it to All now.
-        allFilterToolbarItem = Block.findBlockByName('ApplicationBarAllButton')
-        if not allFilterToolbarItem.widget.IsToggled():
-            # @@@BJS Maybe put up an alert here to let the user know we've pulled the rug out?
-            allFilterToolbarItem.dynamicParent.widget.ToggleTool(allFilterToolbarItem.toolID, True)
-        
-        # Tell the ActiveView to select the collection
-        # It will pass the collection on to the Detail View.
-        self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
-        
     def onShareSidebarCollectionEventUpdateUI (self, event):
-        self._onShareOrManageSidebarCollectionEventUpdateUI(event, False)
-        
-    def onManageSidebarCollectionEventUpdateUI (self, event):
-        self._onShareOrManageSidebarCollectionEventUpdateUI(event, True)
-        
-    def _onShareOrManageSidebarCollectionEventUpdateUI (self, event, doManage):
         """
         Update the menu to reflect the selected collection name
         """
         collection = self.getSidebarSelectedCollection ()
-        verb = (doManage and _('Manage') or _('Share'))
-        
+
         if collection is not None:
-            # event.arguments['Enable'] = True
-            menuTitle = _('%s "%s" collection...') % (verb, collection.displayName)
+
+            sidebar = Block.findBlockByName("Sidebar")
+            if sidebar.filterKind is None:
+                filterKindPath = []
+            else:
+                filterKindPath = [str(sidebar.filterKind.itsPath)]
+            collName = Sharing.getFilteredCollectionDisplayName(collection,
+                                                                filterKindPath)
+
+            menuTitle = _('Share "%s"...') % collName
         else:
-            menuTitle = _('%s a collection...') % verb
-            
+            menuTitle = _('Share a collection...')
+
         event.arguments ['Text'] = menuTitle
-        event.arguments['Enable'] = collection is not None and (doManage == Sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and (not Sharing.isShared(collection))
+
+    def onManageSidebarCollectionEventUpdateUI (self, event):
+        collection = self.getSidebarSelectedCollection ()
+        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
+
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
@@ -674,7 +665,16 @@ class MainView(View):
         """
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            menuTitle = _('Sync "%s" collection') % collection.displayName
+
+            sidebar = Block.findBlockByName("Sidebar")
+            if sidebar.filterKind is None:
+                filterKindPath = []
+            else:
+                filterKindPath = [str(sidebar.filterKind.itsPath)]
+            collName = Sharing.getFilteredCollectionDisplayName(collection,
+                                                                filterKindPath)
+
+            menuTitle = _('Sync "%s"') % collName
             if Sharing.isShared(collection):
                 event.arguments['Enable'] = True
             else:

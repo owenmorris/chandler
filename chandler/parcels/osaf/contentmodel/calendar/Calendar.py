@@ -190,7 +190,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
-            startTime, endTime, allDay, location,
+            startTime, endTime, allDay, location, anyTime,
             byCloud = [organizer,participants]
         )
     )

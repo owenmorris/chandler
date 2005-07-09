@@ -1,4 +1,4 @@
-Allowed = "$Revision$"
+__version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
@@ -139,15 +139,12 @@ class Share(ContentModel.ContentItem):
 
     def sync(self):
         if self.mode in ('get', 'both'):
-            items = self.conduit.get()
+            sharingView = self.conduit.get()
         else:
-            items = []
-
-        # @@@MOR For now, since server changes clobber local changes, don't
-        # bother putting an item we have just fetched
+            sharingView = None
 
         if self.mode in ('put', 'both'):
-            self.conduit.put(skipItems=items)
+            self.conduit.put(view=sharingView)
 
     def put(self):
         if self.mode in ('put', 'both'):
@@ -162,8 +159,9 @@ class Share(ContentModel.ContentItem):
 
     def getLocation(self):
         return self.conduit.getLocation()
-    
-    
+
+
+
 class OneTimeShare(Share):
     """Delete format, conduit, and share after the first get or put."""
 
@@ -211,11 +209,26 @@ class ShareConduit(ContentModel.ContentItem):
         super(ShareConduit, self).__init__(name, parent, kind, view)
 
         self.__clearManifest()
-        
+
         # 'marker' is an item which exists only to keep track of the repository
         # view version number at the time of last sync
         self.marker = Item('marker', self, None)
-        
+
+    def getSharingView(self, repo, version=None):
+        # @@@MOR
+        # Until we can switch over to using view merging, returning None
+        # here is a sign that no view switching should take place.  When
+        # we can use view merging, this 'return None' should be removed.
+        return None
+
+        if not hasattr(self, 'sharingView'):
+            self.sharingView = repo.createView("Sharing", version)
+            logger.info("Created sharing view (version %d)" % self.sharingView._version)
+        return self.sharingView
+
+    getSharingView = classmethod(getSharingView)
+
+
     def setShare(self, share):
         self.share = share
 
@@ -226,9 +239,20 @@ class ShareConduit(ContentModel.ContentItem):
             skip = True
         if not skip:
             externalItemExists = self.__externalItemExists(item)
-            itemVersion = item.getVersion()
+
+            # itemVersion = item.getVersion()
+            # Check to see if the item or any of its itemCloud items have a
+            # more recent version than the last time we synced
+
+            highVersion = -1
+
+            for relatedItem in item.getItemCloud('sharing'):
+                itemVersion = relatedItem.getVersion()
+                if itemVersion > highVersion:
+                    highVersion = itemVersion
+
             prevVersion = self.marker.getVersion()
-            if itemVersion > prevVersion or not externalItemExists:
+            if highVersion > prevVersion or not externalItemExists:
                 logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
                  (item.getItemDisplayName(), item.itsUUID, itemVersion,
                  prevVersion, externalItemExists))
@@ -245,66 +269,99 @@ class ShareConduit(ContentModel.ContentItem):
         except:
             logger.info("...external item %s didn't previously exist" % self._getItemPath(item))
 
-    def put(self, skipItems=None):
+    def put(self, skipItems=None, view=None):
         """ Transfer entire 'contents', transformed, to server. """
 
         self.connect()
 
-        location = self.getLocation()
-        logger.info("Starting PUT of %s" % (location))
+        if view is None:
 
-        # @@@DLD bug 1998 - would refresh do here?
-        self.itsView.commit() # Make sure locally modified items have had
-                              # their version numbers bumped up.
+            # We didn't get a view, so we must not have been called during
+            # a sync -- just a put( )
+            # @@@DLD bug 1998 - would refresh do here?
+            # @@@MOR, I think I need a commit for the view merging to work
+            self.itsView.commit()
 
-        filterKinds = None
-        if len(self.share.filterKinds) > 0:
-            filterKinds = []
-            for path in self.share.filterKinds:
-                filterKinds.append(self.itsView.findPath(path))
+            # We need to switch to a repository view with the version number
+            # set to the last time we synced.
+            sharingView = self.getSharingView(self.itsView.repository)
 
-        style = self.share.format.fileStyle()
-        if style == ImportExportFormat.STYLE_DIRECTORY:
+            # if getSharingView returns None, that's an indication we aren't
+            # using view merging.  So just stick with the current view as is.
+            if sharingView is None:
+                sharingView = self.itsView
+            else:
+                # Make sure we have the latest
+                sharingView.refresh()
 
-            self.resourceList = self._getResourceList(location)
+        else:
+            sharingView = view
 
-            # If we're sharing a collection, put the collection's items
-            # individually:
-            if isinstance(self.share.contents, ItemCollection):
-                for item in self.share.contents:
+        # "self" is an object in the main view; we need a reference to self
+        # that is in the sharing view:
+        sharingSelf = sharingView[self.itsUUID]
 
-                    if item.isPrivate:
-                        continue
+        try:
+            location = sharingSelf.getLocation()
+            logger.info("Starting PUT of %s" % (location))
 
-                    if filterKinds is not None:
-                        match = False
-                        for kind in filterKinds:
-                            if item.isItemOf(kind):
-                                match = True
-                                break
+            filterKinds = None
+            if len(sharingSelf.share.filterKinds) > 0:
+                filterKinds = []
+                for path in sharingSelf.share.filterKinds:
+                    filterKinds.append(sharingSelf.itsView.findPath(path))
 
-                        if not match:
+            style = sharingSelf.share.format.fileStyle()
+            if style == ImportExportFormat.STYLE_DIRECTORY:
+
+                sharingSelf.resourceList = \
+                    sharingSelf._getResourceList(location)
+
+                # If we're sharing a collection, put the collection's items
+                # individually:
+                if isinstance(sharingSelf.share.contents, ItemCollection):
+                    for item in sharingSelf.share.contents:
+
+                        if item.isPrivate:
                             continue
 
-                    self.__conditionalPutItem(item, skipItems)
+                        if filterKinds is not None:
+                            match = False
+                            for kind in filterKinds:
+                                if item.isItemOf(kind):
+                                    match = True
+                                    break
 
-            self.__conditionalPutItem(self.share, skipItems)
+                            if not match:
+                                continue
 
-            for (itemPath, value) in self.resourceList.iteritems():
-                self._deleteItem(itemPath)
-                self.__removeFromManifest(itemPath)
+                        sharingSelf.__conditionalPutItem(item, skipItems)
 
-        elif style == ImportExportFormat.STYLE_SINGLE:
-            #@@@MOR This should be beefed up to only publish if at least one
-            # of the items has changed.
-            self._putItem(self.share)
+                sharingSelf.__conditionalPutItem(sharingSelf.share, skipItems)
 
-        # dirty our marker
-        self.marker.setDirty(Item.NDIRTY)
+                for (itemPath, value) in sharingSelf.resourceList.iteritems():
+                    sharingSelf._deleteItem(itemPath)
+                    sharingSelf.__removeFromManifest(itemPath)
 
-        # @@@DLD bug 1998 - why do we need a second commit here?
-        # Is this just for the setDirty above?
-        self.itsView.commit()
+            elif style == ImportExportFormat.STYLE_SINGLE:
+                #@@@MOR This should be beefed up to only publish if at least one
+                # of the items has changed.
+                sharingSelf._putItem(sharingSelf.share)
+
+            # dirty our marker
+            sharingSelf.marker.setDirty(Item.NDIRTY)
+
+            # @@@DLD bug 1998 - why do we need a second commit here?
+            # Is this just for the setDirty above?
+            # @@@MOR This is to make our changes available to the main view
+            sharingSelf.itsView.commit()
+
+        finally:
+
+            # If sharing work happened in a different view, refresh the
+            # main view
+            if self.itsView is not sharingView:
+                self.itsView.refresh()
 
         self.disconnect()
 
@@ -336,66 +393,96 @@ class ShareConduit(ContentModel.ContentItem):
 
         return None
 
+
     def get(self):
+
+        self.itsView.commit() # Make sure locally modified items are available
+                              # for merging into sharingView at the end of this
+                              # method
 
         self.connect()
 
-        location = self.getLocation()
+        # We need to switch to a repository view with the version number
+        # set to the last time we synced.
+        sharingView = self.getSharingView(self.itsView.repository,
+                                          version=self.marker.getVersion())
+
+        # @@@MOR
+        # Until we can do view merging, getsharingView will return None,
+        # in which case just use the main view:
+
+        if sharingView is None:
+            sharingView = self.itsView
+
+        else:
+            # Make sure our version is as it was at last sync
+            version = self.marker.getVersion()
+            sharingView.itsVersion = version
+
+        # "self" is an object in the main view; we need a reference to self
+        # that is in the sharing view:
+        sharingSelf = sharingView[self.itsUUID]
+
+        location = sharingSelf.getLocation()
         logger.info("Starting GET of %s" % (location))
 
-        if not self.exists():
+        if not sharingSelf.exists():
            raise NotFound(message="%s does not exist" % location)
 
         retrievedItems = []
-        self.resourceList = self._getResourceList(location)
+        sharingSelf.resourceList = sharingSelf._getResourceList(location)
 
-        self.__resetSeen()
+        sharingSelf.__resetSeen()
 
-        itemPath = self._getItemPath(self.share)
-        item = self.__conditionalGetItem(itemPath, into=self.share)
+        itemPath = sharingSelf._getItemPath(sharingSelf.share)
+        item = sharingSelf.__conditionalGetItem(itemPath,
+                                                into=sharingSelf.share)
 
         if item is not None:
             retrievedItems.append(item)
-        self.__setSeen(itemPath)
+        sharingSelf.__setSeen(itemPath)
         try:
-            del self.resourceList[itemPath]
+            del sharingSelf.resourceList[itemPath]
         except:
             pass
 
         # If share.contents is an ItemCollection, treat other resources as
         # items to add to the collection:
 
-        if isinstance(self.share.contents, ItemCollection):
+        if isinstance(sharingSelf.share.contents, ItemCollection):
 
             filterKinds = None
-            if len(self.share.filterKinds) > 0:
+            if len(sharingSelf.share.filterKinds) > 0:
                 filterKinds = []
-                for path in self.share.filterKinds:
-                    filterKinds.append(self.itsView.findPath(path))
+                for path in sharingSelf.share.filterKinds:
+                    filterKinds.append(sharingView.findPath(path))
 
             # Conditionally fetch items, and add them to collection
-            for itemPath in self.resourceList:
-                item = self.__conditionalGetItem(itemPath)
+            for itemPath in sharingSelf.resourceList:
+                item = sharingSelf.__conditionalGetItem(itemPath)
                 if item is not None:
-                    self.share.contents.add(item)
+                    if not item in sharingSelf.share.contents:
+                        sharingSelf.share.contents.add(item)
                     retrievedItems.append(item)
-                self.__setSeen(itemPath)
+                sharingSelf.__setSeen(itemPath)
 
             # When first importing a collection, name it after the share
-            if not hasattr(self.share.contents, 'displayName'):
-                self.share.contents.displayName = self.share.displayName
+            if not hasattr(sharingSelf.share.contents, 'displayName'):
+                sharingSelf.share.contents.displayName = \
+                    sharingSelf.share.displayName
 
-            # If an item was prevsiously on the server (it was in our manifest)
-            # but is no longer on the server, remove it from the collection
-            # locally:
+            # If an item was previously on the server (it was in our
+            # manifest) but is no longer on the server, remove it from
+            # the collection locally:
             toRemove = []
-            for unseenPath in self.__iterUnseen():
-                uuid = self.manifest[unseenPath]['uuid']
-                item = self.itsView.findUUID(uuid)
+            for unseenPath in sharingSelf.__iterUnseen():
+                uuid = sharingSelf.manifest[unseenPath]['uuid']
+                item = sharingView.findUUID(uuid)
                 if item is not None:
 
-                    # If an item has disappeared from the server, only remove
-                    # it locally if it matches the current share filter.
+                    # If an item has disappeared from the server, only
+                    # remove it locally if it matches the current share
+                    # filter.
 
                     removeLocally = True
 
@@ -410,22 +497,30 @@ class ShareConduit(ContentModel.ContentItem):
 
                     if removeLocally:
                         logger.info("...removing %s from collection" % item)
-                        self.share.contents.remove(item)
+                        sharingSelf.share.contents.remove(item)
 
                     # In either case, remove from manifest
                     toRemove.append(unseenPath)
 
             for removePath in toRemove:
-                self.__removeFromManifest(removePath)
+                sharingSelf.__removeFromManifest(removePath)
 
-        # @@@DLD bug 1998 does this happen multiple times for a single collection share?
-        self.itsView.commit()
+
+        # This is where merge conflicts will happen:
+
+        def tmpMergeFn(code, item, attribute, value):
+            # print "Conflict:", code, item, attribute, value
+            logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName, attribute, str(item.getAttributeValue(attribute)), str(value)))
+            return value # let the user win
+            # return item.getAttributeValue(attribute) # let the server win
+
+            sharingView.refresh(tmpMergeFn)
 
         logger.info("Finished GET of %s" % location)
 
         self.disconnect()
 
-        return retrievedItems
+        return sharingView
 
     # Methods that subclasses *must* implement:
 
@@ -760,7 +855,6 @@ class WebDAVConduit(ShareConduit):
         self.onItemLoad()
 
     def onItemLoad(self, view=None):
-        # view is ignored
         self.serverHandle = None
 
     def __getSettings(self):
@@ -1553,7 +1647,16 @@ class CloudXMLFormat(ImportExportFormat):
 
                 if cardinality == 'single':
                     value = type.makeValue(attrNode.content)
-                    item.setAttributeValue(attrName, value)
+
+                    # Don't modify an attribute if it's got the same value
+                    # already
+                    if not hasattr(item, attrName) or \
+                        (value != item.getAttributeValue(attrName)):
+                        item.setAttributeValue(attrName, value)
+                        # print "Assigned", attrName, "to", value
+                    else:
+                        # print "Skipping assignment of", attrName, "to", value
+                        pass
 
                 elif cardinality == 'list':
                     values = []
@@ -1966,6 +2069,7 @@ def syncShare(share):
             msg += err.message
         except:
             msg = "Error during sync"
+        logger.exception("Sharing Error: %s" % msg)
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     "Synchronization Error", msg)
 
@@ -2064,6 +2168,33 @@ def manualPublishCollection(view, collection):
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     "Synchronization Error", msg)
 
+
+def getFilteredCollectionDisplayName(collection, filterKinds):
+    """ Return a displayName for a collection, taking into account what the
+        current sidebar filter is, and whether this is the All collection.
+    """
+
+    ext = ""
+
+    if len(filterKinds) > 0:
+        path = filterKinds[0] # Only look at the first filterKind
+        if path == "//parcels/osaf/contentmodel/tasks/TaskMixin":
+           ext = " tasks"
+        if path == "//parcels/osaf/contentmodel/mail/MailMessageMixin":
+           ext = " mail"
+        if path == "//parcels/osaf/contentmodel/calendar/CalendarEventMixin":
+           ext = " calendar"
+
+    name = collection.displayName
+
+    if name == "All":
+        name = "My"
+        if ext == "":
+            ext = " items"
+
+    name += ext
+
+    return name
 
 
 

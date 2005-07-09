@@ -2,6 +2,7 @@
 # Invoke using the ShowPublishDialog( ) method.
 
 import wx
+import traceback
 import os, urlparse, urllib
 import application.Globals as Globals
 import Sharing, ICalendar
@@ -13,14 +14,20 @@ class PublishCollectionDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-                 resources=None, view=None, collection=None, kinds=None):
+                 resources=None, view=None, collection=None,
+                 filterKindPath=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
         self.parent = parent
         self.collection = collection    # The collection to share
-        self.filterKinds = kinds        # List of kinds (paths) to share
+
+        # List of kinds (paths) to share
+        if filterKindPath is None:
+            self.filterKinds = []
+        else:
+            self.filterKinds = [filterKindPath]
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -63,8 +70,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
+        collName = Sharing.getFilteredCollectionDisplayName(self.collection,
+                                                            self.filterKinds)
         wx.xrc.XRCCTRL(self,
-                       "TEXT_COLLNAME").SetLabel(self.collection.displayName)
+                       "TEXT_COLLNAME").SetLabel(collName)
 
         self.currentAccount = Sharing.getWebDAVAccount(self.view)
 
@@ -270,6 +279,7 @@ class PublishCollectionDialog(wx.Dialog):
         suggestedName = self._suggestName()
 
         shareName = suggestedName
+
         shareNameSafe = urllib.quote_plus(shareName)
 
         accountIndex = self.accountsControl.GetSelection()
@@ -323,6 +333,7 @@ class PublishCollectionDialog(wx.Dialog):
             # Display the error
             # self._clearStatus()
             self._showStatus("\nSharing error: %s\n" % e.message)
+            self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
             # Clean up all share objects we created
             try:
@@ -433,13 +444,14 @@ class PublishCollectionDialog(wx.Dialog):
         existing.sort()
         return existing
 
-def ShowPublishDialog(parent, view=None, collection=None, kinds=None):
+def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'parcels', 'osaf', 'framework', 'sharing',
      'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, "Collection Sharing",
-     resources=resources, view=view, collection=collection, kinds=kinds)
+     resources=resources, view=view, collection=collection,
+     filterKindPath=filterKindPath)
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()

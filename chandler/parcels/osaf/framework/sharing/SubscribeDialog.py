@@ -87,13 +87,10 @@ class SubscribeDialog(wx.Dialog):
         try:
             self.__showStatus("In progress...")
             wx.Yield()
-            share.get()
+            share.sync()
             collection = share.contents
             mainView = Globals.views[0]
-            mainView.postEventByName("AddToSidebarWithoutCopying", {'items':[collection]})
-            view.commit()
-            mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-            mainView.postEventByName('SelectItemBroadcastInsideActiveView', {'item':collection})
+            mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
             self.EndModal(True)
 
         except Sharing.NotAllowed, err:
