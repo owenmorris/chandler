@@ -221,6 +221,13 @@ class TextClipboardHandler(_ClipboardHandler):
         """
         dataObject = wx.TextDataObject()
         dataObject.SetText(self.GetStringSelection())
+        # There's a bug on the Mac in DnD.  Here's the workaround:
+        import os
+        if not os.environ.get('CHANDLER_NO_DnD_WORKAROUND'): # set to disable workaround
+            # wrap the TextDataObject in a CompositeDataObject.
+            compositeObject = wx.DataObjectComposite()
+            compositeObject.Add(dataObject)
+            return compositeObject
         return dataObject
 
     def PasteData(self, data):
