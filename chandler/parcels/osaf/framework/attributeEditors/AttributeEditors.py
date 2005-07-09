@@ -150,8 +150,7 @@ class BaseAttributeEditor (object):
 
     def GetAttributeValue (self, item, attributeName):
         """ Get the value from the specified attribute of the item. """
-        value = getattr(item, attributeName, None)
-        return value
+        return getattr(item, attributeName, None)
 
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """

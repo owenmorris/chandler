@@ -14,13 +14,25 @@ import os
 import osaf.framework.sharing.Sharing as Sharing
 from application import schema
 
-def GetRenderEditorTextRect (rect):
-    image = wx.GetApp().GetImage ("SidebarAll.png")
-    width = image.GetWidth() + 2
-    return wx.Rect (rect.GetLeft() + width,
-                    rect.GetTop(),
-                    rect.GetWidth() - (2 * width),
-                    rect.GetHeight())
+def GetRectFromOffsets (rect, offsets):
+    def GetEdge (rect, offset):
+        if offset >= 0:
+            edge = rect.GetLeft()
+        else:
+            edge = rect.GetRight()
+        return edge + offset
+    
+    top = rect.GetTop()
+    height = offsets [2]
+    if height == 0:
+        height = rect.GetHeight()
+    else:
+        top = top + (rect.GetHeight() - height) / 2.0
+    left = GetEdge (rect, offsets [0])
+    return wx.Rect (left,
+                    top,
+                    GetEdge (rect, offsets [1]) - left,
+                    height)
 
 
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
@@ -67,90 +79,87 @@ class wxSidebar(ControlBlocks.wxTable):
         """
           This code is tricky, tread with care -- DJA
         """
-        event.Skip() #Let the grid also handle the event
+        event.Skip() #Let the grid also handle the event by default
+
         gridWindow = self.GetGridWindow()
+        blockItem = self.blockItem
 
-        x, y = self.CalcUnscrolledPosition (event.GetX(), event.GetY())
-        row = self.YToRow (y)
-        
+        x = event.GetX()
+        y = event.GetY()
+
+        unscrolledX, unscrolledY = self.CalcUnscrolledPosition (x, y)
+        row = self.YToRow (unscrolledY)
+
         cellRect = self.CalculateCellRect (row)
-
-        if not cellRect.InsideXY (event.GetX(), event.GetY()):
-            row = wx.NOT_FOUND
-
-        image = wx.GetApp().GetImage ("SidebarAll.png")
-        imageRect = wx.Rect (cellRect.GetLeft() + 1,
-                             cellRect.GetTop() + (cellRect.GetHeight() - image.GetHeight()) / 2,
-                             image.GetWidth(),
-                             image.GetHeight())
 
         item, attribute = self.GetTable().GetValue (row, 0)
 
-        if event.LeftDown():
-            if (imageRect.InsideXY (event.GetX(), event.GetY())
-                and isinstance (item, ItemCollection.ItemCollection)):
+        hadCapture = gridWindow.HasCapture()
 
-                if not hasattr (self, "hoverImageRow"):
-                    assert not gridWindow.HasCapture()
-                    gridWindow.CaptureMouse()
-                    self.cellRect = cellRect
-                    self.imageRect = imageRect
-                    self.hoverImageRow = row
-                else:
-                    event.Skip (False) #Gobble the event
+        if cellRect.InsideXY (x, y):
+            if not hasattr (self, 'hoverImageRow'):
+                assert not gridWindow.HasCapture()
+                gridWindow.CaptureMouse()
 
-                self.screenChecked = not item in self.blockItem.checkedItems
-                self.blockChecked = self.screenChecked
-                self.buttonPressed = True
-                self.RefreshRect (self.imageRect)
-
-        elif hasattr (self, "hoverImageRow"):
-            assert gridWindow.HasCapture()
-            if event.LeftUp():
-                if self.imageRect.InsideXY (event.GetX(), event.GetY()):
-                    checkedItems = self.blockItem.checkedItems
-                    if item in checkedItems:
-                        checkedItems.remove (item)
-                    else:
-                        checkedItems.append (item)
-                    sidebar = self.blockItem
-                    sidebar.postEventByName ("SelectItemBroadcast", {'item':sidebar.selectedItemToView})
-                    wx.GetApp().UIRepositoryView.commit()
-                elif not self.cellRect.InsideXY (event.GetX(), event.GetY()):
-                    self.RefreshRect (self.imageRect)
-                    del self.hoverImageRow
-                    gridWindow.ReleaseMouse()
+                self.hoverImageRow = row
+                self.cellRect = cellRect
                 self.buttonPressed = False
+                self.buttonState = {}
 
-            elif not event.LeftIsDown():
-                if not self.cellRect.InsideXY (event.GetX(), event.GetY()):
-                    self.RefreshRect (self.imageRect)
-                    del self.hoverImageRow
+                for (buttonName, offset) in blockItem.buttonOffsets.iteritems():
+                    checked = blockItem.getButtonState (buttonName, item)
+                    imageRect = GetRectFromOffsets (cellRect, offset)
+                    self.buttonState[buttonName] = {'imageRect': imageRect,
+                                                    'screenChecked': checked,
+                                                    'blockChecked': checked}
+                    self.RefreshRect (imageRect)
+
+        if hasattr (self, 'hoverImageRow'):
+            if event.LeftDown():
+                for (buttonName, button) in self.buttonState.iteritems():
+                    if (button['imageRect'].InsideXY (x, y)
+                        and isinstance (item, ItemCollection.ItemCollection)):
+        
+                        if hadCapture:
+                            event.Skip (False) #Gobble the event
+        
+                        checked = blockItem.getButtonState (buttonName, item)
+                        button = self.buttonState[buttonName]
+                        button['blockChecked'] = checked
+                        button['screenChecked'] = not checked
+                        self.buttonPressed = buttonName
+                        self.RefreshRect (button['imageRect'])
+                        break
+    
+            elif event.LeftUp():
+                if self.buttonPressed:
+                    imageRect = self.buttonState[self.buttonPressed]['imageRect']
+                    if (imageRect.InsideXY (x, y)):
+                        blockItem.setButtonState (self.buttonPressed,
+                                                  item,
+                                                  not blockItem.getButtonState (self.buttonPressed, item))
+                        blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
+                        wx.GetApp().UIRepositoryView.commit()
+                    elif not self.cellRect.InsideXY (x, y):
+                        self.RefreshRect (imageRect)
+                        del self.hoverImageRow
+                        gridWindow.ReleaseMouse()
                     self.buttonPressed = False
-                    gridWindow.ReleaseMouse()
 
-            elif (self.buttonPressed and
-                  self.imageRect.InsideXY (event.GetX(), event.GetY()) !=
-                  (self.screenChecked == self.blockChecked)):
-                self.screenChecked = not self.screenChecked
-                self.RefreshRect (self.imageRect)
-            
-
-        elif (row != wx.NOT_FOUND) and event.Moving():
-            assert not hasattr (self, "hoverImageRow")
-            assert not gridWindow.HasCapture()
-            self.screenChecked = item in self.blockItem.checkedItems
-            self.blockChecked = self.screenChecked
-            self.cellRect = cellRect
-            self.imageRect = imageRect
-            self.hoverImageRow = row
-            self.buttonPressed = False
-            self.RefreshRect (self.imageRect)
-            """
-              Capture the mouse until we lose the hover state or mouse up
-            outside  a row
-            """
-            gridWindow.CaptureMouse()
+            elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
+                for button in self.buttonState.itervalues():
+                    self.RefreshRect (button['imageRect'])
+                self.buttonPressed = False
+                del self.hoverImageRow
+                gridWindow.ReleaseMouse()
+    
+            elif (self.buttonPressed):
+                button = self.buttonState[self.buttonPressed]
+                imageRect = button['imageRect']
+                screenChecked = button['screenChecked']
+                if (imageRect.InsideXY (x, y) == (screenChecked == button['blockChecked'])):
+                    button['screenChecked'] = not screenChecked
+                    self.RefreshRect (imageRect)
 
     def OnRequestDrop (self, x, y):
         x, y = self.CalcUnscrolledPosition(x, y)
@@ -242,27 +251,33 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         if isinstance (item, ItemCollection.ItemCollection):
+            def drawButton (name):
+                imagePrefix = "Sidebar" + name
+                if row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND):
+                    imagePrefix += "MouseOver"
+                    checked = grid.buttonState[name]['screenChecked']
+                else:
+                    checked = sidebar.getButtonState (name, item)
+        
+                if checked:
+                    imageSuffix = "Checked.png"
+                else:
+                    imageSuffix = ".png"
+        
+                image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
+        
+                if image is None:
+                    image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
+
+                if image is not None:
+                    imageRect = GetRectFromOffsets (rect, sidebar.buttonOffsets [name])
+                    dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
+
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
             (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
             if len (filteredCollection) == 0:
                 dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-            """
-              Draw the sharing state icon
-            """
-            share = Sharing.getShare(item)
-            if share is not None:
-                if hasattr(share, 'sharer') and share.sharer is not None and \
-                   str(share.sharer.itsPath) == "//userdata/me":
-                    imageName = "SidebarUpload.png"
-                else:
-                    imageName = "SidebarDownload.png"
-                image = wx.GetApp().GetImage (imageName)
-                x = rect.GetRight() - image.GetWidth() - 1
-                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
-                dc.DrawBitmap (image, x, y, True)
-            """
-              Draw the left icon simulating a button
-            """
+
             name = getattr (item, attribute)
             key = name
             sidebar = grid.blockItem
@@ -274,32 +289,17 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                 imageName = name
             else:
                 imageName = key
-    
-            if row == getattr (grid, "hoverImageRow", wx.NOT_FOUND):
-                imagePrefix = "SidebarMouseOver"
-                checked = grid.screenChecked
-            else:
-                imagePrefix = "Sidebar"
-                checked = item in grid.blockItem.checkedItems
-    
-            if checked:
-                imageSuffix = "Checked.png"
-            else:
-                imageSuffix = ".png"
-    
-            image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
-    
-            if image is None:
-                image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
-
-            if image is not None:
-                x = rect.GetLeft() + 1
-                y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
-                dc.DrawBitmap (image, x, y, True)
+            """
+              Draw the icons simulating a button
+            """
+            for buttonName in sidebar.buttonOffsets.iterkeys():
+                drawButton (buttonName)
+            
         else:
             name = getattr (item, attribute)
 
-        textRect = GetRenderEditorTextRect (rect)
+        sidebar = Block.Block.findBlockByName ("Sidebar")
+        textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
         DrawingUtilities.DrawWrappedText (dc, name, textRect)
@@ -313,7 +313,8 @@ class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
     """
 
     def SetSize(self, rect):
-        textRect = GetRenderEditorTextRect (rect)
+        sidebar = Block.Block.findBlockByName ("Sidebar")
+        textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
         self.control.SetRect (textRect);
 
 
@@ -324,15 +325,25 @@ class Sidebar(ControlBlocks.Table):
     )
 
     # A dictionary of display names of items that don't show as Calendar Views
-    dontShowCalendarForItemsWithName = schema.Mapping(schema.Boolean)
+    dontShowCalendarForItemsWithName = schema.Mapping (schema.Boolean)
 
     # A dictionary mapping a name,kindpathComponent string to a new name.
     # It would be much nicer if the key could be a (name, kindItem) tuple, but
     # that's not possible with current parcel XML
-    nameAlternatives = schema.Mapping(schema.String)
+    nameAlternatives = schema.Mapping (schema.String)
 
     # A list of the items in the sidebar that are checked
-    checkedItems = schema.Sequence(schema.Item, initialValue = [])
+    checkedItems = schema.Sequence (schema.Item, initialValue = [])
+
+    # For each button, a list of left offset, right offset and height.
+    # Left offset is the offset in pixels of the left edge of the button
+    # where positive values are from the left edge of the cell rect and
+    # negative values are from the left edge of the cell rect. Height
+    # is the height of the button which is centered vertically in the
+    # cell. A height of zero uses the height of the cell
+    buttonOffsets = schema.Mapping (schema.List, initialValue = {})
+    
+    editRectOffsets = schema.Sequence (schema.Integer, required = True)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[filterKind])
@@ -373,7 +384,34 @@ class Sidebar(ControlBlocks.Table):
                 return
 
         self.postEventByName("SelectItemBroadcast", {'item':item})
-        
+
+    def getButtonState (self, buttonName, item):
+        if buttonName == u'Icon':
+            return item in self.checkedItems
+        elif buttonName == u'SharingIcon':
+            try:
+                return Sharing.getShare(item).sharer.itsPath == "//userdata/me"
+            except AttributeError:
+                return False
+        else:
+            assert (False)
+
+    def setButtonState (self, buttonName, item, value):
+        if buttonName == u'Icon':
+            if item in self.checkedItems:
+                if not value:
+                    self.checkedItems.remove (item)
+            else:
+                if value:
+                    self.checkedItems.append (item)
+        elif buttonName == u'SharingIcon':
+            """
+              $$$ We need to hook up sharing here -- DJA
+            """
+            pass
+        else:
+            assert (False)
+
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 

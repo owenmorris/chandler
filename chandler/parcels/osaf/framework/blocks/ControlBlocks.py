@@ -562,9 +562,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         """
         self.SetMargins(-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         -wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
-        """
-          Don't draw cursor outline on selected cells
-        """
         self.EnableCursor (False)
         background = wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT)
         self.SetLightSelectionBackground()

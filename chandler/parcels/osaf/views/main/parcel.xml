@@ -1248,10 +1248,10 @@
 
   <doc:Sidebar itsName="SidebarInstance">
     <blockName>Sidebar</blockName>
+    <columnHeadings></columnHeadings>
     <contents itemref="doc:sidebarItemCollection"/>
     <elementDelegate>osaf.views.main.SideBar.SidebarElementDelegate</elementDelegate>
     <selectedItemToView itemref="doc:allItemCollection"/>
-    <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
     <columnReadOnly>False</columnReadOnly>
@@ -1268,6 +1268,21 @@
     <nameAlternatives key="AllMailMessageMixin" value="All my mail"></nameAlternatives>
     <nameAlternatives key="AllCalendarEventMixin" value="All my events"></nameAlternatives>
     <nameAlternatives key="AllTaskMixin" value="All my tasks"></nameAlternatives>
+
+    <buttonOffsets key="Icon">
+      <core:Integer value="1"/>
+      <core:Integer value="17"/>
+      <core:Integer value="16"/>
+    </buttonOffsets>
+    <buttonOffsets key="SharingIcon">
+      <core:Integer value="-17"/>
+      <core:Integer value="-1"/>
+      <core:Integer value="16"/>
+    </buttonOffsets>
+
+    <editRectOffsets>17</editRectOffsets>
+    <editRectOffsets>-17</editRectOffsets>
+    <editRectOffsets>0</editRectOffsets>
   </doc:Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
