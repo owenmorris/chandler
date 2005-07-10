@@ -5,112 +5,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, os
 import application.Globals
+import application.Utility as Utility
 from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 from application.Application import SchemaMismatchError
 
-def _makeRandomProfileDir(pattern):
-    import M2Crypto.BN as BN
-    profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
-    os.makedirs(profileDir, 0700)
-    return profileDir
-
-def locateProfileDir(chandlerDirectory):
-    """
-    Locate the Chandler repository.
-    The location is determined either by parameters, or if not specified, by
-    the presence of a .chandler directory in the users home directory.
-    """
-      # if a profileDir is specified then just use it
-    if application.Globals.options.profileDir:
-        application.Globals.options.profileDir = os.path.expanduser(application.Globals.options.profileDir)
-    else:
-        if os.name == 'nt':
-            dataDir = None
-
-            if os.environ.has_key('APPDATA'):
-                dataDir = os.environ['APPDATA']
-            elif os.environ.has_key('USERPROFILE'):
-                dataDir = os.environ['USERPROFILE']
-                if os.path.isdir(os.path.join(dataDir, 'Application Data')):
-                    dataDir = os.path.join(dataDir, 'Application Data')
-
-            if dataDir is None or not os.path.isdir(dataDir):
-                if os.environ.has_key('HOMEDRIVE') and os.environ.has_key('HOMEPATH'):
-                    dataDir = '%s%s' % (os.environ['HOMEDRIVE'], os.environ['HOMEPATH'])
-                    
-            if dataDir is None or not os.path.isdir(dataDir):
-                dataDir = os.path.expanduser('~')
-                
-            profileDir = os.path.join(dataDir, 'Open Source Applications Foundation', 'Chandler')
-        elif sys.platform == 'darwin':
-            dataDir    = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support')
-            profileDir = os.path.join(dataDir, 'Open Source Applications Foundation', 'Chandler')
-        else:
-            dataDir    = os.path.expanduser('~')
-            profileDir = os.path.join(dataDir, '.chandler')
-
-        # Deal with the random part
-        pattern = '%s%s*.default' % (profileDir, os.sep)
-        try:
-            import glob
-            profileDir = glob.glob(pattern)[0]
-        except IndexError:
-            try:
-                profileDir = _makeRandomProfileDir(pattern)
-            except:
-                profileDir = chandlerDirectory
-        except:
-            profileDir = chandlerDirectory
-            
-        application.Globals.options.profileDir = profileDir
-
-def loadConfig(chandlerDirectory):
-    """
-    Load and parse the command line options.
-    Sets Globals.options and Globals.args
-    """
-                      # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
-    _configItems = { 'parcelPath':  ('-p', '--parcelPath','s', None,  'PARCELPATH',         'Parcel search path'),
-                     'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-                     'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR',        'location of the Chandler Repository'),
-                     'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
-                     'script':     ('-s', '--script',     's', None,  None, 'script to execute after startup'),
-                     'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
-                     'create':     ('-c', '--create',     'b', False, None, 'Force creation of a new repository'),
-                     'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
-                     'repo':       ('-r', '--repo',       's', None,  None, 'repository to copy during startup'),
-                     'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
-                     'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
-                     'wing':       ('-w', '--wing',       'b', False, None, ''),
-                     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
-                     'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
-                     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
-                     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
-                      }
-
-    from optparse import OptionParser
-
-    usage  = "usage: %prog [options]"   # %prog expands to os.path.basename(sys.argv[0])
-    parser = OptionParser(usage=usage, version="%prog " + __version__)
-
-    for key in _configItems:
-        (shortCmd, longCmd, optionType, defaultValue, environName, helpText) = _configItems[key]
-
-        if environName and os.environ.has_key(environName):
-            defaultValue = os.environ[environName]
-
-        if optionType == 'b':
-            parser.add_option(shortCmd, longCmd, dest=key, action='store_true', default=defaultValue, help=helpText)
-        else:
-            parser.add_option(shortCmd, longCmd, dest=key, default=defaultValue, help=helpText)
-
-    (application.Globals.options, application.Globals.args) = parser.parse_args()
-
-    locateProfileDir(chandlerDirectory)
-    if application.Globals.options.locale is not None:
-        from PyICU import Locale
-        Locale.setDefault(Locale(application.Globals.options.locale))
 
 def main():
     message = "while trying to start."
@@ -130,7 +29,7 @@ def main():
     """
     Process any command line switches and any environment variable values
     """
-    loadConfig(chandlerDirectory)
+    application.Globals.options = Utility.initOptions(chandlerDirectory)
 
     def realMain():
         if __debug__ and application.Globals.options.wing:
@@ -152,22 +51,10 @@ def main():
             dbgp.client.brk()
         from application.Application import wxApplication
 
-        """
-          The details of unhandled exceptions are now handled by the logger,
-        and logged to a file: chandler.log
-        """
-        logFile = os.path.join(application.Globals.options.profileDir, 'chandler.log')
-        handler = logging.FileHandler(logFile)
-        formatter = \
-         logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
-        handler.setFormatter(formatter)
-        root = logging.getLogger()
-        root.addHandler(handler)
+        logFile = os.path.join(application.Globals.options.profileDir,
+                               'chandler.log')
+        Utility.initLogging(logFile)
 
-        # Also send twisted output to chandler.log, per bug 1997
-        # @@@ Probably not a good long term solution(?)
-        import twisted.python.log
-        twisted.python.log.startLogging(file(logFile, 'a+'), 0)
 
         """
           redirect stdio and stderr to a dialog if we're running the debug version.

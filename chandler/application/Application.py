@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys, threading, time
+import gettext, os, sys, threading, time, cStringIO, logging
 
 from new import classobj
 import wx
@@ -11,19 +11,18 @@ import Globals
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError
-import logging as logging
-import cStringIO
 import CPIAScript
-import crypto
+import Utility
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
 
+
+# SCHEMA_VERSION has moved to version.py
+
+
 #@@@Temporary testing tool written by Morgen -- DJA
 import util.timing
-
-# Increment this constant whenever you change the schema:
-SCHEMA_VERSION = "24"
 
 """
   Event used to post callbacks on the UI thread
@@ -122,12 +121,6 @@ class MainFrame(wx.Frame):
 
 
 class wxApplication (wx.App):
-    """
-      PARCEL_IMPORT defines the import directory containing parcels
-    relative to chandlerDirectory where os separators are replaced
-    with "." just as in the syntax of the import statement.
-    """
-    PARCEL_IMPORT = 'parcels'
 
     def OnInit(self):
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
@@ -157,33 +150,10 @@ class wxApplication (wx.App):
 
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        """
-          Load the parcels which are contained in the PARCEL_IMPORT directory.
-        It's necessary to add the "parcels" directory to sys.path in order
-        to import parcels. Making sure we modify the path as early as possible
-        in the initialization as possible minimizes the risk of bugs.
-        """
-        parcelPath = []
-        parcelPath.append(os.path.join(Globals.chandlerDirectory,
-                          self.PARCEL_IMPORT.replace ('.', os.sep)))
 
-        """
-        If PARCELPATH env var is set, append those directories to the
-        list of places to look for parcels.
-        """
-        if Globals.options.parcelPath:
-            for directory in Globals.options.parcelPath.split(os.pathsep):
-                if os.path.isdir(directory):
-                    parcelPath.append(directory)
-                else:
-                    logger.warning("'%s' not a directory; skipping" % directory)
-
-        insertionPoint = 1
-        for directory in parcelPath:
-            sys.path.insert(insertionPoint, directory)
-            insertionPoint += 1
-
-        logger.info("Using PARCELPATH %s" % parcelPath)
+        """ Initialize PARCELPATH and sys.path """
+        parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
+                                           Globals.options.parcelPath)
 
         """
           Splash Screen.
@@ -220,7 +190,7 @@ class wxApplication (wx.App):
           Crypto initialization
         """
         if splash: splash.updateGauge('crypto')
-        crypto.startup(Globals.options.profileDir)
+        Utility.initCrypto(Globals.options.profileDir)
 
 
 
@@ -228,56 +198,48 @@ class wxApplication (wx.App):
         # The repository opening code was moved to a method so that it can
         # be called again if there is a schema mismatch and the user chooses
         # to reopen the repository in create mode.
-        self.OpenRepository()
-
+        repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
+        view = Utility.initRepository(repoDir, Globals.options)
+        self.repository = view.repository
 
         """
           Verify Schema Version
         """
+        if not Utility.verifySchema(view):
+            logger.info("Schema version of repository doesn't match app")
 
-        # Fetch the top-level parcel item to check schema version info
-        parcelRoot = self.repository.findPath("//parcels")
-        if parcelRoot is not None:
-            if (not hasattr(parcelRoot, 'version') or
-                parcelRoot.version != SCHEMA_VERSION):
-                logger.info("Schema version of repository doesn't match app")
-
-                message = \
+            message = \
 """Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
 
 Would you like to remove all data from your repository?
 """
 
-                dialog = wx.MessageDialog(None,
-                                          message,
-                                          "Cannot open repository",
-                                          wx.YES_NO | wx.ICON_INFORMATION)
-                response = dialog.ShowModal()
-                dialog.Destroy()
+            dialog = wx.MessageDialog(None,
+                                      message,
+                                      "Cannot open repository",
+                                      wx.YES_NO | wx.ICON_INFORMATION)
+            response = dialog.ShowModal()
+            dialog.Destroy()
 
-                if response == wx.ID_YES:
-                    # Blow away the repository
-                    self.repository.close()
-                    Globals.options.create = True
-                    self.OpenRepository()
-                else:
-                    raise SchemaMismatchError
+            if response == wx.ID_YES:
+                # Blow away the repository
+                self.repository.close()
+                Globals.options.create = True
+                view = Utility.initRepository(repoDir, Globals.options)
+                self.repository = view.repository
+            else:
+                raise SchemaMismatchError
+
+        self.UIRepositoryView = view
 
 
         """
           Load Parcels
         """
-
         if splash: splash.updateGauge('parcels')
         wx.Yield()
+        Utility.initParcels(view, parcelPath)
 
-        import application.Parcel
-        application.Parcel.Manager.get(self.UIRepositoryView,
-                                       path=parcelPath).loadParcels()
-
-        # Record the current schema version into the repository
-        parcelRoot = self.repository.findPath("//parcels")
-        parcelRoot.version = SCHEMA_VERSION
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
@@ -286,9 +248,7 @@ Would you like to remove all data from your repository?
           and stopped last.
         """
         if splash: splash.updateGauge('twisted')
-        import osaf.framework.twisted.TwistedReactorManager as TwistedReactorManager 
-        self.__twistedReactorManager = TwistedReactorManager.TwistedReactorManager()
-        self.__twistedReactorManager.startReactor()
+        self.__twistedReactorManager = Utility.initTwisted()
 
         mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
         if (mainViewRoot.position.x == -1 and mainViewRoot.position.y == -1):
@@ -341,9 +301,8 @@ Would you like to remove all data from your repository?
 
 
         """Start the WakeupCaller Service"""
-        from osaf.framework.wakeup.WakeupCaller import WakeupCaller
-        Globals.wakeupCaller = WakeupCaller(self.UIRepositoryView.repository)
-        Globals.wakeupCaller.startup()
+        Globals.wakeupCaller = \
+            Utility.initWakeup(self.UIRepositoryView.repository)
 
         """Start the Chandler Mail Service"""
         from osaf.mail.mailservice import MailService
@@ -356,63 +315,6 @@ Would you like to remove all data from your repository?
 
 
 
-    def OpenRepository(self):
-
-        """
-          Open the repository.
-        Load the Repository after the path has been altered, but before
-        the parcels are loaded. 
-        """
-        if Globals.options.profileDir:
-            path = os.sep.join([Globals.options.profileDir, '__repository__'])
-        else:
-            path = '__repository__'
-
-        wx.Yield()
-
-        self.repository = DBRepository(path)
-
-        options = Globals.options
-        kwds = { 'stderr': options.stderr,
-                 'ramdb': options.ramdb,
-                 'create': True,
-                 'recover': options.recover,
-                 'exclusive': True,
-                 'refcounted': True }
-
-        if options.repo:
-            kwds['fromPath'] = options.repo
-
-        while True:
-            try:
-                if options.encrypt:
-                    from getpass import getpass
-                    kwds['password'] = getpass("password> ")
-
-                if options.create:
-                    self.repository.create(**kwds)
-                else:
-                    self.repository.open(**kwds)
-            except RepositoryPasswordError, e:
-                if options.encrypt:
-                    print e.args[0]
-                else:
-                    options.encrypt = True
-                continue
-            else:
-                del kwds
-                break
-
-        wx.Yield()
-
-        self.UIRepositoryView = self.repository.getCurrentView()
-
-        if not self.UIRepositoryView.findPath('//Packs/Chandler'):
-            """
-              Bootstrap an empty repository by loading only the stuff that
-            can't be loaded in a data parcel.
-            """
-            self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
 
     def LoadMainViewRoot (self, delete=False):
         """
@@ -664,8 +566,11 @@ Would you like to remove all data from your repository?
             wx.GetApp().UIRepositoryView.repository.check()
 
         Globals.mailService.shutdown()
-        Globals.wakeupCaller.shutdown()
-        self.__twistedReactorManager.stopReactor()
+
+        Utility.stopWakeup(Globals.wakeupCaller)
+
+        Utility.stopTwisted(self.__twistedReactorManager)
+
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
@@ -673,15 +578,9 @@ Would you like to remove all data from your repository?
         state of the user's world, e.g. window location and size.
         """
 
-        try:
-            try:
-                wx.GetApp().UIRepositoryView.commit()
-            except VersionConflictError, e:
-                wx.GetApp().UIRepositoryView.logger.warning(str(e))
-        finally:
-            wx.GetApp().UIRepositoryView.repository.close()
+        Utility.stopRepository(wx.GetApp().UIRepositoryView)
 
-        crypto.shutdown(Globals.options.profileDir)
+        Utility.stopCrypto(Globals.options.profileDir)
 
     def OnMainThreadCallbackEvent(self, event):
         """
