@@ -5692,9 +5692,10 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
                 //m_selectingTopLeft = wxGridNoCellCoords;
                 //m_selectingBottomRight = wxGridNoCellCoords;
 
-                // Show the edit control, if it has been hidden for
-                // drag-shrinking.
-                ShowCellEditControl();
+                if ( m_hasCursor )
+                    // Show the edit control, if it has been hidden for
+                    // drag-shrinking.
+                    ShowCellEditControl();
             }
         }
         else if ( m_cursorMode == WXGRID_CURSOR_RESIZE_ROW )
