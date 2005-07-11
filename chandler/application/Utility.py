@@ -11,7 +11,7 @@ from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
      RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 import Parcel
-from Application import SCHEMA_VERSION
+import version
 
 
 logger = None # initialized in initLogging()
@@ -241,7 +241,7 @@ def verifySchema(view):
     parcelRoot = view.findPath("//parcels")
     if parcelRoot is not None:
         if (not hasattr(parcelRoot, 'version') or
-            parcelRoot.version != SCHEMA_VERSION):
+            parcelRoot.version != version.schema):
             logger.info("Schema version of repository doesn't match app")
             return False
     return True
@@ -291,7 +291,7 @@ def initParcels(view, path):
 
     # Record the current schema version into the repository
     parcelRoot = view.findPath("//parcels")
-    parcelRoot.version = SCHEMA_VERSION
+    parcelRoot.version = version.schema
 
 
 def initLocale(locale):
