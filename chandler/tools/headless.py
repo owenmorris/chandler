@@ -157,7 +157,8 @@ def show(item=None, recursive=False):
         item = currentList[item-1].itsPath
     elif isinstance(item, Item):
         item = item.itsPath
-    Utility.printItem(item, view, recursive)
+
+    view.findPath(item).printItem(recursive)
 
 def readme():
     print """

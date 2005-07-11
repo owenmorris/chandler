@@ -253,7 +253,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self._commitTransaction(txnStatus)
                     else:
                         self._abortTransaction(txnStatus)
-                    if lock:
+                    if lock is not None:
                         lock = store.releaseLock(lock)
                     return lock, 0
         

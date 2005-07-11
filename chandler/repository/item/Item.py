@@ -2371,6 +2371,68 @@ class Item(CItem):
 
         return hash
 
+    def printItem(self, recursive=False, _level=0):
+        """
+        A pretty-printer for items.
+    
+        @param recursive: Whether to also recurse down to child items,
+        C{False} by default. 
+        @type recursive: boolean
+        """
+
+        self._printItemHeader(_level)
+        self._printItemBody(_level)
+
+        if recursive:
+            for child in self.iterChildren():
+                print
+                child.printItem(True, _level + 1)
+
+    def _printItemHeader(self, _level):
+
+        print ' ' * _level,
+    
+        if self._kind is not None:
+            print self.itsPath, "(Kind: %s)" % (self._kind.itsPath)
+        else:
+            print self.itsPath
+
+    def _printItemBody(self, _level):
+
+        indent2 = ' ' * (_level + 2)
+        indent4 = ' ' * (_level + 4)
+
+        displayedAttrs = {}
+        for (name, value) in self.iterAttributeValues():
+            displayedAttrs[name] = value
+
+        keys = displayedAttrs.keys()
+        keys.sort()
+        for name in keys:
+            value = displayedAttrs[name]
+
+            if isinstance(value, RefList):
+                print indent2, "%s: (list)" %(name)
+                for item in value:
+                    print indent4, item._repr_()
+
+            elif isinstance(value, dict):
+                print indent2, "%s: (dict)" %(name)
+                for k, v in value.iteritems():
+                    print indent4, "%s: <%s>" %(k, type(v).__name__), repr(v)
+
+            elif isinstance(value, list):
+                print indent2, "%s: (list)" %(name)
+                for v in value:
+                    print indent4, "<%s>" %(type(v).__name__), repr(v)
+
+            elif isinstance(value, Item):
+                print indent2, "%s:" %(name), value._repr_()
+
+            else:
+                print indent2, "%s: <%s>" %(name, type(value).__name__), repr(value)
+
+
     itsName = property(fget = __getName,
                        fset = rename,
                        doc =

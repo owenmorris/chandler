@@ -822,6 +822,22 @@ class Kind(Item):
 
         return match
 
+    def _printItemBody(self, _level):
+
+        print ' ' * (_level + 2), "attributes for this kind:"
+
+        displayedAttrs = {}
+        for (name, attr, k) in self.iterAttributes():
+            displayedAttrs[name] = attr
+
+        keys = displayedAttrs.keys()
+        keys.sort()
+        indent = ' ' * (_level + 4)
+        for key in keys:
+            print indent, key, displayedAttrs[key].itsPath
+
+        super(Kind, self)._printItemBody(_level)
+
 
     NoneString = "__NONE__"
     _classes = {}
