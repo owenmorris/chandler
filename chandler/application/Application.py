@@ -18,7 +18,8 @@ logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
 
 
-# SCHEMA_VERSION has moved to version.py
+# Increment this constant whenever you change the schema:
+SCHEMA_VERSION = '24'
 
 
 #@@@Temporary testing tool written by Morgen -- DJA

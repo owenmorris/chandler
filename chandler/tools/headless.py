@@ -65,7 +65,8 @@ def setDisplayHook():
     we don't do this, our mapping of _ to gettext can get overwritten.
     """
     def _displayHook(obj):
-        print repr(obj)
+        if obj is not None:
+            print repr(obj)
 
     sys.displayhook = _displayHook
 
