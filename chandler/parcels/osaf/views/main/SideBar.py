@@ -59,6 +59,15 @@ class wxSidebar(ControlBlocks.wxTable):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+        self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+
+    def onKeyDown(self, event):
+        if self.IsCellEditControlEnabled():
+            keyCode = event.GetKeyCode()
+            if keyCode == wx.WXK_RETURN or keyCode == wx.WXK_NUMPAD_ENTER:
+                self.DisableCellEditControl()
+                return
+        event.Skip()
 
     def CalculateCellRect (self, row):
         cellRect = self.CellToRect (row, 0)
@@ -97,7 +106,7 @@ class wxSidebar(ControlBlocks.wxTable):
         hadCapture = gridWindow.HasCapture()
 
         if cellRect.InsideXY (x, y):
-            if not hasattr (self, 'hoverImageRow'):
+            if not hasattr (self, 'hoverImageRow') and not self.IsCellEditControlEnabled():
                 assert not gridWindow.HasCapture()
                 gridWindow.CaptureMouse()
 
@@ -146,13 +155,18 @@ class wxSidebar(ControlBlocks.wxTable):
                         gridWindow.ReleaseMouse()
                     self.buttonPressed = False
 
+            elif event.LeftDClick():
+                assert gridWindow.HasCapture()
+                gridWindow.ReleaseMouse()
+                del self.hoverImageRow
+
             elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
                 for button in self.buttonState.itervalues():
                     self.RefreshRect (button['imageRect'])
                 self.buttonPressed = False
                 del self.hoverImageRow
                 gridWindow.ReleaseMouse()
-    
+
             elif (self.buttonPressed):
                 button = self.buttonState[self.buttonPressed]
                 imageRect = button['imageRect']
