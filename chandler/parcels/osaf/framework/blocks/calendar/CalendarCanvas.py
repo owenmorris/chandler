@@ -513,7 +513,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
                                                           item.startTime,
-                                                          item.endTime, indent, width))
+                                                          item.endTime, width, indent))
         self._bounds = self._boundsRects[0]
 
         r = self._boundsRects[-1]
@@ -579,14 +579,14 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             del self._forceResizeMode
     
     @staticmethod
-    def GenerateBoundsRects(calendarCanvas, startTime, endTime, indent=0, width=0):
+    def GenerateBoundsRects(calendarCanvas, startTime, endTime, width, indent=0):
         """
         Generate a bounds rectangle for each day period. For example, an event
         that goes from noon monday to noon wednesday would have three bounds rectangles:
             one from noon monday to midnight
             one for all day tuesday
-            one from midnight wednesday morning to noon wednesday
-        """
+            one from midnight wednesday morning to noon wednesday"""
+                
         # calculate how many unique days this appears on 
         days = endTime.toordinal() - startTime.toordinal() + 1
         
@@ -1658,7 +1658,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                         self.xOffset + (self.dayWidth * day), self.size.height)
         """
 
-        # draw selection stuff
+        # draw selection stuff (highlighting)
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
             dc.SetPen(styles.majorLinePen)
             dc.SetBrush(styles.selectionBrush)
@@ -1666,7 +1666,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             rects = \
                 ColumnarCanvasItem.GenerateBoundsRects(self,
                                                        self._bgSelectionStartTime,
-                                                       self._bgSelectionEndTime)
+                                                       self._bgSelectionEndTime,
+                                                       self.dayWidth)
+            
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
