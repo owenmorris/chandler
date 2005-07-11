@@ -410,8 +410,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             x = itemRect.x + self.textMargin + 3
             y = itemRect.y + self.textMargin
             width = itemRect.width - (self.textMargin + 10)
-            height = 15
-            timeRect = wx.Rect(x, y, width, height)
             
             # only draw date/time on first item
             if drawEventText:
@@ -423,6 +421,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 
                     # draw the time if there is room
                     if (timeHeight < itemRect.height/2):
+                        timeRect = wx.Rect(x, y, width, timeHeight)
+                        
                         dc.SetFont(styles.eventTimeFont)
                         self.timeHeight = \
                             self.DrawWrappedText(dc, timeString, timeRect)
@@ -430,10 +430,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     else:
                         self.timeHeight = 0
 
+                # we may have lost some room in the rectangle from
+                # drawing the time
+                lostHeight = y - itemRect.y
+                
                 # now draw the text of the event
                 textRect = wx.Rect(x, y,
                                    width,
-                                   itemRect.height - (y - itemRect.y))
+                                   itemRect.height - lostHeight - self.textMargin)
                 
                 dc.SetFont(styles.eventLabelFont)
                 self.DrawWrappedText(dc, item.displayName, textRect)
@@ -1428,7 +1432,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         x = rect.x
         y = rect.y
         w = rect.width
-        h = 15
+        h = 17
 
         for item in self.parent.blockItem.getDayItemsByDate(date):
             itemRect = wx.Rect(x, y, w, h)
