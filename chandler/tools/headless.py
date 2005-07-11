@@ -55,7 +55,6 @@ def shutdown():
     Utility.stopTwisted(reactorManager)
     Utility.stopRepository(view)
     Utility.stopCrypto(Globals.options.profileDir)
-    sys.exit(1)
 
 
 def setDisplayHook():
@@ -205,21 +204,37 @@ def main():
              "view.\n" \
              "Type 'readme()' for more info."
 
-    interact(banner,
-             None,
-             { "__name__" : "__console__",
-               "__doc__" : None,
-               "view" : view,
-               "readme" : readme,
-               "cd" : cd,
-               "pwd" : pwd,
-               "ls" : ls,
-               "grab" : grab,
-               "show" : show,
-             })
+    script = Globals.options.script
+    if script:
+        try:
+            if script.endswith('.py'):
+                file = open(script)
+                script = file.read()
+                file.close()
 
-    print "Shutting down..."
-    shutdown()
+            exec script in globals()
+        except Exception, e:
+            shutdown()
+            raise e
+        else:
+            shutdown()
+
+    else:
+        interact(banner,
+                 None,
+                 { "__name__" : "__console__",
+                   "__doc__" : None,
+                   "view" : view,
+                   "readme" : readme,
+                   "cd" : cd,
+                   "pwd" : pwd,
+                   "ls" : ls,
+                   "grab" : grab,
+                   "show" : show,
+                 })
+
+        print "Shutting down..."
+        shutdown()
 
 
 if __name__ == "__main__":

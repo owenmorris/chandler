@@ -1988,7 +1988,7 @@ def PrintItem(path, rep, recursive=False, level=0):
             for i in xrange(level+2):
                 print " ",
 
-            print "%s: (dict)" % name
+            print "%s: (list)" % name
             for j in value:
                 for k in xrange(level+4):
                     print " ",
