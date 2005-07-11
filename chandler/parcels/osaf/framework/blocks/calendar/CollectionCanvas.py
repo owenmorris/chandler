@@ -13,6 +13,7 @@ from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.contentmodel import ItemCollection
 from application import schema
+from wx.lib import buttons
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -135,11 +136,13 @@ class CanvasTextButton(wx.BitmapButton):
         #self.SetMinSize(wx.Size(width, height))
         self.SetSize(wx.Size(width, height))
 
-class CanvasBitmapButton(wx.BitmapButton):
+class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
     """ Flat bitmap button, no border.
     
-        Currently does not work well on MacOSX:
-        wxWidgets doesn't implement a button with no border. 
+        Currently, the wx.BitmapButton does not work well on MacOSX:
+        wxWidgets doesn't implement a button with no border.
+        Ideally, we would use a "proper" bitmap button that
+        actually generated a accurate masked area,
     """
 
     def __init__(self, parent, name):
@@ -155,7 +158,10 @@ class CanvasBitmapButton(wx.BitmapButton):
         bitmap = wx.GetApp().GetImage (name)
         super(CanvasBitmapButton, self).__init__(parent, -1,
                                                  bitmap, style=wx.NO_BORDER)
-
+        # NB: forcing a white background (as needed by GenBitmapButton)
+        # to match the Calendar header background
+        # if (isInstance(wx.lib.buttons.GenBitmapButton):
+        self.SetBackgroundColour("white")
         self.UpdateSize()
 
     def UpdateSize(self):
