@@ -16,7 +16,7 @@ wakeupCaller = None
 
 
 def startup(**kwds):
-    global view, reactorManager, wakeupCaller
+    global view
 
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     if not Globals.chandlerDirectory:
@@ -44,14 +44,23 @@ def startup(**kwds):
 
     Utility.initCrypto(Globals.options.profileDir)
     Utility.initParcels(view, parcelPath)
-    reactorManager = Utility.initTwisted()
-    wakeupCaller = Utility.initWakeup(view)
 
     return view
 
+def go():
+    global reactorManager, wakeupCaller
+
+    print "Igniting Twisted reactor..."
+    view.commit()
+    reactorManager = Utility.initTwisted()
+    wakeupCaller = Utility.initWakeup(view)
+    print "...ready"
+
 def shutdown():
-    Utility.stopWakeup(wakeupCaller)
-    Utility.stopTwisted(reactorManager)
+    if wakeupCaller is not None:
+        Utility.stopWakeup(wakeupCaller)
+    if reactorManager is not None:
+        Utility.stopTwisted(reactorManager)
     Utility.stopRepository(view)
     Utility.stopCrypto(Globals.options.profileDir)
 
@@ -152,16 +161,18 @@ def show(item=None, recursive=False):
 
 def readme():
     print """
-This is a version of Chandler which doesn't start up the wx portion of the
-code.  The repository has been opened, packs and parcels loaded, registered
-web servlets and wakeup-callers activated.  This script accepts all of the
-command-line arguments and environment variables as the GUI Chandler, as they
-share the same option-parsing code.  If you have activated the built-in web
-server, you can point your browser at http://localhost:1888/
+This is a version of Chandler which doesn't start up the wx portion
+of the code.  The repository has been opened, and packs and parcels
+loaded. If you want to start Twisted services (including WakeupCallers),
+you need to run the 'go( )' method from the shell.  Once you've
+done that any registered web servlets will then be availalbe at
+http://localhost:1888/
 
-Exiting the interactive session (by Control-D on *nix boxes, and by Control-Z
-followed by Enter on Windows) will shut down twisted, commit the repository,
-and exit the program.
+This script accepts all of the command-line arguments and environment
+variables as the GUI Chandler, as they share the same option-parsing
+code.  Exiting the interactive session (by Control-D on *nix boxes,
+and by Control-Z followed by Enter on Windows) will shut down
+twisted, commit the repository, and exit the program.
 
 Some helper methods have been defined to make it easy to move around within
 the repository:  cd, pwd, ls, grab, show
@@ -187,12 +198,6 @@ the repository:  cd, pwd, ls, grab, show
     is passed in it will use the "current" item.  There is an optional
     'recursive' boolean argument which defaults to False.
 
-Known bugs:
-
-- Wakeupcallers don't activate until you quit and restart the script.
-- The 'inbound' parcel (RSS reader) doesn't work in headless mode at the
-  moment, but the repository servlet does.
-
 """
 
 def main():
@@ -206,7 +211,8 @@ def main():
              "exit this Python session.\n" \
              "The variable, 'view', is now set to the main repository " \
              "view.\n" \
-             "Type 'readme()' for more info."
+             "Type 'go()' to fire up Twisted services, or 'readme()' for " \
+             "more info."
 
     script = Globals.options.script
     if script:
@@ -227,14 +233,15 @@ def main():
         interact(banner,
                  None,
                  { "__name__" : "__console__",
-                   "__doc__" : None,
-                   "view" : view,
-                   "readme" : readme,
-                   "cd" : cd,
-                   "pwd" : pwd,
-                   "ls" : ls,
-                   "grab" : grab,
-                   "show" : show,
+                   "__doc__"    : None,
+                   "view"       : view,
+                   "readme"     : readme,
+                   "go"         : go,
+                   "cd"         : cd,
+                   "pwd"        : pwd,
+                   "ls"         : ls,
+                   "grab"       : grab,
+                   "show"       : show,
                  })
 
         print "Shutting down..."
