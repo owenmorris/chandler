@@ -70,3 +70,4 @@ class TwistedReactorManager(RepositoryThread):
             raise TwistedReactorException("Reactor Not Running")
 
         reactor.callFromThread(reactor.stop)
+        self.join()
