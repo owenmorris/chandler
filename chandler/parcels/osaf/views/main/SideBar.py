@@ -274,9 +274,10 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                     dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
 
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
-            (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
-            if len (filteredCollection) == 0:
-                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+            if sidebarTPB is not None:
+                (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
+                if len (filteredCollection) == 0:
+                    dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
             name = getattr (item, attribute)
             key = name

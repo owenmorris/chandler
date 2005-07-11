@@ -116,9 +116,12 @@ class Block(schema.Item):
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
 
     def findBlockByName (theClass, name):
-        assert theClass.blockNameToItemUUID.has_key (name), "Block name " + name + " not found"
-        list = theClass.blockNameToItemUUID [name]
-        return wx.GetApp().UIRepositoryView.find (list[0])
+        try:
+            list = theClass.blockNameToItemUUID [name]
+        except KeyError:
+            return None
+        else:
+            return wx.GetApp().UIRepositoryView.find (list[0])
     findBlockByName = classmethod (findBlockByName)
 
     def addToNameToItemUUIDDictionary (theClass, list, dictionary):
@@ -243,12 +246,14 @@ class Block(schema.Item):
                     method (self.widget)
 
     def unRender (self):
+        for child in self.childrenBlocks:
+            child.unRender()
         try:
             widget = self.widget
         except AttributeError:
             pass
         else:
-            if not isinstance (widget, wx.ToolBarToolBase):
+            if (not isinstance (widget, wx.ToolBarToolBase)):
                 """
                   Remove child from parent before destroying child.
                 """
@@ -263,9 +268,8 @@ class Block(schema.Item):
                     pass
                 else:
                     method (widget)
+            
 
-        for child in self.childrenBlocks:
-            child.unRender()
         try:
             lastView = Globals.views[-1]
         except IndexError:

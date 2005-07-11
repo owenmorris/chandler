@@ -451,6 +451,9 @@ class wxMenuItem (wx.MenuItem):
         except AttributeError:
             raise NotImplementedError
 
+    def Destroy(self):
+        self.GetMenu().DestroyItem (self)
+
     def wxSynchronizeWidget(self):
         # placeholder in case Menu Items change
         pass
@@ -505,6 +508,21 @@ class wxMenu(wx.Menu):
 
     def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
+
+    def Destroy(self):
+        parentMenu = self.GetParent()
+        if parentMenu is not None:
+            for item in parentMenu.GetMenuItems():
+                if item.GetSubMenu() is self:
+                    super (wxMenu, parentMenu).DestroyItem (item)
+                    break
+        else:
+            menuBar = self.GetMenuBar()
+            for index in xrange (menuBar.GetMenuCount()):
+                if menuBar.GetMenu (index) == self:
+                    menuBar.Remove (index)
+                    del self
+                    break
 
     def __del__(self):
         for child in self.blockItem.childrenBlocks:
