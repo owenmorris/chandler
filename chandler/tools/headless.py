@@ -8,7 +8,6 @@ import sys, os
 import application.Utility as Utility
 import application.Globals as Globals
 from repository.item.Item import Item
-from application.Parcel import PrintItem
 from code import interact
 
 view = None
@@ -149,7 +148,7 @@ def show(item=None, recursive=False):
         item = currentList[item-1].itsPath
     elif isinstance(item, Item):
         item = item.itsPath
-    PrintItem(item, view, recursive)
+    Utility.printItem(item, view, recursive)
 
 def readme():
     print """

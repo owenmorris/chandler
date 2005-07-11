@@ -20,7 +20,6 @@ class ClassesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcel("parcel:application.tests.testparcels.classes.sub")
         self.rep.commit()
-        # PrintItem("//parcels", self.rep)
         itemSuper = self.rep.findPath("//parcels/application/tests/testparcels/classes/super/itemSuper")
         itemSub = self.rep.findPath("//parcels/application/tests/testparcels/classes/sub/itemSub")
         self.assert_(itemSuper.__dict__.has_key('initCalled'))

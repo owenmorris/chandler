@@ -22,8 +22,6 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         myColl = self.manager.lookup("http://testparcels.org/uuidof", "myColl")
 
-        # application.Parcel.PrintItem(myColl.itsPath, self.rep)
-
         for i in range(3):
             item = self.manager.lookup("http://testparcels.org/uuidof", 
              "item%d" % i)

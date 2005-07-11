@@ -7,7 +7,6 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import ParcelLoaderTestCase, os, sys, unittest
-from application.Parcel import PrintItem
 
 class ExternalCopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -18,8 +17,6 @@ class ExternalCopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         PARCELTWO = "%s/two" % EXTERNALCOPYING
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcels([EXTERNALCOPYING, PARCELONE, PARCELTWO])
-
-        # PrintItem("//parcels/application/tests/testparcels/externalcopying", self.rep, recursive=True)
 
         topLevelParcel = self.manager.lookup(EXTERNALCOPYING)
         self.assert_(topLevelParcel is not None)

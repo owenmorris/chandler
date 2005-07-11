@@ -21,7 +21,6 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.loadParcel("http://testparcels.org/parcels/depA")
 
         self.rep.commit()
-        # PrintItem("//parcels", self.rep)
 
         # Ensure depA Parcel was created with the right Kind and attrs
         depA = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA")

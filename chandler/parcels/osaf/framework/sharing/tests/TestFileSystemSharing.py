@@ -124,9 +124,6 @@ class SharingTestCase(unittest.TestCase):
             coll.add(c)
 
 
-    def dumpSandbox(self, repo):
-        Parcel.PrintItem("//sandbox", repo, recursive=True)
-
     def RoundTrip(self):
 
         # Export

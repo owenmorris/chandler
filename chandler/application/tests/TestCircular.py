@@ -22,7 +22,6 @@ class CircularTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
          ["http://testparcels.org/calendar", "http://testparcels.org/contact"]
         )
         self.rep.commit()
-        # PrintItem("//parcels", self.rep)
 
 if __name__ == "__main__":
     unittest.main()

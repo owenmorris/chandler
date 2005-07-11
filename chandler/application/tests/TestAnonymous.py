@@ -10,7 +10,7 @@ import ParcelLoaderTestCase, os, sys, unittest
 import application
 from application.Parcel import Parcel as Parcel
 
-from application.Parcel import PrintItem as PrintItem
+from application.Utility import printItem
 
 ANON_PARCEL = "parcel:application.tests.testparcels.anonymous"
 
@@ -55,7 +55,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         item = self.manager.lookup(ANON_PARCEL, "itemWithAttributes")
 
-        #PrintItem("//parcels/anonymous", self.manager.repo, recursive=True)
+        #printItem("//parcels/anonymous", self.manager.repo, recursive=True)
         
         self.assert_(item)
         
@@ -84,7 +84,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         item = self.manager.lookup(ANON_PARCEL, "anonymousItemWithAttributes")
 
-        #PrintItem("//parcels/anonymous", self.manager.repo, recursive=True)
+        #printItem("//parcels/anonymous", self.manager.repo, recursive=True)
         
         self.assert_(item)
 
