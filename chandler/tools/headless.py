@@ -81,21 +81,21 @@ def setDisplayHook():
 currentItem = None
 currentList = None
 
-def cd(path):
+def cd(arg):
     global currentItem
 
     if currentItem is None:
         currentItem = view
 
-    if isinstance(path, (int, long)):
-        newItem = currentList[path-1] # path is a number
+    if isinstance(arg, (int, long)):
+        newItem = currentList[arg-1] # arg is a number
     else:
-        newItem = currentItem.findPath(path)
+        newItem = currentItem.findPath(arg)
 
     if newItem is not None:
         currentItem = newItem
     else:
-        print "path not found:", path
+        print "path not found:", arg
 
 def pwd():
     global currentItem
@@ -105,16 +105,16 @@ def pwd():
 
     print currentItem.itsPath
 
-def ls(path=None):
+def ls(arg=None):
     global currentItem, currentList
 
     if currentItem is None:
         currentItem = view
 
-    if path is None:
+    if arg is None:
         item = currentItem
     else:
-        item = currentItem.findPath(path)
+        item = currentItem.findPath(arg)
 
     print "Children of %s:" % item.itsPath
     currentList = []
@@ -135,30 +135,35 @@ def ls(path=None):
                                 kindName)
         count += 1
 
-def grab(number=None):
+def grab(arg=None):
     global currentItem
 
-    if number is None:
+    if arg is None:
         if currentItem is None:
             currentItem = view
         return currentItem
 
-    return currentList[number-1]
+    if isinstance(arg, (int, long)):
+        return currentList[arg-1]
 
-def show(item=None, recursive=False):
+    if currentItem is None:
+        currentItem = view
+    return currentItem.findPath(arg)
+
+def show(arg=None, recursive=False):
     global currentItem
 
-    if item is None:
+    if arg is None:
         if currentItem is None:
             currentItem = view
         item = currentItem.itsPath
 
-    if isinstance(item, (int, long)):
-        item = currentList[item-1].itsPath
-    elif isinstance(item, Item):
-        item = item.itsPath
+    if isinstance(arg, (int, long)):
+        item = currentList[arg-1].itsPath
+    elif isinstance(arg, Item):
+        item = arg.itsPath
 
-    view.findPath(item).printItem(recursive)
+    currentItem.findPath(item).printItem(recursive)
 
 def readme():
     print """

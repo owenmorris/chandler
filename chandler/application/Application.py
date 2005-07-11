@@ -18,7 +18,7 @@ logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
 
 
-# SCHEMA_VERSION has moved to version.py
+# SCHEMA_VERSION has moved to Utility.py
 
 
 #@@@Temporary testing tool written by Morgen -- DJA
