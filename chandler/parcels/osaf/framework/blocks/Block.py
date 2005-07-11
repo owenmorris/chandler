@@ -115,6 +115,7 @@ class Block(schema.Item):
     eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
 
+    @classmethod
     def findBlockByName (theClass, name):
         try:
             list = theClass.blockNameToItemUUID [name]
@@ -122,8 +123,8 @@ class Block(schema.Item):
             return None
         else:
             return wx.GetApp().UIRepositoryView.find (list[0])
-    findBlockByName = classmethod (findBlockByName)
 
+    @classmethod
     def addToNameToItemUUIDDictionary (theClass, list, dictionary):
         for item in list:
             try:
@@ -137,8 +138,8 @@ class Block(schema.Item):
                     dictionary [name] = [item.itsUUID, 1]
                 else:
                     list [1] = list [1] + 1 #increment the reference count
-    addToNameToItemUUIDDictionary = classmethod (addToNameToItemUUIDDictionary)
 
+    @classmethod
     def removeFromNameToItemUUIDDictionary (theClass, list, dictionary):
         for item in list:
             try:
@@ -151,7 +152,6 @@ class Block(schema.Item):
                     list [1] = list [1] - 1 #decrement the reference count
                     if list [1] == 0:
                         del dictionary [name]
-    removeFromNameToItemUUIDDictionary = classmethod (removeFromNameToItemUUIDDictionary)
 
     def render (self):
         try:
@@ -287,10 +287,10 @@ class Block(schema.Item):
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
+    @classmethod
     def wxOnDestroyWidget (theClass, widget):
         if hasattr (widget, 'blockItem'):
             widget.blockItem.onDestroyWidget()
-    wxOnDestroyWidget = classmethod (wxOnDestroyWidget)
 
     def onDestroyWidget (self):
         """
@@ -323,14 +323,15 @@ class Block(schema.Item):
             
         wx.GetApp().needsUpdateUI = True
 
+    @classmethod
     def widgetIDToBlock (theClass, wxID):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
         """
         return wx.GetApp().UIRepositoryView.find (theClass.IdToUUID [wxID - (wx.ID_HIGHEST + 1)])
  
-    widgetIDToBlock = classmethod (widgetIDToBlock)
 
+    @classmethod
     def getWidgetID (theClass, object):
         """
           wxWindows needs a integer for a id. Commands between
@@ -351,8 +352,8 @@ class Block(schema.Item):
             assert not Block.UUIDtoIds.has_key (UUID)
             Block.UUIDtoIds [UUID] = id
         return id
-    getWidgetID = classmethod (getWidgetID)
 
+    @classmethod
     def getFocusBlock (theClass):
         focusWindow = wx.Window_FindFocus()
         while (focusWindow):
@@ -361,7 +362,6 @@ class Block(schema.Item):
             except AttributeError:
                 focusWindow = focusWindow.GetParent()
         return Globals.views[0]
-    getFocusBlock = classmethod (getFocusBlock)
 
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown
@@ -520,6 +520,7 @@ class Block(schema.Item):
             block = block.parentBlock
         return block.frame
 
+    @classmethod
     def dispatchEvent (theClass, event):
         
         def callMethod(block, methodName, event):
@@ -655,7 +656,6 @@ class Block(schema.Item):
 
         if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
-    dispatchEvent = classmethod (dispatchEvent)
 
     # event profiler (class attributes)
     profileEvents = False        # Make "True" to profile events
