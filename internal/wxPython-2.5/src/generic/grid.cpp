@@ -1524,7 +1524,8 @@ void wxGridCellEditorEvtHandler::OnKeyDown(wxKeyEvent& event)
 
         case WXK_RETURN:
         case WXK_NUMPAD_ENTER:
-            m_grid->DisableCellEditControl();
+            if (!m_grid->GetEventHandler()->ProcessEvent(event))
+                m_editor->HandleReturn(event);
             break;
 
         default:
