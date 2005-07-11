@@ -330,6 +330,7 @@ bool wxToolBarTool::DoEnable(bool enable)
         if ( m_toolbarItemRef )
             HIToolbarItemSetEnabled( m_toolbarItemRef , enable ) ;
 
+        int i;
         for (i=0; i<2; i++)
         {
             ControlRef curCntlRef = ((i == 0) ? m_ControlRefContent : m_ControlRefSelection);
@@ -506,15 +507,16 @@ void wxToolBar::Init()
     m_maxHeight = -1;
     m_defaultWidth = kwxMacToolBarToolDefaultWidth;
     m_defaultHeight = kwxMacToolBarToolDefaultHeight;
-    m_macHIToolbarRef = NULL ;
-    m_macUsesNativeToolbar = false ;
+    m_macHIToolbarRef = NULL;
+    m_macUsesNativeToolbar = false;
 }
 
 // also for the toolbar we have the dual implementation:
 // only when MacInstallNativeToolbar is called is the native toolbar set as the window toolbar
 //
-bool wxToolBar::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
-            long style, const wxString& name)
+bool wxToolBar::Create(
+    wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
+    long style, const wxString& name)
 {
 // wxLogDebug( wxT("wxToolBar::Create[%lx] - native [%s]"), (long)this, m_macUsesNativeToolbar ? wxT("T") : wxT("F") );
 
