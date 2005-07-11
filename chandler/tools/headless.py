@@ -97,15 +97,20 @@ def pwd():
 
     print currentItem.itsPath
 
-def ls():
+def ls(path=None):
     global currentItem, currentList
 
     if currentItem is None:
         currentItem = view
 
-    print "Children of %s:" % currentItem.itsPath
+    if path is None:
+        item = currentItem
+    else:
+        item = currentItem.findPath(path)
+
+    print "Children of %s:" % item.itsPath
     currentList = []
-    for child in currentItem.iterChildren():
+    for child in item.iterChildren():
         currentList.append(child)
 
     currentList.sort(lambda x, y: cmp(str(x.getItemDisplayName()).lower(), str(y.getItemDisplayName()).lower()))
