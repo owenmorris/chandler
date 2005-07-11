@@ -115,9 +115,6 @@ public:
         %pythonAppend wxColumnHeader      "self._setOORInfo(self)"
         %pythonAppend wxColumnHeader()    ""
 
-    // wxColumnHeader();
-    // ~wxColumnHeader();
-
     wxColumnHeader(
         wxWindow        *parent,
         wxWindowID        id = -1,
@@ -125,6 +122,11 @@ public:
         const wxSize        &size = wxDefaultSize,
         long                style = 0,
         const wxString        &name = wxColumnHeaderNameStr );
+
+    // NB: is this proper? What about the dtor?
+    %RenameCtor(PreColumnHeader, wxColumnHeader());
+    // wxColumnHeader();
+    // ~wxColumnHeader();
 
     virtual bool Destroy( void );
 

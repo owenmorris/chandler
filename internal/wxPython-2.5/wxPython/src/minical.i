@@ -123,7 +123,9 @@ public:
                        long style = 0,
                        const wxString& name = wxCalendarNameStr);
 
-        %name(PreMiniCalendar)wxMiniCalendar();
+        // NB: is this proper? What about the dtor?
+        %RenameCtor(PreMiniCalendar, wxMiniCalendar());
+
         void SetDate(const wxDateTime& date);
         const wxDateTime& GetDate() const;
         bool SetLowerDateLimit(const wxDateTime& date = wxDefaultDateTime);
