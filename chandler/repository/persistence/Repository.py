@@ -33,7 +33,7 @@ class Repository(object):
         super(Repository, self).__init__()
 
         self.dbHome = dbHome
-        self._status = 0
+        self._status = Repository.CLOSED
         self._threaded = threading.local()
         self._notifications = []
         self._openViews = []
@@ -99,7 +99,7 @@ class Repository(object):
 
     def _init(self, **kwds):
 
-        self._status = 0
+        self._status = Repository.CLOSED
         self.logger = logging.getLogger('repository')
 
         if kwds.get('debug', False):
@@ -295,6 +295,15 @@ class Repository(object):
 
         return (self._status & Repository.OPEN) != 0
 
+    def isClosed(self):
+        """
+        Tell whether the repository is open.
+
+        @return: C{True} or C{False}
+        """
+
+        return (self._status & Repository.CLOSED) != 0
+
     def isRefCounted(self):
 
         return (self._status & Repository.REFCOUNTED) != 0
@@ -489,6 +498,7 @@ class Repository(object):
     OPEN       = 0x0001
     REFCOUNTED = 0x0002
     RAMDB      = 0x0004
+    CLOSED     = 0x0008
 
     view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)

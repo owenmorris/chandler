@@ -420,12 +420,12 @@ class InputStream(object):
 
 class IndexContainer(FileContainer):
 
-    def __init__(self, store, name, txn, **kwds):
+    def open(self, name, txn, **kwds):
 
-        super(IndexContainer, self).__init__(store, name, txn, **kwds)
+        super(IndexContainer, self).open(name, txn, **kwds)
 
         if kwds.get('create', False):
-            directory = DbDirectory(txn, self._db, store._blocks._db,
+            directory = DbDirectory(txn, self._db, self.store._blocks._db,
                                     self._flags)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()

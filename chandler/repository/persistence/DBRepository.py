@@ -16,9 +16,7 @@ from repository.item.Item import Item
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import \
     Repository, OnDemandRepository, Store
-from repository.persistence.RepositoryError import \
-    RepositoryError, ExclusiveOpenDeniedError, RepositoryOpenDeniedError, \
-    RepositoryPasswordError
+from repository.persistence.RepositoryError import *
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
@@ -56,6 +54,7 @@ class DBRepository(OnDemandRepository):
 
         self._openLock = None
         self._openFile = None
+        self.store = None
 
         if dbHome is not None:
             self._openDir = os.path.join(self.dbHome, '__open')
@@ -159,6 +158,8 @@ class DBRepository(OnDemandRepository):
             self._openLock = None
 
     def _createEnv(self, create, kwds):
+
+        self._status &= ~Repository.CLOSED
 
         env = DBEnv()
 
@@ -321,7 +322,7 @@ class DBRepository(OnDemandRepository):
 
     def _afterOpen(self):
 
-        if self._status & Repository.RAMDB == 0:
+        if (self._status & Repository.RAMDB) == 0:
             self._touchOpenFile()
             self._checkpointThread = DBCheckpointThread(self)
             self._checkpointThread.start()
@@ -331,24 +332,29 @@ class DBRepository(OnDemandRepository):
         super(DBRepository, self).close()
         status = self._status
         
-        if status & Repository.OPEN:
+        if (status & Repository.CLOSED) == 0:
 
             ramdb = status & Repository.RAMDB
             if not ramdb:
-                self._checkpointThread.terminate()
-                self._checkpointThread = None
+                if self._checkpointThread is not None:
+                    self._checkpointThread.terminate()
+                    self._checkpointThread = None
 
-            self.store.close()
-            self._env.close()
-            self._env = None
-            self._lockClose()
             self._status &= ~Repository.OPEN
+            if self.store is not None:
+                self.store.close()
+            if self._env is not None:
+                self._env.close()
+                self._env = None
+            self._lockClose()
 
             if ramdb:
                 self._status &= ~Repository.RAMDB
-            else:
+            elif self._openFile is not None:
                 os.remove(self._openFile)
                 self._openFile = None
+
+            self._status |= Repository.CLOSED
 
     def createView(self, name=None, version=None):
 
@@ -363,8 +369,19 @@ class DBStore(Store):
     def __init__(self, repository):
 
         self._threaded = local()
+
+        self._items = ItemContainer(self)
+        self._values = ValueContainer(self)
+        self._refs = RefContainer(self)
+        self._names = NamesContainer(self)
+        self._lobs = FileContainer(self)
+        self._blocks = BlockContainer(self)
+        self._index = IndexContainer(self)
+        self._acls = ACLContainer(self)
+        self._indexes = IndexesContainer(self)
+
         super(DBStore, self).__init__(repository)
-        
+
     def open(self, **kwds):
 
         self._ramdb = kwds.get('ramdb', False)
@@ -374,16 +391,19 @@ class DBStore(Store):
             txnStatus = self.startTransaction()
             txn = self.txn
 
-            self._items = ItemContainer(self, "__items__", txn, **kwds)
-            self._values = ValueContainer(self, "__values__", txn, **kwds)
-            self._refs = RefContainer(self, "__refs__", txn, **kwds)
-            self._names = NamesContainer(self, "__names__", txn, **kwds)
-            self._lobs = FileContainer(self, "__lobs__", txn, **kwds)
-            self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
-            self._index = IndexContainer(self, "__index__", txn, **kwds)
-            self._acls = ACLContainer(self, "__acls__", txn, **kwds)
-            self._indexes = IndexesContainer(self, "__indexes__", txn, **kwds)
+            self._items.open("__items__", txn, **kwds)
+            self._values.open("__values__", txn, **kwds)
+            self._refs.open("__refs__", txn, **kwds)
+            self._names.open("__names__", txn, **kwds)
+            self._lobs.open("__lobs__", txn, **kwds)
+            self._blocks.open("__blocks__", txn, **kwds)
+            self._index.open("__index__", txn, **kwds)
+            self._acls.open("__acls__", txn, **kwds)
+            self._indexes.open("__indexes__", txn, **kwds)
         except DBNoSuchFileError:
+            self.abortTransaction(txnStatus)
+            raise
+        except RepositoryVersionError:
             self.abortTransaction(txnStatus)
             raise
         else:
@@ -710,3 +730,4 @@ class DBCheckpointThread(Thread):
             condition.release()
 
             self._repository._env.txn_checkpoint()
+            self.join()

@@ -14,7 +14,7 @@ from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.DBRepository import DBRepository
 import util.timing
 
-class BasicRepositoryTest(unittest.TestCase):
+class TestRepositoryBasic(unittest.TestCase):
     """ Very basic repository tests """
 
     def _repositoryExists(self):

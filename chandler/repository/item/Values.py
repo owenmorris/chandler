@@ -520,8 +520,14 @@ class References(Values):
             self[name] = other
             return other
 
-        if value._isRefList() and other in value:
-            return other
+        if value._isRefList():
+            if other in value:
+                if other._isItem():
+                    return other
+                else:
+                    return value[other]
+            else:
+                raise DanglingRefError(item, name, other)
 
         raise BadRefError, (item, name, value, other)
     

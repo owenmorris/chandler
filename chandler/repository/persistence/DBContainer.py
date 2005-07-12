@@ -24,13 +24,16 @@ from bsddb.db import DBNotFoundError, DBLockDeadlockError
 
 class DBContainer(object):
 
-    def __init__(self, store, name, txn, **kwds):
+    def __init__(self, store):
 
         self.store = store
-        self._filename = name
+        self._db = None
+
+    def open(self, name, txn, **kwds):
+
         self._threaded = threading.local()
-        
-        self._db = DB(store.env)
+
+        self._db = DB(self.store.env)
         self._db.set_lorder(4321)
         self._flags = 0
         
@@ -81,8 +84,9 @@ class DBContainer(object):
 
     def close(self):
 
-        self._db.close()
-        self._db = None
+        if self._db is not None:
+            self._db.close()
+            self._db = None
         self._threaded = None
 
     def attachView(self, view):
@@ -249,19 +253,23 @@ class DBContainer(object):
 
 
 class RefContainer(DBContainer, CRefContainer):
+
+    def __init__(self, store):
+
+        super(RefContainer, self).__init__(store)
+        self._history = None
         
-    def __init__(self, store, name, txn, **kwds):
+    def open(self, name, txn, **kwds):
 
-        super(RefContainer, self).__init__(store, name, txn,
-                                           dbname = 'data', **kwds)
-
+        super(RefContainer, self).open(name, txn, dbname = 'data', **kwds)
         self._history = self.openIndex(name, 'history', txn,
                                        self._historyKey, **kwds)
 
     def close(self):
 
-        self._history.close()
-        self._history = None
+        if self._history is not None:
+            self._history.close()
+            self._history = None
 
         super(RefContainer, self).close()
 
@@ -758,10 +766,16 @@ class IndexesContainer(DBContainer):
 
 class ItemContainer(DBContainer):
 
-    def __init__(self, store, name, txn, **kwds):
+    def __init__(self, store):
 
-        super(ItemContainer, self).__init__(store, name, txn,
-                                            dbname = 'data', **kwds)
+        super(ItemContainer, self).__init__(store)
+
+        self._index = None
+        self._version = None
+        
+    def open(self, name, txn, **kwds):
+
+        super(ItemContainer, self).open(name, txn, dbname = 'data', **kwds)
 
         self._index = self.openIndex(name, 'index', txn, 
                                      self._indexKey, **kwds)
@@ -770,10 +784,13 @@ class ItemContainer(DBContainer):
 
     def close(self):
 
-        self._index.close()
-        self._index = None
-        self._versions.close()
-        self._versions = None
+        if self._index is not None:
+            self._index.close()
+            self._index = None
+
+        if self._versions is not None:
+            self._versions.close()
+            self._versions = None
 
         super(ItemContainer, self).close()
 
@@ -1076,13 +1093,15 @@ class ValueContainer(DBContainer, CValueContainer):
 
     FORMAT_VERSION = 0x00050300
 
-    def __init__(self, store, name, txn, **kwds):
+    def __init__(self, store):
 
-        super(ValueContainer, self).__init__(store, name, txn,
-                                             dbname = 'data', **kwds)
+        super(ValueContainer, self).__init__(store)
+        self._index = None
+        
+    def open(self, name, txn, **kwds):
 
-        self._index = self.openIndex(name, 'index', txn,
-                                     self._indexKey, **kwds)
+        super(ValueContainer, self).open(name, txn, dbname = 'data', **kwds)
+
         if kwds.get('create', False):
             self.setVersion(0)
         else:
@@ -1094,10 +1113,14 @@ class ValueContainer(DBContainer, CValueContainer):
             if schema != schema_version:
                 raise RepositorySchemaVersionError, (schema_version, schema)
 
+        self._index = self.openIndex(name, 'index', txn,
+                                     self._indexKey, **kwds)
+
     def close(self):
 
-        self._index.close()
-        self._index = None
+        if self._index is not None:
+            self._index.close()
+            self._index = None
 
         super(ValueContainer, self).close()
 
