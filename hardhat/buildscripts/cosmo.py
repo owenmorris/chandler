@@ -19,15 +19,9 @@ treeName     = "Cosmo"
 sleepMinutes = 30
 
 reposRoot    = 'http://svn.osafoundation.org/server'
-reposModules = [('jsp',    'commons/trunk/jsp'), 
-                ('spring', 'commons/trunk/spring'), 
-                ('struts', 'commons/trunk/struts'),
-                ('cosmo',  'cosmo/trunk',),
+reposModules = [('cosmo',  'cosmo/trunk',),
                ]
-reposBuild   = [('jsp',    'jar:install'),  # install step done here so cosmo build 
-                ('spring', 'jar:install'),  # always built against latest
-                ('struts', 'jar:install'),
-                ('cosmo',  'clean build'),
+reposBuild   = [('cosmo',  'clean build'),
                ]
 reposTest    = [('cosmo',  'test'),
                ]
@@ -53,16 +47,16 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
     sourceChanged = False
-            
+
     log.write("[tbox] Pulling source tree\n")
-                                 
+
     for (module, moduleSource) in reposModules:
         moduleDir = os.path.join(workingDir, module)
 
         if os.path.exists(moduleDir):
             log.write("[tbox] Checking for source updates\n")
             print "updating %s" % module
-            
+
             os.chdir(moduleDir)
 
             outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
@@ -75,14 +69,14 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             else:
                 log.write("[tbox] %s unchanged\n" % module)
 
-        else:    
+        else:
             svnSource = os.path.join(reposRoot, moduleSource)
-    
+
             log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
             print "pulling %s" % module
-                     
+
             os.chdir(workingDir)
-            
+
             outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "co", svnSource, module])
 
             hardhatutil.dumpOutputList(outputList, log) 
@@ -90,9 +84,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             sourceChanged = True
 
     os.chdir(workingDir)
-                      
+
     doBuild(workingDir, log)
-    
+
     if skipTests:
         ret = 'success'
     else:
@@ -107,7 +101,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
     print ret + changes
 
-    return ret + changes 
+    return ret + changes
 
 
 def doBuild(workingDir, log):
@@ -115,16 +109,20 @@ def doBuild(workingDir, log):
 
     for (module, target) in reposBuild:
         moduleDir = os.path.join(workingDir, module)
+        mavenDir  = os.path.join(workingDir, '..', 'tbox_maven', module)
 
         print "Building [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput([antProgram, target])
+            outputList = hardhatutil.executeCommandReturnOutput(
+                            [antProgram,
+                             '-Dmaven.home.local=' + mavenDir,
+                             target])
 
             hardhatutil.dumpOutputList(outputList, log)
-        
+
         except:
             log.write("[tbox] Build failed for [%s]\n" % module)
 

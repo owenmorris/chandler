@@ -27,11 +27,11 @@ defaultDomain      = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.25"      #  IP of current server
 
 def main():
-    global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
+    global buildscriptFile, buildDir, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
 
       # this is a sane default - the "true" value is pulled from the module being built
     treeName = "Chandler"
-    
+
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
       default=mailtoAddr, help="Where to mail script reports\n"
@@ -57,6 +57,9 @@ def main():
     parser.add_option("-S", "--skipTests", action="store_true", dest="skipTests",
       default=False, help="Skip Unit Tests \n"
       " [default] False")
+    parser.add_option("-w", "--work", action="store", type="string", dest="buildDir",
+      default=buildDir, help="Name of working directory\n"
+      " [default] ~/tinderbuild")
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -68,20 +71,21 @@ def main():
     fromAddr  += defaultDomain
     mailtoAddr = options.toAddr
     alertAddr  = options.alertAddr
-    
+    buildDir   = options.buildDir
+
     if mailtoAddr.find('@') == -1:
         mailtoAddr += defaultDomain
-        
+
     if alertAddr.find('@') == -1:
         alertAddr += defaultDomain
-        
+
     skipRsync     = options.skipRsync
     uploadStaging = options.uploadStaging
-        
+
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
 
     outputDir = os.path.abspath(options.outputDir)
-    
+
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
 
@@ -90,17 +94,17 @@ def main():
 
     path       = os.environ.get('PATH', os.environ.get('path'))
     svnProgram = hardhatutil.findInPath(path, "svn")
-    
+
     if not skipRsync:
         rsyncProgram = hardhatutil.findInPath(path, "rsync")
 
     startInt  = int(time.time())
     startTime = str(startInt)
-    
+
     nowString    = time.strftime("%Y-%m-%d %H:%M:%S")
     buildVersion = hardhatutil.RemovePunctuation(nowString)
-    
-    print "Starting:", nowString, buildVersion
+
+    print "Starting:", nowString, buildVersion, buildDir
 
     os.chdir(curDir)
 
