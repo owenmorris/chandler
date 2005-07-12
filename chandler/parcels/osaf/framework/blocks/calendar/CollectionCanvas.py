@@ -296,7 +296,7 @@ class wxCollectionCanvas(wx.ScrolledWindow):
         self._dragCurrentUnscrolled = None
 
     def OnInit(self):
-        self._focusWindow = wx.Window(self, -1)
+        self._focusWindow = wx.Window(self, -1, size=wx.Size(0,0))
 
     def SetPanelFocus(self):
         self._focusWindow.SetFocus()
