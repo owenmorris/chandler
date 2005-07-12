@@ -1301,7 +1301,7 @@
   </doc:SidebarTrunkDelegate>
 
   <SplitterWindow itsName="TableSummaryViewTemplate">
-    <blockName>TableSummaryView</blockName>
+    <blockName>TableSummaryViewTemplate</blockName>
     <childrenBlocks itemref="doc:TableSummaryView"/>
     <childrenBlocks itemref="doc:TableSummaryDetailTPB"/>
     <eventBoundary>True</eventBoundary>
