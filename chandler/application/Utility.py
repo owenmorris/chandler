@@ -95,6 +95,7 @@ def initOptions(chandlerDirectory, **kwds):
         'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler Repository'),
         'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
         'script':     ('-s', '--script',     's', None,  None, 'script to execute after startup'),
+        'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
         'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),

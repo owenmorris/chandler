@@ -11,7 +11,6 @@ import Globals
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError
-import CPIAScript
 import Utility
 
 logger = logging.getLogger('App')
@@ -296,6 +295,7 @@ Would you like to remove all data from your repository?
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
         self.mainFrame.Show()
 
@@ -554,9 +554,17 @@ Would you like to remove all data from your repository?
                 self.needsUpdateUI = False
 
         # Give CPIA Script a chance to execute a script
+        import osaf.framework.scripting.CPIAScript as CPIAScript
         CPIAScript.RunScript()
 
         event.Skip()
+
+    def OnKeyDown(self, event):
+        import osaf.framework.scripting.CPIAScript as CPIAScript
+        if CPIAScript.HotkeyScript(event):
+            pass # consume the keystroke (the script is now running)
+        else:
+            event.Skip() # pass the key along to another widget
 
     def OnExit(self):
         """

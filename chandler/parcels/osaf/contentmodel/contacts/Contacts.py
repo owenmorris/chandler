@@ -151,7 +151,7 @@ class Contact(ContentModel.ContentItem):
         if me is None:
             me = Contact(name="me", parent=parent, displayName="Me")
             me.contactName = ContactName(
-                parent=me, firstName="Chandler", lastName = "User"
+                parent=parent, firstName="Chandler", lastName = "User"
             )
 
         cls.meContactID = me.itsUUID

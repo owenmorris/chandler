@@ -31,7 +31,7 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
-import application.CPIAScript as CPIAScript
+import osaf.framework.scripting.CPIAScript as CPIAScript
 
 logger = logging.getLogger("mainview")
 logger.setLevel(logging.INFO)
@@ -168,6 +168,12 @@ class MainView(View):
         
     def onQuitEvent (self, event):
         wx.GetApp().mainFrame.Close ()
+
+    def onCloseEvent (self, event):
+        curWindow = self.widget.FindFocus() #start with the focus
+        while not curWindow.IsTopLevel():
+            curWindow = curWindow.GetParent()
+        curWindow.Close()
 
     def onRedoEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
@@ -477,6 +483,12 @@ class MainView(View):
 
         view.refresh()
 
+    def LogTheException(self, message):
+        type, value, stack = sys.exc_info()
+        formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
+        message += "\nHere are the bottom 5 frames of the stack:\n%s" % formattedBacktrace
+        logger.exception( message )
+
     def ReloadPythonImports(self):
         """
         Try to reload all the modules that are reloadable.
@@ -499,12 +511,7 @@ class MainView(View):
                         if canReload:
                             reload(aModule)
                     except Exception:
-                        type, value, stack = sys.exc_info()
-                        formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
-    
-                        message = ("Chandler encountered a problem during reload.\n" + \
-                                   "Here are the bottom 5 frames of the stack:\n%s") % formattedBacktrace
-                        print message
+                        self.LogTheException("Exception during reload of Python code.")
 
     def onReloadParcelsEvent(self, event):
         theApp = wx.GetApp()
@@ -513,9 +520,16 @@ class MainView(View):
         # reload the python code now
         self.ReloadPythonImports()
 
-        application.Parcel.Manager.get(self.itsView).loadParcels()
+        try:
+            application.Parcel.Manager.get(self.itsView).loadParcels()
+        except Exception:
+            self.LogTheException("Error scanning parcels.")
 
-        theApp.LoadMainViewRoot (delete=True)
+        try:
+            theApp.LoadMainViewRoot (delete=True)
+        except Exception:
+            self.LogTheException("Exception Loading the Main View." )
+
         theApp.RenderMainView ()
 
 
@@ -548,7 +562,7 @@ class MainView(View):
         try:
             previousScript = self.script
         except AttributeError:
-            previousScript = "New, About"
+            previousScript = "New; About"
         script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Run Script", "Enter a CPIA script to run.", previousScript)
         if script:
             self.script = script # remember for next time
