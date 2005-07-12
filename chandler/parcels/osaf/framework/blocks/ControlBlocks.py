@@ -1716,12 +1716,7 @@ class AEBlock(BoxContainer):
             try:
                 # Destroy the old widget
                 if existingWidget is not None:
-                    oldEditor = existingWidget.editor
-                    #logger.debug("Destroying old widget for %s.%s", 
-                                 #oldEditor.item, oldEditor.attributeName)
-                    oldEditor.EndControlEdit(oldEditor.item, 
-                                             oldEditor.attributeName, 
-                                             existingWidget)
+                    self.saveValue()
                     self.unRender()
                 
                 # Set up the new widget
@@ -1854,7 +1849,6 @@ class AEBlock(BoxContainer):
           The widget got clicked on - make sure we're in edit mode.
         """
         logger.debug("AEBlock: %s widget got clicked on", self.getRawAttributeName())
-            
         changing = self.ChangeWidgetIfNecessary(True, True)
 
         # If the widget didn't get focus as a result of the click,
@@ -1862,23 +1856,22 @@ class AEBlock(BoxContainer):
         # @@@ This was an attempt to fix bug 2878 on Mac, which doesn't focus
         # on popups when you click on them (or tab to them!)
         if not changing:
-            # Find our view - if it has a finishSelectionChanges method, call it.
-            b = self
-            while b is not None and not b.eventBoundary:
-                b = b.parentBlock
-            if b is not None:
-                try:
-                    method = b.finishSelectionChanges
-                except AttributeError:
-                    pass
-                else:
-                    method()
-            
-            # Grab the focus if we didn't get it.
             oldFocus = wx.Window.FindFocus()
             if oldFocus is not self.widget:
+                # Find our view - if it has a finishSelectionChanges method, call it.
+                b = self
+                while b is not None and not b.eventBoundary:
+                    b = b.parentBlock
+                if b is not None:
+                    try:
+                        method = b.finishSelectionChanges
+                    except AttributeError:
+                        pass
+                    else:
+                        method()
+            
                 logger.debug("Grabbing focus.")
-            wx.Window.SetFocus(self.widget)
+                wx.Window.SetFocus(self.widget)
 
         event.Skip()
 
@@ -1907,31 +1900,28 @@ class AEBlock(BoxContainer):
             return
 
         # Make sure the value is written back to the item. 
-        editor = self.lookupEditor()
-        item, attributeName = self.getItemAndAttributeName()
-        editor.EndControlEdit(item, attributeName, widget)
+        self.saveValue()
 
         self.ChangeWidgetIfNecessary(False, False)
 
+    def saveValue(self):
+        # Make sure the value is written back to the item. 
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            editor = self.lookupEditor()
+            item, attributeName = self.getItemAndAttributeName()
+            editor.EndControlEdit(item, attributeName, widget)
+
     def unRender(self):
         # Last-chance write-back.
-        widget = getattr(self, 'widget', None)
-        forEditing = getattr(self, 'forEditing', False)
-        if forEditing and widget is not None:
-            editor = getattr(widget, 'editor', None)
-            if editor is not None:
-                item, attributeName = self.getItemAndAttributeName()
-                logger.debug("AEBlock('%s').onDestroyWidget: writing back (forEditing=%s, widget=%s", attributeName, forEditing, widget)
-                editor.EndControlEdit(item, attributeName, widget)
+        if getattr(self, 'forEditing', False):
+            self.saveValue()
         super(AEBlock, self).unRender()
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
             if not self.ChangeWidgetIfNecessary(False, True):
-                # write back the value
-                editor = self.lookupEditor()
-                item, attributeName = self.getItemAndAttributeName()
-                editor.EndControlEdit(item, attributeName, self.widget)
+                self.saveValue()
             
             # Do the tab thing if we're not a multiline thing
             # @@@ Actually, don't; it doesn't mix well when one of the fields you'd

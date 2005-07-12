@@ -559,9 +559,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
 
     def saveTextValue (self, validate=False):
         # Tell the AE to save itself
-        item = self.selectedItem()
-        if item is not None and getattr(self, 'widget', None) is not None:
-            self.onLoseFocusFromWidget(None)
+        self.saveValue()
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
