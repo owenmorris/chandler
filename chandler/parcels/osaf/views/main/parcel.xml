@@ -1306,7 +1306,7 @@
     <childrenBlocks itemref="doc:TableSummaryDetailTPB"/>
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.6</splitPercentage>
+    <splitPercentage>0.65</splitPercentage>
   </SplitterWindow>
 
   <Table itsName="TableSummaryView">
@@ -1361,6 +1361,7 @@
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.65</splitPercentage>
   </SplitterWindow>
 
   <calendar:CalendarContainer itsName="CalendarSummaryView">
