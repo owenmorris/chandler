@@ -177,11 +177,9 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
         view = self.rep.view
-        
-        contentItemParent = view.findPath("//userdata")
-        outbound = contentItemParent.getItemChild("mailItems")
 
-        mailMessageItem = outbound.getItemChild("mailMessageItem")
+        contentItemParent = view.findPath("//userdata")
+        mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
 
         #Test cloud membership
 
