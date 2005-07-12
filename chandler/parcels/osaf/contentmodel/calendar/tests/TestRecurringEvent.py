@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import dateutil.rrule
 
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.tasks.Task as Task
 from osaf.contentmodel.calendar.Recurrence import RecurrenceRule, \
                                                   RecurrenceRuleSet
 
@@ -60,20 +61,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(event.modifies, None)
         self.modifies = "this"
         
-    def testModification(self):
-        event = self._createEvent()
-        calmod = self._createEvent()
-        evtaskmod = osaf.contentmodel.EventTask(None, view=self.rep.view)
-
-        self.assertEqual(event.modifications, None)
-        event.modifications = [calmod]
-        self.assertEqual(calmod.modificationFor, event)
-
-        event.modifications = [calmod, evtaskmod]
-        self.rep.check()
-        for modOrMaster in [calmod, evtaskmod, event]:
-            self.assertEqual(modOrMaster.getMaster(), event)
-
     def testSimpleRuleBehavior(self):
         event = self._createEvent()
 
@@ -102,35 +89,100 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         second.cleanFuture()
         self.assertEqual(len(event.occurrences), 2)
+
+    def testThisModification(self):
+        event = self._createEvent()
+        event.rruleset = self._createRuleSetItem('weekly')
         
+        calmod = event.getNextOccurrence()
+        calmod.changeThis('displayName', 'Modified occurrence')
+
+        self.assertEqual(calmod.modificationFor, event)
+        self.assertEqual(calmod.modifies, 'this')
+        self.assertEqual(list(event.modifications), [calmod])
+
+        evtaskmod = calmod.getNextOccurrence()
+        evtaskmod.StampKind('add', Task.TaskMixin.getKind(self.rep.view))
+        
+        # changes to an event should, by default, create a THIS modification
+        self.assertEqual(evtaskmod.modificationFor, event)
+        self.assertEqual(evtaskmod.modifies, 'this')
+
+        for modOrMaster in [calmod, evtaskmod, event]:
+            self.assertEqual(modOrMaster.getMaster(), event)
+
+    def testRuleChanges(self):
+        event = self._createEvent()
+        event.rruleset = self._createRuleSetItem('weekly')
+
+        #create a generated occurrence so there's something to be deleted
+        event.getNextOccurrence()        
+        self.assertEqual(len(event.occurrences), 2)
+
         count = 3
         newRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY, count = count,
                                        interval = 2, dtstart = self.start)
         
-        # without currentlyModifying, what's the API for modifying future?
-        # In this case, changing the rule, it can only mean thisandfuture.
         event.setRuleFromDateUtil(newRule)
         self.assertEqual(event.isCustomRule(), True)
         self.assertEqual(event.getCustomDescription(), "not yet implemented")
-        
-        # changing the rule should delete generated occurrences
-        self.assertEqual(len(event.occurrences), 1)
 
-        # generateRule should create count events
+        # changing the rule must be a THISANDFUTURE modification, but because
+        # we changed the master, modifies should stay None
+        self.assertEqual(len(event.occurrences), 1)
+        self.assertEqual(event.modifies, None)
+
         self.assertEqual(len(list(event._generateRule())), count)
 
-        
-        occurs = event.getOccurrencesBetween(thirdStart - timedelta(minutes=30),
+        twoWeeks = self.start + timedelta(days=14)
+        occurs = event.getOccurrencesBetween(twoWeeks + timedelta(minutes=30),
                                              datetime(2005, 8, 1, 13))
-        
-        # getOccurrencesBetween must take duration into account
-        self.assertEqual(list(occurs)[0].startTime, thirdStart)
-        
-        # getOccurrencesBetween should be inclusive of start/end times
+        self.assertEqual(list(occurs)[0].startTime, twoWeeks)
         self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 1, 13))
+
+
+    def testProxy(self):
+        event = self._createEvent()
+        self.failIf(event.isProxy())
+        
+        proxy = Calendar.getProxy(event)
+        self.assert_(proxy.isProxy())
+        self.assertEqual(proxy, event)
+        self.assertEqual(proxy.currentlyModifying, None)
+
+        proxy.rruleset = self._createRuleSetItem('weekly')
+        self.assert_(event in proxy.rruleset.events)
+
+        self.assertEqual(proxy.getNextOccurrence().occurrenceFor, event)
+        self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
+        
+        proxy.startTime = self.start + timedelta(days=1)
+        
+        # the change shouldn't propagate
+        # holding off on this test
+        #self.assertEqual(proxy.startTime, self.start)
+
 
 #tests to write:
 """
+
+changeThisAndFuture and changeThis
+
+Test modification creation, updating future, etc.
+Test modification model (max 2 levels deep...)
+
+test modifying existing rules
+
+test getOccurrencesBetween for events with no duration
+
+test getNextOccurrence logic for finding modification or occurrence, make sure 
+    new occurrences get attributes copied, have the proper kind
+
+test cleanFuture for modifications
+
+
+
+test stamping and unstamping behavior
 
 API and tests for proxying items 
 
@@ -148,16 +200,9 @@ registry of proxies
 foo.registerProxy(CalendarEventMixin, CalendarEventMixinProxy)
 proxy = foo.getProxiedItem(item)
 
-test cleanFuture for modifications
 
-Test modification creation, updating future, etc.
+Test modifying event with no proxy (update THIS unless it's a rule change)
 
-Test modification model (max 2 levels deep...)
-
-test getOccurrencesBetween for events with no duration
-
-test getNextOccurrence logic for finding modification or occurrence, make sure 
-    new occurrences get attributes copied, have the proper kind
 
 test automatic icalUID setting
 
@@ -184,5 +229,7 @@ tzical -> pyicu timezone
 # update spec: changing a ruleset -> changes events automatically?
 # update spec: add cleanFuture()
 # update spec: THIS modifications can't cross into different rules
+# update spec: add changeThisAndFuture and changeThis
+# update spec: changing an rrule always makes a THISANDFUTURE modification
 
 """

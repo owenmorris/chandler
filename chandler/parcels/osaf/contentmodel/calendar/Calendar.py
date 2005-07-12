@@ -438,7 +438,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
     def _createOccurrence(self, recurrenceID):
         """Generate an occurrence for recurrenceID, return it."""
         first = self.getFirstInRule()
-        new = first.copy(parent=first)
+        new = first.copy()
+        new._ignoreValueChanges = True
         
         #now get all reference attributes whose inverse has multiple cardinality 
         for attr, val in first.iterAttributeValues(referencesOnly=True):
@@ -453,6 +454,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         new.ChangeStart(recurrenceID)
         new.recurrenceID = new.startTime
         new.occurrenceFor = first
+        del new._ignoreValueChanges
         return new
         
 
@@ -501,6 +503,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
             return event.startTime <= before and event.endTime >= after
                 
         master = self.getMaster()
+
         if not master.hasLocalAttributeValue('rruleset'):
             if isBetween(master):
                 return [master]
@@ -524,6 +527,36 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
         return [e for mod in mods for e in mod._generateRule() if isBetween(e)]
     
+    def changeThis(self, attr=None, value=None):
+        """Make this event a modification, don't modify future events.
+        
+        Without arguments, change self appropriately to make it a THIS 
+        modification.
+        
+        One edge case does have an effect on other events.  Moving an event's
+        startTime so it begins in a different rule will ........FIXME
+        
+        """
+        if attr is not None:
+            setattr(self, attr, value)
+        if self.rruleset is not None:
+            first = self.getFirstInRule()
+            if first != self:
+                self.modificationFor = first
+                self.isGenerated = False
+                self.modifies = 'this'
+
+    def onValueChanged(self, name):
+        # allow initialization code to avoid triggering onValueChanged
+        if getattr(self, '_ignoreValueChanges', False):
+            return
+        # avoid infinite loops
+        if name not in """modifications modificationFor occurrences
+                          occurrenceFor modifies isGenerated
+                          _ignoreValueChanges""".split():
+            if self.modifies is None:
+                self.changeThis()
+
     def cleanFuture(self):
         """Delete future occurrences and modifications.
         
@@ -532,6 +565,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
         """
         for event in self.getMaster().occurrences:
             if event.startTime > self.startTime:
+                # don't let deletion result in spurious onValueChanged calls
+                event._ignoreValueChanges = True
                 event.delete()
                 
     def isCustomRule(self):
@@ -551,6 +586,35 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if self.hasLocalAttributeValue('rruleset'):
             return self.rruleset.getCustomDescription()
         else: return ''
+        
+    def isProxy(self):
+        """Is this a proxy of an event?"""
+        return False
+    
+def getProxy(obj):
+    return OccurrenceProxy(obj)
+
+class OccurrenceProxy(object):
+    proxyAttributes = 'proxiedItem', 'currentlyModifying'
+    
+    def __init__(self, item):
+        self.proxiedItem = item
+        self.currentlyModifying = None
+    
+    def __eq__(self, other):
+        return self.proxiedItem == other
+        
+    def __getattr__(self, name):
+        return getattr(self.proxiedItem, name)
+        
+    def __setattr__(self, name, value):
+        if name in self.proxyAttributes:
+            object.__setattr__(self, name, value)
+        else:
+            setattr(self.proxiedItem, name, value)
+    
+    def isProxy(self):
+        return True
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
     """
