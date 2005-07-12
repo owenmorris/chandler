@@ -1306,6 +1306,7 @@
     <childrenBlocks itemref="doc:TableSummaryDetailTPB"/>
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.6</splitPercentage>
   </SplitterWindow>
 
   <Table itsName="TableSummaryView">
