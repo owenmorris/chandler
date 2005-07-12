@@ -256,6 +256,18 @@ class String(Type):
         return _hash(value)
 
 
+class BString(String):
+
+    def recognizes(self, value):
+        return type(value) is str
+
+
+class UString(String):
+
+    def recognizes(self, value):
+        return type(value) is unicode
+
+
 class Symbol(Type):
 
     def getImplementationType(self):

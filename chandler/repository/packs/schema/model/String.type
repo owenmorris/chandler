@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<item withSchema="True">
-  <name>String</name>
-  <kind type="path">//Schema/Core/Type</kind>
-  <class module="repository.schema.Types">String</class>
-</item>
+
+<items>
+
+  <item withSchema="True">
+    <name>String</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">String</class>
+  </item>
+
+  <item withSchema="True">
+    <name>BString</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">BString</class>
+  </item>
+
+  <item withSchema="True">
+    <name>UString</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">UString</class>
+  </item>
+
+</items>
