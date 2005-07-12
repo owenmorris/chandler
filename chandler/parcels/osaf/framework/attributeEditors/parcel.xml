@@ -12,11 +12,10 @@
 
   <version>0.3</version>
 
-  <contentModel:ItemCollection itsName="AttributeEditors">
-    <_rule value="for i inevery '//parcels/osaf/framework/attributeEditors/AttributeEditor' where True"/>
-  </contentModel:ItemCollection>
-
-  <!-- If you modify this list, please keep it in alphabetical order by itsName -->
+  <!-- 
+  If you modify this list, please keep it in alphabetical order by itsName.
+  Also, note that there are attribute editors custom to the detail view; they're declared in its parcel.xml.
+  -->
   <doc:AttributeEditor itsName="_default"><className>osaf.framework.attributeEditors.AttributeEditors.RepositoryAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Boolean"><className>osaf.framework.attributeEditors.AttributeEditors.CheckboxAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Contact"><className>osaf.framework.attributeEditors.AttributeEditors.ContactAttributeEditor</className></doc:AttributeEditor>
@@ -30,11 +29,10 @@
   <doc:AttributeEditor itsName="Kind"><className>osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Lob"><className>osaf.framework.attributeEditors.AttributeEditors.LobAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Location"><className>osaf.framework.attributeEditors.AttributeEditors.LocationAttributeEditor</className></doc:AttributeEditor>
-  <doc:AttributeEditor itsName="NoneType+reminderPopup"><className>osaf.framework.attributeEditors.AttributeEditors.ReminderDeltaAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="SharingStatusEnum"><className>osaf.framework.attributeEditors.AttributeEditors.EnumAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="String"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="String+static"><className>osaf.framework.attributeEditors.AttributeEditors.StaticStringAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="timedelta"><className>osaf.framework.attributeEditors.AttributeEditors.TimeDeltaAttributeEditor</className></doc:AttributeEditor>
-  <doc:AttributeEditor itsName="timedelta+reminderPopup"><className>osaf.framework.attributeEditors.AttributeEditors.ReminderDeltaAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="TimeTransparencyEnum"><className>osaf.framework.attributeEditors.AttributeEditors.ChoiceAttributeEditor</className></doc:AttributeEditor>
 
 </Parcel>

@@ -1013,7 +1013,8 @@ class Table (RectangularChild):
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        for ae in wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors'):
+        aeKind = AttributeEditors.AttributeEditor.getKind(wx.GetApp().UIRepositoryView)
+        for ae in aeKind.iterItems():
             key = ae.itsName
             if key != defaultName and not '+' in key:
                 widget.RegisterDataType (key,
@@ -1371,6 +1372,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         self.SelectItem (id)
         self.ScrollTo (id)
 
+    @classmethod
     def CalculateWXStyle(theClass, block):
         style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
         if block.hideRoot:
@@ -1382,7 +1384,6 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         else:
             style |= wx.TR_NO_BUTTONS
         return style
-    CalculateWXStyle = classmethod(CalculateWXStyle)
         
  
 class wxTree(wxTreeAndList, wx.TreeCtrl):
@@ -1715,12 +1716,12 @@ class AEBlock(BoxContainer):
             try:
                 # Destroy the old widget
                 if existingWidget is not None:
-                    #oldEditor = existingWidget.editor
+                    oldEditor = existingWidget.editor
                     #logger.debug("Destroying old widget for %s.%s", 
                                  #oldEditor.item, oldEditor.attributeName)
-                    #oldEditor.EndControlEdit(oldEditor.item, 
-                                             #oldEditor.attributeName, 
-                                             #existingWidget)
+                    oldEditor.EndControlEdit(oldEditor.item, 
+                                             oldEditor.attributeName, 
+                                             existingWidget)
                     self.unRender()
                 
                 # Set up the new widget
@@ -1729,7 +1730,7 @@ class AEBlock(BoxContainer):
                 # Grab focus if we're supposed to.
                 if self.forEditing and grabFocus:
                     logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
-                                 self.getAttributeName())
+                                 self.getRawAttributeName())
                     self.widget.SetFocus()
 
                 # Sync the view to update the sizers
@@ -1745,11 +1746,11 @@ class AEBlock(BoxContainer):
         if changing:
             self.forEditing = forEditing
             logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Must change." % \
-                         self.getAttributeName())
+                         self.getRawAttributeName())
             wx.CallAfter(rerender)
         else:
             logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Not changing." % \
-                         self.getAttributeName())
+                         self.getRawAttributeName())
 
         return changing
         
@@ -1759,8 +1760,7 @@ class AEBlock(BoxContainer):
         """
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
-        item = self.getItem()
-        attributeName = self.getAttributeName()
+        item, attributeName = self.getItemAndAttributeName()
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
@@ -1803,28 +1803,33 @@ class AEBlock(BoxContainer):
         
         # @@@ more here?
 
-    def getItem(self):
-        try:
-            item = self.contents
-        except AttributeError:
-            item = None
-        return item
+    def getRawAttributeName(self):
+        """ 
+        Get the attribute name we were configured with. Might be a path
+        to the attribute ('attr.subattr').
+        """
+        return getattr(self, 'viewAttribute', None)
 
-    def getAttributeName(self):
-        try:
-            attributeName = self.viewAttribute
-        except AttributeError:
-            attributeName = None
-        return attributeName
-
+    def getItemAndAttributeName(self):
+        """ 
+        Get the item and attribute name we were configured with, drilling
+        down if the raw attribute name is a path like 'attr.subattr'.
+        """
+        item = getattr(self, 'contents', None)
+        attributeName = self.getRawAttributeName()
+        if attributeName is not None:
+            while item is not None and '.' in attributeName:
+                (thisAttr, attributeName) = attributeName.split('.')
+                item = getattr(item, thisAttr, None)
+        return (item, attributeName,)
+            
     def getItemAttributeTypeName(self):
         # Get the type of the current attribute
-        item = self.getItem()
+        item, attributeName = self.getItemAndAttributeName()
         if item is None:
             return None
 
         # Ask the schema for the attribute's type first
-        attributeName = self.getAttributeName()
         try:
             theType = item.getAttributeAspect(attributeName, "type")
         except:
@@ -1837,7 +1842,10 @@ class AEBlock(BoxContainer):
             else:
                 typeName = type(attrValue).__name__
         else:
-            typeName = theType.itsName
+            if theType is None:
+                typeName = "NoneType"
+            else:
+                typeName = theType.itsName
         
         return typeName
 
@@ -1845,7 +1853,7 @@ class AEBlock(BoxContainer):
         """
           The widget got clicked on - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: %s widget got clicked on", self.getAttributeName())
+        logger.debug("AEBlock: %s widget got clicked on", self.getRawAttributeName())
             
         changing = self.ChangeWidgetIfNecessary(True, True)
 
@@ -1853,8 +1861,23 @@ class AEBlock(BoxContainer):
         # grab focus now.
         # @@@ This was an attempt to fix bug 2878 on Mac, which doesn't focus
         # on popups when you click on them (or tab to them!)
-        if not changing and wx.Window.FindFocus() is not self.widget:
-            logger.debug("Grabbing focus.")
+        if not changing:
+            # Find our view - if it has a finishSelectionChanges method, call it.
+            b = self
+            while b is not None and not b.eventBoundary:
+                b = b.parentBlock
+            if b is not None:
+                try:
+                    method = b.finishSelectionChanges
+                except AttributeError:
+                    pass
+                else:
+                    method()
+            
+            # Grab the focus if we didn't get it.
+            oldFocus = wx.Window.FindFocus()
+            if oldFocus is not self.widget:
+                logger.debug("Grabbing focus.")
             wx.Window.SetFocus(self.widget)
 
         event.Skip()
@@ -1863,7 +1886,7 @@ class AEBlock(BoxContainer):
         """
           The widget got the focus - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: %s widget gained focus", self.getAttributeName())
+        logger.debug("AEBlock: %s widget gained focus", self.getRawAttributeName())
         
         self.ChangeWidgetIfNecessary(True, True)
         event.Skip()
@@ -1885,31 +1908,30 @@ class AEBlock(BoxContainer):
 
         # Make sure the value is written back to the item. 
         editor = self.lookupEditor()
-        editor.EndControlEdit(self.getItem(), self.getAttributeName(), widget)
+        item, attributeName = self.getItemAndAttributeName()
+        editor.EndControlEdit(item, attributeName, widget)
 
         self.ChangeWidgetIfNecessary(False, False)
 
-    """ This doesn't work yet...
-    def onDestroyWidget (self):
+    def unRender(self):
         # Last-chance write-back.
         widget = getattr(self, 'widget', None)
-        if widget is not None:
+        forEditing = getattr(self, 'forEditing', False)
+        if forEditing and widget is not None:
             editor = getattr(widget, 'editor', None)
             if editor is not None:
-                forEditing = getattr(self, 'forEditing', False)
-                logger.debug("AEBlock('%s').onDestroyWidget: writing back (forEditing=%s, widget=%s", self.getAttributeName(), forEditing, widget)
-                editor.EndControlEdit(self.getItem(), self.getAttributeName(), widget)
-        super(AEBlock, self).onDestroyWidget()
-    """
+                item, attributeName = self.getItemAndAttributeName()
+                logger.debug("AEBlock('%s').onDestroyWidget: writing back (forEditing=%s, widget=%s", attributeName, forEditing, widget)
+                editor.EndControlEdit(item, attributeName, widget)
+        super(AEBlock, self).unRender()
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
             if not self.ChangeWidgetIfNecessary(False, True):
                 # write back the value
                 editor = self.lookupEditor()
-                editor.EndControlEdit(self.getItem(), self.getAttributeName(), 
-                                      self.widget)
-                
+                item, attributeName = self.getItemAndAttributeName()
+                editor.EndControlEdit(item, attributeName, self.widget)
             
             # Do the tab thing if we're not a multiline thing
             # @@@ Actually, don't; it doesn't mix well when one of the fields you'd
@@ -1925,11 +1947,11 @@ class AEBlock(BoxContainer):
 
     def onAttributeEditorValueChange(self):
         """ Called when the attribute editor changes the value """
-        logger.debug("onAttributeEditorValueChange: %s %s", self.getItem(), self.getAttributeName())
+        item, attributeName = self.getItemAndAttributeName()
+        logger.debug("onAttributeEditorValueChange: %s %s", item, attributeName)
         try:
             event = self.event
         except AttributeError:
             pass
         else:
-            self.post(event, {'item': self.getItem(), 'attribute': self.getAttributeName() })
-
+            self.post(event, {'item': item, 'attribute': attributeName })

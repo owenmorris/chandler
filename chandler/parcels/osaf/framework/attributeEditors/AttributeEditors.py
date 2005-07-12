@@ -20,6 +20,7 @@ from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
 from osaf.framework.blocks.Block import ShownSynchronizer
+from osaf.framework.attributeEditors import AttributeEditor
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
@@ -44,7 +45,7 @@ def getInstance (typeName, item, attributeName, presentationStyle):
     except AttributeError:
         format = None
     aeClass = _getAEClass(typeName, format)
-    # logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
+    logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
     instance = aeClass()        
     return instance
 
@@ -53,7 +54,8 @@ def _getAEClass (type, format=None):
     # Once per run, build a map of type -> class
     global _TypeToEditorClasses
     if len(_TypeToEditorClasses) == 0:
-        for ae in wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors'):
+        aeKind = AttributeEditor.getKind(wx.GetApp().UIRepositoryView)
+        for ae in aeKind.iterItems():
             _TypeToEditorClasses[ae.itsName] = ae.className
         assert _TypeToEditorClasses['_default'] is not None, "Default attribute editor doesn't exist ('_default')"
         
@@ -323,26 +325,17 @@ class StringAttributeEditor (BaseAttributeEditor):
         if parentBlock is not None and parentBlock.stretchFactor == 0.0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
             size = wx.Size(parentBlock.size.width, parentBlock.size.height)
         else:
-            if True: # Work-in progress: the old way:
-                if font is not None: # and parentWidget is not None:
-                    measurements = Styles.getMeasurements(font)
-                    size = wx.Size(200, # parentWidget.GetRect().width,
-                                   measurements.textCtrlHeight)
-                else:
-                    size = wx.DefaultSize
-            else: # the new way, not ready yet.
-                if font is not None:
-                    measurements = Styles.getMeasurements(font)
-                    try:
-                        width = parentWidget.GetRect().width
-                    except:
-                        logger.debug('**** making an AETextCtrl using the 200 width hack! ****')
-                        width = 200
-                    # height = useTextCtrl and measurements.textCtrlHeight or measurements.height
-                    height = measurements.textCtrlHeight
-                    size = wx.Size(width, height)
-                else:
-                    size = wx.DefaultSize
+            if font is not None:
+                measurements = Styles.getMeasurements(font)
+                try:
+                    width = parentWidget.GetRect().width
+                except:
+                    logger.debug('**** making an AETextCtrl using the 200 width hack! ****')
+                    width = 200
+                height = useTextCtrl and measurements.textCtrlHeight or measurements.height
+                size = wx.Size(width, height)
+            else:
+                size = wx.DefaultSize
 
         if useTextCtrl:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
@@ -426,18 +419,20 @@ class StringAttributeEditor (BaseAttributeEditor):
         if not getattr(self, "ignoreTextChanged", False):
             control = event.GetEventObject()
             if getattr(self, 'sampleText', None) is not None:
-                # logger.debug("StringAE.onTextChanged: not ignoring.")                    
                 currentText = control.GetValue()
+                logger.debug("StringAE.onTextChanged: not ignoring; value is '%s'" % currentText)                    
                 if self.showingSample:
-                    # logger.debug("onTextChanged: removing sample")
                     if currentText != self.sampleText:
+                        logger.debug("onTextChanged: replacing sample with it (alreadyChanged)")
                         self._changeTextQuietly(control, currentText, False, True)
                 elif len(currentText) == 0:
+                    logger.debug("StringAE.onTextChanged: installing sample.")
                     self._changeTextQuietly(control, self.sampleText, True, False)
+                logger.debug("StringAE.onTextChanged: done; new values is '%s'" % control.GetValue())
             else:
-                pass # logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
+                logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
-            pass # logger.debug("StringAE.onTextChanged: ignoring (self-changed)")
+            logger.debug("StringAE.onTextChanged: ignoring (self-changed); value is '%s'" % event.GetEventObject().GetValue())
         
     def _changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
@@ -567,7 +562,13 @@ class StringAttributeEditor (BaseAttributeEditor):
         self._showingSample = value
     showingSample = property(getShowingSample, setShowingSample,
                     doc="Are we currently displaying the sample text?")
-            
+
+class StaticStringAttributeEditor(StringAttributeEditor):
+    def CreateControl(self, forEditing, parentWidget, 
+                       id, parentBlock, font):
+        return super(StaticStringAttributeEditor, self).\
+               CreateControl(False, parentWidget, id, parentBlock, font)
+    
 class LobAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -633,79 +634,48 @@ class DateAttributeEditor (StringAttributeEditor):
         except AttributeError:
             value = u''
         else:
-            value = unicode(DateAttributeEditor._format.format(dateTimeValue))
+            value = dateTimeValue is not None \
+                  and unicode(DateAttributeEditor._format.format(dateTimeValue)) \
+                  or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
         newValueString = valueString.replace('?','').strip()
-        if len(newValueString) == 0:
-            # Attempting to remove the start date field will set its value to the 
-            # "previous value" when the value is committed (removing focus or 
-            # "enter"). Attempting to remove the end-date field will set its 
-            # value to the "previous value" when the value is committed. In 
-            # brief, if the user attempts to delete the value for a start date 
-            # or end date, it automatically resets to what value was displayed 
-            # before the user tried to delete it.
-            self.SetControlValue(self.control, 
-                                 self.GetAttributeValue(item, attributeName))
-        else:
-            # First, get ICU to parse it into a float
-            try:
-                dateValue = DateAttributeEditor._format.parse(newValueString)
-            except ICUError:
-                self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                return
-            # Then, convert that float to a datetime (I've seen ICU parse bogus 
-            # values like "06/05/0506/05/05", which causes fromtimestamp() 
-            # to throw.)
-            try:
-                dateTimeValue = datetime.fromtimestamp(dateValue)
-            except ValueError:
-                self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                return
 
-            # If this results in a new value, put it back.
-            oldValue = getattr(item, attributeName)
-            value = datetime.combine(dateTimeValue.date(), oldValue.time())
-            if oldValue != value:
-                if attributeName == 'startTime':
-                    # Changing the start date or time such that the start 
-                    # date+time are later than the existing end date+time 
-                    # will change the end date & time to preserve the 
-                    # existing duration. (This is true even for anytime 
-                    # events: increasing the start date by three days 
-                    # will increase the end date the same amount.)
-                    if value > item.endTime:
-                        endTime = value + (item.endTime - item.getEffectiveStartTime())
-                    else:
-                        endTime = item.endTime
-                    item.ChangeStart(value)
-                    item.endTime = endTime
-                else:
-                    # Changing the end date or time such that it becomes 
-                    # earlier than the existing start date+time will 
-                    # change the start date+time to be the same as the 
-                    # end date+time (that is, an @time event, or a 
-                    # single-day anytime event if the event had already 
-                    # been an anytime event).
-                    if value < item.startTime:
-                        item.ChangeStart(value)
-                    setattr (item, attributeName, value)
-                self.AttributeChanged()
-                
-            # Refresh the value in place
-            self.SetControlValue(self.control, 
-                                 self.GetAttributeValue(item, attributeName))
+        if len(newValueString) == 0:
+            return # leave the value alone if the user clears it out.
+
+        # First, get ICU to parse it into a float
+        try:
+            dateValue = DateAttributeEditor._format.parse(newValueString)
+        except ICUError:
+            self._changeTextQuietly(self.control, "%s ?" % newValueString)
+            return
+        
+        # Then, convert that float to a datetime (I've seen ICU parse bogus 
+        # values like "06/05/0506/05/05", which causes fromtimestamp() 
+        # to throw.)
+        try:
+            dateTimeValue = datetime.fromtimestamp(dateValue)
+        except ValueError:
+            self._changeTextQuietly(self.control, "%s ?" % newValueString)
+            return
+
+        # If this results in a new value, put it back.
+        oldValue = getattr(item, attributeName)
+        value = datetime.combine(dateTimeValue.date(), oldValue.time())
+        if oldValue != value:
+            setattr(item, attributeName, value)
+            self.AttributeChanged()
+            
+        # Refresh the value in place
+        self.SetControlValue(self.control, 
+                             self.GetAttributeValue(item, attributeName))
 
 class TimeAttributeEditor (StringAttributeEditor):
     _format = DateFormat.createTimeInstance(DateFormat.kShort)
 
     def GetAttributeValue (self, item, attributeName):
-        noTime = getattr(item, 'allDay', False) \
-               or getattr(item, 'anyTime', False)
-        if noTime:
-            return u''
-
         try:
             dateTimeValue = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
@@ -717,13 +687,7 @@ class TimeAttributeEditor (StringAttributeEditor):
     def SetAttributeValue(self, item, attributeName, valueString):
         newValueString = valueString.replace('?','').strip()
         if len(newValueString) == 0:
-            # Clearing an event's start time (removing the value in it, causing 
-            # it to show "HH:MM") will remove the end time value (making it an 
-            # anytime event).
-            if not item.anyTime:
-                item.anyTime = True
-                self.AttributeChanged()
-            return
+            return # leave the value alone if the user clears it out.
         
         # We have _something_; parse it.
         try:
@@ -737,51 +701,12 @@ class TimeAttributeEditor (StringAttributeEditor):
         value = datetime.combine(oldValue.date(), datetime.fromtimestamp(timeValue).time())
         if item.anyTime or oldValue != value:
             # Something changed.                
-            # Implement the rules for changing one of the four values:
-            iAmStart = attributeName == 'startTime'
-            if item.anyTime:
-                # On an anytime event (single or multi-day; both times 
-                # blank & showing the "HH:MM" hint), entering a valid time 
-                # in either time field will set the other date and time 
-                # field to effect a one-hour event on the corresponding date. 
-                item.anyTime = False
-                if iAmStart:
-                    item.ChangeStart(value)
-                    item.endTime = value + timedelta(hours=1)
-                else:
-                    item.ChangeStart(value - timedelta(hours=1))
-                    item.endTime = value
-            else:
-                if iAmStart:
-                    # Changing the start date or time such that the start 
-                    # date+time are later than the existing end date+time 
-                    # will change the end date & time to preserve the 
-                    # existing duration. (This is true even for anytime 
-                    # events: increasing the start date by three days will 
-                    # increase the end date the same amount.)
-                    if value > item.endTime:
-                        endTime = value + (item.endTime - item.startTime)
-                    else:
-                        endTime = item.endTime
-                    item.ChangeStart(value)
-                    item.endTime = endTime
-                else:
-                    # Changing the end date or time such that it becomes 
-                    # earlier than the existing start date+time will change 
-                    # the start date+time to be the same as the end 
-                    # date+time (that is, an @time event, or a single-day 
-                    # anytime event if the event had already been an 
-                    # anytime event).
-                    if value < item.startTime:
-                        item.ChangeStart(value)
-                    setattr (item, attributeName, value)
-                item.anyTime = False
-            
+            setattr (item, attributeName, value)
             self.AttributeChanged()
             
         # Refresh the value in the control
         self.SetControlValue(self.control, 
-                         self.GetAttributeValue(item, attributeName))
+                             self.GetAttributeValue(item, attributeName))
 
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
@@ -1114,43 +1039,6 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
                 choiceIndex = 0
             control.Select(choiceIndex)
 
-class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
-    def GetControlValue (self, control):
-        """ Get the reminder delta value for the current selection """        
-        # @@@ For now, assumes that the menu will be a number of minutes, 
-        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
-        # that doesn't match this (eg, "None") for no-alarm.
-        menuChoice = control.GetStringSelection()
-        try:
-            minuteCount = int(menuChoice.split(u" ")[0])
-        except ValueError:
-            # "None"
-            value = None
-        else:
-            value = timedelta(minutes=-minuteCount)
-        return value
-
-    def SetControlValue (self, control, value):
-        """ Select the choice that matches this delta value"""
-        # We also take this opportunity to populate the menu
-        existingValue = self.GetControlValue(control)
-        if existingValue != value or control.GetCount() == 0:            
-            # rebuild the list of choices
-            choices = self.GetChoices()
-            control.Clear()
-            control.AppendItems(choices)
-
-            if value is None:
-                choiceIndex = 0 # the "None" choice
-            else:
-                minutes = ((value.days * 1440) + (value.seconds / 60))
-                reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
-                choiceIndex = control.FindString(reminderChoice)
-                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
-                if choiceIndex == -1:
-                    choiceIndex = 0 # the "None" choice
-            control.Select(choiceIndex)
-        
 class IconAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True # The Icon editor doesn't support editing.

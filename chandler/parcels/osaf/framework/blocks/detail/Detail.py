@@ -7,6 +7,8 @@ __parcel__ = "osaf.framework.blocks"
 import sys
 import application
 from application import schema
+from osaf.framework.attributeEditors.AttributeEditors \
+     import DateAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import DynamicContainerBlocks
 from osaf.framework.blocks import ControlBlocks
@@ -31,8 +33,8 @@ import repository.item.Query as Query
 import wx
 import sets
 import logging
-from PyICU import SimpleDateFormat, ICUError
-from datetime import datetime
+from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
+from datetime import datetime, time, timedelta
 
 """
 Detail.py
@@ -558,12 +560,8 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def saveTextValue (self, validate=False):
         # Tell the AE to save itself
         item = self.selectedItem()
-        try:
-            widget = self.widget
-        except AttributeError:
-            widget = None
-        if item is not None and widget is not None:
-            widget.onLoseFocusFromControl(None)
+        if item is not None and getattr(self, 'widget', None) is not None:
+            self.onLoseFocusFromWidget(None)
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
@@ -1028,6 +1026,261 @@ class CalendarAtLabel (StaticTextLabel):
 class CalendarTimeAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
         return not self.contents.allDay
+
+class CalendarDateAttributeEditor(DateAttributeEditor):    
+    def SetAttributeValue(self, item, attributeName, valueString):
+        newValueString = valueString.replace('?','').strip()
+        if len(newValueString) == 0:
+            # Attempting to remove the start date field will set its value to the 
+            # "previous value" when the value is committed (removing focus or 
+            # "enter"). Attempting to remove the end-date field will set its 
+            # value to the "previous value" when the value is committed. In 
+            # brief, if the user attempts to delete the value for a start date 
+            # or end date, it automatically resets to what value was displayed 
+            # before the user tried to delete it.
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
+        else:
+            # First, get ICU to parse it into a float
+            try:
+                dateValue = DateAttributeEditor._format.parse(newValueString)
+            except ICUError:
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+            # Then, convert that float to a datetime (I've seen ICU parse bogus 
+            # values like "06/05/0506/05/05", which causes fromtimestamp() 
+            # to throw.)
+            try:
+                dateTimeValue = datetime.fromtimestamp(dateValue)
+            except ValueError:
+                self._changeTextQuietly(self.control, "%s ?" % newValueString)
+                return
+
+            # If this results in a new value, put it back.
+            oldValue = getattr(item, attributeName)
+            value = datetime.combine(dateTimeValue.date(), oldValue.time())
+            if oldValue != value:
+                if attributeName == 'startTime':
+                    # Changing the start date or time such that the start 
+                    # date+time are later than the existing end date+time 
+                    # will change the end date & time to preserve the 
+                    # existing duration. (This is true even for anytime 
+                    # events: increasing the start date by three days 
+                    # will increase the end date the same amount.)
+                    if value > item.endTime:
+                        endTime = value + (item.endTime - item.getEffectiveStartTime())
+                    else:
+                        endTime = item.endTime
+                    item.ChangeStart(value)
+                    item.endTime = endTime
+                else:
+                    # Changing the end date or time such that it becomes 
+                    # earlier than the existing start date+time will 
+                    # change the start date+time to be the same as the 
+                    # end date+time (that is, an @time event, or a 
+                    # single-day anytime event if the event had already 
+                    # been an anytime event).
+                    if value < item.startTime:
+                        item.ChangeStart(value)
+                    setattr (item, attributeName, value)
+                self.AttributeChanged()
+                
+            # Refresh the value in place
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
+
+class CalendarTimeAttributeEditor(TimeAttributeEditor):
+    def GetAttributeValue (self, item, attributeName):
+        noTime = getattr(item, 'allDay', False) \
+               or getattr(item, 'anyTime', False)
+        if noTime:
+            value = u''
+        else:
+            value = super(CalendarTimeAttributeEditor, self).GetAttributeValue(item, attributeName)
+        return value
+
+    def SetAttributeValue(self, item, attributeName, valueString):
+        newValueString = valueString.replace('?','').strip()
+        if len(newValueString) == 0:
+            # Clearing an event's start time (removing the value in it, causing 
+            # it to show "HH:MM") will remove the end time value (making it an 
+            # anytime event).
+            if not item.anyTime:
+                item.anyTime = True
+                self.AttributeChanged()
+            return
+        
+        # We have _something_; parse it.
+        try:
+            timeValue = TimeAttributeEditor._format.parse(newValueString)
+        except ICUError:
+            self._changeTextQuietly(self.control, "%s ?" % newValueString)
+            return
+
+        # If we got a new value, put it back.
+        oldValue = getattr(item, attributeName)
+        value = datetime.combine(oldValue.date(), datetime.fromtimestamp(timeValue).time())
+        if item.anyTime or oldValue != value:
+            # Something changed.                
+            # Implement the rules for changing one of the four values:
+            iAmStart = attributeName == 'startTime'
+            if item.anyTime:
+                # On an anytime event (single or multi-day; both times 
+                # blank & showing the "HH:MM" hint), entering a valid time 
+                # in either time field will set the other date and time 
+                # field to effect a one-hour event on the corresponding date. 
+                item.anyTime = False
+                if iAmStart:
+                    item.ChangeStart(value)
+                    item.endTime = value + timedelta(hours=1)
+                else:
+                    item.ChangeStart(value - timedelta(hours=1))
+                    item.endTime = value
+            else:
+                if iAmStart:
+                    # Changing the start date or time such that the start 
+                    # date+time are later than the existing end date+time 
+                    # will change the end date & time to preserve the 
+                    # existing duration. (This is true even for anytime 
+                    # events: increasing the start date by three days will 
+                    # increase the end date the same amount.)
+                    if value > item.endTime:
+                        endTime = value + (item.endTime - item.startTime)
+                    else:
+                        endTime = item.endTime
+                    item.ChangeStart(value)
+                    item.endTime = endTime
+                else:
+                    # Changing the end date or time such that it becomes 
+                    # earlier than the existing start date+time will change 
+                    # the start date+time to be the same as the end 
+                    # date+time (that is, an @time event, or a single-day 
+                    # anytime event if the event had already been an 
+                    # anytime event).
+                    if value < item.startTime:
+                        item.ChangeStart(value)
+                    setattr (item, attributeName, value)
+                item.anyTime = False
+            
+            self.AttributeChanged()
+            
+        # Refresh the value in the control
+        self.SetControlValue(self.control, 
+                         self.GetAttributeValue(item, attributeName))
+
+class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
+    def GetControlValue (self, control):
+        """ Get the reminder delta value for the current selection """        
+        # @@@ For now, assumes that the menu will be a number of minutes, 
+        # followed by a space (eg, "1 minute", "15 minutes", etc), or something
+        # that doesn't match this (eg, "None") for no-alarm.
+        menuChoice = control.GetStringSelection()
+        try:
+            minuteCount = int(menuChoice.split(u" ")[0])
+        except ValueError:
+            # "None"
+            value = None
+        else:
+            value = timedelta(minutes=-minuteCount)
+        return value
+
+    def SetControlValue (self, control, value):
+        """ Select the choice that matches this delta value"""
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value or control.GetCount() == 0:            
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+
+            if value is None:
+                choiceIndex = 0 # the "None" choice
+            else:
+                minutes = ((value.days * 1440) + (value.seconds / 60))
+                reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
+                choiceIndex = control.FindString(reminderChoice)
+                # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
+                if choiceIndex == -1:
+                    choiceIndex = 0 # the "None" choice
+            control.Select(choiceIndex)
+
+class RecurrenceAttributeEditor(ChoiceAttributeEditor):
+    # These are the values we pass around; they're the same as the menu indices.
+    onceIndex = 0
+    dailyIndex = 1
+    weeklyIndex = 2
+    monthlyIndex = 3
+    annuallyIndex = 4
+    customIndex = 5
+
+    def _isCustom(self):
+        try:
+            isCustom = self.item.rrule.isCustom()
+        except AttributeError:
+            isCustom = False
+        return isCustom
+        
+    def onChoice(self, event):
+        control = event.GetEventObject()
+        newChoiceIndex = self.GetControlValue(control)
+        pass # More to come here...
+    
+    def GetChoices(self):
+        """ Get the choices we're presenting """
+        choiceList = super(RecurrenceAttributeEditor, self).GetChoices()
+        if not self._isCustom():
+            choiceList = choiceList[:-1] # remove "custom"
+        return choiceList
+
+    def GetAttributeValue (self, item, attributeName):
+        """ Get the value from the specified attribute of the item. """
+        return RecurrenceAttributeEditor.onceIndex
+
+    def SetAttributeValue (self, item, attributeName, value):
+        """ Set the value of the attribute given by the value. """
+        pass # the hard part of changing recurrence would be here.
+    
+    def GetControlValue (self, control):
+        """ Get the value for the current selection """ 
+        choiceIndex = control.GetSelection()
+        return choiceIndex
+
+    def SetControlValue (self, control, value):
+        """ Select the choice that matches this delta value"""
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value or control.GetCount() == 0:
+            # rebuild the list of choices
+            choices = self.GetChoices()
+            control.Clear()
+            control.AppendItems(choices)
+
+            choiceIndex = RecurrenceAttributeEditor.onceIndex
+            if value is not None:
+                if self._isCustom():
+                    choiceIndex = RecurrenceAttributeEditor.customIndex
+                else:
+                    choiceIndex = RecurrenceAttributeEditor.onceIndex
+            control.Select(choiceIndex)
+    
+class CalendarRecurrenceCustomArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
+    def shouldShow (self, item):
+        """ We're visible only if we have a recurrence rule and it's marked 'custom'."""
+        try:
+            isCustom = item.rrule.isCustom()
+        except AttributeError:
+            isCustom = False
+        return True # isCustom
+    
+class CalendarRecurrenceEndArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
+    def shouldShow (self, item):
+        """ We're visible only if we have a recurrence rule and it's not marked 'custom'."""
+        try:
+            notCustom = not item.rrule.isCustom()
+        except AttributeError:
+            notCustom = False
+        return notCustom
     
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):

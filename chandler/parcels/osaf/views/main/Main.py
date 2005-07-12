@@ -190,6 +190,12 @@ class MainView(View):
           Do a repository commit with notice posted in the Status bar.
         """
         self.setStatusMessage (_("committing changes to the repository..."))
+
+        # If we have a detail view, let it write pending edits back first.
+        detailView = self.findBlockByName("DetailRoot")
+        if detailView is not None:
+            detailView.finishSelectionChanges()
+            
         self.itsView.commit()
         self.setStatusMessage ('')
 
