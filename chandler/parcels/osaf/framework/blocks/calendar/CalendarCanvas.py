@@ -893,8 +893,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
         
     def OnInit(self):
-        self.editor = wxInPlaceEditor(self, -1) 
-        
+        super(wxCalendarCanvas, self).OnInit()
+        self.editor = wxInPlaceEditor(self, -1)
+
     def OnScroll(self, event):
         self.Refresh()
         event.Skip()
@@ -1791,9 +1792,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
                 timedelta(hours=1)
 
-        # set focus on the calendar so that we can receive key events
-        # (as of this writing, wxPanel can't receive focus, so this is a no-op)
-        self.SetFocus()
         super(wxTimedEventsCanvas, self).OnSelectNone(unscrolledPosition)
 
     def OnCreateItem(self, unscrolledPosition):

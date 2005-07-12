@@ -295,12 +295,15 @@ class wxCollectionCanvas(wx.ScrolledWindow):
         self._currentDragBox = None
         self._dragCurrentUnscrolled = None
 
+    def OnInit(self):
+        self._focusWindow = wx.Window(self, -1)
+
+    def SetPanelFocus(self):
+        self._focusWindow.SetFocus()
 
     def SetDragBox(self, box):
         self._currentDragBox = self._originalDragBox = box
 
-
-        
     def DrawCenteredText(self, dc, text, rect):
         textExtent = dc.GetTextExtent(text)
         middleRect = rect.width / 2
@@ -498,7 +501,7 @@ class wxCollectionCanvas(wx.ScrolledWindow):
         # solutions...
         if event.ButtonDown():
             self.GrabFocusHack()
-            self.SetFocus()
+            self.SetPanelFocus()
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)
