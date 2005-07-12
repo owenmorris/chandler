@@ -25,9 +25,13 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
         try:
-            cellValues.append (unicode (element.getItemDisplayName()))
+            name = element.blockName
         except AttributeError:
-            cellValues.append (' ')
+            try:
+                name = element.getItemDisplayName()
+            except AttributeError:
+                name = ' '
+        cellValues.append (name)
         try:
             cellValues.append (element.itsKind.itsName)
         except AttributeError:
@@ -144,9 +148,13 @@ class CPIADelegate (ControlBlocks.ListDelegate):
         cellValues = [blockName]
 
         try:
-            cellValues.append (element.itsKind.itsName)
+            name = element.blockName
         except AttributeError:
-            cellValues.append (' ')
+            try:
+                name = element.getItemDisplayName()
+            except AttributeError:
+                name = ' '
+        cellValues.append (name)
 
         try:
             cellValues.append (unicode (element.getItemDisplayName()))
