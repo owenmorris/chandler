@@ -31,6 +31,8 @@ import copy
 dateFormatSymbols = DateFormatSymbols()
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
+
+
 """Widget overview
 
 CalendarContainer  is the Block for the entire week view
@@ -673,6 +675,10 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta)
     
+    def getRangeEnd(self):
+        return self.rangeStart + self.rangeIncrement
+    rangeEnd = property(getRangeEnd)
+    
     def __init__(self, *arguments, **keywords):
         super(CalendarBlock, self).__init__(*arguments, **keywords)
 
@@ -727,8 +733,13 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
 
     # Get items from the collection
 
-    def getDayItemsByDate(self, date):
-        nextDate = date + timedelta(days=1)
+    def getDayItemsInRange(self, date, endDate=None):
+        """
+        @param endDate: if omitted, only get items on @param date.
+        """
+        if not endDate:
+            endDate = date + timedelta(days=1)
+            
         for item in self.contents:
             try:
                 anyTime = item.anyTime
@@ -745,9 +756,13 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
 
             if (item.hasLocalAttributeValue('startTime') and
                 (allDay or anyTime) and
-                (item.startTime.replace(tzinfo=None) >= date) and
-                (item.startTime.replace(tzinfo=None) < nextDate)):
+                (((item.startTime.replace(tzinfo=None) >= date) and
+                  (item.startTime.replace(tzinfo=None) < endDate)) or
+                 (item.hasLocalAttributeValue('endTime') and
+                  self.itemIsInRange(item, date, endDate)) )
+                ):
                 yield item
+    
 
     def itemIsInRange(self, item, start, end):
         """
@@ -971,6 +986,16 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetPen(styles.minorLinePen)
         for dayNum in range(1, drawInfo.columns):
             drawDayLine(dayNum)
+    
+    def SetDragBox(self, canvasItem):
+        super(wxCalendarCanvas, self).SetDragBox(canvasItem)
+        # also, we want to remember the original start time to help with
+        # dragging items originally when extending over the left bound
+
+        #eventItem = canvasItem.GetItem()
+        #self._originalDragBox.originalStartTime = eventItem.startTime
+        
+        
 
 
 class wxCalendarContainer(CalendarEventHandler, 
@@ -1416,41 +1441,118 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.canvasItemList = []
 
         if self.parent.blockItem.dayMode:
-            startDay = self.parent.blockItem.selectedDate
+            startDateTime = self.parent.blockItem.selectedDate
             width = self.size.width - self.parent.scrollbarWidth - self.parent.xOffset
         else:
-            startDay = self.parent.blockItem.rangeStart
+            startDateTime = self.parent.blockItem.rangeStart
             width = self.parent.dayWidth
 
-        self.fullHeight = 0
+        (_, endDateTime) = self.GetCurrentDateRange() #sloppy, but this changes on refactoring anyway
+        
+        visibleItems = list(self.parent.blockItem.getDayItemsInRange(startDateTime, endDateTime))
+        visibleItems.sort(self.sortCallback)
+        
+        
+        highestRowUsed = 0 #for the '+' toggle
+        
+        if self.parent.blockItem.dayMode:
+            for y, item in enumerate(visibleItems):
+                self.RebuildCanvasItem(item, width, 0,0, y)
+                highestRowUsed += 1
+            
+        else:
+            # Next: place all the items on a grid without overlap. Items can span
+            # multiple columns.
+            
+            # conflict grid: 2-d "matrix" of booleans.  False == free spot
+            # FIXME fixed number of rows.   Rigged up for grid[x][y] notation:
+            #[[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
+            MAX_ROWS = 200
+            grid = [[False for y in range(MAX_ROWS)] for x in range(self.parent.columns)]
+
+            for item in visibleItems:
+                # get first and last column of its span
+                if item.startTime < startDateTime: dayStart = 0
+                else:  dayStart = self._DayOfWeekNumber(item.startTime)
+                if item.endTime > endDateTime: dayEnd = 6
+                else:  dayEnd = self._DayOfWeekNumber(item.endTime)
+                
+                #search downward, looking for a spot where it'll fit
+                for y in xrange(MAX_ROWS):
+                    fitsHere = self._BlockFits(grid, dayStart, dayEnd, y)
+                    if fitsHere:
+                        # lay out into this spot
+                        for day in xrange(dayStart, dayEnd+1):
+                            grid[day][y] = True
+                        
+                        self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
+                        if y > highestRowUsed: highestRowUsed = y
+                        break
+                else:
+                    raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
+
+        #refactor: can ditch for the splitter, right?..
+        self.fullHeight = (highestRowUsed+1) * 17
+
+
+    @staticmethod
+    def _BlockFits(grid, x1, x2, y):
+        for x in range(x1, x2+1):
+            if grid[x][y]: return False
+        return True
+    
+    def RebuildCanvasItem(self, item, columnWidth, dayStart, dayEnd, gridRow):
+        """
+        @param columnWidth is pixel width of one column under the current view
+        but all the other paramters though are grid-based.
+        """
         size = self.GetSize()
-        for day in range(self.parent.columns):
-            currentDate = startDay + timedelta(days=day)
-            rect = wx.Rect((self.parent.dayWidth * day) + self.parent.xOffset, 0,
-                           width, size.height)
-            self.RebuildCanvasItemsByDay(currentDate, rect)
+       
+        rect = wx.Rect((self.parent.dayWidth * dayStart) + self.parent.xOffset,
+                       17 * gridRow,
+                       columnWidth * (dayEnd - dayStart + 1),
+                       17)
+ 
+        canvasItem = HeaderCanvasItem(rect, item)
+        self.canvasItemList.append(canvasItem)
+        
+        # keep track of the current drag/resize box
+        if self._currentDragBox and self._currentDragBox.GetItem() == item:
+            self._currentDragBox = canvasItem
 
+        
+    @staticmethod
+    def _DayOfWeekNumber(datetime):
+        """evaluate datetime's position in the week: 0-6 (sun-sat)
+        
+        @param startOfThisDatesWeek: include this to evaluate relative to this week instead.
+        this can give negative numbers or >6 and other odd things.
+        
+        """
+        cal = GregorianCalendar()
+        cal.setTime(datetime)
+        
+        return (cal.get(cal.DAY_OF_WEEK) - cal.getFirstDayOfWeek())
 
-    def RebuildCanvasItemsByDay(self, date, rect):
-        x = rect.x
-        y = rect.y
-        w = rect.width
-        h = 17
+    @staticmethod
+    def sortCallback(item1, item2):
+        """
+        Comparison function for sorting
+        """
+        span1 = item1.endTime - item1.startTime
+        span2 = item2.endTime - item2.startTime
+        spanResult = cmp(span2, span1)
+        
+        if spanResult != 0:
+            return spanResult
+        else:
+            return cmp(item1.startTime, item2.startTime)
+        
+        #dateResult = cmp(item1.startTime, item2.startTime)
+        #if dateResult != 0:
+            #return dateResult
+        #return cmp(span2, span1)
 
-        for item in self.parent.blockItem.getDayItemsByDate(date):
-            itemRect = wx.Rect(x, y, w, h)
-            
-            canvasItem = HeaderCanvasItem(itemRect, item)
-            self.canvasItemList.append(canvasItem)
-            
-            # keep track of the current drag/resize box
-            if self._currentDragBox and self._currentDragBox.GetItem() == item:
-                self._currentDragBox = canvasItem
-
-            y += itemRect.height
-            
-        if (y > self.fullHeight):
-            self.fullHeight = y
                     
     def OnCreateItem(self, unscrolledPosition):
         view = self.parent.blockItem.itsView
@@ -1473,28 +1575,63 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.parent.blockItem.dayMode:
             return
         
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        # we have to deduce the offset, so you can begin a drag in any cell of
+        # a multi-day event. Code borrowed from
+        # wxTimedEventsCanvas.OnDraggingItem()
+        (boxX,boxY) = self._originalDragBox.GetDragOrigin()
+        
+        ## but if the event starts before the current week, we have to make boxX negative
+        #ost = self._originalDragBox.originalStartTime
+        #if ost < self.parent.blockItem.rangeStart:
+            #earlier = (self.parent.blockItem.rangeStart - ost)
+            #print earlier.days
+            #boxX -= earlier.days * self.parent.dayWidth
+            #print boxX
+
+        dy = self._dragStartUnscrolled.y - boxY
+        dx = self._dragStartUnscrolled.x - boxX
+        dx = int(dx/self.parent.dayWidth) * self.parent.dayWidth #round to nearest dayWidth
+        adjustedPosition = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
+  
         item = self._currentDragBox.GetItem()
+        
+        newTime = self.getDateTimeFromPosition(adjustedPosition, mustBeInBounds=False)
+        
+        # bounding rules are: at least one cell of the event must stay visible.
+        ##if newTime < self.parent.blockItem.rangeStart and \
+           ##newTime + item.duration > self.parent.blockItem.rangeEnd:
+            ##pass # event stretches through entire week.  don't mess!
+        if newTime >= self.parent.blockItem.rangeEnd:
+            newTime = self.parent.blockItem.rangeEnd - timedelta(days=1)
+        elif newTime + item.duration < self.parent.blockItem.rangeStart:
+            newTime = self.parent.blockItem.rangeStart - item.duration
+        
         if (newTime.toordinal() != item.startTime.toordinal()):
             item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                      item.startTime.hour,
-                                      item.startTime.minute))
+                                      item.startTime.hour, item.startTime.minute))
             self.Refresh()
 
-    def getDateTimeFromPosition(self, position):
-        # bound the position by the available space that the user 
-        # can see/scroll to
-        yPosition = max(position.y, 0)
-        xPosition = max(position.x, self.parent.xOffset)
+    def getDateTimeFromPosition(self, position, mustBeInBounds=True):
+        """
+        @param mustBeInBounds: if true, restrict to dates the user
+        currently can see/scroll to.
+        """
         
+        yPosition = max(position.y, 0)
+        if mustBeInBounds:
+            xPosition = max(position.x, self.parent.xOffset)
+        else:       
+            xPosition = position.x
+                
         if (self.fixed):
             height = self.GetMinSize().GetWidth()
         else:
             height = self.fullHeight
             
         yPosition = min(yPosition, height)
-        xPosition = min(xPosition, self.parent.xOffset + self.parent.dayWidth * self.parent.columns - 1)
-
+        if mustBeInBounds:
+            xPosition = min(xPosition, self.parent.xOffset + self.parent.dayWidth * self.parent.columns - 1)
+        
         if self.parent.blockItem.dayMode:
             newDay = self.parent.blockItem.selectedDate
         elif self.parent.dayWidth > 0:
@@ -1502,8 +1639,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             startDay = self.parent.blockItem.rangeStart
             newDay = startDay + timedelta(days=deltaDays)
         else:
+            #when does this happen?
             newDay = self.parent.blockItem.rangeStart
         return newDay
+
 
 class wxTimedEventsCanvas(wxCalendarCanvas):
     """This is the big area with time-of-day markers and specific-day events"""
@@ -2006,6 +2145,7 @@ class CalendarContainer(CalendarBlock):
             calendar = GregorianCalendar()
             calendar.setTime(date)
             
+            # refactor to use CalendarBlock._DayOfWeekNumber
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
