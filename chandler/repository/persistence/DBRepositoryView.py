@@ -150,7 +150,10 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _abortTransaction(self, status):
 
         if self._indexWriter is not None:
-            self._indexWriter.close()
+            try:
+                self._indexWriter.close()
+            except:
+                self.logger.exception('Exception while closing indexWriter')
             self._indexWriter = None
             
         self.repository.store.abortTransaction(status)

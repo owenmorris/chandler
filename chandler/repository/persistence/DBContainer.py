@@ -13,7 +13,9 @@ from chandlerdb.persistence.container import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from repository.persistence.Repository import Repository
-from repository.persistence.RepositoryError import RepositoryFormatVersionError
+from repository.persistence.RepositoryView import RepositoryView
+from repository.persistence.RepositoryError import \
+    RepositoryFormatVersionError, RepositorySchemaVersionError
 
 from bsddb.db import DB
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
@@ -1070,8 +1072,9 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.0: first tracked format version
     # 0.5.1: 'Long' values saved as long long (64 bit)
     # 0.5.2: added support for 'Set' type and 'set' cardinality
+    # 0.5.3: added core schema version to version info
 
-    FORMAT_VERSION = 0x00050200
+    FORMAT_VERSION = 0x00050300
 
     def __init__(self, store, name, txn, **kwds):
 
@@ -1084,9 +1087,12 @@ class ValueContainer(DBContainer, CValueContainer):
             self.setVersion(0)
         else:
             format_version = ValueContainer.FORMAT_VERSION
-            x, version, format = self.getVersionInfo(Repository.itsUUID)
+            schema_version = RepositoryView.CORE_SCHEMA_VERSION
+            x, version, format, schema = self.getVersionInfo(Repository.itsUUID)
             if format != format_version:
                 raise RepositoryFormatVersionError, (format_version, format)
+            if schema != schema_version:
+                raise RepositorySchemaVersionError, (schema_version, schema)
 
     def close(self):
 
@@ -1106,9 +1112,13 @@ class ValueContainer(DBContainer, CValueContainer):
         if value is None:
             return None
 
-        versionId, version, format = unpack('>16sll', value)
+        if len(value) == 24:  # pre 0.5.3
+            versionId, version, format = unpack('>16sll', value)
+            schema = 0
+        else:
+            versionId, version, format, schema = unpack('>16slll', value)
 
-        return UUID(versionId), version, format
+        return UUID(versionId), version, format, schema
         
     def getVersion(self, uuid=None):
 
@@ -1127,16 +1137,18 @@ class ValueContainer(DBContainer, CValueContainer):
             uuid = Repository.itsUUID
 
         if version != 0:
-            versionId, x, format = self.getVersionInfo(uuid)
+            versionId, x, format, schema = self.getVersionInfo(uuid)
         else:
-            versionId, format = UUID(), ValueContainer.FORMAT_VERSION
+            versionId, format, schema = UUID(), ValueContainer.FORMAT_VERSION, RepositoryView.CORE_SCHEMA_VERSION
 
-        self.put(uuid._uuid, pack('>16sll', versionId._uuid, version, format))
+        self.put(uuid._uuid, pack('>16slll', versionId._uuid, version,
+                                  format, schema))
 
     def setVersionId(self, versionId, uuid):
 
-        versionId, version, format = self.getVersionInfo(uuid)
-        self.put(uuid._uuid, pack('>16sll', versionId._uuid, version, format))
+        versionId, version, format, schema = self.getVersionInfo(uuid)
+        self.put(uuid._uuid, pack('>16slll', versionId._uuid, version,
+                                  format, schema))
 
 
 class HashTuple(tuple):

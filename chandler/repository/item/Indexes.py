@@ -181,6 +181,9 @@ class DelegatingIndex(object):
     def __repr__(self):
         return '<%s: %d>' %(type(self).__name__, self._count)
 
+    def __len__(self):
+        return len(self._index)
+
     def __getattr__(self, name):
         return getattr(self._index, name)
 

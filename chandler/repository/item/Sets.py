@@ -34,6 +34,14 @@ class AbstractSet(ItemValue, Indexed):
 
         return self._getView()[uuid]
 
+    def __len__(self):
+
+        if self._indexes:
+            for index in self._indexes.itervalues():
+                return len(index)
+
+        raise ValueError, "set has no indexes, length is unknown"
+
     def iterkeys(self):
 
         for item in self:

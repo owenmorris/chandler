@@ -131,12 +131,6 @@ class RepositoryView(object):
             schema = self.loadPack(path)
             schema.version = RepositoryView.CORE_SCHEMA_VERSION
 
-        else:
-            schema_version = RepositoryView.CORE_SCHEMA_VERSION
-            version = getattr(schema, 'version', 0)
-            if version != schema_version:
-                raise RepositorySchemaVersionError, (schema_version, version)
-
         return schema
 
     def __len__(self):
