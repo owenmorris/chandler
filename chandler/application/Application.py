@@ -10,7 +10,8 @@ import wx
 import Globals
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
-     import VersionConflictError, MergeError, RepositoryPasswordError
+     import VersionConflictError, MergeError, RepositoryPasswordError, \
+     RepositorySchemaVersionError
 import Utility
 
 logger = logging.getLogger('App')
@@ -198,29 +199,23 @@ class wxApplication (wx.App):
         # be called again if there is a schema mismatch and the user chooses
         # to reopen the repository in create mode.
         repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir)
-        view = Utility.initRepository(repoDir, Globals.options)
+
+        try:
+            view = Utility.initRepository(repoDir, Globals.options)
+        except RepositorySchemaVersionError:
+            if self.ShowSchemaMismatchWindow():
+                Globals.options.create = True
+                view = Utility.initRepository(repoDir, Globals.options)
+            else:
+                raise SchemaMismatchError
+
         self.repository = view.repository
 
         """
           Verify Schema Version
         """
         if not Utility.verifySchema(view):
-            logger.info("Schema version of repository doesn't match app")
-
-            message = \
-"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
-
-Would you like to remove all data from your repository?
-"""
-
-            dialog = wx.MessageDialog(None,
-                                      message,
-                                      "Cannot open repository",
-                                      wx.YES_NO | wx.ICON_INFORMATION)
-            response = dialog.ShowModal()
-            dialog.Destroy()
-
-            if response == wx.ID_YES:
+            if self.ShowSchemaMismatchWindow():
                 # Blow away the repository
                 self.repository.close()
                 Globals.options.create = True
@@ -676,6 +671,25 @@ Would you like to remove all data from your repository?
          rootLabel="Chandler")
         self.crustFrame.SetSize((700,700))
         self.crustFrame.Show(True)
+
+
+    def ShowSchemaMismatchWindow(self):
+        logger.info("Schema version of repository doesn't match app")
+
+        message = \
+"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
+
+Would you like to remove all data from your repository?
+"""
+
+        dialog = wx.MessageDialog(None,
+                                  message,
+                                  "Cannot open repository",
+                                  wx.YES_NO | wx.ICON_INFORMATION)
+        response = dialog.ShowModal()
+        dialog.Destroy()
+        return response == wx.ID_YES
+
 
 class TransportWrapper (object):
     """

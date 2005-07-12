@@ -9,9 +9,11 @@ from optparse import OptionParser
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
-     RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+     RepositoryOpenDeniedError, ExclusiveOpenDeniedError,\
+     RepositorySchemaVersionError
 from repository.item.RefCollections import RefList
 
+# Increment this value whenever the schema changes
 SCHEMA_VERSION = "24"
 
 logger = None # initialized in initLogging()
@@ -215,6 +217,9 @@ def initRepository(directory, options):
             else:
                 options.encrypt = True
             continue
+        except RepositorySchemaVersionError:
+            repository.close()
+            raise
         else:
             del kwds
             break
