@@ -103,8 +103,6 @@ class wxSidebar(ControlBlocks.wxTable):
 
         item, attribute = self.GetTable().GetValue (row, 0)
 
-        hadCapture = gridWindow.HasCapture()
-
         if cellRect.InsideXY (x, y):
             if not hasattr (self, 'hoverImageRow') and not self.IsCellEditControlEnabled():
                 assert not gridWindow.HasCapture()
@@ -128,9 +126,8 @@ class wxSidebar(ControlBlocks.wxTable):
                 for (buttonName, button) in self.buttonState.iteritems():
                     if (button['imageRect'].InsideXY (x, y)
                         and isinstance (item, ItemCollection.ItemCollection)):
-        
-                        if hadCapture:
-                            event.Skip (False) #Gobble the event
+                        event.Skip (False) #Gobble the event
+                        self.SetFocus()
         
                         checked = blockItem.getButtonState (buttonName, item)
                         button = self.buttonState[buttonName]
