@@ -185,6 +185,8 @@ class AETextCtrl(ShownSynchronizer,
     def __init__(self, *arguments, **keywords):
         super (AETextCtrl, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
 
     def OnMouseEvents(self, event):
         # trigger a Drag and Drop if we're a single line and all selected
@@ -192,9 +194,18 @@ class AETextCtrl(ShownSynchronizer,
             selStart, selEnd = self.GetSelection()
             if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
                 if event.LeftIsDown(): # still down?
-                    self.DoDragAndDrop()
-                    return # don't skip, eat the click.
+                    # have we had the focus for a little while?
+                    if hasattr(self, 'focusedSince'):
+                        if datetime.now() - self.focusedSince > timedelta(seconds=.2):
+                            self.DoDragAndDrop()
+                            return # don't skip, eat the click.
         event.Skip()
+
+    def OnSetFocus(self, event):
+        self.focusedSince = datetime.now()
+
+    def OnKillFocus(self, event):
+        del self.focusedSince
 
     """ Try without this:
     def Destroy(self):

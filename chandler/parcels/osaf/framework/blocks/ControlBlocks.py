@@ -20,8 +20,7 @@ import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
-
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 
 class textAlignmentEnumType(schema.Enumeration):
@@ -184,6 +183,8 @@ class wxEditText(ShownSynchronizer,
         super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         minW, minH = arguments[-1] # assumes minimum size passed as last arg
         self.SetSizeHints(minW=minW, minH=minH)
 
@@ -197,9 +198,19 @@ class wxEditText(ShownSynchronizer,
             selStart, selEnd = self.GetSelection()
             if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
                 if event.LeftIsDown(): # still down?
-                    self.DoDragAndDrop()
-                    return # don't skip, eat the click.
+                    # have we had the focus for a little while?
+                    if hasattr(self, 'focusedSince'):
+                        if datetime.now() - self.focusedSince > timedelta(seconds=.2):
+                            self.DoDragAndDrop()
+                            return # don't skip, eat the click.
         event.Skip()
+
+    def OnSetFocus(self, event):
+        self.focusedSince = datetime.now()
+
+    def OnKillFocus(self, event):
+        del self.focusedSince
+
 
 
 class textStyleEnumType(schema.Enumeration):
