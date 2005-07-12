@@ -27,7 +27,7 @@ Design Issues:
       2. Date sent string could probally be gotten rid of
 """
 
-MAIL_DEFAULT_PATH = "//userdata/mailItems"
+MAIL_DEFAULT_PATH = "//userdata"
 
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
