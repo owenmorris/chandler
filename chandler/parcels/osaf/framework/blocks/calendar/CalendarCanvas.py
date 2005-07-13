@@ -402,10 +402,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
             elif rightSideCutOff:
                 r = itemRect; x,y,w,h = r.x, r.y, r.width, r.height
-                dc.DrawLines(((x+w, y), (x,y), (x,y+h), (x+w,y+h)))
+                dc.DrawLines(((x+w, y), (x+1,y), (x+1,y+h-1), (x+w,y+h-1)))
                 dc.SetPen(wx.TRANSPARENT_PEN)
-
-                dc.DrawRectangle(x,y+1,w,h-1)
+                dc.DrawRectangle(x,y+1,w,h-2)
                 
             
             pen = self.GetStatusPen(outlineColor)
