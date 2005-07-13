@@ -356,7 +356,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             maxparents = max([parent.GetIndentLevel() for parent in self._parentConflicts])
         return max(self.GetIndentLevel(), maxchildren, maxparents)
         
-    def Draw(self, dc, styles, brushOffset, selected):
+    def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
+        # @@@ add a general cutoff parameter?
         item = self._item
 
         time = item.startTime
@@ -393,8 +394,20 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if rectIndex == len(self.GetBoundsRects())-1:
                 hasBottomRightRounded = True
 
-            self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
+            #if rightSideCutOff:
+                #hasTopRightRounded = False
+                #hasBottomRightRounded = False
+                
+            if not rightSideCutOff:
+                self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
+            elif rightSideCutOff:
+                r = itemRect; x,y,w,h = r.x, r.y, r.width, r.height
+                dc.DrawLines(((x+w, y), (x,y), (x,y+h), (x+w,y+h)))
+                dc.SetPen(wx.TRANSPARENT_PEN)
 
+                dc.DrawRectangle(x,y+1,w,h-1)
+                
+            
             pen = self.GetStatusPen(outlineColor)
             pen.SetCap(wx.CAP_BUTT)
             dc.SetPen(pen)
@@ -473,7 +486,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # now optionally push the other rounded corners off the top or bottom
         if not hasBottomRightRounded:
             roundRect.height += radius
-            
+
         if not hasTopRightRounded:
             roundRect.y -= radius
             roundRect.height += radius
@@ -481,9 +494,14 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # finally draw the clipped rounded rect
         dc.DrawRoundedRectangleRect(roundRect, radius)
         
-        # draw the lefthand side border, to stay consistent all
-        # the way around the rectangle
+        # draw the lefthand and possibly top & bottom borders
         dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
+        if not hasBottomRightRounded:
+            dc.DrawLine(rect.x, rect.y + rect.height-1, rect.x + rect.width, rect.y + rect.height-1)
+        if not hasTopRightRounded:
+            dc.DrawLine(rect.x, rect.y, rect.x + rect.width, rect.y)
+            
+        
 
 class ColumnarCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
@@ -992,11 +1010,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         # also, we want to remember the original start time to help with
         # dragging items originally when extending over the left bound
 
-        #eventItem = canvasItem.GetItem()
-        #self._originalDragBox.originalStartTime = eventItem.startTime
-        
-        
-
+        try:
+            eventItem = canvasItem.GetItem()
+            self._originalDragBox.originalStartTime = eventItem.startTime
+        except AttributeError:
+            pass
+            
 
 class wxCalendarContainer(CalendarEventHandler, 
                   DragAndDrop.DropReceiveWidget, 
@@ -1349,6 +1368,7 @@ class wxCalendarControl(wx.Panel):
 
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
+    ALLDAY_EVENT_HEIGHT = 17
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
 
@@ -1412,17 +1432,21 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         selectedBox = None
         brushOffset = self.GetPlatformBrushOffset()
-
+        
+        def draw(itemToDraw, selected):
+            pastEnd = itemToDraw.GetItem().endTime > self.parent.blockItem.rangeEnd
+            itemToDraw.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
+        
         for canvasItem in self.canvasItemList:
             # save the selected box to be drawn last
             item = canvasItem.GetItem()
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, styles, brushOffset, False)
-        
+                draw(canvasItem, False)
+                
         if selectedBox:
-            selectedBox.Draw(dc, styles, brushOffset, True)
+            draw(selectedBox, True)
 
         # Draw a line across the bottom of the header
         dc.SetPen(styles.majorLinePen)
@@ -1450,9 +1474,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         (_, endDateTime) = self.GetCurrentDateRange() #sloppy, but this changes on refactoring anyway
         
         visibleItems = list(self.parent.blockItem.getDayItemsInRange(startDateTime, endDateTime))
-        visibleItems.sort(self.sortCallback)
-        
-        
+        visibleItems.sort(self.sortByDurationAndStart)
+
         highestRowUsed = 0 #for the '+' toggle
         
         if self.parent.blockItem.dayMode:
@@ -1466,20 +1489,20 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             
             # conflict grid: 2-d "matrix" of booleans.  False == free spot
             # FIXME fixed number of rows.   Rigged up for grid[x][y] notation:
-            #[[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
+            # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
             MAX_ROWS = 200
             grid = [[False for y in range(MAX_ROWS)] for x in range(self.parent.columns)]
 
             for item in visibleItems:
                 # get first and last column of its span
                 if item.startTime < startDateTime: dayStart = 0
-                else:  dayStart = self._DayOfWeekNumber(item.startTime)
+                else:  dayStart = self.DayOfWeekNumber(item.startTime)
                 if item.endTime > endDateTime: dayEnd = 6
-                else:  dayEnd = self._DayOfWeekNumber(item.endTime)
+                else:  dayEnd = self.DayOfWeekNumber(item.endTime)
                 
                 #search downward, looking for a spot where it'll fit
                 for y in xrange(MAX_ROWS):
-                    fitsHere = self._BlockFits(grid, dayStart, dayEnd, y)
+                    fitsHere = self.BlockFits(grid, dayStart, dayEnd, y)
                     if fitsHere:
                         # lay out into this spot
                         for day in xrange(dayStart, dayEnd+1):
@@ -1491,12 +1514,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                 else:
                     raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
 
-        #refactor: can ditch for the splitter, right?..
-        self.fullHeight = (highestRowUsed+1) * 17
+        #REFACTOR: can ditch for the splitter.
+        self.fullHeight = (highestRowUsed+1) * self.ALLDAY_EVENT_HEIGHT
 
 
     @staticmethod
-    def _BlockFits(grid, x1, x2, y):
+    def BlockFits(grid, x1, x2, y):
+        """are the cells grid[x1..x2][y] all false-valued?  (x2 inclusive.)"""
         for x in range(x1, x2+1):
             if grid[x][y]: return False
         return True
@@ -1509,9 +1533,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
        
         rect = wx.Rect((self.parent.dayWidth * dayStart) + self.parent.xOffset,
-                       17 * gridRow,
+                       self.ALLDAY_EVENT_HEIGHT * gridRow,
                        columnWidth * (dayEnd - dayStart + 1),
-                       17)
+                       self.ALLDAY_EVENT_HEIGHT)
  
         canvasItem = HeaderCanvasItem(rect, item)
         self.canvasItemList.append(canvasItem)
@@ -1522,7 +1546,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         
     @staticmethod
-    def _DayOfWeekNumber(datetime):
+    def DayOfWeekNumber(datetime):
         """evaluate datetime's position in the week: 0-6 (sun-sat)
         
         @param startOfThisDatesWeek: include this to evaluate relative to this week instead.
@@ -1535,19 +1559,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         return (cal.get(cal.DAY_OF_WEEK) - cal.getFirstDayOfWeek())
 
     @staticmethod
-    def sortCallback(item1, item2):
-        """
-        Comparison function for sorting
-        """
-        span1 = item1.endTime - item1.startTime
-        span2 = item2.endTime - item2.startTime
-        spanResult = cmp(span2, span1)
-        
+    def sortByDurationAndStart(item1, item2):
+        """Comparison callback function for sorting"""
+
+        # ORDER BY duration, date
+        spanResult = cmp(item2.duration, item1.duration)
         if spanResult != 0:
             return spanResult
         else:
             return cmp(item1.startTime, item2.startTime)
         
+        # I don't like the feel of ORDER BY date, duration -- but YMMV:
         #dateResult = cmp(item1.startTime, item2.startTime)
         #if dateResult != 0:
             #return dateResult
@@ -1580,27 +1602,21 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # wxTimedEventsCanvas.OnDraggingItem()
         (boxX,boxY) = self._originalDragBox.GetDragOrigin()
         
-        ## but if the event starts before the current week, we have to make boxX negative
-        #ost = self._originalDragBox.originalStartTime
-        #if ost < self.parent.blockItem.rangeStart:
-            #earlier = (self.parent.blockItem.rangeStart - ost)
-            #print earlier.days
-            #boxX -= earlier.days * self.parent.dayWidth
-            #print boxX
-
+        # but if the event starts before the current week, make boxX negative.
+        ost = self._originalDragBox.originalStartTime
+        if ost < self.parent.blockItem.rangeStart:
+            earlier = (self.parent.blockItem.rangeStart - ost)
+            boxX -= (earlier.days + 1) * self.parent.dayWidth
+        
         dy = self._dragStartUnscrolled.y - boxY
         dx = self._dragStartUnscrolled.x - boxX
         dx = int(dx/self.parent.dayWidth) * self.parent.dayWidth #round to nearest dayWidth
         adjustedPosition = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
   
         item = self._currentDragBox.GetItem()
-        
         newTime = self.getDateTimeFromPosition(adjustedPosition, mustBeInBounds=False)
         
         # bounding rules are: at least one cell of the event must stay visible.
-        ##if newTime < self.parent.blockItem.rangeStart and \
-           ##newTime + item.duration > self.parent.blockItem.rangeEnd:
-            ##pass # event stretches through entire week.  don't mess!
         if newTime >= self.parent.blockItem.rangeEnd:
             newTime = self.parent.blockItem.rangeEnd - timedelta(days=1)
         elif newTime + item.duration < self.parent.blockItem.rangeStart:
@@ -1810,7 +1826,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                                                        self._bgSelectionStartTime,
                                                        self._bgSelectionEndTime,
                                                        self.dayWidth)
-            
             for rect in rects:
                 dc.DrawRectangleRect(rect)
 
@@ -2145,7 +2160,7 @@ class CalendarContainer(CalendarBlock):
             calendar = GregorianCalendar()
             calendar.setTime(date)
             
-            # refactor to use CalendarBlock._DayOfWeekNumber
+            # refactor to use CalendarBlock.DayOfWeekNumber
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
