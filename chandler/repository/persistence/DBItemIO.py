@@ -33,6 +33,7 @@ class DBItemWriter(ItemWriter):
     def writeItem(self, item, version):
 
         self.values = []
+        self.uParent = DBItemWriter.NOITEM
 
         if not ((item._status & (Item.NEW | Item.MERGED)) != 0 or
                 item._version == 0):
@@ -170,7 +171,7 @@ class DBItemWriter(ItemWriter):
     def _kind(self, kind):
 
         if kind is None:
-            self.uKind = DBItemWriter.KINDLESS
+            self.uKind = DBItemWriter.NOITEM
         else:
             self.uKind = kind._uuid
 
@@ -178,7 +179,11 @@ class DBItemWriter(ItemWriter):
 
     def _parent(self, parent, isContainer):
 
-        self.uParent = parent.itsUUID
+        if parent is None:
+            self.uParent = DBItemWriter.NOITEM
+        else:
+            self.uParent = parent.itsUUID
+
         return 0
 
     def _name(self, name):
@@ -225,7 +230,7 @@ class DBItemWriter(ItemWriter):
         self.values.append((name, uValue))
 
         if attribute is None:
-            uAttr = DBItemWriter.KINDLESS
+            uAttr = DBItemWriter.NOITEM
             attrCard = 'single'
             attrType = None
         else:
@@ -360,7 +365,7 @@ class DBItemWriter(ItemWriter):
     DICT     = 0x40
     NONE     = 0x80
     
-    KINDLESS = UUID('6d4df428-32a7-11d9-f701-000393db837c')
+    NOITEM = UUID('6d4df428-32a7-11d9-f701-000393db837c')
 
 
 class DBItemReader(ItemReader):
@@ -493,7 +498,7 @@ class DBItemReader(ItemReader):
 
     def _kind(self, uuid, withSchema, view, afterLoadHooks):
 
-        if uuid == DBItemWriter.KINDLESS:
+        if uuid == DBItemWriter.NOITEM:
             return None
         
         kind = super(DBItemReader, self)._kind(uuid, withSchema,

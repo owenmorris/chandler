@@ -53,13 +53,14 @@ class DBRepositoryView(OnDemandRepositoryView):
     def cancel(self):
 
         refCounted = self.isRefCounted()
+
         for item in self._log:
-            if item.isDeleted():
-                del self._deletedRegistry[item.itsUUID]
-                item._status &= ~Item.DELETED
-            else:
-                item.setDirty(0)
-                item._unloadItem(not item.isNew(), self)
+            item.setDirty(0)
+            item._unloadItem(not item.isNew(), self)
+
+        self._instanceRegistry.update(self._deletedRegistry)
+        self._log.update(self._deletedRegistry.itervalues())
+        self._deletedRegistry.clear()
 
         for item in self._log:
             if not item.isNew():
@@ -68,6 +69,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self.find(item._uuid)
 
         self._log.clear()
+
         if self.isDirty():
             self._roots._clearDirties()
             self.setDirty(0)
@@ -273,7 +275,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             else:
                                 break
 
-                        count = len(self._log)
+                        count = len(self._log) + len(self._deletedRegistry)
                         if count > 1000:
                             self.logger.info('%s committing %d items...',
                                              self, count)
@@ -285,6 +287,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                             store._values.setVersion(newVersion)
                             itemWriter = DBItemWriter(store)
                             for item in self._log:
+                                size += self._saveItem(item, newVersion,
+                                                       itemWriter,
+                                                       notifications)
+                            for item in self._deletedRegistry.itervalues():
                                 size += self._saveItem(item, newVersion,
                                                        itemWriter,
                                                        notifications)
@@ -318,6 +324,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self._roots._clearDirties()
                         self.setDirty(0)
 
+                if self._deletedRegistry:
+                    self._deletedRegistry.clear()
+
                 after = time()
 
                 if count > 0:
@@ -344,7 +353,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                               newVersion, item.itsPath)
 
         if item.isDeleted():
-            del self._deletedRegistry[item._uuid]
             if item.isNew():
                 return 0
             notifications.changed(item._uuid, 'deleted')

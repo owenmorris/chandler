@@ -617,7 +617,7 @@ class RepositoryView(object):
         del self._registry[uuid]
 
         if item.isDeleting():
-            self._deletedRegistry[uuid] = uuid
+            self._deletedRegistry[uuid] = item
         elif reloadable:
             self._instanceRegistry[uuid] = item
 

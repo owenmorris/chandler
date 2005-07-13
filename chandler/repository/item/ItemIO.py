@@ -15,11 +15,18 @@ class ItemWriter(object):
 
         status = item._status
         withSchema = (status & Item.CORESCHEMA) != 0
+        deleted = (status & Item.DELETED) != 0
         kind = item.itsKind
         size = 0
 
         size += self._kind(kind)
-        size += self._parent(item.itsParent, item._children is not None)
+        if deleted:
+            size += self._parent(None, False)
+        else:
+            parent = item.itsParent
+            if parent is None:
+                raise AssertionError, 'parent for %s is None' %(item._repr_())
+            size += self._parent(parent, item._children is not None)
         size += self._name(item._name)
 
         itemClass = type(item)
@@ -28,7 +35,7 @@ class ItemWriter(object):
         else:
             size += self._className(None, None)
 
-        if status & Item.DELETED == 0:
+        if not deleted:
             all = (status & (Item.NEW | Item.MERGED)) != 0 or item._version == 0
             size += self._values(item, version, withSchema, all)
             size += self._references(item, version, withSchema, all)

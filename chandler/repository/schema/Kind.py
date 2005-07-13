@@ -376,6 +376,8 @@ class Kind(Item):
         attributes = self._references.get('attributes', None)
         if attributes is not None:
             uuid = attributes.resolveAlias(name)
+        else:
+            uuid = None
 
         if uuid is not None:
             return True

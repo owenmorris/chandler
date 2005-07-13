@@ -522,10 +522,7 @@ class References(Values):
 
         if value._isRefList():
             if other in value:
-                if other._isItem():
-                    return other
-                else:
-                    return value[other]
+                return other
             else:
                 raise DanglingRefError(item, name, other)
 
