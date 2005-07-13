@@ -328,7 +328,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             if font is not None:
                 measurements = Styles.getMeasurements(font)
                 try:
-                    width = parentWidget.GetRect().width
+                    width = parentWidget.GetRect().width - (parentBlock.border.left + parentBlock.border.right)
                 except:
                     logger.debug('**** making an AETextCtrl using the 200 width hack! ****')
                     width = 200
