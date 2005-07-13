@@ -321,21 +321,34 @@ class StringAttributeEditor (BaseAttributeEditor):
         # size is too small for the value we put into it. If the value is too
         # large, the sizer won't ever let the control get smaller than this.
         # For now, use 200, a not-too-happy medium that doesn't eliminate either problem.
-
-        if parentBlock is not None and parentBlock.stretchFactor == 0.0 and parentBlock.size.width != 0 and parentBlock.size.height != 0:
-            size = wx.Size(parentBlock.size.width, parentBlock.size.height)
+        if parentBlock is None:
+            # This is the case when we're used from the grid - the grid's gonna 
+            # resize us, so just use the default.
+            size = wx.DefaultSize
         else:
+            # This is the case when we're used from AEBlock. We still could be 
+            # resized by our sizer, but if we're too small initially, the widget
+            # might show up horizontally scrolled, so we try to avoid that.
+            # First, base our height on our font:
             if font is not None:
                 measurements = Styles.getMeasurements(font)
+                height = useTextCtrl and measurements.textCtrlHeight or measurements.height
+            else:
+                height = wx.DefaultSize.GetHeight()
+            
+            # Next, do width... pick one:
+            # - our block's value if it's not default
+            # - our parent's width (less our own border), if we have a parent widget
+            # - 200, a value that has survived numerous rewritings of this 
+            #   algorigthm, and whose original meaning is lost to history.
+            if parentBlock.stretchFactor == 0.0 and parentBlock.size.width != 0:
+                width = parentBlock.size.width
+            else:
                 try:
                     width = parentWidget.GetRect().width - (parentBlock.border.left + parentBlock.border.right)
                 except:
-                    logger.debug('**** making an AETextCtrl using the 200 width hack! ****')
                     width = 200
-                height = useTextCtrl and measurements.textCtrlHeight or measurements.height
-                size = wx.Size(width, height)
-            else:
-                size = wx.DefaultSize
+            size = wx.Size(width, height)
 
         if useTextCtrl:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
