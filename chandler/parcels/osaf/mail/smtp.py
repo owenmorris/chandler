@@ -136,12 +136,12 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
             key = None
 
             mailMessage = self.curTransport.mailMessage
-    
+
             if mailMessage.deliveryExtension.state == "FAILED":
                 key = "displaySMTPSendError"
             else:
                 key = "displaySMTPSendSuccess"
-    
+
             utils.NotifyUIAsync(mailMessage, callable=key)
 
         self.curTransport = None
@@ -319,7 +319,11 @@ class _SMTPTransport(object):
             # XXX not seem to work for testing, we get as many
             # XXX SSL certificate trust dialogs as we do automatic retries.
             reconnect = self.parent.testAccountSettings
+
+            #Set retries to zero if testing
+            retries = 0
         else:
+            retries = account.numRetries
             reconnect = lambda: self.parent.sendMail(self.mailMessage)
 
         verifyCallback = ssl._VerifyCallback(self.parent.view,
@@ -334,7 +338,7 @@ class _SMTPTransport(object):
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          deferred, account.numRetries, account.timeout,
+                                          deferred, retries, account.timeout,
                                           tlsContext, heloFallback, authRequired, securityRequired)
 
 
