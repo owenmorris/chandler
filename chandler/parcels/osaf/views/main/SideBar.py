@@ -155,7 +155,12 @@ class wxSidebar(ControlBlocks.wxTable):
                         self.buttonPressed = False
     
                 elif event.LeftDClick():
+                    """
+                      On Macintosh, an apparent wxWidgets bug causes us to not
+                    have the mouse capture event though we never released it.
+                    You can verify his by commenting in this assert:
                     assert gridWindow.HasCapture()
+                    """
                     gridWindow.ReleaseMouse()
                     del self.hoverImageRow
     
