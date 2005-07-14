@@ -415,8 +415,7 @@ class Sidebar(ControlBlocks.Table):
         elif buttonName == u'SharingIcon':
             share = Sharing.getShare(item)
             if share is not None:
-                if share.sharer is not None and \
-                    str(share.sharer.itsPath) == "//userdata/me":
+                if share.sharer.itsPath == "//userdata/me":
                     return "Upload"
                 else:
                     return "Download"
