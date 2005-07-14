@@ -316,12 +316,6 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
-        #if name == u'Fascinating Stuff':
-            #if isSelected:
-                #print "selected"
-            #elif getattr (self, "wasSelected", False):
-                #print "GotIt"
-            #self.wasSelected = isSelected
         DrawingUtilities.DrawWrappedText (dc, name, textRect)
         dc.DestroyClippingRegion()
 
