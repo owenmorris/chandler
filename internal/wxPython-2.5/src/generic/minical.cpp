@@ -514,7 +514,15 @@ void wxMiniCalendar::RecalcGeometry()
 {
     wxClientDC dc(this);
 
-    dc.SetFont(GetFont());
+    wxFont font = GetFont();
+#if defined(__WXMAC__)
+    wxFont macFont = wxFont(font.GetPointSize()-3, font.GetFamily(),
+        font.GetStyle(), font.GetWeight(), font.GetUnderlined(),
+        font.GetFaceName(), font.GetEncoding());
+    dc.SetFont(macFont);
+#else
+    dc.SetFont(font);
+#endif
 
     // determine the column width (we assume that the widest digit plus busy 
     // bar is wider than any weekday character (hopefully in any language))
@@ -556,7 +564,16 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
     wxPaintDC dc(this);
 
-    dc.SetFont(GetFont());
+    wxFont font = GetFont();
+
+#if defined(__WXMAC__)
+    wxFont macFont = wxFont(font.GetPointSize()-3, font.GetFamily(),
+        font.GetStyle(), font.GetWeight(), font.GetUnderlined(),
+        font.GetFaceName(), font.GetEncoding());
+    dc.SetFont(macFont);
+#else
+    dc.SetFont(font);
+#endif
 
     RecalcGeometry();
 
@@ -804,7 +821,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
         // draw lines between each set of weeks
         if ( nWeek != WEEKS_TO_DISPLAY && nWeek != 1)
         {
-            wxPen pen = wxPen(lineColour, 2, wxSOLID);
+            wxPen pen(lineColour, 2, wxSOLID);
             pen.SetCap(wxCAP_BUTT);
             dc.SetPen(pen);
             dc.DrawLine(SEPARATOR_MARGIN, *y - 1,  DAYS_PER_WEEK * m_widthCol - SEPARATOR_MARGIN, *y - 1);
