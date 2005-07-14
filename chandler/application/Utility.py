@@ -10,7 +10,7 @@ from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
      RepositoryOpenDeniedError, ExclusiveOpenDeniedError,\
-     RepositorySchemaVersionError
+     RepositoryVersionError
 from repository.item.RefCollections import RefList
 
 # Increment this value whenever the schema changes
@@ -217,7 +217,7 @@ def initRepository(directory, options):
             else:
                 options.encrypt = True
             continue
-        except RepositorySchemaVersionError:
+        except RepositoryVersionError:
             repository.close()
             raise
         else:

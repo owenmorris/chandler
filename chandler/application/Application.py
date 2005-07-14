@@ -11,7 +11,7 @@ import Globals
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
-     RepositorySchemaVersionError
+     RepositoryVersionError
 import Utility
 
 logger = logging.getLogger('App')
@@ -202,7 +202,7 @@ class wxApplication (wx.App):
 
         try:
             view = Utility.initRepository(repoDir, Globals.options)
-        except RepositorySchemaVersionError:
+        except RepositoryVersionError:
             if self.ShowSchemaMismatchWindow():
                 Globals.options.create = True
                 view = Utility.initRepository(repoDir, Globals.options)
