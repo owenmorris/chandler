@@ -299,11 +299,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         self.Thaw()
 
     def CalculateWXStyle(theClass, block):
-        style = wx.SP_LIVE_UPDATE
-        if isinstance (block.parentBlock, SplitterWindow):
-            style |= wx.SP_3DSASH
-        else:
-            style |= wx.SP_3D
+        style = wx.SP_LIVE_UPDATE | wx.NO_BORDER | wx.SP_3DSASH
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
 

@@ -1008,7 +1008,10 @@ class Table (RectangularChild):
         super (Table, self).__init__ (*arguments, **keywords)
 
     def instantiateWidget (self):
-        widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.NO_BORDER)
+        if '__WXMAC__' in wx.PlatformInfo:
+            widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.BORDER_SIMPLE)
+        else:
+            widget = wxTable (self.parentBlock.widget, Block.getWidgetID(self), style=wx.BORDER_STATIC)                
         widget.SetDefaultCellFont(Styles.getFont(getattr(self, "characterStyle", None)))
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"

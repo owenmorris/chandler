@@ -27,7 +27,11 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXDoubleClick)
 
     def wxSynchronizeWidget(self):
-        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.NO_BORDER
+        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS
+        if '__WXMAC__' in wx.PlatformInfo:
+            style |= wx.BORDER_SIMPLE
+        else:
+            style |= wx.BORDER_STATIC
         if self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
@@ -82,14 +86,18 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             self.ResetAttr(day)
 
 class MiniCalendar(Block.RectangularChild):
-    doSelectWeek = schema.One(schema.Boolean, initialValue = True)
+    doSelectWeek = schema.One(schema.Boolean, initialValue = False)
     
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
 
     def instantiateWidget(self):
+        if '__WXMAC__' in wx.PlatformInfo:
+            style = wx.BORDER_SIMPLE
+        else:
+            style = wx.BORDER_STATIC
         return wxMiniCalendar(self.parentBlock.widget,
-                              Block.Block.getWidgetID(self), style = wx.NO_BORDER)
+                              Block.Block.getWidgetID(self), style=style)
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.setSelectedDate(event.arguments['start'])
