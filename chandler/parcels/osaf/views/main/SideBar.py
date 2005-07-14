@@ -85,101 +85,97 @@ class wxSidebar(ControlBlocks.wxTable):
         super (wxSidebar, self).wxSynchronizeWidget()
 
     def OnMouseEvents (self, event):
-        self.InOnMouseEvents = True
-        try:
-            """
-              This code is tricky, tread with care -- DJA
-            """
-            event.Skip() #Let the grid also handle the event by default
-    
-            gridWindow = self.GetGridWindow()
-            blockItem = self.blockItem
-    
-            x = event.GetX()
-            y = event.GetY()
-    
-            unscrolledX, unscrolledY = self.CalcUnscrolledPosition (x, y)
-            row = self.YToRow (unscrolledY)
-    
-            cellRect = self.CalculateCellRect (row)
-    
-            item, attribute = self.GetTable().GetValue (row, 0)
-    
-            if cellRect.InsideXY (x, y):
-                if not hasattr (self, 'hoverImageRow') and not self.IsCellEditControlEnabled():
-                    assert not gridWindow.HasCapture()
-                    gridWindow.CaptureMouse()
-    
-                    self.hoverImageRow = row
-                    self.cellRect = cellRect
-                    self.buttonPressed = False
-                    self.buttonState = {}
-    
-                    for (buttonName, offset) in blockItem.buttonOffsets.iteritems():
-                        checked = blockItem.getButtonState (buttonName, item)
-                        imageRect = GetRectFromOffsets (cellRect, offset)
-                        self.buttonState[buttonName] = {'imageRect': imageRect,
-                                                        'screenChecked': checked,
-                                                        'blockChecked': checked}
-                        self.RefreshRect (imageRect)
-    
-            if hasattr (self, 'hoverImageRow'):
-                if event.LeftDown():
-                    for (buttonName, button) in self.buttonState.iteritems():
-                        if (button['imageRect'].InsideXY (x, y)
-                            and isinstance (item, ItemCollection.ItemCollection)):
-                            event.Skip (False) #Gobble the event
-                            self.SetFocus()
-            
-                            checked = blockItem.getButtonState (buttonName, item)
-                            button = self.buttonState[buttonName]
-                            button['blockChecked'] = checked
-                            button['screenChecked'] = not checked
-                            self.buttonPressed = buttonName
-                            self.RefreshRect (button['imageRect'])
-                            break
+        """
+          This code is tricky, tread with care -- DJA
+        """
+        event.Skip() #Let the grid also handle the event by default
+
+        gridWindow = self.GetGridWindow()
+        blockItem = self.blockItem
+
+        x = event.GetX()
+        y = event.GetY()
+
+        unscrolledX, unscrolledY = self.CalcUnscrolledPosition (x, y)
+        row = self.YToRow (unscrolledY)
+
+        cellRect = self.CalculateCellRect (row)
+
+        item, attribute = self.GetTable().GetValue (row, 0)
+
+        if cellRect.InsideXY (x, y):
+            if not hasattr (self, 'hoverImageRow') and not self.IsCellEditControlEnabled():
+                assert not gridWindow.HasCapture()
+                gridWindow.CaptureMouse()
+
+                self.hoverImageRow = row
+                self.cellRect = cellRect
+                self.buttonPressed = False
+                self.buttonState = {}
+
+                for (buttonName, offset) in blockItem.buttonOffsets.iteritems():
+                    checked = blockItem.getButtonState (buttonName, item)
+                    imageRect = GetRectFromOffsets (cellRect, offset)
+                    self.buttonState[buttonName] = {'imageRect': imageRect,
+                                                    'screenChecked': checked,
+                                                    'blockChecked': checked}
+                    self.RefreshRect (imageRect)
+
+        if hasattr (self, 'hoverImageRow'):
+            if event.LeftDown():
+                for (buttonName, button) in self.buttonState.iteritems():
+                    if (button['imageRect'].InsideXY (x, y)
+                        and isinstance (item, ItemCollection.ItemCollection)):
+                        event.Skip (False) #Gobble the event
+                        self.SetFocus()
         
-                elif event.LeftUp():
-                    if self.buttonPressed:
-                        imageRect = self.buttonState[self.buttonPressed]['imageRect']
-                        if (imageRect.InsideXY (x, y)):
-                            blockItem.setButtonState (self.buttonPressed,
-                                                      item,
-                                                      not blockItem.getButtonState (self.buttonPressed, item))
-                            blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
-                            wx.GetApp().UIRepositoryView.commit()
-                        elif not self.cellRect.InsideXY (x, y):
-                            self.RefreshRect (imageRect)
-                            del self.hoverImageRow
-                            gridWindow.ReleaseMouse()
-                        self.buttonPressed = False
-    
-                elif event.LeftDClick():
-                    """
-                      On Macintosh, an apparent wxWidgets bug causes us to not
-                    have the mouse capture event though we never released it.
-                    You can verify his by commenting in this assert:
-                    assert gridWindow.HasCapture()
-                    """
-                    gridWindow.ReleaseMouse()
-                    del self.hoverImageRow
-    
-                elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
-                    for button in self.buttonState.itervalues():
+                        checked = blockItem.getButtonState (buttonName, item)
+                        button = self.buttonState[buttonName]
+                        button['blockChecked'] = checked
+                        button['screenChecked'] = not checked
+                        self.buttonPressed = buttonName
                         self.RefreshRect (button['imageRect'])
-                    self.buttonPressed = False
-                    del self.hoverImageRow
-                    gridWindow.ReleaseMouse()
+                        break
     
-                elif (self.buttonPressed):
-                    button = self.buttonState[self.buttonPressed]
-                    imageRect = button['imageRect']
-                    screenChecked = button['screenChecked']
-                    if (imageRect.InsideXY (x, y) == (screenChecked == button['blockChecked'])):
-                        button['screenChecked'] = not screenChecked
+            elif event.LeftUp():
+                if self.buttonPressed:
+                    imageRect = self.buttonState[self.buttonPressed]['imageRect']
+                    if (imageRect.InsideXY (x, y)):
+                        blockItem.setButtonState (self.buttonPressed,
+                                                  item,
+                                                  not blockItem.getButtonState (self.buttonPressed, item))
+                        blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
+                        wx.GetApp().UIRepositoryView.commit()
+                    elif not self.cellRect.InsideXY (x, y):
                         self.RefreshRect (imageRect)
-        finally:
-            del self.InOnMouseEvents
+                        del self.hoverImageRow
+                        gridWindow.ReleaseMouse()
+                    self.buttonPressed = False
+
+            elif event.LeftDClick():
+                """
+                  On Macintosh, an apparent wxWidgets bug causes us to not
+                have the mouse capture event though we never released it.
+                You can verify his by commenting in this assert:
+                assert gridWindow.HasCapture()
+                """
+                gridWindow.ReleaseMouse()
+                del self.hoverImageRow
+
+            elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
+                for button in self.buttonState.itervalues():
+                    self.RefreshRect (button['imageRect'])
+                self.buttonPressed = False
+                del self.hoverImageRow
+                gridWindow.ReleaseMouse()
+
+            elif (self.buttonPressed):
+                button = self.buttonState[self.buttonPressed]
+                imageRect = button['imageRect']
+                screenChecked = button['screenChecked']
+                if (imageRect.InsideXY (x, y) == (screenChecked == button['blockChecked'])):
+                    button['screenChecked'] = not screenChecked
+                    self.RefreshRect (imageRect)
 
     def OnRequestDrop (self, x, y):
         x, y = self.CalcUnscrolledPosition(x, y)
@@ -260,72 +256,74 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     only one context -- Mimi's Sidebar.
     """
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
-        if not getattr (self, "InOnMouseEvents", False):
-            DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
-    
-            dc.SetBackgroundMode (wx.SOLID)
-            dc.SetPen (wx.TRANSPARENT_PEN)
-    
-            dc.DrawRectangleRect(rect)
-    
-            dc.SetBackgroundMode (wx.TRANSPARENT)
-            item, attribute = grid.GetTable().GetValue (row, col)
-    
-            if isinstance (item, ItemCollection.ItemCollection):
-                def drawButton (name):
-                    imagePrefix = "Sidebar" + name
-                    if row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND):
-                        imagePrefix += "MouseOver"
-                        checked = grid.buttonState[name]['screenChecked']
-                    else:
-                        checked = sidebar.getButtonState (name, item)
-            
-                    if checked:
-                        imageSuffix = "Checked.png"
-                    else:
-                        imageSuffix = ".png"
-            
-                    image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
-            
-                    if image is None:
-                        image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
-    
-                    if image is not None:
-                        imageRect = GetRectFromOffsets (rect, sidebar.buttonOffsets [name])
-                        dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
-    
-                sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
-                if sidebarTPB is not None:
-                    (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
-                    if len (filteredCollection) == 0:
-                        dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-    
-                name = getattr (item, attribute)
-                key = name
-                sidebar = grid.blockItem
-                if sidebar.filterKind is not None:
-                    key += os.path.basename (unicode (sidebar.filterKind.itsPath))
-                try:
-                    name = sidebar.nameAlternatives [key]
-                except KeyError:
-                    imageName = name
+        DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
+
+        dc.SetBackgroundMode (wx.SOLID)
+        dc.SetPen (wx.TRANSPARENT_PEN)
+
+        dc.DrawRectangleRect(rect)
+
+        dc.SetBackgroundMode (wx.TRANSPARENT)
+        item, attribute = grid.GetTable().GetValue (row, col)
+
+        if isinstance (item, ItemCollection.ItemCollection):
+            def drawButton (name):
+                imagePrefix = "Sidebar" + name
+                imageSuffix = ".png"
+                if row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND):
+                    imagePrefix += "MouseOver"
+                    if grid.buttonState[name]['screenChecked']:
+                        imageSuffix = "Checked" + imageSuffix
                 else:
-                    imageName = key
-                """
-                  Draw the icons simulating a button
-                """
-                for buttonName in sidebar.buttonOffsets.iterkeys():
-                    drawButton (buttonName)
-                
+                    imageSuffix = sidebar.getButtonState (name, item) + imageSuffix
+        
+                image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
+        
+                if image is None:
+                    image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
+
+                if image is not None:
+                    imageRect = GetRectFromOffsets (rect, sidebar.buttonOffsets [name])
+                    dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
+
+            sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
+            if sidebarTPB is not None:
+                (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
+                if len (filteredCollection) == 0:
+                    dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+
+            name = getattr (item, attribute)
+            key = name
+            sidebar = grid.blockItem
+            if sidebar.filterKind is not None:
+                key += os.path.basename (unicode (sidebar.filterKind.itsPath))
+            try:
+                name = sidebar.nameAlternatives [key]
+            except KeyError:
+                imageName = name
             else:
-                name = getattr (item, attribute)
-    
-            sidebar = Block.Block.findBlockByName ("Sidebar")
-            textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
-            textRect.Inflate (-1, -1)
-            dc.SetClippingRect (textRect)
-            DrawingUtilities.DrawWrappedText (dc, name, textRect)
-            dc.DestroyClippingRegion()
+                imageName = key
+            """
+              Draw the icons simulating a button
+            """
+            for buttonName in sidebar.buttonOffsets.iterkeys():
+                drawButton (buttonName)
+            
+        else:
+            name = getattr (item, attribute)
+
+        sidebar = Block.Block.findBlockByName ("Sidebar")
+        textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
+        textRect.Inflate (-1, -1)
+        dc.SetClippingRect (textRect)
+        #if name == u'Fascinating Stuff':
+            #if isSelected:
+                #print "selected"
+            #elif getattr (self, "wasSelected", False):
+                #print "GotIt"
+            #self.wasSelected = isSelected
+        DrawingUtilities.DrawWrappedText (dc, name, textRect)
+        dc.DestroyClippingRegion()
 
 
 class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
@@ -409,14 +407,16 @@ class Sidebar(ControlBlocks.Table):
 
     def getButtonState (self, buttonName, item):
         if buttonName == u'Icon':
-            return item in self.checkedItems
+            if item in self.checkedItems:
+                return 'Checked'
         elif buttonName == u'SharingIcon':
-            try:
-                return Sharing.getShare(item).sharer.itsPath == "//userdata/me"
-            except AttributeError:
-                return False
-        else:
-            assert (False)
+            share = Sharing.getShare(item)
+            if share is not None:
+                if share.sharer.itsPath == "//userdata/me":
+                    return "Upload"
+                else:
+                    return "Download"
+        return ""
 
     def setButtonState (self, buttonName, item, value):
         if buttonName == u'Icon':
