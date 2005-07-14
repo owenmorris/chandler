@@ -499,12 +499,20 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     self.itemTupleKeyToCacheKey [tupleKey] = key
                 else:
                     """
-                      Check to see if we need to reorder the source list
+                      Check to see if we need to reorder the source list. The list is kept
+                    sorted by the order of the collections as they overlay one another.
+                      We don't bother to sort when we're looking up a collection that isn't
+                    displayed in the summary view, both because it's not necessary and because
+                    it causes the source attribute to change which causes a notification to
+                    update the sidebar, which causes the order to change, causing a
+                    notification, ... repeating forever.
                     """
-                    for new, old in map (None, key.source, collectionList):
-                        if new is not old:
-                            key.source = collectionList
-                            rerender = True
+                    if sidebar.selectedItemToView is item:
+                        for new, old in map (None, key.source, collectionList):
+                            if new is not old:
+                                key.source = collectionList
+                                rerender = True
+                                break
         return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):
