@@ -173,7 +173,7 @@ class wxSidebar(ControlBlocks.wxTable):
                 button = self.buttonState[self.buttonPressed]
                 imageRect = button['imageRect']
                 screenChecked = button['screenChecked']
-                if (imageRect.InsideXY (x, y) == (screenChecked == button['blockChecked'])):
+                if (imageRect.InsideXY (x, y) == (bool (screenChecked) == bool (button['blockChecked']))):
                     button['screenChecked'] = not screenChecked
                     self.RefreshRect (imageRect)
 
@@ -270,7 +270,8 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             def drawButton (name):
                 imagePrefix = "Sidebar" + name
                 imageSuffix = ".png"
-                if row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND):
+                if (row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND) and
+                    name != "SharingIcon"):
                     imagePrefix += "MouseOver"
                     if grid.buttonState[name]['screenChecked']:
                         imageSuffix = "Checked" + imageSuffix
