@@ -432,6 +432,16 @@ void wxToolBarTool::SetPosition(const wxPoint& position)
 
 void wxToolBarTool::UpdateToggleImage( bool toggle )
 {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
+
+// FIXME: we've got an SDK problem here...
+// the build system will need to get updated soon...
+#if 1
+#define kSELECTATTR   (1 << 7)
+#else
+#define kSELECTATTR   kHIToolbarItemSelected
+#endif
+
     if (m_toolbarItemRef != NULL)
     {
         OptionBits addAttrs, removeAttrs;
@@ -439,17 +449,18 @@ void wxToolBarTool::UpdateToggleImage( bool toggle )
 
         if (toggle)
         {
-            addAttrs = kHIToolbarItemSelected;
+            addAttrs = kSELECTATTR;
             removeAttrs = kHIToolbarItemNoAttributes;
         }
         else
         {
             addAttrs = kHIToolbarItemNoAttributes;
-            removeAttrs = kHIToolbarItemSelected;
+            removeAttrs = kSELECTATTR;
         }
 
         resultV = HIToolbarItemChangeAttributes( m_toolbarItemRef, addAttrs, removeAttrs );
     }
+#endif
 
 #if defined(__WXMAC_OSX__)
     if ( toggle )
