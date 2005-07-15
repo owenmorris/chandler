@@ -432,16 +432,13 @@ void wxToolBarTool::SetPosition(const wxPoint& position)
 
 void wxToolBarTool::UpdateToggleImage( bool toggle )
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
-
 // FIXME: we've got an SDK problem here...
-// the build system will need to get updated soon...
-#if 1
-#define kSELECTATTR   (1 << 7)
-#else
-#define kSELECTATTR   kHIToolbarItemSelected
+// the Chandler build system will need to get updated soon...
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
+#define kHIToolbarItemSelected   (1 << 7)
 #endif
 
+    // FIXME: this should be a OSX v10.4 runtime check
     if (m_toolbarItemRef != NULL)
     {
         OptionBits addAttrs, removeAttrs;
@@ -449,18 +446,17 @@ void wxToolBarTool::UpdateToggleImage( bool toggle )
 
         if (toggle)
         {
-            addAttrs = kSELECTATTR;
+            addAttrs = kHIToolbarItemSelected;
             removeAttrs = kHIToolbarItemNoAttributes;
         }
         else
         {
             addAttrs = kHIToolbarItemNoAttributes;
-            removeAttrs = kSELECTATTR;
+            removeAttrs = kHIToolbarItemSelected;
         }
 
         resultV = HIToolbarItemChangeAttributes( m_toolbarItemRef, addAttrs, removeAttrs );
     }
-#endif
 
 #if defined(__WXMAC_OSX__)
     if ( toggle )
@@ -916,9 +912,13 @@ wxLogDebug(
                     InstallEventHandler(
                         HIObjectGetEventTarget(hiItemRef), GetwxMacToolBarEventHandlerUPP(),
                         GetEventTypeCount(toolBarEventList), toolBarEventList, tool, NULL);
+
+                if (tool->IsToggled())
+                    DoToggleTool( tool, true );
             }
         }
 
+        // update the item positioning state
         if (GetWindowStyleFlag() & wxTB_VERTICAL)
             y += cursize.y + kwxMacToolSpacing;
         else
