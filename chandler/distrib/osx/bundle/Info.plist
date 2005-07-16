@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>RunChandler</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Chandler Checkpoint 20050509 from the Open Source Applications Foundation</string>
+	<string>Chandler Milestone 0.5.04 from the Open Source Applications Foundation</string>
 	<key>CFBundleIconFile</key>
 	<string>Chandler.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>CHAN</string>
 	<key>CFBundleVersion</key>
-	<string>0.5.03</string>
+	<string>0.5.04</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
