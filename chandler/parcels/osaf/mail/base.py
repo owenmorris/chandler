@@ -56,6 +56,9 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.sendFinished = 0
         self.useTLS = (delegate.account.connectionSecurity == 'TLS')
 
+        if self.useTLS:
+            self.sslContext = ssl.getContext(repositoryView=delegate.view, protocol="sslv3")
+
         retries = delegate.account.numRetries
 
         assert isinstance(retries, (int, long))

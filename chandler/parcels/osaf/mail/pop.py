@@ -29,6 +29,10 @@ import base as base
 
    Make POP downloading IMAP like in approach
    XXX: Use a List, ***ref collection, or Item Collection to maintain Account refs
+
+    Think about caching the capabilities of server when set (This could change though).
+    What happens if no CAPA returned by the server?
+    Should I test for top and uidl since these are extensions?
 """
 
 
@@ -57,11 +61,6 @@ class _TwistedPOP3Client(pop3.POP3Client):
 
         self.delegate.proto = self
 
-        #XXX: If no capabilities what to do?
-        #XXX: IF no capa test TOP and UIDL for testing and startTLS
-        #XXX: Could cache server functionality support when setting account
-        #XXX: If DNS to a different server then perhaps different CAPA
-
         d = self.capabilities()
         d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
         return d
@@ -71,8 +70,7 @@ class _TwistedPOP3Client(pop3.POP3Client):
         if self.factory.useTLS:
             """The Twisted POP3Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
-            d = self.startTLS(ssl.getContext(repositoryView=self.view,
-                                             protocol='sslv3'))
+            d = self.startTLS(self.factory.sslContext)
             d.addCallbacks(lambda _: self.delegate.loginClient(), self.delegate.catchErrors)
             return d
 
