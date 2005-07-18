@@ -619,7 +619,6 @@ class MainView(View):
 
     def onActivateWebserverEventUpdateUI (self, event):
         for server in Web.Server.iterItems(view=self.itsView):
-            print server, server.isActivated()
             if server.isActivated():
                 event.arguments['Enable'] = False
                 return

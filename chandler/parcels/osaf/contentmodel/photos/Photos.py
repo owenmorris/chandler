@@ -35,7 +35,6 @@ class PhotoMixin(ContentModel.ContentItem):
         data = file(path, "rb").read()
         (mimeType, encoding) = mimetypes.guess_type(path)
         self.data = utils.dataToBinary(self, 'data', data, mimeType=mimeType)
-        self.processEXIF()
 
     def importFromURL(self, url):
         if isinstance(url, URL):
@@ -43,7 +42,6 @@ class PhotoMixin(ContentModel.ContentItem):
         data = urllib.urlopen(url).read()
         (mimeType, encoding) = mimetypes.guess_type(url)
         self.data = utils.dataToBinary(self, 'data', data, mimeType=mimeType)
-        self.processEXIF()
 
     def exportToFile(self, path):
         data = utils.binaryToData(self.data)
@@ -70,9 +68,12 @@ class PhotoMixin(ContentModel.ContentItem):
                     self.exif[key] = value
 
         except Exception, e:
-            logger.info("Couldn't process EXIF of Photo %s (%s)" % \
+            logger.debug("Couldn't process EXIF of Photo %s (%s)" % \
                 (self.itsPath, e))
 
+    def onValueChanged(self, attribute):
+        if attribute == "data":
+            self.processEXIF()
 
 
 class Photo(PhotoMixin, Notes.Note):
