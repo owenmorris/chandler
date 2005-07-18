@@ -85,19 +85,17 @@ extern size_t g_numberOfThreads;
 
 // statics for implementation
 
-static bool s_inYield = FALSE;
+static bool s_inYield = false;
 
-static bool s_inReceiveEvent = FALSE ;
+static bool s_inReceiveEvent = false ;
 static EventTime sleepTime = kEventDurationNoWait ;
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxApp, wxEvtHandler)
 BEGIN_EVENT_TABLE(wxApp, wxEvtHandler)
     EVT_IDLE(wxApp::OnIdle)
     EVT_END_SESSION(wxApp::OnEndSession)
     EVT_QUERY_END_SESSION(wxApp::OnQueryEndSession)
 END_EVENT_TABLE()
-#endif
 
 
 const short    kMacMinHeap = (29 * 1024) ;
@@ -248,7 +246,7 @@ short wxApp::MacHandleAEQuit(const WXEVENTREF WXUNUSED(event) , WXEVENTREF WXUNU
     {
         wxCommandEvent exitEvent(wxEVT_COMMAND_MENU_SELECTED, s_macExitMenuItemId);
         if (!win->ProcessEvent(exitEvent))
-            win->Close(TRUE ) ;
+            win->Close(true) ;
     }
     else
     {
@@ -299,7 +297,7 @@ void wxApp::MacPrintFile(const wxString & fileName )
                 if (printout)
                 {
                     wxPrinter printer;
-                    printer.Print(view->GetFrame(), printout, TRUE);
+                    printer.Print(view->GetFrame(), printout, true);
                     delete printout;
                 }
             }
@@ -698,6 +696,12 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     return true;
 }
 
+AEEventHandlerUPP sODocHandler = NULL ;
+AEEventHandlerUPP sOAppHandler = NULL ;
+AEEventHandlerUPP sPDocHandler = NULL ;
+AEEventHandlerUPP sRAppHandler = NULL ;
+AEEventHandlerUPP sQuitHandler = NULL ;
+
 bool wxApp::OnInitGui()
 {
     if( !wxAppBase::OnInitGui() )
@@ -714,24 +718,25 @@ bool wxApp::OnInitGui()
 
     if (!sm_isEmbedded)
     {
+        sODocHandler = NewAEEventHandlerUPP(AEHandleODoc) ;
+        sOAppHandler = NewAEEventHandlerUPP(AEHandleOApp) ;
+        sPDocHandler = NewAEEventHandlerUPP(AEHandlePDoc) ;
+        sRAppHandler = NewAEEventHandlerUPP(AEHandleRApp) ;
+        sQuitHandler = NewAEEventHandlerUPP(AEHandleQuit) ;
+
         AEInstallEventHandler( kCoreEventClass , kAEOpenDocuments ,
-                               NewAEEventHandlerUPP(AEHandleODoc) ,
-                               0 , FALSE ) ;
+                               sODocHandler , 0 , FALSE ) ;
         AEInstallEventHandler( kCoreEventClass , kAEOpenApplication ,
-                               NewAEEventHandlerUPP(AEHandleOApp) ,
-                               0 , FALSE ) ;
+                               sOAppHandler , 0 , FALSE ) ;
         AEInstallEventHandler( kCoreEventClass , kAEPrintDocuments ,
-                               NewAEEventHandlerUPP(AEHandlePDoc) ,
-                               0 , FALSE ) ;
+                               sPDocHandler , 0 , FALSE ) ;
         AEInstallEventHandler( kCoreEventClass , kAEReopenApplication ,
-                               NewAEEventHandlerUPP(AEHandleRApp) ,
-                               0 , FALSE ) ;
+                               sRAppHandler , 0 , FALSE ) ;
         AEInstallEventHandler( kCoreEventClass , kAEQuitApplication ,
-                               NewAEEventHandlerUPP(AEHandleQuit) ,
-                               0 , FALSE ) ;
+                               sQuitHandler , 0 , FALSE ) ;
     }
 
-    return TRUE ;
+    return true ;
 }
 
 void wxApp::CleanUp()
@@ -765,9 +770,30 @@ void wxApp::CleanUp()
         ::DisposeRgn((RgnHandle)s_macCursorRgn);
     }
 
-    #if 0
-        TerminateAE() ;
-    #endif
+    if (!sm_isEmbedded)
+    {
+        RemoveEventHandler( (EventHandlerRef)(wxTheApp->m_macEventHandler) );
+    }
+
+    if (!sm_isEmbedded)
+    {
+        AERemoveEventHandler( kCoreEventClass , kAEOpenDocuments ,
+                               sODocHandler , FALSE ) ;
+        AERemoveEventHandler( kCoreEventClass , kAEOpenApplication ,
+                               sOAppHandler , FALSE ) ;
+        AERemoveEventHandler( kCoreEventClass , kAEPrintDocuments ,
+                               sPDocHandler , FALSE ) ;
+        AERemoveEventHandler( kCoreEventClass , kAEReopenApplication ,
+                               sRAppHandler , FALSE ) ;
+        AERemoveEventHandler( kCoreEventClass , kAEQuitApplication ,
+                               sQuitHandler , FALSE ) ;
+
+        DisposeAEEventHandlerUPP( sODocHandler ) ;
+        DisposeAEEventHandlerUPP( sOAppHandler ) ;
+        DisposeAEEventHandlerUPP( sPDocHandler ) ;
+        DisposeAEEventHandlerUPP( sRAppHandler ) ;
+        DisposeAEEventHandlerUPP( sQuitHandler ) ;
+    }
 
     wxAppBase::CleanUp();
 }
@@ -891,7 +917,7 @@ wxApp::wxApp()
 
 int wxApp::MainLoop()
 {
-    m_keepGoing = TRUE;
+    m_keepGoing = true;
 #if wxMAC_USE_RAEL
     RunApplicationEventLoop() ;
 #else
@@ -905,7 +931,7 @@ int wxApp::MainLoop()
 
 void wxApp::ExitMainLoop()
 {
-    m_keepGoing = FALSE;
+    m_keepGoing = false;
 #if wxMAC_USE_RAEL
     QuitApplicationEventLoop() ;
 #endif
@@ -961,7 +987,7 @@ void wxApp::Exit()
 void wxApp::OnEndSession(wxCloseEvent& WXUNUSED(event))
 {
     if (GetTopWindow())
-        GetTopWindow()->Close(TRUE);
+        GetTopWindow()->Close(true);
 }
 
 // Default behaviour: close the application with prompts. The
@@ -971,7 +997,7 @@ void wxApp::OnQueryEndSession(wxCloseEvent& event)
     if (GetTopWindow())
     {
         if (!GetTopWindow()->Close(!event.CanVeto()))
-            event.Veto(TRUE);
+            event.Veto(true);
     }
 }
 
@@ -992,10 +1018,10 @@ bool wxApp::Yield(bool onlyIfNeeded)
             wxFAIL_MSG( wxT("wxYield called recursively" ) );
         }
 
-        return FALSE;
+        return false;
     }
 
-    s_inYield = TRUE;
+    s_inYield = true;
 
     // by definition yield should handle all non-processed events
 
@@ -1026,9 +1052,9 @@ bool wxApp::Yield(bool onlyIfNeeded)
     } while( status == noErr ) ;
 
     wxMacProcessNotifierAndPendingEvents() ;
-    s_inYield = FALSE;
+    s_inYield = false;
 
-    return TRUE;
+    return true;
 }
 
 void wxApp::MacDoOneEvent()
@@ -1092,30 +1118,38 @@ long wxMacTranslateKey(unsigned char key, unsigned char code)
         case kHomeCharCode :
                  retval = WXK_HOME;
           break;
+
         case kEnterCharCode :
                  retval = WXK_RETURN;
           break;
         case kEndCharCode :
                  retval = WXK_END;
           break;
+
         case kHelpCharCode :
                  retval = WXK_HELP;
           break;
+
         case kBackspaceCharCode :
                  retval = WXK_BACK;
           break;
+
         case kTabCharCode :
                  retval = WXK_TAB;
           break;
+
         case kPageUpCharCode :
                  retval = WXK_PAGEUP;
           break;
+
         case kPageDownCharCode :
                  retval = WXK_PAGEDOWN;
           break;
+
         case kReturnCharCode :
                  retval = WXK_RETURN;
           break;
+
             case kFunctionKeyCharCode :
             {
                 switch( code )
@@ -1168,23 +1202,31 @@ long wxMacTranslateKey(unsigned char key, unsigned char code)
                 }
             }
             break ;
+
             case kEscapeCharCode :
                 retval = WXK_ESCAPE ;
             break ;
+
             case kLeftArrowCharCode :
                 retval = WXK_LEFT ;
             break ;
+
             case kRightArrowCharCode :
                 retval = WXK_RIGHT ;
             break ;
+
             case kUpArrowCharCode :
                 retval = WXK_UP ;
             break ;
+
             case kDownArrowCharCode :
                 retval = WXK_DOWN ;
             break ;
+
             case kDeleteCharCode :
                 retval = WXK_DELETE ;
+            break ;
+
              default:
             break ;
      } // end switch
@@ -1252,7 +1294,6 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
         UInt32 state = 0;
         UInt32 keyInfo = KeyTranslate((Ptr)GetScriptManagerVariable(smKCHRCache), ( modifiers & (~(controlKey|shiftKey|optionKey))) | keycode, &state);
         keychar = short(keyInfo & charCodeMask);
-        keycode = short(keyInfo & keyCodeMask) >> 8 ;
     }
     long keyval = wxMacTranslateKey(keychar, keycode) ;
     long realkeyval = keyval ;
@@ -1261,6 +1302,39 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
         // we are not on a special character combo -> pass the real os event-value to EVT_CHAR, but not to EVT_KEY (make upper first)
         realkeyval = short(keymessage & charCodeMask) ;
         keyval = wxToupper( keyval ) ;
+    }
+
+    // Check for NUMPAD keys
+    if (keyval >= '0' && keyval <= '9' && keycode >= 82 && keycode <= 92)
+    {
+        keyval = keyval - '0' + WXK_NUMPAD0;
+    }
+    else if (keycode >= 67 && keycode <= 81)
+    {
+        switch (keycode)
+        {
+        case 76 :
+            keyval = WXK_NUMPAD_ENTER;
+            break;
+        case 81:
+            keyval = WXK_NUMPAD_EQUAL;
+            break;
+        case 67:
+            keyval = WXK_NUMPAD_MULTIPLY;
+            break;
+        case 75:
+            keyval = WXK_NUMPAD_DIVIDE;
+            break;
+        case 78:
+            keyval = WXK_NUMPAD_SUBTRACT;
+            break;
+        case 69:
+            keyval = WXK_NUMPAD_ADD;
+            break;
+        case 65:
+            keyval = WXK_NUMPAD_DECIMAL;
+            break;
+        } // end switch
     }
 
     wxKeyEvent event(wxEVT_KEY_DOWN);
@@ -1273,7 +1347,8 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
 #if wxUSE_UNICODE
     event.m_uniChar = uniChar ;
 #endif
-
+    event.m_rawCode = keymessage;
+    event.m_rawFlags = modifiers;
     event.m_x = wherex;
     event.m_y = wherey;
     event.SetTimestamp(when);
@@ -1281,10 +1356,9 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
     handled = focus->GetEventHandler()->ProcessEvent( event ) ;
     if ( handled && event.GetSkipped() )
         handled = false ;
-    if ( !handled )
-    {
+
 #if wxUSE_ACCEL
-        if (!handled)
+    if ( !handled )
         {
             wxWindow *ancestor = focus;
             while (ancestor)
@@ -1302,14 +1376,14 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
             }
         }
 #endif // wxUSE_ACCEL
-    }
+
     if (!handled)
     {
         wxTopLevelWindowMac *tlw = focus->MacGetTopLevelWindow() ;
 
         if (tlw)
         {
-            event.Skip( FALSE ) ;
+            event.Skip( false ) ;
             event.SetEventType( wxEVT_CHAR_HOOK );
             // raw value again
             event.m_keyCode = realkeyval ;
@@ -1322,7 +1396,7 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
     
     if ( !handled )
     {        
-        event.Skip( FALSE ) ;
+        event.Skip( false ) ;
         event.SetEventType( wxEVT_CHAR ) ;
         // raw value again
         event.m_keyCode = realkeyval ;
@@ -1399,7 +1473,6 @@ bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifier
         UInt32 state = 0;
         UInt32 keyInfo = KeyTranslate((Ptr)GetScriptManagerVariable(smKCHRCache), ( modifiers & (~(controlKey|shiftKey|optionKey))) | keycode, &state);
         keychar = short(keyInfo & charCodeMask);
-        keycode = short(keyInfo & keyCodeMask) >> 8 ;
     }
     long keyval = wxMacTranslateKey(keychar, keycode) ;
 
@@ -1407,6 +1480,40 @@ bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifier
     {
         keyval = wxToupper( keyval ) ;
     }
+
+    // Check for NUMPAD keys
+    if (keyval >= '0' && keyval <= '9' && keycode >= 82 && keycode <= 92)
+    {
+        keyval = keyval - '0' + WXK_NUMPAD0;
+    }
+    else if (keycode >= 67 && keycode <= 81)
+    {
+        switch (keycode)
+        {
+        case 76 :
+            keyval = WXK_NUMPAD_ENTER;
+            break;
+        case 81:
+            keyval = WXK_NUMPAD_EQUAL;
+            break;
+        case 67:
+            keyval = WXK_NUMPAD_MULTIPLY;
+            break;
+        case 75:
+            keyval = WXK_NUMPAD_DIVIDE;
+            break;
+        case 78:
+            keyval = WXK_NUMPAD_SUBTRACT;
+            break;
+        case 69:
+            keyval = WXK_NUMPAD_ADD;
+            break;
+        case 65:
+            keyval = WXK_NUMPAD_DECIMAL;
+            break;
+        } // end switch
+    }
+
     bool handled = false ;
 
     wxKeyEvent event(wxEVT_KEY_UP);
@@ -1419,6 +1526,8 @@ bool wxApp::MacSendKeyUpEvent( wxWindow* focus , long keymessage , long modifier
     event.m_uniChar = uniChar ;
 #endif
 
+    event.m_rawCode = keymessage;
+    event.m_rawFlags = modifiers;
     event.m_x = wherex;
     event.m_y = wherey;
     event.SetTimestamp(when);

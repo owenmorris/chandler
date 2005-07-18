@@ -28,6 +28,15 @@
 #include "wx/event.h"
 #include "wx/dynarray.h"
 
+// flags for deprecated `Expand(int action)', will be removed in next versions
+enum
+{
+    wxTREE_EXPAND_EXPAND,
+    wxTREE_EXPAND_COLLAPSE,
+    wxTREE_EXPAND_COLLAPSE_RESET,
+    wxTREE_EXPAND_TOGGLE
+};
+
 // ----------------------------------------------------------------------------
 // wxTreeItemId identifies an element of the tree. In this implementation, it's
 // just a trivial wrapper around Win32 HTREEITEM or a pointer to some private
@@ -350,7 +359,7 @@ END_DECLARE_EVENT_TYPES()
 #define EVT_TREE_BEGIN_DRAG(id, fn) wx__DECLARE_TREEEVT(BEGIN_DRAG, id, fn)
 #define EVT_TREE_BEGIN_RDRAG(id, fn) wx__DECLARE_TREEEVT(BEGIN_RDRAG, id, fn)
 
-// GetItem() is the item on which the drop occured (if any) and GetPoint() the
+// GetItem() is the item on which the drop occurred (if any) and GetPoint() the
 // current mouse coords
 #define EVT_TREE_END_DRAG(id, fn) wx__DECLARE_TREEEVT(END_DRAG, id, fn)
 

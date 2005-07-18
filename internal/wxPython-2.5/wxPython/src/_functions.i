@@ -254,6 +254,21 @@ MustHaveApp(wxSetCursor);
 void wxSetCursor(wxCursor& cursor);
 
 
+MustHaveApp(wxGetXDisplay);
+DocStr(wxGetXDisplay,
+"Returns a swigified pointer to the X11 display.  Returns None on
+other platforms.", "");
+%inline %{
+    void* wxGetXDisplay()
+    {
+#ifdef __WXGTK__
+        return wxGetDisplay();
+#else
+        return NULL;
+#endif
+    }
+%}
+
 
 // Miscellaneous functions
 
@@ -272,8 +287,12 @@ wxWindow* wxFindWindowAtPoint(const wxPoint& pt);
 MustHaveApp(wxGetTopLevelParent);
 wxWindow* wxGetTopLevelParent(wxWindow *win);
 
-//bool wxSpawnBrowser(wxWindow *parent, wxString href);
 
+DocDeclStr(
+    bool , wxLaunchDefaultBrowser(const wxString& url),
+    "Launches the user's default browser and tells it to open the location
+at ``url``.  Returns ``True`` if the application was successfully
+launched.", "");
 
 
 

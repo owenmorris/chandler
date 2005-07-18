@@ -22,9 +22,7 @@
 
 #if !USE_NATIVE_FONT_DIALOG_FOR_MACOSX
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
-#endif
 
 #include "wx/mac/private.h"
 #ifndef __DARWIN__
@@ -51,7 +49,7 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
   
     if (data)
         m_colourData = *data;
-    return TRUE;
+    return true;
 }
 
 int wxColourDialog::ShowModal()
@@ -65,10 +63,6 @@ int wxColourDialog::ShowModal()
     {
         m_colourData.m_dataColour.Set( (WXCOLORREF*) &newColor ) ;
         return wxID_OK;
-    }
-    else
-    {
-        return wxID_CANCEL;
     }
 
     return wxID_CANCEL;

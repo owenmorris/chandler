@@ -376,8 +376,8 @@ private:
 #define wxPREVIEW_LAST        32
 #define wxPREVIEW_GOTO        64
 
-#define wxPREVIEW_DEFAULT  wxPREVIEW_PREVIOUS|wxPREVIEW_NEXT|wxPREVIEW_ZOOM\
-                          |wxPREVIEW_FIRST|wxPREVIEW_GOTO|wxPREVIEW_LAST
+#define wxPREVIEW_DEFAULT  (wxPREVIEW_PREVIOUS|wxPREVIEW_NEXT|wxPREVIEW_ZOOM\
+                            |wxPREVIEW_FIRST|wxPREVIEW_GOTO|wxPREVIEW_LAST)
 
 // Ids for controls
 #define wxID_PREVIEW_CLOSE      1

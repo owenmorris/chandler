@@ -22,6 +22,8 @@
 
 #include "wx/module.h"
 #include "wx/hash.h"
+#include "wx/intl.h"
+#include "wx/log.h"
 #include "wx/listimpl.cpp"
 
 WX_DEFINE_LIST(wxModuleList);
@@ -69,8 +71,12 @@ bool wxModule::InitializeModules()
     wxModuleList::compatibility_iterator node;
     for ( node = m_modules.GetFirst(); node; node = node->GetNext() )
     {
-        if ( !node->GetData()->Init() )
+        wxModule *module = node->GetData();
+        if ( !module->Init() )
         {
+            wxLogError(_("Module \"%s\" initialization failed"),
+                       module->GetClassInfo()->GetClassName());
+
             // clean up already initialized modules - process in reverse order
             wxModuleList::compatibility_iterator n;
             for ( n = node->GetPrevious(); n; n = n->GetPrevious() )

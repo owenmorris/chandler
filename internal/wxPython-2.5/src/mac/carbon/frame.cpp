@@ -30,7 +30,6 @@
 extern wxWindowList wxModelessWindows;
 extern wxList wxPendingDelete;
 
-#if !USE_SHARED_LIBRARY
 BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
   EVT_ACTIVATE(wxFrame::OnActivate)
  // EVT_MENU_HIGHLIGHT_ALL(wxFrame::OnMenuHighlight)
@@ -40,7 +39,6 @@ BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
 END_EVENT_TABLE()
 
 IMPLEMENT_DYNAMIC_CLASS(wxFrame, wxTopLevelWindow)
-#endif
 
 #define WX_MAC_STATUSBAR_HEIGHT 18 
 // ----------------------------------------------------------------------------
@@ -57,7 +55,7 @@ void wxFrame::Init()
     m_frameStatusBar = NULL;
     m_winLastFocused = NULL ;
     
-    m_iconized = FALSE;
+    m_iconized = false;
     
 #if wxUSE_TOOLTIPS
     m_hwndToolTip = 0;
@@ -74,16 +72,16 @@ bool wxFrame::Create(wxWindow *parent,
 {
     
     if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style, name) )
-        return FALSE;
+        return false;
     
     wxModelessWindows.Append(this);
     
-    return TRUE;
+    return true;
 }
 
 wxFrame::~wxFrame()
 {
-    m_isBeingDeleted = TRUE;
+    m_isBeingDeleted = true;
     DeleteAllBars();
 }
 
@@ -91,7 +89,7 @@ wxFrame::~wxFrame()
 bool wxFrame::Enable(bool enable)
 {
     if ( !wxWindow::Enable(enable) )
-        return FALSE;
+        return false;
 
     if ( m_frameMenuBar && m_frameMenuBar == wxMenuBar::MacGetInstalledMenuBar() )
     {
@@ -102,7 +100,7 @@ bool wxFrame::Enable(bool enable)
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 wxStatusBar *wxFrame::OnCreateStatusBar(int number, long style, wxWindowID id,

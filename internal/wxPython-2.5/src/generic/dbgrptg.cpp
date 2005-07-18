@@ -43,6 +43,10 @@
 #include "wx/filedlg.h"
 #include "wx/valtext.h"
 
+#ifdef __WXMSW__
+    #include "wx/evtloop.h"     // for SetCriticalWindow()
+#endif // __WXMSW__
+
 // ----------------------------------------------------------------------------
 // wxDumpPreviewDlg: simple class for showing ASCII preview of dump files
 // ----------------------------------------------------------------------------
@@ -439,13 +443,20 @@ void wxDebugReportDialog::OnOpen(wxCommandEvent& )
 
             // if we don't have place marker for file name in the command...
             wxString cmd = dlg.GetCommand();
-            if ( cmd.find(_T('%')) == wxString::npos )
+            if ( !cmd.empty() )
             {
-                // ...add it
-                cmd += _T(" \"%s\"");
+#if wxUSE_MIMETYPE
+                if ( cmd.find(_T('%')) != wxString::npos )
+                {
+                    command = wxFileType::ExpandCommand(cmd, fn.GetFullPath());
+                }
+                else // no %s nor %1
+#endif // wxUSE_MIMETYPE
+                {
+                    // append the file name to the end
+                    command << cmd << _T(" \"") << fn.GetFullPath() << _T('"');
+                }
             }
-
-            command = wxFileType::ExpandCommand(cmd, fn.GetFullPath());
         }
     }
 
@@ -476,6 +487,12 @@ bool wxDebugReportPreviewStd::Show(wxDebugReport& dbgrpt) const
         return false;
 
     wxDebugReportDialog dlg(dbgrpt);
+
+#ifdef __WXMSW__
+    // before entering the event loop (from ShowModal()), block the event
+    // handling for all other windows as this could result in more crashes
+    wxEventLoop::SetCriticalWindow(&dlg);
+#endif // __WXMSW__
 
     return dlg.ShowModal() == wxID_OK && dbgrpt.GetFilesCount() != 0;
 }

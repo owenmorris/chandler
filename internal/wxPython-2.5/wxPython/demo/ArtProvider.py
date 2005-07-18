@@ -55,6 +55,7 @@ ArtIDs = [ "wx.ART_ADD_BOOKMARK",
            "wx.ART_CUT",
            "wx.ART_PASTE",
            "wx.ART_DELETE",
+           "wx.ART_NEW",
            "wx.ART_UNDO",
            "wx.ART_REDO",
            "wx.ART_QUIT",
@@ -258,11 +259,11 @@ the users can plug in their own wx.ArtProvider class and easily replace
 standard art with his/her own version. It is easy thing to do: all
 that is needed is to derive a class from wx.ArtProvider, override it's
 CreateBitmap method and register the provider with
-wx.ArtProvider_PushProvider.
+wx.ArtProvider.PushProvider.
 <p>
 
 This class can also be used to get the platform native icons as
-provided by wx.ArtProvider_GetBitmap or wx.ArtProvider_GetIcon methods.
+provided by wx.ArtProvider.GetBitmap or wx.ArtProvider.GetIcon methods.
 
 </body></html>
 """

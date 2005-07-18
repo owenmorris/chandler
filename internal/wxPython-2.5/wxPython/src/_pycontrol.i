@@ -36,6 +36,16 @@ public:
 
     void SetBestSize(const wxSize& size) { wxControl::SetBestSize(size); }
 
+    bool DoEraseBackground(wxDC* dc) {
+#ifdef __WXMSW__
+        return wxWindow::DoEraseBackground(dc->GetHDC());
+#else
+        dc->SetBackground(wxBrush(GetBackgroundColour()));
+        dc->Clear();
+        return true;
+#endif
+    }
+
     DEC_PYCALLBACK_VOID_INT4(DoMoveWindow);
     DEC_PYCALLBACK_VOID_INT5(DoSetSize);
     DEC_PYCALLBACK_VOID_INTINT(DoSetClientSize);
@@ -64,6 +74,8 @@ public:
     DEC_PYCALLBACK_VIZATTR_(GetDefaultAttributes);
     
     DEC_PYCALLBACK_BOOL_(HasTransparentBackground);
+
+    DEC_PYCALLBACK_VOID_(OnInternalIdle);
 
     PYPRIVATE;
 };
@@ -98,6 +110,8 @@ IMP_PYCALLBACK_BOOL_const(wxPyControl, wxControl, ShouldInheritColours);
 IMP_PYCALLBACK_VIZATTR_(wxPyControl, wxControl, GetDefaultAttributes);
 
 IMP_PYCALLBACK_BOOL_(wxPyControl, wxControl, HasTransparentBackground);
+
+IMP_PYCALLBACK_VOID_(wxPyControl, wxControl, OnInternalIdle);
  %}
 
 // And now the one for SWIG to see
@@ -120,6 +134,7 @@ public:
     void _setCallbackInfo(PyObject* self, PyObject* _class);
 
     void SetBestSize(const wxSize& size);
+    bool DoEraseBackground(wxDC* dc);
 
     void base_DoMoveWindow(int x, int y, int width, int height);
     void base_DoSetSize(int x, int y, int width, int height,
@@ -154,6 +169,9 @@ public:
 
     bool base_ShouldInheritColours() const;
     wxVisualAttributes base_GetDefaultAttributes();
+
+    void base_OnInternalIdle();
+
 };
 
 

@@ -44,7 +44,7 @@ public:
     // open specified file (may fail, use IsOpened())
   wxFFile(const wxChar *filename, const wxChar *mode = _T("r"));
     // attach to (already opened) file
-  wxFFile(FILE *fp) { m_fp = fp; }
+  wxFFile(FILE *lfp) { m_fp = lfp; }
 
   // open/close
     // open a file (existing or not - the mode controls what happens)
@@ -53,8 +53,8 @@ public:
   bool Close();
 
   // assign an existing file descriptor and get it back from wxFFile object
-  void Attach(FILE *fp, const wxString& name = wxEmptyString)
-    { Close(); m_fp = fp; m_name = name; }
+  void Attach(FILE *lfp, const wxString& name = wxEmptyString)
+    { Close(); m_fp = lfp; m_name = name; }
   void Detach() { m_fp = NULL; }
   FILE *fp() const { return m_fp; }
 
@@ -62,7 +62,7 @@ public:
     // read all data from the file into a string (useful for text files)
   bool ReadAll(wxString *str, wxMBConv& conv = wxConvUTF8);
     // returns number of bytes read - use Eof() and Error() to see if an error
-    // occured or not
+    // occurred or not
   size_t Read(void *pBuf, size_t nCount);
     // returns the number of bytes written
   size_t Write(const void *pBuf, size_t nCount);
@@ -92,7 +92,7 @@ public:
   bool IsOpened() const { return m_fp != NULL; }
     // is end of file reached?
   bool Eof() const { return feof(m_fp) != 0; }
-    // is an error occured?
+    // has an error occurred?
   bool Error() const { return ferror(m_fp) != 0; }
     // get the file name
   const wxString& GetName() const { return m_name; }

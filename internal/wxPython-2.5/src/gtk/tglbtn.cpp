@@ -24,7 +24,6 @@ extern void wxapp_install_idle_handler();
 extern bool g_isIdle;
 extern bool      g_blockEventsOnDrag;
 extern wxCursor   g_globalCursor;
-extern wxWindowGTK *g_delayedFocus;
 
 extern "C" {
 static void gtk_togglebutton_clicked_callback(GtkWidget *WXUNUSED(widget), wxToggleButton *cb)
@@ -59,16 +58,16 @@ bool wxToggleBitmapButton::Create(wxWindow *parent, wxWindowID id,
                             const wxValidator& validator,
                             const wxString &name)
 {
-    m_needParent = TRUE;
-    m_acceptsFocus = TRUE;
-   
-    m_blockEvent = FALSE;
+    m_needParent = true;
+    m_acceptsFocus = true;
+
+    m_blockEvent = false;
 
     if (!PreCreation(parent, pos, size) ||
        !CreateBase(parent, id, pos, size, style, validator, name ))
     {
         wxFAIL_MSG(wxT("wxToggleBitmapButton creation failed"));
-        return FALSE;
+        return false;
     }
     
     m_bitmap = label;
@@ -92,7 +91,7 @@ bool wxToggleBitmapButton::Create(wxWindow *parent, wxWindowID id,
 
     PostCreation(size);
 
-    return TRUE;
+    return true;
 }
 
 // void SetValue(bool state)
@@ -104,18 +103,18 @@ void wxToggleBitmapButton::SetValue(bool state)
    if (state == GetValue())
       return;
 
-   m_blockEvent = TRUE;
+    m_blockEvent = true;
 
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_widget), state);
 
-   m_blockEvent = FALSE;
+    m_blockEvent = false;
 }
 
 // bool GetValue() const
 // Get the value of the toggle button.
 bool wxToggleBitmapButton::GetValue() const
 {
-   wxCHECK_MSG(m_widget != NULL, FALSE, wxT("invalid toggle button"));
+    wxCHECK_MSG(m_widget != NULL, false, wxT("invalid toggle button"));
 
    return GTK_TOGGLE_BUTTON(m_widget)->active;
 }
@@ -152,14 +151,14 @@ void wxToggleBitmapButton::OnSetBitmap()
     }
 }
 
-bool wxToggleBitmapButton::Enable(bool enable /*=TRUE*/)
+bool wxToggleBitmapButton::Enable(bool enable /*=true*/)
 {
     if (!wxControl::Enable(enable))
-        return FALSE;
+        return false;
 
     gtk_widget_set_sensitive(BUTTON_CHILD(m_widget), enable);
 
-    return TRUE;
+    return true;
 }
 
 void wxToggleBitmapButton::DoApplyWidgetStyle(GtkRcStyle *style)
@@ -232,15 +231,15 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
                             const wxValidator& validator,
                             const wxString &name)
 {
-   m_needParent = TRUE;
-   m_acceptsFocus = TRUE;
-   
-   m_blockEvent = FALSE;
+    m_needParent = true;
+    m_acceptsFocus = true;
+
+    m_blockEvent = false;
 
    if (!PreCreation(parent, pos, size) ||
        !CreateBase(parent, id, pos, size, style, validator, name )) {
       wxFAIL_MSG(wxT("wxToggleButton creation failed"));
-      return FALSE;
+        return false;
    }
 
    wxControl::SetLabel(label);
@@ -256,7 +255,7 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
 
    PostCreation(size);
 
-   return TRUE;
+    return true;
 }
 
 // void SetValue(bool state)
@@ -268,18 +267,18 @@ void wxToggleButton::SetValue(bool state)
    if (state == GetValue())
       return;
 
-   m_blockEvent = TRUE;
+    m_blockEvent = true;
 
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_widget), state);
 
-   m_blockEvent = FALSE;
+    m_blockEvent = false;
 }
 
 // bool GetValue() const
 // Get the value of the toggle button.
 bool wxToggleButton::GetValue() const
 {
-   wxCHECK_MSG(m_widget != NULL, FALSE, wxT("invalid toggle button"));
+    wxCHECK_MSG(m_widget != NULL, false, wxT("invalid toggle button"));
 
    return GTK_TOGGLE_BUTTON(m_widget)->active;
 }
@@ -293,14 +292,14 @@ void wxToggleButton::SetLabel(const wxString& label)
     gtk_label_set(GTK_LABEL(BUTTON_CHILD(m_widget)), wxGTK_CONV( GetLabel() ) );
 }
 
-bool wxToggleButton::Enable(bool enable /*=TRUE*/)
+bool wxToggleButton::Enable(bool enable /*=true*/)
 {
     if (!wxControl::Enable(enable))
-        return FALSE;
+        return false;
 
     gtk_widget_set_sensitive(BUTTON_CHILD(m_widget), enable);
 
-    return TRUE;
+    return true;
 }
 
 void wxToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)

@@ -35,7 +35,6 @@ extern bool g_isIdle;
 //-----------------------------------------------------------------------------
 
 extern bool   g_blockEventsOnDrag;
-extern bool   g_blockEventsOnScroll;
 static wxEventType g_currentUpDownEvent = wxEVT_NULL;
 
 static const float sensitivity = 0.02;
@@ -157,7 +156,7 @@ gtk_scrollbar_button_release_callback( GtkRange *WXUNUSED(widget),
         win->GetEventHandler()->ProcessEvent( event );
     }
 
-    win->m_isScrolling = FALSE;
+    win->m_isScrolling = false;
 
     // reset the LINEUP/LINEDOWN flag when the mouse button is released
     g_currentUpDownEvent = wxEVT_NULL;
@@ -180,14 +179,14 @@ bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
            const wxPoint& pos, const wxSize& size,
            long style, const wxValidator& validator, const wxString& name )
 {
-    m_needParent = TRUE;
-    m_acceptsFocus = TRUE;
+    m_needParent = true;
+    m_acceptsFocus = true;
 
     if (!PreCreation( parent, pos, size ) ||
         !CreateBase( parent, id, pos, size, style, validator, name ))
     {
         wxFAIL_MSG( wxT("wxScrollBar creation failed") );
-        return FALSE;
+        return false;
     }
 
     m_oldPos = 0.0;
@@ -216,7 +215,7 @@ bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
 
     PostCreation(size);
 
-    return TRUE;
+    return true;
 }
 
 int wxScrollBar::GetThumbPosition() const

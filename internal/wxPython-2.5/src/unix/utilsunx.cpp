@@ -237,6 +237,12 @@ int wxKill(long pid, wxSignal sig, wxKillError *rc, int flags)
 
 #define WXEXECUTE_NARGS   127
 
+#if defined(__DARWIN__)
+long wxMacExecute(wxChar **argv,
+               int flags,
+               wxProcess *process);
+#endif
+
 long wxExecute( const wxString& command, int flags, wxProcess *process )
 {
     wxCHECK_MSG( !command.empty(), 0, wxT("can't exec empty command") );
@@ -307,8 +313,18 @@ long wxExecute( const wxString& command, int flags, wxProcess *process )
     } while(*cptr);
     argv[argc] = NULL;
 
+    long lRc;
+#if defined(__DARWIN__)
+    // wxMacExecute only executes app bundles.
+    // It returns an error code if the target is not an app bundle, thus falling
+    // through to the regular wxExecute for non app bundles.
+    lRc = wxMacExecute(argv, flags, process);
+    if( lRc != ((flags & wxEXEC_SYNC) ? -1 : 0))
+        return lRc;
+#endif
+
     // do execute the command
-    long lRc = wxExecute(argv, flags, process);
+    lRc = wxExecute(argv, flags, process);
 
     // clean up
     argc = 0;

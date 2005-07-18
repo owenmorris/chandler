@@ -142,6 +142,20 @@ protected:
 #include "../../art/tick.xpm"
 #include "../../art/cross.xpm"
 
+#include "../../art/filesave.xpm"
+#include "../../art/filesaveas.xpm"
+#include "../../art/copy.xpm"
+#include "../../art/cut.xpm"
+#include "../../art/paste.xpm"
+#include "../../art/delete.xpm"
+#include "../../art/new.xpm"
+#include "../../art/undo.xpm"
+#include "../../art/redo.xpm"
+#include "../../art/quit.xpm"
+#include "../../art/find.xpm"
+#include "../../art/findrepl.xpm"
+
+
 #undef static
 
 wxBitmap wxDefaultArtProvider_CreateBitmap(const wxArtID& id)
@@ -188,6 +202,20 @@ wxBitmap wxDefaultArtProvider_CreateBitmap(const wxArtID& id)
     ART(wxART_TICK_MARK,                           tick)
     ART(wxART_CROSS_MARK,                          cross)
 
+    ART(wxART_FILE_SAVE,                           filesave)
+    ART(wxART_FILE_SAVE_AS,                        filesaveas)
+    ART(wxART_COPY,                                copy)
+    ART(wxART_CUT,                                 cut)
+    ART(wxART_PASTE,                               paste)
+    ART(wxART_DELETE,                              delete)
+    ART(wxART_UNDO,                                undo)
+    ART(wxART_REDO,                                redo)
+    ART(wxART_QUIT,                                quit)
+    ART(wxART_FIND,                                find)
+    ART(wxART_FIND_AND_REPLACE,                    findrepl)
+    ART(wxART_NEW,                                 new)
+
+
     return wxNullBitmap;
 }
 
@@ -224,6 +252,9 @@ wxBitmap wxDefaultArtProvider::CreateBitmap(const wxArtID& id,
             }
         }
     }
+#else
+    wxUnusedVar(client);
+    wxUnusedVar(reqSize);
 #endif // wxUSE_IMAGE
 
     return bmp;

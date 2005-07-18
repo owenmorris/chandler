@@ -37,10 +37,6 @@
 #include <string.h>
 #include "wx/taskbar.h"
 
-#ifdef __GNUWIN32_OLD__
-    #include "wx/msw/gnuwin32/extra.h"
-#endif
-
 #ifdef __WXWINCE__
     #include <winreg.h>
     #include <shellapi.h>
@@ -147,8 +143,8 @@ wxTaskBarIcon::~wxTaskBarIcon()
 // Operations
 bool wxTaskBarIcon::SetIcon(const wxIcon& icon, const wxString& tooltip)
 {
-    // NB: we have to create the window lazily because of backward compatiblity,
-    //     old aplications may create wxTaskBarIcon instance before wxApp
+    // NB: we have to create the window lazily because of backward compatibility,
+    //     old applications may create a wxTaskBarIcon instance before wxApp
     //     is initialized (as samples/taskbar used to do)
     if (!m_win)
     {

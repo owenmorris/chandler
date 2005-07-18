@@ -1,5 +1,15 @@
+/*
+ Name:        wx/msw/gccpriv.h
+ Purpose:     MinGW/Cygwin definitions
+ Author:      Vadim Zeitlin
+ Modified by:
+ Created:
+ RCS-ID:      $Id$
+ Copyright:   (c) Vadim Zeitlin
+ Licence:     wxWindows Licence
+*/
+
 /* THIS IS A C FILE, DON'T USE C++ FEATURES (IN PARTICULAR COMMENTS) IN IT */
-/* MinGW w32api specific stuff */
 
 #ifndef _WX_MSW_GCCPRIV_H_
 #define _WX_MSW_GCCPRIV_H_
@@ -8,13 +18,14 @@
     #define __GNUWIN32__
 #endif
 
+#if defined(__MINGW32__) && ( ( __GNUC__ > 2 ) || ( ( __GNUC__ == 2 ) && ( __GNUC_MINOR__ >= 95 ) ) )
+    #include <_mingw.h>
+#endif
+
 #if defined( __MINGW32__ ) && !defined(__WINE__) && !defined( HAVE_W32API_H )
-    #if ( __GNUC__ > 2 ) || ( ( __GNUC__ == 2 ) && ( __GNUC_MINOR__ >= 95 ) )
-        #include <_mingw.h>
         #if __MINGW32_MAJOR_VERSION >= 1
             #define HAVE_W32API_H
         #endif
-    #endif
 #elif defined( __CYGWIN__ ) && !defined( HAVE_W32API_H )
     #if ( __GNUC__ > 2 )
         #define HAVE_W32API_H
@@ -99,9 +110,10 @@
     #endif
 #endif
 
-// current (= before mingw-runtime 3.3) mingw32 headers forget to
-// define _puttchar, this will probably be fixed in the next versions but
-// for now do it ourselves
+/* current (= before mingw-runtime 3.3) mingw32 headers forget to
+   define _puttchar, this will probably be fixed in the next versions but
+   for now do it ourselves
+ */
 #if defined( __MINGW32__ ) && \
         !wxCHECK_MINGW32_VERSION(3,3) && !defined( _puttchar )
     #ifdef wxUSE_UNICODE

@@ -47,8 +47,6 @@
 
 static const int ID_DIRCTRL = 1000;
 static const int ID_TEXTCTRL = 1001;
-static const int ID_OK = 1002;
-static const int ID_CANCEL = 1003;
 static const int ID_NEW = 1004;
 static const int ID_SHOW_HIDDEN = 1005;
 static const int ID_GO_HOME = 1006;
@@ -152,7 +150,7 @@ wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
 #endif // __SMARTPHONE__/!__SMARTPHONE__
 
     // 1) dir ctrl
-    m_dirCtrl = NULL; // this is neccessary, event handler called from
+    m_dirCtrl = NULL; // this is necessary, event handler called from
                       // wxGenericDirCtrl would crash otherwise!
     long dirStyle = wxDIRCTRL_DIR_ONLY | wxDEFAULT_CONTROL_BORDER;
 

@@ -48,10 +48,6 @@
     #include <memory.h>
 #endif
 
-#ifdef __GNUWIN32_OLD__
-    #include "wx/msw/gnuwin32/extra.h"
-#endif
-
 #include "wx/image.h"
 #include "wx/msw/dib.h"
 
@@ -398,7 +394,31 @@ HBITMAP wxDIB::CreateDDB(HDC hdc) const
         return 0;
     }
 
-    return ConvertToBitmap((BITMAPINFO *)&ds.dsBmih, hdc, ds.dsBm.bmBits);
+    // how many colours are we going to have in the palette?
+    DWORD biClrUsed = ds.dsBmih.biClrUsed;
+    if ( !biClrUsed )
+    {
+        // biClrUsed field might not be set
+        biClrUsed = GetNumberOfColours(ds.dsBmih.biBitCount);
+    }
+
+    if ( !biClrUsed )
+    {
+        return ConvertToBitmap((BITMAPINFO *)&ds.dsBmih, hdc, ds.dsBm.bmBits);
+    }
+    else
+    {
+        // fake a BITMAPINFO w/o bits, just the palette info
+        wxCharBuffer bmi(sizeof(BITMAPINFO) + (biClrUsed - 1)*sizeof(RGBQUAD));
+        BITMAPINFO *pBmi = (BITMAPINFO *)bmi.data();
+        MemoryHDC hDC;
+        // get the colour table
+        SelectInHDC sDC(hDC, m_handle);
+        ::GetDIBColorTable(hDC, 0, biClrUsed, pBmi->bmiColors);
+        memcpy(&pBmi->bmiHeader, &ds.dsBmih, ds.dsBmih.biSize);
+
+        return ConvertToBitmap(pBmi, hdc, ds.dsBm.bmBits);
+    }
 }
 
 /* static */
@@ -568,6 +588,10 @@ HGLOBAL wxDIB::ConvertFromBitmap(HBITMAP hbmp)
 
 wxPalette *wxDIB::CreatePalette() const
 {
+    // GetDIBColorTable not available in eVC3
+#if defined(_WIN32_WCE) && _WIN32_WCE < 400
+    return NULL;
+#else
     wxCHECK_MSG( m_handle, NULL, _T("wxDIB::CreatePalette(): invalid object") );
 
     DIBSECTION ds;
@@ -595,6 +619,8 @@ wxPalette *wxDIB::CreatePalette() const
         return NULL;
     }
 
+    MemoryHDC hDC;
+
     // LOGPALETTE struct has only 1 element in palPalEntry array, we're
     // going to have biClrUsed of them so add necessary space
     LOGPALETTE *pPalette = (LOGPALETTE *)
@@ -605,8 +631,11 @@ wxPalette *wxDIB::CreatePalette() const
     pPalette->palVersion = 0x300;  // magic number, not in docs but works
     pPalette->palNumEntries = (WORD)biClrUsed;
 
-    // and the colour table (it starts right after the end of the header)
-    const RGBQUAD *pRGB = (RGBQUAD *)((char *)&ds.dsBmih + ds.dsBmih.biSize);
+    // and the colour table
+    wxCharBuffer rgb(sizeof(RGBQUAD) * biClrUsed);
+    RGBQUAD *pRGB = (RGBQUAD*)rgb.data();
+    SelectInHDC selectHandle(hDC, m_handle);
+    ::GetDIBColorTable(hDC, 0, biClrUsed, pRGB);
     for ( DWORD i = 0; i < biClrUsed; i++, pRGB++ )
     {
         pPalette->palPalEntry[i].peRed = pRGB->rgbRed;
@@ -630,6 +659,7 @@ wxPalette *wxDIB::CreatePalette() const
     palette->SetHPALETTE((WXHPALETTE)hPalette);
 
     return palette;
+#endif
 }
 
 #endif // wxUSE_PALETTE

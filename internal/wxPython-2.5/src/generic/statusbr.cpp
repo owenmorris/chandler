@@ -56,7 +56,6 @@ END_EVENT_TABLE()
 
 // Default status border dimensions
 #define         wxTHICK_LINE_BORDER 2
-#define         wxTHICK_LINE_WIDTH  1
 
 void wxStatusBarGeneric::Init()
 {
@@ -364,13 +363,13 @@ void wxStatusBarGeneric::InitColours()
     m_hilightPen = wxPen(hilightColour, 1, wxSOLID);
 #elif defined(__WXPM__)
     m_mediumShadowPen = wxPen(wxColour(127, 127, 127), 1, wxSOLID);
-    m_hilightPen = wxPen("WHITE", 1, wxSOLID);
+    m_hilightPen = wxPen(_T("WHITE"), 1, wxSOLID);
 
     wxColour                        vColour;
 
-    vColour.Set(wxString("LIGHT GREY"));
+    vColour.Set(wxString(_T("LIGHT GREY")));
     SetBackgroundColour(vColour);
-    vColour.Set(wxString("BLACK"));
+    vColour.Set(wxString(_T("BLACK")));
     SetForegroundColour(vColour);
 #else
     m_mediumShadowPen = wxPen("GREY", 1, wxSOLID);
@@ -471,4 +470,3 @@ void wxStatusBarGeneric::OnRightDown(wxMouseEvent& event)
 }
 
 #endif // wxUSE_STATUSBAR
-

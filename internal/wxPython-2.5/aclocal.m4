@@ -64,7 +64,7 @@ AC_DEFUN([WX_PATH_FIND_LIBRARIES],
 ac_find_libraries=
 for ac_dir in $1 /usr/lib;
   do
-    for ac_extension in a so sl dylib; do
+    for ac_extension in a so sl dylib dll.a; do
       if test -f "$ac_dir/lib$2.$ac_extension"; then
         ac_find_libraries=$ac_dir
         break 2
@@ -449,13 +449,90 @@ AC_DEFUN([WX_VERSIONED_SYMBOLS],
           fi
         else
           wx_cv_version_script=no
+          fi
+
+        dnl There's a problem in some old linkers with --version-script that
+        dnl can cause linking to fail when you have objects with vtables in
+        dnl libs 3 deep.  This is known to happen in netbsd and openbsd with
+        dnl ld 2.11.2.
+        dnl 
+        dnl To test for this we need to make some shared libs and
+        dnl unfortunately we can't be sure of the right way to do that. If the
+        dnl first two compiles don't succeed then it looks like the test isn't
+        dnl working and the result is ignored, but if OTOH the first two
+        dnl succeed but the third does not then the bug has been detected and
+        dnl the --version-script flag is dropped.
+        if test $wx_cv_version_script = yes
+        then
+          echo "struct B { virtual ~B() { } }; \
+                struct D : public B { }; \
+                void F() { D d; }" > conftest.cpp
+
+          if AC_TRY_COMMAND([
+                $CXX -shared -fPIC -o conftest1.output $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.cpp
+                -Wl,--version-script,conftest.sym >/dev/null 2>/dev/null]) &&
+             AC_TRY_COMMAND([
+                $CXX -shared -fPIC -o conftest2.output $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.cpp
+                -Wl,--version-script,conftest.sym conftest1.output >/dev/null 2>/dev/null])
+          then
+            if AC_TRY_COMMAND([
+                  $CXX -shared -fPIC -o conftest3.output $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.cpp
+                  -Wl,--version-script,conftest.sym conftest2.output conftest1.output >/dev/null 2>/dev/null])
+            then
+              wx_cv_version_script=yes
+        else
+          wx_cv_version_script=no
         fi
+          fi
+        fi
+
         rm -f conftest.output conftest.stderr conftest.sym conftest.cpp
+        rm -f conftest1.output conftest2.output conftest3.output
       ])
       if test $wx_cv_version_script = yes ; then
         LDFLAGS_VERSIONING="-Wl,--version-script,$1"
       fi
   fi
+])
+
+dnl Based on autoconf _AC_LANG_COMPILER_GNU
+dnl _AC_BAKEFILE_LANG_COMPILER(NAME, LANG, SYMBOL, IF-YES, IF-NO)
+AC_DEFUN([_AC_BAKEFILE_LANG_COMPILER],
+[
+    AC_LANG_PUSH($2)
+    AC_CACHE_CHECK(
+        [whether we are using the $1 $2 compiler],
+        [bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_[]$3],
+        [AC_TRY_COMPILE(
+            [],
+            [
+             #ifndef $3
+                choke me
+             #endif
+            ],
+            [bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_[]$3=yes],
+            [bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_[]$3=no]
+         )
+        ]
+    )
+    AC_LANG_POP($2)
+    if test "x$bakefile_cv_[]_AC_LANG_ABBREV[]_compiler_[]$3" = "xyes"; then
+        :; $4
+    else
+        :; $5
+  fi
+])
+
+dnl Loosely based on autoconf AC_PROG_CC
+AC_DEFUN([AC_BAKEFILE_PROG_SUNCC],
+[
+    _AC_BAKEFILE_LANG_COMPILER(Sun, C, __SUNPRO_C, SUNCC=yes)
+])
+
+dnl Loosely based on autoconf AC_PROG_CC
+AC_DEFUN([AC_BAKEFILE_PROG_SUNCXX],
+[
+    _AC_BAKEFILE_LANG_COMPILER(Sun, C++, __SUNPRO_CC, SUNCXX=yes)
 ])
 
 
@@ -807,6 +884,7 @@ AC_DEFUN([AC_BAKEFILE_PROG_CC],
     fi
     AC_BAKEFILE_PROG_MWCC
     AC_BAKEFILE_PROG_XLCC
+    AC_BAKEFILE_PROG_SUNCC
 ])
 
 AC_DEFUN([AC_BAKEFILE_PROG_CXX],
@@ -820,6 +898,7 @@ AC_DEFUN([AC_BAKEFILE_PROG_CXX],
     fi
     AC_BAKEFILE_PROG_MWCXX
     AC_BAKEFILE_PROG_XLCXX
+    AC_BAKEFILE_PROG_SUNCXX
 ])
 
 
@@ -1860,7 +1939,8 @@ AC_DEFUN([AC_BAKEFILE_SHARED_LD],
       *-*-sunos4* | \
       *-*-osf* | \
       *-*-dgux5* | \
-      *-*-sysv5* )
+      *-*-sysv5* | \
+      *-pc-msdosdjgpp )
         dnl defaults are ok
       ;;
 
@@ -1963,6 +2043,11 @@ AC_DEFUN([AC_BAKEFILE_DEPS],
         DEPS_TRACKING=1
         DEPSFLAG_MWCC="-MM"
         AC_MSG_RESULT([mwcc])
+    elif test "x$SUNCC" = "xyes"; then
+        DEPSMODE=suncc
+        DEPS_TRACKING=1
+        DEPSFLAG_SUNCC="-xM1"
+        AC_MSG_RESULT([suncc])
     else
         AC_MSG_RESULT([none])
     fi
@@ -2657,6 +2742,7 @@ DEPSMODE=${DEPSMODE}
 DEPSDIR=.deps
 DEPSFLAG_GCC="${DEPSFLAG_GCC}"
 DEPSFLAG_MWCC="${DEPSFLAG_MWCC}"
+DEPSFLAG_SUNCC="${DEPSFLAG_SUNCC}"
 
 mkdir -p ${D}DEPSDIR
 
@@ -2719,6 +2805,28 @@ elif test ${D}DEPSMODE = mwcc ; then
     done
     ${D}* ${D}DEPSFLAG_MWCC >${D}{DEPSDIR}/${D}{objfile}.d
     exit 0
+elif test ${D}DEPSMODE = suncc; then
+    ${D}* || exit
+    # Run compiler again with deps flag and redirect into the dep file.
+    # It doesn't work if the '-o FILE' option is used, but without it the
+    # dependency file will contain the wrong name for the object. So it is
+    # removed from the command line, and the dep file is fixed with sed.
+    cmd=""
+    while test ${D}# -gt 0; do
+        case "${D}1" in
+            -o )
+                shift
+                objfile=${D}1
+            ;;
+            * )
+                eval arg${D}#=\\${D}1
+                cmd="${D}cmd \\${D}arg${D}#"
+            ;;
+        esac
+        shift
+    done
+    eval "${D}cmd ${D}DEPSFLAG_SUNCC" | sed "s|.*:|${D}objfile:|" >${D}{DEPSDIR}/${D}{objfile}.d
+    exit 0
 else
     ${D}*
     exit ${D}?
@@ -2761,7 +2869,7 @@ while test ${D}# -gt 0; do
         shift
         ;;
 
-       -l*|-L*|-flat_namespace|-headerpad_max_install_names)
+       -l*|-L*|-Wl,*|-flat_namespace|-headerpad_max_install_names)
         # collect these options
         args="${D}{args} ${D}1"
         ;;

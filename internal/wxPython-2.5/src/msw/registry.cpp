@@ -75,12 +75,12 @@ aStdKeys[] =
 #ifndef __WXWINCE__
   { HKEY_PERFORMANCE_DATA,  wxT("HKEY_PERFORMANCE_DATA"),  wxT("HKPD") },
 #endif
-#if WINVER >= 0x0400 && !defined(__WXWINCE__)
+#ifdef HKEY_CURRENT_CONFIG
   { HKEY_CURRENT_CONFIG,    wxT("HKEY_CURRENT_CONFIG"),    wxT("HKCC") },
-#if !defined(__GNUWIN32__) && !defined(__WXWINCE__)
+#endif
+#ifdef HKEY_DYN_DATA
   { HKEY_DYN_DATA,          wxT("HKEY_DYN_DATA"),          wxT("HKDD") }, // short name?
-#endif  //GNUWIN32
-#endif  //WINVER >= 4.0
+#endif
 };
 
 // the registry name separator (perhaps one day MS will change it to '/' ;-)
@@ -163,7 +163,7 @@ wxRegKey::StdKey wxRegKey::ExtractKeyName(wxString& strKey)
   }
   else {
     strKey = strKey.After(REG_SEPARATOR);
-    if ( !strKey.IsEmpty() && strKey.Last() == REG_SEPARATOR )
+    if ( !strKey.empty() && strKey.Last() == REG_SEPARATOR )
       strKey.Truncate(strKey.Len() - 1);
   }
 
@@ -214,8 +214,8 @@ wxRegKey::wxRegKey(const wxRegKey& keyParent, const wxString& strKey)
         : m_strKey(keyParent.m_strKey)
 {
   // combine our name with parent's to get the full name
-  if ( !m_strKey.IsEmpty() &&
-       (strKey.IsEmpty() || strKey[0] != REG_SEPARATOR) ) {
+  if ( !m_strKey.empty() &&
+       (strKey.empty() || strKey[0] != REG_SEPARATOR) ) {
       m_strKey += REG_SEPARATOR;
   }
 
@@ -270,7 +270,7 @@ void wxRegKey::SetName(const wxRegKey& keyParent, const wxString& strKey)
   //     next line!
   m_strKey.clear();
   m_strKey += keyParent.m_strKey;
-  if ( !strKey.IsEmpty() && strKey[0] != REG_SEPARATOR )
+  if ( !strKey.empty() && strKey[0] != REG_SEPARATOR )
     m_strKey += REG_SEPARATOR;
   m_strKey += strKey;
 
@@ -304,7 +304,7 @@ wxString wxRegKey::GetName(bool bShortPrefix) const
   StdKey key = GetStdKeyFromHkey((WXHKEY) m_hRootKey);
   wxString str = bShortPrefix ? aStdKeys[key].szShortName
                               : aStdKeys[key].szName;
-  if ( !m_strKey.IsEmpty() )
+  if ( !m_strKey.empty() )
     str << _T("\\") << m_strKey;
 
   return str;
@@ -364,7 +364,13 @@ bool wxRegKey::GetKeyInfo(size_t *pnSubKeys,
 bool wxRegKey::Open(AccessMode mode)
 {
     if ( IsOpened() )
+    {
+        if ( mode <= m_mode )
         return true;
+
+        // we had been opened in read mode but now must be reopened in write
+        Close();
+    }
 
     HKEY tmpKey;
     m_dwLastError = ::RegOpenKeyEx
@@ -384,6 +390,8 @@ bool wxRegKey::Open(AccessMode mode)
     }
 
     m_hKey = (WXHKEY) tmpKey;
+    m_mode = mode;
+
     return true;
 }
 
@@ -515,7 +523,7 @@ bool wxRegKey::CopyValue(const wxChar *szValue,
 
 bool wxRegKey::Rename(const wxChar *szNewName)
 {
-    wxCHECK_MSG( !m_strKey.IsEmpty(), false, _T("registry hives can't be renamed") );
+    wxCHECK_MSG( !m_strKey.empty(), false, _T("registry hives can't be renamed") );
 
     if ( !Exists() ) {
         wxLogError(_("Registry key '%s' does not exist, cannot rename it."),
@@ -533,7 +541,7 @@ bool wxRegKey::Rename(const wxChar *szNewName)
     if ( inSameHive ) {
         // rename the key to the new name under the same parent
         wxString strKey = m_strKey.BeforeLast(REG_SEPARATOR);
-        if ( !strKey.IsEmpty() ) {
+        if ( !strKey.empty() ) {
             // don't add '\\' in the start if strFullNewName is empty
             strKey += REG_SEPARATOR;
         }
@@ -647,7 +655,7 @@ bool wxRegKey::DeleteSelf()
   // prevent a buggy program from erasing one of the root registry keys or an
   // immediate subkey (i.e. one which doesn't have '\\' inside) of any other
   // key except HKCR (HKCR has some "deleteable" subkeys)
-  if ( m_strKey.IsEmpty() ||
+  if ( m_strKey.empty() ||
        ((m_hRootKey != (WXHKEY) aStdKeys[HKCR].hkey) &&
         (m_strKey.Find(REG_SEPARATOR) == wxNOT_FOUND)) ) {
       wxLogError(_("Registry key '%s' is needed for normal system operation,\ndeleting it will leave your system in unusable state:\noperation aborted."),
@@ -850,7 +858,7 @@ bool wxRegKey::SetValue(const wxChar *szValue,const wxMemoryBuffer& buffer)
 
 bool wxRegKey::QueryValue(const wxChar *szValue, wxMemoryBuffer& buffer) const
 {
-  if ( CONST_CAST Open() ) {
+  if ( CONST_CAST Open(Read) ) {
     // first get the type and size of the data
     DWORD dwType, dwSize;
     m_dwLastError = RegQueryValueEx((HKEY) m_hKey, WXSTRINGCAST szValue, RESERVED,
@@ -886,22 +894,26 @@ bool wxRegKey::QueryValue(const wxChar *szValue, wxMemoryBuffer& buffer) const
 
 bool wxRegKey::QueryValue(const wxChar *szValue,
                           wxString& strValue,
-                          bool raw) const
+                          bool WXUNUSED_IN_WINCE(raw)) const
 {
-  if ( CONST_CAST Open(Read) ) {
+    if ( CONST_CAST Open(Read) )
+    {
 
       // first get the type and size of the data
       DWORD dwType, dwSize;
       m_dwLastError = RegQueryValueEx((HKEY) m_hKey, WXSTRINGCAST szValue, RESERVED,
                                       &dwType, NULL, &dwSize);
-      if ( m_dwLastError == ERROR_SUCCESS ) {
-        if ( !dwSize ) {
-            // must treat this case specially as GetWriteBuf() doesn't like
-            // being called with 0 size
-            strValue.Empty();
-        }
-        else {
-            m_dwLastError = RegQueryValueEx((HKEY) m_hKey,
+        if ( m_dwLastError == ERROR_SUCCESS )
+        {
+            if ( !dwSize )
+            {
+                // must treat this case specially as GetWriteBuf() doesn't like
+                // being called with 0 size
+                strValue.Empty();
+            }
+            else
+            {
+                m_dwLastError = RegQueryValueEx((HKEY) m_hKey,
                                             WXSTRINGCAST szValue,
                                             RESERVED,
                                             &dwType,
@@ -917,9 +929,7 @@ bool wxRegKey::QueryValue(const wxChar *szValue,
                 if ( ok )
                 {
                     wxString strExpValue;
-                    ok = ::ExpandEnvironmentStrings
-                           (
-                            strValue,
+                        ok = ::ExpandEnvironmentStrings(strValue,
                             wxStringBuffer(strExpValue, dwExpSize),
                             dwExpSize
                            ) != 0;
@@ -931,19 +941,18 @@ bool wxRegKey::QueryValue(const wxChar *szValue,
                     wxLogLastError(_T("ExpandEnvironmentStrings"));
                 }
             }
-#else
-  wxUnusedVar(raw);
 #endif
             // __WXWINCE__
         }
 
-        if ( m_dwLastError == ERROR_SUCCESS ) {
-          // check that it was the right type
-          wxASSERT_MSG( !IsNumericValue(szValue),
-                        wxT("Type mismatch in wxRegKey::QueryValue().") );
+            if ( m_dwLastError == ERROR_SUCCESS )
+            {
+                // check that it was the right type
+                wxASSERT_MSG( !IsNumericValue(szValue),
+                              wxT("Type mismatch in wxRegKey::QueryValue().") );
 
-          return true;
-        }
+              return true;
+            }
       }
   }
 
@@ -1088,6 +1097,8 @@ bool wxRegKey::IsNumericValue(const wxChar *szValue) const
 // exporting registry keys to file
 // ----------------------------------------------------------------------------
 
+#if wxUSE_STREAMS
+
 // helper functions for writing ASCII strings (even in Unicode build)
 static inline bool WriteAsciiChar(wxOutputStream& ostr, char ch)
 {
@@ -1118,8 +1129,11 @@ static inline bool WriteAsciiString(wxOutputStream& ostr, const wxString& s)
     return ostr.IsOk();
 }
 
+#endif // wxUSE_STREAMS
+
 bool wxRegKey::Export(const wxString& filename) const
 {
+#if wxUSE_FFILE && wxUSE_STREAMS
     if ( wxFile::Exists(filename) )
     {
         wxLogError(_("Exporting registry key: file \"%s\" already exists and won't be overwritten."),
@@ -1130,8 +1144,13 @@ bool wxRegKey::Export(const wxString& filename) const
     wxFFileOutputStream ostr(filename, _T("w"));
 
     return ostr.Ok() && Export(ostr);
+#else
+    wxUnusedVar(filename);
+    return false;
+#endif
 }
 
+#if wxUSE_STREAMS
 bool wxRegKey::Export(wxOutputStream& ostr) const
 {
     // write out the header
@@ -1140,6 +1159,7 @@ bool wxRegKey::Export(wxOutputStream& ostr) const
 
     return DoExport(ostr);
 }
+#endif // wxUSE_STREAMS
 
 static
 wxString
@@ -1270,6 +1290,8 @@ wxString wxRegKey::FormatValue(const wxString& name) const
     return rhs;
 }
 
+#if wxUSE_STREAMS
+
 bool wxRegKey::DoExportValue(wxOutputStream& ostr, const wxString& name) const
 {
     // first examine the value type: if it's unsupported, simply skip it
@@ -1349,6 +1371,8 @@ bool wxRegKey::DoExport(wxOutputStream& ostr) const
     return true;
 }
 
+#endif // wxUSE_STREAMS
+
 // ============================================================================
 // implementation of global private functions
 // ============================================================================
@@ -1389,7 +1413,7 @@ const wxChar *GetFullName(const wxRegKey *pKey, const wxChar *szValue)
 
 void RemoveTrailingSeparator(wxString& str)
 {
-  if ( !str.IsEmpty() && str.Last() == REG_SEPARATOR )
+  if ( !str.empty() && str.Last() == REG_SEPARATOR )
     str.Truncate(str.Len() - 1);
 }
 

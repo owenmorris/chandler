@@ -67,10 +67,6 @@
     IMPLEMENT_DYNAMIC_CLASS(wxFontData, wxObject)
     IMPLEMENT_DYNAMIC_CLASS(wxColourData, wxObject)
 
-#ifndef DMPAPER_USER
-     #define DMPAPER_USER                256
-#endif
-
 // ============================================================================
 // implementation
 // ============================================================================
@@ -588,7 +584,7 @@ wxPageSetupDialogData& wxPageSetupDialogData::operator=(const wxPageSetupDialogD
     m_enableOrientation = data.m_enableOrientation;
     m_enablePaper = data.m_enablePaper;
     m_enablePrinter = data.m_enablePrinter;
-    m_getDefaultInfo = data.m_getDefaultInfo;;
+    m_getDefaultInfo = data.m_getDefaultInfo;
     m_enableHelp = data.m_enableHelp;
 
     m_printData = data.m_printData;

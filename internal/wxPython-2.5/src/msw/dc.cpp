@@ -131,13 +131,13 @@ static inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 // otherwise
 static bool AlphaBlt(HDC hdcDst,
                      int x, int y, int w, int h,
-                     HDC hdcSrc,
+                     int srcX, int srcY, HDC hdcSrc,
                      const wxBitmap& bmpSrc);
 
 #ifdef wxHAVE_RAW_BITMAP
 // our (limited) AlphaBlend() replacement
 static void
-wxAlphaBlend(HDC hdcDst, int x, int y, int w, int h, const wxBitmap& bmp);
+wxAlphaBlend(HDC hdcDst, int x, int y, int w, int h, int srcX, int srcY, const wxBitmap& bmp);
 #endif
 
 // ----------------------------------------------------------------------------
@@ -170,15 +170,14 @@ private:
 class StretchBltModeChanger
 {
 public:
-    StretchBltModeChanger(HDC hdc, int mode)
+    StretchBltModeChanger(HDC hdc,
+                          int WXUNUSED_IN_WINCE(mode))
         : m_hdc(hdc)
     {
 #ifndef __WXWINCE__
         m_modeOld = ::SetStretchBltMode(m_hdc, mode);
         if ( !m_modeOld )
             wxLogLastError(_T("SetStretchBltMode"));
-#else
-        wxUnusedVar(mode);
 #endif
     }
 
@@ -560,16 +559,14 @@ void wxDC::Clear()
 #endif
 }
 
-bool wxDC::DoFloodFill(wxCoord x, wxCoord y, const wxColour& col, int style)
+bool wxDC::DoFloodFill(wxCoord WXUNUSED_IN_WINCE(x),
+                       wxCoord WXUNUSED_IN_WINCE(y),
+                       const wxColour& WXUNUSED_IN_WINCE(col),
+                       int WXUNUSED_IN_WINCE(style))
 {
 #ifdef __WXWINCE__
-    wxUnusedVar(x);
-    wxUnusedVar(y);
-    wxUnusedVar(col);
-    wxUnusedVar(style);
     return false;
 #else
-
     WXMICROWIN_CHECK_HDC_RET(false)
 
     bool success = (0 != ::ExtFloodFill(GetHdc(), XLOG2DEV(x), YLOG2DEV(y),
@@ -758,7 +755,11 @@ void wxDC::DoDrawPoint(wxCoord x, wxCoord y)
     CalcBoundingBox(x, y);
 }
 
-void wxDC::DoDrawPolygon(int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset,int fillStyle)
+void wxDC::DoDrawPolygon(int n,
+                         wxPoint points[],
+                         wxCoord xoffset,
+                         wxCoord yoffset,
+                         int WXUNUSED_IN_WINCE(fillStyle))
 {
     WXMICROWIN_CHECK_HDC
 
@@ -778,8 +779,6 @@ void wxDC::DoDrawPolygon(int n, wxPoint points[], wxCoord xoffset, wxCoord yoffs
         }
 #ifndef __WXWINCE__
         int prev = SetPolyFillMode(GetHdc(),fillStyle==wxODDEVEN_RULE?ALTERNATE:WINDING);
-#else
-        wxUnusedVar(fillStyle);
 #endif
         (void)Polygon(GetHdc(), cpoints, n);
 #ifndef __WXWINCE__
@@ -1065,7 +1064,7 @@ void wxDC::DoDrawBitmap( const wxBitmap &bmp, wxCoord x, wxCoord y, bool useMask
         MemoryHDC hdcMem;
         SelectInHDC select(hdcMem, GetHbitmapOf(bmp));
 
-        if ( AlphaBlt(GetHdc(), x, y, width, height, hdcMem, bmp) )
+        if ( AlphaBlt(GetHdc(), x, y, width, height, 0, 0, hdcMem, bmp) )
             return;
     }
 
@@ -1635,7 +1634,7 @@ void wxDC::DoGetTextExtent(const wxString& string, wxCoord *x, wxCoord *y,
     SIZE sizeRect;
     TEXTMETRIC tm;
 
-    GetTextExtentPoint(GetHdc(), string, string.length(), &sizeRect);
+    ::GetTextExtentPoint32(GetHdc(), string, string.length(), &sizeRect);
     GetTextMetrics(GetHdc(), &tm);
 
     if (x)
@@ -1780,7 +1779,8 @@ void wxDC::SetUserScale(double x, double y)
     this->SetMapMode(m_mappingMode);
 }
 
-void wxDC::SetAxisOrientation(bool xLeftRight, bool yBottomUp)
+void wxDC::SetAxisOrientation(bool WXUNUSED_IN_WINCE(xLeftRight),
+                              bool WXUNUSED_IN_WINCE(yBottomUp))
 {
     WXMICROWIN_CHECK_HDC
 
@@ -1795,9 +1795,6 @@ void wxDC::SetAxisOrientation(bool xLeftRight, bool yBottomUp)
 
         SetMapMode(m_mappingMode);
     }
-#else
-    wxUnusedVar(xLeftRight);
-    wxUnusedVar(yBottomUp);
 #endif
 }
 
@@ -1913,7 +1910,7 @@ bool wxDC::DoBlit(wxCoord xdest, wxCoord ydest,
             (m_selectedBitmap.Ok() && m_selectedBitmap.HasAlpha())) )
     {
         if ( AlphaBlt(GetHdc(), xdest, ydest, width, height,
-                      GetHdcOf(*source), bmpSrc) )
+                      xsrc, ysrc, GetHdcOf(*source), bmpSrc) )
             return true;
     }
 
@@ -2388,7 +2385,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxDCModule, wxModule)
 
 static bool AlphaBlt(HDC hdcDst,
                      int x, int y, int width, int height,
-                     HDC hdcSrc,
+                     int srcX, int srcY, HDC hdcSrc,
                      const wxBitmap& bmp)
 {
     wxASSERT_MSG( bmp.Ok() && bmp.HasAlpha(), _T("AlphaBlt(): invalid bitmap") );
@@ -2436,7 +2433,7 @@ static bool AlphaBlt(HDC hdcDst,
         bf.AlphaFormat = AC_SRC_ALPHA;
 
         if ( pfnAlphaBlend(hdcDst, x, y, width, height,
-                           hdcSrc, 0, 0, width, height,
+                           hdcSrc, srcX, srcY, width, height,
                            bf) )
         {
             // skip wxAlphaBlend() call below
@@ -2450,7 +2447,7 @@ static bool AlphaBlt(HDC hdcDst,
     // AlphaBlend() unavailable of failed: use our own (probably much slower)
     // implementation
 #ifdef wxHAVE_RAW_BITMAP
-    wxAlphaBlend(hdcDst, x, y, width, height, bmp);
+    wxAlphaBlend(hdcDst, x, y, width, height, srcX, srcY, bmp);
 
     return true;
 #else // !wxHAVE_RAW_BITMAP
@@ -2466,7 +2463,7 @@ static bool AlphaBlt(HDC hdcDst,
 #ifdef wxHAVE_RAW_BITMAP
 
 static void
-wxAlphaBlend(HDC hdcDst, int xDst, int yDst, int w, int h, const wxBitmap& bmpSrc)
+wxAlphaBlend(HDC hdcDst, int xDst, int yDst, int w, int h, int srcX, int srcY, const wxBitmap& bmpSrc)
 {
     // get the destination DC pixels
     wxBitmap bmpDst(w, h, 32 /* force creating RGBA DIB */);
@@ -2487,6 +2484,8 @@ wxAlphaBlend(HDC hdcDst, int xDst, int yDst, int w, int h, const wxBitmap& bmpSr
 
     wxAlphaPixelData::Iterator pDst(dataDst),
                                pSrc(dataSrc);
+
+    pSrc.Offset(dataSrc, srcX, srcY);
 
     for ( int y = 0; y < h; y++ )
     {

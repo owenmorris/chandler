@@ -158,6 +158,9 @@ public:
     // return true if the frame is in fullscreen mode
     virtual bool IsFullScreen() const = 0;
 
+    // VELL - added
+    virtual void ForceRedraw( void );
+
     /*
        for now we already have them in wxWindow, but this is wrong: these
        methods really only make sense for wxTopLevelWindow!

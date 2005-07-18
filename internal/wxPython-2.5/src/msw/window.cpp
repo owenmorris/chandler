@@ -47,12 +47,14 @@
     #include "wx/msgdlg.h"
     #include "wx/settings.h"
     #include "wx/statbox.h"
+    #include "wx/sizer.h"
 #endif
 
 #if wxUSE_OWNER_DRAWN && !defined(__WXUNIVERSAL__)
     #include "wx/ownerdrw.h"
 #endif
 
+#include "wx/evtloop.h"
 #include "wx/module.h"
 #include "wx/sysopt.h"
 
@@ -107,13 +109,7 @@
     #include <windowsx.h>
 #endif
 
-#if (!defined(__GNUWIN32_OLD__) && !defined(__WXMICROWIN__) /* && !defined(__WXWINCE__) */ ) || defined(__CYGWIN10__)
-    #ifdef __WIN95__
         #include <commctrl.h>
-    #endif
-#elif !defined(__WXMICROWIN__) && !defined(__WXWINCE__) // broken compiler
-    #include "wx/msw/gnuwin32/extra.h"
-#endif
 
 #include "wx/msw/missing.h"
 
@@ -124,6 +120,9 @@
 #if defined(TME_LEAVE) && defined(WM_MOUSELEAVE)
     #define HAVE_TRACKMOUSEEVENT
 #endif // everything needed for TrackMouseEvent()
+
+#define USE_DEFERRED_SIZING 1
+#define USE_DEFER_BUG_WORKAROUND 1
 
 // ---------------------------------------------------------------------------
 // global variables
@@ -467,6 +466,9 @@ void wxWindowMSW::Init()
     m_lastMouseY = -1;
     m_lastMouseEvent = -1;
 #endif // wxUSE_MOUSEEVENT_HACK
+
+    m_pendingPosition = wxDefaultPosition;
+    m_pendingSize = wxDefaultSize;
 }
 
 // Destructor
@@ -514,6 +516,7 @@ wxWindowMSW::~wxWindowMSW()
     }
 
     delete m_childrenDisabled;
+
 }
 
 // real construction (Init() must have been called before!)
@@ -818,7 +821,7 @@ inline int GetScrollPosition(HWND hWnd, int wOrient)
                           wOrient,
                           &scrollInfo) )
     {
-        // Not neccessarily an error, if there are no scrollbars yet.
+        // Not necessarily an error, if there are no scrollbars yet.
         // wxLogLastError(_T("GetScrollInfo"));
     }
     return scrollInfo.nPos;
@@ -1058,7 +1061,8 @@ void wxWindowMSW::DissociateHandle()
 }
 
 
-bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc)
+bool wxCheckWindowWndProc(WXHWND hWnd,
+                          WXFARPROC WXUNUSED_IN_WINCE(wndProc))
 {
     // Unicows note: the code below works, but only because WNDCLASS contains
     // original window handler rather that the unicows fake one. This may not
@@ -1070,8 +1074,6 @@ bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc)
     // On WinCE (at least), the wndproc comparison doesn't work,
     // so have to use something like this.
 #ifdef __WXWINCE__
-    wxUnusedVar(wndProc);
-
     extern       wxChar *wxCanvasClassName;
     extern       wxChar *wxCanvasClassNameNR;
     extern const wxChar *wxMDIFrameClassName;
@@ -1368,7 +1370,8 @@ void wxWindowMSW::Refresh(bool eraseBack, const wxRect *rect)
             pRect = NULL;
         }
 
-#ifndef __SMARTPHONE__
+        // RedrawWindow not available on SmartPhone or eVC++ 3
+#if !defined(__SMARTPHONE__) && !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
         UINT flags = RDW_INVALIDATE | RDW_ALLCHILDREN;
         if ( eraseBack )
             flags |= RDW_ERASE;
@@ -1415,14 +1418,12 @@ void wxWindowMSW::SetDropTarget(wxDropTarget *pDropTarget)
 
 // old style file-manager drag&drop support: we retain the old-style
 // DragAcceptFiles in parallel with SetDropTarget.
-void wxWindowMSW::DragAcceptFiles(bool accept)
+void wxWindowMSW::DragAcceptFiles(bool WXUNUSED_IN_WINCE(accept))
 {
-#if !defined(__WXWINCE__)
+#ifndef __WXWINCE__
     HWND hWnd = GetHwnd();
     if ( hWnd )
         ::DragAcceptFiles(hWnd, (BOOL)accept);
-#else
-    wxUnusedVar(accept);
 #endif
 }
 
@@ -1552,29 +1553,20 @@ void wxWindowMSW::DoMoveWindow(int x, int y, int width, int height)
     // if our parent had prepared a defer window handle for us, use it (unless
     // we are a top level window)
     wxWindowMSW *parent = GetParent();
-    HDWP hdwp = parent && !IsTopLevel() ? (HDWP)parent->m_hDWP : NULL;
-    if ( hdwp )
-    {
-        hdwp = ::DeferWindowPos(hdwp, GetHwnd(), NULL,
-                            x, y, width, height,
-                            SWP_NOZORDER);
-        if ( !hdwp )
-        {
-            wxLogLastError(_T("DeferWindowPos"));
-        }
 
+#if USE_DEFERRED_SIZING
+    HDWP hdwp = parent && !IsTopLevel() ? (HDWP)parent->m_hDWP : NULL;
+#else
+    HDWP hdwp = 0;
+#endif
+
+    wxMoveWindowDeferred(hdwp, this, GetHwnd(), x, y, width, height);
+
+#if USE_DEFERRED_SIZING
+    if ( parent )
         // hdwp must be updated as it may have been changed
         parent->m_hDWP = (WXHANDLE)hdwp;
-    }
-
-    // otherwise (or if deferring failed) move the window in place immediately
-    if ( !hdwp )
-    {
-        if ( !::MoveWindow(GetHwnd(), x, y, width, height, IsShown()) )
-        {
-            wxLogLastError(wxT("MoveWindow"));
-        }
-    }
+#endif
 }
 
 // set the size of the window: if the dimensions are positive, just use them,
@@ -1589,9 +1581,28 @@ void wxWindowMSW::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     // get the current size and position...
     int currentX, currentY;
+    int currentW, currentH;
+
+#if USE_DEFER_BUG_WORKAROUND
+    currentX = m_pendingPosition.x;
+    if (currentX == wxDefaultCoord)
+        GetPosition(&currentX, NULL);
+
+    currentY = m_pendingPosition.y;
+    if (currentY == wxDefaultCoord)
+        GetPosition(NULL, &currentY);
+
+    currentW = m_pendingSize.x;
+    if (currentW == wxDefaultCoord)
+        GetSize(&currentW, NULL);
+
+    currentH = m_pendingSize.y;
+    if (currentH == wxDefaultCoord)
+        GetSize(NULL, &currentH);
+#else
     GetPosition(&currentX, &currentY);
-    int currentW,currentH;
     GetSize(&currentW, &currentH);
+#endif
 
     // ... and don't do anything (avoiding flicker) if it's already ok
     if ( x == currentX && y == currentY &&
@@ -1641,6 +1652,25 @@ void wxWindowMSW::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         }
     }
 
+#if USE_DEFER_BUG_WORKAROUND
+    // We don't actually use the hdwp here, but we need to know whether to
+    // save the pending dimensions or not.  This isn't done in DoMoveWindow
+    // (where the hdwp is used) because some controls have thier own
+    // DoMoveWindow so it is easier to catch it here.
+    wxWindowMSW *parent = GetParent();
+    HDWP hdwp = parent && !IsTopLevel() ? (HDWP)parent->m_hDWP : NULL;
+    if (hdwp)
+    {
+        m_pendingPosition = wxPoint(x, y);
+        m_pendingSize = wxSize(width, height);
+    }
+    else
+    {
+        m_pendingPosition = wxDefaultPosition;
+        m_pendingSize = wxDefaultSize;
+    }
+#endif
+
     DoMoveWindow(x, y, width, height);
 }
 
@@ -1663,15 +1693,12 @@ void wxWindowMSW::DoSetClientSize(int width, int height)
         RECT rectClient;
         ::GetClientRect(GetHwnd(), &rectClient);
 
-        // if the size is already ok, stop here (rectClient.left = top = 0)
+        // if the size is already ok, stop here (NB: rectClient.left = top = 0)
         if ( (rectClient.right == width || width == wxDefaultCoord) &&
              (rectClient.bottom == height || height == wxDefaultCoord) )
         {
             break;
         }
-
-        int widthClient = width,
-            heightClient = height;
 
         // Find the difference between the entire window (title bar and all)
         // and the client area; add this to the new client size to move the
@@ -1679,12 +1706,8 @@ void wxWindowMSW::DoSetClientSize(int width, int height)
         RECT rectWin;
         ::GetWindowRect(GetHwnd(), &rectWin);
 
-        widthClient += rectWin.right - rectWin.left - rectClient.right;
-        heightClient += rectWin.bottom - rectWin.top - rectClient.bottom;
-
-        POINT point;
-        point.x = rectWin.left;
-        point.y = rectWin.top;
+        const int widthWin = rectWin.right - rectWin.left,
+                  heightWin = rectWin.bottom - rectWin.top;
 
         // MoveWindow positions the child windows relative to the parent, so
         // adjust if necessary
@@ -1693,11 +1716,21 @@ void wxWindowMSW::DoSetClientSize(int width, int height)
             wxWindow *parent = GetParent();
             if ( parent )
             {
-                ::ScreenToClient(GetHwndOf(parent), &point);
+                ::ScreenToClient(GetHwndOf(parent), (POINT *)&rectWin);
             }
         }
 
-        DoMoveWindow(point.x, point.y, widthClient, heightClient);
+        // don't call DoMoveWindow() because we want to move window immediately
+        // and not defer it here
+        if ( !::MoveWindow(GetHwnd(),
+                           rectWin.left,
+                           rectWin.top,
+                           width + widthWin - rectClient.right,
+                           height + heightWin - rectClient.bottom,
+                           TRUE) )
+        {
+            wxLogLastError(_T("MoveWindow"));
+        }
     }
 }
 
@@ -1740,7 +1773,7 @@ void wxWindowMSW::GetTextExtent(const wxString& string,
 
     SIZE sizeRect;
     TEXTMETRIC tm;
-    GetTextExtentPoint(hdc, string, string.length(), &sizeRect);
+    ::GetTextExtentPoint32(hdc, string, string.length(), &sizeRect);
     GetTextMetrics(hdc, &tm);
 
     if ( x )
@@ -1906,38 +1939,6 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
                 case VK_RIGHT:
                     if ( (lDlgCode & DLGC_WANTARROWS) || bCtrlDown )
                         bProcess = false;
-                    break;
-
-                case VK_ESCAPE:
-                    {
-#if wxUSE_BUTTON
-                        wxButton *btn = wxDynamicCast(FindWindow(wxID_CANCEL),wxButton);
-
-                        // our own wxLogDialog should react to Esc
-                        // without Cancel button but this is a private class
-                        // so let's try recognize it by content
-    #if wxUSE_LOG_DIALOG
-                        if ( !btn &&
-                             wxDynamicCast(this,wxDialog) &&
-                             FindWindow(wxID_MORE) &&
-                             FindWindow(wxID_OK) &&
-                             !FindWindow(wxID_CANCEL) &&
-                             GetTitle().MakeLower().StartsWith(wxTheApp->GetAppName().c_str())
-                             )
-                            btn = wxDynamicCast(FindWindow(wxID_OK),wxButton);
-    #endif // wxUSE_LOG_DIALOG
-                        if ( btn && btn->IsEnabled() )
-                        {
-                            // if we do have a cancel button, do press it
-                            btn->MSWCommand(BN_CLICKED, 0 /* unused */);
-
-                            // we consumed the message
-                            return true;
-                        }
-#endif // wxUSE_BUTTON
-
-                        bProcess = false;
-                    }
                     break;
 
                 case VK_RETURN:
@@ -2229,7 +2230,7 @@ LRESULT WXDLLEXPORT APIENTRY _EXPORT wxWndProc(HWND hWnd, UINT message, WPARAM w
 
     LRESULT rc;
 
-    if ( wnd )
+    if ( wnd && wxEventLoop::AllowProcessing(wnd) )
         rc = wnd->MSWWindowProc(message, wParam, lParam);
     else
         rc = ::DefWindowProc(hWnd, message, wParam, lParam);
@@ -2321,6 +2322,28 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
             break;
 #endif // !__WXWINCE__
 
+#if !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
+        case WM_WINDOWPOSCHANGED:
+            {
+                WINDOWPOS *lpPos = (WINDOWPOS *)lParam;
+
+                if ( !(lpPos->flags & SWP_NOSIZE) )
+                {
+                    RECT rc;
+                    ::GetClientRect(GetHwnd(), &rc);
+
+                    AutoHRGN hrgnClient(::CreateRectRgnIndirect(&rc));
+                    AutoHRGN hrgnNew(::CreateRectRgn(lpPos->x,  lpPos->y,
+                                                     lpPos->cx, lpPos->cy));
+
+                    // we need to invalidate any new exposed areas here
+                    // to force them to repaint
+                    if ( ::CombineRgn(hrgnNew, hrgnNew, hrgnClient, RGN_DIFF) != NULLREGION )
+                        ::InvalidateRgn(GetHwnd(), hrgnNew, TRUE);
+                }
+            }
+            break;
+#endif
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
         case WM_ACTIVATEAPP:
             // This implicitly sends a wxEVT_ACTIVATE_APP event
@@ -3301,7 +3324,8 @@ bool wxWindowMSW::HandleEndSession(bool endSession, long logOff)
 // window creation/destruction
 // ---------------------------------------------------------------------------
 
-bool wxWindowMSW::HandleCreate(WXLPCREATESTRUCT cs, bool *mayCreate)
+bool wxWindowMSW::HandleCreate(WXLPCREATESTRUCT WXUNUSED_IN_WINCE(cs),
+                               bool *mayCreate)
 {
     // VZ: why is this commented out for WinCE? If it doesn't support
     //     WS_EX_CONTROLPARENT at all it should be somehow handled globally,
@@ -3309,8 +3333,6 @@ bool wxWindowMSW::HandleCreate(WXLPCREATESTRUCT cs, bool *mayCreate)
 #ifndef __WXWINCE__
     if ( ((CREATESTRUCT *)cs)->dwExStyle & WS_EX_CONTROLPARENT )
         EnsureParentHasControlParentStyle(GetParent());
-#else
-    wxUnusedVar(cs);
 #endif // !__WXWINCE__
 
     // TODO: should generate this event from WM_NCCREATE
@@ -3876,6 +3898,7 @@ extern wxCOLORMAP *wxGetStdColourMap()
             // we want to avoid Windows' "help" and for this we need to have a
             // reference bitmap which can tell us what the RGB values change
             // to.
+            wxLogNull logNo; // suppress error if we couldn't load the bitmap
             wxBitmap stdColourBitmap(_T("wxBITMAP_STD_COLOURS"));
             if ( stdColourBitmap.Ok() )
             {
@@ -4088,6 +4111,15 @@ bool wxWindowMSW::HandlePrintClient(WXHDC hDC)
     //
     // also note that in this case lParam == PRF_CLIENT but we're
     // clearly expected to paint the background and nothing else!
+
+    if ( IsTopLevel() || InheritsBackgroundColour() )
+        return false;
+
+    // sometimes we don't want the parent to handle it at all, instead
+    // return whatever value this window wants
+    if ( !MSWShouldPropagatePrintChild() )
+        return MSWPrintChild(hDC, (wxWindow *)this);
+
     for ( wxWindow *win = GetParent(); win; win = win->GetParent() )
     {
         if ( win->MSWPrintChild(hDC, (wxWindow *)this) )
@@ -4142,17 +4174,34 @@ bool wxWindowMSW::HandleMoving(wxRect& rect)
 
 bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
 {
+#if USE_DEFERRED_SIZING
     // when we resize this window, its children are probably going to be
     // repositioned as well, prepare to use DeferWindowPos() for them
-    const int numChildren = GetChildren().GetCount();
+    int numChildren = 0;
+    for ( HWND child = ::GetWindow(GetHwndOf(this), GW_CHILD);
+          child;
+          child = ::GetWindow(child, GW_HWNDNEXT) )
+    {
+        numChildren ++;
+    }
+
+    // Protect against valid m_hDWP being overwritten
+    bool useDefer = false;
+
     if ( numChildren > 1 )
+    {
+        if (!m_hDWP)
     {
         m_hDWP = (WXHANDLE)::BeginDeferWindowPos(numChildren);
         if ( !m_hDWP )
         {
             wxLogLastError(_T("BeginDeferWindowPos"));
         }
+            if (m_hDWP)
+                useDefer = true;
+        }
     }
+#endif
 
     // update this window size
     bool processed = false;
@@ -4185,8 +4234,9 @@ bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
             processed = GetEventHandler()->ProcessEvent(event);
     }
 
+#if USE_DEFERRED_SIZING
     // and finally change the positions of all child windows at once
-    if ( m_hDWP )
+    if ( useDefer && m_hDWP )
     {
         // reset m_hDWP to NULL so that child windows don't try to use our
         // m_hDWP after we call EndDeferWindowPos() on it (this shouldn't
@@ -4200,7 +4250,20 @@ bool wxWindowMSW::HandleSize(int WXUNUSED(w), int WXUNUSED(h), WXUINT wParam)
         {
             wxLogLastError(_T("EndDeferWindowPos"));
         }
+
+#if USE_DEFER_BUG_WORKAROUND
+        // Reset our children's pending pos/size values.
+        for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
+              node;
+              node = node->GetNext() )
+        {
+            wxWindowMSW *child = node->GetData();
+            child->m_pendingPosition = wxDefaultPosition;
+            child->m_pendingSize = wxDefaultSize;
+        }
+#endif
     }
+#endif
 
     return processed;
 }
@@ -4216,10 +4279,9 @@ bool wxWindowMSW::HandleSizing(wxRect& rect)
     return rc;
 }
 
-bool wxWindowMSW::HandleGetMinMaxInfo(void *mmInfo)
+bool wxWindowMSW::HandleGetMinMaxInfo(void *WXUNUSED_IN_WINCE(mmInfo))
 {
 #ifdef __WXWINCE__
-    wxUnusedVar(mmInfo);
     return false;
 #else
     MINMAXINFO *info = (MINMAXINFO *)mmInfo;
@@ -4736,7 +4798,8 @@ bool wxWindowMSW::HandleKeyUp(WXWPARAM wParam, WXLPARAM lParam)
     return false;
 }
 
-int wxWindowMSW::HandleMenuChar(int chAccel, WXLPARAM lParam)
+int wxWindowMSW::HandleMenuChar(int WXUNUSED_IN_WINCE(chAccel),
+                                WXLPARAM WXUNUSED_IN_WINCE(lParam))
 {
     // FIXME: implement GetMenuItemCount for WinCE, possibly
     // in terms of GetMenuItemInfo
@@ -4794,9 +4857,6 @@ int wxWindowMSW::HandleMenuChar(int chAccel, WXLPARAM lParam)
             wxLogLastError(_T("GetMenuItemInfo"));
         }
     }
-#else
-    wxUnusedVar(chAccel);
-    wxUnusedVar(lParam);
 #endif
     return wxNOT_FOUND;
 }
@@ -4954,7 +5014,7 @@ bool wxWindowMSW::MSWOnScroll(int orientation, WXWORD wParam,
                                                               : SB_VERT,
                                   &scrollInfo) )
             {
-                // Not neccessarily an error, if there are no scrollbars yet.
+                // Not necessarily an error, if there are no scrollbars yet.
                 // wxLogLastError(_T("GetScrollInfo"));
             }
 
@@ -5936,6 +5996,31 @@ bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
 #endif // wxUSE_ACCEL
 
 #endif // wxUSE_HOTKEY
+
+// Moves a window by deferred method or normal method
+bool wxMoveWindowDeferred(HDWP& hdwp, wxWindowBase* win, HWND hWnd, int x, int y, int width, int height)
+{
+    if ( hdwp )
+    {
+        hdwp = ::DeferWindowPos(hdwp, hWnd, NULL,
+                            x, y, width, height,
+                            SWP_NOZORDER);
+        if ( !hdwp )
+        {
+            wxLogLastError(_T("DeferWindowPos"));
+        }
+    }
+
+    // otherwise (or if deferring failed) move the window in place immediately
+    if ( !hdwp )
+    {
+        if ( !::MoveWindow(hWnd, x, y, width, height, win->IsShown()) )
+        {
+            wxLogLastError(wxT("MoveWindow"));
+        }
+    }
+    return hdwp != NULL;
+}
 
 // Not tested under WinCE
 #ifndef __WXWINCE__

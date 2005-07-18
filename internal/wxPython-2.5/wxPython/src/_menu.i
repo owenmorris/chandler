@@ -249,7 +249,7 @@ public:
     virtual void EnableTop(size_t pos, bool enable);
 
     // is the menu enabled?
-    virtual bool IsEnabledTop(size_t WXUNUSED(pos)) const { return true; }
+    virtual bool IsEnabledTop(size_t pos) const;
 
     // get or change the label of the menu at given position
     virtual void SetLabelTop(size_t pos, const wxString& label);
@@ -266,8 +266,7 @@ public:
     %Rename(FindItemById, virtual wxMenuItem*, FindItem(int id /*, wxMenu **menu = NULL*/) const);
 
     // find menu by its caption, return wxNOT_FOUND on failure
-    // NB: (davids) the final "const" is commented out to hack around a wxMac decl bug
-    int FindMenu(const wxString& title); // const;
+    int FindMenu(const wxString& title);
 
  
     // all these functions just use FindItem() and then call an appropriate
@@ -300,6 +299,16 @@ public:
 
     // called before deleting the menubar normally
     virtual void Detach();
+
+#ifdef __WXMAC__
+    static void SetAutoWindowMenu( bool enable );
+    static bool GetAutoWindowMenu();
+#else
+    %extend {
+        static void SetAutoWindowMenu( bool enable ) {}
+        static bool GetAutoWindowMenu() { return false; }
+    }
+#endif
 };
 
 //---------------------------------------------------------------------------

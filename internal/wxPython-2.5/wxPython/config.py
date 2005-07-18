@@ -38,9 +38,9 @@ import distutils.command.clean
 
 VER_MAJOR        = 2      # The first three must match wxWidgets
 VER_MINOR        = 6
-VER_RELEASE      = 0
-VER_SUBREL       = 0      # wxPython release num for x.y.z release of wxWidgets
-VER_FLAGS        = ""     # release flags, such as prerelease num, unicode, etc.
+VER_RELEASE      = 1
+VER_SUBREL       = 1      # wxPython release num for x.y.z release of wxWidgets
+VER_FLAGS        = "pre"  # release flags, such as prerelease or RC num, etc.
 
 DESCRIPTION      = "Cross platform GUI toolkit for Python"
 AUTHOR           = "Robin Dunn"
@@ -241,8 +241,9 @@ WXPYTHON_TYPE_TABLE = '_wxPython_table'
 #----------------------------------------------------------------------
 
 # Boolean (int) flags
-for flag in ['BUILD_GLCANVAS', 'BUILD_OGL', 'BUILD_STC', 
-             'BUILD_GIZMOS', 'BUILD_DLLWIDGET', 'BUILD_IEWIN', 'BUILD_ACTIVEX',
+for flag in [ 'BUILD_ACTIVEX', 'BUILD_ANIMATE', 'BUILD_DLLWIDGET',
+              'BUILD_GIZMOS', 'BUILD_GLCANVAS', 'BUILD_IEWIN',
+              'BUILD_OGL', 'BUILD_STC',     
              'CORE_ONLY', 'PREP_ONLY', 'USE_SWIG', 'UNICODE',
              'UNDEF_NDEBUG', 'NO_SCRIPTS', 'NO_HEADERS', 'BUILD_RENAMERS',
              'FULL_DOCS', 'INSTALL_MULTIVERSION', 'EP_ADD_OPTS',
@@ -751,6 +752,7 @@ elif os.name == 'posix':
     # uncomment this block to add the right flags to the link step and build
     # again.
     ## if os.uname()[0] == 'SunOS':
+    ##     import commands
     ##     libs.append('gcc')
     ##     libdirs.append(commands.getoutput("gcc -print-search-dirs | grep '^install' | awk '{print $2}'")[:-1])
 
@@ -842,7 +844,7 @@ VERSION = "%s.%s.%s.%s%s" % (VER_MAJOR, VER_MINOR, VER_RELEASE,
 # dirs as includes so we don't have to guess which is correct.
  
 wxfilesdir = ""
-i_subdir = opj("include", "wx", "wxPython", "i_files")
+i_subdir = opj("include", getExtraPath(), "wx", "wxPython", "i_files")
 if os.name != "nt":
     wxfilesdir = opj(WXPREFIX, i_subdir)
 else:
@@ -886,7 +888,7 @@ depends = [ #'include/wx/wxPython/wxPython.h',
 # BuildRenamers
 ####################################
 
-import pprint
+import pprint, shutil
 try:
     import libxml2
     FOUND_LIBXML2 = True
@@ -972,11 +974,14 @@ class BuildRenamers:
         # blow away the old one if they are different.
         for dest, temp in [(swigDest, swigDestTemp),
                            (pyDest, pyDestTemp)]:
+            # NOTE: we don't use shutil.move() because it was introduced
+            # in Python 2.3. Eventually we can switch to it when people
+            # stop building using 2.2.
             if not os.path.exists(dest):
-                os.rename(temp, dest)
+                shutil.copyfile(temp, dest)
             elif open(dest).read() != open(temp).read():
                 os.unlink(dest)
-                os.rename(temp, dest)
+                shutil.copyfile(temp, dest)
             else:
                 print dest + " not changed."
                 os.unlink(temp)

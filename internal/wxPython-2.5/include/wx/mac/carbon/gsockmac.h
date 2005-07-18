@@ -1,7 +1,9 @@
 /* -------------------------------------------------------------------------
- * Project: GSocket (Generic Socket) for WX
- * Name:    gsockunx.h
- * Purpose: GSocket Macintosh header
+ * Project:     GSocket (Generic Socket) for WX
+ * Name:        gsockunx.h
+ * Copyright:   (c) Guilhem Lavaux
+ * Licence:     wxWindows Licence
+ * Purpose:     GSocket Macintosh header
  * CVSID:   $Id$
  * -------------------------------------------------------------------------
  */

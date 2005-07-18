@@ -100,7 +100,7 @@ wxDatePickerCtrl::Create(wxWindow *parent,
     // supposed to initialize all common controls, in comctl32.dll 4.72 (and
     // presumably earlier versions 4.70 and 4.71, date time picker not being
     // supported in < 4.70 anyhow) it does not do it and we have to initialize
-    // it explicitely
+    // it explicitly
     static bool s_initDone = false; // MT-ok: used from GUI thread only
     if ( !s_initDone )
     {
@@ -180,7 +180,9 @@ wxSize wxDatePickerCtrl::DoGetBestSize() const
 {
     const int y = GetCharHeight();
 
-    return wxSize(DEFAULT_ITEM_WIDTH, EDIT_HEIGHT_FROM_CHAR_HEIGHT(y));
+    wxSize best(DEFAULT_ITEM_WIDTH, EDIT_HEIGHT_FROM_CHAR_HEIGHT(y));
+    CacheBestSize(best);
+    return best;
 }
 
 // ----------------------------------------------------------------------------

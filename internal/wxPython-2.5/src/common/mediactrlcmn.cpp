@@ -61,6 +61,16 @@ DEFINE_EVENT_TYPE(wxEVT_MEDIA_STOP);
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 //---------------------------------------------------------------------------
+// wxMediaBackend Destructor
+//
+// This is here because the DARWIN gcc compiler badly screwed up and
+// needs the destructor implementation in the source
+//---------------------------------------------------------------------------
+wxMediaBackend::~wxMediaBackend()
+{
+}
+
+//---------------------------------------------------------------------------
 // wxMediaCtrl::Create (file version)
 // wxMediaCtrl::Create (URL version)
 //
@@ -84,7 +94,9 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
 {
     if(!szBackend.empty())
     {
-        if(!DoCreate(wxClassInfo::FindClass(szBackend), parent, id,
+        wxClassInfo* pClassInfo = wxClassInfo::FindClass(szBackend);
+
+        if(!pClassInfo || !DoCreate(pClassInfo, parent, id,
                      pos, size, style, validator, name))
         {
             m_imp = NULL;
@@ -149,7 +161,8 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
 {
     if(!szBackend.empty())
     {
-        if(!DoCreate(wxClassInfo::FindClass(szBackend), parent, id,
+        wxClassInfo* pClassInfo = wxClassInfo::FindClass(szBackend);
+        if(!pClassInfo || !DoCreate(pClassInfo, parent, id,
                      pos, size, style, validator, name))
         {
             m_imp = NULL;
@@ -298,6 +311,8 @@ bool wxMediaCtrl::Load(const wxURI& location)
 // wxMediaCtrl::Length --> GetDuration
 // wxMediaCtrl::GetState
 // wxMediaCtrl::DoGetBestSize
+// wxMediaCtrl::SetVolume
+// wxMediaCtrl::GetVolume
 //
 // 1) Check to see whether the backend exists and is loading
 // 2) Call the backend's version of the method, returning success
@@ -363,7 +378,6 @@ wxFileOffset wxMediaCtrl::Seek(wxFileOffset where, wxSeekMode mode)
 
 wxFileOffset wxMediaCtrl::Tell()
 {
-    //FIXME
     if(m_imp && m_bLoaded)
         return (wxFileOffset) m_imp->GetPosition().ToLong();
     return wxInvalidOffset;
@@ -371,7 +385,6 @@ wxFileOffset wxMediaCtrl::Tell()
 
 wxFileOffset wxMediaCtrl::Length()
 {
-    //FIXME
     if(m_imp && m_bLoaded)
         return (wxFileOffset) m_imp->GetDuration().ToLong();
     return wxInvalidOffset;
@@ -391,6 +404,20 @@ wxSize wxMediaCtrl::DoGetBestSize() const
     return wxSize(0,0);
 }
 
+double wxMediaCtrl::GetVolume() 
+{
+    if(m_imp && m_bLoaded)
+        return m_imp->GetVolume();
+    return 0.0;
+}
+
+bool wxMediaCtrl::SetVolume(double dVolume) 
+{
+    if(m_imp && m_bLoaded)
+        return m_imp->SetVolume(dVolume);
+    return false;
+}
+
 //---------------------------------------------------------------------------
 // wxMediaCtrl::DoMoveWindow
 //
@@ -407,9 +434,6 @@ void wxMediaCtrl::DoMoveWindow(int x, int y, int w, int h)
         m_imp->Move(x, y, w, h);
 }
 
-//DARWIN gcc compiler badly screwed up - needs destructor impl in source
-wxMediaBackend::~wxMediaBackend()
-{                               }
 #include "wx/html/forcelnk.h"
 FORCE_LINK(basewxmediabackends);
 

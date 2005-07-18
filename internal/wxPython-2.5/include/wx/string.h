@@ -1463,12 +1463,6 @@ inline bool operator!=(const wxCharBuffer& s1, const wxString& s2)
     { return (s2.Cmp((const char *)s1) != 0); }
 #endif // wxUSE_UNICODE/!wxUSE_UNICODE
 
-wxString WXDLLIMPEXP_BASE operator+(const wxString& string1,  const wxString& string2);
-wxString WXDLLIMPEXP_BASE operator+(const wxString& string, wxChar ch);
-wxString WXDLLIMPEXP_BASE operator+(wxChar ch, const wxString& string);
-wxString WXDLLIMPEXP_BASE operator+(const wxString& string, const wxChar *psz);
-wxString WXDLLIMPEXP_BASE operator+(const wxChar *psz, const wxString& string);
-
 #if wxUSE_UNICODE
 inline wxString operator+(const wxString& string, const wxWCharBuffer& buf)
     { return string + (const wchar_t *)buf; }

@@ -32,6 +32,11 @@
 
 #include "wx/msw/private.h"
 
+// include <commctrl.h> "properly"
+#include "wx/msw/wrapcctl.h"
+
+#include "wx/msw/missing.h"
+
 // Set this to 1 to be _absolutely_ sure that repainting will work for all
 // comctl32.dll versions
 #define wxUSE_COMCTL32_SAFELY 0
@@ -43,9 +48,6 @@
 #include "wx/settings.h"
 #include "wx/msw/treectrl.h"
 #include "wx/msw/dragimag.h"
-
-// include <commctrl.h> "properly"
-#include "wx/msw/wrapcctl.h"
 
 // macros to hide the cast ugliness
 // --------------------------------
@@ -346,7 +348,8 @@ public:
         {
             m_selections.Empty();
 
-            DoTraverse(tree->GetRootItem());
+            if (tree->GetCount() > 0)
+                DoTraverse(tree->GetRootItem());
         }
 
     virtual bool OnVisit(const wxTreeItemId& item)
@@ -677,7 +680,7 @@ bool wxTreeCtrl::Create(wxWindow *parent,
         wstyle |= TVS_CHECKBOXES;
 #endif // wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE
 
-#ifndef __WXWINCE__
+#if !defined(__WXWINCE__) && defined(TVS_INFOTIP)
     // Need so that TVN_GETINFOTIP messages will be sent
     wstyle |= TVS_INFOTIP;
 #endif
@@ -2243,13 +2246,37 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
     WXLRESULT rc = 0;
     bool isMultiple = HasFlag(wxTR_MULTIPLE);
 
+    // This message is sent after a right-click, or when the "menu" key is pressed
     if ( nMsg == WM_CONTEXTMENU )
     {
+        int x = GET_X_LPARAM(lParam),
+            y = GET_Y_LPARAM(lParam);
+        // Convert the screen point to a client point
+        wxPoint MenuPoint = ScreenToClient(wxPoint(x, y));
+
         wxTreeEvent event( wxEVT_COMMAND_TREE_ITEM_MENU, GetId() );
 
         // can't use GetSelection() here as it would assert in multiselect mode
         event.m_item = wxTreeItemId(TreeView_GetSelection(GetHwnd()));
         event.SetEventObject( this );
+
+        // Get the bounding rectangle for the item, including the non-text areas
+        wxRect ItemRect;
+        GetBoundingRect(event.m_item, ItemRect, false);
+        // If the point is inside the bounding rectangle, use it as the click position.
+        // This should be the case for WM_CONTEXTMENU as the result of a right-click
+        if (ItemRect.Inside(MenuPoint))
+        {
+            event.m_pointDrag = MenuPoint;
+        }
+        // Use the Explorer standard of putting the menu at the left edge of the text,
+        // in the vertical middle of the text. Should be the case for the "menu" key
+        else
+        {
+            // Use the bounding rectangle of only the text part
+            GetBoundingRect(event.m_item, ItemRect, true);
+            event.m_pointDrag = wxPoint(ItemRect.GetX(), ItemRect.GetY() + ItemRect.GetHeight() / 2);
+        }
 
         if ( GetEventHandler()->ProcessEvent(event) )
             processed = true;
@@ -2262,6 +2289,12 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
         int x = GET_X_LPARAM(lParam),
             y = GET_Y_LPARAM(lParam);
         HTREEITEM htItem = GetItemFromPoint(GetHwnd(), x, y);
+        
+        TV_HITTESTINFO tvht;
+        tvht.pt.x = x;
+        tvht.pt.y = y;
+    
+        TreeView_HitTest(GetHwnd(), &tvht);
 
         switch ( nMsg )
         {
@@ -2282,8 +2315,11 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 
 #if !wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE
             case WM_LBUTTONDOWN:
-                if ( htItem && isMultiple )
+                if ( htItem && isMultiple && (tvht.flags & TVHT_ONITEM) != 0 )
                 {
+                    m_htClickedItem = (WXHTREEITEM) htItem;
+                    m_ptClick = wxPoint(x, y);
+                    
                     if ( wParam & MK_CONTROL )
                     {
                         SetFocus();
@@ -2309,8 +2345,11 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                             m_htSelStart = TreeView_GetSelection(GetHwnd());
                         }
 
-                        SelectRange(GetHwnd(), HITEM(m_htSelStart), htItem,
+                        if ( m_htSelStart )
+                            SelectRange(GetHwnd(), HITEM(m_htSelStart), htItem,
                                     !(wParam & MK_CONTROL));
+                        else
+                            ::SelectItem(GetHwnd(), htItem);
 
                         ::SetFocus(GetHwnd(), htItem);
 
@@ -2320,6 +2359,8 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                     {
                         // avoid doing anything if we click on the only
                         // currently selected item
+
+                        SetFocus();
 
                         wxArrayTreeItemIds selections;
                         size_t count = GetSelections(selections);
@@ -2332,11 +2373,7 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                             // otherwise, perform the deselection on mouse-up.
                             // this allows multiple drag and drop to work.
 
-                            if (IsItemSelected(GetHwnd(), htItem))
-                            {
-                                ::SetFocus(GetHwnd(), htItem);
-                            }
-                             else
+                            if (!IsItemSelected(GetHwnd(), htItem))
                             {
                                 UnselectAll();
 
@@ -2348,6 +2385,8 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                                 TreeView_SelectItem(GetHwnd(), 0);
                                 ::SelectItem(GetHwnd(), htItem);
                             }
+                            ::SetFocus(GetHwnd(), htItem);
+                            processed = true;
                         }
 
                         // reset on any click without Shift
@@ -2358,6 +2397,45 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 #endif // wxUSE_CHECKBOXES_IN_MULTI_SEL_TREE
 
             case WM_MOUSEMOVE:
+#ifndef __WXWINCE__
+                if ( m_htClickedItem )
+                {
+                    int cx = abs(m_ptClick.x - x);
+                    int cy = abs(m_ptClick.y - y);
+
+                    if ( cx > GetSystemMetrics( SM_CXDRAG ) || cy > GetSystemMetrics( SM_CYDRAG ) )
+                    {
+                        HWND pWnd = ::GetParent( GetHwnd() );
+                        if ( pWnd )
+                        {
+                            NM_TREEVIEW tv;
+
+                            tv.hdr.hwndFrom = GetHwnd();
+                            tv.hdr.idFrom = ::GetWindowLong( GetHwnd(), GWL_ID );
+                            tv.hdr.code = TVN_BEGINDRAG;
+            
+                            tv.itemNew.hItem = HITEM(m_htClickedItem);
+                            
+                            TVITEM tviAux;
+                            ZeroMemory(&tviAux, sizeof(tviAux));
+                            tviAux.hItem = HITEM(m_htClickedItem);
+                            tviAux.mask = TVIF_STATE | TVIF_PARAM;
+                            tviAux.stateMask = 0xffffffff;
+                            TreeView_GetItem( GetHwnd(), &tviAux );
+                            
+                            tv.itemNew.state = tviAux.state;
+                            tv.itemNew.lParam = tviAux.lParam;
+            
+                            tv.ptDrag.x = x;
+                            tv.ptDrag.y = y;
+            
+                            ::SendMessage( pWnd, WM_NOTIFY, tv.hdr.idFrom, (LPARAM)&tv );
+                        }
+                        m_htClickedItem.Unset();
+                    }
+                }
+#endif // __WXWINCE__
+                
                 if ( m_dragImage )
                 {
                     m_dragImage->Move(wxPoint(x, y));
@@ -2386,7 +2464,10 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                     {
                         UnselectAll();
                         TreeView_SelectItem(GetHwnd(), htItem);
+                        ::SelectItem(GetHwnd(), htItem);
+                        ::SetFocus(GetHwnd(), htItem);
                     }
+                    m_htClickedItem.Unset();
                 }
 
                 // fall through
@@ -2668,6 +2749,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 break;
             }
 
+#ifdef TVN_GETINFOTIP
         case TVN_GETINFOTIP:
             {
                 eventType = wxEVT_COMMAND_TREE_ITEM_GETTOOLTIP;
@@ -2678,6 +2760,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 
                 break;
             }
+#endif
 #endif
 
         case TVN_GETDISPINFO:
@@ -2734,8 +2817,8 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 // fabricate the lParam and wParam parameters sufficiently
                 // similar to the ones from a "real" WM_KEYDOWN so that
                 // CreateKeyEvent() works correctly
-                WXLPARAM lParam =
-                     (::GetKeyState(VK_MENU) < 0 ? KF_ALTDOWN : 0) << 16;
+                const bool isAltDown = ::GetKeyState(VK_MENU) < 0;
+                WXLPARAM lParam = (isAltDown ? KF_ALTDOWN : 0) << 16;
 
                 WXWPARAM wParam = info->wVKey;
 
@@ -2753,7 +2836,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                                                 wParam);
 
                 // a separate event for Space/Return
-                if ( !wxIsCtrlDown() && !wxIsShiftDown() &&
+                if ( !wxIsCtrlDown() && !wxIsShiftDown() && !isAltDown &&
                      ((info->wVKey == VK_SPACE) || (info->wVKey == VK_RETURN)) )
                 {
                     wxTreeEvent event2(wxEVT_COMMAND_TREE_ITEM_ACTIVATED,
@@ -3032,6 +3115,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             break;
 
 #ifndef __WXWINCE__
+#ifdef TVN_GETINFOTIP
          case TVN_GETINFOTIP:
             {
                 // If the user permitted a tooltip change, change it
@@ -3041,6 +3125,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 }
             }
             break;
+#endif
 #endif
 
         case TVN_SELCHANGING:

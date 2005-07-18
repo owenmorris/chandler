@@ -42,6 +42,11 @@
     #define WXUNUSED_IN_GTK1(arg)
 #endif
 
+// RR: After a correction to the orientation of the sash
+//     this doesn't seem to be required anymore and it
+//     seems to confuse some themes so USE_ERASE_RECT=0
+#define USE_ERASE_RECT 0
+
 // ----------------------------------------------------------------------------
 // wxRendererGTK: our wxRendererNative implementation
 // ----------------------------------------------------------------------------
@@ -289,7 +294,10 @@ wxRendererGTK::DrawSplitterSash(wxWindow *win,
     const bool isVert = orient == wxVERTICAL;
 
     GdkRectangle rect;
+#if USE_ERASE_RECT
     GdkRectangle erase_rect;
+#endif
+
     if ( isVert )
     {
         int h = win->GetClientSize().GetHeight();
@@ -299,10 +307,12 @@ wxRendererGTK::DrawSplitterSash(wxWindow *win,
         rect.width = full_size;
         rect.height = h;
 
+#if USE_ERASE_RECT
         erase_rect.x = position;
         erase_rect.y = 0;
         erase_rect.width = full_size;
         erase_rect.height = h;
+#endif
     }
     else // horz
     {
@@ -313,17 +323,15 @@ wxRendererGTK::DrawSplitterSash(wxWindow *win,
         rect.height = full_size;
         rect.width = w;
 
+#if USE_ERASE_RECT
         erase_rect.y = position;
         erase_rect.x = 0;
         erase_rect.height = full_size;
         erase_rect.width = w;
+#endif
     }
 
-#if 0
-    // RR: After a correction to the orientation of the sash
-    //     this doesn't seem to be required anymore and it
-    //     seems to confuse some themes
-
+#if USE_ERASE_RECT
     // we must erase everything first, otherwise the garbage
     // from the old sash is left when dragging it
     gtk_paint_flat_box

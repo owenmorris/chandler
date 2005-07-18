@@ -76,8 +76,6 @@ extern wxList wxPendingDelete;
     IMPLEMENT_DYNAMIC_CLASS(wxWindow, wxWindowBase)
 #endif // __WXUNIVERSAL__/__WXMAC__
 
-#if !USE_SHARED_LIBRARY
-
 BEGIN_EVENT_TABLE(wxWindowMac, wxWindowBase)
     EVT_NC_PAINT(wxWindowMac::OnNcPaint)
     EVT_ERASE_BACKGROUND(wxWindowMac::OnEraseBackground)
@@ -88,8 +86,6 @@ BEGIN_EVENT_TABLE(wxWindowMac, wxWindowBase)
     EVT_KILL_FOCUS(wxWindowMac::OnSetFocus)
     EVT_MOUSE_EVENTS(wxWindowMac::OnMouseEvent)
 END_EVENT_TABLE()
-
-#endif
 
 #define wxMAC_DEBUG_REDRAW 0
 #ifndef wxMAC_DEBUG_REDRAW
@@ -222,16 +218,6 @@ static pascal OSStatus wxMacWindowControlEventHandler( EventHandlerCallRef handl
                 {
                     if ( thisWindow->GetPeer()->IsCompositing() == false )
                     {
-/*
-                        if ( thisWindow->GetPeer()->IsRootControl() == false )
-                        {
-                            GetControlBounds( thisWindow->GetPeer()->GetControlRef() , &controlBounds ) ;
-                        }
-                        else
-                        {
-                            thisWindow->GetPeer()->GetRect( &controlBounds ) ;
-                        }
-*/ 
                         allocatedRgn = NewRgn() ;
                         CopyRgn( updateRgn , allocatedRgn ) ;
                         OffsetRgn( allocatedRgn , -controlBounds.left , -controlBounds.top ) ;
@@ -485,6 +471,7 @@ pascal OSStatus wxMacWindowEventHandler( EventHandlerCallRef handler , EventRef 
             break ;
         case kEventClassService :
             result = wxMacWindowServiceEventHandler( handler, event , data ) ;
+            break ;
         default :
             break ;
     }
@@ -739,17 +726,17 @@ void wxWindowMac::Init()
     m_peer = NULL ;
     m_frozenness = 0 ;
 #if WXWIN_COMPATIBILITY_2_4
-    m_backgroundTransparent = FALSE;
+    m_backgroundTransparent = false;
 #endif
 
     // as all windows are created with WS_VISIBLE style...
-    m_isShown = TRUE;
+    m_isShown = true;
 
     m_hScrollBar = NULL ;
     m_vScrollBar = NULL ;
     m_macBackgroundBrush = wxNullBrush ;
 
-    m_macIsUserPane = TRUE;
+    m_macIsUserPane = true;
 #if wxMAC_USE_CORE_GRAPHICS
     m_cgContextRef = NULL ;
 #endif
@@ -764,7 +751,7 @@ wxWindowMac::~wxWindowMac()
 {
     SendDestroyEvent();
 
-    m_isBeingDeleted = TRUE;
+    m_isBeingDeleted = true;
 
     MacInvalidateBorders() ;
 
@@ -863,10 +850,10 @@ bool wxWindowMac::Create(wxWindowMac *parent, wxWindowID id,
            long style,
            const wxString& name)
 {
-    wxCHECK_MSG( parent, FALSE, wxT("can't create wxWindowMac without parent") );
+    wxCHECK_MSG( parent, false, wxT("can't create wxWindowMac without parent") );
 
     if ( !CreateBase(parent, id, pos, size, style, wxDefaultValidator, name) )
-        return FALSE;
+        return false;
 
     m_windowVariant = parent->GetWindowVariant() ;
 
@@ -904,7 +891,7 @@ bool wxWindowMac::Create(wxWindowMac *parent, wxWindowID id,
     wxWindowCreateEvent event(this);
     GetEventHandler()->AddPendingEvent(event);
 
-    return TRUE;
+    return true;
 }
 
 void wxWindowMac::MacChildAdded() 
@@ -1457,17 +1444,17 @@ void wxWindowMac::DoGetClientSize(int *x, int *y) const
 bool wxWindowMac::SetCursor(const wxCursor& cursor)
 {
     if (m_cursor == cursor)
-        return FALSE;
+        return false;
 
     if (wxNullCursor == cursor)
     {
         if ( ! wxWindowBase::SetCursor( *wxSTANDARD_CURSOR ) )
-            return FALSE ;
+            return false ;
     }
     else
     {
         if ( ! wxWindowBase::SetCursor( cursor ) )
-            return FALSE ;
+            return false ;
     }
 
     wxASSERT_MSG( m_cursor.Ok(),
@@ -1501,7 +1488,7 @@ bool wxWindowMac::SetCursor(const wxCursor& cursor)
         m_cursor.MacInstall() ;
     }
 
-    return TRUE ;
+    return true ;
 }
 
 #if wxUSE_MENUS
@@ -1539,7 +1526,7 @@ bool wxWindowMac::DoPopupMenu(wxMenu *menu, int x, int y)
 
     menu->SetInvokingWindow(NULL);
 
-  return TRUE;
+  return true;
 }
 #endif
 
@@ -1939,8 +1926,9 @@ wxString wxWindowMac::GetTitle() const
 bool wxWindowMac::Show(bool show)
 {
     bool former = MacIsReallyShown() ;
+
     if ( !wxWindowBase::Show(show) )
-        return FALSE;
+        return false;
 
     // TODO use visibilityChanged Carbon Event for OSX
     if ( m_peer )
@@ -1949,7 +1937,7 @@ bool wxWindowMac::Show(bool show)
     }
     if ( former != MacIsReallyShown() )
         MacPropagateVisibilityChanged() ;
-    return TRUE;
+    return true;
 }
 
 bool wxWindowMac::Enable(bool enable)
@@ -1957,13 +1945,13 @@ bool wxWindowMac::Enable(bool enable)
     wxASSERT( m_peer->Ok() ) ;
     bool former = MacIsReallyEnabled() ;
     if ( !wxWindowBase::Enable(enable) )
-        return FALSE;
+        return false;
 
     m_peer->Enable( enable ) ;
 
     if ( former != MacIsReallyEnabled() )
         MacPropagateEnabledStateChanged() ;
-    return TRUE;
+    return true;
 }
 
 //
@@ -2182,6 +2170,8 @@ void wxWindowMac::WarpPointer (int x_pos, int y_pos)
 
 void wxWindowMac::OnEraseBackground(wxEraseEvent& event)
 {
+	if ( MacGetTopLevelWindow() == NULL )
+		return ;
 #if TARGET_API_MAC_OSX
     if ( MacGetTopLevelWindow()->MacUsesCompositing() && (m_macBackgroundBrush.Ok() == false || m_macBackgroundBrush.GetStyle() == wxTRANSPARENT ) )
     {
@@ -3205,6 +3195,8 @@ wxPoint wxGetMousePosition()
 
 void wxWindowMac::OnMouseEvent( wxMouseEvent &event )
 {
+	long	evtType = event.GetEventType();
+//    if ((evtType == ewxEVT_RIGHT_DOWN) || (evtType == wxEVT_CONTEXT_MENU))
     if ( event.GetEventType() == wxEVT_RIGHT_DOWN )
     {
         // copied from wxGTK : CS
@@ -3252,4 +3244,18 @@ wxInt32 wxWindowMac::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVENT
     return eventNotHandledErr ;
 }
 
+bool wxWindowMac::Reparent(wxWindowBase *newParentBase)
+{
+    wxWindowMac *newParent = (wxWindowMac *)newParentBase;
+    
+    if ( !wxWindowBase::Reparent(newParent) )
+        return FALSE;
+    
+    //copied from MacPostControlCreate
+    ControlRef container = (ControlRef) GetParent()->GetHandle() ;
+    wxASSERT_MSG( container != NULL , wxT("No valid mac container control") ) ;
+    ::EmbedControl( m_peer->GetControlRef() , container ) ;
+    
+    return TRUE;
+}
 

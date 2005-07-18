@@ -33,10 +33,11 @@
 // ----------------------------------------------------------------------------
 
 // gettext() style macros (notice that xgettext should be invoked with
-// --keyword="_" --keyword="wxGetTranslation:1,2" options
+// --keyword="_" --keyword="wxPLURAL:1,2" options
 // to extract the strings from the sources)
 #ifndef WXINTL_NO_GETTEXT_MACRO
-    #define _(s)                  wxGetTranslation(_T(s))
+    #define _(s)                     wxGetTranslation(_T(s))
+    #define wxPLURAL(sing, plur, n)  wxGetTranslation(_T(sing), _T(plur), n)
 #endif
 
 // another one which just marks the strings for extraction, but doesn't
@@ -378,7 +379,7 @@ public:
              const wxChar *szShort = (const wxChar *) NULL,      // dir prefix (for msg files)
              const wxChar *szLocale = (const wxChar *) NULL,     // locale (for setlocale)
              bool bLoadDefault = true,                           // preload wxstd.mo?
-             bool bConvertEncoding = false)                      // convert Win<->Unix if neccessary?
+             bool bConvertEncoding = false)                      // convert Win<->Unix if necessary?
         {
             DoCommonInit();
 
@@ -407,7 +408,7 @@ public:
         // restores old locale
     ~wxLocale();
 
-    // Try to get user's (or OS's) prefered language setting.
+    // Try to get user's (or OS's) preferred language setting.
     // Return wxLANGUAGE_UNKNOWN if language-guessing algorithm failed
     static int GetSystemLanguage();
 

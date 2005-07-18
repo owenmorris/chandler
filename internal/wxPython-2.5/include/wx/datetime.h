@@ -1150,7 +1150,7 @@ public:
         return wxTimeSpan(*this).Multiply(n);
     }
 
-        // return this timespan with inversed sign
+        // return this timespan with opposite sign
     wxTimeSpan Negate() const { return wxTimeSpan(-GetValue()); }
         // negate the value of the timespan
     wxTimeSpan& Neg() { m_diff = -GetValue(); return *this; }
@@ -1583,7 +1583,8 @@ inline wxDateTime& wxDateTime::Set(const Tm& tm)
 {
     wxASSERT_MSG( tm.IsValid(), _T("invalid broken down date/time") );
 
-    return Set(tm.mday, (Month)tm.mon, tm.year, tm.hour, tm.min, tm.sec);
+    return Set(tm.mday, (Month)tm.mon, tm.year,
+               tm.hour, tm.min, tm.sec, tm.msec);
 }
 
 inline wxDateTime::wxDateTime(wxDateTime_t hour,

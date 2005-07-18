@@ -88,6 +88,18 @@ enum
     #define TXTPOSY           0
 #endif
 
+// ----------------------------------------------------------------------------
+// global variables
+// ----------------------------------------------------------------------------
+
+// this should have been a flag in wxDatePickerCtrlGeneric itself but adding it
+// there now would break backwards compatibility, so put it here as a global:
+// this shouldn't be a big problem as only one (GUI) thread normally can call
+// wxDatePickerCtrlGeneric::SetValue() and so it can be only ever used for one
+// control at a time
+//
+// if the value is not NULL, it points to the control which is inside SetValue()
+static wxDatePickerCtrlGeneric *gs_inSetValue = NULL;
 
 // ----------------------------------------------------------------------------
 // local classes
@@ -694,21 +706,30 @@ wxDateTime wxDatePickerCtrlGeneric::GetValue() const
 
 void wxDatePickerCtrlGeneric::SetValue(const wxDateTime& date)
 {
-    if (m_cal)
-    {
-        if (date.IsValid())
-            m_txt->SetValue(date.Format(m_format));
-        else
-        {
-            wxASSERT_MSG( HasFlag(wxDP_ALLOWNONE),
-                            _T("this control must have a valid date") );
+    if ( !m_cal ) 
+        return;
 
-            m_txt->SetValue(wxEmptyString);
-        }
+    // we need to suppress the event sent from wxTextCtrl as calling our
+    // SetValue() should not result in an event being sent (wxTextCtrl is
+    // an exception to this rule)
+    gs_inSetValue = this;
+
+    if ( date.IsValid() )
+    {
+            m_txt->SetValue(date.Format(m_format));
+    }
+    else // invalid date
+    {
+        wxASSERT_MSG( HasFlag(wxDP_ALLOWNONE),
+                        _T("this control must have a valid date") );
+
+        m_txt->SetValue(wxEmptyString);
+    }
+
+    gs_inSetValue = NULL;
 
         m_currentDate = date;
     }
-}
 
 
 bool wxDatePickerCtrlGeneric::GetRange(wxDateTime *dt1, wxDateTime *dt2) const
@@ -846,7 +867,7 @@ void wxDatePickerCtrlGeneric::OnKillFocus(wxFocusEvent &ev)
         m_txt->SetValue(wxEmptyString);
 
     // notify that we had to change the date after validation
-    if ( (dt.IsValid() && m_currentDate != dt) ||
+    if ( (dt.IsValid() && (!m_currentDate.IsValid() || m_currentDate != dt)) ||
             (!dt.IsValid() && m_currentDate.IsValid()) )
     {
         m_currentDate = dt;
@@ -879,6 +900,12 @@ void wxDatePickerCtrlGeneric::OnSelChange(wxCalendarEvent &ev)
 
 void wxDatePickerCtrlGeneric::OnText(wxCommandEvent &ev)
 {
+    if ( gs_inSetValue )
+    {
+        // artificial event resulting from our own SetValue() call, ignore it
+        return;
+    }
+
     ev.SetEventObject(this);
     ev.SetId(GetId());
     GetParent()->ProcessEvent(ev);

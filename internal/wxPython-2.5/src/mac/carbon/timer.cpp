@@ -17,9 +17,7 @@
 
 #include "wx/timer.h"
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxEvtHandler)
-#endif
 
 #ifdef __WXMAC__
 #include "wx/mac/private.h"
@@ -34,7 +32,7 @@ IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxEvtHandler)
 
 #if wxMAC_USE_CARBON_TIMER
 
-typedef struct MacTimerInfo
+struct MacTimerInfo
 {
     wxTimer* m_timer ;
     EventLoopTimerUPP m_proc ;
@@ -81,8 +79,8 @@ bool wxTimer::Start(int milliseconds,bool mode)
 {
     (void)wxTimerBase::Start(milliseconds, mode);
 
-    wxCHECK_MSG( m_milli > 0, FALSE, wxT("invalid value for timer timeout") );
-    wxCHECK_MSG( m_info->m_timerRef == NULL , FALSE, wxT("attempting to restart a timer") );
+    wxCHECK_MSG( m_milli > 0, false, wxT("invalid value for timer timeout") );
+    wxCHECK_MSG( m_info->m_timerRef == NULL , false, wxT("attempting to restart a timer") );
 
     m_info->m_timer = this ;
     m_info->m_proc = NewEventLoopTimerUPP( &wxProcessTimer);
@@ -93,7 +91,7 @@ bool wxTimer::Start(int milliseconds,bool mode)
         m_info->m_proc,
         this,
         &m_info->m_timerRef) ) ;
-    return TRUE;
+    return true;
 }
 
 void wxTimer::Stop()
@@ -191,8 +189,8 @@ bool wxTimer::Start(int milliseconds,bool mode)
 {
     (void)wxTimerBase::Start(milliseconds, mode);
 
-    wxCHECK_MSG( m_milli > 0, FALSE, wxT("invalid value for timer timeout") );
-    wxCHECK_MSG( m_info->m_task.tmAddr == NULL , FALSE, wxT("attempting to restart a timer") );
+    wxCHECK_MSG( m_milli > 0, false, wxT("invalid value for timer timeout") );
+    wxCHECK_MSG( m_info->m_task.tmAddr == NULL , false, wxT("attempting to restart a timer") );
 
     m_info->m_task.tmAddr = NewTimerUPP( MacTimerProc ) ;
     m_info->m_task.tmWakeUp = 0 ;
@@ -201,7 +199,7 @@ bool wxTimer::Start(int milliseconds,bool mode)
     m_info->m_timer = this ;
     InsXTime((QElemPtr) &m_info->m_task ) ;
     PrimeTime( (QElemPtr) &m_info->m_task , m_milli ) ;
-    return TRUE;
+    return true;
 }
 
 void wxTimer::Stop()

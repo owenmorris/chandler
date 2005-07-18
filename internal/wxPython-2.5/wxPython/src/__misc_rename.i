@@ -150,11 +150,13 @@
 %rename(ClientDisplayRect)                  wxClientDisplayRect;
 %rename(GetClientDisplayRect)               wxGetClientDisplayRect;
 %rename(SetCursor)                          wxSetCursor;
+%rename(GetXDisplay)                        wxGetXDisplay;
 %rename(BeginBusyCursor)                    wxBeginBusyCursor;
 %rename(GetActiveWindow)                    wxGetActiveWindow;
 %rename(GenericFindWindowAtPoint)           wxGenericFindWindowAtPoint;
 %rename(FindWindowAtPoint)                  wxFindWindowAtPoint;
 %rename(GetTopLevelParent)                  wxGetTopLevelParent;
+%rename(LaunchDefaultBrowser)               wxLaunchDefaultBrowser;
 %rename(GetKeyState)                        wxGetKeyState;
 %rename(WakeUpMainThread)                   wxWakeUpMainThread;
 %rename(MutexGuiEnter)                      wxMutexGuiEnter;
@@ -205,6 +207,7 @@
 %rename(LogGui)                             wxLogGui;
 %rename(LogWindow)                          wxLogWindow;
 %rename(LogChain)                           wxLogChain;
+%rename(LogBuffer)                          wxLogBuffer;
 %rename(SysErrorCode)                       wxSysErrorCode;
 %rename(SysErrorMsg)                        wxSysErrorMsg;
 %rename(SafeShowMessage)                    wxSafeShowMessage;

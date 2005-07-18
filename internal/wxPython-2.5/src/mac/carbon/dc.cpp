@@ -35,9 +35,8 @@ using namespace std ;
 #include <ATSUnicode.h>
 #include <TextCommon.h>
 #include <TextEncodingConverter.h>
-#if !USE_SHARED_LIBRARY
+
 IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
-#endif
 
 //-----------------------------------------------------------------------------
 // constants
@@ -1316,7 +1315,7 @@ void  wxDC::DoDrawRotatedText(const wxString& str, wxCoord x, wxCoord y,
     UniCharCount chars = str.Length() ;
     UniChar* ubuf = NULL ;
 #if SIZEOF_WCHAR_T == 4
-    wxMBConvUTF16BE converter ;
+    wxMBConvUTF16 converter ;
 #if wxUSE_UNICODE
     size_t unicharlen = converter.WC2MB( NULL , str.wc_str() , 0 ) ;
     ubuf = (UniChar*) malloc( unicharlen + 2 ) ;

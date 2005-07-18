@@ -5,7 +5,7 @@
 // Modified by: Ron Lee
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWidgets team
+// Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -920,6 +920,10 @@ public:
     void SetHelpTextForId(const wxString& text);
         // get the help string associated with this window (may be empty)
     wxString GetHelpText() const;
+#else
+    // silently ignore SetHelpText() calls
+    void SetHelpText(const wxString& WXUNUSED(text)) { }
+    void SetHelpTextForId(const wxString& WXUNUSED(text)) { }
 #endif // wxUSE_HELP
 
     // tooltips

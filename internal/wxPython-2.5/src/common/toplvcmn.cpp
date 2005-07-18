@@ -277,3 +277,6 @@ void wxTopLevelWindowBase::RequestUserAttention(int WXUNUSED(flags))
     Raise();
 }
 
+void wxTopLevelWindowBase::ForceRedraw( void )
+{
+}

@@ -18,10 +18,8 @@
 #include "wx/gdicmn.h"
 #include "wx/mac/uma.h"
 
-#if !USE_SHARED_LIBRARY
     IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
     IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject)
-#endif
 
 //-----------------------------------------------------------------------------
 // wxRegionRefData implementation
@@ -428,7 +426,7 @@ OSStatus wxMacRegionToRectsSetterCallback (
     if (message == kQDRegionToRectsMsgParse)
     {
         RegionToRectsCallbackData *cb = (RegionToRectsCallbackData*) data ;
-        cb->m_rects[cb->m_current] = wxRect( rect->left , rect->top , rect->right - rect->left , rect->bottom - rect->top ) ;
+        cb->m_rects[cb->m_current++] = wxRect( rect->left , rect->top , rect->right - rect->left , rect->bottom - rect->top ) ;
     }
     return noErr;
 }

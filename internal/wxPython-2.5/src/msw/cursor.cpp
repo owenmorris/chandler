@@ -40,7 +40,9 @@
 
 #include "wx/module.h"
 #include "wx/image.h"
+
 #include "wx/msw/private.h"
+#include "wx/msw/missing.h" // IDC_HAND
 
 // define functions missing in MicroWin
 #ifdef __WXMICROWIN__
@@ -311,10 +313,15 @@ wxCursor::wxCursor(int idCursor)
         { false, _T("WXCURSOR_RIGHT_ARROW")  }, // wxCURSOR_RIGHT_ARROW
         { false, _T("WXCURSOR_BULLSEYE")     }, // wxCURSOR_BULLSEYE
         {  true, IDC_ARROW                   }, // WXCURSOR_CHAR
+        
         // Displays as an I-beam on XP, so use a cursor file
 //        {  true, IDC_CROSS                   }, // WXCURSOR_CROSS
         {  false, _T("WXCURSOR_CROSS")       }, // WXCURSOR_CROSS
-        { false, _T("WXCURSOR_HAND")         }, // wxCURSOR_HAND
+
+        // See special handling below for wxCURSOR_HAND
+//        { false, _T("WXCURSOR_HAND")         }, // wxCURSOR_HAND
+        {  true, IDC_HAND                    }, // wxCURSOR_HAND
+        
         {  true, IDC_IBEAM                   }, // WXCURSOR_IBEAM
         {  true, IDC_ARROW                   }, // WXCURSOR_LEFT_BUTTON
         { false, _T("WXCURSOR_MAGNIFIER")    }, // wxCURSOR_MAGNIFIER
@@ -333,7 +340,7 @@ wxCursor::wxCursor(int idCursor)
         {  true, IDC_SIZEALL                 }, // WXCURSOR_SIZING
         { false, _T("WXCURSOR_PBRUSH")       }, // wxCURSOR_SPRAYCAN
         {  true, IDC_WAIT                    }, // WXCURSOR_WAIT
-        { false, _T("WXCURSOR_WATCH")        }, // WXCURSOR_WATCH
+        {  true, IDC_WAIT                    }, // WXCURSOR_WATCH
         { false, _T("WXCURSOR_BLANK")        }, // wxCURSOR_BLANK
         {  true, IDC_APPSTARTING             }, // wxCURSOR_ARROWWAIT
 
@@ -347,17 +354,25 @@ wxCursor::wxCursor(int idCursor)
                  _T("invalid cursor id in wxCursor() ctor") );
 
     const StdCursor& stdCursor = stdCursors[idCursor];
+    bool deleteLater = !stdCursor.isStd;
 
     HCURSOR hcursor = ::LoadCursor(stdCursor.isStd ? NULL : wxGetInstance(),
                                    stdCursor.name);
 
+    // IDC_HAND may not be available on some versions of Windows.
+    if ( !hcursor && idCursor == wxCURSOR_HAND)
+    {
+        hcursor = ::LoadCursor(wxGetInstance(), _T("WXCURSOR_HAND"));
+        deleteLater = true;
+    }
+    
     if ( !hcursor )
     {
         wxLogLastError(_T("LoadCursor"));
     }
     else
     {
-        m_refData = new wxCursorRefData(hcursor);
+        m_refData = new wxCursorRefData(hcursor, deleteLater);
     }
 }
 

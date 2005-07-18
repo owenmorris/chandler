@@ -1,3 +1,14 @@
+/*
+ Name:        wx/wx_cw_cm.h
+ Purpose:     wxWidgets definitions for CodeWarrior builds
+ Author:      Stefan Csomor
+ Modified by:
+ Created:
+ RCS-ID:      $Id$
+ Copyright:   (c) Stefan Csomor
+ Licence:     wxWindows licence
+*/
+
 #define MSL_USE_PRECOMPILED_HEADERS 0
 #if __WXDEBUG__
     // mac os assert levels
@@ -48,14 +59,10 @@
     #define ACCESSOR_CALLS_ARE_FUNCTIONS 1
     #define OPAQUE_TOOLBOX_STRUCTS 1
     #ifdef __MACH__
-        #include <ansi_prefix.mach.h>
-        #include <msl_c_version.h>
-        #include <stdint.h>
-        #undef WCHAR_MAX
-        #include <machine/ansi.h>
-    #else
-      #include <ansi_prefix.mac.h>
+		typedef int mbstate_t;
+		#define	_MBSTATE_T
     #endif
+	#include <mslconfig>
     // for getting the correct expat includes
     #define MACOS_CLASSIC
     /*

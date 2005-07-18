@@ -187,6 +187,8 @@ wxToolBarToolBase*
 
 #if wxUSE_TOOLTIPS
     pBmpBtn->SetToolTip( helpString1 );
+#else
+    wxUnusedVar( helpString1 );
 #endif  // wxUSE_TOOLTIPS
 
     AddTool( toolIndex, pBmpBtn );
@@ -426,7 +428,7 @@ void wxDynamicToolBar::SizeToolWindows()
                 info.mRect.height = mSepartorSize;
             }
 
-            // Do we need to set a new size to a seperator object?
+            // Do we need to set a new size to a separator object?
             if ( info.mpToolWnd )
             {
                 info.mpToolWnd->SetSize( info.mRect.x,

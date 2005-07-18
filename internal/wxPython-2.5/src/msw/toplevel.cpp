@@ -452,7 +452,7 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
-	// cannot let this flag go through...
+    // cannot let this flag go through...
     if (! IsTopLevel())
         exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
 
@@ -679,6 +679,14 @@ void wxTopLevelWindowMSW::Maximize(bool maximize)
         // we can't maximize the hidden frame because it shows it as well, so
         // just remember that we should do it later in this case
         m_maximizeOnShow = maximize;
+
+        // after calling Maximize() the client code expects to get the frame
+        // "real" size and doesn't want to know that, because of implementation
+        // details, the frame isn't really maximized yet but will be only once
+        // it's shown, so return our size as it will be then in this case
+
+        // we don't know which display we're on yet so use the default one
+        SetSize(wxGetClientDisplayRect().GetSize());
     }
 }
 
@@ -687,7 +695,7 @@ bool wxTopLevelWindowMSW::IsMaximized() const
 #ifdef __WXWINCE__
     return false;
 #else
-    return ::IsZoomed(GetHwnd()) != 0;
+    return m_maximizeOnShow || ::IsZoomed(GetHwnd()) != 0;
 #endif
 }
 
@@ -768,7 +776,7 @@ bool wxTopLevelWindowMSW::ShowFullScreen(bool show, long style)
             rect = wxDisplay(dpy).GetGeometry();
         }
         else // fall back to the main desktop
-#else // wxUSE_DISPLAY
+#endif // wxUSE_DISPLAY
         {
             // resize to the size of the desktop
             wxCopyRECTToRect(wxGetWindowRect(::GetDesktopWindow()), rect);
@@ -779,7 +787,6 @@ bool wxTopLevelWindowMSW::ShowFullScreen(bool show, long style)
             rect.y       = 0;
 #endif
         }
-#endif // wxUSE_DISPLAY
 
         SetSize(rect);
 
@@ -939,10 +946,12 @@ bool wxTopLevelWindowMSW::SetShape(const wxRegion& region)
 
 void wxTopLevelWindowMSW::RequestUserAttention(int flags)
 {
-    // check if we can use FlashWindowEx(): unfortunately an explicit test for
-    // FLASHW_STOP, for example, doesn't work because MSVC6 headers do #define
-    // it but don't provide FlashWindowEx() declaration
-#if (WINVER >= 0x0500 && (defined FLASHW_STOP))
+    // check if we can use FlashWindowEx(): unfortunately a simple test for
+    // FLASHW_STOP doesn't work because MSVC6 headers do #define it but don't
+    // provide FlashWindowEx() declaration, so try to detect whether we have
+    // real headers for WINVER 0x0500 by checking for existence of a symbol not
+    // declated in MSVC6 header
+#if defined(FLASHW_STOP) && defined(VK_XBUTTON1)
     // available in the headers, check if it is supported by the system
     typedef BOOL (WINAPI *FlashWindowEx_t)(FLASHWINFO *pfwi);
     FlashWindowEx_t s_pfnFlashWindowEx = NULL;
@@ -952,7 +961,7 @@ void wxTopLevelWindowMSW::RequestUserAttention(int flags)
         s_pfnFlashWindowEx = (FlashWindowEx_t)
                                 dllUser32.GetSymbol(_T("FlashWindowEx"));
 
-        // we can safely unload user32.dll here, it's goign to remain loaded as
+        // we can safely unload user32.dll here, it's going to remain loaded as
         // long as the program is running anyhow
     }
 

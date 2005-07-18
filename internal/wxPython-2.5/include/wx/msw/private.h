@@ -28,6 +28,7 @@
 
 class WXDLLEXPORT wxFont;
 class WXDLLEXPORT wxWindow;
+class WXDLLEXPORT wxWindowBase;
 
 // ---------------------------------------------------------------------------
 // private constants
@@ -187,10 +188,25 @@ extern LONG APIENTRY _EXPORT
    || defined(__BORLANDC__) \
    || defined(__DMC__) \
    || defined(__WATCOMC__) \
-   || (defined(__GNUWIN32__) || defined(__MINGW32__)) \
+   || defined(__MINGW32__) \
    || (defined(__MWERKS__) && defined(__MSL__))
     #define wxGetOSFHandle(fd) ((HANDLE)_get_osfhandle(fd))
 #endif
+
+// close the handle in the class dtor
+class AutoHANDLE
+{
+public:
+    wxEXPLICIT AutoHANDLE(HANDLE handle) : m_handle(handle) { }
+
+    bool IsOk() const { return m_handle != INVALID_HANDLE_VALUE; }
+    operator HANDLE() const { return m_handle; }
+
+    ~AutoHANDLE() { if ( IsOk() ) ::CloseHandle(m_handle); }
+
+protected:
+    HANDLE m_handle;
+};
 
 #if wxUSE_GUI
 
@@ -439,16 +455,53 @@ private:
     HGDIOBJ m_gdiobj;
 };
 
-// a class for temporary bitmaps
-class CompatibleBitmap : private AutoGDIObject
+// TODO: all this asks for using a AutoHandler<T, CreateFunc> template...
+
+// a class for temporary pens
+class AutoHBRUSH : private AutoGDIObject
+{
+public:
+    AutoHBRUSH(COLORREF col)
+        : AutoGDIObject(::CreateSolidBrush(col)) { }
+
+    operator HBRUSH() const { return (HBRUSH)GetObject(); }
+};
+
+// a class for temporary pens
+class AutoHPEN : private AutoGDIObject
+{
+public:
+    AutoHPEN(COLORREF col)
+        : AutoGDIObject(::CreatePen(PS_SOLID, 0, col)) { }
+
+    operator HPEN() const { return (HPEN)GetObject(); }
+};
+
+// classes for temporary bitmaps
+class AutoHBITMAP : private AutoGDIObject
+{
+public:
+    AutoHBITMAP(HBITMAP hbmp) : AutoGDIObject(hbmp) { }
+
+    operator HBITMAP() const { return (HBITMAP)GetObject(); }
+};
+
+class CompatibleBitmap : public AutoHBITMAP
 {
 public:
     CompatibleBitmap(HDC hdc, int w, int h)
-        : AutoGDIObject(::CreateCompatibleBitmap(hdc, w, h))
+        : AutoHBITMAP(::CreateCompatibleBitmap(hdc, w, h))
     {
     }
+};
 
-    operator HBITMAP() const { return (HBITMAP)GetObject(); }
+class MonoBitmap : public AutoHBITMAP
+{
+public:
+    MonoBitmap(int w, int h)
+        : AutoHBITMAP(::CreateBitmap(w, h, 1, 1, 0))
+    {
+    }
 };
 
 // class automatically destroys the region object
@@ -663,6 +716,43 @@ inline wxString wxGetFullModuleName()
     return wxGetFullModuleName((HMODULE)wxGetInstance());
 }
 
+// return the run-time version of the OS in a format similar to
+// WINVER/_WIN32_WINNT compile-time macros:
+//
+//      0x0300      Windows NT 3.51
+//      0x0400      Windows 95, NT4
+//      0x0410      Windows 98
+//      0x0500      Windows ME, 2000
+//      0x0501      Windows XP
+//      0x0502      Windows 2003
+//      0x0600      Longhorn
+//
+// for the other Windows versions 0 is currently returned
+enum wxWinVersion
+{
+    wxWinVersion_Unknown = 0,
+
+    wxWinVersion_3 = 0x0300,
+    wxWinVersion_NT3 = wxWinVersion_3,
+
+    wxWinVersion_4 = 0x0400,
+    wxWinVersion_95 = wxWinVersion_4,
+    wxWinVersion_NT4 = wxWinVersion_4,
+    wxWinVersion_98 = 0x0410,
+
+    wxWinVersion_5 = 0x0500,
+    wxWinVersion_ME = wxWinVersion_5,
+    wxWinVersion_NT5 = wxWinVersion_5,
+    wxWinVersion_2000 = wxWinVersion_5,
+    wxWinVersion_XP = 0x0501,
+    wxWinVersion_2003 = 0x0502,
+
+    wxWinVersion_6 = 0x0600,
+    wxWinVersion_NT6 = 0x0600
+};
+
+WXDLLIMPEXP_BASE wxWinVersion wxGetWinVersion();
+
 #if wxUSE_GUI
 
 // cursor stuff
@@ -700,6 +790,9 @@ inline bool wxStyleHasBorder(long style)
     return (style & (wxSIMPLE_BORDER | wxRAISED_BORDER |
                      wxSUNKEN_BORDER | wxDOUBLE_BORDER)) != 0;
 }
+
+// Deferred window moving
+bool wxMoveWindowDeferred(HDWP& hdwp, wxWindowBase* win, HWND hWnd, int x, int y, int width, int height);
 
 // ----------------------------------------------------------------------------
 // functions mapping HWND to wxWindow

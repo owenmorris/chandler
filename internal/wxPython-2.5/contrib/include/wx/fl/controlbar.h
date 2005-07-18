@@ -19,6 +19,7 @@
 
 #include "wx/defs.h"
 #include "wx/string.h"
+#include "wx/pen.h"
 #include "wx/window.h"
 #include "wx/dynarray.h"
 #include "wx/fl/fldefs.h"
@@ -888,7 +889,7 @@ class cbBarInfo : public wxObject
 {
     DECLARE_DYNAMIC_CLASS( cbBarInfo )
 public:
-    // textual name, by which this bar is refered in layout-customization dialogs
+    // textual name, by which this bar is referred in layout-customization dialogs
     wxString      mName;
 
     // stores bar's bounds in pane's coordinates
@@ -1002,7 +1003,7 @@ which are usually the same for all panes in
 a frame layout.
 */
 
-class cbCommonPaneProperties : public wxObject
+class WXDLLIMPEXP_FL cbCommonPaneProperties : public wxObject
 {
     DECLARE_DYNAMIC_CLASS( cbCommonPaneProperties )
 
@@ -1461,7 +1462,7 @@ areas of frame layout that actually need to be updated. This should be extended 
 to implement a custom updating strategy.
 */
 
-class cbUpdatesManagerBase : public wxObject
+class WXDLLIMPEXP_FL cbUpdatesManagerBase : public wxObject
 {
     DECLARE_ABSTRACT_CLASS( cbUpdatesManagerBase )
 

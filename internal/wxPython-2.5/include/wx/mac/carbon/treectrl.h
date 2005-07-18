@@ -64,14 +64,6 @@ enum {
     wxTREE_NEXT_ROOT                   // Retrieves the first child item of the root item of which the specified item is a part.
 };
 
-// Flags for ExpandItem
-enum {
-    wxTREE_EXPAND_EXPAND,
-    wxTREE_EXPAND_COLLAPSE,
-    wxTREE_EXPAND_COLLAPSE_RESET,
-    wxTREE_EXPAND_TOGGLE
-};
-
 // Flags for InsertItem
 enum {
     wxTREE_INSERT_LAST = -1,
@@ -139,7 +131,7 @@ public:
     }
     ~wxTreeCtrl();
     
-    bool Create(wxWindow *parent, wxWindowID id = -1,
+    bool Create(wxWindow *parent, wxWindowID id = wxID_ANY,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxTR_HAS_BUTTONS|wxTR_LINES_AT_ROOT,
@@ -190,7 +182,7 @@ public:
     }
 
       // bounding rect
-    bool GetItemRect(long item, wxRect& rect, bool textOnly = FALSE) const;
+    bool GetItemRect(long item, wxRect& rect, bool textOnly = false) const;
       //
     wxTextCtrl* GetEditControl() const;
     

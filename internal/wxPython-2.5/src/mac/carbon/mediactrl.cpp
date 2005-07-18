@@ -43,11 +43,11 @@
 // control - i.e. native positioning and event handling etc..
 //---------------------------------------------------------------------------
 #ifndef wxUSE_CREATEMOVIECONTROL
-#	if defined( __WXMAC_OSX__ ) && ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
-#		define wxUSE_CREATEMOVIECONTROL 1
-#	else
-#		define wxUSE_CREATEMOVIECONTROL 0
-#	endif
+#    if defined( __WXMAC_OSX__ ) && ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
+#        define wxUSE_CREATEMOVIECONTROL 1
+#    else
+#        define wxUSE_CREATEMOVIECONTROL 0
+#    endif
 #endif
 
 //===========================================================================
@@ -127,7 +127,7 @@ public:
     bool m_bVideo;                  //Whether or not we have video
     class _wxQTTimer* m_timer;      //Timer for streaming the movie
 
-    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend);
+    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend)
 };
 
 
@@ -224,7 +224,7 @@ wxQTMediaBackend::~wxQTMediaBackend()
     if(m_timer)
         Cleanup();
 
-    //Note that ExitMovies() is not neccessary...
+    //Note that ExitMovies() is not necessary...
     ExitMovies();
 }
 
@@ -262,11 +262,11 @@ bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     
 #if wxUSE_CREATEMOVIECONTROL    
     ctrl->wxWindow::Create(parent, id, pos, size,
-                            m_ctrl->MacRemoveBordersFromStyle(style),
+                            wxWindow::MacRemoveBordersFromStyle(style),
                             name)
 #else
     ctrl->wxControl::Create(parent, id, pos, size,
-                            m_ctrl->MacRemoveBordersFromStyle(style),
+                            wxWindow::MacRemoveBordersFromStyle(style),
                             validator, name)
 #endif                            
         )
@@ -435,14 +435,14 @@ void wxQTMediaBackend::FinishLoad()
     //ManuallyIdled - app handles movie idling rather than internal timer event loop
         ::CreateMovieControl( 
                     (WindowRef)
-                       ctrl->MacGetTopLevelWindowRef(),	//parent
-                       &bounds, 							//control bounds
-                       m_movie,								//movie handle
+                       ctrl->MacGetTopLevelWindowRef(), //parent
+                       &bounds,                         //control bounds
+                       m_movie,                         //movie handle
                        kMovieControlOptionHideController 
                        | kMovieControlOptionLocateTopLeft  
                        | kMovieControlOptionSetKeysEnabled 
 //                       | kMovieControlOptionManuallyIdled
-                       ,  									//flags
+                       ,                                //flags
                        ctrl->m_peer->GetControlRefAddr() );
                        
         ::EmbedControl(ctrl->m_peer->GetControlRef(), (ControlRef)ctrl->GetParent()->GetHandle());
@@ -467,7 +467,7 @@ void wxQTMediaBackend::FinishLoad()
     //
     //Here, if the parent of the control has a sizer - we
     //tell it to recalculate the size of this control since
-    //the user opened a seperate media file
+    //the user opened a separate media file
     //
     m_ctrl->InvalidateBestSize();
     m_ctrl->GetParent()->Layout();
@@ -597,7 +597,7 @@ wxMediaState wxQTMediaBackend::GetState()
                       m_timer->GetPaused() == false) )
         return wxMEDIASTATE_STOPPED;
 
-    if( m_timer->IsRunning() == true )
+    if( m_timer->IsRunning() )
         return wxMEDIASTATE_PLAYING;
     else
         return wxMEDIASTATE_PAUSED;

@@ -219,7 +219,9 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_SCROLL_PAGEDOWN, 305)
     DECLARE_EVENT_TYPE(wxEVT_SCROLL_THUMBTRACK, 306)
     DECLARE_EVENT_TYPE(wxEVT_SCROLL_THUMBRELEASE, 307)
-    DECLARE_EVENT_TYPE(wxEVT_SCROLL_ENDSCROLL, 308)
+#if wxABI_VERSION >= 20601
+    DECLARE_EVENT_TYPE(wxEVT_SCROLL_CHANGED, 308)
+#endif
 
         // Scroll events from wxWindow
     DECLARE_EVENT_TYPE(wxEVT_SCROLLWIN_TOP, 320)
@@ -514,6 +516,9 @@ private:
 
 #ifdef __VISUALC__
     // 'this' : used in base member initializer list (for m_commandString)
+    #if _MSC_VER > 1100
+        #pragma warning(push)
+    #endif
     #pragma warning(disable:4355)
 #endif
 
@@ -579,8 +584,8 @@ private:
     DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxCommandEvent)
 };
 
-#ifdef __VISUALC__
-    #pragma warning(default:4355)
+#if defined(__VISUALC__) && (_MSC_VER > 1100)
+    #pragma warning(pop)
 #endif
 
 #if WXWIN_COMPATIBILITY_2_4
@@ -642,7 +647,7 @@ private:
  wxEVT_SCROLL_PAGEDOWN
  wxEVT_SCROLL_THUMBTRACK
  wxEVT_SCROLL_THUMBRELEASE
- wxEVT_SCROLL_ENDSCROLL
+ wxEVT_SCROLL_CHANGED
 */
 
 class WXDLLIMPEXP_CORE wxScrollEvent : public wxCommandEvent
@@ -1389,7 +1394,15 @@ public:
         m_canVeto(event.m_canVeto) {}
 
     void SetLoggingOff(bool logOff) { m_loggingOff = logOff; }
-    bool GetLoggingOff() const { return m_loggingOff; }
+    bool GetLoggingOff() const
+    {
+        // m_loggingOff flag is only used by wxEVT_[QUERY_]END_SESSION, it
+        // doesn't make sense for wxEVT_CLOSE_WINDOW
+        wxASSERT_MSG( m_eventType != wxEVT_CLOSE_WINDOW,
+                      _T("this flag is for end session events only") );
+
+        return m_loggingOff;
+    }
 
     void Veto(bool veto = true)
     {
@@ -1400,19 +1413,18 @@ public:
         m_veto = veto;
     }
     void SetCanVeto(bool canVeto) { m_canVeto = canVeto; }
-    // No more asserts here please, the one you put here was wrong.
     bool CanVeto() const { return m_canVeto; }
     bool GetVeto() const { return m_canVeto && m_veto; }
 
     virtual wxEvent *Clone() const { return new wxCloseEvent(*this); }
 
 protected:
-    bool m_loggingOff;
-    bool m_veto, m_canVeto;
+    bool m_loggingOff,
+         m_veto,
+         m_canVeto;
 
 private:
     DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxCloseEvent)
-
 };
 
 /*
@@ -2187,8 +2199,6 @@ private:
     wxEventTableEntry& operator=(const wxEventTableEntry&);
 };
 
-class WXDLLIMPEXP_BASE wxEvtHandler;
-
 // an entry used in dynamic event table managed by wxEvtHandler::Connect()
 struct WXDLLIMPEXP_BASE wxDynamicEventTableEntry : public wxEventTableEntryBase
 {
@@ -2229,7 +2239,6 @@ struct WXDLLIMPEXP_BASE wxEventTable
 // ----------------------------------------------------------------------------
 
 WX_DEFINE_ARRAY_PTR(const wxEventTableEntry*, wxEventTableEntryPointerArray);
-class WXDLLIMPEXP_BASE wxEvtHandler;
 
 class WXDLLIMPEXP_BASE wxEventHashTable
 {
@@ -2355,6 +2364,11 @@ public:
                     wxEvtHandler *eventSink = (wxEvtHandler *) NULL)
         { return Disconnect(winid, wxID_ANY, eventType, func, userData, eventSink); }
 
+    bool Disconnect(wxEventType eventType,
+                    wxObjectEventFunction func,
+                    wxObject *userData = (wxObject *) NULL,
+                    wxEvtHandler *eventSink = (wxEvtHandler *) NULL)
+        { return Disconnect(wxID_ANY, eventType, func, userData, eventSink); }
 
     wxList* GetDynamicEventTable() const { return m_dynamicEvents ; }
 
@@ -2398,7 +2412,7 @@ protected:
     // NB: This method is intentionally *not* inside wxUSE_VALIDATORS!
     //     It is part of wxBase which doesn't use validators and the code
     //     is compiled out when building wxBase w/o GUI classes, which affects
-    //     binary compatiblity and wxBase library can't be used by GUI
+    //     binary compatibility and wxBase library can't be used by GUI
     //     ports.
     virtual bool TryValidator(wxEvent& WXUNUSED(event)) { return false; }
 
@@ -2766,7 +2780,12 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
 #define EVT_SCROLL_PAGEDOWN(func) wx__DECLARE_EVT0(wxEVT_SCROLL_PAGEDOWN, wxScrollEventHandler(func))
 #define EVT_SCROLL_THUMBTRACK(func) wx__DECLARE_EVT0(wxEVT_SCROLL_THUMBTRACK, wxScrollEventHandler(func))
 #define EVT_SCROLL_THUMBRELEASE(func) wx__DECLARE_EVT0(wxEVT_SCROLL_THUMBRELEASE, wxScrollEventHandler(func))
-#define EVT_SCROLL_ENDSCROLL(func) wx__DECLARE_EVT0(wxEVT_SCROLL_ENDSCROLL, wxScrollEventHandler(func))
+#if wxABI_VERSION >= 20601
+#define EVT_SCROLL_CHANGED(func) wx__DECLARE_EVT0(wxEVT_SCROLL_CHANGED, wxScrollEventHandler(func))
+#define wx__EVT_SCROLL_CHANGED(func) EVT_SCROLL_CHANGED(func)
+#else
+#define wx__EVT_SCROLL_CHANGED(func)
+#endif
 
 #define EVT_SCROLL(func) \
     EVT_SCROLL_TOP(func) \
@@ -2776,7 +2795,8 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
     EVT_SCROLL_PAGEUP(func) \
     EVT_SCROLL_PAGEDOWN(func) \
     EVT_SCROLL_THUMBTRACK(func) \
-    EVT_SCROLL_THUMBRELEASE(func)
+    EVT_SCROLL_THUMBRELEASE(func) \
+    wx__EVT_SCROLL_CHANGED(func)
 
 // Scrolling from wxSlider and wxScrollBar, with an id
 #define EVT_COMMAND_SCROLL_TOP(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_TOP, winid, wxScrollEventHandler(func))
@@ -2787,7 +2807,12 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
 #define EVT_COMMAND_SCROLL_PAGEDOWN(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_PAGEDOWN, winid, wxScrollEventHandler(func))
 #define EVT_COMMAND_SCROLL_THUMBTRACK(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_THUMBTRACK, winid, wxScrollEventHandler(func))
 #define EVT_COMMAND_SCROLL_THUMBRELEASE(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_THUMBRELEASE, winid, wxScrollEventHandler(func))
-#define EVT_COMMAND_SCROLL_ENDSCROLL(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_ENDSCROLL, winid, wxScrollEventHandler(func))
+#if wxABI_VERSION >= 20601
+#define EVT_COMMAND_SCROLL_CHANGED(winid, func) wx__DECLARE_EVT1(wxEVT_SCROLL_CHANGED, winid, wxScrollEventHandler(func))
+#define wx__EVT_COMMAND_SCROLL_CHANGED(winid, func) EVT_COMMAND_SCROLL_CHANGED(winid, func)
+#else
+#define wx__EVT_COMMAND_SCROLL_CHANGED(winid, func)
+#endif
 
 #define EVT_COMMAND_SCROLL(winid, func) \
     EVT_COMMAND_SCROLL_TOP(winid, func) \
@@ -2797,7 +2822,21 @@ typedef void (wxEvtHandler::*wxMouseCaptureChangedEventFunction)(wxMouseCaptureC
     EVT_COMMAND_SCROLL_PAGEUP(winid, func) \
     EVT_COMMAND_SCROLL_PAGEDOWN(winid, func) \
     EVT_COMMAND_SCROLL_THUMBTRACK(winid, func) \
-    EVT_COMMAND_SCROLL_THUMBRELEASE(winid, func)
+    EVT_COMMAND_SCROLL_THUMBRELEASE(winid, func) \
+    wx__EVT_COMMAND_SCROLL_CHANGED(winid, func)
+
+// compatibility macros for the old name, to be deprecated in 2.8
+//
+// note that simply #defines suffice for the macro names as they're only
+// present in the source code and macros are enough to maintain source
+// backwards compatibility, but that we have to ensure that we also have
+// wxEVT_SCROLL_ENDSCROLL inside the library for binary backwards compatibility
+// and this is done in event.cpp
+#if wxABI_VERSION >= 20601
+#define wxEVT_SCROLL_ENDSCROLL wxEVT_SCROLL_CHANGED
+#define EVT_COMMAND_SCROLL_ENDSCROLL EVT_COMMAND_SCROLL_CHANGED
+#define EVT_SCROLL_ENDSCROLL EVT_SCROLL_CHANGED
+#endif
 
 // Convenience macros for commonly-used commands
 #define EVT_CHECKBOX(winid, func) wx__DECLARE_EVT1(wxEVT_COMMAND_CHECKBOX_CLICKED, winid, wxCommandEventHandler(func))

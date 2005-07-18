@@ -167,9 +167,19 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
                 path.Printf(wxT("%c:\\"), 'A' + i);
                 name.Printf(wxT("%c:"), 'A' + i);
 
+                // Note: If _filesys is unsupported by some compilers,
+                //       we can always replace it by DosQueryFSAttach
+                char filesysname[20];
+                _filesys(name.fn_str(), filesysname, sizeof(filesysname));
+                /* FAT, LAN, HPFS, CDFS, NFS */
                 int imageId;
                 if (path == wxT("A:\\") || path == wxT("B:\\"))
                     imageId = wxFileIconsTable::floppy;
+                else if (!strcmp(filesysname, "CDFS"))
+                    imageId = wxFileIconsTable::cdrom;
+                else if (!strcmp(filesysname, "LAN") ||
+                         !strcmp(filesysname, "NFS"))
+                    imageId = wxFileIconsTable::drive;
                 else
                     imageId = wxFileIconsTable::drive;
                 paths.Add(path);
@@ -268,10 +278,9 @@ bool wxIsDriveAvailable(const wxString& dirName)
 
 #elif defined(__WINDOWS__) || defined(__OS2__)
 
-int setdrive(int drive)
+int setdrive(int WXUNUSED_IN_WINCE(drive))
 {
 #ifdef __WXWINCE__
-    wxUnusedVar(drive);
     return 0;
 #elif defined(__GNUWIN32__) && \
     (defined(__MINGW32_MAJOR_VERSION) && __MINGW32_MAJOR_VERSION >= 1)
@@ -301,10 +310,9 @@ int setdrive(int drive)
 #endif // !GNUWIN32
 }
 
-bool wxIsDriveAvailable(const wxString& dirName)
+bool wxIsDriveAvailable(const wxString& WXUNUSED_IN_WINCE(dirName))
 {
 #ifdef __WXWINCE__
-    wxUnusedVar(dirName);
     return false;
 #else
 #ifdef __WIN32__
@@ -1295,32 +1303,70 @@ void wxDirFilterListCtrl::FillFilterList(const wxString& filter, int defaultFilt
 // ----------------------------------------------------------------------------
 
 #ifndef __WXGTK24__
-/* Computer */
+/* Computer (c) Julian Smart */
 static const char * file_icons_tbl_computer_xpm[] = {
-"16 16 7 1",
-"     s None    c None",
-".    c #808080",
-"X    c #c0c0c0",
-"o    c Black",
-"O    c Gray100",
-"+    c #008080",
-"@    c Blue",
-"    ........... ",
-"   .XXXXXXXXXX.o",
-"   .OOOOOOOOO..o",
-"   .OoooooooX..o",
-"   .Oo+...@+X..o",
-"   .Oo+XXX.+X..o",
-"   .Oo+....+X..o",
-"   .Oo++++++X..o",
-"   .OXXXXXXXX.oo",
-"   ..........o.o",
-"   ...........Xo",
-"   .XXXXXXXXXX.o",
-"  .o.o.o.o.o...o",
-" .oXoXoXoXoXo.o ",
-".XOXXXXXXXXX.o  ",
-"............o   "};
+/* columns rows colors chars-per-pixel */
+"16 16 42 1",
+"r c #4E7FD0",
+"$ c #7198D9",
+"; c #DCE6F6",
+"q c #FFFFFF",
+"u c #4A7CCE",
+"# c #779DDB",
+"w c #95B2E3",
+"y c #7FA2DD",
+"f c #3263B4",
+"= c #EAF0FA",
+"< c #B1C7EB",
+"% c #6992D7",
+"9 c #D9E4F5",
+"o c #9BB7E5",
+"6 c #F7F9FD",
+", c #BED0EE",
+"3 c #F0F5FC",
+"1 c #A8C0E8",
+"  c None",
+"0 c #FDFEFF",
+"4 c #C4D5F0",
+"@ c #81A4DD",
+"e c #4377CD",
+"- c #E2EAF8",
+"i c #9FB9E5",
+"> c #CCDAF2",
+"+ c #89A9DF",
+"s c #5584D1",
+"t c #5D89D3",
+": c #D2DFF4",
+"5 c #FAFCFE",
+"2 c #F5F8FD",
+"8 c #DFE8F7",
+"& c #5E8AD4",
+"X c #638ED5",
+"a c #CEDCF2",
+"p c #90AFE2",
+"d c #2F5DA9",
+"* c #5282D0",
+"7 c #E5EDF9",
+". c #A2BCE6",
+"O c #8CACE0",
+/* pixels */
+"                ",
+"  .XXXXXXXXXXX  ",
+"  oXO++@#$%&*X  ",
+"  oX=-;:>,<1%X  ",
+"  oX23=-;:4,$X  ",
+"  oX5633789:@X  ",
+"  oX05623=78+X  ",
+"  oXqq05623=OX  ",
+"  oX,,,,,<<<$X  ",
+"  wXXXXXXXXXXe  ",
+"  XrtX%$$y@+O,, ",
+"  uyiiiiiiiii@< ",
+" ouiiiiiiiiiip<a",
+" rustX%$$y@+Ow,,",
+" dfffffffffffffd",
+"                "
+};
 #endif // GTK+ < 2.4
 
 // ----------------------------------------------------------------------------

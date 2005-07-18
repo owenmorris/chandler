@@ -93,9 +93,6 @@
 // these values correspond to those used by comctl32.dll
 #define DEFAULTBITMAPX   16
 #define DEFAULTBITMAPY   15
-#define DEFAULTBUTTONX   24
-#define DEFAULTBUTTONY   24
-#define DEFAULTBARHEIGHT 27
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -245,25 +242,20 @@ bool wxToolBar::Create(wxWindow *parent,
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
-    // workaround for flat toolbar on Windows XP classic style
+    // workaround for flat toolbar on Windows XP classic style: we have to set
+    // the style after creating the control, doing it at creation time doesn't
+    // work
 #if wxUSE_UXTHEME
     if ( style & wxTB_FLAT )
     {
-        wxUxThemeEngine *p = wxUxThemeEngine::Get();
-        if ( !p || !p->IsThemeActive() )
+        LRESULT style = ::SendMessage(GetHwnd(), TB_GETSTYLE, 0, 0L);
+
+        if ( !(style & TBSTYLE_FLAT) )
         {
-            DWORD dwToolbarStyle;
-
-            dwToolbarStyle = (DWORD)::SendMessage(GetHwnd(), TB_GETSTYLE, 0, 0L );
-
-            if ((dwToolbarStyle & TBSTYLE_FLAT) == 0)
-            {
-                dwToolbarStyle |= TBSTYLE_FLAT;
-                ::SendMessage(GetHwnd(), TB_SETSTYLE, 0, (LPARAM)dwToolbarStyle );
+            ::SendMessage(GetHwnd(), TB_SETSTYLE, 0, style | TBSTYLE_FLAT);
             }
         }
-    }
-#endif
+#endif // wxUSE_UXTHEME
 
     return true;
 }
@@ -378,6 +370,7 @@ wxSize wxToolBar::DoGetBestSize() const
         sizeBest.y = size.cy;
     }
 
+    CacheBestSize(sizeBest);
     return sizeBest;
 }
 
@@ -1242,14 +1235,15 @@ wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord x, wxCoord y) const
         return (wxToolBarToolBase *)NULL;
     }
 
-    // if comctl32 version < 4.71 wxToolBar95 adds dummy spacers
-#if defined(_WIN32_IE) && (_WIN32_IE >= 0x400 )
+    // when TB_SETBUTTONINFO is available (both during compile- and run-time),
+    // we don't use the dummy separators hack
+#ifdef TB_SETBUTTONINFO
     if ( wxApp::GetComCtl32Version() >= 471 )
     {
         return m_tools.Item((size_t)index)->GetData();
     }
     else
-#endif
+#endif // TB_SETBUTTONINFO
     {
         return GetItemSkippingDummySpacers( m_tools, (size_t) index );
     }

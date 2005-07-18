@@ -4,6 +4,14 @@
  * $Header$
 	Last change:  JS   13 Jul 97    6:17 pm
  */
+/* Copyright: (c) Julian Smart */
+/* Licence:   wxWindows Licence */
+
+#ifdef __VISUALC__
+    #pragma warning(push)
+    #pragma warning(disable:4127) /* warning C4127: conditional expression is constant [about while ( 0 | 1 )] */
+    #pragma warning(disable:4244) /* warning C4244: '=' : conversion from 'A' to 'B', possible loss of data    */
+#endif
 
 #define FLEX_SCANNER
 

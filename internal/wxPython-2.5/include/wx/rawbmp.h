@@ -73,6 +73,7 @@
 
 #ifdef __VISUALC__
     // VC++ gives an absolutely harmless warning for wxPixelData<wxBitmap> ctor
+    #pragma warning(push)
     #pragma warning(disable: 4355) // 'this' used in initializer list
 #endif
 
@@ -153,7 +154,7 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
 
 // the (most common) native bitmap format without alpha support
 #if defined(__WXMSW__)
-    // under MSW the RGB components are inversed, they're in BGR order
+    // under MSW the RGB components are reversed, they're in BGR order
     typedef wxPixelFormat<unsigned char, 24, 2, 1, 0> wxNativePixelFormat;
 
     #define wxPIXEL_FORMAT_ALPHA 3
@@ -712,13 +713,12 @@ typedef wxPixelData<wxBitmap, wxAlphaPixelFormat> wxAlphaPixelData;
     partial template specialization then and neither VC6 nor VC7 provide it.
  */
 template < class Image, class PixelFormat = wxPixelFormatFor<Image> >
-struct wxPixelIterator : wxPixelData<Image, PixelFormat>::Iterator
+struct wxPixelIterator : public wxPixelData<Image, PixelFormat>::Iterator
 {
 };
 
 #ifdef __VISUALC__
-    #pragma warning(default: 4355)
-    #pragma warning(default: 4097)
+    #pragma warning(pop)
 #endif
 
 #endif // _WX_RAWBMP_H_BASE_

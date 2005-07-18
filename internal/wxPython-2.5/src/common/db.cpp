@@ -179,7 +179,7 @@ bool wxDbConnectInf::AllocHenv()
     // Initialize the ODBC Environment for Database Operations
     if (SQLAllocEnv(&Henv) != SQL_SUCCESS)
     {
-        wxLogDebug(wxT("A problem occured while trying to get a connection to the data source"));
+        wxLogDebug(wxT("A problem occurred while trying to get a connection to the data source"));
         return false;
     }
 
@@ -326,8 +326,7 @@ int wxDbColFor::Format(int Nation, int dbDataType, SWORD sqlDataType,
         case DB_DATA_TYPE_FLOAT:
             if (decimalDigits == 0)
                 decimalDigits = 2;
-            tempStr = wxT("%");
-            tempStr.Printf(wxT("%s%d.%d"), tempStr.c_str(),columnLength, decimalDigits);
+            tempStr.Printf(wxT("%%%d.%d"), columnLength, decimalDigits);
             s_Field.Printf(wxT("%sf"), tempStr.c_str());
             break;
         case DB_DATA_TYPE_DATE:
@@ -804,6 +803,11 @@ bool wxDb::open(bool failOnDataTypeUnsupported)
 bool wxDb::Open(const wxString& inConnectStr, bool failOnDataTypeUnsupported)
 {
     wxASSERT(inConnectStr.Length());
+    return Open(inConnectStr, NULL, failOnDataTypeUnsupported);
+}
+
+bool wxDb::Open(const wxString& inConnectStr, SQLHWND parentWnd, bool failOnDataTypeUnsupported)
+{
     dsn        = wxT("");
     uid        = wxT("");
     authStr    = wxT("");
@@ -832,7 +836,7 @@ bool wxDb::Open(const wxString& inConnectStr, bool failOnDataTypeUnsupported)
 
     inConnectionStr = inConnectStr;
 
-    retcode = SQLDriverConnect(hdbc, NULL, (SQLTCHAR FAR *)inConnectionStr.c_str(),
+    retcode = SQLDriverConnect(hdbc, parentWnd, (SQLTCHAR FAR *)inConnectionStr.c_str(),
                         (SWORD)inConnectionStr.Length(), (SQLTCHAR FAR *)outConnectBuffer,
                         sizeof(outConnectBuffer), &outConnectBufferLen, SQL_DRIVER_COMPLETE );
 
@@ -1776,16 +1780,16 @@ bool wxDb::DispAllErrors(HENV aHenv, HDBC aHdbc, HSTMT aHstmt)
 /*
  * This function is called internally whenever an error condition prevents the user's
  * request from being executed.  This function will query the datasource as to the
- * actual error(s) that just occured on the previous request of the datasource.
+ * actual error(s) that just occurred on the previous request of the datasource.
  *
  * The function will retrieve each error condition from the datasource and
  * Printf the codes/text values into a string which it then logs via logError().
  * If in DBDEBUG_CONSOLE mode, the constructed string will be displayed in the console
  * window and program execution will be paused until the user presses a key.
  *
- * This function always returns a false, so that functions which call this function
+ * This function always returns false, so that functions which call this function
  * can have a line like "return (DispAllErrors(henv, hdbc));" to indicate the failure
- * of the users request, so that the calling code can then process the error msg log
+ * of the user's request, so that the calling code can then process the error message log.
  */
 {
     wxString odbcErrMsg;
@@ -2433,7 +2437,7 @@ int wxDb::GetKeyFields(const wxString &tableName, wxDbColInf* colInf, UWORD noCo
             GetData( 5, SQL_C_SSHORT, &iKeySeq,     0,                         &cb);
             GetData( 7, SQL_C_WXCHAR,  szFkTable,   DB_MAX_TABLE_NAME_LEN+1,   &cb);
             GetData( 8, SQL_C_WXCHAR,  szFkCol,     DB_MAX_COLUMN_NAME_LEN+1,  &cb);
-            tempStr.Printf(wxT("%s[%s] "),tempStr.c_str(),szFkTable);  // [ ] in case there is a blank in the Table name
+            tempStr << _T('[') << szFkTable << _T(']');  // [ ] in case there is a blank in the Table name
         }  // if
     }  // while
 
@@ -2502,7 +2506,7 @@ wxDbColInf *wxDb::GetColumns(wxChar *tableName[], const wxChar *userID)
  *        1) The last array element of the tableName[] argument must be zero (null).
  *            This is how the end of the array is detected.
  *        2) This function returns an array of wxDbColInf structures.  If no columns
- *            were found, or an error occured, this pointer will be zero (null).  THE
+ *            were found, or an error occurred, this pointer will be zero (null).  THE
  *            CALLING FUNCTION IS RESPONSIBLE FOR DELETING THE MEMORY RETURNED WHEN IT
  *            IS FINISHED WITH IT.  i.e.
  *
@@ -2592,7 +2596,7 @@ wxDbColInf *wxDb::GetColumns(wxChar *tableName[], const wxChar *userID)
                                      NULL, 0);                               // All columns
             }
             if (retcode != SQL_SUCCESS)
-            {  // Error occured, abort
+            {  // Error occurred, abort
                 DispAllErrors(henv, hdbc, hstmt);
                 if (colInf)
                     delete [] colInf;
@@ -2650,7 +2654,7 @@ wxDbColInf *wxDb::GetColumns(wxChar *tableName[], const wxChar *userID)
                 }
             }
             if (retcode != SQL_NO_DATA_FOUND)
-            {  // Error occured, abort
+            {  // Error occurred, abort
                 DispAllErrors(henv, hdbc, hstmt);
                 if (colInf)
                     delete [] colInf;
@@ -2748,7 +2752,7 @@ wxDbColInf *wxDb::GetColumns(const wxString &tableName, UWORD *numCols, const wx
                                  NULL, 0);                                // All columns
         }
         if (retcode != SQL_SUCCESS)
-        {  // Error occured, abort
+        {  // Error occurred, abort
             DispAllErrors(henv, hdbc, hstmt);
             if (colInf)
                 delete [] colInf;
@@ -2824,7 +2828,7 @@ wxDbColInf *wxDb::GetColumns(const wxString &tableName, UWORD *numCols, const wx
             }
         }
         if (retcode != SQL_NO_DATA_FOUND)
-        {  // Error occured, abort
+        {  // Error occurred, abort
             DispAllErrors(henv, hdbc, hstmt);
             if (colInf)
                 delete [] colInf;
@@ -3004,7 +3008,7 @@ wxDbColInf *wxDb::GetColumns(const wxString &tableName, int *numCols, const wxCh
                                  NULL, 0);                             // All columns
         }
         if (retcode != SQL_SUCCESS)
-        {  // Error occured, abort
+        {  // Error occurred, abort
             DispAllErrors(henv, hdbc, hstmt);
             if (colInf)
                 delete [] colInf;
@@ -3100,7 +3104,7 @@ wxDbColInf *wxDb::GetColumns(const wxString &tableName, int *numCols, const wxCh
             }
         }
         if (retcode != SQL_NO_DATA_FOUND)
-        {  // Error occured, abort
+        {  // Error occurred, abort
             DispAllErrors(henv, hdbc, hstmt);
             if (colInf)
                 delete [] colInf;
@@ -3252,7 +3256,7 @@ int wxDb::GetColumnCount(const wxString &tableName, const wxChar *userID)
                              NULL, 0);                               // All columns
     }
     if (retcode != SQL_SUCCESS)
-    {  // Error occured, abort
+    {  // Error occurred, abort
         DispAllErrors(henv, hdbc, hstmt);
         SQLFreeStmt(hstmt, SQL_CLOSE);
         return(-1);
@@ -3263,7 +3267,7 @@ int wxDb::GetColumnCount(const wxString &tableName, const wxChar *userID)
         noCols++;
 
     if (retcode != SQL_NO_DATA_FOUND)
-    {  // Error occured, abort
+    {  // Error occurred, abort
         DispAllErrors(henv, hdbc, hstmt);
         SQLFreeStmt(hstmt, SQL_CLOSE);
         return(-1);
@@ -3284,7 +3288,7 @@ wxDbInf *wxDb::GetCatalog(const wxChar *userID)
  * --          : uses SQLTables and fills pTableInf;              ------
  * --          : pColInf is set to NULL and numCols to 0;         ------
  * --          : returns pDbInf (wxDbInf)                         ------
- * --            - if unsuccesfull (pDbInf == NULL)               ------
+ * --            - if unsuccessful (pDbInf == NULL)               ------
  * --          : pColInf can be filled with GetColumns(..);       ------
  * --          : numCols   can be filled with GetColumnCount(..); ------
  * ---------------------------------------------------------------------
@@ -4328,7 +4332,7 @@ int wxDbCreateDataSource(const wxString &driverName, const wxString &dsn, const 
     // embedded nulls in strings
     setupStr.Printf(wxT("DSN=%s%cDescription=%s%cDefaultDir=%s%c"),dsn,2,description,2,defDir,2);
 
-    // Replace the separator from above with the '\0' seperator needed
+    // Replace the separator from above with the '\0' separator needed
     // by the SQLConfigDataSource() function
     int k;
     do
@@ -4410,7 +4414,7 @@ bool wxDbGetDataSource(HENV henv, wxChar *Dsn, SWORD DsnMaxLength, wxChar *DsDes
  ********************************************************************
  *
  * The following functions are all DEPRECATED and are included for
- * backward compatability reasons only
+ * backward compatibility reasons only
  *
  ********************************************************************
  ********************************************************************/

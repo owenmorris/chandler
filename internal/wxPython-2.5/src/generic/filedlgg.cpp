@@ -135,17 +135,10 @@ int wxCALLBACK wxFileDataTimeCompare( long data1, long data2, long data)
      return fd1->GetDateTime().IsLaterThan(fd2->GetDateTime()) ? int(data) : -int(data);
 }
 
-#if defined(__UNIX__) && !defined(__OS2__)
-#define IsTopMostDir(dir)   (dir == wxT("/"))
-#endif
-
 #if defined(__DOS__) || defined(__WINDOWS__) || defined (__OS2__)
 #define IsTopMostDir(dir)   (dir.empty())
-#endif
-
-#if defined(__DOS__) || defined(__WINDOWS__) || defined(__OS2__)
-// defined in src/generic/dirctrlg.cpp
-extern bool wxIsDriveAvailable(const wxString& dirName);
+#else
+#define IsTopMostDir(dir)   (dir == wxT("/"))
 #endif
 
 // defined in src/generic/dirctrlg.cpp
@@ -855,7 +848,6 @@ wxFileCtrl::~wxFileCtrl()
 #define  ID_CHOICE        (wxID_FILEDLGG + 8)
 #define  ID_TEXT          (wxID_FILEDLGG + 9)
 #define  ID_LIST_CTRL     (wxID_FILEDLGG + 10)
-#define  ID_ACTIVATED     (wxID_FILEDLGG + 11)
 #define  ID_CHECK         (wxID_FILEDLGG + 12)
 
 IMPLEMENT_DYNAMIC_CLASS(wxGenericFileDialog, wxFileDialogBase)
@@ -1267,16 +1259,19 @@ void wxGenericFileDialog::HandleAction( const wxString &fn )
     }
 #endif // __UNIX__
 
-    if ((filename.Find(wxT('*')) != wxNOT_FOUND) ||
-        (filename.Find(wxT('?')) != wxNOT_FOUND))
+    if (!(m_dialogStyle & wxSAVE))
     {
-        if (filename.Find(wxFILE_SEP_PATH) != wxNOT_FOUND)
+        if ((filename.Find(wxT('*')) != wxNOT_FOUND) ||
+            (filename.Find(wxT('?')) != wxNOT_FOUND))
         {
-            wxMessageBox(_("Illegal file specification."), _("Error"), wxOK | wxICON_ERROR );
+            if (filename.Find(wxFILE_SEP_PATH) != wxNOT_FOUND)
+            {
+                wxMessageBox(_("Illegal file specification."), _("Error"), wxOK | wxICON_ERROR );
+                return;
+            }
+            m_list->SetWild( filename );
             return;
         }
-        m_list->SetWild( filename );
-        return;
     }
 
     if (!IsTopMostDir(dir))

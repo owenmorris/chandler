@@ -17,7 +17,7 @@ dnl ---------------------------------------------------------------------------
 dnl initialization
 dnl ---------------------------------------------------------------------------
 
-AC_INIT([wxWidgets], [2.6.0], [wx-dev@lists.wxwidgets.org])
+AC_INIT([wxWidgets], [2.6.1], [wx-dev@lists.wxwidgets.org])
 
 dnl the file passed to AC_CONFIG_SRCDIR should be specific to our package
 AC_CONFIG_SRCDIR([wx-config.in])
@@ -31,33 +31,11 @@ AC_CANONICAL_TARGET
 dnl When making releases do:
 dnl
 dnl wx_release_number += 1
-dnl
-dnl ..and update WX_CURRENT, WX_REVISION and WX_AGE according to the
-dnl following rules:
-dnl
-dnl    If any changes have been made to the public interface, that is if any
-dnl    exported class, method, global or global type has been added, removed
-dnl    or changed in any way, then do:  WX_CURRENT += 1
-dnl
-dnl    If source changes have been made that *do not* alter the public
-dnl    interface then do:  WX_REVISION += 1
-dnl    If WX_CURRENT was incremented (as above) instead do:  WX_REVISION = 0
-dnl
-dnl    If any public interface was added, do:  WX_AGE += 1
-dnl    If any public interface was removed (or altered in a way effectively
-dnl    removing the previous definition), instead do:  WX_AGE = 0
-dnl
-dnl When the major or minor version numbers are incremented, all the above
-dnl variables should be reset to 0. wx_subrelease_number should be set to zero
-dnl when major, minor or release numbers change.
-dnl
-dnl The resulting library name will be of the form:
-dnl   libwx_$(TOOLKIT)-$(WX_RELEASE).so.$(WX_CURRENT).$(WX_REVISION).$(WX_AGE)
 
 wx_major_version_number=2
 wx_minor_version_number=6
-wx_release_number=0
-wx_subrelease_number=0
+wx_release_number=1
+wx_subrelease_number=1
 
 WX_RELEASE=$wx_major_version_number.$wx_minor_version_number
 WX_VERSION=$WX_RELEASE.$wx_release_number
@@ -65,9 +43,6 @@ WX_SUBVERSION=$WX_VERSION.$wx_subrelease_number
 
 WX_MSW_VERSION=$wx_major_version_number$wx_minor_version_number$wx_release_number
 
-WX_CURRENT=0
-WX_REVISION=0
-WX_AGE=0
 
 
 dnl ------------------------------------------------------------------------
@@ -288,8 +263,6 @@ case "${host}" in
     AC_DEFINE(__DOS__)
     PROGRAM_EXT=".exe"
     DEFAULT_DEFAULT_wxUSE_MGL=1
-    dnl DJGPP needs explicit -lstdc++ for some reason (VS: mayb some versions only?)
-    LIBS="$LIBS -lstdc++"
   ;;
 
   *-pc-os2_emx | *-pc-os2-emx )
@@ -439,7 +412,6 @@ if test $DEBUG_CONFIGURE = 1; then
   DEFAULT_wxUSE_TEXTFILE=no
   DEFAULT_wxUSE_SOUND=no
   DEFAULT_wxUSE_MEDIACTRL=no  
-  DEFAULT_wxUSE_DIRECTSHOW=no  
   DEFAULT_wxUSE_INTL=no
   DEFAULT_wxUSE_CONFIG=no
   DEFAULT_wxUSE_FONTMAP=no
@@ -636,7 +608,6 @@ else
   DEFAULT_wxUSE_TEXTFILE=yes
   DEFAULT_wxUSE_SOUND=yes
   DEFAULT_wxUSE_MEDIACTRL=no
-  DEFAULT_wxUSE_DIRECTSHOW=no
   DEFAULT_wxUSE_INTL=yes
   DEFAULT_wxUSE_CONFIG=yes
   DEFAULT_wxUSE_FONTMAP=yes
@@ -1332,6 +1303,7 @@ case "${host}" in
   *-*-cygwin*)
       if test "$wxUSE_MSW" = 1 ; then
         wants_win32=1
+        BAKEFILE_FORCE_PLATFORM=win32
       else
         doesnt_want_win32=1
       fi
@@ -1641,7 +1613,7 @@ case "${host}" in
           LDFLAGS="$LDFLAGS -Zsysv-signals"
       else
           if test "$wx_cv_gccversion" = "EMX3"; then
-              LIBS="$LIBS -lstdcxx"
+              LIBS="$LIBS -lstdcxx -lgcc"
               LDFLAGS="$LDFLAGS -Zsysv-signals"
           else
               LIBS="$LIBS -lstdc++"
@@ -1797,8 +1769,8 @@ dnl SGI/Irix's stdio.h does not include wchar_t. Mac OS X does not provide
 dnl wchar.h and wchar_t is defined by stdlib.h (GD)
 AC_CHECK_SIZEOF(wchar_t, 0,
     [
-        /* DJGPP only has fake wchar_t: */
-        #ifdef __DJGPP__
+        /* DJGPP's wchar_t is now a keyword in C++ (still not C though) */
+        #if defined(__DJGPP__) && !( (__GNUC_MINOR__ >= 8 && __GNUC__ == 2 ) || __GNUC__ >= 3 )
         #  error "fake wchar_t"
         #endif
         #ifdef HAVE_WCHAR_H
@@ -1813,6 +1785,11 @@ AC_CHECK_SIZEOF(wchar_t, 0,
         #include <stdio.h>
     ]
 )
+if test "$ac_cv_sizeof_wchar_t" != "0"; then
+    wxUSE_WCHAR_T=yes
+else
+    wxUSE_WCHAR_T=no
+fi
 
 dnl checks needed to define wxVaCopy
 AC_CACHE_CHECK([for va_copy],
@@ -1919,19 +1896,26 @@ AC_CXX_STATIC_CAST
 dnl we don't use HAVE_DYNAMIC_CAST anywhere right now...
 dnl AC_CXX_DYNAMIC_CAST
 
-dnl check various STL features
-if test "$wxUSE_UNICODE" = "yes" -a \
-        \( "$wxUSE_STD_STRING" = "yes" -o "$wxUSE_STL" = "yes" \); then
+dnl check for std::string or std::wstring
+if test "$wxUSE_STD_STRING" = "yes" -o "$wxUSE_STL" = "yes"; then
     AC_LANG_PUSH(C++)
 
+    if test "$wxUSE_UNICODE" = "yes"; then
+        std_string="std::wstring"
+        char_type="wchar_t"
+    else
+        std_string="std::string"
+        char_type="char"
+    fi
+
     dnl check if <string> declares std::wstring
-    AC_MSG_CHECKING([for std::wstring in <string>])
+    AC_MSG_CHECKING([for $std_string in <string>])
     AC_TRY_COMPILE([#include <string>],
-                   [std::wstring foo;],
+                   [$std_string foo;],
                    [AC_MSG_RESULT(yes)
                     AC_DEFINE(HAVE_STD_WSTRING)],
                    [AC_MSG_RESULT(no)
-                    AC_MSG_CHECKING([if std::basic_string<wchar_t> works])
+                    AC_MSG_CHECKING([if std::basic_string<$char_type> works])
                     AC_TRY_COMPILE([
                         #ifdef HAVE_WCHAR_H
                         #  ifdef __CYGWIN__
@@ -1945,14 +1929,40 @@ if test "$wxUSE_UNICODE" = "yes" -a \
                         #include <stdio.h>
                         #include <string>
                         ],
-                        [std::basic_string<wchar_t> foo;
-                         const wchar_t* dummy = foo.c_str();],
+                        [std::basic_string<$char_type> foo;
+                         const $char_type* dummy = foo.c_str();],
                         [AC_MSG_RESULT(yes)],
                         [AC_MSG_RESULT([no])
-                         AC_MSG_ERROR([Can't compile without unicode string class])]
+                         if test "$wxUSE_STL" = "yes"; then
+                             AC_MSG_ERROR([Can't use --enable-stl without $std_string or std::basic_string<$char_type>])
+                         elif grep wxUSE_STD_STRING $wx_arg_cache_file >/dev/null; then
+                             AC_MSG_ERROR([Can't use --enable-std_string without $std_string or std::basic_string<$char_type>])
+                         else
+                             AC_MSG_WARN([No $std_string or std::basic_string<$char_type>, switching to --disable-std_string])
+                             wxUSE_STD_STRING=no
+                         fi
+                        ]
                     )
                     ])
 
+    AC_LANG_POP
+fi
+
+if test "$wxUSE_STD_IOSTREAM" = "yes"; then
+    AC_LANG_PUSH(C++)
+
+    AC_CHECK_TYPES([std::istream, std::ostream],,
+                   [wxUSE_STD_IOSTREAM=no],
+                   [#include <iostream>])
+
+    if test "$wxUSE_STD_IOSTREAM" != "yes"; then
+        if grep wxUSE_STD_IOSTREAM $wx_arg_cache_file >/dev/null; then
+            AC_MSG_ERROR([Can't use --enable-std_iostreams without std::istream and std::ostream])
+        else
+            AC_MSG_WARN([No std::iostreams, switching to --disable-std_iostreams])
+        fi
+    fi
+    
     AC_LANG_POP
 fi
 
@@ -2104,6 +2114,41 @@ dnl
 dnl also put 64 bit versions for Linux on AMD, they must come before the usual
 dnl locations or 64 bit compilation failed
 SEARCH_LIB="/usr/lib /usr/lib32 /usr/lib64 /usr/X11R6/lib64 `echo "$SEARCH_INCLUDE" | sed s/include/lib/g`"
+
+dnl Cross compiling with gcc?
+if test "$build" != "$host" -a "$GCC" = yes; then
+    dnl for gcc cross-compilers "$CC -print-prog-name=ld" prints the path to
+    dnl the linker. Stripping off the trailing '/bin/ld' gives us a candiate
+    dnl for a 'root' below which libraries and headers for the target system
+    dnl might be installed.
+    if cross_root=`$CC -print-prog-name=ld 2>/dev/null`; then
+        cross_root=`dirname $cross_root`
+        cross_root=`dirname $cross_root`
+
+        dnl substitute this candiate root for '^/usr' in the search lists,
+        dnl strip out any that don't start '^/usr'.
+        SEARCH_LIB=`for x in $SEARCH_LIB; do echo $x; done | sed -ne "s|^/usr|$cross_root|p"`
+        SEARCH_INCLUDE=`for x in $SEARCH_INCLUDE; do echo $x; done | sed -ne "s|^/usr|$cross_root|p"`
+
+        dnl also have pkg-config search for *.pc files under this 'root'
+        if test -z "$PKG_CONFIG_PATH"; then
+            PKG_CONFIG_PATH="$cross_root/local/lib/pkgconfig:$cross_root/lib/pkgconfig"
+            export PKG_CONFIG_PATH
+        fi
+
+        dnl AC_PATH_XTRA doesn't work currently unless -x-includes and
+        dnl -x-libraries are given on the command line. So if they are not
+        dnl set then set them here to plausible defaults.
+        if test -z "$x_includes" -o "$x_includes" = NONE; then
+            WX_PATH_FIND_INCLUDES($SEARCH_INCLUDE, X11/Intrinsic.h)
+            x_includes=$ac_find_includes
+        fi
+        if test -z "$x_libraries" -o "$x_libraries" = NONE; then
+            WX_PATH_FIND_LIBRARIES($SEARCH_LIB, Xt)
+            x_libraries=$ac_find_libraries
+        fi
+    fi
+fi
 
 dnl ------------------------------------------------------------------------
 dnl Check for libraries
@@ -2447,6 +2492,17 @@ dnl ------------------------------------------------------------------------
 dnl Check for expat libraries
 dnl ------------------------------------------------------------------------
 
+if test "$wxUSE_WCHAR_T" != "yes"; then
+if test "$wxUSE_EXPAT" != "no"; then
+        AC_MSG_WARN([wxWidgets requires wchar_t to use expat, disabling])
+        wxUSE_EXPAT=no
+    fi
+    if test "$wxUSE_XML" != "no"; then
+        AC_MSG_WARN([wxWidgets requires wchar_t to use xml, disabling])
+        wxUSE_XML=no
+    fi
+fi
+
 if test "$wxUSE_EXPAT" != "no"; then
     wxUSE_XML=yes
     AC_DEFINE(wxUSE_EXPAT)
@@ -2676,9 +2732,28 @@ libraries returned by 'pkg-config gtk+-2.0 --libs' or 'gtk-config
             save_CFLAGS="$CFLAGS"
             save_LIBS="$LIBS"
             CFLAGS="$CFLAGS $wx_cv_cflags_gtk"
-            LIBS="$LIBS $wx_cv_lib_gtk"
+            LIBS="$LIBS $wx_cv_libs_gtk"
             
             AC_CHECK_FUNCS([pango_font_family_is_monospace])
+
+            dnl gtk_icon_size_lookup is not available in the GTK+ headers
+            dnl that have shipped with some versions of Sun's JDS. Not using
+            dnl AC_CHECK_FUNCS here since it only checks the function exists
+            dnl in the lib (not the header).
+            AC_MSG_CHECKING([if gtk_icon_size_lookup is missing])
+            AC_TRY_COMPILE([
+                            #include <gtk/gtk.h>
+                           ],
+                           [
+                            void *f = gtk_icon_size_lookup;
+                           ],
+                           [
+                            AC_MSG_RESULT([no])
+                           ],
+                           [
+                            AC_DEFINE(NEED_GTK_ICON_SIZE_LOOKUP)
+                            AC_MSG_RESULT([yes])
+                           ])
             
             dnl test if we have at least GTK+ 2.4:
             AC_MSG_CHECKING([if GTK+ is version >= 2.4])
@@ -3251,7 +3326,7 @@ dnl ----------------------------------------------------------------
 IODBC_C_SRC=""
 
 
-dnl ODBC is handled seperately for MSW 
+dnl ODBC is handled separately for MSW 
 if test "$TOOLKIT" != "MSW" ; then
 
     if test "$wxUSE_ODBC" = "sys" -o "$wxUSE_ODBC" = "yes" ; then
@@ -3423,7 +3498,7 @@ if test "$wxUSE_OPENGL" = "yes"; then
 
         if test "x$OPENGL_LIBS" = "x"; then
             dnl it should be an error and not a warning because OpenGL is not on
-            dnl by default and so if it had been explicitely requested, we
+            dnl by default and so if it had been explicitly requested, we
             dnl shouldn't just fall back to compiling the library without it
             AC_MSG_ERROR(OpenGL libraries not available)
         fi
@@ -3506,6 +3581,8 @@ if test "$wxUSE_SHARED" = "yes"; then
       ;;
       
       powerpc-*-darwin* )
+        install_name_tool=`which install_name_tool`
+        if test "$install_name_tool" -a -x "$install_name_tool"; then
         SAMPLES_RPATH_POSTLINK="\$(top_builddir)change-install-names \$(LIBDIRNAME) \$(prefix) \$@"
         cat <<EOF >change-install-names
 #!/bin/sh
@@ -3517,6 +3594,7 @@ done
 \${inst_cmd} \${3}
 EOF
         chmod +x change-install-names
+        fi
       ;;
       
       *-*-cygwin* | *-*-mingw32* )
@@ -3588,7 +3666,11 @@ dnl library link name
 dnl These just save us from exporting lib_{unicode,debug,flavour}_suffix.
 dnl If we ever need to do that, we won't need to keep these.
 WX_LIBRARY_BASENAME_NOGUI="wx_base${WXBASEPORT}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
+if test "${TOOLKIT_DIR}" = "os2"; then
+    WX_LIBRARY_BASENAME_GUI="wx_pm${WIDGET_SET}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
+else
 WX_LIBRARY_BASENAME_GUI="wx_${TOOLKIT_DIR}${TOOLKIT_VERSION}${WIDGET_SET}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
+fi
 
 
 
@@ -3764,7 +3846,7 @@ dnl Check for functions
 dnl ---------------------------------------------------------------------------
 
 dnl don't check for wchar_t functions if we haven't got wchar_t itself
-if test "$ac_cv_sizeof_wchar_t" != "0"; then
+if test "$wxUSE_WCHAR_T" = "yes"; then
     AC_DEFINE(wxUSE_WCHAR_T)
 
     dnl check for wcslen in all possible places
@@ -4461,26 +4543,8 @@ if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
                     AC_DEFINE(HAVE_PTHREAD_CANCEL),
                     AC_MSG_WARN([wxThread::Kill() will not work properly]))
 
-      dnl we don't use pthread_cleanup_push/pop() any more in the code, but I
-      dnl the code here for now in case we need it again soon; otherwise it
-      dnl should be removed in a couple of months (VZ in Sep 2003)
-      dnl
-      dnl AC_CACHE_CHECK([for pthread_cleanup_push/pop], wx_cv_func_pthread_cleanup_push,
-      dnl [
-      dnl   AC_TRY_COMPILE([#include <pthread.h>],
-      dnl                [
-      dnl                   pthread_cleanup_push(NULL, NULL);
-      dnl                   pthread_cleanup_pop(0);
-      dnl                ], [
-      dnl                   wx_cv_func_pthread_cleanup_push=yes
-      dnl                ], [
-      dnl                   wx_cv_func_pthread_cleanup_push=no
-      dnl                ])
-      dnl ])
-      dnl 
-      dnl if test "$wx_cv_func_pthread_cleanup_push" = "yes"; then
-      dnl     AC_DEFINE(HAVE_THREAD_CLEANUP_FUNCTIONS)
-      dnl fi
+      AC_CHECK_FUNC(pthread_attr_setstacksize,
+                    AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE))
 
       dnl mutexattr_t initialization is done in quite different ways on different
       dnl platforms, so check for a few things:
@@ -4612,7 +4676,9 @@ fi
 
 if test "$wxUSE_DEBUG_GDB" = "yes" ; then
     wxUSE_DEBUG_INFO=yes
-    WXDEBUG="-ggdb"
+    if test "$GCC" = yes; then
+        WXDEBUG="-ggdb"
+    fi
 fi
 
 if test "$wxUSE_DEBUG_FLAG" = "yes" ; then
@@ -4632,7 +4698,7 @@ if test "$wxUSE_MEM_TRACING" = "yes" ; then
 fi
 
 if test "$wxUSE_DMALLOC" = "yes" ; then
-    DMALLOC_LIBS="-ldmalloc"
+    DMALLOC_LIBS="-ldmallocthcxx"
 fi
 
 PROFILE=
@@ -4751,6 +4817,8 @@ if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
         if test "$USE_DARWIN" = 1; then
             dnl dlopen/dlerror is implemented in dynlib.cpp for Darwin/Mac OS X
             HAVE_DL_FUNCS=1
+        elif test "$USE_DOS" = 1; then
+            HAVE_DL_FUNCS=0
         else
             dnl the test is a bit complicated because we check for dlopen() both with
             dnl and without -ldl and we also try to find shl_load() if there is no
@@ -4796,7 +4864,7 @@ if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
 
         if test "$HAVE_DL_FUNCS" = 0; then
             if test "$HAVE_SHL_FUNCS" = 0; then
-              if test "$USE_UNIX" = 1; then
+              if test "$USE_UNIX" = 1 -o "$USE_DOS" = 1; then
                   AC_MSG_WARN([Missing dynamic loading support, several features will be disabled])
                   wxUSE_DYNAMIC_LOADER=no
                   wxUSE_DYNLIB_CLASS=no
@@ -4854,13 +4922,15 @@ if test "$wxUSE_TIMER" = "yes"; then
   AC_DEFINE(wxUSE_TIMER)
 fi
 
+dnl Unix implementation needs additional checks because audio support
+dnl comes in many favours:
+if test "$USE_UNIX" = "1" ; then
+    AC_CHECK_HEADERS([sys/soundcard.h],,
+                     [DISABLED_CONTRIB="$DISABLED_CONTRIB mmedia"])
+fi
 WITH_PLUGIN_SDL=0
 if test "$wxUSE_SOUND" = "yes"; then
-  dnl Unix implementation needs additional checks because audio support
-  dnl comes in many favours:
   if test "$USE_UNIX" = "1" ; then
-    AC_CHECK_HEADERS([sys/soundcard.h])
-
     if test "$wxUSE_LIBSDL" != "no"; then
       AM_PATH_SDL([1.2.0],
                   [
@@ -4943,7 +5013,12 @@ if test "$wxUSE_ZIPSTREAM" = "yes"; then
 fi
 
 if test "$wxUSE_ON_FATAL_EXCEPTION" = "yes"; then
-  AC_DEFINE(wxUSE_ON_FATAL_EXCEPTION)
+  if test "$USE_UNIX" != 1; then
+    AC_MSG_WARN([Catching fatal exceptions not currently supported on this system, wxApp::OnFatalException will not be called])
+    wxUSE_ON_FATAL_EXCEPTION=no
+  else
+    AC_DEFINE(wxUSE_ON_FATAL_EXCEPTION)
+  fi
 fi
 
 if test "$wxUSE_STACKWALKER" = "yes"; then
@@ -4951,8 +5026,8 @@ if test "$wxUSE_STACKWALKER" = "yes"; then
 fi
 
 if test "$wxUSE_DEBUGREPORT" = "yes"; then
-    if test "$USE_OS2" = "1"; then
-        AC_MSG_WARN([Creating debug reports not supported under OS/2 yet, disabled])
+    if test "$USE_UNIX" != "1" -a "$USE_WIN32" != "1"; then
+        AC_MSG_WARN([Creating debug reports not currently supported on this system, disabled])
         wxUSE_DEBUGREPORT=no
     else
         AC_DEFINE(wxUSE_DEBUGREPORT)
@@ -5403,30 +5478,39 @@ dnl ---------------------------------------------------------------------------
 dnl Joystick support
 dnl ---------------------------------------------------------------------------
 
-if test "$wxUSE_GUI" = "yes"; then
+if test "$wxUSE_GUI" = "yes" -a "$wxUSE_JOYSTICK" = "yes"; then
+    wxUSE_JOYSTICK=no
+
      dnl under MSW we always have joystick support
-     if test "$wxUSE_JOYSTICK" = "yes"; then
+    if test "$TOOLKIT" = "MSW"; then
+        wxUSE_JOYSTICK=yes
+
+    dnl mac only available on darwin
+    elif test "$TOOLKIT" = "MAC" -o "$TOOLKIT" = "COCOA"; then
+        if test "$USE_DARWIN" = 1; then
+            dnl check for a bug in the headers, some have bad setEventCallout
+            AC_MSG_CHECKING([headers have declarations needed for joystick support])
+            AC_LANG_PUSH(C++)
+            AC_TRY_COMPILE( [ #include <IOKit/hid/IOHIDLib.h> ],
+                            [ IOHIDQueueInterface *qi = NULL;
+                              IOHIDCallbackFunction cb = NULL;
+                              qi->setEventCallout(NULL, cb, NULL, NULL); ],
+                            [ wxUSE_JOYSTICK=yes ]
+                          )
+            AC_LANG_POP
+            AC_MSG_RESULT($wxUSE_JOYSTICK)
+        fi
          
         dnl joystick support is only for Linux 2.1.x or greater
-        if test "$TOOLKIT" != "MAC" -a "$TOOLKIT" != "COCOA" -a "$TOOLKIT" != "MSW"; then
-            AC_CHECK_HEADERS(linux/joystick.h)
-            if test "$ac_cv_header_linux_joystick_h" != "yes"; then
-                wxUSE_JOYSTICK=no
-                AC_MSG_WARN(Joystick not supported by this system... disabled)
-            fi
         else
-           dnl mac only available on darwin
-           if test "$USE_DARWIN" != 1 -a "$TOOLKIT" != "MSW"; then
-                wxUSE_JOYSTICK=no
-                AC_MSG_WARN(Joystick not supported by this system... disabled)           
-           fi            
-        fi
-
+            AC_CHECK_HEADERS(linux/joystick.h, wxUSE_JOYSTICK=yes)
+        fi            
 
         if test "$wxUSE_JOYSTICK" = "yes"; then
             AC_DEFINE(wxUSE_JOYSTICK)
             SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS joytest"
-        fi
+    else
+        AC_MSG_WARN(Joystick not supported by this system... disabled)           
     fi
 fi
 
@@ -6166,24 +6250,6 @@ dnl wxMediaCtrl
 dnl ---------------------------------------------------------------------------
 
 if test "$wxUSE_MEDIACTRL" = "yes"; then
-    if test "$wxUSE_MSW" = 1; then
-    dnl -----------------------------------------------------------------------
-    dnl DirectShow MSW
-    dnl -----------------------------------------------------------------------
-        wxUSE_DIRECTSHOW="yes"
-        AC_CHECK_HEADERS([dshow.h], [],
-            [
-                wxUSE_DIRECTSHOW="no"
-                AC_MSG_WARN([DirectShow not installed; consider installing the DirectX7 SDK or higher])
-            ],
-            [#include <windows.h>])
-
-       if test "$wxUSE_DIRECTSHOW" = "yes"; then
-            AC_DEFINE(wxUSE_DIRECTSHOW)
-            LIBS="$LIBS -lstrmiids"
-       fi
-    fi
-
     dnl -----------------------------------------------------------------------
     dnl GStreamer 
     dnl -----------------------------------------------------------------------
@@ -6348,14 +6414,15 @@ if test "$wxUSE_MAC" = 1 ; then
     else
         LDFLAGS="$LDFLAGS -lCarbonLib"
     fi
-elif test "$USE_DARWIN" = 1; then
-    LDFLAGS="$LDFLAGS -framework IOKit -framework CoreServices -framework System"
 fi
 if test "$wxUSE_COCOA" = 1 ; then
     LDFLAGS="$LDFLAGS -framework IOKit -framework Cocoa"
     if test "$wxUSE_MEDIACTRL" = "yes"; then
         LDFLAGS="$LDFLAGS -framework QuickTime"
     fi
+fi
+if test "$USE_DARWIN" = 1 -a "$wxUSE_MAC" != 1 -a "$wxUSE_COCOA" != 1 ; then
+    LDFLAGS="$LDFLAGS -framework IOKit -framework CoreServices -framework System -framework ApplicationServices"
 fi
 
 dnl FIXME: should this be covered by the conditional above
@@ -6613,7 +6680,15 @@ case "$TOOLKIT" in
         ;;
 esac
 
+if test "$wxUSE_WINE" = "yes"; then
+    BAKEFILE_FORCE_PLATFORM=win32
+fi
+
 AC_BAKEFILE([m4_include(autoconf_inc.m4)])
+
+if test "$wxUSE_WINE" = "yes"; then
+    RESCOMP=wrc
+fi
 
 if test "$wxUSE_SHARED" = "yes"; then
 
@@ -6657,11 +6732,23 @@ dnl According to Vaclav, if NO_GCC_PRAGMA is used for any reason it needs to
 dnl be in wx-config output.  Not doing so could result in link problems.
 GCC_PRAGMA_FLAGS=""
 PCH_FLAGS=""
-dnl Find out if we have to define NO_GCC_PRAGMA and WX_PRECOMP:
+
+dnl Find out if we have to define WX_PRECOMP (and thus NO_GCC_PRAGMA)
 if test $GCC_PCH = 1 ; then
-    GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
     PCH_FLAGS="-DWX_PRECOMP"
+    GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
 else
+    dnl Find out if we have to define NO_GCC_PRAGMA
+    if test "$GCC" = yes; then
+        AC_MSG_CHECKING([if this GCC version is >= 4.0 and needs -DNO_GCC_PRAGMA])
+        AC_TRY_COMPILE([],
+            [#if (__GNUC__ < 4)
+             #error "Not GCC 4.0 or greater"
+             #endif
+            ],
+            [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
+             AC_MSG_RESULT([yes])],
+            [AC_MSG_RESULT([no])
     case "${host}" in
         powerpc-*-darwin* )
             dnl Some Apple's GCC version are broken and can't handle the
@@ -6669,7 +6756,7 @@ else
             GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
             ;;
         *-*-mingw32* )
-            dnl MinGW GCC versions >= 3.2 have problems with
+            dnl MinGW GCC versions > 3.2 have problems with
             dnl static member of classes derived from templates
             dnl in combination with #pragma interface/implementation
             dnl (the test case uses 4 files)
@@ -6706,6 +6793,9 @@ else
             fi
             ;;
     esac
+dnl  closing bracket of if GCC < 4.0
+        ] ) 
+    fi
 fi
 CPPFLAGS="$PCH_FLAGS $GCC_PRAGMA_FLAGS $CPPFLAGS"
 
@@ -6853,8 +6943,14 @@ for subdir in `echo $SUBDIRS`; do
                         makefiles="samples/$sample/Makefile.in $makefiles"
                     fi
                 done
-            else dnl assume that everything compiles for utils &c
-                makefiles=`(cd $srcdir ; find $subdir -name Makefile.in)`
+            else
+                dnl assume that everything compiles for utils &c
+                dnl any that shouldn't be built can be added to
+                dnl DISABLED_UTILS, DISABLED_CONTRIB or DISABLED_DEMOS
+                disabled_var=DISABLED_`echo $subdir | tr [[a-z]] [[A-Z]]`;
+                eval "disabled=\$$disabled_var"
+                disabled=/`echo X $disabled | sed 's@ @/|/@g'`/
+                makefiles=`(cd $srcdir ; find $subdir -name Makefile.in) | egrep -v "$disabled"`
             fi
         else dnl we build wxBase only
             dnl don't take all samples/utils, just those which build with

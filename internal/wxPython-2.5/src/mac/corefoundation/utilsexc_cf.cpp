@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/mac/corefoundation/utilsexec_cf.cpp
 // Purpose:     Execution-related utilities for Darwin
-// Author:      David Elliott
+// Author:      David Elliott, Ryan Norton (wxMacExecute)
 // Modified by: Stefan Csomor (added necessary wxT for unicode builds)
 // Created:     2004-11-04
 // RCS-ID:      $Id$
-// Copyright:   (c) David Elliott
+// Copyright:   (c) David Elliott, Ryan Norton
 // Licence:     wxWindows licence
 // Notes:       This code comes from src/mac/carbon/utilsexc.cpp,1.11
 /////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,8 @@
 #include "wx/unix/execute.h"
 #include "wx/stdpaths.h"
 #include "wx/apptrait.h"
+
+
 
 #include <CoreFoundation/CFMachPort.h>
 #include <sys/wait.h>

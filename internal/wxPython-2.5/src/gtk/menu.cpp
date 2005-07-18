@@ -1024,6 +1024,11 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
 {
     GtkWidget *menuItem;
 
+    wxString text;
+#ifndef __WXGTK20__
+    GtkLabel* label;
+#endif
+
     if ( mitem->IsSeparator() )
     {
 #ifdef __WXGTK20__
@@ -1032,55 +1037,10 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
         // TODO
         menuItem = gtk_menu_item_new();
 #endif
-        if (pos == -1)
-            gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), menuItem);
-        else
-            gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
-    }
-    else if ( mitem->IsSubMenu() )
-    {
-        // text has "_" instead of "&" after mitem->SetText()
-        wxString text( mitem->GetText() );
-
-#ifdef __WXGTK20__
-        menuItem = gtk_menu_item_new_with_mnemonic( wxGTK_CONV( text ) );
-#else
-        menuItem = gtk_menu_item_new_with_label( wxGTK_CONV( text ) );
-        GtkLabel *label = GTK_LABEL( GTK_BIN(menuItem)->child );
-        // set new text
-        gtk_label_set_text( label, wxGTK_CONV( text ) );
-        // reparse key accel
-        guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-        if (accel_key != GDK_VoidSymbol)
-        {
-            gtk_widget_add_accelerator (menuItem,
-                                        "activate_item",
-                                        gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
-                                        accel_key,
-                                        GDK_MOD1_MASK,
-                                        GTK_ACCEL_LOCKED);
-        }
-#endif
-
-        gtk_menu_item_set_submenu( GTK_MENU_ITEM(menuItem), mitem->GetSubMenu()->m_menu );
-        if (pos == -1)
-            gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), menuItem);
-        else
-            gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
-
-        gtk_widget_show( mitem->GetSubMenu()->m_menu );
-
-        // if adding a submenu to a menu already existing in the menu bar, we
-        // must set invoking window to allow processing events from this
-        // submenu
-        if ( m_invokingWindow )
-            wxMenubarSetInvokingWindow(mitem->GetSubMenu(), m_invokingWindow);
-
-        m_prevRadio = NULL;
     }
     else if (mitem->GetBitmap().Ok())
     {
-        wxString text = mitem->GetText();
+        text = mitem->GetText();
         const wxBitmap *bitmap = &mitem->GetBitmap();
 
 #ifdef __WXGTK20__
@@ -1104,69 +1064,25 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
 
         gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM(menuItem), image );
 
-        gtk_signal_connect( GTK_OBJECT(menuItem), "activate",
-                            GTK_SIGNAL_FUNC(gtk_menu_clicked_callback),
-                            (gpointer)this );
-
-        if (pos == -1)
-            gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), menuItem);
-        else
-            gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
 #else
         GdkPixmap *gdk_pixmap = bitmap->GetPixmap();
         GdkBitmap *gdk_bitmap = bitmap->GetMask() ? bitmap->GetMask()->GetBitmap() : (GdkBitmap*) NULL;
 
         menuItem = gtk_pixmap_menu_item_new ();
-        GtkWidget *label = gtk_accel_label_new ( wxGTK_CONV( text ) );
+        label = GTK_LABEL(gtk_accel_label_new ( wxGTK_CONV( text ) ));
         gtk_misc_set_alignment (GTK_MISC (label), 0.0, 0.5);
-        gtk_container_add (GTK_CONTAINER (menuItem), label);
+        gtk_container_add (GTK_CONTAINER (menuItem), GTK_WIDGET(label));
 
         gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (label), menuItem);
-        guint accel_key;
-        GdkModifierType accel_mods;
 
-        // accelerator for the item, as specified by its label
-        // (ex. Ctrl+O for open)
-        gtk_accelerator_parse(GetGtkHotKey(*mitem).c_str(), &accel_key,
-                              &accel_mods);
-        if (accel_key != GDK_VoidSymbol)
-        {
-            gtk_widget_add_accelerator (menuItem,
-                                        "activate_item",
-                                        m_accel,
-                                        accel_key, accel_mods,
-                                        GTK_ACCEL_VISIBLE);
-        }
+        gtk_widget_show (GTK_WIDGET(label));
 
-        // accelerator for the underlined char (ex ALT+F for the File menu)
-        accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-        if (accel_key != GDK_VoidSymbol)
-        {
-            gtk_widget_add_accelerator (menuItem,
-                                        "activate_item",
-                                        gtk_menu_ensure_uline_accel_group(GTK_MENU (m_menu)),
-                                        accel_key,
-                                        GDK_MOD1_MASK,
-                                        GTK_ACCEL_LOCKED);
-        }
-
-        gtk_widget_show (label);
-
-        mitem->SetLabelWidget(label);
+        mitem->SetLabelWidget(GTK_WIDGET(label));
 
         GtkWidget* pixmap = gtk_pixmap_new( gdk_pixmap, gdk_bitmap );
         gtk_widget_show(pixmap);
         gtk_pixmap_menu_item_set_pixmap(GTK_PIXMAP_MENU_ITEM( menuItem ), pixmap);
 
-        gtk_signal_connect( GTK_OBJECT(menuItem), "activate",
-                            GTK_SIGNAL_FUNC(gtk_menu_clicked_callback),
-                            (gpointer)this );
-
-        if (pos == -1)
-            gtk_menu_append( GTK_MENU(m_menu), menuItem );
-        else
-            gtk_menu_insert( GTK_MENU(m_menu), menuItem, pos );
-        gtk_widget_show( menuItem );
 #endif
 
         m_prevRadio = NULL;
@@ -1174,7 +1090,7 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
     else // a normal item
     {
         // text has "_" instead of "&" after mitem->SetText() so don't use it
-        wxString text( mitem->GetText() );
+        text =  mitem->GetText() ;
 
         switch ( mitem->GetKind() )
         {
@@ -1184,20 +1100,9 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
                 menuItem = gtk_check_menu_item_new_with_mnemonic( wxGTK_CONV( text ) );
 #else
                 menuItem = gtk_check_menu_item_new_with_label( wxGTK_CONV( text ) );
-                GtkLabel *label = GTK_LABEL( GTK_BIN(menuItem)->child );
+                label = GTK_LABEL( GTK_BIN(menuItem)->child );
                 // set new text
                 gtk_label_set_text( label, wxGTK_CONV( text ) );
-                // reparse key accel
-                guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-                if (accel_key != GDK_VoidSymbol)
-                {
-                    gtk_widget_add_accelerator (menuItem,
-                                                "activate_item",
-                                                gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
-                                                accel_key,
-                                                GDK_MOD1_MASK,
-                                                GTK_ACCEL_LOCKED);
-                }
 #endif
                 m_prevRadio = NULL;
                 break;
@@ -1213,20 +1118,9 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
                     m_prevRadio = menuItem = gtk_radio_menu_item_new_with_mnemonic( group, wxGTK_CONV( text ) );
 #else
                     m_prevRadio = menuItem = gtk_radio_menu_item_new_with_label( group, wxGTK_CONV( text ) );
-                    GtkLabel *label = GTK_LABEL( GTK_BIN(menuItem)->child );
+                    label = GTK_LABEL( GTK_BIN(menuItem)->child );
                     // set new text
                     gtk_label_set_text( label, wxGTK_CONV( text ) );
-                    // reparse key accel
-                    guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-                    if (accel_key != GDK_VoidSymbol)
-                    {
-                        gtk_widget_add_accelerator (menuItem,
-                                                    "activate_item",
-                                                    gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
-                                                    accel_key,
-                                                    GDK_MOD1_MASK,
-                                                    GTK_ACCEL_LOCKED);
-                    }
 #endif
                 }
                 else // continue the radio group
@@ -1237,20 +1131,7 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
 #else
                     group = gtk_radio_menu_item_group (GTK_RADIO_MENU_ITEM (m_prevRadio));
                     m_prevRadio = menuItem = gtk_radio_menu_item_new_with_label( group, wxGTK_CONV( text ) );
-                    GtkLabel *label = GTK_LABEL( GTK_BIN(menuItem)->child );
-                    // set new text
-                    gtk_label_set_text( label, wxGTK_CONV( text ) );
-                    // reparse key accel
-                    guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-                    if (accel_key != GDK_VoidSymbol)
-                    {
-                        gtk_widget_add_accelerator (menuItem,
-                                                    "activate_item",
-                                                    gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
-                                                    accel_key,
-                                                    GDK_MOD1_MASK,
-                                                    GTK_ACCEL_LOCKED);
-                    }
+                    label = GTK_LABEL( GTK_BIN(menuItem)->child );
 #endif
                 }
                 break;
@@ -1266,34 +1147,13 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
                 menuItem = gtk_menu_item_new_with_mnemonic( wxGTK_CONV( text ) );
 #else
                 menuItem = gtk_menu_item_new_with_label( wxGTK_CONV( text ) );
-                GtkLabel *label = GTK_LABEL( GTK_BIN(menuItem)->child );
-                // set new text
-                gtk_label_set_text( label, wxGTK_CONV( text ) );
-                // reparse key accel
-                guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
-                if (accel_key != GDK_VoidSymbol)
-                {
-                    gtk_widget_add_accelerator (menuItem,
-                                                    "activate_item",
-                                                    gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
-                                                    accel_key,
-                                                    GDK_MOD1_MASK,
-                                                    GTK_ACCEL_LOCKED);
-                }
+                label = GTK_LABEL( GTK_BIN(menuItem)->child );
 #endif
                 m_prevRadio = NULL;
                 break;
             }
         }
 
-        gtk_signal_connect( GTK_OBJECT(menuItem), "activate",
-                            GTK_SIGNAL_FUNC(gtk_menu_clicked_callback),
-                            (gpointer)this );
-
-        if (pos == -1)
-            gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), menuItem);
-        else
-            gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
     }
 
     guint accel_key;
@@ -1312,6 +1172,11 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
                                     GTK_ACCEL_VISIBLE);
     }
 
+    if (pos == -1)
+        gtk_menu_shell_append(GTK_MENU_SHELL(m_menu), menuItem);
+    else
+        gtk_menu_shell_insert(GTK_MENU_SHELL(m_menu), menuItem, pos);
+
     gtk_widget_show( menuItem );
 
     if ( !mitem->IsSeparator() )
@@ -1325,6 +1190,37 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
         gtk_signal_connect( GTK_OBJECT(menuItem), "deselect",
                             GTK_SIGNAL_FUNC(gtk_menu_nolight_callback),
                             (gpointer)this );
+
+	if ( mitem->IsSubMenu() && mitem->GetKind() != wxITEM_RADIO && mitem->GetKind() != wxITEM_CHECK )
+	{
+            gtk_menu_item_set_submenu( GTK_MENU_ITEM(menuItem), mitem->GetSubMenu()->m_menu );
+
+            gtk_widget_show( mitem->GetSubMenu()->m_menu );
+
+            // if adding a submenu to a menu already existing in the menu bar, we
+            // must set invoking window to allow processing events from this
+            // submenu
+            if ( m_invokingWindow )
+                wxMenubarSetInvokingWindow(mitem->GetSubMenu(), m_invokingWindow);
+	}
+	else
+	{
+            gtk_signal_connect( GTK_OBJECT(menuItem), "activate",
+                            GTK_SIGNAL_FUNC(gtk_menu_clicked_callback),
+                            (gpointer)this );
+    }
+#ifndef __WXGTK20__
+        guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
+        if (accel_key != GDK_VoidSymbol)
+        {
+            gtk_widget_add_accelerator (menuItem,
+                                   "activate_item",
+                                    gtk_menu_ensure_uline_accel_group(GTK_MENU(m_menu)),
+                                    accel_key,
+                                    GDK_MOD1_MASK,
+                                    GTK_ACCEL_LOCKED);
+        } 
+#endif
     }
 
     mitem->SetMenuItem(menuItem);
@@ -1420,18 +1316,24 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
             case WXK_F10:
             case WXK_F11:
             case WXK_F12:
+            case WXK_F13:
+            case WXK_F14:
+            case WXK_F15:
+            case WXK_F16:
+            case WXK_F17:
+            case WXK_F18:
+            case WXK_F19:
+            case WXK_F20:
+            case WXK_F21:
+            case WXK_F22:
+            case WXK_F23:
+            case WXK_F24:
                 hotkey += wxString::Format(wxT("F%d"), code - WXK_F1 + 1);
                 break;
 
                 // TODO: we should use gdk_keyval_name() (a.k.a.
                 //       XKeysymToString) here as well as hardcoding the keysym
                 //       names this might be not portable
-            case WXK_NUMPAD_INSERT:
-                hotkey << wxT("KP_Insert" );
-                break;
-            case WXK_NUMPAD_DELETE:
-                hotkey << wxT("KP_Delete" );
-                break;
             case WXK_INSERT:
                 hotkey << wxT("Insert" );
                 break;
@@ -1467,7 +1369,165 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
             case WXK_RETURN:
                 hotkey << wxT("Return" );
                 break;
-
+            case WXK_BACK:
+                hotkey << wxT("BackSpace" );
+                break;
+            case WXK_TAB:
+                hotkey << wxT("Tab" );
+                break;
+            case WXK_ESCAPE:
+                hotkey << wxT("Esc" );
+                break;
+            case WXK_SPACE:
+                hotkey << wxT("space" );
+                break;
+            case WXK_MULTIPLY:
+                hotkey << wxT("Multiply" );
+                break;
+            case WXK_ADD:
+                hotkey << wxT("Add" );
+                break;
+            case WXK_SEPARATOR:
+                hotkey << wxT("Separator" );
+                break;
+            case WXK_SUBTRACT:
+                hotkey << wxT("Subtract" );
+                break;
+            case WXK_DECIMAL:
+                hotkey << wxT("Decimal" );
+                break;
+            case WXK_DIVIDE:
+                hotkey << wxT("Divide" );
+                break;
+            case WXK_CANCEL:
+                hotkey << wxT("Cancel" );
+                break;
+            case WXK_CLEAR:
+                hotkey << wxT("Clear" );
+                break;
+            case WXK_MENU:
+                hotkey << wxT("Menu" );
+                break;
+            case WXK_PAUSE:
+                hotkey << wxT("Pause" );
+                break;
+            case WXK_CAPITAL:
+                hotkey << wxT("Capital" );
+                break;
+            case WXK_SELECT:
+                hotkey << wxT("Select" );
+                break;
+            case WXK_PRINT:
+                hotkey << wxT("Print" );
+                break;
+            case WXK_EXECUTE:
+                hotkey << wxT("Execute" );
+                break;
+            case WXK_SNAPSHOT:
+                hotkey << wxT("Snapshot" );
+                break;
+            case WXK_HELP:
+                hotkey << wxT("Help" );
+                break;
+            case WXK_NUMLOCK:
+                hotkey << wxT("Num_Lock" );
+                break;
+            case WXK_SCROLL:
+                hotkey << wxT("Scroll_Lock" );
+                break;
+            case WXK_NUMPAD_INSERT:
+                hotkey << wxT("KP_Insert" );
+                break;
+            case WXK_NUMPAD_DELETE:
+                hotkey << wxT("KP_Delete" );
+                break;
+             case WXK_NUMPAD_SPACE:
+                hotkey << wxT("KP_Space" );
+                break;
+            case WXK_NUMPAD_TAB:
+                hotkey << wxT("KP_Tab" );
+                break;
+            case WXK_NUMPAD_ENTER:
+                hotkey << wxT("KP_Enter" );
+                break;
+            case WXK_NUMPAD_F1: case WXK_NUMPAD_F2: case WXK_NUMPAD_F3:
+            case WXK_NUMPAD_F4:
+                hotkey += wxString::Format(wxT("KP_F%d"), code - WXK_NUMPAD_F1 + 1);
+                break;
+            case WXK_NUMPAD_HOME:
+                hotkey << wxT("KP_Home" );
+                break;
+            case WXK_NUMPAD_LEFT:
+                hotkey << wxT("KP_Left" );
+                break;
+             case WXK_NUMPAD_UP:
+                hotkey << wxT("KP_Up" );
+                break;
+            case WXK_NUMPAD_RIGHT:
+                hotkey << wxT("KP_Right" );
+                break;
+            case WXK_NUMPAD_DOWN:
+                hotkey << wxT("KP_Down" );
+                break;
+            case WXK_NUMPAD_PRIOR: case WXK_NUMPAD_PAGEUP:
+                hotkey << wxT("KP_Prior" );
+                break;
+            case WXK_NUMPAD_NEXT:  case WXK_NUMPAD_PAGEDOWN:
+                hotkey << wxT("KP_Next" );
+                break;
+            case WXK_NUMPAD_END:
+                hotkey << wxT("KP_End" );
+                break;
+            case WXK_NUMPAD_BEGIN:
+                hotkey << wxT("KP_Begin" );
+                break;
+            case WXK_NUMPAD_EQUAL:
+                hotkey << wxT("KP_Equal" );
+                break;
+            case WXK_NUMPAD_MULTIPLY:
+                hotkey << wxT("KP_Multiply" );
+                break;
+            case WXK_NUMPAD_ADD:
+                hotkey << wxT("KP_Add" );
+                break;
+            case WXK_NUMPAD_SEPARATOR:
+                hotkey << wxT("KP_Separator" );
+                break;
+            case WXK_NUMPAD_SUBTRACT:
+                hotkey << wxT("KP_Subtract" );
+                break;
+            case WXK_NUMPAD_DECIMAL:
+                hotkey << wxT("KP_Decimal" );
+                break;
+            case WXK_NUMPAD_DIVIDE:
+                hotkey << wxT("KP_Divide" );
+                break;
+           case WXK_NUMPAD0: case WXK_NUMPAD1: case WXK_NUMPAD2:
+           case WXK_NUMPAD3: case WXK_NUMPAD4: case WXK_NUMPAD5:
+           case WXK_NUMPAD6: case WXK_NUMPAD7: case WXK_NUMPAD8: case WXK_NUMPAD9:
+                hotkey += wxString::Format(wxT("KP_%d"), code - WXK_NUMPAD0);
+                break;
+            case WXK_WINDOWS_LEFT:
+                hotkey << wxT("Super_L" );
+                break;
+            case WXK_WINDOWS_RIGHT:
+                hotkey << wxT("Super_R" );
+                break;
+            case WXK_WINDOWS_MENU:
+                hotkey << wxT("Menu" );
+                break;
+            case WXK_COMMAND:
+                hotkey << wxT("Command" );
+                break;
+          /* These probably wouldn't work as there is no SpecialX in gdk/keynames.txt
+            case WXK_SPECIAL1: case WXK_SPECIAL2: case WXK_SPECIAL3: case WXK_SPECIAL4: 
+            case WXK_SPECIAL5: case WXK_SPECIAL6: case WXK_SPECIAL7: case WXK_SPECIAL8: 
+            case WXK_SPECIAL9:  case WXK_SPECIAL10:  case WXK_SPECIAL11: case WXK_SPECIAL12: 
+            case WXK_SPECIAL13: case WXK_SPECIAL14: case WXK_SPECIAL15: case WXK_SPECIAL16: 
+            case WXK_SPECIAL17: case WXK_SPECIAL18: case WXK_SPECIAL19:  case WXK_SPECIAL20:
+                hotkey += wxString::Format(wxT("Special%d"), code - WXK_SPECIAL1 + 1);
+                break;
+          */
                 // if there are any other keys wxGetAccelFromString() may
                 // return, we should process them here
 

@@ -32,6 +32,9 @@ extern WXDLLEXPORT_DATA(const wxChar*) wxPanelNameStr;
 
 // avoid triggering this stupid VC++ warning
 #ifdef __VISUALC__
+    #if _MSC_VER > 1100
+        #pragma warning(push)
+    #endif
     #pragma warning(disable:4355) // 'this' used in base member initializer list
 #endif
 
@@ -95,8 +98,8 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-#ifdef __VISUALC__
-    #pragma warning(default:4355)
+#if defined(__VISUALC__) && (_MSC_VER > 1100)
+    #pragma warning(pop)
 #endif
 
 #endif

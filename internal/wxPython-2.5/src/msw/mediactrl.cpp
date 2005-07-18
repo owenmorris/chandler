@@ -38,6 +38,9 @@
 //---------------------------------------------------------------------------
 #if wxUSE_MEDIACTRL
 
+#include "wx/dcclient.h"
+#include "wx/thread.h"
+
 //---------------------------------------------------------------------------
 // Externals (somewhere in src/msw/app.cpp)
 //---------------------------------------------------------------------------
@@ -57,11 +60,69 @@ extern WXDLLIMPEXP_CORE const wxChar *wxCanvasClassName;
 //  wxAMMediaBackend
 //
 //---------------------------------------------------------------------------
-
+//
+//####################THE BIG DIRECTSHOW OVERVIEW############################
+//
+//
+//  OK... this deserves its own little tutorial.  Knowledge of COM and class
+//  factories is assumed throughout this code.
+//
+//  Basically, the way directshow works is that you tell it to render
+//  a file, and it builds and connects a bunch of filters together.
+//
+//  There are many, many ways to do this.
+//
+//  WAYS TO RENDER A FILE (URLS WORK IN DS ALSO)
+//
+//  1)  Create an instance of IGraphBuilder and call RenderFile on it
+//  2)  Create an instance of IMediaControl and call RenderFile on it
+//  3)  Create an instance of IAMMultiMediaStream, call
+//      IAMMultiMediaStream::AddStream and pass an IDirectDraw instance for
+//      the video, and pass an IDirectSound(Buffer?) instance or use the
+//      default sound renderer, then call RenderFile or RenderMoniker
+//  4)  Create a Moniker instance for the file and create and build
+//      all of the filtergraph manually
+//
+//  Our issue here is that we can't use the default representation of 1 and 2
+//  because the IVideoWindow instance hogs a lot of the useful window
+//  messages such as WM_SETCURSOR.
+//
+//  Solution #1 was to use #3 by creating a seperate IDirectDraw instance
+//  for our window and blitting to that through a thread... unfortunately
+//  the blitting resizing is very low quality and its quite slow.
+//
+//  The current way is to use windowless rendering and have directshow
+//  do all the DirectDraw-style clipping to our window
+//
+//  ~~~~~~~~~~~~~~AFTER RENDERING THE FILE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//  When done rendering the file, we need to get several interfaces from
+//  either a IMediaControl or IGraphBuilder instance -
+//
+//  IMediaPosition - we can set the rate with this... we can also get
+//  positions and set positions through this with REFTIME (double) instead
+//  of the normal LONGLONG that IAMMultiMediaStream and IMediaControl use
+//
+//  IBasicAudio - we need this for setting/getting the volume
+//
+//  Interfaces that we don't use but might be useful one day -
+//
+//  IDirectDrawVideo - you can get this through the IFilter returned
+//  from L"Video Renderer" filter from FindFilter on the IGraphBuilder.
+//  Through this we can set the IDirectDraw instance DrawShow uses.
+//
+//  ~~~~~~~~~~~~~~STOPPING~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+//  There are two ways we can do this -
+//  1)  Have a thread compare the current position to the end position
+//  about every 10 milliseconds
+//  2)  Have IMediaSeekingEx send a message to a windowproc or signal a
+//  windows event
+//
+//  Note that we can do these both, I.E. if an IMediaSeekingEx interface
+//  is unavailable we can check the position instead of an event
+//
 //---------------------------------------------------------------------------
-//  Compilation guard for DirectShow
-//---------------------------------------------------------------------------
-#if wxUSE_DIRECTSHOW
 
 //---------------------------------------------------------------------------
 //  COM includes
@@ -70,8 +131,26 @@ extern WXDLLIMPEXP_CORE const wxChar *wxCanvasClassName;
 #include "wx/msw/ole/uuid.h" //IID etc..
 
 //---------------------------------------------------------------------------
-//  IIDS - used by CoCreateInstance and IUnknown::QueryInterface
+//  COM compatability definitions
 //---------------------------------------------------------------------------
+#ifndef STDMETHODCALLTYPE
+#define STDMETHODCALLTYPE __stdcall
+#endif
+#ifndef STDMETHOD
+#define STDMETHOD(funcname)  virtual HRESULT STDMETHODCALLTYPE funcname
+#endif
+#ifndef PURE
+#define PURE = 0
+#endif
+//---------------------------------------------------------------------------
+//  IIDS - used by CoCreateInstance and IUnknown::QueryInterface
+//  Dumped from amstream.idl, quartz.idl, direct draw and with some
+//  confirmation from WINE
+//
+//  Some of these are not used but are kept here for future reference anyway
+//---------------------------------------------------------------------------
+
+//QUARTZ
 const IID LIBID_QuartzTypeLib = {0x56A868B0,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
 const IID IID_IAMCollection = {0x56A868B9,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
 const IID IID_IMediaControl = {0x56A868B1,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
@@ -89,619 +168,364 @@ const IID IID_IRegFilterInfo = {0x56A868BB,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0x
 const IID IID_IMediaTypeInfo = {0x56A868BC,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
 const IID IID_IPinInfo = {0x56A868BD,0x0AD4,0x11CE,{0xB0,0x3A,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
 const IID IID_IAMStats = {0xBC9BCF80,0xDCD2,0x11D2,{0xAB,0xF6,0x00,0xA0,0xC9,0x05,0xF3,0x75}};
-
-//TODO:  These 4 lines needed?
-#ifndef CLSID_DEFINED
-#define CLSID_DEFINED
-typedef IID CLSID;
-#endif // CLSID_DEFINED
-
-//COM Class Factory
 const CLSID CLSID_FilgraphManager = {0xE436EBB3,0x524F,0x11CE,{0x9F,0x53,0x00,0x20,0xAF,0x0B,0xA7,0x70}};
 
+//AMSTREAM
+const CLSID CLSID_AMMultiMediaStream = {0x49C47CE5, 0x9BA4, 0x11D0,{0x82, 0x12, 0x00, 0xC0, 0x4F, 0xC3, 0x2C, 0x45}};
+const IID IID_IAMMultiMediaStream = {0xBEBE595C, 0x9A6F, 0x11D0,{0x8F, 0xDE, 0x00, 0xC0, 0x4F, 0xD9, 0x18, 0x9D}};
+const IID IID_IDirectDrawMediaStream = {0xF4104FCE, 0x9A70, 0x11D0,{0x8F, 0xDE, 0x00, 0xC0, 0x4F, 0xD9, 0x18, 0x9D}};
+const GUID MSPID_PrimaryVideo = {0xa35FF56A, 0x9FDA, 0x11D0,{0x8F, 0xDF, 0x00, 0xC0, 0x4F, 0xD9, 0x18, 0x9D}};
+const GUID MSPID_PrimaryAudio = {0xa35FF56B, 0x9FDA, 0x11D0,{0x8F, 0xDF, 0x00, 0xC0, 0x4F, 0xD9, 0x18, 0x9D}};
+
+//DDRAW
+const IID IID_IDirectDraw = {0x6C14DB80,0xA733,0x11CE,{0xA5,0x21,0x00,0x20,0xAF,0x0B,0xE5,0x60}};
+const CLSID CLSID_DirectDraw = {0xD7B70EE0,0x4340,0x11CF,{0xB0,0x63,0x00,0x20,0xAF,0xC2,0xCD,0x35}};
+
+//??  QUARTZ Also?
+const CLSID CLSID_VideoMixingRenderer = {0xB87BEB7B, 0x8D29, 0x423F,{0xAE, 0x4D, 0x65, 0x82, 0xC1, 0x01, 0x75, 0xAC}};
+const IID IID_IVMRWindowlessControl =   {0x0EB1088C, 0x4DCD, 0x46F0,{0x87, 0x8F, 0x39, 0xDA, 0xE8, 0x6A, 0x51, 0xB7}};
+const IID IID_IFilterGraph =            {0x56A8689F, 0x0AD4, 0x11CE,{0xB0, 0x3A, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+const IID IID_IGraphBuilder =           {0x56A868A9, 0x0AD4, 0x11CE,{0xB0, 0x3A, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+const IID IID_IVMRFilterConfig =        {0x9E5530C5, 0x7034, 0x48B4,{0xBB, 0x46, 0x0B, 0x8A, 0x6E, 0xFC, 0x8E, 0x36}};
+const IID IID_IBaseFilter =             {0x56A86895, 0x0AD4, 0x11CE,{0xB0, 0x3A, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+
 //---------------------------------------------------------------------------
-//  COM INTERFACES (dumped from midl from quartz.idl from MSVC COM Browser)
+//  DIRECTDRAW COM INTERFACES
 //---------------------------------------------------------------------------
-MIDL_INTERFACE("56A868B9-0AD4-11CE-B03A-0020AF0BA770")
-IAMCollection : public IDispatch
+//DDSURFACESDESC - we don't need most of the stuff here, esp. DDPIXELFORMAT,
+//so just put stubs in
+struct DDPIXELFORMAT {DWORD dw1,dw2,dw3,dw4,dw5,dw6,dw7,dw8;};
+struct DDCOLORKEY {DWORD dwLow, dwHigh;};
+
+typedef struct IDirectDrawClipper* LPDIRECTDRAWCLIPPER;
+typedef struct IDirectDraw* LPDIRECTDRAW;
+typedef struct IDirectDrawSurface* LPDIRECTDRAWSURFACE;
+typedef struct DDSURFACEDESC* LPDDSURFACEDESC;
+typedef struct IDirectDrawPalette* LPDIRECTDRAWPALETTE;
+typedef struct DDSCAPS* LPDDSCAPS;
+typedef DDCOLORKEY* LPDDCOLORKEY;
+typedef DDPIXELFORMAT* LPDDPIXELFORMAT;
+typedef struct DDCAPS* LPDDCAPS;
+
+struct DDSURFACEDESC
 {
-public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Count( 
-        /* [retval][out] */ long __RPC_FAR *plCount) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Item( 
-        /* [in] */ long lItem,
-        /* [out] */ IUnknown __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get__NewEnum( 
-        /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
+    DWORD               dwSize;
+    DWORD               dwFlags;
+    DWORD               dwHeight;
+    DWORD               dwWidth;
+    union
+    {
+        LONG            lPitch;
+        DWORD           dwLinearSize;
+    };
+    DWORD               dwBackBufferCount;
+    union
+    {
+        DWORD           dwMipMapCount;
+        DWORD           dwZBufferBitDepth;
+        DWORD           dwRefreshRate;
+    };
+    DWORD               dwAlphaBitDepth;
+    DWORD               dwReserved;
+    LPVOID              lpSurface;
+    DDCOLORKEY          ddckCKDestOverlay;
+    DDCOLORKEY          ddckCKDestBlt;
+    DDCOLORKEY          ddckCKSrcOverlay;
+    DDCOLORKEY          ddckCKSrcBlt;
+    DDPIXELFORMAT ddpfPixelFormat;
+    struct DDSCAPS {DWORD dwCaps;} ddsCaps;
 };
 
-MIDL_INTERFACE("56A868B1-0AD4-11CE-B03A-0020AF0BA770")
-IMediaControl : public IDispatch
+struct IDirectDrawClipper : public IUnknown
 {
-public:
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Run( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Pause( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Stop( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetState( 
-        /* [in] */ long msTimeout,
-        /* [out] */ long __RPC_FAR *pfs) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE RenderFile( 
-        /* [in] */ BSTR strFilename) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE AddSourceFilter( 
-        /* [in] */ BSTR strFilename,
-        /* [out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_FilterCollection( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_RegFilterCollection( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE StopWhenReady( void) = 0;
-    
+    STDMETHOD(GetClipList)(LPRECT, LPRGNDATA, LPDWORD) PURE;
+    STDMETHOD(GetHWnd)(HWND*) PURE;
+    STDMETHOD(Initialize)(LPDIRECTDRAW, DWORD) PURE;
+    STDMETHOD(IsClipListChanged)(BOOL*) PURE;
+    STDMETHOD(SetClipList)(LPRGNDATA,DWORD) PURE;
+    STDMETHOD(SetHWnd)(DWORD, HWND) PURE;
 };
 
-MIDL_INTERFACE("56A868B6-0AD4-11CE-B03A-0020AF0BA770")
-IMediaEvent : public IDispatch
+struct IDirectDrawSurface : public IUnknown
 {
-public:
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetEventHandle( 
-        /* [out] */ LONG_PTR __RPC_FAR *hEvent) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetEvent( 
-        /* [out] */ long __RPC_FAR *lEventCode,
-        /* [out] */ LONG_PTR __RPC_FAR *lParam1,
-        /* [out] */ LONG_PTR __RPC_FAR *lParam2,
-        /* [in] */ long msTimeout) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE WaitForCompletion( 
-        /* [in] */ long msTimeout,
-        /* [out] */ long __RPC_FAR *pEvCode) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE CancelDefaultHandling( 
-        /* [in] */ long lEvCode) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE RestoreDefaultHandling( 
-        /* [in] */ long lEvCode) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE FreeEventParams( 
-        /* [in] */ long lEvCode,
-        /* [in] */ LONG_PTR lParam1,
-        /* [in] */ LONG_PTR lParam2) = 0;
-    
+    STDMETHOD(AddAttachedSurface)(LPDIRECTDRAWSURFACE) PURE;
+    STDMETHOD(AddOverlayDirtyRect)(LPRECT) PURE;
+    STDMETHOD(Blt)(LPRECT,LPDIRECTDRAWSURFACE, LPRECT,DWORD, struct DDBLTFX*) PURE;
+    STDMETHOD(BltBatch)(struct DDBLTBATCH*, DWORD, DWORD ) PURE;
+    STDMETHOD(BltFast)(DWORD,DWORD,LPDIRECTDRAWSURFACE, LPRECT,DWORD) PURE;
+    STDMETHOD(DeleteAttachedSurface)(DWORD,LPDIRECTDRAWSURFACE) PURE;
+    STDMETHOD(EnumAttachedSurfaces)(LPVOID, LPVOID/*LPDDENUMSURFACESCALLBACK*/) PURE;
+    STDMETHOD(EnumOverlayZOrders)(DWORD,LPVOID,LPVOID/*LPDDENUMSURFACESCALLBACK*/) PURE;
+    STDMETHOD(Flip)(LPDIRECTDRAWSURFACE, DWORD) PURE;
+    STDMETHOD(GetAttachedSurface)(LPDDSCAPS, LPDIRECTDRAWSURFACE*) PURE;
+    STDMETHOD(GetBltStatus)(DWORD) PURE;
+    STDMETHOD(GetCaps)(LPDDSCAPS) PURE;
+    STDMETHOD(GetClipper)(LPDIRECTDRAWCLIPPER*) PURE;
+    STDMETHOD(GetColorKey)(DWORD, LPDDCOLORKEY) PURE;
+    STDMETHOD(GetDC)(HDC *) PURE;
+    STDMETHOD(GetFlipStatus)(DWORD) PURE;
+    STDMETHOD(GetOverlayPosition)(LPLONG, LPLONG ) PURE;
+    STDMETHOD(GetPalette)(LPDIRECTDRAWPALETTE FAR*) PURE;
+    STDMETHOD(GetPixelFormat)(LPDDPIXELFORMAT) PURE;
+    STDMETHOD(GetSurfaceDesc)(LPDDSURFACEDESC) PURE;
+    STDMETHOD(Initialize)(LPDIRECTDRAW, LPDDSURFACEDESC) PURE;
+    STDMETHOD(IsLost)(THIS) PURE;
+    STDMETHOD(Lock)(LPRECT,LPDDSURFACEDESC,DWORD,HANDLE) PURE;
+    STDMETHOD(ReleaseDC)(HDC) PURE;
+    STDMETHOD(Restore)(THIS) PURE;
+    STDMETHOD(SetClipper)(LPDIRECTDRAWCLIPPER) PURE;
+    STDMETHOD(SetColorKey)(DWORD, LPDDCOLORKEY) PURE;
+    STDMETHOD(SetOverlayPosition)(LONG, LONG ) PURE;
+    STDMETHOD(SetPalette)(IUnknown*) PURE;
+    STDMETHOD(Unlock)(LPVOID) PURE;
+    STDMETHOD(UpdateOverlay)(LPRECT, LPDIRECTDRAWSURFACE,LPRECT,
+                               DWORD, struct DDOVERLAYFX*) PURE;
+    STDMETHOD(UpdateOverlayDisplay)(DWORD) PURE;
+    STDMETHOD(UpdateOverlayZOrder)(DWORD, LPDIRECTDRAWSURFACE) PURE;
 };
 
-MIDL_INTERFACE("56A868C0-0AD4-11CE-B03A-0020AF0BA770")
-IMediaEventEx : public IMediaEvent
+struct IDirectDraw : public IUnknown
 {
-public:
-    virtual HRESULT __stdcall SetNotifyWindow( 
-        /* [in] */ LONG_PTR hwnd,
-        /* [in] */ long lMsg,
-        /* [in] */ LONG_PTR lInstanceData) = 0;
-    
-    virtual HRESULT __stdcall SetNotifyFlags( 
-        /* [in] */ long lNoNotifyFlags) = 0;
-    
-    virtual HRESULT __stdcall GetNotifyFlags( 
-        /* [out] */ long __RPC_FAR *lplNoNotifyFlags) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868B2-0AD4-11CE-B03A-0020AF0BA770")
-IMediaPosition : public IDispatch
-{
-public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Duration( 
-        /* [retval][out] */ double __RPC_FAR *plength) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_CurrentPosition( 
-        /* [in] */ double pllTime) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_CurrentPosition( 
-        /* [retval][out] */ double __RPC_FAR *pllTime) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_StopTime( 
-        /* [retval][out] */ double __RPC_FAR *pllTime) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_StopTime( 
-        /* [in] */ double pllTime) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_PrerollTime( 
-        /* [retval][out] */ double __RPC_FAR *pllTime) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_PrerollTime( 
-        /* [in] */ double pllTime) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Rate( 
-        /* [in] */ double pdRate) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Rate( 
-        /* [retval][out] */ double __RPC_FAR *pdRate) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE CanSeekForward( 
-        /* [retval][out] */ long __RPC_FAR *pCanSeekForward) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE CanSeekBackward( 
-        /* [retval][out] */ long __RPC_FAR *pCanSeekBackward) = 0;
-    
+    STDMETHOD(Compact)() PURE;
+    STDMETHOD(CreateClipper)(DWORD, LPDIRECTDRAWCLIPPER*, IUnknown * ) PURE;
+    STDMETHOD(CreatePalette)(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE *, IUnknown * ) PURE;
+    STDMETHOD(CreateSurface)(LPDDSURFACEDESC, LPDIRECTDRAWSURFACE *, IUnknown *) PURE;
+    STDMETHOD(DuplicateSurface)(LPDIRECTDRAWSURFACE, LPDIRECTDRAWSURFACE * ) PURE;
+    STDMETHOD(EnumDisplayModes)(DWORD, LPDDSURFACEDESC, LPVOID, LPVOID ) PURE;
+    STDMETHOD(EnumSurfaces)(DWORD, LPDDSURFACEDESC, LPVOID,LPVOID ) PURE;
+    STDMETHOD(FlipToGDISurface)() PURE;
+    STDMETHOD(GetCaps)(LPDDCAPS, LPDDCAPS) PURE;
+    STDMETHOD(GetDisplayMode)(LPDDSURFACEDESC) PURE;
+    STDMETHOD(GetFourCCCodes)(LPDWORD, LPDWORD ) PURE;
+    STDMETHOD(GetGDISurface)(LPDIRECTDRAWSURFACE *) PURE;
+    STDMETHOD(GetMonitorFrequency)(LPDWORD) PURE;
+    STDMETHOD(GetScanLine)(LPDWORD) PURE;
+    STDMETHOD(GetVerticalBlankStatus)(LPBOOL ) PURE;
+    STDMETHOD(Initialize)(GUID *) PURE;
+    STDMETHOD(RestoreDisplayMode)() PURE;
+    STDMETHOD(SetCooperativeLevel)(HWND, DWORD) PURE;
+    STDMETHOD(SetDisplayMode)(DWORD, DWORD,DWORD, DWORD, DWORD) PURE;
+    STDMETHOD(WaitForVerticalBlank)(DWORD, HANDLE ) PURE;
 };
 
-MIDL_INTERFACE("56A868B3-0AD4-11CE-B03A-0020AF0BA770")
-IBasicAudio : public IDispatch
+//---------------------------------------------------------------------------
+//  AMMEDIA COM INTERFACES
+//---------------------------------------------------------------------------
+struct IMediaStream;
+struct IMultiMediaStream;
+struct IStreamSample : public IUnknown
 {
 public:
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Volume( 
-        /* [in] */ long plVolume) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Volume( 
-        /* [retval][out] */ long __RPC_FAR *plVolume) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Balance( 
-        /* [in] */ long plBalance) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Balance( 
-        /* [retval][out] */ long __RPC_FAR *plBalance) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868B4-0AD4-11CE-B03A-0020AF0BA770")
-IVideoWindow : public IDispatch
-{
-public:
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Caption( 
-        /* [in] */ BSTR strCaption) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Caption( 
-        /* [retval][out] */ BSTR __RPC_FAR *strCaption) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_WindowStyle( 
-        /* [in] */ long WindowStyle) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_WindowStyle( 
-        /* [retval][out] */ long __RPC_FAR *WindowStyle) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_WindowStyleEx( 
-        /* [in] */ long WindowStyleEx) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_WindowStyleEx( 
-        /* [retval][out] */ long __RPC_FAR *WindowStyleEx) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_AutoShow( 
-        /* [in] */ long AutoShow) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_AutoShow( 
-        /* [retval][out] */ long __RPC_FAR *AutoShow) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_WindowState( 
-        /* [in] */ long WindowState) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_WindowState( 
-        /* [retval][out] */ long __RPC_FAR *WindowState) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_BackgroundPalette( 
-        /* [in] */ long pBackgroundPalette) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_BackgroundPalette( 
-        /* [retval][out] */ long __RPC_FAR *pBackgroundPalette) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Visible( 
-        /* [in] */ long pVisible) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Visible( 
-        /* [retval][out] */ long __RPC_FAR *pVisible) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Left( 
-        /* [in] */ long pLeft) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Left( 
-        /* [retval][out] */ long __RPC_FAR *pLeft) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Width( 
-        /* [in] */ long pWidth) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Width( 
-        /* [retval][out] */ long __RPC_FAR *pWidth) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Top( 
-        /* [in] */ long pTop) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Top( 
-        /* [retval][out] */ long __RPC_FAR *pTop) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Height( 
-        /* [in] */ long pHeight) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Height( 
-        /* [retval][out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Owner( 
-        /* [in] */ LONG_PTR Owner) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Owner( 
-        /* [retval][out] */ LONG_PTR __RPC_FAR *Owner) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_MessageDrain( 
-        /* [in] */ LONG_PTR Drain) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_MessageDrain( 
-        /* [retval][out] */ LONG_PTR __RPC_FAR *Drain) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_BorderColor( 
-        /* [retval][out] */ long __RPC_FAR *Color) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_BorderColor( 
-        /* [in] */ long Color) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_FullScreenMode( 
-        /* [retval][out] */ long __RPC_FAR *FullScreenMode) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_FullScreenMode( 
-        /* [in] */ long FullScreenMode) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowForeground( 
-        /* [in] */ long Focus) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE NotifyOwnerMessage( 
-        /* [in] */ LONG_PTR hwnd,
-        /* [in] */ long uMsg,
-        /* [in] */ LONG_PTR wParam,
-        /* [in] */ LONG_PTR lParam) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowPosition( 
-        /* [in] */ long Left,
-        /* [in] */ long Top,
-        /* [in] */ long Width,
-        /* [in] */ long Height) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowPosition( 
-        /* [out] */ long __RPC_FAR *pLeft,
-        /* [out] */ long __RPC_FAR *pTop,
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetMinIdealImageSize( 
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetMaxIdealImageSize( 
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetRestorePosition( 
-        /* [out] */ long __RPC_FAR *pLeft,
-        /* [out] */ long __RPC_FAR *pTop,
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE HideCursor( 
-        /* [in] */ long HideCursor) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE IsCursorHidden( 
-        /* [out] */ long __RPC_FAR *CursorHidden) = 0;
-    
+    STDMETHOD(GetMediaStream)(IMediaStream **) PURE;
+    STDMETHOD(GetSampleTimes)(LONGLONG *, LONGLONG *, LONGLONG *) PURE;
+    STDMETHOD(SetSampleTimes)(const LONGLONG *, const LONGLONG *) PURE;
+    STDMETHOD(Update)(DWORD, HANDLE, LPVOID, DWORD_PTR) PURE;
+    STDMETHOD(CompletionStatus)(DWORD, DWORD) PURE;
 };
 
-MIDL_INTERFACE("56A868B5-0AD4-11CE-B03A-0020AF0BA770")
-IBasicVideo : public IDispatch
+struct IDirectDrawStreamSample : public IStreamSample
 {
 public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_AvgTimePerFrame( 
-        /* [retval][out] */ double __RPC_FAR *pAvgTimePerFrame) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_BitRate( 
-        /* [retval][out] */ long __RPC_FAR *pBitRate) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_BitErrorRate( 
-        /* [retval][out] */ long __RPC_FAR *pBitErrorRate) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_VideoWidth( 
-        /* [retval][out] */ long __RPC_FAR *pVideoWidth) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_VideoHeight( 
-        /* [retval][out] */ long __RPC_FAR *pVideoHeight) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_SourceLeft( 
-        /* [in] */ long pSourceLeft) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_SourceLeft( 
-        /* [retval][out] */ long __RPC_FAR *pSourceLeft) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_SourceWidth( 
-        /* [in] */ long pSourceWidth) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_SourceWidth( 
-        /* [retval][out] */ long __RPC_FAR *pSourceWidth) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_SourceTop( 
-        /* [in] */ long pSourceTop) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_SourceTop( 
-        /* [retval][out] */ long __RPC_FAR *pSourceTop) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_SourceHeight( 
-        /* [in] */ long pSourceHeight) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_SourceHeight( 
-        /* [retval][out] */ long __RPC_FAR *pSourceHeight) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_DestinationLeft( 
-        /* [in] */ long pDestinationLeft) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_DestinationLeft( 
-        /* [retval][out] */ long __RPC_FAR *pDestinationLeft) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_DestinationWidth( 
-        /* [in] */ long pDestinationWidth) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_DestinationWidth( 
-        /* [retval][out] */ long __RPC_FAR *pDestinationWidth) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_DestinationTop( 
-        /* [in] */ long pDestinationTop) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_DestinationTop( 
-        /* [retval][out] */ long __RPC_FAR *pDestinationTop) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_DestinationHeight( 
-        /* [in] */ long pDestinationHeight) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_DestinationHeight( 
-        /* [retval][out] */ long __RPC_FAR *pDestinationHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetSourcePosition( 
-        /* [in] */ long Left,
-        /* [in] */ long Top,
-        /* [in] */ long Width,
-        /* [in] */ long Height) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetSourcePosition( 
-        /* [out] */ long __RPC_FAR *pLeft,
-        /* [out] */ long __RPC_FAR *pTop,
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDefaultSourcePosition( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDestinationPosition( 
-        /* [in] */ long Left,
-        /* [in] */ long Top,
-        /* [in] */ long Width,
-        /* [in] */ long Height) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetDestinationPosition( 
-        /* [out] */ long __RPC_FAR *pLeft,
-        /* [out] */ long __RPC_FAR *pTop,
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDefaultDestinationPosition( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetVideoSize( 
-        /* [out] */ long __RPC_FAR *pWidth,
-        /* [out] */ long __RPC_FAR *pHeight) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetVideoPaletteEntries( 
-        /* [in] */ long StartIndex,
-        /* [in] */ long Entries,
-        /* [out] */ long __RPC_FAR *pRetrieved,
-        /* [out] */ long __RPC_FAR *pPalette) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetCurrentImage( 
-        /* [out][in] */ long __RPC_FAR *pBufferSize,
-        /* [out] */ long __RPC_FAR *pDIBImage) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE IsUsingDefaultSource( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE IsUsingDefaultDestination( void) = 0;
-    
-};
-    
-MIDL_INTERFACE("329BB360-F6EA-11D1-9038-00A0C9697298")
-IBasicVideo2 : public IBasicVideo
-{
-public:
-    virtual HRESULT __stdcall GetPreferredAspectRatio( 
-        /* [out] */ long __RPC_FAR *plAspectX,
-        /* [out] */ long __RPC_FAR *plAspectY) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868B8-0AD4-11CE-B03A-0020AF0BA770")
-IDeferredCommand : public IUnknown
-{
-public:
-    virtual HRESULT __stdcall Cancel( void) = 0;
-    
-    virtual HRESULT __stdcall Confidence( 
-        /* [out] */ long __RPC_FAR *pConfidence) = 0;
-    
-    virtual HRESULT __stdcall Postpone( 
-        /* [in] */ double newtime) = 0;
-    
-    virtual HRESULT __stdcall GetHResult( 
-        /* [out] */ HRESULT __RPC_FAR *phrResult) = 0;
-    
+    STDMETHOD(GetSurface)(IDirectDrawSurface **, RECT *) PURE;
+    STDMETHOD(SetRect)(const RECT *) PURE;
 };
 
-MIDL_INTERFACE("56A868B7-0AD4-11CE-B03A-0020AF0BA770")
-IQueueCommand : public IUnknown
+struct IMediaStream : public IUnknown
 {
-public:
-    virtual HRESULT __stdcall InvokeAtStreamTime( 
-        /* [out] */ IDeferredCommand __RPC_FAR *__RPC_FAR *pCmd,
-        /* [in] */ double time,
-        /* [in] */ GUID __RPC_FAR *iid,
-        /* [in] */ long dispidMethod,
-        /* [in] */ short wFlags,
-        /* [in] */ long cArgs,
-        /* [in] */ VARIANT __RPC_FAR *pDispParams,
-        /* [out][in] */ VARIANT __RPC_FAR *pvarResult,
-        /* [out] */ short __RPC_FAR *puArgErr) = 0;
-    
-    virtual HRESULT __stdcall InvokeAtPresentationTime( 
-        /* [out] */ IDeferredCommand __RPC_FAR *__RPC_FAR *pCmd,
-        /* [in] */ double time,
-        /* [in] */ GUID __RPC_FAR *iid,
-        /* [in] */ long dispidMethod,
-        /* [in] */ short wFlags,
-        /* [in] */ long cArgs,
-        /* [in] */ VARIANT __RPC_FAR *pDispParams,
-        /* [out][in] */ VARIANT __RPC_FAR *pvarResult,
-        /* [out] */ short __RPC_FAR *puArgErr) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868BA-0AD4-11CE-B03A-0020AF0BA770")
-IFilterInfo : public IDispatch
-{
-public:
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindPin( 
-        /* [in] */ BSTR strPinID,
-        /* [out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Name( 
-        /* [retval][out] */ BSTR __RPC_FAR *strName) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_VendorInfo( 
-        /* [retval][out] */ BSTR __RPC_FAR *strVendorInfo) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Filter( 
-        /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Pins( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_IsFileSource( 
-        /* [retval][out] */ long __RPC_FAR *pbIsSource) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Filename( 
-        /* [retval][out] */ BSTR __RPC_FAR *pstrFilename) = 0;
-    
-    virtual /* [propput][id] */ HRESULT STDMETHODCALLTYPE put_Filename( 
-        /* [in] */ BSTR pstrFilename) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868BB-0AD4-11CE-B03A-0020AF0BA770")
-IRegFilterInfo : public IDispatch
-{
-public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Name( 
-        /* [retval][out] */ BSTR __RPC_FAR *strName) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Filter( 
-        /* [out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868BC-0AD4-11CE-B03A-0020AF0BA770")
-IMediaTypeInfo : public IDispatch
-{
-public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Type( 
-        /* [retval][out] */ BSTR __RPC_FAR *strType) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Subtype( 
-        /* [retval][out] */ BSTR __RPC_FAR *strType) = 0;
-    
-};
-    
-MIDL_INTERFACE("56A868BD-0AD4-11CE-B03A-0020AF0BA770")
-IPinInfo : public IDispatch
-{
-public:
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Pin( 
-        /* [retval][out] */ IUnknown __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_ConnectedTo( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_ConnectionMediaType( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_FilterInfo( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Name( 
-        /* [retval][out] */ BSTR __RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Direction( 
-        /* [retval][out] */ long __RPC_FAR *ppDirection) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_PinID( 
-        /* [retval][out] */ BSTR __RPC_FAR *strPinID) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_MediaTypes( 
-        /* [retval][out] */ IDispatch __RPC_FAR *__RPC_FAR *ppUnk) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Connect( 
-        /* [in] */ IUnknown __RPC_FAR *pPin) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE ConnectDirect( 
-        /* [in] */ IUnknown __RPC_FAR *pPin) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE ConnectWithType( 
-        /* [in] */ IUnknown __RPC_FAR *pPin,
-        /* [in] */ IDispatch __RPC_FAR *pMediaType) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Disconnect( void) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Render( void) = 0;
-    
+    STDMETHOD(GetMultiMediaStream)(IMultiMediaStream **) PURE;
+    STDMETHOD(GetInformation)(GUID *, int *) PURE;
+    STDMETHOD(SetSameFormat)(IMediaStream *, DWORD) PURE;
+    STDMETHOD(AllocateSample)(DWORD, IStreamSample **) PURE;
+    STDMETHOD(CreateSharedSample)(IStreamSample *, DWORD,
+                                  IStreamSample **) PURE;
+    STDMETHOD(SendEndOfStream)(DWORD dwFlags) PURE;
 };
 
-MIDL_INTERFACE("BC9BCF80-DCD2-11D2-ABF6-00A0C905F375")
-IAMStats : public IDispatch
+struct IDirectDrawMediaStream : public IMediaStream
 {
-public:
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE Reset( void) = 0;
-    
-    virtual /* [propget][id] */ HRESULT STDMETHODCALLTYPE get_Count( 
-        /* [retval][out] */ long __RPC_FAR *plCount) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetValueByIndex( 
-        /* [in] */ long lIndex,
-        /* [out] */ BSTR __RPC_FAR *szName,
-        /* [out] */ long __RPC_FAR *lCount,
-        /* [out] */ double __RPC_FAR *dLast,
-        /* [out] */ double __RPC_FAR *dAverage,
-        /* [out] */ double __RPC_FAR *dStdDev,
-        /* [out] */ double __RPC_FAR *dMin,
-        /* [out] */ double __RPC_FAR *dMax) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetValueByName( 
-        /* [in] */ BSTR szName,
-        /* [out] */ long __RPC_FAR *lIndex,
-        /* [out] */ long __RPC_FAR *lCount,
-        /* [out] */ double __RPC_FAR *dLast,
-        /* [out] */ double __RPC_FAR *dAverage,
-        /* [out] */ double __RPC_FAR *dStdDev,
-        /* [out] */ double __RPC_FAR *dMin,
-        /* [out] */ double __RPC_FAR *dMax) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetIndex( 
-        /* [in] */ BSTR szName,
-        /* [in] */ long lCreate,
-        /* [out] */ long __RPC_FAR *plIndex) = 0;
-    
-    virtual /* [id] */ HRESULT STDMETHODCALLTYPE AddValue( 
-        /* [in] */ long lIndex,
-        /* [in] */ double dValue) = 0;
-    
+    STDMETHOD(GetFormat)(DDSURFACEDESC *, IDirectDrawPalette **,
+                         DDSURFACEDESC *, DWORD *) PURE;
+    STDMETHOD(SetFormat)(const DDSURFACEDESC *, IDirectDrawPalette *) PURE;
+    STDMETHOD(GetDirectDraw)(IDirectDraw **) PURE;
+    STDMETHOD(SetDirectDraw)(IDirectDraw *) PURE;
+    STDMETHOD(CreateSample)(IDirectDrawSurface *, const RECT *,
+                              DWORD, IDirectDrawStreamSample **) PURE;
+    STDMETHOD(GetTimePerFrame)(LONGLONG *) PURE;
 };
 
+struct IMultiMediaStream : public IUnknown
+{
+    STDMETHOD(GetInformation)(DWORD *, int *) PURE;
+    STDMETHOD(GetMediaStream)(REFGUID, IMediaStream **) PURE;
+    STDMETHOD(EnumMediaStreams)(long, IMediaStream **) PURE;
+    STDMETHOD(GetState)(int *pCurrentState) PURE;
+    STDMETHOD(SetState)(int NewState) PURE;
+    STDMETHOD(GetTime)(LONGLONG *pCurrentTime) PURE;
+    STDMETHOD(GetDuration)(LONGLONG *pDuration) PURE;
+    STDMETHOD(Seek)(LONGLONG SeekTime) PURE;
+    STDMETHOD(GetEndOfStreamEventHandle)(HANDLE *phEOS) PURE;
+};
+
+struct IAMMultiMediaStream : public IMultiMediaStream
+{
+    STDMETHOD(Initialize)(int, DWORD, IUnknown *) PURE;
+    STDMETHOD(GetFilterGraph)(IUnknown **) PURE;
+    STDMETHOD(GetFilter)(IUnknown **) PURE;
+    STDMETHOD(AddMediaStream)(IUnknown *, const GUID*, DWORD,
+                              IMediaStream **) PURE;
+    STDMETHOD(OpenFile)(LPCWSTR, DWORD) PURE;
+    STDMETHOD(OpenMoniker)(IBindCtx *, IMoniker *, DWORD) PURE;
+    STDMETHOD(Render)(DWORD) PURE;
+};
+    
+//---------------------------------------------------------------------------
+//  QUARTZ COM INTERFACES (dumped from quartz.idl from MSVC COM Browser)
+//---------------------------------------------------------------------------
+struct IAMCollection : public IDispatch
+{
+    STDMETHOD(get_Count)(long *) PURE;
+    STDMETHOD(Item)(long, IUnknown **) PURE;
+    STDMETHOD(get__NewEnum)(IUnknown **) PURE;
+};
+
+struct IMediaControl : public IDispatch
+{
+    STDMETHOD(Run)() PURE;
+    STDMETHOD(Pause)() PURE;
+    STDMETHOD(Stop)() PURE;
+    STDMETHOD(GetState)(long, long*) PURE;
+    STDMETHOD(RenderFile)(BSTR) PURE;
+    STDMETHOD(AddSourceFilter)(BSTR, IDispatch **) PURE;
+    STDMETHOD(get_FilterCollection)(IDispatch **) PURE;
+    STDMETHOD(get_RegFilterCollection)(IDispatch **) PURE;
+    STDMETHOD(StopWhenReady)() PURE;
+};
+    
+struct IMediaEvent : public IDispatch
+{
+    STDMETHOD(GetEventHandle)(LONG_PTR *) PURE;
+    STDMETHOD(GetEvent)(long *, LONG_PTR *, LONG_PTR *, long) PURE;
+    STDMETHOD(WaitForCompletion)(long, long *) PURE;
+    STDMETHOD(CancelDefaultHandling)(long) PURE;
+    STDMETHOD(RestoreDefaultHandling)(long) PURE;
+    STDMETHOD(FreeEventParams)(long, LONG_PTR, LONG_PTR) PURE;
+};
+
+struct IMediaEventEx : public IMediaEvent
+{
+    STDMETHOD(SetNotifyWindow)(LONG_PTR, long, LONG_PTR) PURE;
+    STDMETHOD(SetNotifyFlags)(long) PURE;
+    STDMETHOD(GetNotifyFlags)(long *) PURE;
+};
+    
+struct IMediaPosition : public IDispatch
+{
+    STDMETHOD(get_Duration)(double *) PURE;
+    STDMETHOD(put_CurrentPosition)(double) PURE;
+    STDMETHOD(get_CurrentPosition)(double *) PURE;
+    STDMETHOD(get_StopTime)(double *) PURE;
+    STDMETHOD(put_StopTime)(double) PURE;
+    STDMETHOD(get_PrerollTime)(double *) PURE;
+    STDMETHOD(put_PrerollTime)(double) PURE;
+    STDMETHOD(put_Rate)(double) PURE;
+    STDMETHOD(get_Rate)(double *) PURE;
+    STDMETHOD(CanSeekForward)(long *) PURE;
+    STDMETHOD(CanSeekBackward)(long *) PURE;
+};
+    
+struct IBasicAudio : public IDispatch
+{
+    STDMETHOD(put_Volume)(long) PURE;
+    STDMETHOD(get_Volume)(long *) PURE;
+    STDMETHOD(put_Balance)(long) PURE;
+    STDMETHOD(get_Balance)(long *) PURE;
+};
+
+//---------------------------------------------------------------------------
+// MISC COM INTERFACES
+//---------------------------------------------------------------------------
+struct IVMRWindowlessControl : public IUnknown
+{
+    STDMETHOD(GetNativeVideoSize)(LONG *, LONG *, LONG *, LONG *) PURE;
+    STDMETHOD(GetMinIdealVideoSize)(LONG *, LONG *) PURE;
+    STDMETHOD(GetMaxIdealVideoSize)(LONG *, LONG *) PURE;
+    STDMETHOD(SetVideoPosition)(const LPRECT,const LPRECT) PURE;
+    STDMETHOD(GetVideoPosition)(LPRECT, LPRECT) PURE;
+    STDMETHOD(GetAspectRatioMode)(DWORD *) PURE;
+    STDMETHOD(SetAspectRatioMode)(DWORD) PURE;
+    STDMETHOD(SetVideoClippingWindow)(HWND) PURE;
+    STDMETHOD(RepaintVideo)(HWND, HDC) PURE;
+    STDMETHOD(DisplayModeChanged)() PURE;
+    STDMETHOD(GetCurrentImage)(BYTE **) PURE;
+    STDMETHOD(SetBorderColor)(COLORREF) PURE;
+    STDMETHOD(GetBorderColor)(COLORREF *) PURE;
+    STDMETHOD(SetColorKey)(COLORREF) PURE;
+    STDMETHOD(GetColorKey)(COLORREF *) PURE;
+};
+    
+typedef IUnknown IVMRImageCompositor;
+
+struct IVMRFilterConfig : public IUnknown
+{
+    STDMETHOD(SetImageCompositor)(IVMRImageCompositor *) PURE;
+    STDMETHOD(SetNumberOfStreams)(DWORD) PURE;
+    STDMETHOD(GetNumberOfStreams)(DWORD *) PURE;
+    STDMETHOD(SetRenderingPrefs)(DWORD) PURE;
+    STDMETHOD(GetRenderingPrefs)(DWORD *) PURE;
+    STDMETHOD(SetRenderingMode)(DWORD) PURE;
+    STDMETHOD(GetRenderingMode)(DWORD *) PURE;
+};
+    
+typedef IUnknown IBaseFilter;
+typedef IUnknown IPin;
+typedef IUnknown IEnumFilters;
+typedef int AM_MEDIA_TYPE;
+
+struct IFilterGraph : public IUnknown
+{
+    STDMETHOD(AddFilter)(IBaseFilter *, LPCWSTR) PURE;
+    STDMETHOD(RemoveFilter)(IBaseFilter *) PURE;
+    STDMETHOD(EnumFilters)(IEnumFilters **) PURE;
+    STDMETHOD(FindFilterByName)(LPCWSTR, IBaseFilter **) PURE;
+    STDMETHOD(ConnectDirect)(IPin *, IPin *, const AM_MEDIA_TYPE *) PURE;
+    STDMETHOD(Reconnect)(IPin *) PURE;
+    STDMETHOD(Disconnect)(IPin *) PURE;
+    STDMETHOD(SetDefaultSyncSource)() PURE;
+};
+    
+struct IGraphBuilder : public IFilterGraph
+{
+public:
+    STDMETHOD(Connect)(IPin *, IPin *) PURE;
+    STDMETHOD(Render)(IPin *) PURE;
+    STDMETHOD(RenderFile)(LPCWSTR, LPCWSTR) PURE;
+    STDMETHOD(AddSourceFilter)(LPCWSTR, LPCWSTR, IBaseFilter **) PURE;
+    STDMETHOD(SetLogFile)(DWORD_PTR) PURE;
+    STDMETHOD(Abort)() PURE;
+    STDMETHOD(ShouldOperationContinue)() PURE;
+};
+    
 //------------------------------------------------------------------
 // wxAMMediaBackend (Active Movie)
 //------------------------------------------------------------------
+class WXDLLIMPEXP_MEDIA wxAMMediaThread : public wxThread
+{
+public:
+    virtual ExitCode Entry();
+
+    class wxAMMediaBackend* pThis;
+};
+
+//cludgy workaround for wx events.  slots would be nice :)
+class WXDLLIMPEXP_MEDIA wxAMMediaEvtHandler : public wxEvtHandler
+{
+public:
+    void OnPaint(wxPaintEvent&);
+    void OnEraseBackground(wxEraseEvent&);
+};
+
+typedef BOOL (WINAPI* LPAMGETERRORTEXT)(HRESULT, wxChar *, DWORD);
+
 class WXDLLIMPEXP_MEDIA wxAMMediaBackend : public wxMediaBackend
 {
 public:
@@ -736,32 +560,42 @@ public:
     virtual double GetPlaybackRate();
     virtual bool SetPlaybackRate(double);
 
+    virtual double GetVolume();
+    virtual bool SetVolume(double);
+
     void Cleanup();
-
-    bool m_bVideo;
-
-    static LRESULT CALLBACK NotifyWndProc(HWND hWnd, UINT nMsg,
-                                          WPARAM wParam, LPARAM lParam);
-
-    LRESULT CALLBACK OnNotifyWndProc(HWND hWnd, UINT nMsg,
-                                          WPARAM wParam, LPARAM lParam);
+    void OnStop();
+    bool SetWindowlessMode(IGraphBuilder* pGB,
+                           IVMRWindowlessControl** ppVMC = NULL);
 
     wxControl* m_ctrl;
 
-    IBasicAudio* m_pBA;
-    IBasicVideo* m_pBV;
-    IMediaControl* m_pMC;
-    IMediaEventEx* m_pME;
-    IMediaPosition* m_pMS;
-    IVideoWindow* m_pVW;
+    wxMediaState m_state;
+    wxCriticalSection m_rendercs;
 
-    HWND m_hNotifyWnd;
+    IVMRWindowlessControl* m_pVMC;
+    IGraphBuilder* m_pGB;
+    IBasicAudio* m_pBA;
+    IMediaControl* m_pMC;
+    IMediaEvent* m_pME;
+    IMediaPosition* m_pMS;
+    bool m_bVideo;
+
+    wxAMMediaThread* m_pThread;
+
     wxSize m_bestSize;
 
-    DECLARE_DYNAMIC_CLASS(wxAMMediaBackend);
-};
+#ifdef __WXDEBUG__
+    HMODULE m_hQuartzDll;
+    LPAMGETERRORTEXT m_lpAMGetErrorText;
+    wxString GetErrorString(HRESULT hrdsv);
+#endif
 
-#endif //wxUSE_DIRECTSHOW
+    friend class wxAMMediaThread;
+    friend class wxAMMediaEvtHandler;
+
+    DECLARE_DYNAMIC_CLASS(wxAMMediaBackend)
+};
 
 //---------------------------------------------------------------------------
 //
@@ -808,6 +642,9 @@ public:
     virtual double GetPlaybackRate();
     virtual bool SetPlaybackRate(double dRate);
 
+    virtual double GetVolume();
+    virtual bool SetVolume(double);
+
     static LRESULT CALLBACK NotifyWndProc(HWND hWnd, UINT nMsg,
                                              WPARAM wParam, LPARAM lParam);
 
@@ -827,11 +664,6 @@ public:
 //  wxQTMediaBackend
 //
 //---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//  QT Compilation Guard
-//---------------------------------------------------------------------------
-#if wxUSE_QUICKTIME
 
 //---------------------------------------------------------------------------
 //  QT Includes
@@ -859,28 +691,39 @@ typedef unsigned char                   Str255[256];
 #define TimeScale long
 #define TimeBase struct TimeBaseRecord *                
 
+#ifndef URLDataHandlerSubType
+#if defined(__WATCOMC__) || defined(__MINGW32__)
+// use magic numbers for compilers which complain about multicharacter integers
+const OSType URLDataHandlerSubType     = 1970433056;
+const OSType VisualMediaCharacteristic = 1702454643;
+#else
+const OSType URLDataHandlerSubType     = 'url ';
+const OSType VisualMediaCharacteristic = 'eyes';
+#endif
+#endif
+
 struct FSSpec {
-    short                           vRefNum;
-    long                            parID;
-    Str255                           name;  /*Str63 on mac, Str255 on msw */
+    short      vRefNum;
+    long       parID;
+    Str255     name;  /*Str63 on mac, Str255 on msw */
 };
 
 struct Rect {
-    short                           top;
-    short                           left;
-    short                           bottom;
-    short                           right;
+    short      top;
+    short      left;
+    short      bottom;
+    short      right;
 };
 
 struct wide {
-    wxInt32                          hi;
-    wxUint32                          lo;
+    wxInt32    hi;
+    wxUint32   lo;
 };
 
 struct TimeRecord {
-    wide                  value;                      /* units */
-    TimeScale                       scale;                      /* units per second */
-    TimeBase                        base;
+    wide       value; /* units */
+    TimeScale  scale; /* units per second */
+    TimeBase   base;
 };
 
 //---------------------------------------------------------------------------
@@ -900,10 +743,11 @@ struct TimeRecord {
 
 #define wxDL_METHOD_LOAD( lib, name, success ) \
     pfn_ ## name = (name ## Type) lib.GetSymbol( wxT(#name), &success ); \
-    if (!success) return false;
+    if (!success) { wxLog::EnableLogging(bWasLoggingEnabled); return false; }
+
 
 //Class that utilizes Robert Roeblings Dynamic Library Macros
-class wxQuickTimeLibrary 
+class WXDLLIMPEXP_MEDIA wxQuickTimeLibrary
 {
 public:
     ~wxQuickTimeLibrary()
@@ -978,16 +822,23 @@ public:
     wxDL_METHOD_DEFINE(TimeScale, GetMovieTimeScale, (Movie m), (m), 0);
     wxDL_METHOD_DEFINE(long, GetMovieTime, (Movie m, void* cruft), (m,cruft), 0);
     wxDL_VOIDMETHOD_DEFINE(SetMovieTime, (Movie m, TimeRecord* tr), (m,tr) );
+    wxDL_METHOD_DEFINE(short, GetMovieVolume, (Movie m), (m), 0);
+    wxDL_VOIDMETHOD_DEFINE(SetMovieVolume, (Movie m, short sVolume), (m,sVolume) );
 };
 
 bool wxQuickTimeLibrary::Initialize()
 {
     m_ok = false;
 
-    if(!m_dll.Load(wxT("qtmlClient.dll")))
-        return false;
+    bool bWasLoggingEnabled = wxLog::EnableLogging(false);    //Turn off the wxDynamicLibrary logging
 
-    bool bOk;
+    if(!m_dll.Load(wxT("qtmlClient.dll")))
+    {
+        wxLog::EnableLogging(bWasLoggingEnabled);
+        return false;
+    }
+
+    bool bOk;   //TODO:  Get rid of this, use m_ok instead (not a biggie)
 
     wxDL_METHOD_LOAD( m_dll, StartMovie, bOk );
     wxDL_METHOD_LOAD( m_dll, StopMovie, bOk );
@@ -1022,7 +873,10 @@ bool wxQuickTimeLibrary::Initialize()
     wxDL_METHOD_LOAD( m_dll, GetMovieTimeScale, bOk );
     wxDL_METHOD_LOAD( m_dll, GetMovieTime, bOk );
     wxDL_METHOD_LOAD( m_dll, SetMovieTime, bOk );
-    
+    wxDL_METHOD_LOAD( m_dll, GetMovieVolume, bOk );
+    wxDL_METHOD_LOAD( m_dll, SetMovieVolume, bOk );
+
+    wxLog::EnableLogging(bWasLoggingEnabled);
     m_ok = true;
 
     return true;
@@ -1031,7 +885,6 @@ bool wxQuickTimeLibrary::Initialize()
 class WXDLLIMPEXP_MEDIA wxQTMediaBackend : public wxMediaBackend
 {
 public:
-
     wxQTMediaBackend();
     ~wxQTMediaBackend();
 
@@ -1062,6 +915,9 @@ public:
     virtual double GetPlaybackRate();
     virtual bool SetPlaybackRate(double dRate);
 
+    virtual double GetVolume();
+    virtual bool SetVolume(double);
+
     void Cleanup();
     void FinishLoad();
 
@@ -1072,14 +928,9 @@ public:
     class _wxQTTimer* m_timer;      //Timer for streaming the movie
     wxQuickTimeLibrary m_lib;
 
-
-    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend);
+    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend)
 };
 
-//---------------------------------------------------------------------------
-//  End QT Compilation Guard
-//---------------------------------------------------------------------------
-#endif //wxUSE_QUICKTIME
 
 //===========================================================================
 //  IMPLEMENTATION
@@ -1091,44 +942,45 @@ public:
 //
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-//---------------------------------------------------------------------------
-// Only use if user wants it -
-//---------------------------------------------------------------------------
-#if wxUSE_DIRECTSHOW
-
 IMPLEMENT_DYNAMIC_CLASS(wxAMMediaBackend, wxMediaBackend);
-
-// Numerical value for when the graph reaches the stop position
-#define WM_GRAPHNOTIFY  WM_USER+13
 
 //---------------------------------------------------------------------------
 // Usual debugging macros
 //---------------------------------------------------------------------------
 #ifdef __WXDEBUG__
-#define wxAMVERIFY(x) \
-{ \
-    HRESULT hrdsv = (x); \
-    if ( FAILED(hrdsv) ) \
-    { \
-        /*TCHAR szError[MAX_ERROR_TEXT_LEN];*/ \
-        /*if( AMGetErrorText(hrdsv, szError, MAX_ERROR_TEXT_LEN) == 0)*/ \
-        /*{*/ \
-            /*wxFAIL_MSG( wxString::Format(wxT("DirectShow error \"%s\" ")*/\
-                                         /*wxT("occured at line %i in ")*/ \
-                                         /*wxT("mediactrl.cpp"),*/ \
-                                            /*szError, __LINE__) );*/ \
-        /*}*/ \
-        /*else*/ \
-            wxFAIL_MSG( wxString::Format(wxT("Unknown error (%i) ") \
-                                         wxT("occured at") \
-                                         wxT(" line %i in mediactrl.cpp."), \
-                                         (int)hrdsv, __LINE__) ); \
-    } \
+#define MAX_ERROR_TEXT_LEN 160
+#include "wx/log.h"             //wxLogDebug et al.
+
+//Get the error string for Active Movie
+wxString wxAMMediaBackend::GetErrorString(HRESULT hrdsv)
+{
+    wxChar szError[MAX_ERROR_TEXT_LEN];
+    if( m_lpAMGetErrorText != NULL &&
+       (*m_lpAMGetErrorText)(hrdsv, szError, MAX_ERROR_TEXT_LEN) == 0)
+    {
+        return wxString::Format(wxT("DirectShow error \"%s\" \n")
+                                     wxT("(numeric %i)\n")
+                                     wxT("occured at line %i in ")
+                                     wxT("mediactrl.cpp"),
+                                     szError, (int)hrdsv, __LINE__);
+    }
+    else
+    {
+        return wxString::Format(wxT("Unknown error (%i) ")
+                                     wxT("occurred at")
+                                     wxT(" line %i in mediactrl.cpp."),
+                                     (int)hrdsv, __LINE__);
+    }
 }
+
+#define wxAMFAIL(x) wxFAIL_MSG(GetErrorString(x));
 #define wxVERIFY(x) wxASSERT((x))
+#define wxAMLOG(x) wxLogDebug(GetErrorString(x))
 #else
 #define wxAMVERIFY(x) (x)
 #define wxVERIFY(x) (x)
+#define wxAMLOG(x)
+#define wxAMFAIL(x)
 #endif
 
 //---------------------------------------------------------------------------
@@ -1141,7 +993,18 @@ IMPLEMENT_DYNAMIC_CLASS(wxAMMediaBackend, wxMediaBackend);
 //
 // Sets m_hNotifyWnd to NULL to signify that we haven't loaded anything yet
 //---------------------------------------------------------------------------
-wxAMMediaBackend::wxAMMediaBackend() : m_hNotifyWnd(NULL)
+wxAMMediaBackend::wxAMMediaBackend()
+                 :m_state(wxMEDIASTATE_STOPPED)
+                 ,m_pVMC(NULL)
+                 ,m_pGB(NULL)
+                 ,m_pBA(NULL)
+                 ,m_pMC(NULL)
+                 ,m_pME(NULL)
+                 ,m_pMS(NULL)
+                 ,m_pThread(NULL)
+#ifdef __WXDEBUG__
+                 ,m_hQuartzDll(NULL)
+#endif
 {
 }
 
@@ -1152,17 +1015,19 @@ wxAMMediaBackend::wxAMMediaBackend() : m_hNotifyWnd(NULL)
 //---------------------------------------------------------------------------
 wxAMMediaBackend::~wxAMMediaBackend()
 {
-    if (m_hNotifyWnd)
+    if (m_pVMC)
         Cleanup();
+#ifdef __WXDEBUG__
+    if(m_hQuartzDll)
+        ::FreeLibrary(m_hQuartzDll);
+#endif
 }
 
 //---------------------------------------------------------------------------
 // wxAMMediaBackend::CreateControl
 //
-// ActiveMovie does not really have any native control to speak of,
-// so we just create a normal control.
-//
-// We also check to see if ActiveMovie is installed
+// 1) Check to see if Active Movie supports windowless controls
+// 2) Connect events to the media control and its TLW
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
                                      wxWindowID id,
@@ -1172,129 +1037,231 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
                                      const wxValidator& validator,
                                      const wxString& name)
 {
-    //create our filter graph - the beuty of COM is that it loads
-    //quartz.dll for us :)
-    HRESULT hr = CoCreateInstance(CLSID_FilgraphManager, NULL, CLSCTX_INPROC_SERVER,
-                      IID_IMediaControl, (void**)&m_pMC);
+#ifdef __WXDEBUG__
+    m_hQuartzDll = ::LoadLibrary(wxT("quartz.dll"));
+    if(m_hQuartzDll)
+    {
+            m_lpAMGetErrorText = (LPAMGETERRORTEXT) ::GetProcAddress(
+                m_hQuartzDll,
+            wxString::Format(wxT("AMGetErrorText%s"),
 
-   //directshow not installed?
-    if ( FAILED(hr) )
+#ifdef __WXUNICODE__
+            wxT("W")
+#else
+            wxT("A")
+#endif
+#ifdef __WXWINCE__
+                             )
+#else
+                             ).mb_str(wxConvLocal)
+#endif
+                             );
+    }
+#endif
+
+    //Make sure a valid windowless video mixing interface exists
+    IGraphBuilder* pGB;
+    if( ::CoCreateInstance(CLSID_FilgraphManager, NULL,
+                                  CLSCTX_INPROC_SERVER,
+                                  IID_IGraphBuilder, (void**)&pGB) != 0 )
         return false;
 
-    //release the filter graph - we don't need it yet
-    m_pMC->Release();
-    m_pMC = NULL;
+    if( !SetWindowlessMode(pGB) )
+        return false;
+
+    //clean up
+    pGB->Release();
 
     //
     // Create window
     // By default wxWindow(s) is created with a border -
     // so we need to get rid of those, and create with
     // wxCLIP_CHILDREN, so that if the driver/backend
-    // is a child window, it refereshes properly
+    // is a child window, it refreshes properly
     //
     if ( !ctrl->wxControl::Create(parent, id, pos, size,
                             (style & ~wxBORDER_MASK) | wxBORDER_NONE | wxCLIP_CHILDREN,
                             validator, name) )
         return false;
 
+    // My problem with this was only with a previous patch, probably the third rewrite
+    // fixed it as a side-effect. In fact, the erase background style of drawing not
+    // only works now, but is much better than paint-based updates (the paint event
+    // handler flickers if the wxMediaCtrl shares a sizer with another child window,
+    // or is on a notebook)
+    //  - Greg Hazel
+    ctrl->Connect(ctrl->GetId(), wxEVT_ERASE_BACKGROUND,
+        wxEraseEventHandler(wxAMMediaEvtHandler::OnEraseBackground),
+        NULL, (wxEvtHandler*) this);
+
+    //
+    // done...
+    //
     m_ctrl = ctrl;
     return true;
 }
 
+//---------------------------------------------------------------------------
+// wxAMMediaBackend::SetWindowlessMode
+//
+// Adds a Video Mixing Renderer to a Filter Graph and obtains the
+// windowless control from it
+//---------------------------------------------------------------------------
+bool wxAMMediaBackend::SetWindowlessMode(IGraphBuilder* pGB,
+                                         IVMRWindowlessControl** ppVMC)
+{
+    HRESULT hr;
+
+    //
+    // Create and add a custom Video Mixing Render to the graph
+    //
+    IBaseFilter* pVMR;
+    if( ::CoCreateInstance(CLSID_VideoMixingRenderer, NULL,
+                CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&pVMR) != 0 )
+        return false;
+
+    hr = pGB->AddFilter(pVMR, L"Video Mixing Renderer");
+    if ( hr != 0)
+    {
+        wxAMLOG(hr);
+        pVMR->Release();
+        return false;
+    }
+
+    //
+    // Set the graph to windowless mode
+    //
+    IVMRFilterConfig* pConfig;
+    hr = pVMR->QueryInterface(IID_IVMRFilterConfig, (void**)&pConfig);
+    if( hr != 0 )
+    {
+        wxAMLOG(hr);
+        pVMR->Release();
+        return false;
+    }
+
+    hr = pConfig->SetRenderingMode(2);
+    if( hr != 0) //2 == VMRMode_Windowless
+    {
+        wxAMLOG(hr);
+        pConfig->Release();
+        pVMR->Release();
+        return false;
+    }
+
+    pConfig->Release();
+
+    //
+    // Obtain the windowless control
+    //
+    IVMRWindowlessControl* pVMC;
+    hr = pVMR->QueryInterface(IID_IVMRWindowlessControl, (void**)&pVMC);
+    if( hr != 0 )
+    {
+        wxAMLOG(hr);
+        pVMR->Release();
+        return false;
+}
+
+    //
+    // Success
+    //
+    if(ppVMC)
+        *ppVMC = pVMC;
+    else
+        pVMC->Release();
+
+    pVMR->Release();
+    return true;
+}
 
 //---------------------------------------------------------------------------
 // wxAMMediaBackend::Load (file version)
 //
-// Creates an Active Movie filter graph from a file or url
+// 1) Cleans up previously loaded data
+// 2) Creates a filter graph
+// 3) Add a video mixer, set the graph to windowless mode and clip
+//    output to our media control
+// 4) Query interfaces to use later
+// 5) Get native video size (which becomes our best size)
+// 6) Refresh parent's sizers
+// 7) Start event/rendering thread
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::Load(const wxString& fileName)
 {
+    HRESULT hr;
+
     //if previously loaded cleanup
-    if(m_hNotifyWnd)
+    if(m_pVMC)
         Cleanup();
 
-    //We already checked for success in CreateControl
-    CoCreateInstance(CLSID_FilgraphManager, NULL, CLSCTX_INPROC_SERVER,
-                      IID_IMediaControl, (void**)&m_pMC);
+    //Create interfaces - we already checked for success in CreateControl
+    ::CoCreateInstance(CLSID_FilgraphManager, NULL, CLSCTX_INPROC_SERVER,
+                     IID_IGraphBuilder, (void**)&m_pGB);
+
+
+    // Set and clip output
+    SetWindowlessMode(m_pGB, &m_pVMC);
+    hr = m_pVMC->SetVideoClippingWindow((HWND)m_ctrl->GetHandle());
+
+    if(hr != 0)
+    {
+        m_bestSize.x = m_bestSize.y = 0;
+        wxAMFAIL(hr);
+        return false;
+    }
 
     //load the graph & render
-    if( FAILED(m_pMC->RenderFile(wxBasicString(fileName).Get())) )
+    if( m_pGB->RenderFile(fileName.wc_str(wxConvLocal), NULL) != 0 )
         return false;
 
-    //get the interfaces, all of them
-    wxAMVERIFY( m_pMC->QueryInterface(IID_IMediaEventEx, (void**)&m_pME) );
-    wxAMVERIFY( m_pMC->QueryInterface(IID_IMediaPosition, (void**)&m_pMS) );
-    wxAMVERIFY( m_pMC->QueryInterface(IID_IVideoWindow, (void**)&m_pVW) );
-    wxAMVERIFY( m_pMC->QueryInterface(IID_IBasicAudio, (void**)&m_pBA) );
-    wxAMVERIFY( m_pMC->QueryInterface(IID_IBasicVideo, (void**)&m_pBV) );
-
-    //We could tell if the media has audio or not by
-    //something like
-    //-----
-    //long lVolume;
-    //pBA->get_Volume(&lVolume) == E_NOTIMPL
-    //-----
-    //here...
-
     //
-    //Obtain the _actual_ size of the movie & remember it
+    //Get the interfaces, all of them
     //
-    long    nX,
-            nY;
-
-    m_bestSize.x = m_bestSize.y = 0;
-
-    m_bVideo = SUCCEEDED( m_pVW->GetWindowPosition( &nX,
-                                                    &nY,
-                                                    (long*)&m_bestSize.x,
-                                                    (long*)&m_bestSize.y) );
-
-    //
-    //If we have video in the media - set it up so that
-    //its a child window of the control, its visible,
-    //and that the control is the owner of the video window
-    //
-    if (m_bVideo)
+    hr = m_pGB->QueryInterface(IID_IMediaEvent, (void**)&m_pME);
+    if(FAILED(hr))
     {
-        wxAMVERIFY( m_pVW->put_Owner((LONG_PTR)m_ctrl->GetHandle()) );
-        wxAMVERIFY( m_pVW->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS) );
-        wxAMVERIFY( m_pVW->put_Visible(-1) ); //OATRUE == -1
-    }
-
-    //
-    // Create a hidden window and register to handle
-    // directshow events for this graph
-    // Note that wxCanvasClassName is already registered
-    // and used by all wxWindows and normal wxControls
-    //
-    m_hNotifyWnd = ::CreateWindow
-                    (
-                        wxCanvasClassName,
-                        NULL,
-                        0, 0, 0, 0,
-                        0,
-                        (HWND) NULL,
-                        (HMENU)NULL,
-                        wxGetInstance(),
-                        (LPVOID) NULL
-                    );
-
-    if(!m_hNotifyWnd)
-    {
-        wxLogSysError( wxT("Could not create hidden needed for ")
-                       wxT("registering for DirectShow events!")  );
-
+        wxAMLOG(hr);
         return false;
     }
 
-    ::SetWindowLongPtr(m_hNotifyWnd, GWLP_WNDPROC,
-                       (LONG_PTR)wxAMMediaBackend::NotifyWndProc);
+    hr = m_pGB->QueryInterface(IID_IMediaControl, (void**)&m_pMC);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return false;
+    }
 
-    ::SetWindowLong(m_hNotifyWnd, GWL_USERDATA,
-                       (LONG) this);
+    hr = m_pGB->QueryInterface(IID_IMediaPosition, (void**)&m_pMS);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return false;
+    }
 
-    wxAMVERIFY( m_pME->SetNotifyWindow((LONG_PTR)m_hNotifyWnd,
-                                       WM_GRAPHNOTIFY, 0) );
+    hr = m_pGB->QueryInterface(IID_IBasicAudio, (void**)&m_pBA);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        //not critical
+    }
+
+    //
+    // Get original video size
+    //
+    hr = m_pVMC->GetNativeVideoSize((LONG*)&m_bestSize.x, (LONG*)&m_bestSize.y,
+                                   NULL, NULL);
+    if(hr != 0)
+    {
+        m_bestSize.x = m_bestSize.y = 0;
+        wxAMFAIL(hr);
+        return false;
+    }
+
+    if(m_bestSize.x == 0 && m_bestSize.y == 0)
+        m_bVideo = false;
+    else
+        m_bVideo = true;
 
     //
     // Force the parent window of this control to recalculate
@@ -1305,7 +1272,19 @@ bool wxAMMediaBackend::Load(const wxString& fileName)
     m_ctrl->GetParent()->Layout();
     m_ctrl->GetParent()->Refresh();
     m_ctrl->GetParent()->Update();
+    m_ctrl->SetSize(m_ctrl->GetSize());
 
+    //
+    //  Create the event thread
+    //
+    m_pThread = new wxAMMediaThread;
+    m_pThread->pThis = this;
+    m_pThread->Create();
+    m_pThread->Run();
+
+    //
+    //  done
+    //
     return true;
 }
 
@@ -1322,13 +1301,52 @@ bool wxAMMediaBackend::Load(const wxURI& location)
 }
 
 //---------------------------------------------------------------------------
+// wxAMMediaBackend::Cleanup
+//
+// Releases all the directshow interfaces we use
+// TODO: Maybe only create one instance of IAMMultiMediaStream and reuse it
+// rather than recreating it each time?
+//---------------------------------------------------------------------------
+void wxAMMediaBackend::Cleanup()
+{
+    // RN:  This could be a bad ptr if load failed after
+    // m_pVMC was created
+    if(m_pThread)
+    {
+        m_pThread->Delete();
+        m_pThread = NULL;
+    }
+
+    // Release and zero DirectShow interfaces
+    SAFE_RELEASE(m_pMC);
+    SAFE_RELEASE(m_pME);
+    SAFE_RELEASE(m_pMS);
+    SAFE_RELEASE(m_pBA);
+    SAFE_RELEASE(m_pGB);
+    SAFE_RELEASE(m_pVMC);
+}
+
+
+//---------------------------------------------------------------------------
 // wxAMMediaBackend::Play
 //
-// Plays the stream.  If it is non-seekable, it will restart it.
+// Plays the stream.  If it is non-seekable, it will restart it (implicit).
+//
+// Note that we use SUCCEEDED here because run/pause/stop tend to be overly
+// picky and return warnings on pretty much every call
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::Play()
 {
-    return SUCCEEDED( m_pMC->Run() );
+    wxCriticalSectionLocker lock(m_rendercs);
+
+    if( SUCCEEDED(m_pMC->Run()) )
+    {
+        m_state = wxMEDIASTATE_PLAYING;
+        m_ctrl->Refresh(); //videoless control finicky about refreshing
+        return true;
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
@@ -1338,7 +1356,15 @@ bool wxAMMediaBackend::Play()
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::Pause()
 {
-    return SUCCEEDED( m_pMC->Pause() );
+    wxCriticalSectionLocker lock(m_rendercs);
+
+    if( SUCCEEDED(m_pMC->Pause()) )
+    {
+        m_state = wxMEDIASTATE_PAUSED;
+        return true;
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
@@ -1348,13 +1374,20 @@ bool wxAMMediaBackend::Pause()
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::Stop()
 {
-    bool bOK = SUCCEEDED( m_pMC->Stop() );
+    wxCriticalSectionLocker lock(m_rendercs);
 
+    if( SUCCEEDED(m_pMC->Stop()) )
+    {
     //We don't care if it can't get to the beginning in directshow -
     //it could be a non-seeking filter (wince midi) in which case playing
     //starts all over again
-    SetPosition(0);
-    return bOK;
+        wxAMMediaBackend::SetPosition(0);
+
+        m_state = wxMEDIASTATE_STOPPED;
+        return true;
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
@@ -1368,10 +1401,16 @@ bool wxAMMediaBackend::Stop()
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::SetPosition(wxLongLong where)
 {
-    return SUCCEEDED( m_pMS->put_CurrentPosition(
-                        ((LONGLONG)where.GetValue()) / 1000
-                                                ) 
+    HRESULT hr = m_pMS->put_CurrentPosition(
+                        ((LONGLONG)where.GetValue()) / 1000.0
                     );
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return false;
+    }
+
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1383,50 +1422,107 @@ bool wxAMMediaBackend::SetPosition(wxLongLong where)
 wxLongLong wxAMMediaBackend::GetPosition()
 {
     double outCur;
-    wxAMVERIFY( m_pMS->get_CurrentPosition(&outCur) );
+    HRESULT hr = m_pMS->get_CurrentPosition(&outCur);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return 0;
+    }
 
     //h,m,s,milli - outdur is in 1 second (double)
-    return (outCur*1000);
+    outCur *= 1000;
+    wxLongLong ll;
+    ll.Assign(outCur);
+
+    return ll;
+}
+
+//---------------------------------------------------------------------------
+// wxAMMediaBackend::GetVolume
+//
+// Gets the volume through the IBasicAudio interface -
+// value ranges from 0 (MAX volume) to -10000 (minimum volume).
+// -100 per decibel.
+//---------------------------------------------------------------------------
+double wxAMMediaBackend::GetVolume()
+{
+    if(m_pBA)
+    {
+        long lVolume;
+        HRESULT hr = m_pBA->get_Volume(&lVolume);
+        if(FAILED(hr))
+        {
+            wxAMLOG(hr);
+            return 0.0;
+        }
+
+        return (((double)(lVolume + 10000)) / 10000.0);
+    }
+
+    wxLogDebug(wxT("No directshow audio interface"));
+    return 0.0;
+}
+
+//---------------------------------------------------------------------------
+// wxAMMediaBackend::SetVolume
+//
+// Sets the volume through the IBasicAudio interface -
+// value ranges from 0 (MAX volume) to -10000 (minimum volume).
+// -100 per decibel.
+//---------------------------------------------------------------------------
+bool wxAMMediaBackend::SetVolume(double dVolume)
+{
+    if(m_pBA)
+    {
+        HRESULT hr = m_pBA->put_Volume( (long) ((dVolume-1.0) * 10000.0) );
+        if(FAILED(hr))
+        {
+            wxAMLOG(hr);
+            return false;
+        }
+        return true;
+    }
+
+    wxLogDebug(wxT("No directshow audio interface"));
+    return false;
 }
 
 //---------------------------------------------------------------------------
 // wxAMMediaBackend::GetDuration
 //
-// 1) Obtains the duration of the media from the IMediaSeeking interface
+// 1) Obtains the duration of the media from IAMMultiMediaStream
 // 2) Converts that value to our time base, and returns it
+//
+// NB: With VBR MP3 files the default DirectShow MP3 render does not
+// read the Xing header correctly, resulting in skewed values for duration
+// and seeking
 //---------------------------------------------------------------------------
 wxLongLong wxAMMediaBackend::GetDuration()
 {
     double outDuration;
-    wxAMVERIFY( m_pMS->get_Duration(&outDuration) );
+    HRESULT hr = m_pMS->get_Duration(&outDuration);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return 0;
+    }
 
     //h,m,s,milli - outdur is in 1 second (double)
-    return (outDuration*1000);
+    outDuration *= 1000;
+    wxLongLong ll;
+    ll.Assign(outDuration);
+
+    return ll;
 }
 
 //---------------------------------------------------------------------------
 // wxAMMediaBackend::GetState
 //
-// Obtains the state from the IMediaControl interface.
-// Note that it's enumeration values for stopping/playing
-// etc. are the same as ours, so we just do a straight cast.
-// TODO: MS recommends against INFINITE here for
-//       IMediaControl::GetState- do it in stages
+// Returns the cached state
 //---------------------------------------------------------------------------
 wxMediaState wxAMMediaBackend::GetState()
 {
-    HRESULT hr;
-    long theState; //OAFilterState
-    hr = m_pMC->GetState(INFINITE, &theState);
-
-    wxASSERT( SUCCEEDED(hr) );
-
-    //MSW state is the same as ours
-    //State_Stopped   = 0,
-    //State_Paused    = State_Stopped + 1,
-    //State_Running   = State_Paused + 1
-
-    return (wxMediaState) theState;
+    return m_state;
 }
 
 //---------------------------------------------------------------------------
@@ -1438,7 +1534,12 @@ wxMediaState wxAMMediaBackend::GetState()
 double wxAMMediaBackend::GetPlaybackRate()
 {
     double dRate;
-    wxAMVERIFY( m_pMS->get_Rate(&dRate) );
+    HRESULT hr = m_pMS->get_Rate(&dRate);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return 0.0;
+    }
     return dRate;
 }
 
@@ -1450,31 +1551,74 @@ double wxAMMediaBackend::GetPlaybackRate()
 //---------------------------------------------------------------------------
 bool wxAMMediaBackend::SetPlaybackRate(double dRate)
 {
-    return SUCCEEDED( m_pMS->put_Rate(dRate) );
+    HRESULT hr = m_pMS->put_Rate(dRate);
+    if(FAILED(hr))
+    {
+        wxAMLOG(hr);
+        return false;
+    }
+
+    return true;
 }
 
 //---------------------------------------------------------------------------
-// wxAMMediaBackend::NotifyWndProc
+// wxAMMediaBackend::GetVideoSize
 //
-// Here we check to see if DirectShow tells us we've reached the stop
-// position in our stream - if it has, it may not actually stop
-// the stream - which we need to do...
+// Obtains the cached original video size
 //---------------------------------------------------------------------------
-LRESULT CALLBACK wxAMMediaBackend::NotifyWndProc(HWND hWnd, UINT nMsg,
-                                                    WPARAM wParam,
-                                                    LPARAM lParam)
+wxSize wxAMMediaBackend::GetVideoSize() const
 {
-    wxAMMediaBackend* backend = (wxAMMediaBackend*)
-        ::GetWindowLong(hWnd, GWL_USERDATA);
-
-    return backend->OnNotifyWndProc(hWnd, nMsg, wParam, lParam);
+    return m_bestSize;
 }
 
-LRESULT CALLBACK wxAMMediaBackend::OnNotifyWndProc(HWND hWnd, UINT nMsg,
-                                                    WPARAM wParam,
-                                                    LPARAM lParam)
+//---------------------------------------------------------------------------
+// wxAMMediaBackend::Move
+//
+// We take care of this in our redrawing
+//---------------------------------------------------------------------------
+void wxAMMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y),
+                            int w, int h)
 {
-    if (nMsg == WM_GRAPHNOTIFY)
+    //don't use deferred positioning on windows
+    if(m_pVMC && m_bVideo)
+    {
+        RECT srcRect, destRect;
+
+        //portion of video to display in window
+        srcRect.top = 0; srcRect.left = 0;
+        srcRect.bottom = m_bestSize.y; srcRect.right = m_bestSize.x;
+
+        //it happens.
+        if (w < 0)
+        {
+            w = 0;
+        }
+        if (h < 0)
+        {
+            h = 0;
+        }
+
+        //position in window client coordinates to display and stretch to
+        destRect.top = 0; destRect.left = 0;
+        destRect.bottom = h; destRect.right = w;
+
+        //set the windowless control positions
+        HRESULT hr = m_pVMC->SetVideoPosition(&srcRect, &destRect);
+        if(FAILED(hr))
+        {
+            wxAMLOG(hr);
+        }
+    }
+}
+
+//---------------------------------------------------------------------------
+// wxAMMediaThread::Entry
+//
+// Render the current movie frame
+//---------------------------------------------------------------------------
+wxThread::ExitCode wxAMMediaThread::Entry()
+{
+    while(!TestDestroy())
     {
         LONG    evCode,
                 evParam1,
@@ -1485,16 +1629,39 @@ LRESULT CALLBACK wxAMMediaBackend::OnNotifyWndProc(HWND hWnd, UINT nMsg,
         // to go through them one by one, stopping at (Hopefully only one)
         // EC_COMPLETE message
         //
-        while(SUCCEEDED(m_pME->GetEvent(&evCode, (LONG_PTR *) &evParam1,
-                                       (LONG_PTR *) &evParam2, 0)
-                       )
-             )
+        while( pThis->m_pME->GetEvent(&evCode, (LONG_PTR *) &evParam1,
+                                      (LONG_PTR *) &evParam2, 0) == 0 )
         {
             // Cleanup memory that GetEvent allocated
-            wxAMVERIFY( m_pME->FreeEventParams(evCode, evParam1, evParam2) );
-
+            HRESULT hr = pThis->m_pME->FreeEventParams(evCode,
+                                                evParam1, evParam2);
+            if(hr != 0)
+            {
+                //Even though this makes a messagebox this
+                //is windows where we can do gui stuff in seperate
+                //threads :)
+                wxFAIL_MSG(pThis->GetErrorString(hr));
+            }
             // If this is the end of the clip, notify handler
-            if(1 == evCode) //EC_COMPLETE
+            else if(1 == evCode) //EC_COMPLETE
+            {
+                pThis->OnStop();
+            }
+        }
+
+        Sleep(10);
+    }
+
+    return NULL;
+}
+
+
+//---------------------------------------------------------------------------
+// wxAMMediaBackend::OnStop
+//
+// Handle stopping when the stream ends
+//---------------------------------------------------------------------------
+void wxAMMediaBackend::OnStop()
             {
                 //send the event to our child
                 wxMediaEvent theEvent(wxEVT_MEDIA_STOP, m_ctrl->GetId());
@@ -1513,78 +1680,42 @@ LRESULT CALLBACK wxAMMediaBackend::OnNotifyWndProc(HWND hWnd, UINT nMsg,
                     m_ctrl->ProcessEvent(theEvent);
                 }
             }
+
+//---------------------------------------------------------------------------
+// wxAMMediaEvtHandler::OnEraseBackground
+//
+// Tell WX not to erase the background of our control window
+//---------------------------------------------------------------------------
+void wxAMMediaEvtHandler::OnEraseBackground(wxEraseEvent& evt)
+{
+    wxAMMediaBackend* pThis = (wxAMMediaBackend*) this;
+    if(pThis->m_pVMC && pThis->m_bVideo)
+    {
+        //TODO: Use wxClientDC?
+        HDC hdc = ::GetDC((HWND)pThis->m_ctrl->GetHandle());
+        HRESULT hr = pThis->m_pVMC->RepaintVideo((HWND)pThis->m_ctrl->GetHandle(),
+                                        hdc);
+        if(FAILED(hr))
+        {
+            wxFAIL_MSG(pThis->GetErrorString(hr));
         }
+        ::ReleaseDC((HWND)pThis->m_ctrl->GetHandle(), hdc);
     }
-    return DefWindowProc(hWnd, nMsg, wParam, lParam);
-}
-
-//---------------------------------------------------------------------------
-// wxAMMediaBackend::Cleanup
-//
-// 1) Hide/disowns the video window (MS says bad things will happen if
-//    you don't)
-// 2) Releases all the directshow interfaces we use
-// TODO: Maybe there's a way to redirect the IMediaControl each time
-//       we load, rather then creating and destroying the interfaces
-//       each time?
-//---------------------------------------------------------------------------
-void wxAMMediaBackend::Cleanup()
-{
-    // Hide then disown the window
-    if(m_pVW)
+    else
     {
-        m_pVW->put_Visible(0); //OSFALSE == 0
-        m_pVW->put_Owner(NULL);
-    }
-
-    // Release and zero DirectShow interfaces
-    SAFE_RELEASE(m_pME);
-    SAFE_RELEASE(m_pMS);
-    SAFE_RELEASE(m_pBA);
-    SAFE_RELEASE(m_pBV);
-    SAFE_RELEASE(m_pVW);
-    SAFE_RELEASE(m_pMC);
-
-    // Get rid of our hidden Window
-    DestroyWindow(m_hNotifyWnd);
-    m_hNotifyWnd = NULL;
-}
-
-
-//---------------------------------------------------------------------------
-// wxAMMediaBackend::GetVideoSize
-//
-// Obtains the cached original video size
-//---------------------------------------------------------------------------
-wxSize wxAMMediaBackend::GetVideoSize() const
-{
-    return m_bestSize;
-}
-
-//---------------------------------------------------------------------------
-// wxAMMediaBackend::Move
-//
-// Resizes the IVideoWindow to the size of the control window
-//---------------------------------------------------------------------------
-void wxAMMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y), int w, int h)
-{
-    if(m_hNotifyWnd && m_bVideo)
-    {
-        wxAMVERIFY( m_pVW->SetWindowPosition(0, 0, w, h) );
+        evt.Skip();
     }
 }
 
 //---------------------------------------------------------------------------
 // End of wxAMMediaBackend
 //---------------------------------------------------------------------------
-#endif //wxUSE_DIRECTSHOW
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 // wxMCIMediaBackend
 //
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
 IMPLEMENT_DYNAMIC_CLASS(wxMCIMediaBackend, wxMediaBackend);
 
@@ -1645,6 +1776,15 @@ typedef struct {
     DWORD     dwFileFormat;
     DWORD     dwSpeed;
 } MCI_DGV_SET_PARMS;
+
+typedef struct {
+    DWORD_PTR   dwCallback;
+    DWORD   dwItem;
+    DWORD   dwValue;
+    DWORD   dwOver;
+    wxChar*   lpstrAlgorithm;
+    wxChar*   lpstrQuality;
+} MCI_DGV_SETAUDIO_PARMS;
 
 //---------------------------------------------------------------------------
 // wxMCIMediaBackend Constructor
@@ -1782,8 +1922,7 @@ bool wxMCIMediaBackend::Load(const wxString& fileName)
         return false;
     }
 
-    ::SetWindowLong(m_hNotifyWnd, GWL_WNDPROC,
-                       (LONG)wxMCIMediaBackend::NotifyWndProc);
+    wxSetWindowProc(m_hNotifyWnd, wxMCIMediaBackend::NotifyWndProc);
 
     ::SetWindowLong(m_hNotifyWnd, GWL_USERDATA,
                        (LONG) this);
@@ -1791,12 +1930,13 @@ bool wxMCIMediaBackend::Load(const wxString& fileName)
     //
     //Here, if the parent of the control has a sizer - we
     //tell it to recalculate the size of this control since
-    //the user opened a seperate media file
+    //the user opened a separate media file
     //
     m_ctrl->InvalidateBestSize();
     m_ctrl->GetParent()->Layout();
     m_ctrl->GetParent()->Refresh();
     m_ctrl->GetParent()->Update();
+    m_ctrl->SetSize(m_ctrl->GetSize());
 
     return true;
 }
@@ -1935,6 +2075,48 @@ wxLongLong wxMCIMediaBackend::GetPosition()
 }
 
 //---------------------------------------------------------------------------
+// wxMCIMediaBackend::GetVolume
+//
+// Gets the volume of the current media via the MCI_DGV_STATUS_VOLUME
+// message.  Value ranges from 0 (minimum) to 1000 (maximum volume).
+//---------------------------------------------------------------------------
+double wxMCIMediaBackend::GetVolume()
+{
+    MCI_STATUS_PARMS statusParms;
+    statusParms.dwCallback = 0;
+    statusParms.dwItem = 0x4019; //MCI_DGV_STATUS_VOLUME
+
+    if (mciSendCommand(m_hDev, MCI_STATUS, MCI_STATUS_ITEM,
+                       (DWORD)(LPSTR)&statusParms) != 0)
+        return 0;
+
+    return ((double)statusParms.dwReturn) / 1000.0;
+}
+
+//---------------------------------------------------------------------------
+// wxMCIMediaBackend::SetVolume
+//
+// Sets the volume of the current media via the MCI_DGV_SETAUDIO_VOLUME
+// message.  Value ranges from 0 (minimum) to 1000 (maximum volume).
+//---------------------------------------------------------------------------
+bool wxMCIMediaBackend::SetVolume(double dVolume)
+{
+    MCI_DGV_SETAUDIO_PARMS audioParms;
+    audioParms.dwCallback = 0;
+    audioParms.dwItem = 0x4002; //MCI_DGV_SETAUDIO_VOLUME
+    audioParms.dwValue = (DWORD) (dVolume * 1000.0);
+    audioParms.dwOver = 0;
+    audioParms.lpstrAlgorithm = NULL;
+    audioParms.lpstrQuality = NULL;
+
+    if (mciSendCommand(m_hDev, 0x0873, //MCI_SETAUDIO
+                        0x00800000L | 0x01000000L, //MCI_DGV_SETAUDIO+(_ITEM | _VALUE)
+                       (DWORD)(LPSTR)&audioParms) != 0)
+        return false;
+    return true;
+}
+
+//---------------------------------------------------------------------------
 // wxMCIMediaBackend::GetDuration
 //
 // Gets the duration of the stream... nothing special
@@ -1962,14 +2144,19 @@ void wxMCIMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y),
     if (m_hNotifyWnd && m_bVideo)
     {
         MCI_DGV_RECT_PARMS putParms; //ifdefed MCI_DGV_PUT_PARMS
-        putParms.rc.top = 0;
-        putParms.rc.bottom = 0;
-        putParms.rc.right = w;
+        memset(&putParms, 0, sizeof(MCI_DGV_RECT_PARMS));
         putParms.rc.bottom = h;
+        putParms.rc.right = w;
 
+        //wxStackWalker will crash and burn here on assert
+        //and mci doesn't like 0 and 0 for some reason (out of range )
+        //so just don't it in that case
+        if(w || h)
+        {
         wxMCIVERIFY( mciSendCommand(m_hDev, MCI_PUT,
                                    0x00040000L, //MCI_DGV_PUT_DESTINATION
                                    (DWORD)(LPSTR)&putParms) );
+        }
     }
 }
 
@@ -2033,7 +2220,11 @@ LRESULT CALLBACK wxMCIMediaBackend::NotifyWndProc(HWND hWnd, UINT nMsg,
                                                   LPARAM lParam)
 {
     wxMCIMediaBackend* backend = (wxMCIMediaBackend*)
+#ifdef _WIN32
         ::GetWindowLong(hWnd, GWL_USERDATA);
+#else
+        ::GetWindowLongPtr(hWnd, GWLP_USERDATA);
+#endif
     wxASSERT(backend);
 
     return backend->OnNotifyWndProc(hWnd, nMsg, wParam, lParam);
@@ -2072,8 +2263,6 @@ LRESULT CALLBACK wxMCIMediaBackend::OnNotifyWndProc(HWND hWnd, UINT nMsg,
 // TODO: Use a less cludgy way to pause/get state/set state
 // TODO: Dynamically load from qtml.dll
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-#if wxUSE_QUICKTIME
 
 IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend);
 
@@ -2167,7 +2356,7 @@ wxQTMediaBackend::~wxQTMediaBackend()
 
     if(m_lib.IsOk())
     {
-        //Note that ExitMovies() is not neccessary, but
+        //Note that ExitMovies() is not necessary, but
         //the docs are fuzzy on whether or not TerminateQTML is
         m_lib.ExitMovies();
         m_lib.TerminateQTML();
@@ -2191,8 +2380,8 @@ bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     if(!m_lib.Initialize())
         return false;
     
-    int nError;
-    if ((nError = m_lib.InitializeQTML(0)) != noErr)    //-2093 no dll
+    int nError = m_lib.InitializeQTML(0);
+    if (nError != noErr)    //-2093 no dll
     {
         wxFAIL_MSG(wxString::Format(wxT("Couldn't Initialize Quicktime-%i"), nError));
         return false;
@@ -2229,8 +2418,7 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
     if(m_timer)
         Cleanup();
 
-    OSErr err = noErr;
-    short movieResFile;
+    short movieResFile = 0; //= 0 because of annoying VC6 warning
     FSSpec sfFile;
 
     if (m_lib.NativePathNameToFSSpec ((char*) (const char*) fileName.mb_str(),
@@ -2243,13 +2431,14 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
     short movieResID = 0;
     Str255 movieName;
 
-    err = m_lib.NewMovieFromFile (
+    OSErr err = m_lib.NewMovieFromFile (
     &m_movie,
     movieResFile,
     &movieResID,
     movieName,
     newMovieActive,
-    NULL); //wasChanged
+                   NULL
+                ); //wasChanged
 
     m_lib.CloseMovieFile (movieResFile);
 
@@ -2273,17 +2462,15 @@ bool wxQTMediaBackend::Load(const wxURI& location)
 
     wxString theURI = location.BuildURI();
 
-    OSErr err = noErr;
-
     Handle theHandle = m_lib.NewHandleClear(theURI.length() + 1);
     wxASSERT(theHandle);
 
     m_lib.BlockMove(theURI.mb_str(), *theHandle, theURI.length() + 1);
 
     //create the movie from the handle that refers to the URI
-    err = m_lib.NewMovieFromDataRef(&m_movie, newMovieActive,
+    OSErr err = m_lib.NewMovieFromDataRef(&m_movie, newMovieActive,
                                 NULL, theHandle,
-                                'url'); //URLDataHandlerSubType
+                                URLDataHandlerSubType);
 
     m_lib.DisposeHandle(theHandle);
 
@@ -2319,6 +2506,7 @@ void wxQTMediaBackend::FinishLoad()
 
     //get the real size of the movie
     Rect outRect;
+    memset(&outRect, 0, sizeof(Rect)); //for annoying VC6 warning
     m_lib.GetMovieNaturalBoundsRect (m_movie, &outRect);
     wxASSERT(m_lib.GetMoviesError() == noErr);
 
@@ -2327,7 +2515,7 @@ void wxQTMediaBackend::FinishLoad()
 
     //reparent movie/*AudioMediaCharacteristic*/
     if(m_lib.GetMovieIndTrackType(m_movie, 1,
-                            'eyes', //VisualMediaCharacteristic,
+                            VisualMediaCharacteristic,
                             (1 << 1) //movieTrackCharacteristic 
                             | (1 << 2) //movieTrackEnabledOnly
                             ) != NULL)
@@ -2346,7 +2534,7 @@ void wxQTMediaBackend::FinishLoad()
     //
     //Here, if the parent of the control has a sizer - we
     //tell it to recalculate the size of this control since
-    //the user opened a seperate media file
+    //the user opened a separate media file
     //
     m_ctrl->InvalidateBestSize();
     m_ctrl->GetParent()->Layout();
@@ -2428,7 +2616,7 @@ bool wxQTMediaBackend::SetPosition(wxLongLong where)
 {
     TimeRecord theTimeRecord;
     memset(&theTimeRecord, 0, sizeof(TimeRecord));
-    theTimeRecord.value.lo = where.GetValue();
+    theTimeRecord.value.lo = where.GetLo();
     theTimeRecord.scale = m_lib.GetMovieTimeScale(m_movie);
     theTimeRecord.base = m_lib.GetMovieTimeBase(m_movie);
     m_lib.SetMovieTime(m_movie, &theTimeRecord);
@@ -2448,6 +2636,53 @@ bool wxQTMediaBackend::SetPosition(wxLongLong where)
 wxLongLong wxQTMediaBackend::GetPosition()
 {
     return m_lib.GetMovieTime(m_movie, NULL);
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::GetVolume
+//
+// Gets the volume through GetMovieVolume - which returns a 16 bit short -
+//
+// +--------+--------+
+// +   (1)  +   (2)  +
+// +--------+--------+
+//
+// (1) first 8 bits are value before decimal
+// (2) second 8 bits are value after decimal
+//
+// Volume ranges from -1.0 (gain but no sound), 0 (no sound and no gain) to
+// 1 (full gain and sound)
+//---------------------------------------------------------------------------
+double wxQTMediaBackend::GetVolume()
+{
+    short sVolume = m_lib.GetMovieVolume(m_movie);
+
+    if(sVolume & (128 << 8)) //negative - no sound
+        return 0.0;
+
+    return (sVolume & (127 << 8)) ? 1.0 : ((double)(sVolume & 255)) / 255.0;
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::SetVolume
+//
+// Sets the volume through SetMovieVolume - which takes a 16 bit short -
+//
+// +--------+--------+
+// +   (1)  +   (2)  +
+// +--------+--------+
+//
+// (1) first 8 bits are value before decimal
+// (2) second 8 bits are value after decimal
+//
+// Volume ranges from -1.0 (gain but no sound), 0 (no sound and no gain) to
+// 1 (full gain and sound)
+//---------------------------------------------------------------------------
+bool wxQTMediaBackend::SetVolume(double dVolume)
+{
+    short sVolume = (short) (dVolume >= .9999 ? 1 << 8 : (dVolume * 255) );
+    m_lib.SetMovieVolume(m_movie, sVolume);
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -2510,7 +2745,7 @@ void wxQTMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y), int w, int h)
 {
     if(m_timer)
     {
-        Rect theRect = {0, 0, h, w};
+        Rect theRect = {0, 0, (short)h, (short)w};
 
         m_lib.SetMovieBox(m_movie, &theRect);
         wxASSERT(m_lib.GetMoviesError() == noErr);
@@ -2518,9 +2753,8 @@ void wxQTMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y), int w, int h)
 }
 
 //---------------------------------------------------------------------------
-//  End QT Compilation Guard
+//  End QT Backend
 //---------------------------------------------------------------------------
-#endif //wxUSE_QUICKTIME
 
 //in source file that contains stuff you don't directly use
 #include <wx/html/forcelnk.h>

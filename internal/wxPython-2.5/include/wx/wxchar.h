@@ -5,7 +5,7 @@
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
  * RCS-ID:      $Id$
- * Copyright:   (c) 1998-2002 wxWidgets dev team
+ * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
  * Licence:     wxWindows licence
  */
 
@@ -21,7 +21,7 @@
 #include "wx/defs.h"        /* for wxUSE_UNICODE */
 
 #if defined(HAVE_STRTOK_R) && defined(__DARWIN__) && defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
-    char	*strtok_r(char *, const char *, char **);
+    char *strtok_r(char *, const char *, char **);
 #endif
 
 /* check whether we have wchar_t and which size it is if we do */
@@ -127,7 +127,9 @@
     #define wxHAVE_TCHAR_SUPPORT
 #elif defined(__DMC__)
     #define wxHAVE_TCHAR_SUPPORT
-#elif defined(__MINGW32__) && wxCHECK_W32API_VERSION( 1, 0 ) && !defined(__WXPALMOS__)
+#elif defined(__WXPALMOS__)
+    #include <stddef.h>
+#elif defined(__MINGW32__) && wxCHECK_W32API_VERSION( 1, 0 )
     #define wxHAVE_TCHAR_SUPPORT
     #include <stddef.h>
     #include <string.h>
@@ -362,7 +364,9 @@
         #define  wxRename    wxMSLU__trename
     #else
         #ifdef __WXWINCE__
-            #define  wxRemove    DeleteFile
+            /* carefully: wxRemove() must return 0 on success while DeleteFile()
+               returns 0 on error, so don't just define one as the other */
+            int wxRemove(const wxChar *path);
         #else
             #define  wxRemove    _tremove
             #define  wxRename    _trename

@@ -77,7 +77,7 @@ int wxColourDialog::ShowModal()
         case GTK_RESPONSE_OK:
             DialogToColourData();
             return wxID_OK;
-    };
+    }
 }
 
 void wxColourDialog::ColourDataToDialog()

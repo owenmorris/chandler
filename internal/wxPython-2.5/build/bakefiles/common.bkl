@@ -29,37 +29,9 @@
 
     <include file="plugins_deps.bkl"/>
 
-    <!-- ================================================================== -->
-    <!--                     wxWidgets version numbers:                     -->
-    <!-- ================================================================== -->
 
-    <set var="WXVER_MAJOR">$(wxwin.getVersionMajor())</set>
-    <set var="WXVER_MINOR">$(wxwin.getVersionMinor())</set>
-    <set var="WXVER_RELEASE">$(wxwin.getVersionRelease())</set>
-    <set var="WX_RELEASE" make_var="1">
-        $(WXVER_MAJOR).$(WXVER_MINOR)
-    </set>
-    <set var="WX_RELEASE_NODOT" make_var="1">
-        $(WXVER_MAJOR)$(WXVER_MINOR)
-    </set>
-    <set var="WX_VERSION" make_var="1">
-        $(WX_RELEASE).$(WXVER_RELEASE)
-    </set>
-    <set var="WX_VERSION_NODOT" make_var="1">
-        $(WX_RELEASE_NODOT)$(WXVER_RELEASE)
-    </set>
-
-    <set var="WX_STABLE_BRANCH">$(int(int(WXVER_MINOR) % 2 == 0))</set>
-
-    <set var="WXSOVERSION">
-        <if cond="WX_STABLE_BRANCH=='1'">0.0.0</if>
-        <if cond="WX_STABLE_BRANCH=='0'">$(WXVER_RELEASE).0.0</if>
-    </set>
-    <set var="WXMACVERSION">$(WX_VERSION)</set>
-    <set var="WXWIN32DLLVERSION">
-        <if cond="WX_STABLE_BRANCH=='1'">$(WX_RELEASE_NODOT)</if>
-        <if cond="WX_STABLE_BRANCH=='0'">$(WX_VERSION_NODOT)</if>
-    </set>
+    <!-- wxWidgets version numbers logic: -->
+    <include file="version.bkl"/>
 
 
     <!-- ================================================================== -->
@@ -337,9 +309,17 @@
 
     <define-tag name="msvc-headers" rules="dll,lib">
         <if cond="IS_MSVC_PRJ">
-            <msvc-project-files>
-                $(addPrefixToList('include\', wxwin.headersOnly(value)))
-            </msvc-project-files>
+            <!-- FIXME: remove this once we require >=bkl-0.1.9 -->
+            <if cond="BAKEFILE_VERSION in ['0.1.7', '0.1.8']">
+                <msvc-project-files>
+                    $(addPrefixToList('include\', wxwin.headersOnly(value)))
+                </msvc-project-files>
+            </if>
+            <if cond="BAKEFILE_VERSION not in ['0.1.7', '0.1.8']">
+                <msvc-project-files>
+                    $(addPrefixToList('include\\', wxwin.headersOnly(value)))
+                </msvc-project-files>
+            </if>
         </if>
     </define-tag>
 
@@ -540,7 +520,9 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
         <dllname>$(WXDLLNAME)</dllname>
         <version>$(WX_VERSION)</version>
         <so_version>$(WXSOVERSION)</so_version>
-        <mac_version>$(WXMACVERSION)</mac_version>
+    
+        <!-- FIXME: until libtool scheme is implemented in bakefile -->
+        <ldflags cond="FORMAT=='autoconf'">$(WXMACVERSION_CMD)</ldflags>
 
         <!-- version info resources: -->
         <if cond="FORMAT not in ['rpmspec','wx24dsp']"> <!-- FIXME: fix for bkl-0.1.7 only, remove the cond later -->

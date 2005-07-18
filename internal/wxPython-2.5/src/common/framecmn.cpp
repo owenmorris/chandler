@@ -168,7 +168,9 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
         }
         else
         {
-            pt.y += h;
+#ifndef __WXMAC_OSX__
+           pt.y += h;
+#endif
         }
     }
 #endif // wxUSE_TOOLBAR
@@ -203,6 +205,9 @@ bool wxFrameBase::ProcessCommand(int id)
     if (item)
     {
         if (!item->IsEnabled())
+            return true;
+
+        if ((item->GetKind() == wxITEM_RADIO) && item->IsChecked() )
             return true;
 
         if (item->IsCheckable())

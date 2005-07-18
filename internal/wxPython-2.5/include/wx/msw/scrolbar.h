@@ -57,9 +57,11 @@ public:
     virtual bool MSWOnScroll(int orientation, WXWORD wParam,
                              WXWORD pos, WXHWND control);
 
-protected:
+    // override wxControl version to not use solid background here
+    virtual WXHBRUSH MSWControlColor(WXHDC pDC, WXHWND hWnd);
 
-    wxSize DoGetBestSize() const;
+protected:
+    virtual wxSize DoGetBestSize() const;
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
     int m_pageSize;

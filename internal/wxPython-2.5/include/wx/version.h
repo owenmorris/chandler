@@ -21,12 +21,22 @@
 /*      so don't change its format too much or they could break */
 #define wxMAJOR_VERSION      2
 #define wxMINOR_VERSION      6
-#define wxRELEASE_NUMBER     0
-#define wxSUBRELEASE_NUMBER  0
-#define wxVERSION_STRING   _T("wxWidgets 2.6.0")
+#define wxRELEASE_NUMBER     1
+#define wxSUBRELEASE_NUMBER  1
+#define wxVERSION_STRING   _T("wxWidgets 2.6.1")
 
 /*  nothing to update below this line when updating the version */
 /*  ---------------------------------------------------------------------------- */
+
+/* Users can pre-define wxABI_VERSION to a lower value in their
+ * makefile/project settings to compile code that will be binary compatible
+ * with earlier versions of the ABI within the same minor version (between
+ * minor versions binary compatibility breaks anyway). The default is the
+ * version of wxWidgets being used. A single number with two decimal digits
+ * for each component, e.g. 20601 for 2.6.1 */
+#ifndef wxABI_VERSION
+#define wxABI_VERSION ( wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + 99 )
+#endif
 
 /*  helpers for wxVERSION_NUM_XXX */
 #define wxSTRINGIZE(x)  #x
@@ -42,9 +52,9 @@
   wxMAKE_VERSION_DOT_STRING(wxMAJOR_VERSION, wxMINOR_VERSION, wxRELEASE_NUMBER)
 
 /*  some more defines, not really sure if they're [still] useful */
-#define wxVERSION_NUMBER (wxMAJOR_VERSION * 1000) + (wxMINOR_VERSION * 100) + wxRELEASE_NUMBER
+#define wxVERSION_NUMBER ( (wxMAJOR_VERSION * 1000) + (wxMINOR_VERSION * 100) + wxRELEASE_NUMBER )
 #define wxBETA_NUMBER      0
-#define wxVERSION_FLOAT wxMAJOR_VERSION + (wxMINOR_VERSION/10.0) + (wxRELEASE_NUMBER/100.0) + (wxBETA_NUMBER/10000.0)
+#define wxVERSION_FLOAT ( wxMAJOR_VERSION + (wxMINOR_VERSION/10.0) + (wxRELEASE_NUMBER/100.0) + (wxBETA_NUMBER/10000.0) )
 
 /*  check if the current version is at least major.minor.release */
 #define wxCHECK_VERSION(major,minor,release) \
@@ -54,11 +64,11 @@
 
 /* the same but check the subrelease also */
 #define wxCHECK_VERSION_FULL(major,minor,release,subrel) \
-    wxCHECK_VERSION(major, minor, release) && \
+    (wxCHECK_VERSION(major, minor, release) && \
         ((major) != wxMAJOR_VERSION || \
             (minor) != wxMINOR_VERSION || \
                 (release) != wxRELEASE_NUMBER || \
-                    (subrel) <= wxSUBRELEASE_NUMBER)
+                    (subrel) <= wxSUBRELEASE_NUMBER))
 
 #endif /*  _WX_VERSION_H_ */
 

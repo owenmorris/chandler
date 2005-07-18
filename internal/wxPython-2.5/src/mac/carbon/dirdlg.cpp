@@ -31,9 +31,7 @@
   #include <Navigation.h>
 #endif
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_CLASS(wxDirDialog, wxDialog)
-#endif
 
 wxDirDialog::wxDirDialog(wxWindow *parent,
                          const wxString& message,
@@ -53,41 +51,26 @@ wxDirDialog::wxDirDialog(wxWindow *parent,
 int wxDirDialog::ShowModal()
 {
     NavDialogOptions        mNavOptions;
-    NavObjectFilterUPP        mNavFilterUPP = NULL;
-    NavPreviewUPP            mNavPreviewUPP = NULL ;
-    NavReplyRecord            mNavReply;
-    AEDesc*                    mDefaultLocation = NULL ;
-    bool                    mSelectDefault = false ;
+    NavObjectFilterUPP      mNavFilterUPP = NULL;
+    NavReplyRecord          mNavReply;
     
     ::NavGetDefaultDialogOptions(&mNavOptions);
 
-    mNavFilterUPP    = nil;
-    mNavPreviewUPP    = nil;
-    mSelectDefault    = false;
-    mNavReply.validRecord                = false;
-    mNavReply.replacing                    = false;
-    mNavReply.isStationery                = false;
-    mNavReply.translationNeeded            = false;
+    mNavReply.validRecord              = false;
+    mNavReply.replacing                = false;
+    mNavReply.isStationery             = false;
+    mNavReply.translationNeeded        = false;
     mNavReply.selection.descriptorType = typeNull;
-    mNavReply.selection.dataHandle        = nil;
-    mNavReply.keyScript                    = smSystemScript;
-    mNavReply.fileTranslation            = nil;
+    mNavReply.selection.dataHandle     = nil;
+    mNavReply.keyScript                = smSystemScript;
+    mNavReply.fileTranslation          = nil;
     
     // Set default location, the location
     //   that's displayed when the dialog
     //   first appears
     
-    if ( mDefaultLocation ) {
-        
-        if (mSelectDefault) {
-            mNavOptions.dialogOptionFlags |= kNavSelectDefaultLocation;
-        } else {
-            mNavOptions.dialogOptionFlags &= ~kNavSelectDefaultLocation;
-        }
-    }
-    
     OSErr err = ::NavChooseFolder(
-                        mDefaultLocation,
+                        NULL,
                         &mNavReply,
                         &mNavOptions,
                         NULL,
@@ -95,7 +78,7 @@ int wxDirDialog::ShowModal()
                         0L);                            // User Data
     
     if ( (err != noErr) && (err != userCanceledErr) ) {
-        m_path = wxT("") ;
+        m_path = wxEmptyString ;
         return wxID_CANCEL ;
     }
 
@@ -106,7 +89,7 @@ int wxDirDialog::ShowModal()
         
         OSErr err = ::AECoerceDesc( &mNavReply.selection , typeFSRef, &specDesc);
         if ( err != noErr ) {
-            m_path = wxT("") ;
+            m_path = wxEmptyString ;
             return wxID_CANCEL ;
         }            
         folderInfo = **(FSRef**) specDesc.dataHandle;

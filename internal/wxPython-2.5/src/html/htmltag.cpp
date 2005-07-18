@@ -194,6 +194,16 @@ void wxHtmlTagsCache::QueryTag(int at, int* end1, int* end2)
         int delta = (at < m_Cache[m_CachePos].Key) ? -1 : 1;
         do
         {
+            if ( m_CachePos < 0 || m_CachePos == m_CacheSize )
+            {
+                // something is very wrong with HTML, give up by returning an
+                // impossibly large value which is going to be ignored by the
+                // caller
+                *end1 =
+                *end2 = INT_MAX;
+                return;
+            }
+
             m_CachePos += delta;
         }
         while (m_Cache[m_CachePos].Key != at);
@@ -458,7 +468,7 @@ bool wxHtmlTag::GetParamAsInt(const wxString& par, int *clr) const
 
 wxString wxHtmlTag::GetAllParams() const
 {
-    // VS: this function is for backward compatiblity only,
+    // VS: this function is for backward compatibility only,
     //     never used by wxHTML
     wxString s;
     size_t cnt = m_ParamNames.GetCount();

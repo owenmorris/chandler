@@ -445,12 +445,15 @@ void wxGridSelection::SelectBlock( int topRow, int leftCol,
         {
           case 1:
             return;
+
           case -1:
             m_blockSelectionTopLeft.RemoveAt(n);
             m_blockSelectionBottomRight.RemoveAt(n);
             n--; count--;
+                break;
+
           default:
-            ;
+                break;
         }
     }
 
@@ -467,11 +470,14 @@ void wxGridSelection::SelectBlock( int topRow, int leftCol,
             {
               case 1:
                 return;
+
               case -1:
                 m_rowSelection.RemoveAt(n);
                 n--; count--;
+                    break;
+
               default:
-                ;
+                    break;
             }
         }
     }
@@ -486,11 +492,14 @@ void wxGridSelection::SelectBlock( int topRow, int leftCol,
             {
               case 1:
                 return;
+
               case -1:
                 m_colSelection.RemoveAt(n);
                 n--; count--;
+                    break;
+
               default:
-                ;
+                    break;
             }
         }
     }

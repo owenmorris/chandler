@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     01/02/97
 // RCS-ID:      $Id$
-// Copyright:   (c)
+// Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -43,6 +43,11 @@
 // include standard Windows headers
 #if defined(__WXMSW__)
     #include "wx/msw/wrapwin.h"
+#endif
+
+// include all PalmOS headers at once
+#ifdef __WXPALMOS__
+#   include <PalmOS.h>
 #endif
 
 // include the most common wx headers

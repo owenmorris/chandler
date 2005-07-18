@@ -831,7 +831,7 @@ public:
     // Set HTML page and display it. !! source is HTML document itself,
     // it is NOT address/filename of HTML document. If you want to
     // specify document location, use LoadPage() istead
-    // Return value : False if an error occured, True otherwise
+    // Return value : False if an error occurred, True otherwise
     bool SetPage(const wxString& source);
 
     // Load HTML page from given location. Location can be either
@@ -1227,6 +1227,8 @@ public:
     void ReadCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
     void WriteCustomization(wxConfigBase *cfg, wxString path = wxPyEmptyString);
     wxHtmlHelpFrame* GetFrame();
+
+    %pythoncode { def Destroy(self): pass }
 };
 
 

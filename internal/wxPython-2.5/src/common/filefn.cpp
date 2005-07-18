@@ -56,11 +56,6 @@
 
 #include "wx/log.h"
 
-// No, Cygwin doesn't appear to have fnmatch.h after all.
-#if defined(HAVE_FNMATCH_H)
-    #include "fnmatch.h"
-#endif
-
 #ifdef __WINDOWS__
     #include "wx/msw/private.h"
     #include "wx/msw/mslu.h"
@@ -172,7 +167,7 @@ void wxPathList::Add (const wxString& path)
 }
 
 // Add paths e.g. from the PATH environment variable
-void wxPathList::AddEnvList (const wxString& envVariable)
+void wxPathList::AddEnvList (const wxString& WXUNUSED_IN_WINCE(envVariable))
 {
     // No environment variables on WinCE
 #ifndef __WXWINCE__
@@ -183,14 +178,14 @@ void wxPathList::AddEnvList (const wxString& envVariable)
         path such as "C:\Program Files" would be split into 2 paths:
         "C:\Program" and "Files"
         */
-//        wxT(" ;"); // Don't seperate with colon in DOS (used for drive)
-        wxT(";"); // Don't seperate with colon in DOS (used for drive)
+//        wxT(" ;"); // Don't separate with colon in DOS (used for drive)
+        wxT(";"); // Don't separate with colon in DOS (used for drive)
 #else
         wxT(" :;");
 #endif
 
-    wxChar *val = wxGetenv (WXSTRINGCAST envVariable);
-    if (val && *val)
+    wxString val ;
+    if (wxGetEnv (WXSTRINGCAST envVariable, &val))
     {
         wxChar *s = MYcopystring (val);
         wxChar *save_ptr, *token = wxStrtok (s, PATH_TOKS, &save_ptr);
@@ -214,9 +209,7 @@ void wxPathList::AddEnvList (const wxString& envVariable)
 
         delete [] s;
     }
-#else // __WXWINCE__
-    wxUnusedVar(envVariable);
-#endif // !__WXWINCE__/__WXWINCE__
+#endif // !__WXWINCE__
 }
 
 // Given a full filename (with path), ensure that that file can
@@ -657,7 +650,9 @@ wxChar *wxExpandPath(wxChar *buf, const wxChar *name)
    The call wxExpandPath can convert these back!
  */
 wxChar *
-wxContractPath (const wxString& filename, const wxString& envname, const wxString& user)
+wxContractPath (const wxString& filename,
+                const wxString& WXUNUSED_IN_WINCE(envname),
+                const wxString& user)
 {
   static wxChar dest[_MAXPATHLEN];
 
@@ -683,8 +678,6 @@ wxContractPath (const wxString& filename, const wxString& envname, const wxStrin
         wxStrcat (tcp, wxT("}"));
         wxStrcat (tcp, wxFileFunctionsBuffer);
     }
-#else
-  wxUnusedVar(envname);
 #endif
 
   // Handle User's home (ignore root homes!)
@@ -959,39 +952,38 @@ wxUnix2DosFilename (wxChar *WXUNUSED(s) )
 bool
 wxConcatFiles (const wxString& file1, const wxString& file2, const wxString& file3)
 {
-  wxString outfile;
-  if ( !wxGetTempFileName( wxT("cat"), outfile) )
+#if wxUSE_FILE
+
+    wxFile in1(file1), in2(file2);
+    wxTempFile out(file3);
+
+    if ( !in1.IsOpened() || !in2.IsOpened() || !out.IsOpened() )
       return false;
 
-  FILE *fp1 wxDUMMY_INITIALIZE(NULL);
-  FILE *fp2 = NULL;
-  FILE *fp3 = NULL;
-  // Open the inputs and outputs
-  if ((fp1 = wxFopen ( file1, wxT("rb"))) == NULL ||
-      (fp2 = wxFopen ( file2, wxT("rb"))) == NULL ||
-      (fp3 = wxFopen ( outfile, wxT("wb"))) == NULL)
+    ssize_t ofs;
+    unsigned char buf[1024];
+
+    for( int i=0; i<2; i++)
     {
-      if (fp1)
-        fclose (fp1);
-      if (fp2)
-        fclose (fp2);
-      if (fp3)
-        fclose (fp3);
+        wxFile *in = i==0 ? &in1 : &in2;
+        do{
+            if ( (ofs = in->Read(buf,WXSIZEOF(buf))) == wxInvalidOffset ) return false;
+            if ( ofs > 0 )
+                if ( !out.Write(buf,ofs) )
       return false;
+        } while ( ofs == (ssize_t)WXSIZEOF(buf) );
     }
 
-  int ch;
-  while ((ch = getc (fp1)) != EOF)
-    (void) putc (ch, fp3);
-  fclose (fp1);
+    return out.Commit();
 
-  while ((ch = getc (fp2)) != EOF)
-    (void) putc (ch, fp3);
-  fclose (fp2);
+#else
 
-  fclose (fp3);
-  bool result = wxRenameFile(outfile, file3);
-  return result;
+    wxUnusedVar(file1);
+    wxUnusedVar(file2);
+    wxUnusedVar(file3);
+    return false;
+
+#endif
 }
 
 // Copy files
@@ -1011,7 +1003,7 @@ wxCopyFile (const wxString& file1, const wxString& file2, bool overwrite)
         return false;
     }
 #elif defined(__OS2__)
-    if ( ::DosCopy(file2, file2, overwrite ? DCPY_EXISTING : 0) != 0 )
+    if ( ::DosCopy((PSZ)file1.c_str(), (PSZ)file2.c_str(), overwrite ? DCPY_EXISTING : 0) != 0 )
         return false;
 #elif defined(__PALMOS__)
     // TODO with http://www.palmos.com/dev/support/docs/protein_books/Memory_Databases_Files/
@@ -1236,7 +1228,7 @@ bool wxDirExists(const wxChar *pszPathName)
 
     return (ret != (DWORD)-1) && (ret & FILE_ATTRIBUTE_DIRECTORY);
 #elif defined(__OS2__)
-    return (::DosSetCurrentDir(WXSTRINGCAST strPath));
+    return (::DosSetCurrentDir((PSZ)(WXSTRINGCAST strPath)));
 #else // !__WIN32__
 
     wxStructStat st;
@@ -1605,40 +1597,38 @@ time_t WXDLLEXPORT wxFileModificationTime(const wxString& filename)
 #if defined(__WXPALMOS__)
     return 0;
 #elif defined(__WXWINCE__)
-    FILETIME creationTime, lastAccessTime, lastWriteTime;
-    HANDLE fileHandle = ::CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL,
-        0, FILE_ATTRIBUTE_NORMAL, 0);
-    if (fileHandle == INVALID_HANDLE_VALUE)
-        return 0;
-    else
-    {
-        if (GetFileTime(fileHandle, & creationTime, & lastAccessTime, & lastWriteTime))
-        {
-            CloseHandle(fileHandle);
+    FILETIME ftLastWrite;
+    AutoHANDLE hFile(::CreateFile(filename, GENERIC_READ, FILE_SHARE_READ,
+                                    NULL, 0, FILE_ATTRIBUTE_NORMAL, 0));
 
-            wxDateTime dateTime;
+    if ( !hFile.IsOk() )
+        return 0;
+
+    if ( !::GetFileTime(hFile, NULL, NULL, &ftLastWrite) )
+        return 0;
+
+    // sure we want to translate to local time here?
             FILETIME ftLocal;
-            if ( !::FileTimeToLocalFileTime(&lastWriteTime, &ftLocal) )
+    if ( !::FileTimeToLocalFileTime(&ftLastWrite, &ftLocal) )
             {
                 wxLogLastError(_T("FileTimeToLocalFileTime"));
             }
 
-            SYSTEMTIME st;
-            if ( !::FileTimeToSystemTime(&ftLocal, &st) )
-            {
-                wxLogLastError(_T("FileTimeToSystemTime"));
-            }
+    // FILETIME is a counted in 100-ns since 1601-01-01, convert it to
+    // number of seconds since 1970-01-01
+    ULARGE_INTEGER uli;
+    uli.LowPart = ftLocal.dwLowDateTime;
+    uli.HighPart = ftLocal.dwHighDateTime;
 
-            dateTime.Set(st.wDay, wxDateTime::Month(st.wMonth - 1), st.wYear,
-                st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-            return dateTime.GetTicks();
-        }
-        else
-            return 0;
-    }
+    ULONGLONG ull = uli.QuadPart;
+    ull /= wxULL(10000000);     // number of 100ns intervals in 1s
+    ull -= wxULL(11644473600);  // 1970-01-01 - 1601-01-01 in seconds
+
+    return wx_static_cast(time_t, ull);
 #else
     wxStructStat buf;
-    wxStat( filename, &buf);
+    if ( wxStat( filename, &buf) != 0 )
+        return 0;
 
     return buf.st_mtime;
 #endif
@@ -1649,7 +1639,9 @@ time_t WXDLLEXPORT wxFileModificationTime(const wxString& filename)
 // Returns 0 if none or if there's a problem.
 // filterStr is in the form: "All files (*.*)|*.*|JPEG Files (*.jpeg)|*.jpeg"
 
-int WXDLLEXPORT wxParseCommonDialogsFilter(const wxString& filterStr, wxArrayString& descriptions, wxArrayString& filters)
+int WXDLLEXPORT wxParseCommonDialogsFilter(const wxString& filterStr,
+                                           wxArrayString& descriptions,
+                                           wxArrayString& filters)
 {
     descriptions.Clear();
     filters.Clear();

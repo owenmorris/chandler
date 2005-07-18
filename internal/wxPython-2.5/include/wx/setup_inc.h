@@ -1,3 +1,13 @@
+///////////////////////////////////////////////////////////////////////////////
+// Name:        wx/setup_inc.h
+// Purpose:     setup.h settings
+// Author:      Vadim Zeitlin
+// Modified by:
+// Created:
+// RCS-ID:      $Id$
+// Copyright:   (c) Vadim Zeitlin
+// Licence:     wxWindows licence
+///////////////////////////////////////////////////////////////////////////////
 
 // ----------------------------------------------------------------------------
 // global settings
@@ -254,7 +264,7 @@
 // Use standard C++ streams if 1. If 0, use wxWin streams implementation only.
 #define wxUSE_STD_IOSTREAM  0
 
-// Enable converion to  standard C++ string if 1.
+// Enable conversion to standard C++ string if 1.
 #define wxUSE_STD_STRING  0
 
 // ----------------------------------------------------------------------------
@@ -473,20 +483,6 @@
 //
 // Recommended setting: 1 
 #define wxUSE_MEDIACTRL     1
-
-// Use QuickTime
-//
-// Default is 0
-//
-// Recommended setting: 1 if you have the QT SDK installed and you need it, else 0
-#define wxUSE_QUICKTIME     0
-
-// Use DirectShow (requires linkage to strmiids.lib)
-//
-// Default is 0
-//
-// Recommended setting: 1 if the DirectX 7 SDK is installed (highly recommended), else 0
-#define wxUSE_DIRECTSHOW    0
 
 // Use GStreamer for Unix (req a lot of dependancies)
 //
@@ -968,7 +964,7 @@
 #define wxODBC_FWD_ONLY_CURSORS	 1
 
 // Default is 0.  Set to 1 to use the deprecated classes, enum types, function,
-// member variables.  With a setting of 1, full backward compatability with the
+// member variables.  With a setting of 1, full backward compatibility with the
 // 2.0.x release is possible. It is STRONGLY recommended that this be set to 0,
 // as future development will be done only on the non-deprecated
 // functions/classes/member variables/etc.

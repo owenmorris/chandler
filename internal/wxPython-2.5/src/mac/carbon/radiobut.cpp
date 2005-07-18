@@ -19,9 +19,7 @@
 
 #include "wx/radiobut.h"
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxRadioButton, wxControl)
-#endif
 
 #include "wx/mac/uma.h"
 
@@ -112,12 +110,11 @@ wxInt32 wxRadioButton::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVE
     if ( GetValue() )
       return noErr;
       
-      wxRadioButton *cycle, *old = NULL ;
+    wxRadioButton *cycle;
     cycle=this->NextInCycle();
     if (cycle!=NULL) {
           while (cycle!=this) {
             if ( cycle->GetValue() ) {
-              old = cycle ;
                 cycle->SetValue(false);
               }
               cycle=cycle->NextInCycle();
@@ -126,12 +123,6 @@ wxInt32 wxRadioButton::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVE
 
       SetValue(true) ;
 
-    if ( old ) {
-      wxCommandEvent event(wxEVT_COMMAND_RADIOBUTTON_SELECTED, old->m_windowId );
-      event.SetEventObject(old);
-      event.SetInt( false );
-      old->ProcessCommand(event);
-    }
     wxCommandEvent event2(wxEVT_COMMAND_RADIOBUTTON_SELECTED, m_windowId );
     event2.SetEventObject(this);
     event2.SetInt( true );

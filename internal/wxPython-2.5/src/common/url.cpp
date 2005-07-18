@@ -284,16 +284,16 @@ wxInputStream *wxURL::GetInputStream()
   }
 #endif
 
+    wxString fullPath;
+
   // When we use a proxy, we have to pass the whole URL to it.
-  wxInputStream *the_i_stream;
-  
-  if (!m_useProxy)
-  {
-      the_i_stream = m_protocol->GetInputStream(m_url);
-  }
+    if (m_useProxy)
+        fullPath += m_url;
+
+    if(m_path.empty())
+        fullPath += wxT("/");
   else
-  {
-      wxString fullPath = m_path;
+        fullPath += m_path;
 
       if (HasQuery())
           fullPath += wxT("?") + m_query;
@@ -301,8 +301,7 @@ wxInputStream *wxURL::GetInputStream()
       if (HasFragment())
           fullPath += wxT("#") + m_fragment;
       
-      the_i_stream = m_protocol->GetInputStream(fullPath);
-  }
+    wxInputStream *the_i_stream = m_protocol->GetInputStream(fullPath);
 
   if (!the_i_stream)
   {
@@ -442,4 +441,3 @@ void wxURLModule::OnExit()
 #endif // wxUSE_SOCKETS
 
 #endif // wxUSE_URL
-

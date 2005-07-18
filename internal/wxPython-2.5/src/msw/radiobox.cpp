@@ -40,6 +40,11 @@
 
 #include "wx/msw/subwin.h"
 
+// This is switched off because in some situations, the radiobox
+// buttons simply don't appear when deferred sizing is on.
+// Instead, refreshing on WM_MOVE seems to at least cure the droppings.
+#define USE_DEFERRED_SIZING 0
+
 #if wxUSE_TOOLTIPS
     #if !defined(__GNUWIN32_OLD__) || defined(__CYGWIN10__)
         #include <commctrl.h>
@@ -369,6 +374,8 @@ void wxRadioBox::SetString(int item, const wxString& label)
     m_radioHeight[item] = wxDefaultCoord;
 
     ::SetWindowText((*m_radioButtons)[item], label.c_str());
+
+    InvalidateBestSize();
 }
 
 void wxRadioBox::SetSelection(int N)
@@ -423,7 +430,10 @@ bool wxRadioBox::Show(int item, bool show)
 
     BOOL ret = ::ShowWindow((*m_radioButtons)[item], show ? SW_SHOW : SW_HIDE);
 
-    return (ret != 0) == show;
+    bool changed = (ret != 0) == show;
+    if( changed )
+        InvalidateBestSize();
+    return changed;
 }
 
 WX_FORWARD_STD_METHODS_TO_SUBWINDOWS(wxRadioBox, wxStaticBox, m_radioButtons)
@@ -493,7 +503,9 @@ wxSize wxRadioBox::GetTotalButtonSize(const wxSize& sizeBtn) const
 
 wxSize wxRadioBox::DoGetBestSize() const
 {
-    return GetTotalButtonSize(GetMaxButtonSize());
+    wxSize best = GetTotalButtonSize(GetMaxButtonSize());
+    CacheBestSize(best);
+    return best;
 }
 
 // Restored old code.
@@ -545,7 +557,17 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             height = heightOld;
     }
 
-    ::MoveWindow(GetHwnd(), xx, yy, width, height, TRUE);
+    // if our parent had prepared a defer window handle for us, use it (unless
+    // we are a top level window)
+
+#if USE_DEFERRED_SIZING
+    wxWindowMSW *parent = GetParent();
+    HDWP hdwp = parent && !IsTopLevel() ? (HDWP)parent->m_hDWP : NULL;
+#else
+    HDWP hdwp = 0;
+#endif
+
+    wxMoveWindowDeferred(hdwp, this, GetHwnd(), xx, yy, width, height);
 
     // Now position all the buttons: the current button will be put at
     // wxPoint(x_offset, y_offset) and the new row/column will start at
@@ -642,6 +664,14 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             x_offset += widthBtn + cx1;
         }
     }
+
+#if USE_DEFERRED_SIZING
+    if (parent)
+    {
+        // hdwp must be updated as it may have been changed
+        parent->m_hDWP = (WXHANDLE)hdwp;
+    }
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -670,22 +700,16 @@ WXHRGN wxRadioBox::MSWGetRegionWithoutChildren()
 WXLRESULT
 wxRadioBox::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-    if ( nMsg == WM_PRINTCLIENT )
+    // FIXME: Without this, the radiobox corrupts other controls as it moves
+    // in a dynamic layout. Refreshing causes flicker, but it's better than
+    // leaving droppings. Note that for some reason, wxStaticBox doesn't need
+    // this (perhaps because it has no real children?)
+    if ( nMsg == WM_MOVE )
     {
-        // we have to process WM_PRINTCLIENT ourselves as otherwise the radio
-        // buttons background would never be drawn unless we have a parent with
-        // non default background
-
-        // so check first if we have one
-        if ( !HandlePrintClient((WXHDC)wParam) )
-        {
-            // no, we don't, erase the background ourselves (don't use our own
-            // colour as with static box, see comments there)
-            wxBrush brush(GetParent()->GetBackgroundColour());
-            wxFillRect(GetHwnd(), (HDC)wParam, GetHbrushOf(brush));
-        }
-
-        return 0;
+        WXLRESULT res = wxControl::MSWWindowProc(nMsg, wParam, lParam);
+        wxRect rect = GetRect();
+        GetParent()->Refresh(true, & rect);
+        return res;
     }
 
     return wxStaticBox::MSWWindowProc(nMsg, wParam, lParam);

@@ -29,6 +29,7 @@
     #include "wx/filefn.h"
     #include "wx/log.h"
     #include "wx/thread.h"
+    #include "wx/intl.h"
 #endif
 
 #include "wx/init.h"
@@ -69,8 +70,8 @@ public:
 
 // we need a special kind of auto pointer to wxApp which not only deletes the
 // pointer it holds in its dtor but also resets the global application pointer
-wxDECLARE_SCOPED_PTR(wxAppConsole, wxAppPtrBase);
-wxDEFINE_SCOPED_PTR(wxAppConsole, wxAppPtrBase);
+wxDECLARE_SCOPED_PTR(wxAppConsole, wxAppPtrBase)
+wxDEFINE_SCOPED_PTR(wxAppConsole, wxAppPtrBase)
 
 class wxAppPtr : public wxAppPtrBase
 {
@@ -209,6 +210,15 @@ static void FreeConvertedArgs()
 // initialization which is always done (not customizable) before wxApp creation
 static bool DoCommonPreInit()
 {
+#if wxUSE_LOG
+    // install temporary log sink: we can't use wxLogGui before wxApp is
+    // constructed and if we use wxLogStderr, all messages during
+    // initialization simply disappear under Windows
+    //
+    // note that we will delete this log target below
+    wxLog::SetActiveTarget(new wxLogBuffer);
+#endif // wxUSE_LOG
+
     return true;
 }
 
@@ -217,7 +227,13 @@ static bool DoCommonPostInit()
 {
     wxModule::RegisterModules();
 
-    return wxModule::InitializeModules();
+    if ( !wxModule::InitializeModules() )
+    {
+        wxLogError(_("Initialization failed in post init, aborting."));
+        return false;
+    }
+
+    return true;
 }
 
 bool wxEntryStart(int& argc, wxChar **argv)
@@ -285,6 +301,14 @@ bool wxEntryStart(int& argc, wxChar **argv)
 
     // and the cleanup object from doing cleanup
     callAppCleanup.Dismiss();
+
+#if wxUSE_LOG
+    // now that we have a valid wxApp (wxLogGui would have crashed if we used
+    // it before now), we can delete the temporary sink we had created for the
+    // initialization messages -- the next time logging function is called, the
+    // sink will be recreated but this time wxAppTraits will be used
+    delete wxLog::SetActiveTarget(NULL);
+#endif // wxUSE_LOG
 
     return true;
 }
@@ -376,15 +400,13 @@ void wxEntryCleanup()
 
 int wxEntryReal(int& argc, wxChar **argv)
 {
-#if wxUSE_LOG
-    // Create a non-GUI log target, to be used until GUI (if any) is ready.
-    // Target will be reset by wxAppConsole::Initialize, when GUI logging will work.
-    wxLog::GetActiveTarget();
-#endif
-
     // library initialization
     if ( !wxEntryStart(argc, argv) )
     {
+#if wxUSE_LOG
+        // flush any log messages explaining why we failed
+        delete wxLog::SetActiveTarget(NULL);
+#endif
         return -1;
     }
 

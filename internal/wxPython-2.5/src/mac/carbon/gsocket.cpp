@@ -1,10 +1,12 @@
 /* -------------------------------------------------------------------------
- * Project: GSocket (Generic Socket) for WX
- * Name:    gsocket.cpp
- * Authors: Guilhem Lavaux,
- *          Guillermo Rodriguez Garcia <guille@iies.es> (maintainer)
- *          Stefan CSomor
- * Purpose: GSocket main mac file
+ * Project:     GSocket (Generic Socket) for WX
+ * Name:        gsocket.cpp
+ * Copyright:   (c) Guilhem Lavaux
+ * Licence:     wxWindows Licence
+ * Authors:     Guilhem Lavaux,
+ *              Guillermo Rodriguez Garcia <guille@iies.es> (maintainer)
+ *              Stefan CSomor
+ * Purpose:     GSocket main mac file
  * CVSID:   $Id$
  * -------------------------------------------------------------------------
  */
@@ -22,7 +24,6 @@
 
 #ifdef __DARWIN__
   #include <CoreServices/CoreServices.h>
-
 #else
   #include <MacHeaders.c>
   #define OTUNIXERRORS 1
@@ -71,10 +72,10 @@
 #endif /* __GSOCKET_STANDALONE__ */
 
 #ifndef ntohl
-#define	ntohl(x)	(x)
-#define	ntohs(x)	(x)
-#define	htonl(x)	(x)
-#define	htons(x)	(x)
+    #define  ntohl(x) (x)
+    #define  ntohs(x) (x)
+    #define  htonl(x) (x)
+    #define  htons(x) (x)
 #endif
 
 void wxCYield() ;
@@ -106,33 +107,33 @@ OSStatus DoNegotiateIPReuseAddrOption(EndpointRef ep, Boolean enableReuseIPMode)
 OSStatus DoNegotiateIPReuseAddrOption(EndpointRef ep, Boolean enableReuseIPMode)
 
 {
-	UInt8		buf[kOTFourByteOptionSize];	// define buffer for fourByte Option size
-	TOption*	opt;						// option ptr to make items easier to access
-	TOptMgmt	req;
-	TOptMgmt	ret;
-	OSStatus	err;
-	
-	if (!OTIsSynchronous(ep))
-	{
-		return (-1);
-	}
-	opt = (TOption*)buf;					// set option ptr to buffer
-	req.opt.buf	= buf;
-	req.opt.len	= sizeof(buf);
-	req.flags	= T_NEGOTIATE;				// negotiate for option
+    UInt8        buf[kOTFourByteOptionSize]; // define buffer for fourByte Option size
+    TOption*     opt;                        // option ptr to make items easier to access
+    TOptMgmt     req;
+    TOptMgmt     ret;
+    OSStatus     err;
 
-	ret.opt.buf = buf;
-	ret.opt.maxlen = kOTFourByteOptionSize;
+    if (!OTIsSynchronous(ep))
+    {
+        return (-1);
+    }
+    opt = (TOption*)buf; // set option ptr to buffer
+    req.opt.buf = buf;
+    req.opt.len = sizeof(buf);
+    req.flags   = T_NEGOTIATE;    // negotiate for option
 
-	opt->level	= INET_IP;					// dealing with an IP Level function
+    ret.opt.buf = buf;
+    ret.opt.maxlen = kOTFourByteOptionSize;
+
+    opt->level  = INET_IP;        // dealing with an IP Level function
 #ifdef __DARWIN__
-	opt->name	= kIP_REUSEADDR;
+    opt->name   = kIP_REUSEADDR;
 #else
-	opt->name	= IP_REUSEADDR;
+    opt->name   = IP_REUSEADDR;
 #endif
-	opt->len	= kOTFourByteOptionSize;
-	opt->status = 0;
-	*(UInt32*)opt->value = enableReuseIPMode;		// set the desired option level, true or false
+    opt->len    = kOTFourByteOptionSize;
+    opt->status = 0;
+    *(UInt32*)opt->value = enableReuseIPMode;   // set the desired option level, true or false
 
 	err = OTOptionManagement(ep, &req, &ret);
 	
@@ -277,8 +278,8 @@ GSocket::GSocket()
   m_non_blocking        = false;
   m_timeout             = 1*1000;
                                 /* 10 sec * 1000 millisec */
-  m_takesEvents			= true ;
-  m_mac_events			= wxMacGetNotifierTable() ;
+  m_takesEvents         = true ;
+  m_mac_events          = wxMacGetNotifierTable() ;
 }
 
 GSocket::~GSocket()
@@ -315,8 +316,8 @@ void GSocket::Shutdown()
     err = OTSndOrderlyDisconnect( m_endpoint ) ;
   	if ( err != kOTNoError )
   	{
-  		
-  	}
+        }
+
     err = OTRcvOrderlyDisconnect( m_endpoint ) ;
   	err = OTUnbind( m_endpoint ) ;
   	err = OTCloseProvider( m_endpoint ) ;
@@ -419,7 +420,7 @@ GAddress *GSocket::GetLocal()
    method to use right now
 */
   {
-    InetInterfaceInfo	info;
+        InetInterfaceInfo info;
     OTInetGetInterfaceInfo(&info, kDefaultInetInterface);
     loc.fHost = info.fAddress ;
     loc.fPort = 0 ;
@@ -694,7 +695,7 @@ GSocketError GSocket::SetNonOriented()
  *  For stream (connection oriented) sockets, GSocket_Connect() tries
  *  to establish a client connection to a server using the peer address
  *  as established with GSocket_SetPeer(). Returns GSOCK_NOERROR if the
- *  connection has been succesfully established, or one of the error
+ *  connection has been successfully established, or one of the error
  *  codes listed below. Note that for nonblocking sockets, a return
  *  value of GSOCK_WOULDBLOCK doesn't mean a failure. The connection
  *  request can be completed later; you should use GSocket_Select()
@@ -972,7 +973,7 @@ void GSocket::SetTimeout(unsigned long millisec)
 }
 
 /* GSocket_GetError:
- *  Returns the last error occured for this socket. Note that successful
+ *  Returns the last error which occurred for this socket. Note that successful
  *  operations do not clear this back to GSOCK_NOERROR, so use it only
  *  after an error.
  */
@@ -997,7 +998,7 @@ GSocketError WXDLLIMPEXP_NET GSocket::GetError()
  *   assume that it can write since the first OUTPUT event, and no more
  *   OUTPUT events will be generated unless an error occurs.
  * GSOCK_CONNECTION:
- *   Connection succesfully established, for client sockets, or incoming
+ *   Connection successfully established, for client sockets, or incoming
  *   client connection, for server sockets. Wait for this event (also watch
  *   out for GSOCK_LOST) after you issue a nonblocking GSocket_Connect() call.
  * GSOCK_LOST:
@@ -1532,7 +1533,7 @@ GSocketError GSocket::Output_Timeout()
  *   assume that it can write since the first OUTPUT event, and no more
  *   OUTPUT events will be generated unless an error occurs.
  * GSOCK_CONNECTION:
- *   Connection succesfully established, for client sockets, or incoming
+ *   Connection successfully established, for client sockets, or incoming
  *   client connection, for server sockets. Wait for this event (also watch
  *   out for GSOCK_LOST) after you issue a nonblocking GSocket_Connect() call.
  * GSOCK_LOST:
@@ -1542,8 +1543,11 @@ GSocketError GSocket::Output_Timeout()
 
 void _GSocket_Internal_Proc(unsigned long e , void* d )
 {
-		
-  GSocket * socket = (GSocket*) d ;
+    GSocket *socket = (GSocket*) d ;
+
+    if ( !socket )
+        return ;
+
   OTEventCode ev = (OTEventCode) e ;
   GSocketEvent event;
   GSocketEvent event2;
@@ -1552,8 +1556,6 @@ void _GSocket_Internal_Proc(unsigned long e , void* d )
   GSocketCallback cback2;
   char *data2;
 
-	if ( !socket )
-		return ;
     event = GSOCK_MAX_EVENT ;
     event2 = GSOCK_MAX_EVENT ;
     cback = NULL;
@@ -1565,7 +1567,7 @@ void _GSocket_Internal_Proc(unsigned long e , void* d )
      * destroyed) and for safety, check that the m_endpoint field
      * is what we expect it to be.
      */
-    if ((socket != NULL) && (socket->m_takesEvents))
+    if ( /* (socket != NULL) && */ (socket->m_takesEvents))
     {
     	switch (ev)
     	{

@@ -76,7 +76,6 @@ static HWND invalidHandle = 0;
 // constants
 // ---------------------------------------------------------------------------
 
-static const int IDM_WINDOWTILE  = 4001;
 static const int IDM_WINDOWTILEHOR  = 4001;
 static const int IDM_WINDOWCASCADE = 4002;
 static const int IDM_WINDOWICONS = 4003;
@@ -87,10 +86,6 @@ static const int IDM_WINDOWPREV = 4006;
 // This range gives a maximum of 500 MDI children. Should be enough :-)
 static const int wxFIRST_MDI_CHILD = 4100;
 static const int wxLAST_MDI_CHILD = 4600;
-
-// Status border dimensions
-static const int wxTHICK_LINE_BORDER = 3;
-static const int wxTHICK_LINE_WIDTH  = 1;
 
 // ---------------------------------------------------------------------------
 // private functions
@@ -839,8 +834,10 @@ void wxMDIChildFrame::DoGetPosition(int *x, int *y) const
   wxMDIParentFrame *mdiParent = (wxMDIParentFrame *)GetParent();
   ::ScreenToClient((HWND) mdiParent->GetClientWindow()->GetHWND(), &point);
 
-  *x = point.x;
-  *y = point.y;
+  if (x)
+      *x = point.x;
+  if (y)
+      *y = point.y;
 }
 
 void wxMDIChildFrame::InternalSetMenuBar()
@@ -1378,6 +1375,12 @@ static void InsertWindowMenu(wxWindow *win, WXHMENU menu, HMENU subMenu)
                 wxLogLastError(wxT("GetMenuString"));
 
                 continue;
+            }
+
+            if ( wxStripMenuCodes(wxString(buf)).IsSameAs(_("Window")) )
+            {
+               success = true;
+               break;
             }
 
             if ( wxStripMenuCodes(wxString(buf)).IsSameAs(_("Help")) )

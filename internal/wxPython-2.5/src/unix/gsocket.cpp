@@ -1,11 +1,13 @@
 /* -------------------------------------------------------------------------
- * Project: GSocket (Generic Socket) for WX
- * Name:    gsocket.c
- * Authors: David Elliott (C++ conversion, maintainer)
- *          Guilhem Lavaux,
- *          Guillermo Rodriguez Garcia <guille@iies.es>
- * Purpose: GSocket main Unix and OS/2 file
- * Licence: The wxWindows licence
+ * Project:     GSocket (Generic Socket) for WX
+ * Name:        gsocket.c
+ * Copyright:   (c) Guilhem Lavaux
+ * Licence:     wxWindows Licence
+ * Authors:     David Elliott (C++ conversion, maintainer)
+ *              Guilhem Lavaux,
+ *              Guillermo Rodriguez Garcia <guille@iies.es>
+ * Purpose:     GSocket main Unix and OS/2 file
+ * Licence:     The wxWindows licence
  * CVSID:   $Id$
  * -------------------------------------------------------------------------
  */
@@ -115,6 +117,8 @@ int _System soclose(int);
 #    if __GLIBC__ == 2
 #      define SOCKLEN_T socklen_t
 #    endif
+#  elif defined(__WXMAC__)
+#	   define SOCKLEN_T socklen_t
 #  else
 #    define SOCKLEN_T int
 #  endif
@@ -628,7 +632,7 @@ bool GSocket::SetReusable()
  *  For stream (connection oriented) sockets, GSocket_Connect() tries
  *  to establish a client connection to a server using the peer address
  *  as established with GSocket_SetPeer(). Returns GSOCK_NOERROR if the
- *  connection has been succesfully established, or one of the error
+ *  connection has been successfully established, or one of the error
  *  codes listed below. Note that for nonblocking sockets, a return
  *  value of GSOCK_WOULDBLOCK doesn't mean a failure. The connection
  *  request can be completed later; you should use GSocket_Select()
@@ -1088,7 +1092,7 @@ void GSocket::SetTimeout(unsigned long millisec)
 }
 
 /* GSocket_GetError:
- *  Returns the last error occured for this socket. Note that successful
+ *  Returns the last error occurred for this socket. Note that successful
  *  operations do not clear this back to GSOCK_NOERROR, so use it only
  *  after an error.
  */
@@ -1113,7 +1117,7 @@ GSocketError WXDLLIMPEXP_NET GSocket::GetError()
  *   assume that it can write since the first OUTPUT event, and no more
  *   OUTPUT events will be generated unless an error occurs.
  * GSOCK_CONNECTION:
- *   Connection succesfully established, for client sockets, or incoming
+ *   Connection successfully established, for client sockets, or incoming
  *   client connection, for server sockets. Wait for this event (also watch
  *   out for GSOCK_LOST) after you issue a nonblocking GSocket_Connect() call.
  * GSOCK_LOST:

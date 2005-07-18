@@ -44,6 +44,7 @@
     #include "wx/dialog.h"
     #include "wx/msgdlg.h"
     #include "wx/statusbr.h"
+    #include "wx/toolbar.h"
     #include "wx/dcclient.h"
 #endif //WX_PRECOMP
 
@@ -500,7 +501,7 @@ void wxWindowBase::Centre(int direction)
     // to take into account the taskbar. And the Mac menu bar at top.
     wxRect clientrect = wxGetClientDisplayRect();
 
-    // NB: in wxMSW, negative position may not neccessary mean "out of screen",
+    // NB: in wxMSW, negative position may not necessarily mean "out of screen",
     //     but it may mean that the window is placed on other than the main
     //     display. Therefore we only make sure centered window is on the main display
     //     if the parent is at least partially present here.
@@ -674,13 +675,19 @@ wxSize wxWindowBase::DoGetBestSize() const
     }
     else // ! has children
     {
-        // For a generic window there is no natural best size - just use
-        // either the minimum size if there is one, or the current size.
-        // These are returned as-is, unadjusted by the client size difference.
-        if ( GetMinSize().IsFullySpecified() )
+        // for a generic window there is no natural best size so, if the
+        // minimal size is not set, use the current size but take care to
+        // remember it as minimal size for the next time because our best size
+        // should be constant: otherwise we could get into a situation when the
+        // window is initially at some size, then expanded to a larger size and
+        // then, when the containing window is shrunk back (because our initial
+        // best size had been used for computing the parent min size), we can't
+        // be shrunk back any more because our best size is now bigger
+        if ( !GetMinSize().IsFullySpecified() )
+            wxConstCast(this, wxWindowBase)->SetMinSize(GetSize());
+
+        // return as-is, unadjusted by the client size difference.
             return GetMinSize();
-        else
-            return GetSize();
     }
 
     // Add any difference between size and client size

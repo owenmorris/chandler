@@ -88,10 +88,6 @@
 // allows to exclude the usage of wxDateTime
 static wxString TimeStamp(const wxChar *format, time_t t)
 {
-#ifdef __WXWINCE__
-    // FIXME
-    return wxEmptyString;
-#else
     wxChar buf[4096];
     if ( !wxStrftime(buf, WXSIZEOF(buf), format, localtime(&t)) )
     {
@@ -99,7 +95,6 @@ static wxString TimeStamp(const wxChar *format, time_t t)
         wxFAIL_MSG(_T("strftime() failed"));
     }
     return wxString(buf);
-#endif
 }
 
 
@@ -434,6 +429,8 @@ void wxLogGui::DoLog(wxLogLevel level, const wxChar *szString, time_t t)
 // wxLogWindow and wxLogFrame implementation
 // ----------------------------------------------------------------------------
 
+#if wxUSE_LOGWINDOW
+
 // log frame class
 // ---------------
 class wxLogFrame : public wxFrame
@@ -687,6 +684,8 @@ wxLogWindow::~wxLogWindow()
     delete m_pLogFrame;
 }
 
+#endif // wxUSE_LOGWINDOW
+
 // ----------------------------------------------------------------------------
 // wxLogDialog
 // ----------------------------------------------------------------------------
@@ -776,21 +775,21 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
     switch ( style & wxICON_MASK )
     {
         case wxICON_ERROR:
-            bitmap = wxArtProvider::GetIcon(wxART_ERROR, wxART_MESSAGE_BOX);
+            bitmap = wxArtProvider::GetBitmap(wxART_ERROR, wxART_MESSAGE_BOX);
 #ifdef __WXPM__
             bitmap.SetId(wxICON_SMALL_ERROR);
 #endif
             break;
 
         case wxICON_INFORMATION:
-            bitmap = wxArtProvider::GetIcon(wxART_INFORMATION, wxART_MESSAGE_BOX);
+            bitmap = wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_MESSAGE_BOX);
 #ifdef __WXPM__
             bitmap.SetId(wxICON_SMALL_INFO);
 #endif
             break;
 
         case wxICON_WARNING:
-            bitmap = wxArtProvider::GetIcon(wxART_WARNING, wxART_MESSAGE_BOX);
+            bitmap = wxArtProvider::GetBitmap(wxART_WARNING, wxART_MESSAGE_BOX);
 #ifdef __WXPM__
             bitmap.SetId(wxICON_SMALL_WARNING);
 #endif
@@ -913,7 +912,7 @@ void wxLogDialog::CreateDetailsControls()
     if ( !fmt )
     {
         // default format
-        fmt = wxDefaultDateTimeFormat;
+        fmt = _T("%c");
     }
 
     size_t count = m_messages.GetCount();
@@ -999,7 +998,7 @@ void wxLogDialog::OnSave(wxCommandEvent& WXUNUSED(event))
     if ( !fmt )
     {
         // default format
-        fmt = wxDefaultDateTimeFormat;
+        fmt = _T("%c");
     }
 
     size_t count = m_messages.GetCount();
@@ -1122,7 +1121,7 @@ void wxLogDialog::OnDetails(wxCommandEvent& WXUNUSED(event))
     SetSize(wxDefaultCoord, size.y);
 
 #ifdef __WXGTK__
-    // VS: this is neccessary in order to force frame redraw under
+    // VS: this is necessary in order to force frame redraw under
     // WindowMaker or fvwm2 (and probably other broken WMs).
     // Otherwise, detailed list wouldn't be displayed.
     Show();

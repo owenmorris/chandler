@@ -26,21 +26,24 @@ __all__ = [
     'calendar',
     'grid',
     'html',
+    'media',
+    'webkit',
     'wizard',
+    'xrc',
 
     # contribs (need a better way to find these...)
-    'activex',
+    'animate',
     'gizmos',
     'glcanvas',
-    'iewin',
-    'ogl',
     'stc',
-    'xrc',
     ]
 
 # Load the package namespace with the core classes and such
 from wx._core import *
 del wx
+
+if 'wxMSW' in PlatformInfo:
+    __all__ += ['activex']
 
 # Load up __all__ with all the names of items that should appear to be
 # defined in this pacakge so epydoc will document them that way.

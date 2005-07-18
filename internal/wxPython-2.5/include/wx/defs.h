@@ -5,7 +5,7 @@
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     01/02/97
 *  RCS-ID:      $Id$
-*  Copyright:   (c)
+*  Copyright:   (c) Julian Smart
 *  Licence:     wxWindows licence
 */
 
@@ -170,6 +170,7 @@
     #endif /*  compilers */
 #endif /*  HAVE_BOOL */
 
+#if !defined(__MWERKS__) || !defined(true)
 #if !defined(HAVE_BOOL) && !defined(bool) && !defined(VMS)
     /*  NB: of course, this doesn't replace the standard type, because, for */
     /*      example, overloading based on bool/int parameter doesn't work and */
@@ -184,6 +185,7 @@
 #ifndef HAVE_BOOL
     #define true ((bool)1)
     #define false ((bool)0)
+#endif
 #endif
 
 /*  for backwards compatibility, also define TRUE and FALSE */
@@ -513,6 +515,20 @@ typedef int wxWindowID;
     #define WXUNUSED_UNLESS_DEBUG(param)  WXUNUSED(param)
 #endif
 
+/*  some arguments are not used in unicode mode */
+#if wxUSE_UNICODE
+    #define WXUNUSED_IN_UNICODE(param)  WXUNUSED(param)
+#else
+    #define WXUNUSED_IN_UNICODE(param)  param
+#endif
+
+/*  some arguments are not used in WinCE build */
+#ifdef __WXWINCE__
+    #define WXUNUSED_IN_WINCE(param)  WXUNUSED(param)
+#else
+    #define WXUNUSED_IN_WINCE(param)  param
+#endif
+
 /*  some compilers give warning about a possibly unused variable if it is */
 /*  initialized in both branches of if/else and shut up if it is initialized */
 /*  when declared, but other compilers then give warnings about unused variable */
@@ -613,7 +629,8 @@ enum
     wxWINDOWS_OS2,            /*  Native OS/2 PM */
     wxUNIX,                   /*  wxBase under Unix */
     wxX11,                    /*  Plain X11 and Universal widgets */
-    wxPALMOS                  /*  PalmOS */
+    wxPALMOS,                 /*  PalmOS */
+    wxDOS                     /*  wxBase under MS-DOS */
 };
 
 /*  ---------------------------------------------------------------------------- */
@@ -635,6 +652,10 @@ enum {  wxDefaultCoord = -1 };
 /*  ---------------------------------------------------------------------------- */
 /*  define fixed length types */
 /*  ---------------------------------------------------------------------------- */
+
+#if defined(__WXPALMOS__) || defined(__MINGW32__)
+    #include <sys/types.h>
+#endif
 
 /*  chars are always one byte (by definition), shorts are always two (in */
 /*  practice) */
@@ -880,17 +901,20 @@ inline void *wxUIntToPtr(wxUIntPtr p)
 #elif defined(__BORLANDC__) && defined(__WIN32__) && (__BORLANDC__ >= 0x520)
     #define wxLongLong_t __int64
     #define wxLongLongSuffix i64
-    #define wxLongLongFmtSpec _T("Ld")
+    #define wxLongLongFmtSpec _T("L")
 #elif (defined(__WATCOMC__) && (defined(__WIN32__) || defined(__DOS__)))
       #define wxLongLong_t __int64
       #define wxLongLongSuffix i64
-      #define wxLongLongFmtSpec _T("Ld")
+      #define wxLongLongFmtSpec _T("L")
 #elif defined(__DIGITALMARS__)
       #define wxLongLong_t __int64
       #define wxLongLongSuffix LL
       #define wxLongLongFmtSpec _T("ll")
+#elif defined(__MINGW32__)
+    #define wxLongLong_t long long
+    #define wxLongLongSuffix ll
+    #define wxLongLongFmtSpec _T("I64")
 #elif (defined(SIZEOF_LONG_LONG) && SIZEOF_LONG_LONG >= 8)  || \
-        defined(__MINGW32__) || \
         defined(__GNUC__) || \
         defined(__CYGWIN__) || \
         defined(__WXMICROWIN__) || \
@@ -932,7 +956,6 @@ inline void *wxUIntToPtr(wxUIntPtr p)
 /* Make sure ssize_t is defined (a signed type the same size as size_t) */
 /* HAVE_SSIZE_T should be defined for compiliers that already have it */
 #ifdef __MINGW32__
-    #include <sys/types.h>
     #if defined(_SSIZE_T_) && !defined(HAVE_SSIZE_T)
         #define HAVE_SSIZE_T
     #endif
@@ -1594,22 +1617,21 @@ enum wxBackgroundStyle
 /*  standard IDs */
 /*  ---------------------------------------------------------------------------- */
 
-/*  any id: means that we don't care about the id, whether when installing an */
-/*  event handler or when creating a new window */
-enum
-{
-    wxID_ANY = -1
-};
-
-/*  id for a separator line in the menu (invalid for normal item) */
-enum
-{
-    wxID_SEPARATOR = -2
-};
-
 /*  Standard menu IDs */
 enum
 {
+    /* no id matches this one when compared to it */
+    wxID_NONE = -3,
+
+/*  id for a separator line in the menu (invalid for normal item) */
+    wxID_SEPARATOR = -2,
+
+    /* any id: means that we don't care about the id, whether when installing
+     * an event handler or when creating a new window */
+    wxID_ANY = -1,
+
+
+    /* all predefined ids are between wxID_LOWEST and wxID_HIGHEST */
     wxID_LOWEST = 4999,
 
     wxID_OPEN,
@@ -1893,7 +1915,7 @@ enum
     wxTOOL_RIGHT
 };
 
-/*  the values of the format constants should be the same as correspondign */
+/*  the values of the format constants should be the same as corresponding */
 /*  CF_XXX constants in Windows API */
 enum wxDataFormatId
 {
@@ -2158,8 +2180,58 @@ typedef enum
     wxPAPER_B5_EXTRA,           /*  B5 (ISO) Extra 201 x 276 mm */
     wxPAPER_A2,                 /*  A2 420 x 594 mm */
     wxPAPER_A3_TRANSVERSE,      /*  A3 Transverse 297 x 420 mm */
-    wxPAPER_A3_EXTRA_TRANSVERSE /*  A3 Extra Transverse 322 x 445 mm */
+    wxPAPER_A3_EXTRA_TRANSVERSE, /*  A3 Extra Transverse 322 x 445 mm */
 
+    wxPAPER_DBL_JAPANESE_POSTCARD,/* Japanese Double Postcard 200 x 148 mm */
+    wxPAPER_A6,                 /* A6 105 x 148 mm */
+    wxPAPER_JENV_KAKU2,         /* Japanese Envelope Kaku #2 */
+    wxPAPER_JENV_KAKU3,         /* Japanese Envelope Kaku #3 */
+    wxPAPER_JENV_CHOU3,         /* Japanese Envelope Chou #3 */
+    wxPAPER_JENV_CHOU4,         /* Japanese Envelope Chou #4 */
+    wxPAPER_LETTER_ROTATED,     /* Letter Rotated 11 x 8 1/2 in */
+    wxPAPER_A3_ROTATED,         /* A3 Rotated 420 x 297 mm */
+    wxPAPER_A4_ROTATED,         /* A4 Rotated 297 x 210 mm */
+    wxPAPER_A5_ROTATED,         /* A5 Rotated 210 x 148 mm */
+    wxPAPER_B4_JIS_ROTATED,     /* B4 (JIS) Rotated 364 x 257 mm */
+    wxPAPER_B5_JIS_ROTATED,     /* B5 (JIS) Rotated 257 x 182 mm */
+    wxPAPER_JAPANESE_POSTCARD_ROTATED,/* Japanese Postcard Rotated 148 x 100 mm */
+    wxPAPER_DBL_JAPANESE_POSTCARD_ROTATED,/* Double Japanese Postcard Rotated 148 x 200 mm */
+    wxPAPER_A6_ROTATED,         /* A6 Rotated 148 x 105 mm */
+    wxPAPER_JENV_KAKU2_ROTATED, /* Japanese Envelope Kaku #2 Rotated */
+    wxPAPER_JENV_KAKU3_ROTATED, /* Japanese Envelope Kaku #3 Rotated */
+    wxPAPER_JENV_CHOU3_ROTATED, /* Japanese Envelope Chou #3 Rotated */
+    wxPAPER_JENV_CHOU4_ROTATED, /* Japanese Envelope Chou #4 Rotated */
+    wxPAPER_B6_JIS,             /* B6 (JIS) 128 x 182 mm */
+    wxPAPER_B6_JIS_ROTATED,     /* B6 (JIS) Rotated 182 x 128 mm */
+    wxPAPER_12X11,              /* 12 x 11 in */
+    wxPAPER_JENV_YOU4,          /* Japanese Envelope You #4 */
+    wxPAPER_JENV_YOU4_ROTATED,  /* Japanese Envelope You #4 Rotated */
+    wxPAPER_P16K,               /* PRC 16K 146 x 215 mm */
+    wxPAPER_P32K,               /* PRC 32K 97 x 151 mm */
+    wxPAPER_P32KBIG,            /* PRC 32K(Big) 97 x 151 mm */
+    wxPAPER_PENV_1,             /* PRC Envelope #1 102 x 165 mm */
+    wxPAPER_PENV_2,             /* PRC Envelope #2 102 x 176 mm */
+    wxPAPER_PENV_3,             /* PRC Envelope #3 125 x 176 mm */
+    wxPAPER_PENV_4,             /* PRC Envelope #4 110 x 208 mm */
+    wxPAPER_PENV_5,             /* PRC Envelope #5 110 x 220 mm */
+    wxPAPER_PENV_6,             /* PRC Envelope #6 120 x 230 mm */
+    wxPAPER_PENV_7,             /* PRC Envelope #7 160 x 230 mm */
+    wxPAPER_PENV_8,             /* PRC Envelope #8 120 x 309 mm */
+    wxPAPER_PENV_9,             /* PRC Envelope #9 229 x 324 mm */
+    wxPAPER_PENV_10,            /* PRC Envelope #10 324 x 458 mm */
+    wxPAPER_P16K_ROTATED,       /* PRC 16K Rotated */
+    wxPAPER_P32K_ROTATED,       /* PRC 32K Rotated */
+    wxPAPER_P32KBIG_ROTATED,    /* PRC 32K(Big) Rotated */
+    wxPAPER_PENV_1_ROTATED,     /* PRC Envelope #1 Rotated 165 x 102 mm */
+    wxPAPER_PENV_2_ROTATED,     /* PRC Envelope #2 Rotated 176 x 102 mm */
+    wxPAPER_PENV_3_ROTATED,     /* PRC Envelope #3 Rotated 176 x 125 mm */
+    wxPAPER_PENV_4_ROTATED,     /* PRC Envelope #4 Rotated 208 x 110 mm */
+    wxPAPER_PENV_5_ROTATED,     /* PRC Envelope #5 Rotated 220 x 110 mm */
+    wxPAPER_PENV_6_ROTATED,     /* PRC Envelope #6 Rotated 230 x 120 mm */
+    wxPAPER_PENV_7_ROTATED,     /* PRC Envelope #7 Rotated 230 x 160 mm */
+    wxPAPER_PENV_8_ROTATED,     /* PRC Envelope #8 Rotated 309 x 120 mm */
+    wxPAPER_PENV_9_ROTATED,     /* PRC Envelope #9 Rotated 324 x 229 mm */
+    wxPAPER_PENV_10_ROTATED    /* PRC Envelope #10 Rotated 458 x 324 m */
 } wxPaperSize;
 
 /* Printing orientation */
@@ -2382,6 +2454,7 @@ typedef WX_NSView WXWidget; /*  wxWidgets BASE definition */
 
 #if defined(__WXPALMOS__)
 
+typedef void *          WXHWND;
 typedef void *          WXHANDLE;
 typedef void *          WXHICON;
 typedef void *          WXHFONT;
@@ -2404,13 +2477,18 @@ typedef unsigned short  WXWORD;
 typedef unsigned long   WXCOLORREF;
 typedef struct tagMSG   WXMSG;
 
-typedef WinHandle       WXWINHANDLE;
+typedef WXHWND          WXWINHANDLE; /* WinHandle of PalmOS */
 typedef WXWINHANDLE     WXWidget;
+
+typedef void *          WXFORMPTR;
+typedef void *          WXEVENTPTR;
+typedef void *          WXRECTANGLEPTR;
 
 #endif /* __WXPALMOS__ */
 
 
-#if defined(__WXMSW__)
+/* ABX: check __WIN32__ instead of __WXMSW__ for the same MSWBase in any Win32 port */
+#if defined(__WIN32__)
 
 /*  the keywords needed for WinMain() declaration */
 #ifndef WXFAR
@@ -2462,12 +2540,12 @@ typedef long            WXLPARAM;
 typedef long            WXLRESULT;
 #endif
 
-#if !defined(__WIN32__) || defined(__GNUWIN32__) || defined(__WXMICROWIN__)
+#if defined(__GNUWIN32__) || defined(__WXMICROWIN__)
 typedef int             (*WXFARPROC)();
 #else
 typedef int             (__stdcall *WXFARPROC)();
 #endif
-#endif /*  __WXMSW__ */
+#endif /*  __WIN32__ */
 
 
 #if defined(__WXPM__) || defined(__EMX__)

@@ -705,14 +705,17 @@ wxThreadInternal::WaitForTerminate(wxCriticalSection& cs,
             }
         }
 
+#if !defined(QS_ALLPOSTMESSAGE)
+#define QS_ALLPOSTMESSAGE 0
+#endif
+
         result = ::MsgWaitForMultipleObjects
                  (
                    1,              // number of objects to wait for
                    &m_hThread,     // the objects
                    false,          // don't wait for all objects
                    INFINITE,       // no timeout
-                   QS_ALLINPUT |   // return as soon as there are any events
-                   QS_ALLPOSTMESSAGE
+                   QS_ALLINPUT|QS_ALLPOSTMESSAGE   // return as soon as there are any events
                  );
 
         switch ( result )
@@ -885,10 +888,9 @@ unsigned long wxThread::GetCurrentId()
     return (unsigned long)::GetCurrentThreadId();
 }
 
-bool wxThread::SetConcurrency(size_t level)
+bool wxThread::SetConcurrency(size_t WXUNUSED_IN_WINCE(level))
 {
 #ifdef __WXWINCE__
-    wxUnusedVar(level);
     return false;
 #else
     wxASSERT_MSG( IsMain(), _T("should only be called from the main thread") );

@@ -128,6 +128,7 @@ wxWindowsPrintNativeData::wxWindowsPrintNativeData()
 {
     m_devMode = (void*) NULL;
     m_devNames = (void*) NULL;
+    m_customWindowsPaperId = 0;
 }
 
 wxWindowsPrintNativeData::~wxWindowsPrintNativeData()
@@ -151,9 +152,10 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
     HGLOBAL hDevNames = (HGLOBAL)(DWORD) m_devNames;
 
     if (!hDevMode)
+    {
         return false;
-
-    if ( hDevMode )
+    }
+    else
     {
         LPDEVMODE devMode = (LPDEVMODE)GlobalLock(hDevMode);
 
@@ -174,8 +176,33 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
         if (devMode->dmFields & DM_COPIES)
             data.SetNoCopies( devMode->dmCopies );
 
-        if (devMode->dmFields & DM_DEFAULTSOURCE)
-            data.SetBin( (wxPrintBin)devMode->dmDefaultSource );
+        //// Bin
+        if (devMode->dmFields & DM_DEFAULTSOURCE) {
+            switch (devMode->dmDefaultSource) {
+                case DMBIN_ONLYONE        : data.SetBin(wxPRINTBIN_ONLYONE       ); break;
+                case DMBIN_LOWER          : data.SetBin(wxPRINTBIN_LOWER         ); break;
+                case DMBIN_MIDDLE         : data.SetBin(wxPRINTBIN_MIDDLE        ); break;
+                case DMBIN_MANUAL         : data.SetBin(wxPRINTBIN_MANUAL        ); break;
+                case DMBIN_ENVELOPE       : data.SetBin(wxPRINTBIN_ENVELOPE      ); break;
+                case DMBIN_ENVMANUAL      : data.SetBin(wxPRINTBIN_ENVMANUAL     ); break;
+                case DMBIN_AUTO           : data.SetBin(wxPRINTBIN_AUTO          ); break;
+                case DMBIN_TRACTOR        : data.SetBin(wxPRINTBIN_TRACTOR       ); break;
+                case DMBIN_SMALLFMT       : data.SetBin(wxPRINTBIN_SMALLFMT      ); break;
+                case DMBIN_LARGEFMT       : data.SetBin(wxPRINTBIN_LARGEFMT      ); break;
+                case DMBIN_LARGECAPACITY  : data.SetBin(wxPRINTBIN_LARGECAPACITY ); break;
+                case DMBIN_CASSETTE       : data.SetBin(wxPRINTBIN_CASSETTE      ); break;
+                case DMBIN_FORMSOURCE     : data.SetBin(wxPRINTBIN_FORMSOURCE    ); break;
+                default:
+                    if (devMode->dmDefaultSource>=DMBIN_USER) {
+                        data.SetBin((wxPrintBin)((devMode->dmDefaultSource)-DMBIN_USER+(int)wxPRINTBIN_USER));
+                    } else {
+                        data.SetBin(wxPRINTBIN_DEFAULT);
+                    }
+                    break;
+            }
+        } else {
+            data.SetBin(wxPRINTBIN_DEFAULT);
+        }
 
         //// Printer name
         if (devMode->dmDeviceName[0] != 0)
@@ -209,6 +236,7 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
                 {
                     data.SetPaperId( paper->GetId() );
                     data.SetPaperSize( wxSize(paper->GetWidth() / 10,paper->GetHeight() / 10) );
+                    m_customWindowsPaperId = 0;
                     foundPaperSize = true;
                 }
             }
@@ -218,27 +246,31 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
                 wxFAIL_MSG(wxT("Paper database wasn't initialized in wxPrintData::ConvertFromNative."));
                 data.SetPaperId( wxPAPER_NONE );
                 data.SetPaperSize( wxSize(0,0) );
+                m_customWindowsPaperId = 0;
                 
                 GlobalUnlock(hDevMode);
                 return false;
             }
         }
         
-        if (!foundPaperSize && (devMode->dmFields & DM_PAPERWIDTH) && (devMode->dmFields & DM_PAPERLENGTH))
-        {
-            // DEVMODE is in tenths of a milimeter
-            data.SetPaperId( wxPAPER_NONE );
-            data.SetPaperSize( wxSize(devMode->dmPaperWidth / 10, devMode->dmPaperLength / 10) );
-        }
-        else
-        {
-            // Shouldn't really get here
-            wxFAIL_MSG(wxT("Couldn't find paper size from DEVMODE."));
-            data.SetPaperId( wxPAPER_NONE );
-            data.SetPaperSize( wxSize(0,0) );
-            
-            GlobalUnlock(hDevMode);
-            return false;
+        if (!foundPaperSize) {
+            if ((devMode->dmFields & DM_PAPERWIDTH) && (devMode->dmFields & DM_PAPERLENGTH))
+            {
+                // DEVMODE is in tenths of a millimeter
+                data.SetPaperSize( wxSize(devMode->dmPaperWidth / 10, devMode->dmPaperLength / 10) );
+                data.SetPaperId( wxPAPER_NONE );
+                m_customWindowsPaperId = devMode->dmPaperSize;
+            }
+            else
+            {
+                // Often will reach this for non-standard paper sizes (sizes which
+                // wouldn't be in wxWidget's paper database). Setting
+                // m_customWindowsPaperId to devMode->dmPaperSize should be enough
+                // to get this paper size working.
+                data.SetPaperSize( wxSize(0,0) );
+                data.SetPaperId( wxPAPER_NONE );
+                m_customWindowsPaperId = devMode->dmPaperSize;
+            }
         }
 
         //// Duplex
@@ -417,6 +449,9 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
             // DEVMODE is in tenths of a milimeter
             devMode->dmPaperWidth = (short)(data.GetPaperSize().x * 10);
             devMode->dmPaperLength = (short)(data.GetPaperSize().y * 10);
+            if(m_customWindowsPaperId != 0)
+                devMode->dmPaperSize = m_customWindowsPaperId;
+            else
             devMode->dmPaperSize = DMPAPER_USER;
             devMode->dmFields |= DM_PAPERWIDTH;
             devMode->dmFields |= DM_PAPERLENGTH;
@@ -510,7 +545,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
                 case wxPRINTBIN_FORMSOURCE:     devMode->dmDefaultSource = DMBIN_FORMSOURCE;    break;
 
                 default:
-                    devMode->dmDefaultSource = (short)(DMBIN_USER + data.GetBin() - wxPRINTBIN_USER);
+                    devMode->dmDefaultSource = (short)(DMBIN_USER + data.GetBin() - wxPRINTBIN_USER); // 256 + data.GetBin() - 14 = 242 + data.GetBin()
                     break;
             }
 
@@ -595,7 +630,7 @@ int wxWindowsPrintDialog::ShowModal()
 
     pd->hwndOwner = 0;
 
-    if ( ret != false && (pd->hDC) )
+    if ( ret && (pd->hDC) )
     {
         wxPrinterDC *pdc = new wxPrinterDC( (WXHDC) pd->hDC );
         m_printerDC = pdc;

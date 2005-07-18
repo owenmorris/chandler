@@ -1,5 +1,18 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        wx/cursor.h
+// Purpose:     wxCursor base header
+// Author:      Julian Smart
+// Modified by:
+// Created:
+// Copyright:   (c) Julian Smart
+// RCS-ID:      $Id$
+// Licence:     wxWindows Licence
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _WX_CURSOR_H_BASE_
 #define _WX_CURSOR_H_BASE_
+
+#include "wx/defs.h"
 
 #if defined(__WXPALMOS__)
 #include "wx/palmos/cursor.h"

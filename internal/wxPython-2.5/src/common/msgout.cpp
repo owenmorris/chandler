@@ -52,7 +52,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/private.h"
 #endif
 #ifdef __WXMAC__
@@ -86,6 +86,46 @@ wxMessageOutput* wxMessageOutput::Set(wxMessageOutput* msgout)
     wxMessageOutput* old = ms_msgOut;
     ms_msgOut = msgout;
     return old;
+}
+
+// ----------------------------------------------------------------------------
+// wxMessageOutputBest
+// ----------------------------------------------------------------------------
+
+#ifdef __WINDOWS__
+
+// check if we're running in a console under Windows
+static inline bool IsInConsole()
+{
+#ifdef __WXWINCE__
+    return false;
+#else // !__WXWINCE__
+    HANDLE hStdErr = ::GetStdHandle(STD_ERROR_HANDLE);
+    return hStdErr && hStdErr != INVALID_HANDLE_VALUE;
+#endif // __WXWINCE__/!__WXWINCE__
+}
+
+#endif // __WINDOWS__
+
+void wxMessageOutputBest::Printf(const wxChar* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wxString out;
+
+    out.PrintfV(format, args);
+    va_end(args);
+
+#ifdef __WINDOWS__
+    if ( !IsInConsole() )
+    {
+        ::MessageBox(NULL, out, _T("wxWidgets"), MB_ICONINFORMATION | MB_OK);
+    }
+    else
+#endif // __WINDOWS__/!__WINDOWS__
+    {
+        fprintf(stderr, "%s", (const char*) out.mb_str());
+    }
 }
 
 // ----------------------------------------------------------------------------

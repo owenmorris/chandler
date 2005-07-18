@@ -121,7 +121,7 @@ wxDisplay::wxDisplay(size_t index) : wxDisplayBase ( index ) ,
 wxRect wxDisplay::GetGeometry() const
 {
     CGRect theRect = CGDisplayBounds(m_priv->m_id);
-    return wxRect(	(int)theRect.origin.x,
+    return wxRect( (int)theRect.origin.x,
                     (int)theRect.origin.y,
                     (int)theRect.size.width,
                     (int)theRect.size.height  ); //floats
@@ -309,7 +309,7 @@ struct DMModeIteratorRec
 	const wxVideoMode* pMatchMode;
 };
 
-pascal void DMModeListIteratorProc (	void* pData,
+pascal void DMModeListIteratorProc ( void* pData,
 			      DMListIndexType nIndex,
 			      DMDisplayModeListEntryPtr pInfo)
 {
@@ -343,7 +343,7 @@ struct DMModeInfoRec
 	bool bMatched;
 };
 
-pascal void DMModeInfoProc (	void* pData,
+pascal void DMModeInfoProc ( void* pData,
 							  DMListIndexType nIndex,
 							  DMDisplayModeListEntryPtr pInfo)
 {
@@ -375,7 +375,7 @@ struct DMModeTransRec
 	bool bMatched;
 };
 
-pascal void DMModeTransProc (	void* pData,
+pascal void DMModeTransProc ( void* pData,
 					  DMListIndexType nIndex,
 					  DMDisplayModeListEntryPtr pInfo)
 {
@@ -486,7 +486,7 @@ wxVideoMode wxDisplay::GetCurrentMode() const
                 err = DMGetIndexedDisplayModeFromList(pModes, i, NULL, uppMLI, &sModeInfo);
     			wxASSERT(err == noErr);
 
-    			if ( sModeInfo.bMatched == true )
+                if ( sModeInfo.bMatched )
     			{
     				RetMode = sModeInfo.Mode;
     				break;
@@ -524,15 +524,15 @@ bool wxDisplay::ChangeMode(const wxVideoMode& mode)
 		if (mode == wxDefaultVideoMode)
 		{
 //#ifndef __DARWIN__
-//			Handle hDisplayState;
-//			if (DMBeginConfigureDisplays(&hDisplayState) != noErr)
-//				{
-//				wxLogSysError(wxT("Could not lock display for display mode changing!"));
-//				return false;
-//				}
-//			wxASSERT( DMUseScreenPrefs(true, hDisplayState) == noErr);
-//			DMEndConfigureDisplays(hDisplayState);
-//			return true;
+//            Handle hDisplayState;
+//            if (DMBeginConfigureDisplays(&hDisplayState) != noErr)
+//            {
+//                wxLogSysError(wxT("Could not lock display for display mode changing!"));
+//                return false;
+//            }
+//            wxASSERT( DMUseScreenPrefs(true, hDisplayState) == noErr);
+//            DMEndConfigureDisplays(hDisplayState);
+//            return true;
 //#else
 			//hmmmmm....
 			return true;
@@ -570,7 +570,7 @@ bool wxDisplay::ChangeMode(const wxVideoMode& mode)
             err = DMGetIndexedDisplayModeFromList(pModes, i, NULL, uppMLI, &sModeInfo);
     		wxASSERT(err == noErr);
             
-    		if (sModeInfo.bMatched == true)
+                if (sModeInfo.bMatched)
     		{
     			sMode = sModeInfo.sMode;
     			break;
@@ -585,10 +585,10 @@ bool wxDisplay::ChangeMode(const wxVideoMode& mode)
         wxASSERT(err == noErr);
 
     	// For the really paranoid -
-    	// 	    unsigned long flags;
+        //     unsigned long flags;
     	//      Boolean bok;
     	//     wxASSERT(noErr == DMCheckDisplayMode(m_priv->m_hndl, sMode.csData,
-    	//								  sMode.csMode, &flags, NULL, &bok));
+        //                                          sMode.csMode, &flags, NULL, &bok));
     	//     wxASSERT(bok);
 
     	Handle hDisplayState;

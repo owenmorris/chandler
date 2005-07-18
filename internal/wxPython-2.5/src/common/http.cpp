@@ -40,8 +40,6 @@
 IMPLEMENT_DYNAMIC_CLASS(wxHTTP, wxProtocol)
 IMPLEMENT_PROTOCOL(wxHTTP, wxT("http"), wxT("80"), true)
 
-#define HTTP_BSIZE 2048
-
 wxHTTP::wxHTTP()
   : wxProtocol()
 {
@@ -188,7 +186,8 @@ bool wxHTTP::Connect(const wxString& host, unsigned short port)
     return false;
   }
 
-  if ( port ) addr->Service(port);
+    if ( port )
+        addr->Service(port);
   else if (!addr->Service(wxT("http")))
     addr->Service(80);
 
@@ -217,15 +216,18 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
 {
   const wxChar *request;
 
-  switch (req) {
+    switch (req)
+    {
   case wxHTTP_GET:
     request = wxT("GET");
     break;
+
   case wxHTTP_POST:
     request = wxT("POST");
     if ( GetHeader( wxT("Content-Length") ).IsNull() )
       SetHeader( wxT("Content-Length"), wxString::Format( wxT("%lu"), (unsigned long)m_post_buf.Len() ) );
     break;
+
   default:
     return false;
   }
@@ -280,16 +282,20 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
 
   m_http_response = wxAtoi(tmp_str2);
 
-  switch (tmp_str2[0u]) {
+    switch (tmp_str2[0u])
+    {
   case wxT('1'):
     /* INFORMATION / SUCCESS */
     break;
+
   case wxT('2'):
     /* SUCCESS */
     break;
+
   case wxT('3'):
     /* REDIRECTION */
     break;
+
   default:
     m_perr = wxPROTO_NOFILE;
     RestoreState();
@@ -359,12 +365,12 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
     return NULL;
 #endif
 
-  if (!BuildRequest(path, m_post_buf.IsEmpty() ? wxHTTP_GET : wxHTTP_POST))
+    if (!BuildRequest(path, m_post_buf.empty() ? wxHTTP_GET : wxHTTP_POST))
     return NULL;
 
   inp_stream = new wxHTTPStream(this);
 
-  if (!GetHeader(wxT("Content-Length")).IsEmpty())
+  if (!GetHeader(wxT("Content-Length")).empty())
     inp_stream->m_httpsize = wxAtoi(WXSTRINGCAST GetHeader(wxT("Content-Length")));
   else
     inp_stream->m_httpsize = (size_t)-1;

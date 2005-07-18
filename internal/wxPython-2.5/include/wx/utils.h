@@ -324,6 +324,11 @@ WXDLLIMPEXP_BASE bool wxHandleFatalExceptions(bool doit = true);
 
 #endif // wxUSE_ON_FATAL_EXCEPTION
 
+#if wxABI_VERSION >= 20601
+// Launch url in the user's default internet browser
+WXDLLIMPEXP_BASE bool wxLaunchDefaultBrowser(const wxString& url);
+#endif
+
 // ----------------------------------------------------------------------------
 // Environment variables
 // ----------------------------------------------------------------------------

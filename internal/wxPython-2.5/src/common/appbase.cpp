@@ -68,10 +68,20 @@
 #endif // __WXMAC__
 
 #ifdef __WXDEBUG__
-    #ifdef wxUSE_STACKWALKER
+    #if wxUSE_STACKWALKER
         #include "wx/stackwalk.h"
+        #ifdef __WXMSW__
+            #include "wx/msw/debughlp.h"
+        #endif
     #endif // wxUSE_STACKWALKER
 #endif // __WXDEBUG__
+
+// wxABI_VERSION can be defined when compiling applications but it should be
+// left undefined when compiling the library itself, it is then set to its
+// default value in version.h
+#if wxABI_VERSION != wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + 99
+#error "wxABI_VERSION should not be defined when compiling the library"
+#endif
 
 // ----------------------------------------------------------------------------
 // private functions prototypes
@@ -139,14 +149,6 @@ wxAppConsole::~wxAppConsole()
 
 bool wxAppConsole::Initialize(int& argc, wxChar **argv)
 {
-#if wxUSE_LOG
-    // If some code logged something before wxApp instance was created,
-    // wxLogStderr was set as the target. Undo it here by destroying the
-    // current target. It will be re-created next time logging is needed, but
-    // this time wxAppTraits will be used:
-    delete wxLog::SetActiveTarget(NULL);
-#endif // wxUSE_LOG
-
     // remember the command line arguments
     this->argc = argc;
     this->argv = argv;
@@ -705,37 +707,19 @@ bool DoShowAssertDialog(const wxString& msg)
 
     // continue with the asserts
     return false;
-}
-
-// show the assert modal dialog
-static
-void ShowAssertDialog(const wxChar *szFile,
-                      int nLine,
-                      const wxChar *szCond,
-                      const wxChar *szMsg,
-                      wxAppTraits *traits)
-{
-    // this variable can be set to true to suppress "assert failure" messages
-    static bool s_bNoAsserts = false;
-
-    wxString msg;
-    msg.reserve(2048);
-
-    // make life easier for people using VC++ IDE by using this format: like
-    // this, clicking on the message will take us immediately to the place of
-    // the failed assert
-    msg.Printf(wxT("%s(%d): assert \"%s\" failed"), szFile, nLine, szCond);
-
-    if ( szMsg )
-    {
-        msg << _T(": ") << szMsg;
-    }
-    else // no message given
-    {
-        msg << _T('.');
     }
 
 #if wxUSE_STACKWALKER
+static wxString GetAssertStackTrace()
+{
+    wxString stackTrace;
+
+#if wxUSE_DBGHELP
+    // check that we can get the stack trace before trying to do it
+    if ( !wxDbgHelpDLL::Init() )
+        return stackTrace;
+#endif
+    
     class StackDump : public wxStackWalker
     {
     public:
@@ -779,23 +763,53 @@ void ShowAssertDialog(const wxChar *szFile,
 
     StackDump dump;
     dump.Walk(5); // don't show OnAssert() call itself
-    wxString stackTrace = dump.GetStackTrace();
+    stackTrace = dump.GetStackTrace();
 
     // don't show more than maxLines or we could get a dialog too tall to be
     // shown on screen: 20 should be ok everywhere as even with 15 pixel high
     // characters it is still only 300 pixels...
-    const int maxLines = 20;
-    int count = stackTrace.Freq(wxT('\n'));
-    if (count > maxLines)
-    {
-        int i;
-        for (i = 0; i < count - maxLines; i++)
+    static const int maxLines = 20;
+    const int count = stackTrace.Freq(wxT('\n'));
+    for ( int i = 0; i < count - maxLines; i++ )
             stackTrace = stackTrace.BeforeLast(wxT('\n'));
+
+    return stackTrace;
+}
+#endif // wxUSE_STACKWALKER
+
+// show the assert modal dialog
+static
+void ShowAssertDialog(const wxChar *szFile,
+                      int nLine,
+                      const wxChar *szCond,
+                      const wxChar *szMsg,
+                      wxAppTraits *traits)
+{
+    // this variable can be set to true to suppress "assert failure" messages
+    static bool s_bNoAsserts = false;
+
+    wxString msg;
+    msg.reserve(2048);
+
+    // make life easier for people using VC++ IDE by using this format: like
+    // this, clicking on the message will take us immediately to the place of
+    // the failed assert
+    msg.Printf(wxT("%s(%d): assert \"%s\" failed"), szFile, nLine, szCond);
+
+    if ( szMsg )
+    {
+        msg << _T(": ") << szMsg;
     }
+    else // no message given
+    {
+        msg << _T('.');
+    }
+
+#if wxUSE_STACKWALKER
+    const wxString stackTrace = GetAssertStackTrace();
     if ( !stackTrace.empty() )
     {
-        msg << _T("\n\nCall stack:\n")
-            << stackTrace;
+        msg << _T("\n\nCall stack:\n") << stackTrace;
     }
 #endif // wxUSE_STACKWALKER
 

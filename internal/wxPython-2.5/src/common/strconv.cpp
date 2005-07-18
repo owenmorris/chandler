@@ -40,11 +40,8 @@
 
 #if wxUSE_WCHAR_T
 
-#ifdef __WXMSW__
-    #include "wx/msw/private.h"
-#endif
-
 #ifdef __WINDOWS__
+    #include "wx/msw/private.h"
     #include "wx/msw/missing.h"
 #endif
 
@@ -270,9 +267,9 @@ const wxWCharBuffer wxMBConv::cMB2WC(const char *szString, size_t nStringLen, si
         }
 
         //Increment to next (sub)string
-        //Note that we have to use strlen here instead of nLen
-        //here because XX2XX gives us the size of the output buffer,
-        //not neccessarly the length of the string
+        //Note that we have to use strlen instead of nLen here
+        //because XX2XX gives us the size of the output buffer,
+        //which is not necessarily the length of the string
         szPos += strlen(szPos) + 1;
     }
 
@@ -332,9 +329,9 @@ const wxCharBuffer wxMBConv::cWC2MB(const wchar_t *szString, size_t nStringLen, 
         }
 
         //Increment to next (sub)string
-        //Note that we have to use wxWcslen here instead of nLen
-        //here because XX2XX gives us the size of the output buffer,
-        //not neccessarly the length of the string
+        //Note that we have to use wxWcslen instead of nLen here
+        //because XX2XX gives us the size of the output buffer,
+        //which is not necessarily the length of the string
         szPos += wxWcslen(szPos) + 1;
     }
 
@@ -2116,7 +2113,7 @@ public:
         UniChar* szUniBuffer = (UniChar*) szUnConv;
 
 #if SIZEOF_WCHAR_T == 4
-        wxMBConvUTF16BE converter ;
+        wxMBConvUTF16 converter ;
         nBufSize = converter.WC2MB( NULL , szUnConv , 0 );
         szUniBuffer = new UniChar[ (nBufSize / sizeof(UniChar)) + 1] ;
         converter.WC2MB( (char*) szUniBuffer , szUnConv, nBufSize + sizeof(UniChar)) ;
@@ -2252,7 +2249,7 @@ public:
         // we have to terminate here, because n might be larger for the trailing zero, and if UniChar
         // is not properly terminated we get random characters at the end
         ubuf[byteOutLen / sizeof( UniChar ) ] = 0 ;
-        wxMBConvUTF16BE converter ;
+        wxMBConvUTF16 converter ;
         res = converter.MB2WC( (buf ? buf : tbuf) , (const char*)ubuf , n ) ;
         free( ubuf ) ;
 #else
@@ -2285,7 +2282,7 @@ public:
         ByteCount byteBufferLen = n ;
         UniChar* ubuf = NULL ;
 #if SIZEOF_WCHAR_T == 4
-        wxMBConvUTF16BE converter ;
+        wxMBConvUTF16 converter ;
         size_t unicharlen = converter.WC2MB( NULL , psz , 0 ) ;
         byteInLen = unicharlen ;
         ubuf = (UniChar*) malloc( byteInLen + 2 ) ;
@@ -2516,7 +2513,7 @@ wxMBConv *wxCSConv::DoCreate() const
 
 #if wxUSE_FONTMAP
         if ( name.empty() )
-            name = wxFontMapperBase::Get()->GetEncodingName(m_encoding);
+            name = wxFontMapperBase::GetEncodingName(m_encoding);
 #endif // wxUSE_FONTMAP
 
         wxMBConv_iconv *conv = new wxMBConv_iconv(name);

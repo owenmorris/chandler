@@ -60,6 +60,9 @@
 
 #include "wx/process.h"
 #include "wx/txtstrm.h"
+#include "wx/uri.h"
+#include "wx/mimetype.h"
+#include "wx/config.h"
 
 #if defined(__WXWINCE__) && wxUSE_DATETIME
 #include "wx/datetime.h"
@@ -522,6 +525,194 @@ long wxExecute(const wxString& command,
                int flags)
 {
     return wxDoExecuteWithCapture(command, output, &error, flags);
+}
+
+// ----------------------------------------------------------------------------
+// Launch default browser
+// ----------------------------------------------------------------------------
+
+bool wxLaunchDefaultBrowser(const wxString& url)
+{
+    bool success = true;
+
+    wxString finalurl = url;
+
+    //if it isn't a full url, try appending http:// to it
+    if(wxURI(url).IsReference())
+        finalurl = wxString(wxT("http://")) + url;
+
+#if defined(__WXMSW__) && wxUSE_CONFIG_NATIVE
+
+    wxString command;
+
+    // ShellExecute() always opens in the same window,
+    // so do it manually for new window (from Mahogany)
+    wxRegKey key(wxRegKey::HKCR, url.BeforeFirst(':') + wxT("\\shell\\open"));
+    if ( key.Exists() )
+    {
+        wxRegKey keyDDE(key, wxT("DDEExec"));
+        if ( keyDDE.Exists() )
+        {
+            wxString ddeTopic = wxRegKey(keyDDE, wxT("topic"));
+
+            // we only know the syntax of WWW_OpenURL DDE request
+            if ( ddeTopic == wxT("WWW_OpenURL") )
+            {
+                wxString ddeCmd = keyDDE;
+
+                // this is a bit naive but should work as -1 can't appear
+                // elsewhere in the DDE topic, normally
+                if ( ddeCmd.Replace(wxT("-1"), wxT("0"),
+                                    false /* only first occurence */) == 1 )
+                {
+                    // and also replace the parameters
+                    if ( ddeCmd.Replace(wxT("%1"), url, false) == 1 )
+                    {
+                        // magic incantation understood by wxMSW
+                        command << wxT("WX_DDE#")
+                                << wxRegKey(key, wxT("command")).QueryDefaultValue() << wxT('#')
+                                << wxRegKey(keyDDE, wxT("application")).QueryDefaultValue()
+                                << wxT('#') << ddeTopic << wxT('#')
+                                << ddeCmd;
+                    }
+                }
+            }
+        }
+    }
+
+    //Try wxExecute - if it doesn't work or the regkey stuff
+    //above failed, fallback to opening the file in the same
+    //browser window
+    if ( command.empty() || wxExecute(command) == -1)
+    {
+        int nResult; //HINSTANCE error code
+
+#if !defined(__WXWINCE__)
+        // CYGWIN and MINGW may have problems - so load ShellExecute
+        // dynamically
+        typedef HINSTANCE (WINAPI *LPShellExecute)(HWND hwnd, const wxChar* lpOperation,
+                                            const wxChar* lpFile,
+                                            const wxChar* lpParameters,
+                                            const wxChar* lpDirectory,
+                                            INT nShowCmd);
+
+        HINSTANCE hShellDll = ::LoadLibrary(wxT("shell32.dll"));
+        if(hShellDll == NULL)
+            return false;
+
+        LPShellExecute lpShellExecute =
+            (LPShellExecute) ::GetProcAddress(hShellDll,
+            wxString::Format(wxT("ShellExecute%s"),
+
+#ifdef __WXUNICODE__
+            wxT("W")
+#else
+            wxT("A")
+#endif
+#ifdef __WXWINCE__
+                             )
+#else
+                             ).mb_str(wxConvLocal)
+#endif
+                             );
+        if(lpShellExecute == NULL)
+            return false;
+
+        // Windows sometimes doesn't open the browser correctly when using mime
+        // types, so do ShellExecute - i.e. start <url> (from James Carroll)
+        nResult = (int) (*lpShellExecute)(NULL, NULL, finalurl.c_str(),
+                                          NULL, wxT(""), SW_SHOWNORMAL);
+        // Unload Shell32.dll
+        ::FreeLibrary(hShellDll);
+#else
+        //Windows CE does not have normal ShellExecute - but it has
+        //ShellExecuteEx all the way back to version 1.0
+
+
+        //Set up the SHELLEXECUTEINFO structure to pass to ShellExecuteEx
+        SHELLEXECUTEINFO sei;
+        sei.cbSize = sizeof(SHELLEXECUTEINFO);
+        sei.dwHotKey = 0;
+        sei.fMask = 0;
+        sei.hIcon = NULL;
+        sei.hInstApp = NULL;
+        sei.hkeyClass = NULL;
+        // Not in WinCE
+#if 0
+        sei.hMonitor = NULL;
+#endif
+        sei.hProcess = NULL;
+        sei.hwnd = NULL;
+        sei.lpClass = NULL;
+        sei.lpDirectory = NULL;
+        sei.lpFile = finalurl.c_str();
+        sei.lpIDList = NULL;
+        sei.lpParameters = NULL;
+        sei.lpVerb = TEXT("open");
+        sei.nShow = SW_SHOWNORMAL;
+
+        //Call ShellExecuteEx
+        ShellExecuteEx(&sei);
+
+        //Get error code
+        nResult = (int) sei.hInstApp;
+#endif
+
+        // Hack for Firefox (returns file not found for some reason)
+        // from Angelo Mandato's wxHyperlinksCtrl
+        // HINSTANCE_ERROR == 32 (HINSTANCE_ERROR does not exist on Windows CE)
+        if (nResult <= 32 && nResult != SE_ERR_FNF)
+            return false;
+
+#ifdef __WXDEBUG__
+        // Log something if SE_ERR_FNF happens
+        if(nResult == SE_ERR_FNF)
+            wxLogDebug(wxT("Got SE_ERR_FNF from ShellExecute - maybe FireFox"));
+#endif
+    }
+
+#elif wxUSE_MIMETYPE
+
+    // Non-windows way
+    wxFileType *ft = wxTheMimeTypesManager->GetFileTypeFromExtension (_T("html"));
+    if (!ft)
+    {
+        wxLogError(_T("No default application can open .html extension"));
+        return false;
+    }
+
+    wxString mt;
+    ft->GetMimeType(&mt);
+
+    wxString cmd;
+    bool ok = ft->GetOpenCommand (&cmd, wxFileType::MessageParameters(finalurl));
+    delete ft;
+
+    if (ok)
+    {
+        if( wxExecute (cmd, wxEXEC_ASYNC) == -1 )
+        {
+            wxLogError(_T("Failed to launch application for wxLaunchDefaultBrowser"));
+            return false;
+        }
+    }
+    else
+    {
+        // fallback to checking for the BROWSER environment variable
+        cmd = wxGetenv(wxT("BROWSER"));
+        if ( cmd.empty() || wxExecute(cmd + wxT(" ") + finalurl) == -1)
+            return false;
+    }
+
+
+#else // !wxUSE_MIMETYPE && !(WXMSW && wxUSE_NATIVE_CONFIG)
+
+    success = false;
+
+#endif
+
+    //success - hopefully
+    return success;
 }
 
 // ----------------------------------------------------------------------------

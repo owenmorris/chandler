@@ -59,6 +59,9 @@ public:
     // inactive (should be called when a background event occurs)
     virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
 
+    // VELL - added
+    virtual void ForceRedraw( void );
+
     // implement base class pure virtuals
     virtual void Maximize(bool maximize = TRUE);
     virtual bool IsMaximized() const;

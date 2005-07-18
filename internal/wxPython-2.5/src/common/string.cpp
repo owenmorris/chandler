@@ -1414,11 +1414,12 @@ wxString wxString::Mid(size_t nFirst, size_t nCount) const
   if ( nFirst > nLen )
   {
     // AllocCopy() will return empty string
-    nCount = 0;
+        return wxEmptyString;
   }
 
   wxString dest(*this, nFirst, nCount);
-  if ( dest.length() != nCount ) {
+    if ( dest.length() != nCount )
+    {
       wxFAIL_MSG( _T("out of memory in wxString::Mid") );
   }
 
@@ -1839,24 +1840,21 @@ int wxString::PrintfV(const wxChar* pszFormat, va_list argptr)
         // vsnprintf() may return either -1 (traditional Unix behaviour) or the
         // total number of characters which would have been written if the
         // buffer were large enough
-        // also, it may return an errno may be something like EILSEQ,
-        // in which case we need to break out
-        if ( (len >= 0 && len <= size)
-        // No EOVERFLOW on Windows nor Palm 6.0 nor OpenVMS nor MacOS (not X)
-        // not OS/2 (not Innotek libc).
-#if !defined(__WXMSW__)                              && \
-    !defined(__WXPALMOS__)                           && \
-    !defined(__OpenBSD__)                            && \
-    !defined( __VMS )                                && \
-    !(defined(__WXMAC__) && !defined(__WXMAC_OSX__)) && \
-    !(defined(__EMX__) && !defined(__INNOTEK_LIBC__))
-            || errno != EOVERFLOW
-#endif
-            )
+        if ( len >= 0 && len <= size )
         {
             // ok, there was enough space
             break;
         }
+
+#ifdef EOVERFLOW
+        // if the error is not due to not having enough space (it could be e.g.
+        // EILSEQ), break too -- we'd just eat all available memory uselessly
+        if ( errno != EOVERFLOW )
+        {
+            // no sense in continuing
+            break;
+        }
+#endif // EOVERFLOW
 
         // still not enough, double it again
         size *= 2;

@@ -136,15 +136,9 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
                 return *wxSMALL_FONT ;
                     } ;
             break ;
-        case wxSYS_OEM_FIXED_FONT :
-        case wxSYS_ANSI_FIXED_FONT :
-        case wxSYS_SYSTEM_FIXED_FONT :
+
         default :
-            {
-                return *wxNORMAL_FONT ;
-                    } ;
             break ;
-                
     }
     return *wxNORMAL_FONT;
 }
@@ -225,9 +219,9 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
             return 0;
 
         default:
-            return -1;  // unsupported metric
+            break;  // unsupported metric
     }
-    return 0;
+    return -1;
 }
 
 bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
@@ -236,9 +230,9 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
     {
         case wxSYS_CAN_ICONIZE_FRAME: 
         case wxSYS_CAN_DRAW_FRAME_DECORATIONS:
-            return TRUE;
+            return true;
             
         default:
-            return FALSE;
+            return false;
     }
 }

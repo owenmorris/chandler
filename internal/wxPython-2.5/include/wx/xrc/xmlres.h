@@ -104,6 +104,9 @@ public:
     //        wxXRC_NO_SUBCLASSING
     //              subclass property of object nodes will be ignored
     //              (useful for previews in XRC editors)
+    //        wxXRC_NO_RELOADING
+    //              don't check the modification time of the XRC files and
+    //              reload them if they have changed on disk
     wxXmlResource(int flags = wxXRC_USE_LOCALE);
 
     // Constructor.
@@ -120,6 +123,11 @@ public:
     // Loads resources from XML files that match given filemask.
     // This method understands VFS (see filesys.h).
     bool Load(const wxString& filemask);
+
+#if wxABI_VERSION > 20601
+    // Unload resource from the given XML file (wildcards not allowed)
+    bool Unload(const wxString& filename);
+#endif // wxABI_VERSION
 
     // Initialize handlers for all supported controls/windows. This will
     // make the executable quite big because it forces linking against
@@ -247,6 +255,20 @@ protected:
                                 wxObject *instance = NULL,
                                 wxXmlResourceHandler *handlerToUse = NULL);
 
+#if wxABI_VERSION > 20601
+    // Helper of Load() and Unload(): returns the URL corresponding to the
+    // given file if it's indeed a file, otherwise returns the original string
+    // unmodified
+    static wxString ConvertFileNameToURL(const wxString& filename);
+
+    // loading resources from archives is impossible without wxFileSystem
+#if wxUSE_FILESYSTEM
+    // Another helper: detect if the filename is a ZIP or XRS file
+    static bool IsArchive(const wxString& filename);
+#endif // wxUSE_FILESYSTEM
+
+#endif // wxABI_VERSION
+
 private:
     long m_version;
 
@@ -310,7 +332,7 @@ public:
     // Creates an object (menu, dialog, control, ...) from an XML node.
     // Should check for validity.
     // parent is a higher-level object (usually window, dialog or panel)
-    // that is often neccessary to create the resource.
+    // that is often necessary to create the resource.
     // If instance is non-NULL it should not create a new instance via 'new' but
     // should rather use this one, and call its Create method.
     wxObject *CreateResource(wxXmlNode *node, wxObject *parent,

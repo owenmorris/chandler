@@ -22,6 +22,8 @@
 
 #include "wx/defs.h"
 
+#if wxUSE_BOOKCTRL
+
 #ifndef WX_PRECOMP
     #include "wx/button.h"
     #include "wx/sizer.h"
@@ -47,7 +49,7 @@ bool wxPropertySheetDialog::Create(wxWindow* parent, wxWindowID id, const wxStri
                                        const wxPoint& pos, const wxSize& sz, long style,
                                        const wxString& name)
 {
-    if (!wxDialog::Create(parent, id, title, pos, sz, style, name))
+    if (!wxDialog::Create(parent, id, title, pos, sz, style|wxCLIP_CHILDREN, name))
         return false;
     
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
@@ -96,8 +98,10 @@ void wxPropertySheetDialog::CreateButtons(int flags)
     // Perhaps that could be embedded in CreateButtonSizer() directly.
     SetRightMenu(wxID_CANCEL);
     SetLeftMenu(wxID_OK);
+    wxUnusedVar(flags);
 #elif defined(__POCKETPC__)
     // Do nothing
+    wxUnusedVar(flags);
 #else
     wxSizer* sizer = CreateButtonSizer(flags);
     m_innerSizer->Add( sizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM|wxLEFT|wxRIGHT, 2);
@@ -108,7 +112,7 @@ void wxPropertySheetDialog::CreateButtons(int flags)
 // Creates the book control
 wxBookCtrlBase* wxPropertySheetDialog::CreateBookCtrl()
 {
-    int style = 0;
+    int style = wxCLIP_CHILDREN;
 #if defined(__POCKETPC__) && wxUSE_NOTEBOOK
     style |= wxNB_BOTTOM|wxNB_FLAT;
 #else
@@ -148,3 +152,4 @@ void wxPropertySheetDialog::OnActivate(wxActivateEvent& event)
         event.Skip();
 }
 
+#endif // wxUSE_BOOKCTRL

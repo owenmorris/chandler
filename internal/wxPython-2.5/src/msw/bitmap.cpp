@@ -310,10 +310,37 @@ bool wxBitmap::CopyFromIconOrCursor(const wxGDIImage& icon)
 
     refData->m_hBitmap = (WXHBITMAP)iconInfo.hbmColor;
 
-    // the mask returned by GetIconInfo() is inversed compared to the usual
-    // wxWin convention
-    refData->SetMask(wxInvertMask(iconInfo.hbmMask, w, h));
-
+#if wxUSE_WXDIB
+    // If the icon is 32 bits per pixel then it may have alpha channel data,
+    // although there are some icons that are 32 bpp but have no alpha... So
+    // convert to a DIB and manually check the 4th byte for each pixel.
+    BITMAP bm;
+    if ( ::GetObject(iconInfo.hbmColor, sizeof(BITMAP), (LPVOID)&bm)
+         && bm.bmBitsPixel == 32)
+    {
+        wxDIB dib(iconInfo.hbmColor);
+        if (dib.IsOk())
+        {
+            unsigned char* pixels = dib.GetData();
+            for (int idx=0; idx<w*h*4; idx+=4)
+            {
+                if (pixels[idx+3] != 0)
+                {
+                    // If there is an alpha byte that is non-zero then set the
+                    // alpha flag and bail out of the loop.
+                    refData->m_hasAlpha = true;
+                    break;
+                }
+            }
+        }
+    }
+#endif
+    if ( !refData->m_hasAlpha )
+    {
+        // the mask returned by GetIconInfo() is inverted compared to the usual
+        // wxWin convention
+        refData->SetMask(wxInvertMask(iconInfo.hbmMask, w, h));
+    }
 
     // delete the old one now as we don't need it any more
     ::DeleteObject(iconInfo.hbmMask);
@@ -408,7 +435,7 @@ wxBitmap::wxBitmap(const char bits[], int width, int height, int depth)
     {
         // we assume that it is in XBM format which is not quite the same as
         // the format CreateBitmap() wants because the order of bytes in the
-        // line is inversed!
+        // line is reversed!
         const size_t bytesPerLine = (width + 7) / 8;
         const size_t padding = bytesPerLine % 2;
         const size_t len = height * ( padding + bytesPerLine );
@@ -878,7 +905,7 @@ bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
             SetMask(new wxMask((WXHBITMAP)hbitmap));
         }
 
-        delete data;
+        delete[] data;
     }
 
     return true;
@@ -1223,7 +1250,7 @@ void *wxBitmap::GetRawData(wxPixelDataBase& data, int bpp)
     HBITMAP hDIB;
     if ( !GetBitmapData()->m_isDIB )
     {
-        wxCHECK_MSG( !GetBitmapData()->m_dib, FALSE,
+        wxCHECK_MSG( !GetBitmapData()->m_dib, NULL,
                         _T("GetRawData() may be called only once") );
 
         wxDIB *dib = new wxDIB(*this);
@@ -1572,7 +1599,7 @@ bool wxCreateDIB(long xSize, long ySize, long bitsPerPixel,
    // this value must be 1, 4, 8 or 24 so PixelDepth can only be
    lpDIBheader->bmiHeader.biBitCount = (WORD)(bitsPerPixel);
    lpDIBheader->bmiHeader.biCompression = BI_RGB;
-   lpDIBheader->bmiHeader.biSizeImage = xSize * abs(ySize) * bitsPerPixel >> 3;
+   lpDIBheader->bmiHeader.biSizeImage = (xSize * abs(ySize) * bitsPerPixel) >> 3;
    lpDIBheader->bmiHeader.biClrUsed = 256;
 
 
@@ -1612,7 +1639,23 @@ HICON wxBitmapToIconOrCursor(const wxBitmap& bmp,
         return 0;
     }
 
-    wxMask *mask = bmp.GetMask();
+    wxMask* mask;
+    wxBitmap newbmp;
+    if ( bmp.HasAlpha() )
+    {
+        // Convert alpha to a mask.  NOTE: It would be better to actually put
+        // the alpha into the icon instead of making a mask, but I don't have
+        // time to figure that out today.
+        wxImage img = bmp.ConvertToImage();
+        img.ConvertAlphaToMask();
+        newbmp = wxBitmap(img);
+        mask = newbmp.GetMask();
+    }
+    else
+    {
+        mask = bmp.GetMask();
+    }
+
     if ( !mask )
     {
         // we must have a mask for an icon, so even if it's probably incorrect,
@@ -1649,7 +1692,7 @@ HICON wxBitmapToIconOrCursor(const wxBitmap& bmp,
 
     HICON hicon = ::CreateIconIndirect(&iconInfo);
 
-    if ( !bmp.GetMask() )
+    if ( !bmp.GetMask() && !bmp.HasAlpha() )
     {
         // we created the mask, now delete it
         delete mask;

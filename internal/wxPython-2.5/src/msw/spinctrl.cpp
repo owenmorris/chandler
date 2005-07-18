@@ -45,6 +45,9 @@
 
 #include <limits.h>         // for INT_MIN
 
+#define USE_DEFERRED_SIZING 1
+#define USE_DEFER_BUG_WORKAROUND 0
+
 // ----------------------------------------------------------------------------
 // macros
 // ----------------------------------------------------------------------------
@@ -391,7 +394,7 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     // associate the text window with the spin button
     (void)::SendMessage(GetHwnd(), UDM_SETBUDDY, (WPARAM)m_hwndBuddy, 0);
 
-    if ( !value.IsEmpty() )
+    if ( !value.empty() )
     {
         SetValue(value);
     }
@@ -567,16 +570,32 @@ void wxSpinCtrl::DoMoveWindow(int x, int y, int width, int height)
         wxLogDebug(_T("not enough space for wxSpinCtrl!"));
     }
 
-    if ( !::MoveWindow(GetBuddyHwnd(), x, y, widthText, height, TRUE) )
-    {
-        wxLogLastError(wxT("MoveWindow(buddy)"));
-    }
+    // if our parent had prepared a defer window handle for us, use it (unless
+    // we are a top level window)
+    wxWindowMSW *parent = GetParent();
 
+#if USE_DEFERRED_SIZING
+    HDWP hdwp = parent && !IsTopLevel() ? (HDWP)parent->m_hDWP : NULL;
+#else
+    HDWP hdwp = 0;
+#endif
+
+    // 1) The buddy window
+    wxMoveWindowDeferred(hdwp, this, GetBuddyHwnd(),
+                     x, y, widthText, height);
+
+    // 2) The button window
     x += widthText + MARGIN_BETWEEN;
-    if ( !::MoveWindow(GetHwnd(), x, y, widthBtn, height, TRUE) )
+    wxMoveWindowDeferred(hdwp, this, GetHwnd(),
+                     x, y, widthBtn, height);
+
+#if USE_DEFERRED_SIZING
+    if (parent)
     {
-        wxLogLastError(wxT("MoveWindow"));
+        // hdwp must be updated as it may have been changed
+        parent->m_hDWP = (WXHANDLE)hdwp;
     }
+#endif
 }
 
 // get total size of the control

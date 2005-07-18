@@ -20,12 +20,10 @@
 #include "wx/slider.h"
 #include "wx/mac/uma.h"
 
-#if !USE_SHARED_LIBRARY
 IMPLEMENT_DYNAMIC_CLASS(wxSlider, wxControl)
 
 BEGIN_EVENT_TABLE(wxSlider, wxControl)
 END_EVENT_TABLE()
-#endif
 
  // The dimensions of the different styles of sliders (From Aqua document)
 #define wxSLIDER_DIMENSIONACROSS 15
@@ -435,7 +433,7 @@ void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
     // yet another hack since this is a composite control
     // when wxSlider has it's size hardcoded, we're not allowed to
     // change the size. But when the control has labels, we DO need
-    // to resize the internal Mac control to accomodate the text labels.
+    // to resize the internal Mac control to accommodate the text labels.
     // We need to trick the wxWidgets resize mechanism so that we can
     // resize the slider part of the control ONLY.
 

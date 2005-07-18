@@ -1,9 +1,17 @@
+/* Copyright: (c) Julian Smart */
+/* Licence:   wxWindows Licence */
 /* include platform.h first to get __WIN32__ definition */
+
 #include "wx/platform.h"
 #include "wx/setup.h"
 #include "wx/deprecated/setup.h"
 
 #if !defined(wxUSE_PROLOGIO) || wxUSE_PROLOGIO
+
+#ifdef __VISUALC__
+    #pragma warning(push)
+    #pragma warning(disable:4244) /* warning C4244: '=' : conversion from 'A' to 'B', possible loss of data */
+#endif
 
 #if !defined(lint) && 0
 static char yysccsid[] = "@(#)yaccpar     1.7 (Berkeley) 09/09/90";
@@ -536,5 +544,9 @@ yyabort:
 yyaccept:
     return (0);
 }
+
+#ifdef __VISUALC__
+    #pragma warning(pop)
+#endif
 
 #endif /* wxUSE_PROLOGIO */

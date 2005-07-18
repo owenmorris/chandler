@@ -376,13 +376,18 @@ static long GetTruncatedJDN(wxDateTime::wxDateTime_t day,
 static wxString CallStrftime(const wxChar *format, const tm* tm)
 {
     wxChar buf[4096];
+    // Create temp wxString here to work around mingw/cygwin bug 1046059
+    // http://sourceforge.net/tracker/?func=detail&atid=102435&aid=1046059&group_id=2435
+    wxString s;
+
     if ( !wxStrftime(buf, WXSIZEOF(buf), format, tm) )
     {
         // buffer is too small?
         wxFAIL_MSG(_T("strftime() failed"));
     }
 
-    return wxString(buf);
+    s = buf;
+    return s;
 }
 #endif
 
@@ -2309,12 +2314,12 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                     // find the YEAR which is a year in the strftime() range (1970
                     // - 2038) whose Jan 1 falls on the same week day as the Jan 1
                     // of the real year. Then make a copy of the format and
-                    // replace all occurences of YEAR in it with some unique
+                    // replace all occurrences of YEAR in it with some unique
                     // string not appearing anywhere else in it, then use
                     // strftime() to format the date in year YEAR and then replace
                     // YEAR back by the real year and the unique replacement
-                    // string back with YEAR. Notice that "all occurences of YEAR"
-                    // means all occurences of 4 digit as well as 2 digit form!
+                    // string back with YEAR. Notice that "all occurrences of YEAR"
+                    // means all occurrences of 4 digit as well as 2 digit form!
                     //
                     // the bugs: we assume that neither of %c nor %x contains any
                     // fields which may change between the YEAR and real year. For
@@ -2372,8 +2377,8 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                         strYear.Printf(_T("%d"), year);
                         strYear2.Printf(_T("%d"), year % 100);
 
-                        // find two strings not occuring in format (this is surely
-                        // not optimal way of doing it... improvements welcome!)
+                        // find two strings not occurring in format (this is surely
+                        // not the optimal way of doing it... improvements welcome!)
                         wxString fmt = format;
                         wxString replacement = (wxChar)-1;
                         while ( fmt.Find(replacement) != wxNOT_FOUND )
@@ -2387,7 +2392,7 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                             replacement << (wxChar)-2;
                         }
 
-                        // replace all occurences of year with it
+                        // replace all occurrences of year with it
                         bool wasReplaced = fmt.Replace(strYear, replacement) > 0;
                         if ( !wasReplaced )
                             wasReplaced = fmt.Replace(strYear2, replacement2) > 0;
@@ -2414,14 +2419,14 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                                                                   : _T("%x"),
                                                     &tmAdjusted);
 
-                        // now replace the occurence of 1999 with the real year
+                        // now replace the occurrence of 1999 with the real year
                         wxString strYearReal, strYearReal2;
                         strYearReal.Printf(_T("%04d"), yearReal);
                         strYearReal2.Printf(_T("%02d"), yearReal % 100);
                         str.Replace(strYear, strYearReal);
                         str.Replace(strYear2, strYearReal2);
 
-                        // and replace back all occurences of replacement string
+                        // and replace back all occurrences of replacement string
                         if ( wasReplaced )
                         {
                             str.Replace(replacement2, strYear2);
@@ -2858,10 +2863,12 @@ const wxChar *wxDateTime::ParseRfc822Date(const wxChar* date)
 
 #ifdef __WINDOWS__
 
-// Get's current locale's date formatting string and stores it in fmt if
-// the locale is set; otherwise or in case of failure, leaves fmt unchanged
-static void GetLocaleDateFormat(wxString *fmt)
+// returns the string containing strftime() format used for short dates in the
+// current locale or an empty string
+static wxString GetLocaleDateFormat()
 {
+    wxString fmtWX;
+
     // there is no setlocale() under Windows CE, so just always query the
     // system there
 #ifndef __WXWINCE__
@@ -2877,45 +2884,139 @@ static void GetLocaleDateFormat(wxString *fmt)
 #else
         LCID lcid = GetThreadLocale();
 #endif
-        wxChar delim[5]; // fields deliminer, 4 chars max
-        if ( GetLocaleInfo(lcid, LOCALE_SDATE, delim, 5) )
+        // according to MSDN 80 chars is max allowed for short date format
+        wxChar fmt[81];
+        if ( ::GetLocaleInfo(lcid, LOCALE_SSHORTDATE, fmt, WXSIZEOF(fmt)) )
         {
-            wxChar centurybuf[2]; // use %y or %Y, 1 char max
-            wxChar century = 'y';
-            if ( GetLocaleInfo(lcid, LOCALE_ICENTURY, centurybuf, 2) )
+            wxChar chLast = _T('\0');
+            size_t lastCount = 0;
+            for ( const wxChar *p = fmt; /* NUL handled inside */; p++ )
             {
-                if ( centurybuf[0] == _T('1') )
-                    century = 'Y';
-                // else 'y' as above
+                if ( *p == chLast )
+                {
+                    lastCount++;
+                    continue;
+                }
+
+                switch ( *p )
+                {
+                    // these characters come in groups, start counting them
+                    case _T('d'):
+                    case _T('M'):
+                    case _T('y'):
+                    case _T('g'):
+                        chLast = *p;
+                        lastCount = 1;
+                        break;
+
+                    default:
+                        // first deal with any special characters we have had
+                        if ( lastCount )
+                        {
+                            switch ( chLast )
+                            {
+                                case _T('d'):
+                                    switch ( lastCount )
+                                    {
+                                        case 1: // d
+                                        case 2: // dd
+                                            // these two are the same as we
+                                            // don't distinguish between 1 and
+                                            // 2 digits for days
+                                            fmtWX += _T("%d");
+                                            break;
+
+                                        case 3: // ddd
+                                            fmtWX += _T("%a");
+                                            break;
+
+                                        case 4: // dddd
+                                            fmtWX += _T("%A");
+                                            break;
+
+                                        default:
+                                            wxFAIL_MSG( _T("too many 'd's") );
+                                    }
+                                    break;
+
+                                case _T('M'):
+                                    switch ( lastCount )
+                                    {
+                                        case 1: // M
+                                        case 2: // MM
+                                            // as for 'd' and 'dd' above
+                                            fmtWX += _T("%m");
+                                            break;
+
+                                        case 3:
+                                            fmtWX += _T("%b");
+                                            break;
+
+                                        case 4:
+                                            fmtWX += _T("%B");
+                                            break;
+
+                                        default:
+                                            wxFAIL_MSG( _T("too many 'M's") );
+                                    }
+                                    break;
+
+                                case _T('y'):
+                                    switch ( lastCount )
+                                    {
+                                        case 1: // y
+                                        case 2: // yy
+                                            fmtWX += _T("%y");
+                                            break;
+
+                                        case 4: // yyyy
+                                            fmtWX += _T("%Y");
+                                            break;
+
+                                        default:
+                                            wxFAIL_MSG( _T("wrong number of 'y's") );
+                                    }
+                                    break;
+
+                                case _T('g'):
+                                    // strftime() doesn't have era string,
+                                    // ignore this format
+                                    wxASSERT_MSG( lastCount <= 2,
+                                                  _T("too many 'g's") );
+                                    break;
+
+                                default:
+                                    wxFAIL_MSG( _T("unreachable") );
+                            }
+
+                            chLast = _T('\0');
+                            lastCount = 0;
+                        }
+
+                        // not a special character so must be just a separator,
+                        // treat as is
+                        if ( *p != _T('\0') )
+                        {
+                            if ( *p == _T('%') )
+                            {
+                                // this one needs to be escaped
+                                fmtWX += _T('%');
+                            }
+
+                            fmtWX += *p;
+                        }
             }
 
-            wxChar order[2]; // order code, 1 char max
-            if ( GetLocaleInfo(lcid, LOCALE_IDATE, order, 2) )
-            {
-                if ( order[0] == _T('0') ) // M-D-Y
-                {
-                    *fmt = wxString::Format(_T("%%m%s%%d%s%%%c"),
-                                            delim, delim, century);
-                }
-                else if ( order[0] == _T('1') ) // D-M-Y
-                {
-                    *fmt = wxString::Format(_T("%%d%s%%m%s%%%c"),
-                                            delim, delim, century);
-                }
-                else if ( order[0] == _T('2') ) // Y-M-D
-                {
-                    *fmt = wxString::Format(_T("%%%c%s%%m%s%%d"),
-                                            century, delim, delim);
-                }
-                else
-                {
-                    wxFAIL_MSG(_T("unexpected GetLocaleInfo return value"));
+                if ( *p == _T('\0') )
+                    break;
                 }
             }
-        }
-        // if we failed, leave fmtDate value unchanged and
-        // try our luck with the default set above
+        //else: GetLocaleInfo() failed, leave fmtDate value unchanged and
+        //      try our luck with the default formats
     }
+    //else: default C locale, default formats should work
+
+    return fmtWX;
 }
 
 #endif // __WINDOWS__
@@ -3282,9 +3383,16 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
 
                 {
                     wxDateTime dt;
+                    wxString fmtDate,
+                             fmtDateAlt;
 
-                    wxString fmtDate, fmtDateAlt;
-
+#ifdef __WINDOWS__
+                    // The above doesn't work for all locales, try to query
+                    // Windows for the right way of formatting the date:
+                    fmtDate = GetLocaleDateFormat();
+                    if ( fmtDate.empty() )
+#endif
+                    {
                     if ( IsWestEuropeanCountry(GetCountry()) ||
                          GetCountry() == Russia )
                     {
@@ -3296,16 +3404,11 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         fmtDate = _T("%m/%d/%y");
                         fmtDateAlt = _T("%d/%m/%y");
                     }
-
-#ifdef __WINDOWS__
-                    // The above doesn't work for all locales, try to query
-                    // Windows for the right way of formatting the date:
-                    GetLocaleDateFormat(&fmtDate);
-#endif
+                    }
 
                     const wxChar *result = dt.ParseFormat(input, fmtDate);
 
-                    if ( !result )
+                    if ( !result && !fmtDateAlt.empty() )
                     {
                         // ok, be nice and try another one
                         result = dt.ParseFormat(input, fmtDateAlt);

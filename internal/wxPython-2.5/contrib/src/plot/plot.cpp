@@ -204,11 +204,11 @@ BEGIN_EVENT_TABLE(wxPlotArea, wxWindow)
 END_EVENT_TABLE()
 
 wxPlotArea::wxPlotArea( wxPlotWindow *parent )
-        : wxWindow( parent, -1, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("plotarea") )
+        : wxWindow( parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSIMPLE_BORDER, _T("plotarea") )
 {
     m_owner = parent;
     
-    m_zooming = FALSE;
+    m_zooming = false;
 
     SetBackgroundColour( *wxWHITE );
 }
@@ -398,10 +398,6 @@ void wxPlotArea::OnPaint( wxPaintEvent &WXUNUSED(event) )
     while (upd)
     {
         int update_x = upd.GetX() + view_x;
-#if 0
-        // unused var
-        int update_y = upd.GetY() + view_y;
-#endif
         int update_width = upd.GetWidth();
         
 /*
@@ -462,7 +458,7 @@ BEGIN_EVENT_TABLE(wxPlotXAxisArea, wxWindow)
 END_EVENT_TABLE()
 
 wxPlotXAxisArea::wxPlotXAxisArea( wxPlotWindow *parent )
-        : wxWindow( parent, -1, wxDefaultPosition, wxSize(-1,40), 0, _T("plotxaxisarea") )
+        : wxWindow( parent, wxID_ANY, wxDefaultPosition, wxSize(wxDefaultCoord,40), 0, _T("plotxaxisarea") )
 {
     m_owner = parent;
     
@@ -589,7 +585,7 @@ BEGIN_EVENT_TABLE(wxPlotYAxisArea, wxWindow)
 END_EVENT_TABLE()
 
 wxPlotYAxisArea::wxPlotYAxisArea( wxPlotWindow *parent )
-        : wxWindow( parent, -1, wxDefaultPosition, wxSize(60,-1), 0, _T("plotyaxisarea") )
+        : wxWindow( parent, wxID_ANY, wxDefaultPosition, wxSize(60,wxDefaultCoord), 0, _T("plotyaxisarea") )
 {
     m_owner = parent;
     
@@ -718,8 +714,8 @@ wxPlotWindow::wxPlotWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos,
     m_xUnitsPerValue = 1.0;
     m_xZoom = 1.0;
     
-    m_enlargeAroundWindowCentre = FALSE;
-    m_scrollOnThumbRelease = FALSE;
+    m_enlargeAroundWindowCentre = false;
+    m_scrollOnThumbRelease = false;
 
     m_area = new wxPlotArea( this );
     wxBoxSizer *mainsizer = new wxBoxSizer( wxHORIZONTAL );
@@ -754,7 +750,7 @@ wxPlotWindow::wxPlotWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos,
         m_yaxis = new wxPlotYAxisArea( this );
     
         wxBoxSizer *vert1 = new wxBoxSizer( wxVERTICAL );
-        plotsizer->Add( vert1, 0, wxEXPAND );
+        plotsizer->Add( vert1, 1, wxEXPAND|wxTOP,10 );
         vert1->Add( m_yaxis, 1 );
         if ((GetWindowStyleFlag() & wxPLOT_X_AXIS) != 0)
             vert1->Add( 60, 40 );
@@ -769,8 +765,8 @@ wxPlotWindow::wxPlotWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos,
         m_xaxis = new wxPlotXAxisArea( this );
     
         wxBoxSizer *vert2 = new wxBoxSizer( wxVERTICAL );
-        plotsizer->Add( vert2, 1, wxEXPAND );
-        vert2->Add( m_area, 1, wxEXPAND );
+        plotsizer->Add( vert2, 5, wxEXPAND);
+        vert2->Add( m_area, 1, wxEXPAND|wxTOP,10 );
         vert2->Add( m_xaxis, 0, wxEXPAND );
     }
     else
@@ -781,8 +777,10 @@ wxPlotWindow::wxPlotWindow( wxWindow *parent, wxWindowID id, const wxPoint &pos,
 
     mainsizer->Add( plotsizer, 1, wxEXPAND );    
     
-    SetAutoLayout( TRUE );
+    SetAutoLayout( true );
     SetSizer( mainsizer );
+    mainsizer->Fit(this);
+    mainsizer->SetSizeHints(this);
 
     SetTargetWindow( m_area );
 
@@ -820,7 +818,7 @@ wxPlotCurve *wxPlotWindow::GetAt( size_t n )
 void wxPlotWindow::SetCurrentCurve( wxPlotCurve* current )
 {
     m_current = current;
-    m_area->Refresh( FALSE );
+    m_area->Refresh( false );
     
     RedrawYAxis();
     
@@ -839,7 +837,7 @@ void wxPlotWindow::Delete( wxPlotCurve* curve )
     m_curves.DeleteObject( curve );
     
     m_area->DeleteCurve( curve );
-    m_area->Refresh( FALSE );
+    m_area->Refresh( false );
 
     if (curve == m_current) m_current = (wxPlotCurve *) NULL;
 }
@@ -882,7 +880,7 @@ void wxPlotWindow::Move( wxPlotCurve* curve, int pixels_up )
     
     curve->SetOffsetY( curve->GetOffsetY() + pixels_up );
     
-    m_area->Refresh( FALSE );
+    m_area->Refresh( false );
     
     RedrawYAxis();
 }
@@ -929,7 +927,7 @@ void wxPlotWindow::Enlarge( wxPlotCurve *curve, double factor )
         curve->SetEndY( (curve->GetEndY() - offset)/factor + new_offset );
     }
     
-    m_area->Refresh( FALSE );
+    m_area->Refresh( false );
     RedrawYAxis();
 }
 
@@ -961,10 +959,10 @@ void wxPlotWindow::SetZoom( double zoom )
     SetScrollbars( wxPLOT_SCROLL_STEP, wxPLOT_SCROLL_STEP, 
                    (int)((max*m_xZoom)/wxPLOT_SCROLL_STEP)+1, 0, 
                    (int)(view_x*zoom/old_zoom), 0, 
-                   TRUE );
+                   true );
 
     RedrawXAxis();
-    m_area->Refresh( TRUE );
+    m_area->Refresh( true );
 }
 
 void wxPlotWindow::ResetScrollbar()
@@ -986,22 +984,22 @@ void wxPlotWindow::ResetScrollbar()
 void wxPlotWindow::RedrawXAxis()
 {
     if (m_xaxis)
-        m_xaxis->Refresh( FALSE );
+        m_xaxis->Refresh( false );
 }
 
 void wxPlotWindow::RedrawYAxis()
 {
     if (m_yaxis)
-       m_yaxis->Refresh( TRUE );
+       m_yaxis->Refresh( true );
 }
 
 void wxPlotWindow::RedrawEverything()
 {
     if (m_xaxis)
-        m_xaxis->Refresh( TRUE );
+        m_xaxis->Refresh( true );
     if (m_yaxis)
-        m_yaxis->Refresh( TRUE );
-    m_area->Refresh( TRUE );
+        m_yaxis->Refresh( true );
+    m_area->Refresh( true );
 }
 
 void wxPlotWindow::OnZoomIn( wxCommandEvent& WXUNUSED(event) )
@@ -1045,11 +1043,11 @@ void wxPlotWindow::OnScroll2( wxScrollWinEvent& event )
 static wxBitmap *GetEnlargeBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_enl_bmp"), wxBITMAP_TYPE_RESOURCE);
@@ -1064,11 +1062,11 @@ static wxBitmap *GetEnlargeBitmap()
 static wxBitmap *GetShrinkBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_shr_bmp"), wxBITMAP_TYPE_RESOURCE);
@@ -1083,11 +1081,11 @@ static wxBitmap *GetShrinkBitmap()
 static wxBitmap *GetZoomInBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_zin_bmp"), wxBITMAP_TYPE_RESOURCE);
@@ -1102,11 +1100,11 @@ static wxBitmap *GetZoomInBitmap()
 static wxBitmap *GetZoomOutBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_zot_bmp"), wxBITMAP_TYPE_RESOURCE);
@@ -1121,11 +1119,11 @@ static wxBitmap *GetZoomOutBitmap()
 static wxBitmap *GetUpBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_up_bmp"), wxBITMAP_TYPE_RESOURCE);
@@ -1140,11 +1138,11 @@ static wxBitmap *GetUpBitmap()
 static wxBitmap *GetDownBitmap()
 {
     static wxBitmap* s_bitmap = (wxBitmap *) NULL;
-    static bool s_loaded = FALSE;
+    static bool s_loaded = false;
 
     if ( !s_loaded )
     {
-        s_loaded = TRUE; // set it to TRUE anyhow, we won't try again
+        s_loaded = true; // set it to true anyhow, we won't try again
 
         #if defined(__WXMSW__) || defined(__WXPM__)
             s_bitmap = new wxBitmap(_T("plot_dwn_bmp"), wxBITMAP_TYPE_RESOURCE);

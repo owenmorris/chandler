@@ -5,7 +5,7 @@
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
 * RCS-ID:      $Id$
-* Copyright:   (c) 1997-2001 wxWidgets team
+* Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
 
@@ -57,9 +57,7 @@
    first define Windows symbols if they're not defined on the command line: we
    can autodetect everything we need if _WIN32 is defined
  */
-#if defined(__CYGWIN32__) && !defined(__WXMOTIF__) && !defined(__WXGTK__) \
-    && !defined(__WXX11__)
-    /* for Cygwin, default to wxMSW unless otherwise specified */
+#if defined(__CYGWIN__) && defined(__WINDOWS__)
 #    ifndef __WXMSW__
 #        define __WXMSW__
 #    endif
@@ -119,50 +117,8 @@
 #        define __WIN32__
 #    endif
 
-    /*
-        The library user may override the default setting of WINVER by defining
-        it in his own makefile or project file -- if it is defined, we don't
-        touch it at all.
-
-        It makes sense to define WINVER as:
-            - either some lowish value (e.g. 0x0302) to not even compile in the
-              features not available in Windows version lower than some given
-              one
-            - or to a higher value than the one used by default for the given
-              compiler if you updated its headers to newer version of Platform
-              SDK, e.g. VC6 ships with 0x0400 headers by default but may also
-              work with 0x0500 headers and beyond
-    */
-#   ifndef WINVER
-#       if defined(_MSC_VER) && _MSC_VER < 1300
-            /*
-                VC6 defines some stuff in its default headers which is normally
-                only present if WINVER >= 0x0500 (FLASHW_XXX constants) which
-                means that our usual tests not involving WINVER sometimes fail
-                with it, hence explicitly define a lower WINVER value for it.
-             */
-#           define WINVER 0x0400
-#       elif defined(__DMC__)
-            /*
-                Digital Mars is distributed with a little outdated headers.
-             */
-#           define WINVER 0x0400
-#       else /* !VC++ 6 */
-            /*
-               see MSDN for the description of possible WINVER values, this one
-               is the highest one defined right now (Windows Server 2003) and
-               we use it unless it was explicitly overridden by the user to
-               disable recent features support as we check for all of the
-               features we use which could be not available on earlier Windows
-               systems during run-time anyhow, so there is almost no
-               disadvantage in using it.
-             */
-#           define WINVER 0x0502
-#       endif /* VC++ 6/!VC++6 */
-#   endif
-
-    /* Win95 means Win95-style UI, i.e. Win9x/NT 4+ */
-#    if !defined(__WIN95__) && (WINVER >= 0x0400)
+    /* this means Win95-style UI, i.e. Win9x/NT 4+: always true now */
+#    if !defined(__WIN95__)
 #        define __WIN95__
 #    endif
 #endif /* Win32 */
@@ -259,9 +215,6 @@
  */
 #include "wx/setup.h"
 
-/* check the consistency of the settings in setup.h */
-#include "wx/chkconf.h"
-
 /*
    adjust the Unicode setting: wxUSE_UNICODE should be defined as 0 or 1
    and is used by wxWidgets, _UNICODE and/or UNICODE may be defined or used by
@@ -292,6 +245,15 @@
 // otherwise MSL headers bring in WIN32 dependant APIs
 #undef UNICODE
 #endif
+
+
+/*
+   check the consistency of the settings in setup.h: note that this must be
+   done after setting wxUSE_UNICODE correctly as it is used in wx/chkconf.h
+ */
+#include "wx/chkconf.h"
+
+
 /*
    some compilers don't support iostream.h any longer, while some of theme
    are not updated with <iostream> yet, so override the users setting here
@@ -510,12 +472,6 @@
 #   include "wx/msw/wince/libraries.h"
 #endif
 
-/* Force inclusion of main PalmOS header: */
-#ifdef __WXPALMOS__
-#   include <PalmOS.h>
-#   undef Abs
-#endif
-
 /*
    This macro can be used to test the gcc version and can be used like this:
 
@@ -535,7 +491,7 @@
    at least maj.min
  */
 #if ( defined( __GNUWIN32__ ) || defined( __MINGW32__ ) || \
-    defined( __CYGWIN__ ) || \
+    ( defined( __CYGWIN__ ) && defined( __WINDOWS__ ) ) || \
       (defined(__WATCOMC__) && __WATCOMC__ >= 1200) ) && \
     !defined(__DOS__) && \
     !defined(__WXMOTIF__) && \
@@ -555,7 +511,7 @@
 #endif
 
 #if defined (__WXMAC__)
-#    ifndef WORDS_BIGENDIAN
+#    if !defined(WORDS_BIGENDIAN) && ( !defined(__MACH__) || ( defined(__BIG_ENDIAN__) && __BIG_ENDIAN__ ) )
 #        define WORDS_BIGENDIAN 1
 #    endif
 #endif

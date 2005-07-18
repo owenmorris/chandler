@@ -245,7 +245,15 @@ DEFINE_EVENT_TYPE(wxEVT_SCROLL_PAGEUP)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_PAGEDOWN)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_THUMBTRACK)
 DEFINE_EVENT_TYPE(wxEVT_SCROLL_THUMBRELEASE)
-DEFINE_EVENT_TYPE(wxEVT_SCROLL_ENDSCROLL)
+DEFINE_EVENT_TYPE(wxEVT_SCROLL_CHANGED)
+
+// see comments in wx/event.h, near wxEVT_SCROLL_ENDSCROLL declaration
+#if wxCHECK_VERSION(2, 7, 0)
+    #error "Remove the lines below, not needed any more"
+#endif
+#undef wxEVT_SCROLL_ENDSCROLL
+extern WXDLLIMPEXP_CORE const wxEventType wxEVT_SCROLL_ENDSCROLL;
+const wxEventType wxEVT_SCROLL_ENDSCROLL = wxEVT_SCROLL_CHANGED;
 
 // Scroll events from wxWindow
 DEFINE_EVENT_TYPE(wxEVT_SCROLLWIN_TOP)
@@ -1044,8 +1052,10 @@ wxEvtHandler::~wxEvtHandler()
     // Remove us from wxPendingEvents if necessary.
     if(wxPendingEventsLocker)
         wxENTER_CRIT_SECT(*wxPendingEventsLocker);
-    if ( wxPendingEvents ) {
-        wxPendingEvents->DeleteObject(this);
+    if ( wxPendingEvents )
+    {
+        // Delete all occurences of this from the list of pending events
+        while (wxPendingEvents->DeleteObject(this)) { } // Do nothing
     }
     if(wxPendingEventsLocker)
         wxLEAVE_CRIT_SECT(*wxPendingEventsLocker);

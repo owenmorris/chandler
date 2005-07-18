@@ -47,6 +47,12 @@ enum
 
 class WXDLLEXPORT wxWindowMSW : public wxWindowBase
 {
+    friend class wxSpinCtrl;
+    friend class wxSlider;
+    friend class wxRadioBox;
+#if defined __VISUALC__ && __VISUALC__ <= 1200
+    friend class wxWindowMSW;
+#endif
 public:
     wxWindowMSW() { Init(); }
 
@@ -385,6 +391,14 @@ public:
         return false;
     }
 
+    // some controls (e.g. wxListBox) need to set the return value themselves
+    //
+    // return true to let parent handle it if we don't, false otherwise
+    virtual bool MSWShouldPropagatePrintChild()
+    {
+        return true;
+    }
+
 
     // Responds to colour changes: passes event on to children.
     void OnSysColourChanged(wxSysColourChangedEvent& event);
@@ -488,6 +502,11 @@ private:
     // current defer window position operation handle (may be NULL)
     WXHANDLE m_hDWP;
 
+    // When deferred positioning is done these hold the pending changes, and
+    // are used for the default values if another size/pos changes is done on
+    // this window before the group of deferred changes is completed.
+    wxPoint     m_pendingPosition;
+    wxSize      m_pendingSize;
 
     DECLARE_DYNAMIC_CLASS(wxWindowMSW)
     DECLARE_NO_COPY_CLASS(wxWindowMSW)

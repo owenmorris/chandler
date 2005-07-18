@@ -69,7 +69,7 @@ wxEND_FLAGS( wxScrollBarStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxScrollBar, wxControl,"wx/scrolbar.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxScrollBar)
-    wxEVENT_RANGE_PROPERTY( Scroll , wxEVT_SCROLL_TOP , wxEVT_SCROLL_ENDSCROLL , wxScrollEvent )
+    wxEVENT_RANGE_PROPERTY( Scroll , wxEVT_SCROLL_TOP , wxEVT_SCROLL_CHANGED , wxScrollEvent )
 
     wxPROPERTY( ThumbPosition , int , SetThumbPosition, GetThumbPosition, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxPROPERTY( Range , int , SetRange, GetRange, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
@@ -205,7 +205,7 @@ bool wxScrollBar::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
 
         case SB_ENDSCROLL:
             nScrollInc = 0;
-            scrollEvent = wxEVT_SCROLL_ENDSCROLL;
+            scrollEvent = wxEVT_SCROLL_CHANGED;
             break;
 
         default:
@@ -224,7 +224,7 @@ bool wxScrollBar::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
         SetThumbPosition(position);
     }
     else if ( scrollEvent != wxEVT_SCROLL_THUMBRELEASE &&
-                scrollEvent != wxEVT_SCROLL_ENDSCROLL )
+                scrollEvent != wxEVT_SCROLL_CHANGED )
     {
         // don't process the event if there is no displacement,
         // unless this is a thumb release or end scroll event.
@@ -325,7 +325,9 @@ wxSize wxScrollBar::DoGetBestSize() const
         h = wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y);
     }
 
-    return wxSize(w, h);
+    wxSize best(w, h);
+    CacheBestSize(best);
+    return best;
 }
 
 WXDWORD wxScrollBar::MSWGetStyle(long style, WXDWORD *exstyle) const
@@ -340,6 +342,15 @@ WXDWORD wxScrollBar::MSWGetStyle(long style, WXDWORD *exstyle) const
     msStyle |= style & wxSB_HORIZONTAL ? SBS_HORZ : SBS_VERT;
 
     return msStyle;
+}
+
+WXHBRUSH wxScrollBar::MSWControlColor(WXHDC pDC, WXHWND hWnd)
+{
+    // unless we have an explicitly set bg colour, use default (gradient under
+    // XP) brush instead of GetBackgroundColour() one as the base class would
+    //
+    // note that fg colour isn't used for a scrollbar
+    return UseBgCol() ? wxControl::MSWControlColor(pDC, hWnd) : NULL;
 }
 
 #endif // wxUSE_SCROLLBAR

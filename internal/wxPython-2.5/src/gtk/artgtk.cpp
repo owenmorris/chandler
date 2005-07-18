@@ -24,6 +24,7 @@
 
 #include "wx/artprov.h"
 #include "wx/module.h"
+#include "wx/gtk/private.h"
 
 #include <gtk/gtk.h>
 
@@ -110,6 +111,7 @@ static const char *wxArtIDToStock(const wxArtID& id)
     ART(wxART_CUT,                                 GTK_STOCK_CUT)
     ART(wxART_PASTE,                               GTK_STOCK_PASTE)
     ART(wxART_DELETE,                              GTK_STOCK_DELETE)
+    ART(wxART_NEW,                                 GTK_STOCK_NEW)
 
     ART(wxART_UNDO,                                GTK_STOCK_UNDO)
     ART(wxART_REDO,                                GTK_STOCK_REDO)

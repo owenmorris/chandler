@@ -40,7 +40,9 @@
 #include "wx/sysopt.h"
 #include "wx/image.h"
 #include "wx/dcmemory.h"
+#include "wx/sysopt.h"
 
+#include "wx/msw/uxtheme.h"
 #include "wx/msw/private.h"
 #include "wx/msw/missing.h"
 
@@ -123,6 +125,7 @@ bool wxStaticBox::Create(wxWindow *parent,
         return false;
 
 #ifndef __WXWINCE__
+    if (!wxSystemOptions::IsFalse(wxT("msw.staticbox.optimized-paint")))
     Connect(wxEVT_PAINT, wxPaintEventHandler(wxStaticBox::OnPaint));
 #endif // !__WXWINCE__
 
@@ -143,7 +146,14 @@ WXDWORD wxStaticBox::MSWGetStyle(long style, WXDWORD *exstyle) const
     styleWin &= ~WS_CLIPCHILDREN;
 
     if ( exstyle )
-        *exstyle = 0;
+    {
+#ifndef __WXWINCE__
+        if (wxSystemOptions::IsFalse(wxT("msw.staticbox.optimized-paint")))
+            *exstyle = WS_EX_TRANSPARENT;
+        else
+#endif
+            *exstyle = 0;
+    }
 
     return styleWin | BS_GROUPBOX;
 }
@@ -159,7 +169,9 @@ wxSize wxStaticBox::DoGetBestSize() const
     wBox += 3*cx;
     int hBox = EDIT_HEIGHT_FROM_CHAR_HEIGHT(cy);
 
-    return wxSize(wBox, hBox);
+    wxSize best(wBox, hBox);
+    CacheBestSize(best);
+    return best;
 }
 
 void wxStaticBox::GetBordersForSizer(int *borderTop, int *borderOther) const
@@ -195,6 +207,24 @@ WXLRESULT wxStaticBox::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPar
             if ( yPos < 10 )
                 return (long)HTCLIENT;
         }
+    }
+
+    if ( nMsg == WM_PRINTCLIENT )
+    {
+        // we have to process WM_PRINTCLIENT ourselves as otherwise child
+        // windows' background (eg buttons in radio box) would never be drawn
+        // unless we have a parent with non default background
+
+        // so check first if we have one
+        if ( !HandlePrintClient((WXHDC)wParam) )
+        {
+            // no, we don't, erase the background ourselves
+            // (don't use our own) - see PaintBackground for explanation
+            wxBrush brush(GetParent()->GetBackgroundColour());
+            wxFillRect(GetHwnd(), (HDC)wParam, GetHbrushOf(brush));
+        }
+
+        return 0;
     }
 
     return wxControl::MSWWindowProc(nMsg, wParam, lParam);
@@ -332,11 +362,31 @@ void wxStaticBox::PaintBackground(wxDC& dc, const RECT& rc)
 
 void wxStaticBox::PaintForeground(wxDC& dc, const RECT& WXUNUSED(rc))
 {
-    // NB: neither setting the text colour nor transparent background mode
-    //     doesn't change anything: the static box def window proc still
-    //     draws the label in its own colours, so if we want to have control
-    //     over this we really have to draw everything ourselves
     MSWDefWindowProc(WM_PAINT, (WPARAM)GetHdcOf(dc), 0);
+
+    // when using XP themes, neither setting the text colour nor transparent
+    // background mode doesn't change anything: the static box def window proc
+    // still draws the label in its own colours, so we need to redraw the text
+    // ourselves if we have a non default fg colour
+    if ( m_hasFgCol && wxUxThemeEngine::GetIfActive() )
+    {
+        // draw over the text in default colour in our colour
+        dc.SetFont(GetFont());
+
+        HDC hdc = GetHdcOf(dc);
+        ::SetTextColor(hdc, GetForegroundColour().GetPixel());
+
+        // FIXME: value of x is hardcoded as this is what it is on my system,
+        //        no idea if it's true everywhere
+        const int y = dc.GetCharHeight();
+        const int x = 9;
+
+        // TODO: RTL?
+        RECT rc = { x, 0, GetSize().x - x, y };
+
+        const wxString label = GetLabel();
+        ::DrawText(hdc, label, label.length(), &rc, DT_SINGLELINE | DT_VCENTER);
+    }
 }
 
 void wxStaticBox::OnPaint(wxPaintEvent& WXUNUSED(event))
