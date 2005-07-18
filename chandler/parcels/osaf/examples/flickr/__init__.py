@@ -165,29 +165,32 @@ class FlickrCollectionController(Block.Block):
         CreateCollectionFromTag(self.itsView, Globals.views[0])
 
 def CreateCollectionFromUsername(repView, cpiaView):
-    myPhotoCollection = PhotoCollection(view = repView)
-    myPhotoCollection.username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+    username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
                                                    "Username",
                                                    "Enter a Flickr Username",
                                                    "")
-    myPhotoCollection.getCollectionFromFlickr(repView)    
-    
-    # Add the channel to the sidebar
-    cpiaView.postEventByName('AddToSidebarWithoutCopying', 
-                             {'items': [myPhotoCollection.sidebarCollection]})
+    if username:
+        myPhotoCollection = PhotoCollection(view = repView)
+        myPhotoCollection.username = username
+        myPhotoCollection.getCollectionFromFlickr(repView)
+
+        # Add the channel to the sidebar
+        cpiaView.postEventByName('AddToSidebarWithoutCopying',
+                                 {'items': [myPhotoCollection.sidebarCollection]})
 
 def CreateCollectionFromTag(repView, cpiaView):
-    myPhotoCollection = PhotoCollection(view = repView)
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
                                                    "Tag",
                                                    "Enter a Flickr Tag",
                                                    "")
-    myPhotoCollection.tag = Tag.getTag(repView, tagstring)
-    myPhotoCollection.getCollectionFromFlickr(repView)    
-    
-    # Add the channel to the sidebar
-    cpiaView.postEventByName('AddToSidebarWithoutCopying', 
-                             {'items': [myPhotoCollection.sidebarCollection]})
+    if tagstring:
+        myPhotoCollection = PhotoCollection(view = repView)
+        myPhotoCollection.tag = Tag.getTag(repView, tagstring)
+        myPhotoCollection.getCollectionFromFlickr(repView)
+
+        # Add the channel to the sidebar
+        cpiaView.postEventByName('AddToSidebarWithoutCopying',
+                                 {'items': [myPhotoCollection.sidebarCollection]})
 
 
 """
