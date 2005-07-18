@@ -212,8 +212,6 @@ class PhotoBlock(Detail.HTMLDetailArea):
 class WakeupCall(WakeupCaller.WakeupCall):
 
     def receiveWakeupCall(self, wakeupCallItem):
-        print "in receiveWakeupCall()"
-
         # We need the view for most repository operations
         view = wakeupCallItem.itsView
         view.refresh()
