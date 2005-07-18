@@ -13,8 +13,10 @@ dialog editors with XRC support.
 If you only want to use the resources, you can choose from a number of editors:
   a) wxDesigner (http://www.roebling.de)
   b) XRCed (wxPython/tools)
-  c) wxWorkshop (http://wxworkshop.sf.net)
-  b) wxrcedit (contrib/utils/wxrcedit)
+  c) DialogBlocks (wxPython/tools)
+
+and others listed on the Resources section of the wxWidgets web
+site.
 
 The XRC format is based on XML 1.0 (please consult W3C's specification). There
 is no DTD available since it is not possible to fully describe the format with
@@ -109,7 +111,7 @@ is allowed to register new object handlers within XRC and extend it to accept
 new <object> classes (and therefore different <object>'s child nodes).
 
 <object_ref> node is identical to <object>, except that it does _not_ have
-"class" property and has additional required property "ref". It's concept is
+"class" property and has additional required property "ref". Its concept is
 similar to Unix symlinks: value of the "ref" property is equal to the value of
 "name" property of some existing node (called referred node) in the resources
 (not necessary top-level).  Referred node's "class" property and all subnodes

@@ -64,12 +64,7 @@ commands manually, please have a look at Makefile to see what must be done.
 Author:  VZ
 Version: $Id$
 
-$Log$
-Revision 2.4  2005/04/29 01:33:24  davids
-
-wxPython v2.6.0 update, part 1
-r=TBD
-
+$Log: tn0002.txt,v $
 Revision 1.5  2004/10/22 19:12:59  KH
 *** empty log message ***
 
