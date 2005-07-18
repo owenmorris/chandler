@@ -33,6 +33,7 @@ import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
 import osaf.framework.scripting.CPIAScript as CPIAScript
+import osaf.framework.webserver.Web as Web
 
 logger = logging.getLogger("mainview")
 logger.setLevel(logging.INFO)
@@ -615,6 +616,19 @@ class MainView(View):
     def onShowPyCrustEvent(self, event):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=True)
+
+    def onActivateWebserverEventUpdateUI (self, event):
+        for server in Web.Server.iterItems(view=self.itsView):
+            print server, server.isActivated()
+            if server.isActivated():
+                event.arguments['Enable'] = False
+                return
+        event.arguments['Enable'] = True
+
+    def onActivateWebserverEvent(self, event):
+        # Test menu item
+        for server in Web.Server.iterItems(view=self.itsView):
+            server.startup()
 
     def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."

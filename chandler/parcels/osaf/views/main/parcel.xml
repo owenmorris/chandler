@@ -359,6 +359,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="ActivateWebserver">
+    <blockName>ActivateWebserver</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
   <BlockEvent itsName="ShareTool">
     <blockName>ShareTool</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -448,6 +454,7 @@
     <childrenBlocks itemref="doc:WxTestHarnessItem"/>
     <childrenBlocks itemref="doc:ShowPyShellItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:ActivateWebserverItem"/>
     <childrenBlocks itemref="doc:ShareMenu"/>
     <childrenBlocks itemref="doc:SkinsMenu"/>
     <childrenBlocks itemref="doc:AddAdditionalViews"/>
@@ -885,6 +892,13 @@
     <title>Show Python shell with object browser...</title>
     <event itemref="doc:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell and object browser</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ActivateWebserverItem">
+    <blockName>ActivateWebserverItem</blockName>
+    <title>Activate built-in webserver</title>
+    <event itemref="doc:ActivateWebserver"/>
+    <helpString>Activates the built-in webserver at localhost:1888</helpString>
   </MenuItem>
 
   <MenuItem itsName="ReloadParcelsItem">

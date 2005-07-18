@@ -101,9 +101,13 @@ class Server(schema.Item):
         site = server.Site(root)
         try:
             reactor.listenTCP(self.port, site)
+            self.activated = True
         except twisted.internet.error.CannotListenError, e:
             logger.error("Twisted error: %s" % str(e))
             print e
+
+    def isActivated(self):
+        return (hasattr(self, 'activated') and self.activated)
 
 class Resource(schema.Item):
     """

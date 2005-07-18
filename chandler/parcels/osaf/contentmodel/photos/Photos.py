@@ -56,19 +56,23 @@ class PhotoMixin(ContentModel.ContentItem):
         data = input.read()
         input.close()
         stream = cStringIO.StringIO(data)
-        exif = EXIF.process_file(stream)
         try:
+            exif = EXIF.process_file(stream)
+
             # Warning, serious nesting ahead
             self.dateTaken = datetime.datetime.fromtimestamp(time.mktime(time.strptime(str(exif['Image DateTime']), "%Y:%m:%d %H:%M:%S")))
-        except Exception, e:
-            logger.debug("Couldn't process EXIF (%s)" % e)
 
-        self.exif = {}
-        for (key, value) in exif.iteritems():
-            if isinstance(value, EXIF.IFD_Tag):
-                self.exif[key] = value.printable
-            else:
-                self.exif[key] = value
+            self.exif = {}
+            for (key, value) in exif.iteritems():
+                if isinstance(value, EXIF.IFD_Tag):
+                    self.exif[key] = value.printable
+                else:
+                    self.exif[key] = value
+
+        except Exception, e:
+            logger.info("Couldn't process EXIF of Photo %s (%s)" % \
+                (self.itsPath, e))
+
 
 
 class Photo(PhotoMixin, Notes.Note):
