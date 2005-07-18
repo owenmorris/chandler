@@ -140,7 +140,7 @@ class PhotoCollection(ContentModel.ContentItem):
             flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
             coll.displayName = self.username
         elif self.tag:
-            flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10)
+            flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-asc")
             coll.displayName = self.tag.displayName
             
         self.sidebarCollection = coll
@@ -193,21 +193,6 @@ def CreateCollectionFromTag(repView, cpiaView):
         # Add the channel to the sidebar
         cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                  {'items': [myPhotoCollection.sidebarCollection]})
-
-
-"""
-class PhotoBlock(Detail.HTMLDetailArea):
-    def getHTMLText(self, item):
-        if item == item.itsView:
-            return
-        if item is not None:
-            
-            # make the html
-            HTMLText = '<html><body>\n\n'
-            HTMLText = HTMLText + '<img src = "' + str(item.imageURL) + '">\n\n</html></body>'
-
-            return HTMLText
-"""
 
 #
 # Wakeup caller
