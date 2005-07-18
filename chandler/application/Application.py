@@ -141,10 +141,11 @@ class wxApplication (wx.App):
           Install a custom displayhook to keep Python from setting the global
         _ (underscore) to the value of the last evaluated expression.  If 
         we don't do this, our mapping of _ to gettext can get overwritten.
-        This is useful in interactive debugging with PyCrust.
+        This is useful in interactive debugging with PyShell.
         """
         def _displayHook(obj):
-            sys.stdout.write(str(obj))
+            if obj is not None:
+                print repr(obj)
 
         sys.displayhook = _displayHook
 
@@ -659,19 +660,42 @@ class wxApplication (wx.App):
         wx.GetApp().PostAsyncEvent (self._DispatchItemMethod, transportItem, 
                                     methodName, transportArgs, keyArgs)
 
-    def ShowDebuggerWindow(self):
+
+    def ShowPyShell(self, withFilling=False):
+        """ A window with a python interpreter """
         import wx.py
-        rootObjects = {
+        import tools.headless as headless
+        headless.view = self.UIRepositoryView
+
+        locals = {
+         "view" : headless.view,
+         "go" : headless.go,
+         "cd" : headless.cd,
+         "pwd" : headless.pwd,
+         "ls" : headless.ls,
+         "grab" : headless.grab,
+         "show" : headless.show,
+         "create" : headless.create,
+         "getKind" : headless.getKind,
+         "ofKind" : headless.ofKind,
+        }
+
+        browseableObjects = {
          "globals" : Globals,
          "parcelsRoot" : self.UIRepositoryView.findPath("//parcels"),
          "repository" : self.UIRepositoryView.repository,
          "wxApplication" : self,
         }
-        self.crustFrame = wx.py.crust.CrustFrame(rootObject=rootObjects,
-         rootLabel="Chandler")
-        self.crustFrame.SetSize((700,700))
-        self.crustFrame.Show(True)
 
+        if withFilling:
+            self.pyFrame = wx.py.crust.CrustFrame(rootObject=browseableObjects,
+                                                  rootLabel="Chandler",
+                                                  locals=locals)
+        else:
+            self.pyFrame = wx.py.shell.ShellFrame(locals=locals)
+
+        self.pyFrame.SetSize((700,700))
+        self.pyFrame.Show(True)
 
     def ShowSchemaMismatchWindow(self):
         logger.info("Schema version of repository doesn't match app")

@@ -2,10 +2,9 @@
 
 <Parcel itsName="photos"
         xmlns="parcel:core"
-        xmlns:cm="parcel:osaf.contentmodel"
         xmlns:web="parcel:osaf.framework.webserver"
         xmlns:serv="parcel:osaf.framework.webserver.servers"
-        xmlns:me="parcel:osaf.framework.webserver.servlets.photos" >
+        >
 
     <web:Resource itsName="photoResource">
         <displayName value="Photo Viewer"/>
@@ -13,11 +12,5 @@
         <resourceClass value="osaf.framework.webserver.servlets.photos.Photos.PhotosResource"/>
         <server itemref="serv:mainServer"/>
     </web:Resource>
-
-    <web:Directory itsName="mediaDirectory">
-        <location value="photomedia"/>
-        <path value="media"/>
-        <server itemref="serv:mainServer"/>
-    </web:Directory>
 
 </Parcel>

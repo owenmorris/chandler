@@ -8,6 +8,7 @@ import application.Globals as Globals
 from application import schema
 import flickr
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
@@ -17,48 +18,46 @@ from repository.util.URL import URL
 import wx
 
 
-class Photo(ContentModel.ContentItem):
+class FlickrPhoto(Photos.Photo):
 
-    schema.kindInfo(displayName="Flickr Photo")
+    schema.kindInfo(displayName="Flickr Photo", displayAttribute="caption")
 
-    flickrId = schema.One(schema.String, displayName="Flickr ID")
+    flickrID = schema.One(schema.String, displayName="Flickr ID")
     imageURL = schema.One(schema.URL, displayName="imageURL")
     dateUploaded = schema.One(schema.DateTime, displayName="Upload Date")
-    dateCreated = schema.One(schema.DateTime, displayName="Image Capture Date")
     tags = schema.Sequence(displayName="Tag")
-    title = schema.One(schema.String, displayName="Title")
+    # title = schema.One(schema.String, displayName="Title")
     owner = schema.One(schema.String, displayName="Owner")
 
-    about = schema.Role(redirectTo="title")
+    # about = schema.Role(redirectTo="title")
     who = schema.Role(redirectTo="owner")
-    date = schema.Role(redirectTo="dateCreated")
-    displayName = schema.Role(redirectTo="title")
 
     def __init__(self, photo=None,*args,**kwargs):
-        super(Photo,self).__init__(*args,**kwargs)
+        super(FlickrPhoto,self).__init__(*args,**kwargs)
         if photo:
             self.populate(photo)
 
     def populate(self, photo):
         self.flickrID = photo.id.encode('ascii', 'replace')
-        self.title = photo.title.encode('ascii', 'replace')
+        self.caption = photo.title.encode('ascii', 'replace')
         self.description = photo.description.encode('ascii', 'replace')
         self.owner = photo.owner.realname.encode('ascii', 'replace')
         self.imageURL = URL(photo.getURL(urlType="source"))
         self.dateUploaded = photo.dateuploaded
-        self.dateCreated = photo.datecreated
+        self.dateTaken = photo.datecreated
         try:
             if photo.tags:
                 self.tags = [Tag.getTag(self.itsView, tag) for tag in photo.tags]
         except Exception, e:
             print "tags failed", e
+        self.importFromURL(self.imageURL)
     
 #copied from Location class
 class Tag(ContentModel.ContentItem):
 
     schema.kindInfo(displayName="Flickr Tag")
 
-    itemsWithTag = schema.Sequence(Photo, inverse=Photo.tags, displayName="Tag")
+    itemsWithTag = schema.Sequence(FlickrPhoto, inverse=FlickrPhoto.tags, displayName="Tag")
 
     def __str__ (self):
         """
@@ -86,9 +85,9 @@ class Tag(ContentModel.ContentItem):
 
         # get all Tag objects whose displayName match the param
         # return the first match found, if any
-        for firstSpot in Tag.iterItems(view, exact=True):
+        for i in Tag.iterItems(view, exact=True):
             if i.displayName == tagName:
-                return firstSpot
+                return i
 
         # make a new Tag
         newTag = Tag(view=view)
@@ -98,7 +97,7 @@ class Tag(ContentModel.ContentItem):
     getTag = classmethod (getTag)
     
 def getPhotoByFlickrID(view, id):
-    for x in Photo.iterItems(view, exact=True):
+    for x in FlickrPhoto.iterItems(view, exact=True):
         if x.flickrID == id:
             return x
     return None
@@ -106,7 +105,7 @@ def getPhotoByFlickrID(view, id):
 def getPhotoByFlickrTitle(view, title):
     photoQuery = view.findPath('//Queries/photoTitleQuery')
     if photoQuery is None:
-        queryString = u'for i in "//parcels/osaf/examples/flickr/Photo" \
+        queryString = u'for i in "//parcels/osaf/examples/flickr/FlickrPhoto" \
                                  where i.title == $0'
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
@@ -120,7 +119,7 @@ class PhotoCollection(ContentModel.ContentItem):
 
     schema.kindInfo(displayName="Collection of Flickr Photos")
 
-    photos = schema.Sequence(Photo, displayName="Photos")
+    photos = schema.Sequence(FlickrPhoto, displayName="Flickr Photos")
     username = schema.One(
         schema.String, displayName="Username", initialValue=''
     )
@@ -143,7 +142,7 @@ class PhotoCollection(ContentModel.ContentItem):
         for i in flickrPhotos:
             photoItem = getPhotoByFlickrID(repView, i.id)
             if photoItem is None:
-                photoItem = Photo(photo=i,view=repView,parent=coll)
+                photoItem = FlickrPhoto(photo=i,view=repView,parent=coll)
             coll.add(photoItem)
         repView.commit()
 
@@ -188,6 +187,7 @@ def CreateCollectionFromTag(repView, cpiaView):
                              {'items': [myPhotoCollection.sidebarCollection]})
 
 
+"""
 class PhotoBlock(Detail.HTMLDetailArea):
     def getHTMLText(self, item):
         if item == item.itsView:
@@ -199,6 +199,7 @@ class PhotoBlock(Detail.HTMLDetailArea):
             HTMLText = HTMLText + '<img src = "' + str(item.imageURL) + '">\n\n</html></body>'
 
             return HTMLText
+"""
 
 #
 # Wakeup caller
@@ -214,11 +215,8 @@ class WakeupCall(WakeupCaller.WakeupCall):
         view.refresh()
 
         # We need the Kind object for PhotoCollection
-        for myPhotoCollection in Photo.PhotoCollection.iterItems(view):
+        for myPhotoCollection in PhotoCollection.iterItems(view):
             myPhotoCollection.update(view)
 
         # We want to commit the changes to the repository
         view.commit()
-
-
-    

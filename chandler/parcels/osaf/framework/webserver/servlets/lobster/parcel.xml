@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itsName="lobster"
+        xmlns="parcel:core"
+        xmlns:web="parcel:osaf.framework.webserver"
+        xmlns:serv="parcel:osaf.framework.webserver.servers"
+        xmlns:me="parcel:osaf.framework.webserver.servlets.lobster" >
+
+    <web:Resource itsName="lobsterResource">
+        <displayName value="Lob Server"/>
+        <location value="lobster"/>
+        <resourceClass value="osaf.framework.webserver.servlets.lobster.Lobster.LobsterResource"/>
+        <server itemref="serv:mainServer"/>
+    </web:Resource>
+
+</Parcel>

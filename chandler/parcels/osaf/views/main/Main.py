@@ -18,6 +18,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
@@ -433,6 +434,37 @@ class MainView(View):
             self.itsView.getLogger().info("Failed exportFile:\n%s" % trace)
             self.setStatusMessage("Export failed")
 
+
+    def onImportImageEvent(self, event):
+        # triggered from "File | Import/Export" Menu
+
+        wildcard = "Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose image to import",
+                              "", "", wildcard,
+                              wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = str(dlg.GetPath())
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            self.setStatusMessage("")
+            return
+
+        self.setStatusMessage ("Importing %s" % path)
+        photo = Photos.Photo(view=self.itsView)
+        (dir, filename) = os.path.split(path)
+        photo.caption = filename
+        photo.importFromFile(path)
+        self.setStatusMessage("")
+
+        # Tell the sidebar we want to go to the All collection
+        self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
+        self.postEventByName ('ApplicationBarAll', { })
+        # Tell the ActiveView to select our new item
+        self.postEventByName ('SelectItemBroadcastInsideActiveView',
+                              {'item':photo})
+
+
     def onCommitRepositoryEvent(self, event):
         # Test menu item
         self.RepositoryCommitWithStatus ()
@@ -576,9 +608,13 @@ class MainView(View):
             self.script = script # remember for next time
             CPIAScript.RunScript(CPIAScript.CPIAScript(script))
 
+    def onShowPyShellEvent(self, event):
+        # Test menu item
+        wx.GetApp().ShowPyShell(withFilling=False)
+
     def onShowPyCrustEvent(self, event):
         # Test menu item
-        wx.GetApp().ShowDebuggerWindow()
+        wx.GetApp().ShowPyShell(withFilling=True)
 
     def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."

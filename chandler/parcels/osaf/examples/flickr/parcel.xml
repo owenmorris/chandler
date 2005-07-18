@@ -45,11 +45,11 @@
 
   <detail:DetailTrunkSubtree>
     <!-- this DetailTrunkSubtree is for FlikrItems -->
-    <key itemref="flickr:Photo"/>
+    <key itemref="flickr:FlickrPhoto"/>
 
     <!-- define UI Elements -->
-    <rootBlocks itemref="detail:MarkupBar"/>
-    <rootBlocks itemref="doc:PhotoBlockItem"/>
+    <!-- <rootBlocks itemref="detail:MarkupBar"/> -->
+    <!-- <rootBlocks itemref="doc:PhotoBlockItem"/> -->
     <rootBlocks itemref="doc:AuthorArea"/>
     <!--rootBlocks itemref="doc:CategoryArea"/-->
   </detail:DetailTrunkSubtree>
@@ -78,11 +78,13 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
   </StaticRedirectAttribute>
 
+  <!--
   <flickr:PhotoBlock itsName="PhotoBlockItem">
     <blockName value="articletext"/>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>    
   </flickr:PhotoBlock>
+  -->
 
   <!-- Block definitions for WakeCallers -->
 

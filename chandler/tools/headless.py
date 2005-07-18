@@ -5,10 +5,12 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 import sys, os
+from types import GeneratorType
+from code import interact
+
 import application.Utility as Utility
 import application.Globals as Globals
 from repository.item.Item import Item
-from code import interact
 
 view = None
 reactorManager = None
@@ -78,24 +80,65 @@ def setDisplayHook():
     sys.displayhook = _displayHook
 
 
+
+# Repository-as-file-system commands:
+
 currentItem = None
 currentList = None
 
-def cd(arg):
+def _argToItem(arg):
     global currentItem
 
     if currentItem is None:
         currentItem = view
 
-    if isinstance(arg, (int, long)):
-        newItem = currentList[arg-1] # arg is a number
-    else:
-        newItem = currentItem.findPath(arg)
+    if arg is None:
+        return currentItem
 
-    if newItem is not None:
-        currentItem = newItem
+    # arg is a number
+    if isinstance(arg, (int, long)):
+        try:
+            return currentList[arg-1]
+        except:
+            return None
+
+    # arg is an Item
+    elif isinstance(arg, Item):
+        return arg
+
+    # arg is a string (path, either absolute or relative to currentItem)
     else:
-        print "path not found:", arg
+        return currentItem.findPath(arg)
+
+def getKind(kindName):
+    kindKind = view.findPath("//Schema/Core/Kind")
+    matching = []
+    for kind in kindKind.iterItems():
+        if kind.itsName == kindName:
+            matching.append(kind)
+    if len(matching) == 0:
+        return None
+    return matching[0]
+
+def ofKind(kindName, recursive=True):
+    kind = getKind(kindName)
+    for item in kind.iterItems(recursive=recursive):
+        yield item
+
+def create(kindName):
+    kind = getKind(kindName)
+    return kind.newItem()
+
+def cd(arg):
+    global currentItem
+
+    item = _argToItem(arg)
+
+    if item is not None:
+        currentItem = item
+        print "Current item:", item.itsPath
+    else:
+        print "no matching item"
 
 def pwd():
     global currentItem
@@ -106,64 +149,42 @@ def pwd():
     print currentItem.itsPath
 
 def ls(arg=None):
-    global currentItem, currentList
+    global currentList
 
-    if currentItem is None:
-        currentItem = view
 
-    if arg is None:
-        item = currentItem
+    if isinstance(arg, GeneratorType):
+        currentList = []
+        for item in arg:
+            currentList.append(item)
     else:
-        item = currentItem.findPath(arg)
-
-    print "Children of %s:" % item.itsPath
-    currentList = []
-    for child in item.iterChildren():
-        currentList.append(child)
+        item = _argToItem(arg)
+        currentList = []
+        for child in item.iterChildren():
+            currentList.append(child)
 
     currentList.sort(lambda x, y: cmp(str(x.getItemDisplayName()).lower(), str(y.getItemDisplayName()).lower()))
 
     count = 1
-    for child in currentList:
-        kind = child.itsKind
+    for item in currentList:
+        kind = item.itsKind
         if kind is None:
             kindName = "<Kindless>"
         else:
             kindName = kind.getItemDisplayName()
         print "%3d. %s (%s)" % (count,
-                                child.getItemDisplayName(),
+                                item.getItemDisplayName(),
                                 kindName)
         count += 1
 
 def grab(arg=None):
-    global currentItem
+    return _argToItem(arg)
 
-    if arg is None:
-        if currentItem is None:
-            currentItem = view
-        return currentItem
-
-    if isinstance(arg, (int, long)):
-        return currentList[arg-1]
-
-    if currentItem is None:
-        currentItem = view
-    return currentItem.findPath(arg)
 
 def show(arg=None, recursive=False):
-    global currentItem
+    item = _argToItem(arg)
 
-    if arg is None:
-        if currentItem is None:
-            currentItem = view
-        item = currentItem.itsPath
+    item.printItem(recursive)
 
-    if isinstance(arg, (int, long)):
-        item = currentList[arg-1].itsPath
-    elif isinstance(arg, Item):
-        item = arg.itsPath
-
-    currentItem.findPath(item).printItem(recursive)
 
 def readme():
     print """
@@ -183,26 +204,40 @@ twisted, commit the repository, and exit the program.
 Some helper methods have been defined to make it easy to move around within
 the repository:  cd, pwd, ls, grab, show
 
-- cd(repository path or list number)
-    Either pass in a path string like "//userdata", or the number of an item
-    as displayed in the most recent ls() call
+- cd(item or repository path or list number)
+    Either pass in an item, a path string like "//userdata", or the number of
+    an item as displayed in the most recent ls() call
 
 - pwd()
     Prints the repository path of the "current" item (the item you last
     cd'ed to)
 
-- ls()
-    Lists all the child items of the "current" item
+- ls(item or repository path or list number or iterator or None)
+    Lists all the child items of the argument, which is either an item,
+    a repository path, a previous ls() number, an iterator, or None which
+    will use the "current" item
 
-- grab(list number or None)
-    Returns the item corresponding to the number as displayed in the most
-    recent ls() call; if no arg is passed, it returns the "current" item
+- grab(item or repository path or list number or None)
+    Returns the item corresponding to the argument, which can be an item,
+    a repository path, or a previous ls() number, or None which will return
+    the "current" item
 
 - show(item or list number or repository path or None, recursive=False)
     Prints out the attributes of an item, and the argument can be an item,
     a number from the most recent ls(), a repository path, or if nothing
     is passed in it will use the "current" item.  There is an optional
     'recursive' boolean argument which defaults to False.
+
+- create(kind name)
+    Creates and returns an item of the kind 'kind name'
+
+- getKind(kind name)
+    Returns the kind with that name
+
+- ofKind(kind name)
+    Returns an iterator of all items of that kind; nest this within an ls()
+    call like:  ls( ofKind("RSSItem") )
+
 
 """
 
@@ -248,6 +283,9 @@ def main():
                    "ls"         : ls,
                    "grab"       : grab,
                    "show"       : show,
+                   "create"     : create,
+                   "getKind"    : getKind,
+                   "ofKind"     : ofKind,
                  })
 
         print "Shutting down..."

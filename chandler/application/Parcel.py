@@ -3,7 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import sys, os, logging
+import sys, os, logging, mimetypes
 import xml.sax
 import xml.sax.handler
 
@@ -911,6 +911,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     _DELAYED_LITERAL    = 1
     _DELAYED_UUIDOF     = 2
     _DELAYED_RESET      = 3
+    _DELAYED_FILE       = 4
 
     def saveState(self, file=None, line=None):
         if not file:
@@ -1115,6 +1116,11 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 self.currentAliasName = None
 
+        elif attrs.has_key((None, 'file')):
+            # If it has 'file', the value will be loaded from that file
+            element = 'File'
+            currentValue = attrs.getValue((None, 'file'))
+
         elif attrs.has_key((None, 'ref')):
             # If it has a ref, assume its a reference attribute
             print "Deprecation warning: 'ref' should be 'itemref' at", \
@@ -1297,7 +1303,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                "attrName"   : currentElement.elementName,
                "key"        : None,
                "copyName"   : None,
-               "file"       : self.locator.getSystemId(),
+               "file"       : self.file,
                "line"       : self.locator.getLineNumber()
             }
             
@@ -1309,6 +1315,13 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 assignment["copyName"] = self.currentCopyName
                 assignment["aliasName"] = self.currentAliasName
 
+            elif currentElement.elementType == 'File':
+                (namespace, name) = self.getNamespaceName(currentElement.value)
+                assignment["assignType"] = self._DELAYED_FILE
+                assignment["namespace"] = namespace
+                assignment["name"] = name
+                assignment["value"] = currentElement.value
+                
             elif currentElement.elementType == 'UuidOf':
                 (namespace, name) = self.getNamespaceName(currentElement.value)
                 assignment["assignType"] = self._DELAYED_UUIDOF
@@ -1495,14 +1508,14 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             attributeName = str(assignment["attrName"])
             reloading = assignment["reloading"]
             line = assignment["line"]
-            file = assignment["file"]
+            xmlfile = assignment["file"]
             if assignment.has_key("key"):
                 key = assignment["key"]
             else:
                 key = None
 
 
-            self.saveState(line=line, file=file)
+            self.saveState(line=line, file=xmlfile)
 
             #@@@Temporary testing tool written by Morgen -- DJA
             if timing: util.timing.begin("Attribute assignments")
@@ -1611,6 +1624,19 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
 
+            elif assignment["assignType"] == self._DELAYED_FILE:
+                directory = os.path.abspath(os.path.dirname(xmlfile))
+                fileName = assignment["value"]
+                filePath = os.path.join(directory, fileName)
+                (mimeType, encoding) = mimetypes.guess_type(fileName)
+                data = file(filePath, "rb").read()
+                lob = item.getAttributeAspect(attributeName, \
+                    'type').makeValue(None, mimetype=mimeType)
+                stream = lob.getOutputStream()
+                stream.write(data)
+                stream.close()
+                setattr(item, attributeName, lob)
+
             elif assignment["assignType"] == self._DELAYED_LITERAL:
 
                 rawValue = assignment["value"]
@@ -1701,7 +1727,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 
             if assignmentCallable is not None:
                 if copiedAnAssignment:
-                    self.manager.addDelayedCall(item, file, line, assignmentCallable, assignmentArgs, assignmentKeywords)
+                    self.manager.addDelayedCall(item, xmlfile, line,
+                                                assignmentCallable,
+                                                assignmentArgs,
+                                                assignmentKeywords)
                 else:
                     try:
                         if assignmentKeywords is not None:

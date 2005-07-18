@@ -92,9 +92,10 @@ class PublishCollectionDialog(wx.Dialog):
                   self.OnChangeAccount,
                   id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
 
-        # Not supported yet:
-        wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
+        self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
+        self.CheckboxShareAlarms.SetValue(True)
+        self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
+        self.CheckboxShareStatus.SetValue(True)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -118,8 +119,6 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Not yet supported
         wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS").Enable(False)
-        wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS").Enable(False)
 
         # Controls for managing filtered shares:
 
@@ -145,9 +144,15 @@ class PublishCollectionDialog(wx.Dialog):
                         self.CheckboxEvents.GetId(),
                         self.OnFilterClicked)
 
+        self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
+        self.CheckboxShareAlarms.Enable(True)
+        self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
+        self.CheckboxShareStatus.Enable(True)
+
         self.filterKinds = self.shareXML.filterKinds
 
-        self._loadFilterState()
+        self._loadKindFilterState()
+        self._loadAttributeFilterState(self.shareXML)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -175,11 +180,35 @@ class PublishCollectionDialog(wx.Dialog):
 
 
     def OnManageDone(self, evt):
-        self._saveFilterState()
+        self._saveKindFilterState()
+        for share in self.collection.shares:
+            self._saveAttributeFilterState(share)
         self.EndModal(False)
 
+    def _loadAttributeFilterState(self, share):
+        self.CheckboxShareAlarms.SetValue("reminderTime" not in \
+                                          share.filterAttributes)
+        self.CheckboxShareStatus.SetValue("transparency" not in \
+                                          share.filterAttributes)
 
-    def _loadFilterState(self):
+
+    def _saveAttributeFilterState(self, share):
+        if not self.CheckboxShareAlarms.GetValue():
+            if "reminderTime" not in share.filterAttributes:
+                share.filterAttributes.append("reminderTime")
+        else:
+            if "reminderTime" in share.filterAttributes:
+                share.filterAttributes.remove("reminderTime")
+
+        if not self.CheckboxShareStatus.GetValue():
+            if "transparency" not in share.filterAttributes:
+                share.filterAttributes.append("transparency")
+        else:
+            if "transparency" in share.filterAttributes:
+                share.filterAttributes.remove("transparency")
+
+
+    def _loadKindFilterState(self):
         # Based on which kinds are listed in filterKinds, update the UI
 
         if len(self.filterKinds) == 0:      # No filtering
@@ -215,7 +244,7 @@ class PublishCollectionDialog(wx.Dialog):
                 self.CheckboxEvents.SetValue(False)
 
 
-    def _saveFilterState(self):
+    def _saveKindFilterState(self):
         # Examine the values in the UI and make the appropriate changes to the
         # Share's filter
 
@@ -238,11 +267,13 @@ class PublishCollectionDialog(wx.Dialog):
         self.shareXML.filterKinds = self.filterKinds
 
 
+
+
     def OnAllItemsClicked(self, evt):
         # Clear the filter kinds list
 
         self.filterKinds = []
-        self._loadFilterState()
+        self._loadKindFilterState()
 
 
     def OnFilterClicked(self, evt):
@@ -252,6 +283,7 @@ class PublishCollectionDialog(wx.Dialog):
 
     def OnPublish(self, evt):
         # Publish the collection
+
 
         # Update the UI by disabling/hiding various panels, and swapping in a
         # new set of buttons
@@ -295,6 +327,7 @@ class PublishCollectionDialog(wx.Dialog):
                                                 account=account)
             self.shareXML = shareXML
             shareXML.displayName = shareName
+            self._saveAttributeFilterState(shareXML)
 
             # Create the secondary (.ics) share object
             iCalName = "%s.ics" % shareNameSafe
@@ -305,6 +338,7 @@ class PublishCollectionDialog(wx.Dialog):
                                                  account=account)
             self.shareICal = shareICal
             shareICal.displayName = "%s.ics" % shareName
+            self._saveAttributeFilterState(shareICal)
 
             # For the .ics share, use ICalendarFormat instead
             format = ICalendar.ICalendarFormat(view=self.view)

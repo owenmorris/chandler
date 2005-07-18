@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itsName="photos"
+    xmlns="parcel:core"
+    xmlns:blocks="parcel:osaf.framework.blocks"
+    xmlns:detail="parcel:osaf.framework.blocks.detail"
+    xmlns:contacts="parcel:osaf.contentmodel.contacts"
+    xmlns:photos="parcel:osaf.contentmodel.photos">
+
+    <!-- Block definitions for detail view -->
+    <detail:DetailTrunkSubtree itsName="PhotoSubtree">
+        <key itemref="photos:PhotoMixin"/>
+        <rootBlocks itemref="photos:PhotoDetails"/>
+    </detail:DetailTrunkSubtree>
+
+    <blocks:ContentItemDetail itsName="PhotoDetails">
+        <blockName value="PhotoDetails"/>
+        <orientationEnum>Vertical</orientationEnum>
+        <childrenBlocks itemref="photos:PhotoImage"/>
+    </blocks:ContentItemDetail>
+
+    <blocks:AEBlock itsName="PhotoImage"
+        itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+        <blockName value="AEPhotoImage"/>
+        <viewAttribute value="data"/>
+        <border>2, 2, 2, 2</border>
+        <presentationStyle itemref="photos:PhotoImagePresentation"/>
+    </blocks:AEBlock>
+
+    <blocks:PresentationStyle itsName="PhotoImagePresentation">
+        <format value="Image"/>
+    </blocks:PresentationStyle>
+
+    <photos:Photo itsName="WelcomeNote">
+      <caption value="Welcome to Chandler 0.5"/>
+      <data file="TeamOSAF.jpg" />
+      <dateTaken value="2004-07-02 11:45:50"/>
+      <body value="Welcome to the Chandler 0.5 Release! &#x0a; &#x0a;Chandler 0.5 contains support for early adopter developers who want to start building parcels. For example, developers now can create form-based parcels extending the kinds of information that Chandler manages. This release also brings significant improvements to infrastructure areas such as sharing, and to overall performance and reliability. &#x0a; &#x0a;In addition to the maturing developer infrastructure, Chandler 0.5 begins to focus on fleshing out calendar features and functionality, supporting basic individual and collaborative calendaring tasks. &#x0a; &#x0a;As you get started, be sure to set up your email and WebDAV account information under the File > Accounts menu.&#x0a; &#x0a;For a self-guided demo with accompanying screenshots, point your browser to:&#x0a;   http://www.osafoundation.org/0.5/GuidedTour.htm&#x0a; &#x0a;For more details on this release, please visit:&#x0a;   http://wiki.osafoundation.org/bin/view/Chandler/ChandlerZeroPointFiveReadme&#x0a; &#x0a;Please note, this release is still intended to be experimental, do not trust your real data with this version. An experimental file import/export feature is available to backup your calendar data.&#x0a; &#x0a;Thank you for trying Chandler. Your feedback is welcome on our mail lists:&#x0a;   http://wiki.osafoundation.org/bin/view/Chandler/OsafMailingLists&#x0a; &#x0a;The Chandler Team" />
+      <creator itemref="photos:OSAFContact"/>
+    </photos:Photo>
+
+    <contacts:Contact itsName="OSAFContact">
+        <description value="A Contact to represent OSAF, as creator of the welcome note"/>
+        <emailAddress value="dev@osafoundation.org"/>
+        <contactName itemref="photos:OSAFContact/OSAFContactName"/>
+
+        <contacts:ContactName itsName="OSAFContactName">
+            <firstName value="OSAF"/>
+            <lastName value="Development"/>
+        </contacts:ContactName>
+
+    </contacts:Contact>
+
+</Parcel>

@@ -28,6 +28,7 @@
   <doc:AttributeEditor itsName="Integer"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Kind"><className>osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Lob"><className>osaf.framework.attributeEditors.AttributeEditors.LobAttributeEditor</className></doc:AttributeEditor>
+  <doc:AttributeEditor itsName="Lob+Image"><className>osaf.framework.attributeEditors.AttributeEditors.LobImageAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="Location"><className>osaf.framework.attributeEditors.AttributeEditors.LocationAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="SharingStatusEnum"><className>osaf.framework.attributeEditors.AttributeEditors.EnumAttributeEditor</className></doc:AttributeEditor>
   <doc:AttributeEditor itsName="String"><className>osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor</className></doc:AttributeEditor>

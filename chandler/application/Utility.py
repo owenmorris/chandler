@@ -14,7 +14,7 @@ from repository.persistence.RepositoryError \
 from repository.item.RefCollections import RefList
 
 # Increment this value whenever the schema changes
-SCHEMA_VERSION = "24"
+SCHEMA_VERSION = "25"
 
 logger = None # initialized in initLogging()
 

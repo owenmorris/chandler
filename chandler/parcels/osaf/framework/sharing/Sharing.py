@@ -98,9 +98,11 @@ class Share(ContentModel.ContentItem):
         doc = 'The list of kinds to import/export',
         initialValue = [],
     )
+    filterAttributes = schema.Sequence(schema.String, initialValue=[])
 
     schema.addClouds(
-        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterKinds])
+        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterKinds,
+                                        filterAttributes])
     )
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
@@ -1503,21 +1505,27 @@ class CloudXMLFormat(ImportExportFormat):
     def __collectAttributes(self, item):
         attributes = {}
         skip = {}
+        for attrName in self.share.filterAttributes:
+            skip[attrName] = 1
+
         for cloud in item.itsKind.getClouds(self.cloudAlias):
             for (alias, endpoint, inCloud) in cloud.iterEndpoints(self.cloudAlias):
                 # @@@MOR for now, don't support endpoint attribute 'chains'
                 attrName = endpoint.attribute[0]
-                
+
                 # An includePolicy of 'none' is how we override an inherited
                 # endpoint
                 if endpoint.includePolicy == 'none':
                     skip[attrName] = 1
-                    
+
                 attributes[attrName] = endpoint
 
         for attrName in skip.iterkeys():
-            del attributes[attrName]
-            
+            try:
+                del attributes[attrName]
+            except:
+                pass
+
         return attributes
 
 

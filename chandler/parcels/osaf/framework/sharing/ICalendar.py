@@ -29,7 +29,7 @@ def dateForVObject(dt, asDate = False):
     else:
         return dt.replace(tzinfo=localtime).astimezone(utc)
 
-def itemsToVObject(view, items, cal=None):
+def itemsToVObject(view, items, cal=None, filters=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
 
     Chandler doesn't do recurrence yet, so for now we don't worry
@@ -69,13 +69,16 @@ def itemsToVObject(view, items, cal=None):
                 comp.add('dtend').value = dateForVObject(item.endTime,item.allDay)
         except AttributeError:
             pass
-        try:
-            if taskorevent == 'EVENT':
-                status = item.transparency.upper()
-                if status == 'FYI': status = 'CANCELLED'
-                comp.add('status').value = status
-        except AttributeError:
-            pass
+
+        if not filters or "transparency" not in filters:
+            try:
+                if taskorevent == 'EVENT':
+                    status = item.transparency.upper()
+                    if status == 'FYI': status = 'CANCELLED'
+                    comp.add('status').value = status
+            except AttributeError:
+                pass
+
         try:
             comp.add('description').value = item.body.getReader().read()
         except AttributeError:
@@ -84,11 +87,15 @@ def itemsToVObject(view, items, cal=None):
             comp.add('location').value = item.location.displayName
         except AttributeError:
             pass
-        try:
-            comp.add('valarm').add('trigger').value = \
-              dateForVObject(item.reminderTime) - dateForVObject(item.startTime)
-        except AttributeError:
-            pass
+
+        if not filters or "reminderTime" not in filters:
+            try:
+                comp.add('valarm').add('trigger').value = \
+                  dateForVObject(item.reminderTime) - \
+                  dateForVObject(item.startTime)
+            except AttributeError:
+                pass
+
     return cal
 
 class ICalendarFormat(Sharing.ImportExportFormat):
@@ -128,6 +135,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # 'contents':
 
         view = self.itsView
+        filters = self.share.filterAttributes
         
         newItemParent = self.findPath("//userdata")
         eventKind = self.itsView.findPath(self._calendarEventPath)
@@ -285,7 +293,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     if duration is not None:
                         eventItem.dueDate = dt + duration
                 
-                eventItem.transparency = status
+                if not filters or "transparency" not in filters:
+                    eventItem.transparency = status
                 
                 # I think Item.description describes a Kind, not userdata, so
                 # I'm using DESCRIPTION <-> body  
@@ -296,8 +305,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem.location = Calendar.Location.getLocation(view,
                                                                        location)
                 
-                if reminderDelta is not None:
-                    eventItem.reminderTime = dt + reminderDelta
+                if not filters or "reminderTime" not in filters:
+                    if reminderDelta is not None:
+                        eventItem.reminderTime = dt + reminderDelta
 
                 item.add(eventItem)
                 logger.debug("Imported %s %s" % (eventItem.displayName,
@@ -309,7 +319,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return item
 
     def exportProcess(self, share, depth=0):
-        cal = itemsToVObject(self.itsView, share.contents)
+        cal = itemsToVObject(self.itsView, share.contents,
+                             filters=self.share.filterAttributes)
         try:
             cal.add('x-wr-calname').value = share.contents.displayName
         except:
@@ -327,5 +338,6 @@ class CalDAVFormat(ICalendarFormat):
         """Item may be a Share or an individual Item, return None if Share."""
         if isinstance(item, Sharing.Share):
             return None
-        cal = itemsToVObject(self.itsView, [item])
+        cal = itemsToVObject(self.itsView, [item],
+                             filters=self.share.filterAttributes)
         return cal.serialize()

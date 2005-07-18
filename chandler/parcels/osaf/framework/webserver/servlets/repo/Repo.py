@@ -524,10 +524,14 @@ def RenderKindQuery(repoView, item):
 
     output = []
     try:
+        items = []
         for i in repository.item.Query.KindQuery().run([item]):
+            items.append(i)
+        items.sort(lambda x, y: cmp(str(x.getItemDisplayName()).lower(), str(y.getItemDisplayName()).lower()))
+        for i in items:
             output.append("<a href=%s>'%s'</a>  (%s) %s %s" % \
-                          (toLink(i.itsPath), i.getItemDisplayName(), 
-                           i.itsKind.itsName, i.itsPath, 
+                          (toLink(i.itsPath), i.getItemDisplayName(),
+                           i.itsKind.itsName, i.itsPath,
                            hasattr(i, 'widget') and " (rendered)" or ""))
         result += ("<br>".join(output))
     except Exception, e:
@@ -804,8 +808,12 @@ def RenderItem(repoView, item):
                      (key, value[key].itsName, toLink( value[key].itsPath),
                       value[key].itsPath)
                 except:
-                    result += "%s: %s (%s)<br>" % (key, clean(value[key]),
-                     clean(type(value[key])))
+                    try:
+                        result += "%s: %s (%s)<br>" % (key, clean(value[key]),
+                         clean(type(value[key])))
+                    except:
+                        result += "%s: <i>(Can't display)</i> (%s)<br>" % \
+                            (key, clean(type(value[key])))
 
             result += "</td></tr>\n"
             count += 1
@@ -815,19 +823,23 @@ def RenderItem(repoView, item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            try:
-                theType = TypeHandler.typeHandler(repoView,
-                 value)
-                typeName = theType.getImplementationType().__name__
-                result += "<b>(%s)</b> " % typeName
-                uStr = value.getReader().read()
-                content = uStr.encode('ascii', 'replace')
-                result += clean(content)
+            mimeType = value.mimetype
+            if mimeType.startswith("image/"):
+                result += "<img src=/lobster/%s/%s><br>" % (item.itsUUID, name)
+                result += "(%s)<br>" % mimeType
+            else:
+                try:
+                    theType = TypeHandler.typeHandler(repoView,
+                     value)
+                    typeName = theType.getImplementationType().__name__
+                    result += "<b>(%s)</b> " % typeName
+                    uStr = value.getReader().read()
+                    content = uStr.encode('ascii', 'replace')
+                    result += clean(content)
 
-            except Exception, e:
-                result += clean(str(e))
-                result += "(Couldn't read Lob content)"
-                raise
+                except Exception, e:
+                    result += clean(str(e))
+                    result += "(Couldn't read Lob content)"
 
             result += "</td></tr>\n"
             count += 1

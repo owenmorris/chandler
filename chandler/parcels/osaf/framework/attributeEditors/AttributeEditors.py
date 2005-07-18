@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
+import os, cStringIO
 import wx
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
@@ -610,7 +610,46 @@ class LobAttributeEditor (StringAttributeEditor):
                 writer.close()
             self.AttributeChanged()
             #logger.debug("LobAE.set: after changing, new value is \"%s\"" % self.GetAttributeValue(item, attributeName))
-        
+
+
+class LobImageAttributeEditor (BaseAttributeEditor):
+
+    def ReadOnly (self, (item, attribute)):
+        return True
+
+    def CreateControl(self, forEditing, parentWidget, id, parentBlock, font):
+        return wx.StaticBitmap(parentWidget, id, wx.NullBitmap, (0, 0))
+
+    def __getBitmapFromLob(self, attributeValue):
+        input = attributeValue.getInputStream()
+        data = input.read()
+        input.close()
+        stream = cStringIO.StringIO(data)
+        return wx.BitmapFromImage(wx.ImageFromStream(stream))
+
+    def BeginControlEdit(self, item, attributeName, control):
+
+        try:
+            bmp = self.__getBitmapFromLob(getattr(item, attributeName))
+        except Exception, e:
+            logger.debug("Couldn't render image (%s)" % str(e))
+            bmp = wx.NullBitmap
+
+        control.SetBitmap(bmp)
+
+        """
+        try:
+            item.importFromFile(item.file)
+            bmp = self.__getBitmapFromLob(getattr(item, attributeName))
+            control.SetBitmap(bmp)
+            return
+            value = getattr(item, attributeName)
+            control.SetBitmap(bmp)
+        except:
+            control.SetBitmap(wx.NullBitmap)
+        """
+
+
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:

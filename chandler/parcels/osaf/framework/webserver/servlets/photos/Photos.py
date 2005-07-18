@@ -1,54 +1,53 @@
 
 from twisted.web import resource
+import osaf.contentmodel.photos.Photos as Photos
 import traceback
-import os, sys
+import os, sys, datetime
 
 class PhotosResource(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
-        try: # outer try to handle exceptions
 
-            try: # inner try to restore repository view
+        result = []
+        output = result.append
 
-                # The Server item will give us the repositoryView during
-                # startup.  Set it to be the current view and restore the
-                # previous view when we're done.
-                repoView = self.repositoryView
-                prevView = repoView.setCurrentView()
+        try:
 
-                photoParcel = repoView.findPath("//parcels/osaf/framework/webserver/servlets/photos")
+            # The Server item will give us the repositoryView during
+            # startup.
+            repoView = self.repositoryView
 
-                if not request.postpath or request.postpath[0] == "":
-                    result = "<html><head><title>Photos</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>"
-                    result += "<body>"
-                    result += "<h3>Photos</h3><br>"
-                    photos = photoParcel.findPath("data")
-                    for photo in photos.iterChildren():
-                        result += "&nbsp;&nbsp;&nbsp;<a href=/photos/%s>%s</a><br>" % (photo.itsName, photo.caption)
-                    result += "</body></html>"
-                    return str(result)
+            if not request.postpath or request.postpath[0] == "":
+                output("<html><head><title>Photos</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>")
+                output("<body>")
+                output("<h3>Photos</h3><br>")
 
-                name = request.postpath[0]
-                photo = photoParcel.findPath("data/%s" % name)
+                photoList = []
+                for photo in Photos.Photo.iterItems(view=repoView):
+                    photoList.append(photo)
+                    if not hasattr(photo, 'dateTaken'):
+                        photo.dateTaken = datetime.datetime.now()
+
+                photoList.sort(lambda x, y: cmp(y.dateTaken, x.dateTaken))
+
+                for photo in photoList:
+                    output("<a href=/photos/%s><img src=/lobster/%s/data height=128 alt='%s'></a>" % (photo.itsUUID, photo.itsUUID, photo.caption))
+                output("</body></html>")
+
+            else:
+                uuid = request.postpath[0]
+                photo = repoView.findUUID(uuid)
                 if photo is None:
-                    result += "<h3>Photo not found: %s</h3>" % name
-                    return str(result)
+                    output("<h3>Photo not found: %s</h3>" % uuid)
 
-                templates = os.path.join(os.path.dirname(photoParcel.file),
-                 "templates")
-                header = file(os.path.join(templates, "head.html"), "r")
-                result = "\n".join(header.readlines())
-                header.close()
+                else:
+                    output("<html><head><title>%s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % photo.caption)
+                    output("<body>")
 
-                result += "<span class=title>%s</span><br>" % photo.caption
-                result += "<img src=/photomedia/%s>" % photo.file
-                footer = file(os.path.join(templates, "foot.html"), "r")
-                result += "\n".join(footer.readlines())
-                footer.close()
-            finally:
-                prevView.setCurrentView()
+                    output("<span class=title>%s</span><br>" % photo.caption)
+                    output("<img src=/lobster/%s/data>" % photo.itsUUID)
 
         except Exception, e:
-            result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
+            output("<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback))))
 
-        return str(result)
+        return str("\n".join(result))
