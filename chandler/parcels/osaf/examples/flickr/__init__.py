@@ -34,6 +34,8 @@ class FlickrPhoto(Photos.Photo):
     # about = schema.Role(redirectTo="title")
     who = schema.Role(redirectTo="owner")
 
+    schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
+
     def __init__(self, photo=None,*args,**kwargs):
         super(FlickrPhoto,self).__init__(*args,**kwargs)
         if photo:
