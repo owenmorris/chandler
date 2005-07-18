@@ -184,10 +184,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         This returns a location to show the editor. By default it is the same
         as the default bounding box
         """
-        position = self.GetBoundsRects()[0].GetPosition()
+        position = self.GetBoundsRects()[0].GetPosition() + self.textOffset
         
         # now offset to account for the time
-        position += (self.textMargin + 3, self.timeHeight + self.textMargin)
+        position += (0, self.timeHeight)
         return position
     
     def GetMaxEditorSize(self):
@@ -394,39 +394,43 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if rectIndex == len(self.GetBoundsRects())-1:
                 hasBottomRightRounded = True
 
-            #if rightSideCutOff:
-                #hasTopRightRounded = False
-                #hasBottomRightRounded = False
-                
-            if not rightSideCutOff:
-                self.DrawDRectangle(dc, itemRect, hasTopRightRounded, hasBottomRightRounded)
-            elif rightSideCutOff:
-                r = itemRect; x,y,w,h = r.x, r.y, r.width, r.height
-                dc.DrawLines(((x+w, y), (x+1,y), (x+1,y+h-1), (x+w,y+h-1)))
-                dc.SetPen(wx.TRANSPARENT_PEN)
-                dc.DrawRectangle(x,y+1,w,h-2)
-                
+            # zero-duration events get fully rounded
+            hasLeftRounded = (item.startTime == item.endTime)
             
-            pen = self.GetStatusPen(outlineColor)
-            pen.SetCap(wx.CAP_BUTT)
-            dc.SetPen(pen)
+            self.DrawEventRectangle(dc, itemRect,
+                                    hasLeftRounded,
+                                    hasTopRightRounded,
+                                    hasBottomRightRounded,
+                                    rightSideCutOff)
             
-            # this refers to the left-hand top/bottom corners - for now
-            # with D-shaped events, they are always square, but eventually
-            # certain types of events will have rounded corners and we'll
-            # have to accomodate them
-            cornerRadius = 0
-            dc.DrawLine(itemRect.x+1, itemRect.y + (cornerRadius*3/4),
-                        itemRect.x+1, itemRect.y + itemRect.height - (cornerRadius*3/4))
+
+            # if the left side is rounded, we don't need a status bar
+            if not hasLeftRounded: 
+                pen = self.GetStatusPen(outlineColor)
+                pen.SetCap(wx.CAP_BUTT)
+                dc.SetPen(pen)
+                dc.DrawLine(itemRect.x+1, itemRect.y,
+                            itemRect.x+1, itemRect.y + itemRect.height)
+            
             dc.SetPen(wx.BLACK_PEN)
 
-            # Shift text
-            x = itemRect.x + self.textMargin + 3
-            y = itemRect.y + self.textMargin
-            width = itemRect.width - (self.textMargin + 10)
+            self.textOffset = wx.Point(self.textMargin, self.textMargin)
             
+            if hasLeftRounded:
+                cornerRadius = 8
+                self.textOffset.x += cornerRadius
+            else:
+                self.textOffset.x += 3
+
+            # Shift text to account for rounded corners
+            x = itemRect.x + self.textOffset.x
+            y = itemRect.y + self.textOffset.y
+            width = itemRect.width - self.textOffset.x - (self.textMargin + 10)
+
             # only draw date/time on first item
             if drawEventText:
+
+                # only draw time on timed events
                 if not isAnyTimeOrAllDay:
                     timeString = "%d:%s" %((time.hour % 12) or 12,
                                            time.strftime("%M %p"))
@@ -451,7 +455,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 # now draw the text of the event
                 textRect = wx.Rect(x, y,
                                    width,
-                                   itemRect.height - lostHeight - self.textMargin)
+                                   itemRect.height - lostHeight - self.textOffset.y)
                 
                 dc.SetFont(styles.eventLabelFont)
                 self.DrawWrappedText(dc, item.displayName, textRect)
@@ -460,15 +464,24 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         if clipRect:
             dc.SetClippingRect(clipRect)
 
-    def DrawDRectangle(self, dc, rect, hasTopRightRounded=True, hasBottomRightRounded=True):
+    def DrawEventRectangle(self, dc, rect,
+                           hasLeftRounded=False,
+                           hasTopRightRounded=True,
+                           hasBottomRightRounded=True,
+                           clipRightSide=False):
         """
-        Make a D-shaped rectangle, optionally specifying if the top and bottom
+        Make a rounded rectangle, optionally specifying if the top and bottom
         right side of the rectangle should have rounded corners. Uses
         clip rect tricks to make sure it is drawn correctly
         
         Side effect: Destroys the clipping region.
         """
 
+        # if your left side is rounded, then everything must be rounded
+        assert ((hasLeftRounded and
+                 hasTopRightRounded and hasBottomRightRounded) or
+                not hasLeftRounded)
+        
         radius = 8
         diameter = radius * 2
 
@@ -476,27 +489,33 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.SetClippingRect(rect)
         
         roundRect = wx.Rect(rect.x, rect.y, rect.width, rect.height)
-        
-        # first widen the whole thing left, this makes sure the 
-        # left rounded corners aren't drawn
-        roundRect.x -= radius
-        roundRect.width += radius
-        
-        # now optionally push the other rounded corners off the top or bottom
+
+        # left/right clipping
+        if not hasLeftRounded:
+            roundRect.x -= radius
+            roundRect.width += radius
+
+        if clipRightSide:
+            roundRect.width += radius;
+            
+        # top/bottom clipping
         if not hasBottomRightRounded:
             roundRect.height += radius
 
         if not hasTopRightRounded:
             roundRect.y -= radius
             roundRect.height += radius
-        
+
         # finally draw the clipped rounded rect
         dc.DrawRoundedRectangleRect(roundRect, radius)
         
         # draw the lefthand and possibly top & bottom borders
-        dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
+        if not hasLeftRounded:
+            dc.DrawLine(rect.x, rect.y, rect.x, rect.y + rect.height)
+
         if not hasBottomRightRounded:
             dc.DrawLine(rect.x, rect.y + rect.height-1, rect.x + rect.width, rect.y + rect.height-1)
+            
         if not hasTopRightRounded:
             dc.DrawLine(rect.x, rect.y, rect.x + rect.width, rect.y)
             
@@ -621,7 +640,9 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             boundsEndTime = min(endTime, absDayEnd)
             
             try:
-                rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
+                rect = ColumnarCanvasItem.MakeRectForRange(calendarCanvas,
+                                                           boundsStartTime,
+                                                           boundsEndTime)
                 rect.x += indent
                 rect.width = width
                 yield rect
@@ -641,7 +662,11 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         # instead similar to getPositionFromDateTime where we pass in a duration
         duration = (endTime - startTime)
         duration = duration.days * 24 + duration.seconds / float(3600)
-        (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(duration * calendarCanvas.hourHeight))
+        if duration == 0:
+            duration = 0.5;
+        (cellWidth, cellHeight) = \
+                    (calendarCanvas.dayWidth,
+                     int(duration * calendarCanvas.hourHeight))
         
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
