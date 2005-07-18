@@ -15,6 +15,8 @@ import osaf.framework.blocks.detail.Detail as Detail
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import repository.query.Query as Query
 from repository.util.URL import URL
+from datetime import datetime
+import dateutil
 import wx
 
 
@@ -24,7 +26,7 @@ class FlickrPhoto(Photos.Photo):
 
     flickrID = schema.One(schema.String, displayName="Flickr ID")
     imageURL = schema.One(schema.URL, displayName="imageURL")
-    dateUploaded = schema.One(schema.DateTime, displayName="Upload Date")
+    datePosted = schema.One(schema.DateTime, displayName="Upload Date")
     tags = schema.Sequence(displayName="Tag")
     # title = schema.One(schema.String, displayName="Title")
     owner = schema.One(schema.String, displayName="Owner")
@@ -43,11 +45,11 @@ class FlickrPhoto(Photos.Photo):
         self.description = photo.description.encode('ascii', 'replace')
         self.owner = photo.owner.realname.encode('ascii', 'replace')
         self.imageURL = URL(photo.getURL(urlType="source"))
-        self.dateUploaded = photo.dateuploaded
-        self.dateTaken = photo.datecreated
+        self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
+        self.dateTaken = dateutil.parser.parse(photo.datetaken)
         try:
             if photo.tags:
-                self.tags = [Tag.getTag(self.itsView, tag) for tag in photo.tags]
+                self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
         except Exception, e:
             print "tags failed", e
         self.importFromURL(self.imageURL)
@@ -97,10 +99,12 @@ class Tag(ContentModel.ContentItem):
     getTag = classmethod (getTag)
     
 def getPhotoByFlickrID(view, id):
-    for x in FlickrPhoto.iterItems(view, exact=True):
-        if x.flickrID == id:
-            return x
-    return None
+    try:
+        for x in FlickrPhoto.iterItems(view, exact=True):
+            if x.flickrID == id:
+                return x
+    except:
+        return None
 
 def getPhotoByFlickrTitle(view, title):
     photoQuery = view.findPath('//Queries/photoTitleQuery')
@@ -148,7 +152,7 @@ class PhotoCollection(ContentModel.ContentItem):
 
     def update(self,repView):
         print "in PhotoCollection.update()"
-#        self.getCollectionFromFlickr(repView)
+        self.getCollectionFromFlickr(repView)
 
 #
 # Block related code

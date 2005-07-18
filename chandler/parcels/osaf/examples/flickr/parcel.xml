@@ -88,14 +88,12 @@
 
   <!-- Block definitions for WakeCallers -->
 
-<!-- 
    <wakeupCall:WakeupCall itsName="Flickr">
-       <wakeupCallClass>flickr.flickrWakeup.WakeupCall</wakeupCallClass>
+       <wakeupCallClass>osaf.examples.flickr.WakeupCall</wakeupCallClass>
        <callOnStartup>True</callOnStartup>
        <enabled>True</enabled>
        <repeat>True</repeat>
-       <delay>00:01:00:00</delay>
+       <delay>00:05:00</delay>
    </wakeupCall:WakeupCall>
--->    
 
 </core:Parcel>
