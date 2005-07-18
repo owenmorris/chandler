@@ -1396,7 +1396,6 @@
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
     <blockName>CalendarSummaryViewTemplate</blockName>
 
-<!-- toggle which you want -->
     <childrenBlocks itemref="doc:CalendarSummaryView"/>
     <!--<childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>-->
 
@@ -1406,62 +1405,63 @@
     <splitPercentage>0.65</splitPercentage>
   </SplitterWindow>
 
+  
+  <!--<calendar:CalendarContainer itsName="CalendarSummaryView">-->
+    <!--<contents itemref="doc:allItemCollection"/>-->
+    <!--<blockName>CalendarSummaryView</blockName>-->
+    <!--<daysPerView>7</daysPerView>-->
+  <!--</calendar:CalendarContainer>-->
+
+<!-- new -->
+
   <calendar:CalendarContainer itsName="CalendarSummaryView">
-    <contents itemref="doc:allItemCollection"/>
-    <blockName>CalendarSummaryView</blockName>
-    <daysPerView>7</daysPerView>
-  </calendar:CalendarContainer>
-
-<!-- experimental -->
-
-  <calrefactor:CalendarContainer itsName="CalendarSummaryViewRefactor">
     <blockName>CalendarSummaryViewRefactor</blockName>
     <childrenBlocks itemref="doc:MainCalendarControl"/>
     <calendarControl itemref="doc:MainCalendarControl"/>
     <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/> -->
     <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
     <orientationEnum>Vertical</orientationEnum>
-  </calrefactor:CalendarContainer>
+  </calendar:CalendarContainer>
 
 
-    <calrefactor:CalendarControl itsName="MainCalendarControl">
+    <calendar:CalendarControl itsName="MainCalendarControl">
       <blockName value="MainCalendarControl"/>
-      <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+      <calendarContainer itemref="doc:CalendarSummaryView"/>
       <stretchFactor value="0"/>
       <!-- set contents to an empty collection somehow... -->
-    </calrefactor:CalendarControl>
+    </calendar:CalendarControl>
   
-    <StaticText itsName="WeekColumnHeader">
-      <blockName value="arel's newfangled week ColumnHeader"/>
-      <title value="arel's newfangled week ColumnHeader goes here"/>
-      <stretchFactor value="0"/>
-    </StaticText>
+    <!--<StaticText itsName="WeekColumnHeader">-->
+      <!--<blockName value="arel's newfangled week ColumnHeader"/>-->
+      <!--<title value="arel's newfangled week ColumnHeader goes here"/>-->
+      <!--<stretchFactor value="0"/>-->
+    <!--</StaticText>-->
   
   
     <SplitterWindow itsName="MainCalendarCanvasSplitter">
       <childrenBlocks itemref="doc:AllDayEvents"/>
       <childrenBlocks itemref="doc:TimedEvents"/>
       
-      <!-- as small as possible; AllDayEvents's SetMinSize() overrides. -->
+      <!-- as small as possible; AllDayEvents's SetMinSize() should override. -->
       <splitPercentage value="0.01"/>
       <orientationEnum>Horizontal</orientationEnum>      
       <stretchFactor value="1"/>
     </SplitterWindow>
   
-      <calrefactor:AllDayEventsCanvas itsName="AllDayEvents">
+      <calendar:AllDayEventsCanvas itsName="AllDayEvents">
         <blockName value="all day events canvas"/>
-        <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+        <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/>
         <contents itemref="doc:allItemCollection"/>
-      </calrefactor:AllDayEventsCanvas>
+      </calendar:AllDayEventsCanvas>
   
-      <calrefactor:TimedEventsCanvas itsName="TimedEvents">
+      <calendar:TimedEventsCanvas itsName="TimedEvents">
         <blockName value="timed events canvas"/>
-        <calendarContainer itemref="doc:CalendarSummaryViewRefactor"/>
+        <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="1"/>
         <contents itemref="doc:allItemCollection"/>
-      </calrefactor:TimedEventsCanvas>
-<!-- end experimental -->
+      </calendar:TimedEventsCanvas>
+<!-- end new -->
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>
@@ -1618,12 +1618,11 @@
 
   <calendar:CalendarContainer itsName="CPIATestWeek">
     <contents itemref="core:None"/>
-    <daysPerView>7</daysPerView>
+    
   </calendar:CalendarContainer>
 
   <calendar:CalendarContainer itsName="CPIATestDay">
     <contents itemref="core:None"/>
-    <daysPerView>1</daysPerView>
   </calendar:CalendarContainer>
 
   <TrunkParentBlock itsName="CPIATestSummaryDetailTPB">

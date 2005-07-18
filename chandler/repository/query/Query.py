@@ -155,9 +155,15 @@ class Query(Item.Item):
                 self._sameViewNames = []
         else:
             if inOtherViews:
-                del self._otherViewSubscribeCallbacks [callbackItem.itsUUID]
+                #@@@ hack to solve KeyError on multiple blocks unsubscribing
+                #from same itemcollection. -brendano
+                if callbackItem.itsUUID in self._otherViewSubscribeCallbacks:
+                    del self._otherViewSubscribeCallbacks [callbackItem.itsUUID]
             if inSameView:
-                del self._sameViewSubscribeCallbacks [callbackItem.itsUUID]
+                #@@@ hack again -brendano
+                if callbackItem.itsUUID in self._sameViewSubscribeCallbacks:
+                    del self._sameViewSubscribeCallbacks [callbackItem.itsUUID]
+                    
                 self._sameViewNames.remove(self.itsView.name)
                 #@@@ remove monitor for items in result set
         
