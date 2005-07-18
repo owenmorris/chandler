@@ -151,7 +151,6 @@ class PhotoCollection(ContentModel.ContentItem):
         repView.commit()
 
     def update(self,repView):
-        print "in PhotoCollection.update()"
         self.getCollectionFromFlickr(repView)
 
 #
