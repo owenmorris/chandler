@@ -601,7 +601,7 @@ class LobAttributeEditor (StringAttributeEditor):
             except AttributeError:
                 #logger.debug("LobAE.Set: Making new lob for \"%s\"" % value)
                 lobType = item.getAttributeAspect (attributeName, "type")
-                lob = lobType.makeValue(value)
+                lob = lobType.makeValue(value, indexed=True)
                 setattr(item, attributeName, lob)
             else:
                 #logger.debug("LobAE.Set: writing new value to lob: \"%s\"" % value)
