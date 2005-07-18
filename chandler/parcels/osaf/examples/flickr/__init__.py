@@ -54,8 +54,8 @@ class FlickrPhoto(Photos.Photo):
         self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
         self.dateTaken = dateutil.parser.parse(photo.datetaken)
         try:
-        if photo.tags:
-            self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
+            if photo.tags:
+                self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
         except Exception, e:
             print "tags failed", e
         self.importFromURL(self.imageURL)
