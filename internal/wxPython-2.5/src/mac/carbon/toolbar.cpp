@@ -844,7 +844,10 @@ wxLogDebug(
         node = node->GetNext();
     }
 
-    bool lastWasRadio = false;
+    bool lastIsRadio = false;
+    bool curIsRadio = false;
+    bool setChoiceInGroup = false;
+
     node = m_tools.GetFirst();
     while (node != NULL)
     {
@@ -856,36 +859,9 @@ wxLogDebug(
             continue;
         }
 
+        // set tool position
+        // for the moment just perform a single row/column alignment
         wxSize cursize = tool->GetSize();
-        bool isRadio = (tool->IsButton() && (tool->GetKind() == wxITEM_RADIO));
-
-        if (isRadio)
-        {
-            if ( !lastWasRadio )
-            {
-                if (tool->Toggle(true))
-                    DoToggleTool(tool, true);
-            }
-            else if (tool->IsToggled())
-            {
-                wxToolBarToolsList::compatibility_iterator nodePrev = node->GetPrevious();
-                while (nodePrev != NULL)
-                {
-                    wxToolBarToolBase *toggleTool = nodePrev->GetData();
-                    if ((toggleTool == NULL) || !toggleTool->IsButton() || (toggleTool->GetKind() != wxITEM_RADIO))
-                        break;
-
-                    if (toggleTool->Toggle(false))
-                        DoToggleTool(toggleTool, false);
-
-                    nodePrev = nodePrev->GetPrevious();
-                }
-            }
-        }
-
-        lastWasRadio = isRadio;
-
-        // for the moment we just do a single row/column alignment
         if (x + cursize.x > maxWidth)
             maxWidth = x + cursize.x;
         if (y + cursize.y > maxHeight)
@@ -902,6 +878,13 @@ wxLogDebug(
             tool->SetPosition( wxPoint( x, y1 ) );
         }
 
+        // update the item positioning state
+        if (GetWindowStyleFlag() & wxTB_VERTICAL)
+            y += cursize.y + kwxMacToolSpacing;
+        else
+            x += cursize.x + kwxMacToolSpacing;
+
+        // install in native HIToolbar
         if (m_macHIToolbarRef != NULL)
         {
             HIToolbarItemRef hiItemRef = tool->GetToolbarItemRef();
@@ -911,18 +894,47 @@ wxLogDebug(
                 if (result == 0)
                     InstallEventHandler(
                         HIObjectGetEventTarget(hiItemRef), GetwxMacToolBarEventHandlerUPP(),
-                        GetEventTypeCount(toolBarEventList), toolBarEventList, tool, NULL);
-
-                if (tool->IsToggled())
-                    DoToggleTool( tool, true );
+                        GetEventTypeCount(toolBarEventList), toolBarEventList, tool, NULL );
             }
         }
 
-        // update the item positioning state
-        if (GetWindowStyleFlag() & wxTB_VERTICAL)
-            y += cursize.y + kwxMacToolSpacing;
+        // update radio button (and group) state
+        lastIsRadio = curIsRadio;
+        curIsRadio = (tool->IsButton() && (tool->GetKind() == wxITEM_RADIO));
+
+        if (!curIsRadio)
+        {
+            if (tool->IsToggled())
+                DoToggleTool( tool, true );
+
+            setChoiceInGroup = false;
+        }
         else
-            x += cursize.x + kwxMacToolSpacing;
+        {
+            if (!lastIsRadio)
+            {
+                if (tool->Toggle( true ))
+                {
+                    DoToggleTool( tool, true );
+                    setChoiceInGroup = true;
+                }
+            }
+            else if (tool->IsToggled())
+            {
+                wxToolBarToolsList::compatibility_iterator nodePrev = node->GetPrevious();
+                while (nodePrev != NULL)
+                {
+                    wxToolBarToolBase *toggleTool = nodePrev->GetData();
+                    if ((toggleTool == NULL) || !toggleTool->IsButton() || (toggleTool->GetKind() != wxITEM_RADIO))
+                        break;
+
+                    if (toggleTool->Toggle( false ))
+                        DoToggleTool( toggleTool, false );
+
+                    nodePrev = nodePrev->GetPrevious();
+                }
+            }
+        }
 
         node = node->GetNext();
     }
@@ -1043,7 +1055,7 @@ void wxToolBar::DoToggleTool( wxToolBarToolBase *t, bool toggle )
         tool->UpdateToggleImage( toggle );
 }
 
-bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
+bool wxToolBar::DoInsertTool( size_t WXUNUSED(pos), wxToolBarToolBase *toolBase )
 {
     wxToolBarTool *tool = wx_static_cast( wxToolBarTool* , toolBase );
     if (tool == NULL)
