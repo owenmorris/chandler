@@ -1053,7 +1053,11 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         view = self.parent.blockItem.itsView
         event = Calendar.CalendarEvent(view=view)
         event.InitOutgoingAttributes()
-        event.startTime = startTime
+
+        # start time is "optional" - callers still must specify None
+        # to be explicit that they want the default time
+        if startTime:
+            event.startTime = startTime
         event.allDay = allDay
         event.anyTime = anyTime
         return event
@@ -1623,16 +1627,17 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def OnCreateItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
 
-        startTime = datetime(newTime.year, newTime.month, newTime.day,
-                             event.startTime.hour,
-                             event.startTime.minute)
+        # creating event with no start time to acquire
+        # defaults for hour/minute
+        event = self.CreateEmptyEvent(None, True, False)
+        event.startTime = datetime.combine(newTime.date(),
+                                           event.startTime.time())
         
-        event = self.CreateEmptyEvent(startTime, True, False)
         event.endTime = event.startTime + timedelta(hours=1)
         
         self.parent.blockItem.AddEventToCollection(event)
         self.OnSelectItem(event)
-        view.commit()
+        self.parent.blockItem.itsView.commit()
         return event
 
     def OnDraggingItem(self, unscrolledPosition):
@@ -2010,9 +2015,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         self.OnSelectItem(event)
 
-        # @@@ Bug#1854 currently this is too slow,
-        # and the event causes flicker
-        #view.commit()
+        self.parent.blockItem.itsView.commit()
         canvasItem = ColumnarCanvasItem(event, self)
         
         # only problem here is that we haven't checked for conflicts
