@@ -11,6 +11,9 @@
     <item file="Item.kind" />
     <item file="Parcel.kind" />
     <item file="ParcelManager.kind" />
+<!--
+    <item file="String.type" />
+  -->
   </item>
 
 </pack>

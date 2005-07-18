@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.util.SkipList import SkipList
+from PyICU import Collator, Locale
 
 
 class Index(dict):
@@ -367,6 +368,87 @@ class AttributeIndex(SortedIndex):
         offset = super(AttributeIndex, self)._readValue(itemReader,
                                                         offset, data)
         offset, self._attribute = itemReader.readSymbol(offset, data)
+
+        return offset
+
+
+class StringIndex(AttributeIndex):
+
+    def __init__(self, valueMap, index, **kwds):
+
+        super(StringIndex, self).__init__(valueMap, index, **kwds)
+
+        self._strength = None
+        self._locale = None
+
+        if not kwds.get('loading', False):
+            if 'strength' in kwds:
+                self._strength = kwds['strength']
+                del kwds['strength']
+            if 'locale' in kwds:
+                self._locale = kwds['locale']
+                del kwds['locale']
+
+            self._init()
+
+    def _init(self):
+
+        if self._locale is not None:
+            self._collator = Collator.createInstance(Locale(self._locale))
+        else:
+            self._collator = Collator.createInstance()
+
+        if self._strength is not None:
+            self._collator.setStrength(self._strength)
+
+    def getIndexType(self):
+
+        return 'string'
+    
+    def getInitKeywords(self):
+
+        kwds = super(StringIndex, self).getInitKeywords()
+        if self._strength is not None:
+            kwds['strength'] = self._strength
+        if self._locale is not None:
+            kwds['locale'] = self._locale
+
+        return kwds
+
+    def compare(self, k0, k1):
+
+        v0 = self._valueMap[k0].getAttributeValue(self._attribute)
+        v1 = self._valueMap[k1].getAttributeValue(self._attribute)
+
+        return self._collator.compare(v0, v1)
+
+    def _xmlValues(self, generator, version, attrs, mode):
+
+        if self._strength is not None:
+            attrs['strength'] = self._strength
+        if self._locale is not None:
+            attrs['locale'] = self._locale
+
+        super(StringIndex, self)._xmlValues(generator, version, attrs, mode)
+
+    def _writeValue(self, itemWriter, buffer):
+
+        super(StringIndex, self)._writeValue(itemWriter, buffer)
+        itemWriter.writeInteger(buffer, self._strength or -1)
+        itemWriter.writeSymbol(buffer, self._locale or '')
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(StringIndex, self)._readValue(itemReader, offset, data)
+        offset, strength = itemReader.readInteger(offset, data)
+        offset, locale = itemReader.readSymbol(offset, data)
+
+        if strength != -1:
+            self._strength = strength
+        if locale != '':
+            self._locale = locale
+
+        self._init()
 
         return offset
 

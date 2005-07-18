@@ -9,6 +9,7 @@ from zlib import compressobj, decompressobj
 from cStringIO import StringIO
 from HTMLParser import HTMLParser
 from struct import pack, unpack
+from PyICU import UnicodeString
 
 from chandlerdb.util.rijndael import Rijndael
 
@@ -547,12 +548,12 @@ class OutputStreamWriter(object):
 
         self.outputStream = outputStream
         self.encoding = encoding or 'utf-8'
-        self.errorHandler = replace and 'replace' or 'strict'
+        self.mode = replace and 'replace' or 'strict'
 
     def write(self, text):
 
         if isinstance(text, unicode):
-            text = text.encode(self.encoding, self.errorHandler)
+            text = text.encode(self.encoding, self.mode)
 
         self.outputStream.write(text)
 
@@ -573,7 +574,7 @@ class InputStreamReader(object):
 
         self.inputStream = inputStream
         self.encoding = encoding or 'utf-8'
-        self.errorHandler = replace and 'replace' or 'strict'
+        self.mode = replace and 'replace' or 'strict'
 
     def _read(self, length):
 
@@ -582,7 +583,10 @@ class InputStreamReader(object):
     def read(self, length=-1):
 
         text = self._read(length)
-        text = unicode(text, self.encoding, self.errorHandler)
+        try:
+            text = unicode(text, self.encoding, self.mode)
+        except LookupError:
+            text = unicode(UnicodeString(text, self.encoding, self.mode))
 
         return text
 
@@ -598,8 +602,12 @@ class StringReader(object):
         super(StringReader, self).__init__()
 
         if not isinstance(text, unicode):
-            self.unicodeText = unicode(text, encoding or 'utf-8',
-                                       replace and 'replace' or 'strict')
+            mode = replace and 'replace' or 'strict'
+            try:
+                self.unicodeText = unicode(text, encoding or 'utf-8', mode)
+            except LookupError:
+                self.unicodeText = unicode(UnicodeString(text, encoding, mode))
+
         else:
             self.unicodeText = text
 

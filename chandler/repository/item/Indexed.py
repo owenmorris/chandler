@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.item.Indexes import AttributeIndex, CompareIndex
+from repository.item.Indexes import AttributeIndex, StringIndex, CompareIndex
 from chandlerdb.item.ItemError import *
 
 
@@ -79,7 +79,7 @@ class Indexed(object):
             self.fillIndex(index)
             self._setDirty(True) # noMonitors=True
 
-            if indexType == 'attribute':
+            if indexType in ('attribute', 'string'):
                 from repository.item.Monitors import Monitors
                 Monitors.attach(item, '_reIndex',
                                 'set', kwds['attribute'], name, indexName)
@@ -99,6 +99,10 @@ class Indexed(object):
         if indexType == 'attribute':
             return AttributeIndex(self, self._createIndex('numeric', **kwds),
                                   **kwds)
+
+        if indexType == 'string':
+            return StringIndex(self, self._createIndex('numeric', **kwds),
+                               **kwds)
 
         if indexType == 'compare':
             return CompareIndex(self, self._createIndex('numeric', **kwds),

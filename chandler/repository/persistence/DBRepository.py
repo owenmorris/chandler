@@ -391,15 +391,21 @@ class DBStore(Store):
             txnStatus = self.startTransaction()
             txn = self.txn
 
-            self._items.open("__items__", txn, **kwds)
-            self._values.open("__values__", txn, **kwds)
-            self._refs.open("__refs__", txn, **kwds)
-            self._names.open("__names__", txn, **kwds)
-            self._lobs.open("__lobs__", txn, **kwds)
-            self._blocks.open("__blocks__", txn, **kwds)
-            self._index.open("__index__", txn, **kwds)
-            self._acls.open("__acls__", txn, **kwds)
-            self._indexes.open("__indexes__", txn, **kwds)
+            if (not self._ramdb and
+                os.path.exists(os.path.join(self.repository.dbHome,
+                                            "__values__"))):
+                self._values.open("__values__", txn, **kwds)
+                raise AssertionError, "opening __values__ should have failed"
+
+            self._items.open("__items.db", txn, **kwds)
+            self._values.open("__values.db", txn, **kwds)
+            self._refs.open("__refs.db", txn, **kwds)
+            self._names.open("__names.db", txn, **kwds)
+            self._lobs.open("__lobs.db", txn, **kwds)
+            self._blocks.open("__blocks.db", txn, **kwds)
+            self._index.open("__index.db", txn, **kwds)
+            self._acls.open("__acls.db", txn, **kwds)
+            self._indexes.open("__indexes.db", txn, **kwds)
         except DBNoSuchFileError:
             self.abortTransaction(txnStatus)
             raise
@@ -542,7 +548,7 @@ class DBStore(Store):
 
     def getVersionInfo(self):
 
-        return self._values.getVersionInfo()
+        return self._values.getVersionInfo(self.repository.itsUUID)
 
     def startTransaction(self):
 

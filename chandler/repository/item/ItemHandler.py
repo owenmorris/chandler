@@ -482,19 +482,31 @@ class ItemHandler(ValueHandler):
         self.uuid = UUID(attrs.get('uuid'))
         self.version = int(attrs.get('version', '0'))
         self.update = update = attrs.get('update')
+        self.delete = delete = attrs.get('delete')
 
-        if update is not None:
+        def _find(spec):
+
             typeAttr = attrs.get('type', 'path')
             if typeAttr == 'path':
-                item = self.parent.find(Path(update))
+                item = self.parent.find(Path(spec))
             elif typeAttr == 'uuid':
-                item = self.parent.find(UUID(update))
+                item = self.parent.find(UUID(spec))
             else:
                 raise TypeError, typeAttr
 
             if item is None:
-                raise NoSuchItemError, (update, self.version)
+                raise NoSuchItemError, (spec, self.version)
 
+            return item
+
+        if update is not None:
+            item = _find(update)
+        elif delete is not None:
+            item = _find(delete)
+        else:
+            item = None
+
+        if item is not None:
             self.item = item
             self.cls = type(item)
             self.version = item._version
@@ -502,7 +514,7 @@ class ItemHandler(ValueHandler):
             self.kind = item.itsKind
             self.uuid = item.itsUUID
             self.parent = item.itsParent
-        
+
     def itemEnd(self, itemHandler, attrs):
 
         from repository.item.Item import Item
@@ -527,7 +539,7 @@ class ItemHandler(ValueHandler):
             status |= item._status & item.PINNED
             instance = None
 
-        elif self.update:
+        elif self.update or self.delete:
             item = self.item
             values = item._values
             references = item._references
@@ -562,7 +574,7 @@ class ItemHandler(ValueHandler):
         if self.isContainer and item._children is None:
             item._children = self.repository._createChildren(item, self.new)
 
-        if not self.update:
+        if not (self.update or self.delete):
             self.repository._registerItem(item)
             self.values._setItem(item)
             self.references._setItem(item)
@@ -591,6 +603,8 @@ class ItemHandler(ValueHandler):
         self.afterLoadHooks.append(self.setupClass)
         if hasattr(cls, 'onItemLoad'):
             self.afterLoadHooks.append(item.onItemLoad)
+        if self.delete:
+            self.afterLoadHooks.append(item.delete)
 
     def setupClass(self, view):
 

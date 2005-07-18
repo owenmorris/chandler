@@ -63,6 +63,7 @@ class DBContainer(object):
             dbname = None
 
         index = DB(self.store.env)
+        index.set_lorder(4321)
 
         if kwds.get('create', False):
             index.open(filename = name, dbname = dbname,
@@ -771,7 +772,7 @@ class ItemContainer(DBContainer):
         super(ItemContainer, self).__init__(store)
 
         self._index = None
-        self._version = None
+        self._versions = None
         
     def open(self, name, txn, **kwds):
 
@@ -1090,8 +1091,9 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.1: 'Long' values saved as long long (64 bit)
     # 0.5.2: added support for 'Set' type and 'set' cardinality
     # 0.5.3: added core schema version to version info
+    # 0.5.4: endianness on index dbs set to 4321
 
-    FORMAT_VERSION = 0x00050300
+    FORMAT_VERSION = 0x00050400
 
     def __init__(self, store):
 

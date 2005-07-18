@@ -113,6 +113,12 @@ class Type(Item):
     def onItemLoad(self, view):
         self._registerTypeHandler(self.getImplementationType(), view)
 
+    def onItemUnload(self, view):
+        self._unregisterTypeHandler(self.getImplementationType(), view)
+
+    def onItemDelete(self, view):
+        self._unregisterTypeHandler(self.getImplementationType(), view)
+
     def onItemCopy(self, view, orig):
         self._registerTypeHandler(self.getImplementationType(), view)
 
@@ -189,12 +195,41 @@ class Type(Item):
     NoneString = "__NONE__"
 
 
-class String(Type):
+class StringType(Type):
+
+    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
+        return itemWriter.writeString(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+        return itemReader.readString(offset, data)
+
+    def typeXML(self, value, generator, withSchema):
+        generator.cdataSection(value)
+
+    def makeString(self, value):
+        return value
+
+    def _compareTypes(self, other):
+        return -1
+
+
+class String(StringType):
 
     def onItemLoad(self, view):
 
         super(String, self).onItemLoad(view)
         self._registerTypeHandler(str, view)
+
+    def onItemUnload(self, view):
+
+        super(String, self).onItemUnload(view)
+        self._unregisterTypeHandler(str, view)
+
+    def onItemDelete(self, view):
+
+        super(String, self).onItemDelete(view)
+        self._unregisterTypeHandler(str, view)
 
     def onItemCopy(self, view, orig):
 
@@ -223,30 +258,9 @@ class String(Type):
 
         return unicode(data, 'utf-8')
 
-    def makeString(self, value):
-
-        return value
-
     def recognizes(self, value):
 
         return type(value) in (unicode, str)
-
-    def typeXML(self, value, generator, withSchema):
-
-        generator.cdataSection(value)
-
-    def _compareTypes(self, other):
-
-        return -1
-
-    def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
-
-        return itemWriter.writeString(buffer, value)
-
-    def readValue(self, itemReader, offset, data, withSchema, view, name,
-                  afterLoadHooks):
-        
-        return itemReader.readString(offset, data)
 
     def hashValue(self, value):
         
@@ -256,34 +270,43 @@ class String(Type):
         return _hash(value)
 
 
-class BString(String):
+class BString(StringType):
 
     def recognizes(self, value):
         return type(value) is str
 
+    def getImplementationType(self):
+        return str
 
-class UString(String):
+    def handlerName(self):
+        return 'str'
+
+    def hashValue(self, value):
+        return _hash(value)
+
+    def makeValue(self, data):
+        return str(data)
+
+
+class UString(StringType):
 
     def recognizes(self, value):
         return type(value) is unicode
 
-
-class Symbol(Type):
-
     def getImplementationType(self):
-
-        return str
+        return unicode
 
     def handlerName(self):
+        return 'unicode'
 
-        return 'str'
+    def hashValue(self, value):
+        return _hash(value.encode('utf-8'))
 
     def makeValue(self, data):
+        return unicode(data)
 
-        if type(data) is unicode:
-            return data.encode('utf-8')
 
-        return str(data)
+class Symbol(BString):
 
     def _compareTypes(self, other):
 
