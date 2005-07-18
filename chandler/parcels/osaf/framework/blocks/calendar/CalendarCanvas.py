@@ -938,6 +938,11 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         (ec.red, ec.green, ec.blue) = color
         self.calendarData.eventColor = ec
                         
+    def AddEventToCollection(self, event):
+        # ugh, this is a hack to work around the whole ItemCollection stuff
+        # see bug 2749 for some background
+        self.contents.source.first().add(event)
+        
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection, 
@@ -1039,6 +1044,20 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             self._originalDragBox.originalStartTime = eventItem.startTime
         except AttributeError:
             pass
+
+    def CreateEmptyEvent(self, startTime, allDay, anyTime):
+        """
+        shared routine to create an event, using the current view
+        also forces consumers to specify important fields
+        """
+        view = self.parent.blockItem.itsView
+        event = Calendar.CalendarEvent(view=view)
+        event.InitOutgoingAttributes()
+        event.startTime = startTime
+        event.allDay = allDay
+        event.anyTime = anyTime
+        return event
+                    
             
 
 class wxCalendarContainer(CalendarEventHandler, 
@@ -1232,7 +1251,8 @@ class wxCalendarContainer(CalendarEventHandler,
             pass
 
     def AddItems(self, itemList):
-        """ @@@ Need to complete this for Paste to work """
+        for item in itemList:
+            self.blockItem.AddItemToCollection(item)
 
 class wxCalendarControl(wx.Panel):
     """This is the topmost area with the month name, event color selector,
@@ -1599,20 +1619,18 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             #return dateResult
         #return cmp(span2, span1)
 
-                    
-    def OnCreateItem(self, unscrolledPosition):
-        view = self.parent.blockItem.itsView
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        event = Calendar.CalendarEvent(view=view)
-        event.InitOutgoingAttributes()
-        event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                   event.startTime.hour,
-                                   event.startTime.minute))
-        event.endTime = event.startTime + timedelta(hours=1)
-        event.allDay = True
-        event.anyTime = False
 
-        self.parent.blockItem.contents.source.first().add(event)
+    def OnCreateItem(self, unscrolledPosition):
+        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+
+        startTime = datetime(newTime.year, newTime.month, newTime.day,
+                             event.startTime.hour,
+                             event.startTime.minute)
+        
+        event = self.CreateEmptyEvent(startTime, True, False)
+        event.endTime = event.startTime + timedelta(hours=1)
+        
+        self.parent.blockItem.AddEventToCollection(event)
         self.OnSelectItem(event)
         view.commit()
         return event
@@ -1976,8 +1994,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnCreateItem(self, unscrolledPosition):
         # @@@ this code might want to live somewhere else, refactored
-        view = self.parent.blockItem.itsView
-        event = Calendar.CalendarEvent(view=view)
         
         # if a region is selected, then use that for the event span
         if (self._bgSelectionStartTime):
@@ -1987,15 +2003,10 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             newTime = self.getDateTimeFromPosition(unscrolledPosition)
             duration = timedelta(hours=1)
             
-        event.InitOutgoingAttributes()
-        event.ChangeStart(newTime)
-        event.allDay = False
-        event.anyTime = False
+        event = self.CreateEmptyEvent(newTime, False, False)
         event.duration = duration
 
-        # ugh, this is a hack to work around the whole ItemCollection stuff
-        # see bug 2749 for some background
-        self.parent.blockItem.contents.source.first().add(event)
+        self.parent.blockItem.AddEventToCollection(event)
         
         self.OnSelectItem(event)
 
