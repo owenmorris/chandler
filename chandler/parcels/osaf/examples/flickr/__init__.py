@@ -18,6 +18,10 @@ from repository.util.URL import URL
 from datetime import datetime
 import dateutil
 import wx
+import os, logging
+
+logger = logging.getLogger('Flickr')
+logger.setLevel(logging.INFO)
 
 
 class FlickrPhoto(Photos.Photo):
@@ -50,8 +54,8 @@ class FlickrPhoto(Photos.Photo):
         self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
         self.dateTaken = dateutil.parser.parse(photo.datetaken)
         try:
-            if photo.tags:
-                self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
+        if photo.tags:
+            self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
         except Exception, e:
             print "tags failed", e
         self.importFromURL(self.imageURL)
@@ -174,11 +178,16 @@ def CreateCollectionFromUsername(repView, cpiaView):
     if username:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.username = username
-        myPhotoCollection.getCollectionFromFlickr(repView)
+        try:
+            myPhotoCollection.getCollectionFromFlickr(repView)
 
-        # Add the channel to the sidebar
-        cpiaView.postEventByName('AddToSidebarWithoutCopying',
-                                 {'items': [myPhotoCollection.sidebarCollection]})
+            # Add the channel to the sidebar
+            cpiaView.postEventByName('AddToSidebarWithoutCopying',
+                                     {'items': [myPhotoCollection.sidebarCollection]})
+        except FlickrError, fe:
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                        "Flickr Error",
+                                        str(fe))
 
 def CreateCollectionFromTag(repView, cpiaView):
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
@@ -188,11 +197,16 @@ def CreateCollectionFromTag(repView, cpiaView):
     if tagstring:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.tag = Tag.getTag(repView, tagstring)
-        myPhotoCollection.getCollectionFromFlickr(repView)
+        try:
+            myPhotoCollection.getCollectionFromFlickr(repView)
 
-        # Add the channel to the sidebar
-        cpiaView.postEventByName('AddToSidebarWithoutCopying',
-                                 {'items': [myPhotoCollection.sidebarCollection]})
+            # Add the channel to the sidebar
+            cpiaView.postEventByName('AddToSidebarWithoutCopying',
+                                     {'items': [myPhotoCollection.sidebarCollection]})
+        except FlickrError, fe:
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                        "Flickr Error",
+                                        str(fe))
 
 #
 # Wakeup caller
@@ -201,6 +215,8 @@ def CreateCollectionFromTag(repView, cpiaView):
 class WakeupCall(WakeupCaller.WakeupCall):
 
     def receiveWakeupCall(self, wakeupCallItem):
+        logger.info("receiveWakeupCall()")
+
         # We need the view for most repository operations
         view = wakeupCallItem.itsView
         view.refresh()
