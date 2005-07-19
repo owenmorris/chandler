@@ -53,7 +53,7 @@
   /* the "const" storage-class-modifier is valid */
   #define YY_USE_CONST
 
-#else	/* ! __cplusplus */
+#else /* ! __cplusplus */
 
   #ifdef __STDC__
 
@@ -68,6 +68,10 @@
 
   #endif  /* __STDC__ */
 
+  #ifdef __VISUALC__
+    #define YY_USE_PROTOS
+  #endif
+
   #ifdef __BORLANDC__
     #include <io.h>
     #define YY_USE_PROTOS
@@ -78,7 +82,7 @@
     #include <io.h>
   #endif
 
-#endif	/* ! __cplusplus */
+#endif /* ! __cplusplus */
 
 
 #ifdef __TURBOC__
@@ -147,10 +151,10 @@
  * a single C statement (which needs a semi-colon terminator).
  * This avoids problems with code like:
  *
- * 	if ( something_happens )
- *		YY_FATAL_ERROR( "oops, the something happened" );
- *	else
- *		everything_okay();
+ *   if ( something_happens )
+ *       YY_FATAL_ERROR( "oops, the something happened" );
+ *   else
+ *       everything_okay();
  *
  * Prior to using the do-while the compiler would get upset at the
  * "else" because it interpreted the "if" statement as being all
@@ -158,24 +162,24 @@
  */
 
 #if !defined(__VISAGECPP__)
-  #define YY_FATAL_ERROR(msg) \
-	do \
-		{ \
-		(void) fputs( msg, stderr ); \
-		(void) putc( '\n', stderr ); \
-		exit( 1 ); \
-		} \
+    #define YY_FATAL_ERROR(msg)             \
+        do                                  \
+        {                                   \
+            (void) fputs( msg, stderr );    \
+            (void) putc( '\n', stderr );    \
+            exit( 1 );                      \
+        }                                   \
 	while ( 0 )
 #else
   /* suppress expression always false warning */
   int os2var = 0;
-  #define YY_FATAL_ERROR(msg) \
-	do \
-		{ \
-		(void) fputs( msg, stderr ); \
-		(void) putc( '\n', stderr ); \
-		exit( 1 ); \
-		} \
+    #define YY_FATAL_ERROR(msg)             \
+        do                                  \
+        {                                   \
+            (void) fputs( msg, stderr );    \
+            (void) putc( '\n', stderr );    \
+            exit( 1 );                      \
+        }                                   \
 	while ( os2var == 0 )
 #endif
 
@@ -195,21 +199,21 @@ int yywrap(void) { return 1; }
 
 /* special action meaning "start processing a new file" */
 #if !defined(__VISAGECPP__)
-  #define YY_NEW_FILE \
-	do \
-		{ \
-		yy_init_buffer( yy_current_buffer, yyin ); \
-		yy_load_buffer_state(); \
-		} \
-	while ( 0 )
+    #define YY_NEW_FILE                                \
+        do                                             \
+        {                                              \
+            yy_init_buffer( yy_current_buffer, yyin ); \
+            yy_load_buffer_state();                    \
+        }                                              \
+        while ( 0 )
 #else
-  #define YY_NEW_FILE \
-	do \
-		{ \
-		yy_init_buffer( yy_current_buffer, yyin ); \
-		yy_load_buffer_state(); \
-		} \
-	while ( os2var == 0 )
+    #define YY_NEW_FILE                                \
+        do                                             \
+        {                                              \
+            yy_init_buffer( yy_current_buffer, yyin ); \
+            yy_load_buffer_state();                    \
+        }                                              \
+        while ( os2var == 0 )
 #endif
 
 
@@ -228,9 +232,9 @@ int yywrap(void) { return 1; }
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
 #define YY_CHAR unsigned char
-// # line 1 "lexer.l"
+/* # line 1 "lexer.l" */
 #define INITIAL 0
-// # line 9 "lexer.l"
+/* # line 9 "lexer.l" */
 /*
  * File:         lexer.l
  * Description:  Lexical analyser for PROLOGIO; can be used with
@@ -268,13 +272,13 @@ static int my_input(void);
 
 #ifdef FLEX_SCANNER
     #undef YY_INPUT
-    #define YY_INPUT(buf,result,max_size) \
-   if (lex_read_from_string) \
-        { \
-            int c = my_input(); \
-            result = (c == 0) ? YY_NULL : ((buf)[0]=(c), 1); \
-        } \
-   else \
+    #define YY_INPUT(buf,result,max_size)                                  \
+    if (lex_read_from_string)                                              \
+    {                                                                      \
+        int c = my_input();                                                \
+        result = (c == 0) ? YY_NULL : ((buf)[0]=(c), 1);                   \
+    }                                                                      \
+    else                                                                   \
 	if ( (result = read( fileno(yyin), (char *) buf, max_size )) < 0 ) \
 	    YY_FATAL_ERROR( "read() in flex scanner failed" );
 #else
@@ -284,18 +288,18 @@ static int my_input(void);
     #define unput(_c) my_unput(_c)
 #endif
 
-// # line 58 "lexer.l"
+/* # line 58 "lexer.l" */
 
 /* done after the current pattern has been matched and before the
  * corresponding action - sets up yytext
  */
 
 #define YY_DO_BEFORE_ACTION \
-	yytext = yy_bp; \
-	yyleng = yy_cp - yy_bp; \
-	yy_hold_char = *yy_cp; \
-	*yy_cp = '\0'; \
-	yy_c_buf_p = yy_cp;
+    yytext = yy_bp;         \
+    yyleng = yy_cp - yy_bp; \
+    yy_hold_char = *yy_cp;  \
+    *yy_cp = '\0';          \
+    yy_c_buf_p = yy_cp;
 
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
@@ -303,25 +307,25 @@ static int my_input(void);
 
 /* return all but the first 'n' matched characters back to the input stream */
 #if !defined(__VISAGECPP__)
-    #define yyless(n) \
-	do \
-		{ \
-		/* undo effects of setting up yytext */ \
-		*yy_cp = yy_hold_char; \
-		yy_c_buf_p = yy_cp = yy_bp + n; \
-		YY_DO_BEFORE_ACTION; /* set up yytext again */ \
-		} \
-	while ( 0 )
+    #define yyless(n)                                      \
+        do                                                 \
+        {                                                  \
+            /* undo effects of setting up yytext */        \
+            *yy_cp = yy_hold_char;                         \
+            yy_c_buf_p = yy_cp = yy_bp + n;                \
+            YY_DO_BEFORE_ACTION; /* set up yytext again */ \
+        }                                                  \
+        while ( 0 )
 #else
-    #define yyless(n) \
-	do \
-		{ \
-		/* undo effects of setting up yytext */ \
-		*yy_cp = yy_hold_char; \
-		yy_c_buf_p = yy_cp = yy_bp + n; \
-		YY_DO_BEFORE_ACTION; /* set up yytext again */ \
-		} \
-	while ( os2var == 0 )
+    #define yyless(n)                                      \
+        do                                                 \
+        {                                                  \
+            /* undo effects of setting up yytext */        \
+            *yy_cp = yy_hold_char;                         \
+            yy_c_buf_p = yy_cp = yy_bp + n;                \
+            YY_DO_BEFORE_ACTION; /* set up yytext again */ \
+        }                                                  \
+        while ( os2var == 0 )
 #endif
 
 #undef unput
@@ -331,8 +335,8 @@ struct yy_buffer_state
 {
     FILE *yy_input_file;
 
-    YY_CHAR *yy_ch_buf;		/* input buffer */
-    YY_CHAR *yy_buf_pos;	/* current position in input buffer */
+    YY_CHAR *yy_ch_buf;     /* input buffer */
+    YY_CHAR *yy_buf_pos;    /* current position in input buffer */
 
     /* size of input buffer in bytes, not including room for EOB characters*/
     int yy_buf_size;	
@@ -340,7 +344,7 @@ struct yy_buffer_state
     /* number of characters read into yy_ch_buf, not including EOB characters */
     int yy_n_chars;
 
-    int yy_eof_status;		/* whether we've seen an EOF on this buffer */
+    int yy_eof_status;      /* whether we've seen an EOF on this buffer */
 
 #define EOF_NOT_SEEN 0
 
@@ -364,7 +368,7 @@ static YY_BUFFER_STATE yy_current_buffer;
 /* yy_hold_char holds the character lost when yytext is formed */
 static YY_CHAR yy_hold_char;
 
-static int yy_n_chars;		/* number of characters read into yy_ch_buf */
+static int yy_n_chars;      /* number of characters read into yy_ch_buf */
 
 
 
@@ -488,8 +492,8 @@ static YY_CHAR *yy_last_accepting_cpos;
  */
 /* points to current character in buffer */
 static YY_CHAR *yy_c_buf_p = (YY_CHAR *) 0;
-static int yy_init = 1;		/* whether we need to initialize */
-static int yy_start = 0;	/* start state number */
+static int yy_init = 1;     /* whether we need to initialize */
+static int yy_start = 0;    /* start state number */
 
 /* flag which is used to allow yywrap()'s to do buffer switches
  * instead of setting up a fresh yyin.  A bit of a hack ...
@@ -529,7 +533,7 @@ YY_DECL
 	YY_USER_INIT;
 
 	if ( ! yy_start )
-	    yy_start = 1;	/* first start state */
+            yy_start = 1; /* first start state */
 
 	if ( ! yyin )
 	    yyin = stdin;
@@ -548,11 +552,11 @@ YY_DECL
 	}
 
 #if !defined(__VISAGECPP__)
-    while ( 1 )		/* loops until end-of-file is reached */
+    while ( 1 ) /* loops until end-of-file is reached */
 #else
     os2var = 1;
     if (os2var == 0) return 0;
-    while ( os2var == 1 )		/* loops until end-of-file is reached */
+    while ( os2var == 1 )   /* loops until end-of-file is reached */
 #endif
 	{
 	yy_cp = yy_c_buf_p;
@@ -594,7 +598,7 @@ yy_find_action:
 	YY_DO_BEFORE_ACTION;
 	YY_USER_ACTION;
 
-do_action:	/* this label is used only to access EOF actions */
+do_action: /* this label is used only to access EOF actions */
 
 
 	switch ( yy_act )
@@ -818,8 +822,8 @@ do_action:	/* this label is used only to access EOF actions */
 			yy_bp = yytext + YY_MORE_ADJ;
 			goto yy_find_action;
 		    }
-		break;
-		}
+            }
+            break;
 
 	    default:
 #ifdef FLEX_DEBUG
@@ -855,8 +859,7 @@ static int yy_get_next_buffer()
     int ret_val;
 
     if ( yy_c_buf_p > &yy_current_buffer->yy_ch_buf[yy_n_chars + 1] )
-	YY_FATAL_ERROR(
-		"fatal flex scanner internal error--end of buffer missed" );
+        YY_FATAL_ERROR( "fatal flex scanner internal error--end of buffer missed" );
 
     /* try to read more data */
 
@@ -1228,7 +1231,7 @@ FILE *file;
 
     b->yy_eof_status = EOF_NOT_SEEN;
 }
-// # line 108 "lexer.l"
+/* # line 108 "lexer.l" */
 
 
 
@@ -1237,7 +1240,7 @@ FILE *file;
     {
   return input();
     }
-#else	/* BSD/AT&T lex */
+#else /* BSD/AT&T lex */
     #ifndef input
         #error "Sorry, but need either flex or AT&T lex"
     #endif
@@ -1328,3 +1331,6 @@ void wxExprCleanUp()
 		yy_delete_buffer(yy_current_buffer);
 }
 
+#ifdef __VISUALC__
+    #pragma warning(pop)
+#endif
