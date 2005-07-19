@@ -1398,7 +1398,7 @@ void wxTreeListHeaderWindow::OnMouse( wxMouseEvent &event )
         // end of the current column
         int xpos = 0;
 
-        // find the column where this event occured
+        // find the column where this event occurred
         int countCol = GetColumnCount();
         for (int col = 0; col < countCol; col++)
         {
@@ -1891,7 +1891,7 @@ void wxTreeListMainWindow::Init()
 
     m_underMouse = NULL;
 
-#if defined( __WXMAC__ ) && defined(__WXMAC_CARBON__)
+#ifdef __WXMAC_CARBON__
     m_normalFont.MacCreateThemeFont( kThemeViewsFont ) ;
 #else
     m_normalFont = wxSystemSettings::GetFont( wxSYS_DEFAULT_GUI_FONT );

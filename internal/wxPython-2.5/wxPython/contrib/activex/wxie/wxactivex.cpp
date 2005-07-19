@@ -298,6 +298,9 @@ wxActiveX::~wxActiveX()
         m_oleObject->Close(OLECLOSE_NOSAVE);
         m_oleObject->SetClientSite(NULL);
     }
+
+    // Unregister object as active
+    RevokeActiveObject(m_pdwRegister, NULL);
 }
 
 void wxActiveX::CreateActiveX(REFCLSID clsid)
@@ -317,9 +320,14 @@ void wxActiveX::CreateActiveX(REFCLSID clsid)
     wxCHECK_RET(adviseSink.Ok(), _T("adviseSink not Ok"));
 
 
-    // // Create Object, get IUnknown interface
+    // Create Object, get IUnknown interface
     m_ActiveX.CreateInstance(clsid, IID_IUnknown);
     wxCHECK_RET(m_ActiveX.Ok(), _T("m_ActiveX.CreateInstance failed"));
+
+    // Register object as active
+    unsigned long pdwRegister;
+    hret = RegisterActiveObject(m_ActiveX, clsid, ACTIVEOBJECT_WEAK, &m_pdwRegister);
+    WXOLE_WARN(hret, "Unable to register object as active");
 
     // Get Dispatch interface
     hret = m_Dispatch.QueryInterface(IID_IDispatch, m_ActiveX); 
