@@ -232,6 +232,8 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
         inverse="rruleset"
     )
     
+    schema.addClouds(copying = schema.Cloud(rrules, exrules, rdates, exdates))
+    
     def addRule(self, rule, rruleorexrule='rrule'):
         """Add an rrule or exrule, defaults to rrule."""
         rulelist = getattr(self, rruleorexrule + 's', [])
@@ -303,7 +305,7 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
         if name in ('rrules', 'exrules', 'rdates', 'exdates'):
             if self.hasLocalAttributeValue('events'):
                 for event in self.events:
-                    event.getFirstInRule().cleanFuture()
+                    event.getFirstInRule().cleanRule()
                     # assume we have only one conceptual event per rrule
                     break
                 

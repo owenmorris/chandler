@@ -37,6 +37,15 @@ class ModificationEnum(schema.Enumeration):
     schema.kindInfo(displayName="Modification")
     values="this", "thisandfuture"
 
+def _sortEvents(eventlist, reverse=False):
+    """Helper function for working with events."""
+    def cmpEventStarts(event1, event2):
+        return cmp(event1.startTime, event2.startTime)
+    eventlist = list(eventlist)
+    eventlist.sort(cmp=cmpEventStarts)
+    if reverse: eventlist.reverse()
+    return eventlist
+
 class CalendarEventMixin(ContentModel.ContentItem):
     """
     This is the set of CalendarEvent-specific attributes. This Kind is 'mixed
@@ -153,6 +162,15 @@ class CalendarEventMixin(ContentModel.ContentItem):
         displayName="Modification for",
         defaultValue=None,
         inverse="modifications"
+    )
+
+    modificationRecurrenceID = schema.One(
+        schema.DateTime,
+        displayName="Start-Time backup",
+        defaultValue=None,
+        doc="If a modification's startTime is changed, none of its generated"
+            "occurrences will backup startTime, so modifications must persist"
+            "a backup for startTime"
     )
 
     occurrences = schema.Sequence(
@@ -388,10 +406,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
         self.startTime = dateTime
         self.endTime = self.startTime + duration
 
+    # begin recurrence related methods
+
     def getFirstInRule(self):
         """Return the nearest thisandfuture modifications or master."""
         if self.modificationFor != None:
-            if self.modifies != 'thisandfuture':
+            if self.modifies == 'thisandfuture':
                 return self
             else:
                 return self.modificationFor
@@ -436,11 +456,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
         else:
             self.rruleset.setRuleFromDateUtil(rule)
 
-    def _createOccurrence(self, recurrenceID):
-        """Generate an occurrence for recurrenceID, return it."""
-        first = self.getFirstInRule()
-        new = first.copy()
+    def _cloneEvent(self):
+        new = self.copy()
         new._ignoreValueChanges = True
+        first = self.getFirstInRule()
         
         #now get all reference attributes whose inverse has multiple cardinality 
         for attr, val in first.iterAttributeValues(referencesOnly=True):
@@ -450,14 +469,26 @@ class CalendarEventMixin(ContentModel.ContentItem):
                 inverseAttr=inversekind.getAttribute(inverse)
                 if inverseAttr.cardinality != 'single':
                     setattr(new, attr, val)
-            
+        del new._ignoreValueChanges
+        return new
+
+    def _createOccurrence(self, recurrenceID):
+        """Generate an occurrence for recurrenceID, return it."""
+        first = self.getFirstInRule()
+        if first != self:
+            return self.getFirstInRule()._createOccurrence(recurrenceID)
+        new = self._cloneEvent()
+        new._ignoreValueChanges = True
+        
         new.isGenerated = True
         new.ChangeStart(recurrenceID)
         new.recurrenceID = new.startTime
-        new.occurrenceFor = first
+        new.occurrenceFor = first        
+        new.modificationFor = None
+        new.modifies = 'this' # it doesn't work with the rep to make this None
+        
         del new._ignoreValueChanges
         return new
-        
 
     def getNextOccurrence(self, after=None):
         """Return the next occurrence for the recurring event self is part of.
@@ -491,6 +522,27 @@ class CalendarEventMixin(ContentModel.ContentItem):
             if event is not None and event.occurrenceFor != first:
                 event = None
 
+    def _getFirstGeneratedOccurrence(self, create=False):
+        """Return the first generated occurrence or None.
+        
+        If create is True, create an occurrence if possible.
+        
+        """
+        if self.rruleset == None: return None
+        
+        first = self.getFirstInRule()
+        if first != self: return first._getFirstGeneratedOccurrence(create)
+        
+        if create:
+            iter = self._generateRule()
+        else:
+            if self.occurrences == None: return None
+            iter = _sortEvents(self.occurrences)
+        for occurrence in iter:
+            if occurrence.isGenerated: return occurrence
+        # no generated occurrences
+        return None
+
     def getOccurrencesBetween(self, after, before):
         """Return a list of events ordered by startTime.
         
@@ -498,8 +550,6 @@ class CalendarEventMixin(ContentModel.ContentItem):
         Generate any events needing generating. 
         
         """
-        def cmpEventStarts(event1, event2):
-            return cmp(event1.startTime, event2.startTime)
         def isBetween(event):
             return event.startTime <= before and event.endTime >= after
                 
@@ -515,7 +565,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
             mods.extend(mod for mod in master.modifications
                                     if mod.modifies == 'thisandfuture'
                                     and mod.startTime <= before)
-        mods.sort(cmp=cmpEventStarts)
+        _sortEvents(mods)
         # cut out mods which end before "after"
         index = -1
         for i, mod in enumerate(mods):
@@ -538,37 +588,154 @@ class CalendarEventMixin(ContentModel.ContentItem):
         startTime so it begins in a different rule will ........FIXME
         
         """
-        if attr is not None:
-            setattr(self, attr, value)
-        if self.rruleset is not None:
+        if self.modifies is 'this' and self.modificationFor is not None:
+            pass
+        elif self.rruleset is not None:
             first = self.getFirstInRule()
-            if first != self:
+            if first == self:
+                # self may have already been changed, find a backup to copy
+                backup = self._getFirstGeneratedOccurrence()
+                if backup is not None:
+                    newmaster = backup._cloneEvent()
+                    newmaster._ignoreValueChanges = True
+                    newmaster.startTime = self.modificationRecurrenceID or \
+                                          self.recurrenceID
+                    if self.hasLocalAttributeValue('modifications'):
+                        for mod in self.modifications:
+                            mod.modificationFor = newmaster
+                    if self.hasLocalAttributeValue('occurrences'):
+                        for occ in self.occurrences:
+                            occ.occurrenceFor = newmaster
+                    newmaster.occurrenceFor = None #self overrides newmaster
+                    self.occurrenceFor = newmaster
+                    self.isGenerated = False
+                    self.modifies = 'this'
+                    self.recurrenceID = newmaster.startTime
+                    del newmaster._ignoreValueChanges
+                # if backup is None, allow the change to stand, applying just
+                # to self.  This relies on _getFirstGeneratedOccurrence() always
+                # being called.
+
+            else:
                 self.modificationFor = first
                 self.isGenerated = False
                 self.modifies = 'this'
+                self._getFirstGeneratedOccurrence(True)
+        if attr is not None:
+            setattr(self, attr, value)
+
+    def changeThisAndFuture(self, attr=None, value=None):
+        """Modify this and all future events."""
+        self._ignoreValueChanges = True
+        self.modifies='thisandfuture'
+        master = self.getMaster()
+        self.occurrenceFor = self
+        if attr is not 'rruleset':
+            self.rruleset = self.rruleset.copy(cloudAlias='copying')
+        self.isGenerated = False
+
+        setattr(self, attr, value)
+        
+        # make sure the previous rule doesn't recreate self, and don't let
+        # the previous rule overlap with this new rule
+        previousRuleEnd = min(self.startTime, self.recurrenceID) - \
+                          timedelta(minutes=1)
+
+        previousMod = master # default value
+        if master.hasLocalAttributeValue('modifications'):
+            startBefore = min(self.startTime, self.getFirstInRule().startTime)
+            for modification in _sortEvents(master.modifications, reverse=True):
+                if modification.modifies == 'thisandfuture':
+                    if modification.startTime < startBefore:
+                        previousMod = modification
+                        break
+        
+        for rule in previousMod.rruleset.getAttributeValue('rrules', default=[]):
+            if not rule.hasLocalAttributeValue('until') or \
+                                                 rule.until > previousRuleEnd:
+                rule.until = previousRuleEnd
+            previousMod.rruleset.rdates=[rdate for rdate in \
+                   master.rruleset.getAttributeValue('rdates', default=[]) \
+                   if rdate > previousRuleEnd]
+
+        self.modificationFor = master
+        self.modificationRecurrenceID = self.startTime
+        
+        if attr in ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset'):
+            self._cleanFuture()
+        else:
+            for modification in master.modifications:
+                if modification.startTime > self.startTime:
+                    if modification.modifies == 'this':
+                        # some this modifications in master should move to self
+                        modification.modificationFor = self
+                    elif modification.modifies == 'thisandfuture':
+                        modification.cleanRule()
+                        for event in modification.occurrences:
+                            event._ignoreValueChanges = True
+                            # not clear what should be done with differently
+                            # stamped items when applying THISANDFUTURE. Low
+                            # priority edge case, ignoring non-matching changes.
+                            if event.itsKind.hasAttribute(attr):
+                                setattr(event, attr, value)
+                            del event._ignoreValueChanges
+                        for event in modification.occurrences:
+                            event._ignoreValueChanges = True
+                            if event.itsKind.hasAttribute(attr):
+                                setattr(event, attr, value)
+                            del event._ignoreValueChanges
+                        modification._getFirstGeneratedOccurrence(True)
+            # we may have invalidated some of master's occurrences
+            master.cleanRule() 
+            master._getFirstGeneratedOccurrence(True)
+
+            self._getFirstGeneratedOccurrence(True)
+
+        del self._ignoreValueChanges
 
     def onValueChanged(self, name):
         # allow initialization code to avoid triggering onValueChanged
         if getattr(self, '_ignoreValueChanges', False):
             return
         # avoid infinite loops
-        if name not in """modifications modificationFor occurrences
-                          occurrenceFor modifies isGenerated
+        if name == "rruleset": 
+            self._getFirstGeneratedOccurrence(True)
+        elif name not in """modifications modificationFor occurrences
+                          occurrenceFor modifies isGenerated recurrenceID
                           _ignoreValueChanges""".split():
-            if self.modifies is None:
-                self.changeThis()
+            self.changeThis()
 
-    def cleanFuture(self):
-        """Delete future occurrences and modifications.
+    def cleanRule(self):
+        """Delete generated occurrences and invalidated modifications.
         
-        Appropriate when a change to self should invalidate future events.
-        
+        Only applies to the current rule, also see _cleanFuture.
+                
         """
+        first = self.getFirstInRule()
+        rruleset = []
+        if first.hasLocalAttributeValue('modifications'):
+            rruleset = self.createDateUtilFromRule()
+        for event in first.occurrences:
+            if event.isGenerated:
+                # don't let deletion result in spurious onValueChanged calls
+                event._ignoreValueChanges = True
+                event.delete()
+            elif event.startTime > self.startTime: # modifications after self
+                if event.recurrenceID not in rruleset:
+                    event._ignoreValueChanges = True
+                    event.delete()
+                
+        first._getFirstGeneratedOccurrence(True)
+        
+
+    def _cleanFuture(self):
+        """Delete all future occurrences and modifications."""
         for event in self.getMaster().occurrences:
             if event.startTime > self.startTime:
                 # don't let deletion result in spurious onValueChanged calls
                 event._ignoreValueChanges = True
                 event.delete()
+        self._getFirstGeneratedOccurrence(True)
                 
     def isCustomRule(self):
         """Determine if self.rruleset represents a custom rule.

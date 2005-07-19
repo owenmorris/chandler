@@ -35,6 +35,11 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.monthly = {'end'   : datetime(2005, 11, 4, 13),
                        'start' : self.start,
                        'count' : 5}
+        self.event = Calendar.CalendarEvent(None, view=self.rep.view)
+        self.event.startTime = self.start
+        self.event.endTime = self.event.startTime + timedelta(hours=1)
+        self.event.anyTime = False
+        self.event.displayName = "Sample event"
 
     def _createRuleSetItem(self, freq):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
@@ -47,113 +52,142 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
         ruleSetItem.addRule(ruleItem)
         return ruleSetItem
-
-    def _createEvent(self):
-        event = Calendar.CalendarEvent(None, view=self.rep.view)
-        event.startTime = self.start
-        event.endTime = event.startTime + timedelta(hours=1)
-        event.anyTime = False
-        event.displayName = "Sample event"
-        return event
     
     def testModificationEnum(self):
-        event = self._createEvent()
-        self.assertEqual(event.modifies, None)
+        self.assertEqual(self.event.modifies, None)
         self.modifies = "this"
         
     def testSimpleRuleBehavior(self):
-        event = self._createEvent()
-
-        # event.occurrenceFor should default to event
-        self.assertEqual(event.occurrenceFor, event)
+        # self.event.occurrenceFor should default to self.event
+        self.assertEqual(self.event.occurrenceFor, self.event)
         # getNextOccurrence for events without recurrence should be None
-        self.assertEqual(event.getNextOccurrence(), None)
-        self.failIf(event.isGenerated)
+        self.assertEqual(self.event.getNextOccurrence(), None)
+        self.failIf(self.event.isGenerated)
         
-        event.rruleset = self._createRuleSetItem('weekly')
-        self.assertEqual(event.isCustomRule(), False)
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.assertEqual(self.event.isCustomRule(), False)
         
         secondStart = datetime(2005, 7, 11, 13)
-        second = event._createOccurrence(secondStart)
+        second = self.event.getNextOccurrence()
         self.assert_(second.isGenerated)
-        self.assertEqual(event.createDateUtilFromRule()[1], secondStart)
+        self.assertEqual(self.event.createDateUtilFromRule()[1], secondStart)
         self.assertEqual(second.startTime, secondStart)
-        self.assertEqual(second.displayName, event.displayName)
+        self.assertEqual(second.displayName, self.event.displayName)
         
         # make sure getNextOccurrence returns the same item when called twice
-        self.assertEqual(second, event.getNextOccurrence())
+        self.assertEqual(second, self.event.getNextOccurrence())
         
-        third = event.getNextOccurrence(after=secondStart)
+        third = self.event.getNextOccurrence(after=secondStart)
         thirdStart = datetime(2005, 7, 18, 13)
         self.assertEqual(third.startTime, thirdStart)
         
-        second.cleanFuture()
-        self.assertEqual(len(event.occurrences), 2)
+        fourthStart = datetime(2005, 7, 25, 13)
+        fourth = self.event._createOccurrence(fourthStart)
+        self.assert_(fourth.isGenerated)
+        self.assertEqual(fourth, third.getNextOccurrence())
+        
+        second.cleanRule()
+        self.assertEqual(len(self.event.occurrences), 2)
+        
+
+    def testFirstGeneratedOccurrence(self):
+        """At least one generated occurrence must be created when rules are set.
+        
+        Because non-UI changes to recurring events should create THIS
+        modifications to a master via onValueChanged, such modifications need to 
+        be created after the master's value has already changed.  To make sure
+        this data is available to the modification generating code, a 
+        generated occurrence (which is identical in every way to the master
+        except date and certain references) must be created each time a
+        modification is made or a rule changes, so that, in effect, a backup
+        of the master's data always exists.
+        
+        Note that it's possible for all of a rule's occurrences to be
+        modifications, so occasionally no backup will exist
+        
+        """
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        
+        # setting the rule should trigger _getFirstGeneratedOccurrence
+        self.assertEqual(len(self.event.occurrences), 2)
+        
 
     def testThisModification(self):
-        event = self._createEvent()
-        event.rruleset = self._createRuleSetItem('weekly')
+        self.event.displayName = "Master Event" #no rruleset, so no modification
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.assertEqual(self.event.modifies, None)
         
-        calmod = event.getNextOccurrence()
+        calmod = self.event.getNextOccurrence()
+        self.assertEqual(self.event.modifications, None)
+        
         calmod.changeThis('displayName', 'Modified occurrence')
 
-        self.assertEqual(calmod.modificationFor, event)
+        self.assertEqual(calmod.modificationFor, self.event)
         self.assertEqual(calmod.modifies, 'this')
-        self.assertEqual(list(event.modifications), [calmod])
+        self.assertEqual(calmod.getFirstInRule(), self.event)
+            
+        self.assertEqual(list(self.event.modifications), [calmod])
 
         evtaskmod = calmod.getNextOccurrence()
+        
         evtaskmod.StampKind('add', Task.TaskMixin.getKind(self.rep.view))
         
         # changes to an event should, by default, create a THIS modification
-        self.assertEqual(evtaskmod.modificationFor, event)
+        self.assertEqual(evtaskmod.modificationFor, self.event)
         self.assertEqual(evtaskmod.modifies, 'this')
+        self.assertEqual(evtaskmod.getFirstInRule(), self.event)
 
-        for modOrMaster in [calmod, evtaskmod, event]:
-            self.assertEqual(modOrMaster.getMaster(), event)
+        for modOrMaster in [calmod, evtaskmod, self.event]:
+            self.assertEqual(modOrMaster.getMaster(), self.event)
+            
+        self.event.displayName = "Modification to master"
+        self.assertEqual(self.event.modifies, 'this')
+        self.assertNotEqual(None, self.event.occurrenceFor)
+        self.assertNotEqual(self.event, self.event.occurrenceFor)
 
-    def testRuleChanges(self):
-        event = self._createEvent()
-        event.rruleset = self._createRuleSetItem('weekly')
+    def testRuleChange(self):
+        self.event.rruleset = self._createRuleSetItem('weekly')
 
         #create a generated occurrence so there's something to be deleted
-        event.getNextOccurrence()        
-        self.assertEqual(len(event.occurrences), 2)
+        self.event.getNextOccurrence()        
+        self.assertEqual(len(self.event.occurrences), 2)
 
         count = 3
         newRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY, count = count,
                                        interval = 2, dtstart = self.start)
         
-        event.setRuleFromDateUtil(newRule)
-        self.assertEqual(event.isCustomRule(), True)
-        self.assertEqual(event.getCustomDescription(), "not yet implemented")
+        self.event.setRuleFromDateUtil(newRule)
+        self.assertEqual(self.event.isCustomRule(), True)
+        self.assertEqual(self.event.getCustomDescription(), "not yet implemented")
 
-        # changing the rule must be a THISANDFUTURE modification, but because
-        # we changed the master, modifies should stay None
-        self.assertEqual(len(event.occurrences), 1)
-        self.assertEqual(event.modifies, None)
+        # changing the rule for the master, modifies should stay None
+        self.assertEqual(self.event.modifies, None)
 
-        self.assertEqual(len(list(event._generateRule())), count)
+        # all occurrences except the first should be deleted, then one should 
+        # be generated
+        self.assertEqual(len(self.event.occurrences), 2)
+
+        self.assertEqual(len(list(self.event._generateRule())), count)
 
         twoWeeks = self.start + timedelta(days=14)
-        occurs = event.getOccurrencesBetween(twoWeeks + timedelta(minutes=30),
-                                             datetime(2005, 8, 1, 13))
+        occurs = self.event.getOccurrencesBetween(twoWeeks + 
+                                timedelta(minutes=30), datetime(2005, 8, 1, 13))
         self.assertEqual(list(occurs)[0].startTime, twoWeeks)
         self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 1, 13))
-
+        self.rep.check()
 
     def testProxy(self):
-        event = self._createEvent()
-        self.failIf(event.isProxy())
+        self.failIf(self.event.isProxy())
         
-        proxy = Calendar.getProxy(event)
+        proxy = Calendar.getProxy(self.event)
         self.assert_(proxy.isProxy())
-        self.assertEqual(proxy, event)
+        self.assertEqual(proxy, self.event)
         self.assertEqual(proxy.currentlyModifying, None)
 
         proxy.rruleset = self._createRuleSetItem('weekly')
-        self.assert_(event in proxy.rruleset.events)
+        self.assert_(self.event in proxy.rruleset.events)
 
-        self.assertEqual(proxy.getNextOccurrence().occurrenceFor, event)
+        self.assertEqual(proxy.getNextOccurrence().occurrenceFor, self.event)
         self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
         
         proxy.startTime = self.start + timedelta(days=1)
@@ -162,14 +196,68 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         # holding off on this test
         #self.assertEqual(proxy.startTime, self.start)
 
+    def testThisAndFutureModification(self):
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        second = self.event.getNextOccurrence()
+        
+        #one simple THISANDFUTURE modification
+        second.changeThisAndFuture('displayName', 'Modified title')
+        self.assertEqual(second.modifies, 'thisandfuture')
+        self.assertEqual(second.modificationFor, self.event)
+        self.assert_(list(self.event.rruleset.rrules)[0].until < second.startTime)
+        self.assertEqual(second.displayName, 'Modified title')
+        self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
+        self.assertEqual(second.startTime, second.modificationRecurrenceID)
+        self.assertEqual(len(list(self.event.modifications)), 1)
+        
+        # make sure a backup occurrence is created
+        self.assertEqual(len(list(second.occurrences)), 2)
+        third = second.getNextOccurrence()
+        self.assertEqual(third.displayName, 'Modified title')
+        
+        # another simple THISANDFUTURE modification
+        thirdChangedStart = third.startTime + timedelta(hours=1)
+        third.changeThisAndFuture('startTime', thirdChangedStart)
+        fourth = third.getNextOccurrence()
+        self.assertEqual(fourth.startTime-thirdChangedStart, timedelta(weeks=1))
+        self.assertEqual(len(list(second.occurrences)), 1)
+        self.assertEqual(self.event, third.modificationFor)
+        self.assertEqual(len(list(self.event.modifications)), 2)
+        
+        # make sure second's rruleset was updated
+        self.assert_(list(second.rruleset.rrules)[0].until < thirdChangedStart)
+        
+        # changing second's displayName again shouldn't delete third
+        second.changeThisAndFuture('displayName', 'Twice modified title')
+        self.assertEqual(third.startTime, thirdChangedStart)
+        self.assertEqual(third.displayName, 'Twice modified title')
+        self.assertEqual(len(list(self.event.modifications)), 2)
+        
+        # change second's rule, deleting third
+        second.changeThisAndFuture('rruleset', third.rruleset)
+        newthird = second.getNextOccurrence()
+        self.assertNotEqual(third, newthird)
+        self.failIf(newthird.startTime == thirdChangedStart)
+        self.assertEqual(newthird.startTime - second.startTime, timedelta(weeks=1))
+        #self.assertEqual(len(list(self.event.modifications)), 1)#FAILING
+
+        
+        # make a THIS change to second FIXME, should check if modificationRecurrenceID works
+        second.changeThis('displayName', "THIS modified title")
+        secondModified = second
+        second = second.occurrenceFor
+        self.assertEqual(second.occurrenceFor, None)
+        self.assertNotEqual(secondModified.displayName, second.displayName)
+        
+        # make a THISANDFUTURE change to the THIS modification
+        #secondModified.changeThisAndFuture('duration', timedelta(hours=2))
+        #self.assertEqual(len(list(self.event.modifications)), 1)
+
 
 #tests to write:
 """
 
-changeThisAndFuture and changeThis
-
-Test modification creation, updating future, etc.
-Test modification model (max 2 levels deep...)
+test changeThisAndFuture (already thisandfuture item, this item, generated)
 
 test modifying existing rules
 
@@ -178,11 +266,19 @@ test getOccurrencesBetween for events with no duration
 test getNextOccurrence logic for finding modification or occurrence, make sure 
     new occurrences get attributes copied, have the proper kind
 
-test cleanFuture for modifications
+test cleanRule for modifications, especially modification to first
 
+test _cleanFuture for modifications, especially modification to first
 
+test getNextGeneratedOccurrence
 
-test stamping and unstamping behavior
+test THIS modification to first in rule with and without getFirstGeneratedOccurrence
+
+test stamping and unstamping behavior, changing stamped item THISANDFUTURE
+
+test indefinite recurrence
+
+test anyTime and allDay events
 
 API and tests for proxying items 
 
@@ -210,6 +306,8 @@ test recurrence behavior around DST (duration vs. endTime)
 
 Test createDateUtilFromRule for a THIS modification
 
+Test THIS modification moving outside the existing rule's date range
+
 # deleteEvent() -> delete all modifications and occurrences for this event, delete self
 # removeOne() -> remove this item, exclude its recurrenceID from the parent rule
 # removeFuture() -> remove this item, delete future occurrences and modifications, modify master's rule to end before this occurrence
@@ -222,14 +320,21 @@ what default behavior is appropriate when delete() is called on an occurrence or
 
 reminders - lots of work :)
 
+For UI testing, write a test menu item to create a recurring item.
+
 tzical -> pyicu timezone
+
+pyicu timezone -> rrule
 
 # update spec: occurrences better explanation, getMaster override in GeneratedOccurrence, timezone stored entirely in startTime
 # update spec: when creating an occurrence, references whose inverse has cardinality single lost
-# update spec: changing a ruleset -> changes events automatically?
-# update spec: add cleanFuture()
+# update spec: changing a ruleset -> changes events automatically
+# update spec: add cleanRule()
 # update spec: THIS modifications can't cross into different rules
 # update spec: add changeThisAndFuture and changeThis
 # update spec: changing an rrule always makes a THISANDFUTURE modification
+# update spec: changeThis on something where modifies=THISANDFUTURE isn't quite right in the spec
+# update spec: changing the rule behavior
+# update spec: thisandfuture mod to stamped attribute is ignored for items not sharing that stamp?
 
 """
