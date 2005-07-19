@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>LocalizableString</name>
+  <kind type="path">//Schema/Core/Struct</kind>
+
+  <attribute name="fields">
+    <value name="parcelName">
+      <values>
+        <value name="type" type="path" eval="True">/Core/Symbol</value>
+      </values>
+    </value>
+    <value name="defaultValue">
+      <values>
+        <value name="type" type="path" eval="True">/Core/UString</value>
+      </values>
+    </value>
+    <value name="lineNumber">
+      <values>
+        <value name="type" type="path" eval="True">/Core/Integer</value>
+      </values>
+    </value>
+  </attribute>
+
+  <attribute name="implementationTypes">
+    <value name="python">repository.packs.chandler.Types.LocalizableString</value>
+  </attribute>
+</item>

@@ -37,6 +37,14 @@ class DBLob(Lob, ItemValue):
 
         return self.copy(item.itsView, key)
 
+    def _isIndexed(self):
+
+        if self._indexed:
+            return True
+
+        item, attribute = self._getOwner()
+        return item.getAttributeAspect(attribute, 'indexed', False, None, False)
+
     def _writeData(self, uuid, store, db):
 
         if self._dirty or self._version == 0:
@@ -53,12 +61,17 @@ class DBLob(Lob, ItemValue):
             out.close()
             self._data = ''
 
+            item, attribute = self._getOwner()
             if self._indexed:
+                indexed = True
+            else:
+                indexed = item.getAttributeAspect(attribute, 'indexed',
+                                                  False, None, False)
+            if self._isIndexed():
                 reader = self.getPlainTextReader(replace=True)
                 store._index.indexDocument(self._view._getIndexWriter(),
                                            reader, uuid,
-                                           self._getItem().itsUUID,
-                                           self._getAttribute(),
+                                           item.itsUUID, attribute,
                                            self.getVersion())
                 reader.close()
             

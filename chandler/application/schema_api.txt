@@ -260,15 +260,16 @@ All role objects have at least the following attributes and methods:
 
 Aspect Attributes
     Role objects support setting all of the aspects of a repository
-    ``Attribute``, including ``required``, ``persist``, ``cardinality``,
-    ``defaultValue``, ``initialValue``, ``inheritFrom``, ``redirectTo``,
-    ``otherName``, ``companion``, ``deletePolicy``, ``copyPolicy``,
-    ``countPolicy``, ``type``, ``superAttribute``, ``displayName``, and
-    ``description``.  You can supply any of these as keyword arguments to a
-    Role constructor (such as ``schema.One``, ``schema.Many``, etc.), in order
-    to set the corresponding value for the attribute.  Unspecified aspects will
-    take on their normal default values, except for ``otherName``, which is
-    set to ``inverse.name`` by default, if the attribute has an inverse.
+    ``Attribute``, including ``required``, ``persisted``, ``indexed``,
+    ``cardinality``, ``defaultValue``, ``initialValue``, ``inheritFrom``,
+    ``redirectTo``, ``otherName``, ``companion``, ``deletePolicy``,
+    ``copyPolicy``, ``countPolicy``, ``type``, ``superAttribute``,
+    ``displayName``, and ``description``.  You can supply any of these as
+    keyword arguments to a Role constructor (such as ``schema.One``,
+    ``schema.Many``, etc.), in order to set the corresponding value for the
+    attribute.  Unspecified aspects will take on their normal default values,
+    except for ``otherName``, which is set to ``inverse.name`` by default, if
+    the attribute has an inverse.
 
 
 To avoid silent definition errors, ``Role`` classes will not allow setting

@@ -221,12 +221,12 @@ class Values(dict):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persist = attribute.getAspect('persist', True)
+                persisted = attribute.getAspect('persisted', True)
             else:
                 attribute = None
-                persist = True
+                persisted = True
 
-            if not persist:
+            if not persisted:
                 continue
             
             if not (all or flags & Values.DIRTY != 0):
@@ -257,16 +257,16 @@ class Values(dict):
                 attribute = None
 
             if attribute is not None:
-                persist = attribute.getAspect('persist', True)
+                persisted = attribute.getAspect('persisted', True)
             else:
-                persist = True
+                persisted = True
 
-            if persist:
+            if persisted:
                 flags = self._getFlags(key)
-                persist = flags & Values.TRANSIENT == 0
+                persisted = flags & Values.TRANSIENT == 0
                 flags &= Values.SAVEMASK
 
-            if persist:
+            if persisted:
                 if attribute is not None:
                     attrType = attribute.getAspect('type')
                     attrCard = attribute.getAspect('cardinality', 'single')
@@ -306,14 +306,14 @@ class Values(dict):
                 attribute = None
 
             if attribute is not None:
-                persist = attribute.getAspect('persist', True)
+                persisted = attribute.getAspect('persisted', True)
             else:
-                persist = True
+                persisted = True
 
-            if persist:
-                persist = self._getFlags(name) & Values.TRANSIENT == 0
+            if persisted:
+                persisted = self._getFlags(name) & Values.TRANSIENT == 0
 
-            if persist:
+            if persisted:
                 hash = _combine(hash, _hash(name))
                 value = self[name]
                 
@@ -717,12 +717,12 @@ class References(Values):
             
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                persist = attribute.getAspect('persist', True)
+                persisted = attribute.getAspect('persisted', True)
             else:
                 attribute = None
-                persist = True
+                persisted = True
 
-            if not persist:
+            if not persisted:
                 continue
             
             if not (all or flags & Values.DIRTY != 0):
@@ -748,7 +748,7 @@ class References(Values):
 
         for name, value in self.iteritems():
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persist', True):
+            if attribute.getAspect('persisted', True):
                 flags = self._getFlags(name) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
@@ -784,7 +784,7 @@ class References(Values):
 
         for name in names:
             attribute = kind.getAttribute(name, False, item)
-            if attribute.getAspect('persist', True):
+            if attribute.getAspect('persisted', True):
                 hash = _combine(hash, _hash(name))
                 value = self[name]
                 

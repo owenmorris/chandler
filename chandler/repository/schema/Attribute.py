@@ -152,7 +152,7 @@ class Attribute(Item):
 
         return match
 
-    valueAspects = ('required', 'persist', 'cardinality',
+    valueAspects = ('required', 'persisted', 'cardinality',
                     'defaultValue', 'initialValue',
                     'inheritFrom', 'redirectTo', 'otherName', 'companion',
                     'deletePolicy', 'copyPolicy', 'countPolicy')

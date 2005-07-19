@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+  <name>Text</name>
+  <kind type="path">//Schema/Core/Alias</kind>
+
+  <ref name="types">
+    <ref type="path">/Core/UString</ref>
+    <ref type="path">/Core/LocalizableString</ref>
+  </ref>
+</item>

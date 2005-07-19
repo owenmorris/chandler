@@ -27,8 +27,9 @@ class RepositoryView(object):
     
     # 0.5.0: first tracked core schema version
     # 0.5.1: added indexes to abstract sets
+    # 0.5.2: renamed 'persist' aspect to 'persisted', added 'indexed' aspect
     
-    CORE_SCHEMA_VERSION = 0x00050100
+    CORE_SCHEMA_VERSION = 0x00050200
 
     def __init__(self, repository, name, version):
         """
@@ -84,7 +85,7 @@ class RepositoryView(object):
         return False
 
     def _createRefList(self, item, name, otherName,
-                       persist, readOnly, new, uuid):
+                       persisted, readOnly, new, uuid):
 
         raise NotImplementedError, "%s._createRefList" %(type(self))
     
@@ -1103,9 +1104,9 @@ class NullRepositoryView(RepositoryView):
         raise AssertionError, "Null view cannot cancel"
 
     def _createRefList(self, item, name, otherName,
-                       persist, readOnly, new, uuid):
+                       persisted, readOnly, new, uuid):
 
-        return NullViewRefList(item, name, otherName, persist, readOnly)
+        return NullViewRefList(item, name, otherName, persisted, readOnly)
     
     def _createChildren(self, parent, new):
 
@@ -1221,10 +1222,10 @@ class NullViewLob(Lob):
 
 class NullViewRefList(TransientRefList):
 
-    def __init__(self, item, name, otherName, persist, readOnly):
+    def __init__(self, item, name, otherName, persisted, readOnly):
 
         super(NullViewRefList, self).__init__(item, name, otherName, readOnly)
-        self._transient = not persist
+        self._transient = not persisted
 
     def _isTransient(self):
 

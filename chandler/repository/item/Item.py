@@ -182,7 +182,7 @@ class Item(CItem):
             - C{required}: C{True} if the attribute is required to have a
               value, C{False} otherwise, the default. This aspects takes a
               boolean value.
-            - C{persist}: C{True}, the default, if the attribute's value is
+            - C{persisted}: C{True}, the default, if the attribute's value is
               persisted when the owning item is saved; C{False}
               otherwise. This aspect takes a boolean value.
             - C{cardinality}: C{single}, the default if the attribute is
@@ -1285,7 +1285,7 @@ class Item(CItem):
         Returns C{True} if the dirty bit was changed from unset to set.
         Returns C{False} otherwise.
 
-        If C{attribute} denotes a transient attribute (whose C{persist}
+        If C{attribute} denotes a transient attribute (whose C{persisted}
         aspect is C{False}), then this method has no effect and returns
         C{False}.
 
@@ -1323,7 +1323,7 @@ class Item(CItem):
             if not self.isDirty():
                 if not view.isLoading():
                     if attribute is not None:
-                        if not self.getAttributeAspect(attribute, 'persist',
+                        if not self.getAttributeAspect(attribute, 'persisted',
                                                        True, None, True):
                             return False
                     if view._logItem(self):
@@ -2311,16 +2311,16 @@ class Item(CItem):
         if self._children is not None:
             self._children._unloadChild(child)
 
-    def _refList(self, name, otherName=None, persist=None):
+    def _refList(self, name, otherName=None, persisted=None):
 
         if otherName is None:
             otherName = self._kind.getOtherName(name, None, self)
-        if persist is None:
-            persist = self.getAttributeAspect(name, 'persist',
-                                              False, None, True)
+        if persisted is None:
+            persisted = self.getAttributeAspect(name, 'persisted',
+                                                False, None, True)
 
         return self.getRepositoryView()._createRefList(self, name, otherName,
-                                                       persist, False, True,
+                                                       persisted, False, True,
                                                        None)
 
     def _commitMerge(self, version):

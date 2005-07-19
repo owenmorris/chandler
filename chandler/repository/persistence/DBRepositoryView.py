@@ -105,9 +105,9 @@ class DBRepositoryView(OnDemandRepositoryView):
         return results
 
     def _createRefList(self, item, name, otherName,
-                       persist, readOnly, new, uuid):
+                       persisted, readOnly, new, uuid):
 
-        if persist:
+        if persisted:
             return DBRefList(self, item, name, otherName, readOnly, new, uuid)
         else:
             return TransientRefList(item, name, otherName, readOnly)

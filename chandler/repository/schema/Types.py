@@ -141,6 +141,9 @@ class Type(Item):
     def makeString(self, value):
         return str(value)
 
+    def makeUnicode(self, value):
+        return unicode(value)
+
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
 

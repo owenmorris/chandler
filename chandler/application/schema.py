@@ -91,7 +91,7 @@ class TypeReference:
     """Reference a core schema type (e.g. Integer) by its repository path"""
 
     def __init__(self,path):
-        if nrv.findPath(path) is None:
+        if _get_nrv().findPath(path) is None:
             raise NameError("Type %r not found in the core schema" % (path,))
         self.path = path
         self.__name__ = path.split('/')[-1]
@@ -314,7 +314,7 @@ class Endpoint(object):
     def __init__(self, name, attribute, includePolicy="byValue",
         cloudAlias=None, method = None
     ):
-        values = nrv.findPath('//Schema/Core/IncludePolicy').values
+        values = _get_nrv().findPath('//Schema/Core/IncludePolicy').values
         if includePolicy not in values:
             raise ValueError(
                 "Unrecognized includePolicy: %r" % (includePolicy,)
@@ -516,7 +516,7 @@ class Item(Base):
                 elif kind is not None:
                     view = kind.itsView
                 else:
-                    view = nrv
+                    view = _get_nrv()
     
             if parent is None:
                 parent = self.getDefaultParent(view)
@@ -854,7 +854,7 @@ def parcel_for_module(moduleName, view=None):
     This routine is thread-safe and re-entrant.
     """
     if view is None:
-        view = nrv
+        view = _get_nrv()
     try:
         return view._schema_cache[moduleName]   # fast path
     except (AttributeError, KeyError):
@@ -877,7 +877,7 @@ def itemFor(obj, view=None):
     """Return the schema Item corresponding to ``obj`` in the null view"""
 
     if view is None:
-        view = nrv
+        view = _get_nrv()
 
     try:
         item = view._schema_cache[obj]
@@ -1009,12 +1009,20 @@ def reset(rv=None):
 # ---------------------------
 
 nrv = None
-reset()
+
+def _get_nrv():
+
+    if nrv is None:
+        reset()
+    return nrv
+
 
 core_types = """
-Boolean String Integer Long Float Tuple List Set Class Dictionary Anything
+Boolean String Symbol BString UString Integer Long Float 
+Tuple List Set Class Dictionary Anything
 Date Time DateTime TimeDelta 
-Lob Symbol URL Complex UUID Path SingleRef
+Lob URL Complex UUID Path SingleRef
+Text LocalizableString
 """.split()
 
 for name in core_types:

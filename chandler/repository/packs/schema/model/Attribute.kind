@@ -14,7 +14,7 @@
 
       <!-- 
          - plus local attributes below:
-         -     required, persist, cardinality, type,
+         -     required, persisted, indexed, cardinality, type,
 	 -     defaultValue, initialValue,
          -     inheritFrom, redirectTo, otherName, companion,
 	 -     deletePolicy, copyPolicy, countPolicy,
@@ -52,14 +52,14 @@
   </item>
 
   <item withSchema="True">
-    <name>persist</name>
+    <name>persisted</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="persist">..</ref>
+      <ref type="path" otherAlias="persisted">..</ref>
     </ref>
 
     <ref name="type" otherName="typeFor" 
@@ -67,6 +67,24 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">True</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>indexed</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="indexed">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Boolean</ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">False</attribute>
   </item>
 
   <item withSchema="True">
@@ -270,7 +288,7 @@
     </ref>
 
     <attribute name="cardinality">list</attribute>
-    <attribute name="persist" type="bool">False</attribute>
+    <attribute name="persisted" type="bool">False</attribute>
     <attribute name="otherName">inheritedAttributes</attribute>
   </item>
 
