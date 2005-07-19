@@ -1146,8 +1146,9 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
             }
         }
     }
-    int week;
+    int week = 0;
     bool found = false;
+    bool lastWeek = false;
     for ( month = 0; month < MONTHS_TO_DISPLAY; month++ )
     {
         if ( y > ( initialHeight + month * monthHeight + headerHeight ) && 
@@ -1155,6 +1156,8 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
         {
             week = (y - initialHeight - month * monthHeight - headerHeight) / m_heightRow;
             found = true;
+            if ( week == ( WEEKS_TO_DISPLAY - 1) )
+                lastWeek = true;
             break;
         }
     }
@@ -1176,6 +1179,23 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
             ? wxDateTime::Mon : wxDateTime::Sun);
     dt += wxDateSpan::Days(DAYS_PER_WEEK * week + wday);
 
+    // Test to see if the date is in a blank week
+    if ( lastWeek )
+    {
+        wxDateTime::Tm firstDayTm = dt.GetTm();
+        wxDateTime firstDay = wxDateTime(firstDayTm);
+        firstDay.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
+                ? wxDateTime::Mon : wxDateTime::Sun);
+
+        wxDateTime previousWeek = wxDateTime(firstDayTm);
+        previousWeek.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
+                ? wxDateTime::Mon : wxDateTime::Sun);
+        previousWeek -= wxDateSpan::Week();
+        if ( firstDay.GetMonth() != previousWeek.GetMonth() )
+        {
+            return wxCAL_HITTEST_NOWHERE;
+        }
+    }
     if ( IsDateShown(dt) )
     {
         if ( date )
