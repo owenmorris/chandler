@@ -428,6 +428,7 @@ void wxMacCGContext::SetPen( const wxPen &pen )
         
     }
 }
+
 void wxMacCGContext::SetBrush( const wxBrush &brush )
 {
     m_brush = brush ;
@@ -441,9 +442,9 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
     // we can benchmark performance, should go into a setting later
     CGContextSetShouldAntialias( m_cgContext , false ) ;
 #endif
+
     if ( fill | stroke )
     {
-
         // setup brushes
         m_mode = kCGPathFill ; // just a default
 
@@ -461,7 +462,6 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
         {
             m_mode = kCGPathFillStroke ;
         }
-        
     }
 }
 
@@ -1294,7 +1294,7 @@ void  wxDC::DoDrawRotatedText(const wxString& str, wxCoord x, wxCoord y,
     UniCharCount chars = str.Length() ;
     UniChar* ubuf = NULL ;
 #if SIZEOF_WCHAR_T == 4
-	wxMBConvUTF16BE converter ;
+	wxMBConvUTF16 converter ;
 #if wxUSE_UNICODE
 	size_t unicharlen = converter.WC2MB( NULL , str.wc_str() , 0 ) ;
 	ubuf = (UniChar*) malloc( unicharlen + 2 ) ;
@@ -1454,7 +1454,7 @@ void  wxDC::DoGetTextExtent( const wxString &str, wxCoord *width, wxCoord *heigh
     UniCharCount chars = str.Length() ;
     UniChar* ubuf = NULL ;
 #if SIZEOF_WCHAR_T == 4
-	wxMBConvUTF16BE converter ;
+	wxMBConvUTF16 converter ;
 #if wxUSE_UNICODE
 	size_t unicharlen = converter.WC2MB( NULL , str.wc_str() , 0 ) ;
 	ubuf = (UniChar*) malloc( unicharlen + 2 ) ;
@@ -1526,7 +1526,7 @@ bool wxDC::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) con
     UniCharCount chars = text.Length() ;
     UniChar* ubuf = NULL ;
 #if SIZEOF_WCHAR_T == 4
-    wxMBConvUTF16BE converter ;
+    wxMBConvUTF16 converter ;
 #if wxUSE_UNICODE
     size_t unicharlen = converter.WC2MB( NULL , text.wc_str() , 0 ) ;
     ubuf = (UniChar*) malloc( unicharlen + 2 ) ;
