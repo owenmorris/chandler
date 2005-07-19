@@ -921,6 +921,9 @@ wxLogDebug(
             }
             else if (tool->IsToggled())
             {
+                if (tool->IsToggled())
+                    DoToggleTool( tool, true );
+
                 wxToolBarToolsList::compatibility_iterator nodePrev = node->GetPrevious();
                 while (nodePrev != NULL)
                 {
