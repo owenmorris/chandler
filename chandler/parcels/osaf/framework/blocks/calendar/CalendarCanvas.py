@@ -1146,7 +1146,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
 
     def AddItems(self, itemList):
         for item in itemList:	
-            self.blockItem.AddItemToCollection(item)
+            self.blockItem.AddEventToCollection(item)
 
 
 class wxInPlaceEditor(wx.TextCtrl):

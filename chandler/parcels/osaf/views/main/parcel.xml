@@ -15,7 +15,6 @@
              xmlns:mail="parcel:osaf.contentmodel.mail"
              xmlns:tasks="parcel:osaf.contentmodel.tasks"
              xmlns:calendar="parcel:osaf.framework.blocks.calendar"
-             xmlns:calrefactor="parcel:osaf.framework.blocks.calendar.refactor"
              xmlns:calendarModel="parcel:osaf.contentmodel.calendar"
              xmlns:contacts="parcel:osaf.contentmodel.contacts"
              xmlns:detail="parcel:osaf.framework.blocks.detail"
@@ -1393,11 +1392,11 @@
     <trunkStub itemref="detail:DetailRoot"/>
   </DetailTrunkDelegate>
 
+
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
     <blockName>CalendarSummaryViewTemplate</blockName>
 
     <childrenBlocks itemref="doc:CalendarSummaryView"/>
-    <!--<childrenBlocks itemref="doc:CalendarSummaryViewRefactor"/>-->
 
     <childrenBlocks itemref="doc:CalendarDetailTPB"/>
     <eventBoundary>True</eventBoundary>
@@ -1405,17 +1404,11 @@
     <splitPercentage>0.65</splitPercentage>
   </SplitterWindow>
 
-  
-  <!--<calendar:CalendarContainer itsName="CalendarSummaryView">-->
-    <!--<contents itemref="doc:allItemCollection"/>-->
-    <!--<blockName>CalendarSummaryView</blockName>-->
-    <!--<daysPerView>7</daysPerView>-->
-  <!--</calendar:CalendarContainer>-->
 
-<!-- new -->
+<!-- main calendar area -->
 
   <calendar:CalendarContainer itsName="CalendarSummaryView">
-    <blockName>CalendarSummaryViewRefactor</blockName>
+    <blockName>CalendarSummaryView</blockName>
     <childrenBlocks itemref="doc:MainCalendarControl"/>
     <calendarControl itemref="doc:MainCalendarControl"/>
     <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/> -->
@@ -1461,7 +1454,7 @@
         <stretchFactor value="1"/>
         <contents itemref="doc:allItemCollection"/>
       </calendar:TimedEventsCanvas>
-<!-- end new -->
+<!-- end main calendar area -->
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
     <blockName>CalendarDetailTPB</blockName>
