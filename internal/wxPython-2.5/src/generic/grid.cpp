@@ -240,27 +240,37 @@ private:
 class wxGridCellEditorEvtHandler : public wxEvtHandler
 {
 public:
-    wxGridCellEditorEvtHandler()
-        : m_grid(0), m_editor(0)
-        { }
     wxGridCellEditorEvtHandler(wxGrid* grid, wxGridCellEditor* editor)
-        : m_grid(grid), m_editor(editor)
-        { }
+        : m_grid(grid),
+          m_editor(editor),
+          m_inSetFocus(false)
+    {
+    }
 
+    void OnKillFocus(wxFocusEvent& event);
     void OnKeyDown(wxKeyEvent& event);
     void OnChar(wxKeyEvent& event);
+
+    void SetInSetFocus(bool inSetFocus) { m_inSetFocus = inSetFocus; }
 
 private:
     wxGrid*             m_grid;
     wxGridCellEditor*   m_editor;
-    DECLARE_DYNAMIC_CLASS(wxGridCellEditorEvtHandler)
+
+    // Work around the fact that a focus kill event can be sent to
+    // a combobox within a set focus event.
+    bool                m_inSetFocus;
+    
     DECLARE_EVENT_TABLE()
+    DECLARE_DYNAMIC_CLASS(wxGridCellEditorEvtHandler)
     DECLARE_NO_COPY_CLASS(wxGridCellEditorEvtHandler)
 };
 
 
-IMPLEMENT_DYNAMIC_CLASS( wxGridCellEditorEvtHandler, wxEvtHandler )
+IMPLEMENT_ABSTRACT_CLASS(wxGridCellEditorEvtHandler, wxEvtHandler)
+
 BEGIN_EVENT_TABLE( wxGridCellEditorEvtHandler, wxEvtHandler )
+    EVT_KILL_FOCUS( wxGridCellEditorEvtHandler::OnKillFocus )
     EVT_KEY_DOWN( wxGridCellEditorEvtHandler::OnKeyDown )
     EVT_CHAR( wxGridCellEditorEvtHandler::OnChar )
 END_EVENT_TABLE()
@@ -568,7 +578,7 @@ bool wxGridCellEditor::IsAcceptedKey(wxKeyEvent& event)
     // through in that case.
     if ((ctrl || alt) && !(ctrl && alt))
         return false;
-    
+
 #if wxUSE_UNICODE
     int key = event.GetUnicodeKey();
     bool keyOk = true;
@@ -585,7 +595,7 @@ bool wxGridCellEditor::IsAcceptedKey(wxKeyEvent& event)
     return keyOk;
 #else // !wxUSE_UNICODE
     int key = event.GetKeyCode();
-    if (key <= 255) 
+    if (key <= 255)
         return true;
     return false;
 #endif // wxUSE_UNICODE/!wxUSE_UNICODE
@@ -749,7 +759,7 @@ void wxGridCellTextEditor::StartingKey(wxKeyEvent& event)
     wxTextCtrl* tc = Text();
     wxChar ch;
     long pos;
-    
+
 #if wxUSE_UNICODE
     ch = event.GetUnicodeKey();
     if (ch <= 127)
@@ -956,9 +966,9 @@ bool wxGridCellNumberEditor::IsAcceptedKey(wxKeyEvent& event)
 
 void wxGridCellNumberEditor::StartingKey(wxKeyEvent& event)
 {
+    int keycode = event.GetKeyCode();
     if ( !HasRange() )
     {
-        int keycode = event.GetKeyCode();
         if ( wxIsdigit(keycode) || keycode == '+' || keycode == '-')
         {
             wxGridCellTextEditor::StartingKey(event);
@@ -967,7 +977,18 @@ void wxGridCellNumberEditor::StartingKey(wxKeyEvent& event)
             return;
         }
     }
-
+#if wxUSE_SPINCTRL
+    else
+    {
+        if ( wxIsdigit(keycode) )
+        {
+            wxSpinCtrl* spin = (wxSpinCtrl*)m_control;
+            spin->SetValue(keycode - '0');
+            spin->SetSelection(1,1);
+            return;
+        }
+    }
+#endif
     event.Skip();
 }
 
@@ -1092,7 +1113,7 @@ void wxGridCellFloatEditor::StartingKey(wxKeyEvent& event)
     tmpbuf[0] = (char) keycode;
     tmpbuf[1] = '\0';
     wxString strbuf(tmpbuf, *wxConvCurrent);
-#if wxUSE_INTL        
+#if wxUSE_INTL
     bool is_decimal_point = ( strbuf ==
        wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER) );
 #else
@@ -1170,14 +1191,14 @@ bool wxGridCellFloatEditor::IsAcceptedKey(wxKeyEvent& event)
         tmpbuf[0] = (char) keycode;
         tmpbuf[1] = '\0';
         wxString strbuf(tmpbuf, *wxConvCurrent);
-#if wxUSE_INTL        
+#if wxUSE_INTL
         bool is_decimal_point =
             ( strbuf == wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT,
                                           wxLOCALE_CAT_NUMBER) );
 #else
         bool is_decimal_point = ( strbuf == _T(".") );
 #endif
-        if ( (keycode < 128) && 
+        if ( (keycode < 128) &&
              (wxIsdigit(keycode) || tolower(keycode) == 'e' ||
               is_decimal_point || keycode == '+' || keycode == '-') )
             return true;
@@ -1361,11 +1382,11 @@ void wxGridCellBoolEditor::StartingKey(wxKeyEvent& event)
         case WXK_SPACE:
             CBox()->SetValue(!CBox()->GetValue());
             break;
-            
+
         case '+':
             CBox()->SetValue(true);
             break;
-                
+
         case '-':
             CBox()->SetValue(false);
             break;
@@ -1446,6 +1467,14 @@ void wxGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     wxASSERT_MSG(m_control,
                  wxT("The wxGridCellEditor must be Created first!"));
 
+    wxGridCellEditorEvtHandler* evtHandler = NULL;
+    if (m_control)
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+
+    // Don't immediately end if we get a kill focus event within BeginEdit
+    if (evtHandler)
+        evtHandler->SetInSetFocus(true);
+
     m_startValue = grid->GetTable()->GetValue(row, col);
 
     if (m_allowOthers)
@@ -1454,12 +1483,15 @@ void wxGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     {
         // find the right position, or default to the first if not found
         int pos = Combo()->FindString(m_startValue);
-        if (pos == -1)
+        if (pos == wxNOT_FOUND)
             pos = 0;
         Combo()->SetSelection(pos);
     }
     Combo()->SetInsertionPointEnd();
     Combo()->SetFocus();
+
+    if (evtHandler)
+        evtHandler->SetInSetFocus(false);
 }
 
 bool wxGridCellChoiceEditor::EndEdit(int row, int col,
@@ -1508,6 +1540,18 @@ wxString wxGridCellChoiceEditor::GetValue() const
 // ----------------------------------------------------------------------------
 // wxGridCellEditorEvtHandler
 // ----------------------------------------------------------------------------
+
+void wxGridCellEditorEvtHandler::OnKillFocus(wxFocusEvent& event)
+{
+    // Don't disable the cell if we're just starting to edit it
+    if (m_inSetFocus)
+        return;
+
+    // accept changes
+    m_grid->DisableCellEditControl();
+
+    event.Skip();
+}
 
 void wxGridCellEditorEvtHandler::OnKeyDown(wxKeyEvent& event)
 {
@@ -2131,8 +2175,8 @@ void wxGridCellAttr::MergeWith(wxGridCellAttr *mergefrom)
         mergefrom->GetAlignment( &hAlign, &vAlign);
         SetAlignment(hAlign, vAlign);
     }
-
-    mergefrom->GetSize( &m_sizeRows, &m_sizeCols );
+    if ( !HasSize() && mergefrom->HasSize() )
+        mergefrom->GetSize( &m_sizeRows, &m_sizeCols );
 
     // Directly access member functions as GetRender/Editor don't just return
     // m_renderer/m_editor
@@ -2902,6 +2946,7 @@ wxGridCellAttr *wxGridTableBase::GetAttr(int row, int col, wxGridCellAttr::wxAtt
     else
         return (wxGridCellAttr *)NULL;
 }
+
 
 void wxGridTableBase::SetAttr(wxGridCellAttr* attr, int row, int col)
 {
@@ -3864,7 +3909,7 @@ wxEND_HANDLERS_TABLE()
 wxCONSTRUCTOR_5( wxGrid , wxWindow* , Parent , wxWindowID , Id , wxPoint , Position , wxSize , Size , long , WindowStyle )
 
 /*
- TODO : Expose more information of a list's layout etc. via appropriate objects (à la NotebookPageInfo)
+ TODO : Expose more information of a list's layout etc. via appropriate objects (?à la NotebookPageInfo)
 */
 #else
 IMPLEMENT_DYNAMIC_CLASS( wxGrid, wxScrolledWindow )
@@ -4899,6 +4944,7 @@ void wxGrid::ProcessRowLabelMouseEvent( wxMouseEvent& event )
                 break;
 
                 case WXGRID_CURSOR_SELECT_ROW:
+                {
                     if ( (row = YToRow( y )) >= 0 )
                     {
                         if ( m_selection )
@@ -4910,6 +4956,8 @@ void wxGrid::ProcessRowLabelMouseEvent( wxMouseEvent& event )
                                                     event.MetaDown() );
                         }
                     }
+                }
+                break;
 
                 // default label to suppress warnings about "enumeration value
                 // 'xxx' not handled in switch
@@ -5121,6 +5169,7 @@ void wxGrid::ProcessColLabelMouseEvent( wxMouseEvent& event )
                 break;
 
                 case WXGRID_CURSOR_SELECT_COL:
+                {
                     if ( (col = XToCol( x )) >= 0 )
                     {
                         if ( m_selection )
@@ -5132,6 +5181,8 @@ void wxGrid::ProcessColLabelMouseEvent( wxMouseEvent& event )
                                                     event.MetaDown() );
                         }
                     }
+                }
+                break;
 
                 // default label to suppress warnings about "enumeration value
                 // 'xxx' not handled in switch
@@ -7294,11 +7345,11 @@ void wxGrid::DrawRowLabels( wxDC& dc ,const wxArrayInt& rows)
 
 void wxGrid::DrawRowLabel( wxDC& dc, int row )
 {
-    if ( GetRowHeight(row) <= 0 )
+    if ( GetRowHeight(row) <= 0 || m_rowLabelWidth <= 0 )
         return;
 
     wxRect rect;
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     rect.SetX( 1 );
     rect.SetY( GetRowTop(row) + 1 );
     rect.SetWidth( m_rowLabelWidth - 2 );
@@ -7356,13 +7407,13 @@ void wxGrid::DrawColLabels( wxDC& dc,const wxArrayInt& cols )
 
 void wxGrid::DrawColLabel( wxDC& dc, int col )
 {
-    if ( GetColWidth(col) <= 0 )
+    if ( GetColWidth(col) <= 0 || m_colLabelHeight <= 0 )
         return;
 
     int colLeft = GetColLeft(col);
 
     wxRect rect;
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     rect.SetX( colLeft + 1 );
     rect.SetY( 1 );
     rect.SetWidth( GetColWidth(col) - 2 );
@@ -7848,7 +7899,13 @@ void wxGrid::HideCellEditControl()
         editor->Show( false );
         editor->DecRef();
         attr->DecRef();
-        m_gridWin->SetFocus();
+
+        // if the focus moved completely outside this application, set it to
+        // ourselves so that it's not "lost" when the user switches back to
+        // this app
+        if ( !FindFocus() )
+            m_gridWin->SetFocus();
+
         // refresh whole row to the right
         wxRect rect( CellToRect(row, col) );
         CalcScrolledPosition(rect.x, rect.y, &rect.x, &rect.y );
@@ -8191,8 +8248,9 @@ void wxGrid::SelectCell( int row, int column )
 {
     wxGridCellCoords newCellCoords( row, column );
 
+    ClearSelection(); 
     MakeCellVisible( newCellCoords );
-	HighlightBlock( newCellCoords, newCellCoords, /* clearSelection is */ true );
+	HighlightBlock( newCellCoords, newCellCoords );
     SetCurrentCell( newCellCoords );
     if( m_selection )
         m_selection->SelectBlock( m_selectingTopLeft.GetRow(), m_selectingTopLeft.GetCol(),
@@ -9536,10 +9594,7 @@ wxGrid::GetDefaultRendererForType(const wxString& typeName) const
     int index = m_typeRegistry->FindOrCloneDataType(typeName);
     if ( index == wxNOT_FOUND )
     {
-    wxString	errStr;
-
-        errStr.Printf(wxT("Unknown data type name [%s]"), typeName.c_str());
-        wxFAIL_MSG(errStr.c_str());
+        wxFAIL_MSG(wxT("Unknown data type name"));
 
         return NULL;
     }
