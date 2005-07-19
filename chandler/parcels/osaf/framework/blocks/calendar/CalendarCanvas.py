@@ -945,6 +945,9 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         
         
     def getEventColors(self, event, selected):
+        """
+        returns the appropriate tuple of selected, normal, and visible colors
+        """
         calData = self.getEventCalendarData(event)
         
         if selected:
@@ -1018,7 +1021,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         
     def OnInit(self):
         super(wxCalendarCanvas, self).OnInit()
-        self.editor = wxInPlaceEditor(self, -1) 
+        self.editor = wxInPlaceEditor(self, -1)
         
     def OnScroll(self, event):
         self.Refresh()
@@ -1224,7 +1227,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
     def __init__(self, *arguments, **keywords):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
 
-    def instantiateWidget(self):
+    def InitializeStyles(self):
         # This is where all the styles come from
         if '__WXMAC__' in wx.PlatformInfo:
             
@@ -1270,8 +1273,8 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         # gradient cache
         self.brushes = DrawingUtilities.Gradients()
 
-
-        ##............ OK, finally instantiate the widget .............
+    def instantiateWidget(self):
+        self.InitializeStyles()
         
         w = super(CalendarContainer, self).instantiateWidget()
 
@@ -1288,8 +1291,11 @@ class AllDayEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
     dayMode = schema.One(schema.Boolean, initialValue=False)
 
+    def __init__(self, *arguments, **keywords):
+        super(AllDayEventsCanvas, self).__init__(*arguments, **keywords)
+
     def instantiateWidget(self):
-        w = wxAllDayEventsCanvas(self.parentBlock.widget, Block.Block.getWidgetID(self))
+        w = wxAllDayEventsCanvas(self.parentBlock.widget, -1)
         return w
 
     def onSelectWeekEvent(self, event):
@@ -1326,10 +1332,13 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def OnInit(self):
         super (wxAllDayEventsCanvas, self).OnInit()
         
+        self.SetMinSize((-1,25))
+        
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnSize(self, event):
+        # print "wxAllDayEventsCanvas.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self.size = self.GetSize()
         self.RebuildCanvasItems()
         
@@ -1674,9 +1683,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.Refresh()
 
     def OnSize(self, event):
+        # print "wxTimedEventsCanvas.OnSize()  to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self._doDrawingCalculations()
+            
         self.RebuildCanvasItems()
         self.Refresh()
+        event.Skip()
 
 
     def OnInit(self):
@@ -2127,7 +2139,7 @@ class CalendarControl(CalendarBlock):
         ## somewhere?)
         
 
-        w = wxCalendarControl(self.parentBlock.widget, Block.Block.getWidgetID(self))
+        w = wxCalendarControl(self.parentBlock.widget, -1)
         return w
 
     def onSelectedDateChangedEvent(self, event):
@@ -2169,11 +2181,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         super(wxCalendarControl, self).__init__(*arguments, **keywords)
         
 
-    def OnInit(self):
         self.currentSelectedDate = None
         self.currentStartDate = None
 
-        self.SetBackgroundColour(self.blockItem.parentBlock.bgColor)
         self.SetMaxSize((-1, 80)) 
 
         # Set up sizers
@@ -2193,11 +2203,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         today = date.today()
         today = datetime(today.year, today.month, today.day)
-        styles = self.blockItem.calendarContainer
 
         self.monthText = wx.StaticText(self, -1)
-        self.monthText.SetFont(styles.monthLabelFont)
-        self.monthText.SetForegroundColour(styles.monthLabelColor)
 
         navigationRow.Add((0,0), 1)
 
@@ -2230,14 +2237,21 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # set up initial selection
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,True)
-        self.UpdateHeader()
         sizer.Add(self.weekColumnHeader, 0, wx.EXPAND)
         
-        self.Bind(wx.EVT_SIZE, self.OnSize)
         self.SetSizer(sizer)
         sizer.SetSizeHints(self)
         self.Layout()
 
+    def OnInit(self):
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.SetBackgroundColour(self.blockItem.parentBlock.bgColor)
+        
+        styles = self.blockItem.calendarContainer
+        self.monthText.SetFont(styles.monthLabelFont)
+        self.monthText.SetForegroundColour(styles.monthLabelColor)
+        
+        self.UpdateHeader()
         self._doDrawingCalculations() #hopefully this is early enough
 
     def OnSelectColor(self, event):
@@ -2265,6 +2279,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.weekColumnHeader.SetUIExtent(i, (0,width))
 
     def OnSize(self, event):
+        # print "CalendarControl.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self._doDrawingCalculations()
         self.ResizeHeader()
         event.Skip()
