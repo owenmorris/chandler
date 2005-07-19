@@ -13,8 +13,11 @@ from repository.persistence.RepositoryError \
      RepositoryVersionError
 from repository.item.RefCollections import RefList
 
-# Increment this value whenever the schema changes
-SCHEMA_VERSION = "27"
+# Increment this value whenever the schema changes and edit this comment (to
+# make sure Subversion knows you changed it, in case someone else changes it
+# at about the same time)...
+# stearns: changed useControl to editInPlace in AEs' PresentationStyle
+SCHEMA_VERSION = "28"
 
 logger = None # initialized in initLogging()
 
