@@ -16,7 +16,6 @@
 import  wx
 import  wx.gizmos as gizmos
 
-import  images
 
 #----------------------------------------------------------------------
 
@@ -27,8 +26,8 @@ class TestTree(gizmos.RemotelyScrolledTreeCtrl):
         # make an image list
         im1 = im2 = -1
         self.il = wx.ImageList(16, 16)
-        im1 = self.il.Add(images.getFolder1Bitmap())
-        im2 = self.il.Add(images.getFile1Bitmap())
+        im1 = self.il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_TOOLBAR, (16,16)))
+        im2 = self.il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_TOOLBAR, (16,16)))
         self.SetImageList(self.il)
 
         # Add some items
@@ -48,10 +47,6 @@ class TestValueWindow(gizmos.TreeCompanionWindow):
     def __init__(self, parent, style=0):
         gizmos.TreeCompanionWindow.__init__(self, parent, -1, style=style)
         self.SetBackgroundColour("WHITE")
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OEB)
-
-    def OEB(self, evt):
-        pass
 
     # This method is called to draw each item in the value window
     def DrawItem(self, dc, itemId, rect):
