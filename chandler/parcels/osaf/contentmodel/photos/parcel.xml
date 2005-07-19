@@ -10,12 +10,23 @@
     <!-- Block definitions for detail view -->
     <detail:DetailTrunkSubtree itsName="PhotoSubtree">
         <key itemref="photos:PhotoMixin"/>
+        <rootBlocks itemref="photos:PhotoDetailsSpacer"/>
         <rootBlocks itemref="photos:PhotoDetails"/>
     </detail:DetailTrunkSubtree>
+
+    <blocks:StaticText itsName="PhotoDetailsSpacer">
+        <blockName value="PhotoDetailsSpacer"/>
+        <title></title>
+        <position>0.84999</position>
+        <characterStyle itemref="blocks:LabelStyle"/>
+        <stretchFactor>0.0</stretchFactor>
+        <minimumSize>-1, 5</minimumSize>
+    </blocks:StaticText>
 
     <blocks:ContentItemDetail itsName="PhotoDetails">
         <blockName value="PhotoDetails"/>
         <orientationEnum>Vertical</orientationEnum>
+        <position>.85</position>
         <childrenBlocks itemref="photos:PhotoImage"/>
     </blocks:ContentItemDetail>
 

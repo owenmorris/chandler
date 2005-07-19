@@ -1629,6 +1629,36 @@ class ReminderTimer(Timer):
         # logger.debug("*** next reminder due %s" % when)
         super(ReminderTimer, self).setFiringTime(when)
 
+class PresentationStyle(schema.Item):
+    schema.kindInfo(
+        displayName = "Presentation Style"
+    )
+    sampleText = schema.One(
+        schema.String,
+        doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
+    )
+    format = schema.One(
+        schema.String,
+        doc = 'customization of presentation format',
+    )
+    choices = schema.Sequence(
+        schema.String,
+        doc = 'options for multiple-choice values',
+    )
+    editInPlace = schema.One(
+        schema.Boolean,
+        doc = 'For text controls, True if we should wait for a click to become editable',
+    )
+    lineStyleEnum = schema.One(
+        lineStyleEnumType,
+        doc = 'SingleLine vs MultiLine for textbox-based editors',
+    )
+    schema.addClouds(
+        copying = schema.Cloud(
+            byValue=[sampleText,format,choices,editInPlace,lineStyleEnum]
+        )
+    )
+
 class AEBlock(BoxContainer):
     """
     Attribute Editor Block: instantiates an Attribute Editor appropriate for
@@ -1651,7 +1681,17 @@ class AEBlock(BoxContainer):
     schema.addClouds(
         copying = schema.Cloud(byRef=[characterStyle, presentationStyle])
     )
-
+    
+    def getItem(self): return getattr(self, 'contents', None)
+    def setItem(self, value): self.contents = value
+    item = property(getItem, setItem, 
+                    doc="Safely access the selected item (or None)")
+    
+    def getAttributeName(self): return getattr(self, 'viewAttribute', None)
+    def setAttributeName(self, value): self.viewAttribute = value
+    attributeName = property(getAttributeName, setAttributeName, doc=\
+                             "Safely access the configured attribute name (or None)")
+    
     def instantiateWidget(self):
         """
         Ask our attribute editor to create a widget for us.
@@ -1728,7 +1768,7 @@ class AEBlock(BoxContainer):
                 # Grab focus if we're supposed to.
                 if self.forEditing and grabFocus:
                     logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
-                                 self.getRawAttributeName())
+                                 self.attributeName)
                     self.widget.SetFocus()
 
                 # Sync the view to update the sizers
@@ -1744,11 +1784,11 @@ class AEBlock(BoxContainer):
         if changing:
             self.forEditing = forEditing
             logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Must change." % \
-                         self.getRawAttributeName())
+                         self.attributeName)
             wx.CallAfter(rerender)
         else:
             logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Not changing." % \
-                         self.getRawAttributeName())
+                         self.attributeName)
 
         return changing
         
@@ -1758,7 +1798,6 @@ class AEBlock(BoxContainer):
         """
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
-        item, attributeName = self.getItemAndAttributeName()
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
@@ -1771,70 +1810,46 @@ class AEBlock(BoxContainer):
             pass
         else:
             if (oldEditor is not None) and (oldEditor.typeName == typeName) \
-               and (oldEditor.attributeName == attributeName) and \
+               and (oldEditor.attributeName == self.attributeName) and \
                (oldEditor.presentationStyle is presentationStyle):
-                assert oldEditor.item is item # this shouldn't've changed.
+                assert oldEditor.item is self.item # this shouldn't've changed.
                 return oldEditor
 
         # We need a new editor - create one.
         # logger.debug("Creating new AE for %s (%s.%s)", typeName, item, attributeName)
         selectedEditor = AttributeEditors.getInstance\
-                       (typeName, item, attributeName, presentationStyle)
+                       (typeName, self.item, self.attributeName, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
-        selectedEditor.attributeName = attributeName
+        selectedEditor.attributeName = self.attributeName
         try:
             selectedEditor.presentationStyle = self.presentationStyle
         except AttributeError:
             selectedEditor.presentationStyle = None
-        selectedEditor.item = item
+        selectedEditor.item = self.item
 
         # Register for value changes
         selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
         return selectedEditor
 
     def onSetContentsEvent (self, event):
-        self.contents = event.arguments['item']
-        
+        self.item = event.arguments['item']
         assert not hasattr(self, 'widget')
-        
-        # @@@ more here?
-
-    def getRawAttributeName(self):
-        """ 
-        Get the attribute name we were configured with. Might be a path
-        to the attribute ('attr.subattr').
-        """
-        return getattr(self, 'viewAttribute', None)
-
-    def getItemAndAttributeName(self):
-        """ 
-        Get the item and attribute name we were configured with, drilling
-        down if the raw attribute name is a path like 'attr.subattr'.
-        """
-        item = getattr(self, 'contents', None)
-        attributeName = self.getRawAttributeName()
-        if attributeName is not None:
-            while item is not None and '.' in attributeName:
-                (thisAttr, attributeName) = attributeName.split('.')
-                item = getattr(item, thisAttr, None)
-        return (item, attributeName,)
             
     def getItemAttributeTypeName(self):
         # Get the type of the current attribute
-        item, attributeName = self.getItemAndAttributeName()
-        if item is None:
+        if self.item is None:
             return None
 
         # Ask the schema for the attribute's type first
         try:
-            theType = item.getAttributeAspect(attributeName, "type")
+            theType = self.item.getAttributeAspect(self.attributeName, "type")
         except:
             # If the repository doesn't know about it (it might be a property),
             # get its value and use its type
             try:
-                attrValue = getattr(item, attributeName)
+                attrValue = getattr(self.item, self.attributeName)
             except:
                 typeName = "_default"
             else:
@@ -1851,7 +1866,7 @@ class AEBlock(BoxContainer):
         """
           The widget got clicked on - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: %s widget got clicked on", self.getRawAttributeName())
+        logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
         changing = self.ChangeWidgetIfNecessary(True, True)
 
         # If the widget didn't get focus as a result of the click,
@@ -1882,7 +1897,7 @@ class AEBlock(BoxContainer):
         """
           The widget got the focus - make sure we're in edit mode.
         """
-        logger.debug("AEBlock: %s widget gained focus", self.getRawAttributeName())
+        logger.debug("AEBlock: %s widget gained focus", self.attributeName)
         
         self.ChangeWidgetIfNecessary(True, True)
         event.Skip()
@@ -1912,8 +1927,7 @@ class AEBlock(BoxContainer):
         widget = getattr(self, 'widget', None)
         if widget is not None:
             editor = self.lookupEditor()
-            item, attributeName = self.getItemAndAttributeName()
-            editor.EndControlEdit(item, attributeName, widget)
+            editor.EndControlEdit(self.item, self.attributeName, widget)
 
     def unRender(self):
         # Last-chance write-back.
@@ -1940,11 +1954,12 @@ class AEBlock(BoxContainer):
 
     def onAttributeEditorValueChange(self):
         """ Called when the attribute editor changes the value """
-        item, attributeName = self.getItemAndAttributeName()
-        logger.debug("onAttributeEditorValueChange: %s %s", item, attributeName)
+        logger.debug("onAttributeEditorValueChange: %s %s", 
+                     self.item, self.attributeName)
         try:
             event = self.event
         except AttributeError:
             pass
         else:
-            self.post(event, {'item': item, 'attribute': attributeName })
+            self.post(event, {'item': self.item, 
+                              'attribute': self.attributeName })

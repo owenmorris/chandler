@@ -924,34 +924,3 @@ class EventList(schema.Item):
 class lineStyleEnumType(schema.Enumeration):
       values = "SingleLine", "MultiLine"
 
-
-class PresentationStyle(schema.Item):
-    schema.kindInfo(
-        displayName = "Presentation Style"
-    )
-    sampleText = schema.One(
-        schema.String,
-        doc = 'Localized in-place sample text (optional); if "", will use the attr\'s displayName.',
-    )
-    format = schema.One(
-        schema.String,
-        doc = 'customization of presentation format',
-    )
-    choices = schema.Sequence(
-        schema.String,
-        doc = 'options for multiple-choice values',
-    )
-    useControl = schema.One(
-        schema.Boolean,
-        doc = 'True if we should always present the control (instead of waiting for a click to look editable)',
-    )
-    lineStyleEnum = schema.One(
-        lineStyleEnumType,
-        doc = 'SingleLine vs MultiLine for textbox-based editors',
-    )
-    schema.addClouds(
-        copying = schema.Cloud(
-            byValue=[sampleText,format,choices,useControl,lineStyleEnum]
-        )
-    )
-

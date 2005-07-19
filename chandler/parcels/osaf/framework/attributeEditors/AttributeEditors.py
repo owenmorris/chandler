@@ -96,10 +96,9 @@ class BaseAttributeEditor (object):
         # default to True.
         return True
     
-    def UsePermanentControl(self):
+    def EditInPlace(self):
         """ 
-        Does this attribute editor use a permanent control (or
-        will the control be created when the user clicks)? 
+        Will this attribute editor change controls when the user clicks on it?
         """
         return False
     
@@ -235,12 +234,12 @@ class StringAttributeEditor (BaseAttributeEditor):
     Supports sample text.
     """
     
-    def UsePermanentControl(self):
+    def EditInPlace(self):
         try:
-            uc = self.presentationStyle.useControl
+            editInPlace = self.presentationStyle.editInPlace
         except AttributeError:
-            uc = False
-        return uc
+            editInPlace = False
+        return editInPlace
 
     def IsFixedWidth(self, blockItem):
         """
@@ -254,13 +253,10 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """
-          Currently only handles left justified single line text.
+        Draw this control's value; used only by Grid when the attribute's not
+        being edited.
+        @@@ Currently only handles left justified single line text.
         """
-        
-        # If we have a control, it'll do the drawing.
-        if self.UsePermanentControl():
-            return
-        
         #logger.debug("StringAE.Draw: %s, %s of %s; %s in selection",
                      #self.isShared and "shared" or "dv",
                      #attributeName, item,
@@ -300,7 +296,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         
     def MustChangeControl(self, forEditing, existingControl):
         must = existingControl is None or \
-             (not self.UsePermanentControl() and \
+             (self.EditInPlace() and \
              (forEditing != isinstance(existingControl, AETextCtrl)))
         # logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
         return must
@@ -308,12 +304,10 @@ class StringAttributeEditor (BaseAttributeEditor):
     def CreateControl(self, forEditing, parentWidget, 
                        id, parentBlock, font):
         # logger.debug("StringAE.CreateControl")
-        useTextCtrl = forEditing
-        if not forEditing:
-            try:
-                useTextCtrl = parentBlock.presentationStyle.useControl
-            except AttributeError:
-                pass
+        
+        # We'll use an AETextCtrl, unless we're an edit-in-place 
+        # control in 'edit' mode.
+        useStaticText = self.EditInPlace() and not forEditing
                 
         # Figure out the size we should be
         # @@@ There's a wx catch-22 here: The text ctrl on Windows will end up
@@ -332,7 +326,9 @@ class StringAttributeEditor (BaseAttributeEditor):
             # First, base our height on our font:
             if font is not None:
                 measurements = Styles.getMeasurements(font)
-                height = useTextCtrl and measurements.textCtrlHeight or measurements.height
+                height = useStaticText \
+                       and measurements.height \
+                       or measurements.textCtrlHeight
             else:
                 height = wx.DefaultSize.GetHeight()
             
@@ -350,7 +346,12 @@ class StringAttributeEditor (BaseAttributeEditor):
                     width = 200
             size = wx.Size(width, height)
 
-        if useTextCtrl:
+        if useStaticText:
+            border = parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER
+            control = AEStaticText(parentWidget, id, '', wx.DefaultPosition, 
+                                   size,
+                                   wx.TAB_TRAVERSAL | border)
+        else:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
             try:
                 lineStyleEnum = parentBlock.presentationStyle.lineStyleEnum
@@ -368,12 +369,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
             control.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
             control.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
-            
-        else:            
-            border = parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER
-            control = AEStaticText(parentWidget, id, '', wx.DefaultPosition, 
-                                   size,
-                                   wx.TAB_TRAVERSAL | border)
         
         return control
 
@@ -433,7 +428,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             control = event.GetEventObject()
             if getattr(self, 'sampleText', None) is not None:
                 currentText = control.GetValue()
-                logger.debug("StringAE.onTextChanged: not ignoring; value is '%s'" % currentText)                    
+                #logger.debug("StringAE.onTextChanged: not ignoring; value is '%s'" % currentText)                    
                 if self.showingSample:
                     if currentText != self.sampleText:
                         logger.debug("onTextChanged: replacing sample with it (alreadyChanged)")
@@ -441,11 +436,11 @@ class StringAttributeEditor (BaseAttributeEditor):
                 elif len(currentText) == 0:
                     logger.debug("StringAE.onTextChanged: installing sample.")
                     self._changeTextQuietly(control, self.sampleText, True, False)
-                logger.debug("StringAE.onTextChanged: done; new values is '%s'" % control.GetValue())
+                pass # logger.debug("StringAE.onTextChanged: done; new values is '%s'" % control.GetValue())
             else:
                 logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
-            logger.debug("StringAE.onTextChanged: ignoring (self-changed); value is '%s'" % event.GetEventObject().GetValue())
+            pass # logger.debug("StringAE.onTextChanged: ignoring (self-changed); value is '%s'" % event.GetEventObject().GetValue())
         
     def _changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
@@ -577,11 +572,22 @@ class StringAttributeEditor (BaseAttributeEditor):
                     doc="Are we currently displaying the sample text?")
 
 class StaticStringAttributeEditor(StringAttributeEditor):
+    """
+    To be always static, we pretend to be "edit-in-place", but never in 
+    'edit' mode.
+    """
     def CreateControl(self, forEditing, parentWidget, 
                        id, parentBlock, font):
         return super(StaticStringAttributeEditor, self).\
                CreateControl(False, parentWidget, id, parentBlock, font)
     
+    def EditInPlace(self):
+        return True
+
+    def MustChangeControl(self, forEditing, existingControl):
+        # We only need to change controls if we don't have one.
+        return existingControl is None
+
 class LobAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -723,7 +729,34 @@ class DateAttributeEditor (StringAttributeEditor):
         # Refresh the value in place
         self.SetControlValue(self.control, 
                              self.GetAttributeValue(item, attributeName))
-
+    
+    def GetSampleText(self, item, attributeName):
+        # We want to build a hint like "mm/dd/yy", but we don't know the locale-
+        # specific ordering of these fields. Format a date with distinct values,
+        # then replace the resulting string's pieces with letters.            
+        # @@@ This only works for locales that use a Western-style calendar
+        if not hasattr(self, 'cachedSampleText'):
+            # @@@ These individual letters still need to be localized. If the
+            # resulting strings are 1 character long, they'll be repeated to
+            # fill the field. If not, they'll replace the field as-is (so "mon"
+            # would work.)
+            year = _(u"yr")
+            month = _(u"mo")
+            day = _(u"da")
+            sampleText = DateAttributeEditor._format.format(datetime(2003,10,30))
+            def replace(numbers, example):
+                i = sampleText.indexOf(numbers)
+                if i != -1:
+                    if len(example) == 1:
+                        example *= len(numbers)
+                    sampleText[i:i+len(numbers)] = example
+            replace("2003", year) # Some locales use 4-digit year, some use 2.
+            replace("03", year)   # so we'll handle both.
+            replace("10", month)
+            replace("30", day)
+            self.cachedSampleText = unicode(sampleText)
+        return self.cachedSampleText
+    
 class TimeAttributeEditor (StringAttributeEditor):
     _format = DateFormat.createTimeInstance(DateFormat.kShort)
 
@@ -760,6 +793,31 @@ class TimeAttributeEditor (StringAttributeEditor):
         self.SetControlValue(self.control, 
                              self.GetAttributeValue(item, attributeName))
 
+    def GetSampleText(self, item, attributeName):
+        # We want to build a hint like "hh:mm PM", but we don't know the locale-
+        # specific ordering of these fields. Format a date with distinct values,
+        # then replace the resulting string's pieces with letters.            
+        # @@@ This only works for locales that use a Western-style calendar
+        if not hasattr(self, 'cachedSampleText'):
+            # @@@ These individual letters still need to be localized. If the
+            # resulting strings are 1 character long, they'll be repeated to
+            # fill the field. If not, they'll replace the field as-is (so "hour"
+            # would work.)
+            hour = _(u"h")
+            minute = _(u"m")
+            sampleText = TimeAttributeEditor._format.format(\
+                datetime(2003,10,30,11,45))
+            def replace(numbers, example):
+                i = sampleText.indexOf(numbers)
+                if i != -1:
+                    if len(example) == 1:
+                        example *= len(numbers)
+                    sampleText[i:i+len(numbers)] = example
+            replace("11", hour)
+            replace("45", minute)
+            self.cachedSampleText = unicode(sampleText)
+        return self.cachedSampleText
+    
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
     def ReadOnly (self, (item, attribute)):
@@ -958,8 +1016,8 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
 
 class BasePermanentAttributeEditor (BaseAttributeEditor):
     """ Base class for editors that always need controls """
-    def UsePermanentControl(self):
-        return True
+    def EditInPlace(self):
+        return False
     
     def BeginControlEdit (self, item, attributeName, control):
         value = self.GetAttributeValue(item, attributeName)

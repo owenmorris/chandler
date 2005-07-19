@@ -68,8 +68,8 @@
   -->
   <ae:AttributeEditor itsName="DateTime+calendarDateOnly"><className>osaf.framework.blocks.detail.Detail.CalendarDateAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="DateTime+calendarTimeOnly"><className>osaf.framework.blocks.detail.Detail.CalendarTimeAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="RecurrenceRuleSet+custom"><className>osaf.framework.attributeEditors.AttributeEditors.StaticStringAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="RecurrenceRuleSet+ends"><className>osaf.framework.blocks.detail.Detail.DateOrNeverAttributeEditor</className></ae:AttributeEditor>
+  <ae:AttributeEditor itsName="RecurrenceRuleSet+custom"><className>osaf.framework.blocks.detail.Detail.RecurrenceCustomAttributeEditor</className></ae:AttributeEditor>
+  <ae:AttributeEditor itsName="RecurrenceRuleSet+ends"><className>osaf.framework.blocks.detail.Detail.RecurrenceEndsAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+occurs"><className>osaf.framework.blocks.detail.Detail.RecurrenceAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="NoneType+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="timedelta+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
@@ -130,7 +130,7 @@
 
   <!-- Mail -->
   <doc:DetailTrunkSubtree itsName="MailSubtree">
-    <key itemref="mail:MailMessage"/>
+    <key itemref="mail:MailMessageMixin"/>
     <rootBlocks itemref="doc:FromArea"/>
     <rootBlocks itemref="doc:ToMailArea"/>
     <rootBlocks itemref="doc:AcceptShareButton"/>
@@ -478,7 +478,7 @@
 
   <PresentationStyle itsName="HeadlinePresentation">
     <sampleText></sampleText><!-- empty sample means "use displayname" -->
-    <!-- <useControl>True</useControl> @@@ BJS for debugging -->
+    <editInPlace>True</editInPlace>
   </PresentationStyle>
 
   <!-- Headline area done as an AE Block -->
@@ -486,7 +486,6 @@
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="HeadlineBlock"/>
     <characterStyle itemref="blocks:BigTextStyle"/>
-    <!--<minimumSize>300, 22</minimumSize>-->
     <presentationStyle itemref="doc:HeadlinePresentation"/>
     <viewAttribute value="about"/>
     <border>2, 2, 2, 2</border>
@@ -499,11 +498,20 @@
     <childrenBlocks itemref="doc:CalendarAllDayArea"/>
     <childrenBlocks itemref="doc:CalendarStartSpacer"/>
     <childrenBlocks itemref="doc:CalendarStartTimeArea"/>
+    <childrenBlocks itemref="doc:CalendarEndSpacer"/>
     <childrenBlocks itemref="doc:CalendarEndTimeArea"/>
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
-    <!--<childrenBlocks itemref="doc:CalendarRecurrencePopupArea"/>
+
+    <!-- The recurrence UI; turned off for now. -->
+    <!-- 
+    <childrenBlocks itemref="doc:CalendarRecurrenceSpacer"/>
+    <childrenBlocks itemref="doc:CalendarRecurrencePopupArea"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceCustomArea"/>
-    <childrenBlocks itemref="doc:CalendarRecurrenceEndArea"/>-->
+    <childrenBlocks itemref="doc:CalendarRecurrenceEndArea"/>
+    -->
+    <!-- (end of recurrence UI) -->
+    
+    <childrenBlocks itemref="doc:CalendarReminderSpacer"/>
     <childrenBlocks itemref="doc:CalendarReminderArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -530,7 +538,7 @@
 
   <PresentationStyle itsName="LocationPresentation">
     <sampleText></sampleText>
-     <!-- <useControl>True</useControl> @@@ BJS for debugging -->
+    <editInPlace>True</editInPlace>
   </PresentationStyle>
 
   <AEBlock itsName="CalendarLocation"
@@ -621,9 +629,6 @@
   </StaticText>
 
   <PresentationStyle itsName="StartDatePresentation">
-    <!-- This hint isn't l10n-happy -->
-    <sampleText>mm/dd/yy</sampleText>
-    <useControl>True</useControl>
     <format>calendarDateOnly</format>
   </PresentationStyle>
 
@@ -639,9 +644,6 @@
   </AEBlock>
 
   <PresentationStyle itsName="StartTimePresentation">
-    <!-- This hint isn't l10n-happy -->
-    <sampleText>hh:mm PM</sampleText>
-    <useControl>True</useControl>
     <format>calendarTimeOnly</format>
   </PresentationStyle>
 
@@ -656,7 +658,15 @@
     <border>2, 2, 2, 2</border>
     <event itemref="doc:Resynchronize"/>
   </AEBlock>
-  
+
+  <StaticText itsName="CalendarEndSpacer">
+    <blockName value="CalendarEndSpacer"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 1</minimumSize>
+  </StaticText>
+
   <ContentItemDetail itsName="CalendarEndTimeArea">
     <blockName value="CalendarEndTimeArea"/>
     <childrenBlocks itemref="doc:StaticCalendarEnd"/>
@@ -683,7 +693,6 @@
   <PresentationStyle itsName="EndDatePresentation">
     <!-- This hint isn't l10n-happy -->
     <sampleText>mm/dd/yy</sampleText>
-    <useControl>True</useControl>
     <format>calendarDateOnly</format>
   </PresentationStyle>
 
@@ -699,9 +708,6 @@
   </AEBlock>
 
   <PresentationStyle itsName="EndTimePresentation">
-    <!-- This hint isn't l10n-happy -->
-    <sampleText>hh:mm PM</sampleText>
-    <useControl>True</useControl>
     <format>calendarTimeOnly</format>
   </PresentationStyle>
 
@@ -756,6 +762,14 @@
     <border>2, 2, 2, 2</border>
   </AEBlock>
 
+  <StaticText itsName="CalendarReminderSpacer">
+    <blockName value="CalendarReminderSpacer"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 7</minimumSize>
+  </StaticText>
+
   <ContentItemDetail itsName="CalendarReminderArea">
     <blockName value="CalendarReminderArea"/>
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
@@ -764,7 +778,7 @@
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>6, 0, 0, 6</border>
+    <border>0, 0, 0, 6</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalDetailsReminderLabel">
@@ -797,6 +811,14 @@
     <border>2, 2, 2, 2</border>
   </AEBlock>
 
+  <StaticText itsName="CalendarRecurrenceSpacer">
+    <blockName value="CalendarRecurrenceSpacer"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 7</minimumSize>
+  </StaticText>
+
   <ContentItemDetail itsName="CalendarRecurrencePopupArea">
     <blockName value="CalendarRecurrencePopupArea"/>
     <childrenBlocks itemref="doc:CalOccursLabel"/>
@@ -805,7 +827,7 @@
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-    <border>6, 0, 0, 6</border>
+    <border>0, 0, 0, 6</border>
   </ContentItemDetail>
 
   <StaticText itsName="CalOccursLabel">
@@ -853,7 +875,7 @@
 
   <StaticText itsName="CalCustomLabel">
     <blockName value="CalCustomLabel"/>
-    <title>custom</title>
+    <title></title><!-- don't show a label -->
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -888,7 +910,7 @@
 
   <StaticText itsName="CalRecurrenceEndLabel">
     <blockName value="CalRecurrenceEndLabel"/>
-    <title>until</title>
+    <title>ends</title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
@@ -897,9 +919,7 @@
   </StaticText>
 
    <PresentationStyle itsName="RecurrenceEndPresentationStyle">
-    <sampleText>mm/dd/yy</sampleText>
-    <useControl>True</useControl>
-    <format>ends</format>
+    <format>calendarDateOnly</format>
    </PresentationStyle>
   
   <AEBlock itsName="EditRecurrenceEnd">
@@ -917,20 +937,20 @@
   <StaticText itsName="NotesSpacer">
     <blockName value="NotesSpacer"/>
     <title></title>
-    <position>0.89</position>
+    <position>0.8999</position>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>-1, 6</minimumSize>
+    <minimumSize>-1, 7</minimumSize>
   </StaticText>
 
   <PresentationStyle itsName="NotesPresentation">
-    <useControl>True</useControl>
     <lineStyleEnum>MultiLine</lineStyleEnum>
   </PresentationStyle>
   
   <AEBlock itsName="NotesArea"
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="NotesArea"/>
+    <position>0.9</position>
     <characterStyle itemref="blocks:TextStyle"/>
     <presentationStyle itemref="doc:NotesPresentation"/>
     <viewAttribute value="body"/>

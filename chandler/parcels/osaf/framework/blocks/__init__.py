@@ -5,7 +5,7 @@ from Block import Block as __Block
 
 from Block import (
     RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent,
-    KindParameterizedEvent, ModifyContentsEvent, EventList, PresentationStyle
+    KindParameterizedEvent, ModifyContentsEvent, EventList
 )
 
 from ContainerBlocks import (
@@ -25,7 +25,7 @@ from detail.Detail import (
 from ControlBlocks import (
     AEBlock, Button, CheckBox, Choice, ComboBox, ContentItemDetail,
     ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List, RadioBox,
-    StaticText, StatusBar, Table, Timer, Tree
+    StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
 )
 
 from DynamicContainerBlocks import (

@@ -7,8 +7,9 @@ __parcel__ = "osaf.framework.blocks"
 import sys
 import application
 from application import schema
-from osaf.framework.attributeEditors.AttributeEditors \
-     import DateAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor
+from osaf.framework.attributeEditors.AttributeEditors import \
+     DateAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor, \
+     StaticStringAttributeEditor
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import DynamicContainerBlocks
 from osaf.framework.blocks import ControlBlocks
@@ -21,6 +22,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.calendar.Recurrence as Recurrence
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.Notes as Notes
 import application.dialogs.Util as Util
@@ -1205,39 +1207,54 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
 
 class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # These are the values we pass around; they're the same as the menu indices.
-    onceIndex = 0
-    dailyIndex = 1
-    weeklyIndex = 2
-    monthlyIndex = 3
-    annuallyIndex = 4
-    customIndex = 5
-
-    def _isCustom(self):
+    # This is a list of the frequency enumeration names, in the order we present
+    # them in the menu... plus "once" at the beginning and "custom" at the end.
+    menuFrequencies = ['once', 'daily', 'weekly', 'monthly', 'yearly', 'custom']
+    onceIndex = menuFrequencies.index('once')
+    customIndex = menuFrequencies.index('custom')
+    
+    @classmethod
+    def mapRecurrenceFrequency(theClass, item):
+        """ Map the frequency of this item to one of our menu choices """
+        if item.isCustomRule(): # It's custom if it says it is.
+            return RecurrenceAttributeEditor.customIndex
+        # Otherwise, try to map its frequency to our menu list
         try:
-            isCustom = self.item.rrule.isCustom()
-        except AttributeError:
-            isCustom = False
-        return isCustom
-        
+            freq = item.rruleset.rrules[0].freq
+        except:
+            # Can't get to the freq attribute? It's once.
+            return RecurrenceAttributeEditor.onceIndex
+        else:
+            # We got a frequency. Try to map it.
+            index = RecurrenceAttributeEditor.menuFrequencies.index(freq)
+            if index == -1:
+                index = RecurrenceAttributeEditor.customIndex
+        return index
+    
     def onChoice(self, event):
         control = event.GetEventObject()
-        newChoiceIndex = self.GetControlValue(control)
-        pass # More to come here...
-    
-    def GetChoices(self):
-        """ Get the choices we're presenting """
-        choiceList = super(RecurrenceAttributeEditor, self).GetChoices()
-        if not self._isCustom():
-            choiceList = choiceList[:-1] # remove "custom"
-        return choiceList
+        newChoice = self.GetControlValue(control)
+        oldChoice = self.GetAttributeValue(self.item, self.attributeName)
+        if newChoice != oldChoice:
+            self.SetAttributeValue(self.item, self.attributeName, 
+                                   newChoice)
 
     def GetAttributeValue (self, item, attributeName):
-        """ Get the value from the specified attribute of the item. """
-        return RecurrenceAttributeEditor.onceIndex
+        index = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+        return index
 
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
-        pass # the hard part of changing recurrence would be here.
+        assert value != RecurrenceAttributeEditor.customIndex
+        if value == RecurrenceAttributeEditor.onceIndex:
+            # @@@ Is this the right way to handle a change to "once"?
+            del item.rruleset
+        else:
+            duFreq = Recurrence.toDateUtilFrequency(\
+                RecurrenceAttributeEditor.menuFrequencies[value])
+            rule = Recurrence.dateutil.rrule.rrule(duFreq)
+            item.setRuleFromDateUtil(rule)
+        self.AttributeChanged()
     
     def GetControlValue (self, control):
         """ Get the value for the current selection """ 
@@ -1245,40 +1262,46 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         return choiceIndex
 
     def SetControlValue (self, control, value):
-        """ Select the choice that matches this delta value"""
+        """ Select the choice that matches this index value"""
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
         if existingValue != value or control.GetCount() == 0:
             # rebuild the list of choices
             choices = self.GetChoices()
+            if self.GetAttributeValue(self.item, self.attributeName) != RecurrenceAttributeEditor.customIndex:
+                choices = choices[:-1] # remove "custom"
             control.Clear()
             control.AppendItems(choices)
 
-            choiceIndex = RecurrenceAttributeEditor.onceIndex
-            if value is not None:
-                if self._isCustom():
-                    choiceIndex = RecurrenceAttributeEditor.customIndex
-                else:
-                    choiceIndex = RecurrenceAttributeEditor.onceIndex
-            control.Select(choiceIndex)
+        control.Select(value)
     
 class CalendarRecurrenceCustomArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     def shouldShow (self, item):
-        """ We're visible only if we have a recurrence rule and it's marked 'custom'."""
-        try:
-            isCustom = item.rrule.isCustom()
-        except AttributeError:
-            isCustom = False
-        return True # isCustom
-    
+        # We're visible only if we're "custom"
+        return RecurrenceAttributeEditor.mapRecurrenceFrequency(item) == \
+               RecurrenceAttributeEditor.customIndex
+
+class RecurrenceCustomAttributeEditor(StaticStringAttributeEditor):
+    def GetAttributeValue(self, item, attributeName):
+        return item.getCustomDescription()
+        
 class CalendarRecurrenceEndArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
     def shouldShow (self, item):
-        """ We're visible only if we have a recurrence rule and it's not marked 'custom'."""
-        try:
-            notCustom = not item.rrule.isCustom()
-        except AttributeError:
-            notCustom = False
-        return notCustom
+        # We're visible only if we're recurring but _not_ custom
+        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+        visible = (freq != RecurrenceAttributeEditor.onceIndex) \
+                and (freq != RecurrenceAttributeEditor.customIndex)
+        return visible
+
+class RecurrenceEndsAttributeEditor(DateAttributeEditor):
+    def GetAttributeValue(self, item, attributeName):
+        return super(RecurrenceEndsAttributeEditor, self).\
+               GetAttributeValue(item.rruleset.rrule[0], 'until')
+        
+    def SetAttributeValue(self, item, attributeName, valueString):
+        super(RecurrenceEndsAttributeEditor, self).\
+             SetAttributeValue(self, item.rruleset.rrule[0], 'until',
+                               valueString)
     
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
@@ -1297,10 +1320,12 @@ class EmptyPanel(ControlBlocks.ContentItemDetail):
     def instantiateWidget (self):
         # Make a box with a sunken border - wxBoxContainer will take care of
         # getting the background color from our attribute.
+        style = '__WXMAC__' in wx.PlatformInfo \
+              and wx.BORDER_SIMPLE or wx.BORDER_STATIC
         widget = ContainerBlocks.wxBoxContainer(self.parentBlock.widget, -1,
                                                 wx.DefaultPosition, 
                                                 wx.DefaultSize, 
-                                                wx.BORDER_STATIC)
+                                                style)
         widget.SetBackgroundColour(wx.WHITE)
         return widget
 
