@@ -1106,7 +1106,9 @@ class WebDAVConduit(ShareConduit):
         try:
             item = self.share.format.importProcess(text, item=into)
         except Exception, e:
-            raise TransformationFailed(message="%s:%s" % (str(e), text))
+            logger.exception("Failed to parse XML for item %s: '%s'" % (itemPath,
+                                                                    text))
+            raise TransformationFailed(message="%s %s (See chandler.log for text)" % (itemPath, str(e)))
 
         return (item, etag)
 
@@ -1505,8 +1507,9 @@ class CloudXMLFormat(ImportExportFormat):
     def __collectAttributes(self, item):
         attributes = {}
         skip = {}
-        for attrName in self.share.filterAttributes:
-            skip[attrName] = 1
+        if hasattr(self.share, 'filterAttributes'):
+            for attrName in self.share.filterAttributes:
+                skip[attrName] = 1
 
         for cloud in item.itsKind.getClouds(self.cloudAlias):
             for (alias, endpoint, inCloud) in cloud.iterEndpoints(self.cloudAlias):
