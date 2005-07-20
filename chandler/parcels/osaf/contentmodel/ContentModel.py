@@ -479,18 +479,31 @@ class ContentItem(schema.Item):
     setStatusMessage = classmethod (setStatusMessage)
 
 
-    def getSharedState(self):
 
+    READWRITE = 'read-write'
+    READONLY = 'read-only'
+    UNSHARED = 'unshared'
+
+    def getSharedState(self):
+        """
+        Examine all the shares this item participates in; if any of those
+        shares are writable the shared state is READWRITE.  If all the shares
+        are read-only the shared state is READONLY.  Otherwise UNSHARED.
+        """
+
+        state = ContentItem.UNSHARED
         if hasattr(self, 'queries'):
             for collection in self.queries:
                 for share in collection.shares:
-                    # We're in at least on share
-                    return "read-write"
+                    state = ContentItem.READONLY
+                    if share.mode in ('put', 'both'):
+                        return ContentItem.READWRITE
 
-        # Must not be in any shares
-        return "unshared"
+        return state
 
     sharedState = property(getSharedState)
+
+
 
 """
 STAMPING SUPPORT CLASSES

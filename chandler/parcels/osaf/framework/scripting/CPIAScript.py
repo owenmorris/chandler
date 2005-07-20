@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import logging
+import logging, types
 import repository.item.Query as ItemQuery
 import osaf.framework.blocks.Block as Block
 import osaf.contentmodel.Notes as Notes
@@ -31,6 +31,8 @@ def RunScript(script=None):
         scriptArg = GetGlobalScriptArg()
         if scriptArg:
             Globals.currentCPIAScript = scriptArg
+    elif isinstance(script, types.StringType):
+        Globals.currentCPIAScript = CPIAScript(script)
     else:
         Globals.currentCPIAScript = script
 

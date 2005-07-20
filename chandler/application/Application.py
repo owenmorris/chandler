@@ -667,6 +667,10 @@ class wxApplication (wx.App):
         import tools.headless as headless
         headless.view = self.UIRepositoryView
 
+        def run(scriptText):
+            import osaf.framework.scripting.CPIAScript as CPIAScript
+            CPIAScript.RunScript(scriptText)
+
         locals = {
          "view" : headless.view,
          "go" : headless.go,
@@ -678,6 +682,7 @@ class wxApplication (wx.App):
          "create" : headless.create,
          "getKind" : headless.getKind,
          "ofKind" : headless.ofKind,
+         "run" : run,
         }
 
         browseableObjects = {
@@ -686,6 +691,7 @@ class wxApplication (wx.App):
          "repository" : self.UIRepositoryView.repository,
          "wxApplication" : self,
         }
+
 
         if withFilling:
             self.pyFrame = wx.py.crust.CrustFrame(rootObject=browseableObjects,
