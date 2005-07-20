@@ -11,6 +11,7 @@ from code import interact
 import application.Utility as Utility
 import application.Globals as Globals
 from repository.item.Item import Item
+from repository.persistence.DBRefs import DBRefList
 
 view = None
 reactorManager = None
@@ -151,8 +152,7 @@ def pwd():
 def ls(arg=None):
     global currentList
 
-
-    if isinstance(arg, GeneratorType):
+    if isinstance(arg, (GeneratorType, DBRefList)):
         currentList = []
         for item in arg:
             currentList.append(item)

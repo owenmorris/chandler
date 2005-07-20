@@ -503,6 +503,18 @@ class ContentItem(schema.Item):
 
     sharedState = property(getSharedState)
 
+    def isAttributeModifiable(self, attribute):
+
+        if self.sharedState in (ContentItem.READWRITE, ContentItem.UNSHARED):
+            return True
+
+        for collection in self.queries:
+            for share in collection.shares:
+                # We know that share must be read-only
+                if not hasattr(share, 'filterAttributes') or \
+                   not attribute in share.filterAttributes:
+                    return False
+        return True
 
 
 """
