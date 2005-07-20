@@ -494,10 +494,11 @@ class ContentItem(schema.Item):
         state = ContentItem.UNSHARED
         if hasattr(self, 'queries'):
             for collection in self.queries:
-                for share in collection.shares:
-                    state = ContentItem.READONLY
-                    if share.mode in ('put', 'both'):
-                        return ContentItem.READWRITE
+                if hasattr(collection, 'shares'):
+                    for share in collection.shares:
+                        state = ContentItem.READONLY
+                        if share.mode in ('put', 'both'):
+                            return ContentItem.READWRITE
 
         return state
 
