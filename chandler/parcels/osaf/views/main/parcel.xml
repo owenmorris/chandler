@@ -1304,10 +1304,10 @@
     <border>0,0,4,0</border>
     <dontShowCalendarForItemsWithName key="In filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
     <dontShowCalendarForItemsWithName key="Out filtered by Calendar Event Mixin Kind" value="True"></dontShowCalendarForItemsWithName>
-    <nameAlternatives key="All" value="All my items"></nameAlternatives>
-    <nameAlternatives key="AllMailMessageMixin" value="All my mail"></nameAlternatives>
-    <nameAlternatives key="AllCalendarEventMixin" value="All my events"></nameAlternatives>
-    <nameAlternatives key="AllTaskMixin" value="All my tasks"></nameAlternatives>
+    <nameAlternatives key="All" value="My items"></nameAlternatives>
+    <nameAlternatives key="AllMailMessageMixin" value="My mail"></nameAlternatives>
+    <nameAlternatives key="AllCalendarEventMixin" value="My calendar"></nameAlternatives>
+    <nameAlternatives key="AllTaskMixin" value="My tasks"></nameAlternatives>
 
     <buttonOffsets key="Icon">
       <core:Integer value="1"/>
