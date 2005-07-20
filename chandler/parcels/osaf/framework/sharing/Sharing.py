@@ -14,7 +14,6 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.current.Current as Current
 from chandlerdb.util.uuid import UUID
-import application.dialogs.PublishCollection
 from repository.util.Lob import Lob
 from repository.item.Item import Item
 from repository.schema.Types import Type
