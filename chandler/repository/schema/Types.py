@@ -1757,7 +1757,7 @@ class Lob(Type):
 
     def makeValue(self, data,
                   encoding=None, mimetype='text/plain', compression='bz2',
-                  encryption=None, key=None, indexed=False, replace=False):
+                  encryption=None, key=None, indexed=None, replace=False):
 
         if data and not encoding and type(data) is unicode:
             encoding = 'utf-8'

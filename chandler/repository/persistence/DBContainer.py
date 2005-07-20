@@ -1092,8 +1092,9 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.2: added support for 'Set' type and 'set' cardinality
     # 0.5.3: added core schema version to version info
     # 0.5.4: endianness on index dbs set to 4321
+    # 0.5.5: lob 'indexed' attribute now saved as -1, 0, 1
 
-    FORMAT_VERSION = 0x00050400
+    FORMAT_VERSION = 0x00050500
 
     def __init__(self, store):
 

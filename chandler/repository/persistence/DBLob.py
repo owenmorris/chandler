@@ -54,16 +54,16 @@ class DBLob(Lob, ItemValue):
             self._data = ''
 
             item, attribute = self._getOwner()
-            #indexed = (not item.getAttributeAspect(attribute, 'indexed',
-            #                                       False, None, False) and
-            #           self._indexed)
-
-            #if indexed:
-            #    reader = self.getPlainTextReader(replace=True)
-            #    store._index.indexReader(self._view._getIndexWriter(),
-            #                             reader, item.itsUUID, attribute,
-            #                             self.getVersion())
-            #    reader.close()
+            indexed = self._indexed
+            if indexed is None:
+                indexed = item.getAttributeAspect(attribute, 'indexed',
+                                                  False, None, False)
+            if indexed:
+                reader = self.getPlainTextReader(replace=True)
+                store._index.indexReader(self._view._getIndexWriter(),
+                                         reader, item.itsUUID, attribute,
+                                         self.getVersion())
+                reader.close()
             
             self._dirty = False
             return size
@@ -126,8 +126,8 @@ class DBLob(Lob, ItemValue):
             attrs['compression'] = self._compression
         if self._encryption:
             attrs['encryption'] = self._encryption
-        if self._indexed:
-            attrs['indexed'] = 'True'
+        if self._indexed is not None:
+            attrs['indexed'] = str(self._indexed)
         
         generator.startElement('lob', attrs)
         generator.characters('expanding lob content not implemented')

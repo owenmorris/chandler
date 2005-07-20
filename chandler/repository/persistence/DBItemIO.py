@@ -81,7 +81,9 @@ class DBItemWriter(ItemWriter):
 
     def writeBoolean(self, buffer, value):
 
-        if value:
+        if value is None:
+            buffer.write('\2')
+        elif value:
             buffer.write('\1')
         else:
             buffer.write('\0')
@@ -496,7 +498,17 @@ class DBItemReader(ItemReader):
         return offset+len, data[offset:offset+len]
 
     def readBoolean(self, offset, data):
-        return offset+1, data[offset]=='\1'
+
+        value = data[offset]
+
+        if value == '\0':
+            value = False
+        elif value == '\1':
+            value = True
+        else:
+            value = None
+
+        return offset+1, value
 
     def readInteger(self, offset, data):
         return offset+4, unpack('>i', data[offset:offset+4])[0]

@@ -14,7 +14,7 @@ from repository.util.Streams import HTMLReader, Base64InputStream
 
 class Lob(object):
 
-    def __init__(self, encoding=None, mimetype='text/plain', indexed=False):
+    def __init__(self, encoding=None, mimetype='text/plain', indexed=None):
 
         super(Lob, self).__init__()
 
@@ -107,7 +107,12 @@ class Lob(object):
         self._compression = attrs.get('compression', None)
         self._encryption = attrs.get('encryption', None)
         self._version = long(attrs.get('version', '0'))
-        self._indexed = attrs.get('indexed', 'False') == 'True'
+
+        indexed = attrs.get('indexed', None)
+        if indexed is not None:
+            self._indexed = indexed == 'True'
+        else:
+            self._indexed = None
 
         if attrs.get('type', 'text') == 'text':
             writer = self.getWriter()
