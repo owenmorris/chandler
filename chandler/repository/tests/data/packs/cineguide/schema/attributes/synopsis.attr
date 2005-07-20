@@ -7,4 +7,5 @@
     <ref name="type" type="path">//Schema/Core/Lob</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">False</attribute>
+    <attribute name="indexed">True</attribute>
 </item>

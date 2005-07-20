@@ -286,7 +286,7 @@ class DBItemWriter(ItemWriter):
     def indexReader(self, reader, item, name, version):
 
         self.store._index.indexReader(item.itsView._getIndexWriter(),
-                                      value, item.itsUUID, name, version)
+                                      reader, item.itsUUID, name, version)
 
     def _unchangedValue(self, item, name):
 
