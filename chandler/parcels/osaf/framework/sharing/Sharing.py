@@ -966,38 +966,39 @@ class WebDAVConduit(ShareConduit):
             url = self.getLocation()
             try:
                 if url[-1] != '/': url += '/'
-                resource = zanshin.util.blockUntil(self.serverHandle.mkcol, url)
+                response = zanshin.util.blockUntil(self.serverHandle.mkcol, url)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
             except M2Crypto.BIO.BIOError, err:
                 message = "%s" % (err)
                 raise CouldNotConnect(message=message)
     
-            except zanshin.webdav.WebDAVError, err:
-                if err.status == twisted.web.http.METHOD_NOT_ALLOWED:
-                    # already exists
-                    message = "Collection at %s already exists" % url
-                    raise AlreadyExists(message=message)
-    
-                if err.status == twisted.web.http.UNAUTHORIZED:
-                    # not authorized
-                    message = "Not authorized to create collection %s" % url
-                    raise NotAllowed(message=message)
-    
-                if err.status == twisted.web.http.CONFLICT:
-                    # this happens if you try to create a collection within a
-                    # nonexistent collection
-                    message = "Parent collection for %s not found" % url
-                    raise NotFound(message=message)
-    
-                if err.status == twisted.web.http.FORBIDDEN:
-                    # the server doesn't allow the creation of a collection here
-                    message = "Server doesn't allow the creation of collections at %s" % url
-                    raise IllegalOperation(message=message)
-    
-                if err.status != twisted.web.http.CREATED:
-                     message = "WebDAV error, status = %d" % err.status
-                     raise IllegalOperation(message=message)
+            if response.status == twisted.web.http.NOT_ALLOWED:
+                # already exists
+                message = "Collection at %s already exists" % url
+                raise AlreadyExists(message=message)
+
+            if response.status == twisted.web.http.UNAUTHORIZED:
+                # not authorized
+                message = "Not authorized to create collection %s" % url
+                raise NotAllowed(message=message)
+
+            if response.status == twisted.web.http.CONFLICT:
+                # this happens if you try to create a collection within a
+                # nonexistent collection
+                (host, port, sharePath, username, password, useSSL) = \
+                    self.__getSettings()
+                message = "The directory '%s' could not be found on %s.\nPlease verify the Path setting in your WebDAV account" % (sharePath, host)
+                raise NotFound(message=message)
+
+            if response.status == twisted.web.http.FORBIDDEN:
+                # the server doesn't allow the creation of a collection here
+                message = "Server doesn't allow the creation of collections at %s" % url
+                raise IllegalOperation(message=message)
+
+            if response.status != twisted.web.http.CREATED:
+                 message = "WebDAV error, status = %d" % err.status
+                 raise IllegalOperation(message=message)
 
     def destroy(self):
         print " @@@MOR unimplemented"

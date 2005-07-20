@@ -2,13 +2,16 @@
 # Invoke using the ShowPublishDialog( ) method.
 
 import wx
-import traceback
+import traceback, logging
 import os, urlparse, urllib
 import application.Globals as Globals
 import Sharing, ICalendar
 import WebDAV
 import zanshin.webdav
 import zanshin.util
+
+logger = logging.getLogger('Sharing')
+logger.setLevel(logging.INFO)
 
 class PublishCollectionDialog(wx.Dialog):
 
@@ -306,7 +309,6 @@ class PublishCollectionDialog(wx.Dialog):
             self.existing = self._getExistingFiles()
         except zanshin.webdav.WebDAVError, e:
             self.existing = []
-            self._showStatus("Sharing error: %s\n" % e.message)
 
         suggestedName = self._suggestName()
 
@@ -367,7 +369,8 @@ class PublishCollectionDialog(wx.Dialog):
             # Display the error
             # self._clearStatus()
             self._showStatus("\nSharing error: %s\n" % e.message)
-            self._showStatus("Exception:\n%s" % traceback.format_exc(10))
+            logger.exception("Failed to publish collection")
+            # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
             # Clean up all share objects we created
             try:
