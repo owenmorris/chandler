@@ -8,6 +8,7 @@ import application.Globals as Globals
 from application import schema
 import flickr
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.framework.blocks.Block as Block
@@ -24,9 +25,10 @@ logger = logging.getLogger('Flickr')
 logger.setLevel(logging.INFO)
 
 
-class FlickrPhoto(Photos.Photo):
+class FlickrPhotoMixin(Photos.PhotoMixin):
 
-    schema.kindInfo(displayName="Flickr Photo", displayAttribute="caption")
+    schema.kindInfo(displayName="Flickr Photo Mixin",
+                    displayAttribute="caption")
 
     flickrID = schema.One(schema.String, displayName="Flickr ID")
     imageURL = schema.One(schema.URL, displayName="imageURL")
@@ -41,7 +43,7 @@ class FlickrPhoto(Photos.Photo):
     schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
 
     def __init__(self, photo=None,*args,**kwargs):
-        super(FlickrPhoto,self).__init__(*args,**kwargs)
+        super(FlickrPhotoMixin,self).__init__(*args,**kwargs)
         if photo:
             self.populate(photo)
 
@@ -59,13 +61,17 @@ class FlickrPhoto(Photos.Photo):
         except Exception, e:
             print "tags failed", e
         self.importFromURL(self.imageURL)
+
+class FlickrPhoto(FlickrPhotoMixin, Notes.Note):
+    schema.kindInfo(displayName = "Flickr Photo")
+
     
 #copied from Location class
 class Tag(ContentModel.ContentItem):
 
     schema.kindInfo(displayName="Flickr Tag")
 
-    itemsWithTag = schema.Sequence(FlickrPhoto, inverse=FlickrPhoto.tags, displayName="Tag")
+    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName="Tag")
 
     def __str__ (self):
         """
@@ -106,7 +112,7 @@ class Tag(ContentModel.ContentItem):
     
 def getPhotoByFlickrID(view, id):
     try:
-        for x in FlickrPhoto.iterItems(view, exact=True):
+        for x in FlickrPhotoMixin.iterItems(view, exact=True):
             if x.flickrID == id:
                 return x
     except:
@@ -115,7 +121,7 @@ def getPhotoByFlickrID(view, id):
 def getPhotoByFlickrTitle(view, title):
     photoQuery = view.findPath('//Queries/photoTitleQuery')
     if photoQuery is None:
-        queryString = u'for i in "//parcels/osaf/examples/flickr/FlickrPhoto" \
+        queryString = u'for i in "//parcels/osaf/examples/flickr/FlickrPhotoMixin" \
                                  where i.title == $0'
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
@@ -129,7 +135,7 @@ class PhotoCollection(ContentModel.ContentItem):
 
     schema.kindInfo(displayName="Collection of Flickr Photos")
 
-    photos = schema.Sequence(FlickrPhoto, displayName="Flickr Photos")
+    photos = schema.Sequence(FlickrPhotoMixin, displayName="Flickr Photos")
     username = schema.One(
         schema.String, displayName="Username", initialValue=''
     )
@@ -227,3 +233,4 @@ class WakeupCall(WakeupCaller.WakeupCall):
 
         # We want to commit the changes to the repository
         view.commit()
+
