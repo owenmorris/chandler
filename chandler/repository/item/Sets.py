@@ -296,7 +296,7 @@ class Union(BiSet):
             rightOp == 'add' and not self._sourceContains(other, left)):
             return 'add'
         elif (leftOp == 'remove' and not self._sourceContains(other, right) or
-            rightOp == 'remove' and not self._sourceContains(other, left)):
+              rightOp == 'remove' and not self._sourceContains(other, left)):
             return 'remove'
 
         return None

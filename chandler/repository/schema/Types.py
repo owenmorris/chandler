@@ -1819,6 +1819,5 @@ class Lob(Type):
 
     def indexValue(self, itemWriter, item, name, version, value):
 
-        reader = value.getPlainTextReader(replace=True)
-        itemWriter.indexReader(reader, item, name, version)
-        reader.close()
+        # done during saving of lob data
+        pass

@@ -54,16 +54,16 @@ class DBLob(Lob, ItemValue):
             self._data = ''
 
             item, attribute = self._getOwner()
-            indexed = (not item.getAttributeAspect(attribute, 'indexed',
-                                                   False, None, False) and
-                       self._indexed)
+            #indexed = (not item.getAttributeAspect(attribute, 'indexed',
+            #                                       False, None, False) and
+            #           self._indexed)
 
-            if indexed:
-                reader = self.getPlainTextReader(replace=True)
-                store._index.indexReader(self._view._getIndexWriter(),
-                                         reader, item.itsUUID, attribute,
-                                         self.getVersion())
-                reader.close()
+            #if indexed:
+            #    reader = self.getPlainTextReader(replace=True)
+            #    store._index.indexReader(self._view._getIndexWriter(),
+            #                             reader, item.itsUUID, attribute,
+            #                             self.getVersion())
+            #    reader.close()
             
             self._dirty = False
             return size
