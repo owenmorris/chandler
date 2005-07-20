@@ -103,8 +103,10 @@ class wxSidebar(ControlBlocks.wxTable):
 
         item, attribute = self.GetTable().GetValue (row, 0)
 
-        if cellRect.InsideXY (x, y):
-            if not hasattr (self, 'hoverImageRow') and not self.IsCellEditControlEnabled():
+        if (cellRect.InsideXY (x, y) and
+            not hasattr (self, 'hoverImageRow') and
+            not self.IsCellEditControlEnabled() and
+            isinstance (item, ItemCollection.ItemCollection)):
                 assert not gridWindow.HasCapture()
                 gridWindow.CaptureMouse()
 
