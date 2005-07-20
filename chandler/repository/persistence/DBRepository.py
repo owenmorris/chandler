@@ -534,9 +534,9 @@ class DBStore(Store):
         else:
             raise ValueError, 'one of kind or value must be set'
 
-    def searchItems(self, version, query):
+    def searchItems(self, version, query, attribute=None):
 
-        return self._index.searchDocuments(version, query)
+        return self._index.searchDocuments(version, query, attribute)
 
     def getItemVersion(self, version, uuid):
 

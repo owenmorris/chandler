@@ -440,11 +440,19 @@ class IndexContainer(FileContainer):
 
         return writer
 
-    def indexDocument(self, indexWriter, reader,
-                      uuid, owner, attribute, version):
+    def indexValue(self, indexWriter, value, owner, attribute, version):
 
         doc = Document()
-        doc.add(Field("uuid", uuid.str16(), True, False, False))
+        doc.add(Field("owner", owner.str16(), True, False, False))
+        doc.add(Field("attribute", attribute, True, False, False))
+        doc.add(Field("version", str(version), True, False, False))
+        doc.add(Field.Text("contents", value))
+
+        indexWriter.addDocument(doc)
+
+    def indexReader(self, indexWriter, reader, owner, attribute, version):
+
+        doc = Document()
         doc.add(Field("owner", owner.str16(), True, False, False))
         doc.add(Field("attribute", attribute, True, False, False))
         doc.add(Field("version", str(version), True, False, False))
@@ -456,7 +464,7 @@ class IndexContainer(FileContainer):
 
         indexWriter.optimize()
 
-    def searchDocuments(self, version, query):
+    def searchDocuments(self, version, query, attribute=None):
 
         directory = DbDirectory(self.store.txn,
                                 self._db, self.store._blocks._db,
@@ -471,7 +479,9 @@ class IndexContainer(FileContainer):
                 uuid = UUID(doc['owner'])
                 dv = docs.get(uuid, None)
                 if dv is None or dv[0] < ver:
-                    docs[uuid] = (ver, doc['attribute'])
+                    docAttr = doc['attribute']
+                    if attribute is None or attribute == docAttr:
+                        docs[uuid] = (ver, docAttr)
 
         searcher.close()
 

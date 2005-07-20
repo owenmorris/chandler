@@ -195,6 +195,9 @@ class Type(Item):
     def hashValue(self, value):
         return _hash(self.makeString(value))
 
+    def indexValue(self, itemWriter, item, name, version, value):
+        itemWriter.indexValue(self.makeUnicode(value), item, name, version)
+
     NoneString = "__NONE__"
 
 
@@ -1813,3 +1816,9 @@ class Lob(Type):
 
         # for now
         return 0
+
+    def indexValue(self, itemWriter, item, name, version, value):
+
+        reader = value.getPlainTextReader(replace=True)
+        itemWriter.indexReader(reader, item, name, version)
+        reader.close()

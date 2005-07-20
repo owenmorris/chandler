@@ -233,10 +233,12 @@ class DBItemWriter(ItemWriter):
             uAttr = DBItemWriter.NOITEM
             attrCard = 'single'
             attrType = None
+            indexed = False
         else:
             uAttr = attribute._uuid
             attrCard = attribute.getAspect('cardinality', 'single')
             attrType = attribute.getAspect('type', None)
+            indexed = attribute.getAspect('indexed', False)
             
         buffer = self.dataBuffer
         buffer.truncate(0)
@@ -262,8 +264,29 @@ class DBItemWriter(ItemWriter):
         except Exception, e:
             raise SaveValueError, (item, name, e)
 
+        if indexed:
+
+            if attrType is None:
+                valueType = TypeHandler.typeHandler(item.itsView, value)
+            elif attrType.isAlias():
+                valueType = attrType.type(value)
+            else:
+                valueType = attrType
+
+            valueType.indexValue(self, item, name, version, value)
+
         return self.store._values.saveValue(self.store.txn, item._uuid, version,
                                             uAttr, uValue, buffer.getvalue())
+
+    def indexValue(self, value, item, name, version):
+
+        self.store._index.indexValue(item.itsView._getIndexWriter(),
+                                     value, item.itsUUID, name, version)
+
+    def indexReader(self, reader, item, name, version):
+
+        self.store._index.indexReader(item.itsView._getIndexWriter(),
+                                      value, item.itsUUID, name, version)
 
     def _unchangedValue(self, item, name):
 
@@ -276,7 +299,14 @@ class DBItemWriter(ItemWriter):
 
     def _type(self, buffer, flags, item, value, verify, withSchema, attrType):
 
-        if attrType is not None and attrType.isAlias():
+        if attrType is None:
+            if verify:
+                attrType = TypeHandler.typeHandler(item.itsView, value)
+                typeId = attrType._uuid
+            else:
+                typeId = None
+
+        elif attrType.isAlias():
             if verify:
                 aliasType = attrType.type(value)
                 if aliasType is None:
@@ -286,13 +316,6 @@ class DBItemWriter(ItemWriter):
             else:
                 typeId = None
             
-        elif attrType is None:
-            if verify:
-                attrType = TypeHandler.typeHandler(item.itsView, value)
-                typeId = attrType._uuid
-            else:
-                typeId = None
-
         else:
             if verify and not attrType.recognizes(value):
                 raise TypeError, "value '%s' of type %s is not recognized by type %s" %(value, type(value), attrType.itsPath)

@@ -383,7 +383,7 @@ class Repository(object):
 
         return self.view.queryItems(query, load)
 
-    def searchItems(self, query, load=True):
+    def searchItems(self, query, attribute=None, load=True):
         """
         Search items in the current view using a lucene full text query.
 
@@ -392,7 +392,7 @@ class Repository(object):
         for more details.
         """
 
-        return self.view.searchItems(query, load)
+        return self.view.searchItems(query, attribute, load)
 
     def getACL(self, uuid, name):
         """
@@ -553,7 +553,7 @@ class Store(object):
     def queryItems(self, version, kind=None, attribute=None):
         raise NotImplementedError, "%s.queryItems" %(type(self))
     
-    def searchItems(self, version, query):
+    def searchItems(self, version, query, attribute=None):
         raise NotImplementedError, "%s.searchItems" %(type(self))
     
     def getItemVersion(self, version, uuid):

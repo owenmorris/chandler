@@ -703,12 +703,15 @@ class RepositoryView(object):
         
         raise NotImplementedError, "%s.queryItems" %(type(self))
 
-    def searchItems(self, query, load=True):
+    def searchItems(self, query, attribute=None, load=True):
         """
         Search this view for items using an Lucene full text query.
 
-        @param query: an lucene query
+        @param query: a lucene query
         @type query: a string
+        @param attribute: an attribute name to match against, C{None} by
+        default to match against all attributes.
+        @type attribute: a string
         @param load: if C{False} only return loaded items
         @type load: boolean
         """

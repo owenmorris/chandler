@@ -91,11 +91,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return items
 
-    def searchItems(self, query, load=True):
+    def searchItems(self, query, attribute=None, load=True):
 
         store = self.repository.store
         results = []
-        docs = store.searchItems(self._version, query)
+        docs = store.searchItems(self._version, query, attribute)
         for uuid, (ver, attribute) in docs.iteritems():
             if not uuid in self._deletedRegistry:
                 item = self.find(uuid, load=load)
