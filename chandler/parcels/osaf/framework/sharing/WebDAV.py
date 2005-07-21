@@ -109,6 +109,8 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (IGNORE, None)
     except M2Crypto.SSL.Checker.SSLVerificationError, err:
         return (CANT_CONNECT, err)
+    except error.ConnectionDone, err:
+        return (CANT_CONNECT, err)
         
     
     # Unique the child names returned by the server. (Note that

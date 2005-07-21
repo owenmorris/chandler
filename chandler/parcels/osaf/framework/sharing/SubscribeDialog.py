@@ -105,13 +105,13 @@ class SubscribeDialog(wx.Dialog):
             share.delete(True)
         except Sharing.SharingError, err:
             self.__showStatus("Sharing Error:\n%s" % err.message)
-            self.__showStatus("Exception:\n%s" % traceback.format_exc(10))
+            logger.exception("Error during subscribe for %s" % url)
             share.conduit.delete(True)
             share.format.delete(True)
             share.delete(True)
         except Exception, e:
-            self.__showStatus("Exception:\n%s" % traceback.format_exc(10))
-            logger.info("Sharing Exception: %s" % traceback.format_exc(10))
+            self.__showStatus("Sharing Error:\n%s" % e)
+            logger.exception("Error during subscribe for %s" % url)
             share.conduit.delete(True)
             share.format.delete(True)
             share.delete(True)

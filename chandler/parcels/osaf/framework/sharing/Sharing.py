@@ -946,7 +946,7 @@ class WebDAVConduit(ShareConduit):
 
         try:
             result = zanshin.util.blockUntil(resource.exists)
-        except zanshin.webdav.ConnectionError, err:
+        except zanshin.error.ConnectionError, err:
             raise CouldNotConnect(message=err.args[0])
         except M2Crypto.BIO.BIOError, err:
             message = "%s" % (err)

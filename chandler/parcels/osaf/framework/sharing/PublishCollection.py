@@ -304,22 +304,15 @@ class PublishCollectionDialog(wx.Dialog):
         self._resize()
         wx.Yield()
 
-        # Populate the list of existing shares on the selected webdav server
         try:
+
+            # Populate the list of existing shares on the selected webdav server
             self.existing = self._getExistingFiles()
-        except zanshin.webdav.WebDAVError, e:
-            self.existing = []
-
-        suggestedName = self._suggestName()
-
-        shareName = suggestedName
-
-        shareNameSafe = urllib.quote_plus(shareName)
-
-        accountIndex = self.accountsControl.GetSelection()
-        account = self.accountsControl.GetClientData(accountIndex)
-
-        try:
+            suggestedName = self._suggestName()
+            shareName = suggestedName
+            shareNameSafe = urllib.quote_plus(shareName)
+            accountIndex = self.accountsControl.GetSelection()
+            account = self.accountsControl.GetClientData(accountIndex)
 
             # Create the main share object
             shareXML = Sharing.newOutboundShare(self.view,
@@ -364,11 +357,11 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.put()
             self._showStatus(" done.\n")
 
-        except Sharing.SharingError, e:
+        except (Sharing.SharingError, zanshin.error.Error), e:
 
             # Display the error
             # self._clearStatus()
-            self._showStatus("\nSharing error: %s\n" % e.message)
+            self._showStatus("\nSharing error:\n%s\n" % e.message)
             logger.exception("Failed to publish collection")
             # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
