@@ -280,6 +280,10 @@
         </if>
         <define>$(NO_VC_CRTDBG)</define>
         <define>$(WIN32_WINNT)</define>
+        <if cond="FORMAT=='msevc4prj'">
+            <!-- hack to make eVC4 default project still compatible with eVC3 environment -->
+            <set var="_ldlibs">$(_ldlibs.replace('ccrtrtti.lib', ''))</set>
+        </if>
     </template>
 
     <template id="anylib">
