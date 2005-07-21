@@ -49,6 +49,10 @@ class Item(CItem):
         @type values: C{name=value} pairs
         """
 
+        # this constructor should not be run more than once
+        if self._uuid is not None:
+            return
+
         super(Item, self).__init__()
 
         cls = type(self)
