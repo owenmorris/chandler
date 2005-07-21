@@ -15,7 +15,6 @@ from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import Styles
 import logging
-import colorsys
 from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
