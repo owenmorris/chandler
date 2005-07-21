@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, atexit, cStringIO
+import os, shutil, atexit, cStringIO
 
 from threading import Thread, Lock, Condition, local
 from datetime import datetime
@@ -31,7 +31,8 @@ from bsddb.db import \
     DB_CREATE, DB_BTREE, DB_THREAD, DB_LOG_AUTOREMOVE, \
     DB_LOCK_WRITE, DB_ENCRYPT_AES, \
     DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS, \
-    DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
+    DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN, \
+    DB_ARCH_LOG, DB_ARCH_DATA
 from bsddb.db import \
     DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError, \
     DBLockDeadlockError, DBPermissionsError, DBInvalidArgError
@@ -224,31 +225,87 @@ class DBRepository(OnDemandRepository):
 
         self._clearOpenDir()
 
+    def backup(self, dbHome=None):
+
+        if not self.isOpen():
+            raise RepositoryError, 'Repository is not open'
+
+        if dbHome is None:
+            dbHome = self.dbHome
+
+        rev = 1
+        while True:
+            path = "%s.%03d" %(dbHome, rev)
+            if os.path.exists(path):
+                rev += 1
+            else:
+                dbHome = path
+                break
+        os.makedirs(dbHome)
+
+        env = self._env
+        store = self.store
+
+        lock = None
+        try:
+            lock = store.acquireLock()
+            for view in self.getOpenViews():
+                view._exclusive.acquire()
+
+            env.txn_checkpoint()
+
+            for db in env.log_archive(DB_ARCH_DATA):
+                path = os.path.join(dbHome, db)
+                self.logger.info(path)
+                shutil.copy2(os.path.join(self.dbHome, db), path)
+
+            for log in env.log_archive(DB_ARCH_LOG):
+                path = os.path.join(dbHome, log)
+                self.logger.info(path)
+                shutil.copy2(os.path.join(self.dbHome, log), path)
+
+            if os.path.exists(os.path.join(self.dbHome, 'DB_CONFIG')):
+                path = os.path.join(dbHome, 'DB_CONFIG')
+                self.logger.info(path)
+                shutil.copy2(os.path.join(self.dbHome, 'DB_CONFIG'), path)
+            
+        finally:
+            for view in self.getOpenViews():
+                view._exclusive.acquire()
+            if lock is not None:
+                store.releaseLock(lock)
+
+        return dbHome
+
     def open(self, **kwds):
 
         if kwds.get('ramdb', False):
             self.create(**kwds)
 
         elif not self.isOpen():
-            fromPath = kwds.get('fromPath', None)
-            if fromPath is not None:
-                self.delete()
-                if not os.path.exists(self.dbHome):
-                    os.mkdir(self.dbHome)
-                import shutil
-                for f in os.listdir(fromPath):
-                    if f.startswith('__') or f.startswith('log.'):
-                        path = os.path.join(fromPath, f)
-                        if not os.path.isdir(path):
-                            shutil.copy2(path, self.dbHome)
 
             super(DBRepository, self).open(**kwds)
 
-            self._lockOpen()
-            self._env = self._createEnv(False, kwds)
-
             recover = kwds.get('recover', False)
             exclusive = kwds.get('exclusive', False)
+            restore = kwds.get('restore', None)
+
+            if restore is not None and os.path.isdir(restore):
+                self.delete()
+                if not os.path.exists(self.dbHome):
+                    os.mkdir(self.dbHome)
+                for f in os.listdir(restore):
+                    if (f.endswith('.db') or
+                        f.startswith('log.') or
+                        f == 'DB_CONFIG'):
+                        path = os.path.join(restore, f)
+                        if not os.path.isdir(path):
+                            self.logger.info(path)
+                            shutil.copy2(path, os.path.join(self.dbHome, f))
+                recover = True
+
+            self._lockOpen()
+            self._env = self._createEnv(False, kwds)
 
             if not recover:
                 if os.path.exists(self._openDir) and os.listdir(self._openDir):
@@ -270,7 +327,8 @@ class DBRepository(OnDemandRepository):
 
                         if recover:
                             before = datetime.now()
-                            flags = DB_RECOVER | DB_CREATE | self.OPEN_FLAGS
+                            flags = (DB_RECOVER_FATAL | DB_CREATE |
+                                     self.OPEN_FLAGS)
                             self._env.open(self.dbHome, flags, 0)
                             after = datetime.now()
                             self.logger.info('opened db with recovery in %s',

@@ -234,6 +234,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="BackupRepository">
+    <blockName>BackupRepository</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="WxTestHarness">
     <blockName>WxTestHarness</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -449,6 +455,7 @@
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:BackupRepositoryItem"/>
     <childrenBlocks itemref="doc:RunScriptItem"/>
     <childrenBlocks itemref="doc:WxTestHarnessItem"/>
     <childrenBlocks itemref="doc:ShowPyShellItem"/>
@@ -841,6 +848,13 @@
     <title>Check Repository</title>
     <event itemref="doc:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="BackupRepositoryItem">
+    <blockName>BackupRepositoryItem</blockName>
+    <title>Backup Repository</title>
+    <event itemref="doc:BackupRepository"/>
+    <helpString>backup the repository</helpString>
   </MenuItem>
 
   <MenuItem itsName="WxTestHarnessItem">

@@ -45,7 +45,7 @@ class RepositoryTestCase(TestCase):
         if os.path.exists(preloadedRepositoryPath):
             self.ramdb = False
             self.rep.open(ramdb=False,
-                          fromPath=preloadedRepositoryPath,
+                          restore=preloadedRepositoryPath,
                           refcounted=True)
             self.rep.logger.setLevel(self.logLevel)
             self.rep.logger.info('Using preloaded repository')

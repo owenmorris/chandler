@@ -104,7 +104,7 @@ def initOptions(chandlerDirectory, **kwds):
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
         'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
-        'repo':       ('-r', '--repo',       's', None,  None, 'repository to copy during startup'),
+        'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
         'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
         'wing':       ('-w', '--wing',       'b', False, None, ''),
@@ -201,8 +201,8 @@ def initRepository(directory, options):
              'exclusive': True,
              'refcounted': True }
 
-    if options.repo:
-        kwds['fromPath'] = options.repo
+    if options.restore:
+        kwds['restore'] = options.restore
 
     while True:
         try:

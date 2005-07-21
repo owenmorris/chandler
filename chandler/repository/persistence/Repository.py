@@ -97,6 +97,10 @@ class Repository(object):
         
         raise NotImplementedError, "%s.delete" %(type(self))
 
+    def backup(self, dbHome=None):
+
+        raise NotImplementedError, "%s.backup" %(type(self))
+
     def _init(self, **kwds):
 
         self._status = Repository.CLOSED

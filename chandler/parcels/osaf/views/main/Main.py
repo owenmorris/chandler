@@ -364,9 +364,9 @@ class MainView(View):
     def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
         repository = self.itsView.repository
-        checkingMessage = _('Checking repository...')
-        repository.logger.info(checkingMessage)
-        self.setStatusMessage(checkingMessage)
+        progressMessage = _('Checking repository...')
+        repository.logger.info(progressMessage)
+        self.setStatusMessage(progressMessage)
         before = time()
         if repository.check():
             after = time()
@@ -378,6 +378,17 @@ class MainView(View):
             errorMessage = _('Check completed with errors')
             repository.logger.info(errorMessage)
             self.setStatusMessage(errorMessage)
+
+    def onBackupRepositoryEvent(self, event):
+        # triggered from "Test | Backup Repository" Menu
+        repository = self.itsView.repository
+        progressMessage = _('Backing up repository...')
+        repository.logger.info(progressMessage)
+        self.setStatusMessage(progressMessage)
+        dbHome = repository.backup()
+        successMessage = _('Repository was backed up into %s' %(dbHome))
+        repository.logger.info(successMessage)
+        self.setStatusMessage(successMessage)
 
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu

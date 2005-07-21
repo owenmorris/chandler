@@ -56,7 +56,7 @@ def testOpenFrom(rep, rootdir):
     """
     rep.delete()
     t1 = time.time()
-    rep.open(fromPath=os.path.join(rootdir,'repository','tests',preloadPath))
+    rep.open(restore=os.path.join(rootdir,'repository','tests',preloadPath))
     rep.commit()
     print time.time() - t1
 
