@@ -9,8 +9,8 @@
     <item file="issues.attr" />
     <item file="displayName.attr" />
     <item file="Item.kind" />
-    <!--item file="Parcel.kind" /-->
-    <!--item file="ParcelManager.kind" /-->
+    <item file="Parcel.kind" />
+    <item file="ParcelManager.kind" />
 <!--
     <item file="String.type" />
   -->

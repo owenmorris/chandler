@@ -31,7 +31,7 @@
   <namespaceMap key="Long" value="//Schema/Core/Long" />
   <namespaceMap key="None" value="//Schema/Core/None" />
   <namespaceMap key="Parcel" value="//Schema/Core/Parcel" />
-  <namespaceMap key="ParcelManager" value="//Schema/Core/Manager" />
+  <namespaceMap key="ParcelManager" value="//Schema/Core/ParcelManager" />
   <namespaceMap key="Path" value="//Schema/Core/Path" />
   <namespaceMap key="Principal" value="//Schema/Core/Principal" />
   <namespaceMap key="Query" value="//Schema/Core/Query" />

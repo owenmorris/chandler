@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import ParcelLoaderTestCase, os, sys, unittest
 
 import application
-from application.Parcel import Parcel
 
 class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -25,7 +24,8 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure depA Parcel was created with the right Kind and attrs
         depA = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA")
-        self.assertEqual(depA.itsKind, Parcel.getKind(self.rep))
+        self.assertEqual(depA.itsKind,
+         self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure testKind was created with the right Kind
         testKind = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA/TestKind")
@@ -34,11 +34,13 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure depB Parcel was created with the right Kind and attrs
         depB = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB")
-        self.assertEqual(depB.itsKind, Parcel.getKind(self.rep))
+        self.assertEqual(depB.itsKind,
+         self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure depC Parcel was created with the right Kind and attrs
         depC = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC")
-        self.assertEqual(depC.itsKind, Parcel.getKind(self.rep))
+        self.assertEqual(depC.itsKind,
+         self.rep.findPath('//Schema/Core/Parcel'))
 
         # Ensure testAttribute was created with the right Kind
         testAttribute = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC/TestAttribute")

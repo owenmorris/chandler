@@ -737,6 +737,8 @@ loaded::
 
     >>> nrv.findPath('//Schema/Core/Item')
     <Kind ... Item ...>
+    >>> nrv.findPath('//Schema/Core/Parcel')
+    <Kind ... Parcel ...>
 
 
 ``synchronize(repoView, moduleName)``

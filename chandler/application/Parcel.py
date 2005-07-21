@@ -2,7 +2,6 @@
 @copyright: Copyright (c) 2004 Open Source Applications Foundation
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
-__parcel__ = "//Schema/Core"
 
 import sys, os, logging, mimetypes
 import xml.sax
@@ -12,7 +11,6 @@ from time import mktime
 from datetime import datetime
 
 import application
-import schema
 import application.Globals as Globals
 import repository
 from repository.item.Item import Item
@@ -34,7 +32,7 @@ CORE = "parcel:core"
 timing = False
 if timing: import util.timing
 
-class Manager(schema.Item):
+class Manager(Item):
     """
     The Parcel Manager, responsible for loading items from XML files into
     the repository and providing a namespace --> item mapping function.
@@ -49,8 +47,6 @@ class Manager(schema.Item):
     if "path" is not passed in, it will use
     os.path.join(Globals.chandlerDirectory, "parcels").
     """
-
-    path = schema.Sequence(schema.String, initialValue = [])
 
     def get(cls, view, path=None):
         """
@@ -69,14 +65,17 @@ class Manager(schema.Item):
         @return: parcel manager object
         """
 
-        parcelRoot = view.findPath("//parcels")
-        if parcelRoot is None:
-            parcelRoot = Parcel("parcels",view)
-            parcelRoot.namespace = NS_ROOT
-            
         manager = view.findPath("//parcels/manager")
         if manager is None:
-            manager = Manager("manager", parcelRoot)           
+            parcelKind = view.findPath("//Schema/Core/Parcel")
+            parcelRoot = view.findPath("//parcels")
+            if parcelRoot is None:
+                parcelRoot = parcelKind.newItem("parcels", view)
+                parcelRoot.namespace = NS_ROOT
+            manager = parcelRoot.findPath("manager")
+            if manager is None:
+                managerKind = view.findPath("//Schema/Core/ParcelManager")
+                manager = managerKind.newItem("manager", parcelRoot)
 
         if path:
             manager.path = path
@@ -87,8 +86,8 @@ class Manager(schema.Item):
 
     get = classmethod(get)
 
-    def __init__(self, *args, **kw):
-        super(Manager, self).__init__(*args, **kw)
+    def __init__(self, name, parent, kind):
+        super(Manager, self).__init__(name, parent, kind)
         self.onItemLoad(self.itsView)
 
     def onItemLoad(self, view):
@@ -275,7 +274,8 @@ class Manager(schema.Item):
         # of "parcel descriptors" (pDesc) which cache parcel information.
         # After reading info from existing parcel items, this info may be
         # overridden from parcel.xml files further down.
-        for parcel in Parcel.iterItems(self.repo):
+        parcelKind = self.repo.findPath("//Schema/Core/Parcel")
+        for parcel in KindQuery().run([parcelKind]):
             pDesc = self._parcelDescriptor(parcel)
             self._addParcelDescriptor(parcel.namespace, pDesc)
 
@@ -446,7 +446,8 @@ class Manager(schema.Item):
 
         parcels = {}
 
-        for parcel in Parcel.iterItems(self.repo):
+        parcelKind = self.repo.findPath("//Schema/Core/Parcel")
+        for parcel in KindQuery().run([parcelKind]):
             p = tuple(parcel.itsPath)
             if p[:rootParcelPathLen] == rootParcelPath:
                 parcels[p] = parcel
@@ -801,7 +802,7 @@ class NamespaceUndefinedException(ParcelException):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-class Parcel(schema.Item):
+class Parcel(Item):
     """
     The parcel item class.
 
@@ -812,21 +813,9 @@ class Parcel(schema.Item):
 
     Items within a parcel may be retrieved via the lookup() method.
     """
-    author = schema.One(schema.String)
-    publisher = schema.One(schema.String)
-    status = schema.One(schema.String)
-    summary = schema.One(schema.String)
-    icon = schema.One(schema.String)
-    version = schema.One(schema.String)
-    createdOn = schema.One(schema.DateTime)
-    modifiedOn = schema.One(schema.DateTime)
-    namespace = schema.One(schema.String, defaultValue = '')
-    namespaceMap = schema.Mapping(schema.String, initialValue = {})
-    file = schema.One(schema.String, initialValue = '')
-    originalValues = schema.Mapping(schema.Dictionary, initialValue = {})
 
-    def __init__(self, *args, **kw):
-        super(Parcel, self).__init__(*args, **kw)
+    def __init__(self, name, parent, kind):
+        super(Parcel, self).__init__(name, parent, kind)
         self.createdOn = datetime.now()
         self.modifiedOn = self.createdOn
 
@@ -1969,5 +1958,5 @@ class ValueSet(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
+import schema
 

@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import ParcelLoaderTestCase, os, sys, unittest
 
 import application
-from application.Parcel import Parcel
 
 class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -26,7 +25,8 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # Ensure the simple Parcel was created with the right Kind and attrs
         simpleParcel = self.rep.findPath("//parcels/application/tests/testparcels/simple")
-        self.assertEqual(simpleParcel.itsKind, Parcel.getKind(self.rep))
+        self.assertEqual(simpleParcel.itsKind,
+         self.rep.findPath('//Schema/Core/Parcel'))
         self.assertEqual(simpleParcel.displayName, "Simple Parcel")
         self.assertEqual(simpleParcel.description, 
          "Simple Parcel Loader Test Schema")

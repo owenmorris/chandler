@@ -6,6 +6,7 @@ from repository.schema.Attribute import Attribute
 from repository.schema import Types
 from repository.schema.Cloud import Cloud as _Cloud
 from repository.schema.Cloud import Endpoint as _Endpoint
+from application.Parcel import Manager, Parcel
 import __main__, repository, threading, os, sys
 
 __all__ = [
@@ -437,14 +438,16 @@ class ItemClass(Activator):
         super(ItemClass,cls).__init__(name,bases,cdict)
 
     def _find_schema_item(cls, view):
-        parent = view.findPath(ModuleMaker(cls.__module__).getPath())
-        if parent is not None:
-            item = parent.getItemChild(cls.__name__)
-            if isinstance(item,Kind) and item.getItemClass() is cls:
-                return item
+        parent = parcel_for_module(cls.__module__, view)
+        item = parent.getItemChild(cls.__name__)
+        if isinstance(item,Kind) and item.getItemClass() is cls:
+            return item
         
     def _create_schema_item(cls, view):
-        return Kind(cls.__name__, None, itemFor(Kind, view))
+        return Kind(
+            cls.__name__, parcel_for_module(cls.__module__, view),
+            itemFor(Kind, view)
+        )
 
     def _init_schema_item(cls, kind, view):
         kind.superKinds = [
@@ -463,8 +466,6 @@ class ItemClass(Activator):
                 ai = itemFor(attr, view)
                 if ai not in kind.attributes:
                     kind.attributes.append(ai,name)
-
-        kind.itsParent = parcel_for_module(cls.__module__, view)
 
 
 class ItemRoot:
@@ -801,30 +802,15 @@ class ModuleMaker:
         else:
             self.parentName, self.name = None, self.moduleName
 
-    def getPath(self):
-        if self.moduleName.startswith('//'):
-            return self.moduleName
-        if self.parentName:
-            return ModuleMaker(self.parentName).getPath()+'/'+self.name
-        return '//parcels/'+self.name
-
     def getParent(self,view):
         if self.parentName:
             return parcel_for_module(self.parentName,view)
         else:
             root = view.findPath('parcels')
             if root is None:
-                from application.Parcel import Parcel
-                # Make sure the Parcel kind exists (which may cause //parcels
-                # to get created through a recursive re-entry of this function)
-                itemFor(Parcel, view)
-
-                # Create //parcels *only* if it still doesn't exist yet
-                root = view.findPath('parcels')
-                if root is None:
-                    root = Parcel('parcels',view)
-                    declareTemplate(root)
-
+                Manager.get(view,["x"])  # force setup of parcels root
+                root = view.findPath('//parcels')
+                declareTemplate(root)
             return root
 
     def __hash__(self):
@@ -834,43 +820,24 @@ class ModuleMaker:
         return self.moduleName == other
 
     def _find_schema_item(self,view):
-        if self.moduleName.startswith('//'):
-            return view.findPath(self.moduleName)
         parent = self.getParent(view)
         item = parent.getItemChild(self.name)
-        from application.Parcel import Parcel
         if isinstance(item,Parcel):
             return item
 
-    def _get_parcel_factory(self, view):
-        module = importString(self.moduleName)
-        from application.Parcel import Parcel
-        return getattr(module,'__parcel_class__',Parcel)
-        
     def _create_schema_item(self,view):
-        mkParcel = self._get_parcel_factory(view)
+        module = importString(self.moduleName)
+        mkParcel = getattr(module,'__parcel_class__',Parcel)
         if isinstance(mkParcel, ItemClass):
-            # Avoid circular dependency if parcel kind might be inside parcel
-            item = Base(self.name, view, None)
-            item.__class__ = mkParcel
-            return item
-        from application.Parcel import Parcel
-        kind = itemFor(Parcel, view)
+            kind = itemFor(mkParcel, view)
+        else:
+            kind = itemFor(Parcel, view)
         return mkParcel(self.name, self.getParent(view), kind)
 
     def _init_schema_item(self,item,view):
-        mkParcel = self._get_parcel_factory(view)
-        if isinstance(mkParcel, ItemClass):
-            # Fixup parcel with right class/kind
-            item.itsParent = self.getParent(view)
-            item.itsKind = itemFor(mkParcel, view)
-            if item.itsKind.itsParent is item:
-                item.itsKind.itsParent = item.itsParent     # XXX FIXME!
-            mkParcel.__init__(item)
+        pass
 
-    def __repr__(self):
-        return "ModuleMaker(%r)" % self.moduleName
-
+        
 def parcel_for_module(moduleName, view=None):
     """Return the Parcel for the named module
 
@@ -934,9 +901,9 @@ def itemFor(obj, view=None):
             if item is None:
                 # If we get here, it's because itemFor() has re-entered itself
                 # looking for the same item, which can only happen if an
-                # object's _find_schema_item() or _create_schema_item() is
-                # cyclically recursive.  Don't do that.
-                raise RuntimeError("Recursive schema item initialization", obj)
+                # object's _create_schema_item() is cyclically recursive.
+                # Don't do that.
+                raise RuntimeError("Recursive schema item initialization")
             return item
 
         view._schema_cache[obj] = None   # guard against re-entry
