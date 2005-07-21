@@ -1,0 +1,81 @@
+Running Code at Application Startup
+===================================
+
+The ``osaf.startup`` module provides an API for notifying repository items that
+the application has been started.  In order to receive these notifications, you
+simply create items in your parcel that subclass ``osaf.startup.Startup``::
+
+    >>> from osaf.startup import Startup, run_startup
+    >>> from application import schema
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+
+    >>> class StartupMessage(Startup):
+    ...     message = schema.One(schema.String, initialValue="Hello, world!")
+    ...     def onStart(self):
+    ...         print self.message
+
+    >>> rv = NullRepositoryView()
+    >>> hello = StartupMessage(view=rv)
+    >>> run_startup(rv)
+    Hello, world!
+
+Please note that startup notifications are intended for tasks like adding
+servers to the Twisted reactor, starting threads, or other in-process Python
+operations, based on data in the repository.  They should *not* be used to
+modify repository items, as this may indirectly lead to merge conflicts with
+other threads.  Any needed repository items should be created or modified
+via ``parcel.xml`` or via the ``onParcelLoad()`` or ``onParcelCreate()`` hooks.
+(XXX these hooks don't actually exist yet, but should soon.)
+
+
+Disabling Startups
+------------------
+
+Individual startups can be enabled or disabled using the ``active`` boolean
+attribute::
+
+    >>> hello.active = False
+    >>> run_startup(rv)     # Item is disabled, so nothing happens
+
+    >>> hello.active = True
+    >>> run_startup(rv)     
+    Hello, world!
+
+
+Ordered Startups
+----------------
+
+By default, there is no particular order that startup items start in.  But
+sometimes, a startup item needs another item to be started first.  The
+``requires`` attribute can be used to reference other startup items that
+should be started first::
+
+    >>> goodbye = StartupMessage(
+    ...     message="Goodbye, world!",
+    ...     requires=[hello],
+    ...     view=rv
+    ... )
+
+    >>> run_startup(rv)
+    Hello, world!
+    Goodbye, world!
+
+    >>> goodbye.requires = []
+    >>> hello.requires = [goodbye]
+
+    >>> run_startup(rv)
+    Goodbye, world!
+    Hello, world!
+
+Note that a startup will not run unless *all* of its required items have been
+started::
+
+    >>> goodbye.active = False
+    >>> run_startup(rv)     # hello needs goodbye, so neither runs here
+
+Note that this also means that creating a requirements loop (where A requires
+B and B requires A) will prevent all items in the loop from starting::
+
+    >>> goodbye.active = True
+    >>> goodbye.requires = [hello]
+    >>> run_startup(rv)     # co-dependents won't be started
