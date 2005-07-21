@@ -198,14 +198,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         size -= (13, self.timeHeight + self.textMargin*2)	
         return size
         
-    def GetDragOrigin(self):
-        """
-        This is just a stable coordinate that we can use so that when dragging
-        items around, for example you can use this to know consistently where 
-        the mouse started relative to this origin
-        """
-        return self._bounds.GetPosition()
-
     
     def GetStatusPen(self, color):
         # probably should use styles to determine a good pen color
@@ -489,7 +481,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
         
-        roundRect = wx.Rect(rect.x, rect.y, rect.width, rect.height)
+        roundRect = wx.Rect(*rect)
 
         # left/right clipping
         if not hasLeftRounded:
@@ -511,13 +503,16 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.DrawRoundedRectangleRect(roundRect, radius)
         
         # draw the lefthand and possibly top & bottom borders
-        x,y,w,h = rect.x, rect.y, rect.height, rect.width
+        (x,y,width,height) = rect
         if not hasLeftRounded:
-            dc.DrawLine(x, y,  x, y+h) #rect.x, rect.y, rect.x, rect.y + rect.height)
+            # vertical line down left side
+            dc.DrawLine(x, y,  x, y + height)
         if not hasBottomRightRounded:
-            dc.DrawLine(x, y+h-1,  x+w, y+h-1) #rect.x, rect.y + rect.height-1, rect.x + rect.width, rect.y + rect.height-1)            
+            # horizontal line across the bottom
+            dc.DrawLine(x, y + height-1,  x + width, y + height-1)
         if not hasTopRightRounded:
-            dc.DrawLine(x, y,  x+w, y) #rect.x, rect.y, rect.x + rect.width, rect.y)
+            # horizontal line across the top
+            dc.DrawLine(x, y, x+width, y)
 
 
 class TimedCanvasItem(CalendarCanvasItem):
@@ -597,6 +592,12 @@ class TimedCanvasItem(CalendarCanvasItem):
         @type point: wx.Point
         @return: resize mode, RESIZE_MODE_START, RESIZE_MODE_END or None
         @rtype: string or None
+
+        the whole _forceResizeMode is to make sure that we stay in the same
+        mode during a drag, even if we mouseover another region that would
+        cause a different drag mode
+
+        AF: This should really be handled automatically by the dragging code
         """
         
         if hasattr(self, '_forceResizeMode'):
@@ -608,9 +609,9 @@ class TimedCanvasItem(CalendarCanvasItem):
             return self.RESIZE_MODE_END
         return None
         
-    def SetResizeMode(self, mode):
+    def setResizeMode(self, mode):
         self._forceResizeMode = mode
-        
+
     def ResetResizeMode(self):
         if hasattr(self, '_forceResizeMode'):
             del self._forceResizeMode
@@ -1103,17 +1104,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
             drawDayLine(dayNum)
 
 
-    def SetDragBox(self, canvasItem):
-        super(wxCalendarCanvas, self).SetDragBox(canvasItem)
-        # also, we want to remember the original start time to help with
-        # dragging items originally when extending over the left bound
-
-        try:
-            eventItem = canvasItem.GetItem()
-            self._originalDragBox.originalStartTime = eventItem.startTime
-        except AttributeError:
-            pass
-
     def CreateEmptyEvent(self, startTime, allDay, anyTime):	
         """	
         shared routine to create an event, using the current view	
@@ -1485,8 +1475,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.canvasItemList.append(canvasItem)
         
         # keep track of the current drag/resize box
-        if self._currentDragBox and self._currentDragBox.GetItem() == item:
-            self._currentDragBox = canvasItem
+        if (self.dragState and
+            self.dragState.currentDragBox and
+            self.dragState.currentDragBox.GetItem() == item):
+            self.dragState.currentDragBox = canvasItem
 
         
     @staticmethod
@@ -1532,6 +1524,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.blockItem.itsView.commit()
         return event
 
+    def OnBeginDragItem(self):
+        originalBox = self.dragState.originalDragBox
+        originalBox.originalStartTime = \
+            originalBox.GetItem().startTime
+
     def OnDraggingItem(self, unscrolledPosition):
         if self.blockItem.dayMode:
             #no dragging allowed.
@@ -1540,23 +1537,25 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # we have to deduce the offset, so you can begin a drag in any cell of
         # a multi-day event. Code borrowed from
         # wxTimedEventsCanvas.OnDraggingItem()
-        (boxX,boxY) = self._originalDragBox.GetDragOrigin()
-        
+        dragState = self.dragState
+        (boxX,boxY) = self.dragState.originalDragBox.GetDragOrigin()
         
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         
         # but if the event starts before the current week, make boxX negative.
-        ost = self._originalDragBox.originalStartTime
+        """
+        ost = dragState.originalDragBox.originalStartTime
         if ost < self.blockItem.rangeStart:
             earlier = (self.blockItem.rangeStart - ost)
             boxX -= (earlier.days + 1) * drawInfo.dayWidth
+        """
         
-        dy = self._dragStartUnscrolled.y - boxY
-        dx = self._dragStartUnscrolled.x - boxX
+        dy = dragState.originalPosition.y - boxY
+        dx = dragState.originalPosition.x - boxX
         dx = int(dx/drawInfo.dayWidth) * drawInfo.dayWidth #round to nearest dayWidth
         adjustedPosition = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
   
-        item = self._currentDragBox.GetItem()
+        item = dragState.currentDragBox.GetItem()
         newTime = self.getDateTimeFromPosition(adjustedPosition, mustBeInBounds=False)
         
         # bounding rules are: at least one cell of the event must stay visible.
@@ -1860,12 +1859,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             canvasItem = TimedCanvasItem(item, self)
             self.canvasItemList.append(canvasItem)
 
-            if self._currentDragBox and self._currentDragBox.GetItem() == item:
-                self._currentDragBox = canvasItem                
+            # if we're dragging, update the drag state to reflect the
+            # newly rebuild canvasItem
+            if (self.dragState and
+                self.dragState.currentDragBox and 
+                self.dragState.currentDragBox.GetItem() == item):
+                self.dragState.currentDragBox = canvasItem
 
         # now generate conflict info
         self.CheckConflicts()
-        
+
         for canvasItem in self.canvasItemList:
             # drawing rects should be updated to reflect conflicts
             canvasItem.UpdateDrawingRects()
@@ -1948,6 +1951,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 timedelta(hours=1)
 
         super(wxTimedEventsCanvas, self).OnSelectNone(unscrolledPosition)
+        self.Refresh()
 
     def OnCreateItem(self, unscrolledPosition):
         # @@@ this code might want to live somewhere else, refactored
@@ -1972,22 +1976,23 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         # only problem here is that we haven't checked for conflicts
         canvasItem.UpdateDrawingRects()
-        canvasItem.SetResizeMode(canvasItem.RESIZE_MODE_END)
+        canvasItem.setResizeMode(canvasItem.RESIZE_MODE_END)
         return canvasItem
         
     def OnBeginResizeItem(self):
-        self._lastUnscrolledPosition = self._dragStartUnscrolled
+        self._lastUnscrolledPosition = \
+            self.dragState.originalPosition
         self.StartDragTimer()
         pass
         
     def OnEndResizeItem(self):
         self.StopDragTimer()
-        self._originalDragBox.ResetResizeMode()
+        self.dragState.originalDragBox.ResetResizeMode()
         pass
         
     def OnResizingItem(self, unscrolledPosition):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
-        item = self._currentDragBox.GetItem()
+        item = self.dragState.currentDragBox.GetItem()
         resizeMode = self.GetResizeMode()
         delta = timedelta(minutes=15)
         
@@ -2004,7 +2009,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         This timer goes off while we're dragging/resizing
         """
-        scrolledPosition = self.CalcScrolledPosition(self._dragCurrentUnscrolled)
+        scrolledPosition = self.CalcScrolledPosition(self.dragState.currentPosition)
         self.ScrollIntoView(scrolledPosition)
     
     def StartDragTimer(self):
@@ -2017,11 +2022,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
     def OnBeginDragItem(self):
         self.StartDragTimer()
-        pass
         
     def OnEndDragItem(self):
         self.StopDragTimer()
-        pass
         
     def OnDraggingNone(self, unscrolledPosition):
         dragDateTime = self.getDateTimeFromPosition(unscrolledPosition)
@@ -2048,19 +2051,20 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # We need to figure out where the original drag started,
         # so the mouse stays in the same position relative to
         # the origin of the item
-        (boxX,boxY) = self._originalDragBox.GetDragOrigin()
-        dy = self._dragStartUnscrolled.y - boxY
+        dragState = self.dragState
+        (boxX,boxY) = dragState.originalDragBox.GetDragOrigin()
+        dy = dragState.originalPosition.y - boxY
+        dx = dragState.originalPosition.x - boxX
         
         # dx is tricky: we want the user to be able to drag left/right within
         # the confines of the current day, but if they cross a day threshold,
         # then we want to shift the whole event over one day
         # to do this, we need to round dx to the nearest dayWidth
-        dx = self._dragStartUnscrolled.x - boxX
         dx = int(dx/self.dayWidth) * self.dayWidth
         position = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
         
         newTime = self.getDateTimeFromPosition(position)
-        item = self._currentDragBox.GetItem()
+        item = dragState.currentDragBox.GetItem()
         if ((newTime.toordinal() != item.startTime.toordinal()) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
@@ -2075,7 +2079,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Helper method for drags
         """
-        return self._originalDragBox.getResizeMode(self._dragStartUnscrolled)
+        dragState = self.dragState
+        dragBox = dragState.originalDragBox
+        return dragBox.getResizeMode(dragState.originalPosition)
 
     def getDateTimeFromPosition(self, position):
         #that is, the drawing info not already within this object
