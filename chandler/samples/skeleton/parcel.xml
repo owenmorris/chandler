@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel xmlns="http://osafoundation.org/parcels/core">
-    
-    <namespace value="http://osafoundation.org/samples/skeleton"/>
-    
-</Parcel>
+<core:Parcel itsName="skeleton"
+    xmlns:this="parcel:skeleton"
+    xmlns:core="parcel:core"
+    xmlns:blocks="parcel:osaf.framework.blocks"
+    xmlns:contentmodel="parcel:osaf.contentmodel"
+>
+
+  <core:displayName>Start Here Example</core:displayName>
+  <core:description>This is a skeleton parcel</core:description>
+
+  <!-- create an item of our sample kind (from __init__.py) -->
+  <this:MyKind1 itsName="anItem">
+        <this:attr1>Setting custom attributes is simple</this:attr1>
+        <this:body>Inherited attributes too!</this:body>
+  </this:MyKind1>
+
+</core:Parcel>
