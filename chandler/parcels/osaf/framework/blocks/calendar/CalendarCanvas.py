@@ -82,7 +82,8 @@ class CalendarData(ContentModel.ContentItem):
     calendarColor = schema.One(Styles.ColorStyle)
 
     # need to convert hues from 0..360 to 0..1.0 range
-    hueList = [k/360.0 for k in [210, 120, 60, 0, 240, 90, 330, 30, 180, 270]]
+    # removed 60, 180, 90 for now because they looked too light
+    hueList = [k/360.0 for k in [210, 120, 0, 240, 330, 30, 270]]
     
     @classmethod
     def getNextHue(cls, oldhue):
@@ -156,10 +157,10 @@ class CalendarData(ContentModel.ContentItem):
     selectedColors = tupleProperty(selectedGradientLeft, selectedGradientRight, selectedOutlineColor, selectedTextColor)
     
     # 'visible' means that its not the 'current' calendar, but is still visible
-    visibleGradientLeft = tintedColor(0.3)
-    visibleGradientRight = tintedColor(0.3)
-    visibleOutlineColor = tintedColor(0.4)
-    visibleTextColor = tintedColor(0.5, 0.95)
+    visibleGradientLeft = tintedColor(0.15)
+    visibleGradientRight = tintedColor(0.15)
+    visibleOutlineColor = tintedColor(0.3)
+    visibleTextColor = tintedColor(0.4, 0.85)
     visibleColors = tupleProperty(visibleGradientLeft, visibleGradientRight, visibleOutlineColor, visibleTextColor)
         
 class CalendarCanvasItem(CollectionCanvas.CanvasItem):
@@ -436,8 +437,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         
                         dc.SetFont(styles.eventTimeFont)	
                         self.timeHeight = \
-                            self.DrawWrappedText(dc, timeString, timeRect)	
-                        y += self.timeHeight	
+                            self.DrawWrappedText(dc, timeString, timeRect)
+
+                        # add some space below the time
+                        self.timeHeight += 3
+                        y += self.timeHeight + 3
                     else:	
                         self.timeHeight = 0	
         
@@ -1223,14 +1227,14 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
             
             bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
             bigBoldFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            smallFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL,
+            smallFont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL,
                                 face="Verdana")
             smallBoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD,
                                     face="Verdana")
         else:
             bigFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.NORMAL)
             bigBoldFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            smallFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL,
+            smallFont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL,
                                 face="Verdana")
             smallBoldFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD,
                                          face="Verdana")
@@ -1243,7 +1247,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         
         self.eventTimeFont = smallBoldFont
         
-        self.legendFont = bigFont
+        self.legendFont = smallFont
         self.legendColor = wx.Colour(128,128,128)
 
         self.bgColor = wx.WHITE
@@ -1311,7 +1315,8 @@ class AllDayEventsCanvas(CalendarBlock):
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     ALLDAY_EVENT_HEIGHT = 17
-    
+
+    legendBorderWidth = 1
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
 
