@@ -7,8 +7,12 @@ __parcel__ = "osaf.framework.blocks"
 import os, sys
 from application.Application import mixinAClass
 from application import schema
-from Block import *
-from ContainerBlocks import *
+from Block import ( 
+    Block, RectangularChild, BlockEvent, 
+    ShownSynchronizer, lineStyleEnumType, logger
+)
+from ContainerBlocks import BoxContainer
+from osaf.contentmodel.ItemCollection import ItemCollection
 import DragAndDrop
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx

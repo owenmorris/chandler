@@ -27,7 +27,7 @@ from osaf.framework.blocks.calendar import CollectionCanvas
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 from application import schema
-from colorsys import *
+import colorsys
 import copy
 
 dateFormatSymbols = DateFormatSymbols()
@@ -117,7 +117,7 @@ class CalendarData(ContentModel.ContentItem):
     def eventHue(self):
         c = self.eventColor
         rgbvalues = (c.red, c.green, c.blue)
-        hsv = rgb_to_hsv(*DrawingUtilities.color2rgb(*rgbvalues))
+        hsv = colorsys.rgb_to_hsv(*DrawingUtilities.color2rgb(*rgbvalues))
         return hsv[0]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
@@ -125,7 +125,7 @@ class CalendarData(ContentModel.ContentItem):
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
             hsv = (self.eventHue, saturation, value)
-            return DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv))
+            return DrawingUtilities.rgb2color(*colorsys.hsv_to_rgb(*hsv))
         return property(getSaturatedColor)
             
     def tupleProperty(*args):
@@ -941,7 +941,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     def setupNextHue(self):
         c = self.contents.source.first().calendarColor.backgroundColor
         self.lastHue = CalendarData.getNextHue(self.lastHue)
-        (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
+        (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*colorsys.hsv_to_rgb(self.lastHue, 1.0, 1.0))
         
         
     def getEventColors(self, event, selected):
