@@ -16,6 +16,12 @@
  * PLEASE don't put C++ comments here - this is a C source file.
  */
 
+#if defined(__WATCOMC__)
+#include "wx/wxprec.h"
+#include <errno.h>
+#include <nerrno.h>
+#endif
+
 #ifndef __GSOCKET_STANDALONE__
 #include "wx/setup.h"
 #endif
@@ -118,7 +124,7 @@ int _System soclose(int);
 #      define SOCKLEN_T socklen_t
 #    endif
 #  elif defined(__WXMAC__)
-#	   define SOCKLEN_T socklen_t
+#    define SOCKLEN_T socklen_t
 #  else
 #    define SOCKLEN_T int
 #  endif
@@ -150,15 +156,24 @@ int _System soclose(int);
 #define INADDR_NONE INADDR_BROADCAST
 #endif
 
-#define MASK_SIGNAL()                       \
-{                                           \
-  void (*old_handler)(int);                 \
-                                            \
-  old_handler = signal(SIGPIPE, SIG_IGN);
+#if defined(__VISAGECPP__) || defined(__WATCOMC__)
 
-#define UNMASK_SIGNAL()                     \
-  signal(SIGPIPE, old_handler);             \
-}
+    #define MASK_SIGNAL() {
+    #define UNMASK_SIGNAL() }
+
+#else
+
+    #define MASK_SIGNAL()                       \
+    {                                           \
+        void (*old_handler)(int);               \
+                                            \
+        old_handler = signal(SIGPIPE, SIG_IGN);
+
+    #define UNMASK_SIGNAL()                     \
+        signal(SIGPIPE, old_handler);           \
+    }
+
+#endif
 
 /* If a SIGPIPE is issued by a socket call on a remotely closed socket,
    the program will "crash" unless it explicitly handles the SIGPIPE.
@@ -1353,16 +1368,14 @@ int GSocket::Send_Stream(const char *buffer, int size)
 {
   int ret;
 
-#ifndef __VISAGECPP__
    MASK_SIGNAL();
-#endif 
+
   do 
   {
     ret = send(m_fd, (char *)buffer, size, GSOCKET_MSG_NOSIGNAL);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
-#ifndef __VISAGECPP__
+
   UNMASK_SIGNAL();
-#endif
 
   return ret;
 }
@@ -1386,16 +1399,14 @@ int GSocket::Send_Dgram(const char *buffer, int size)
     return -1;
   }
 
-#ifndef __VISAGECPP__
   MASK_SIGNAL();
-#endif
+
   do 
   {
     ret = sendto(m_fd, (char *)buffer, size, 0, addr, len);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
-#ifndef __VISAGECPP__
+
   UNMASK_SIGNAL();
-#endif
 
   /* Frees memory allocated from _GAddress_translate_to */
   free(addr);
@@ -1916,4 +1927,3 @@ GSocketError GAddress_UNIX_GetPath(GAddress *address, char *path, size_t sbuf)
 }
 #endif  /* !defined(__VISAGECPP__) */
 #endif  /* wxUSE_SOCKETS || defined(__GSOCKET_STANDALONE__) */
-

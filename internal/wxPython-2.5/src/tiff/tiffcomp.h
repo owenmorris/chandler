@@ -25,7 +25,7 @@
  */
 
 #ifndef _COMPAT_
-#define	_COMPAT_
+#define _COMPAT_
 /*
  * This file contains a hodgepodge of definitions and
  * declarations that are needed to provide compatibility
@@ -86,6 +86,8 @@
 #elif (defined(_WINDOWS) || defined(__WIN32__) || defined(_Windows) || defined(_WIN32)) && !defined(unix)
 #define	BSDTYPES
 #elif defined(OS2_16) || defined(OS2_32)
+#define	BSDTYPES
+#elif defined(__MSDOS__)
 #define	BSDTYPES
 #elif defined(__acornriscos)
 #include <stdlib.h>
@@ -216,5 +218,8 @@ extern int creat(const char *path, int mode);
 #define HOST_BIGENDIAN	0
 #endif
 
+#ifndef LINKAGEMODE
+    #define LINKAGEMODE
+#endif
 
 #endif /* _COMPAT_ */
