@@ -71,8 +71,7 @@
   <ae:AttributeEditor itsName="RecurrenceRuleSet+custom"><className>osaf.framework.blocks.detail.Detail.RecurrenceCustomAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+ends"><className>osaf.framework.blocks.detail.Detail.RecurrenceEndsAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+occurs"><className>osaf.framework.blocks.detail.Detail.RecurrenceAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="NoneType+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="timedelta+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
+  <ae:AttributeEditor itsName="TimeDelta+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
   
   <!--
     An item collection we use to get notifications about the DV
@@ -273,7 +272,15 @@
     <minimumSize>100, 19</minimumSize>
     <border>2, 2, 2, 2</border>
   </EditText>
-
+  <!-- First attempts at AE-izing the email fields
+  <AEBlock itsName="FromEditField"
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+    <blockName value="FromEditField"/>
+    <viewAttribute value="whoFrom"/>
+    <border>2, 2, 2, 2</border>
+  </AEBlock>
+  -->
+  
   <ContentItemDetail itsName="ToMailArea"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="ToArea"/>
@@ -307,6 +314,14 @@
     <minimumSize>100, 19</minimumSize>
     <border>2, 2, 2, 2</border>
   </EditText>
+  <!-- First attempts at AE-izing the email fields
+  <AEBlock itsName="ToMailEditField"
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+    <blockName value="ToMailEditField"/>
+    <viewAttribute value="toAddress"/>
+    <border>2, 2, 2, 2</border>
+  </AEBlock>
+  -->
 
   <Button itsName="AcceptShareButton"
                      itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
@@ -519,7 +534,8 @@
     <position>0.8</position>
   </ContentItemDetail>
 
-  <ContentItemDetail itsName="CalendarLocationArea">
+  <ContentItemDetail itsName="CalendarLocationArea"
+           itemClass="osaf.framework.blocks.detail.Detail.CalendarLocationArea">  
     <blockName value="CalendarLocationArea"/>
     <childrenBlocks itemref="doc:CalendarLocationSpaceHolder"/>
     <childrenBlocks itemref="doc:CalendarLocation"/>
@@ -559,7 +575,8 @@
     <minimumSize>-1, 4</minimumSize>
   </StaticText>
 
-  <ContentItemDetail itsName="CalendarAllDayArea">
+  <ContentItemDetail itsName="CalendarAllDayArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.CalendarAllDayArea">
     <blockName value="CalendarAllDayArea"/>
     <childrenBlocks itemref="doc:CalDetailsAllDayLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="AllDayHorizontalSpacer" />
@@ -770,7 +787,8 @@
     <minimumSize>-1, 7</minimumSize>
   </StaticText>
 
-  <ContentItemDetail itsName="CalendarReminderArea">
+  <ContentItemDetail itsName="CalendarReminderArea"
+           itemClass="osaf.framework.blocks.detail.Detail.CalendarReminderArea">
     <blockName value="CalendarReminderArea"/>
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarReminderHorizontalSpacer" />
@@ -819,7 +837,8 @@
     <minimumSize>-1, 7</minimumSize>
   </StaticText>
 
-  <ContentItemDetail itsName="CalendarRecurrencePopupArea">
+  <ContentItemDetail itsName="CalendarRecurrencePopupArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrencePopupArea">
     <blockName value="CalendarRecurrencePopupArea"/>
     <childrenBlocks itemref="doc:CalOccursLabel"/>
     <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarOccursHorizontalSpacer" />

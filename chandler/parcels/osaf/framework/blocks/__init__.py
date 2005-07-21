@@ -20,6 +20,7 @@ from detail.Detail import (
     DetailRoot, DetailTrunkDelegate, HTMLDetailArea, StaticRedirectAttribute,
     StaticTextLabel, DetailSynchronizedLabeledTextAttributeBlock,
     StaticRedirectAttributeLabel,  LabeledTextAttributeBlock,
+    DetailSynchronizedContentItemDetail
 )
 
 from ControlBlocks import (

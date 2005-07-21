@@ -41,6 +41,22 @@ class ImportanceEnum(schema.Enumeration):
     values = "important", "normal", "fyi"
 
 
+class Calculated(property):
+    """ 
+    A property with type information, in the style of our schema.* objects. 
+    - This could become a schema class when it grows up :-)
+    - I'm open to a different name: I think it oughta be schema.Property, but pje
+      thought Calculated was better...
+    """
+    def __new__(cls, schema_type, displayName, fget, fset=None, fdel=None, doc=None):
+        return property.__new__(cls, fget, fset, fdel, doc)
+    
+    def __init__(self, schema_type, displayName, fget, fset=None, fdel=None, doc=None):
+        property.__init__(self, fget, fset, fdel, doc)
+        self.type = schema_type
+        self.displayName = displayName
+
+
 class ContentItem(schema.Item):
     """Content Item"""
 

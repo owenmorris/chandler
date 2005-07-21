@@ -549,6 +549,9 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
 class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     pass
 
+class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
+    pass
+
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
     
     # temporary fix until AEBlocks update themselves automatically
@@ -608,7 +611,8 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
-        enable = item is not None and self._isStampable(item)
+        enable = item is not None and self._isStampable(item) and \
+               item.isAttributeModifiable('itsKind')
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
@@ -617,6 +621,11 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             tool = event.arguments['sender']
             item.isPrivate = self.widget.GetToolState(tool.toolID)
             
+    def onTogglePrivateEventUpdateUI(self, event):
+        item = self.selectedItem()            
+        enable = item is not None and item.isAttributeModifiable('isPrivate')
+        event.arguments ['Enable'] = enable
+
     def _isStampable(self, item):
         # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
         return item.isItemOf(ContentModel.ContentItem.getKind(self.itsView))
@@ -1016,16 +1025,56 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
                 enabled = False
         event.arguments['Enable'] = enabled
 
-"""
-Classes to support CalendarEvent details
-"""
+# Classes to support CalendarEvent details - first, areas that show/hide
+# themselves based on readonlyness and attribute values
+
+class CalendarAllDayArea(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('allDay')
+
+class CalendarLocationArea(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('location') \
+               or hasattr(item, 'location')
+
 class CalendarAtLabel (StaticTextLabel):
     def shouldShow (self, item):
-        return not self.contents.allDay
+        return item.isAttributeModifiable('startTime') \
+               and not item.allDay
         
 class CalendarTimeAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
-        return not self.contents.allDay
+        return item.isAttributeModifiable('startTime') \
+               and not item.allDay
+
+class CalendarReminderArea(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('reminderTime') \
+               or hasattr(item, 'reminderTime')
+
+class CalendarRecurrencePopupArea(DetailSynchronizedContentItemDetail):
+    def shouldShow(self, item):
+        return item.isAttributeModifiable('rruleset') \
+               or RecurrenceAttributeEditor.mapRecurrenceFrequency(item) != \
+               RecurrenceAttributeEditor.onceIndex    
+
+class CalendarRecurrenceCustomArea(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        # We're visible only if we're "custom"
+        return RecurrenceAttributeEditor.mapRecurrenceFrequency(item) == \
+               RecurrenceAttributeEditor.customIndex
+
+class CalendarRecurrenceEndArea(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        # We're visible only if we're not custom, and either not 'once'
+        # or modifiable (that is, hidden if 'once' and readonly)
+        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+        visible = (freq != RecurrenceAttributeEditor.customIndex) and \
+                ((freq != RecurrenceAttributeEditor.onceIndex) or \
+                 item.isAttributeModifiable('rruleset'))
+        return visible
+
+# Attribute editor customizations
 
 class CalendarDateAttributeEditor(DateAttributeEditor):    
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -1274,25 +1323,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             control.AppendItems(choices)
 
         control.Select(value)
-    
-class CalendarRecurrenceCustomArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
-    def shouldShow (self, item):
-        # We're visible only if we're "custom"
-        return RecurrenceAttributeEditor.mapRecurrenceFrequency(item) == \
-               RecurrenceAttributeEditor.customIndex
 
 class RecurrenceCustomAttributeEditor(StaticStringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         return item.getCustomDescription()
         
-class CalendarRecurrenceEndArea(DetailSynchronizer, ControlBlocks.ContentItemDetail):
-    def shouldShow (self, item):
-        # We're visible only if we're recurring but _not_ custom
-        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
-        visible = (freq != RecurrenceAttributeEditor.onceIndex) \
-                and (freq != RecurrenceAttributeEditor.customIndex)
-        return visible
-
 class RecurrenceEndsAttributeEditor(DateAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         return super(RecurrenceEndsAttributeEditor, self).\

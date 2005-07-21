@@ -20,6 +20,7 @@ from datetime import datetime, time, timedelta
 from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
 from osaf.framework.blocks.Block import ShownSynchronizer
 from osaf.framework.attributeEditors import AttributeEditor
+from osaf.contentmodel.ContentModel import ContentItem
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
@@ -37,18 +38,22 @@ def getSingleton (typeName):
         _TypeToEditorInstances [typeName] = instance
     return instance
 
-def getInstance (typeName, item, attributeName, presentationStyle):
+def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
     """ Get a new unshared instance of the Attribute Editor for this type (and optionally, format). """
     try:
         format = presentationStyle.format
     except AttributeError:
         format = None
-    aeClass = _getAEClass(typeName, format)
-    logger.debug("getAEClass(%s [%s, %s]) --> %s", attributeName, typeName, format, aeClass)
+    if typeName == "Lob":
+        typeName = getattr(item, attributeName).mimetype
+    aeClass = _getAEClass(typeName, readOnly, format)
+    logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
+                 attributeName, typeName, format, 
+                 readOnly and ", readOnly" or "", aeClass)
     instance = aeClass()        
     return instance
 
-def _getAEClass (type, format=None):
+def _getAEClass (type, readOnly=False, format=None):
     """ Return the attribute editor class for this type """
     # Once per run, build a map of type -> class
     global _TypeToEditorClasses
@@ -57,15 +62,28 @@ def _getAEClass (type, format=None):
         for ae in aeKind.iterItems():
             _TypeToEditorClasses[ae.itsName] = ae.className
         assert _TypeToEditorClasses['_default'] is not None, "Default attribute editor doesn't exist ('_default')"
-        
-    # If we have a format specified, try to find a specific 
-    # editor for type+form. If we don't, just use the type, 
-    # and if we don't have a type-specific one, use the "_default".
-    classPath = ((format is not None) and _TypeToEditorClasses.get("%s+%s" % (type, format), None)) \
-              or _TypeToEditorClasses.get(type, None)
-    if classPath is None: # do this separately for now so I can set a breakpoint
-        classPath = _TypeToEditorClasses.get("_default", None)
-
+            
+    # Try several ways to find an appropriate editor:
+    # - If we're readOnly, try "+readOnly" before we try without it.
+    # - If we have a format, try "+format" before we try without it.
+    # - If those fail, just try the type itself.
+    # - Failing that, use _default.
+    def generateEditorTags():
+        if format is not None:
+            if readOnly:
+                yield "%s+%s+readOnly" % (type, format)
+            yield "%s+%s" % (type, format)
+        if readOnly:
+            yield "%s+readOnly" % type
+        yield type
+        yield "_default"
+    classPath = None
+    for key in generateEditorTags():
+        classPath = _TypeToEditorClasses.get(key)
+        if classPath is not None:
+            break
+    assert classPath is not None
+    
     parts = classPath.split (".")
     assert len(parts) >= 2, " %s isn't a module and class" % classPath
     className = parts.pop ()
@@ -79,8 +97,8 @@ class BaseAttributeEditor (object):
         
     def ReadOnly (self, (item, attribute)):
         """ Return True if this Attribute Editor refuses to edit """
-        # By default, everything's editable.
-        return False
+        # By default, everything's editable if the item says it is.
+        return not item.isAttributeModifiable(attribute)
 
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         """ Draw the value of the attribute in the specified rect of the dc """
@@ -111,7 +129,7 @@ class BaseAttributeEditor (object):
         # Default to "if we have a control, it's good enough".
         return existingControl is None
     
-    def CreateControl (self, forEditing, parentWidget, 
+    def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         """ 
         Create and return a control to use for displaying (forEdit=False)
@@ -300,7 +318,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         # logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
         return must
 
-    def CreateControl(self, forEditing, parentWidget, 
+    def CreateControl(self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         # logger.debug("StringAE.CreateControl")
         
@@ -352,6 +370,8 @@ class StringAttributeEditor (BaseAttributeEditor):
                                    wx.TAB_TRAVERSAL | border)
         else:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
+            if readOnly: style |= wx.TE_READONLY
+            
             try:
                 lineStyleEnum = parentBlock.presentationStyle.lineStyleEnum
             except AttributeError:
@@ -575,10 +595,10 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     To be always static, we pretend to be "edit-in-place", but never in 
     'edit' mode.
     """
-    def CreateControl(self, forEditing, parentWidget, 
+    def CreateControl(self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         return super(StaticStringAttributeEditor, self).\
-               CreateControl(False, parentWidget, id, parentBlock, font)
+               CreateControl(False, readOnly, parentWidget, id, parentBlock, font)
     
     def EditInPlace(self):
         return True
@@ -587,7 +607,7 @@ class StaticStringAttributeEditor(StringAttributeEditor):
         # We only need to change controls if we don't have one.
         return existingControl is None
 
-class LobAttributeEditor (StringAttributeEditor):
+class LobStringAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
             lob = getattr(item, attributeName)
@@ -622,7 +642,7 @@ class LobImageAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True
 
-    def CreateControl(self, forEditing, parentWidget, id, parentBlock, font):
+    def CreateControl(self, forEditing, readOnly, parentWidget, id, parentBlock, font):
         return wx.StaticBitmap(parentWidget, id, wx.NullBitmap, (0, 0))
 
     def __getBitmapFromLob(self, attributeValue):
@@ -885,12 +905,12 @@ class LocationAttributeEditor (StringAttributeEditor):
         
         self.AttributeChanged()
 
-    def CreateControl (self, forEditing, parentWidget, 
+    def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         control = super(LocationAttributeEditor, self).\
-                CreateControl(forEditing, parentWidget,
+                CreateControl(forEditing, readOnly, parentWidget,
                               id, parentBlock, font)
-        if forEditing:
+        if forEditing and not readOnly:
             control.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         return control
 
@@ -1032,7 +1052,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, forEditing, parentWidget, 
+    def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         
         # Figure out the size we should be
@@ -1050,6 +1070,8 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         control = AECheckBox(parentWidget, id, u"", 
                              wx.DefaultPosition, size, style)
         control.Bind(wx.EVT_CHECKBOX, self.onChecked)
+        if readOnly:
+            control.Enable(False)
         return control
         
     def DestroyControl (self, control, losingFocus=False):
@@ -1086,7 +1108,7 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
         # because we've always got a control to do it for us.
         pass
 
-    def CreateControl (self, forEditing, parentWidget, 
+    def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
 
         # Figure out the size we should be
@@ -1103,6 +1125,8 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
         style = wx.TAB_TRAVERSAL
         control = AEChoice(parentWidget, id, wx.DefaultPosition, size, [], style)
         control.Bind(wx.EVT_CHOICE, self.onChoice)
+        if readOnly:
+            control.Enable(False)
         return control
         
     def DestroyControl (self, control, losingFocus=False):

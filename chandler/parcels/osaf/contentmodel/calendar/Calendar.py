@@ -14,6 +14,7 @@ from application import schema
 
 from osaf.contentmodel import ContentModel
 from osaf.contentmodel import Notes
+from osaf.contentmodel.ContentModel import Calculated
 from osaf.contentmodel.contacts import Contacts
 from osaf.contentmodel.calendar import Recurrence
 
@@ -339,8 +340,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if (self.startTime is not None):
             self.endTime = self.getEffectiveStartTime() + timeDelta
 
-    duration = property(GetDuration, SetDuration,
-                        doc="timedelta: the length of an event")
+    duration = Calculated(schema.TimeDelta, displayName="duration",
+                          fget=GetDuration, fset=SetDuration,
+                          doc="Duration, computed from effective start & "
+                              "end times. Observes all-day & any-time.")
 
     def getEffectiveStartTime(self):
         """ 
@@ -385,9 +388,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     del self.reminderTime
                 except AttributeError:
                     pass
-    
-    reminderDelta = property(GetReminderDelta, SetReminderDelta,
-                             doc="reminderDelta: the amount of time in advance of the event that we want a reminder")
+
+    reminderDelta = Calculated(schema.TimeDelta,
+                               displayName="reminderDelta",
+                               fget=GetReminderDelta, fset=SetReminderDelta,
+                               doc="reminderDelta: the amount of time before " \
+                                   "the event that we want a reminder")
     
     def ChangeStart(self, dateTime):
         """Change the start time without changing the duration.

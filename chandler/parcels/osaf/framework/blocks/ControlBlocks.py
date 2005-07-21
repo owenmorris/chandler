@@ -935,7 +935,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         """
           Create an edit control to edit the text
         """
-        self.control = self.delegate.CreateControl(True, parent, id, None, None)
+        self.control = self.delegate.CreateControl(True, False, parent, id, None, None)
         self.SetControl (self.control)
         if evtHandler:
             self.control.PushEventHandler (evtHandler)
@@ -1714,7 +1714,8 @@ class AEBlock(BoxContainer):
         font = Styles.getFont(charStyle)
 
         editor = self.lookupEditor()
-        widget = editor.CreateControl(forEditing, self.parentBlock.widget, 
+        widget = editor.CreateControl(forEditing, editor.readOnly, 
+                                      self.parentBlock.widget, 
                                       Block.getWidgetID(self), self, font)
         widget.SetFont(font)
         # logger.debug("Instantiated a %s, forEditing = %s" % (widget, forEditing))
@@ -1806,7 +1807,9 @@ class AEBlock(BoxContainer):
             presentationStyle = self.presentationStyle
         except AttributeError:
             presentationStyle = None
-
+        readOnly = self.readOnly \
+                 or not self.item.isAttributeModifiable(self.attributeName)
+        
         # If we have one already, and it's the right one, return it.
         try:
             oldEditor = self.widget.editor
@@ -1814,24 +1817,23 @@ class AEBlock(BoxContainer):
             pass
         else:
             if (oldEditor is not None) and (oldEditor.typeName == typeName) \
-               and (oldEditor.attributeName == self.attributeName) and \
+               and (oldEditor.attributeName == self.attributeName) \
+               and (oldEditor.readOnly == readOnly) and \
                (oldEditor.presentationStyle is presentationStyle):
                 assert oldEditor.item is self.item # this shouldn't've changed.
                 return oldEditor
 
         # We need a new editor - create one.
-        # logger.debug("Creating new AE for %s (%s.%s)", typeName, item, attributeName)
+        # logger.debug("Creating new AE for %s (%s.%s), ro=%s", typeName, item, attributeName, readOnly)
         selectedEditor = AttributeEditors.getInstance\
-                       (typeName, self.item, self.attributeName, presentationStyle)
+                       (typeName, self.item, self.attributeName, readOnly, presentationStyle)
         
         # Note the characteristics that made us pick this editor
         selectedEditor.typeName = typeName
-        selectedEditor.attributeName = self.attributeName
-        try:
-            selectedEditor.presentationStyle = self.presentationStyle
-        except AttributeError:
-            selectedEditor.presentationStyle = None
         selectedEditor.item = self.item
+        selectedEditor.attributeName = self.attributeName
+        selectedEditor.readOnly = readOnly
+        selectedEditor.presentationStyle = presentationStyle
 
         # Register for value changes
         selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
@@ -1851,14 +1853,22 @@ class AEBlock(BoxContainer):
             theType = self.item.getAttributeAspect(self.attributeName, "type")
         except:
             # If the repository doesn't know about it (it might be a property),
-            # get its value and use its type
+            # see if it's one of our type-friendly Calculated properties
             try:
-                attrValue = getattr(self.item, self.attributeName)
+                theType = schema.itemFor(getattr(self.item.__class__, self.attributeName).type, self.item.itsView)
             except:
-                typeName = "_default"
+                # get its value and use its type
+                try:
+                    attrValue = getattr(self.item, self.attributeName)
+                except:
+                    typeName = "_default"
+                else:
+                    typeName = type(attrValue).__name__
             else:
-                typeName = type(attrValue).__name__
+                # Got the computed property's type - get its name
+                typeName = theType.itsName
         else:
+            # Got the repository type (maybe) - get its name
             if theType is None:
                 typeName = "NoneType"
             else:
