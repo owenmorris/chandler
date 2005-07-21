@@ -425,7 +425,7 @@ class ContentItem(schema.Item):
 
     def ItemBodyString (self):
         """
-        return str(item.body) converts from text to string 
+        return str(item.body) converts from text lob to string 
         """
         try:
             noteBody = self.body
@@ -434,7 +434,7 @@ class ContentItem(schema.Item):
         else:
             if isinstance(noteBody, Lob):
                 # Read the unicode stream from the XML
-                noteBody = noteBody.getInputStream().read()
+                noteBody = noteBody.getPlainTextReader().read()
         return noteBody
 
     def ItemAboutString (self):
