@@ -348,7 +348,7 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.format = format
             shareICal.hidden = True
 
-            self._showStatus("Wait for Sharing URL...\n")
+            self._showStatus("Wait for Sharing URLs...\n")
             if shareXML.exists():
                 raise Sharing.SharingError("Share already exists")
             else:
@@ -392,7 +392,8 @@ class PublishCollectionDialog(wx.Dialog):
 
             return
 
-        self._showStatus("%s" % shareXML.getLocation())
+        self._showStatus("%s\n" % shareXML.getLocation())
+        self._showStatus("%s\n" % shareICal.getLocation())
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
