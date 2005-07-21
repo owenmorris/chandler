@@ -600,14 +600,10 @@ class MainView(View):
 
     def onRunScriptEvent(self, event):
         # Triggered from "Tests | Run script..."
-        try:
-            previousScript = self.script
-        except AttributeError:
-            previousScript = "New; About"
+        previousScript = CPIAScript.GetDialogScript(self.itsView)
         script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Run Script", "Enter a CPIA script to run.", previousScript)
         if script:
-            self.script = script # remember for next time
-            CPIAScript.RunScript(CPIAScript.CPIAScript(script))
+            CPIAScript.RunDialogScript(script, self.itsView)
 
     def onShowPyShellEvent(self, event):
         # Test menu item

@@ -551,13 +551,13 @@ class wxApplication (wx.App):
 
         # Give CPIA Script a chance to execute a script
         import osaf.framework.scripting.CPIAScript as CPIAScript
-        CPIAScript.RunScript()
+        CPIAScript.RunStartupScript(self.UIRepositoryView)
 
         event.Skip()
 
     def OnKeyDown(self, event):
         import osaf.framework.scripting.CPIAScript as CPIAScript
-        if CPIAScript.HotkeyScript(event):
+        if CPIAScript.HotkeyScript(event, self.UIRepositoryView):
             pass # consume the keystroke (the script is now running)
         else:
             event.Skip() # pass the key along to another widget
@@ -669,7 +669,7 @@ class wxApplication (wx.App):
 
         def run(scriptText):
             import osaf.framework.scripting.CPIAScript as CPIAScript
-            CPIAScript.RunScript(scriptText)
+            CPIAScript.RunScript(scriptText, headless.view)
 
         locals = {
          "view" : headless.view,
