@@ -972,7 +972,7 @@
     <position>0.9</position>
     <characterStyle itemref="blocks:TextStyle"/>
     <presentationStyle itemref="doc:NotesPresentation"/>
-    <viewAttribute value="body"/>
+    <viewAttribute value="bodyString"/>
     <border>2, 2, 2, 2</border>
   </AEBlock>
 

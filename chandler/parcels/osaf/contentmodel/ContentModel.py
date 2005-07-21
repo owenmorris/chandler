@@ -453,6 +453,23 @@ class ContentItem(schema.Item):
                 noteBody = noteBody.getPlainTextReader().read()
         return noteBody
 
+    def SetItemBodyString (self, value):
+        try:
+            lob = self.body
+        except AttributeError:
+            lobType = self.getAttributeAspect ('body', 'type')
+            self.body = lobType.makeValue(value, indexed=True)
+        else:
+            writer = lob.getWriter()
+            try:
+                writer.write(value)
+            finally:
+                writer.close()
+
+    bodyString = Calculated(schema.String, "bodyString", 
+                            fget=ItemBodyString, fset=SetItemBodyString,
+                            doc="body attribute as a string")
+        
     def ItemAboutString (self):
         """
         return str(item.about)

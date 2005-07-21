@@ -44,7 +44,7 @@ def getInstance (typeName, item, attributeName, readOnly, presentationStyle):
         format = presentationStyle.format
     except AttributeError:
         format = None
-    if typeName == "Lob":
+    if typeName == "Lob" and hasattr(item, attributeName):
         typeName = getattr(item, attributeName).mimetype
     aeClass = _getAEClass(typeName, readOnly, format)
     logger.debug("getAEClass(%s [%s, %s]%s) --> %s", 
@@ -567,7 +567,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             except AttributeError:
                 pass
             else:
-                if  cardinality == "list":
+                if cardinality == "list":
                     valueString = u", ".join([part.getItemDisplayName() for part in value])
         return valueString
 
@@ -575,13 +575,13 @@ class StringAttributeEditor (BaseAttributeEditor):
         try:
             cardinality = item.getAttributeAspect (attributeName, "cardinality")
         except AttributeError:
-            pass
-        else:
-            if cardinality == "single":
-                if self.GetAttributeValue(item, attributeName) != valueString:
-                    # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
-                    setattr (item, attributeName, valueString)
-                    self.AttributeChanged()
+            # @@@ it's probably Calculated()... Assume it's single for now.
+            cardinality = "single"
+        if cardinality == "single":
+            if self.GetAttributeValue(item, attributeName) != valueString:
+                # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
+                setattr (item, attributeName, valueString)
+                self.AttributeChanged()
     
     def getShowingSample(self):
         return getattr(self, '_showingSample', False)
@@ -606,36 +606,6 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     def MustChangeControl(self, forEditing, existingControl):
         # We only need to change controls if we don't have one.
         return existingControl is None
-
-class LobStringAttributeEditor (StringAttributeEditor):
-    def GetAttributeValue (self, item, attributeName):
-        try:
-            lob = getattr(item, attributeName)
-        except AttributeError:
-            value = ''
-        else:
-            # Read the unicode stream
-            value = lob.getPlainTextReader().read()
-        return value
-
-    def SetAttributeValue(self, item, attributeName, value):            
-        oldValue = self.GetAttributeValue(item, attributeName)
-        if oldValue != value:
-            try:
-                lob = getattr(item, attributeName)
-            except AttributeError:
-                #logger.debug("LobAE.Set: Making new lob for \"%s\"" % value)
-                lobType = item.getAttributeAspect (attributeName, "type")
-                lob = lobType.makeValue(value, indexed=True)
-                setattr(item, attributeName, lob)
-            else:
-                #logger.debug("LobAE.Set: writing new value to lob: \"%s\"" % value)
-                writer = lob.getWriter()
-                writer.write(value)
-                writer.close()
-            self.AttributeChanged()
-            #logger.debug("LobAE.set: after changing, new value is \"%s\"" % self.GetAttributeValue(item, attributeName))
-
 
 class LobImageAttributeEditor (BaseAttributeEditor):
 
