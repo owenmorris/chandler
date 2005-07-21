@@ -16,6 +16,17 @@ import osaf.current.Current as Current
 
 # Special handlers referenced in the PANELS dictionary below:
 
+def IMAPValidationHandler(item, fields, values):
+    newAddressString = values['IMAP_EMAIL_ADDRESS']
+    # Blank address string?  Don't bother the user now, they will get
+    # reminded when they actually try to fetch mail.  Bogus address?
+    # They better fix it before leaving the dialog box.
+    if not newAddressString or \
+        Mail.EmailAddress.isValidEmailAddress(newAddressString):
+        return None
+    else:
+        return "'%s' is not a valid email address" % newAddressString
+
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
     newFullName = values['IMAP_FULL_NAME']
@@ -151,6 +162,7 @@ PANELS = {
         },
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
+        "validationHandler" : IMAPValidationHandler,
         "deleteHandler" : IMAPDeleteHandler,
         "displayName" : "IMAP_DESCRIPTION",
         "description" : "Incoming mail (IMAP)",
@@ -615,13 +627,15 @@ class AccountPreferencesDialog(wx.Dialog):
 
             if panel.has_key("validationHandler"):
 
-                valid = panel["validationHandler"](item, panel['fields'],
-                 values)
+                invalidMessage = panel["validationHandler"](item,
+                    panel['fields'], values)
 
-                if not valid:
+                if invalidMessage:
                     # Show the invalid panel
                     self.accountsList.SetSelection(i)
                     self.__SwapDetailPanel(i)
+                    application.dialogs.Util.ok(self, "Invalid Entry",
+                                                invalidMessage)
                     return False
 
             i += 1
