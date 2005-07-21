@@ -4,7 +4,7 @@ import re, sys
 adapted python cookbook: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
 usage: see the bottom of this file"""
 
-#@@@ use the logging system...
+#@@@ should use the logging system...
 log = sys.stdout
 
 indent = 0
@@ -12,7 +12,7 @@ indStr = '  '
 
 
 #ANSI escape codes for terminals.
-#cygwin: run through |tee /dev/null and colors work
+#cygwin: run through |cat or |tee /dev/null and then colors work
 #linux: always works
 #mac: untested
 #less -r  understands escape codes (even if in logfile)
@@ -56,9 +56,14 @@ def logmethod(methodname):
             
         #print >> log,"%s%s.  %s  (%s) " % (indStr*indent,selfstr,methodname,argstr)
         print >> log,"%s%s.%s%s%s  (%s) " % (indStr*indent,selfstr,  BOLDRED,methodname,NORMAL, argstr)
+        log.flush()
+        if methodname == 'OnSize':
+            print >> log, "%sposition, size = %s%s %s%s" %(indStr*indent, BOLDBLUE, self.GetPosition(), self.GetSize(), NORMAL)
         indent += 1
+        
         # do the actual method call
         returnval = getattr(self,'_H_%s' % methodname)(*argl,**argd)
+
         indent -= 1
         #print >> log,'%s:'% (indStr*indent), str(returnval)
         log.flush()
@@ -101,7 +106,7 @@ if __name__=='__main__':
     
         def meth1(self):pass
         def add(self,a,b):return a+b
-        def fac(self,val): # faculty calculation
+        def fac(self,val):
             if val == 1:
                 return 1
             else:
