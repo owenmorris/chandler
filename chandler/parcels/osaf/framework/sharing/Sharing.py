@@ -161,6 +161,32 @@ class Share(ContentModel.ContentItem):
     def getLocation(self):
         return self.conduit.getLocation()
 
+    def getSharedAttributes(self, item, cloudAlias='sharing'):
+        attributes = {}
+        skip = {}
+        if hasattr(self, 'filterAttributes'):
+            for attrName in self.filterAttributes:
+                skip[attrName] = 1
+
+        for cloud in item.itsKind.getClouds(cloudAlias):
+            for (alias, endpoint, inCloud) in cloud.iterEndpoints(cloudAlias):
+                # @@@MOR for now, don't support endpoint attribute 'chains'
+                attrName = endpoint.attribute[0]
+
+                # An includePolicy of 'none' is how we override an inherited
+                # endpoint
+                if endpoint.includePolicy == 'none':
+                    skip[attrName] = 1
+
+                attributes[attrName] = endpoint
+
+        for attrName in skip.iterkeys():
+            try:
+                del attributes[attrName]
+            except:
+                pass
+
+        return attributes
 
 
 class OneTimeShare(Share):
@@ -1414,7 +1440,7 @@ class CloudXMLFormat(ImportExportFormat):
         # print "export cloud for %s (%s)" % (item, item.itsKind)
 
         # Collect the set of attributes that are used in this format
-        attributes = self.__collectAttributes(item)
+        attributes = self.share.getSharedAttributes(item)
 
         result = indent * depth
         
@@ -1504,34 +1530,6 @@ class CloudXMLFormat(ImportExportFormat):
         return result
 
 
-    def __collectAttributes(self, item):
-        attributes = {}
-        skip = {}
-        if hasattr(self.share, 'filterAttributes'):
-            for attrName in self.share.filterAttributes:
-                skip[attrName] = 1
-
-        for cloud in item.itsKind.getClouds(self.cloudAlias):
-            for (alias, endpoint, inCloud) in cloud.iterEndpoints(self.cloudAlias):
-                # @@@MOR for now, don't support endpoint attribute 'chains'
-                attrName = endpoint.attribute[0]
-
-                # An includePolicy of 'none' is how we override an inherited
-                # endpoint
-                if endpoint.includePolicy == 'none':
-                    skip[attrName] = 1
-
-                attributes[attrName] = endpoint
-
-        for attrName in skip.iterkeys():
-            try:
-                del attributes[attrName]
-            except:
-                pass
-
-        return attributes
-
-
     def __getNode(self, node, attribute):
 
         # @@@MOR This method only supports traversal of single-cardinality
@@ -1615,7 +1613,7 @@ class CloudXMLFormat(ImportExportFormat):
             item.itsKind = kind
 
         # we have an item, now set attributes
-        attributes = self.__collectAttributes(item)
+        attributes = self.share.getSharedAttributes(item)
         for (attrName, endpoint) in attributes.iteritems():
 
             attrNode = self.__getNode(node, attrName)

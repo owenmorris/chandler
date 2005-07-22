@@ -544,11 +544,13 @@ class ContentItem(schema.Item):
 
         for collection in self.queries:
             for share in collection.shares:
-                # We know that share must be read-only
-                if not hasattr(share, 'filterAttributes') or \
-                   not attribute in share.filterAttributes:
+                # We know that share must be read-only.
+                # If the attribute is shared as part of this read-only share,
+                # then the user can't modify it.
+                if attribute in share.getSharedAttributes(self):
                     return False
         return True
+
 
 
 """
