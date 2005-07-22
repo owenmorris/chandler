@@ -143,7 +143,10 @@ class wxPreviewArea(wx.Panel):
         self.fontHeight = Styles.getMeasurements(self.font).height
 
     def OnPaint(self, event):
-        dc = wx.PaintDC(self)
+        if (event is None):
+            dc = wx.ClientDC(self)
+        else:
+            dc = wx.PaintDC(self)
         dc.Clear()
         dc.SetBackground( wx.WHITE_BRUSH )
         
