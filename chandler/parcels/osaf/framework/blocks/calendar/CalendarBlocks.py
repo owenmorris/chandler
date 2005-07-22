@@ -143,10 +143,10 @@ class wxPreviewArea(wx.Panel):
         self.fontHeight = Styles.getMeasurements(self.font).height
 
     def OnPaint(self, event):
-        if (event is None):
-            dc = wx.ClientDC(self)
-        else:
-            dc = wx.PaintDC(self)
+        dc = wx.PaintDC(self)
+        self.Draw(dc)
+
+    def Draw(self, dc):
         dc.Clear()
         dc.SetBackground( wx.WHITE_BRUSH )
         
@@ -155,7 +155,6 @@ class wxPreviewArea(wx.Panel):
         
         dc.SetFont(self.font)
         dc.DrawText(self.text, 0,0)
-
         
     def wxSynchronizeWidget(self):
 
@@ -190,5 +189,5 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().Layout()
         self.GetParent().GetParent().Layout()
         
-        
-        self.OnPaint(None)
+        dc = wx.ClientDC(self)
+        self.Draw(dc)
