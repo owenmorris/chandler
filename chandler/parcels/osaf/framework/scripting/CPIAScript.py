@@ -74,14 +74,6 @@ def HotkeyScript(event, view):
     keycode = event.GetKeyCode()
     # for now, we just allow function keys to be hot keys.
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
-        # Since we could be in the middle of typing into a text field,
-        #  give that field a chance to save its changes.
-        focusedWidget = wx.Window_FindFocus()
-        try:
-            focusedWidget.blockItem.finishSelectionChanges()
-        except AttributeError:
-            pass
-
         # try to find the corresponding Note
         targetScriptName = "Script F%s" % str(keycode-wx.WXK_F1+1)
         for aNote in Notes.Note.iterItems(view):
