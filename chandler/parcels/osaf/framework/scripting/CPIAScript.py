@@ -62,7 +62,8 @@ def GetSpecialScript(theScriptString, aView, scriptName):
             aScript.SetScriptString(theScriptString)
             break
     else:
-        aScript = Script(theScriptString, aView, scriptName)
+        aScript = Script(scriptName)
+        aScript.SetScriptString(theScriptString)
     return aScript
 
 def HotkeyScript(event, view):
@@ -85,7 +86,7 @@ def HotkeyScript(event, view):
         targetScriptName = "Script F%s" % str(keycode-wx.WXK_F1+1)
         for aNote in Notes.Note.iterItems(view):
             if targetScriptName == aNote.about:
-                scriptString = aNote.ItemBodyString()
+                scriptString = aNote.bodyString
                 fKeyScript = ExecutableScript(scriptString, view=view)
                 fKeyScript.execute()
                 return True
@@ -130,18 +131,16 @@ class Script(ContentModel.ContentItem):
     """ Persistent Script Item, to be executed. """
     schema.kindInfo(displayName="Script", displayAttribute="displayName")
 
-    def __init__(self, scriptText, view, name=_('untitled')):
-        super(Script, self).__init__(name=name, view=view)
-        self.SetScriptString(scriptText)
-        self.displayName = name
+    def __init__(self, name=_('untitled'), parent=None, kind=None):
+        super(Script, self).__init__(name, parent, kind, displayName=name)
 
+    # use the bodyString property to get and set the body attribute
+    # from string data
     def GetScriptString(self):
-        scriptString = self.ItemBodyString()
-        return scriptString
+        return self.bodyString
 
     def SetScriptString(self, scriptString):
-        bodyType = self.getAttributeAspect('body', 'type')
-        self.body = bodyType.makeValue(scriptString)
+        self.bodyString = scriptString
 
     def execute(self):
         executable = ExecutableScript(self.GetScriptString(), self.itsView)
@@ -178,13 +177,9 @@ class ExecutableScript(object):
         reload(KindShorthand)
 
         # add all the known BlockEvents as builtin functions
-        for anEvent in Block.BlockEvent.iterItems(self.itsView):
-            eventName = self.eventName(anEvent)
-            if eventName:
-                beCallable = ScriptingGlobalFunctions._make_BlockEventCallable(anEvent)
-                builtIns[eventName]=beCallable
+        self._BindCPIAEvents(self.itsView, builtIns)
 
-        # add all the known ContentItem Kinds
+        # add all the known ContentItem sub-Kinds
         kindKind = self.itsView.findPath('//Schema/Core/Kind')
         allKinds = ItemQuery.KindQuery().run([kindKind])
         contentItemKind = ContentModel.ContentItem.getKind (self.itsView)
@@ -212,7 +207,7 @@ class ExecutableScript(object):
 
         # now run that script in our predefined scope
         try:
-            exec self.scriptCode in builtIns
+            exec self.scriptCode in builtIns, {}
         except Exception:
             self.ExceptionMessage('Error in script:')
             raise
@@ -235,7 +230,73 @@ class ExecutableScript(object):
         dict = KindShorthand.KindShorthand(theKind)
         builtIns['%ss' % kindName] = dict
 
-    def eventName(self, event):
+    def _BindCPIAEvents(self, view, dict):
+        # add all the known BlockEvents as builtin functions
+        # iterate through all events
+        for anEvent in Block.BlockEvent.iterItems(view):
+            eventName = self._BlockEventName(anEvent)
+            if eventName:
+                # add the entry
+                dict[eventName] = self._make_BlockEventCallable(eventName, view)
+
+    # Factory method for functions for each BlockEvent
+    # Each function can take a single dictionary argument, or keyword arguments
+    def _make_BlockEventCallable(self, eventName, view):
+        # This is the template for a callable function for the given event
+        # Copies of this function are invoked by user scripts for BlockEvent commands.
+        def BlockEventCallableClosure(argDict={}, _eventName=eventName, _view=view, **keys):
+            # merge the named parameters, into the dictionary positional arg
+            self.FindAndPostBlockEvent(_eventName, _view, argDict, keys)
+        # return the template, customized for this event
+        return BlockEventCallableClosure
+
+    """
+    We need to find the best BlockEvent at runtime on each invokation,
+    because the BlockEvents come and go from the soup as UI portions
+    are rendered and unrendered.  The best BlockEvent is the one copied
+    into the soup and attached to rendered blocks that were also copied.
+    """
+    def FindAndPostBlockEvent(self, eventName, view, argDict, keys):
+        # Find the best BlockEvent to use, by name.  Then post that event.
+        # Also, call Yield() on the application, so it gets some time during
+        #   script execution.
+        best = self.FindBestBlockEvent(eventName, view)
+        try:
+            argDict.update(keys)
+        except AttributeError:
+            # make sure the first parameter was a dictionary, or give a friendly error
+            logger.error("BlockEvents only support one positional parameter - a dictionary")
+            # the eventName parameter may have gotten clobbered too.  Use it if we can.
+            if best is not None:
+                logger.error("  in function %s" % eventName)
+            return
+        Globals.mainViewRoot.post(best, argDict)
+        # seems like a good time to let the Application get some time
+        wx.GetApp().Yield()
+
+    def FindBestBlockEvent(self, eventName, view):
+        # Find the best BlockEvent to use, by name.  
+        userCandidate = candidate = None
+        for anEvent in Block.BlockEvent.iterItems(view):
+            if self._BlockEventName(anEvent) == eventName:
+                candidate = anEvent
+                if self._inUserData(anEvent):
+                    if userCandidate:
+                        logger.warning("Duplicate events in user data for %s" % eventName)
+                    else:
+                        userCandidate = anEvent
+        if userCandidate:
+            return userCandidate
+        logger.warning("Can't find event %s in user data - block not rendered." % eventName)
+        return candidate
+
+    def _inUserData(self, item):
+        try:
+            return str(item.itsPath).find('//userdata/') == 0
+        except AttributeError:
+            return False
+
+    def _BlockEventName(self, event):
         try:
             name = event.blockName
         except AttributeError:
@@ -244,5 +305,4 @@ class ExecutableScript(object):
             except AttributeError:
                 name = None
         return name
-        
-        
+

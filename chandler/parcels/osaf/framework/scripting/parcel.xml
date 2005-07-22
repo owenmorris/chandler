@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- Copyright (c) 2003-2005 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel itsName="scripting"
+             xmlns="parcel:osaf.framework.scripting.CPIAScript"
+             xmlns:core="parcel:core">
+
+  <!--
+    Scripts
+  -->
+  
+  <Script itsName="StartupTest">
+    <displayName>StartupTest</displayName>
+    <body>ReloadParcels(); Quit()</body>
+  </Script>
+
+  <Script itsName="DialogScript">
+    <displayName>DialogScript</displayName>
+    <body>New(); About()</body>
+  </Script>
+
+</core:Parcel>
