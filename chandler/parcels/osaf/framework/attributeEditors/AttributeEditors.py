@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, cStringIO
 import wx
+from wx.lib.scrolledpanel import ScrolledPanel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.ItemHandler as ItemHandler
@@ -613,7 +614,16 @@ class LobImageAttributeEditor (BaseAttributeEditor):
         return True
 
     def CreateControl(self, forEditing, readOnly, parentWidget, id, parentBlock, font):
-        return wx.StaticBitmap(parentWidget, id, wx.NullBitmap, (0, 0))
+        panel = ScrolledPanel(parentWidget, id,
+                              style=wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+        box = wx.BoxSizer(wx.VERTICAL)
+        bitmap = wx.StaticBitmap(panel, id, wx.NullBitmap, (0, 0))
+        box.Add(bitmap)
+        panel.SetSizer(box)
+        panel.SetAutoLayout(1)
+        panel.SetupScrolling()
+        panel.myBitmapControl = bitmap
+        return panel
 
     def __getBitmapFromLob(self, attributeValue):
         input = attributeValue.getInputStream()
@@ -630,19 +640,8 @@ class LobImageAttributeEditor (BaseAttributeEditor):
             logger.debug("Couldn't render image (%s)" % str(e))
             bmp = wx.NullBitmap
 
-        control.SetBitmap(bmp)
-
-        """
-        try:
-            item.importFromFile(item.file)
-            bmp = self.__getBitmapFromLob(getattr(item, attributeName))
-            control.SetBitmap(bmp)
-            return
-            value = getattr(item, attributeName)
-            control.SetBitmap(bmp)
-        except:
-            control.SetBitmap(wx.NullBitmap)
-        """
+        control.myBitmapControl.SetBitmap(bmp)
+        control.SetupScrolling()
 
 
 class DateTimeAttributeEditor (StringAttributeEditor):
