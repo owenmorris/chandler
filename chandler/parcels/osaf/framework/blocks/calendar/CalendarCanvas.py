@@ -1102,7 +1102,14 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
 
 class wxInPlaceEditor(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
-        super(wxInPlaceEditor, self).__init__(style=wx.TE_PROCESS_ENTER | wx.NO_BORDER,
+        style=wx.TE_PROCESS_ENTER | wx.NO_BORDER
+        
+        # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
+        # and GTK does not. Further, if GTK is not multiline, then the single
+        # line mode looks really wonky with a huge cursor
+        if '__WXGTK__' in wx.PlatformInfo:
+	        style |= wx.TE_MULTILINE
+        super(wxInPlaceEditor, self).__init__(style=style,
                                               *arguments, **keywords)
         
         self.item = None
@@ -1135,12 +1142,6 @@ class wxInPlaceEditor(wx.TextCtrl):
         self.SetValue(item.displayName)
 
         newSize = wx.Size(size.width, size.height)
-
-        # GTK doesn't like making the editor taller than
-        # the font, plus it doesn't honor the NOBORDER style
-        # so we have to include 4 pixels for each border
-        if '__WXGTK__' in wx.PlatformInfo:
-            newSize.height = pointSize + 8
 
         font = wx.Font(pointSize, wx.NORMAL, wx.NORMAL, wx.NORMAL)
         self.SetFont(font)
