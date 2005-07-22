@@ -16,6 +16,7 @@ from application import schema
 
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import Styles
+from osaf.framework.blocks import DrawingUtilities
 import CalendarCanvas
 
 
@@ -154,7 +155,7 @@ class wxPreviewArea(wx.Panel):
         dc.SetTextForeground( (0,0,0) )
         
         dc.SetFont(self.font)
-        dc.DrawText(self.text, 0,0)
+        DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
         
     def wxSynchronizeWidget(self):
 
@@ -164,8 +165,6 @@ class wxPreviewArea(wx.Panel):
             self.currentDaysItems = list(self.blockItem.getItemsInCurrentRange(True, True))
         except:
             self.text += "contents not set, so no events displayed\n"
-            self.text += "but if you do set you'll get\n"
-            self.text += "a strange layout bug (?!)\n"
         
         if self.blockItem.weekMode:
             self.text += "whole week selected so\n"
@@ -184,8 +183,10 @@ class wxPreviewArea(wx.Panel):
                 else:
                     self.text += "%s: %s - %s\n" % (item.displayName, item.startTime.time(), item.endTime.time())
                     
-        numLines = len(self.text.split('\n'))
+        numLines = len(self.text.splitlines())
         self.SetMinSize( (-3, numLines * self.fontHeight + 3) )
+
+        ## @@@ hacky
         self.GetParent().Layout()
         self.GetParent().GetParent().Layout()
         
