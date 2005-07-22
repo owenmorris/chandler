@@ -51,6 +51,9 @@ SHARING_HEADER  = "Sharing-URL"
 SHARING_DIVIDER = ";"
 SMTP_SUCCESS = 250
 
+"""Number of seconds to wait to timeout connection for account testing"""
+TESTING_TIMEOUT = 10
+
 """If set to True dumps MailMessage structure
    during parsing to the chandler.log.
    This will only work in debugging mode
