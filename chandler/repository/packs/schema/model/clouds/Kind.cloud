@@ -9,7 +9,7 @@
     <ref name="endpoints">
       <!-- 
          - plus local endpoints below:
-         -     attributes, inheritedAttributes
+         -     attributes, inheritedAttributes, superKinds, clouds
         -->
     </ref>
 
@@ -38,7 +38,7 @@
     <parent type="path">//Schema/Core/Clouds/Kind</parent>
 
     <ref name="clouds">
-      <ref otherAlias="attributes" type="path">..</ref>
+      <ref otherAlias="inheritedAttributes" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">
@@ -53,7 +53,7 @@
     <parent type="path">//Schema/Core/Clouds/Kind</parent>
 
     <ref name="clouds">
-      <ref otherAlias="inheritedAttributes" type="path">..</ref>
+      <ref otherAlias="superKinds" type="path">..</ref>
     </ref>
 
     <attribute name="attribute">

@@ -1462,8 +1462,10 @@ class Item(CItem):
             kind = self._kind
         if kind is not None:
             kind._setupClass(cls)
-        item._fillItem(name, parent or self.itsParent, kind,
-                       uuid = UUID(), version = 0,
+
+        if parent is None:
+            parent = self.itsParent
+        item._fillItem(name, parent, kind, uuid = UUID(), version = 0,
                        values = Values(item), references = References(item))
         item._status |= Item.NEW
         copies[self._uuid] = item
@@ -1591,10 +1593,13 @@ class Item(CItem):
         if not uuid in matches:
             kind = self._kind
             if kind is None:
-                parent = self.itsParent.findMatch(view, matches)
+                itemParent = self.itsParent
+                parent = itemParent.findMatch(view, matches)
                 if parent is None:
-                    raise ValueError, 'match for parent (%s) not found' %(self.itsParent.itsPath)
-                matches[self] = self.copy(self._name, parent)
+                    parent = itemParent._copyExport(view, cloudAlias, matches)
+                    if parent is None:
+                        raise ValueError, 'match for parent (%s) not found' %(self.itsParent.itsPath)
+                matches[self._uuid] = self.copy(self._name, parent)
             else:
                 for cloud in kind.getClouds(cloudAlias):
                     cloud.exportItems(self, view, cloudAlias, matches)

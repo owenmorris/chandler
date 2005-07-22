@@ -36,7 +36,22 @@ class TestImport(RepositoryTestCase):
         self.kh.movies.addIndex('t', 'attribute', attribute='title')
         self.rep.commit()
 
+    def _setCopyExport(self, item):
+        
+        item._status |= Item.COPYEXPORT
+        for child in item.iterChildren():
+            self._setCopyExport(child)
+
+    def _unsetCopyExport(self, item):
+        
+        item._status &= ~Item.COPYEXPORT
+        for child in item.iterChildren():
+            self._unsetCopyExport(child)
+
     def testImport(self):
+
+        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Parcel'))
+        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
         nv.clear()
@@ -52,6 +67,9 @@ class TestImport(RepositoryTestCase):
         self.assert_(nv.check())
 
     def testCreate(self):
+
+        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Parcel'))
+        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
         nv.clear()
@@ -81,11 +99,6 @@ class TestImport(RepositoryTestCase):
 
     def testImportWithCopy(self):
 
-        def setCopyExport(item):
-            item._status |= Item.COPYEXPORT
-            for child in item.iterChildren():
-                setCopyExport(child)
-
         def mkdir(parent, name, child):
             if child is not None:
                 return child
@@ -101,7 +114,7 @@ class TestImport(RepositoryTestCase):
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('n', 'numeric')
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('t', 'attribute',
                                                             attribute='title')
-        setCopyExport(nv['Schema'])
+        self._setCopyExport(nv['Schema'])
 
         view.walk(Path('//Schema/CineGuide/Kinds'), mkdir)
         view.walk(Path('//Schema/CineGuide/Attributes'), mkdir)

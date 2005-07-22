@@ -507,6 +507,14 @@ class RepositoryView(object):
 
         return self._roots.getByAlias(name, None, load)
 
+    def getItemChild(self, name, load=True):
+
+        return self.getRoot(name, load)
+
+    def hasChild(self, name, load=True):
+
+        return self.hasRoot(name, load)
+
     def __getitem__(self, key):
 
         if isinstance(key, UUID):

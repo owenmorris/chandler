@@ -711,6 +711,10 @@ class Kind(Item):
 
         return TypeHandler.hashValue(self.itsView, SingleRef(value.itsUUID))
 
+    def indexValue(self, itemWriter, item, name, version, value):
+
+        pass
+
     def handlerName(self):
 
         return 'ref'
