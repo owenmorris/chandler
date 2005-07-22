@@ -147,9 +147,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
     def testRuleChange(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
-
-        #create a generated occurrence so there's something to be deleted
-        self.event.getNextOccurrence()        
+        # automatically generated backup occurrence    
         self.assertEqual(len(self.event.occurrences), 2)
 
         count = 3
@@ -234,51 +232,110 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(len(list(self.event.modifications)), 2)
         
         # change second's rule, deleting third
-        second.changeThisAndFuture('rruleset', third.rruleset)
+        second.changeThisAndFuture('rruleset', 
+                                   third.rruleset.copy(cloudAlias='copying'))
         newthird = second.getNextOccurrence()
+        
         self.assertNotEqual(third, newthird)
         self.failIf(newthird.startTime == thirdChangedStart)
-        self.assertEqual(newthird.startTime - second.startTime, timedelta(weeks=1))
-        #self.assertEqual(len(list(self.event.modifications)), 1)#FAILING
-
+        self.assertEqual(list(second.rruleset.rrules)[0].until, 
+                              self.weekly['end'])
+        self.assertEqual(len(list(self.event.modifications)), 1)
         
-        # make a THIS change to second FIXME, should check if modificationRecurrenceID works
+        # make a THIS change to a THISANDFUTURE modification 
         second.changeThis('displayName', "THIS modified title")
+        
         secondModified = second
         second = second.occurrenceFor
+
         self.assertEqual(second.occurrenceFor, None)
+        self.assertEqual(second.modificationFor, self.event)
         self.assertNotEqual(secondModified.displayName, second.displayName)
+        self.assertEqual(second.getNextOccurrence(), newthird)
+        self.assertEqual(newthird.displayName, 'Twice modified title')
+        self.assertEqual(len(list(self.event.modifications)), 1)
+                
+        # make a destructive THISANDFUTURE change to the THIS modification
+        secondModified.changeThisAndFuture('duration', timedelta(hours=2))
+        second = secondModified
+        third = second.getNextOccurrence()
+        self.assertEqual(len(list(self.event.modifications)), 1)
+        self.assertEqual(second.modificationFor, self.event)
+        self.assertEqual(second.modifications, None)
+        self.assertEqual(third.endTime, datetime(2005, 7, 18, 15))
+        self.assertEqual(second.modifies, 'thisandfuture')
         
-        # make a THISANDFUTURE change to the THIS modification
-        #secondModified.changeThisAndFuture('duration', timedelta(hours=2))
-        #self.assertEqual(len(list(self.event.modifications)), 1)
+
+        # check if modificationRecurrenceID works for changeThis mod
+        second.startTime = datetime(2005, 7, 12, 13) #implicit THIS mod
+        self.assertEqual(second.modifies, 'this')
+        self.assertEqual(second.getNextOccurrence().startTime,
+                         datetime(2005, 7, 18, 13))
+                         
+        third.lastModified = 'Changed lastModified.'
+        fourth = third.getNextOccurrence()
+        fourth.startTime += timedelta(hours=4)
+
+        # propagating thisandfuture modification to this
+        third.changeThisAndFuture('displayName', 'Yet another title')
+        thirdModified = third
+        third = third.occurrenceFor
+        
+        self.assertEqual(third.displayName, 'Yet another title')
+        self.failIf(third.hasLocalAttributeValue('lastModified'))
+        self.assertEqual(third.modificationFor, self.event)
+        self.assertEqual(third.modifies, 'thisandfuture')
+        self.assertEqual(thirdModified.modifies, 'this')
+        self.assertEqual(thirdModified.lastModified, 'Changed lastModified.')
+
+        self.assertEqual(fourth.modificationFor, third)
+        
+        #check propagation if first in rule is overridden with a THIS mod
+        thirdModified.changeThisAndFuture('displayName', 'Changed again')
+        self.assertEqual(third.displayName, 'Changed again')
+        self.assertEqual(thirdModified.displayName, 'Changed again')
+        self.assertEqual(fourth.displayName, 'Changed again')
+
+        # THIS mod to master with no occurrences because of later modifications 
+        # doesn't create a mod
+        self.event.startTime += timedelta(hours=6)
+        self.assertEqual(self.event.occurrenceFor, self.event)
+        self.assertEqual(self.event.modificationRecurrenceID,
+                         self.event.startTime)
+
+        # change master event back
+        oldrule = self.event.rruleset
+        self.event.changeThisAndFuture('rruleset', 
+                                      third.rruleset.copy(cloudAlias='copying'))
+
+        self.assert_(oldrule.isDeleted)
+        self.assert_(second.isDeleted and third.isDeleted and fourth.isDeleted)
+              
+        #make a THIS modification
+        self.event.startTime -= timedelta(hours=6)
+        eventModified = self.event
+        self.event = self.event.occurrenceFor
+        self.assertEqual(self.event.occurrenceFor, None)
+        self.assertEqual(eventModified.startTime, self.start)
+        
+        self.assertEqual(self.event.startTime, self.start + timedelta(hours=6))
+
 
 
 #tests to write:
 """
 
-test changeThisAndFuture (already thisandfuture item, this item, generated)
-
-test modifying existing rules
+test anyTime, allDay, and no duration  events
 
 test getOccurrencesBetween for events with no duration
 
 test getNextOccurrence logic for finding modification or occurrence, make sure 
     new occurrences get attributes copied, have the proper kind
 
-test cleanRule for modifications, especially modification to first
-
-test _cleanFuture for modifications, especially modification to first
-
-test getNextGeneratedOccurrence
-
-test THIS modification to first in rule with and without getFirstGeneratedOccurrence
-
 test stamping and unstamping behavior, changing stamped item THISANDFUTURE
 
 test indefinite recurrence
 
-test anyTime and allDay events
 
 API and tests for proxying items 
 
@@ -297,14 +354,9 @@ foo.registerProxy(CalendarEventMixin, CalendarEventMixinProxy)
 proxy = foo.getProxiedItem(item)
 
 
-Test modifying event with no proxy (update THIS unless it's a rule change)
-
-
 test automatic icalUID setting
 
 test recurrence behavior around DST (duration vs. endTime)
-
-Test createDateUtilFromRule for a THIS modification
 
 Test THIS modification moving outside the existing rule's date range
 

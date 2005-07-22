@@ -211,12 +211,14 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
     rrules = schema.Sequence(
         RecurrenceRule,
         displayName="Recurrence rules",
-        inverse = RecurrenceRule.rruleFor
+        inverse = RecurrenceRule.rruleFor,
+        deletePolicy = 'cascade'
     )
     exrules = schema.Sequence(
         RecurrenceRule,
         displayName="Exclusion rules",
-        inverse = RecurrenceRule.exruleFor
+        inverse = RecurrenceRule.exruleFor,
+        deletePolicy = 'cascade'
     )
     rdates = schema.Sequence(
         schema.DateTime,
