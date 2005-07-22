@@ -55,6 +55,8 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.connectionLost = False
         self.sendFinished = 0
         self.useTLS = (delegate.account.connectionSecurity == 'TLS')
+        self.timeout = delegate.account.timeout
+        self.timedOut = False
 
         if self.useTLS:
             self.sslContext = ssl.getContext(repositoryView=delegate.view, protocol="sslv3")
@@ -75,7 +77,7 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         p = protocol.ClientFactory.buildProtocol(self, addr)
         p.delegate = self.delegate
         """Set the protocol timeout value to that specified in the account"""
-        p.timeout = self.delegate.account.timeout
+        p.timeout = self.timeout
         p.factory  = self
 
         return p
@@ -101,7 +103,6 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.connectionLost = True
 
         if self.retries < self.sendFinished <= 0:
-            #XXX: Can remove this at some point
             logging.warn("**Connection Lost** Retrying \
                           server. Retry: %s" % -self.retries)
 
@@ -228,6 +229,12 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.factory = self.factoryType(self)
         """Cache the maximum number of messages to download before forcing a commit"""
         self.downloadMax = self.account.downloadMax
+
+        if self.testing:
+            """If in testing mode then do not want to retry connection or
+               wait a long period for a timeout"""
+            self.factory.retries = 0
+            self.factory.timeout = constants.TESTING_TIMEOUT
 
         if self.account.connectionSecurity == 'SSL':
             #XXX: This method actually begins the SSL exchange. Confusing name!
@@ -380,7 +387,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """Resets Client object state variables to
            default state.
         """
-        
+
         if __debug__:
             self.printCurrentView("_resetClient")
 

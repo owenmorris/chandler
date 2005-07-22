@@ -101,6 +101,9 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
            forward to delegate.catchErrors
         """
         exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
+        """We have timed out so do not send any more commands to
+           the server just disconnect """
+        self.factory.timedOut = True
         self.delegate.catchErrors(exc)
 
 
@@ -321,7 +324,7 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             self.printCurrentView("_beforeDisconnect")
 
-        if self.factory.connectionLost:
+        if self.factory.connectionLost or self.factory.timedOut:
             return defer.succeed(True)
 
         d = self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))

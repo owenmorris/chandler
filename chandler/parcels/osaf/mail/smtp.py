@@ -166,7 +166,6 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
 
         """If currently sending a message put the next request in the Queue"""
         if self.curTransport is not None:
-
             sending = (self.curTransport.mailMessage.itsUUID == mailMessageUUID)
 
             """Check that the mailMessage in not already Queued"""
@@ -315,15 +314,12 @@ class _SMTPTransport(object):
             heloFallback = False
 
         if testing:
-            # XXX The disconnect callback (self.parent._actionComplete) does
-            # XXX not seem to work for testing, we get as many
-            # XXX SSL certificate trust dialogs as we do automatic retries.
             reconnect = self.parent.testAccountSettings
-
-            #Set retries to zero if testing
             retries = 0
+            timeout = constants.TESTING_TIMEOUT
         else:
             retries = account.numRetries
+            timeout = account.timeout
             reconnect = lambda: self.parent.sendMail(self.mailMessage)
 
         verifyCallback = ssl._VerifyCallback(self.parent.view,
@@ -338,7 +334,7 @@ class _SMTPTransport(object):
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          deferred, retries, account.timeout,
+                                          deferred, retries, timeout,
                                           tlsContext, heloFallback, authRequired, securityRequired)
 
 
@@ -349,15 +345,13 @@ class _SMTPTransport(object):
                                                          verifyCallback=verifyCallback)
 
         factory.sslChecker = ssl.postConnectionCheck
-
-        factory.protocol = _TwistedESMTPSender
-        factory.testing  = testing
+        factory.protocol   = _TwistedESMTPSender
+        factory.testing    = testing
 
         wrappingFactory = policies.WrappingFactory(factory)
         wrappingFactory.protocol = wrapper.TLSProtocolWrapper
 
         reactor.connectTCP(account.host, account.port, wrappingFactory)
-
 
     def __testSuccess(self, result):
         self.testing = False
