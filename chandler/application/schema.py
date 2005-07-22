@@ -912,13 +912,15 @@ def parcel_for_module(moduleName, view=None):
 def synchronize(repoView,moduleName):
     """Ensure that the named module's schema is incorporated into `repoView`"""
     module = importString(moduleName)
+
+    # Create the parcel first
+    parcel_for_module(moduleName,repoView)
+
     for item in module.__dict__.values():
         if hasattr(item,'_find_schema_item'):
             # Import each kind/struct/enum          
             itemFor(item,repoView)
 
-    # Import the parcel, too, in case there were no kinds
-    parcel_for_module(moduleName,repoView)
 
 
 def itemFor(obj, view=None):
