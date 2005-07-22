@@ -902,10 +902,12 @@ class AccountPreferencesDialog(wx.Dialog):
             self.EndModal(True)
             self.view.commit()
             application.Globals.mailService.refreshMailServiceCache()
+            self.Destroy()
 
     def OnCancel(self, evt):
         self.__ApplyCancellations()
         self.EndModal(False)
+        self.Destroy()
 
     def OnNewAccount(self, evt):
 
@@ -1161,7 +1163,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     break
 
 
-def ShowAccountPreferencesDialog(parent, account=None, view=None):
+def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
 
     # Parse the XRC resource file:
     xrcFile = os.path.join(application.Globals.chandlerDirectory,
@@ -1172,6 +1174,7 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None):
     win = AccountPreferencesDialog(parent, "Account Preferences",
      resources=resources, account=account, view=view)
     win.CenterOnScreen()
-    val = win.ShowModal()
-    win.Destroy()
-    return val
+    if modal:
+        return win.ShowModal()
+    else:
+        win.Show()
