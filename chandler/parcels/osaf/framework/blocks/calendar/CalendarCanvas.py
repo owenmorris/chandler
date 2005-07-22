@@ -441,7 +441,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                         # add some space below the time
                         self.timeHeight += 3
-                        y += self.timeHeight + 3
+                        y += self.timeHeight
                     else:	
                         self.timeHeight = 0	
         
@@ -1222,32 +1222,28 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
 
     def InitializeStyles(self):
-        # This is where all the styles come from
-        if '__WXMAC__' in wx.PlatformInfo:
-            
-            bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
-            bigBoldFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            smallFont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL,
-                                face="Verdana")
-            smallBoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD,
-                                    face="Verdana")
-        else:
-            bigFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.NORMAL)
-            bigBoldFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.BOLD)
-            smallFont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL,
-                                face="Verdana")
-            smallBoldFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD,
-                                         face="Verdana")
+        defaultStyle = Styles.CharacterStyle()
+        defaultBoldStyle = \
+            Styles.CharacterStyle(fontStyle='bold', fontSize=10.0)
 
-        self.monthLabelFont = bigBoldFont
+        defaultBigBoldStyle = \
+            Styles.CharacterStyle(fontStyle='bold', fontSize=13.0)
+        
+        defaultFont = Styles.getFont(defaultStyle)
+        defaultBoldFont = Styles.getFont(defaultBoldStyle)
+        defaultBigBoldFont = Styles.getFont(defaultBigBoldStyle)
+        
+
+        self.monthLabelFont = defaultBigBoldFont
         self.monthLabelColor = wx.Colour(64, 64, 64)
-        
-        self.eventLabelFont = smallFont
+
+        self.eventLabelFont = defaultFont
         self.eventLabelColor = wx.BLACK
+        self.eventLabelHeight = Styles.getMeasurements(defaultFont).height
         
-        self.eventTimeFont = smallBoldFont
+        self.eventTimeFont = defaultBoldFont
         
-        self.legendFont = smallFont
+        self.legendFont = defaultFont
         self.legendColor = wx.Colour(128,128,128)
 
         self.bgColor = wx.WHITE
@@ -1314,8 +1310,6 @@ class AllDayEventsCanvas(CalendarBlock):
         self.selection = event.arguments['item']
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
-    ALLDAY_EVENT_HEIGHT = 17
-
     legendBorderWidth = 1
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
@@ -1331,6 +1325,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        
+        self.eventHeight = \
+            self.blockItem.calendarContainer.eventLabelHeight + \
+            AllDayCanvasItem.textMargin * 2 + 2
 
     def OnSize(self, event):
         # print "wxAllDayEventsCanvas.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
@@ -1472,9 +1470,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         rect = wx.Rect((drawInfo.dayWidth * dayStart) + drawInfo.xOffset,
-                       self.ALLDAY_EVENT_HEIGHT * gridRow,
+                       self.eventHeight * gridRow,
                        columnWidth * (dayEnd - dayStart + 1),
-                       self.ALLDAY_EVENT_HEIGHT)
+                       self.eventHeight)
  
         canvasItem = AllDayCanvasItem(rect, item)
         self.canvasItemList.append(canvasItem)
