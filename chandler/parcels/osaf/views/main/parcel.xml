@@ -1294,7 +1294,9 @@
   <SplitterWindow itsName="SidebarContainer">
     <blockName>SidebarContainer</blockName>
     <childrenBlocks itemref="doc:SidebarInstance"/>
-    <childrenBlocks itemref="doc:MiniCalendar"/>
+    <childrenBlocks itemref="doc:PreviewAndMiniCalendar"/>   
+<!--      <childrenBlocks itemref="doc:MiniCalendar"/>   -->
+    
     <orientationEnum>Horizontal</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
     <border>0,0,0,4.0</border>    
@@ -1338,8 +1340,27 @@
     <editRectOffsets>-17</editRectOffsets>
     <editRectOffsets>0</editRectOffsets>
   </doc:Sidebar>
- 
+
+  <BoxContainer itsName="PreviewAndMiniCalendar">
+    <childrenBlocks itemref="doc:PreviewArea"/>
+
+    <!-- need to comment out this line if your putting the MiniCalendar directly in the SidebarContainer -->
+    <childrenBlocks itemref="doc:MiniCalendar"/> 
+    
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <calendar:PreviewArea itsName="PreviewArea">
+    <blockName>PreviewArea</blockName>
+
+    <!-- uncomment this line to trigger a GUI layout bug: SidebarInstance and PreviewArea get flipped upsidedown (??!!!) -->
+    <!-- <contents itemref="doc:allItemCollection"/> -->
+    
+    <stretchFactor>0.0</stretchFactor>
+  </calendar:PreviewArea>
+
   <calendar:MiniCalendar itsName="MiniCalendar">
+    <blockName>MiniCalendar</blockName>
     <stretchFactor>0.0</stretchFactor>
   </calendar:MiniCalendar>
 
@@ -1446,11 +1467,14 @@
   
   
     <SplitterWindow itsName="MainCalendarCanvasSplitter">
+      
       <childrenBlocks itemref="doc:AllDayEvents"/>
       <childrenBlocks itemref="doc:TimedEvents"/>
       
-      <!-- as small as possible; AllDayEvents's SetMinSize() should override. -->
-      <splitPercentage value="0.01"/>
+      <blockName value="MainCalendarCanvasSplitter"/>
+      
+      <!-- as small as possible; AllDayEvents's SetMinSize() should override? -->
+      <splitPercentage value="0.20"/>
       <orientationEnum>Horizontal</orientationEnum>      
       <stretchFactor value="1"/>
     </SplitterWindow>
@@ -1458,14 +1482,14 @@
       <calendar:AllDayEventsCanvas itsName="AllDayEvents">
         <blockName value="all day events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="0"/>
+        <stretchFactor value="0"/> <!-- seems to be ignored (only BoxContainers use it) -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:AllDayEventsCanvas>
   
       <calendar:TimedEventsCanvas itsName="TimedEvents">
         <blockName value="timed events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="1"/>
+        <stretchFactor value="1"/> <!-- seems to be ignored... -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:TimedEventsCanvas>
 <!-- end main calendar area -->

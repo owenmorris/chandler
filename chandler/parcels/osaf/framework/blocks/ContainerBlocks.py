@@ -19,6 +19,7 @@ class orientationEnumType(schema.Enumeration):
     values = "Horizontal", "Vertical"
 
 class wxBoxContainer (wxRectangularChild):
+    #import util.autologging; __metaclass__ = util.autologging.LogTheMethods; logMatch = "^On.*"
     def wxSynchronizeWidget(self):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
 
@@ -180,6 +181,7 @@ class ScrolledContainer(BoxContainer):
 
 
 class wxSplitterWindow(wx.SplitterWindow):
+    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods
     def __init__(self, *arguments, **keywords):
         super (wxSplitterWindow, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
@@ -189,14 +191,21 @@ class wxSplitterWindow(wx.SplitterWindow):
                   self.OnSplitChanging,
                   id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        """
-          Setting minimum pane size prevents unsplitting a window by double-clicking
-        """
-        self.SetMinimumPaneSize(20)
+        
+        # Setting minimum pane size prevents unsplitting a window by double-clicking
+        self.SetMinimumPaneSize(23) #23 to help debug the weird sizing bug 3497
+        
+    def OnInit(self, *arguments, **keywords):
+        #vain attempts to solve weird sizing bug
+        self.Layout()
+        self.Refresh()
+        
  
     def OnSize(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
+            
             newSize = self.GetSize()
+            
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height
             self.blockItem.setDirty(self.blockItem.VDIRTY, 'size', self.blockItem._values)   # Temporary repository hack -- DJA
@@ -305,6 +314,7 @@ class wxSplitterWindow(wx.SplitterWindow):
 
  
 class SplitterWindow(RectangularChild):
+    """This block seems to ignore children's stretchFactors."""
 
     splitPercentage = schema.One(schema.Float, initialValue = 0.5)
     allowResize = schema.One(schema.Boolean, initialValue = True)

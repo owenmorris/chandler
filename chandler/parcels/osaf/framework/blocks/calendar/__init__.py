@@ -8,6 +8,6 @@ from CalendarCanvas import (
 )
 
 from CollectionCanvas import CollectionCanvas as __CollectionCanvas
-from CalendarBlocks import MiniCalendar
+from CalendarBlocks import MiniCalendar, PreviewArea
 
 

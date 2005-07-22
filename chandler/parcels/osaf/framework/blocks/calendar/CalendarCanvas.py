@@ -883,7 +883,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 ((item.startTime <= start) and
                  (item.endTime >= end)))
 
-    def getItemsInRange(self, date, nextDate):
+    def getItemsInRange(self, date, nextDate, allowAnyTime=False, allowAllDay=False):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -903,11 +903,21 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
+            # simplify into short circuit expressions?
+            if allowAnyTime: anyTimeTest = True
+            else:            anyTimeTest = not anyTime
+            if allowAllDay:  allDayTest  = True
+            else:            allDayTest  = not allDay
+
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
                 (not allDay and not anyTime) and
                 self.itemIsInRange(item, date, nextDate)):
                 yield item
+    def getItemsInCurrentRange(self, *arguments, **keywords):
+        start, end = self.GetCurrentDateRange()
+        return self.getItemsInRange(start,end, *arguments, **keywords)
+
 
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
@@ -1305,9 +1315,9 @@ class AllDayEventsCanvas(CalendarBlock):
         self.widget.wxSynchronizeWidget()
 
     def onSelectItemBroadcast(self, event):
-        #@@@ untested.  doesn't seem to be receiving SIB's correctly
-        print "allday evt cvs  receives SIB"
-        self.selection = event.arguments['item']
+        #@@@ this method is WRONG, it's really onSelectItemEvent.  argh!
+        #but the fact its not called doesnt seem to matter.... ??
+        pass
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     legendBorderWidth = 1
