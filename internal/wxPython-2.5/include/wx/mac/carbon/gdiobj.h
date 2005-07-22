@@ -30,8 +30,9 @@ public:
 class WXDLLEXPORT wxGDIObject: public wxObject
 {
 DECLARE_DYNAMIC_CLASS(wxGDIObject)
+
  public:
-  wxGDIObject() : m_visible(FALSE) { }
+    wxGDIObject() : m_visible(false) { }
   ~wxGDIObject() { }
 
   bool IsNull() const { return (m_refData == 0); }

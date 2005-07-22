@@ -579,15 +579,18 @@ int wxSplitterWindow::GetWindowSize() const
 int wxSplitterWindow::AdjustSashPosition(int sashPos) const
 {
     int window_size = GetWindowSize();
-
     wxWindow *win;
+    int minSize, maxSize;
+
+//if ((sashPos < 0) || (sashPos > window_size))
+//	wxLogDebug( wxT("wxSplitterW::AdjSashPos - request [%ld] out of range [0, %ld]"), (long)sashPos, (long)window_size );
 
     win = GetWindow1();
     if ( win )
     {
         // the window shouldn't be smaller than its own minimal size nor
-        // smaller than the minimual pane size specified for this splitter
-        int minSize = m_splitMode == wxSPLIT_VERTICAL ? win->GetMinWidth()
+        // smaller than the minimal pane size specified for this splitter
+        minSize = m_splitMode == wxSPLIT_VERTICAL ? win->GetMinWidth()
                                                       : win->GetMinHeight();
 
         if ( minSize == -1 || m_minimumPaneSize > minSize )
@@ -602,16 +605,19 @@ int wxSplitterWindow::AdjustSashPosition(int sashPos) const
     win = GetWindow2();
     if ( win )
     {
-        int minSize = m_splitMode == wxSPLIT_VERTICAL ? win->GetMinWidth()
+        minSize = m_splitMode == wxSPLIT_VERTICAL ? win->GetMinWidth()
                                                       : win->GetMinHeight();
 
         if ( minSize == -1 || m_minimumPaneSize > minSize )
             minSize = m_minimumPaneSize;
 
-        int maxSize = window_size - minSize - GetBorderSize() - GetSashSize();
+        maxSize = window_size - (minSize + GetBorderSize() + GetSashSize());
         if ( sashPos > maxSize )
             sashPos = maxSize;
     }
+
+//if ((sashPos < 0) || (sashPos > window_size))
+//	wxLogDebug( wxT("wxSplitterW::AdjSashPos - result [%ld] out of range [0, %ld]"), (long)sashPos, (long)window_size );
 
     return sashPos;
 }

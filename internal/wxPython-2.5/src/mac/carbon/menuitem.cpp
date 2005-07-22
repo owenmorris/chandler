@@ -44,7 +44,7 @@ wxMenuItem::wxMenuItem(wxMenu *pParentMenu,
                        const wxString& strHelp,
                        wxItemKind kind,
                        wxMenu *pSubMenu) 
-          : wxMenuItemBase(pParentMenu, id, text, strHelp, kind, pSubMenu)
+           :wxMenuItemBase(pParentMenu, id, text, strHelp, kind, pSubMenu)
 {
     wxASSERT_MSG( id != 0 || pSubMenu != NULL , wxT("A MenuItem ID of Zero does not work under Mac") ) ;
     
@@ -56,7 +56,7 @@ wxMenuItem::wxMenuItem(wxMenu *pParentMenu,
     }
 
     m_radioGroup.start = -1;
-    m_isRadioGroupStart = FALSE;
+    m_isRadioGroupStart = false;
 }
 
 wxMenuItem::~wxMenuItem() 
@@ -69,7 +69,7 @@ wxMenuItem::~wxMenuItem()
 void wxMenuItem::SetBitmap(const wxBitmap& bitmap) 
 { 
       m_bitmap = bitmap; 
-      UpdateItemBitmap() ;
+      UpdateItemBitmap();
 }
 
 void wxMenuItem::UpdateItemBitmap() 
@@ -255,7 +255,7 @@ void wxMenuItem::SetText(const wxString& text)
 
 void wxMenuItem::SetAsRadioGroupStart()
 {
-    m_isRadioGroupStart = TRUE;
+    m_isRadioGroupStart = true;
 }
 
 void wxMenuItem::SetRadioGroupStart(int start)

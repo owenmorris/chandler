@@ -6,7 +6,7 @@
 // Created:     ??/??/98
 // RCS-ID:      $Id$
 // Copyright:   (c) AUTHOR
-// Licence:       wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
@@ -30,7 +30,7 @@ bool wxRadioButton::Create(wxWindow *parent, wxWindowID id,
            const wxValidator& validator,
            const wxString& name)
 {
-    m_macIsUserPane = FALSE ;
+    m_macIsUserPane = false ;
     
     if ( !wxControl::Create(parent, id, pos, size, style, validator, name) )
         return false;
@@ -69,7 +69,7 @@ bool wxRadioButton::Create(wxWindow *parent, wxWindowID id,
     }
     AddInCycle( chief ) ;
   }
-    return TRUE;
+    return true;
 }
 
 void wxRadioButton::SetValue(bool val)
@@ -133,19 +133,21 @@ wxInt32 wxRadioButton::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVE
 wxRadioButton *wxRadioButton::AddInCycle(wxRadioButton *cycle)
 {
     wxRadioButton *next,*current;
-        
-    if (cycle==NULL) {
+
+    if (cycle==NULL)
+    {
         m_cycle=this;
         return(this);
-        }
-    else {
+    }
+    else
+    {
         current=cycle;
-          while ((next=current->m_cycle)!=cycle) 
+        while ((next=current->m_cycle)!=cycle)
             current=current->m_cycle;
-          m_cycle=cycle;
-          current->m_cycle=this;
-          return(cycle);
-      }
+        m_cycle=cycle;
+        current->m_cycle=this;
+        return(cycle);
+    }
 }  
 
 #endif

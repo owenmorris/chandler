@@ -293,10 +293,10 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
                         keyCode = WXK_WINDOWS_MENU;
                     else if ( current == wxT("COMMAND") )
                         keyCode = WXK_COMMAND;
-                    else if ( current.Left(3) == wxT("KP_") && wxIsdigit(current[3U]) ) {
-                    keyCode = WXK_NUMPAD0 + wxAtoi(current.c_str() + 3);  }
-                    else if ( current.Left(7) == wxT("SPECIAL") && wxIsdigit(current[7U]) ) {
-                    keyCode = WXK_SPECIAL1 + wxAtoi(current.c_str() + 7) - 1;  }
+                    else if ( current.Left(3) == wxT("KP_") && wxIsdigit(current[3U]) )
+                        keyCode = WXK_NUMPAD0 + wxAtoi(current.c_str() + 3);
+                    else if ( current.Left(7) == wxT("SPECIAL") && wxIsdigit(current[7U]) )
+                        keyCode = WXK_SPECIAL1 + wxAtoi(current.c_str() + 7) - 1;
                     else
                     {
                         wxLogDebug(wxT("Unrecognized accel key '%s', accel string ignored."),

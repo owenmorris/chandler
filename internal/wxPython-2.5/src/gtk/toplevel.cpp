@@ -77,7 +77,7 @@ static wxTopLevelWindowGTK *g_lastActiveFrame = (wxTopLevelWindowGTK*) NULL;
 // either TRUE or FALSE and an activate event will be sent during the next
 // OnIdle() call and it is reset to -1: this value means that we shouldn't
 // send any activate events at all
-static int              g_sendActivateEvent = -1;
+static int g_sendActivateEvent = -1;
 
 //-----------------------------------------------------------------------------
 // "focus_in_event"
@@ -111,7 +111,7 @@ static gint gtk_frame_focus_in_callback( GtkWidget *widget,
     // wxPrintf( wxT("active: %s\n"), win->GetTitle().c_str() );
         
     wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
-    wxActivateEvent event(wxEVT_ACTIVATE, TRUE, g_activeFrame->GetId());
+    wxActivateEvent event(wxEVT_ACTIVATE, true, g_activeFrame->GetId());
     event.SetEventObject(g_activeFrame);
     g_activeFrame->GetEventHandler()->ProcessEvent(event);
 
@@ -143,7 +143,7 @@ static gint gtk_frame_focus_out_callback( GtkWidget *widget,
     if (g_activeFrame)
     {
         wxLogTrace(wxT("activate"), wxT("Activating frame %p (from focus_in)"), g_activeFrame);
-        wxActivateEvent event(wxEVT_ACTIVATE, FALSE, g_activeFrame->GetId());
+        wxActivateEvent event(wxEVT_ACTIVATE, false, g_activeFrame->GetId());
         event.SetEventObject(g_activeFrame);
         g_activeFrame->GetEventHandler()->ProcessEvent(event);
 
@@ -299,7 +299,7 @@ gtk_frame_map_callback( GtkWidget * WXUNUSED(widget),
                         GdkEvent * WXUNUSED(event),
                         wxTopLevelWindow *win )
 {
-    win->SetIconizeState(FALSE);
+    win->SetIconizeState(false);
 }
 }
 
@@ -410,16 +410,16 @@ static void wxInsertChildInTopLevelWindow( wxTopLevelWindowGTK* parent, wxWindow
 
 void wxTopLevelWindowGTK::Init()
 {
-    m_sizeSet = FALSE;
+    m_sizeSet = false;
     m_miniEdge = 0;
     m_miniTitle = 0;
     m_mainWidget = (GtkWidget*) NULL;
-    m_insertInClientArea = TRUE;
-    m_isIconized = FALSE;
-    m_fsIsShowing = FALSE;
-    m_themeEnabled = TRUE;
+    m_insertInClientArea = true;
+    m_isIconized = false;
+    m_fsIsShowing = false;
+    m_themeEnabled = true;
     m_gdkDecor = m_gdkFunc = 0;
-    m_grabbed = FALSE;
+    m_grabbed = false;
 }
 
 bool wxTopLevelWindowGTK::Create( wxWindow *parent,
@@ -438,13 +438,13 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
 
     wxTopLevelWindows.Append( this );
 
-    m_needParent = FALSE;
+    m_needParent = false;
 
     if (!PreCreation( parent, pos, size ) ||
         !CreateBase( parent, id, pos, size, style, wxDefaultValidator, name ))
     {
         wxFAIL_MSG( wxT("wxTopLevelWindowGTK creation failed") );
-        return FALSE;
+        return false;
     }
 
     m_title = title;
@@ -522,7 +522,7 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     }
 #endif
 
-    if (!name.IsEmpty())
+    if (!name.empty())
         gtk_window_set_wmclass( GTK_WINDOW(m_widget), wxGTK_CONV( name ), wxGTK_CONV( name ) );
 
     gtk_window_set_title( GTK_WINDOW(m_widget), wxGTK_CONV( title ) );
@@ -641,7 +641,7 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
@@ -652,7 +652,7 @@ wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
         RemoveGrab();
     }
 
-    m_isBeingDeleted = TRUE;
+    m_isBeingDeleted = true;
 
     // it may also be GtkScrolledWindow in the case of an MDI child
     if (GTK_IS_WINDOW(m_widget))
@@ -671,7 +671,7 @@ wxTopLevelWindowGTK::~wxTopLevelWindowGTK()
 bool wxTopLevelWindowGTK::ShowFullScreen(bool show, long style )
 {
     if (show == m_fsIsShowing)
-        return FALSE; // return what?
+        return false; // return what?
 
     m_fsIsShowing = show;
     
@@ -691,7 +691,7 @@ bool wxTopLevelWindowGTK::ShowFullScreen(bool show, long style )
         else
             gtk_window_unfullscreen( GTK_WINDOW( m_widget ) );
 
-        return TRUE;
+        return true;
     }
     else
 #endif // GTK+ >= 2.2.0
@@ -753,7 +753,7 @@ bool wxTopLevelWindowGTK::ShowFullScreen(bool show, long style )
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -804,7 +804,7 @@ void wxTopLevelWindowGTK::DoSetSize( int x, int y, int width, int height, int si
     // avoid recursions
     if (m_resizing)
         return;
-    m_resizing = TRUE;
+    m_resizing = true;
 
     int old_x = m_x;
     int old_y = m_y;
@@ -875,10 +875,10 @@ void wxTopLevelWindowGTK::DoSetSize( int x, int y, int width, int height, int si
         /* we set the size in GtkOnSize, i.e. mostly the actual resizing is
            done either directly before the frame is shown or in idle time
            so that different calls to SetSize() don't lead to flicker. */
-        m_sizeSet = FALSE;
+        m_sizeSet = false;
     }
 
-    m_resizing = FALSE;
+    m_resizing = false;
 }
 
 void wxTopLevelWindowGTK::DoGetClientSize( int *width, int *height ) const
@@ -914,7 +914,7 @@ void wxTopLevelWindowGTK::GtkOnSize( int WXUNUSED(x), int WXUNUSED(y),
 
     // avoid recursions
     if (m_resizing) return;
-    m_resizing = TRUE;
+    m_resizing = true;
 
     if ( m_wxwindow == NULL ) return;
 
@@ -1008,14 +1008,14 @@ void wxTopLevelWindowGTK::GtkOnSize( int WXUNUSED(x), int WXUNUSED(y),
         // is no need to set the size or position of m_wxwindow.
     }
 
-    m_sizeSet = TRUE;
+    m_sizeSet = true;
 
     // send size event to frame
     wxSizeEvent event( wxSize(m_width,m_height), GetId() );
     event.SetEventObject( this );
     GetEventHandler()->ProcessEvent( event );
 
-    m_resizing = FALSE;
+    m_resizing = false;
 }
 
 void wxTopLevelWindowGTK::OnInternalIdle()
@@ -1147,7 +1147,7 @@ bool wxTopLevelWindowGTK::IsMaximized() const
   //    wxFAIL_MSG( _T("not implemented") );
 
     // This is an approximation
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -1201,7 +1201,7 @@ void wxTopLevelWindowGTK::AddGrab()
 {
     if (!m_grabbed)
     {
-        m_grabbed = TRUE;
+        m_grabbed = true;
         gtk_grab_add( m_widget );
         wxEventLoop().Run();
         gtk_grab_remove( m_widget );
@@ -1213,7 +1213,7 @@ void wxTopLevelWindowGTK::RemoveGrab()
     if (m_grabbed)
     {
         gtk_main_quit();
-        m_grabbed = FALSE;
+        m_grabbed = false;
     }
 }
 
@@ -1237,16 +1237,16 @@ static bool do_shape_combine_region(GdkWindow* window, const wxRegion& region)
         GdkBitmap* mask = bmp.GetMask()->GetBitmap();
         gdk_window_shape_combine_mask(window, mask, 0, 0);
 #endif
-        return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 
 bool wxTopLevelWindowGTK::SetShape(const wxRegion& region)
 {
-    wxCHECK_MSG( HasFlag(wxFRAME_SHAPED), FALSE,
+    wxCHECK_MSG( HasFlag(wxFRAME_SHAPED), false,
                  _T("Shaped windows must be created with the wxFRAME_SHAPED style."));
 
     GdkWindow *window = NULL;
@@ -1263,4 +1263,3 @@ bool wxTopLevelWindowGTK::IsActive()
 {
     return (this == (wxTopLevelWindowGTK*)g_activeFrame);
 }
-

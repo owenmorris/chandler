@@ -1972,21 +1972,19 @@ void wxGridCellFloatRenderer::SetParameters(const wxString& params)
             {
                 wxLogDebug(_T("Invalid wxGridCellFloatRenderer width parameter string '%s ignored"), params.c_str());
             }
-
         }
-                tmp = params.AfterFirst(_T(','));
-                if ( !tmp.empty() )
-                {
-                    long precision;
+        tmp = params.AfterFirst(_T(','));
+        if ( !tmp.empty() )
+        {
+            long precision;
             if ( tmp.ToLong(&precision) )
-                    {
+            {
                 SetPrecision((int)precision);
-                    }
-                    else
-                    {
+            }
+            else
+            {
                 wxLogDebug(_T("Invalid wxGridCellFloatRenderer precision parameter string '%s ignored"), params.c_str());
-        }
-
+            }
         }
     }
 }
@@ -3909,7 +3907,7 @@ wxEND_HANDLERS_TABLE()
 wxCONSTRUCTOR_5( wxGrid , wxWindow* , Parent , wxWindowID , Id , wxPoint , Position , wxSize , Size , long , WindowStyle )
 
 /*
- TODO : Expose more information of a list's layout etc. via appropriate objects (?‡ la NotebookPageInfo)
+ TODO : Expose more information of a list's layout etc. via appropriate objects (Å‡ la NotebookPageInfo)
 */
 #else
 IMPLEMENT_DYNAMIC_CLASS( wxGrid, wxScrolledWindow )

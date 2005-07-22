@@ -1831,15 +1831,15 @@ void wxWindowMac::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         return;
     }
 
-    if ( x == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
+    if ( x == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
         x = currentX;
-    if ( y == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
+    if ( y == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
         y = currentY;
 
     AdjustForParentClientOrigin(x, y, sizeFlags);
 
-    wxSize size(-1, -1);
-    if ( width == -1 )
+    wxSize size = wxDefaultSize;
+    if ( width == wxDefaultCoord )
     {
         if ( sizeFlags & wxSIZE_AUTO_WIDTH )
         {
@@ -1853,11 +1853,11 @@ void wxWindowMac::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         }
     }
 
-    if ( height == -1 )
+    if ( height == wxDefaultCoord )
     {
         if ( sizeFlags & wxSIZE_AUTO_HEIGHT )
         {
-            if ( size.x == -1 )
+            if ( size.x == wxDefaultCoord )
             {
                 size = DoGetBestSize();
             }
@@ -1894,7 +1894,7 @@ wxPoint wxWindowMac::GetClientAreaOrigin() const
 
 void wxWindowMac::DoSetClientSize(int clientwidth, int clientheight)
 {
-    if ( clientheight != -1 || clientheight != -1 )
+    if ( clientheight != wxDefaultCoord || clientheight != wxDefaultCoord )
     {
         int currentclientwidth , currentclientheight ;
         int currentwidth , currentheight ;
@@ -1902,7 +1902,7 @@ void wxWindowMac::DoSetClientSize(int clientwidth, int clientheight)
         GetClientSize( &currentclientwidth , &currentclientheight ) ;
         GetSize( &currentwidth , &currentheight ) ;
 
-        DoSetSize( -1 , -1 , currentwidth + clientwidth - currentclientwidth ,
+        DoSetSize( wxDefaultCoord , wxDefaultCoord , currentwidth + clientwidth - currentclientwidth ,
             currentheight + clientheight - currentclientheight , wxSIZE_USE_EXISTING ) ;
     }
 }
@@ -1926,7 +1926,6 @@ wxString wxWindowMac::GetTitle() const
 bool wxWindowMac::Show(bool show)
 {
     bool former = MacIsReallyShown() ;
-
     if ( !wxWindowBase::Show(show) )
         return false;
 
@@ -3249,13 +3248,12 @@ bool wxWindowMac::Reparent(wxWindowBase *newParentBase)
     wxWindowMac *newParent = (wxWindowMac *)newParentBase;
     
     if ( !wxWindowBase::Reparent(newParent) )
-        return FALSE;
+        return false;
     
     //copied from MacPostControlCreate
     ControlRef container = (ControlRef) GetParent()->GetHandle() ;
     wxASSERT_MSG( container != NULL , wxT("No valid mac container control") ) ;
     ::EmbedControl( m_peer->GetControlRef() , container ) ;
     
-    return TRUE;
+    return true;
 }
-

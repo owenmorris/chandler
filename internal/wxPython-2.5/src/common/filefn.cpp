@@ -612,11 +612,14 @@ wxChar *wxExpandPath(wxChar *buf, const wxChar *name)
             nnm = *s ? s + 1 : s;
             *s = 0;
         // FIXME: wxGetUserHome could return temporary storage in Unicode mode
-            if ((home = WXSTRINGCAST wxGetUserHome(wxString(nm + 1))) == NULL) {
-               if (was_sep) /* replace only if it was there: */
-                   *s = SEP;
+            if ((home = WXSTRINGCAST wxGetUserHome(wxString(nm + 1))) == NULL)
+            {
+                if (was_sep) /* replace only if it was there: */
+                    *s = SEP;
                 s = NULL;
-            } else {
+            }
+            else
+            {
                 nm = nnm;
                 s = home;
             }

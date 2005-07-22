@@ -717,8 +717,8 @@ GSocketError GSocket::SetNonOriented()
 GSocketError GSocket::Connect(GSocketStream stream)
 {
   InetAddress addr ;
-  TEndpointInfo	info;
-   OSStatus		err = kOTNoError;
+  TEndpointInfo   info;
+   OSStatus       err = kOTNoError;
   TCall peer ;
 
   assert(this);
@@ -1421,36 +1421,36 @@ unsigned short GAddress_INET_GetPort(GAddress *address)
 
 void GSocket::Enable_Events()
 {
-  if ( m_takesEvents )
-  	return ;
-  
-  {
-	  OTResult	state ;
-	  m_takesEvents			= true ;
-	  state = OTGetEndpointState(m_endpoint);
-	  
-	  {
-	  	OTByteCount sz = 0 ;
-	  	OTCountDataBytes( m_endpoint , &sz ) ;
-	  	if ( state == T_INCON || sz > 0 )
-	  	{
-	        m_detected |= GSOCK_INPUT_FLAG ;
-			(m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
-	 	}
-	  }
-	  {
-	  	if ( state == T_DATAXFER || state == T_INREL )
-	  	{
-	        m_detected |=GSOCK_OUTPUT_FLAG ;
-			(m_cbacks[GSOCK_OUTPUT])(this, GSOCK_OUTPUT, m_data[GSOCK_OUTPUT]);
-	  	}
-	  }
-  }
+    if ( m_takesEvents )
+        return ;
+
+    {
+        OTResult  state ;
+        m_takesEvents = true ;
+        state = OTGetEndpointState(m_endpoint);
+
+        {
+            OTByteCount sz = 0 ;
+            OTCountDataBytes( m_endpoint , &sz ) ;
+            if ( state == T_INCON || sz > 0 )
+            {
+                m_detected |= GSOCK_INPUT_FLAG ;
+                (m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
+            }
+        }
+        {
+            if ( state == T_DATAXFER || state == T_INREL )
+            {
+                m_detected |=GSOCK_OUTPUT_FLAG ;
+                (m_cbacks[GSOCK_OUTPUT])(this, GSOCK_OUTPUT, m_data[GSOCK_OUTPUT]);
+            }
+        }
+    }
 }
 
 void GSocket::Disable_Events()
 {
-  m_takesEvents			= false ;
+    m_takesEvents = false ;
 }
 
 /* _GSocket_Input_Timeout:
@@ -1571,37 +1571,37 @@ void _GSocket_Internal_Proc(unsigned long e , void* d )
     {
     	switch (ev)
     	{
-    		case T_LISTEN :
-    			event = GSOCK_CONNECTION ;
-    			break ;
-    		case T_CONNECT :
-    			event = GSOCK_CONNECTION ;
-    			event2 = GSOCK_OUTPUT ;
-    			{
-					TCall retCall;
-					
-					retCall.addr.buf	= NULL;
-					retCall.addr.maxlen	= 0;
-					retCall.opt.buf		= NULL;
-					retCall.opt.maxlen	= 0;
-					retCall.udata.buf	= NULL;
-					retCall.udata.maxlen= 0;
-					OTRcvConnect( socket->m_endpoint , &retCall ) ;
-				}
-    			break ;
-    		case T_DISCONNECT :
-    			event = GSOCK_LOST ;
-    			break ;
-    		case T_GODATA :
-    		case T_GOEXDATA :
-    			event = GSOCK_OUTPUT ;
-    			break ;
-    		case T_DATA :
-    			event = GSOCK_INPUT ;
-    			break ;
-    		case T_EXDATA :
-    			event = GSOCK_INPUT ;
-    			break ;
+            case T_LISTEN :
+                event = GSOCK_CONNECTION ;
+                break ;
+            case T_CONNECT :
+                event = GSOCK_CONNECTION ;
+                event2 = GSOCK_OUTPUT ;
+                {
+                    TCall retCall;
+
+                    retCall.addr.buf     = NULL;
+                    retCall.addr.maxlen  = 0;
+                    retCall.opt.buf      = NULL;
+                    retCall.opt.maxlen   = 0;
+                    retCall.udata.buf    = NULL;
+                    retCall.udata.maxlen = 0;
+                    OTRcvConnect( socket->m_endpoint , &retCall ) ;
+                }
+                break ;
+            case T_DISCONNECT :
+                event = GSOCK_LOST ;
+                break ;
+            case T_GODATA :
+            case T_GOEXDATA :
+                event = GSOCK_OUTPUT ;
+                break ;
+            case T_DATA :
+                event = GSOCK_INPUT ;
+                break ;
+            case T_EXDATA :
+                event = GSOCK_INPUT ;
+                break ;
       }
       if (event != GSOCK_MAX_EVENT)
       {

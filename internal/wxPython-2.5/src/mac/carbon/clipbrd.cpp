@@ -197,12 +197,12 @@ void wxClipboard::Clear()
 
 bool wxClipboard::Flush()
 {
-    return FALSE;
+    return false;
 }
 
 bool wxClipboard::Open()
 {
-    wxCHECK_MSG( !m_open, FALSE, wxT("clipboard already open") );
+    wxCHECK_MSG( !m_open, false, wxT("clipboard already open") );
     m_open = true ;
     return true ;
 }
@@ -214,9 +214,9 @@ bool wxClipboard::IsOpened() const
 
 bool wxClipboard::SetData( wxDataObject *data )
 {
-    wxCHECK_MSG( m_open, FALSE, wxT("clipboard not open") );
+    wxCHECK_MSG( m_open, false, wxT("clipboard not open") );
 
-    wxCHECK_MSG( data, FALSE, wxT("data is invalid") );
+    wxCHECK_MSG( data, false, wxT("data is invalid") );
 
     Clear();
     // as we can only store one wxDataObject, this is the same in this
@@ -226,9 +226,9 @@ bool wxClipboard::SetData( wxDataObject *data )
 
 bool wxClipboard::AddData( wxDataObject *data )
 {
-    wxCHECK_MSG( m_open, FALSE, wxT("clipboard not open") );
+    wxCHECK_MSG( m_open, false, wxT("clipboard not open") );
 
-    wxCHECK_MSG( data, FALSE, wxT("data is invalid") );
+    wxCHECK_MSG( data, false, wxT("data is invalid") );
 
     /* we can only store one wxDataObject */
     Clear();
@@ -324,11 +324,11 @@ bool wxClipboard::IsSupported( const wxDataFormat &dataFormat )
         {
             if (( err = GetScrapFlavorSize( scrapRef, dataFormat.GetFormatId(), &byteCount )) == noErr)
             {
-                return TRUE ;
+                return true ;
             }
         }
     }
-    return FALSE;
+    return false;
 
 #else
     long offset ;
@@ -344,7 +344,7 @@ bool wxClipboard::IsSupported( const wxDataFormat &dataFormat )
 
 bool wxClipboard::GetData( wxDataObject& data )
 {
-    wxCHECK_MSG( m_open, FALSE, wxT("clipboard not open") );
+    wxCHECK_MSG( m_open, false, wxT("clipboard not open") );
 
     size_t formatcount = data.GetFormatCount() + 1 ;
     wxDataFormat *array = new wxDataFormat[ formatcount  ];

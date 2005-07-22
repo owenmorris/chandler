@@ -671,8 +671,3 @@ void wxQTMediaBackend::Move(int x, int y, int w, int h)
 FORCE_LINK_ME(basewxmediabackends);
 
 #endif //wxUSE_MEDIACTRL
-
-
-
-
-

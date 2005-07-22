@@ -714,4 +714,3 @@ void wxFrame::PositionStatusBar()
     GtkUpdateSize();
 }
 #endif // wxUSE_STATUSBAR
-

@@ -565,6 +565,7 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                     key.QueryValue(wxEmptyString, filetype);
                 }
         }
+
         // now set a mimetypeif we have it, but ignore it if none
         const wxString& mimetype = ftInfo.GetMimeType();
         if ( !mimetype.empty() )
@@ -617,14 +618,13 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                 wxRegKey keyMIME(wxRegKey::HKCR, strKey);
                 ok = keyMIME.Create();
 
-        if ( ok )
-        {
+                if ( ok )
+                {
                     // and provide a back link to the extension
                     keyMIME.SetValue(_T("Extension"), extWithDot);
+                }
+            }
         }
-        }
-    }
-
 
     } // end of for loop; all extensions now point to HKCR\.ext\Default
 
@@ -643,7 +643,8 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
             if (! ftInfo.GetDescription ().empty() ) ft->m_impl->SetDescription (ftInfo.GetDescription ()) ;
             if (! ftInfo.GetIconFile().empty() ) ft->SetDefaultIcon (ftInfo.GetIconFile(), ftInfo.GetIconIndex() );
 
-        }
+    }
+
     return ft;
 }
 

@@ -284,5 +284,3 @@ GdkColor *wxColour::GetColor() const
 
     return &M_COLDATA->m_color;
 }
-
-
