@@ -671,19 +671,11 @@ class wxApplication (wx.App):
             import osaf.framework.scripting.CPIAScript as CPIAScript
             CPIAScript.RunScript(scriptText, headless.view)
 
-        locals = {
-         "view" : headless.view,
-         "go" : headless.go,
-         "cd" : headless.cd,
-         "pwd" : headless.pwd,
-         "ls" : headless.ls,
-         "grab" : headless.grab,
-         "show" : headless.show,
-         "create" : headless.create,
-         "getKind" : headless.getKind,
-         "ofKind" : headless.ofKind,
-         "run" : run,
-        }
+        # Import helper methods/variables from headless, and also add
+        # whatever other methods we want to the mix (such as the run method,
+        # above).  locals will be passed to PyCrust/Shell to make those
+        # symbols available to the developer
+        locals = headless.getExports(run=run)
 
         browseableObjects = {
          "globals" : Globals,

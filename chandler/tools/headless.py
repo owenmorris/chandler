@@ -17,6 +17,9 @@ view = None
 reactorManager = None
 wakeupCaller = None
 
+# This dictionary is a mapping of symbols that other modules might want
+# to use; it's populated by the @exportMethod decorator below.
+exportedSymbols = { }
 
 def startup(**kwds):
     global view
@@ -50,6 +53,19 @@ def startup(**kwds):
 
     return view
 
+def exportMethod(method):
+    """ Add the method to exportedSymbols """
+    global exportedSymbols
+    exportedSymbols[method.func_name] = method
+    return method
+
+def getExports(**kw):
+    """ Return a copy of exportedSymbols, with kw included """
+    exports = exportedSymbols.copy()
+    exports.update(**kw)
+    return exports
+
+@exportMethod
 def go():
     global reactorManager, wakeupCaller
 
@@ -59,6 +75,7 @@ def go():
     wakeupCaller = Utility.initWakeup(view)
     print "...ready"
 
+@exportMethod
 def shutdown():
     if wakeupCaller is not None:
         Utility.stopWakeup(wakeupCaller)
@@ -111,6 +128,7 @@ def _argToItem(arg):
     else:
         return currentItem.findPath(arg)
 
+@exportMethod
 def getKind(kindName):
     kindKind = view.findPath("//Schema/Core/Kind")
     matching = []
@@ -121,15 +139,18 @@ def getKind(kindName):
         return None
     return matching[0]
 
+@exportMethod
 def ofKind(kindName, recursive=True):
     kind = getKind(kindName)
     for item in kind.iterItems(recursive=recursive):
         yield item
 
+@exportMethod
 def create(kindName):
     kind = getKind(kindName)
     return kind.newItem()
 
+@exportMethod
 def cd(arg):
     global currentItem
 
@@ -141,6 +162,7 @@ def cd(arg):
     else:
         print "no matching item"
 
+@exportMethod
 def pwd():
     global currentItem
 
@@ -149,6 +171,7 @@ def pwd():
 
     print currentItem.itsPath
 
+@exportMethod
 def ls(arg=None):
     global currentList
 
@@ -176,16 +199,19 @@ def ls(arg=None):
                                 kindName)
         count += 1
 
+@exportMethod
 def grab(arg=None):
     return _argToItem(arg)
 
 
+@exportMethod
 def show(arg=None, recursive=False):
     item = _argToItem(arg)
 
     item.printItem(recursive)
 
 
+@exportMethod
 def readme():
     print """
 This is a version of Chandler which doesn't start up the wx portion
@@ -242,10 +268,16 @@ the repository:  cd, pwd, ls, grab, show
 """
 
 def main():
+    global exportedSymbols
+
     print "Starting up..."
+
     view = startup()
     if not view:
         sys.exit(1)
+    # Also add 'view' to exportedSymbols
+    exportedSymbols['view'] = view
+
     setDisplayHook()
 
     banner = "\nWelcome!  Headless Chandler will shut down when you " \
@@ -273,20 +305,8 @@ def main():
     else:
         interact(banner,
                  None,
-                 { "__name__" : "__console__",
-                   "__doc__"    : None,
-                   "view"       : view,
-                   "readme"     : readme,
-                   "go"         : go,
-                   "cd"         : cd,
-                   "pwd"        : pwd,
-                   "ls"         : ls,
-                   "grab"       : grab,
-                   "show"       : show,
-                   "create"     : create,
-                   "getKind"    : getKind,
-                   "ofKind"     : ofKind,
-                 })
+                 getExports(__name__="__console__", __doc__=None)
+                 )
 
         print "Shutting down..."
         shutdown()
