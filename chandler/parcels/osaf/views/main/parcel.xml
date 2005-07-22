@@ -1474,7 +1474,7 @@
       <blockName value="MainCalendarCanvasSplitter"/>
       
       <!-- as small as possible; AllDayEvents's SetMinSize() should override? -->
-      <splitPercentage value="0.20"/>
+      <splitPercentage value="0.01"/>
       <orientationEnum>Horizontal</orientationEnum>      
       <stretchFactor value="1"/>
     </SplitterWindow>
