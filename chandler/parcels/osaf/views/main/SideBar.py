@@ -319,7 +319,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
-        DrawingUtilities.DrawWrappedText (dc, name, textRect)
+        DrawingUtilities.DrawClippedTextWithDots (dc, name, textRect)
         dc.DestroyClippingRegion()
 
 

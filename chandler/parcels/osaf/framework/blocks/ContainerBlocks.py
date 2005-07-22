@@ -197,8 +197,9 @@ class wxSplitterWindow(wx.SplitterWindow):
         
     def OnInit(self, *arguments, **keywords):
         #vain attempts to solve weird sizing bug
-        self.Layout()
-        self.Refresh()
+        pass
+        #self.Layout()
+        #self.Refresh()
         
  
     def OnSize(self, event):

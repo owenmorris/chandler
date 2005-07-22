@@ -7,7 +7,7 @@ import wx, os, random
 import math
 from colorsys import *
 
-def SetTextColorsAndFont (grid, attr, dc, isSelected):
+def SetTextColorsAndFont(grid, attr, dc, isSelected):
     """
       Set the text foreground, text background, brush and font into the dc
       for grids
@@ -28,8 +28,8 @@ def SetTextColorsAndFont (grid, attr, dc, isSelected):
 
     dc.SetFont (attr.GetFont())
 
-
-def DrawWrappedText (dc, string, rect):
+# used to be called "DrawWrappedText"
+def DrawClippedTextWithDots(dc, string, rect):
     x = rect.x + 1
     y = rect.y + 1
     for line in unicode(string).split (os.linesep):
@@ -50,13 +50,68 @@ def DrawWrappedText (dc, string, rect):
             dc.DrawRectangle(x, rect.y + 1, width + 1, height)
             dc.DrawText('...', x, rect.y + 1)
         y += lineHeight
+        
 
+def DrawWrappedText(dc, text, rect):
+    """
+    Simple wordwrap - draws the text into the current DC
+    
+    returns the height of the text that was written
+    """
+    
+    result = []
+    
+    lines = text.splitlines()
+    y = rect.y
+    totalHeight = 0
+    for line in lines:
+        x = rect.x
+        wrap = 0
+        for word in line.split():
+            width, height = dc.GetTextExtent(word)
+
+            # first see if we want to jump to the next line
+            # (careful not to jump if we're already at the beginning of the line)
+            if (x != rect.x and x + width > rect.x + rect.width):
+                y += height
+                totalHeight += height
+                x = rect.x
+            
+            # if we're out of vertical space, just return
+            if (y + height > rect.y + rect.height):
+                return totalHeight
+               
+            # if we wrapped but we still can't fit the word,
+            # just truncate it    
+            if (x == rect.x and width > rect.width):
+                DrawClippedText(dc, word, x, y, rect.width)
+                y += height
+                totalHeight += height
+                continue
+            
+            dc.DrawText(word, x, y)
+            x += width
+            width, height = dc.GetTextExtent(' ')
+            dc.DrawText(' ', x, y)
+            x += width
+        totalHeight += height
+    return totalHeight
+
+
+def DrawClippedText(dc, word, x, y, maxWidth):
+    # keep shortening the word until it fits
+    for i in xrange(len(word), 0, -1):
+        smallWord = word[0:i] # + "..."
+        (width, height) = dc.GetTextExtent(smallWord)
+        if width <= maxWidth:
+            dc.DrawText(smallWord, x, y)
+            return
 
 # 'color' is 0..255 based
 # 'rgb' is 0..1.0 based
 def color2rgb(r,g,b):
     return (r*1.0)/255, (g*1.0)/255, (b*1.0)/255
-    
+
 def rgb2color(r,g,b):
     return r*255,g*255,b*255
 
@@ -158,4 +213,32 @@ class Gradients(object):
         brush = wx.Brush(wx.WHITE, wx.STIPPLE)
         brush.SetStipple(bitmap)
         return brush
+
+if __name__ == '__main__':
+    
+    # Test/example of DrawWrappedText
+    
+    class TestFrame(wx.Frame):
+        def __init__(self, *args, **kwds):
+            super(TestFrame, self).__init__(*args, **kwds)
+            self.Bind(wx.EVT_PAINT, self.OnPaint)
+        def OnPaint(self, event):
+            dc = wx.PaintDC(self)
+            dc.Clear()
             
+            padding = 10
+            r = wx.Rect(padding, padding, self.GetRect().width - padding*2, self.GetRect().height-padding*2)
+            
+            dc.DrawRectangle(*iter(r))
+            DrawWrappedText(dc, "Resize this window!  Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", r)
+            
+        
+    class TestApp(wx.App):
+        def OnInit(self):
+            frame = TestFrame(None, -1, "Test frame -- resize me!")
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+     
+    app = TestApp(0)
+    app.MainLoop()

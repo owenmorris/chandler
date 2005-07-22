@@ -230,62 +230,6 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
        
         return anyTime or allDay
              
-    # Drawing utility -- scaffolding, we'll try using editor/renderers
-    @staticmethod
-    def DrawWrappedText(dc, text, rect):
-        """
-        Simple wordwrap - draws the text into the current DC
-        
-        returns the height of the text that was written
-        """
-        
-        result = []
-        
-        lines = text.splitlines()
-        y = rect.y
-        totalHeight = 0
-        for line in lines:
-            x = rect.x
-            wrap = 0
-            for word in line.split():
-                width, height = dc.GetTextExtent(word)
-
-                # first see if we want to jump to the next line
-                # (careful not to jump if we're already at the beginning of the line)
-                if (x != rect.x and x + width > rect.x + rect.width):
-                    y += height
-                    totalHeight += height
-                    x = rect.x
-                
-                # if we're out of vertical space, just return
-                if (y + height > rect.y + rect.height):
-                    return totalHeight
-                   
-                # if we wrapped but we still can't fit the word,
-                # just truncate it    
-                if (x == rect.x and width > rect.width):
-                    CalendarCanvasItem.DrawClippedText(dc, word, x, y, rect.width)
-                    y += height
-                    totalHeight += height
-                    continue
-                
-                dc.DrawText(word, x, y)
-                x += width
-                width, height = dc.GetTextExtent(' ')
-                dc.DrawText(' ', x, y)
-                x += width
-            totalHeight += height
-        return totalHeight
-
-    @staticmethod
-    def DrawClippedText(dc, word, x, y, maxWidth):
-        # keep shortening the word until it fits
-        for i in xrange(len(word), 0, -1):
-            smallWord = word[0:i] # + "..."
-            (width, height) = dc.GetTextExtent(smallWord)
-            if width <= maxWidth:
-                dc.DrawText(smallWord, x, y)
-                return
                 
     def AddConflict(self, child):	
         """	
@@ -437,7 +381,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         
                         dc.SetFont(styles.eventTimeFont)	
                         self.timeHeight = \
-                            self.DrawWrappedText(dc, timeString, timeRect)
+                            DrawingUtilities.DrawWrappedText(dc, timeString, timeRect)
 
                         # add some space below the time
                         self.timeHeight += 3
@@ -455,7 +399,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                    itemRect.height - lostHeight - self.textOffset.y)
        
                 dc.SetFont(styles.eventLabelFont)	
-                self.DrawWrappedText(dc, item.displayName, textRect)	
+                DrawingUtilities.DrawWrappedText(dc, item.displayName, textRect)	
        
         dc.DestroyClippingRegion()	
         if clipRect:	

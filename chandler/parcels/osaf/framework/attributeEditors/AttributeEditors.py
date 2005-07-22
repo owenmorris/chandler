@@ -302,13 +302,15 @@ class StringAttributeEditor (BaseAttributeEditor):
             dc.SetTextForeground (textColor)
 
         if len(theText) > 0:
+            #stearns says this code isn't used anymore  (irc, 7/22/05) -brendano
+            
             # Draw inside the lines.
             dc.SetBackgroundMode (wx.TRANSPARENT)
             rect.Inflate (-1, -1)
             dc.SetClippingRect (rect)
             
             # theText = "%s %s" % (dc.GetFont().GetFaceName(), dc.GetFont().GetPointSize())
-            DrawingUtilities.DrawWrappedText (dc, theText, rect)
+            DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect)
                 
             dc.DestroyClippingRegion()
         
