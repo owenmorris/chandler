@@ -83,7 +83,7 @@ class run_in_thread(RepositoryThread):
         repo = self.view.repository
         if repo is not None:
             self.view = repo.createView()
-        super(run_in_thread, self).__init__()
+        super(run_in_thread, self).__init__(name=str(item.itsPath))
         self.setDaemon(True)    # main thread can exit even if this one hasn't
 
     def run(self):

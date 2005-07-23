@@ -139,11 +139,18 @@ a ``Startup`` subclass that just runs this routine in a thread, using the
 
 And then we'll create an instance and run it in the usual way::
 
-    >>> a_thread = MyThread("foo", view=rv)
+    >>> MyThread("my_name_here", view=rv)
+    <MyThread (new): my_name_here ...>
+
     >>> run_startup(rv)
     
-So now, the thread has been started but is looping, waiting for the start flag
-to be set::
+So now, the thread has been started::
+
+    >>> import threading
+    >>> threading.enumerate()
+    [...<run_in_thread(//userdata/my_name_here, started daemon)>...]
+
+but it's looping, waiting for the start flag to be set::
 
     >>> finished
     False
