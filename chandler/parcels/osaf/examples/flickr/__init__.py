@@ -190,7 +190,7 @@ def CreateCollectionFromUsername(repView, cpiaView):
             # Add the channel to the sidebar
             cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
-        except FlickrError, fe:
+        except flickr.FlickrError, fe:
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                         "Flickr Error",
                                         str(fe))
@@ -209,7 +209,7 @@ def CreateCollectionFromTag(repView, cpiaView):
             # Add the channel to the sidebar
             cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
-        except FlickrError, fe:
+        except flickr.FlickrError, fe:
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                         "Flickr Error",
                                         str(fe))
