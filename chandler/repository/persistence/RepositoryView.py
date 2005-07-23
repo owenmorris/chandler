@@ -138,6 +138,10 @@ class RepositoryView(object):
 
         return len(self._registry)
 
+    def __nonzero__(self):
+
+        return True
+
     def _setChildren(self, children):
 
         self._roots = children
@@ -476,6 +480,16 @@ class RepositoryView(object):
 
         return result
 
+    def hasRoots(self):
+        """
+        Tell whether this view has any roots.
+
+        @return: C{True} or C{False}
+        """
+
+        return (self._roots is not None and
+                self._roots._firstKey is not None)
+
     def hasRoot(self, name, load=True):
         """
         Tell whether the repository has a root by a given name.
@@ -507,9 +521,17 @@ class RepositoryView(object):
 
         return self._roots.getByAlias(name, None, load)
 
+    def getItemDisplayName(self):
+
+        return self.name
+
     def getItemChild(self, name, load=True):
 
         return self.getRoot(name, load)
+
+    def hasChildren(self):
+
+        return self.hasRoots()
 
     def hasChild(self, name, load=True):
 

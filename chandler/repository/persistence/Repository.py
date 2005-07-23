@@ -312,6 +312,10 @@ class Repository(object):
 
         return (self._status & Repository.REFCOUNTED) != 0
 
+    def hasRoots(self):
+
+        return self.view.hasRoots()
+        
     def hasRoot(self, name, load=True):
         """
         Search the current view for a root.
