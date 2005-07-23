@@ -19,6 +19,14 @@ simply create items in your parcel that subclass ``osaf.startup.Startup``::
     >>> run_startup(rv)
     Hello, world!
 
+Note that you can't create ``Startup`` items directly, because you have to
+subclass it in order to add behavior::
+
+    >>> Startup(view=rv)
+    Traceback (most recent call last):
+      ...
+    TypeError: Startup is an abstract class; use a subclass instead
+
 Please note that startup notifications are intended for tasks like adding
 servers to the Twisted reactor, starting threads, or other in-process Python
 operations, based on data in the repository.  They should *not* be used to

@@ -16,6 +16,10 @@ def run_startup(repositoryView):
 class Startup(schema.Item):
     """Subclass this & create parcel.xml instances for startup notifications"""
 
+    # Instances of this class don't do anything, so disallow creation of items
+    # (you have to create an items using a subclass that does something)
+    __abstract__ = True
+
     active = schema.One(schema.Boolean,
         doc="Set to False to disable invocation of this item at startup",
         initialValue=True,

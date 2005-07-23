@@ -510,6 +510,13 @@ class Item(Base):
     def __init__(self,
         name=None, parent=None, kind=None, view=None, *args, **values
     ):
+        # Note: this uses __dict__.get() in order to avoid *inheriting*
+        # the __abstract__ flag, which would make the subclasses abstract too!
+        if self.__class__.__dict__.get('__abstract__'):
+            raise TypeError(
+                self.__class__.__name__+" is an abstract class; use a "
+                "subclass instead"
+            )
         if kind is None or parent is None:
             if view is None:
                 if parent is not None:

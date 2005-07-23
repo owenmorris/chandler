@@ -395,6 +395,7 @@ of the exact class are yielded::
     [Joe Schmoe, Mary Quite Contrary]
 
 
+
 Additional Metadata
 ===================
 
@@ -548,6 +549,28 @@ Structs
     >>> schema.itemFor(Size).itsKind.itsPath
     //Schema/Core/Struct
 
+
+Abstract Classes
+================
+
+You can make an ``Item`` subclass abstract (non-instantiable) by setting
+``__abstract__`` in its class body::
+
+    >>> class Thing(schema.Item):
+    ...     __abstract__ = True
+
+    >>> Thing()
+    Traceback (most recent call last):
+      ...
+    TypeError: Thing is an abstract class; use a subclass instead
+
+But subclasses of an abstract class are instantiable in the normal way::
+
+    >>> class Chair(Thing):
+    ...     pass
+
+    >>> Chair()
+    <Chair ...>
 
 --------------------
 Schema API Internals
