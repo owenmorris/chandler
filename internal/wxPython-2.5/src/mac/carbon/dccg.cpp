@@ -39,6 +39,8 @@ using namespace std ;
 #include <TextEncodingConverter.h>
 #include <FixMath.h>
 #include <CGContext.h>
+#include <CGPattern.h>
+#include <CGAffineTransform.h>
 
 IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
 
@@ -308,36 +310,71 @@ void wxMacCGContext::SetNativeContext( CGContextRef cg )
 
 #pragma mark -
 
-#include <CGPattern.h>
-#include <CGAffineTransform.h>
-
-#define WXMACCG_DRAWPATHPENBRUSHSAFE(ctx,drawmode) \
+#define WXMACCG_DRAWPATHPENBRUSHSAFE(ctxRef,drawmode) \
+if (ctxRef != NULL) \
 { \
-    CGContextSaveGState( ctx ); \
+    CGContextSaveGState( ctxRef ); \
     mctx->SetBrush( m_brush ); \
     mctx->SetPen( m_pen ); \
-    CGContextDrawPath( ctx, drawmode ); \
-    CGContextRestoreGState( ctx ); \
+    CGContextDrawPath( ctxRef, drawmode ); \
+    CGContextRestoreGState( ctxRef ); \
 }
 
-void ImagePatternRender( void *info, CGContextRef context )
+void EstablishPatternColorSpace(
+	CGContextRef		ctxRef,
+	bool				useMultibit,
+	bool				useFill )
 {
-	if (context == NULL)
+	if (ctxRef == NULL)
 		return;
 
-	CGImageRef	image = (CGImageRef)info;
-	if (image != NULL)
+	if (useMultibit)
 	{
-		CGRect  boundsR = CGRectMake( 0.0, 0.0, (float)CGImageGetWidth( image ), (float)CGImageGetHeight( image ) );
-		CGContextDrawImage( context, boundsR, image );
+		CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( NULL );
+
+		if (useFill)
+			CGContextSetFillColorSpace( ctxRef, patternSpace );
+		else
+			CGContextSetStrokeColorSpace( ctxRef, patternSpace );
+
+		CGColorSpaceRelease( patternSpace );
+	}
+	else
+	{
+		CGColorSpaceRef  baseSpace = CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB );
+		CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( baseSpace );
+
+		if (useFill)
+			CGContextSetFillColorSpace( ctxRef, patternSpace );
+		else
+			CGContextSetStrokeColorSpace( ctxRef, patternSpace );
+
+		CGColorSpaceRelease( patternSpace );
+		CGColorSpaceRelease( baseSpace );
 	}
 }
 
-void ImagePatternDispose( void *info )
+void ImagePatternRender(
+	void			*info,
+	CGContextRef	ctxRef )
 {
-	CGImageRef	image = (CGImageRef)info;
-	if (image != NULL)
-		CGImageRelease( image );
+	if (ctxRef == NULL)
+		return;
+
+	CGImageRef	imageRef = (CGImageRef)info;
+	if (imageRef != NULL)
+	{
+		CGRect  boundsR = CGRectMake( 0.0, 0.0, (float)CGImageGetWidth( imageRef ), (float)CGImageGetHeight( imageRef ) );
+		CGContextDrawImage( ctxRef, boundsR, imageRef );
+	}
+}
+
+void ImagePatternDispose(
+	void		*info )
+{
+	CGImageRef	imageRef = (CGImageRef)info;
+	if (imageRef != NULL)
+		CGImageRelease( imageRef );
 }
 
 // specifies the struct version value and the callback functions for draw and release
@@ -345,17 +382,18 @@ static const CGPatternCallbacks sImagePatternCallback = { 0,  &ImagePatternRende
 
 long CreatePatternFromBitmap(
 	const wxBitmap	*rasterInfo,
-	CGPatternRef		*resultRef )
+	CGPatternRef		*patternRef,
+	bool				useMultibit )
 {
 	CGRect		boundsR;
-	CGImageRef	cgImageRef;
+	CGImageRef	imageRef;
 	long			errorStatus, widthV, heightV, depthV;
 
-	if (resultRef == NULL)
+	if (patternRef == NULL)
 		return (-1);
 
-	*resultRef = NULL;
-	cgImageRef = NULL;
+	*patternRef = NULL;
+	imageRef = NULL;
 	errorStatus = 0;
 
 	if ((rasterInfo == NULL) || !rasterInfo->Ok())
@@ -363,25 +401,27 @@ long CreatePatternFromBitmap(
 
 	if (errorStatus == 0)
 	{
-		// FIXME: this is often <= 1 - why???
-		depthV = rasterInfo->GetDepth();
-//		if (depthV <= 1)
-//			errorStatus = (-3);
-	}
-
-	if (errorStatus == 0)
-	{
-		cgImageRef = (CGImageRef)(rasterInfo->CGImageCreate());
-		if (cgImageRef == NULL)
-			errorStatus = (-4);
-	}
-
-	if (errorStatus == 0)
-	{
 		// build a usable bounding CGRect from the wxBitmap's bounds wxRect
 		widthV = rasterInfo->GetWidth();
 		heightV = rasterInfo->GetHeight();
 		if ((widthV <= 0) || (heightV <= 0))
+			errorStatus = (-3);
+	}
+
+	if (errorStatus == 0)
+	{
+		depthV = rasterInfo->GetDepth();
+//		isColored = (depthV > 1);
+
+		// FIXME: this is often <= 0 - why???
+//		if (depthV <= 1)
+//			errorStatus = (-4);
+	}
+
+	if (errorStatus == 0)
+	{
+		imageRef = (CGImageRef)(rasterInfo->CGImageCreate());
+		if (imageRef == NULL)
 			errorStatus = (-5);
 	}
 
@@ -391,17 +431,17 @@ long CreatePatternFromBitmap(
 		boundsR = CGRectMake( 0.0, 0.0, (float)widthV, (float)heightV );
 //		boundsR = CGRectMake( 0.0, 0.0, (float)XLOG2DEVREL( widthV ), (float)XLOG2DEVREL( heightV ) );
 
-		*resultRef = CGPatternCreate(
-			(void*)cgImageRef,
+		*patternRef = CGPatternCreate(
+			(void*)imageRef,
 			boundsR,
 			CGAffineTransformIdentity,
 			boundsR.size.width,
 			boundsR.size.height,
 			kCGPatternTilingNoDistortion,
-			(int)true,
+			(int)useMultibit,
 			&sImagePatternCallback );
 
-		if (*resultRef == (CGPatternRef)NULL)
+		if (*patternRef == (CGPatternRef)NULL)
 			errorStatus = (-6);
 	}
 
@@ -410,30 +450,32 @@ long CreatePatternFromBitmap(
 
 long CreatePatternFromBrush(
 	const wxBrush	&sourceBrush,
-	CGPatternRef	*resultRef )
+	CGPatternRef	*patternRef,
+	bool			useMultibit )
 {
 	long		errorStatus;
 
-	if (resultRef == NULL)
+	if (patternRef == NULL)
 		return (-1);
 
-	*resultRef = NULL;
-	errorStatus = CreatePatternFromBitmap( sourceBrush.GetStipple(), resultRef );
+	*patternRef = NULL;
+	errorStatus = CreatePatternFromBitmap( sourceBrush.GetStipple(), patternRef, useMultibit );
 
 	return errorStatus;
 }
 
 long CreatePatternFromPen(
 	const wxPen	&sourcePen,
-	CGPatternRef	*resultRef )
+	CGPatternRef	*patternRef,
+	bool			useMultibit )
 {
 	long		errorStatus;
 
-	if (resultRef == NULL)
+	if (patternRef == NULL)
 		return (-1);
 
-	*resultRef = NULL;
-	errorStatus = CreatePatternFromBitmap( sourcePen.GetStipple(), resultRef );
+	*patternRef = NULL;
+	errorStatus = CreatePatternFromBitmap( sourcePen.GetStipple(), patternRef, useMultibit );
 
 	return errorStatus;
 }
@@ -470,22 +512,21 @@ void wxMacCGContext::SetPen( const wxPen &pen )
  #if 1
             // new candidate
             {
-                CGPatternRef  resultRef;
+                CGPatternRef  patternRef;
                 float  alphaArray[1];
                 long  result;
-                bool  hasSetPattern;
+                bool  hasSetPattern, useMultibit;
 
                 hasSetPattern = false;
-                result = CreatePatternFromPen( pen, &resultRef );
+                useMultibit = true;
+                result = CreatePatternFromPen( pen, &patternRef, useMultibit );
                 if (result == 0)
                 {
-                    CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( NULL );
-                    CGContextSetStrokeColorSpace( m_cgContext, patternSpace );
-                    CGColorSpaceRelease( patternSpace );
+                    EstablishPatternColorSpace( m_cgContext, useMultibit, false );
 
                     alphaArray[0] = 1.0;
-                    CGContextSetStrokePattern( m_cgContext, resultRef, alphaArray );
-                    CGPatternRelease( resultRef );
+                    CGContextSetStrokePattern( m_cgContext, patternRef, alphaArray );
+                    CGPatternRelease( patternRef );
 
                     hasSetPattern = true;
 
@@ -508,7 +549,7 @@ void wxMacCGContext::SetPen( const wxPen &pen )
 
                     CGContextSetRGBStrokeColor(
                         m_cgContext, (float) col.red / 65536.0,
-    		        (float) col.green / 65536.0, (float) col.blue / 65536.0, 1.0 );
+                        (float) col.green / 65536.0, (float) col.blue / 65536.0, 1.0 );
                 }
             }
 
@@ -591,6 +632,8 @@ void wxMacCGContext::SetPen( const wxPen &pen )
                     count = pen.GetDashes( &dashes ) ;
                     if ((dashes != NULL) && (count > 0))
                     {
+//                    wxBitmap dashBits( (char*)dashes, 8, count, 1 );
+
                         userLengths = new float[count] ;
                         for( int i = 0 ; i < count ; ++i )
                         {
@@ -653,22 +696,21 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
 #if 1
             // new candidate
             {
-                CGPatternRef  resultRef;
+                CGPatternRef  patternRef;
                 float  alphaArray[1];
                 long  result;
-                bool  hasSetPattern;
+                bool  hasSetPattern, useMultibit;
 
                 hasSetPattern = false;
-                result = CreatePatternFromBrush( brush, &resultRef );
+                useMultibit = true;
+                result = CreatePatternFromBrush( brush, &patternRef, useMultibit );
                 if (result == 0)
                 {
-                    CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( NULL );
-                    CGContextSetFillColorSpace( m_cgContext, patternSpace );
-                    CGColorSpaceRelease( patternSpace );
+                    EstablishPatternColorSpace( m_cgContext, useMultibit, true );
 
                     alphaArray[0] = 1.0;
-                    CGContextSetFillPattern( m_cgContext, resultRef, alphaArray );
-                    CGPatternRelease( resultRef );
+                    CGContextSetFillPattern( m_cgContext, patternRef, alphaArray );
+                    CGPatternRelease( patternRef );
 
                     hasSetPattern = true;
 
@@ -691,7 +733,7 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
 
                     CGContextSetRGBFillColor(
                         m_cgContext, (float) col.red / 65536.0,
-    		        (float) col.green / 65536.0, (float) col.blue / 65536.0, 1.0 );
+                        (float) col.green / 65536.0, (float) col.blue / 65536.0, 1.0 );
                 }
             }
 
