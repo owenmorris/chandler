@@ -7,8 +7,7 @@
 
 <Parcel itsName="blocks"
         xmlns="parcel:core"
-        xmlns:docSchema="parcel:osaf.framework.blocks"
-        xmlns:contentModel="parcel:osaf.contentmodel">
+        xmlns:docSchema="parcel:osaf.framework.blocks">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
