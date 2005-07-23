@@ -17,6 +17,9 @@
         *wxXmlResource*ConvertFileNameToURL*wxString*;
         *wxXmlResource*Unload*wxString*;
         *wxXmlResource*IsArchive*wxString*;
+        *wxShadowObject*;
+        *wxGenericListCtrl*SetItemFont*wxFont*;
+        *wxGenericListCtrl*GetItemFont*;
 };
 
 
