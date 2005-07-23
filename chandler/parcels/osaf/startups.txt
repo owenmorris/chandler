@@ -2,31 +2,29 @@ Running Code at Application Startup
 ===================================
 
 The ``osaf.startup`` module provides an API for notifying repository items that
-the application has been started.  In order to receive these notifications, you
-simply create items in your parcel that subclass ``osaf.startup.Startup``::
+the application has been started.  For our examples, we'll be using a null
+repository view, ``rv``::
 
-    >>> from osaf.startup import Startup, run_startup
-    >>> from application import schema
     >>> from repository.persistence.RepositoryView import NullRepositoryView
-
-    >>> class StartupMessage(Startup):
-    ...     message = schema.One(schema.String, initialValue="Hello, world!")
-    ...     def onStart(self):
-    ...         print self.message
-
     >>> rv = NullRepositoryView()
-    >>> hello = StartupMessage(view=rv)
+
+In order to receive startup notifications, you simply create items of type
+``osaf.startup.Startup`` in your parcel.  Each item's ``invoke`` attribute
+names a function (or non-Item class) that should be invoked at startup.  For
+our example, we'll use ``sys.stdout.write`` as the function we want to call::
+
+    >>> from osaf.startup import Startup
+    >>> test = Startup("test", invoke="sys.stdout.write", view = rv)
+
+When ``run_startup()`` is called, the function or class named by the ``invoke``
+attribute of each ``Startup`` item will be called with the corresponding
+item as its only parameter.  In our example, this will cause the ``test``
+object to be written to ``sys.stdout``::
+
+    >>> from osaf.startup import run_startup
     >>> run_startup(rv)
-    Hello, world!
-
-Note that you can't create ``Startup`` items directly, because you have to
-subclass it in order to add behavior::
-
-    >>> Startup(view=rv)
-    Traceback (most recent call last):
-      ...
-    TypeError: Startup is an abstract class; use a subclass instead
-
+    <Startup (new): test ...>
+       
 Please note that startup notifications are intended for tasks like adding
 servers to the Twisted reactor, starting threads, or other in-process Python
 operations, based on data in the repository.  They should *not* be used to
@@ -39,15 +37,34 @@ via ``parcel.xml`` or via the ``onParcelLoad()`` or ``onParcelCreate()`` hooks.
 Disabling Startups
 ------------------
 
-Individual startups can be enabled or disabled using the ``active`` boolean
+Individual startups can be enabled or disabled using their ``active`` boolean
 attribute::
 
-    >>> hello.active = False
+    >>> test.active = False
     >>> run_startup(rv)     # Item is disabled, so nothing happens
 
-    >>> hello.active = True
-    >>> run_startup(rv)     
+
+Startup Subclasses
+------------------
+
+You can create subclasses of ``Startup``, if your startup code needs stored
+configuration of some kind.  Typically, you will override the ``onStart()``
+method of ``Startup`` in your subclass so that it performs the desired behavior
+using attributes of the item.  For example::
+
+    >>> from application import schema
+
+    >>> class StartupMessage(Startup):
+    ...     message = schema.One(schema.String, initialValue="Hello, world!")
+    ...     def onStart(self):
+    ...         print self.message
+
+    >>> hello = StartupMessage(view=rv)
+    >>> run_startup(rv)
     Hello, world!
+
+Notice that we did *not* invoke the superclass ``onStart()`` method, because
+we don't want the ``invoke`` attribute to take effect.
 
 
 Ordered Startups
@@ -87,3 +104,61 @@ B and B requires A) will prevent all items in the loop from starting::
     >>> goodbye.active = True
     >>> goodbye.requires = [hello]
     >>> run_startup(rv)     # co-dependents won't be started
+
+
+Threads
+-------
+
+To run your startup code in a separate thread, you can create an item of type
+``Thread`` instead of ``Startup``.  The object named by the ``Thread`` item's
+``invoke`` attribute will be called in a new thread with its own repository
+view, but in all other respects a ``Thread`` is the same as a ``Startup``.
+
+Here's an example routine that we might run in a thread.  It waits for a start
+flag to be set, then sets a finished flag and exits::
+
+    >>> start = False
+    >>> finished = False
+    >>> def my_thread(thread_item):
+    ...     global start, finished
+    ...     while not start: pass
+    ...     finished = True
+
+Normally, if you wanted to run this code in a thread at startup, you would just
+put it in a module, and then use its name (e.g. ``some_module.my_thread``) as
+the ``invoke`` attribute of a ``Thread`` item.  But for demonstration purposes,
+we don't want to have to put this code in a separate module, so we'll create
+a ``Startup`` subclass that just runs this routine in a thread, using the
+``run_in_thread`` class::
+
+    >>> from osaf.startup import run_in_thread
+
+    >>> class MyThread(Startup):
+    ...     def onStart(self):
+    ...         run_in_thread(my_thread, self).start()
+
+And then we'll create an instance and run it in the usual way::
+
+    >>> a_thread = MyThread("foo", view=rv)
+    >>> run_startup(rv)
+    
+So now, the thread has been started but is looping, waiting for the start flag
+to be set::
+
+    >>> finished
+    False
+
+So, let's set the start flag, and wait a moment to allow the thread to finish::
+
+    >>> start = True
+    >>> from time import sleep
+    >>> sleep(0.1)    # let the thread finish
+
+And now the finish flag should have been set by the thread::
+
+    >>> finished
+    True
+
+(Note: the sleep() duration above is 0.1 seconds because Windows machines have
+a fairly low resolution timer and may not actually perform the sleep()
+otherwise, which could break the test.)

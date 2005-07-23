@@ -1,8 +1,9 @@
 """Extension Point for Application Startup"""
 
 from application import schema
+from repository.persistence.Repository import RepositoryThread
 
-__all__ = ['Startup', 'run_startup']
+__all__ = ['Startup', 'Thread', 'run_in_thread', 'run_startup']
 
 
 def run_startup(repositoryView):
@@ -16,9 +17,9 @@ def run_startup(repositoryView):
 class Startup(schema.Item):
     """Subclass this & create parcel.xml instances for startup notifications"""
 
-    # Instances of this class don't do anything, so disallow creation of items
-    # (you have to create an items using a subclass that does something)
-    __abstract__ = True
+    invoke = schema.One(schema.String,
+        doc="Full name of a class or function to import and run at startup"
+    )
 
     active = schema.One(schema.Boolean,
         doc="Set to False to disable invocation of this item at startup",
@@ -38,7 +39,12 @@ class Startup(schema.Item):
         Note: you should *not* create or modify items in this method or code
         called from this method.  If you want to do that, you probably don't
         want to be using a Startup item.
+
+        Also note that you should not call invoke this method via super()
+        unless you want the default behavior (i.e., importing and running the
+        ``invoke`` attribute) to occur.
         """
+        schema.importString(self.invoke)(self)
 
     def _start(self, attempted, started):
         """Handle inter-startup ordering and invoke onStart()"""
@@ -58,4 +64,32 @@ class Startup(schema.Item):
             return True
 
         return False
+
+
+class Thread(Startup):
+    """A Startup that runs its `invoke` target in a new thread"""
+
+    def onStart(self):
+        run_in_thread(schema.importString(self.invoke), self).start()
+
+
+class run_in_thread(RepositoryThread):
+    """Call `code(item)` in a new thread with its own repository view"""
+
+    def __init__(self, code, item):
+        self.view = item.itsView
+        self.uuid = item.itsUUID
+        self.code = code
+        repo = self.view.repository
+        if repo is not None:
+            self.view = repo.createView()
+        super(run_in_thread, self).__init__()
+        self.setDaemon(True)    # main thread can exit even if this one hasn't
+
+    def run(self):
+        if self.view.repository is not None:
+            self.view.setCurrentView()
+        self.code(self.view.findUUID(self.uuid))
+
+
 
