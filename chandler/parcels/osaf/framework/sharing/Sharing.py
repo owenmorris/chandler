@@ -23,13 +23,14 @@ import M2Crypto.BIO
 import repository
 import logging
 import wx
-import time, StringIO, urlparse, libxml2, os
+import time, StringIO, urlparse, libxml2, os, base64
 import chandlerdb
 import zanshin.webdav
 import WebDAV
 import zanshin.util
 import twisted.web.http
 import AccountInfoPrompt
+import osaf.mail.utils as utils
 
 logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
@@ -1057,6 +1058,7 @@ class WebDAVConduit(ShareConduit):
         try:
             text = self.share.format.exportProcess(item)
         except Exception, e:
+            logger.exception("Transformation failed for %s" % item)
             raise TransformationFailed(message=str(e))
 
         if text is None:
@@ -1435,15 +1437,17 @@ class CloudXMLFormat(ImportExportFormat):
 
     def exportProcess(self, item, depth=0):
 
-        indent = "   "
-
-        # print "export cloud for %s (%s)" % (item, item.itsKind)
+        if depth == 0:
+            result = '<?xml version="1.0" encoding="UTF-8"?>\n\n'
+        else:
+            result = ''
 
         # Collect the set of attributes that are used in this format
         attributes = self.share.getSharedAttributes(item)
 
-        result = indent * depth
-        
+        indent = "   "
+        result += indent * depth
+
         if item.itsKind.isMixin():
             kindsList = []
             for kind in item.itsKind.superKinds:
@@ -1451,7 +1455,7 @@ class CloudXMLFormat(ImportExportFormat):
             kinds = ",".join(kindsList)
         else:
             kinds = str(item.itsKind.itsPath)
-        
+
         result += "<%s kind='%s' uuid='%s'>\n" % (item.itsKind.itsName,
                                                   kinds,
                                                   item.itsUUID)
@@ -1464,14 +1468,14 @@ class CloudXMLFormat(ImportExportFormat):
                 continue
 
             result += indent * depth
-            result += "<%s>" % attrName
 
             otherName = item.itsKind.getOtherName(attrName, None, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
-            type = item.getAttributeAspect(attrName, 'type')
+            attrType = item.getAttributeAspect(attrName, 'type')
+
 
             if otherName: # it's a bidiref
-                result += "\n"
+                result += "<%s>\n" % attrName
 
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
@@ -1494,31 +1498,36 @@ class CloudXMLFormat(ImportExportFormat):
 
             else: # it's a literal (@@@MOR could be SingleRef though)
 
+                result += "<%s" % attrName
+
                 if cardinality == 'single':
                     value = item.getAttributeValue(attrName)
                     if isinstance(value, Lob):
-                        # @@@MOR For 0.5 convert to ASCII
-                        # For 0.6, we should handle encoding properly.
-                        uStr = value.getReader().read()
-                        value = uStr.encode('ascii', 'replace')
-                        
+                        mimeType = value.mimetype
+                        data = value.getInputStream().read()
+                        value = base64.b64encode(data)
+                        result += " mimetype='%s'" % mimeType
+
+                    result += ">"
                     if isinstance(value, Item):
                         result += "\n"
                         result += self.exportProcess(value, depth+1)
                     else:
-                        result += "<![CDATA[" + type.makeString(value) + "]]>"
+                        result += "<![CDATA[" + attrType.makeString(value) + "]]>"
 
                 elif cardinality == 'list':
+                    result += ">"
                     depth += 1
                     result += "\n"
                     for value in item.getAttributeValue(attrName):
                         result += indent * depth
-                        result += "<value>%s</value>\n" % type.makeString(value)
+                        result += "<value>%s</value>\n" % attrType.makeString(value)
                     depth -= 1
 
                     result += indent * depth
 
                 elif cardinality == 'dict':
+                    result += ">"
                     # @@@MOR
                     pass
 
@@ -1655,7 +1664,15 @@ class CloudXMLFormat(ImportExportFormat):
             else: # it's a literal
 
                 if cardinality == 'single':
-                    value = type.makeValue(attrNode.content)
+
+                    mimeTypeNode = attrNode.hasProp('mimetype')
+                    if mimeTypeNode: # Lob
+                        mimeType = mimeTypeNode.content
+                        value = base64.b64decode(attrNode.content)
+                        value = utils.dataToBinary(item, attrName, value,
+                                                   mimeType=mimeType)
+                    else:
+                        value = type.makeValue(attrNode.content)
 
                     # Don't modify an attribute if it's got the same value
                     # already

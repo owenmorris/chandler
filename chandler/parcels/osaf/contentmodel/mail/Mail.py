@@ -490,6 +490,10 @@ class MIMEBase(ContentModel.ContentItem):
         'MIMEContainer', initialValue = None, inverse = 'mimeParts',
     )
 
+    schema.addClouds(
+        sharing = schema.Cloud(mimeType),
+    )
+
     __default_path__ = MAIL_DEFAULT_PATH
 
 
@@ -507,19 +511,24 @@ class MIMENote(MIMEBase):
     )
     filesize = schema.One(schema.Long, displayName = 'File Size')
 
+    schema.addClouds(
+        sharing = schema.Cloud(filename, filesize),
+    )
+
 
 class MIMEContainer(MIMEBase):
 
     schema.kindInfo(displayName="MIME Container Kind")
 
-    hasMimeParts = schema.One(initialValue = False)
+    hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
         MIMEBase,
         displayName = 'MIME Parts',
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
-        
+    schema.addClouds(sharing = schema.Cloud(hasMimeParts, mimeParts))
+
 
 class MailMessageMixin(MIMEContainer):
     """

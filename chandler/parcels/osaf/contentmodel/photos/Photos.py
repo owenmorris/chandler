@@ -29,7 +29,7 @@ class PhotoMixin(ContentModel.ContentItem):
     who = schema.One(redirectTo = 'creator')
     displayName = schema.Role(redirectTo="caption")
 
-    schema.addClouds(sharing = schema.Cloud(caption,dateTaken))
+    schema.addClouds(sharing = schema.Cloud(caption,dateTaken,data))
 
     def importFromFile(self, path):
         data = file(path, "rb").read()
