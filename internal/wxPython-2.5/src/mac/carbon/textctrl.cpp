@@ -69,10 +69,12 @@ enum
 };
 #endif
 
+#ifndef __DARWIN__
 #include <MacTextEditor.h>
 #include <ATSUnicode.h>
 #include <TextCommon.h>
 #include <TextEncodingConverter.h>
+#endif
 #include "wx/mac/uma.h"
 
 class wxMacFunctor
