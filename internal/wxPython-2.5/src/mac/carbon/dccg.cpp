@@ -381,8 +381,8 @@ void ImagePatternDispose(
 static const CGPatternCallbacks sImagePatternCallback = { 0,  &ImagePatternRender, &ImagePatternDispose };
 
 long CreatePatternFromBitmap(
-	const wxBitmap	*rasterInfo,
 	CGPatternRef		*patternRef,
+	const wxBitmap	*rasterInfo,
 	bool				useMultibit )
 {
 	CGRect		boundsR;
@@ -448,9 +448,10 @@ long CreatePatternFromBitmap(
 	return errorStatus;
 }
 
-long CreatePatternFromBrush(
-	const wxBrush	&sourceBrush,
+long CreatePatternFromDashes(
 	CGPatternRef	*patternRef,
+	const wxDash	*sourceDash,
+	int			count,
 	bool			useMultibit )
 {
 	long		errorStatus;
@@ -459,14 +460,34 @@ long CreatePatternFromBrush(
 		return (-1);
 
 	*patternRef = NULL;
-	errorStatus = CreatePatternFromBitmap( sourceBrush.GetStipple(), patternRef, useMultibit );
+	if ((sourceDash == NULL) || (count <= 0))
+		return (-2);
+
+	wxBitmap		dashBits( (char*)sourceDash, 8, count, 1 );
+	errorStatus = CreatePatternFromBitmap( patternRef, &dashBits, useMultibit );
+
+	return errorStatus;
+}
+
+long CreatePatternFromBrush(
+	CGPatternRef	*patternRef,
+	const wxBrush	&sourceBrush,
+	bool			useMultibit )
+{
+	long		errorStatus;
+
+	if (patternRef == NULL)
+		return (-1);
+
+	*patternRef = NULL;
+	errorStatus = CreatePatternFromBitmap( patternRef, sourceBrush.GetStipple(), useMultibit );
 
 	return errorStatus;
 }
 
 long CreatePatternFromPen(
-	const wxPen	&sourcePen,
 	CGPatternRef	*patternRef,
+	const wxPen	&sourcePen,
 	bool			useMultibit )
 {
 	long		errorStatus;
@@ -475,7 +496,7 @@ long CreatePatternFromPen(
 		return (-1);
 
 	*patternRef = NULL;
-	errorStatus = CreatePatternFromBitmap( sourcePen.GetStipple(), patternRef, useMultibit );
+	errorStatus = CreatePatternFromBitmap( patternRef, sourcePen.GetStipple(), useMultibit );
 
 	return errorStatus;
 }
@@ -519,7 +540,7 @@ void wxMacCGContext::SetPen( const wxPen &pen )
 
                 hasSetPattern = false;
                 useMultibit = true;
-                result = CreatePatternFromPen( pen, &patternRef, useMultibit );
+                result = CreatePatternFromPen( &patternRef, pen, useMultibit );
                 if (result == 0)
                 {
                     EstablishPatternColorSpace( m_cgContext, useMultibit, false );
@@ -632,7 +653,12 @@ void wxMacCGContext::SetPen( const wxPen &pen )
                     count = pen.GetDashes( &dashes ) ;
                     if ((dashes != NULL) && (count > 0))
                     {
-//                    wxBitmap dashBits( (char*)dashes, 8, count, 1 );
+//                CGPatternRef  patternRef;
+//                long  result;
+//                bool  useMultibit;
+//
+//                    useMultibit = false;
+//                    result = CreatePatternFromDashes( &patternRef, (char*)dashes, count, useMultibit );
 
                         userLengths = new float[count] ;
                         for( int i = 0 ; i < count ; ++i )
@@ -703,7 +729,7 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
 
                 hasSetPattern = false;
                 useMultibit = true;
-                result = CreatePatternFromBrush( brush, &patternRef, useMultibit );
+                result = CreatePatternFromBrush( &patternRef, brush, useMultibit );
                 if (result == 0)
                 {
                     EstablishPatternColorSpace( m_cgContext, useMultibit, true );
