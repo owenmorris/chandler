@@ -8,7 +8,6 @@ import application.Globals as Globals
 from application import schema
 import flickr
 import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.framework.blocks.Block as Block
@@ -28,14 +27,13 @@ logger.setLevel(logging.INFO)
 class FlickrPhotoMixin(Photos.PhotoMixin):
 
     schema.kindInfo(displayName="Flickr Photo Mixin",
-                    displayAttribute="caption")
+                    displayAttribute="displayName")
 
     flickrID = schema.One(schema.String, displayName="Flickr ID")
     imageURL = schema.One(schema.URL, displayName="imageURL")
     datePosted = schema.One(schema.DateTime, displayName="Upload Date")
     tags = schema.Sequence(displayName="Tag")
-    # title = schema.One(schema.String, displayName="Title")
-    owner = schema.One(schema.String, displayName="Owner")
+    owner = schema.One(schema.String, displayName="owner")
 
     # about = schema.Role(redirectTo="title")
     who = schema.Role(redirectTo="owner")
@@ -49,7 +47,7 @@ class FlickrPhotoMixin(Photos.PhotoMixin):
 
     def populate(self, photo):
         self.flickrID = photo.id.encode('ascii', 'replace')
-        self.caption = photo.title.encode('ascii', 'replace')
+        self.displayName = photo.title.encode('ascii', 'replace')
         self.description = photo.description.encode('ascii', 'replace')
         self.owner = photo.owner.realname.encode('ascii', 'replace')
         self.imageURL = URL(photo.getURL(urlType="source"))
@@ -62,7 +60,7 @@ class FlickrPhotoMixin(Photos.PhotoMixin):
             print "tags failed", e
         self.importFromURL(self.imageURL)
 
-class FlickrPhoto(FlickrPhotoMixin, Notes.Note):
+class FlickrPhoto(FlickrPhotoMixin):
     schema.kindInfo(displayName = "Flickr Photo")
 
     

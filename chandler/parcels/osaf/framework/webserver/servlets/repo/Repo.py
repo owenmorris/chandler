@@ -626,12 +626,6 @@ def RenderItem(repoView, item):
         pass
 
     try:
-        description = item.description
-        result += "<div class='subheader'><b>Description:</b> %s</div>\n" % description
-    except:
-        pass
-
-    try:
         issues = item.issues
         result += "<div class='subheader'><b>Issues:</b>\n<ul></div>\n"
         for issue in issues:

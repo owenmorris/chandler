@@ -465,9 +465,10 @@ class MainView(View):
         self.setStatusMessage ("Importing %s" % path)
         photo = Photos.Photo(view=self.itsView)
         (dir, filename) = os.path.split(path)
-        photo.caption = filename
+        photo.displayName = filename
         photo.importFromFile(path)
         self.setStatusMessage("")
+        self.addItemToAllCollection(photo)
 
         # Tell the sidebar we want to go to the All collection
         self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
@@ -476,6 +477,11 @@ class MainView(View):
         self.postEventByName ('SelectItemBroadcastInsideActiveView',
                               {'item':photo})
 
+    def addItemToAllCollection(self, item):
+        for coll in Block.findBlockByName("Sidebar").contents:
+            if coll.displayName == "All":
+                coll.add(item)
+                return
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item

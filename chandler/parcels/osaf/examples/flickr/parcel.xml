@@ -48,14 +48,11 @@
     <key itemref="flickr:FlickrPhoto"/>
 
     <!-- define UI Elements -->
-    <!-- <rootBlocks itemref="detail:MarkupBar"/> -->
-    <!-- <rootBlocks itemref="doc:PhotoBlockItem"/> -->
     <rootBlocks itemref="doc:AuthorArea"/>
-    <!--rootBlocks itemref="doc:CategoryArea"/-->
   </detail:DetailTrunkSubtree>
   
   <DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
-    <position>0</position>
+    <position>0.6</position>
     <selectedItemsAttribute>owner</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
     <childrenBlocks itemref="doc:AuthorAttribute"/>
@@ -78,13 +75,6 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
   </StaticRedirectAttribute>
 
-  <!--
-  <flickr:PhotoBlock itsName="PhotoBlockItem">
-    <blockName value="articletext"/>
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>    
-  </flickr:PhotoBlock>
-  -->
 
   <!-- Block definitions for WakeCallers -->
 

@@ -88,7 +88,7 @@ class ContentItem(schema.Item):
 
     creator = schema.One(
         # Contact
-        displayName="Created By",
+        displayName="creator",
         doc="Link to the contact who created the item."
     )
 
@@ -133,7 +133,7 @@ class ContentItem(schema.Item):
 
     createdOn = schema.One(
         schema.DateTime,
-        displayName="Created On",
+        displayName="created",
         doc="DateTime this item was created"
     )
 
@@ -159,7 +159,8 @@ class ContentItem(schema.Item):
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
     schema.addClouds(
-        sharing = schema.Cloud("displayName", body, "issues", createdOn)
+        sharing = schema.Cloud("displayName", body, "issues", createdOn),
+        copying = schema.Cloud()
     )
 
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):

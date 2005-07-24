@@ -6,7 +6,6 @@ __parcel__ = "osaf.contentmodel.photos"
 
 import urllib, time, datetime, cStringIO, logging, mimetypes
 import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
 import osaf.mail.utils as utils
 from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
@@ -17,40 +16,38 @@ logger = logging.getLogger('Photos')
 logger.setLevel(logging.INFO)
 
 class PhotoMixin(ContentModel.ContentItem):
-    schema.kindInfo(displayName="Photo Mixin Kind", displayAttribute="caption")
-    caption = schema.One(schema.String, displayName="Caption")
-    dateTaken = schema.One(schema.DateTime, displayName="Date Taken")
-    data = schema.One(schema.Lob)
+    schema.kindInfo(displayName="Photo Mixin Kind",
+                    displayAttribute="displayName")
+    dateTaken = schema.One(schema.DateTime, displayName="taken")
     file = schema.One(schema.String)
     exif = schema.Mapping(schema.String, initialValue={})
 
-    about = schema.One(redirectTo = 'caption')
+    about = schema.One(redirectTo = 'displayName')
     date = schema.One(redirectTo = 'dateTaken')
     who = schema.One(redirectTo = 'creator')
-    displayName = schema.Role(redirectTo="caption")
 
-    schema.addClouds(sharing = schema.Cloud(caption,dateTaken,data))
+    schema.addClouds(sharing = schema.Cloud(dateTaken))
 
     def importFromFile(self, path):
         data = file(path, "rb").read()
         (mimeType, encoding) = mimetypes.guess_type(path)
-        self.data = utils.dataToBinary(self, 'data', data, mimeType=mimeType)
+        self.body = utils.dataToBinary(self, 'body', data, mimeType=mimeType)
 
     def importFromURL(self, url):
         if isinstance(url, URL):
             url = str(url)
         data = urllib.urlopen(url).read()
         (mimeType, encoding) = mimetypes.guess_type(url)
-        self.data = utils.dataToBinary(self, 'data', data, mimeType=mimeType)
+        self.body = utils.dataToBinary(self, 'body', data, mimeType=mimeType)
 
     def exportToFile(self, path):
-        data = utils.binaryToData(self.data)
+        data = utils.binaryToData(self.body)
         out = file(path, "wb")
         out.write(data)
         out.close()
 
     def processEXIF(self):
-        input = self.data.getInputStream()
+        input = self.body.getInputStream()
         data = input.read()
         input.close()
         stream = cStringIO.StringIO(data)
@@ -72,9 +69,9 @@ class PhotoMixin(ContentModel.ContentItem):
                 (self.itsPath, e))
 
     def onValueChanged(self, attribute):
-        if attribute == "data":
+        if attribute == "body":
             self.processEXIF()
 
 
-class Photo(PhotoMixin, Notes.Note):
+class Photo(PhotoMixin):
     schema.kindInfo(displayName = "Photo")
