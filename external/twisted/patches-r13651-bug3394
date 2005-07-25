@@ -1,0 +1,568 @@
+--- Twisted-r13651/twisted/mail/pop3client.py	2005-07-22 09:01:07.000000000 -1000
++++ Twisted-r13651-patched/twisted/mailpop3client.py	2005-07-22 09:11:50.000000000 -1000
+@@ -32,18 +32,17 @@
+     """
+ 
+ class TLSError(POP3ClientError):
+-    """Secure authentication was required but no mechanism could be found.
++    """
++    Secure authentication was required but either the transport does
++    not support TLS or no TLS context factory was supplied.
+     """
+ 
+ class TLSNotSupportedError(POP3ClientError):
+-    """Secure authentication was required but no mechanism could be found.
+     """
+-
+-class OptionNotSupportedError(POP3ClientError):
+-    """Secure authentication was required but no mechanism could be found.
++    Secure authentication was required but the server does not support
++    TLS.
+     """
+ 
+-
+ class ServerErrorResponse(POP3ClientError):
+     """The server returned an error response to a request.
+     """
+@@ -111,27 +110,38 @@
+ 
+     Instances of this class provide a convenient, efficient API for
+     retrieving and deleting messages from a POP3 server.
+-    """
+ 
+-    # Capabilities are not allowed to change during the session
+-    # So cache the first response and use that for all later
+-    # lookups
+-    _capCache = None
++    @type startedTLS: C{bool}
++    @ivar startedTLS: Whether TLS has been negotiated successfully.
+ 
+-    # Whether STARTTLS has been issued successfully yet or not.
+-    startedTLS = False
+ 
+-    # Indicate whether login() should be allowed if the server
+-    # offers no authentication challenge and if our transport
+-    # does not offer any protection via encryption.
++    @type allowInsecureLogin: C{bool}
++    @ivar allowInsecureLogin: Indicate whether login() should be
++    allowed if the server offers no authentication challenge and if
++    our transport does not offer any protection via encryption.
++
++    @type serverChallenge: C{str} or C{None}
++    @ivar serverChallenge: Challenge received from the server
++
++    @type timeout: C{int}
++    @ivar timeout: Number of seconds to wait before timing out a
++    connection.  If the number is <= 0, no timeout checking will be
++    performed.
++    """
++
++    startedTLS = False
+     allowInsecureLogin = False
++    timeout = 0
++    serverChallenge = None
++
++    # Capabilities are not allowed to change during the session
++    # (except when TLS is negotiated), so cache the first response and
++    # use that for all later lookups
++    _capCache = None
+ 
+     # Regular expression to search for in the challenge string in the server
+     # greeting line.
+-    challengeMagicRe = re.compile('(<[^>]+>)')
+-
+-    # Challenge received from the server
+-    serverChallenge = None
++    _challengeMagicRe = re.compile('(<[^>]+>)')
+ 
+     # List of pending calls.
+     # We are a pipelining API but don't actually
+@@ -139,19 +149,14 @@
+     _blockedQueue = None
+ 
+     # The Deferred to which the very next result will go.
+-    waiting = None
+-
+-    # Number of seconds to wait before timing out a connection.
+-    # If the number is <= 0 no timeout checking will be performed.
+-    timeout = 0
+-
+-    #Overides LineOnlyReceiver to set a larger max length.
+-    MAX_LENGTH = 16384 * 2
++    _waiting = None
+ 
+-    def __init__(self, contextFactory = None):
+-        self.context = contextFactory
+-        self.timedOut = False
++    # Whether we dropped the connection because of a timeout
++    _timedOut = False
+ 
++    # If the server sends an initial -ERR, this is the message it sent
++    # with it.
++    _greetingError = None
+ 
+     def _blocked(self, f, *a):
+         # Internal helper.  If commands are being blocked, append
+@@ -175,6 +180,8 @@
+             self._blockedQueue = None
+         elif self._blockedQueue is not None:
+             d, f, a = self._blockedQueue.pop(0)
++            if not self._blockedQueue:
++                self._blockedQueue = None
+ 
+             d2 = f(*a)
+             d2.chainDeferred(d)
+@@ -193,8 +200,8 @@
+         else:
+             self.sendLine(cmd)
+         self.state = 'SHORT'
+-        self.waiting = defer.Deferred()
+-        return self.waiting
++        self._waiting = defer.Deferred()
++        return self._waiting
+ 
+     def sendLong(self, cmd, args, consumer, xform):
+         # Internal helper.  Send a command to which a multiline
+@@ -211,10 +218,10 @@
+         else:
+             self.sendLine(cmd)
+         self.state = 'LONG_INITIAL'
+-        self.xform = xform
+-        self.consumer = consumer
+-        self.waiting = defer.Deferred()
+-        return self.waiting
++        self._xform = xform
++        self._consumer = consumer
++        self._waiting = defer.Deferred()
++        return self._waiting
+ 
+     # Twisted protocol callback
+     def connectionMade(self):
+@@ -222,23 +229,25 @@
+             self.setTimeout(self.timeout)
+ 
+         self.state = 'WELCOME'
++        self._blockedQueue = []
+ 
+     def timeoutConnection(self):
+-        self.timedOut = True
++        self._timedOut = True
+         self.transport.loseConnection()
+ 
+     def connectionLost(self, reason):
+         if self.timeout > 0:
+             self.setTimeout(None)
+ 
+-        if self.timedOut:
++        if self._timedOut:
+             reason = error.TimeoutError()
+-            self.timedOut = False
++        elif self._greetingError:
++            reason = ServerErrorResponse(self._greetingError)
+ 
+         d = []
+-        if self.waiting is not None:
+-            d.append(self.waiting)
+-            self.waiting = None
++        if self._waiting is not None:
++            d.append(self._waiting)
++            self._waiting = None
+         if self._blockedQueue is not None:
+             d.extend([deferred for (deferred, f, a) in self._blockedQueue])
+             self._blockedQueue = None
+@@ -257,8 +266,8 @@
+ 
+     def lineLengthExceeded(self, buffer):
+         # XXX - We need to be smarter about this
+-        if self.waiting is not None:
+-            waiting, self.waiting = self.waiting, None
++        if self._waiting is not None:
++            waiting, self._waiting = self._waiting, None
+             waiting.errback(LineTooLong())
+         self.transport.loseConnection()
+ 
+@@ -269,16 +278,17 @@
+         # state to WAITING.
+         code, status = _codeStatusSplit(line)
+         if code != OK:
+-            #XXX: Should raise some kind of error here
++            self._greetingError = status
+             self.transport.loseConnection()
+         else:
+-            m = self.challengeMagicRe.search(status)
++            m = self._challengeMagicRe.search(status)
+ 
+             if m is not None:
+                 self.serverChallenge = m.group(1)
+ 
+-            self.serverGreeting(self.serverChallenge)
++            self.serverGreeting(status)
+ 
++        self._unblock()
+         return 'WAITING'
+ 
+     def state_WAITING(self, line):
+@@ -289,7 +299,7 @@
+         # This is the state we are in when waiting for a single
+         # line response.  Parse it and fire the appropriate callback
+         # or errback.  Transition the state back to WAITING.
+-        deferred, self.waiting = self.waiting, None
++        deferred, self._waiting = self._waiting, None
+         self._unblock()
+         code, status = _codeStatusSplit(line)
+         if code == OK:
+@@ -308,9 +318,9 @@
+         code, status = _codeStatusSplit(line)
+         if code == OK:
+             return 'LONG'
+-        consumer = self.consumer
+-        deferred = self.waiting
+-        self.consumer = self.waiting = self.xform = None
++        consumer = self._consumer
++        deferred = self._waiting
++        self._consumer = self._waiting = self._xform = None
+         self._unblock()
+         deferred.errback(ServerErrorResponse(status, consumer))
+         return 'WAITING'
+@@ -321,57 +331,50 @@
+         # Deferred, and transition the state to WAITING.
+         # Otherwise, pass the line to the consumer.
+         if line == '.':
+-            consumer = self.consumer
+-            deferred = self.waiting
+-            self.consumer = self.waiting = self.xform = None
++            consumer = self._consumer
++            deferred = self._waiting
++            self._consumer = self._waiting = self._xform = None
+             self._unblock()
+             deferred.callback(consumer)
+             return 'WAITING'
+         else:
+-            if self.xform is not None:
+-                self.consumer(self.xform(line))
++            if self._xform is not None:
++                self._consumer(self._xform(line))
+             else:
+-                self.consumer(line)
++                self._consumer(line)
+             return 'LONG'
+ 
+-    def serverGreeting(self, challenge):
++
++    # Callbacks - override these
++    def serverGreeting(self, greeting):
+         """Called when the server has sent us a greeting.
+ 
+-           @type challenge: C{Str} (None if no challenge returned in the Server Greeting)
+-           @param challenge: A POP3 server which implements the APOP command will
+-                             include a timestamp challenge in its banner greeting (RFC 1939).
+-                             .
++        @type greeting: C{str} or C{None}
++        @param greeting: The status message sent with the server
++        greeting.  For servers implementing APOP authentication, this
++        will be a challenge string.  .
+         """
+ 
++
++    # External API - call these (most of 'em anyway)
+     def startTLS(self, contextFactory=None):
+         """
+         Initiates a 'STLS' request and negotiates the TLS / SSL
+         Handshake.
+ 
+-        @param contextFactory: The TLS / SSL Context Factory to
+-        leverage.  If the contextFactory is None the POP3Client will
+-        either use the current TLS / SSL Context Factory or attempt to
+-        create a new one.
+-
+-        @type contextFactory: C{ssl.ClientContextFactory}
++        @type contextFactory: C{ssl.ClientContextFactory} @param
++        contextFactory: The context factory with which to negotiate
++        TLS.  If C{None}, try to create a new one.
+ 
+         @return: A Deferred which fires when the transport has been
+         secured according to the given contextFactory, or which fails
+         if the transport cannot be secured.
+         """
+-
+-        if self._capCache is None:
+-            d = self.capabilities()
+-
+-        else:
+-            d = defer.succeed(self._capCache)
+-
+-        d.addCallback(self._startTLS, contextFactory)
+-        return d
+-
+-
+-    def _startTLS(self, caps, contextFactory):
+-        assert not self.startedTLS, "Client and Server are currently communicating via TLS"
++        tls = interfaces.ITLSTransport(self.transport, None)
++        if tls is None:
++            return defer.fail(TLSError(
++                "POP3Client transport does not implement "
++                "interfaces.ITLSTransport"))
+ 
+         if contextFactory is None:
+             contextFactory = self._getContextFactory()
+@@ -379,35 +382,36 @@
+         if contextFactory is None:
+             return defer.fail(TLSError(
+                 "POP3Client requires a TLS context to "
+-                "initiate the STARTTLS handshake"))
++                "initiate the STLS handshake"))
++
++        d = self.capabilities()
++        d.addCallback(self._startTLS, contextFactory, tls)
++        return d
++
++
++    def _startTLS(self, caps, contextFactory, tls):
++        assert not self.startedTLS, "Client and Server are currently communicating via TLS"
+ 
+         if 'STLS' not in caps:
+             return defer.fail(TLSNotSupportedError(
+                 "Server does not support secure communication "
+                 "via TLS / SSL"))
+ 
+-        tls = interfaces.ITLSTransport(self.transport, None)
+-
+-        if tls is None:
+-            return defer.fail(TLSError(
+-                "POP3Client transport does not implement "
+-                "interfaces.ITLSTransport"))
+-
+         d = self.sendShort('STLS', None)
+-        d.addCallback(self._startedTLS, contextFactory)
++        d.addCallback(self._startedTLS, contextFactory, tls)
+         d.addCallback(lambda _: self.capabilities())
+         return d
+ 
+-    def _startedTLS(self, result, context):
++
++    def _startedTLS(self, result, context, tls):
++        self.transport = tls
+         self.transport.startTLS(context)
+         self._capCache = None
+         self.startedTLS = True
+-        self.context = context
+         return result
+ 
++
+     def _getContextFactory(self):
+-        if self.context is not None:
+-            return self.context
+         try:
+             from twisted.internet import ssl
+         except ImportError:
+@@ -417,17 +421,16 @@
+             context.method = ssl.SSL.TLSv1_METHOD
+             return context
+ 
+-    # External hooks - call these (most of 'em anyway)
++
+     def login(self, username, password):
+         """Log into the server.
+ 
+-        If APOP is available it will be used.  Otherwise, if
+-        TLS is available a 'STLS' session will be started and
+-        plaintext login will proceed.  Otherwise, if the
+-        instance attribute allowInsecureLogin is set to True,
+-        insecure plaintext login will proceed.  Otherwise,
+-        InsecureAuthenticationDisallowed will be raised
+-        (asynchronously).
++        If APOP is available it will be used.  Otherwise, if TLS is
++        available an 'STLS' session will be started and plaintext
++        login will proceed.  Otherwise, if the instance attribute
++        allowInsecureLogin is set to True, insecure plaintext login
++        will proceed.  Otherwise, InsecureAuthenticationDisallowed
++        will be raised (asynchronously).
+ 
+         @param username: The username with which to log in.
+         @param password: The password with which to log in.
+@@ -436,15 +439,11 @@
+         @return: A deferred which fires when login has
+         completed.
+         """
+-        if self._capCache is None:
+-            d = self.capabilities()
+-
+-        else:
+-            d = defer.succeed(self._capCache)
+-
++        d = self.capabilities()
+         d.addCallback(self._login, username, password)
+         return d
+ 
++
+     def _login(self, caps, username, password):
+         if self.serverChallenge is not None:
+             return self._apop(username, password, self.serverChallenge)
+@@ -468,6 +467,7 @@
+         else:
+             return defer.fail(InsecureAuthenticationDisallowed())
+ 
++
+     def _loginTLS(self, res, username, password):
+         return self._plaintext(username, password)
+ 
+@@ -551,43 +551,79 @@
+             return self.sendLong(cmd, args, consumer, xform).addCallback(lambda r: L)
+         return self.sendLong(cmd, args, consumer, xform)
+ 
+-    def capabilities(self, useCache=1):
++    def capabilities(self, useCache=True):
+         """Retrieve the capabilities supported by this server.
++
++        @type useCache: C{bool}
++        @param useCache: If set, and if capabilities have been
++        retrieved previously, just return the previously retrieved
++        results.
++
++        @return: A Deferred which fires with a C{dict} mapping C{str}
++        to C{None} or C{list}s of C{str}.  For example,
++
++            C: CAPA
++            S: +OK Capability list follows
++            S: TOP
++            S: USER
++            S: SASL CRAM-MD5 KERBEROS_V4
++            S: RESP-CODES
++            S: LOGIN-DELAY 900
++            S: PIPELINING
++            S: EXPIRE 60
++            S: UIDL
++            S: IMPLEMENTATION Shlemazle-Plotz-v302
++            S: .
++
++        will be lead to a result of
++
++            | {'TOP': None,
++            |  'USER': None,
++            |  'SASL': ['CRAM-MD5', 'KERBEROS_V4'],
++            |  'RESP-CODES': None,
++            |  'LOGIN-DELAY': ['900'],
++            |  'PIPELINING': None,
++            |  'EXPIRE': ['60'],
++            |  'UIDL': None,
++            |  'IMPLEMENTATION': ['Shlemazle-Plotz-v302']}
+         """
+         if useCache and self._capCache is not None:
+             return defer.succeed(self._capCache)
+ 
+-        #Reset the Capabilities Cache
+-        self._capCache = {}
++        cache = {}
++        def consume(line):
++            tmp = line.split()
++            if len(tmp) == 1:
++                cache[tmp[0]] = None
++            elif len(tmp) > 1:
++                cache[tmp[0]] = tmp[1:]
++
++        def gotCapabilities(result):
++            self._capCache = cache
++            return cache
+ 
+-        d = self._consumeOrAppend('CAPA', None, self._capsConsumer, None)
+-        d.addCallback(self._cbCapabilities)
++        d = self._consumeOrAppend('CAPA', None, consume, None)
++        d.addBoth(gotCapabilities)
+         return d
+ 
+-    def _cbCapabilities(self, result):
+-        """Returns the Capabilities to the caller"""
+-        return self._capCache
+-
+ 
+-    def _capsConsumer(self, line):
+-        tmp = line.split()
+-
+-        size = len(tmp)
++    def noop(self):
++        """Do nothing, with the help of the server.
+ 
+-        if size == 0:
+-            return
++        No operation is performed.  The returned Deferred fires when
++        the server responds.
++        """
++        return self.sendShort("NOOP", None)
+ 
+-        if size == 1:
+-            self._capCache[tmp[0]] = None
+-        else:
+-            self._capCache[tmp[0]] = tmp[1:]
+ 
+-    def noop(self):
+-        return self.sendShort("NOOP", None)
++    def reset(self):
++        """Remove the deleted flag from any messages which have it.
+ 
+-    def rset(self):
++        The returned Deferred fires when the server responds.
++        """
+         return self.sendShort("RSET", None)
+ 
++
+     def retrieve(self, index, consumer=None, lines=None):
+         """Retrieve a message from the server.
+ 
+@@ -600,20 +636,19 @@
+         if lines is None:
+             return self._consumeOrAppend('RETR', idx, consumer, _dotUnquoter)
+ 
+-        if 'TOP' not in self._capCache:
+-            return defer.fail(OptionNotSupportedError("POP3Server does not support 'TOP'"))
+-
+         return self._consumeOrAppend('TOP', '%s %d' % (idx, lines), consumer, _dotUnquoter)
+ 
+ 
+     def stat(self):
+-        """Issues a 'STAT' request which is allowed in the TRANSACTION state (RFC 1939).
+-           The returned Deferred will be fired with a tuple containing the
+-           number or messages in the maildrop and the size of the
+-           maildrop in octets.
++        """Get information about the size of this mailbox.
++
++        The returned Deferred will be fired with a tuple containing
++        the number or messages in the mailbox and the size (in bytes)
++        of the mailbox.
+         """
+         return self.sendShort('STAT', None).addCallback(_statXform)
+ 
++
+     def listSize(self, consumer=None):
+         """Retrieve a list of the size of all messages on the server.
+ 
+@@ -625,6 +660,7 @@
+         """
+         return self._consumeOrSetItem('LIST', None, consumer, _listXform)
+ 
++
+     def listUID(self, consumer=None):
+         """Retrieve a list of the UIDs of all messages on the server.
+ 
+@@ -634,12 +670,9 @@
+         message UIDs will be returned.  For messages which have been
+         deleted, None will be used in place of the message UID.
+         """
+-
+-        if 'UIDL' not in self._capCache:
+-            return defer.fail(OptionNotSupportedError("POP3Server does not support 'UIDL'"))
+-
+         return self._consumeOrSetItem('UIDL', None, consumer, _uidXform)
+ 
++
+     def quit(self):
+         """Disconnect from the server.
+         """
+@@ -648,7 +681,7 @@
+ __all__ = [
+     # Exceptions
+     'InsecureAuthenticationDisallowed', 'LineTooLong', 'POP3ClientError',
+-    'ServerErrorResponse', 'TLSError', 'TLSNotSupportedError', 'OptionNotSupported',
++    'ServerErrorResponse', 'TLSError', 'TLSNotSupportedError',
+ 
+     # Protocol classes
+     'POP3Client']

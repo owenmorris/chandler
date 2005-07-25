@@ -10,6 +10,7 @@ BUILD=build_$(SNAP)
 
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
+	patch -Nup0 < patches-$(VERSION)-bug3394;echo ok
 
 build: expand apply
 	cd $(SRC); \
