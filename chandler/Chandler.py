@@ -36,7 +36,7 @@ def main():
             """
               Check for -wing command line argument; if specified, try to connect to
             an already-running WingIDE instance.  See:
-              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#wingIDE".
+              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#wingIDE.
             for details.
             """
             import wingdbstub
@@ -44,7 +44,7 @@ def main():
             """
             Check for -komodo command line argument; if specified, try to connect to
             an already-running Komodo instance.  See:
-              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Komodo".
+              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Komodo.
             for details.
             """
             import dbgp.client
