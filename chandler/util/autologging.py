@@ -86,9 +86,10 @@ def shortstr(obj):
 class LogTheMethods(type):
     def __new__(cls,classname,bases,classdict):
         logmatch = re.compile(classdict.get('logMatch','.*'))
+        lognotmatch = re.compile(classdict.get('logNotMatch', 'nevermatchthisstringasdfasdf'))
         
         for attr,item in classdict.items():
-            if callable(item) and logmatch.match(attr):
+            if callable(item) and logmatch.match(attr) and not lognotmatch.match(attr):
                 classdict['_H_%s'%attr] = item    # rebind the method
                 classdict[attr] = logmethod(attr) # replace method by wrapper
 
@@ -100,6 +101,7 @@ if __name__=='__main__':
     class Test(object):
         __metaclass__ = LogTheMethods
         logMatch = '.*'
+        
     
         def __init__(self):
             self.a = 10

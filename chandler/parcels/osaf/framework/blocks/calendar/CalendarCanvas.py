@@ -855,9 +855,10 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
 
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                (not allDay and not anyTime) and
+                (anyTimeTest and allDayTest) and
                 self.itemIsInRange(item, date, nextDate)):
                 yield item
+
     def getItemsInCurrentRange(self, *arguments, **keywords):
         start, end = self.GetCurrentDateRange()
         return self.getItemsInRange(start,end, *arguments, **keywords)
@@ -1259,24 +1260,25 @@ class AllDayEventsCanvas(CalendarBlock):
         self.setRange(event.arguments['start'])
         self.widget.wxSynchronizeWidget()
 
-    def onSelectItemBroadcast(self, event):
-        #@@@ this method is WRONG, it's really onSelectItemEvent.  argh!
-        #but the fact its not called doesnt seem to matter.... ??
+    def onSelectItemEvent(self, event):
+        #don't need to do anything..
         pass
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
+    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch='DrawBackground|DrawCells|_doDrawingCalc'
     legendBorderWidth = 1
+    collapsedHeight = 25
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
 
-        self.SetMinSize((-1,25))
+        self.SetMinSize((-1,self.collapsedHeight))
         self.size = self.GetSize()
         self.fixed = True
 
     def OnInit(self):
         super (wxAllDayEventsCanvas, self).OnInit()
         
-        self.SetMinSize((-1,25))
+        self.SetMinSize((-1,self.collapsedHeight))
         
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -1371,6 +1373,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.blockItem.dayMode:
             for y, item in enumerate(visibleItems):
                 self.RebuildCanvasItem(item, width, 0,0, y)
+            self.numEventRows = len(visibleItems)
             
         else:
             # Next: place all the items on a grid without overlap. Items can span
@@ -1384,6 +1387,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
             MAX_ROWS = 200
             grid = [[False for y in range(MAX_ROWS)] for x in range(drawInfo.columns)]
+            self.numEventRows = 0
 
             for item in visibleItems:
                 # get first and last column of its span
@@ -1400,15 +1404,18 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                         for day in xrange(dayStart, dayEnd+1):
                             grid[day][y] = True
                         self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
+                        if y+1 > self.numEventRows:  self.numEventRows = y+1
                         break
                 else:
                     raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
-        ### OLD, GO AWAY SOON
-        #for day in range(drawInfo.columns):
-            #currentDate = self.blockItem.rangeStart + timedelta(days=day)
-            #rect = wx.Rect((drawInfo.dayWidth * day) + drawInfo.xOffset, 0,
-                           #width, size.height)
-            #self.RebuildCanvasItemsByDay(currentDate, rect)
+
+    def GetExpandedHeight(self):
+        """What should be the ideal fully expanded height?
+        precondition: self.numEventRows needs to be set correctly"""
+        n = self.numEventRows
+        h = self.eventHeight
+        return (n + .5) * h
+    expandedHeight = property(GetExpandedHeight)
 
     @staticmethod
     def BlockFits(grid, x1, x2, y):
@@ -1607,13 +1614,9 @@ class TimedEventsCanvas(CalendarBlock):
         self.setRange(event.arguments['start'])
         self.widget.wxSynchronizeWidget()
 
-    def onSelectItemBroadcast(self, event):
-        #@@@ unfinished. it's not receiving the broadcasts correctly, but things work
-        #anyways?...
-        print "timed evt cvs  receives SIB"
-        # TODO: copy from AllDay the final code there
 
 class wxTimedEventsCanvas(wxCalendarCanvas):
+    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch = 'DrawBackground|DrawCells|_doDrawingCalc'
     def __init__(self, parent, *arguments, **keywords):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 
@@ -2194,7 +2197,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # turn this off for now, because our sizing needs to be exact
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
-        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", ""]
+        headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", "+"]
         for header in headerLabels:
             self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
@@ -2308,15 +2311,41 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if (colIndex == 0):
             return self.OnWeekSelect()
 
-        # the old "+" sign column now should do nothing when clicked...
+        # the expando-button
         if (colIndex == 8):
-            return False #@@@ whats the return value supposed to be??
+            self.OnExpandButtonClick(event)
+            return False #@@@ whats the return value mean? -brendano
         
         # all other cases mean a day was selected
         # OnDaySelect takes a zero-based day, and our first day is in column 1
         return self.OnDaySelect(colIndex-1)
 
+    def OnExpandButtonClick(self, event):
+        return
+    ## @@@ need to fix drawInfo weirdness and get this reference wired up before doing all this
+    #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
+    #currentHeight = wxAllDay.GetSize()[1]
+    #if currentHeight >= wxAllDay.collapsedHeight and \
+       #currentHeight < wxAllDay.expandedHeight:
+        ## Expand
+        #wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
+        #self.OnSashPositionChange()
+    
+    #elif currentHeight >= wxAllDay.expandedHeight:
+        ## Collapse
+        #wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
+        #self.OnSashPositionChange()
 
+    def OnSashPositionChange(self, event=None):
+        ## TODO: hook up something like EVT_SPLITTER_SASH_POS_CHANGED to this
+        wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
+        position = wxAllDay.GetParent().GetSashPosition()
+        if position == wxAllDay.collapsedHeight:
+            #print 'set expando-button to down arrow'
+            pass
+        else:
+            #print 'set expando-button to up arrow'
+            pass
     
     def OnDaySelect(self, day):
         """callback when a specific day is selected from column header.

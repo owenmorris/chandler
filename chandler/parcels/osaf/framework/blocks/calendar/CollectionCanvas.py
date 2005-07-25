@@ -695,11 +695,10 @@ class CollectionCanvas(Block.RectangularChild):
         self.postSelectItemBroadcast()
 
 
-    # REFACTOR: cruft?: the event "SelectItem" doesn't appear to exist
     def onSelectItemEvent(self, event):
-        # @@@ is it ok to have selection on an item not in the current range?
         """
-        Sets the block selection and synchronizes the widget.
+        Sets the block selection
+        NB this allows a selection on an item not in the current range.
         """
         self.selection = event.arguments['item']
 
