@@ -659,8 +659,7 @@ class MainView(View):
                 view=self.itsView,
                 collection=collection,
                 filterKindPath=filterKindPath)
-            
-        # Sharing.manualPublishCollection(self.itsView, collection)
+
 
     def onShareCollectionEventUpdateUI (self, event):
         """
@@ -726,6 +725,14 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
 
+    def onUnsubscribeSidebarCollectionEvent(self, event):
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            Sharing.unsubscribe(collection)
+
+    def onUnsubscribeSidebarCollectionEventUpdateUI(self, event):
+        collection = self.getSidebarSelectedCollection ()
+        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."

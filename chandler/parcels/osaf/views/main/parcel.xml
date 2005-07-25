@@ -133,6 +133,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="UnsubscribeSidebarCollection">
+    <blockName>UnsubscribeSidebarCollection</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="ShowHideApplicationBar">
     <blockName>ShowHideApplicationBar</blockName>
     <methodName>onShowHideEvent</methodName>
@@ -438,6 +444,7 @@
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:ManageSidebarCollectionItem"/>
+    <childrenBlocks itemref="doc:UnsubscribeSidebarCollectionItem"/>
     <childrenBlocks itemref="doc:CopyCollectionURLItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:RenameItem"/>
@@ -1018,6 +1025,13 @@
     <title>Manage share...</title>
     <event itemref="doc:ManageSidebarCollection"/>
     <helpString>Manage the selected collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="UnsubscribeSidebarCollectionItem">
+    <blockName>UnsubscribeSidebarCollectionItem</blockName>
+    <title>Unsubscribe</title>
+    <event itemref="doc:UnsubscribeSidebarCollection"/>
+    <helpString>Unsubscribe the selected collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="CopyCollectionURLItem">

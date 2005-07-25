@@ -2124,75 +2124,6 @@ def checkForActiveShares(view):
             return True
     return False
 
-def manualSubscribeToCollection(view):
-    url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                              "Subscribe to share",
-                                              "Enter the share's URL", "")
-    if not url:
-        return
-
-    share = newInboundShare(view, url)
-    if share is None:
-        return
-
-    try:
-        share.get()
-    except SharingError, err:
-        msg = "Error syncing '%s'\n" % url
-        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
-        msg += err.message
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    "Synchronization Error", msg)
-        share.conduit.delete()
-        share.format.delete()
-        share.delete()
-        return
-
-    collection = share.contents
-    mainView = Globals.views[0]
-    mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
-
-def manualPublishCollection(view, collection):
-    share = getShare(collection)
-    if share is not None:
-        msg = "This collection is already shared at:\n%s" % share.conduit.getLocation()
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    "Already shared", msg)
-        return
-
-    shareName = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                              "Publish share",
-                                              "Enter a name",
-                                              collection.getItemDisplayName())
-
-    if shareName is None:
-        return
-
-    share = newOutboundShare(view, collection, shareName=shareName)
-    if share.exists():
-        msg = "There is already a share at:\n%s" % share.conduit.getLocation()
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    "Share exists", msg)
-        share.conduit.delete()
-        share.format.delete()
-        share.delete()
-        return
-
-    if shareName.endswith(".ics"):
-        import ICalendar
-        format = ICalendar.ICalendarFormat(view=view)
-        share.mode = "put"
-        share.format = format
-
-    try:
-        share.create()
-        share.put()
-    except SharingError, err:
-        msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
-        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
-        msg += err.message
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    "Synchronization Error", msg)
 
 
 def getFilteredCollectionDisplayName(collection, filterKinds):
@@ -2222,6 +2153,12 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
 
     return name
 
+
+def unsubscribe(collection):
+    for share in collection.shares:
+        share.conduit.delete(True)
+        share.format.delete(True)
+        share.delete(True)
 
 
 class OneTimeFileSystemShare(OneTimeShare):
