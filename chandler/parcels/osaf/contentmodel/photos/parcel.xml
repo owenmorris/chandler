@@ -41,6 +41,7 @@
         <viewAttribute value="body"/>
         <border>2, 2, 2, 2</border>
         <presentationStyle itemref="photos:PhotoImagePresentation"/>
+        <stretchFactor>7</stretchFactor>
     </blocks:AEBlock>
 
     <blocks:PresentationStyle itsName="PhotoImagePresentation">
@@ -53,6 +54,7 @@
         <viewAttribute value="description"/>
         <border>2, 2, 2, 2</border>
         <presentationStyle itemref="photos:DescriptionAreaPresentation"/>
+        <stretchFactor>3</stretchFactor>
     </blocks:AEBlock>
 
     <blocks:PresentationStyle itsName="DescriptionAreaPresentation">
