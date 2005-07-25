@@ -16,8 +16,6 @@
 #pragma interface "textctrl.h"
 #endif
 
-#define _USE_CONTEXT_MENU_
-
 #if wxUSE_SYSTEM_OPTIONS
     // set this to true if you want to use the 'classic' mlte based implementation
     // instead of the HIView based implementation in 10.3 and upwards, the former
@@ -171,10 +169,7 @@ public:
     void OnUpdateSelectAll(wxUpdateUIEvent& event);
 
     void OnEraseBackground(wxEraseEvent& event) ;
-
-#if defined(_USE_CONTEXT_MENU_)
     void OnContextMenu(wxContextMenuEvent& event);
-#endif
 
     virtual bool MacCanFocus() const { return true ; }
     virtual bool MacSetupCursor( const wxPoint& pt ) ;
@@ -208,9 +203,9 @@ protected:
   unsigned long  m_maxLength ;
   // need to make this public because of the current implementation via callbacks
 private :
-  DECLARE_EVENT_TABLE()
-
   wxMenu  *m_privateContextMenu;
+
+  DECLARE_EVENT_TABLE()
 };
 
 #endif

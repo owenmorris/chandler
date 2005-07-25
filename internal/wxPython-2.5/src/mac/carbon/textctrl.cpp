@@ -376,9 +376,7 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
     EVT_MENU(wxID_CLEAR, wxTextCtrl::OnDelete)
     EVT_MENU(wxID_SELECTALL, wxTextCtrl::OnSelectAll)
 
-#if defined(_USE_CONTEXT_MENU_)
     EVT_CONTEXT_MENU(wxTextCtrl::OnContextMenu)
-#endif
 
     EVT_UPDATE_UI(wxID_CUT, wxTextCtrl::OnUpdateCut)
     EVT_UPDATE_UI(wxID_COPY, wxTextCtrl::OnUpdateCopy)
@@ -395,18 +393,14 @@ void wxTextCtrl::Init()
   m_editable = true ;
   m_dirty = false;
 
-#if defined(_USE_CONTEXT_MENU_)
   m_privateContextMenu = NULL;
-#endif
 
   m_maxLength = TE_UNLIMITED_LENGTH ;
 }
 
 wxTextCtrl::~wxTextCtrl()
 {
-#if defined(_USE_CONTEXT_MENU_)
     delete m_privateContextMenu;
-#endif
 }
 
 
@@ -1065,7 +1059,8 @@ void wxTextCtrl::OnUpdateSelectAll(wxUpdateUIEvent& event)
     event.Enable(GetLastPosition() > 0);
 }
 
-#if defined(_USE_CONTEXT_MENU_)
+// CS: Context Menus only work with mlte implementations or non-multiline HIViews at the moment
+
 void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
 {
     if (m_privateContextMenu == NULL)
@@ -1085,7 +1080,6 @@ void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
     if (m_privateContextMenu != NULL)
         PopupMenu(m_privateContextMenu);
 }
-#endif
 
 bool wxTextCtrl::MacSetupCursor( const wxPoint& pt )
 {
@@ -2300,9 +2294,10 @@ void wxMacMLTEClassicControl::MacUpdatePosition()
             wxMax( m_txnControlBounds.bottom , m_txnControlBounds.top ) , 
             wxMax( m_txnControlBounds.right , m_txnControlBounds.left ) , m_txnFrameID);
  #endif
-
         // the SetFrameBounds method unter classic sometimes does not correctly scroll a selection into sight after a 
         // movement, therefore we have to force it
+
+        // according to David Surovell this problem also sometimes occurs under OSX, so we use this as well
 
         TXNLongRect textRect ;
         TXNGetRectBounds( m_txn , NULL , NULL , &textRect ) ;        
