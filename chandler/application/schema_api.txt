@@ -572,6 +572,123 @@ But subclasses of an abstract class are instantiable in the normal way::
     >>> Chair()
     <Chair ...>
 
+
+--------------------
+Parcel-Loading Tools
+--------------------
+
+Namespaces
+==========
+
+When creating a lot of items that refer to existing items in other parcels,
+it's sometimes useful to be able to refer to both classes and instances in
+those parcels as if they were in a single namespace.  The ``schema.ns`` class
+lets you create such namespaces.
+
+You create a namespace by passing a module name and repository view to
+``schema.ns()``.  We're using the null repository view, so we can omit the
+view::
+
+    >>> api_tests = schema.ns("application.tests.TestSchemaAPI")
+    
+We now have an object that can be used to access items that are directly in
+the designated module::
+
+    >>> api_tests.test_schema_api
+    <function test_schema_api at ...>
+
+A namespace's ``parcel`` attribute is the parcel in the designated view that
+corresponds to the named module::
+
+    >>> api_tests.parcel
+    <Parcel (new): TestSchemaAPI ...>
+
+This is probably also a good time to point out that you can create a namespace
+using any item, not just a repository view, e.g.::
+
+    >>> other_ns = schema.ns("application.tests", api_tests.parcel)
+    >>> other_ns.TestSchemaAPI
+    <module 'application.tests.TestSchemaAPI' ...>
+
+If we create an item in that parcel, it will then be accessible by name from
+the namespace::
+
+    >>> aPerson = Person("Smitty", api_tests.parcel)
+    >>> api_tests.Smitty is aPerson
+    True
+
+But not if there is an object of the same name defined in the module::
+
+    >>> aPerson.itsName = "test_schema_api"
+    >>> api_tests.test_schema_api   # obscured by the function in the module
+    <function test_schema_api at ...>
+
+You can still access it via the parcel, if you need to, but it's not
+recommended that you have module contents and items with the same name::
+
+    >>> api_tests.parcel.getItemChild("test_schema_api") is aPerson
+    True
+
+
+Installing or Updating Items
+============================
+
+If you're creating items in your parcel's ``installParcel()`` function, you
+will probably want to update any previously-installed items with any changed
+data, but also create new items that didn't exist before.  The ``update()``
+method of ``schema.Item`` subclasses allows you to specify what data an item
+should have, and then either update the old item or create a new one.
+
+To use this method, you must supply a parcel and name to the ``update()``
+method of the class of item you want to create.  For example::
+
+    >>> def installParcel(parcel, old_version=None):
+    ...     Person.update(parcel, "Carlos", fullname="Carlos Marron")
+
+At the moment, there is no "Carlos" in the api_tests parcel::
+
+    >>> api_tests.Carlos    # doctest: +NORMALIZE_WHITESPACE
+    Traceback (most recent call last):
+    ...
+    AttributeError: Carlos is not in <module 'application.tests.TestSchemaAPI'
+    from ...> or <Parcel ...: TestSchemaAPI ...>
+
+So, we'll create him::
+
+    >>> installParcel(api_tests.parcel)
+    >>> api_tests.Carlos
+    Carlos Marron
+
+Now, let's change his name, and see what happens if we "update" the parcel::
+
+    >>> carlos = api_tests.Carlos
+    >>> carlos.fullname = "Charlie Brown"
+    >>> carlos.fullname
+    'Charlie Brown'
+
+    >>> installParcel(api_tests.parcel)
+    >>> carlos.fullname
+    'Carlos Marron'
+
+Notice that on our second call, the object's fullname attribute was updated
+*in place*, instead of creating a new item.  Also, the kind and class are
+updated, too::
+
+    >>> carlos.itsKind = StrangePerson.getKind()
+    >>> type(carlos)
+    <class 'StrangePerson'>
+    
+    >>> installParcel(api_tests.parcel)
+    >>> type(carlos)
+    <class 'Person'>
+    
+Note that the ``update()`` method can't tell if you've renamed an object that
+should have the same name, or whether perhaps you've accidentally given two
+objects the same name, so you need to check these things yourself.  If you
+need to delete old items or rename/relocate items in your ``installParcel()``
+function, you should just use the normal repository APIs to do so.
+
+
 --------------------
 Schema API Internals
 --------------------
@@ -615,6 +732,9 @@ loaded::
     module.  If the module has a ``__parcel__`` attribute, the parcel for
     the named module is returned instead::
 
+        >>> schema.reset()
+        <NullRepositoryView: null view>
+
         >>> application.tests.__parcel__ = "__builtin__"
         >>> schema.parcel_for_module("application.tests")
         <Parcel ... __builtin__ ...>
@@ -625,8 +745,8 @@ loaded::
 
     If the module has no ``__parcel__``, but it has a ``__parcel_class__``,
     then it is called to create a new parcel instance, passing in the name,
-    parent parcel, and parcel kind::
-
+    parent parcel, and parcel kind.  In addition, if the module defines an
+    ``installParcel()`` function, it will be called::
 
         >>> def __parcel_class__(name, parent, kind):
         ...     print "Creating", name, parent, kind
@@ -634,6 +754,10 @@ loaded::
         ...     return 456
         >>> application.tests.__parcel_class__ = __parcel_class__
 
+        >>> def installParcel(parcel, old_version=None):
+        ...     print "installParcel(",parcel,")"
+        >>> application.tests.installParcel = installParcel
+        
         >>> def __parcel_class__(name, parent, kind):
         ...     print "Creating", name, parent, kind
         ...     print "Lock state:", schema.global_lock
@@ -646,6 +770,7 @@ loaded::
         Lock state: <_RLock(MainThread, 2)>
         Creating tests <Parcel ...application...> <Kind ...Parcel...>
         Lock state: <_RLock(MainThread, 1)>
+        installParcel( 456 )
         456
 
         >>> schema.global_lock
@@ -665,6 +790,7 @@ loaded::
         >>> schema.reset()
         <NullRepositoryView: null view>
         >>> del application.tests.__parcel_class__
+        >>> del application.tests.installParcel
         >>> del application.__parcel_class__
 
     Finally, in order to support defining core schema kinds using the schema

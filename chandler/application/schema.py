@@ -468,6 +468,26 @@ class ItemClass(Activator):
         kind.itsParent = parcel_for_module(cls.__module__, view)
         kind.itsName = cls.__name__
 
+    def update(cls, parent, name, **attrs):
+        """Ensure that there is a `name` child of `parent` with `attrs`
+
+        If `parent` already has a child of name `name`, it is updated with
+        `attrs` and its kind is set to match this class.  Otherwise, a new
+        item of the class' kind is created with the given `attrs`.  Either
+        way, the resulting item is returned.
+
+        This classmethod is typically used in ``installParcel()`` functions to
+        create and/or update parcel items.
+        """
+        item = parent.getItemChild(name)
+        if item is None:
+            return cls(name, parent, **attrs)
+        else:
+            item.itsKind = cls.getKind(parent.itsView)
+            for k,v in attrs.iteritems():
+                setattr(item,k,v)
+        return item
+
 
 class ItemRoot:
     """Schema template for a named root"""
@@ -801,6 +821,41 @@ def importString(name, globalDict=__main__.__dict__):
 # Repository interface
 # --------------------
 
+class ns(object):
+    """Shortcut namespace for referring to classes and instances in a parcel
+
+    Example::
+
+        current = schema.ns("osaf.current", repo_view)
+        me = current.Contact.item
+
+    The ``ns`` object acts almost like an XML namespace in parcel.xml, only in
+    Python.  The main difference is that names defined in the module given will
+    take precedence over items in the corresponding parcel.  See schema_api.txt
+    for a more detailed explanation
+    """
+
+    def __init__(self, name, view=None):
+        self.view = getattr(view,'itsView',view)
+        self.__module = importString(name)
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError("No delegation for private attributes")
+        if name=='parcel':
+            self.parcel = parcel_for_module(self.__module.__name__, self.view)
+            return self.parcel
+        try:
+            return getattr(self.__module,name)
+        except AttributeError:
+            value = self.parcel.getItemChild(name)
+            if value is not None:
+                return value
+        raise AttributeError(
+            "%s is not in %r or %r" % (name, self.__module, self.parcel)
+        )
+
+
 class ModuleMaker:
     def __init__(self,moduleName):
         module = importString(moduleName)
@@ -889,6 +944,14 @@ class ModuleMaker:
                 # body will probably end up empty again.
                 item.itsKind.itsParent = item.itsParent     # XXX FIXME!
             mkParcel.__init__(item)
+        module = importString(self.moduleName)
+        if hasattr(module,'installParcel'):
+            # make sure that the schema for the module is fully created
+            for it in module.__dict__.values():
+                if hasattr(it,'_find_schema_item'):
+                    # Import each kind/struct/enum          
+                    itemFor(it,repoView)
+            module.installParcel(item, None)
 
     def __repr__(self):
         return "ModuleMaker(%r)" % self.moduleName
