@@ -8,8 +8,8 @@ import sys
 import application
 from application import schema
 from osaf.framework.attributeEditors.AttributeEditors import \
-     DateAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor, \
-     StaticStringAttributeEditor
+     DateTimeAttributeEditor, DateAttributeEditor, TimeAttributeEditor, \
+     ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import DynamicContainerBlocks
 from osaf.framework.blocks import ControlBlocks
@@ -1032,10 +1032,16 @@ class CalendarAllDayArea(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('allDay')
 
-class CalendarLocationArea(DetailSynchronizedContentItemDetail):
-    def shouldShow (self, item):
-        return item.isAttributeModifiable('location') \
-               or hasattr(item, 'location')
+# @@@ For now, just inherit from ContentItemDetail; when we don't, 
+#     layout gets funny on Mac (bug 3543). By turning this off,
+#     I'm reopening bug 2976: location will be shown even for
+#     readonly shares.
+class CalendarLocationArea(ControlBlocks.ContentItemDetail):
+    pass
+#class CalendarLocationArea(DetailSynchronizedContentItemDetail):
+    #def shouldShow (self, item):
+        #return item.isAttributeModifiable('location') \
+               #or hasattr(item, 'location')
 
 class CalendarAtLabel (StaticTextLabel):
     def shouldShow (self, item):
@@ -1092,7 +1098,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
         else:
             # First, get ICU to parse it into a float
             try:
-                dateValue = DateAttributeEditor._format.parse(newValueString)
+                dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString)
             except ICUError:
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
@@ -1161,7 +1167,7 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
         
         # We have _something_; parse it.
         try:
-            timeValue = TimeAttributeEditor._format.parse(newValueString)
+            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(newValueString)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return

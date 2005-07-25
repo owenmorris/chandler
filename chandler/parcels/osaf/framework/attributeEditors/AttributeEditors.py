@@ -18,7 +18,7 @@ from osaf.framework.blocks import Styles
 import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
-from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
+from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition
 from osaf.framework.blocks.Block import ShownSynchronizer
 from osaf.framework.attributeEditors import AttributeEditor
 from osaf.contentmodel.ContentModel import ContentItem
@@ -647,25 +647,39 @@ class LobImageAttributeEditor (BaseAttributeEditor):
 
 
 class DateTimeAttributeEditor (StringAttributeEditor):
+    # Cache formatting info
+    shortTimeFormat = DateFormat.createTimeInstance(DateFormat.kShort)
+    shortDateFormat = DateFormat.createDateInstance(DateFormat.kShort)
+    mediumDateFormat = DateFormat.createDateInstance(DateFormat.kMedium)
+    symbols = DateFormatSymbols()
+    weekdays = symbols.getWeekdays()
+    
     def GetAttributeValue (self, item, attributeName):
-        try:
-            itemDate = getattr (item, attributeName) # getattr will work with properties
-        except AttributeError:
-            value = "No date specified"
+        itemDateTime = getattr (item, attributeName, None) # getattr will work with properties
+        if itemDateTime is None:
+            return u''
+        
+        itemDate = itemDateTime.date()
+        today = datetime.today()
+        todayDate = today.date()
+        if itemDate > todayDate or itemDate < (today + timedelta(days=-5)).date():
+            # Format as a date if it's after today, or in the distant past 
+            # (same day last week or earlier). (We'll do day names for days
+            # in the last week (below), but this excludes this day last week
+            # from that, to avoid confusion.)
+            value = unicode(DateTimeAttributeEditor.mediumDateFormat.format(itemDateTime))
+        elif itemDate == todayDate:
+            # Today? Just use the time.
+            value = unicode(DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime))
+        elif itemDate == (today + timedelta(days=-1)).date(): 
+            # Yesterday? say so.
+            value = _(u'Yesterday')
         else:
-            today = datetime.today()
-            yesterday = today + timedelta(days=-1)
-            beginningOfWeek = today + timedelta(days=-8)
-            endOfWeek = today + timedelta(days=-2)
-            if today.date == itemDate.date:
-                value = itemDate.strftime('%I:%M %p')
-            elif yesterday.date == itemDate.date:
-                value = 'Yesterday'
-            elif itemDate.date >= beginningOfWeek.date and itemDate.date <= endOfWeek.date:
-                value = itemDate.strftime('%A')
-                pass
-            else:
-                value = itemDate.strftime('%b %d, %Y')
+            # Do day names for days in the last week. We'll need to convert 
+            # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
+            wkDay = ((itemDateTime.weekday() + 1) % 7) + 1
+            value = DateTimeAttributeEditor.weekdays[wkDay]
+        
         return value
 
     def ReadOnly (self, (item, attribute)):
@@ -674,7 +688,6 @@ class DateTimeAttributeEditor (StringAttributeEditor):
         return True
 
 class DateAttributeEditor (StringAttributeEditor):
-    _format = DateFormat.createDateInstance(DateFormat.kShort)
     
     def GetAttributeValue (self, item, attributeName):
         try:
@@ -683,7 +696,7 @@ class DateAttributeEditor (StringAttributeEditor):
             value = u''
         else:
             value = dateTimeValue is not None \
-                  and unicode(DateAttributeEditor._format.format(dateTimeValue)) \
+                  and unicode(DateTimeAttributeEditor.shortDateFormat.format(dateTimeValue)) \
                   or u''
         return value
 
@@ -695,7 +708,7 @@ class DateAttributeEditor (StringAttributeEditor):
 
         # First, get ICU to parse it into a float
         try:
-            dateValue = DateAttributeEditor._format.parse(newValueString)
+            dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
@@ -733,7 +746,7 @@ class DateAttributeEditor (StringAttributeEditor):
             year = _(u"yr")
             month = _(u"mo")
             day = _(u"da")
-            sampleText = DateAttributeEditor._format.format(datetime(2003,10,30))
+            sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
             def replace(numbers, example):
                 i = sampleText.indexOf(numbers)
                 if i != -1:
@@ -748,15 +761,13 @@ class DateAttributeEditor (StringAttributeEditor):
         return self.cachedSampleText
     
 class TimeAttributeEditor (StringAttributeEditor):
-    _format = DateFormat.createTimeInstance(DateFormat.kShort)
-
     def GetAttributeValue (self, item, attributeName):
         try:
             dateTimeValue = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
             value = u''
         else:
-            value = unicode(TimeAttributeEditor._format.format(dateTimeValue))
+            value = unicode(DateTimeAttributeEditor.shortTimeFormat.format(dateTimeValue))
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -766,7 +777,7 @@ class TimeAttributeEditor (StringAttributeEditor):
         
         # We have _something_; parse it.
         try:
-            timeValue = TimeAttributeEditor._format.parse(newValueString)
+            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(newValueString)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
@@ -795,7 +806,7 @@ class TimeAttributeEditor (StringAttributeEditor):
             # would work.)
             hour = _(u"h")
             minute = _(u"m")
-            sampleText = TimeAttributeEditor._format.format(\
+            sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
             def replace(numbers, example):
                 i = sampleText.indexOf(numbers)
