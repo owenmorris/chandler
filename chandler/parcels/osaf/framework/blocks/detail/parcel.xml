@@ -601,6 +601,7 @@
     <stretchFactor>0.0</stretchFactor>
     <viewAttribute value="allDay"/>
     <border>2, 2, 2, 2</border>
+    <minimumSize>16, -1</minimumSize>
     <event itemref="doc:Resynchronize"/>
   </AEBlock>
   
