@@ -111,6 +111,7 @@ def initOptions(chandlerDirectory, **kwds):
         'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
         'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
         'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
+        'nosplash':    ('-N', '--nosplash',  'b', False, 'CHANDLERNOSPLASH', ''),
     }
 
 

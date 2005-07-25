@@ -167,7 +167,8 @@ class wxApplication (wx.App):
         splash screen.
         """
         splash = None
-        if not (__debug__ and Globals.options.nocatch):
+        if not Globals.options.nosplash or \
+            (__debug__ and Globals.options.nocatch):
             splashBitmap = self.GetImage ("splash.png")
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
