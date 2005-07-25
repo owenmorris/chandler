@@ -63,11 +63,19 @@ def SidebarSelect(itemOrName):
     Globals.mainViewRoot.postEventByName ('RequestSelectSidebarItem', params)
     Focus(Sidebar())
 
+def SidebarAdd(itemCollection):
+    """ Adds the given itemCollection to the sidebar """
+    Globals.mainViewRoot.postEventByName ( 'AddToSidebarWithoutCopying', {'items' : [itemCollection]} )
+
 def SummaryViewSelect(item):
     # Tell the ActiveView to select our item
     Globals.mainViewRoot.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':item})
     Focus(SummaryView())
 
+def GetWindow(label):
+    """ Returns the window with the given label """
+    return wx.FindWindowByLabel(label)
+    
 """
 TO BE DONE
 * Type(<string>) function to take the string and tell wx

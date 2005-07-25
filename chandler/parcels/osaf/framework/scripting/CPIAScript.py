@@ -77,11 +77,14 @@ def HotkeyScript(event, view):
         # try to find the corresponding Note
         targetScriptName = "Script F%s" % str(keycode-wx.WXK_F1+1)
         for aNote in Notes.Note.iterItems(view):
-            if targetScriptName == aNote.about:
-                scriptString = aNote.bodyString
-                fKeyScript = ExecutableScript(scriptString, view=view)
-                fKeyScript.execute()
-                return True
+            try:
+                if targetScriptName == aNote.about:
+                    scriptString = aNote.bodyString
+                    fKeyScript = ExecutableScript(scriptString, view=view)
+                    fKeyScript.execute()
+                    return True
+            except AttributeError:
+                pass
 
         # maybe we have an existing script?
         for aScript in Script.iterItems(view):
@@ -196,6 +199,9 @@ class ExecutableScript(object):
 
         # add Globals
         builtIns['Globals'] = Globals
+        
+        # add the current view      
+        builtIns['__view__'] = self.itsView
 
         # now run that script in our predefined scope
         try:
