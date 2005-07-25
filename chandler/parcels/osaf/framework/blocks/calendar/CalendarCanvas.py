@@ -855,10 +855,9 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
 
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                (anyTimeTest and allDayTest) and
+                (not allDay and not anyTime) and
                 self.itemIsInRange(item, date, nextDate)):
                 yield item
-
     def getItemsInCurrentRange(self, *arguments, **keywords):
         start, end = self.GetCurrentDateRange()
         return self.getItemsInRange(start,end, *arguments, **keywords)
@@ -1173,7 +1172,6 @@ class wxInPlaceEditor(wx.TextCtrl):
 class CalendarContainer(ContainerBlocks.BoxContainer):
 
     calendarControl = schema.One(schema.Item, required=True)
-    allDayEventsCanvas = schema.One(schema.Item, required=True)
 
     def __init__(self, *arguments, **keywords):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
@@ -1268,19 +1266,17 @@ class AllDayEventsCanvas(CalendarBlock):
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     legendBorderWidth = 1
-    collapsedHeight = 25
-
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
 
-        self.SetMinSize((-1, self.collapsedHeight))
+        self.SetMinSize((-1,25))
         self.size = self.GetSize()
         self.fixed = True
 
     def OnInit(self):
         super (wxAllDayEventsCanvas, self).OnInit()
         
-        self.SetMinSize((-1, self.collapsedHeight))
+        self.SetMinSize((-1,25))
         
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -1357,20 +1353,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     #self.size.width, self.size.height - 3)
 
     def RebuildCanvasItems(self):
-        """side effect: updates self.numEventRows for the max number of events in
-        one column"""
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-
-##         try:
-##             drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-##         except AttributeError:
-##             #ever since I (brendano) added the atrribute
-##             #calendarControl.allDayEventsArea, the order of widget
-##             #instantiation got changed, so when you click the calendar appbar
-##             #button, this method gets called before calCtrl.widget exists!
-##             #  However, it seems we can skip this method safely... TODO: test cross-platform
-##             return
-
         self.canvasItemList = []
 
         if self.blockItem.dayMode:
@@ -1388,7 +1371,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if self.blockItem.dayMode:
             for y, item in enumerate(visibleItems):
                 self.RebuildCanvasItem(item, width, 0,0, y)
-            self.numEventRows = len(visibleItems)
             
         else:
             # Next: place all the items on a grid without overlap. Items can span
@@ -1402,7 +1384,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
             MAX_ROWS = 200
             grid = [[False for y in range(MAX_ROWS)] for x in range(drawInfo.columns)]
-            self.numEventRows = 0
 
             for item in visibleItems:
                 # get first and last column of its span
@@ -1419,18 +1400,15 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                         for day in xrange(dayStart, dayEnd+1):
                             grid[day][y] = True
                         self.RebuildCanvasItem(item, width, dayStart, dayEnd, y)
-                        if y+1 > self.numEventRows:  self.numEventRows = y+1
                         break
                 else:
                     raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
-
-    def GetExpandedHeight(self):
-        """What should be the ideal fully expanded height?
-        precondition: self.numEventRows needs to be set correctly"""
-        n = self.numEventRows
-        h = self.eventHeight
-        return (n + .5) * h
-    expandedHeight = property(GetExpandedHeight)
+        ### OLD, GO AWAY SOON
+        #for day in range(drawInfo.columns):
+            #currentDate = self.blockItem.rangeStart + timedelta(days=day)
+            #rect = wx.Rect((drawInfo.dayWidth * day) + drawInfo.xOffset, 0,
+                           #width, size.height)
+            #self.RebuildCanvasItemsByDay(currentDate, rect)
 
     @staticmethod
     def BlockFits(grid, x1, x2, y):
@@ -2107,17 +2085,24 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
     
 class CalendarControl(CalendarBlock):
 
+    ## TODO: integrate alecf's r5851 widget changes
+
     dayMode = schema.One(schema.Boolean)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     calendarContainer = schema.One(schema.Item)
-    #allDayEventsCanvas = schema.One(schema.Item)
-
 
     def __init__(self, *arguments, **keywords):
         super(CalendarControl, self).__init__(*arguments, **keywords)
 
         
     def instantiateWidget(self):
+        ## written by KCP in old CalendarContainer code, since we know instantiateWidget()
+        ## is after this has been loaded by parcel.xml.  @@@ is onSetContentsEvent a
+        ## better place to put it?  or better yet, some method that the calcon
+        ## calls once all its children are instantiated (is there such a method
+        ## somewhere?)
+        
+
         w = wxCalendarControl(self.parentBlock.widget, -1)
         return w
 
@@ -2209,7 +2194,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # turn this off for now, because our sizing needs to be exact
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
-        headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", "+"]
+        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", ""]
         for header in headerLabels:
             self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
@@ -2258,6 +2243,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.weekColumnHeader.SetUIExtent(i, (0,width))
 
     def OnSize(self, event):
+        # print "CalendarControl.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self._doDrawingCalculations()
         self.ResizeHeader()
         event.Skip()
@@ -2322,41 +2308,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if (colIndex == 0):
             return self.OnWeekSelect()
 
-        # the expando-button
+        # the old "+" sign column now should do nothing when clicked...
         if (colIndex == 8):
-            self.OnExpandButtonClick(event)
-            return False #@@@ whats the return value mean? -brendano
+            return False #@@@ whats the return value supposed to be??
         
         # all other cases mean a day was selected
         # OnDaySelect takes a zero-based day, and our first day is in column 1
         return self.OnDaySelect(colIndex-1)
-
-
-    def OnExpandButtonClick(self, event):
-        wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
-        currentHeight = wxAllDay.GetSize()[1]
-        if currentHeight >= wxAllDay.collapsedHeight and \
-           currentHeight < wxAllDay.expandedHeight:
-            # Expand
-            wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
-            self.OnSashPositionChange()
-
-        elif currentHeight >= wxAllDay.expandedHeight:
-            # Collapse
-            wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
-            self.OnSashPositionChange()
-
-    def OnSashPositionChange(self, event=None):
-        ## TODO: hook up something like EVT_SPLITTER_SASH_POS_CHANGED to this
-        wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
-        position = wxAllDay.GetParent().GetSashPosition()
-        if position == wxAllDay.collapsedHeight:
-            #print 'set expando-button to down arrow'
-            pass
-        else:
-            #print 'set expando-button to up arrow'
-            pass
-        
 
 
     

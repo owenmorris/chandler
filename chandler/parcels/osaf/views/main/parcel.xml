@@ -1448,8 +1448,7 @@
     <blockName>CalendarSummaryView</blockName>
     <childrenBlocks itemref="doc:MainCalendarControl"/>
     <calendarControl itemref="doc:MainCalendarControl"/>
-    <allDayEventsCanvas itemref="doc:AllDayEvents"/>
-    <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/>  -->
+    <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/> -->
     <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
     <orientationEnum>Vertical</orientationEnum>
   </calendar:CalendarContainer>
@@ -1458,8 +1457,6 @@
     <calendar:CalendarControl itsName="MainCalendarControl">
       <blockName value="MainCalendarControl"/>
       <calendarContainer itemref="doc:CalendarSummaryView"/>
-      <!-- This would be nice to specify here, but when you do, CPIA does block loading/rendering (or something) in a different order - which is bad because our drawInfo sharing code relies on certain assumptions about initialization order in order to work right -->
-      <!-- <allDayEventsCanvas itemref="doc:AllDayEvents"/> -->
       <stretchFactor value="0"/>
       <!-- set contents to an empty collection somehow... -->
     </calendar:CalendarControl>
@@ -1485,14 +1482,14 @@
     </SplitterWindow>
   
       <calendar:AllDayEventsCanvas itsName="AllDayEvents">
-        <blockName value="AllDayEventsCanvas"/>
+        <blockName value="all day events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/> <!-- seems to be ignored (only BoxContainers use it) -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:AllDayEventsCanvas>
   
       <calendar:TimedEventsCanvas itsName="TimedEvents">
-        <blockName value="TimedEventsCanvas"/>
+        <blockName value="timed events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="1"/> <!-- seems to be ignored... -->
         <contents itemref="doc:allItemCollection"/>

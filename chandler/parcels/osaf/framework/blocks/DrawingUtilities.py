@@ -59,7 +59,7 @@ def DrawWrappedText(dc, text, rect):
     returns the height of the text that was written
     """
     
-    result = [] #what's this supposed to do? is unused -brendano
+    result = []
     
     lines = text.splitlines()
     y = rect.y

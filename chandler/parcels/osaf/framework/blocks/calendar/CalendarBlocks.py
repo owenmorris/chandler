@@ -148,83 +148,47 @@ class wxPreviewArea(wx.Panel):
         self.Draw(dc)
 
     def Draw(self, dc):
-        if self.blockItem.weekMode: return
-
         dc.Clear()
-
-
-        #White background
-        dc.SetBackground(wx.WHITE_BRUSH)
-        dc.SetBrush(wx.WHITE_BRUSH)
-        dc.SetPen(wx.WHITE_PEN)
-        dc.DrawRectangle(*iter(self.GetRect()))
+        dc.SetBackground( wx.WHITE_BRUSH )
         
         dc.SetTextBackground( (255,255,255) )
         dc.SetTextForeground( (0,0,0) )
         
         dc.SetFont(self.font)
-        y = 0
-        for line in self.text.splitlines():
-            dc.DrawText(line, 0, y)
-            y += self.fontHeight
-##         DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
+        DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
         
-    @staticmethod
-    def TimeFormat(time):
-        ## XXX needs to be locale specific using PyICU
-        #But then how do you do spacing and vertical alignment? (though it's not done now)
-        return "%d:%.2d" % (time.hour, time.minute)
-
     def wxSynchronizeWidget(self):
-        if self.blockItem.weekMode:
-            # disappear!
-            # @@@ hacky minsize/parent layout system
-            self.SetMinSize((0,0))
-            self.GetParent().Layout()
-            return
 
-        self.text  = "this is the PreviewArea\n"
+        self.text  = "stub: PreviewArea goes here\n"
 
         try:
             self.currentDaysItems = list(self.blockItem.getItemsInCurrentRange(True, True))
         except:
             self.text += "contents not set, so no events displayed\n"
         
-        self.currentDaysItems.sort(cmp = self.SortForPreview)
-        for item in self.currentDaysItems:
-            if item.allDay or item.anyTime:
-                self.text += "%s\n" % item.displayName
-            elif item.startTime == item.endTime:
-                # at-time event
-                self.text += "@ %s: %s\n" %(self.TimeFormat(item.startTime.time()), item.displayName)
-            else:
-                self.text += "%s - %s: %s\n" % (
-                                self.TimeFormat(item.startTime.time()),
-                                self.TimeFormat(item.endTime.time()),
-                                item.displayName)
+        if self.blockItem.weekMode:
+            self.text += "whole week selected so\n"
+            self.text += "this pane should disappear (?)\n"
+            
+        else:
+            self.text += "for day starting: %s\n" % self.blockItem.rangeStart
+            self.text += "over timespan: %s\n" %self.blockItem.rangeIncrement
+            self.text += "there are %d events:\n" % len(self.currentDaysItems)
+            for item in self.currentDaysItems:
+                if item.allDay or item.anyTime:
+                    self.text += "%s\n" % item.displayName
+                elif item.startTime == item.endTime:
+                    # at-time event
+                    self.text += "%s: %s\n" %(item.displayName, item.startTime.time())
+                else:
+                    self.text += "%s: %s - %s\n" % (item.displayName, item.startTime.time(), item.endTime.time())
                     
         numLines = len(self.text.splitlines())
-        self.SetMinSize( (-3, (numLines) * self.fontHeight + 3) )
+        self.SetMinSize( (-3, numLines * self.fontHeight + 3) )
 
         ## @@@ hacky
         self.GetParent().Layout()
-        #self.GetParent().GetParent().Layout()
+        self.GetParent().GetParent().Layout()
         
         dc = wx.ClientDC(self)
         self.Draw(dc)
-
-    @staticmethod
-    def SortForPreview(item1, item2):
-        if (item1.anyTime or item1.allDay) and (item2.anyTime or item2.allDay):
-            return cmp(item1.displayName, item2.displayName)
-        if item1.anyTime or item1.allDay:
-            return -1
-        if item2.anyTime or item2.allDay:
-            return 1
-        if item1.startTime == item2.startTime:
-            if item1.endTime == item2.endTime:
-                return cmp(item1.displayName, item2.displayName)
-            #duration
-            return cmp(item1.endTime, item2.endTime)
-        return cmp(item1.startTime, item2.startTime)
-        
