@@ -159,7 +159,8 @@ class ContentItem(schema.Item):
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
     schema.addClouds(
-        sharing = schema.Cloud("displayName", body, "issues", createdOn),
+        sharing = schema.Cloud("displayName", body, "issues", createdOn,
+                               "description"),
         copying = schema.Cloud()
     )
 
