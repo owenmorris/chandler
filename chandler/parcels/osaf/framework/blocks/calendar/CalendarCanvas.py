@@ -1414,7 +1414,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         precondition: self.numEventRows needs to be set correctly"""
         n = self.numEventRows
         h = self.eventHeight
-        return (n + .5) * h
+        return int( (n + .5) * h )
     expandedHeight = property(GetExpandedHeight)
 
     @staticmethod
@@ -2313,6 +2313,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # the expando-button
         if (colIndex == 8):
+            self.UpdateHeader()
             self.OnExpandButtonClick(event)
             return False #@@@ whats the return value mean? -brendano
         
@@ -2321,24 +2322,31 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         return self.OnDaySelect(colIndex-1)
 
     def OnExpandButtonClick(self, event):
-        return
-    ## @@@ need to fix drawInfo weirdness and get this reference wired up before doing all this
-    #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
-    #currentHeight = wxAllDay.GetSize()[1]
-    #if currentHeight >= wxAllDay.collapsedHeight and \
-       #currentHeight < wxAllDay.expandedHeight:
-        ## Expand
-        #wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
-        #self.OnSashPositionChange()
+        #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
+        wxAllDay = self.GetAllDayWidget()
+        currentHeight = wxAllDay.GetSize()[1]
+        if currentHeight >= wxAllDay.collapsedHeight and \
+           currentHeight < wxAllDay.expandedHeight:
+            ## Expand
+            wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
+            self.OnSashPositionChange()
+        
+        elif currentHeight >= wxAllDay.expandedHeight:
+            # Collapse
+            wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
+            self.OnSashPositionChange()
     
-    #elif currentHeight >= wxAllDay.expandedHeight:
-        ## Collapse
-        #wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
-        #self.OnSashPositionChange()
-
+    def GetAllDayWidget(self):
+        """encapsulates a hack of climbing around a tree"""
+        # @@@ hack that depends on tree structure! would be better to have an
+        # allDay reference in calcontainer or calctrl, but that causes
+        # initialization order weirdness
+        return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0].widget
+    
     def OnSashPositionChange(self, event=None):
         ## TODO: hook up something like EVT_SPLITTER_SASH_POS_CHANGED to this
-        wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
+        #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
+        wxAllDay = self.GetAllDayWidget()
         position = wxAllDay.GetParent().GetSashPosition()
         if position == wxAllDay.collapsedHeight:
             #print 'set expando-button to down arrow'
