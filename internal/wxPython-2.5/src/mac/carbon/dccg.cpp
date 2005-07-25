@@ -325,33 +325,39 @@ void EstablishPatternColorSpace(
 	bool				useMultibit,
 	bool				useFill )
 {
+	CGColorSpaceRef	baseSpace, patternSpace;
+
 	if (ctxRef == NULL)
 		return;
 
+	baseSpace = NULL;
+	patternSpace = NULL;
+
 	if (useMultibit)
 	{
-		CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( NULL );
+		patternSpace = CGColorSpaceCreatePattern( NULL );
 
 		if (useFill)
 			CGContextSetFillColorSpace( ctxRef, patternSpace );
 		else
 			CGContextSetStrokeColorSpace( ctxRef, patternSpace );
-
-		CGColorSpaceRelease( patternSpace );
 	}
 	else
 	{
-		CGColorSpaceRef  baseSpace = CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB );
-		CGColorSpaceRef  patternSpace = CGColorSpaceCreatePattern( baseSpace );
+		baseSpace = CGColorSpaceCreateWithName( kCGColorSpaceGenericRGB );
+		patternSpace = CGColorSpaceCreatePattern( baseSpace );
 
 		if (useFill)
 			CGContextSetFillColorSpace( ctxRef, patternSpace );
 		else
 			CGContextSetStrokeColorSpace( ctxRef, patternSpace );
-
-		CGColorSpaceRelease( patternSpace );
-		CGColorSpaceRelease( baseSpace );
 	}
+
+	// NB: the context owns these now, and this code is finished with them
+	if (patternSpace != NULL)
+		CGColorSpaceRelease( patternSpace );
+	if (baseSpace != NULL)
+		CGColorSpaceRelease( baseSpace );
 }
 
 void ImagePatternRender(
@@ -364,7 +370,7 @@ void ImagePatternRender(
 	CGImageRef	imageRef = (CGImageRef)info;
 	if (imageRef != NULL)
 	{
-		CGRect  boundsR = CGRectMake( 0.0, 0.0, (float)CGImageGetWidth( imageRef ), (float)CGImageGetHeight( imageRef ) );
+		CGRect	boundsR = CGRectMake( 0.0, 0.0, (float)CGImageGetWidth( imageRef ), (float)CGImageGetHeight( imageRef ) );
 		CGContextDrawImage( ctxRef, boundsR, imageRef );
 	}
 }
@@ -378,7 +384,7 @@ void ImagePatternDispose(
 }
 
 // specifies the struct version value and the callback functions for draw and release
-static const CGPatternCallbacks sImagePatternCallback = { 0,  &ImagePatternRender, &ImagePatternDispose };
+static const CGPatternCallbacks sImagePatternCallback = { 0, &ImagePatternRender, &ImagePatternDispose };
 
 long CreatePatternFromBitmap(
 	CGPatternRef		*patternRef,
