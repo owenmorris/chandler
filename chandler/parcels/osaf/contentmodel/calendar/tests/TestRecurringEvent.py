@@ -77,7 +77,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         # make sure getNextOccurrence returns the same item when called twice
         self.assertEqual(second, self.event.getNextOccurrence())
         
-        third = self.event.getNextOccurrence(after=secondStart)
+        third = self.event.getNextOccurrence(startsafter=secondStart)
         thirdStart = datetime(2005, 7, 18, 13)
         self.assertEqual(third.startTime, thirdStart)
         
@@ -164,7 +164,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         # all occurrences except the first should be deleted, then one should 
         # be generated
         self.assertEqual(len(self.event.occurrences), 2)
-
         self.assertEqual(len(list(self.event._generateRule())), count)
 
         twoWeeks = self.start + timedelta(days=14)
@@ -184,7 +183,6 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         proxy.rruleset = self._createRuleSetItem('weekly')
         self.assert_(self.event in proxy.rruleset.events)
-
         self.assertEqual(proxy.getNextOccurrence().occurrenceFor, self.event)
         self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
         
@@ -324,6 +322,8 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
 #tests to write:
 """
+
+test getNextOccurrence with wacky duration stuff, date ordering issues
 
 test anyTime, allDay, and no duration  events
 

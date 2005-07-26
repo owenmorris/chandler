@@ -22,6 +22,11 @@ from repository.schema.Types import TimeZone
 
 from datetime import datetime, time, timedelta
 import itertools
+import StringIO
+import logging
+
+logger = logging.getLogger('Calendar')
+logger.setLevel(logging.DEBUG)
 
 TIMECHANGES = ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset')
 
@@ -439,6 +444,11 @@ class CalendarEventMixin(ContentModel.ContentItem):
         else:
             return self.occurrenceFor.getMaster()
 
+    def isBetween(self, after=None, before=None):
+        #TODO: deal with different sorts of events
+        return (before is None or self.startTime <= before) and \
+               (after is None or self.endTime >= after)
+
     def createDateUtilFromRule(self):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
         
@@ -498,35 +508,44 @@ class CalendarEventMixin(ContentModel.ContentItem):
         del new._ignoreValueChanges
         return new
 
-    def getNextOccurrence(self, after=None):
+    def getNextOccurrence(self, startsafter=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
         
-        If self is the only occurrence, or last occurrence, return None.
+        If self is the only occurrence, or last occurrence, return None.  Note
+        that getNextOccurrence does not have logic to deal with the duration
+        of events.
         
         """
         if self.rruleset is None:
             return None
         else:
-            after = after or self.startTime
-            nextRecurrenceID=self.createDateUtilFromRule().after(after)
-            if nextRecurrenceID == None: return None
+            first = self.getFirstInRule()
+            startsafter = startsafter or self.startTime
+            nextRecurrenceID=self.createDateUtilFromRule().after(startsafter)
+            if nextRecurrenceID == None:
+                return None
+            elif before is not None and nextRecurrenceID > before:
+                return None
             # TODO: deal with modifications
             # test if nextRecurrenceID matches a modification that actually
             # occurred before now, if so, get a new recurrenceID
             # find all modifications after startTime and before nextRecurrenceID
             # if any exist, return the first one
-            firstInRule = self.getFirstInRule()
-            for occurrence in firstInRule.occurrences:
+            for occurrence in first.occurrences:
                 if occurrence.recurrenceID == nextRecurrenceID:
                     return occurrence
             return self._createOccurrence(nextRecurrenceID)
 
-    def _generateRule(self):
+    def _generateRule(self, after=None, before=None):
         """Yield all occurrences in this rule."""
         event = first = self.getFirstInRule()
+        if not first.isBetween(after, before):
+            event = first.getNextOccurrence(after - first.duration, before)
         while event is not None:
-            yield event
+            if event.isBetween(after, before):
+                yield event
             event = event.getNextOccurrence()
+            # does this ever happen?
             if event is not None and event.occurrenceFor != first:
                 event = None
 
@@ -544,10 +563,13 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if create:
             iter = self._generateRule()
         else:
-            if self.occurrences == None: return None
+            if self.occurrences == None:
+                return None
             iter = _sortEvents(self.occurrences)
         for occurrence in iter:
-            if occurrence.isGenerated: return occurrence
+            if occurrence.isGenerated:
+                logger.debug("found generated occurrence:\n%s" % occurrence.serializeMods().getvalue())
+                return occurrence
         # no generated occurrences
         return None
 
@@ -557,14 +579,11 @@ class CalendarEventMixin(ContentModel.ContentItem):
         Get events starting on or before "before", ending on or after "after".
         Generate any events needing generating. 
         
-        """
-        def isBetween(event):
-            return event.startTime <= before and event.endTime >= after
-                
+        """     
         master = self.getMaster()
 
         if not master.hasLocalAttributeValue('rruleset'):
-            if isBetween(master):
+            if master.isBetween(after, before):
                 return [master]
             else: return []
 
@@ -580,11 +599,13 @@ class CalendarEventMixin(ContentModel.ContentItem):
             if mod.startTime >= after:
                 index = i
                 break
-        if index == -1: mods = mods[-1:] # no mods start before after
-        elif index == 0: pass
-        else: mods = mods[index - 1:]
-        
-        return [e for mod in mods for e in mod._generateRule() if isBetween(e)]
+        if index == -1:
+            mods = mods[-1:] # no mods start before after
+        elif index == 0:
+            pass
+        else:
+            mods = mods[index - 1:]
+        return [e for mod in mods for e in mod._generateRule(after, before)]
     
     def _movePreviousRuleEnd(self):
         """Make sure the previous rule doesn't recreate or overlap with self."""
@@ -767,18 +788,25 @@ class CalendarEventMixin(ContentModel.ContentItem):
 
     def onValueChanged(self, name):
         # allow initialization code to avoid triggering onValueChanged
-        if getattr(self, '_ignoreValueChanges', False):
+        if getattr(self, '_ignoreValueChanges', False) or self.rruleset is None:
             return
         # avoid infinite loops
         if name == "rruleset": 
-            self._getFirstGeneratedOccurrence(True)
+            logger.debug("just set rruleset")
+            gen = self._getFirstGeneratedOccurrence(True)
+            logger.debug("got first generated occurrence, %s" % gen.serializeMods().getvalue())
+
             # make sure masters get modificationRecurrenceID set
             if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
+                self.recurrenceID = self.startTime
         elif name not in """modifications modificationFor occurrences
                           occurrenceFor modifies isGenerated recurrenceID
-                          _ignoreValueChanges modificationRecurrenceID
+                          _ignoreValueChanges modificationRecurrenceID queries
+                          contentsOwner TPBSelectedItemOwner TPBDetailItemOwner
+                          itemCollectionInclusions
                           """.split():
+            logger.debug("about to changeThis onValueChanged(name=%s) for %s" % (name, str(self)))
             self.changeThis()
 
     def _deleteGeneratedOccurrences(self):
@@ -848,17 +876,21 @@ class CalendarEventMixin(ContentModel.ContentItem):
             return self.rruleset.getCustomDescription()
         else: return ''
 
-    def printMods(ev, level=0):
+    def serializeMods(self, level=0, buf=None):
+        if buf is None:
+            buf = StringIO.StringIO()
+        pad = "  " * level
         if level:
-            print "  " * level + "modification.  modifies:", ev.modifies, \
-                  "modificationFor:", ev.modificationFor.startTime
-        print "  " * level + "event is: ", ev.displayName, ev.startTime
-        if ev.modifies is 'thisandfuture' or ev.modificationFor is None:
-            print "  " * level + "until:", list(ev.rruleset.rrules)[0].until
-        print
-        if ev.hasLocalAttributeValue('modifications'):
-            for mod in ev.modifications:
-                mod.printMods(level + 1)
+            buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
+                             % (self.modifies, self.modificationFor.startTime))
+        buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
+        if self.modifies is 'thisandfuture' or self.modificationFor is None:
+            buf.write(pad + "until: %s\n" % list(self.rruleset.rrules)[0].until)
+        buf.write('\n')
+        if self.hasLocalAttributeValue('modifications'):
+            for mod in self.modifications:
+                mod.serializeMods(level + 1, buf)
+        return buf
 
     def isProxy(self):
         """Is this a proxy of an event?"""
