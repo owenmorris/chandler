@@ -636,6 +636,19 @@ class LobImageAttributeEditor (BaseAttributeEditor):
 
     def BeginControlEdit(self, item, attributeName, control):
 
+        # @@@MOR This is a hack to work around BeginControlEdit getting
+        # called too often -- it's getting called even if the attribute hasn't
+        # been modified.  But the real problem is that clicking the 'new item'
+        # button does a commit which starts a chain of events that leads to a
+        # CallAfter( ) method getting called after this control has been
+        # destroyed.  The downside of this hack is that if the attribute value
+        # really does change (as the result of an importFromFile( ) for
+        # example), the new image won't be displayed until switching to a
+        # different item and back again.
+        if hasattr(self, "iAmInitialized"):
+            return
+        self.iAmInitialized = True
+
         try:
             bmp = self.__getBitmapFromLob(getattr(item, attributeName))
         except Exception, e:
