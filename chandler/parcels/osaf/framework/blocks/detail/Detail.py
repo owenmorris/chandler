@@ -25,6 +25,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.calendar.Recurrence as Recurrence
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.Notes as Notes
+from osaf.contentmodel import ContentItem
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
 import osaf.mail.constants as MailConstants
@@ -622,6 +623,18 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         item = self.selectedItem()
         if item is not None:
             tool = event.arguments['sender']
+            if not item.isPrivate and \
+               item.getSharedState() != ContentItem.UNSHARED:
+                # Marking a shared item as "private" could act weird...
+                # Are you sure?
+                caption = _("Change the privacy of a shared item?")
+                msg = _("This item is already being shared. Odd things may " \
+                        "happen if you change this now.\nDo you really " \
+                        "want to do this?")
+                if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                    # No: Put the not-private state back in the toolbarItem
+                    self.widget.ToggleTool(tool.toolID, False)
+                    return
             item.isPrivate = self.widget.GetToolState(tool.toolID)
             
     def onTogglePrivateEventUpdateUI(self, event):
@@ -1061,27 +1074,52 @@ class CalendarReminderArea(DetailSynchronizedContentItemDetail):
         return item.isAttributeModifiable('reminderTime') \
                or hasattr(item, 'reminderTime')
 
+# Centralize the recurrence blocks' visibility decisions
+showPopup = 1
+showCustom = 2
+showEnds = 4
+def recurrenceVisibility(item):
+    result = 0
+    freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
+    modifiable = item.isAttributeModifiable('rruleset')
+    
+    # Show the popup only if it's modifiable, or if it's not
+    # modifiable but not the default value.
+    if modifiable or (freq != RecurrenceAttributeEditor.onceIndex):
+        result |= showPopup
+            
+    if freq == RecurrenceAttributeEditor.customIndex:
+        # We'll show the "custom" flag only if we're custom, duh.
+        result |= showCustom
+    elif freq != RecurrenceAttributeEditor.onceIndex:
+        # We're not custom and not "once": We'll show "ends" if we're 
+        # modifiable, or if we have an "ends" value.
+        if modifiable:
+            result |= showEnds
+        else:
+            try:
+                endDate = item.rruleset.rrules.first().until
+            except AttributeError:
+                pass
+            else:
+                result |= showEnds
+    return result
+    
 class CalendarRecurrencePopupArea(DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
-        return item.isAttributeModifiable('rruleset') \
-               or RecurrenceAttributeEditor.mapRecurrenceFrequency(item) != \
-               RecurrenceAttributeEditor.onceIndex    
+        return (recurrenceVisibility(item) & showPopup) != 0
+
+class CalendarRecurrenceSpacer2Area(DetailSynchronizer, ControlBlocks.StaticText):
+    def shouldShow(self, item):
+        return (recurrenceVisibility(item) & (showPopup | showEnds)) != 0
 
 class CalendarRecurrenceCustomArea(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
-        # We're visible only if we're "custom"
-        return RecurrenceAttributeEditor.mapRecurrenceFrequency(item) == \
-               RecurrenceAttributeEditor.customIndex
+        return (recurrenceVisibility(item) & showCustom) != 0
 
 class CalendarRecurrenceEndArea(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
-        # We're visible only if we're not custom, and either not 'once'
-        # or modifiable (that is, hidden if 'once' and readonly)
-        freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
-        visible = (freq != RecurrenceAttributeEditor.customIndex) and \
-                ((freq != RecurrenceAttributeEditor.onceIndex) or \
-                 item.isAttributeModifiable('rruleset'))
-        return visible
+        return (recurrenceVisibility(item) & showEnds) != 0
 
 # Attribute editor customizations
 
@@ -1339,15 +1377,32 @@ class RecurrenceCustomAttributeEditor(StaticStringAttributeEditor):
         return item.getCustomDescription()
         
 class RecurrenceEndsAttributeEditor(DateAttributeEditor):
+    # If we haven't already, remap the configured item & attribute 
+    # name to the actual 'until' attribute deep in the recurrence rule.
+    # (Because we might be called from within SetAttributeValue,
+    # which does the same thing, we just pass through if we're already
+    # mapped to 'until')
     def GetAttributeValue(self, item, attributeName):
+        if attributeName != 'until':
+            attributeName = 'until'
+            try:
+                item = item.rruleset.rrules.first()
+            except AttributeError:
+                return u''
         return super(RecurrenceEndsAttributeEditor, self).\
-               GetAttributeValue(item.rruleset.rrule[0], 'until')
+               GetAttributeValue(item, attributeName)
         
     def SetAttributeValue(self, item, attributeName, valueString):
+        if attributeName != 'until':
+            attributeName = 'until'        
+            try:
+                item = item.rruleset.rrules.first()
+            except AttributeError:
+                assert False, "Hey - Setting 'ends' on an event without a recurrence rule?"
+        
         super(RecurrenceEndsAttributeEditor, self).\
-             SetAttributeValue(self, item.rruleset.rrule[0], 'until',
-                               valueString)
-    
+             SetAttributeValue(item, attributeName, valueString)
+
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):
         self.selection = item

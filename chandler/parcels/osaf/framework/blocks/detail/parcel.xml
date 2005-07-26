@@ -518,9 +518,10 @@
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
 
     <!-- The recurrence UI; turned off for now. -->
-    <!-- 
+    <!--
     <childrenBlocks itemref="doc:CalendarRecurrenceSpacer"/>
     <childrenBlocks itemref="doc:CalendarRecurrencePopupArea"/>
+    <childrenBlocks itemref="doc:CalendarRecurrenceSpacer2"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceCustomArea"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceEndArea"/>
     -->
@@ -709,8 +710,6 @@
   </StaticText>
 
   <PresentationStyle itsName="EndDatePresentation">
-    <!-- This hint isn't l10n-happy -->
-    <sampleText>mm/dd/yy</sampleText>
     <format>calendarDateOnly</format>
   </PresentationStyle>
 
@@ -881,6 +880,15 @@
     <event itemref="doc:Resynchronize"/>
   </AEBlock>
 
+  <StaticText itsName="CalendarRecurrenceSpacer2"                     
+              itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrenceSpacer2Area">
+    <blockName value="CalendarRecurrenceSpacer2"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 1</minimumSize>
+  </StaticText>
+
   <ContentItemDetail itsName="CalendarRecurrenceCustomArea"
                      itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrenceCustomArea">
     <blockName value="CalendarRecurrenceCustomArea"/>
@@ -939,7 +947,7 @@
   </StaticText>
 
    <PresentationStyle itsName="RecurrenceEndPresentationStyle">
-    <format>calendarDateOnly</format>
+    <format>ends</format>
    </PresentationStyle>
   
   <AEBlock itsName="EditRecurrenceEnd">

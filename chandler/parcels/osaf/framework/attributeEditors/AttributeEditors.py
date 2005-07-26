@@ -736,8 +736,9 @@ class DateAttributeEditor (StringAttributeEditor):
             return
 
         # If this results in a new value, put it back.
-        oldValue = getattr(item, attributeName)
-        value = datetime.combine(dateTimeValue.date(), oldValue.time())
+        oldValue = getattr(item, attributeName, None)
+        value = (oldValue is None) and dateTimeValue \
+              or datetime.combine(dateTimeValue.date(), oldValue.time())
         if oldValue != value:
             setattr(item, attributeName, value)
             self.AttributeChanged()
@@ -749,25 +750,19 @@ class DateAttributeEditor (StringAttributeEditor):
     def GetSampleText(self, item, attributeName):
         # We want to build a hint like "mm/dd/yy", but we don't know the locale-
         # specific ordering of these fields. Format a date with distinct values,
-        # then replace the resulting string's pieces with letters.            
-        # @@@ This only works for locales that use a Western-style calendar
+        # then replace the resulting string's pieces with text.
         if not hasattr(self, 'cachedSampleText'):
-            # @@@ These individual letters still need to be localized. If the
-            # resulting strings are 1 character long, they'll be repeated to
-            # fill the field. If not, they'll replace the field as-is (so "mon"
-            # would work.)
-            year = _(u"yr")
-            month = _(u"mo")
-            day = _(u"da")
+            year4 = _(u"yyyy")
+            year2 = _(u"yy")
+            month = _(u"mm")
+            day = _(u"dd")
             sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
             def replace(numbers, example):
                 i = sampleText.indexOf(numbers)
                 if i != -1:
-                    if len(example) == 1:
-                        example *= len(numbers)
                     sampleText[i:i+len(numbers)] = example
-            replace("2003", year) # Some locales use 4-digit year, some use 2.
-            replace("03", year)   # so we'll handle both.
+            replace("2003", year4) # Some locales use 4-digit year, some use 2.
+            replace("03", year2)   # so we'll handle both.
             replace("10", month)
             replace("30", day)
             self.cachedSampleText = unicode(sampleText)
@@ -810,22 +805,15 @@ class TimeAttributeEditor (StringAttributeEditor):
     def GetSampleText(self, item, attributeName):
         # We want to build a hint like "hh:mm PM", but we don't know the locale-
         # specific ordering of these fields. Format a date with distinct values,
-        # then replace the resulting string's pieces with letters.            
-        # @@@ This only works for locales that use a Western-style calendar
+        # then replace the resulting string's pieces with text.            
         if not hasattr(self, 'cachedSampleText'):
-            # @@@ These individual letters still need to be localized. If the
-            # resulting strings are 1 character long, they'll be repeated to
-            # fill the field. If not, they'll replace the field as-is (so "hour"
-            # would work.)
-            hour = _(u"h")
-            minute = _(u"m")
+            hour = _(u"hh")
+            minute = _(u"mm")
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
             def replace(numbers, example):
                 i = sampleText.indexOf(numbers)
                 if i != -1:
-                    if len(example) == 1:
-                        example *= len(numbers)
                     sampleText[i:i+len(numbers)] = example
             replace("11", hour)
             replace("45", minute)
