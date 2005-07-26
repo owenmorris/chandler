@@ -950,7 +950,7 @@ class ModuleMaker:
             for it in module.__dict__.values():
                 if hasattr(it,'_find_schema_item'):
                     # Import each kind/struct/enum          
-                    itemFor(it,repoView)
+                    itemFor(it,view)
             module.installParcel(item, None)
 
     def __repr__(self):
