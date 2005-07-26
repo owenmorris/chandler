@@ -109,6 +109,26 @@ def GetWindow(label):
     """ Returns the window with the given label """
     return _wx.FindWindowByLabel(label)
     
+def Type(string, ctrlFlag = False, altFlag = False, shiftFlag = False):
+    """ Types the string into the current focused widget, returns True if successful """
+    stringSuccess = True
+    for char in string:
+        try:
+            keyPressMethod = _wx.Window_FindFocus().EmulateKeyPress
+        except AttributeError:
+            return False
+        else:
+            keyCode = ord(char)  # returns ASCII value of char
+            keyPress = _wx.KeyEvent(_wx.wxEVT_KEY_DOWN)
+            keyPress.m_keyCode = keyCode
+            keyPress.m_shiftDown = char.isupper() or shiftFlag
+            keyPress.m_controlDown = keyPress.m_metaDown = ctrlFlag
+            keyPress.m_altDown = altFlag
+            charSuccess = keyPressMethod(keyPress)
+            stringSuccess = stringSuccess and charSuccess
+    return stringSuccess
+
+    
 """
 TO BE DONE
 * Type(<string>) function to take the string and tell wx
