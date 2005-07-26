@@ -968,6 +968,8 @@
 		40F10E5906AD0230003C7AC3 /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5706AD0230003C7AC3 /* thread.cpp */; };
 		40F10E5C06AD0230003C7AC3 /* tglbtn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5606AD0230003C7AC3 /* tglbtn.cpp */; };
 		40F10E5D06AD0230003C7AC3 /* thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 40F10E5706AD0230003C7AC3 /* thread.cpp */; };
+		437C9A360896D33B00586F77 /* utilsexc_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 437C9A350896D33B00586F77 /* utilsexc_base.cpp */; };
+		437C9A370896D33B00586F77 /* utilsexc_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 437C9A350896D33B00586F77 /* utilsexc_base.cpp */; };
 		43CFD09C08615E6800042D0A /* colheader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CFD09A08615E6800042D0A /* colheader.cpp */; };
 		43CFD09D08615E6800042D0A /* minical.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CFD09B08615E6800042D0A /* minical.cpp */; };
 		43CFD09E08615E6800042D0A /* colheader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43CFD09A08615E6800042D0A /* colheader.cpp */; };
@@ -1129,6 +1131,7 @@
 		40ECB139074BD1D0005AAC48 /* stdpaths.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = stdpaths.cpp; sourceTree = "<group>"; };
 		40F10E5606AD0230003C7AC3 /* tglbtn.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = tglbtn.cpp; sourceTree = "<group>"; };
 		40F10E5706AD0230003C7AC3 /* thread.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = thread.cpp; sourceTree = "<group>"; };
+		437C9A350896D33B00586F77 /* utilsexc_base.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = utilsexc_base.cpp; path = mac/corefoundation/utilsexc_base.cpp; sourceTree = SOURCE_ROOT; };
 		43CFD09A08615E6800042D0A /* colheader.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = colheader.cpp; sourceTree = "<group>"; };
 		43CFD09B08615E6800042D0A /* minical.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = minical.cpp; sourceTree = "<group>"; };
 		43CFD0A108615EF900042D0A /* minical.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = minical.h; sourceTree = "<group>"; };
@@ -1943,6 +1946,7 @@
 				40AF90B307C8A9CF006A6D3C /* hid.cpp */,
 				40AF90B407C8A9CF006A6D3C /* hidjoystick.cpp */,
 				40607C740749432A00DC0420 /* gsockosx.cpp */,
+				437C9A350896D33B00586F77 /* utilsexc_base.cpp */,
 				40607C750749432A00DC0420 /* utilsexc_cf.cpp */,
 				40670A8207377A6300F7C08C /* cfstring.cpp */,
 				40670A8307377A6300F7C08C /* stdpaths_cf.cpp */,
@@ -3662,6 +3666,7 @@
 				40ADC48A08160CAD0009DA36 /* dbgrptg.cpp in Sources */,
 				43CFD09C08615E6800042D0A /* colheader.cpp in Sources */,
 				43CFD09D08615E6800042D0A /* minical.cpp in Sources */,
+				437C9A360896D33B00586F77 /* utilsexc_base.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4134,6 +4139,7 @@
 				40ADC48708160CAD0009DA36 /* dbgrptg.cpp in Sources */,
 				43CFD09E08615E6800042D0A /* colheader.cpp in Sources */,
 				43CFD09F08615E6800042D0A /* minical.cpp in Sources */,
+				437C9A370896D33B00586F77 /* utilsexc_base.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
