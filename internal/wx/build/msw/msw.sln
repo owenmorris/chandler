@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gizmos", "..\..\contrib\build\gizmos\wxPythonGizmos\wxPythonGizmos.vcproj", "{C48300F9-65FD-4655-8841-CEB275BF9DD2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stc", "..\..\contrib\build\stc\wxPythonStc\wxPythonStc.vcproj", "{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "animate", "..\..\contrib\build\animate\wxPythonAnimate\wxPythonAnimate.vcproj", "{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{604B14C5-8663-4C21-B058-C0E861376F8A} = {604B14C5-8663-4C21-B058-C0E861376F8A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "msw", "msw.vcproj", "{604B14C5-8663-4C21-B058-C0E861376F8A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Debug.ActiveCfg = Debug|Win32
+		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Debug.Build.0 = Debug|Win32
+		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Release.ActiveCfg = Release|Win32
+		{C48300F9-65FD-4655-8841-CEB275BF9DD2}.Release.Build.0 = Release|Win32
+		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Debug.ActiveCfg = Debug|Win32
+		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Debug.Build.0 = Debug|Win32
+		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Release.ActiveCfg = Release|Win32
+		{1F3A543F-5664-457C-9F3E-80BFBF62DE4C}.Release.Build.0 = Release|Win32
+		{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}.Debug.ActiveCfg = Debug|Win32
+		{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}.Debug.Build.0 = Debug|Win32
+		{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}.Release.ActiveCfg = Release|Win32
+		{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}.Release.Build.0 = Release|Win32
+		{604B14C5-8663-4C21-B058-C0E861376F8A}.Debug.ActiveCfg = Debug|Win32
+		{604B14C5-8663-4C21-B058-C0E861376F8A}.Debug.Build.0 = Debug|Win32
+		{604B14C5-8663-4C21-B058-C0E861376F8A}.Release.ActiveCfg = Release|Win32
+		{604B14C5-8663-4C21-B058-C0E861376F8A}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

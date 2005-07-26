@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="ogl"
+	ProjectGUID="{AC1BFF3F-7DFB-404B-967B-95933BC91C8A}"
+	Keyword="MakeFileProj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
+			ConfigurationType="0">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+"
+				ReBuildCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+"
+				CleanCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="Release"
+			IntermediateDirectory="Release"
+			ConfigurationType="0">
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+"
+				ReBuildCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+"
+				CleanCommandLine="cd ..
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<File
+			RelativePath="..\makefile.vc">
+		</File>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
