@@ -38,6 +38,10 @@
     #define WM_PRINTCLIENT 0x318
 #endif
 
+#ifndef WS_EX_COMPOSITED
+    #define WS_EX_COMPOSITED    0x02000000
+#endif
+
 // Needed by toplevel.cpp
 #ifndef UIS_INITIALIZE
     #define UIS_INITIALIZE  3

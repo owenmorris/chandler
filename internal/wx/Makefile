@@ -67,6 +67,7 @@ $(SRC)/include/wx/msw/setup.h:
 	sed -e "s/#define wxUSE_DIALUP_MANAGER   1/#define wxUSE_DIALUP_MANAGER 0/" | \
 	sed -e "s/#define wxUSE_DISPLAY       0/#define wxUSE_DISPLAY 1/" | \
 	sed -e "s/#define wxUSE_RESOURCES   0/#define wxUSE_RESOURCES 1/" | \
+	sed -e "s/#define wxUSE_NATIVE_COMPOSITING   0/#define wxUSE_NATIVE_COMPOSITING 1/" | \
 	sed -e "s/#define wxUSE_POSTSCRIPT  0/#define wxUSE_POSTSCRIPT 1/"> include/wx/msw/setup.h
 
 setup: $(SRC)/include/wx/msw/setup.h

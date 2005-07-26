@@ -120,6 +120,10 @@
 #   endif
 #endif
 
+#if !wxUSE_NATIVE_COMPOSITING
+#   define wxUSE_NATIVE_COMPOSITING 1
+#endif
+
 #if defined(__BORLANDC__) && (__BORLANDC__ < 0x500)
     /* BC++ 4.0 can't compile JPEG library */
 #   undef wxUSE_LIBJPEG

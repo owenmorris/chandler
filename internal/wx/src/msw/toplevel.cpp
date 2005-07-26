@@ -230,12 +230,14 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 
     if ( exflags )
     {
+#if wxUSE_NATIVE_COMPOSITING
  	if (wxApp::GetComCtl32Version() >= 582)
 //	    if (GetKeyState( VK_CAPITAL ) == 0)
 	    {
-	        *exflags |= 0x02000000;	// WS_EX_COMPOSITED
+	        *exflags |= WS_EX_COMPOSITED;	// WS_EX_COMPOSITED
 //	        MessageBox( NULL, _T(""), _T("TopLevel::MSWGetStyle - exStyle hack"), MB_OK );
 	    }
+#endif
 
         // there is no taskbar under CE, so omit all this
 #if !defined(__WXWINCE__)
@@ -452,9 +454,11 @@ bool wxTopLevelWindowMSW::CreateFrame(const wxString& title,
     wxSize sz(size);
 #endif
 
+#if wxUSE_NATIVE_COMPOSITING
     // cannot let this flag go through...
     if (! IsTopLevel())
-        exflags &= ~0x02000000;	// ~WS_EX_COMPOSITED
+        exflags &= ~WS_EX_COMPOSITED;
+#endif
 
     bool result = MSWCreate(wxCanvasClassName, title, pos, sz, flags, exflags);
 

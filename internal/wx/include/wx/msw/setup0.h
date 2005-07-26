@@ -1093,6 +1093,10 @@
 // (just use Windows printing).
 #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 1
 
+// Set to 0 to disable native window compositing
+// implemented by add WS_EX_COMPOSITED to native WSTYLE
+#define wxUSE_NATIVE_COMPOSITING 1
+
 // Define as 1 to use Microsoft's ItsyBitsy small title bar library, for
 // wxMiniFrame. This setting is only used for Win3.1; Win9x and NT use native
 // miniframes support instead.
