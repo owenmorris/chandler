@@ -100,8 +100,10 @@ class RefList(LinkedMap, Indexed):
             if copyOther is not Nil:
                 if copyOther not in refList:
                     refList.append(copyOther, link._alias)
-                elif link._alias is not None:
-                    refList.setAlias(copyOther, link._alias)
+                else:
+                    refList.placeItem(copyOther, refList.last()) # copy order
+                    if link._alias is not None:                  # and alias
+                        refList.setAlias(copyOther, link._alias)
 
         return refList
 

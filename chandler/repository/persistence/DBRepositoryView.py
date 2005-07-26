@@ -371,7 +371,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             else:
                 return
 
-        for item in self._log:
+        for item in list(self._log):   # self._log may change while looping
             status = item._status
             if not freshOnly or freshOnly and status & Item.FDIRTY:
                 if freshOnly:
