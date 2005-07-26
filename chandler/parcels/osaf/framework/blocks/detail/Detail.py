@@ -566,6 +566,9 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
         # Tell the AE to save itself
         self.saveValue()
 
+    def OnDataChanged (self):
+        self.saveTextValue()
+
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
@@ -595,7 +598,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             return
             
         mixinKind = tool.stampMixinKind()
-        if self.widget.GetToolState(tool.toolID):
+        if not item.itsKind.isKindOf(mixinKind):
             operation = 'add'
         else:
             operation = 'remove'

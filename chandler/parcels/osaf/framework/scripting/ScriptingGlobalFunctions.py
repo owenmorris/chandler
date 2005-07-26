@@ -2,18 +2,27 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Provide Scripting Global Functions """
-import wx
-import logging
-import osaf.framework.blocks.Block as Block
-import application.Globals as Globals
-from repository.item.Item import Item
 
-_logger = logging.getLogger('CPIA Script')
-_logger.setLevel(logging.INFO)
+"""
+  NOTE:
+  ----
+  All globals in this file become attributes of the user's script,
+    unless the name starts with an underscore '_'.
+  This includes things that you import here.
+  Hence imports are done into the private name space.
+"""
+import wx as _wx
+import logging as _logging
+import osaf.framework.blocks.Block as _Block
+import application.Globals as _Globals
+from repository.item.Item import Item as _Item
+
+_logger = _logging.getLogger('CPIA Script')
+_logger.setLevel(_logging.INFO)
 
 # Functions that return a named block
 def FindNamedBlock(blockName):
-    block = Block.Block.findBlockByName(blockName)
+    block = _Block.Block.findBlockByName(blockName)
     if not block:
         _logger.warning("Can't find block named %s" % blockName)
     return block
@@ -60,7 +69,7 @@ def SidebarSelect(itemOrName):
         params = {'item':itemOrName}
     else:
         params = {'itemName':itemOrName}
-    Globals.mainViewRoot.postEventByName ('RequestSelectSidebarItem', params)
+    _Globals.mainViewRoot.postEventByName ('RequestSelectSidebarItem', params)
     Focus(Sidebar())
 
 def SidebarAdd(itemCollection):
@@ -69,12 +78,36 @@ def SidebarAdd(itemCollection):
 
 def SummaryViewSelect(item):
     # Tell the ActiveView to select our item
-    Globals.mainViewRoot.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':item})
+    _Globals.mainViewRoot.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':item})
     Focus(SummaryView())
+
+def StampAsMailMessage():
+    PressStampButton('MailMessageButton')
+
+def StampAsTask():
+    PressStampButton('TaskStamp')
+
+def StampAsCalendarEvent():
+    PressStampButton('CalendarStamp')
+
+def PressStampButton(buttonName):
+    """ Press a Stamp button in the markup bar, by firing its event"""
+    uiView = _wx.GetApp().UIRepositoryView
+    for block in _Block.Block.iterItems(uiView):
+        # Find the live button, by name, and make sure its parent is live too"""
+        try:
+            blockName = block.blockName
+        except AttributeError:
+            continue
+        if blockName == buttonName:
+            if hasattr(block, 'widget') and hasattr(block.dynamicParent, 'widget'):
+                block.post(block.event, {})
+                break
+
 
 def GetWindow(label):
     """ Returns the window with the given label """
-    return wx.FindWindowByLabel(label)
+    return _wx.FindWindowByLabel(label)
     
 """
 TO BE DONE

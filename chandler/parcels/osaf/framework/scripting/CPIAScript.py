@@ -75,16 +75,22 @@ def HotkeyScript(event, view):
     # for now, we just allow function keys to be hot keys.
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
         # try to find the corresponding Note
-        targetScriptName = "Script F%s" % str(keycode-wx.WXK_F1+1)
+        targetScriptNameStart = "Script F%s" % str(keycode-wx.WXK_F1+1)
         for aNote in Notes.Note.iterItems(view):
             try:
-                if targetScriptName == aNote.about:
-                    scriptString = aNote.bodyString
-                    fKeyScript = ExecutableScript(scriptString, view=view)
-                    fKeyScript.execute()
-                    return True
+                noteTitle = aNote.about
             except AttributeError:
-                pass
+                continue
+            else:
+                if noteTitle.startswith(targetScriptNameStart):
+                    try:
+                        scriptString = aNote.bodyString
+                    except AttributeError:
+                        continue
+                    else:
+                        fKeyScript = ExecutableScript(scriptString, view=view)
+                        fKeyScript.execute()
+                        return True
 
         # maybe we have an existing script?
         for aScript in Script.iterItems(view):
@@ -160,8 +166,16 @@ class ExecutableScript(object):
         * Can I use __getattr__ for my global properties?
             Send email to pje about how to make an attribute call code.
         """
-        # first compile the code
-        self.scriptCode = compile(self.scriptString, '<user script>', 'exec')
+        # compile the code
+        if __debug__:
+            debugFile = open('UserScript.py', 'wt')
+            try:
+                # to be nice to debuggers, we write the code to a file so it can be located
+                # in the case of an error
+                debugFile.write(self.scriptString)
+            finally:
+                debugFile.close()
+        self.scriptCode = compile(self.scriptString, 'UserScript.py', 'exec')
 
         # next, build a dictionary of names that are predefined
         builtIns = {}
@@ -290,7 +304,7 @@ class ExecutableScript(object):
 
     def _inUserData(self, item):
         try:
-            return str(item.itsPath).find('//userdata/') == 0
+            return str(item.itsPath).startswith('//userdata/')
         except AttributeError:
             return False
 

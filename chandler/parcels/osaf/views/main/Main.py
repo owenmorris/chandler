@@ -615,12 +615,55 @@ class MainView(View):
             if rule:
                 collection.setRule(rule)
 
+    def _SelectedItemScript(self):
+        """ Return the poosible script item:
+        the item shown in the Detail View, unless
+        its body is empty.  
+        Otherwise return None.
+        """
+        item = None
+        try:
+            item = Block.findBlockByName("DetailRoot").selectedItem()
+            body = item.bodyString
+        except AttributeError:
+            pass
+        else:
+            if len(body) == 0:
+                item = None
+        return item
+
     def onRunScriptEvent(self, event):
         # Triggered from "Tests | Run script..."
         previousScript = CPIAScript.GetDialogScript(self.itsView)
         script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Run Script", "Enter a CPIA script to run.", previousScript)
         if script:
             CPIAScript.RunDialogScript(script, self.itsView)
+
+    def onRunSelectedScriptEvent(self, event):
+        # Triggered from "Tests | Run an Item"
+        item = self._SelectedItemScript()
+        if item:
+            # in case the user was just editing the script,
+            # ask the focus to finish changes, if it can
+            focusedWidget = wx.Window_FindFocus()
+            try:
+                focusedWidget.blockItem.finishSelectionChanges()
+            except AttributeError:
+                pass
+            # run the script from the item's body
+            CPIAScript.RunScript(item.bodyString, self.itsView)
+
+    def onRunSelectedScriptEventUpdateUI(self, event):
+        # Triggered from "Tests | Run an Item"
+        item = self._SelectedItemScript()
+        event.arguments ['Enable'] = item is not None
+        if item is not None:
+            menuTitle = _('Run "%s"') \
+                    % item.about
+        else:
+            menuTitle = _('Run an Item')
+        menuTitle = menuTitle + '\t' + 'Ctrl+S'
+        event.arguments ['Text'] = menuTitle
 
     def onShowPyShellEvent(self, event):
         # Test menu item
