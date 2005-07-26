@@ -127,18 +127,17 @@ $(ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-checkout:
-	cd ..; \
-	rm -f cvsco.log;\
-	cvs co chandler-python 2>&1 | tee -a cvsco.log; \
-	@echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
-
-install: $(ARCHIVES) $(ARCHIVES_INST)
+ifeq ($(OS),Cygwin)
+manifest_exe:
 	if [ -f "$(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest" ]; \
 	then \
 	    chmod +x $(CHANDLERBIN)/$(SNAP)/bin/chandler.exe.manifest; \
 	fi
+else
+manifest_exe:
+endif
 
+install: $(ARCHIVES) $(ARCHIVES_INST) manifest_exe
 
 # to install individual binaries, for example: make chandlerdb
 
