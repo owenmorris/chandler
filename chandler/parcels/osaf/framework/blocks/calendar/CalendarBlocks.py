@@ -35,8 +35,13 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             style |= wx.BORDER_SIMPLE
         else:
             style |= wx.BORDER_STATIC
-        if self.blockItem.doSelectWeek:
-            style |= wx.minical.CAL_HIGHLIGHT_WEEK
+        calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
+        try:
+            if calendarButton.selected and self.blockItem.doSelectWeek:
+                style |= wx.minical.CAL_HIGHLIGHT_WEEK
+        except AttributeError:
+            # Toolbar hasn't been rendered yet
+            pass
         self.SetWindowStyle(style)
 
     def OnWXSelectItem(self, event):
@@ -97,7 +102,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 #    -brendano
 
 class MiniCalendar(Block.RectangularChild):
-    doSelectWeek = schema.One(schema.Boolean, initialValue = False)
+    doSelectWeek = schema.One(schema.Boolean, initialValue = True)
     
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
@@ -117,6 +122,10 @@ class MiniCalendar(Block.RectangularChild):
         self.doSelectWeek = event.arguments['doSelectWeek']
         self.widget.wxSynchronizeWidget()
         self.widget.Refresh()
+
+    def onSelectItemEvent(self, event):
+        self.widget.wxSynchronizeWidget()
+        self.widget.Refresh()        
 
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
