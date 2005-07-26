@@ -747,7 +747,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     self.isGenerated = False
                     self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
-                    self.modificationRecurrenceID = None
+                    del self.modificationRecurrenceID
                     del newfirst._ignoreValueChanges
                 # if backup is None, allow the change to stand, applying just
                 # to self.  This relies on _getFirstGeneratedOccurrence() always

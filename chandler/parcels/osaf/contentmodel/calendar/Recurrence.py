@@ -290,12 +290,15 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
             if len(self.rrules) > 1:
                 return True # multiple rules
             for recurtype in 'exrules', 'rdates', 'exdates':
-                if self.hasLocalAttributeValue(recurtype):
+                if self.hasLocalAttributeValue(recurtype) and \
+                       len(getattr(self, recurtype)) != 0:
                     return True # more complicated rules
             rule = list(self.rrules)[0]
-            if rule.interval != 1: return True
+            if rule.interval != 1:
+                return True
             for attr in RecurrenceRule.listNames+("byweekday",):
-                if getattr(rule, attr): return True
+                if getattr(rule, attr):
+                    return False
         return False
 
     def getCustomDescription(self):
