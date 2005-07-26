@@ -10,7 +10,7 @@ STR_SSL_CERTIFICATE_ERROR = _("The SSL Certificate returned can not be verified"
 STR_SSL_ERROR = _("SSL communication error")
 STR_UNKNOWN_ERROR = _("Unknown Error %s %s")
 STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
-STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later")
+STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later.")
 
 class MailException(Exception):
     """Base class for all Chandler mail related exceptions"""

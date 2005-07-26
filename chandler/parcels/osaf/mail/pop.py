@@ -63,10 +63,13 @@ class _TwistedPOP3Client(pop3.POP3Client):
 
         d = self.capabilities()
         d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
-        return d
 
 
     def __getCapabilities(self, caps):
+        if self._timedOut:
+            """If we have already timed out then gracefully exit the function"""
+            return defer.succeed(True)
+
         if self.factory.useTLS:
             """The Twisted POP3Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
@@ -78,6 +81,18 @@ class _TwistedPOP3Client(pop3.POP3Client):
             """Remove the STLS from capabilities"""
             self._capCache = utils.disableTwistedTLS(caps, "STLS")
             self.delegate.loginClient()
+
+    def timeoutConnection(self):
+        """Called by C{policies.TimeoutMixin} base class.
+           The method generates an C{POPException} and
+           forward to delegate.catchErrors
+        """
+        exc = errors.POPException(errors.STR_TIMEOUT_ERROR)
+        """We have timed out so do not send any more commands to
+           the server just disconnect """
+        self._timedOut = True
+        self.factory.timedOut = True
+        self.delegate.catchErrors(exc)
 
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
@@ -111,7 +126,7 @@ class POPClient(base.AbstractDownloadClient):
 
         assert self.account is not None
 
-        """Twisted expects ascii values so encode the utf-8 username and password"""
+        """Twisted expects 8-bit values so encode the utf-8 username and password"""
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
@@ -239,7 +254,7 @@ class POPClient(base.AbstractDownloadClient):
         if __debug__:
             self.printCurrentView("_beforeDisconnect")
 
-        if self.factory.connectionLost:
+        if self.factory.connectionLost or self.factory.timedOut:
             return defer.succeed(True)
 
         return self.proto.quit()
