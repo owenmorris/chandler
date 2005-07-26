@@ -762,7 +762,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                         if ( wd == ( DAYS_PER_WEEK - 1 ) )
                             endX -= (SEPARATOR_MARGIN);
 #if defined(__WXMAC__)
-                        dc.DrawRectangle(startX, *y+1, endX, m_heightRow); 
+                        dc.DrawRectangle(startX, *y+1, endX+1, m_heightRow); 
 #else
                         dc.DrawRectangle(startX, *y, endX, m_heightRow); 
 #endif
