@@ -83,8 +83,6 @@ public:
             CFRelease( m_toolbarItemRef ) ;
         if ( m_ControlRefContent )
             DisposeControl( m_ControlRefContent ) ;
-        if ( m_ControlRefSelection )
-            DisposeControl( m_ControlRefSelection ) ;
     }
 
     WXWidget GetControlHandle()
@@ -138,8 +136,6 @@ public:
     {
         if ( m_ControlRefContent )
             HideControl( m_ControlRefContent ) ;
-        if ( m_ControlRefSelection )
-            HideControl( m_ControlRefSelection ) ;
         if ( m_toolbarItemRef )
             CFRelease( m_toolbarItemRef ) ;
 
@@ -165,12 +161,10 @@ private :
     {
         m_toolbarItemRef = NULL ;
         m_ControlRefContent = NULL ;
-        m_ControlRefSelection = NULL ;
     }
 
     HIToolbarItemRef m_toolbarItemRef ;
     ControlRef m_ControlRefContent ;
-    ControlRef m_ControlRefSelection ;
 
     wxCoord     m_x;
     wxCoord     m_y;
@@ -347,24 +341,19 @@ bool wxToolBarTool::DoEnable(bool enable)
         if ( m_toolbarItemRef )
             HIToolbarItemSetEnabled( m_toolbarItemRef , enable ) ;
 
-        int i;
-        for (i=0; i<2; i++)
+        if ( m_ControlRefContent )
         {
-            ControlRef curCntlRef = ((i == 0) ? m_ControlRefContent : m_ControlRefSelection);
-            if ( curCntlRef )
-            {
 #if TARGET_API_MAC_OSX
-                if ( enable )
-                    EnableControl( curCntlRef ) ;
-                else
-                    DisableControl( curCntlRef ) ;
+            if ( enable )
+                EnableControl( m_ControlRefContent ) ;
+            else
+                DisableControl( m_ControlRefContent ) ;
 #else
-                if ( enable )
-                    ActivateControl( curCntlRef ) ;
-                else
-                    DeactivateControl( curCntlRef ) ;
+            if ( enable )
+                ActivateControl( m_ControlRefContent ) ;
+            else
+                DeactivateControl( m_ControlRefContent ) ;
 #endif
-            }
         }
     }
 
