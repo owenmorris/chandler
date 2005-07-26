@@ -1369,8 +1369,7 @@
   <calendar:PreviewArea itsName="PreviewArea">
     <blockName>PreviewArea</blockName>
 
-    <!-- uncomment this line to trigger a GUI layout bug: SidebarInstance and PreviewArea get flipped upsidedown (??!!!) -->
-    <!-- <contents itemref="doc:allItemCollection"/> -->
+    <contents itemref="doc:allItemCollection"/>
     
     <stretchFactor>0.0</stretchFactor>
   </calendar:PreviewArea>

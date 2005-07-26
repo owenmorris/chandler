@@ -17,6 +17,7 @@ from application import schema
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import Styles
 from osaf.framework.blocks import DrawingUtilities
+from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 
 
@@ -120,7 +121,9 @@ class MiniCalendar(Block.RectangularChild):
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
     weekMode = schema.One(schema.Boolean, initialValue = False)
-        
+    
+    maximumEventsDisplayed = 8  # @@@ make a parcel.xml-level attribute?
+    
     def __init__(self, *arguments, **keywords):
         super(PreviewArea, self).__init__(*arguments, **keywords)
         self.rangeIncrement = timedelta(days=1)
@@ -139,7 +142,7 @@ class wxPreviewArea(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
         charStyle = Styles.CharacterStyle()
-        charStyle.fontSize = 8
+        charStyle.fontSize = 9
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
 
@@ -151,7 +154,6 @@ class wxPreviewArea(wx.Panel):
         if self.blockItem.weekMode: return
 
         dc.Clear()
-
 
         #White background
         dc.SetBackground(wx.WHITE_BRUSH)
@@ -168,30 +170,49 @@ class wxPreviewArea(wx.Panel):
             dc.DrawText(line, 0, y)
             y += self.fontHeight
 ##         DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
-        
+
     @staticmethod
     def TimeFormat(time):
-        ## XXX needs to be locale specific using PyICU
-        #But then how do you do spacing and vertical alignment? (though it's not done now)
+        # @@@ needs to be locale specific using ?PyICU.  But then how would you
+        # do spacing, vertical alignment?
+        # TODO: superscripted minutes, vertical alignment/spacing
+        if time.minute == 0:
+            return "%d" % time.hour
         return "%d:%.2d" % (time.hour, time.minute)
 
+    def ChangeHeightAndAdjustContainers(self, newHeight):
+        # @@@ hack until block-to-block attribs are safe to use: climb the tree
+        wxSplitter = self.GetParent().GetParent()
+        assert isinstance(wxSplitter, ContainerBlocks.wxSplitterWindow)
+
+        currentHeight = self.GetSize()[1]
+        heightDelta = currentHeight - newHeight
+        
+        # need to do 2 resizings.  Would be nice to do the first without repainting
+        
+        #adjust box container shared with minical.
+        self.SetMinSize( (0, newHeight) )
+        self.GetParent().Layout()
+        
+        #adjust splitter containing the box container
+        wxSplitter.SetSashPosition(wxSplitter.GetSashPosition() + heightDelta)
+        
+        
     def wxSynchronizeWidget(self):
         if self.blockItem.weekMode:
             # disappear!
-            # @@@ hacky minsize/parent layout system
-            self.SetMinSize((0,0))
-            self.GetParent().Layout()
+            self.ChangeHeightAndAdjustContainers(0)
             return
 
-        self.text  = "this is the PreviewArea\n"
-
-        try:
-            self.currentDaysItems = list(self.blockItem.getItemsInCurrentRange(True, True))
-        except:
-            self.text += "contents not set, so no events displayed\n"
+        inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
+        self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
+        self.text  = ""
         self.currentDaysItems.sort(cmp = self.SortForPreview)
-        for item in self.currentDaysItems:
+        for i, item in enumerate(self.currentDaysItems):
+            if i == self.blockItem.maximumEventsDisplayed:
+                self.text += "%d more confirmed events...\n" % (len(self.currentDaysItems) - i,)
+                break
             if item.allDay or item.anyTime:
                 self.text += "%s\n" % item.displayName
             elif item.startTime == item.endTime:
@@ -202,13 +223,13 @@ class wxPreviewArea(wx.Panel):
                                 self.TimeFormat(item.startTime.time()),
                                 self.TimeFormat(item.endTime.time()),
                                 item.displayName)
-                    
-        numLines = len(self.text.splitlines())
-        self.SetMinSize( (-3, (numLines) * self.fontHeight + 3) )
 
-        ## @@@ hacky
-        self.GetParent().Layout()
-        #self.GetParent().GetParent().Layout()
+        if not self.text:
+            self.ChangeHeightAndAdjustContainers(0)
+            return
+        
+        numLines = len(self.text.splitlines())
+        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 3)
         
         dc = wx.ClientDC(self)
         self.Draw(dc)
