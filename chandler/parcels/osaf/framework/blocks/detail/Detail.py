@@ -1275,9 +1275,10 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             return RecurrenceAttributeEditor.customIndex
         # Otherwise, try to map its frequency to our menu list
         try:
-            freq = item.rruleset.rrules[0].freq
-        except:
-            # Can't get to the freq attribute? It's once.
+            freq = item.rruleset.rrules.first().freq
+        except AttributeError:
+            # Can't get to the freq attribute, or there aren't any rrules
+            # So it's once.
             return RecurrenceAttributeEditor.onceIndex
         else:
             # We got a frequency. Try to map it.
