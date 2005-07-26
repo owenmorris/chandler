@@ -516,7 +516,7 @@ void wxMiniCalendar::RecalcGeometry()
 
     wxFont font = GetFont();
 #if defined(__WXMAC__)
-    wxFont macFont = wxFont(font.GetPointSize()-3, font.GetFamily(),
+    wxFont macFont = wxFont(font.GetPointSize()-2, font.GetFamily(),
         font.GetStyle(), font.GetWeight(), font.GetUnderlined(),
         font.GetFaceName(), font.GetEncoding());
     dc.SetFont(macFont);
@@ -567,7 +567,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
     wxFont font = GetFont();
 
 #if defined(__WXMAC__)
-    wxFont macFont = wxFont(font.GetPointSize()-3, font.GetFamily(),
+    wxFont macFont = wxFont(font.GetPointSize()-2, font.GetFamily(),
         font.GetStyle(), font.GetWeight(), font.GetUnderlined(),
         font.GetFaceName(), font.GetEncoding());
     dc.SetFont(macFont);
