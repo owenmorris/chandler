@@ -24,14 +24,13 @@ object to be written to ``sys.stdout``::
     >>> from osaf.startup import run_startup
     >>> run_startup(rv)
     <Startup (new): test ...>
-       
+
 Please note that startup notifications are intended for tasks like adding
 servers to the Twisted reactor, starting threads, or other in-process Python
 operations, based on data in the repository.  They should *not* be used to
 modify repository items, as this may indirectly lead to merge conflicts with
 other threads.  Any needed repository items should be created or modified
-via ``parcel.xml`` or via the ``onParcelLoad()`` or ``onParcelCreate()`` hooks.
-(XXX these hooks don't actually exist yet, but should soon.)
+via ``parcel.xml`` or via the ``installParcel()`` hook.
 
 
 Disabling Startups
@@ -139,11 +138,12 @@ a ``Startup`` subclass that just runs this routine in a thread, using the
 
 And then we'll create an instance and run it in the usual way::
 
-    >>> MyThread("my_name_here", view=rv)
+    >>> t = MyThread("my_name_here", view=rv)
+    >>> t
     <MyThread (new): my_name_here ...>
 
     >>> run_startup(rv)
-    
+
 So now, the thread has been started::
 
     >>> import threading
@@ -169,3 +169,123 @@ And now the finish flag should have been set by the thread::
 (Note: the sleep() duration above is 0.1 seconds because Windows machines have
 a fairly low resolution timer and may not actually perform the sleep()
 otherwise, which could break the test.)
+
+    >>> t.active = False    # don't use this thread in the subsequent tests
+
+
+Twisted
+-------
+
+Chandler needs to run Twisted's reactor in a thread, so that it can run
+independently of the GUI (which could otherwise block its execution).  The
+``osaf.startup`` module provides a few APIs for this::
+
+    >>> from osaf.startup import get_reactor_thread, run_reactor, stop_reactor
+
+``get_reactor_thread()`` returns the ``threading.Thread`` object that the
+reactor is running in (assuming it was started using ``ReactorThread``), or
+``None``::
+
+    >>> print get_reactor_thread()
+    None
+
+``stop_reactor()`` stops the reactor if it's running (regardless of what thread
+it's in) and waits for the reactor thread to exit, if it's running.  In other
+words, it guarantees that ``reactor.running`` is False and
+``get_reactor_thread()`` is None when it returns::
+
+    >>> stop_reactor()
+
+``run_reactor(in_thread)`` calls Twisted's ``reactor.run()``, with some
+additional wrapper code to ensure it can run safely, only runs one reactor at
+a time, and runs in a separate thread (by default)::
+
+    >>> run_reactor()
+    >>> get_reactor_thread()
+    <RepositoryThread(reactor, started daemon)>
+
+And then we can verify that the reactor is in fact running when ``run_reactor``
+returns::
+
+    >>> from twisted.internet import reactor
+    >>> reactor.running
+    1
+
+And then stop it, verifying that both the reactor and thread have stopped::
+
+    >>> rt = get_reactor_thread()
+    >>> stop_reactor()
+    >>> print get_reactor_thread()
+    None
+    >>> rt.isAlive()
+    False
+    >>> reactor.running
+    0
+
+Calling ``run_reactor()`` when the reactor is already running in another
+thread has no effect::
+
+    >>> run_reactor()
+    >>> rt = get_reactor_thread()
+
+    >>> run_reactor()
+    >>> rt is get_reactor_thread()
+    True
+
+But trying to run the reactor in the current thread (by passing a False
+``in_thread`` argument) when it's already running in some thread raises
+an error::
+
+    >>> run_reactor(False)
+    Traceback (most recent call last):
+    ...
+    AssertionError: Reactor is already running
+
+    >>> stop_reactor()  # make sure we've stopped again for next test
+    >>> reactor.running
+    0
+
+So, running the Twisted reactor at startup is as simple as defining a normal
+``Startup`` instance to invoke ``run_reactor()``::
+
+    >>> twisted_startup = Startup(
+    ...     "twisted", view=rv, invoke="osaf.startup.run_reactor"
+    ... )
+    >>> run_startup(rv)
+    >>> reactor.running
+    1
+    >>> stop_reactor()
+    >>> twisted_startup.active = False
+
+Note that it doesn't matter how many ``Startup`` instances start the reactor,
+as it will only be started once, by the first one that tries.  If you have
+startup code that depends on the reactor, therefore, you can either define
+a ``Startup`` for ``run_reactor`` and reference it in another ``Startup``, or
+you can just call ``run_reactor()`` in the code that needs it.
+
+Also note that you should *not* invoke ``run_reactor()`` from any thread but
+the main thread, or you will receive an assertion error in that thread, and
+the reactor will not start::
+
+    >>> from osaf.startup import Thread
+    
+    >>> twisted_thread = Thread(
+    ...     "dont_do_this", view=rv, invoke="osaf.startup.run_reactor"
+    ... )
+
+    >>> import sys, StringIO    # trap stderr output
+    >>> old_stderr, sys.stderr = sys.stderr, StringIO.StringIO()
+    
+    >>> run_startup(rv)
+    >>> reactor.running
+    0
+
+    >>> sleep(0.1)  # make sure exception has been sent to stderr
+    
+    >>> print sys.stderr.getvalue()
+    Exception in thread //userdata/dont_do_this:
+    Traceback (most recent call last):
+      ...
+    AssertionError: can't start reactor thread except from the main thread...
+
+    >>> sys.stderr = old_stderr
