@@ -2,7 +2,7 @@
 include Makefile.inc
 
 SYSTEMS=chandlerdb \
-        wxPython-2.5 \
+        wx \
         launchers \
         queryparser
 
