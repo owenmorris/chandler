@@ -628,9 +628,8 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
                 # Marking a shared item as "private" could act weird...
                 # Are you sure?
                 caption = _("Change the privacy of a shared item?")
-                msg = _("This item is already being shared. Odd things may " \
-                        "happen if you change this now.\nDo you really " \
-                        "want to do this?")
+                msg = _("Other people may be subscribed to share this item; " \
+                        "are you sure you want to mark it as private?")
                 if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
                     # No: Put the not-private state back in the toolbarItem
                     self.widget.ToggleTool(tool.toolID, False)
