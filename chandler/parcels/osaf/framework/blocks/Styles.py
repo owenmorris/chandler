@@ -19,11 +19,8 @@ class fontFamilyEnumType(schema.Enumeration):
     values = "DefaultUIFont", "SerifFont", "SansSerifFont", "FixedPitchFont"
 
 
-class Style(ContentItem):
-
-    def __init__(self, *arguments, **keywords):
-        super (Style, self).__init__ ( *arguments, **keywords)
-
+class Style(schema.Item):
+    pass
 
 class CharacterStyle(Style):
 
