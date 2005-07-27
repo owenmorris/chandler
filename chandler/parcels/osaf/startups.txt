@@ -280,7 +280,7 @@ the reactor will not start::
     >>> reactor.running
     0
 
-    >>> sleep(0.1)  # make sure exception has been sent to stderr
+    >>> sleep(1)  # make sure exception has been sent to stderr
     >>> stop_reactor()
     >>> len(threading.enumerate())  # all threads should be stopped now
     1
