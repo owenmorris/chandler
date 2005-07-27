@@ -29,6 +29,10 @@ import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 from application import schema
 from colorsys import rgb_to_hsv, hsv_to_rgb
 import copy
+import logging
+
+logger = logging.getLogger('CalendarCanvas')
+logger.setLevel(logging.DEBUG)
 
 dateFormatSymbols = DateFormatSymbols()
 
@@ -838,6 +842,19 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         @return: the items in this collection that appear within the given range
         @rtype: list of Items
         """
+        uids = []
+        for item in self.contents:
+            #logger.debug("got item %s" % str(item))
+            try:
+                icalUID = item.icalUID
+            except:
+                continue
+            if icalUID in uids:
+                continue
+            logger.debug("generated items: %s" % str(item.getOccurrencesBetween(date, nextDate)))
+            if icalUID is not None:
+                uids.append(icalUID)
+
         for item in self.contents:
             try:
                 anyTime = item.anyTime

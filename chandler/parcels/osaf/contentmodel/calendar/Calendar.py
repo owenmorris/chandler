@@ -233,6 +233,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
         super(CalendarEventMixin, self).__init__(name, parent, kind, view, **kw)
         self.occurrenceFor = self
+        self.icalUID = str(self.itsUUID)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -542,12 +543,18 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if not first.isBetween(after, before):
             event = first.getNextOccurrence(after - first.duration, before)
         while event is not None:
+            logger.debug("in _generateRule, event is: %s" % event.serializeMods().getvalue())
             if event.isBetween(after, before):
                 yield event
+            # isBetween really means AFTER here
+            elif event.isBetween(after=before):
+                break
+            
             event = event.getNextOccurrence()
+
             # does this ever happen?
             if event is not None and event.occurrenceFor != first:
-                event = None
+                break
 
     def _getFirstGeneratedOccurrence(self, create=False):
         """Return the first generated occurrence or None.
@@ -605,6 +612,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
             pass
         else:
             mods = mods[index - 1:]
+        logger.debug("generating occurrences for %s, after: %s, "
+                     "before: %s, mods: %s" % (self, after,before,mods))
         return [e for mod in mods for e in mod._generateRule(after, before)]
     
     def _movePreviousRuleEnd(self):
@@ -627,8 +636,9 @@ class CalendarEventMixin(ContentModel.ContentItem):
         for rule in previousMod.rruleset.getAttributeValue('rrules',default=[]):
             if not rule.hasLocalAttributeValue('until') or rule.until > newend:
                 rule.until = newend
+                rule.untilIsDate = False
             previousMod.rruleset.rdates = [rdate for rdate in \
-                   master.rruleset.getAttributeValue('rdates', default=[]) \
+                   previousMod.rruleset.getAttributeValue('rdates', default=[])\
                    if rdate > newend]
                            
     def changeThisAndFuture(self, attr=None, value=None):
@@ -764,6 +774,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     newfirst.occurrenceFor = None #self overrides newfirst
                     newfirst.modificationFor = self.modificationFor
                     newfirst.modifies = 'thisandfuture'
+                    # Unnecessary when we switch endTime->duration
+                    newfirst.duration = backup.duration
                     self.occurrenceFor = self.modificationFor = newfirst
                     self.isGenerated = False
                     self.modifies = 'this'
@@ -800,12 +812,17 @@ class CalendarEventMixin(ContentModel.ContentItem):
             if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
-        elif name not in """modifications modificationFor occurrences
-                          occurrenceFor modifies isGenerated recurrenceID
-                          _ignoreValueChanges modificationRecurrenceID queries
-                          contentsOwner TPBSelectedItemOwner TPBDetailItemOwner
-                          itemCollectionInclusions
-                          """.split():
+            # this kludge should be replaced with the new domain attribute aspect
+##        elif name not in """modifications modificationFor occurrences
+##                          occurrenceFor modifies isGenerated recurrenceID
+##                          _ignoreValueChanges modificationRecurrenceID queries
+##                          contentsOwner TPBSelectedItemOwner TPBDetailItemOwner
+##                          itemCollectionInclusions
+##                          """.split():
+        # this won't work with stamping, temporary solution to allow testing
+        if name in """displayName startTime endTime location body title
+                      lastModified
+                   """.split():
             logger.debug("about to changeThis onValueChanged(name=%s) for %s" % (name, str(self)))
             self.changeThis()
 
@@ -885,7 +902,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
                              % (self.modifies, self.modificationFor.startTime))
         buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
         if self.modifies is 'thisandfuture' or self.modificationFor is None:
-            buf.write(pad + "until: %s\n" % list(self.rruleset.rrules)[0].until)
+            try:
+                buf.write(pad + "until: %s\n" % list(self.rruleset.rrules)[0].until)
+            except:
+                pass
         buf.write('\n')
         if self.hasLocalAttributeValue('modifications'):
             for mod in self.modifications:

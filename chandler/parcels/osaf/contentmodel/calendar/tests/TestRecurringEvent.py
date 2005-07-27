@@ -172,6 +172,12 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(list(occurs)[0].startTime, twoWeeks)
         self.assertEqual(list(occurs)[1].startTime, datetime(2005, 8, 1, 13))
         self.rep.check()
+    
+    def testIcalUID(self):
+        self.assertEqual(self.event.icalUID, str(self.event.itsUUID))
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.assertEqual(self.event.icalUID, 
+                         self.event.getNextOccurrence().icalUID)
 
     def testProxy(self):
         self.failIf(self.event.isProxy())
@@ -352,9 +358,6 @@ Life Cycle Analysis of proxy
 registry of proxies
 foo.registerProxy(CalendarEventMixin, CalendarEventMixinProxy)
 proxy = foo.getProxiedItem(item)
-
-
-test automatic icalUID setting
 
 test recurrence behavior around DST (duration vs. endTime)
 

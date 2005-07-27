@@ -1350,6 +1350,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 RecurrenceAttributeEditor.menuFrequencies[value])
             rule = Recurrence.dateutil.rrule.rrule(duFreq)
             item.setRuleFromDateUtil(rule)
+            item.rruleset.rrules.first().untilIsDate = True
         self.AttributeChanged()
     
     def GetControlValue (self, control):

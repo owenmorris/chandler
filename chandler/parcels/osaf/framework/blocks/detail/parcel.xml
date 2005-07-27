@@ -518,13 +518,13 @@
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
 
     <!-- The recurrence UI; turned off for now. -->
-    <!--
+
     <childrenBlocks itemref="doc:CalendarRecurrenceSpacer"/>
     <childrenBlocks itemref="doc:CalendarRecurrencePopupArea"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceSpacer2"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceCustomArea"/>
     <childrenBlocks itemref="doc:CalendarRecurrenceEndArea"/>
-    -->
+
     <!-- (end of recurrence UI) -->
     
     <childrenBlocks itemref="doc:CalendarReminderSpacer"/>

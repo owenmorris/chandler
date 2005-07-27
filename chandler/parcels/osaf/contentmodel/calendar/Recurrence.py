@@ -87,6 +87,13 @@ class RecurrenceRule(ContentModel.ContentItem):
         displayName="Until",
         defaultValue=None
     )
+    untilIsDate = schema.One(
+        schema.Boolean,
+        displayName = "untilIsDate",
+        doc = "If True, treat until as an inclusive date, use until + 23:59 "
+              "for until",
+        defaultValue = True
+    )
     interval = schema.One(
         schema.Integer,
         displayName="Interval",
@@ -162,6 +169,8 @@ class RecurrenceRule(ContentModel.ContentItem):
         for key in self.specialNames:
             if getattr(self, key) is not None:
                 kwargs[key]=toDateUtil(getattr(self, key))
+        if self.until is not None and self.untilIsDate:
+            kwargs['until'] = self.until.replace(hour=23, minute=59)
         rule = rrule(dtstart=dtstart, **kwargs)
         if not self.isCount or self.until is None:
             return rule
@@ -174,6 +183,7 @@ class RecurrenceRule(ContentModel.ContentItem):
 
     def setRuleFromDateUtil(self, rrule):
         """Extract attributes from rrule, set them in self."""
+        self.untilIsDate = False
         if rrule._count is not None:
             self.isCount = True
             self.until = rrule[-1]
