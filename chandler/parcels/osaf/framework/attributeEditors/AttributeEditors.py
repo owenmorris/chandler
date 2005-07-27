@@ -407,11 +407,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             self._changeTextQuietly(control, self.sampleText, True, False)
         else:
             self._changeTextQuietly(control, value, False, False)
-            if isinstance(control, AETextCtrl):
-                # @@@BJS I don't think either of these are needed.
-                #control.SetSelection (-1,-1)
-                #control.SetInsertionPointEnd ()
-                pass
         logger.debug("BeginControlEdit: %s (%s) on %s", attributeName, self.showingSample, item)
 
     def EndControlEdit (self, item, attributeName, control):
@@ -437,7 +432,7 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def onGainFocus(self, event):
         if self.showingSample:
-            self.control.SetSelection(-1,-1)
+            self.control.SetSelection(0, self.control.GetLastPosition())
         event.Skip()
     
     def onLoseFocus(self, event):
@@ -495,12 +490,12 @@ class StringAttributeEditor (BaseAttributeEditor):
                 control.SetValue(text)
     
             if isinstance(control, AETextCtrl):
-                if isSample and wx.Window.FindFocus() == control:
-                    control.SetSelection (-1,-1)
-
                 # Trying to make the text in the editbox gray doesn't seem to work on Win.
                 # (I'm doing it anyway, because it seems to work on Mac.)
                 control.SetStyle(0, len(text), wx.TextAttr(textColor))
+                
+                if isSample and wx.Window.FindFocus() == control:
+                    control.SetSelection(0, len(text))
             else:
                 control.SetForegroundColour(textColor)
         finally:
@@ -524,7 +519,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         if self.showingSample:
             if control == wx.Control.FindFocus():
                 # logger.debug("onClick: ignoring click because we're showing the sample.")
-                control.SetSelection(-1, -1) # Make sure the whole thing's still selected
+                control.SetSelection(0, control.GetLastPosition()) # Make sure the whole thing's still selected
         else:
             event.Skip()
             
