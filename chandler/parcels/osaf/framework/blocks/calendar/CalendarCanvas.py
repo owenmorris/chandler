@@ -2144,9 +2144,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """This is the topmost area with the month name, event color selector,
     week navigation arrows, and the bar of Week/day selector buttons"""
 
+
     def __init__(self, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(*arguments, **keywords)
-        
+    
+        self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow.png")
+        self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow.png")
+
 
         self.currentSelectedDate = None
         self.currentStartDate = None
@@ -2197,9 +2201,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # turn this off for now, because our sizing needs to be exact
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
-        headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", "+"]
+
+        #these labels get overriden by wxSynchronizeWidget()
+        headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
-            self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 5, bSortEnabled=False)
+            self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 0, bSortEnabled=False)
+
+        self.weekColumnHeader.SetBitmapJustification(8, wx.colheader.CH_JUST_Center)
+        self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
 
         # set up initial selection
@@ -2349,11 +2358,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         wxAllDay = self.GetAllDayWidget()
         position = wxAllDay.GetParent().GetSashPosition()
         if position == wxAllDay.collapsedHeight:
-            #print 'set expando-button to down arrow'
-            pass
+            self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
         else:
-            #print 'set expando-button to up arrow'
-            pass
+            self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
+
     
     def OnDaySelect(self, day):
         """callback when a specific day is selected from column header.

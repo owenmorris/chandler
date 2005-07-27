@@ -11,11 +11,13 @@ indent = 0
 indStr = '  '
 
 
-#ANSI escape codes for terminals.
-#cygwin: run through |cat or |tee /dev/null and then colors work
-#linux: always works
-#mac: untested
-#less -r  understands escape codes (even if in logfile)
+# ANSI escape codes for terminals.
+#  cygwin: run through |cat or |tee /dev/null and then colors work
+#  linux: always works
+#  mac: untested
+# less -r  understands escape codes (even if in logfile).  Note that less is
+#  much higher performance on an xterm than cygwin dosbox or gnome terminal or
+#  some other consoles.
 
 BLACK     =        "\033[0;30m"
 BLUE      =        "\033[0;34m"
