@@ -10,7 +10,8 @@
          otherCard="list">
 
       <!-- 
-         - plus local attributes below:
+         - plus local attributes below: 
+         -   item, dispatcher, method, op, attribute, args, kwds
         -->
     </ref>
 
@@ -21,6 +22,123 @@
     <attribute name="classes" cardinality="dict" type="class">
       <value name="python">repository.item.Monitors.Monitor</value>
     </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>item</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="item">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">monitors</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">remove</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>dispatcher</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="dispatcher">..</ref>
+    </ref>
+
+    <attribute name="cardinality">single</attribute>
+    <attribute name="otherName">monitors</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>method</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="method">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>op</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="op">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>attribute</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="attribute">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Symbol</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>args</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="args">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Tuple</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>kwds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Monitor</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="kwds">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Dictionary</ref>
+
+    <attribute name="cardinality">single</attribute>
   </item>
 
 </items>

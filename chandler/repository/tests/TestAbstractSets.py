@@ -154,6 +154,7 @@ class TestAbstractSets(RepositoryTestCase):
 
         l = k.movies.last()
         l.delete()
+
         self.assert_(len(m.calls) == 1)
         self.assert_(m.calls[0] == ('remove', m, 'set', l))
 

@@ -1,31 +1,34 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item>
-  <name>Monitors</name>
-  <kind type="path">//Schema/Core/Monitors</kind>
+<items>
 
-  <ref name="items">
-    <ref type="path">//Schema/Core/Items/SchemaMonitor</ref>
-  </ref>
+  <item>
+    <name>Monitors</name>
+    <kind type="path">//Schema/Core/Monitors</kind>
+  </item>
 
-  <attribute name="monitoring">
-    <value name="set">
-      <value name="attributes" type="list">
-        <value type="tuple">
-          <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
-          <value type="str">schemaChange</value>
-          <value type="tuple" />
-          <value type="dict" />
-        </value>
-      </value>
-      <value name="superKinds" type="list">
-        <value type="tuple">
-          <value type="path" eval="True">/Core/Items/SchemaMonitor</value>
-          <value type="str">schemaChange</value>
-          <value type="tuple" />
-          <value type="dict" />
-        </value>
-      </value>
-    </value>
-  </attribute>
-</item>
+  <item>
+    <kind type="path">//Schema/Core/Monitor</kind>
+    <class module="repository.schema.Kind">SchemaMonitor</class>
+
+    <ref name="dispatcher" type="path">../Monitors</ref>
+    <attribute name="attribute">attributes</attribute>
+    <attribute name="op">set</attribute>
+    <attribute name="method">schemaChange</attribute>
+    <attribute name="args"></attribute>
+    <attribute name="kwds"></attribute>
+  </item>
+
+  <item>
+    <kind type="path">//Schema/Core/Monitor</kind>
+    <class module="repository.schema.Kind">SchemaMonitor</class>
+
+    <ref name="dispatcher" type="path">../Monitors</ref>
+    <attribute name="method">schemaChange</attribute>
+    <attribute name="op">set</attribute>
+    <attribute name="attribute">superKinds</attribute>
+    <attribute name="args"></attribute>
+    <attribute name="kwds"></attribute>
+  </item>
+
+</items>

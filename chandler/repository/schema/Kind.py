@@ -12,12 +12,12 @@ from chandlerdb.item.item import Nil, Default
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
+from repository.item.Monitors import Monitor
 from repository.item.Values import ItemValue, Values, References
 from repository.item.PersistentCollections import PersistentCollection
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
-from repository.item.Monitors import Monitor
 from repository.schema.TypeHandler import TypeHandler
 from repository.item.Query import KindQuery
 
@@ -127,7 +127,7 @@ class Kind(Item):
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
 
-    def newItem(self, name=None, parent=None, cls=None):
+    def newItem(self, name=None, parent=None, cls=None, **values):
         """
         Create an new item of this kind.
 
@@ -151,7 +151,7 @@ class Kind(Item):
         if cls is None:
             cls = self.getItemClass()
         
-        return cls(name, parent, self)
+        return cls(name, parent, self, **values)
 
     def instantiateItem(self, name, parent, uuid,
                         cls=None, version=0, withInitialValues=False):

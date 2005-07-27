@@ -142,7 +142,7 @@ class Indexed(object):
         for name, index in self._indexes.iteritems():
             itemWriter.writeSymbol(buffer, name)
             itemWriter.writeSymbol(buffer, index.getIndexType())
-            index._writeValue(itemWriter, buffer)
+            index._writeValue(itemWriter, buffer, version)
             size += index._saveValues(version)
 
         return size

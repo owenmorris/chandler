@@ -457,9 +457,9 @@ class DBNumericIndex(NumericIndex):
 
         return self.view.repository.store._indexes
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
 
-        super(DBNumericIndex, self)._writeValue(itemWriter, buffer)
+        super(DBNumericIndex, self)._writeValue(itemWriter, buffer, version)
 
         itemWriter.writeInteger(buffer, self._count)
         itemWriter.writeUUID(buffer, self._uuid)

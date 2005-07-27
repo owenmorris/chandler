@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-  <name>SchemaMonitor</name>
-  <kind type="path">//Schema/Core/Monitor</kind>
-  <class module="repository.schema.Kind">SchemaMonitor</class>
-</item>

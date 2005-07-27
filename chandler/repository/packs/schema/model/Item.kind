@@ -38,8 +38,10 @@
       <ref type="path" otherAlias="monitors">..</ref>
     </ref>
 
-    <attribute name="cardinality">single</attribute>
-    <attribute name="otherName">items</attribute>
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">item</attribute>
+    <attribute name="copyPolicy">remove</attribute>
+    <attribute name="deletePolicy">cascade</attribute>
   </item>
 
   <item withSchema="True">
@@ -73,6 +75,7 @@
 
     <attribute name="cardinality">dict</attribute>
     <attribute name="companion">watchers</attribute>
+    <attribute name="copyPolicy">remove</attribute>
   </item>
 
   <item withSchema="True">

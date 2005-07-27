@@ -115,6 +115,7 @@ class TestImport(RepositoryTestCase):
         nv.findPath('//CineGuide/KHepburn').movies.addIndex('t', 'attribute',
                                                             attribute='title')
         self._setCopyExport(nv['Schema'])
+        self._unsetCopyExport(nv['Schema']['Core']['items'])
 
         view.walk(Path('//Schema/CineGuide/Kinds'), mkdir)
         view.walk(Path('//Schema/CineGuide/Attributes'), mkdir)

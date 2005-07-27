@@ -170,6 +170,13 @@ class AbstractSet(ItemValue, Indexed):
 
         raise TypeError, "%s contents are computed" %(type(self))
 
+    def _copy(self, item, attribute):
+
+        value = self.makeValue(self.makeString(self))
+        value._setItem(item, attribute)
+
+        return value
+
     @classmethod
     def makeValue(cls, string):
         return eval(string)

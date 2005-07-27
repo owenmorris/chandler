@@ -9,9 +9,16 @@ from repository.item.Item import Item
 
 class Monitors(Item):
 
+    def _fillItem(self, *args, **kwds):
+
+        super(Monitors, self)._fillItem(*args, **kwds)
+        self.monitoring = { 'set': {}, 'schema': {} }
+        self.needsCaching = True
+
     def onItemLoad(self, view):
 
         self.setPinned()
+        self.needsCaching = True
         Monitors.instances[view] = self
 
     def onItemImport(self, view):
@@ -21,23 +28,24 @@ class Monitors(Item):
                 del Monitors.instances[self.itsView]
             except KeyError:
                 pass
+
             self.setPinned()
+            self.needsCaching = True
             Monitors.instances[view] = self
 
     def onViewClear(self, view):
 
         try:
             del Monitors.instances[view]
+            self.needsCaching = True
         except KeyError:
             pass
 
     def _collectionChanged(self, op, name, other):
 
         if op == 'remove':
-            if name == 'items':
-                monitoring = self._values.get('monitoring', None)
-                if monitoring is not None:
-                    monitoring.filterItem(other, 3)
+            if name == 'monitors':
+                self.cacheMonitors()
 
         super(Monitors, self)._collectionChanged(op, name, other)
                             
@@ -46,23 +54,54 @@ class Monitors(Item):
         try:
             return cls.instances[view]
         except AttributeError:
-            return view.findPath('//Schema/Core/Items/Monitors')
+            return view.findPath('//Schema/Core/items/Monitors')
         except KeyError:
-            return view.findPath('//Schema/Core/Items/Monitors')
+            return view.findPath('//Schema/Core/items/Monitors')
+
+    def cacheMonitors(self):
+
+        self.monitoring = { 'set': {}, 'schema': {} }
+        self.needsCaching = False
+
+        for monitor in self.monitors:
+            if not monitor.isDeleting():
+                self._cacheMonitor(monitor)
+
+    def _cacheMonitor(self, monitor):
+
+        op = monitor.getAttributeValue('op', monitor._values)
+        attribute = monitor.getAttributeValue('attribute', monitor._values)
+        opDict = self.monitoring[op]
+
+        if attribute in opDict:
+            opDict[attribute].append(monitor)
+        else:
+            opDict[attribute] = [monitor]
 
     def invoke(cls, op, item, attribute, *args):
 
         #print op, item.itsPath, attribute, item.getAttributeValue(attribute)
 
+        dispatcher = cls.getInstance(item.itsView)
+        if dispatcher.needsCaching:
+            dispatcher.cacheMonitors()
+
         try:
-            monitors = cls.getInstance(item.itsView).monitoring[op][attribute]
+            monitors = dispatcher.monitoring[op][attribute]
         except KeyError:
             return
         except AttributeError:
+            raise
             print 'no monitor singleton', op, item, attribute
             return
 
-        for monitorItem, method, monitorArgs, kwds in monitors:
+        for monitor in monitors:
+            monitorItem = monitor.getAttributeValue('item', monitor._references,
+                                                    None, None)
+            if monitorItem is None:
+                monitorItem = monitor
+
+            monitorArgs = monitor.args
             if monitorArgs:
                 if args:
                     _args = list(args)
@@ -71,25 +110,38 @@ class Monitors(Item):
                     _args = monitorArgs
             else:
                 _args = args
-            getattr(monitorItem, method)(op, item, attribute, *_args, **kwds)
+
+            getattr(monitorItem, monitor.method)(op, item, attribute,
+                                                 *_args, **monitor.kwds)
 
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
-        instance = cls.getInstance(item.itsView)
-        monitor = (item, method, args, kwds)
-        try:
-            instance.monitoring[op][attribute].append(monitor)
-        except KeyError, e:
-            if e.args[0] == op:
-                instance.monitoring[op] = {}
-            instance.monitoring[op][attribute] = [monitor]
+        dispatcher = cls.getInstance(item.itsView)
+
+        kind = dispatcher._kind.itsParent['Monitor']
+        monitor = kind.newItem(None, dispatcher.itsParent['monitors'])
+
+        monitor.item = item
+        monitor.method = method
+        monitor.op = op
+        monitor.attribute = attribute
+        monitor.args = args
+        monitor.kwds = kwds
+        monitor.dispatcher = dispatcher
+
+        if dispatcher.needsCaching:
+            dispatcher.cacheMonitors()
+        else:
+            dispatcher._cacheMonitor(monitor)
 
     def detach(cls, item, method, op, attribute, *args, **kwds):
 
-        instance = cls.getInstance(item.itsView)
-        monitor = (item, method, args, kwds)
-
-        instance.monitoring[op][attribute].remove(monitor)
+        for monitor in item.monitors:
+            if (monitor.method == method and monitor.op == op and
+                monitor.attribute == attribute and
+                monitor.args == args and monitor.kwds == kwds):
+                monitor.delete()
+                break
 
 
     invoke = classmethod(invoke)
@@ -101,7 +153,15 @@ class Monitors(Item):
 
 
 class Monitor(Item):
-    pass
+
+    def __init__(self, name=None, parent=None, kind=None,
+                 _uuid=None, _noMonitors=False):
+        super(Monitor, self).__init__(name, parent, kind, _uuid, True)
+
+    def delete(self, recursive=False, deletePolicy=None, cloudAlias=None,
+               _noMonitors=False):
+        return super(Monitor, self).delete(recursive, deletePolicy, cloudAlias,
+                                           True)
 
 
 #

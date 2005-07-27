@@ -1503,7 +1503,8 @@ class Item(CItem):
 
         return item
 
-    def delete(self, recursive=False, deletePolicy=None, cloudAlias=None):
+    def delete(self, recursive=False, deletePolicy=None, cloudAlias=None,
+               _noMonitors=False):
         """
         Delete this item.
 
@@ -1578,7 +1579,7 @@ class Item(CItem):
                 if other.refCount(True) == 0:
                     other.delete(recursive, deletePolicy)
 
-            self.__setKind(None)
+            self.__setKind(None, _noMonitors)
 
             self.itsParent._removeItem(self)
             self._setRoot(None, view)
@@ -1750,7 +1751,7 @@ class Item(CItem):
                 
         return kind
 
-    def __setKind(self, kind):
+    def __setKind(self, kind, _noMonitors=False):
 
         if kind is not self._kind:
             self.setDirty(Item.NDIRTY)
@@ -1783,8 +1784,9 @@ class Item(CItem):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
 
-            if kind is not None or prevKind is not None:
-                Item._monitorsClass.invoke('schema', self, 'kind', prevKind)
+            if not _noMonitors:
+                if kind is not None or prevKind is not None:
+                    Item._monitorsClass.invoke('schema', self, 'kind', prevKind)
 
     def mixinKinds(self, *kinds):
         """

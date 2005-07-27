@@ -25,7 +25,9 @@ class Values(dict):
 
     def clear(self):
 
-        for name in self.iterkeys():
+        for name, value in self.iteritems():
+            if isinstance(value, ItemValue):
+                value._setItem(None, None)
             self._setDirty(name)
 
         super(Values, self).clear()
@@ -894,8 +896,8 @@ class References(Values):
                     otherOther._isRefList() and self._item in otherOther):
                 if otherOther._isRefList():
                     logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
-                                 otherOther, other._repr_(), other._repr_(),
-                                 otherName, self._item._repr_())
+                                 otherOther, self._item._repr_(),
+                                 self._item._repr_(), otherName, other._repr_())
                 else:
                     logger.error("%s.%s doesn't reference %s.%s but %s",
                                  other._repr_(), otherName, self._item._repr_(),
@@ -966,11 +968,11 @@ class References(Values):
                                                    alias=value.getAlias(other),
                                                    noMonitors=True)
                             else:
-                                value.remove(other)
                                 localOther = other.findMatch(view, replace)
                                 if localOther is not None:
                                     localValue.append(localOther,
                                                       value.getAlias(other))
+                                value.remove(other)
                         item._references[key] = localValue
                 else:
                     if value._isUUID():

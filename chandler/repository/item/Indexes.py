@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.item.item import Nil
 from repository.util.SkipList import SkipList
 from PyICU import Collator, Locale
 
@@ -65,7 +66,7 @@ class Index(dict):
     def isPersistent(self):
         return False
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
         pass
 
     def _readValue(self, itemReader, offset, data):
@@ -188,8 +189,8 @@ class DelegatingIndex(object):
     def __getattr__(self, name):
         return getattr(self._index, name)
 
-    def _writeValue(self, itemWriter, buffer):
-        self._index._writeValue(itemWriter, buffer)
+    def _writeValue(self, itemWriter, buffer, version):
+        self._index._writeValue(itemWriter, buffer, version)
 
     def _readValue(self, itemReader, offset, data):
         return self._index._readValue(itemReader, offset, data)
@@ -306,9 +307,9 @@ class SortedIndex(DelegatingIndex):
             attrs['descending'] = 'True'
         self._index._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
 
-        super(SortedIndex, self)._writeValue(itemWriter, buffer)
+        super(SortedIndex, self)._writeValue(itemWriter, buffer, version)
         itemWriter.writeBoolean(buffer, self._descending)
 
     def _readValue(self, itemReader, offset, data):
@@ -324,6 +325,7 @@ class AttributeIndex(SortedIndex):
     def __init__(self, valueMap, index, **kwds):
 
         super(AttributeIndex, self).__init__(index, **kwds)
+
         self._valueMap = valueMap
 
         if not kwds.get('loading', False):
@@ -358,9 +360,9 @@ class AttributeIndex(SortedIndex):
         attrs['attribute'] = self._attribute
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
 
-        super(AttributeIndex, self)._writeValue(itemWriter, buffer)
+        super(AttributeIndex, self)._writeValue(itemWriter, buffer, version)
         itemWriter.writeSymbol(buffer, self._attribute)
 
     def _readValue(self, itemReader, offset, data):
@@ -431,9 +433,9 @@ class StringIndex(AttributeIndex):
 
         super(StringIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
 
-        super(StringIndex, self)._writeValue(itemWriter, buffer)
+        super(StringIndex, self)._writeValue(itemWriter, buffer, version)
         itemWriter.writeInteger(buffer, self._strength or -1)
         itemWriter.writeSymbol(buffer, self._locale or '')
 
@@ -484,9 +486,9 @@ class CompareIndex(SortedIndex):
         attrs['compare'] = self._compare
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
-    def _writeValue(self, itemWriter, buffer):
+    def _writeValue(self, itemWriter, buffer, version):
 
-        super(CompareIndex, self)._writeValue(itemWriter, buffer)
+        super(CompareIndex, self)._writeValue(itemWriter, buffer, version)
         itemWriter.writeSymbol(buffer, self._compare)
 
     def _readValue(self, itemReader, offset, data):

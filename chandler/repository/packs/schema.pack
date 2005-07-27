@@ -40,9 +40,9 @@
 
       <item file="Mixins.namespace" />
 
-      <item file="Items.namespace" cwd="items">
-        <item file="SchemaMonitor.item" />
+      <item file="items.namespace" cwd="items">
         <item file="Monitors.item" />
+        <item file="monitors.namespace" />
       </item>
     </item>
   </item>

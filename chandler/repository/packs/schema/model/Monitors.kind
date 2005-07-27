@@ -11,7 +11,7 @@
 
       <!-- 
          - plus local attributes below:
-         -     monitoring, items
+         -     monitors
         -->
     </ref>
 
@@ -25,35 +25,19 @@
   </item>
 
   <item withSchema="True">
-    <name>monitoring</name>
+    <name>monitors</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Monitors</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="monitoring">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Dictionary</ref>
-    <attribute name="cardinality">dict</attribute>
-    <attribute name="companion">items</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>items</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Monitors</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path" otherAlias="items">..</ref>
+      <ref type="path" otherAlias="monitors">..</ref>
     </ref>
 
     <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">monitors</attribute>
+    <attribute name="otherName">dispatcher</attribute>
+    <attribute name="initialValue" type="list"></attribute>
   </item>
 
 </items>

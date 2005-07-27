@@ -7,4 +7,5 @@
     <ref name="type" type="path">//Schema/Core/String</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
+    <attribute name="defaultValue"></attribute>
 </item>
