@@ -1509,30 +1509,29 @@
     <!--</StaticText>-->
   
   
-    <SplitterWindow itsName="MainCalendarCanvasSplitter">
+    <calendar:CanvasSplitterWindow itsName="MainCalendarCanvasSplitter">
+      <blockName value="MainCalendarCanvasSplitter"/>
       
       <childrenBlocks itemref="doc:AllDayEvents"/>
       <childrenBlocks itemref="doc:TimedEvents"/>
-      
-      <blockName value="MainCalendarCanvasSplitter"/>
       
       <!-- as small as possible; AllDayEvents's SetMinSize() should override? -->
       <splitPercentage value="0.01"/>
       <orientationEnum>Horizontal</orientationEnum>      
       <stretchFactor value="1"/>
-    </SplitterWindow>
+    </calendar:CanvasSplitterWindow>
   
       <calendar:AllDayEventsCanvas itsName="AllDayEvents">
         <blockName value="all day events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="0"/> <!-- seems to be ignored (only BoxContainers use it) -->
+        <stretchFactor value="0"/> <!-- splitterwindows, unlike boxcontainers, ignore this -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:AllDayEventsCanvas>
   
       <calendar:TimedEventsCanvas itsName="TimedEvents">
         <blockName value="timed events canvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="1"/> <!-- seems to be ignored... -->
+        <stretchFactor value="0"/> <!-- ignored -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:TimedEventsCanvas>
 <!-- end main calendar area -->

@@ -1231,6 +1231,16 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
 
 
 
+class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
+    def instantiateWidget(self):
+        wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
+        
+        #we use a delegate because at this splitter's instantiateWidget time,
+        #it's unknown (to brendano anyway) whether calctrl's widget exists yet
+        wxSplitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
+                        lambda event: self.parentBlock.calendarControl.widget.OnSashPositionChange(event))
+    
+        return wxSplitter
         
 
 class AllDayEventsCanvas(CalendarBlock):
@@ -1267,18 +1277,14 @@ class AllDayEventsCanvas(CalendarBlock):
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch='DrawBackground|DrawCells|_doDrawingCalc'
     legendBorderWidth = 1
-    collapsedHeight = 25
+
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
-
-        self.SetMinSize((-1,self.collapsedHeight))
-        self.size = self.GetSize()
-        self.fixed = True
+        self.autoExpandMode = True #though we start at collapsed height
+        self.numEventRows = 0
 
     def OnInit(self):
         super (wxAllDayEventsCanvas, self).OnInit()
-        
-        self.SetMinSize((-1,self.collapsedHeight))
         
         # Event handlers
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -1287,8 +1293,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             self.blockItem.calendarContainer.eventLabelHeight + \
             AllDayCanvasItem.textMargin * 2 + 2
 
+        self.collapsedHeight = int(0.5 * self.eventHeight)
+        self.SetMinSize((-1,self.collapsedHeight))
+        self.size = self.GetSize()
+        
     def OnSize(self, event):
-        # print "wxAllDayEventsCanvas.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self.size = self.GetSize()
         self.RebuildCanvasItems()
         
@@ -1341,18 +1350,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if selectedBox:
             draw(selectedBox, True)
 
-        # removing because we now have the splitter between the sections
-        # Draw a line across the bottom of the header
-        #dc.SetPen(styles.majorLinePen)
-        #dc.DrawLine(0, self.size.height - 1,
-                    #self.size.width, self.size.height - 1)
-        #dc.DrawLine(0, self.size.height - 4,
-                    #self.size.width, self.size.height - 4)
-        #dc.SetPen(styles.minorLinePen)
-        #dc.DrawLine(0, self.size.height - 2,
-                    #self.size.width, self.size.height - 2)
-        #dc.DrawLine(0, self.size.height - 3,
-                    #self.size.width, self.size.height - 3)
 
     def RebuildCanvasItems(self):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
@@ -1363,30 +1360,29 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         else:
             width = drawInfo.dayWidth
 
-        self.fullHeight = 0
         size = self.GetSize()
         
         startDateTime, endDateTime = self.GetCurrentDateRange()
         visibleItems = list(self.blockItem.getDayItemsInRange(startDateTime, endDateTime))
         visibleItems.sort(self.sortByDurationAndStart)
         
+        oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
             for y, item in enumerate(visibleItems):
                 self.RebuildCanvasItem(item, width, 0,0, y)
             self.numEventRows = len(visibleItems)
             
         else:
-            # Next: place all the items on a grid without overlap. Items can span
-            # multiple columns.
-            
-            # TODO: make this into two passes for layout & then Rebuild()ing,
-            # should be cleaner
+            # Next: place all the items on a grid without overlap. Items can
+            # span multiple columns. TODO: maybe make this into two passes for
+            # layout & then Rebuild()ing should be cleaner
             
             # conflict grid: 2-d "matrix" of booleans.  False == free spot
             # FIXME fixed number of rows.   Rigged up for grid[x][y] notation:
             # [[col1..], [col2..]] instead of the usual [[row1..], [row2..]]
             MAX_ROWS = 200
             grid = [[False for y in range(MAX_ROWS)] for x in range(drawInfo.columns)]
+            
             self.numEventRows = 0
 
             for item in visibleItems:
@@ -1408,14 +1404,24 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                         break
                 else:
                     raise Exception, "Too many events in all-day area to fit in MAX_ROWS"
+        
+        if self.numEventRows and self.numEventRows > oldNumEventRows and self.autoExpandMode:
+            self.ExpandIfNeeded()
 
-    def GetExpandedHeight(self):
-        """What should be the ideal fully expanded height?
-        precondition: self.numEventRows needs to be set correctly"""
-        n = self.numEventRows
-        h = self.eventHeight
-        return int( (n + .5) * h )
-    expandedHeight = property(GetExpandedHeight)
+    def ExpandIfNeeded(self):
+        """Expand to make all events visible, but never contract to do so."""
+        currentHeight = self.GetSize()[1]
+        if currentHeight < self.expandedHeight:
+            self.GetParent().SetSashPosition(self.expandedHeight)
+            self.blockItem.calendarContainer.calendarControl.widget.OnSashPositionChange()
+
+    @staticmethod
+    def NeededHeight(numEventRows, eventHeight):
+        return int( (numEventRows + .5) * eventHeight )
+    
+    expandedHeight = property(lambda self:  self.NeededHeight(self.numEventRows, self.eventHeight),
+                              doc="precondition: self.numEventRows must be correctly set")
+
 
     @staticmethod
     def BlockFits(grid, x1, x2, y):
@@ -1548,10 +1554,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         else:       
             xPosition = position.x
                 
-        if self.fixed:
+        ## weird old code, what?
+        if True:  ## self.fixed:
             height = self.GetMinSize().GetWidth()
         else:
-            height = self.fullHeight
+            height = self.fullHeight ##now is self.expandedHeight, i THINK thats a semantic approx...
             
         yPosition = min(yPosition, height)
         if mustBeInBounds:
@@ -2144,12 +2151,12 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """This is the topmost area with the month name, event color selector,
     week navigation arrows, and the bar of Week/day selector buttons"""
 
-
     def __init__(self, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(*arguments, **keywords)
     
         self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow.png")
         self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow.png")
+        self.allDayBlankArrowImage = wx.GetApp().GetImage("AllDayBlankArrow.png")
 
 
         self.currentSelectedDate = None
@@ -2208,7 +2215,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 0, bSortEnabled=False)
 
         self.weekColumnHeader.SetBitmapJustification(8, wx.colheader.CH_JUST_Center)
-        self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
+        self.weekColumnHeader.SetBitmapRef(8, self.allDayBlankArrowImage)
         self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekColumnHeader)
 
         # set up initial selection
@@ -2330,36 +2337,49 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # OnDaySelect takes a zero-based day, and our first day is in column 1
         return self.OnDaySelect(colIndex-1)
 
+    ## all this height logic should move to wxAllDayEventsCanvas. it's here
+    ## only because it was easier to code at first
+    
     def OnExpandButtonClick(self, event):
         #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
         wxAllDay = self.GetAllDayWidget()
         currentHeight = wxAllDay.GetSize()[1]
+        
         if currentHeight >= wxAllDay.collapsedHeight and \
            currentHeight < wxAllDay.expandedHeight:
-            ## Expand
+            # Expand!
             wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
+            wxAllDay.autoExpandMode = True
             self.OnSashPositionChange()
-        
         elif currentHeight >= wxAllDay.expandedHeight:
-            # Collapse
+            # Collapse, I guess
+            wxAllDay.autoExpandMode = False
             wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
             self.OnSashPositionChange()
-    
+        print wxAllDay.autoExpandMode, currentHeight, wxAllDay.collapsedHeight, wxAllDay.expandedHeight
+        
     def GetAllDayWidget(self):
-        """encapsulates a hack of climbing around a tree"""
         # @@@ hack that depends on tree structure! would be better to have an
         # allDay reference in calcontainer or calctrl, but that causes
         # initialization order weirdness
+        # ALTERNATIVE: getBlockByName?
         return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0].widget
     
     def OnSashPositionChange(self, event=None):
-        ## TODO: hook up something like EVT_SPLITTER_SASH_POS_CHANGED to this
-        #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
         wxAllDay = self.GetAllDayWidget()
         position = wxAllDay.GetParent().GetSashPosition()
-        if position == wxAllDay.collapsedHeight:
+        sashsize = wxAllDay.GetParent().GetSashSize()
+        if event:  assert position == event.GetSashPosition()
+ 
+        if position < 0:
+            #yes, this does happen quite a bit during block rendering
+            pass
+        elif position - sashsize <= wxAllDay.collapsedHeight:
+            #change just the bitmap?  or autoExpandMode as well?
+            #wxAllDay.autoExpandMode = False
             self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
-        else:
+        elif position - sashsize > wxAllDay.collapsedHeight:
+            wxAllDay.autoExpandMode = True
             self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
 
     

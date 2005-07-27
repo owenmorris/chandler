@@ -193,7 +193,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         
         # Setting minimum pane size prevents unsplitting a window by double-clicking
-        self.SetMinimumPaneSize(23) #23 to help debug the weird sizing bug 3497
+        self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
         
     def OnInit(self, *arguments, **keywords):
         #vain attempts to solve weird sizing bug
