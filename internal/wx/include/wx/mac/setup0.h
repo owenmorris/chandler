@@ -159,7 +159,7 @@
 //
 // Recommended setting: 0 (unless you only plan to use Windows NT/2000/XP)
 #ifndef wxUSE_UNICODE
-    #define wxUSE_UNICODE 0
+    #define wxUSE_UNICODE 1
 #endif
 
 // Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWidgets in Unicode mode
@@ -270,7 +270,7 @@
 // Use standard C++ streams if 1. If 0, use wxWin streams implementation only.
 #define wxUSE_STD_IOSTREAM  0
 
-// Enable converion to  standard C++ string if 1.
+// Enable conversion to standard C++ string if 1.
 #define wxUSE_STD_STRING  0
 
 // ----------------------------------------------------------------------------
@@ -1097,6 +1097,11 @@
 
 // Set to 0 for no libmspack
 #define wxUSE_LIBMSPACK     0
+
+// native toolbar does not support embedding controls yet, please test by setting to 1
+#define wxMAC_USE_NATIVE_TOOLBAR 1
+
+
 
 
 #endif
