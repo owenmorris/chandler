@@ -515,6 +515,7 @@
     <childrenBlocks itemref="doc:CalendarStartTimeArea"/>
     <childrenBlocks itemref="doc:CalendarEndSpacer"/>
     <childrenBlocks itemref="doc:CalendarEndTimeArea"/>
+    <childrenBlocks itemref="doc:CalendarTransparencySpacer"/>
     <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
 
     <!-- The recurrence UI; turned off for now. -->
@@ -740,6 +741,13 @@
     <event itemref="doc:Resynchronize"/>
   </AEBlock>
   
+  <StaticText itsName="CalendarTransparencySpacer">
+    <blockName value="CalendarTransparencySpacer"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 1</minimumSize>
+  </StaticText>
 
   <ContentItemDetail itsName="CalendarTransparencyArea">
     <blockName value="CalendarTransparencyArea"/>
