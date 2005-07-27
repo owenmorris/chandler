@@ -831,7 +831,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 ((item.startTime <= start) and
                  (item.endTime >= end)))
 
-    def generateItemsInRange(date, nextDate):
+    def generateItemsInRange(self, date, nextDate):
 
         # getOccurrencesBetween is potentially expensive, so
         # make sure we cache the ones we've already visited
@@ -846,7 +846,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                     newItems = item.getOccurrencesBetween(date, nextDate)
                     logger.debug("generated items: %s" % newItems)
                 if icalUID is not None:
-                    generateUIDs.append(icalUID)
+                    generatedUIDs.append(icalUID)
             except AttributeError:
                 continue
 
