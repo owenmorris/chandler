@@ -60,7 +60,7 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
         return (smtpAccount, replyToAddress)
 
     """Get the default Mail Account"""
-    parentAccount = Current.Current.get(view, "MailAccount")
+    parentAccount = Current.get(view, "MailAccount")
 
     if parentAccount is not None:
         if hasattr(parentAccount, 'replyToAddress'):
@@ -92,7 +92,7 @@ def getCurrentMailAccount(view, uuid=None):
         account = view.findUUID(uuid)
 
     else:
-        account = Current.Current.get(view, "MailAccount")
+        account = Current.get(view, "MailAccount")
 
     return account
 

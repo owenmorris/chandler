@@ -54,7 +54,7 @@ class RepoResource(resource.Resource):
                 else:
                     path = "//%s" % ("/".join(request.postpath))
                     
-                result = "<html><head><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
+                result = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
                 result += "<body>"
 
                 
@@ -83,7 +83,7 @@ class RepoResource(resource.Resource):
 
                     name = item.itsName
                     if name is None:
-                        name = str(item.itsUUID)
+                        name = unicode(item.itsUUID)
                     result += "<div class='path'>%s &gt; <span class='itemname'><a href=%s>%s</a></span> | <a href=%s>Render attributes</a></div>" % (path, toLink(item.itsPath), name, toLink(item.itsPath))
 
                     result += RenderBlock(repoView, item)
@@ -108,7 +108,7 @@ class RepoResource(resource.Resource):
                         
                     if item is None:
                         result += "<h3>Item not found: %s</h3>" % clean(path)
-                        return str(result)
+                        return unicode(result)
 
                     if len(fields) == 0:
                         # No fields - just go render the item.
@@ -121,7 +121,7 @@ class RepoResource(resource.Resource):
                             theValue = _getObjectValue(theValue, f)
                         except:
                             result += "<h3>Unable to get %s on %s</h3>" % (clean(f), clean(theValue))
-                            return str(result)
+                            return unicode(result)
                     result += "<div>"
                     result += RenderObject(repoView, theValue, path)
                     result += "</div>"
@@ -133,7 +133,7 @@ class RepoResource(resource.Resource):
                     item = repoView.findPath(path)
                     if item is None:
                         result += "<h3>Item not found: %s</h3>" % path
-                        return str(result)
+                        return unicode(result)
 
                     result += "<div>"
                     result += RenderItem(repoView, item)
@@ -155,7 +155,7 @@ class RepoResource(resource.Resource):
             result = "<html>Caught a %s exception: %s<br> %s</html>" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         if isinstance(result, unicode):
-            result = result.encode('ascii', 'replace')
+            result = result.encode('utf-8', 'replace')
             
         return result
 
@@ -252,13 +252,13 @@ def RenderInheritance(repoView):
         klass = None
         if hasattr(item, 'classes'):
             klass = item.classes['python']
-            result += clean(str(klass))
+            result += clean(unicode(klass))
         result += "</td>"
         result += "<td>"
         if klass is not None:
             if hasattr(klass, 'getKind'):
                 checkKind = klass.getKind(repoView)
-                result += str(checkKind.itsPath)
+                result += unicode(checkKind.itsPath)
                 if checkKind is item:
                     result += " (ok)"
                 else:
@@ -267,7 +267,7 @@ def RenderInheritance(repoView):
         result += "<td>"
         if klass is not None:
             for superclass in klass.__bases__:
-                result += clean(str(superclass)) + ", "
+                result += clean(superclass) + ", "
         result += "</td>"
 
         result += "<td>"
@@ -527,7 +527,7 @@ def RenderKindQuery(repoView, item):
         items = []
         for i in repository.item.Query.KindQuery().run([item]):
             items.append(i)
-        items.sort(lambda x, y: cmp(str(x.getItemDisplayName()).lower(), str(y.getItemDisplayName()).lower()))
+        items.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
         for i in items:
             output.append("<a href=%s>'%s'</a>  (%s) %s %s" % \
                           (toLink(i.itsPath), i.getItemDisplayName(),
@@ -605,7 +605,7 @@ def RenderItem(repoView, item):
 
     name = item.itsName
     if name is None:
-        name = str(item.itsUUID)
+        name = unicode(item.itsPath[-1])
     result += "<div class='path'>%s &gt; <span class='itemname'>%s</span>" % (path, name)
 
     try: result += " (<a href=%s>%s</a>)" % (toLink(item.itsKind.itsPath), item.itsKind.itsName)
@@ -638,7 +638,7 @@ def RenderItem(repoView, item):
     for child in item.iterChildren():
         name = child.itsName
         if name is None:
-            name = str(child.itsUUID)
+            name = unicode(child.itsUUID)
         children[name] = child
     keys = children.keys()
     keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
@@ -648,7 +648,7 @@ def RenderItem(repoView, item):
         name = child.itsName
         displayName = ""
         if name is None:
-            name = str(child.itsUUID)
+            name = unicode(child.itsUUID)
             displayName = child.getItemDisplayName()
         children[name] = child
         output.append(" &nbsp; <a href=%s>%s </a> %s" % (toLink(child.itsPath), key, displayName))
@@ -832,7 +832,7 @@ def RenderItem(repoView, item):
                     result += clean(content)
 
                 except Exception, e:
-                    result += clean(str(e))
+                    result += clean(e)
                     result += "(Couldn't read Lob content)"
 
             result += "</td></tr>\n"
@@ -1017,7 +1017,7 @@ def getItemName(item):
     except:
         name = item.itsName
     if name is None:
-        name = str(item.itsUUID)
+        name = unicode(item.itsUUID)
     return name
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1033,8 +1033,12 @@ def toLink(path):
     return s.replace(" ", "%20")
 
 def clean(s):
-    s = str(s)
-    return s.replace("<", "").replace(">","")
+    s = unicode(s)
+    try:
+        return s.replace("<", "").replace(">","")
+    except Exception, e:
+        print e, s, type(s)
+        raise
 
 def indent(depth):
     result = ""

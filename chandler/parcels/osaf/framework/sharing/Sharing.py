@@ -24,7 +24,6 @@ import repository
 import logging
 import wx
 import time, StringIO, urlparse, libxml2, os, base64
-import chandlerdb
 import zanshin.webdav
 import WebDAV
 import zanshin.util
@@ -900,11 +899,11 @@ class WebDAVConduit(ShareConduit):
             logger.info("...creating new webdav ServerHandle")
             (host, port, sharePath, username, password, useSSL) = \
             self.__getSettings()
-            
+
             self.serverHandle = WebDAV.ChandlerServerHandle(host, port=port,
                 username=username, password=password, useSSL=useSSL,
                 repositoryView=self.itsView)
-                
+
         return self.serverHandle
 
     def __releaseServerHandle(self):
@@ -913,7 +912,8 @@ class WebDAVConduit(ShareConduit):
     def getLocation(self):  # must implement
         """ Return the url of the share """
 
-        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
+        (host, port, sharePath, username, password, useSSL) = \
+            self.__getSettings()
         if useSSL:
             scheme = "https"
             defaultPort = 443
@@ -933,7 +933,6 @@ class WebDAVConduit(ShareConduit):
         """ Return the path (not the full url) of an item given its external
         UUID """
 
-        # (host, port, sharePath, username, password, useSSL) = self.__getSettings()
         extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -953,12 +952,12 @@ class WebDAVConduit(ShareConduit):
 
     def __getSharePath(self):
         return "/" + self.__getSettings()[2]
-            
+
     def __resourceFromPath(self, path):
 
         serverHandle = self._getServerHandle()
         sharePath = self.__getSharePath()
-        
+
         resourcePath = "%s/%s" % (sharePath, self.shareName)
 
         if self.share.format.fileStyle() == ImportExportFormat.STYLE_DIRECTORY:
@@ -968,7 +967,7 @@ class WebDAVConduit(ShareConduit):
 
     def exists(self):
         result = super(WebDAVConduit, self).exists()
-        
+
         resource = self.__resourceFromPath("")
 
         try:
@@ -981,12 +980,12 @@ class WebDAVConduit(ShareConduit):
         except zanshin.webdav.PermissionsError, err:
             message = "Not authorized to PUT %s" % self.getLocation()
             raise NotAllowed(message=err.message)
-            
+
         return result
 
     def create(self):
         super(WebDAVConduit, self).create()
-        
+
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -999,7 +998,7 @@ class WebDAVConduit(ShareConduit):
             except M2Crypto.BIO.BIOError, err:
                 message = "%s" % (err)
                 raise CouldNotConnect(message=message)
-    
+
             if response.status == twisted.web.http.NOT_ALLOWED:
                 # already exists
                 message = "Collection at %s already exists" % url
@@ -1028,15 +1027,16 @@ class WebDAVConduit(ShareConduit):
                  raise IllegalOperation(message=message)
 
     def destroy(self):
-        print " @@@MOR unimplemented"
+        if self.exists():
+            self._deleteItem("")
 
     def open(self):
         super(WebDAVConduit, self).open()
-        
+
     def __getContainerResource(self):
-        
+
         serverHandle = self._getServerHandle()
-        
+
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -1049,7 +1049,7 @@ class WebDAVConduit(ShareConduit):
             path += '/'
 
         return serverHandle.getResource(path)
-        
+
 
     def _putItem(self, item): # must implement
         """ putItem should publish an item and return etag/date, etc.
@@ -1847,7 +1847,7 @@ def getWebDAVAccount(view):
     @type view: L{repository.persistence.RepositoryView}
     @return: An account item, or None if no WebDAV account could be found.
     """
-    return Current.Current.get(view, "WebDAVAccount")
+    return Current.get(view, "WebDAVAccount")
 
 
 def findMatchingWebDAVAccount(view, url):
@@ -2156,6 +2156,13 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
 
 def unsubscribe(collection):
     for share in collection.shares:
+        share.conduit.delete(True)
+        share.format.delete(True)
+        share.delete(True)
+
+def unpublish(collection):
+    for share in collection.shares:
+        share.destroy()
         share.conduit.delete(True)
         share.format.delete(True)
         share.delete(True)

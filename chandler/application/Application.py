@@ -167,8 +167,7 @@ class wxApplication (wx.App):
         splash screen.
         """
         splash = None
-        if not (Globals.options.nosplash or \
-            (__debug__ and Globals.options.nocatch)):
+        if not Globals.options.nosplash:
             splashBitmap = self.GetImage ("splash.png")
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
@@ -676,7 +675,7 @@ class wxApplication (wx.App):
         # whatever other methods we want to the mix (such as the run method,
         # above).  locals will be passed to PyCrust/Shell to make those
         # symbols available to the developer
-        locals = headless.getExports(run=run)
+        locals = headless.getExports(run=run, view=self.UIRepositoryView)
 
         browseableObjects = {
          "globals" : Globals,

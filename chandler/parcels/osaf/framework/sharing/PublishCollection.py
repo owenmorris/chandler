@@ -310,7 +310,7 @@ class PublishCollectionDialog(wx.Dialog):
             self.existing = self._getExistingFiles()
             suggestedName = self._suggestName()
             shareName = suggestedName
-            shareNameSafe = urllib.quote_plus(shareName)
+            shareNameSafe = urllib.quote_plus(shareName.encode('utf-8'))
             accountIndex = self.accountsControl.GetSelection()
             account = self.accountsControl.GetClientData(accountIndex)
 
@@ -468,7 +468,7 @@ class PublishCollectionDialog(wx.Dialog):
             path = resource.path[skipLen:]
             path = path.strip("/")
             if path:
-                path = urllib.unquote_plus(path)
+                path = urllib.unquote_plus(path).decode('utf-8')
                 existing.append(path)
         
         # @@@ [grant] Localized sort?

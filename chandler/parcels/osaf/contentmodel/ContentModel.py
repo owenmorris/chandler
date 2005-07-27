@@ -166,10 +166,15 @@ class ContentItem(schema.Item):
 
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
         super(ContentItem, self).__init__(name, parent, kind, view, **kw)
-        self.createdOn = datetime.now()
+
+        if not hasattr(self, 'createdOn'):
+            self.createdOn = datetime.now()
+
         if view is None:
             view = self.itsView
-        self.creator = self.getCurrentMeContact(view)
+
+        if not hasattr(self, 'creator'):
+            self.creator = self.getCurrentMeContact(view)
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for

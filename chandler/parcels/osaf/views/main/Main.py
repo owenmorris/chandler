@@ -777,6 +777,15 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
 
+    def onUnpublishSidebarCollectionEvent(self, event):
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            Sharing.unpublish(collection)
+
+    def onUnpublishSidebarCollectionEventUpdateUI(self, event):
+        collection = self.getSidebarSelectedCollection ()
+        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
+
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
         import osaf.framework.sharing.ShareTool

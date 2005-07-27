@@ -15,8 +15,8 @@ from repository.item.RefCollections import RefList
 
 # Increment this value whenever the schema changes and edit this comment (to
 # make sure Subversion knows you changed it, in case someone else changes it
-# at about the same time)... 
-SCHEMA_VERSION = "32"
+# at about the same time)...  
+SCHEMA_VERSION = "33"
 
 logger = None # initialized in initLogging()
 
@@ -105,7 +105,7 @@ def initOptions(chandlerDirectory, **kwds):
         'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
         'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
         'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
-        'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
+        'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
         'wing':       ('-w', '--wing',       'b', False, None, ''),
         'komodo':     ('-k', '--komodo',     'b', False, None, ''),
         'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),

@@ -5,6 +5,7 @@ import os
 import wx
 import wx.xrc
 
+import application.schema as schema
 import application.Globals
 import application.Parcel
 import application.dialogs.Util
@@ -469,8 +470,8 @@ class AccountPreferencesDialog(wx.Dialog):
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
-                    setting = Current.Current.isCurrent(self.view,
-                                                        desc['pointer'], item)
+                    setting = Current.isCurrent(self.view,
+                                                desc['pointer'], item)
 
                 elif desc['type'] == 'itemRef':
                     # Store an itemRef as a UUID
@@ -565,9 +566,9 @@ class AccountPreferencesDialog(wx.Dialog):
                     if desc['type'] == 'currentPointer':
                         # If this value is True, make this item current:
                         if values[field]:
-                            Current.Current.set(self.view,
-                                                desc['pointer'],
-                                                item)
+                            Current.set(self.view,
+                                        desc['pointer'],
+                                        item)
 
                     elif desc['type'] == 'itemRef':
                         # Find the item for this UUID and assign the itemref:
@@ -989,7 +990,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        account = self.view.findPath("//parcels/osaf/mail/TestIMAPAccount")
+        account = schema.ns('osaf.app', self.view).TestIMAPAccount
         account.host = data['IMAP_SERVER']
         account.port = data['IMAP_PORT']
         account.connectionSecurity = data['IMAP_SECURE']
@@ -1006,7 +1007,7 @@ class AccountPreferencesDialog(wx.Dialog):
         uuid = self.data[self.currentIndex]['item']
         data = self.data[self.currentIndex]['values']
 
-        account = self.view.findPath("//parcels/osaf/mail/TestSMTPAccount")
+        account = schema.ns('osaf.app', self.view).TestSMTPAccount
         account.host = data['SMTP_SERVER']
         account.port = data['SMTP_PORT']
         account.connectionSecurity = data['SMTP_SECURE']
@@ -1023,7 +1024,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        account = self.view.findPath("//parcels/osaf/mail/TestPOPAccount")
+        account = schema.ns('osaf.app', self.view).TestPOPAccount
         account.host = data['POP_SERVER']
         account.port = data['POP_PORT']
         account.connectionSecurity = data['POP_SECURE']

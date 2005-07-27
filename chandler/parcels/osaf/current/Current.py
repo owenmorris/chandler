@@ -4,38 +4,29 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Parcel
+from osaf.contentmodel.ContentModel import CurrentPointer
 
-class Current(application.Parcel.Parcel):
+CURRENT = "//parcels/osaf/current"
 
-    CURRENT = "//parcels/osaf/current"
-    POINTER_KIND_PATH = "//parcels/osaf/contentmodel/CurrentPointer"
+def get(view, pointerName):
+    current = view.findPath(CURRENT)
+    ptr = current.findPath(pointerName)
+    if ptr is None or not hasattr(ptr, 'item'):
+        return None
+    return ptr.item
 
-    def get(cls, view, pointerName):
-        current = view.findPath(cls.CURRENT)
-        ptr = current.findPath(pointerName)
-        if ptr is None or not hasattr(ptr, 'item'):
-            return None
-        return ptr.item
+def set(view, pointerName, item):
+    current = view.findPath(CURRENT)
+    ptr = current.findPath(pointerName)
+    if ptr is None:
+        ptr = CurrentPointer(pointerName, current)
+    ptr.item = item
 
-    get = classmethod(get)
+def isCurrent(view, pointerName, item):
+    current = view.findPath(CURRENT)
+    ptr = current.findPath(pointerName)
+    if ptr is not None and hasattr(ptr, 'item') and ptr.item is item:
+        return True
+    else:
+        return False
 
-    def set(cls, view, pointerName, item):
-        current = view.findPath(cls.CURRENT)
-        ptr = current.findPath(pointerName)
-        if ptr is None:
-            kind = view.findPath(cls.POINTER_KIND_PATH)
-            ptr = kind.newItem(pointerName, current)
-        ptr.item = item
-
-    set = classmethod(set)
-
-    def isCurrent(cls, view, pointerName, item):
-        current = view.findPath(cls.CURRENT)
-        ptr = current.findPath(pointerName)
-        if ptr is not None and hasattr(ptr, 'item') and ptr.item is item:
-            return True
-        else:
-            return False
-
-    isCurrent = classmethod(isCurrent)

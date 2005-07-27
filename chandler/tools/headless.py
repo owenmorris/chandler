@@ -185,7 +185,7 @@ def ls(arg=None):
         for child in item.iterChildren():
             currentList.append(child)
 
-    currentList.sort(lambda x, y: cmp(str(x.getItemDisplayName()).lower(), str(y.getItemDisplayName()).lower()))
+    currentList.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
 
     count = 1
     for item in currentList:
