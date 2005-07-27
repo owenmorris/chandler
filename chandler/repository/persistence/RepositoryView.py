@@ -28,8 +28,9 @@ class RepositoryView(object):
     # 0.5.0: first tracked core schema version
     # 0.5.1: added indexes to abstract sets
     # 0.5.2: renamed 'persist' aspect to 'persisted', added 'indexed' aspect
+    # 0.5.3: new monitor implementation
     
-    CORE_SCHEMA_VERSION = 0x00050200
+    CORE_SCHEMA_VERSION = 0x00050300
 
     def __init__(self, repository, name, version):
         """
