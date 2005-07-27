@@ -2393,7 +2393,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             pass
         elif position - sashsize <= wxAllDay.collapsedHeight:
             #change just the bitmap?  or autoExpandMode as well?
-            #wxAllDay.autoExpandMode = False
+            wxAllDay.autoExpandMode = False
             self.weekColumnHeader.SetBitmapRef(8, self.allDayOpenArrowImage)
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
