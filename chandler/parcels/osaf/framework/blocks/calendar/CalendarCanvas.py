@@ -87,7 +87,7 @@ class CalendarData(ContentModel.ContentItem):
 
     # need to convert hues from 0..360 to 0..1.0 range
     # removed 60, 180, 90 for now because they looked too light
-    hueList = [k/360.0 for k in [210, 120, 0, 240, 330, 30, 270]]
+    hueList = [k/360.0 for k in [210, 120, 0, 30, 270, 240, 330]]
     
     @classmethod
     def getNextHue(cls, oldhue):
@@ -831,6 +831,25 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 ((item.startTime <= start) and
                  (item.endTime >= end)))
 
+    def generateItemsInRange(date, nextDate):
+
+        # getOccurrencesBetween is potentially expensive, so
+        # make sure we cache the ones we've already visited
+        generatedUIDs = []
+        for item in self.contents:
+            #logger.debug("got item %s" % str(item))
+            try:
+                # not all items have UIDs
+                icalUID = item.icalUID
+                if icalUID not in generatedUIDs:
+                    # This is the meat of it - ensure the items actually exist
+                    newItems = item.getOccurrencesBetween(date, nextDate)
+                    logger.debug("generated items: %s" % newItems)
+                if icalUID is not None:
+                    generateUIDs.append(icalUID)
+            except AttributeError:
+                continue
+
     def getItemsInRange(self, date, nextDate, allowAnyTime=False, allowAllDay=False):
         """
         Convenience method to look for the items in the block's contents
@@ -842,18 +861,9 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         @return: the items in this collection that appear within the given range
         @rtype: list of Items
         """
-        uids = []
-        for item in self.contents:
-            #logger.debug("got item %s" % str(item))
-            try:
-                icalUID = item.icalUID
-            except:
-                continue
-            if icalUID in uids:
-                continue
-            logger.debug("generated items: %s" % str(item.getOccurrencesBetween(date, nextDate)))
-            if icalUID is not None:
-                uids.append(icalUID)
+        # this is annoying - for the moment we have to first make sure all the
+        # generated items exist, then reiterate self.contents
+        self.generateItemsInRange(date, nextDate)
 
         for item in self.contents:
             try:
