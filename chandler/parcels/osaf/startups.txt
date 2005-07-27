@@ -281,6 +281,9 @@ the reactor will not start::
     0
 
     >>> sleep(0.1)  # make sure exception has been sent to stderr
+    >>> stop_reactor()
+    >>> len(threading.enumerate())  # all threads should be stopped now
+    1
     
     >>> print sys.stderr.getvalue()
     Exception in thread //userdata/dont_do_this:
