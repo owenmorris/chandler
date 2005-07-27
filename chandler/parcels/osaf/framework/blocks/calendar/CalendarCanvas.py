@@ -2181,9 +2181,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     def __init__(self, *arguments, **keywords):
         super(wxCalendarControl, self).__init__(*arguments, **keywords)
     
-        self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow.png")
-        self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow.png")
-        self.allDayBlankArrowImage = wx.GetApp().GetImage("AllDayBlankArrow.png")
+        self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow_whitebg.png")
+        self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow_whitebg.png")
+        self.allDayBlankArrowImage = wx.GetApp().GetImage("AllDayBlankArrow_whitebg.png")
 
 
         self.currentSelectedDate = None
@@ -2383,7 +2383,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             wxAllDay.autoExpandMode = False
             wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
             self.OnSashPositionChange()
-        print wxAllDay.autoExpandMode, currentHeight, wxAllDay.collapsedHeight, wxAllDay.expandedHeight
+        #print wxAllDay.autoExpandMode, currentHeight, wxAllDay.collapsedHeight, wxAllDay.expandedHeight
         
     def GetAllDayWidget(self):
         # @@@ hack that depends on tree structure! would be better to have an
