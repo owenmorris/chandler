@@ -83,4 +83,4 @@ Chandler.icns
 
 src=chandler/distrib/osx/bundle/release
 dest=Contents/MacOS
-RunChandler
+ChandlerApp
