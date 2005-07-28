@@ -543,7 +543,6 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if not first.isBetween(after, before):
             event = first.getNextOccurrence(after - first.duration, before)
         while event is not None:
-            logger.debug("in _generateRule, event is: %s" % event.serializeMods().getvalue())
             if event.isBetween(after, before):
                 yield event
             # isBetween really means AFTER here
@@ -575,7 +574,6 @@ class CalendarEventMixin(ContentModel.ContentItem):
             iter = _sortEvents(self.occurrences)
         for occurrence in iter:
             if occurrence.isGenerated:
-                logger.debug("found generated occurrence:\n%s" % occurrence.serializeMods().getvalue())
                 return occurrence
         # no generated occurrences
         return None
@@ -612,8 +610,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
             pass
         else:
             mods = mods[index - 1:]
-        logger.debug("generating occurrences for %s, after: %s, "
-                     "before: %s, mods: %s" % (self, after,before,mods))
+##        logger.debug("generating occurrences for %s, after: %s, "
+##                     "before: %s, mods: %s" % (self, after,before,mods))
         return [e for mod in mods for e in mod._generateRule(after, before)]
     
     def _movePreviousRuleEnd(self):
@@ -700,12 +698,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
                 self._movePreviousRuleEnd()
             elif self.modificationFor is not None:# changing 'this' modification
                 if self.recurrenceID == first.startTime:
+                    self.modifies = 'thisandfuture'
                     if first == master: # replacing master
                         self.modificationFor = None
                     else:
                         self.modificationFor = master
                         self._movePreviousRuleEnd()
-                    self.modifies = 'thisandfuture'
                     self.occurrenceFor = self
                     self.modificationRecurrenceID = self.startTime
                     first._ignoreValueChanges = True
@@ -717,6 +715,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
             if self.modifies is 'this' and self.modificationFor is not None:
                 #preserve self as a THIS modification
                 if self.recurrenceID != first.startTime:
+                    # create a new event, cloned from first, make it a
+                    # thisandfuture modification with self overriding it
                     newfirst = first._cloneEvent()
                     newfirst._ignoreValueChanges = True
                     newfirst.rruleset = self.rruleset.copy(cloudAlias='copying')
@@ -725,6 +725,13 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     newfirst.modificationFor = master
                     newfirst.modifies = 'thisandfuture'
                     self.occurrenceFor = self.modificationFor = newfirst
+                    # move THIS modifications after self to newfirst
+                    if first.hasLocalAttributeValue('modifications'):
+                        for mod in first.modifications:
+                            if mod.modifies == 'this':
+                                if mod.recurrenceID > newfirst.startTime:
+                                    mod.occurrenceFor = newfirst
+                                    mod.modificationFor = newfirst
                     self._movePreviousRuleEnd()
                     del newfirst._ignoreValueChanges
 
@@ -823,7 +830,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if name in """displayName startTime endTime location body title
                       lastModified
                    """.split():
-            logger.debug("about to changeThis onValueChanged(name=%s) for %s" % (name, str(self)))
+            logger.debug("about to changeThis in onValueChanged(name=%s) for %s" % (name, str(self)))
+            logger.debug("value is: %s" % getattr(self, name))
             self.changeThis()
 
     def _deleteGeneratedOccurrences(self):
@@ -838,13 +846,21 @@ class CalendarEventMixin(ContentModel.ContentItem):
         """Delete generated occurrences in the current rule, create a backup."""
         first = self.getFirstInRule()
         self._deleteGeneratedOccurrences()
+        if first.hasLocalAttributeValue('modifications'):
+            for mod in first.modifications:
+                if mod.modifies == 'this':
+                    if mod.recurrenceID > first.rruleset.rrules.first().until:
+                        mod._ignoreValueChanges = True
+                        mod.delete()
+                    
+        # create a backup
         first._getFirstGeneratedOccurrence(True)
 
     def removeFuture(self):
         """Delete self and all future occurrences and modifications."""
         pass
 
-    def _removeModification(self):
+    def _deleteThisAndFutureModification(self):
         """Remove 'thisandfuture' modification and all its occurrences."""
         for event in self.occurrences:
             if event == self: #don't delete self quite yet
@@ -866,7 +882,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         master = self.getMaster()
         for mod in master.modifications:
             if mod.startTime > self.startTime:
-                mod._removeModification()
+                mod._deleteThisAndFutureModification()
             else:
                 for event in mod.occurrences:
                     deleteLater(event)

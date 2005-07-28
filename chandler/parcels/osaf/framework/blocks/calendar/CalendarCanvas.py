@@ -844,7 +844,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 if icalUID not in generatedUIDs:
                     # This is the meat of it - ensure the items actually exist
                     newItems = item.getOccurrencesBetween(date, nextDate)
-                    logger.debug("generated items: %s" % newItems)
+                    #logger.debug("generated items: %s" % newItems)
                 if icalUID is not None:
                     generatedUIDs.append(icalUID)
             except AttributeError:

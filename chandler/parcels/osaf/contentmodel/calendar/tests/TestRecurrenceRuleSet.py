@@ -187,7 +187,25 @@ class RecurrenceRuleTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(identityTransformed.count(), self.weekly['count'] +
                                                       self.monthly['count'] - 1
                                                       - 10)
+    
+    def testNoAutoDateUtil(self):
+        """dateutil sometimes sets bymonthday, byweekday, and bymonth based on
+           dtstart, we want to avoid persisting this spurious data.
+        """
+        ruleItem = RecurrenceRule(None, view=self.rep.view)
+        weeklyRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY)
+        ruleItem.setRuleFromDateUtil(weeklyRule)
+        self.failIf(ruleItem.hasLocalAttributeValue('byweekday'))
+
+        monthlyRule = dateutil.rrule.rrule(dateutil.rrule.MONTHLY)
+        ruleItem.setRuleFromDateUtil(monthlyRule)
+        self.failIf(ruleItem.hasLocalAttributeValue('bymonthday'))
         
+        yearlyRule = dateutil.rrule.rrule(dateutil.rrule.YEARLY)
+        ruleItem.setRuleFromDateUtil(yearlyRule)
+        self.failIf(ruleItem.hasLocalAttributeValue('bymonthday'))
+        self.failIf(ruleItem.hasLocalAttributeValue('bymonth'))
+
 
 #tests to write:
 """

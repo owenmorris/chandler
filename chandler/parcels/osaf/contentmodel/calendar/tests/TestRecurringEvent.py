@@ -147,7 +147,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
     def testRuleChange(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
-        # automatically generated backup occurrence    
+        # self and an automatically generated backup occurrence should exist
         self.assertEqual(len(self.event.occurrences), 2)
 
         count = 3
@@ -328,6 +328,8 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
 #tests to write:
 """
+
+test cleanRule deletes modifications after until
 
 test getNextOccurrence with wacky duration stuff, date ordering issues
 

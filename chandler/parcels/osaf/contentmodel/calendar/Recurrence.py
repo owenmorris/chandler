@@ -189,16 +189,24 @@ class RecurrenceRule(ContentModel.ContentItem):
             self.until = rrule[-1]
         self.wkst = fromDateUtilWeekday(rrule._wkst)
         self.freq = fromDateUtilFrequency(rrule._freq)
-        
-        temp = []
-        if rrule._byweekday:
-            temp=[(day, 0) for day in rrule._byweekday]
-        if rrule._bynweekday:
-            temp.extend(tup for tup in rrule._bynweekday)
-        if len(temp) > 0: self.byweekday = []
-        for day, n in temp:
-            day = fromDateUtilWeekday(day)
-            self.byweekday.append(WeekdayAndPositionStruct(day, n))
+
+        # ignore byweekday if freq is WEEKLY and day correlates with dtstart
+        # because it was automatically set by dateutil
+        if rrule._freq is not dateutil.rrule.WEEKLY or \
+           len(rrule._byweekday) != 1 or \
+           rrule._dtstart.weekday() != rrule._byweekday[0]:
+            listOfDayTuples = []
+            if rrule._byweekday:
+                # Day tuples are (dayOrdinal, n-th week of the month),
+                # 0 means all weeks
+                listOfDayTuples=[(day, 0) for day in rrule._byweekday]
+            if rrule._bynweekday:
+                listOfDayTuples.extend(tup for tup in rrule._bynweekday)
+            if len(listOfDayTuples) > 0:
+                self.byweekday = []
+                for day, n in listOfDayTuples:
+                    day = fromDateUtilWeekday(day)
+                    self.byweekday.append(WeekdayAndPositionStruct(day, n))
         for key in self.normalNames:
             if getattr(rrule, '_' + key) is not None:
                 setattr(self, key, getattr(rrule, '_' + key))
@@ -208,6 +216,18 @@ class RecurrenceRule(ContentModel.ContentItem):
                                          len(getattr(rrule, '_' + key)) > 1):
                 # cast tuples to list, or will the repository do this for us?
                 setattr(self, key, list(getattr(rrule, '_' + key)))
+        # bymonthday and bymonth may be set automatically by dateutil, if so, 
+        # unset them
+        if rrule._freq in (dateutil.rrule.MONTHLY, dateutil.rrule.YEARLY):
+            if len(rrule._bymonthday) == 1:
+                if rrule._bymonthday[0] == rrule._dtstart.day:
+                    del self.bymonthday
+        if rrule._freq == dateutil.rrule.YEARLY:
+            if len(rrule._bymonth) == 1:
+                if rrule._bymonth[0] == rrule._dtstart.month:
+                    del self.bymonth
+            
+            
 
     def onValueChanged(self, name):
         """If the rule changes, update any associated events."""
@@ -308,7 +328,7 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
                 return True
             for attr in RecurrenceRule.listNames+("byweekday",):
                 if getattr(rule, attr):
-                    return False
+                    return True
         return False
 
     def getCustomDescription(self):
