@@ -91,37 +91,14 @@ public:
     const wxColour& GetHighlightColourFg() const { return m_colHighlightFg; }
     const wxColour& GetHighlightColourBg() const { return m_colHighlightBg; }
 
-    // an item without custom attributes is drawn with the default colours and
-    // font and without border, setting custom attributes allows to modify this
-    //
-    // the dayPosition parameter should be in 1..(DAYS_PER_WEEK * WEEKS_TO_DISPLAY)
-    // range.  For days that are not displayed the attribute is just unused
-
-    wxMiniCalendarDateAttr *GetAttr(size_t dayPosition) const
-    {
-        wxCHECK_MSG( dayPosition > 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY + 1),
-                     NULL, _T("invalid day") );
-
-        return m_attrs[dayPosition - 1];
-    }
-
-    void SetAttr(size_t dayPosition, wxMiniCalendarDateAttr *attr)
-    {
-        wxCHECK_RET( dayPosition > 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY + 1),
-                     _T("invalid day") );
-
-        delete m_attrs[dayPosition - 1];
-        m_attrs[dayPosition - 1] = attr;
-    }
-
-    void ResetAttr(size_t dayPosition) { SetAttr(dayPosition, (wxMiniCalendarDateAttr *)NULL); }
-
     // returns one of wxCAL_HITTEST_XXX constants and fills either date or wd
     // with the corresponding value (none for NOWHERE, the date for DAY and wd
     // for HEADER)
     wxCalendarHitTestResult HitTest(const wxPoint& pos,
                                     wxDateTime *date = NULL,
                                     wxDateTime::WeekDay *wd = NULL);
+
+	double wxMiniCalendar::GetBusy(int date);
 
     // implementation only from now on
     // -------------------------------
@@ -227,9 +204,6 @@ private:
              m_colHighlightBg,
              m_colHeaderFg,
              m_colHeaderBg;
-
-    // the attributes for each of the displayed days
-    wxMiniCalendarDateAttr *m_attrs[DAYS_PER_WEEK * WEEKS_TO_DISPLAY];
 
     // the width and height of one column/row in the calendar
     wxCoord m_widthCol,

@@ -34,7 +34,8 @@ enum {
     wxCAL_MONDAY_FIRST,
     wxCAL_SHOW_SURROUNDING_WEEKS,
     wxCAL_SHOW_PREVIEW,
-    wxCAL_HIGHLIGHT_WEEK
+    wxCAL_HIGHLIGHT_WEEK,
+    wxCAL_SHOW_BUSY
 };
 
 
@@ -49,20 +50,6 @@ enum wxCalendarHitTestResult
     wxCAL_HITTEST_SURROUNDING_WEEK
 };
 
-//---------------------------------------------------------------------------
-
-class wxMiniCalendarDateAttr
-{
-public:
-    wxMiniCalendarDateAttr(double busyPercentage = 0);
-
-
-    // setters
-    void SetBusy(const double busyPercentage);
-
-    // accessors
-    const double GetBusy() const;
-};
 
 //---------------------------------------------------------------------------
 
@@ -140,8 +127,6 @@ public:
         void SetHighlightColours(const wxColour& colFg, const wxColour& colBg);
         wxColour GetHighlightColourFg() const;
         wxColour GetHighlightColourBg() const;
-        wxMiniCalendarDateAttr* GetAttr(size_t day) const;
-        void SetAttr(size_t day, wxMiniCalendarDateAttr *attr);
 };
 
 //---------------------------------------------------------------------------

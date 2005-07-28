@@ -8,6 +8,7 @@
 %rename(CAL_SHOW_SURROUNDING_WEEKS)         wxCAL_SHOW_SURROUNDING_WEEKS;
 %rename(CAL_SHOW_PREVIEW)                   wxCAL_SHOW_PREVIEW;
 %rename(CAL_HIGHLIGHT_WEEK)                 wxCAL_HIGHLIGHT_WEEK;
+%rename(CAL_SHOW_BUSY)                      wxCAL_SHOW_BUSY;
 %rename(CAL_HITTEST_NOWHERE)                wxCAL_HITTEST_NOWHERE;
 %rename(CAL_HITTEST_HEADER)                 wxCAL_HITTEST_HEADER;
 %rename(CAL_HITTEST_DAY)                    wxCAL_HITTEST_DAY;
@@ -15,7 +16,6 @@
 %rename(CAL_HITTEST_INCMONTH)               wxCAL_HITTEST_INCMONTH;
 %rename(CAL_HITTEST_DECMONTH)               wxCAL_HITTEST_DECMONTH;
 %rename(CAL_HITTEST_SURROUNDING_WEEK)       wxCAL_HITTEST_SURROUNDING_WEEK;
-%rename(MiniCalendarDateAttr)               wxMiniCalendarDateAttr;
 %rename(MiniCalendarEvent)                  wxMiniCalendarEvent;
 %rename(MiniCalendar)                       wxMiniCalendar;
 

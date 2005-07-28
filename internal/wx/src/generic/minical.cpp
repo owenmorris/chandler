@@ -76,6 +76,7 @@ wxBEGIN_FLAGS( wxMiniCalendarStyle )
     wxFLAGS_MEMBER(wxCAL_SHOW_SURROUNDING_WEEKS)
     wxFLAGS_MEMBER(wxCAL_SHOW_PREVIEW)
     wxFLAGS_MEMBER(wxCAL_HIGHLIGHT_WEEK)
+	wxFLAGS_MEMBER(wxCAL_SHOW_BUSY)
 
 wxEND_FLAGS( wxMiniCalendarStyle )
 
@@ -146,11 +147,6 @@ void wxMiniCalendar::Init()
         m_weekdays[wd] = wxDateTime::GetWeekDayName(wd, wxDateTime::Name_Abbr).GetChar(0);
     }
 
-    for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
-    {
-        m_attrs[n] = NULL;
-    }
-
     m_colHighlightFg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
     m_colHighlightBg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
 
@@ -198,10 +194,6 @@ bool wxMiniCalendar::Create(wxWindow *parent,
 
 wxMiniCalendar::~wxMiniCalendar()
 {
-    for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
-    {
-        delete m_attrs[n];
-    }
 }
 
 // ----------------------------------------------------------------------------
@@ -745,7 +737,6 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 bool changedColours = false,
                      changedFont = false;
 
-                wxMiniCalendarDateAttr *attr = NULL;
                 wxCoord x = wd * m_widthCol + (m_widthCol - width) / 2;
 
                 if ( highlightDay )
@@ -780,8 +771,6 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 }
                 else
                 {
-                    attr = m_attrs[dayPosition];
-
                     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
                     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
@@ -798,9 +787,10 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 dc.DrawText(dayStr, x, *y + 1);
 
                 // draw free/busy indicator
-                if ( attr )
+                if ( (GetWindowStyle() & wxCAL_SHOW_BUSY) != 0 )
                 {
-                    double height = (m_heightRow - 6) * attr->GetBusy();
+                    double busyPercentage = GetBusy(1);
+                    double height = (m_heightRow - 6) * busyPercentage;
                     dc.DrawRectangle(x-2, *y + (m_heightRow - (int)height - 3), 2, (int)height);                                
                 }
 
@@ -1061,6 +1051,12 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
     }
 }
 
+double wxMiniCalendar::GetBusy(int date)
+{
+	return 0;
+}
+
+
 wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
                                                 wxDateTime *date,
                                                 wxDateTime::WeekDay *wd)
@@ -1203,7 +1199,6 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
 
         if ( dt.GetMonth() == m_date.GetMonth() )
         {
-
             return wxCAL_HITTEST_DAY;
         }
         else
@@ -1215,7 +1210,6 @@ wxCalendarHitTestResult wxMiniCalendar::HitTest(const wxPoint& pos,
     {
         return wxCAL_HITTEST_NOWHERE;
     }
-    return wxCAL_HITTEST_NOWHERE;
 }
 
 //static

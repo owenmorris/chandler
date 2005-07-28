@@ -28,7 +28,10 @@ enum
     wxCAL_SHOW_PREVIEW               = 0x0004,
 
     // select an entire week at a time
-    wxCAL_HIGHLIGHT_WEEK             = 0x0008
+    wxCAL_HIGHLIGHT_WEEK             = 0x0008,
+
+	// show busy bars
+	wxCAL_SHOW_BUSY                  = 0x0010
 };
 
 // ----------------------------------------------------------------------------
