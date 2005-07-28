@@ -20,7 +20,7 @@ import time
 
 class Query(Item.Item):
 
-    def __init__(self, name = None, parent=None, kind=None, queryString = ""):
+    def __init__(self, name = None, parent=None, kind=None, queryString = "", *values, **kwds):
         """
         @param repo: The repository associated with the query @@@ replace with factory method
         @type repo: Repository
@@ -30,7 +30,7 @@ class Query(Item.Item):
         """
         log.debug(u"RepoQuery.__init__: ")
 
-        super(Query, self).__init__(name, parent, kind)
+        super(Query, self).__init__(name, parent, kind, *values, **kwds)
 
         self._queryString = queryString
         self._logical_plan = None

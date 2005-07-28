@@ -7,7 +7,7 @@ from osaf.framework.sharing.Sharing import WebDAVAccount
 from osaf.contentmodel.mail.Mail import (IMAPAccount, POPAccount, SMTPAccount,
                                          EmailAddress)
 from osaf.contentmodel.ContentModel import CurrentPointer
-
+from osaf.contentmodel.ItemCollection import ItemCollection
 
 def installParcel(parcel, oldVersion=None):
 
@@ -99,6 +99,10 @@ def installParcel(parcel, oldVersion=None):
                       isActive=False
                      )
 
+    ItemCollection.update(parcel, 'trash',
+                          displayName=u'Trash',
+                          renameable=False)
+    
     Photo.update(parcel, 'WelcomePhoto',
       displayName=u'Welcome to Chandler 0.5',
       description=u"""Welcome to the Chandler 0.5 Release!

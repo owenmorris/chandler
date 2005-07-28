@@ -1247,6 +1247,7 @@
     <inclusions itemref="doc:allItemCollection"/>
     <inclusions itemref="doc:inItemCollection"/>
     <inclusions itemref="doc:outItemCollection"/>
+    <inclusions itemref="app:trash"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="allItemCollection">
