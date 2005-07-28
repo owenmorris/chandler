@@ -264,9 +264,7 @@ class RepositoryView(object):
         doesn't correspond to an existing item.
         The callable's return value is used to recursively continue walking
         when it is not C{None}.
-
-        For example: L{find} calls this method when passed a path with the
-        callable being the simple lambda body:
+        The callable may be C{None} in which case it is equivalent to:
 
             - C{lambda parent, name, child, **kwds: child}
 
@@ -275,7 +273,7 @@ class RepositoryView(object):
 
         @param path: an item path
         @type path: a L{Path<repository.util.Path.Path>} instance
-        @param callable: a function, method, or lambda body
+        @param callable: a function, method, lambda body, or None
         @type callable: a python callable
         @param kwds: optional keywords passed to the callable
         @return: the item the walk finished on or C{None}
@@ -298,14 +296,36 @@ class RepositoryView(object):
                 root = None
         else:
             root = self.getRoot(name, kwds.get('load', True))
-            
-        root = callable(self, path[_index], root, **kwds)
+        
+        if callable is not None:
+            root = callable(self, path[_index], root, **kwds)
         if root is not None:
             if _index == l - 1:
                 return root
             return root.walk(path, callable, _index + 1, **kwds)
 
         return None
+
+    def _fwalk(self, path, load=True):
+
+        item = self
+        for name in path:
+
+            if name == '//':
+                item = self
+            elif name == '/':
+                item = item.itsRoot
+            elif name == '..':
+                item = item.itsParent
+            elif name == '.':
+                item = item
+            else:
+                item = item.getItemChild(name, load)
+
+            if item is None:
+                break
+
+        return item
 
     def find(self, spec, load=True):
         """
@@ -345,8 +365,7 @@ class RepositoryView(object):
                         return None
 
         if isinstance(spec, Path):
-            return self.walk(spec, lambda parent, name, child, **kwds: child,
-                             load=load)
+            return self._fwalk(spec, load)
 
         raise TypeError, '%s is not Path or UUID' %(type(spec))
 
@@ -368,8 +387,7 @@ class RepositoryView(object):
         elif not isinstance(path, Path):
             raise TypeError, '%s is not Path or string' %(type(path))
 
-        return self.walk(path, lambda parent, name, child, **kwds: child,
-                         load=load)
+        return self._fwalk(path, load)
 
     def findUUID(self, uuid, load=True):
         """

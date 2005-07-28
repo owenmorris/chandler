@@ -2115,9 +2115,7 @@ class Item(CItem):
         doesn't correspond to an existing item.
         The callable's return value is used to recursively continue walking
         when it is not C{None}.
-
-        For example: L{find} calls this method when passed a path with the
-        callable being the simple lambda body:
+        The callable may be C{None} in which case it is equivalent to:
 
             - C{lambda parent, name, child, **kwds: child}
 
@@ -2126,7 +2124,7 @@ class Item(CItem):
 
         @param path: an item path
         @type path: a L{Path<repository.util.Path.Path>} instance
-        @param callable: a function, method, or lambda body
+        @param callable: a function, method, lambda body, or None
         @type callable: a python callable
         @param kwds: optional keywords passed to the callable
         @return: the item the walk finished on or C{None}
@@ -2190,14 +2188,36 @@ class Item(CItem):
                     child = None
             else:
                 child = self.getItemChild(name, kwds.get('load', True))
-            
-        child = callable(self, path[_index], child, **kwds)
+        
+        if callable is not None:
+            child = callable(self, path[_index], child, **kwds)
         if child is not None:
             if _index == l - 1:
                 return child
             return child.walk(path, callable, _index + 1, **kwds)
 
         return None
+
+    def _fwalk(self, path, load=True):
+
+        item = self
+        for name in path:
+
+            if name == '//':
+                item = item.itsView
+            elif name == '/':
+                item = item.itsRoot
+            elif name == '..':
+                item = item.itsParent
+            elif name == '.':
+                item = item
+            else:
+                item = item.getItemChild(name, load)
+
+            if item is None:
+                break
+
+        return item
 
     def find(self, spec, attribute=None, load=True):
         """
@@ -2227,8 +2247,9 @@ class Item(CItem):
             return self.getRepositoryView().find(spec, load)
 
         if isinstance(spec, Path):
-            return self.walk(spec, lambda parent, name, child, **kwds: child,
-                             attribute=attribute, load=load)
+            if attribute is None:
+                return self._fwalk(spec, load)
+            return self.walk(spec, None, attribute=attribute, load=load)
 
         raise TypeError, '%s, %s is not Path or UUID' %(spec, type(spec))
 
@@ -2252,8 +2273,10 @@ class Item(CItem):
         elif not isinstance(path, Path):
             raise TypeError, '%s is not Path or string' %(type(path))
 
-        return self.walk(path, lambda parent, name, child, **kwds: child,
-                         attribute=attribute, load=load)
+        if attribute is None:
+            return self._fwalk(path, load)
+
+        return self.walk(path, None, attribute=attribute, load=load)
 
     def findUUID(self, uuid, load=True):
         """
