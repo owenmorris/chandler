@@ -746,6 +746,13 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
 
+        if '__WXMAC__' in wx.PlatformInfo:
+            # if this is the first toolbar in the frame, install it
+            parentWidget = self.blockItem.getFrame()
+            if (parentWidget != None):
+                if (parentWidget.GetToolBar() == None):
+                    parentWidget.SetToolBar( self )
+
         try:
             colorStyle = self.blockItem.colorStyle
         except AttributeError:
@@ -895,6 +902,15 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
                          style=self.calculate_wxStyle())
         # set the tool bitmap size right away
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
+
+        """
+        # @@@davids - debugging code - might eventually be useful to have UI items name themselves
+        if (self.toolSize.width >= 26):
+            toolbar.SetLabel("Main")
+        else:
+            toolbar.SetLabel("Markup")
+        """
+
         return toolbar
     
     def calculate_wxStyle (self):
