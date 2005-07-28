@@ -233,3 +233,44 @@ class UpdateTask:
         self.view.commit()
         return True
 
+import osaf.framework.wakeup.WakeupCallerParcel as WakeupCallerParcel
+from osaf.framework.blocks.Block import BlockEvent
+from osaf.framework.blocks.DynamicContainerBlocks import MenuItem
+from osaf.startup import PeriodicTask
+from datetime import timedelta
+
+def installParcel(parcel, oldVersion=None):
+
+    controller = FlickrCollectionController.update(parcel, 'FlickrCollectionControllerItem')
+
+    ownerEvent = BlockEvent.update(parcel, 'NewFlickrCollectionByOwnerEvent',
+                      blockName = 'NewFlickrCollectionByOwner',
+                      dispatchEnum = 'SendToBlockByReference',
+                      destinationBlockReference = controller,
+                      commitAfterDispatch = True)
+
+    tagEvent = BlockEvent.update(parcel, 'NewFlickrCollectionByTagEvent',
+                      blockName = 'NewFlickrCollectionByTag',
+                      dispatchEnum = 'SendToBlockByReference',
+                      destinationBlockReference = controller,
+                      commitAfterDispatch = True)
+
+#    newItemMenu = schema.ns('osaf.views.main', parcel).parcel.getItemChild('NewItemMenu')
+
+#    MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
+#                    blockName = 'NewFlickrCollectionByOwnerItem',
+#                    title = 'New Flickr Collection by Owner',
+#                    event = ownerEvent,
+#                    parentBlock = newItemMenu)
+ 
+#    MenuItem.update(parcel, 'NewFlickrCollectionByTag',
+#                    blockName = 'NewFlickrCollectionByTagItem',
+#                    title = 'New Flickr Collection by Tag',
+#                    event = tagEvent,
+#                    parentBlock = newItemMenu)
+
+
+    PeriodicTask.update(parcel, 'FlickrUpdateTask',
+                        invoke = 'osaf.examples.flickr.UpdateTask',
+                        run_at_startup = True,
+                        interval = timedelta(minutes=2))

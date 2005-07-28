@@ -10,7 +10,7 @@
 	xmlns:startup="parcel:osaf.startup">
 
   <!-- Block definitions for Menu -->
-    
+
   <MenuItem itsName="NewFlickrCollectionByOwner">
     <blockName>NewFlickrCollectionByOwnerItem</blockName>
     <title>New Flickr Collection by Owner</title>
@@ -24,22 +24,6 @@
     <event itemref="doc:NewFlickrCollectionByTagEvent"/>
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
- 
-  <BlockEvent itsName="NewFlickrCollectionByOwnerEvent">
-    <blockName>NewFlickrCollectionByOwner</blockName>
-    <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:FlickrCollectionControllerItem"/>
-    <commitAfterDispatch>True</commitAfterDispatch>
-  </BlockEvent>
-
-  <BlockEvent itsName="NewFlickrCollectionByTagEvent">
-    <blockName>NewFlickrCollectionByTag</blockName>
-    <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:FlickrCollectionControllerItem"/>
-    <commitAfterDispatch>True</commitAfterDispatch>
-  </BlockEvent>
-
-  <flickr:FlickrCollectionController itsName="FlickrCollectionControllerItem"/>
 
   <!-- Block definitions for detail view -->
 
@@ -74,14 +58,5 @@
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
   </detail:StaticRedirectAttribute>
-
-
-  <!-- Block definitions for WakeCallers -->
-
-   <startup:PeriodicTask itsName="FlickrUpdateTask">
-       <invoke>osaf.examples.flickr.UpdateTask</invoke>
-       <run_at_startup>True</run_at_startup>
-       <interval>00:05:00</interval>
-   </startup:PeriodicTask>
 
 </core:Parcel>
