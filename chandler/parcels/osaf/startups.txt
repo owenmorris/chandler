@@ -1,3 +1,8 @@
+----------------------------------------
+Startup and Background Tasks in Chandler
+----------------------------------------
+
+
 Running Code at Application Startup
 ===================================
 
@@ -126,21 +131,21 @@ flag to be set, then sets a finished flag and exits::
 Normally, if you wanted to run this code in a thread at startup, you would just
 put it in a module, and then use its name (e.g. ``some_module.my_thread``) as
 the ``invoke`` attribute of a ``Thread`` item.  But for demonstration purposes,
-we don't want to have to put this code in a separate module, so we'll create
-a ``Startup`` subclass that just runs this routine in a thread, using the
-``run_in_thread`` class::
+we don't want to have to put this code in a separate module, so we'll import
+an already existing module, and shove this routine into its namespace
+temporarily, so that our ``Thread`` will be able to find it::
 
-    >>> from osaf.startup import run_in_thread
+    >>> from osaf.tests import TestStartups
+    >>> TestStartups.my_thread = my_thread
 
-    >>> class MyThread(Startup):
-    ...     def onStart(self):
-    ...         run_in_thread(my_thread, self).start()
+And now we can make a ``Thread`` that will run it::
 
-And then we'll create an instance and run it in the usual way::
-
-    >>> t = MyThread("my_name_here", view=rv)
+    >>> from osaf.startup import Thread
+    >>> t = Thread(
+    ...     "my_name_here", invoke="osaf.tests.TestStartups.my_thread", view=rv
+    ... )
     >>> t
-    <MyThread (new): my_name_here ...>
+    <Thread (new): my_name_here ...>
 
     >>> run_startup(rv)
 
@@ -148,7 +153,7 @@ So now, the thread has been started::
 
     >>> import threading
     >>> threading.enumerate()
-    [...<run_in_thread(//userdata/my_name_here, started daemon)>...]
+    [...<RepositoryThread(//userdata/my_name_here, started daemon)>...]
 
 but it's looping, waiting for the start flag to be set::
 
@@ -173,8 +178,8 @@ otherwise, which could break the test.)
     >>> t.active = False    # don't use this thread in the subsequent tests
 
 
-Twisted
--------
+Starting Twisted
+----------------
 
 Chandler needs to run Twisted's reactor in a thread, so that it can run
 independently of the GUI (which could otherwise block its execution).  The
@@ -267,24 +272,22 @@ Also note that you should *not* invoke ``run_reactor()`` from any thread but
 the main thread, or you will receive an assertion error in that thread, and
 the reactor will not start::
 
-    >>> from osaf.startup import Thread
-    
     >>> twisted_thread = Thread(
     ...     "dont_do_this", view=rv, invoke="osaf.startup.run_reactor"
     ... )
 
     >>> import sys, StringIO    # trap stderr output
     >>> old_stderr, sys.stderr = sys.stderr, StringIO.StringIO()
-    
+
     >>> run_startup(rv)
     >>> reactor.running
     0
 
-    >>> sleep(1)  # make sure exception has been sent to stderr
+    >>> sleep(0.5)  # make sure exception has been sent to stderr
     >>> stop_reactor()
-    >>> len(threading.enumerate())  # all threads should be stopped now
+    >>> len(threading.enumerate())  # all other threads should be stopped now
     1
-    
+
     >>> print sys.stderr.getvalue()
     Exception in thread //userdata/dont_do_this:
     Traceback (most recent call last):
@@ -292,3 +295,187 @@ the reactor will not start::
     AssertionError: can't start reactor thread except from the main thread...
 
     >>> sys.stderr = old_stderr
+    >>> twisted_thread.active = False
+
+
+Background Tasks using Twisted and Threads
+==========================================
+
+Twisted Tasks
+-------------
+
+A ``TwistedTask`` is similar to a ``Thread``, in that it begins an independent
+task with its own repository view.  It is different in that all ``TwistedTask``
+instances run in the same thread: the Twisted "reactor" thread.  These tasks
+are co-operatively multitasked, by receiving callbacks from the Twisted
+reactor object.  If you are comfortable with the Twisted API, or at least want
+to make use of it, you may find some advantage here over using threads.
+
+As with ``Startup`` and ``Thread``, a ``TwistedTask`` instance invokes the
+function or class named by its ``invoke`` attribute.  The only difference is
+that the invocation occurs in the Twisted "reactor" thread, after the reactor
+has been started.  Your startup code (function, or class __init__) should
+accept the ``TwistedTask`` item as its sole argument, and it should do whatever
+reactor setup it then needs to do, such as registering listening ports or
+scheduling timed callbacks.
+
+For our example, we'll just create a task that just prints what thread it was
+called from::
+
+    >>> def hello_from(item):
+    ...     print "running",item,"in",threading.currentThread()
+
+and put it in a module so we can import it (again, we're doing this so you
+don't have to go read another file to see the source; in the "real world" you
+would just define the function in the appropriate module to start with)::
+
+    >>> TestStartups.hello_from = hello_from
+
+Now let's create the task item and run it::
+
+    >>> from osaf.startup import TwistedTask
+    >>> demo = TwistedTask(
+    ...     "demo", view=rv, invoke="osaf.tests.TestStartups.hello_from"
+    ... )
+
+Giving it a chance to run and complete::
+
+    >>> run_startup(rv); sleep(0.1)     # give it a chance to run
+    running <TwistedTask ... demo ...> in <RepositoryThread(reactor,...)>
+
+    >>> stop_reactor()  # shut down the reactor again
+    >>> len(threading.enumerate())  # all other threads should be stopped now
+    1
+
+    >>> demo.active = False     # disable for next test(s)
+
+
+Running Repetitive Tasks Periodically
+-------------------------------------
+
+Sometimes you don't need the full power of the Twisted API, or don't want to
+take the time to learn it for a quick hack.  Or, even if you're familiar with
+the Twisted API, you'd like to have a convenient way to repeatedly run some
+code every N seconds or minutes.  Then you can use a ``PeriodicTask`` item.
+
+A ``PeriodicTask`` is similar to a ``TwistedTask``, but its ``invoke`` target
+must be a class or factory function that returns an object with a ``run()``
+method.  The class or factory will be invoked in the reactor thread at
+startup, and the ``run()`` method will be called in its own thread repeatedly
+as long as it returns ``True`` from each call.  If it returns ``False``,
+``None``, or any other false value (or raises an uncaught exception) the
+repeated calls will cease.  The interval between calls is determined by the
+``PeriodicTask`` item's ``interval`` attribute, which must be set to a
+``datetime.timedelta`` object.
+
+For our example, we'll create a simple class suitable for use as a periodic
+task::
+
+    >>> class Counter:
+    ...     def __init__(self, item):
+    ...         self.item = item
+    ...         self.count = 0
+    ...         print "__init__",
+    ...         hello_from(item)        # show what thread we were called from
+    ...
+    ...     def run(self):
+    ...         self.count += 1
+    ...         print "run() call", self.count,
+    ...         hello_from(self.item)   # show what thread we were called from
+    ...         return self.count<5     # stop when count reaches 5
+
+And once again, we'll insert this class into the ``TestStartups`` module, so
+you don't have to go there to read the source.  (But you should just set
+``invoke`` to import from wherever your classes or functions are defined.)::
+
+    >>> TestStartups.Counter = Counter
+
+And now we'll create a ``PeriodicTask`` to create the counter and call it once
+per microsecond (so the test runs quickly!)::
+
+    >>> from datetime import timedelta
+    >>> from osaf.startup import PeriodicTask
+
+    >>> counter = PeriodicTask(
+    ...     "counter", view=rv, invoke="osaf.tests.TestStartups.Counter",
+    ...     interval = timedelta(microseconds=1)
+    ... )
+
+    >>> run_startup(rv); sleep(0.1)    # wait for it to run all 5 times
+    __init__ running ... in <RepositoryThread(reactor,...)>
+    run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 2 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
+    run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
+
+Notice that the ``__init__`` method is called at startup time in the reactor
+thread, but subsequent ``run()`` calls occur in various "pool" threads managed
+by Twisted.  It is not guaranteed that your ``run()`` method will execute in
+the same thread from one call to the next, so you should not rely on it being
+so.  (We aren't showing the thread IDs in the example above, because they're
+not only different from one call to the next, they're also different from one
+test run to the next, so the test would fail if we included that info.)
+
+Finally, let's clean up after our ``PeriodicTask`` example::
+
+    >>> stop_reactor()
+    >>> len(threading.enumerate())  # all other threads should be stopped now
+    1
+
+    >>> counter.active = False      # disable for subsequent tests
+
+
+Using the Repository
+--------------------
+
+When running background tasks that use the repository, each logical task or
+individual thread needs its own repository view, so that it doesn't become
+confused by changes being made by other threads or tasks at the same time.
+``TwistedTask`` and ``Thread`` handle this for you automatically, by calling
+the ``fork_item()`` API on an item.  ``fork_item()`` opens a new repository
+view and returns a copy of the item that is native to the new view.
+
+To demonstrate, let's set up a "real" (in-memory) repository, since null
+repository views can't be forked::
+
+    >>> from repository.persistence.DBRepository import DBRepository
+    >>> import os, repository
+    >>> rep = DBRepository('__nosuchfile__')
+    >>> rep.create(ramdb=True, refcounted=True)
+
+First, we'll create an item we want to fork::
+
+    >>> anItem = schema.Item("Demo", rep.view)
+    >>> anItem
+    <Item (new): Demo ...>
+
+Then, we'll commit the repository, because otherwise our item won't be visible
+in the new view::
+
+    >>> rep.commit()
+
+And now we can fork the item::
+
+    >>> from osaf.startup import fork_item
+    >>> newItem = fork_item(anItem)
+    >>> newItem
+    <Item: Demo ...>
+    >>> newItem.itsUUID == anItem.itsUUID
+    True
+    >>> newItem.itsView is anItem.itsView
+    False
+    >>> newItem.itsView.repository is anItem.itsView.repository
+    True
+
+Note that you should close a view when you are done with it, to avoid possible
+memory or resource leaks::
+
+    >>> newItem.itsView.closeView()
+    >>> anItem.itsView.closeView()
+
+For this test document, we'll also close the repository and our null repository
+view::
+
+    >>> rep.close()
+    >>> rv.closeView()

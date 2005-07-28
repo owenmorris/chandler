@@ -2,11 +2,11 @@
 
 from application import schema
 from repository.persistence.Repository import RepositoryThread
-import threading
+import threading, datetime
 
 __all__ = [
-    'Startup', 'run_startup', 'Thread', 'run_in_thread',
-    'get_reactor_thread', 'run_reactor', 'stop_reactor',
+    'Startup', 'Thread', 'TwistedTask', 'PeriodicTask',
+    'run_startup', 'get_reactor_thread', 'run_reactor', 'stop_reactor',
 ]
 
 
@@ -41,6 +41,14 @@ class Startup(schema.Item):
 
     requiredBy = schema.Sequence(inverse=requires)
 
+    def getTarget(self):
+        """Import the object named by ``invoke`` and return it"""
+        return schema.importString(self.invoke)
+
+    def invokeTarget(self, target):
+        """Run the specified startup target in the current thread"""
+        target(self)
+
     def onStart(self):
         """Override this method in a subclass to receive the notification
 
@@ -52,7 +60,7 @@ class Startup(schema.Item):
         unless you want the default behavior (i.e., importing and running the
         ``invoke`` attribute) to occur.
         """
-        schema.importString(self.invoke)(self)
+        self.invokeTarget(self.getTarget())
 
     def _start(self, attempted, started):
         """Handle inter-startup ordering and invoke onStart()"""
@@ -65,7 +73,7 @@ class Startup(schema.Item):
         canStart = True
         for item in self.requires:
             canStart = canStart and item._start(attempted, started)
-        
+
         if canStart:
             self.onStart()
             started.add(self)
@@ -74,34 +82,93 @@ class Startup(schema.Item):
         return False
 
 
-# -------
-# Threads
-# -------
+# -----------------
+# Threads and Tasks
+# -----------------
+
+def fork_item(item_or_view, name=None, version=None):
+    """Return a version of `item_or_view` that's in a new repository view
+
+    This is a shortcut for creating a new view against the same repository
+    as the original item or view, and then looking up the item or view by
+    UUID in the new view.  It is typically used when starting a new thread or
+    a task in Twisted, to ensure that it has its own logical view of the
+    repository.  Note that you will usually want to commit() your existing
+    view before calling this function, so the new view will see an up-to-date
+    version of any items it loads.
+
+    The optional `name` and `version` parameters are passed through to the
+    repository's ``createView()`` method, so you can use them to give the
+    view a name or set its target version.  Also, note that you can call
+    ``fork_item()`` on a view just to create a new view for the same
+    repository; you don't have to pass in an actual item.
+    """
+    view = item_or_view.itsView
+    if view.repository is None:
+        return item_or_view     # for NullRepositoryView, use old item
+
+    new_view = view.repository.createView(name, version)
+    item = new_view.findUUID(item_or_view.itsUUID)
+
+    if item is None:
+        raise ValueError(
+            "%r not found in new view; commit() may be needed"
+            % (item_or_view,)
+        )
+    return item
+
 
 class Thread(Startup):
-    """A Startup that runs its `invoke` target in a new thread"""
+    """A Startup that runs its target in a new thread"""
+
+    def invokeTarget(self, target):
+        """Run a target in a new RepositoryThread w/a new repository view"""
+        thread = RepositoryThread(
+            name=str(self.itsPath), target=target, args=(fork_item(self),)
+        )
+        thread.setDaemon(True)   # main thread can exit even if this one hasn't
+        thread.start()
+
+
+class TwistedTask(Startup):
+    """A Startup that runs its target in the reactor thread as a callback"""
+
+    def invokeTarget(self, target):
+        """Run a target in the reactor thread w/a new repository view"""
+        run_reactor()
+        from twisted.internet import reactor
+        reactor.callFromThread(target, fork_item(self))
+
+
+class PeriodicTask(TwistedTask):
+    """A Startup that runs its target periodically"""
+
+    interval = schema.One(
+        schema.TimeDelta,
+        displayName = 'Interval between run() calls',
+        initialValue = datetime.timedelta(0),
+    )
 
     def onStart(self):
-        run_in_thread(schema.importString(self.invoke), self).start()
+        """Start our wrapper in the reactor thread"""
+        self.invokeTarget(lambda self: self.startRunning())
 
+    def startRunning(self):
+        """Set up for running and repeating the task"""
 
-class run_in_thread(RepositoryThread):
-    """Call `code(item)` in a new thread with its own repository view"""
+        from twisted.internet import reactor
+        subject = self.getTarget()(self)
 
-    def __init__(self, code, item):
-        self.view = item.itsView
-        self.uuid = item.itsUUID
-        self.code = code
-        repo = self.view.repository
-        if repo is not None:
-            self.view = repo.createView()
-        super(run_in_thread, self).__init__(name=str(item.itsPath))
-        self.setDaemon(True)    # main thread can exit even if this one hasn't
+        def doCall():           
+            if subject.run(): # can stop by returning false
+                reactor.callFromThread(reschedule)
 
-    def run(self):
-        if self.view.repository is not None:
-            self.view.setCurrentView()
-        self.code(self.view.findUUID(self.uuid))
+        def reschedule():
+            d = self.interval
+            delay = d.days*86400.0 + d.seconds + d.microseconds/1e6
+            reactor.callLater(delay, reactor.callInThread, doCall)
+
+        reschedule()
 
 
 
@@ -115,22 +182,25 @@ _reactor_thread = None
 def get_reactor_thread():
     """Return the threading.thread running the Twisted reactor, or None"""
     return _reactor_thread
-    
+
 
 def run_reactor(in_thread=True):
     """Safely run the Twisted reactor"""
 
     global _reactor_thread
 
-    from twisted.python import threadable
-    threadable.init()
+    from osaf.framework.twisted import TwistedThreadPool  # initializes threads
+    from twisted.python import threadpool
+    threadpool.ThreadPool = TwistedThreadPool.RepositoryThreadPool
+
     from twisted.internet import reactor
 
     if not in_thread:
         if reactor.running:
             raise AssertionError("Reactor is already running")
         # enable repeated reactor runs
-        for evt in reactor.crash, reactor.disconnectAll:
+        def _del_pool(): reactor.threadpool = None
+        for evt in reactor.crash, reactor.disconnectAll, _del_pool:
             reactor.addSystemEventTrigger('during', 'shutdown', evt)
         reactor.run(0)
         return
@@ -156,10 +226,10 @@ def run_reactor(in_thread=True):
         if not _reactor_thread.isAlive():
             _reactor_thread = None
 
-    
+
 def stop_reactor():
     """Stop the Twisted reactor and wait for its thread to exit"""
-    
+
     global _reactor_thread
     from twisted.internet import reactor
 
