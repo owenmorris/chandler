@@ -59,6 +59,10 @@ public:
     // implementation only from now on
     // -------------------------------
 
+    // get the origin of the client area (which may be different from (0, 0)
+    // if the frame has a toolbar) in client coordinates
+    virtual wxPoint GetClientAreaOrigin() const;
+
     // override some more virtuals
     virtual bool Enable(bool enable = TRUE) ;
 
@@ -68,12 +72,12 @@ public:
 
     // Toolbar
 #if wxUSE_TOOLBAR
-    virtual void SetToolBar(wxToolBar *toolbar);
     virtual wxToolBar* CreateToolBar(long style = -1,
                                      wxWindowID id = -1,
                                      const wxString& name = wxToolBarNameStr);
 
     virtual void PositionToolBar();
+    virtual void SetToolBar(wxToolBar *toolbar);
 #endif // wxUSE_TOOLBAR
 
     // Status bar

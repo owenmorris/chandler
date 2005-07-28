@@ -25,33 +25,33 @@ WXDLLEXPORT_DATA(extern const wxChar*) wxToolBarNameStr;
 
 class WXDLLEXPORT wxToolBar: public wxToolBarBase
 {
-    DECLARE_DYNAMIC_CLASS(wxToolBar)
+  DECLARE_DYNAMIC_CLASS(wxToolBar)
+ public:
+  /*
+   * Public interface
+   */
 
-public:
-    wxToolBar()
-    {
-        Init();
-    }
+   wxToolBar() { Init(); }
 
-    inline wxToolBar(
-          wxWindow *parent, wxWindowID id,
-          const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-          long style = wxNO_BORDER | wxTB_HORIZONTAL,
-          const wxString& name = wxToolBarNameStr)
-    {
-        Init();
-        Create(parent, id, pos, size, style, name);
-    }
+  inline wxToolBar(wxWindow *parent, wxWindowID id,
+                   const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                   long style = wxNO_BORDER|wxTB_HORIZONTAL,
+                   const wxString& name = wxToolBarNameStr)
+  {
+    Init();
+    Create(parent, id, pos, size, style, name);
+  }
+  ~wxToolBar();
 
-    ~wxToolBar();
+  bool Create(wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+            long style = wxNO_BORDER|wxTB_HORIZONTAL,
+            const wxString& name = wxToolBarNameStr);
 
-    bool Create(
-          wxWindow *parent, wxWindowID id,
-          const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-          long style = wxNO_BORDER | wxTB_HORIZONTAL,
-          const wxString& name = wxToolBarNameStr);
+    virtual void SetWindowStyleFlag(long style);
 
     // override/implement base class virtuals
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const;
+
     virtual bool Show(bool show = true);
     virtual bool IsShown() const;
     virtual void DoGetSize(int *width, int *height) const;
@@ -59,21 +59,21 @@ public:
 
     virtual void SetToolBitmapSize(const wxSize& size);
     virtual wxSize GetToolSize() const;
+
     virtual void SetRows(int nRows);
-    virtual void SetWindowStyleFlag(long style);
 
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const;
+  // Add all the buttons
 
-    virtual wxString MacGetToolTipString(wxPoint &where);
-    virtual void MacSuperChangedPosition();
+    virtual wxString MacGetToolTipString( wxPoint &where ) ;
+    void OnPaint(wxPaintEvent& event) ;
+    void OnMouse(wxMouseEvent& event) ;
+    virtual void MacSuperChangedPosition() ;
 
-    void OnPaint(wxPaintEvent& event);
-    void OnMouse(wxMouseEvent& event);
-
+#if wxMAC_USE_NATIVE_TOOLBAR
     bool MacInstallNativeToolbar(bool usesNative);
     bool MacWantsNativeToolbar();
     bool MacTopLevelHasNativeToolbar(bool *ownToolbarInstalled) const;
-
+#endif
 protected:
     // common part of all ctors
     void Init();
@@ -86,23 +86,24 @@ protected:
     virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
     virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
 
-    virtual wxToolBarToolBase *CreateTool(
-        int id,
-        const wxString& label,
-        const wxBitmap& bmpNormal,
-        const wxBitmap& bmpDisabled,
-        wxItemKind kind,
-        wxObject *clientData,
-        const wxString& shortHelp,
-        const wxString& longHelp);
+    virtual wxToolBarToolBase *CreateTool(int id,
+                                          const wxString& label,
+                                          const wxBitmap& bmpNormal,
+                                          const wxBitmap& bmpDisabled,
+                                          wxItemKind kind,
+                                          wxObject *clientData,
+                                          const wxString& shortHelp,
+                                          const wxString& longHelp);
     virtual wxToolBarToolBase *CreateTool(wxControl *control);
 
     DECLARE_EVENT_TABLE()
-
-    bool m_macUsesNativeToolbar;
-    void* m_macHIToolbarRef;
+#if wxMAC_USE_NATIVE_TOOLBAR    
+	bool m_macUsesNativeToolbar ;
+	void* m_macHIToolbarRef ;
+#endif
 };
 
 #endif // wxUSE_TOOLBAR
 
-#endif // _WX_TOOLBAR_H_
+#endif
+    // _WX_TOOLBAR_H_
