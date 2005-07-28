@@ -12,7 +12,6 @@ import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.framework.sharing.WebDAV as WebDAV
 import osaf.framework.sharing.Sharing as Sharing
-import osaf.current.Current as Current
 
 
 # Special handlers referenced in the PANELS dictionary below:
@@ -152,7 +151,7 @@ PANELS = {
             },
             "IMAP_DEFAULT" : {
                 "type" : "currentPointer",
-                "pointer" : "MailAccount",
+                "pointer" : "currentMailAccount",
                 "exclusive" : True,
             },
             "IMAP_SMTP" : {
@@ -219,7 +218,7 @@ PANELS = {
             },
             "POP_DEFAULT" : {
                 "type" : "currentPointer",
-                "pointer" : "MailAccount",
+                "pointer" : "currentMailAccount",
                 "exclusive" : True,
             },
             "POP_SMTP" : {
@@ -329,7 +328,7 @@ PANELS = {
             },
             "WEBDAV_DEFAULT" : {
                 "type" : "currentPointer",
-                "pointer" : "WebDAVAccount",
+                "pointer" : "currentWebDAVAccount",
                 "exclusive" : True,
             },
         },
@@ -470,8 +469,9 @@ class AccountPreferencesDialog(wx.Dialog):
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
-                    setting = Current.isCurrent(self.view,
-                                                desc['pointer'], item)
+                    app = schema.ns('osaf.app', self.view)
+                    ref = getattr(app, desc['pointer'])
+                    setting = (ref.item == item)
 
                 elif desc['type'] == 'itemRef':
                     # Store an itemRef as a UUID
@@ -566,9 +566,9 @@ class AccountPreferencesDialog(wx.Dialog):
                     if desc['type'] == 'currentPointer':
                         # If this value is True, make this item current:
                         if values[field]:
-                            Current.set(self.view,
-                                        desc['pointer'],
-                                        item)
+                            app = schema.ns('osaf.app', self.view)
+                            ref = getattr(app, desc['pointer'])
+                            ref.item = item
 
                     elif desc['type'] == 'itemRef':
                         # Find the item for this UUID and assign the itemref:

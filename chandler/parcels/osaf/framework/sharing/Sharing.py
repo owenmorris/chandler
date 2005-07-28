@@ -12,7 +12,6 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
 from osaf.contentmodel.ItemCollection import ItemCollection
-import osaf.current.Current as Current
 from chandlerdb.util.uuid import UUID
 from repository.util.Lob import Lob
 from repository.item.Item import Item
@@ -1847,7 +1846,7 @@ def getWebDAVAccount(view):
     @type view: L{repository.persistence.RepositoryView}
     @return: An account item, or None if no WebDAV account could be found.
     """
-    return Current.get(view, "WebDAVAccount")
+    return schema.ns('osaf.app', view).currentWebDAVAccount.item
 
 
 def findMatchingWebDAVAccount(view, url):

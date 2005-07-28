@@ -141,8 +141,6 @@ class ContentItem(schema.Item):
         "osaf.framework.blocks.Block.Block", inverse="contents"
     )
 
-    currentItemOf = schema.One("CurrentPointer", otherName="item")
-
     # Placeholders for bidirectional references
     
     itemCollectionInclusions = schema.Sequence()    # ItemCollection
@@ -671,13 +669,3 @@ class Group(ContentItem):
             'We need to find a name for these things.',
         ]
     )
-
-
-
-class CurrentPointer(schema.Item):
-    item = schema.One(
-        ContentItem,
-        initialValue = None,
-        inverse = ContentItem.currentItemOf,
-    )
-

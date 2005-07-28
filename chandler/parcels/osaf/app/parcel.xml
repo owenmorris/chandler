@@ -3,7 +3,6 @@
 <Parcel itsName="app"
     xmlns="parcel:core"
     xmlns:app="parcel:osaf.app"
-    xmlns:current="parcel:osaf.current"
     >
 
     <description>This parcel exists purely to point to python-based parcels.

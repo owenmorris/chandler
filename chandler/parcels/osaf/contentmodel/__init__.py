@@ -2,7 +2,7 @@
 # (this should include all ContentItem subclasses in this package)
 #
 from ContentModel import (
-    ContentKind, ContentItem, ImportanceEnum, Group, Project, CurrentPointer
+    ContentKind, ContentItem, ImportanceEnum, Group, Project
 )
 from Notes import Note
 from contacts.Contacts import Contact

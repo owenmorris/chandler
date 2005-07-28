@@ -6,19 +6,15 @@ from osaf.contentmodel.contacts.Contacts import Contact, ContactName
 from osaf.framework.sharing.Sharing import WebDAVAccount
 from osaf.contentmodel.mail.Mail import (IMAPAccount, POPAccount, SMTPAccount,
                                          EmailAddress)
-from osaf.contentmodel.ContentModel import CurrentPointer
+from application.Parcel import Reference
 from osaf.contentmodel.ItemCollection import ItemCollection
 
 def installParcel(parcel, oldVersion=None):
 
-    current = schema.ns('osaf.current', parcel).parcel
-
-    # Items created in osaf.current:
-
-    curDav = CurrentPointer.update(current, 'WebDAVAccount')
-    curMail = CurrentPointer.update(current, 'MailAccount')
-    curSmtp = CurrentPointer.update(current, 'SMTPAccount')
-    curCon = CurrentPointer.update(current, 'Contact')
+    curDav = Reference.update(parcel, 'currentWebDAVAccount')
+    curMail = Reference.update(parcel, 'currentMailAccount')
+    curSmtp = Reference.update(parcel, 'currentSMTPAccount')
+    curCon = Reference.update(parcel, 'currentContact')
 
 
     # Items created in osaf.app (this parcel):
@@ -32,7 +28,7 @@ def installParcel(parcel, oldVersion=None):
                          password=u'd4vShare',
                          useSSL=False,
                          port=80,
-                         currentItemOf=curDav
+                         references=[curDav]
                          )
 
     WebDAVAccount.update(parcel,
@@ -61,14 +57,14 @@ def installParcel(parcel, oldVersion=None):
 
     preSmtp = SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
                                  displayName=u'Outgoing SMTP mail',
-                                 currentItemOf=curSmtp
+                                 references=[curSmtp]
                                 )
 
     IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
                        displayName=u'Incoming IMAP mail',
                        replyToAddress=preReply,
                        defaultSMTPAccount=preSmtp,
-                       currentItemOf=curMail
+                       references=[curMail]
                       )
 
     POPAccount.update(parcel, 'PredefinedPOPAccount',

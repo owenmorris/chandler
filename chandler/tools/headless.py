@@ -8,12 +8,14 @@ import sys, os
 from types import GeneratorType
 from code import interact
 
+import application.schema as schema
 import application.Utility as Utility
 import application.Globals as Globals
 from repository.item.Item import Item
 from repository.persistence.DBRefs import DBRefList
 
 view = None
+app = None
 reactorManager = None
 wakeupCaller = None
 
@@ -275,15 +277,17 @@ def main():
     view = startup()
     if not view:
         sys.exit(1)
-    # Also add 'view' to exportedSymbols
+    # Also add 'view' and 'app' to exportedSymbols
     exportedSymbols['view'] = view
+    exportedSymbols['app'] = schema.ns('osaf.app', view)
 
     setDisplayHook()
 
     banner = "\nWelcome!  Headless Chandler will shut down when you " \
              "exit this Python session.\n" \
              "The variable, 'view', is now set to the main repository " \
-             "view.\n" \
+             "view, and 'app' is the\n" \
+             "schema.ns('osaf.app') object.\n" \
              "Type 'go()' to fire up Twisted services, or 'readme()' for " \
              "more info."
 

@@ -11,7 +11,6 @@ import application
 from application import schema
 import repository.item.Item as Item
 from osaf.contentmodel import ContentModel, Notes
-import osaf.current.Current as Current
 import application.Globals as Globals
 import repository.query.Query as Query
 import chandlerdb.util.uuid as UUID
@@ -60,7 +59,7 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
         return (smtpAccount, replyToAddress)
 
     """Get the default Mail Account"""
-    parentAccount = Current.get(view, "MailAccount")
+    parentAccount = schema.ns('osaf.app', view).currentMailAccount.item
 
     if parentAccount is not None:
         if hasattr(parentAccount, 'replyToAddress'):
@@ -92,7 +91,7 @@ def getCurrentMailAccount(view, uuid=None):
         account = view.findUUID(uuid)
 
     else:
-        account = Current.get(view, "MailAccount")
+        account = schema.ns('osaf.app', view).currentMailAccount.item
 
     return account
 
