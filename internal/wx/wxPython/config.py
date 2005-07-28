@@ -78,7 +78,7 @@ Topic :: Software Development :: User Interfaces
 
 # Config values below this point can be reset on the setup.py command line.
 
-BUILD_GLCANVAS = 1 # If true, build the contrib/glcanvas extension module
+BUILD_GLCANVAS = 0 # If true, build the contrib/glcanvas extension module
 BUILD_OGL = 0      # If true, build the contrib/ogl extension module
 BUILD_STC = 1      # If true, build the contrib/stc extension module
 BUILD_GIZMOS = 1   # Build a module for the gizmos contrib library
@@ -107,7 +107,7 @@ FULL_DOCS = 0      # Some docstrings are split into a basic docstring and a
                    # cause the two strings to be combined and output
                    # as the full docstring.
 
-UNICODE = 0        # This will pass the 'wxUSE_UNICODE' flag to SWIG and
+UNICODE = 1        # This will pass the 'wxUSE_UNICODE' flag to SWIG and
                    # will ensure that the right headers are found and the
                    # right libs are linked.
 
@@ -123,7 +123,7 @@ UNDEF_NDEBUG = 1   # Python 2.2 on Unix/Linux by default defines NDEBUG,
 NO_SCRIPTS = 0     # Don't install the tool scripts
 NO_HEADERS = 0     # Don't install the wxPython *.h and *.i files
 
-INSTALL_MULTIVERSION = 1 # Install the packages such that multiple versions
+INSTALL_MULTIVERSION = 0 # Install the packages such that multiple versions
                    # can co-exist.  When turned on the wx and wxPython
                    # pacakges will be installed in a versioned subdir
                    # of site-packages, and a *.pth file will be
