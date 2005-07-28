@@ -119,5 +119,5 @@ IV. Notes
 
 === EOF ===
 
-Author:  VZ
+Author:  VZ & MW
 Version: $Id$
