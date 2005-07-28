@@ -326,23 +326,19 @@ def stopCrypto(profileDir):
 
 
 def initTwisted():
-    from osaf.framework.twisted.TwistedReactorManager \
-        import TwistedReactorManager
-    reactorManager = TwistedReactorManager()
-    reactorManager.startReactor()
-    return reactorManager
+    from osaf.startup import run_reactor
+    run_reactor()
 
 
 def stopTwisted(reactorManager):
-    reactorManager.stopReactor()
+    from osaf.startup import stop_reactor
+    stop_reactor()
 
 
 def initWakeup(view):
-    from osaf.framework.wakeup.WakeupCaller import WakeupCaller
-    wakeupCaller = WakeupCaller(view.repository)
-    wakeupCaller.startup()
-    return wakeupCaller
+    from osaf.startup import run_startup
+    run_startup(view)
 
 
 def stopWakeup(wakeupCaller):
-    wakeupCaller.shutdown()
+    pass

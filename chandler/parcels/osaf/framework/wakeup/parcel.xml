@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<Parcel itsName="wakeup"
-        xmlns="parcel:core"
-        xmlns:cm="parcel:osaf.contentmodel"
-        xmlns:wake="parcel:osaf.framework.wakeup">
-</Parcel>

@@ -3,21 +3,20 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import osaf.examples.zaobao.RSSData as RSSData
 from repository.item.Query import TextQuery
 import socket
 import logging
 from xml.sax import SAXParseException
 
-class WakeupCall(WakeupCaller.WakeupCall):
+class UpdateTask:
+    def __init__(self, item):
+        self.view = item.itsView
 
-    def receiveWakeupCall(self, wakeupCallItem):
+    def run(self):
+        self.view.refresh()
 
-        view = wakeupCallItem.itsView
-        view.refresh()
-
-        for item in RSSData.RSSChannel.iterItems(view):
+        for item in RSSData.RSSChannel.iterItems(self.view):
             try:
                 item.Update()
             except socket.timeout:
@@ -38,6 +37,8 @@ class WakeupCall(WakeupCaller.WakeupCall):
                 logging.exception('zaobao failed to parse %s' % item.url)
 
             try:
-                view.commit()
+                self.view.commit()
             except Exception, e:
                 logging.exception('zaobao failed to commit %s' % item.url)
+
+        return True     # run it again next time

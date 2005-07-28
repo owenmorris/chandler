@@ -8,18 +8,16 @@
 <Parcel itsName="zaobao"
      xmlns="parcel:core"
      xmlns:doc="parcel:osaf.examples.zaobao"
-     xmlns:wakeupCall="parcel:osaf.framework.wakeup"
+     xmlns:startup="parcel:osaf.startup"
      >
 
     <version>0.3</version>
 
     <!-- Just declaring an item of this type will allow it to be woken up -->
-    <wakeupCall:WakeupCall itsName="ZaoBao">
-        <wakeupCallClass>osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall</wakeupCallClass>
-        <callOnStartup>True</callOnStartup>
-        <enabled>True</enabled>
-        <repeat>True</repeat>
-        <delay>00:30:00</delay>
-    </wakeupCall:WakeupCall>
+    <startup:PeriodicTask itsName="ZaoBaoUpdateTask">
+        <invoke>osaf.examples.zaobao.ZaoBaoWakeupCall.UpdateTask</invoke>
+        <run_at_startup>True</run_at_startup>
+        <interval>00:30:00</interval>
+    </startup:PeriodicTask>
 
 </Parcel>

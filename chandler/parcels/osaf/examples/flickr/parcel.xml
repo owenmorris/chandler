@@ -7,7 +7,7 @@
 	xmlns:main="parcel:osaf.views.main"
 	xmlns:detail="parcel:osaf.framework.blocks.detail"
 	xmlns:flickr="parcel:osaf.examples.flickr"
-	xmlns:wakeupCall="parcel:osaf.framework.wakeup">
+	xmlns:startup="parcel:osaf.startup">
 
   <!-- Block definitions for Menu -->
     
@@ -78,12 +78,10 @@
 
   <!-- Block definitions for WakeCallers -->
 
-   <wakeupCall:WakeupCall itsName="Flickr">
-       <wakeupCallClass>osaf.examples.flickr.WakeupCall</wakeupCallClass>
-       <callOnStartup>True</callOnStartup>
-       <enabled>True</enabled>
-       <repeat>True</repeat>
-       <delay>00:05:00</delay>
-   </wakeupCall:WakeupCall>
+   <startup:PeriodicTask itsName="FlickrUpdateTask">
+       <invoke>osaf.examples.flickr.UpdateTask</invoke>
+       <run_at_startup>True</run_at_startup>
+       <interval>00:05:00</interval>
+   </startup:PeriodicTask>
 
 </core:Parcel>

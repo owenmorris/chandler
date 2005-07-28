@@ -12,7 +12,6 @@ import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
-import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import repository.query.Query as Query
 from repository.util.URL import URL
 from datetime import datetime
@@ -216,19 +215,21 @@ def CreateCollectionFromTag(repView, cpiaView):
 # Wakeup caller
 #
 
-class WakeupCall(WakeupCaller.WakeupCall):
+class UpdateTask:
+    def __init__(self, item):
+        self.view = item.itsView
 
-    def receiveWakeupCall(self, wakeupCallItem):
+    def run(self):
         logger.info("receiveWakeupCall()")
 
         # We need the view for most repository operations
-        view = wakeupCallItem.itsView
-        view.refresh()
+        self.view.refresh()
 
         # We need the Kind object for PhotoCollection
-        for myPhotoCollection in PhotoCollection.iterItems(view):
-            myPhotoCollection.update(view)
+        for myPhotoCollection in PhotoCollection.iterItems(self.view):
+            myPhotoCollection.update(self.view)
 
         # We want to commit the changes to the repository
-        view.commit()
+        self.view.commit()
+        return True
 
