@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel xmlns="parcel:core"
-        xmlns:cert="parcel:osaf.framework.certstore.schema">
+        xmlns:cert="parcel:osaf.framework.certstore">
 
   <cert:Certificate itsName="Verisign_RSA Secure Server CA">
   <subjectCommonName>Verisign/RSA Secure Server CA</subjectCommonName>

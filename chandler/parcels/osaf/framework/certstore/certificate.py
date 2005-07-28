@@ -4,7 +4,7 @@ Certificate
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
-__parcel__ = "osaf.framework.certstore.schema"
+__parcel__ = "osaf.framework.certstore"
 
 import wx
 import application
@@ -14,7 +14,7 @@ import application.Globals as Globals
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.framework.blocks.detail.Detail as Detail
-import osaf.framework.certstore.notification as notification
+from osaf.framework.certstore import notification
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
@@ -27,7 +27,7 @@ TRUST_AUTHENTICITY = 1
 TRUST_SITE         = 2
 
 TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
-ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where True'
+ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/Certificate" where True'
 
 
 class typeEnum(schema.Enumeration):
@@ -187,7 +187,7 @@ def _allCertificatesQuery(repView):
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
         q = Query.Query(qName, p, k, ALL_CERTS_QUERY)
-        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/schema/dummyCertNotification')
+        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
         q.subscribe(notificationItem, 'handle', True, True)
 
     return q
@@ -231,8 +231,8 @@ def _importCertificate(x509, fingerprint, trust, repView):
     if q is None:
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "site" and i.trust == %d' % (TRUST_AUTHENTICITY))
-        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/schema/dummyCertNotification')
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "site" and i.trust == %d' % (TRUST_AUTHENTICITY))
+        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
         q.subscribe(notificationItem, 'handle', True, True)
     
     repView.commit()

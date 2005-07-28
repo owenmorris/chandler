@@ -21,7 +21,7 @@ o = open('_parcel.xml', 'w')
 
 o.write('<?xml version="1.0" encoding="iso-8859-1"?>\n\n' +
 '<Parcel xmlns="parcel:core"\n' +
-'        xmlns:cert="parcel:osaf.framework.certstore.schema">\n\n')
+'        xmlns:cert="parcel:osaf.framework.certstore">\n\n')
 
 lastLine = ''
 pem = ''

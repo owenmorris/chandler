@@ -4,7 +4,7 @@ Notification
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
-__parcel__ = "osaf.framework.certstore.schema"
+__parcel__ = "osaf.framework.certstore"
 
 from application import schema
 

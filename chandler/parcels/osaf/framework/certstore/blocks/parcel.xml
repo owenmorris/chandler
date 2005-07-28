@@ -4,7 +4,7 @@
              xmlns="parcel:osaf.framework.blocks"
              xmlns:main="parcel:osaf.views.main"
              xmlns:doc="parcel:osaf.framework.certstore.blocks"
-             xmlns:schema="parcel:osaf.framework.certstore.schema"
+             xmlns:schema="parcel:osaf.framework.certstore"
              xmlns:detail="parcel:osaf.framework.blocks.detail"
              >
     

@@ -87,7 +87,7 @@ rZehs7GgIFvKMquNzxPwHynD
         # XXX This test does not work right, verify fails in certain situations
         self.loadParcel("parcel:osaf.framework.certstore.data")
         
-        qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.type == "root"'
+        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "root"'
         
         qName = 'rootCertsQuery'
         q = self.rep.view.findPath('//Queries/%s' %(qName))
@@ -128,7 +128,7 @@ rZehs7GgIFvKMquNzxPwHynD
                                       trust,
                                       self.rep.view)
         
-        qString = u'for i in "//parcels/osaf/framework/certstore/schema/Certificate" where i.fingerprint == "%s"' % fingerprint
+        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.fingerprint == "%s"' % fingerprint
         
         qName = 'fpCertQuery' + fingerprint
         q = self.rep.view.findPath('//Queries/%s' %(qName))
@@ -191,7 +191,6 @@ rZehs7GgIFvKMquNzxPwHynD
     def setUp(self):
         super(CertificateStoreTestCase, self).setUp()
         self.loadParcel("parcel:osaf.framework.certstore")
-        self.loadParcel("parcel:osaf.framework.certstore.schema")
         
 if __name__ == "__main__":
     unittest.main()

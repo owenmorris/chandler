@@ -36,7 +36,6 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
     
     def testCertificateVerification(self):
         self.loadParcel("parcel:osaf.framework.certstore")
-        self.loadParcel("parcel:osaf.framework.certstore.schema")
         self.loadParcel("parcel:osaf.framework.certstore.data")
 
         ctx = ssl.getContext(self.rep.view)
