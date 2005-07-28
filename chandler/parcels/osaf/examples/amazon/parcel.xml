@@ -48,29 +48,29 @@
         <!--rootBlocks itemref="doc:CategoryArea"/-->
     </detail:DetailTrunkSubtree>
     
-  <DetailSynchronizedLabeledTextAttributeBlock itsName="ProductArea">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="ProductArea">
     <position>1</position>
     <selectedItemsAttribute>ProductName</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
     <childrenBlocks itemref="doc:AuthorAttribute"/>
     <stretchFactor>0</stretchFactor>
-  </DetailSynchronizedLabeledTextAttributeBlock>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticRedirectAttributeLabel itsName="AuthorLabel">
+  <detail:StaticRedirectAttributeLabel itsName="AuthorLabel">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticRedirectAttributeLabel>
+  </detail:StaticRedirectAttributeLabel>
 
-  <StaticRedirectAttribute itsName="AuthorAttribute">
+  <detail:StaticRedirectAttribute itsName="AuthorAttribute">
     <title>about</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
-  </StaticRedirectAttribute>
+  </detail:StaticRedirectAttribute>
 
   <amazon:ImageBlock itsName="image">
     <blockName value="product image"/>

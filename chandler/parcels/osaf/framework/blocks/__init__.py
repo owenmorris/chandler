@@ -16,13 +16,6 @@ from ContainerBlocks import (
 from Trunk import TrunkDelegate, TrunkParentBlock
 from Views import View
 
-from detail.Detail import (
-    DetailRoot, DetailTrunkDelegate, HTMLDetailArea, StaticRedirectAttribute,
-    StaticTextLabel, DetailSynchronizedLabeledTextAttributeBlock,
-    StaticRedirectAttributeLabel,  LabeledTextAttributeBlock,
-    DetailSynchronizedContentItemDetail
-)
-
 from ControlBlocks import (
     AEBlock, Button, CheckBox, Choice, ComboBox, ContentItemDetail,
     ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List, RadioBox,

@@ -2,7 +2,7 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.framework.blocks"
+__parcel__ = "osaf.framework.blocks.detail"
 
 import sys
 import application
@@ -10,13 +10,10 @@ from application import schema
 from osaf.framework.attributeEditors.AttributeEditors import \
      DateTimeAttributeEditor, DateAttributeEditor, TimeAttributeEditor, \
      ChoiceAttributeEditor, StaticStringAttributeEditor
-from osaf.framework.blocks import Block
-from osaf.framework.blocks import DynamicContainerBlocks
-from osaf.framework.blocks import ControlBlocks
-from osaf.framework.blocks import ContainerBlocks
-from osaf.framework.blocks.detail import DetailTrunkSubtree
+from osaf.framework.blocks import \
+     Block, ContainerBlocks, ControlBlocks, DynamicContainerBlocks, \
+     Trunk, TrunkSubtree
 import osaf.framework.sharing.Sharing as Sharing
-from osaf.framework.blocks import Trunk
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
@@ -47,7 +44,10 @@ Classes for the ContentItem Detail View
 logger = logging.getLogger("detail")
 logger.setLevel(logging.INFO)
 
-class DetailRoot (ControlBlocks.ContentItemDetail):
+class DetailTrunkSubtree(TrunkSubtree):
+    """All our subtrees are of this kind, so we can find 'em."""
+
+class DetailRootBlock (ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
@@ -95,7 +95,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         
         # then call our parent which'll do the actual unrender, triggering the
         # no-op EVT_KILL_FOCUS.
-        super(DetailRoot, self).unRender()
+        super(DetailRootBlock, self).unRender()
         
     def __changeSelection(self, item):
         self.selection = item
@@ -191,7 +191,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
 
     def synchronizeWidget (self):
         item= self.selectedItem()
-        super(DetailRoot, self).synchronizeWidget ()
+        super(DetailRootBlock, self).synchronizeWidget ()
         self.synchronizeDetailView(item)
         if __debug__:
             dumpSynchronizeWidget = False
@@ -212,7 +212,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             block.isShown = True
             for child in block.childrenBlocks:
                 showReentrant (child)
-        super(DetailRoot, self).onDestroyWidget ()
+        super(DetailRootBlock, self).onDestroyWidget ()
         showReentrant (self)
 
     def onSendShareItemEventUpdateUI(self, event):    
@@ -578,7 +578,7 @@ def ItemCollectionOrMailMessageMixin (item):
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
 
-class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
+class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """
       Markup Toolbar, for quick control over Items.
     Doesn't need to synchronizeItemDetail, because
@@ -670,7 +670,7 @@ class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem)
         self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
         return False
 
-class MailMessageButton (DetailStampButton):
+class MailMessageButtonBlock(DetailStampButton):
     """
       Mail Message Stamping button in the Markup Bar
     """
@@ -680,7 +680,7 @@ class MailMessageButton (DetailStampButton):
     def stampMixinKind(self):
         return Mail.MailMessageMixin.getKind(self.itsView)
     
-class CalendarStamp (DetailStampButton):
+class CalendarStampBlock(DetailStampButton):
     """
       Calendar button in the Markup Bar
     """
@@ -690,7 +690,7 @@ class CalendarStamp (DetailStampButton):
     def stampMixinKind(self):
         return Calendar.CalendarEventMixin.getKind(self.itsView)
 
-class TaskStamp (DetailStampButton):
+class TaskStampBlock(DetailStampButton):
     """
       Task button in the Markup Bar
     """
@@ -701,7 +701,7 @@ class TaskStamp (DetailStampButton):
         return Task.TaskMixin.getKind(self.itsView)
 
 
-class PrivateSwitchButton(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
+class PrivateSwitchButtonBlock(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
       "Never share" button in the Markup Bar
     """
@@ -832,7 +832,7 @@ class SharingArea (DetailSynchronizedLabeledTextAttributeBlock):
     def shouldShow (self, item):
         return item is not None and Sharing.isShared(item)
                 
-class ParticipantsTextField (EditTextAttribute):
+class ParticipantsTextFieldBlock(EditTextAttribute):
     """
     'participants' attribute of an ItemCollection, e.g. who it's already been shared with.
     Read only, at least for now.
@@ -849,7 +849,7 @@ class ParticipantsTextField (EditTextAttribute):
         # It's read-only, but we have to override this method.
         pass
     
-class InviteEditField (EditToAddressTextAttribute):
+class InviteEditFieldBlock(EditToAddressTextAttribute):
     """
     'invitees' attribute of an ItemCollection, e.g. who we're inviting to share it.
     """
@@ -857,12 +857,12 @@ class InviteEditField (EditToAddressTextAttribute):
         # define the attribute to be used
         return 'invitees'
 
-class EditSharingActive (DetailSynchronizer, ControlBlocks.CheckBox):
+class EditSharingActiveBlock(DetailSynchronizer, ControlBlocks.CheckBox):
     """
       "Sharing Active" checkbox on item collections
     """
     def synchronizeItemDetail (self, item):
-        hasChanged = super(EditSharingActive, self).synchronizeItemDetail(item)
+        hasChanged = super(EditSharingActiveBlock, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:
             share = Sharing.getShare(item)
             if share is not None:
@@ -976,12 +976,12 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
         widget.SetValue(whoString)
 
 
-class AttachmentArea (DetailSynchronizedLabeledTextAttributeBlock):
+class AttachmentAreaBlock(DetailSynchronizedLabeledTextAttributeBlock):
     """ an area visible only when the item (a mail message) has attachments """
     def shouldShow (self, item):
         return item is not None and item.hasAttachments()
     
-class AttachmentTextField (EditTextAttribute):
+class AttachmentTextFieldBlock(EditTextAttribute):
     """
     A read-only list of email attachments, for now.
     """
@@ -998,7 +998,7 @@ class AttachmentTextField (EditTextAttribute):
         pass
     
     
-class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
+class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         showIt = False
         if item is not None and item.isInbound:
@@ -1043,7 +1043,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
 
-class CalendarAllDayArea(DetailSynchronizedContentItemDetail):
+class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('allDay')
 
@@ -1051,7 +1051,7 @@ class CalendarAllDayArea(DetailSynchronizedContentItemDetail):
 #     layout gets funny on Mac (bug 3543). By turning this off,
 #     I'm reopening bug 2976: location will be shown even for
 #     readonly shares.
-class CalendarLocationArea(ControlBlocks.ContentItemDetail):
+class CalendarLocationAreaBlock(ControlBlocks.ContentItemDetail):
     pass
 #class CalendarLocationArea(DetailSynchronizedContentItemDetail):
     #def shouldShow (self, item):
@@ -1068,7 +1068,7 @@ class CalendarTimeAEBlock(DetailSynchronizedAttributeEditorBlock):
         return item.isAttributeModifiable('startTime') \
                and not item.allDay
 
-class CalendarReminderArea(DetailSynchronizedContentItemDetail):
+class CalendarReminderAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminderTime') \
                or hasattr(item, 'reminderTime')
@@ -1104,7 +1104,7 @@ def recurrenceVisibility(item):
                 result |= showEnds
     return result
     
-class CalendarRecurrencePopupArea(DetailSynchronizedContentItemDetail):
+class CalendarRecurrencePopupAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow(self, item):
         return (recurrenceVisibility(item) & showPopup) != 0
 
@@ -1112,11 +1112,11 @@ class CalendarRecurrenceSpacer2Area(DetailSynchronizer, ControlBlocks.StaticText
     def shouldShow(self, item):
         return (recurrenceVisibility(item) & (showPopup | showEnds)) != 0
 
-class CalendarRecurrenceCustomArea(DetailSynchronizedContentItemDetail):
+class CalendarRecurrenceCustomAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return (recurrenceVisibility(item) & showCustom) != 0
 
-class CalendarRecurrenceEndArea(DetailSynchronizedContentItemDetail):
+class CalendarRecurrenceEndAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return (recurrenceVisibility(item) & showEnds) != 0
 
@@ -1413,7 +1413,7 @@ class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
         return "<html><body>" + str(item) + "</body></html>"
 
 
-class EmptyPanel(ControlBlocks.ContentItemDetail):
+class EmptyPanelBlock(ControlBlocks.ContentItemDetail):
     """
     A bordered panel, which we use when no item is selected in the calendar
     """

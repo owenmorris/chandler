@@ -55,15 +55,14 @@
   </ItemDetail>
   
   <!-- URL -->
-  <ContentItemDetail itsName="LinkArea"
-    itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="LinkArea">
     <position>0.3</position>
     <selectedItemsAttribute>link</selectedItemsAttribute>
     <childrenBlocks itemref="doc:LinkLabel"/>
     <childrenBlocks itemref="doc:LinkAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
-  </ContentItemDetail>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
 
   <CharacterStyle itsName="LinkStyle">
     <fontFamily>DefaultUIFont</fontFamily>
@@ -76,14 +75,14 @@
     <foregroundColor>0,0,255,255</foregroundColor>
   </ColorStyle>
 
-  <StaticText itsName="LinkLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
+  <detail:StaticRedirectAttributeLabel itsName="LinkLabel">
     <title>link</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
-  </StaticText>
+  </detail:StaticRedirectAttributeLabel>
   
   <StaticText itsName="LinkAttribute" itemClass="osaf.examples.zaobao.blocks.LinkDetail">
     <characterStyle itemref="doc:LinkStyle"/>
@@ -94,82 +93,81 @@
   </StaticText>
   
   <!-- Category -->
-  <ContentItemDetail itsName="CategoryArea"
-    itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="CategoryArea">
     <position>0.2</position>
     <selectedItemsAttribute>category</selectedItemsAttribute>
     <childrenBlocks itemref="doc:CategoryLabel"/>
     <childrenBlocks itemref="doc:CategoryAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
-  </ContentItemDetail>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticText itsName="CategoryLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
+  <detail:StaticRedirectAttributeLabel itsName="CategoryLabel">
     <title>category</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
-  </StaticText>
+  </detail:StaticRedirectAttributeLabel>
   
-  <StaticText itsName="CategoryAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+  <detail:StaticRedirectAttribute itsName="CategoryAttribute">
     <title>category</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>1.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
-  </StaticText>
+  </detail:StaticRedirectAttribute>
   
   <!-- Author area -->
-  <ContentItemDetail itsName="AuthorArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
     <position>0.19</position>
     <selectedItemsAttribute>author</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
     <childrenBlocks itemref="doc:AuthorAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
-  </ContentItemDetail>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
   
-  <StaticText itsName="AuthorLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
+  <detail:StaticRedirectAttributeLabel itsName="AuthorLabel">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
-  </StaticText>
+  </detail:StaticRedirectAttributeLabel>
   
-  <StaticText itsName="AuthorAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+  <detail:StaticRedirectAttribute itsName="AuthorAttribute">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>    
-  </StaticText>
+  </detail:StaticRedirectAttribute>
   
   <!-- Date area -->
-  <ContentItemDetail itsName="DateArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="DateArea">
     <position>0.4</position>
     <selectedItemsAttribute>date</selectedItemsAttribute>
     <childrenBlocks itemref="doc:DateLabel"/>
     <childrenBlocks itemref="doc:DateAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
-  </ContentItemDetail>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticText itsName="DateLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
+  <detail:StaticRedirectAttributeLabel itsName="DateLabel">
     <title>date</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
-  </StaticText>
+  </detail:StaticRedirectAttributeLabel>
   
-  <StaticText itsName="DateAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+  <detail:StaticRedirectAttribute itsName="DateAttribute">
     <title>date</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>    
-  </StaticText>
+  </detail:StaticRedirectAttribute>
   
 </core:Parcel>

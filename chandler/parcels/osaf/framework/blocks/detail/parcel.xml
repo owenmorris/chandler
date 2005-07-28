@@ -6,14 +6,13 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="detail"
-             xmlns="parcel:osaf.framework.blocks"
+             xmlns="parcel:osaf.framework.blocks.detail"
              xmlns:core="parcel:core"
              xmlns:blocks="parcel:osaf.framework.blocks"
              xmlns:calendar="parcel:osaf.contentmodel.calendar"
              xmlns:contact="parcel:osaf.contentmodel.contacts"
              xmlns:content="parcel:osaf.contentmodel"
              xmlns:mail="parcel:osaf.contentmodel.mail"
-             xmlns:doc="parcel:osaf.framework.blocks.detail"
              xmlns:ae="parcel:osaf.framework.attributeEditors">
 
   <core:version>0.3</core:version>
@@ -22,52 +21,53 @@
     Events
   -->
   
-  <BlockEvent itsName="ButtonPressed">
+  <blocks:BlockEvent itsName="ButtonPressed">
     <blockName>ButtonPressed</blockName>
-    <destinationBlockReference itemref="doc:MarkupBar"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="MarkupBar"/>
+  </blocks:BlockEvent>
     
-  <BlockEvent itsName="TogglePrivate">
+  <blocks:BlockEvent itsName="TogglePrivate">
     <blockName>TogglePrivate</blockName>
-    <destinationBlockReference itemref="doc:MarkupBar"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="MarkupBar"/>
+  </blocks:BlockEvent>
   
-  <BlockEvent itsName="ToggleAllDay">
+  <blocks:BlockEvent itsName="ToggleAllDay">
     <blockName>ToggleAllDay</blockName>
-    <destinationBlockReference itemref="doc:EditAllDay"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="EditAllDay"/>
+  </blocks:BlockEvent>
   
-  <BlockEvent itsName="ToggleSharingActive">
+  <blocks:BlockEvent itsName="ToggleSharingActive">
     <blockName>ToggleSharingActive</blockName>
-    <destinationBlockReference itemref="doc:EditSharingActive"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="EditSharingActive"/>
+  </blocks:BlockEvent>
   
-  <BlockEvent itsName="ReminderChanged">
+  <blocks:BlockEvent itsName="ReminderChanged">
     <blockName>ReminderChanged</blockName>
-    <destinationBlockReference itemref="doc:EditReminder"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="EditReminder"/>
+  </blocks:BlockEvent>
 
-  <BlockEvent itsName="TransparencyChanged">
+  <blocks:BlockEvent itsName="TransparencyChanged">
     <blockName>TransparencyChanged</blockName>
-    <destinationBlockReference itemref="doc:EditTransparency"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="EditTransparency"/>
+  </blocks:BlockEvent>
 
-  <BlockEvent itsName="AcceptShare">
+  <blocks:BlockEvent itsName="AcceptShare">
     <blockName>AcceptShare</blockName>
-    <destinationBlockReference itemref="doc:AcceptShareButton"/>
-  </BlockEvent>
+    <destinationBlockReference itemref="AcceptShareButton"/>
+  </blocks:BlockEvent>
 
-  <BlockEvent itsName="Resynchronize">
+  <blocks:BlockEvent itsName="Resynchronize">
     <blockName>Resynchronize</blockName>
     <dispatchToBlockName>DetailRoot</dispatchToBlockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
-  </BlockEvent>
+  </blocks:BlockEvent>
 
   <!--
     Attribute Editors custom to the detail view
   -->
   <ae:AttributeEditor itsName="DateTime+calendarDateOnly"><className>osaf.framework.blocks.detail.Detail.CalendarDateAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="DateTime+calendarTimeOnly"><className>osaf.framework.blocks.detail.Detail.CalendarTimeAttributeEditor</className></ae:AttributeEditor>
+  <ae:AttributeEditor itsName="EmailAddress+outgoing"><className>osaf.framework.blocks.detail.Detail.OutgoingEmailAddressAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+custom"><className>osaf.framework.blocks.detail.Detail.RecurrenceCustomAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+ends"><className>osaf.framework.blocks.detail.Detail.RecurrenceEndsAttributeEditor</className></ae:AttributeEditor>
   <ae:AttributeEditor itsName="RecurrenceRuleSet+occurs"><className>osaf.framework.blocks.detail.Detail.RecurrenceAttributeEditor</className></ae:AttributeEditor>
@@ -87,172 +87,165 @@
   -->
   
   <!-- The DetailTrunkCache starts each specific DetailTrunk by cloning this stub. -->
-  <DetailRoot itsName="DetailRoot"
-              itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
+  <DetailRootBlock itsName="DetailRoot">
     <blockName value="DetailRoot"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
-    <contents itemref="doc:DetailViewSelectedItemCollection"/>
-  </DetailRoot>
+    <contents itemref="DetailViewSelectedItemCollection"/>
+  </DetailRootBlock>
 
   <!-- Spacer that we copy and use between labels and editors -->
-  <StaticText itsName="HorizontalSpacer">
+  <blocks:StaticText itsName="HorizontalSpacer">
     <blockName value="HorizontalSpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>8, -1</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
   <!-- 
   Trees of blocks
   -->
   
   <!-- Note -->
-  <doc:DetailTrunkSubtree itsName="NoteSubtree">
+  <DetailTrunkSubtree itsName="NoteSubtree">
     <key itemref="content:Note"/>
-    <rootBlocks itemref="doc:TopSpacer"/>
-    <rootBlocks itemref="doc:MarkupBar"/>
-    <rootBlocks itemref="doc:HeadlineArea"/>
-    <rootBlocks itemref="doc:NotesSpacer"/>
-    <rootBlocks itemref="doc:NotesArea"/>
-  </doc:DetailTrunkSubtree>
+    <rootBlocks itemref="TopSpacer"/>
+    <rootBlocks itemref="MarkupBar"/>
+    <rootBlocks itemref="HeadlineArea"/>
+    <rootBlocks itemref="NotesSpacer"/>
+    <rootBlocks itemref="NotesArea"/>
+  </DetailTrunkSubtree>
 
   <!-- Calendar Event -->
-  <doc:DetailTrunkSubtree itsName="CalendarEventSubtree">
+  <DetailTrunkSubtree itsName="CalendarEventSubtree">
     <key itemref="calendar:CalendarEventMixin"/>
-    <rootBlocks itemref="doc:CalendarDetails"/>
-  </doc:DetailTrunkSubtree>
+    <rootBlocks itemref="CalendarDetails"/>
+  </DetailTrunkSubtree>
 
   <!-- Mail -->
-  <doc:DetailTrunkSubtree itsName="MailSubtree">
+  <DetailTrunkSubtree itsName="MailSubtree">
     <key itemref="mail:MailMessageMixin"/>
-    <rootBlocks itemref="doc:FromArea"/>
-    <rootBlocks itemref="doc:ToMailArea"/>
-    <rootBlocks itemref="doc:AcceptShareButton"/>
-    <rootBlocks itemref="doc:AttachmentArea"/>
-  </doc:DetailTrunkSubtree>
+    <rootBlocks itemref="FromArea"/>
+    <rootBlocks itemref="ToMailArea"/>
+    <rootBlocks itemref="AcceptShareButton"/>
+    <rootBlocks itemref="AttachmentArea"/>
+  </DetailTrunkSubtree>
 
   <!-- Item Collection -->
-  <doc:DetailTrunkSubtree itsName="ItemCollectionSubtree">
+  <DetailTrunkSubtree itsName="ItemCollectionSubtree">
     <key itemref="content:ItemCollection"/>
-    <rootBlocks itemref="doc:TopSpacer"/>
-    <rootBlocks itemref="doc:ParticipantsArea"/>
-    <rootBlocks itemref="doc:InviteArea"/>
-    <rootBlocks itemref="doc:HeadlineArea"/>
-    <rootBlocks itemref="doc:SharingActiveArea"/>
-    <rootBlocks itemref="doc:NotesSpacer"/>
-    <rootBlocks itemref="doc:NotesArea"/>
-  </doc:DetailTrunkSubtree>
+    <rootBlocks itemref="TopSpacer"/>
+    <rootBlocks itemref="ParticipantsArea"/>
+    <rootBlocks itemref="InviteArea"/>
+    <rootBlocks itemref="HeadlineArea"/>
+    <rootBlocks itemref="SharingActiveArea"/>
+    <rootBlocks itemref="NotesSpacer"/>
+    <rootBlocks itemref="NotesArea"/>
+  </DetailTrunkSubtree>
   
   <!-- For the case where there's no selected item -->
-  <doc:DetailTrunkSubtree itsName="NoDetailView">
-    <key itemref="doc:DetailTrunkSubtree"/>
-    <rootBlocks itemref="doc:EmptyPanel"/>
-  </doc:DetailTrunkSubtree>
+  <DetailTrunkSubtree itsName="NoDetailView">
+    <key itemref="DetailTrunkSubtree"/>
+    <rootBlocks itemref="EmptyPanel"/>
+  </DetailTrunkSubtree>
   
   <!--
   The subtree blocks
   -->
 
-  <StaticText itsName="TopSpacer">
+  <blocks:StaticText itsName="TopSpacer">
     <blockName value="TopSpacer"/>
     <title></title>
     <position>0.01</position>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 6</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
   <!-- MarkupBar -->
-  <Toolbar itsName="MarkupBar"
-           itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
+  <MarkupBarBlock itsName="MarkupBar">
     <blockName>MarkupBar</blockName>
     <!-- Children Blocks-->
-    <childrenBlocks itemref="doc:MailMessageButton"/>
-    <childrenBlocks itemref="doc:TaskStamp"/>
-    <childrenBlocks itemref="doc:CalendarStamp"/>
-    <childrenBlocks itemref="doc:ToolbarItemSeparator"/>
-    <childrenBlocks itemref="doc:PrivateSwitchButton"/>
+    <childrenBlocks itemref="MailMessageButton"/>
+    <childrenBlocks itemref="TaskStamp"/>
+    <childrenBlocks itemref="CalendarStamp"/>
+    <childrenBlocks itemref="ToolbarItemSeparator"/>
+    <childrenBlocks itemref="PrivateSwitchButton"/>
     <!-- Attributes -->
     <position>0.0</position>
     <toolSize>20,20</toolSize>
     <separatorWidth>16</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-  </Toolbar>
+  </MarkupBarBlock>
 
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itsName="MailMessageButton"
-               itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
+  <MailMessageButtonBlock itsName="MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Send as message</title>
     <bitmap>MarkupBarMail.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Send this item as a mail message</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
+    <event itemref="ButtonPressed"/>
+  </MailMessageButtonBlock>
 
-  <ToolbarItem itsName="TaskStamp"
-               itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
+  <TaskStampBlock itsName="TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Put on Taskpad</title>
     <bitmap>MarkupBarTask.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Taskpad</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
+    <event itemref="ButtonPressed"/>
+  </TaskStampBlock>
 
-  <ToolbarItem itsName="CalendarStamp"
-               itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
+  <CalendarStampBlock itsName="CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Put on Calendar</title>
     <bitmap>MarkupBarEvent.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>
-    <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
+    <event itemref="ButtonPressed"/>
+  </CalendarStampBlock>
   
-  <ToolbarItem itsName="ToolbarItemSeparator">
+  <blocks:ToolbarItem itsName="ToolbarItemSeparator">
     <blockName></blockName>
     <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
+  </blocks:ToolbarItem>
   
-  <ToolbarItem itsName="PrivateSwitchButton"
-               itemClass="osaf.framework.blocks.detail.Detail.PrivateSwitchButton">
+  <PrivateSwitchButtonBlock itsName="PrivateSwitchButton">
     <blockName>PrivateSwitchButton</blockName>
     <title>Never share this item</title>
     <bitmap>MarkupBarPrivate.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Never share this item</helpString>
-    <event itemref="doc:TogglePrivate"/>
-  </ToolbarItem>
+    <event itemref="TogglePrivate"/>
+  </PrivateSwitchButtonBlock>
  
   <!--
     Detail view attribute editors
   -->
-  <ContentItemDetail itsName="FromArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <DetailSynchronizedLabeledTextAttributeBlock itsName="FromArea">
     <blockName value="FromArea"/>
-    <childrenBlocks itemref="doc:FromString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="FromHorizontalSpacer" />
-    <childrenBlocks itemref="doc:FromEditField"/>
+    <childrenBlocks itemref="FromString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="FromHorizontalSpacer" />
+    <childrenBlocks itemref="FromEditField"/>
     <!-- Attributes -->
     <position>0.1</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticText itsName="FromString">
+  <blocks:StaticText itsName="FromString">
     <blockName value="FromString"/>
     <title>from</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -260,41 +253,33 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
-
-  <EditText itsName="FromEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
-    <blockName value="FromEditField"/>
-    <characterStyle itemref="blocks:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>True</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 19</minimumSize>
-    <border>2, 2, 2, 2</border>
-  </EditText>
-  <!-- First attempts at AE-izing the email fields
-  <AEBlock itsName="FromEditField"
+  </blocks:StaticText>
+ 
+  <blocks:PresentationStyle itsName="FromEditFieldStyle">
+    <format>outgoing</format>
+  </blocks:PresentationStyle>
+  
+  <DetailSynchronizedAttributeEditorBlock itsName="FromEditField"
            itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="FromEditField"/>
-    <viewAttribute value="whoFrom"/>
+    <!--<presentationStyle itemref="FromEditFieldStyle"/>-->
+    <viewAttribute value="fromAddress"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
-  -->
-  
-  <ContentItemDetail itsName="ToMailArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  </DetailSynchronizedAttributeEditorBlock>
+
+  <DetailSynchronizedLabeledTextAttributeBlock itsName="ToMailArea">
     <blockName value="ToArea"/>
-    <childrenBlocks itemref="doc:ToString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="ToMailHorizontalSpacer" />
-    <childrenBlocks itemref="doc:ToMailEditField"/>
+    <childrenBlocks itemref="ToString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="ToMailHorizontalSpacer" />
+    <childrenBlocks itemref="ToMailEditField"/>
     <!-- Attributes -->
     <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 6, 6</border>
-  </ContentItemDetail>
+  </DetailSynchronizedLabeledTextAttributeBlock>
  
-  <StaticText itsName="ToString">
+  <blocks:StaticText itsName="ToString">
     <blockName value="ToString"/>
     <title>to</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -302,29 +287,15 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
   
-  <EditText itsName="ToMailEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.ToMailEditField">
-    <blockName value="ToMailEditField"/>
-    <characterStyle itemref="blocks:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 19</minimumSize>
-    <border>2, 2, 2, 2</border>
-  </EditText>
-  <!-- First attempts at AE-izing the email fields
-  <AEBlock itsName="ToMailEditField"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <DetailSynchronizedAttributeEditorBlock itsName="ToMailEditField">
     <blockName value="ToMailEditField"/>
     <viewAttribute value="toAddress"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
-  -->
+  </DetailSynchronizedAttributeEditorBlock>
 
-  <Button itsName="AcceptShareButton"
-                     itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
+  <AcceptShareButtonBlock itsName="AcceptShareButton">
     <blockName value="AcceptShareButton"/>
     <title>Accept this sharing invitation</title>
     <buttonKind>Text</buttonKind>
@@ -333,23 +304,22 @@
     <size>80,30</size>
     <minimumSize>220,24</minimumSize>
     <alignmentEnum>alignCenter</alignmentEnum>
-    <event itemref="doc:AcceptShare"/>
+    <event itemref="AcceptShare"/>
     <border>6, 6, 6, 6</border>
-  </Button>
+  </AcceptShareButtonBlock>
 
-  <ContentItemDetail itsName="AttachmentArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.AttachmentArea">
+  <AttachmentAreaBlock itsName="AttachmentArea">
     <blockName value="AttachmentArea"/>
-    <childrenBlocks itemref="doc:AttachmentString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="AttachmentHorizontalSpacer" />
-    <childrenBlocks itemref="doc:AttachmentTextField"/>
-    <!-- Attributes -->
+    <childrenBlocks itemref="AttachmentString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="AttachmentHorizontalSpacer" />
+    <childrenBlocks itemref="AttachmentTextField"/>
+    
     <position>0.95</position>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </AttachmentAreaBlock>
  
-  <StaticText itsName="AttachmentString">
+  <blocks:StaticText itsName="AttachmentString">
     <blockName value="AttachmentString"/>
     <title>attachments</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -357,10 +327,9 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>70, 24</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
-  
-  <EditText itsName="AttachmentTextField"
-            itemClass="osaf.framework.blocks.detail.Detail.AttachmentTextField">
+  </blocks:StaticText>
+
+  <AttachmentTextFieldBlock itsName="AttachmentTextField">
     <blockName value="AttachmentTextField"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
@@ -368,22 +337,21 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 48</minimumSize>
     <border>2, 2, 2, 2</border>
-  </EditText>
+  </AttachmentTextFieldBlock>
 
-  <ContentItemDetail itsName="ParticipantsArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.SharingArea">
+  <SharingArea itsName="ParticipantsArea">
     <blockName value="ParticipantsArea"/>
-    <childrenBlocks itemref="doc:ParticipantsString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="ParticipantsHorizontalSpacer" />
-    <childrenBlocks itemref="doc:ParticipantsTextField"/>
+    <childrenBlocks itemref="ParticipantsString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="ParticipantsHorizontalSpacer" />
+    <childrenBlocks itemref="ParticipantsTextField"/>
     <!-- Attributes -->
     <position>0.3</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
     <border>6, 0, 0, 6</border>
-  </ContentItemDetail>
+  </SharingArea>
  
-  <StaticText itsName="ParticipantsString">
+  <blocks:StaticText itsName="ParticipantsString">
     <blockName value="ParticipantsString"/>
     <title>sharers</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -391,10 +359,9 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
-  
-  <EditText itsName="ParticipantsTextField"
-            itemClass="osaf.framework.blocks.detail.Detail.ParticipantsTextField">
+  </blocks:StaticText>
+
+  <ParticipantsTextFieldBlock itsName="ParticipantsTextField">
     <blockName value="ParticipantsTextField"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
@@ -402,22 +369,21 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 42</minimumSize>
     <border>2, 2, 2, 2</border>
-  </EditText>
+  </ParticipantsTextFieldBlock>
 
-  <ContentItemDetail itsName="InviteArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+  <DetailSynchronizedLabeledTextAttributeBlock itsName="InviteArea">
     <blockName value="FromArea"/>
-    <childrenBlocks itemref="doc:InviteString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="InviteHorizontalSpacer" />
-    <childrenBlocks itemref="doc:InviteEditField"/>
+    <childrenBlocks itemref="InviteString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="InviteHorizontalSpacer" />
+    <childrenBlocks itemref="InviteEditField"/>
     <!-- Attributes -->
     <position>0.3</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
     <border>6, 0, 0, 6</border>
-  </ContentItemDetail>
+  </DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticText itsName="InviteString">
+  <blocks:StaticText itsName="InviteString">
     <blockName value="InviteString"/>
     <title>invite</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -425,10 +391,9 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
-  
-  <EditText itsName="InviteEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.InviteEditField">
+  </blocks:StaticText>
+
+  <InviteEditFieldBlock itsName="InviteEditField">
     <blockName value="InviteEditField"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
@@ -436,21 +401,20 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 22</minimumSize>
     <border>2, 2, 2, 2</border>
-  </EditText>
+  </InviteEditFieldBlock>
 
-  <ContentItemDetail itsName="SharingActiveArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.SharingArea">
+  <SharingArea itsName="SharingActiveArea">
     <blockName value="SharingActiveArea"/>
-    <childrenBlocks itemref="doc:SharingActiveString"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="SharingActiveHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditSharingActive"/>
+    <childrenBlocks itemref="SharingActiveString"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="SharingActiveHorizontalSpacer" />
+    <childrenBlocks itemref="EditSharingActive"/>
     <!-- Attributes -->
     <position>0.6</position>
     <stretchFactor>0.0</stretchFactor>
     <border>6, 0, 0, 6</border>
-  </ContentItemDetail>
+  </SharingArea>
 
-  <StaticText itsName="SharingActiveString">
+  <blocks:StaticText itsName="SharingActiveString">
     <blockName value="SharingActiveString"/>
     <title>active</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -458,137 +422,128 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
-  
-  <CheckBox itsName="EditSharingActive"
-            itemClass="osaf.framework.blocks.detail.Detail.EditSharingActive">
+  </blocks:StaticText>
+
+  <EditSharingActiveBlock itsName="EditSharingActive">
     <blockName value="EditSharingActive"/>
     <!-- Attributes -->
     <title></title>
     <size>70,24</size>
     <minimumSize>70,24</minimumSize>
-    <event itemref="doc:ToggleSharingActive"/>
+    <event itemref="ToggleSharingActive"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
     <border>2, 2, 2, 2</border>
-  </CheckBox>
+  </EditSharingActiveBlock>
 
-  <ContentItemDetail itsName="HeadlineArea">
+  <blocks:ContentItemDetail itsName="HeadlineArea">
     <blockName value="HeadlineArea"/>
-    <childrenBlocks itemref="doc:HeadlineSpaceHolder"/>
-    <childrenBlocks itemref="doc:HeadlineBlock"/>
+    <childrenBlocks itemref="HeadlineSpaceHolder"/>
+    <childrenBlocks itemref="HeadlineBlock"/>
     <position>0.5</position>
     <minimumSize>300, 10</minimumSize>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 6, 0, 6</border>
-  </ContentItemDetail>
+  </blocks:ContentItemDetail>
 
-  <StaticText itsName="HeadlineSpaceHolder">
+  <blocks:StaticText itsName="HeadlineSpaceHolder">
     <blockName value="HeadlineSpaceHolder"/>
     <title></title>
     <characterStyle itemref="blocks:TextStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>0, 22</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="HeadlinePresentation">
+  <blocks:PresentationStyle itsName="HeadlinePresentation">
     <sampleText></sampleText><!-- empty sample means "use displayname" -->
     <editInPlace>True</editInPlace>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
   <!-- Headline area done as an AE Block -->
-  <AEBlock itsName="HeadlineBlock"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <DetailSynchronizedAttributeEditorBlock itsName="HeadlineBlock">
     <blockName value="HeadlineBlock"/>
     <characterStyle itemref="blocks:BigTextStyle"/>
-    <presentationStyle itemref="doc:HeadlinePresentation"/>
+    <presentationStyle itemref="HeadlinePresentation"/>
     <viewAttribute value="about"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
-  <ContentItemDetail itsName="CalendarDetails">
+  <blocks:ContentItemDetail itsName="CalendarDetails">
     <blockName value="CalendarDetails"/>
-    <childrenBlocks itemref="doc:CalendarLocationArea"/>
-    <childrenBlocks itemref="doc:CalendarAllDaySpacer"/>
-    <childrenBlocks itemref="doc:CalendarAllDayArea"/>
-    <childrenBlocks itemref="doc:CalendarStartSpacer"/>
-    <childrenBlocks itemref="doc:CalendarStartTimeArea"/>
-    <childrenBlocks itemref="doc:CalendarEndSpacer"/>
-    <childrenBlocks itemref="doc:CalendarEndTimeArea"/>
-    <childrenBlocks itemref="doc:CalendarTransparencySpacer"/>
-    <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
+    <childrenBlocks itemref="CalendarLocationArea"/>
+    <childrenBlocks itemref="CalendarAllDaySpacer"/>
+    <childrenBlocks itemref="CalendarAllDayArea"/>
+    <childrenBlocks itemref="CalendarStartSpacer"/>
+    <childrenBlocks itemref="CalendarStartTimeArea"/>
+    <childrenBlocks itemref="CalendarEndSpacer"/>
+    <childrenBlocks itemref="CalendarEndTimeArea"/>
+    <childrenBlocks itemref="CalendarTransparencySpacer"/>
+    <childrenBlocks itemref="CalendarTransparencyArea"/>
 
-    <!-- The recurrence UI; turned off for now. -->
-
-    <childrenBlocks itemref="doc:CalendarRecurrenceSpacer"/>
-    <childrenBlocks itemref="doc:CalendarRecurrencePopupArea"/>
-    <childrenBlocks itemref="doc:CalendarRecurrenceSpacer2"/>
-    <childrenBlocks itemref="doc:CalendarRecurrenceCustomArea"/>
-    <childrenBlocks itemref="doc:CalendarRecurrenceEndArea"/>
-
-    <!-- (end of recurrence UI) -->
+    <childrenBlocks itemref="CalendarRecurrenceSpacer"/>
+    <childrenBlocks itemref="CalendarRecurrencePopupArea"/>
+    <childrenBlocks itemref="CalendarRecurrenceSpacer2"/>
+    <childrenBlocks itemref="CalendarRecurrenceCustomArea"/>
+    <childrenBlocks itemref="CalendarRecurrenceEndArea"/>
     
-    <childrenBlocks itemref="doc:CalendarReminderSpacer"/>
-    <childrenBlocks itemref="doc:CalendarReminderArea"/>
+    <childrenBlocks itemref="CalendarReminderSpacer"/>
+    <childrenBlocks itemref="CalendarReminderArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
     <position>0.8</position>
-  </ContentItemDetail>
+  </blocks:ContentItemDetail>
 
-  <ContentItemDetail itsName="CalendarLocationArea"
-           itemClass="osaf.framework.blocks.detail.Detail.CalendarLocationArea">  
+  <CalendarLocationAreaBlock itsName="CalendarLocationArea">  
     <blockName value="CalendarLocationArea"/>
-    <childrenBlocks itemref="doc:CalendarLocationSpaceHolder"/>
-    <childrenBlocks itemref="doc:CalendarLocation"/>
+    <childrenBlocks itemref="CalendarLocationSpaceHolder"/>
+    <childrenBlocks itemref="CalendarLocation"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 10</minimumSize>
     <border>0, 6, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarLocationAreaBlock>
 
-  <StaticText itsName="CalendarLocationSpaceHolder">
+  <blocks:StaticText itsName="CalendarLocationSpaceHolder">
     <blockName value="CalendarLocationSpaceHolder"/>
     <title></title>
     <characterStyle itemref="blocks:TextStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>0, 22</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="LocationPresentation">
+  <blocks:PresentationStyle itsName="LocationPresentation">
     <sampleText></sampleText>
     <editInPlace>True</editInPlace>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
-  <AEBlock itsName="CalendarLocation"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <DetailSynchronizedAttributeEditorBlock itsName="CalendarLocation">
     <blockName value="AECalendarLocation"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <!--<minimumSize>300, 22</minimumSize>-->
-    <presentationStyle itemref="doc:LocationPresentation"/>
+    <presentationStyle itemref="LocationPresentation"/>
     <viewAttribute value="location"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
-  <StaticText itsName="CalendarAllDaySpacer">
+  <blocks:StaticText itsName="CalendarAllDaySpacer">
     <blockName value="CalendarAllDaySpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 4</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarAllDayArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarAllDayArea">
+  <CalendarAllDayAreaBlock itsName="CalendarAllDayArea">
     <blockName value="CalendarAllDayArea"/>
-    <childrenBlocks itemref="doc:CalDetailsAllDayLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="AllDayHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditAllDay"/>
+    <childrenBlocks itemref="CalDetailsAllDayLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="AllDayHorizontalSpacer" />
+    <childrenBlocks itemref="EditAllDay"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarAllDayAreaBlock>
   
-  <StaticText itsName="CalDetailsAllDayLabel">
+  <blocks:StaticText itsName="CalDetailsAllDayLabel">
     <blockName value="CalDetailsAllDayLabel"/>
     <title>all-day</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -596,26 +551,26 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-  <AEBlock itsName="EditAllDay">
+  <blocks:AEBlock itsName="EditAllDay">
     <blockName value="EditAllDay"/>
     <stretchFactor>0.0</stretchFactor>
     <viewAttribute value="allDay"/>
     <border>2, 2, 2, 2</border>
     <minimumSize>16, -1</minimumSize>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
+    <event itemref="Resynchronize"/>
+  </blocks:AEBlock>
   
-  <StaticText itsName="CalendarStartSpacer">
+  <blocks:StaticText itsName="CalendarStartSpacer">
     <blockName value="CalendarStartSpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 4</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <StaticText itsName="CalendarAtLabel"
+  <blocks:StaticText itsName="CalendarAtLabel"
               itemClass="osaf.framework.blocks.detail.Detail.CalendarAtLabel">
     <blockName value="CalendarAtLabel"/>
     <title>at</title>
@@ -623,22 +578,22 @@
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <border>4, 4, 0, 4</border>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarStartTimeArea">
+  <blocks:ContentItemDetail itsName="CalendarStartTimeArea">
     <blockName value="CalendarStartTimeArea"/>
-    <childrenBlocks itemref="doc:StaticCalendarStart"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarStartHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditCalendarStartDate"/>
-    <childrenBlocks itemref="doc:CalendarAtLabel" copy="CalendarStartAtLabel" />
-    <childrenBlocks itemref="doc:EditCalendarStartTime"/>
+    <childrenBlocks itemref="StaticCalendarStart"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarStartHorizontalSpacer" />
+    <childrenBlocks itemref="EditCalendarStartDate"/>
+    <childrenBlocks itemref="CalendarAtLabel" copy="CalendarStartAtLabel" />
+    <childrenBlocks itemref="EditCalendarStartTime"/>
     <selectedItemsAttribute>startTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </blocks:ContentItemDetail>
  
-  <StaticText itsName="StaticCalendarStart">
+  <blocks:StaticText itsName="StaticCalendarStart">
     <blockName value="StaticCalendarStart"/>
     <title>starts</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -646,61 +601,60 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="StartDatePresentation">
+  <blocks:PresentationStyle itsName="StartDatePresentation">
     <format>calendarDateOnly</format>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
-  <AEBlock itsName="EditCalendarStartDate">
+  <blocks:AEBlock itsName="EditCalendarStartDate">
     <blockName value="EditCalendarStartDate"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:StartDatePresentation"/>
+    <presentationStyle itemref="StartDatePresentation"/>
     <viewAttribute value="startTime"/>
     <stretchFactor>0.0</stretchFactor>
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
+    <event itemref="Resynchronize"/>
+  </blocks:AEBlock>
 
-  <PresentationStyle itsName="StartTimePresentation">
+  <blocks:PresentationStyle itsName="StartTimePresentation">
     <format>calendarTimeOnly</format>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
-  <AEBlock itsName="EditCalendarStartTime"
-           itemClass="osaf.framework.blocks.detail.Detail.CalendarTimeAEBlock">
+  <CalendarTimeAEBlock itsName="EditCalendarStartTime">
     <blockName value="EditCalendarStartTime"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:StartTimePresentation"/>
+    <presentationStyle itemref="StartTimePresentation"/>
     <viewAttribute value="startTime"/>
     <stretchFactor>0.0</stretchFactor>
     <size>85, -1</size>
     <border>2, 2, 2, 2</border>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
+    <event itemref="Resynchronize"/>
+  </CalendarTimeAEBlock>
 
-  <StaticText itsName="CalendarEndSpacer">
+  <blocks:StaticText itsName="CalendarEndSpacer">
     <blockName value="CalendarEndSpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 1</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarEndTimeArea">
+  <blocks:ContentItemDetail itsName="CalendarEndTimeArea">
     <blockName value="CalendarEndTimeArea"/>
-    <childrenBlocks itemref="doc:StaticCalendarEnd"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarEndHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditCalendarEndDate"/>
-    <childrenBlocks itemref="doc:CalendarAtLabel" copy="CalendarEndAtLabel" />
-    <childrenBlocks itemref="doc:EditCalendarEndTime"/>
+    <childrenBlocks itemref="StaticCalendarEnd"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarEndHorizontalSpacer" />
+    <childrenBlocks itemref="EditCalendarEndDate"/>
+    <childrenBlocks itemref="CalendarAtLabel" copy="CalendarEndAtLabel" />
+    <childrenBlocks itemref="EditCalendarEndTime"/>
     <selectedItemsAttribute>endTime</selectedItemsAttribute>
     <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </blocks:ContentItemDetail>
   
-  <StaticText itsName="StaticCalendarEnd">
+  <blocks:StaticText itsName="StaticCalendarEnd">
     <blockName value="StaticCalendarEnd"/>
     <title>ends</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -708,59 +662,58 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>4, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="EndDatePresentation">
+  <blocks:PresentationStyle itsName="EndDatePresentation">
     <format>calendarDateOnly</format>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
-  <AEBlock itsName="EditCalendarEndDate">
+  <blocks:AEBlock itsName="EditCalendarEndDate">
     <blockName value="EditCalendarEndDate"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:EndDatePresentation"/>
+    <presentationStyle itemref="EndDatePresentation"/>
     <viewAttribute value="endTime"/>
     <stretchFactor>0.0</stretchFactor>
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
+    <event itemref="Resynchronize"/>
+  </blocks:AEBlock>
 
-  <PresentationStyle itsName="EndTimePresentation">
+  <blocks:PresentationStyle itsName="EndTimePresentation">
     <format>calendarTimeOnly</format>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
 
-  <AEBlock itsName="EditCalendarEndTime"
-           itemClass="osaf.framework.blocks.detail.Detail.CalendarTimeAEBlock">
+  <CalendarTimeAEBlock itsName="EditCalendarEndTime">
     <blockName value="EditCalendarEndTime"/>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:EndTimePresentation"/>
+    <presentationStyle itemref="EndTimePresentation"/>
     <viewAttribute value="endTime"/>
     <stretchFactor>0.0</stretchFactor>
     <size>85, -1</size>
     <border>2, 2, 2, 2</border>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
-  
-  <StaticText itsName="CalendarTransparencySpacer">
+    <event itemref="Resynchronize"/>
+  </CalendarTimeAEBlock>
+ 
+  <blocks:StaticText itsName="CalendarTransparencySpacer">
     <blockName value="CalendarTransparencySpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 1</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarTransparencyArea">
+  <blocks:ContentItemDetail itsName="CalendarTransparencyArea">
     <blockName value="CalendarTransparencyArea"/>
-    <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarTransparencyHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditTransparency"/>
+    <childrenBlocks itemref="CalDetailsTransparencyLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarTransparencyHorizontalSpacer" />
+    <childrenBlocks itemref="EditTransparency"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <border>6, 0, 0, 6</border>
-  </ContentItemDetail>
+  </blocks:ContentItemDetail>
 
-  <StaticText itsName="CalDetailsTransparencyLabel">
+  <blocks:StaticText itsName="CalDetailsTransparencyLabel">
     <blockName value="CalDetailsTransparencyLabel"/>
     <title>status</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -768,46 +721,45 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>5, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-   <PresentationStyle itsName="TransparencyPresentationStyle">
+  <blocks:PresentationStyle itsName="TransparencyPresentationStyle">
     <issues>It'd be nice to not maintain the transparency choices separately from the enum values; currently, the choices must match the enum's items and ordering.</issues>
     <format>popup</format>
     <choices>Confirmed</choices>
     <choices>Tentative</choices>
     <choices>FYI</choices>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
   
-  <AEBlock itsName="EditTransparency">
+  <blocks:AEBlock itsName="EditTransparency">
     <blockName value="EditTransparency"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
-    <presentationStyle itemref="doc:TransparencyPresentationStyle"/>
+    <presentationStyle itemref="TransparencyPresentationStyle"/>
     <viewAttribute value="transparency"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </blocks:AEBlock>
 
-  <StaticText itsName="CalendarReminderSpacer">
+  <blocks:StaticText itsName="CalendarReminderSpacer">
     <blockName value="CalendarReminderSpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 7</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarReminderArea"
-           itemClass="osaf.framework.blocks.detail.Detail.CalendarReminderArea">
+  <CalendarReminderAreaBlock itsName="CalendarReminderArea">
     <blockName value="CalendarReminderArea"/>
-    <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarReminderHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditReminder"/>
+    <childrenBlocks itemref="CalDetailsReminderLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarReminderHorizontalSpacer" />
+    <childrenBlocks itemref="EditReminder"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarReminderAreaBlock>
 
-  <StaticText itsName="CalDetailsReminderLabel">
+  <blocks:StaticText itsName="CalDetailsReminderLabel">
     <blockName value="CalDetailsReminderLabel"/>
     <title>alarm</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -815,9 +767,9 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>5, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="ReminderPresentationStyle">
+  <blocks:PresentationStyle itsName="ReminderPresentationStyle">
     <format>reminderPopup</format>
     <choices>None</choices>
     <choices>1 minute</choices>
@@ -826,38 +778,37 @@
     <choices>30 minutes</choices>
     <choices>60 minutes</choices>
     <choices>90 minutes</choices>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
   
-  <AEBlock itsName="EditReminder">
+  <blocks:AEBlock itsName="EditReminder">
     <blockName value="EditReminder"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
-    <presentationStyle itemref="doc:ReminderPresentationStyle"/>
+    <presentationStyle itemref="ReminderPresentationStyle"/>
     <viewAttribute value="reminderDelta"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </blocks:AEBlock>
 
-  <StaticText itsName="CalendarRecurrenceSpacer">
+  <blocks:StaticText itsName="CalendarRecurrenceSpacer">
     <blockName value="CalendarRecurrenceSpacer"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 7</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <ContentItemDetail itsName="CalendarRecurrencePopupArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrencePopupArea">
+  <CalendarRecurrencePopupAreaBlock itsName="CalendarRecurrencePopupArea">
     <blockName value="CalendarRecurrencePopupArea"/>
-    <childrenBlocks itemref="doc:CalOccursLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarOccursHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditRecurrence"/>
+    <childrenBlocks itemref="CalOccursLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarOccursHorizontalSpacer" />
+    <childrenBlocks itemref="EditRecurrence"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarRecurrencePopupAreaBlock>
 
-  <StaticText itsName="CalOccursLabel">
+  <blocks:StaticText itsName="CalOccursLabel">
     <blockName value="CalOccursLabel"/>
     <title>occurs</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -865,9 +816,9 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>5, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-   <PresentationStyle itsName="RecurrencePresentationStyle">
+   <blocks:PresentationStyle itsName="RecurrencePresentationStyle">
     <issues>These choices must match the enumerated indexes in the RecurrenceAttributeEditor python code</issues>
     <format>occurs</format>
     <choices>Once</choices>
@@ -876,40 +827,38 @@
     <choices>Monthly</choices>
     <choices>Annually</choices>
     <choices>Custom...</choices>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
   
-  <AEBlock itsName="EditRecurrence">
+  <blocks:AEBlock itsName="EditRecurrence">
     <blockName value="EditRecurrence"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
-    <presentationStyle itemref="doc:RecurrencePresentationStyle"/>
+    <presentationStyle itemref="RecurrencePresentationStyle"/>
     <viewAttribute value="rruleset"/>
     <border>2, 2, 2, 2</border>
-    <event itemref="doc:Resynchronize"/>
-  </AEBlock>
+    <event itemref="Resynchronize"/>
+  </blocks:AEBlock>
 
-  <StaticText itsName="CalendarRecurrenceSpacer2"                     
-              itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrenceSpacer2Area">
+  <CalendarRecurrenceSpacer2Area itsName="CalendarRecurrenceSpacer2">
     <blockName value="CalendarRecurrenceSpacer2"/>
     <title></title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 1</minimumSize>
-  </StaticText>
+  </CalendarRecurrenceSpacer2Area>
 
-  <ContentItemDetail itsName="CalendarRecurrenceCustomArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrenceCustomArea">
+  <CalendarRecurrenceCustomAreaBlock itsName="CalendarRecurrenceCustomArea">
     <blockName value="CalendarRecurrenceCustomArea"/>
-    <childrenBlocks itemref="doc:CalCustomLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarCustomHorizontalSpacer" />
-    <childrenBlocks itemref="doc:CalCustomValue"/>
+    <childrenBlocks itemref="CalCustomLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarCustomHorizontalSpacer" />
+    <childrenBlocks itemref="CalCustomValue"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarRecurrenceCustomAreaBlock>
 
-  <StaticText itsName="CalCustomLabel">
+  <blocks:StaticText itsName="CalCustomLabel">
     <blockName value="CalCustomLabel"/>
     <title></title><!-- don't show a label -->
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -917,34 +866,33 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>2, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-   <PresentationStyle itsName="RecurrenceCustomPresentationStyle">
+   <blocks:PresentationStyle itsName="RecurrenceCustomPresentationStyle">
     <format>custom</format>
-   </PresentationStyle>
+   </blocks:PresentationStyle>
   
-  <AEBlock itsName="CalCustomValue">
+  <blocks:AEBlock itsName="CalCustomValue">
     <blockName value="CalCustomValue"/>
     <stretchFactor>1.0</stretchFactor>
     <minimumSize>300, -1</minimumSize>
-    <presentationStyle itemref="doc:RecurrenceCustomPresentationStyle"/>
+    <presentationStyle itemref="RecurrenceCustomPresentationStyle"/>
     <viewAttribute value="rruleset"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </blocks:AEBlock>
 
-  <ContentItemDetail itsName="CalendarRecurrenceEndArea"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarRecurrenceEndArea">>
+  <CalendarRecurrenceEndAreaBlock itsName="CalendarRecurrenceEndArea">
     <blockName value="CalendarRecurrenceEndArea"/>
-    <childrenBlocks itemref="doc:CalRecurrenceEndLabel"/>
-    <childrenBlocks itemref="doc:HorizontalSpacer" copy="CalendarRecurrenceEndHorizontalSpacer" />
-    <childrenBlocks itemref="doc:EditRecurrenceEnd"/>
+    <childrenBlocks itemref="CalRecurrenceEndLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalendarRecurrenceEndHorizontalSpacer" />
+    <childrenBlocks itemref="EditRecurrenceEnd"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
     <border>0, 0, 0, 6</border>
-  </ContentItemDetail>
+  </CalendarRecurrenceEndAreaBlock>
 
-  <StaticText itsName="CalRecurrenceEndLabel">
+  <blocks:StaticText itsName="CalRecurrenceEndLabel">
     <blockName value="CalRecurrenceEndLabel"/>
     <title>ends</title>
     <characterStyle itemref="blocks:LabelStyle"/>
@@ -952,51 +900,49 @@
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>60, -1</minimumSize>
     <border>5, 0, 0, 0</border>
-  </StaticText>
+  </blocks:StaticText>
 
-   <PresentationStyle itsName="RecurrenceEndPresentationStyle">
+   <blocks:PresentationStyle itsName="RecurrenceEndPresentationStyle">
     <format>ends</format>
-   </PresentationStyle>
+   </blocks:PresentationStyle>
   
-  <AEBlock itsName="EditRecurrenceEnd">
+  <blocks:AEBlock itsName="EditRecurrenceEnd">
     <blockName value="EditRecurrenceEnd"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <viewAttribute value="rruleset"/>
-    <presentationStyle itemref="doc:RecurrenceEndPresentationStyle"/>
+    <presentationStyle itemref="RecurrenceEndPresentationStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </blocks:AEBlock>
 
   <!-- NotesArea -->
 
-  <StaticText itsName="NotesSpacer">
+  <blocks:StaticText itsName="NotesSpacer">
     <blockName value="NotesSpacer"/>
     <title></title>
     <position>0.8999</position>
     <characterStyle itemref="blocks:LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>-1, 7</minimumSize>
-  </StaticText>
+  </blocks:StaticText>
 
-  <PresentationStyle itsName="NotesPresentation">
+  <blocks:PresentationStyle itsName="NotesPresentation">
     <lineStyleEnum>MultiLine</lineStyleEnum>
-  </PresentationStyle>
+  </blocks:PresentationStyle>
   
-  <AEBlock itsName="NotesArea"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <DetailSynchronizedAttributeEditorBlock itsName="NotesArea">
     <blockName value="NotesArea"/>
     <position>0.9</position>
     <characterStyle itemref="blocks:TextStyle"/>
-    <presentationStyle itemref="doc:NotesPresentation"/>
+    <presentationStyle itemref="NotesPresentation"/>
     <viewAttribute value="bodyString"/>
     <border>2, 2, 2, 2</border>
-  </AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <!-- An empty panel, used when there's no item selected in the detail view -->
-  <ContentItemDetail itsName="EmptyPanel"
-                     itemClass="osaf.framework.blocks.detail.Detail.EmptyPanel">
+  <EmptyPanelBlock itsName="EmptyPanel">
     <blockName value="EmptyPanel" />
-  </ContentItemDetail>
+  </EmptyPanelBlock>
 
 </core:Parcel>

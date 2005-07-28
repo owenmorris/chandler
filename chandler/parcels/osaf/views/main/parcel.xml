@@ -1467,9 +1467,9 @@
     <trunkDelegate itemref="doc:TableSummaryDetailTrunkDelegate"/>
   </TrunkParentBlock>
 
-  <DetailTrunkDelegate itsName="TableSummaryDetailTrunkDelegate">
+  <detail:DetailTrunkDelegate itsName="TableSummaryDetailTrunkDelegate">
     <trunkStub itemref="detail:DetailRoot"/>
-  </DetailTrunkDelegate>
+  </detail:DetailTrunkDelegate>
 
 
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
@@ -1542,9 +1542,9 @@
     <trunkDelegate itemref="doc:CalendarDetailTrunkDelegate"/>
   </TrunkParentBlock>
 
-  <DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
+  <detail:DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
     <trunkStub itemref="detail:DetailRoot"/>
-  </DetailTrunkDelegate>
+  </detail:DetailTrunkDelegate>
 
   <!--
     CPIA test view: like a unit test/testing ground for CPIA
@@ -1704,9 +1704,9 @@
     <trunkDelegate itemref="doc:CPIATestSummaryTrunkDelegate"/>
   </TrunkParentBlock>
 
-  <DetailTrunkDelegate itsName="CPIATestSummaryTrunkDelegate">
+  <detail:DetailTrunkDelegate itsName="CPIATestSummaryTrunkDelegate">
     <trunkStub itemref="detail:DetailRoot"/>
-  </DetailTrunkDelegate>
+  </detail:DetailTrunkDelegate>
 
 
 </core:Parcel>

@@ -1083,6 +1083,41 @@ class EmailAddress(ContentModel.ContentItem):
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
     @classmethod
+    def parseEmailAddresses(cls, view, addressesString):
+        """
+        Parse the email addresses in addressesString and return
+        a tuple with: (the processed string, a list of EmailAddress
+        items created/found for those addresses, the number of 
+        invalid addresses we found).
+        """
+        # If we got nothing or whitespace, return it as-is.
+        if len(addressesString.strip()) == 0:
+            return (addressesString, [], 0)
+        
+        validAddresses = []
+        processedAddresses = []
+        invalidCount = 0
+
+        # get the user's address strings into a list; tolerate
+        # commas or semicolons as separators
+        addresses = [ address.strip() for address in \
+                      addressesString.replace('?','').replace(';', ',').split(',') ]
+
+        # build a list of all processed addresses, and all valid addresses
+        for address in addresses:
+            ea = EmailAddress.getEmailAddress(view, address)
+            if ea is None:
+                processedAddresses.append(address + '?')
+                invalidCount += 1
+            else:
+                processedAddresses.append(unicode(ea))
+                validAddresses.append(ea)
+
+        # prepare the processed addresses return value
+        processedResultString = ', '.join (processedAddresses)
+        return (processedResultString, validAddresses, invalidCount)
+    
+    @classmethod
     def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
         """
         This method tests whether two email addresses are the same.

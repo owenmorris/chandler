@@ -51,29 +51,29 @@
     <rootBlocks itemref="doc:AuthorArea"/>
   </detail:DetailTrunkSubtree>
   
-  <DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
+  <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
     <position>0.6</position>
     <selectedItemsAttribute>owner</selectedItemsAttribute>
     <childrenBlocks itemref="doc:AuthorLabel"/>
     <childrenBlocks itemref="doc:AuthorAttribute"/>
     <stretchFactor>0</stretchFactor>
-  </DetailSynchronizedLabeledTextAttributeBlock>
+  </detail:DetailSynchronizedLabeledTextAttributeBlock>
 
-  <StaticRedirectAttributeLabel itsName="AuthorLabel">
+  <detail:StaticRedirectAttributeLabel itsName="AuthorLabel">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticRedirectAttributeLabel>
+  </detail:StaticRedirectAttributeLabel>
 
-  <StaticRedirectAttribute itsName="AuthorAttribute">
+  <detail:StaticRedirectAttribute itsName="AuthorAttribute">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
-  </StaticRedirectAttribute>
+  </detail:StaticRedirectAttribute>
 
 
   <!-- Block definitions for WakeCallers -->

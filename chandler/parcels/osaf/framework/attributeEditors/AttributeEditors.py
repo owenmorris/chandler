@@ -8,6 +8,7 @@ import wx
 from wx.lib.scrolledpanel import ScrolledPanel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.mail.Mail as Mail
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
@@ -998,18 +999,45 @@ class ContactAttributeEditor (StringAttributeEditor):
 
 class EmailAddressAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
-        try:
-            addresses = item.getAttributeValue (attributeName)
-        except AttributeError:
-            value = ""
-        else:
+        attrValue = getattr(item, attributeName, None)
+        if attrValue is not None:
             cardinality = item.getAttributeAspect(attributeName, "cardinality")
-            if cardinality == "list":
+            if cardinality == 'list':
                 # build a string of comma-separated email addresses
-                value = ', '.join(map(lambda x: x.emailAddress, addresses))
+                value = u', '.join(map(lambda x: \
+                                       Mail.EmailAddress.format(x), attrValue))
             else:
-                value = addresses.emailAddress
+                # Just format one address
+                value = Mail.EmailAddress.format(attrValue)
+        else:
+            value = u''
         return value
+
+    def SetAttributeValue(self, item, attributeName, valueString):            
+        processedAddresses, validAddresses, invalidCount = \
+            Mail.EmailAddress.parseEmailAddresses(item.itsView, valueString)
+        if invalidCount == 0:
+            # All the addresses were valid. Put them back.
+            cardinality = item.getAttributeAspect (attributeName, "cardinality")
+            oldValue = self.GetAttributeValue(item, attributeName)
+            if oldValue != processedAddresses:
+                if cardinality == 'list':
+                    # List cardinality.
+                    setattr(item, attributeName, validAddresses)
+                    self.AttributeChanged()
+                else:
+                    if len(validAddresses) > 1:
+                        # got more than one valid address? That's invalid!
+                        processedAddresses = processedAddresses + "?"
+                    else:
+                        value = len(validAddresses) > 0 \
+                              and validAddresses[0] or None
+                        setattr(item, attributeName, value)
+                        self.AttributeChanged()
+                    
+        if processedAddresses != valueString:
+            # This processing changed the text in the control - update it.
+            self._changeTextQuietly(self.control, processedAddresses)
 
 class BasePermanentAttributeEditor (BaseAttributeEditor):
     """ Base class for editors that always need controls """
