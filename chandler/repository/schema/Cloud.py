@@ -492,10 +492,12 @@ class Endpoint(Item):
 
         def append(values, value):
             if value is not None:
-                if isinstance(value, (Item, RefList, AbstractSet)):
+                if isinstance(value, (Item, RefList)):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
                     values.append(value._iterItems())
+                elif isinstance(value, AbstractSet):
+                    values.append(value._iterSourceItems())
                 else:
                     raise TypeError, type(value)
 
@@ -506,9 +508,14 @@ class Endpoint(Item):
                 for v in value._iterItems():
                     append(values, v.getAttributeValue(name, None, None, None))
                 value = values
-            elif isinstance(value, (RefList, AbstractSet)):
+            elif isinstance(value, RefList):
                 values = []
                 for v in value:
+                    append(values, v.getAttributeValue(name, None, None, None))
+                value = values
+            elif isinstance(value, AbstractSet):
+                values = []
+                for v in value._iterSourceItems():
                     append(values, v.getAttributeValue(name, None, None, None))
                 value = values
             elif isinstance(value, list):

@@ -470,6 +470,9 @@ class Item(CItem):
 
     def _kindChanged(self, op, item, attribute, prevKind, name):
 
+        if self._status & Item.NODIRTY:
+            return
+
         if op == 'schema' and attribute == 'kind':
             kind = item._kind
             set = getattr(self, name)
@@ -482,6 +485,9 @@ class Item(CItem):
                                   self, name, False, item, kind)
 
     def _collectionChanged(self, op, name, other):
+
+        if self._status & Item.NODIRTY:
+            return
 
         if op == 'remove':
             if name == 'watchers':

@@ -33,7 +33,7 @@ class DBLob(Lob, ItemValue):
 
         return self._version
 
-    def _copy(self, item, attribute, key=None):
+    def _copy(self, item, attribute, copyPolicy, copyFn, key=None):
 
         return self.copy(item.itsView, key)
 

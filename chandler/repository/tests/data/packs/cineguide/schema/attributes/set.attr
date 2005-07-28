@@ -6,4 +6,5 @@
 
     <attribute name="cardinality">single</attribute>
     <ref name="type" type="path">//Schema/Core/AbstractSet</ref>
+    <attribute name="copyPolicy">cascade</attribute>
 </item>

@@ -6,4 +6,5 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">wrote</attribute>
+    <attribute name="copyPolicy">cascade</attribute>
 </item>

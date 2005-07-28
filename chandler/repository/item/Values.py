@@ -62,7 +62,7 @@ class Values(dict):
                                          copyPolicy, copyFn)
 
             elif isinstance(value, ItemValue):
-                value = value._copy(item, name)
+                value = value._copy(item, name, copyPolicy, copyFn)
                 value._setItem(item, name)
                 self[name] = value
 
@@ -1038,6 +1038,6 @@ class ItemValue(object):
             item.setDirty(item.VDIRTY, self._attribute,
                           item._values, noMonitors)
 
-    def _copy(self, item, attribute):
+    def _copy(self, item, attribute, copyPolicy, copyFn):
 
         raise NotImplementedError, '%s._copy' %(type(self))

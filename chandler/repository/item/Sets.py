@@ -6,6 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from chandlerdb.util.uuid import UUID
+from chandlerdb.item.item import Nil
 from repository.item.Values import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
@@ -27,6 +28,9 @@ class AbstractSet(ItemValue, Indexed):
     def __iter__(self):
         raise NotImplementedError, "%s.__iter__" %(type(self))
 
+    def __repr__(self):
+        return self._repr_()
+
     def _setChanged(self, op, setOwner, setName, other):
         raise NotImplementedError, "%s._setChanged" %(type(self))
 
@@ -46,6 +50,23 @@ class AbstractSet(ItemValue, Indexed):
 
         for item in self:
             yield item.itsUUID
+
+    def iterSources(self):
+
+        raise NotImplementedError, "%s.iterSources" %(type(self))
+
+    def _iterSourceItems(self):
+
+        for item, attribute in self.iterSources():
+            yield item
+
+    def _iterSources(self, source):
+
+        if isinstance(source, AbstractSet):
+            for source in source.iterSources():
+                yield source
+        else:
+            yield (self.itsView[source[0]], source[1])
 
     def dir(self):
         """
@@ -99,10 +120,15 @@ class AbstractSet(ItemValue, Indexed):
             for item in getattr(self.itsView[source[0]], source[1]):
                 yield item
 
-    def _reprSource(self, source):
+    def _reprSource(self, source, replace):
 
         if isinstance(source, AbstractSet):
-            return repr(source)
+            return source._repr_(replace)
+        
+        if replace is not None:
+            replaceItem = replace[source[0]]
+            if replaceItem is not Nil:
+                source = (replaceItem._uuid, source[1])
 
         return "(UUID('%s'), '%s')" %(source[0].str64(), source[1])
 
@@ -170,12 +196,17 @@ class AbstractSet(ItemValue, Indexed):
 
         raise TypeError, "%s contents are computed" %(type(self))
 
-    def _copy(self, item, attribute):
+    def _copy(self, item, attribute, copyPolicy, copyFn):
 
-        value = self.makeValue(self.makeString(self))
-        value._setItem(item, attribute)
+        policy = (copyPolicy or
+                  item.getAttributeAspect(attribute, 'copyPolicy',
+                                          False, None, 'copy'))
 
-        return value
+        replace = {}
+        for sourceItem in self._iterSourceItems():
+            replace[sourceItem._uuid] = copyFn(item, sourceItem, policy)
+
+        return eval(self._repr_(replace))
 
     @classmethod
     def makeValue(cls, string):
@@ -183,7 +214,7 @@ class AbstractSet(ItemValue, Indexed):
 
     @classmethod
     def makeString(cls, value):
-        return repr(value)
+        return value._repr_()
 
     itsView = property(_getView, lambda self, view: self._setView(view))
 
@@ -204,9 +235,10 @@ class Set(AbstractSet):
         for item in self._iterSource(self._source):
             yield item
 
-    def __repr__(self):
+    def _repr_(self, replace=None):
 
-        return "%s(%s)" %(type(self).__name__, self._reprSource(self._source))
+        return "%s(%s)" %(type(self).__name__,
+                          self._reprSource(self._source, replace))
         
     def _setItem(self, item, attribute):
 
@@ -230,6 +262,11 @@ class Set(AbstractSet):
 
         return op
 
+    def iterSources(self):
+
+        for source in self._iterSources(self._source):
+            yield source
+
 
 class BiSet(AbstractSet):
 
@@ -240,11 +277,11 @@ class BiSet(AbstractSet):
 
         super(BiSet, self).__init__(view)
 
-    def __repr__(self):
+    def _repr_(self, replace=None):
 
         return "%s(%s, %s)" %(type(self).__name__,
-                              self._reprSource(self._left),
-                              self._reprSource(self._right))
+                              self._reprSource(self._left, replace),
+                              self._reprSource(self._right, replace))
         
     def _setItem(self, item, attribute):
 
@@ -275,6 +312,13 @@ class BiSet(AbstractSet):
             self._collectionChanged(op, other)
 
         return op
+
+    def iterSources(self):
+
+        for source in self._iterSources(self._left):
+            yield source
+        for source in self._iterSources(self._right):
+            yield source
 
 
 class Union(BiSet):
@@ -396,7 +440,7 @@ class KindSet(AbstractSet):
         for item in KindQuery(self._recursive).run([self.itsView[self._kind]]):
             yield item
 
-    def __repr__(self):
+    def _repr_(self, replace=None):
 
         return "%s(UUID('%s'), %s)" %(type(self).__name__,
                                       self._kind.str64(), self._recursive)
@@ -436,3 +480,7 @@ class KindSet(AbstractSet):
             op = None
 
         return op
+
+    def iterSources(self):
+
+        raise StopIteration
