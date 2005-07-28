@@ -2493,7 +2493,7 @@ dnl Check for expat libraries
 dnl ------------------------------------------------------------------------
 
 if test "$wxUSE_WCHAR_T" != "yes"; then
-if test "$wxUSE_EXPAT" != "no"; then
+    if test "$wxUSE_EXPAT" != "no"; then
         AC_MSG_WARN([wxWidgets requires wchar_t to use expat, disabling])
         wxUSE_EXPAT=no
     fi
@@ -3583,8 +3583,8 @@ if test "$wxUSE_SHARED" = "yes"; then
       powerpc-*-darwin* )
         install_name_tool=`which install_name_tool`
         if test "$install_name_tool" -a -x "$install_name_tool"; then
-        SAMPLES_RPATH_POSTLINK="\$(top_builddir)change-install-names \$(LIBDIRNAME) \$(prefix) \$@"
-        cat <<EOF >change-install-names
+            SAMPLES_RPATH_POSTLINK="\$(top_builddir)change-install-names \$(LIBDIRNAME) \$(prefix) \$@"
+            cat <<EOF >change-install-names
 #!/bin/sh
 libnames=\`cd \${1} ; ls -1 | grep '\.[[0-9]][[0-9]]*\.dylib\$'\`
 inst_cmd="install_name_tool "
@@ -3593,7 +3593,7 @@ for i in \${libnames} ; do
 done
 \${inst_cmd} \${3}
 EOF
-        chmod +x change-install-names
+            chmod +x change-install-names
         fi
       ;;
       
@@ -3669,7 +3669,7 @@ WX_LIBRARY_BASENAME_NOGUI="wx_base${WXBASEPORT}${lib_unicode_suffix}${lib_debug_
 if test "${TOOLKIT_DIR}" = "os2"; then
     WX_LIBRARY_BASENAME_GUI="wx_pm${WIDGET_SET}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
 else
-WX_LIBRARY_BASENAME_GUI="wx_${TOOLKIT_DIR}${TOOLKIT_VERSION}${WIDGET_SET}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
+    WX_LIBRARY_BASENAME_GUI="wx_${TOOLKIT_DIR}${TOOLKIT_VERSION}${WIDGET_SET}${lib_unicode_suffix}${lib_debug_suffix}${WX_LIB_FLAVOUR}"
 fi
 
 
@@ -5481,7 +5481,7 @@ dnl ---------------------------------------------------------------------------
 if test "$wxUSE_GUI" = "yes" -a "$wxUSE_JOYSTICK" = "yes"; then
     wxUSE_JOYSTICK=no
 
-     dnl under MSW we always have joystick support
+    dnl under MSW we always have joystick support
     if test "$TOOLKIT" = "MSW"; then
         wxUSE_JOYSTICK=yes
 
@@ -5500,15 +5500,15 @@ if test "$wxUSE_GUI" = "yes" -a "$wxUSE_JOYSTICK" = "yes"; then
             AC_LANG_POP
             AC_MSG_RESULT($wxUSE_JOYSTICK)
         fi
-         
-        dnl joystick support is only for Linux 2.1.x or greater
-        else
-            AC_CHECK_HEADERS(linux/joystick.h, wxUSE_JOYSTICK=yes)
-        fi            
 
-        if test "$wxUSE_JOYSTICK" = "yes"; then
-            AC_DEFINE(wxUSE_JOYSTICK)
-            SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS joytest"
+    dnl joystick support is only for Linux 2.1.x or greater
+    else
+        AC_CHECK_HEADERS(linux/joystick.h, wxUSE_JOYSTICK=yes)
+    fi
+
+    if test "$wxUSE_JOYSTICK" = "yes"; then
+        AC_DEFINE(wxUSE_JOYSTICK)
+        SAMPLES_SUBDIRS="$SAMPLES_SUBDIRS joytest"
     else
         AC_MSG_WARN(Joystick not supported by this system... disabled)           
     fi
@@ -6754,50 +6754,50 @@ else
             [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
              AC_MSG_RESULT([yes])],
             [AC_MSG_RESULT([no])
-    case "${host}" in
-        powerpc-*-darwin* )
-            dnl Some Apple's GCC version are broken and can't handle the
-            dnl pragmas:
-            GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
-            ;;
-        *-*-mingw32* )
-            dnl MinGW GCC versions > 3.2 have problems with
-            dnl static member of classes derived from templates
-            dnl in combination with #pragma interface/implementation
-            dnl (the test case uses 4 files)
-            dnl ... and with exceptions handling (undefined symbols needed
-            dnl to correctly calls dtors when unwinding) as well
-            if test "$wxUSE_STL" = "yes" -o \
+            case "${host}" in
+                powerpc-*-darwin* )
+                    dnl Some Apple's GCC version are broken and can't handle the
+                    dnl pragmas:
+                    GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
+                ;;
+                *-*-mingw32* )
+                    dnl MinGW GCC versions > 3.2 have problems with
+                    dnl static member of classes derived from templates
+                    dnl in combination with #pragma interface/implementation
+                    dnl (the test case uses 4 files)
+                    dnl ... and with exceptions handling (undefined symbols needed
+                    dnl to correctly calls dtors when unwinding) as well
+                    if test "$wxUSE_STL" = "yes" -o \
                     "$wxUSE_NO_EXCEPTIONS" != "yes" -o \
                     "$wxUSE_NO_RTTI" != "yes"; then
-               AC_MSG_CHECKING([if this MinGW version needs -DNO_GCC_PRAGMA])
-               AC_TRY_COMPILE([],
-                              [#if !(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2))
-                               #error "Not GCC 3.2 or greater"
-                               #endif
-                               ],
-                              [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
-                               AC_MSG_RESULT([yes])],
-                              [AC_MSG_RESULT([no])])
-            fi
-            ;;
-	*-pc-os2_emx | *-pc-os2-emx )
-            dnl GCC versions ported to OS/2 have similar problems with
-            dnl static member of classes in combination with STL and
-            dnl pragma interface/implementation
-            if test "$wxUSE_STL" = "yes"; then
-               AC_MSG_CHECKING([if this gcc version needs -DNO_GCC_PRAGMA])
-               AC_TRY_COMPILE([],
-                              [#if !(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2))
-                               #error "Not GCC 3.2 or greater"
-                               #endif
-                               ],
-                              [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
-                               AC_MSG_RESULT([yes])],
-                              [AC_MSG_RESULT([no])])
-            fi
-            ;;
-    esac
+                        AC_MSG_CHECKING([if this MinGW version needs -DNO_GCC_PRAGMA])
+                        AC_TRY_COMPILE([],
+                            [#if !(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2))
+                             #error "Not GCC 3.2 or greater"
+                             #endif
+                            ],
+                            [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
+                             AC_MSG_RESULT([yes])],
+                            [AC_MSG_RESULT([no])])
+                    fi
+                    ;;
+                *-pc-os2_emx | *-pc-os2-emx )
+                    dnl GCC versions ported to OS/2 have similar problems with
+                    dnl static member of classes in combination with STL and
+                    dnl pragma interface/implementation
+                    if test "$wxUSE_STL" = "yes"; then
+                        AC_MSG_CHECKING([if this gcc version needs -DNO_GCC_PRAGMA])
+                        AC_TRY_COMPILE([],
+                            [#if !(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2))
+                             #error "Not GCC 3.2 or greater"
+                             #endif
+                            ],
+                            [GCC_PRAGMA_FLAGS="-DNO_GCC_PRAGMA"
+                             AC_MSG_RESULT([yes])],
+                            [AC_MSG_RESULT([no])])
+                    fi
+                    ;;
+            esac
 dnl  closing bracket of if GCC < 4.0
         ] ) 
     fi
