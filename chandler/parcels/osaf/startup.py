@@ -149,6 +149,12 @@ class PeriodicTask(TwistedTask):
         initialValue = datetime.timedelta(0),
     )
 
+    run_at_startup = schema.One(
+        schema.Boolean,
+        displayName = "Also run at startup",
+        initialValue = False
+    )
+
     def onStart(self):
         """Start our wrapper in the reactor thread"""
         self.invokeTarget(lambda self: self.startRunning())
@@ -168,7 +174,10 @@ class PeriodicTask(TwistedTask):
             delay = d.days*86400.0 + d.seconds + d.microseconds/1e6
             reactor.callLater(delay, reactor.callInThread, doCall)
 
-        reschedule()
+        if self.run_at_startup:
+            reactor.callInThread(doCall) # run first time immediately
+        else:
+            reschedule()    # run first time later
 
 
 

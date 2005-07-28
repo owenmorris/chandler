@@ -417,6 +417,26 @@ so.  (We aren't showing the thread IDs in the example above, because they're
 not only different from one call to the next, they're also different from one
 test run to the next, so the test would fail if we included that info.)
 
+Sometimes, you may want your task to run at startup, as well as after the first
+delay interval.  You can set the ``run_at_startup`` flag to enable this::
+
+    >>> counter.run_at_startup = True
+
+To demonstrate, we'll set the delay interval to a year::
+
+    >>> counter.interval = timedelta(days=365)
+    >>> run_startup(rv); sleep(0.1)
+    __init__ running ... in <RepositoryThread(reactor,...)>
+    run() call 1 running ... in <RepositoryThread(RepositoryPoolThread...)>
+
+Notice that call 1 ran, even though there's a year between runs.  However, if
+we turn the flag back off, it doesn't get a ``run()`` call at startup::
+
+    >>> counter.run_at_startup = True
+    >>> run_startup(rv); sleep(0.1)
+    __init__ running ... in <RepositoryThread(reactor,...)>
+
+
 Finally, let's clean up after our ``PeriodicTask`` example::
 
     >>> stop_reactor()
