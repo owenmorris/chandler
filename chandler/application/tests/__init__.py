@@ -9,7 +9,7 @@ __all__ = [
     'TestAllParcels', 'TestAnonymous', 'TestAttributes', 'TestCircular', 
     'TestClasses', 'TestClouds', 'TestCollections', 'TestCopying', 
     'TestDependency','TestItems', 'TestKindAndItem', 'TestLocalAttrs', 
-    'TestNamespaceErrors', 'TestParcelErrors', 'TestParcelLoader','TestUuidOf',
+    'TestNamespaceErrors', 'TestParcelErrors', 'TestParcelLoader',
     'TestParcelPerf', 'TestSchemaAPI',
 ]
 
