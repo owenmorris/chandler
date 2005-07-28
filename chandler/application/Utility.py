@@ -16,7 +16,8 @@ from repository.item.RefCollections import RefList
 # Increment this value whenever the schema changes and edit this comment (to
 # make sure Subversion knows you changed it, in case someone else changes it
 # at about the same time)...
-SCHEMA_VERSION = "35"
+# stearns: moved detail view blocks into their own parcel.
+SCHEMA_VERSION = "36"
 
 logger = None # initialized in initLogging()
 
