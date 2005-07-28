@@ -92,6 +92,12 @@ class Attribute(Item):
         if item is not None:
             hash = _combine(hash, item.hashItem())
 
+        def hashValue(hash, type, value):
+            if type is not None:
+                return _combine(hash, type.hashValue(value))
+            else:
+                return _combine(hash, TypeHandler.hashValue(view, value))
+
         for aspect in Attribute.valueAspects:
             value = self.getAttributeValue(aspect, self._values, None, Nil)
                                            
@@ -99,10 +105,15 @@ class Attribute(Item):
                 hash = _combine(hash, _hash(aspect))
                 type = self.getAttributeAspect(aspect, 'type',
                                                False, None, None)
-                if type is not None:
-                    hash = _combine(hash, type.hashValue(value))
+                card = self.getAttributeAspect(aspect, 'cardinality',
+                                               False, None, 'single')
+                if card == 'single':
+                    hash = hashValue(hash, type, value)
+                elif card == 'list':
+                    for v in value:
+                        hash = hashValue(hash, type, v)
                 else:
-                    hash = _combine(hash, TypeHandler.hashValue(view, value))
+                    raise NotImplementedError, card
 
         item = self.getAttributeValue('type', self._references, None, None)
         if item is not None:
