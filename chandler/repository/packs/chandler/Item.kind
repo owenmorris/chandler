@@ -5,5 +5,6 @@
     <ref alias="issues" type="path">/Core/issues</ref>
     <ref alias="examples" type="path">/Core/examples</ref>
     <ref alias="description" type="path">/Core/description</ref>
+    <ref alias="references" type="path">/Core/references</ref>
   </ref>
 </item>

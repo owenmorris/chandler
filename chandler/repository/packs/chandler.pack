@@ -7,6 +7,7 @@
     <item file="annotations.attr" />
     <item file="examples.attr" />
     <item file="issues.attr" />
+    <item file="references.attr" />
     <item file="displayName.attr" />
     <item file="Item.kind" />
     <!--item file="Parcel.kind" /-->

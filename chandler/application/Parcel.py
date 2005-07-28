@@ -1967,6 +1967,14 @@ class ValueSet(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+class Reference(schema.Item):
+    item = schema.One(
+        schema.Item,
+        initialValue = None,
+        otherName = 'references'
+    )
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
