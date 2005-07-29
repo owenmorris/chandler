@@ -59,6 +59,10 @@ class TestReactor(selectreactor.SelectReactor):
         You don't need to use this if you use ReactorTestCase, which wraps your
         tests in fresh restarts.
         """
+        if self.waker is not None:
+            # make sure that subsequent shutdowns won't disconnect an
+            # active waker, due to wakers assuming they're singletons  :(
+            self.removeReader(self.waker)
         self.__dict__.clear()
         self.__init__()
         self._simulated_time = realtime()
