@@ -433,7 +433,7 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def onGainFocus(self, event):
         if self.showingSample:
-            self.control.SetSelection(0, self.control.GetLastPosition())
+            self.control.SetSelection(-1, -1)  # (select all)
         event.Skip()
     
     def onLoseFocus(self, event):
@@ -496,7 +496,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                 control.SetStyle(0, len(text), wx.TextAttr(textColor))
                 
                 if isSample and wx.Window.FindFocus() == control:
-                    control.SetSelection(0, len(text))
+                    control.SetSelection(-1, -1) # (select all)
             else:
                 control.SetForegroundColour(textColor)
         finally:
@@ -520,7 +520,7 @@ class StringAttributeEditor (BaseAttributeEditor):
         if self.showingSample:
             if control == wx.Control.FindFocus():
                 # logger.debug("onClick: ignoring click because we're showing the sample.")
-                control.SetSelection(0, control.GetLastPosition()) # Make sure the whole thing's still selected
+                control.SetSelection(-1, -1) # (select all) Make sure the whole thing's still selected
         else:
             event.Skip()
             

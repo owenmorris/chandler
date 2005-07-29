@@ -649,6 +649,14 @@ void wxTextCtrl::Remove(long from, long to)
 
 void wxTextCtrl::SetSelection(long from, long to)
 {
+
+    // specified behavior is that SetSelection(-1, -1)  => select all
+    if (from == -1 && to == -1)
+    {
+        from = 0;
+        to = GetValue().Length();
+    }
+
     GetPeer()->SetSelection( from , to ) ;
 }
 
