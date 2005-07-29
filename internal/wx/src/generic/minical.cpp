@@ -1051,7 +1051,7 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
     }
 }
 
-double wxMiniCalendar::GetBusy(int date)
+double wxMiniCalendar::GetBusy(int date) const
 {
 	return 0;
 }

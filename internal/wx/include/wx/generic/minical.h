@@ -98,7 +98,7 @@ public:
                                     wxDateTime *date = NULL,
                                     wxDateTime::WeekDay *wd = NULL);
 
-	double wxMiniCalendar::GetBusy(int date);
+	double GetBusy(int date) const;
 
     // implementation only from now on
     // -------------------------------

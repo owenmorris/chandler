@@ -127,6 +127,7 @@ public:
         void SetHighlightColours(const wxColour& colFg, const wxColour& colBg);
         wxColour GetHighlightColourFg() const;
         wxColour GetHighlightColourBg() const;
+        double GetBusy(int date) const;
 };
 
 //---------------------------------------------------------------------------

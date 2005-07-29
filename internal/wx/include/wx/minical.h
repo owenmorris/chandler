@@ -51,55 +51,6 @@ enum wxCalendarHitTestResult
 };
 
 // ----------------------------------------------------------------------------
-// wxMiniCalendarData: class to be overridden to provide calendar data
-// ----------------------------------------------------------------------------
-
-class WXDLLIMPEXP_ADV wxMiniCalendarData
-{
-public:
-    // ctors
-    wxMiniCalendarData() { }
-
-    // setters
-    void SetBusy(const double busyPercentage) { m_busy = busyPercentage; }
-
-    // accessors
-    const double GetBusy() const { return m_busy; }
-
-private:
-    double    m_busy;
-};
-
-// ----------------------------------------------------------------------------
-// wxMiniCalendarDateAttr: custom attributes for a calendar date
-// ----------------------------------------------------------------------------
-
-class WXDLLIMPEXP_ADV wxMiniCalendarDateAttr
-{
-public:
-    // ctors
-    wxMiniCalendarDateAttr(double busyPercentage = 0)
-    {
-        Init(busyPercentage);
-    }
-
-    // setters
-    void SetBusy(const double busyPercentage) { m_busy = busyPercentage; }
-
-    // accessors
-    const double GetBusy() const { return m_busy; }
-
-protected:
-    void Init(double busyPercentage = 0)
-    {
-        m_busy = busyPercentage;
-    }
-
-private:
-    double    m_busy;
-};
-
-// ----------------------------------------------------------------------------
 // wxMiniCalendar events
 // ----------------------------------------------------------------------------
 
