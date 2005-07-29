@@ -590,7 +590,7 @@ You create a namespace by passing a module name and repository view to
 view::
 
     >>> api_tests = schema.ns("application.tests.TestSchemaAPI")
-    
+
 We now have an object that can be used to access items that are directly in
 the designated module::
 
@@ -677,16 +677,58 @@ updated, too::
     >>> carlos.itsKind = StrangePerson.getKind()
     >>> type(carlos)
     <class 'StrangePerson'>
-    
+
     >>> installParcel(api_tests.parcel)
     >>> type(carlos)
     <class 'Person'>
-    
+
 Note that the ``update()`` method can't tell if you've renamed an object that
 should have the same name, or whether perhaps you've accidentally given two
 objects the same name, so you need to check these things yourself.  If you
 need to delete old items or rename/relocate items in your ``installParcel()``
 function, you should just use the normal repository APIs to do so.
+
+
+Forward References
+==================
+
+Sometimes, a complex item structure may require forward references, to items
+that do not yet exist.  To support this, parcel and namespace objects provide
+a ``fwdRef()`` method that will return a named item in that parcel or
+namespace, even if no item currently exists with that name.  As long as the
+forward reference is resolved (by using ``update()`` to actually create the
+item) by the time ``schema.assertResolved()`` is called, no error will occur.
+However, if outstanding forward references exist, then an error is raised,
+showing the original files and line numbers where the forward references were
+created.
+
+Let's create a forward reference to a person::
+
+    >>> stranger = api_tests.fwdRef(Person, 'Stranger')
+
+At this point, the item exists and can be used::
+    
+    >>> carlos.parents = [stranger]
+    >>> list(stranger.children)
+    [Carlos Marron]
+
+But the view knows it has unresolved references::
+
+    >>> schema.assertResolved(api_tests.parcel)
+    Traceback (most recent call last):
+      ...
+    NameError: Unresolved forward references:
+    ...
+        //parcels/application/tests/TestSchemaAPI/Stranger:
+            <doctest schema_api.txt[...]> line 1
+    ...
+
+But actually updating the object will resolve the forward reference::
+
+    >>> Person.update(api_tests.parcel, 'Stranger', fullname="Stranger")
+    Stranger
+
+    >>> schema.assertResolved(api_tests.parcel)     # no more errors
 
 
 --------------------
@@ -757,7 +799,7 @@ loaded::
         >>> def installParcel(parcel, old_version=None):
         ...     print "installParcel(",parcel,")"
         >>> application.tests.installParcel = installParcel
-        
+
         >>> def __parcel_class__(name, parent, kind):
         ...     print "Creating", name, parent, kind
         ...     print "Lock state:", schema.global_lock
@@ -916,6 +958,100 @@ loaded::
     <Kind ... TestItem ...>
 
     >>> del application.tests.__TestItem
+
+
+``fwdRef(parent, name, callerInfo=None)``
+    Return an item with the given name and parent.  If the item did not exist,
+    a new, kindless item is created, and is logged as an unresolved forward
+    reference made by the caller::
+
+        >>> testsParcel = schema.ns('application.tests',nrv).parcel
+        >>> schema.fwdRef(testsParcel, 'TestItem')
+        <Kind ... TestItem ...>
+
+        >>> schema.fwdRef(testsParcel,'AnotherThing')
+        <Item ... AnotherThing ...>
+
+    ``callerInfo`` should be a ``(filename,line)`` tuple if supplied.  If not
+    supplied, the filename and line number of the code that called this
+    function will be logged as the source of the forward reference.
+
+``resolveRef(parent, name)``
+    Mark a forward reference as resolved, so it won't cause an error when
+    ``schema.assertResolved(view)`` is called::
+
+        >>> schema.resolveRef(testsParcel,'AnotherThing')
+
+``assertResolved(view)``
+    Check the view for unresolved forward references, and if any are present,
+    raise an error listing them::
+
+        >>> schema.assertResolved(nrv)   # nothing unresolved right now
+
+        >>> schema.fwdRef(testsParcel,'BorkenRef')  # create unresolved ref
+        <Item ... BorkenRef ...>
+
+        >>> schema.assertResolved(nrv)
+        Traceback (most recent call last):
+          ...
+        NameError: Unresolved forward references:
+        ...
+            //parcels/application/tests/BorkenRef:
+                <doctest schema_api.txt[...]> line 1
+        ...
+
+    Note that unresolved references remain unresolved until they are marked
+    resolved by ``resolveRef()``, and that each use of a forward reference
+    is logged::
+
+        >>> schema.fwdRef(testsParcel,'BorkenRef')  # use unresolved ref again
+        <Item ... BorkenRef ...>
+
+        >>> schema.fwdRef(testsParcel,'Sping')      # new unresolved ref
+        <Item ... Sping ...>
+
+        >>> schema.assertResolved(nrv)
+        Traceback (most recent call last):
+          ...
+        NameError: Unresolved forward references:
+        ...
+            //parcels/application/tests/BorkenRef:
+                <doctest schema_api.txt[...]> line 1
+                <doctest schema_api.txt[...]> line 1
+        ...
+            //parcels/application/tests/Sping:
+                <doctest schema_api.txt[...]> line 1
+        ...
+
+        >>> schema.resolveRef(testsParcel,'BorkenRef')
+        >>> schema.assertResolved(nrv)
+        Traceback (most recent call last):
+          ...
+        NameError: Unresolved forward references:
+        ...
+            //parcels/application/tests/Sping:
+                <doctest schema_api.txt[...]> line 1
+        ...
+
+        >>> schema.resolveRef(testsParcel,'Sping')
+
+        >>> schema.assertResolved(nrv)   # everything's resolved now
+
+
+``getCaller(frame=None, level=2)``
+    Return a ``(filename,line)`` tuple for the given frame or frame level.  By
+    default, this will return the file and line for the code that called the
+    routine that is calling this function (``level=2``)::
+
+        >>> schema.getCaller()  # we're being called from doctest.py line 1243
+        ('...doctest...', 1243)
+
+        >>> schema.getCaller(level=1)   # where are we calling from?
+        ('<doctest schema_api.txt[...]>', 1)
+
+        >>> schema.getCaller(sys._getframe())   # same, but using frame arg
+        ('<doctest schema_api.txt[...]>', 1)
+
 
 Descriptor Activation
 ---------------------

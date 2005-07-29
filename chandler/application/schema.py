@@ -12,7 +12,7 @@ __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
     'importString', 'parcel_for_module', 'TypeReference', 'Enumeration',
-    'Cloud', 'Endpoint', 'addClouds', 'Struct',
+    'Cloud', 'Endpoint', 'addClouds', 'Struct', 'assertResolved',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -483,6 +483,7 @@ class ItemClass(Activator):
         if item is None:
             return cls(name, parent, **attrs)
         else:
+            resolveRef(parent,name)
             item.itsKind = cls.getKind(parent.itsView)
             for k,v in attrs.iteritems():
                 setattr(item,k,v)
@@ -816,6 +817,9 @@ def importString(name, globalDict=__main__.__dict__):
     return item
 
 
+def getCaller(frame=None, level=2):
+    frame = frame or sys._getframe(level)
+    return frame.f_code.co_filename, frame.f_lineno
 
 # --------------------
 # Repository interface
@@ -839,6 +843,9 @@ class ns(object):
         self.view = getattr(view,'itsView',view)
         self.__module = importString(name)
 
+    def fwdRef(self, cls, name):
+        return fwdRef(self.parcel, name, cls, getCaller())
+        
     def __getattr__(self, name):
         if name.startswith('_'):
             raise AttributeError("No delegation for private attributes")
@@ -855,6 +862,68 @@ class ns(object):
             "%s is not in %r or %r" % (name, self.__module, self.parcel)
         )
 
+
+
+def _refMap(ob):
+    view = ob.itsView
+    try:
+        return view._schema_fwdrefs
+    except AttributeError:
+        initRepository(view)
+        return view._schema_fwdrefs
+
+    
+def fwdRef(parent, name, cls=Item, callerInfo=None):
+    """Get child `name` of `parent`, creating a new kindless item if needed
+
+    If the item didn't exist or is a forward reference, the caller is logged
+    as the source of the forward reference so that ``assertResolved()`` can
+    identify the source of the broken reference if it remains unresolved.
+    Forward references can be marked resolved using ``resolveRef()``.
+    """
+    refs = _refMap(parent)
+    item = parent.getItemChild(name)
+    if item is None:
+        # New forward reference
+        item = cls(name, parent)
+        refs[parent,name] = [callerInfo or getCaller()]
+    else:
+        callers = refs.get((parent,name))
+        if callers is not None:
+            # item was found, but it's a fwdref
+            callers.append(callerInfo or getCaller())
+    return item
+
+
+def resolveRef(parent, name):
+    """Mark the forward reference to (parent,name) resolved
+
+    Normally, this is called by the ItemClass.update() method."""
+    try:
+        del _refMap(parent)[parent,name]
+    except KeyError:
+        pass
+
+def assertResolved(view):
+    """Assert that all forward references in `view` have been resolved
+
+    If any forward references have not been resolved, raise an error listing
+    them."""
+    if not _refMap(view):
+        return  # nothing to see, move along
+        
+    from cStringIO import StringIO
+    s = StringIO()
+
+    print >>s,"Unresolved forward references:"
+    for (p,n), callers in _refMap(view).items():
+        print >>s
+        print >>s,"    %s/%s:" % (p.itsPath, n)
+        for f,l in callers:
+            print >>s,"        %s line %d" % (f,l)
+
+    raise NameError(s.getvalue())
+    
 
 class ModuleMaker:
     def __init__(self,moduleName):
@@ -1069,10 +1138,10 @@ def initRepository(rv,
 
     if not hasattr(rv,'_schema_cache'):
         item_kind = rv.findPath('//Schema/Core/Item')
+        rv._schema_fwdrefs = {}
         rv._schema_cache = {
             Base: item_kind, Item: item_kind, 
         }
-
         # Make all core kinds available for subclassing, etc.
         for core_item in rv.findPath('//Schema/Core').iterChildren():
             if isinstance(core_item,Kind):
