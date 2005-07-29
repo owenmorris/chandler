@@ -40,6 +40,7 @@ using namespace std ;
 #include <FixMath.h>
 #include <CGContext.h>
 #include <CGPattern.h>
+#include <CGColorSpace.h>
 #include <CGAffineTransform.h>
 
 IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
@@ -319,6 +320,10 @@ if (ctxRef != NULL) \
     CGContextDrawPath( ctxRef, drawmode ); \
     CGContextRestoreGState( ctxRef ); \
 }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
+#define kCGColorSpaceGenericRGB   CFSTR("kCGColorSpaceGenericRGB")
+#endif
 
 void EstablishPatternColorSpace(
 	CGContextRef		ctxRef,
