@@ -121,6 +121,7 @@ public :
         (m_object->*m_function)(m_param1) ;
         return NULL ;
     }
+
 private :
     classtype* m_object ;
     param1type m_param1 ;
@@ -166,6 +167,7 @@ void* wxMacMPRemoteGUICall( classtype *object , void (classtype::*function)( con
     wxMutexGuiEnter() ;
     return result ;
 }
+
 // common interface for all implementations
 class wxMacTextControl : public wxMacControl
 {
@@ -275,6 +277,7 @@ public :
                              const wxSize& size, long style ) ;
     virtual OSStatus SetFocus( ControlFocusPart focusPart ) ;
     virtual bool HasFocus() const ;
+
 protected :
     HIViewRef m_scrollView ;
     HIViewRef m_textView ;
@@ -302,6 +305,7 @@ public :
     virtual void GetSelection( long* from, long* to) const ;
     virtual void SetSelection( long from , long to ) ;
     virtual void WriteText(const wxString& str) ;
+
 protected :
     // contains the tag for the content (is different for password and non-password controls)
     OSType m_valueTag ;
@@ -343,6 +347,7 @@ protected :
     void                    MacFocusPaneText(Boolean setFocus) ;
 
     void                    MacSetObjectVisibility(Boolean vis) ;
+
 private :
     TXNFrameID              m_txnFrameID ;
     GrafPtr                 m_txnPort ;
@@ -403,7 +408,6 @@ wxTextCtrl::~wxTextCtrl()
 {
     delete m_privateContextMenu;
 }
-
 
 bool wxTextCtrl::Create(wxWindow *parent, wxWindowID id,
            const wxString& str,
@@ -891,6 +895,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
             Cut() ;
         return ;
     }
+
     switch ( key )
     {
         case WXK_RETURN:
@@ -970,6 +975,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
             }
         }
     }
+
     if ( ( key >= 0x20 && key < WXK_START ) ||
          key == WXK_RETURN ||
          key == WXK_DELETE ||
@@ -1060,22 +1066,22 @@ void wxTextCtrl::OnUpdateSelectAll(wxUpdateUIEvent& event)
     event.Enable(GetLastPosition() > 0);
 }
 
-// CS: Context Menus only work with mlte implementations or non-multiline HIViews at the moment
+// CS: Context Menus only work with MLTE implementations or non-multiline HIViews at the moment
 
 void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
 {
     if (m_privateContextMenu == NULL)
     {
         m_privateContextMenu = new wxMenu;
-        m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
-        m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
+        m_privateContextMenu->Append(wxID_UNDO, wxT("&Undo"));
+        m_privateContextMenu->Append(wxID_REDO, wxT("&Redo"));
         m_privateContextMenu->AppendSeparator();
-        m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
-        m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
-        m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
-        m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
+        m_privateContextMenu->Append(wxID_CUT, wxT("Cu&t"));
+        m_privateContextMenu->Append(wxID_COPY, wxT("&Copy"));
+        m_privateContextMenu->Append(wxID_PASTE, wxT("&Paste"));
+        m_privateContextMenu->Append(wxID_CLEAR, wxT("&Delete"));
         m_privateContextMenu->AppendSeparator();
-        m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
+        m_privateContextMenu->Append(wxID_SELECTALL, wxT("Select &All"));
     }
 
     if (m_privateContextMenu != NULL)
@@ -1089,6 +1095,7 @@ bool wxTextCtrl::MacSetupCursor( const wxPoint& pt )
     else
         return true ;
 }
+
 #if !TARGET_API_MAC_OSX
 
 // user pane implementation
@@ -1134,6 +1141,7 @@ void wxTextCtrl::MacControlUserPaneBackgroundProc(void* info)
 }
 
 #endif
+
 // ----------------------------------------------------------------------------
 // implementation base class
 // ----------------------------------------------------------------------------
@@ -1191,7 +1199,9 @@ bool wxMacTextControl::CanUndo() const
     return false ;
 }
 
-void wxMacTextControl::Undo() { }
+void wxMacTextControl::Undo()
+{
+}
 
 bool wxMacTextControl::CanRedo()  const
 {
@@ -1331,6 +1341,7 @@ void wxMacUnicodeTextControl::VisibilityChanged(bool shown)
         CFRelease( value ) ;
     }
 }
+
 wxString wxMacUnicodeTextControl::GetStringValue() const
 {
     wxString result ;
@@ -1347,6 +1358,7 @@ wxString wxMacUnicodeTextControl::GetStringValue() const
 #endif
     return result ;
 }
+
 void wxMacUnicodeTextControl::SetStringValue( const wxString &str)
 {
     wxString st = str ;
@@ -1354,26 +1366,32 @@ void wxMacUnicodeTextControl::SetStringValue( const wxString &str)
     wxMacCFStringHolder cf(st , m_font.GetEncoding() ) ;
     verify_noerr( SetData<CFStringRef>(  0, m_valueTag , cf ) ) ;
 }
+
 void wxMacUnicodeTextControl::Copy()
 {
     SendHICommand( kHICommandCopy ) ;
 }
+
 void wxMacUnicodeTextControl::Cut()
 {
     SendHICommand( kHICommandCut ) ;
 }
+
 void wxMacUnicodeTextControl::Paste()
 {
     SendHICommand( kHICommandPaste ) ;
 }
+
 bool wxMacUnicodeTextControl::CanPaste() const
 {
     return true ;
 }
+
 void wxMacUnicodeTextControl::SetEditable(bool editable)
 {
     SetData<Boolean>( 0 , kControlEditTextLockedTag , (Boolean) !editable ) ;
 }
+
 void wxMacUnicodeTextControl::Remove( long from , long to )
 {
 }
@@ -1437,6 +1455,7 @@ public :
             TXNSetTXNObjectControls( m_txn , false , 1 , tag , data ) ;
         }
     }
+
     ~wxMacEditHelper()
     {
         TXNControlTag tag[] = { kTXNIOPrivilegesTag } ;
@@ -1445,6 +1464,7 @@ public :
             TXNSetTXNObjectControls( m_txn , false , 1 , tag , m_data ) ;
         }
     }
+
     protected :
         TXNObject m_txn ;
         TXNControlData m_data[1] ;
@@ -1968,7 +1988,6 @@ void wxMacMLTEControl::SetTXNData( const wxString& st , TXNOffset start , TXNOff
       start, end);
 #endif
 }
-
 
 wxString wxMacMLTEControl::GetLineText(long lineNo) const
 {

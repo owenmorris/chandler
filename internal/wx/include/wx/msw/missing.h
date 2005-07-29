@@ -67,13 +67,13 @@
 #if wxUSE_MOUSEWHEEL
     #ifndef WM_MOUSEWHEEL
         #define WM_MOUSEWHEEL           0x020A
-#endif
+    #endif
     #ifndef WHEEL_DELTA
         #define WHEEL_DELTA             120
-#endif
+    #endif
     #ifndef SPI_GETWHEELSCROLLLINES
         #define SPI_GETWHEELSCROLLLINES 104
-#endif
+    #endif
 #endif // wxUSE_MOUSEWHEEL
 
 // Needed by window.cpp
@@ -170,16 +170,16 @@
 
 #ifndef LVCF_IMAGE
     #define LVCF_IMAGE             0x0010
-    #endif
+#endif
 
 #ifndef Header_GetItemRect
     #define Header_GetItemRect(w,i,r) \
             (BOOL)SendMessage((w),HDM_GETITEMRECT,(WPARAM)(i),(LPARAM)(r))
-    #endif
+#endif
 
 #ifndef HDM_GETITEMRECT
     #define HDM_GETITEMRECT (HDM_FIRST+7)
-    #endif
+#endif
 
 #ifndef HDN_GETDISPINFOW
     #define HDN_GETDISPINFOW (HDN_FIRST-29)

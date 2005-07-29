@@ -9,25 +9,37 @@ All:
 
 - Fixed wxScopeGuard to work with VC++, documented it.
 - Fixed proxy handling in wxURL.
+- Added wxEVT_MEDIA_LOADED event for wxMediaCtrl
+- Added new methods to wxMediaCtrl (wxURI version of Load, ShowPlayerControls)
 - Added wxZipFSHandler::Cleanup() (Stas Sergeev)
+- Added wxImage::RotateHue() and RGB <-> HSV conversions (John Anderson)
 
 All (GUI):
 
 - Added wxXmlResource::Unload().
 - Possibility of modeless wxWizard dialog (with presentation in sample).
 - Fixed a rare crash due to malformed HTML in wxHTML (Xavier Nodet).
+- Ctrl+mouse wheel changes zoom factor in print preview (Zbigniew Zagórski)
 
 wxMSW:
 
+- wxMSW now builds with (beta of) MSVC 8 (a.k.a. 2005)
 - Separators are now correctly shown in the toolbars under Windows XP.
 - Fixed multiline tooltips handling.
 - Fixed wxSlider::GetSelEnd() (Atilim Cetin).
 - Fixed accelerators of menu items added to already attached submenus.
 - Position of wxEVT_MOUSEWHEEL events is now in client, not screen, coordinates.
+- Handle absence of wxListCtrl column image better (Zbigniew Zagórski)
+- Fixed asynchronous playback of large sound files in wxSound
 
 wxWinCE:
 
 - RTTI and exceptions enabled by default.
+
+wxGTK:
+
+- ShowFullScreen() shows the window if it was still hidden (rpedroso)
+- Implemented wxTopLevelWindow::RequestUserAttention() (Mart Raudsepp)
 
 wxOS2
 
@@ -36,6 +48,7 @@ wxOS2
 wxUniv:
 
 - Window creation now honours wxVSCROLL.
+- Standalone scrollbars generate events of correct type (Jochen Roemmler)
 
 
 2.6.1

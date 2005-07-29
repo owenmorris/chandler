@@ -23,9 +23,9 @@
 #endif
 
 #if defined( __MINGW32__ ) && !defined(__WINE__) && !defined( HAVE_W32API_H )
-        #if __MINGW32_MAJOR_VERSION >= 1
-            #define HAVE_W32API_H
-        #endif
+    #if __MINGW32_MAJOR_VERSION >= 1
+        #define HAVE_W32API_H
+    #endif
 #elif defined( __CYGWIN__ ) && !defined( HAVE_W32API_H )
     #if ( __GNUC__ > 2 )
         #define HAVE_W32API_H

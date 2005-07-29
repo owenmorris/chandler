@@ -13,7 +13,7 @@
 #if defined(__MWERKS__)
 #include <winresrc.h>
 #else
-    #include <windows.h>
+#include <windows.h>
 #endif
 
 #if defined(_WIN32_WCE)

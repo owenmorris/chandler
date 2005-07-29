@@ -99,7 +99,7 @@
 #endif /* wxUSE_MFC */
 
 #if (defined(__GNUWIN32__) && !wxUSE_NORLANDER_HEADERS)
-/* GnuWin32 doesn't have appropriate headers for e.g. IUnknown. */
+    /* GnuWin32 doesn't have appropriate headers for e.g. IUnknown. */
 #   undef wxUSE_DRAG_AND_DROP
 #   define wxUSE_DRAG_AND_DROP 0
 #endif
