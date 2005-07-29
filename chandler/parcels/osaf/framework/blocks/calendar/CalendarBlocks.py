@@ -20,7 +20,7 @@ from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 
-
+    
 class wxMiniCalendar(wx.minical.MiniCalendar):
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
@@ -35,13 +35,9 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
             style |= wx.BORDER_SIMPLE
         else:
             style |= wx.BORDER_STATIC
-        calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
-        try:
-            if calendarButton.selected and self.blockItem.doSelectWeek:
-                style |= wx.minical.CAL_HIGHLIGHT_WEEK
-        except AttributeError:
-            # Toolbar hasn't been rendered yet
-            pass
+        
+        if isMainCalendarVisible() and self.blockItem.doSelectWeek:
+            style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
 
     def OnWXSelectItem(self, event):
@@ -93,13 +89,16 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         for day in range(1,32):
             self.ResetAttr(day)
 
-# BUG 3536: doSelectWeek/weekMode starts off as False for the minical, but the main calendar starts off True.
-# Both behaviors seem appropriate for each area.
-# Need to reconcile.  Maybe switching to calendar view should trigger minical to be in doSelectWeek mode?
-# But if you switch out, does it stay on week mode?  no, it should go back to day mode... which day though?
-# the original?
-# where do we store that then?
-#    -brendano
+
+def isMainCalendarVisible():
+    # Heuristic: is the appbar calendar button selected (depressed)?
+    calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
+    try:
+        return calendarButton.selected
+    except AttributeError:
+        # Toolbar isn't rendered yet
+        return False
+
 
 class MiniCalendar(Block.RectangularChild):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
@@ -129,20 +128,19 @@ class MiniCalendar(Block.RectangularChild):
 
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
-    weekMode = schema.One(schema.Boolean, initialValue = False)
-    
-    maximumEventsDisplayed = 8  # @@@ make a parcel.xml-level attribute?
+    maximumEventsDisplayed = 5 #Not at schema level .. unless user customization?
     
     def __init__(self, *arguments, **keywords):
         super(PreviewArea, self).__init__(*arguments, **keywords)
         self.rangeIncrement = timedelta(days=1)
 
-    def onSelectWeekEvent(self, event):
-        self.weekMode = event.arguments['doSelectWeek']        
+    def onSelectItemEvent(self, event):
         self.widget.wxSynchronizeWidget()
-
+        #self.widget.Refresh() 
+        
     def instantiateWidget(self):
         return wxPreviewArea(self.parentBlock.widget, Block.Block.getWidgetID(self))
+
 
 class wxPreviewArea(wx.Panel):
     def __init__(self, *arguments, **keywords):
@@ -151,17 +149,17 @@ class wxPreviewArea(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
         charStyle = Styles.CharacterStyle()
-        charStyle.fontSize = 9
+        charStyle.fontSize = 10
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
+        
+        self.text = ""
 
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         self.Draw(dc)
 
     def Draw(self, dc):
-        if self.blockItem.weekMode: return
-
         dc.Clear()
 
         #White background
@@ -190,14 +188,14 @@ class wxPreviewArea(wx.Panel):
         return "%d:%.2d" % (time.hour, time.minute)
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
-        # @@@ hack until block-to-block attribs are safe to use: climb the tree
+        # @@@ hack until block-to-block attributes are safer to define: climb the tree
         wxSplitter = self.GetParent().GetParent()
         assert isinstance(wxSplitter, ContainerBlocks.wxSplitterWindow)
 
         currentHeight = self.GetSize()[1]
         heightDelta = currentHeight - newHeight
         
-        # need to do 2 resizings.  Would be nice to do the first without repainting
+        # need to do 2 resizings.  Would be nice to do no painting between.
         
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
@@ -208,7 +206,7 @@ class wxPreviewArea(wx.Panel):
         
         
     def wxSynchronizeWidget(self):
-        if self.blockItem.weekMode:
+        if isMainCalendarVisible():
             # disappear!
             self.ChangeHeightAndAdjustContainers(0)
             return
@@ -232,7 +230,6 @@ class wxPreviewArea(wx.Panel):
                                 self.TimeFormat(item.startTime.time()),
                                 self.TimeFormat(item.endTime.time()),
                                 item.displayName)
-
         if not self.text:
             self.ChangeHeightAndAdjustContainers(0)
             return

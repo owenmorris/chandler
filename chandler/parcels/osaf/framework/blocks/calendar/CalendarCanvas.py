@@ -1255,6 +1255,15 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         w.SetMinSize((8*45, -1))
 
         return w
+    def render(self):
+        super(CalendarContainer, self).render()
+        #findBlockByName doesn't work yet.
+        #wxAllDay = list(list(self.childrenBlocks)[1].childrenBlocks)[0].widget
+        #canvasSplitter = list(self.childrenBlocks)[1].widget
+        #print canvasSplitter.GetSashPosition()
+        #canvasSplitter.SetSashPosition(wxAllDay.collapsedHeight)
+        
+        #print 'bla'
 
 
 
