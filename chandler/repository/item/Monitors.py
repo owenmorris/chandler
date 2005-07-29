@@ -43,9 +43,12 @@ class Monitors(Item):
 
     def _collectionChanged(self, op, name, other):
 
-        if op == 'remove':
-            if name == 'monitors':
+        if name == 'monitors':
+            if op == 'remove':
                 self.cacheMonitors()
+            elif op == 'add':
+                if other is self:
+                    raise TypeError, "Monitors dispatcher cannot have monitors"
 
         super(Monitors, self)._collectionChanged(op, name, other)
                             
@@ -96,10 +99,13 @@ class Monitors(Item):
             return
 
         for monitor in monitors:
+            if monitor.isDeleting():
+                continue
+
             monitorItem = monitor.getAttributeValue('item', monitor._references,
                                                     None, None)
             if monitorItem is None:
-                monitorItem = monitor
+                continue
 
             monitorArgs = monitor.args
             if monitorArgs:

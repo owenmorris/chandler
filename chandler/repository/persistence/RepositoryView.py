@@ -318,9 +318,13 @@ class RepositoryView(object):
             elif name == '..':
                 item = item.itsParent
             elif name == '.':
-                item = item
+                pass
             elif isinstance(name, UUID):
-                item = item.itsView.find(name, load)
+                child = self.find(name, load)
+                if child is None or child.itsParent is not item:
+                    item = None
+                else:
+                    item = child
             else:
                 item = item.getItemChild(name, load)
 

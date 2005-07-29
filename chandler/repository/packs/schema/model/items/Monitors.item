@@ -12,6 +12,7 @@
     <class module="repository.schema.Kind">SchemaMonitor</class>
 
     <ref name="dispatcher" type="path">../Monitors</ref>
+    <ref name="item" type="path">.</ref>
     <attribute name="attribute">attributes</attribute>
     <attribute name="op">set</attribute>
     <attribute name="method">schemaChange</attribute>
@@ -24,6 +25,7 @@
     <class module="repository.schema.Kind">SchemaMonitor</class>
 
     <ref name="dispatcher" type="path">../Monitors</ref>
+    <ref name="item" type="path">.</ref>
     <attribute name="method">schemaChange</attribute>
     <attribute name="op">set</attribute>
     <attribute name="attribute">superKinds</attribute>
