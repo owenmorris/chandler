@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+
+<!-- This file is UTF-8 encoded xml: If you make changes, make sure you
+     preserve the encoding -->
+
+<core:Parcel xmlns="parcel:application.tests.testparcels.string.String"
+             xmlns:core="parcel:core">
+        
+
+<String itsName="BStringItem">
+    <bString>This should be a str</bString>
+</String>
+
+<String itsName="UStringItem">
+    <uString>Is this unicode?</uString>
+</String>
+
+<String itsName="UStringEscapeItem">
+    <uString>&#x2022; Was that a bullet?</uString>
+</String>
+
+<String itsName="UStringRawItem">
+    <uString>• Was that a bullet?</uString>
+</String>
+
+<!--
+<String itsName="BStringRawItem">
+    <bString><![CDATA[binary bits here]]></bString>
+</String>
+-->
+
+</core:Parcel>
+

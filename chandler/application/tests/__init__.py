@@ -10,7 +10,7 @@ __all__ = [
     'TestClasses', 'TestClouds', 'TestCollections', 'TestCopying', 
     'TestDependency','TestItems', 'TestKindAndItem', 'TestLocalAttrs', 
     'TestNamespaceErrors', 'TestParcelErrors', 'TestParcelLoader',
-    'TestParcelPerf', 'TestSchemaAPI',
+    'TestParcelPerf', 'TestSchemaAPI', 'TestStringTypes',
 ]
 
 def suite():
