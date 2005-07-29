@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta
 import ScriptingGlobalFunctions as Sgf
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.ItemCollection as ItemCollection
+import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.tasks.Task as Task
+import osaf.contentmodel.mail.Mail as Mail
 import wx
 import time
 
@@ -79,9 +83,48 @@ class TestLogger:
         self.Print("")
         self.Print("******* End of Report *******")
         self.File.close()
-    
 
-class CalendarEventByUI:
+class Item :
+    def SetDisplayName(self, displayName):
+        self.displayName = displayName # put into memory the expected value
+        #self.logger.Start("Set the display name in the detail view") # start the log
+        Sgf.SummaryViewSelect(self.item)
+        displayNameBlock = Sgf.DisplayName()
+        # Emulate the mouse click in the display name block
+        Sgf.LeftClick(displayNameBlock)
+        # Select the old text
+        displayNameBlock.widget.SelectAll()
+        # Emulate the keyboard events
+        Sgf.Type(self.displayName)
+        #self.logger.Stop() # stop the log
+
+        #self.Check_DetailView() # check the detail view
+        #self.logger.Report() # make the report
+
+    def StampAsMailMessage(self):
+        Sgf.SummaryViewSelect(self.item)
+        Sgf.StampAsMailMessage()
+
+    def StampAsTask(self):
+        Sgf.SummaryViewSelect(self.item)
+        Sgf.StampAsTask()
+
+    def StampAsCalendarEvent(self):
+        Sgf.SummaryViewSelect(self.item)
+        Sgf.StampAsCalendarEvent()
+
+    def SetNote(self, string):
+        Sgf.SummaryViewSelect(self.item)
+        # Emulate the mouse click in the note area
+        noteArea = Sgf.FindNamedBlock("NotesArea")
+        # Emulate the mouse click in the note area
+        Sgf.LeftClick(noteArea)
+        noteArea.widget.SelectAll()
+        # Emulate the keyboard events
+        Sgf.Type(string)
+        
+
+class CalendarEventByUI(Item):
     def __init__(self, view, logger):
         # set the attributes and put into memory the expected default value
         self.logger = logger
@@ -98,7 +141,7 @@ class CalendarEventByUI:
         event.duration = timedelta(minutes=self.duration)
         event.displayName = self.displayName
         Sgf.SummaryViewSelect(event)
-        self.event = event
+        self.item = event
         self.logger.Stop() # stop the log
         # Check the detail view display
         self.Check_DetailView()
@@ -107,38 +150,21 @@ class CalendarEventByUI:
     def Check_DetailView(self):
         self.logger.InitFailureList()
         # Check the displayName
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         displayNameBlock = Sgf.DisplayName()
         d_name = displayNameBlock.widget.GetValue()
         if not self.displayName == d_name :
             self.logger.reportFailure("FAIL (On display name Checking)  || detail view title = %s ; expected title = %s" %(d_name, self.displayName))
         # Check the start date
-        #Sgf.SummaryViewSelect(self.event)
+        #Sgf.SummaryViewSelect(self.item)
         #startDateBlock = Sgf.StartDate()
         #s_date = startDateBlock.widget.GetValue()
         #if not self.startDate == s_date :
         #    self.logger.reportFailure("FAIL (On start date Checking) || detail view start date = %s ; expected start date= %s" %(s_date, self.startDate))
         # Check the end date
         
-    
-    def SetDisplayName(self, displayName):
-        self.displayName = displayName # put into memory the expected value
-        self.logger.Start("Set the display name in the detail view") # start the log
-        Sgf.SummaryViewSelect(self.event)
-        displayNameBlock = Sgf.DisplayName()
-        # Emulate the mouse click in the display name block
-        Sgf.LeftClick(displayNameBlock)
-        # Select the old text
-        displayNameBlock.widget.SelectAll()
-        # Emulate the keyboard events
-        Sgf.Type(self.displayName)
-        self.logger.Stop() # stop the log
-        self.Check_DetailView() # check the detail view
-        self.logger.Report() # make the report
-        
-        
     def SetStartTime(self, startTime):
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         startTimeBlock = Sgf.StartTime()
         # Emulate the mouse click in the start time block
         Sgf.LeftClick(startTimeBlock)
@@ -146,7 +172,7 @@ class CalendarEventByUI:
         Sgf.Type(startTime)
 
     def SetEndTime(self, endTime):
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         endTimeBlock = Sgf.EndTime()
         # Emulate the mouse click in the end time block
         Sgf.LeftClick(endTimeBlock)
@@ -156,7 +182,7 @@ class CalendarEventByUI:
     def SetStartDate(self, startDate):
         self.startDate = startDate # put into memory the expected value
         #self.logger.Start("Set the start date in the detail view") # start the log
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         startDateBlock = Sgf.StartDate()
         # Emulate the mouse click in the start date block
         Sgf.LeftClick(startDateBlock)
@@ -168,7 +194,7 @@ class CalendarEventByUI:
         #self.logger.Report() # make the report
         
     def SetEndDate(self, endDate):
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         endDateBlock = Sgf.EndDate()
         # Emulate the mouse click in the end date block
         Sgf.LeftClick(endDateBlock)
@@ -176,7 +202,7 @@ class CalendarEventByUI:
         Sgf.Type(endDate)
 
     def SetLocation(self, location):
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         locationBlock = Sgf.Location()
         Sgf.LeftClick(locationBlock)
         # Select the old text
@@ -185,19 +211,55 @@ class CalendarEventByUI:
         Sgf.Type(location)
 
     def ClickAllDay(self):
-        Sgf.SummaryViewSelect(self.event)
+        Sgf.SummaryViewSelect(self.item)
         allDayBlock = Sgf.AllDay()
         # Emulate the mouse click in the all-day block
         Sgf.LeftClick(allDayBlock)
-        
-    def StampAsMailMessage(self):
-        Sgf.SummaryViewSelect(self.event)
-        Sgf.StampAsMailMessage()
+   
+    def SetStatus(self, status):
+        statusBlock = Sgf.FindNamedBlock("EditTransparency")
+        list_of_value = []
+        for i in range(0,statusBlock.widget.GetCount()):
+            list_of_value.append(statusBlock.widget.GetString(i))
+        if not status in list_of_value:
+            return
+        else:
+            # Emulate the mouse click in the status block
+            Sgf.LeftClick(statusBlock)
+            statusBlock.widget.SetStringSelection(status) # bad: the status is not saved
 
-    def StampAsTask(self):
-        Sgf.SummaryViewSelect(self.event)
-        Sgf.StampAsTask()
+    def SetAlarm(self, alarm):
+        alarmBlock = Sgf.FindNamedBlock("EditReminder")
+        list_of_value = []
+        for i in range(0,statusBlock.widget.GetCount()):
+            list_of_value.append(statusBlock.widget.GetString(i))
+        if not alarm in list_of_value:
+            return
+        else:
+            # Emulate the mouse click in the reminder block
+            Sgf.LeftClick(alarmBlock)
+            alarmBlock.widget.SetStringSelection(alarm) # bad: the status is not saved
 
-    def StampAsCalendarEvent(self):
-        Sgf.SummaryViewSelect(self.event)
-        Sgf.StampAsCalendarEvent()
+
+class NoteByUI(Item) :
+    def __init__(self, view, logger=None):
+        self.displayName = "New Note"
+        self.createdOn = datetime.now()
+        note = Notes.Note(view=view)
+        note.displayName = self.displayName
+        note.createdOn = self.createdOn
+        self.item = note
+        Sgf.SummaryViewSelect(self.item)
+
+
+class TaskByUI(Item):
+    def __init__(self, view, logger=None):
+        self.displayName = "New Task"
+        self.createdOn = datetime.now()
+        task = Task.Task(view=view)
+        task.displayName = self.displayName
+        task.createdOn = self.createdOn
+        self.item = task
+        Sgf.SummaryViewSelect(self.item)
+
+    
