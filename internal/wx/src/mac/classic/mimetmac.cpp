@@ -81,14 +81,14 @@ bool wxFileTypeImpl::GetMimeType(wxString *mimeType) const
 bool wxFileTypeImpl::GetMimeTypes(wxArrayString& mimeTypes) const
 {
     wxString s;
-    
+
     if (GetMimeType(&s))
     {
         mimeTypes.Clear();
         mimeTypes.Add(s);
         return true;
     }
-    else 
+    else
         return false;
 }
 

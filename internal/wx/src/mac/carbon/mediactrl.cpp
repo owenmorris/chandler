@@ -91,11 +91,11 @@ public:
     wxQTMediaBackend();
     ~wxQTMediaBackend();
 
-    virtual bool CreateControl(wxControl* ctrl, wxWindow* parent, 
+    virtual bool CreateControl(wxControl* ctrl, wxWindow* parent,
                                      wxWindowID id,
-                                     const wxPoint& pos, 
+                                     const wxPoint& pos,
                                      const wxSize& size,
-                                     long style, 
+                                     long style,
                                      const wxValidator& validator,
                                      const wxString& name);
 
@@ -118,6 +118,9 @@ public:
     virtual double GetPlaybackRate();
     virtual bool SetPlaybackRate(double dRate);
 
+    virtual double GetVolume();
+    virtual bool SetVolume(double);
+
     void Cleanup();
     void FinishLoad();
 
@@ -138,7 +141,7 @@ public:
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 // wxQTMediaBackend
-// 
+//
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend);
@@ -177,10 +180,10 @@ public:
         if (!m_bPaused)
         {
             if(!IsMovieDone(m_movie))
-                MoviesTask(m_movie, MOVIE_DELAY); 
+                MoviesTask(m_movie, MOVIE_DELAY);
             else
             {
-                wxMediaEvent theEvent(wxEVT_MEDIA_STOP, 
+                wxMediaEvent theEvent(wxEVT_MEDIA_STOP,
                                       m_parent->m_ctrl->GetId());
                 m_parent->m_ctrl->ProcessEvent(theEvent);
 
@@ -191,7 +194,7 @@ public:
                     wxASSERT(::GetMoviesError() == noErr);
 
                     //send the event to our child
-                    wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED, 
+                    wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED,
                                           m_parent->m_ctrl->GetId());
                     m_parent->m_ctrl->ProcessEvent(theEvent);
                 }
@@ -238,16 +241,16 @@ wxQTMediaBackend::~wxQTMediaBackend()
 // 1) Intializes QuickTime
 // 2) Creates the control window
 //---------------------------------------------------------------------------
-bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent, 
+bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
                                      wxWindowID id,
-                                     const wxPoint& pos, 
+                                     const wxPoint& pos,
                                      const wxSize& size,
-                                     long style, 
+                                     long style,
                                      const wxValidator& validator,
                                      const wxString& name)
 {
     //Don't bother in Native control mode
-#if defined( __WXMAC__ ) && TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2 )    
+#if defined( __WXMAC__ ) && TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2 )
     if (!_wxIsQuickTime4Installed())
         return false;
 #endif
@@ -263,21 +266,21 @@ bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     // backends, we don't need wxCLIP_CHILDREN
     //
     if ( !
-    
-#if wxUSE_CREATEMOVIECONTROL    
-    ctrl->wxWindow::Create(parent, id, pos, size,
-                            wxWindow::MacRemoveBordersFromStyle(style),
-                            name)
+
+#if wxUSE_CREATEMOVIECONTROL
+          ctrl->wxWindow::Create(parent, id, pos, size,
+                                 wxWindow::MacRemoveBordersFromStyle(style),
+                                 name)
 #else
-    ctrl->wxControl::Create(parent, id, pos, size,
-                            wxWindow::MacRemoveBordersFromStyle(style),
-                            validator, name)
-#endif                            
+          ctrl->wxControl::Create(parent, id, pos, size,
+                                  wxWindow::MacRemoveBordersFromStyle(style),
+                                  validator, name)
+#endif
         )
         return false;
 
 #if wxUSE_VALIDATORS
-        ctrl->SetValidator(validator);
+    ctrl->SetValidator(validator);
 #endif
 
     m_ctrl = ctrl;
@@ -301,15 +304,15 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
     OSErr err = noErr;
     short movieResFile;
     FSSpec sfFile;
-    
-    //FIXME:wxMacFilename2FSSpec crashes on empty string - 
+
+    //FIXME:wxMacFilename2FSSpec crashes on empty string -
     //does it crash on other strings too and should this
     //"fix" be put in the carbon wxSound?
     if (fileName.empty())
         return false;
-    
+
     wxMacFilename2FSSpec( fileName , &sfFile );
-    
+
     if (OpenMovieFile (&sfFile, &movieResFile, fsRdPerm) != noErr)
         return false;
 
@@ -360,8 +363,8 @@ bool wxQTMediaBackend::Load(const wxURI& location)
     BlockMove(theURI.mb_str(), *theHandle, theURI.length() + 1);
 
     //create the movie from the handle that refers to the URI
-    err = NewMovieFromDataRef(&m_movie, newMovieActive, 
-                                NULL, theHandle, 
+    err = NewMovieFromDataRef(&m_movie, newMovieActive,
+                                NULL, theHandle,
                                 URLDataHandlerSubType);
 
     DisposeHandle(theHandle);
@@ -409,57 +412,57 @@ void wxQTMediaBackend::FinishLoad()
     m_bestSize.y = outRect.bottom - outRect.top;
 
     //reparent movie/*AudioMediaCharacteristic*/
-    if(GetMovieIndTrackType(m_movie, 1, 
-                            VisualMediaCharacteristic, 
-                            movieTrackCharacteristic | 
+    if(GetMovieIndTrackType(m_movie, 1,
+                            VisualMediaCharacteristic,
+                            movieTrackCharacteristic |
                                 movieTrackEnabledOnly) != NULL)
-    {        
-#if wxUSE_CREATEMOVIECONTROL    
-    //
-    //Native CreateMovieControl QT control (Thanks to Kevin Olliver's
-    //wxQTMovie for some of this).
-    //
-    #define GetControlPeer(whatever) ctrl->m_peer
-    wxMediaCtrl* ctrl = (wxMediaCtrl*) m_ctrl;
-        Rect bounds = wxMacGetBoundsForControl(m_ctrl, 
-                                               m_ctrl->GetPosition(),
-                                               m_ctrl->GetSize());
-                                               
-    //Dispose of old control for new one
-    if (GetControlPeer(m_ctrl) && GetControlPeer(m_ctrl)->Ok() )
-        GetControlPeer(m_ctrl)->Dispose();
-        
-    //Options-
-    //kMovieControlOptionXXX
-    //HideController - hide the movie controller
-    //LocateTopLeft - movie is pinned to top left rather than centered in the control
-    //EnableEditing - Allows programmatic editing and dragn'drop
-    //HandleEditingHI- Installs event stuff for edit menu - forces EnableEditing also
-    //SetKeysEnabled - Allows keyboard input
-    //ManuallyIdled - app handles movie idling rather than internal timer event loop
-        ::CreateMovieControl( 
+    {
+#if wxUSE_CREATEMOVIECONTROL
+        //
+        //Native CreateMovieControl QT control (Thanks to Kevin Olliver's
+        //wxQTMovie for some of this).
+        //
+        #define GetControlPeer(whatever) ctrl->m_peer
+        wxMediaCtrl* ctrl = (wxMediaCtrl*) m_ctrl;
+            Rect bounds = wxMacGetBoundsForControl(m_ctrl,
+                                                   m_ctrl->GetPosition(),
+                                                   m_ctrl->GetSize());
+
+        //Dispose of old control for new one
+        if (GetControlPeer(m_ctrl) && GetControlPeer(m_ctrl)->Ok() )
+            GetControlPeer(m_ctrl)->Dispose();
+
+        //Options-
+        //kMovieControlOptionXXX
+        //HideController - hide the movie controller
+        //LocateTopLeft - movie is pinned to top left rather than centered in the control
+        //EnableEditing - Allows programmatic editing and dragn'drop
+        //HandleEditingHI- Installs event stuff for edit menu - forces EnableEditing also
+        //SetKeysEnabled - Allows keyboard input
+        //ManuallyIdled - app handles movie idling rather than internal timer event loop
+        ::CreateMovieControl(
                     (WindowRef)
                        ctrl->MacGetTopLevelWindowRef(), //parent
                        &bounds,                         //control bounds
                        m_movie,                         //movie handle
-                       kMovieControlOptionHideController 
-                       | kMovieControlOptionLocateTopLeft  
-                       | kMovieControlOptionSetKeysEnabled 
+                       kMovieControlOptionHideController
+                       | kMovieControlOptionLocateTopLeft
+                       | kMovieControlOptionSetKeysEnabled
 //                       | kMovieControlOptionManuallyIdled
                        ,                                //flags
                        ctrl->m_peer->GetControlRefAddr() );
-                       
+
         ::EmbedControl(ctrl->m_peer->GetControlRef(), (ControlRef)ctrl->GetParent()->GetHandle());
 #else
-    //
-    //"Emulation"
-    //
-        SetMovieGWorld(m_movie, 
-                       (CGrafPtr) 
+        //
+        //"Emulation"
+        //
+        SetMovieGWorld(m_movie,
+                       (CGrafPtr)
                        GetWindowPort(
                        (WindowRef)
                        m_ctrl->MacGetTopLevelWindowRef()
-                       ), 
+                       ),
                        nil);
 #endif
     }
@@ -477,6 +480,11 @@ void wxQTMediaBackend::FinishLoad()
     m_ctrl->GetParent()->Layout();
     m_ctrl->GetParent()->Refresh();
     m_ctrl->GetParent()->Update();
+
+    //send loaded event
+    wxMediaEvent theEvent(wxEVT_MEDIA_LOADED,
+                            m_ctrl->GetId());
+    m_ctrl->AddPendingEvent(theEvent);
 }
 
 //---------------------------------------------------------------------------
@@ -522,7 +530,7 @@ bool wxQTMediaBackend::Stop()
     ::StopMovie(m_movie);
     if(::GetMoviesError() != noErr)
         return false;
-    
+
     ::GoToBeginningOfMovie(m_movie);
     return ::GetMoviesError() == noErr;
 }
@@ -580,6 +588,53 @@ wxLongLong wxQTMediaBackend::GetPosition()
 }
 
 //---------------------------------------------------------------------------
+// wxQTMediaBackend::GetVolume
+//
+// Gets the volume through GetMovieVolume - which returns a 16 bit short -
+//
+// +--------+--------+
+// +   (1)  +   (2)  +
+// +--------+--------+
+//
+// (1) first 8 bits are value before decimal
+// (2) second 8 bits are value after decimal
+//
+// Volume ranges from -1.0 (gain but no sound), 0 (no sound and no gain) to
+// 1 (full gain and sound)
+//---------------------------------------------------------------------------
+double wxQTMediaBackend::GetVolume()
+{
+    short sVolume = GetMovieVolume(m_movie);
+
+    if(sVolume & (128 << 8)) //negative - no sound
+        return 0.0;
+
+    return (sVolume & (127 << 8)) ? 1.0 : ((double)(sVolume & 255)) / 255.0;
+}
+
+//---------------------------------------------------------------------------
+// wxQTMediaBackend::SetVolume
+//
+// Sets the volume through SetMovieVolume - which takes a 16 bit short -
+//
+// +--------+--------+
+// +   (1)  +   (2)  +
+// +--------+--------+
+//
+// (1) first 8 bits are value before decimal
+// (2) second 8 bits are value after decimal
+//
+// Volume ranges from -1.0 (gain but no sound), 0 (no sound and no gain) to
+// 1 (full gain and sound)
+//---------------------------------------------------------------------------
+bool wxQTMediaBackend::SetVolume(double dVolume)
+{
+    short sVolume = (short) (dVolume >= .9999 ? 1 << 8 : (dVolume * 255) );
+    SetMovieVolume(m_movie, sVolume);
+    return true;
+}
+ 
+ //---------------------------------------------------------------------------
 // wxQTMediaBackend::GetDuration
 //
 // Calls GetMovieDuration
@@ -597,7 +652,7 @@ wxLongLong wxQTMediaBackend::GetDuration()
 //---------------------------------------------------------------------------
 wxMediaState wxQTMediaBackend::GetState()
 {
-    if ( !m_timer || (m_timer->IsRunning() == false && 
+    if ( !m_timer || (m_timer->IsRunning() == false &&
                       m_timer->GetPaused() == false) )
         return wxMEDIASTATE_STOPPED;
 
@@ -617,8 +672,8 @@ void wxQTMediaBackend::Cleanup()
 {
     delete m_timer;
     m_timer = NULL;
-    
-#if wxUSE_CREATEMOVIECONTROL    
+
+#if wxUSE_CREATEMOVIECONTROL
     DisposeControl(((wxMediaCtrl*)m_ctrl)->m_peer->GetControlRef());
 #endif
 
@@ -639,19 +694,19 @@ wxSize wxQTMediaBackend::GetVideoSize() const
 //---------------------------------------------------------------------------
 // wxQTMediaBackend::Move
 //
-// We need to do this even when using native qt control because 
+// We need to do this even when using native qt control because
 // CreateMovieControl is broken in this regard...
 //---------------------------------------------------------------------------
 void wxQTMediaBackend::Move(int x, int y, int w, int h)
 {
-#if !wxUSE_CREATEMOVIECONTROL    
+#if !wxUSE_CREATEMOVIECONTROL
     if(m_timer)
     {
         if ( m_ctrl )
         {
             m_ctrl->GetParent()->MacWindowToRootWindow(&x, &y);
         }
-        
+
         Rect theRect = {y, x, y+h, x+w};
 
         ::SetMovieBox(m_movie, &theRect);
