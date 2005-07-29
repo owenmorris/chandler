@@ -14,6 +14,7 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 from application import schema
 import wx
 import time
+import util.autologging
 
 class orientationEnumType(schema.Enumeration):
     values = "Horizontal", "Vertical"
@@ -179,7 +180,7 @@ class ScrolledContainer(BoxContainer):
     def instantiateWidget (self):
         return wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))    
 
-
+#from util.autologging import indentlog
 class wxSplitterWindow(wx.SplitterWindow):
     #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods
     def __init__(self, *arguments, **keywords):
@@ -195,14 +196,34 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Setting minimum pane size prevents unsplitting a window by double-clicking
         self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
         
+    def Layout(self, *a, **k): return super(wxSplitterWindow, self).__init__(*a, **k)
+    
     def OnInit(self, *arguments, **keywords):
         #vain attempts to solve weird sizing bug
         pass
         #self.Layout()
         #self.Refresh()
         
+    def MoveSash(self, position):
+        """sets the sash position, and fires off the appropriate event saying it happened."""
+        #self.SetSashPosition(position)
+        event = wx.SplitterEvent(wx.wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, self)
+        event.SetSashPosition(position)
+        self.SetSashPosition(position)
+        
+        self.ProcessEvent(event)
+        
+        #this should be the async way to do it, but listeners end up receiving
+        #a NotifyEvent instead, for some reason.
+        
+        #self.AddPendingEvent(event)
+        #wx.GetApp().Yield()
+        
+        
  
     def OnSize(self, event):
+        #indentlog("ignoreSyncWidget: %s" %wx.GetApp().ignoreSynchronizeWidget)
+        #indentlog("splitperc: %s" % self.blockItem.splitPercentage)
         if not wx.GetApp().ignoreSynchronizeWidget:
             
             newSize = self.GetSize()
@@ -215,6 +236,7 @@ class wxSplitterWindow(wx.SplitterWindow):
                 distance = self.blockItem.size.height
             else:
                 distance = self.blockItem.size.width
+            #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
             self.SetSashPosition (int (distance * self.blockItem.splitPercentage + 0.5))
         event.Skip()
 
@@ -232,6 +254,8 @@ class wxSplitterWindow(wx.SplitterWindow):
                 self.blockItem.splitPercentage = position / height
             else:
                 self.blockItem.splitPercentage = position / width
+            #indentlog("%sset splitperc to %s%s" %(util.autologging.BOLDGREEN, self.blockItem.splitPercentage, util.autologging.NORMAL))
+        event.Skip()
 
     def wxSynchronizeWidget(self):
         self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
@@ -263,6 +287,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Update any differences between the block and widget
         self.Freeze()
         if not self.IsSplit() and shouldSplit:
+            #indentlog("first time splitter creation: 2 win")
             """
               First time SplitterWindow creation with two windows or going between
             a split with one window to a split with two windows
@@ -283,6 +308,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             else:
                 self.Initialize (window2)
         else:
+            #indentlog("weird else block")
             if self.IsSplit() and not shouldSplit:
                 """
                   Going from two windows in a split to one window in a split.

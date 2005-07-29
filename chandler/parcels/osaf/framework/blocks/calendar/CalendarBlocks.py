@@ -196,17 +196,19 @@ class wxPreviewArea(wx.Panel):
         heightDelta = currentHeight - newHeight
         
         # need to do 2 resizings. Freeze/Thaw are in hopes of elminiating the
-        #repainting between them, but it doesn't seem to be doing much. The WX
-        #docs say they're only "hints".
+        # flicker between them, but it doesn't seem to be doing much. The WX
+        # docs say they're only "hints".
         
-        self.Freeze()
+        self.GetParent().GetParent().Freeze()
+        self.GetParent().Freeze()
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
         self.GetParent().Layout()
         
         #adjust splitter containing the box container
-        wxSplitter.SetSashPosition(wxSplitter.GetSashPosition() + heightDelta)
-        self.Thaw()
+        wxSplitter.MoveSash(wxSplitter.GetSashPosition() + heightDelta)
+        self.GetParent().Thaw()
+        self.GetParent().GetParent().Thaw()
         
     def wxSynchronizeWidget(self):
         if isMainCalendarVisible():
@@ -237,11 +239,15 @@ class wxPreviewArea(wx.Panel):
             self.ChangeHeightAndAdjustContainers(0)
             return
         
-        numLines = len(self.text.splitlines())
-        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 3)
         
         dc = wx.ClientDC(self)
         self.Draw(dc)
+        
+        numLines = len(self.text.splitlines())
+        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 3)
+        
+        
+        
 
     @staticmethod
     def SortForPreview(item1, item2):

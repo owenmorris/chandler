@@ -1261,7 +1261,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         #wxAllDay = list(list(self.childrenBlocks)[1].childrenBlocks)[0].widget
         #canvasSplitter = list(self.childrenBlocks)[1].widget
         #print canvasSplitter.GetSashPosition()
-        #canvasSplitter.SetSashPosition(wxAllDay.collapsedHeight)
+        #canvasSplitter.MoveSash(wxAllDay.collapsedHeight)
         
         #print 'bla'
 
@@ -1271,13 +1271,16 @@ class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
     def instantiateWidget(self):
         wxSplitter = super(CanvasSplitterWindow, self).instantiateWidget()
         
-        #we use a delegate because at this splitter's instantiateWidget time,
-        #it's unknown (to brendano anyway) whether calctrl's widget exists yet
+        #we use a proxy because at this splitter's instantiateWidget time,
+        #it's not wise to rely on calctrl's widget existence.
         wxSplitter.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
                         lambda event: self.parentBlock.calendarControl.widget.OnSashPositionChange(event))
     
         return wxSplitter
-        
+    def render(self):
+        #print 'start render of cvs splitter, splitperc =', self.splitPercentage
+        super(CanvasSplitterWindow, self).render()
+        #print 'end   render of cvs splitter, splitperc =', self.splitPercentage
 
 class AllDayEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
@@ -1448,7 +1451,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         """Expand to make all events visible, but never contract to do so."""
         currentHeight = self.GetSize()[1]
         if currentHeight < self.expandedHeight:
-            self.GetParent().SetSashPosition(self.expandedHeight)
+            self.GetParent().MoveSash(self.expandedHeight)
             self.blockItem.calendarContainer.calendarControl.widget.OnSashPositionChange()
 
     @staticmethod
@@ -2384,13 +2387,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         if currentHeight >= wxAllDay.collapsedHeight and \
            currentHeight < wxAllDay.expandedHeight:
             # Expand!
-            wxAllDay.GetParent().SetSashPosition(wxAllDay.expandedHeight)
+            wxAllDay.GetParent().MoveSash(wxAllDay.expandedHeight)
             wxAllDay.autoExpandMode = True
             self.OnSashPositionChange()
         elif currentHeight >= wxAllDay.expandedHeight:
             # Collapse, I guess
             wxAllDay.autoExpandMode = False
-            wxAllDay.GetParent().SetSashPosition(wxAllDay.collapsedHeight)
+            wxAllDay.GetParent().MoveSash(wxAllDay.collapsedHeight)
             self.OnSashPositionChange()
         #print wxAllDay.autoExpandMode, currentHeight, wxAllDay.collapsedHeight, wxAllDay.expandedHeight
         
@@ -2417,7 +2420,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         elif position - sashsize > wxAllDay.collapsedHeight:
             wxAllDay.autoExpandMode = True
             self.weekColumnHeader.SetBitmapRef(8, self.allDayCloseArrowImage)
-
+        
+        if event: event.Skip()
     
     def OnDaySelect(self, day):
         """callback when a specific day is selected from column header.

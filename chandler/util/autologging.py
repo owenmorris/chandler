@@ -7,17 +7,18 @@ usage: see the bottom of this file"""
 #@@@ should use the logging system...
 log = sys.stdout
 
+# Globally incremented across function calls, so tracks stack depth
 indent = 0
 indStr = '  '
 
 
 # ANSI escape codes for terminals.
-#  cygwin: run through |cat or |tee /dev/null and then colors work
+#  cygwin dosbox: run through |cat and then colors work
 #  linux: always works
 #  mac: untested
 # less -r  understands escape codes (even if in logfile).  Note that less is
-#  much higher performance on an xterm than cygwin dosbox or gnome terminal or
-#  some other consoles.
+#  much higher performance on xterm and putty than cygwin dosbox or gnome
+#  terminal or some other consoles.
 
 BLACK     =        "\033[0;30m"
 BLUE      =        "\033[0;34m"
@@ -39,6 +40,11 @@ WHITE     =        "\033[1;37m"
 NORMAL = "\033[0m"
 
 
+def indentlog(message):
+    global log, indStr, indent
+    print >>log, "%s%s" %(indStr*indent, message)
+    log.flush()
+
 def logmethod(methodname):
     def _method(self,*argl,**argd):
         global indent
@@ -57,12 +63,14 @@ def logmethod(methodname):
             selfstr = shortstr(self)
             
         #print >> log,"%s%s.  %s  (%s) " % (indStr*indent,selfstr,methodname,argstr)
-        print >> log,"%s%s.%s%s%s  (%s) " % (indStr*indent,selfstr,  BOLDRED,methodname,NORMAL, argstr)
+        indentlog("%s.%s%s%s  (%s) " % (selfstr,  BOLDRED,methodname,NORMAL, argstr))
         log.flush()
-        if methodname == 'OnSize':
-            print >> log, "%sposition, size = %s%s %s%s" %(indStr*indent, BOLDBLUE, self.GetPosition(), self.GetSize(), NORMAL)
+        
         indent += 1
         
+        if methodname == 'OnSize':
+            indentlog("position, size = %s%s %s%s" %(BOLDBLUE, self.GetPosition(), self.GetSize(), NORMAL))
+            
         # do the actual method call
         returnval = getattr(self,'_H_%s' % methodname)(*argl,**argd)
 
