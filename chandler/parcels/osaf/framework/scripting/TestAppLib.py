@@ -4,20 +4,6 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import wx
 import time
 
-def MouseLeftClick(block):
-    try:
-        widget = block.widget
-    except AttributeError:
-        _logger.warning("Can't get the widget of the block %s" % block)
-    else:
-        # down
-        left_down = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
-        widget.ProcessEvent(left_down)
-        # synchro
-        block.synchronizeWidget()
-        # up
-        left_up = wx.MouseEvent(wx.wxEVT_LEFT_UP)
-        widget.ProcessEvent(left_up)
 
 #def Keyboard_Return(block):
 #    try:
@@ -114,7 +100,6 @@ class CalendarEventByUI:
         Sgf.SummaryViewSelect(event)
         self.event = event
         self.logger.Stop() # stop the log
-
         # Check the detail view display
         self.Check_DetailView()
         self.logger.Report() # make the report
@@ -142,16 +127,12 @@ class CalendarEventByUI:
         Sgf.SummaryViewSelect(self.event)
         displayNameBlock = Sgf.DisplayName()
         # Emulate the mouse click in the display name block
-        MouseLeftClick(displayNameBlock)
-        # Give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(displayNameBlock)
         # Select the old text
         displayNameBlock.widget.SelectAll()
         # Emulate the keyboard events
         Sgf.Type(self.displayName)
-        displayNameBlock.saveValue()
         self.logger.Stop() # stop the log
-
         self.Check_DetailView() # check the detail view
         self.logger.Report() # make the report
         
@@ -160,23 +141,17 @@ class CalendarEventByUI:
         Sgf.SummaryViewSelect(self.event)
         startTimeBlock = Sgf.StartTime()
         # Emulate the mouse click in the start time block
-        MouseLeftClick(startTimeBlock)
-        # Give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(startTimeBlock)
         # Emulate the keyboard events
         Sgf.Type(startTime)
-        startTimeBlock.saveValue()
 
     def SetEndTime(self, endTime):
         Sgf.SummaryViewSelect(self.event)
         endTimeBlock = Sgf.EndTime()
         # Emulate the mouse click in the end time block
-        MouseLeftClick(endTimeBlock)
-        # Give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(endTimeBlock)
         # Emulate the keyboard events
         Sgf.Type(endTime)
-        endTimeBlock.saveValue()
 
     def SetStartDate(self, startDate):
         self.startDate = startDate # put into memory the expected value
@@ -184,15 +159,11 @@ class CalendarEventByUI:
         Sgf.SummaryViewSelect(self.event)
         startDateBlock = Sgf.StartDate()
         # Emulate the mouse click in the start date block
-        MouseLeftClick(startDateBlock)
-        # Give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(startDateBlock)
         # Emulate the keyboard events
         startDateBlock.widget.SelectAll()
         Sgf.Type(startDate)
-        startDateBlock.saveValue()
         #self.logger.Stop() # stop the log
-
         #self.Check_DetailView() # Check the detail view
         #self.logger.Report() # make the report
         
@@ -200,32 +171,24 @@ class CalendarEventByUI:
         Sgf.SummaryViewSelect(self.event)
         endDateBlock = Sgf.EndDate()
         # Emulate the mouse click in the end date block
-        MouseLeftClick(endDateBlock)
-        # give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(endDateBlock)
         # Emulate the keyboard events
         Sgf.Type(endDate)
-        endDateBlock.saveValue()
 
     def SetLocation(self, location):
         Sgf.SummaryViewSelect(self.event)
         locationBlock = Sgf.Location()
-        # Emulate the mouse click in the location block
-        MouseLeftClick(locationBlock)
-        # Give the yield to the app
-        wx.GetApp().Yield()
+        Sgf.LeftClick(locationBlock)
         # Select the old text
         locationBlock.widget.SelectAll()
         # Emulate the keyboard events
         Sgf.Type(location)
-        locationBlock.saveValue()
 
     def ClickAllDay(self):
         Sgf.SummaryViewSelect(self.event)
         allDayBlock = Sgf.AllDay()
         # Emulate the mouse click in the all-day block
-        MouseLeftClick(allDayBlock)
-        allDayBlock.saveValue()
+        Sgf.LeftClick(allDayBlock)
         
     def StampAsMailMessage(self):
         Sgf.SummaryViewSelect(self.event)

@@ -148,6 +148,26 @@ def Type(string, ctrlFlag = False, altFlag = False, shiftFlag = False):
             stringSuccess = stringSuccess and charSuccess
     return stringSuccess
 
+def LeftClick(block):
+    """ Simulates a left mouse click on the block or widget """
+    mouseEnter = _wx.MouseEvent(_wx.wxEVT_ENTER_WINDOW)
+    mouseDown = _wx.MouseEvent(_wx.wxEVT_LEFT_DOWN)
+    mouseDown.m_leftDown = True
+    mouseUp = _wx.MouseEvent(_wx.wxEVT_LEFT_UP)
+    mouseLeave = _wx.MouseEvent(_wx.wxEVT_LEAVE_WINDOW)
+    try:
+        widget =  block.widget
+    except AttributeError:
+        widget = block
+    mouseEnter.SetEventObject(widget)
+    mouseDown.SetEventObject(widget)
+    mouseUp.SetEventObject(widget)
+    mouseLeave.SetEventObject(widget)    
+    widget.ProcessEvent(mouseEnter)
+    widget.ProcessEvent(mouseDown)
+    widget.ProcessEvent(mouseUp)
+    widget.ProcessEvent(mouseLeave)
+    _wx.GetApp().Yield()
     
 """
 TO BE DONE
