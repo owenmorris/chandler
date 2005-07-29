@@ -319,6 +319,8 @@ class RepositoryView(object):
                 item = item.itsParent
             elif name == '.':
                 item = item
+            elif isinstance(name, UUID):
+                item = item.itsView.find(name, load)
             else:
                 item = item.getItemChild(name, load)
 
