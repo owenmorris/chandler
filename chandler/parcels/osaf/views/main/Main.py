@@ -583,11 +583,7 @@ class MainView(View):
         except Exception:
             self.LogTheException("Error scanning parcels.")
 
-        try:
-            theApp.LoadMainViewRoot (delete=True)
-        except Exception:
-            self.LogTheException("Exception Loading the Main View." )
-
+        theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
 
 
