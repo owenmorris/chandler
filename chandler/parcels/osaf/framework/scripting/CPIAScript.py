@@ -13,6 +13,7 @@ import KindShorthand
 import ScriptingGlobalFunctions
 from application import schema
 import wx
+import TestAppLib
 
 logger = logging.getLogger('CPIA Script')
 logger.setLevel(logging.INFO)
@@ -184,6 +185,7 @@ class ExecutableScript(object):
         # @@@DLD TBD - remove
         reload(ScriptingGlobalFunctions)
         reload(KindShorthand)
+        reload(TestAppLib)
 
         # add all the known BlockEvents as builtin functions
         self._BindCPIAEvents(self.itsView, builtIns)

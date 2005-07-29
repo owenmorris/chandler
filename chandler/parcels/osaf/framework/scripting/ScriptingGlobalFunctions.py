@@ -47,6 +47,26 @@ def EndTime():
     # The End time edit field of the Detail View
     return FindNamedBlock("EditCalendarEndTime")
 
+def DisplayName():
+    # The Display name block of the Detail View
+    return FindNamedBlock("HeadlineBlock")
+
+def Location():
+    # The Location block of the Detail View
+    return FindNamedBlock("AECalendarLocation")
+
+def StartDate():
+    # The Start date edit field of the Detail View
+    return FindNamedBlock("EditCalendarStartDate")
+
+def EndDate():
+    # The End date edit field of the Detail View
+    return FindNamedBlock("EditCalendarEndDate")
+
+def AllDay():
+    # The Allday block of the Detail View
+    return FindNamedBlock("EditAllDay")
+
 """
 Special functions, including wxWidgets-related operations
 
