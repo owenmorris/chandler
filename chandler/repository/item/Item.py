@@ -1558,6 +1558,7 @@ class Item(CItem):
                 raise RecursiveDeleteError, self
 
             view = self.getRepositoryView()
+            refs = self._references
 
             if hasattr(type(self), 'onItemDelete'):
                 self.onItemDelete(view)
@@ -1567,17 +1568,21 @@ class Item(CItem):
             others = []
 
             for child in self.iterChildren():
-                child.delete(recursive=True, deletePolicy=deletePolicy)
+                child.delete(True, deletePolicy)
 
-            for name in self._references.keys():
+            if 'monitors' in refs:
+                for monitor in self.monitors:
+                    monitor.delete(True, None, None, True)
+
+            for name in refs.keys():
                 policy = (deletePolicy or
                           self.getAttributeAspect(name, 'deletePolicy',
                                                   False, None, 'remove'))
                 if policy == 'cascade':
-                    value = self._references._getRef(name)
+                    value = refs._getRef(name)
                     if value is not None:
                         if value._isRefList():
-                            others.extend([other for other in value])
+                            others.extend(value)
                         else:
                             others.append(value)
 

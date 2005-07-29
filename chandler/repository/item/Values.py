@@ -534,7 +534,12 @@ class References(Values):
 
         self._removeRef(name, other)
         if not (other is None or other._isRefList()):
-            other._references._removeRef(otherName, self._item)
+            item = self._item
+            other._references._removeRef(otherName, item)
+            #initialValue = other.getAttributeAspect(otherName, 'initialValue',
+            #                                        False, None, item)
+            #if initialValue is not item:
+            #    other._references._setValue(otherName, initialValue, name)
 
     def _removeRef(self, name, other):
 

@@ -595,8 +595,7 @@ class Kind(Item):
 
                 values[name] = value
                 if not isNew:   # __setKind case
-                    item.setDirty(Item.VDIRTY, name,
-                                  attrDict=values, noMonitors=True)
+                    item.setDirty(Item.VDIRTY, name, values, True)
 
         for name, value in self._initialReferences.iteritems():
             if name not in references:
@@ -608,8 +607,7 @@ class Kind(Item):
                 else:
                     references._setValue(name, value, otherName)
                 if not isNew:   # __setKind case
-                    item.setDirty(Item.RDIRTY, name,
-                                  attrDict=references, noMonitors=True)
+                    item.setDirty(Item.RDIRTY, name, references, True)
 
     def flushCaches(self, reason, silent=False):
         """
