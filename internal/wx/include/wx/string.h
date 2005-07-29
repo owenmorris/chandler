@@ -1185,7 +1185,7 @@ public:
     { return (wxString&)wxStringBase::assign(first, last); }
 
     // string comparison
-#if !defined(HAVE_STD_STRING_COMPARE) 
+#if !defined(HAVE_STD_STRING_COMPARE)
   int compare(const wxStringBase& str) const;
     // comparison with a substring
   int compare(size_t nStart, size_t nLen, const wxStringBase& str) const;
@@ -1273,6 +1273,17 @@ public:
   wxString& operator+=(wxChar ch)
     { return (wxString&)wxStringBase::operator+=(ch); }
 };
+
+// IBM xlC compiler needs these operators to be declared in global scope,
+// although this shouldn't be a problem for the other compilers we prefer to
+// only do it for it in stable 2.6 branch
+#ifdef __IBMCPP__
+wxString WXDLLIMPEXP_BASE operator+(const wxString& string1,  const wxString& string2);
+wxString WXDLLIMPEXP_BASE operator+(const wxString& string, wxChar ch);
+wxString WXDLLIMPEXP_BASE operator+(wxChar ch, const wxString& string);
+wxString WXDLLIMPEXP_BASE operator+(const wxString& string, const wxChar *psz);
+wxString WXDLLIMPEXP_BASE operator+(const wxChar *psz, const wxString& string);
+#endif // __IBMCPP__
 
 // define wxArrayString, for compatibility
 #if WXWIN_COMPATIBILITY_2_4 && !wxUSE_STL
