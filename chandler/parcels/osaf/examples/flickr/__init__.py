@@ -233,7 +233,6 @@ class UpdateTask:
         self.view.commit()
         return True
 
-import osaf.framework.wakeup.WakeupCallerParcel as WakeupCallerParcel
 from osaf.framework.blocks.Block import BlockEvent
 from osaf.framework.blocks.DynamicContainerBlocks import MenuItem
 from osaf.startup import PeriodicTask
