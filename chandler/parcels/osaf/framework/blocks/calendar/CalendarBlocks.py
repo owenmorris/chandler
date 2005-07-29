@@ -195,15 +195,18 @@ class wxPreviewArea(wx.Panel):
         currentHeight = self.GetSize()[1]
         heightDelta = currentHeight - newHeight
         
-        # need to do 2 resizings.  Would be nice to do no painting between.
+        # need to do 2 resizings. Freeze/Thaw are in hopes of elminiating the
+        #repainting between them, but it doesn't seem to be doing much. The WX
+        #docs say they're only "hints".
         
+        self.Freeze()
         #adjust box container shared with minical.
         self.SetMinSize( (0, newHeight) )
         self.GetParent().Layout()
         
         #adjust splitter containing the box container
         wxSplitter.SetSashPosition(wxSplitter.GetSashPosition() + heightDelta)
-        
+        self.Thaw()
         
     def wxSynchronizeWidget(self):
         if isMainCalendarVisible():
