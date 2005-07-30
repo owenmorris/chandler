@@ -44,6 +44,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
     def _createRuleSetItem(self, freq):
         ruleItem = RecurrenceRule(None, view=self.rep.view)
         ruleItem.until = getattr(self, freq)['end']
+        ruleItem.untilIsDate = False
         if freq == 'weekly':
             self.assertEqual(ruleItem.freq, 'weekly', 
                              "freq should default to weekly")
@@ -77,7 +78,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         # make sure getNextOccurrence returns the same item when called twice
         self.assertEqual(second, self.event.getNextOccurrence())
         
-        third = self.event.getNextOccurrence(startsafter=secondStart)
+        third = second.getNextOccurrence()
         thirdStart = datetime(2005, 7, 18, 13)
         self.assertEqual(third.startTime, thirdStart)
         
@@ -86,7 +87,15 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assert_(fourth.isGenerated)
         self.assertEqual(fourth, third.getNextOccurrence())
         
+        # create a modification to be automatically deleted
+        fourth.displayName = "changed title"
+        
         second.cleanRule()
+        self.assertEqual(len(self.event.occurrences), 3)
+        
+        self.event.rruleset.rrules.first().until = thirdStart
+        
+        #changing the rule should delete our modified fourth
         self.assertEqual(len(self.event.occurrences), 2)
         
 
@@ -179,6 +188,23 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(self.event.icalUID, 
                          self.event.getNextOccurrence().icalUID)
 
+    def testRemoveRecurrence(self):
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        self.event.removeRecurrence()
+        self.assertEqual(len(self.event.occurrences), 1)
+        
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        second = self.event.getNextOccurrence()
+        second.removeRecurrence()
+        self.assertEqual(len(self.event.occurrences), 1)
+ 
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        third = self.event.getNextOccurrence().getNextOccurrence()
+        third.changeThisAndFuture('startTime', third.startTime + timedelta(hours=1))
+        third.removeRecurrence()
+        self.assertEqual(len(self.event.occurrences), 1)
+        self.assert_(third.isDeleted())
+        
     def testProxy(self):
         self.failIf(self.event.isProxy())
         
@@ -328,8 +354,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
 #tests to write:
 """
-
-test cleanRule deletes modifications after until
+test simultaneous events
 
 test getNextOccurrence with wacky duration stuff, date ordering issues
 

@@ -162,6 +162,16 @@ class RecurrenceRule(ContentModel.ContentItem):
     # unless their length is greater than 1.
     interpretedNames = "byhour", "byminute", "bysecond"
 
+    def calculatedUntil(self):
+        """Return until or until + 23:59, depending on untilIsDate."""
+        if self.untilIsDate:
+            if self.until is None:
+                return None
+            else:
+                return self.until.replace(hour=23, minute=59)
+        else:
+            return self.until
+
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rrule."""
         kwargs = dict((k, getattr(self, k)) for k in 
@@ -170,7 +180,7 @@ class RecurrenceRule(ContentModel.ContentItem):
             if getattr(self, key) is not None:
                 kwargs[key]=toDateUtil(getattr(self, key))
         if self.until is not None and self.untilIsDate:
-            kwargs['until'] = self.until.replace(hour=23, minute=59)
+            kwargs['until'] = self.calculatedUntil()
         rule = rrule(dtstart=dtstart, **kwargs)
         if not self.isCount or self.until is None:
             return rule

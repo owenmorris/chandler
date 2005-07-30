@@ -884,6 +884,11 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 item.hasLocalAttributeValue('endTime') and
                 (anyTimeTest and allDayTest) and
                 self.itemIsInRange(item, date, nextDate)):
+                # For the moment, master events can be overridden.  Until
+                # this is changed (which should happen soon), don't display
+                # events for which occurrenceFor is None.
+                if item.occurrenceFor is None:
+                    continue
                 yield item
 
     def getItemsInCurrentRange(self, *arguments, **keywords):

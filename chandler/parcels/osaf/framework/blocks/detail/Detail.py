@@ -1338,20 +1338,20 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         index = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
         return index
-
+    
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
         assert value != RecurrenceAttributeEditor.customIndex
         if value == RecurrenceAttributeEditor.onceIndex:
-            # @@@ Is this the right way to handle a change to "once"?
-            del item.rruleset
+            item.removeRecurrence()
         else:
             duFreq = Recurrence.toDateUtilFrequency(\
                 RecurrenceAttributeEditor.menuFrequencies[value])
-            rule = Recurrence.dateutil.rrule.rrule(duFreq)
-            item.setRuleFromDateUtil(rule)
-            item.rruleset.rrules.first().untilIsDate = True
-        self.AttributeChanged()
+            rruleset = Recurrence.RecurrenceRuleSet(None, view=item.itsView)
+            rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq))
+            rruleset.rrules.first().untilIsDate = True
+            item.changeThisAndFuture('rruleset', rruleset)
+        self.AttributeChanged()    
     
     def GetControlValue (self, control):
         """ Get the value for the current selection """ 

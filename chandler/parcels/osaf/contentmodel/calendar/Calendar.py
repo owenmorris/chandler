@@ -509,7 +509,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
         del new._ignoreValueChanges
         return new
 
-    def getNextOccurrence(self, startsafter=None, before=None):
+    def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
         
         If self is the only occurrence, or last occurrence, return None.  Note
@@ -517,31 +517,96 @@ class CalendarEventMixin(ContentModel.ContentItem):
         of events.
         
         """
+        # helper function
+        def checkModifications(first, before, nextEvent = None):
+            """Look for mods before nextEvent and before, and after "after"."""
+            if after is None:
+                # isBetween isn't quite what we want if after is None
+                def test(mod):
+                    return self.startTime < mod.startTime and \
+                           (before is None or mod.startTime < before)
+            else:
+                def test(mod):
+                    return mod.isBetween(after, before)
+            for mod in first.modifications or []:
+                if test(mod):
+                    if nextEvent==None:
+                        nextEvent = mod
+                        # finally, well-ordering requires that we sort by
+                        # recurrenceID if startTimes are equal
+                    elif mod.startTime <= nextEvent.startTime:
+                        if mod.startTime == nextEvent.startTime and \
+                           mod.recurrenceID >= nextEvent.recurrenceID:
+                            pass #this 
+                        else:
+                            # check to make sure mod isn't self, wacky things
+                            # like that happen when modifications are out of 
+                            # order.
+                            if after is None and mod == self:
+                                pass
+                            else:
+                                nextEvent = mod
+            return nextEvent
+        
+        # main getNextOccurrence logic
         if self.rruleset is None:
             return None
         else:
             first = self.getFirstInRule()
-            startsafter = startsafter or self.startTime
-            nextRecurrenceID=self.createDateUtilFromRule().after(startsafter)
-            if nextRecurrenceID == None:
-                return None
-            elif before is not None and nextRecurrenceID > before:
-                return None
-            # TODO: deal with modifications
-            # test if nextRecurrenceID matches a modification that actually
-            # occurred before now, if so, get a new recurrenceID
-            # find all modifications after startTime and before nextRecurrenceID
-            # if any exist, return the first one
-            for occurrence in first.occurrences:
-                if occurrence.recurrenceID == nextRecurrenceID:
-                    return occurrence
-            return self._createOccurrence(nextRecurrenceID)
+            # take duration into account if after is set
+            if after is not None:
+                earliest = after - first.duration
+            elif first == self: #recurrenceID means a different thing for first
+                earliest = self.startTime 
+            else:
+                earliest = min(self.recurrenceID, self.startTime)
+            while True:
+                nextRecurrenceID = self.createDateUtilFromRule().after(earliest)
+                if nextRecurrenceID == None or \
+                   (before != None and nextRecurrenceID > before):
+                    # no more generated occurrences, make sure no modifications
+                    # match
+                    return checkModifications(first, before)
+                                
+                # First, see if an occurrence for nextRecurrenceID exists.
+                calculated = None
+                for occurrence in first.occurrences:
+                    if occurrence.recurrenceID == nextRecurrenceID:
+                        calculated = occurrence
+                        break
+                    
+                # If no occurrence already exists, create one
+                if calculated is None:
+                    calculated = self._createOccurrence(nextRecurrenceID)
+
+                # now we have an event calculated from nextRecurrenceID.  It's
+                # actual startTime may be too early, or there may be a
+                # modification which is even earlier.
+                
+                if (after == None and calculated.startTime < self.startTime) or\
+                   (after != None and not calculated.isBetween(after, before)):
+                        # too early, but there may be a later modification
+                        mod = checkModifications(first, nextRecurrenceID)
+                        if mod is None:
+                            earliest = nextRecurrenceID
+                            continue
+                        else:
+                            return mod
+                else:
+                    final = checkModifications(first, before, calculated)
+                    if after is None and final == self:
+                        earliest = nextRecurrenceID
+                        continue
+                    else:
+                        return final
+
+
 
     def _generateRule(self, after=None, before=None):
         """Yield all occurrences in this rule."""
         event = first = self.getFirstInRule()
         if not first.isBetween(after, before):
-            event = first.getNextOccurrence(after - first.duration, before)
+            event = first.getNextOccurrence(after, before)        
         while event is not None:
             if event.isBetween(after, before):
                 yield event
@@ -565,7 +630,11 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
         first = self.getFirstInRule()
         if first != self: return first._getFirstGeneratedOccurrence(create)
-        
+
+        # make sure recurrenceID gets set for all masters
+        if self.recurrenceID is None:
+            self.recurrenceID = self.startTime
+
         if create:
             iter = self._generateRule()
         else:
@@ -632,7 +701,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
         #change the rule, onValueChanged will trigger cleanRule for previouMod
         for rule in previousMod.rruleset.getAttributeValue('rrules',default=[]):
-            if not rule.hasLocalAttributeValue('until') or rule.until > newend:
+            if not rule.hasLocalAttributeValue('until') or \
+               rule.calculatedUntil() > newend:
                 rule.until = newend
                 rule.untilIsDate = False
             previousMod.rruleset.rdates = [rdate for rdate in \
@@ -641,6 +711,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                            
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
+
         master = self.getMaster()
         first = self.getFirstInRule()
         self._ignoreValueChanges = True
@@ -688,7 +759,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                             
         # determine what type of change to make
         if attr in TIMECHANGES: # time related, thus a destructive change
-            self._cleanFuture()
+            self.cleanFuture()
             if self == master: # self is master, nothing to do
                 pass
             elif self.modifies is 'thisandfuture':
@@ -849,7 +920,9 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if first.hasLocalAttributeValue('modifications'):
             for mod in first.modifications:
                 if mod.modifies == 'this':
-                    if mod.recurrenceID > first.rruleset.rrules.first().until:
+                    # this won't work for complicated rrulesets
+                    if mod.recurrenceID > first.rruleset.rrules.first().calculatedUntil() \
+                       and mod != first:
                         mod._ignoreValueChanges = True
                         mod.delete()
                     
@@ -866,12 +939,14 @@ class CalendarEventMixin(ContentModel.ContentItem):
             if event == self: #don't delete self quite yet
                 continue
             event._ignoreValueChanges = True
-            event.delete()
-        self.rruleset._ignoreValueChanges = True
-        self.rruleset.delete()
-        self.delete()
+            event.delete(recursive=True)
 
-    def _cleanFuture(self):
+        self.rruleset._ignoreValueChanges = True
+        self.rruleset.delete(recursive=True)
+        self._ignoreValueChanges = True
+        self.delete(recursive=True)
+
+    def cleanFuture(self):
         """Delete all future occurrences and modifications."""
 
         def deleteLater(item):
@@ -880,17 +955,24 @@ class CalendarEventMixin(ContentModel.ContentItem):
                 item.delete()
                 
         master = self.getMaster()
-        for mod in master.modifications:
-            if mod.startTime > self.startTime:
-                mod._deleteThisAndFutureModification()
-            else:
-                for event in mod.occurrences:
-                    deleteLater(event)
+        for mod in master.modifications or []:
+            if mod.modifies == 'thisandfuture':
+                if mod.startTime > self.startTime:
+                        mod._deleteThisAndFutureModification()
+                else:
+                    for event in mod.occurrences or []:
+                        deleteLater(event)
         for event in master.occurrences:
             deleteLater(event)
                     
         self._getFirstGeneratedOccurrence(True)
-                
+        
+    def removeRecurrence(self):
+        master = self.getMaster()
+        del master.rruleset
+        master.cleanFuture()
+
+   
     def isCustomRule(self):
         """Determine if self.rruleset represents a custom rule.
         
