@@ -101,6 +101,7 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
 parcels
 util
+tools
 
 glob=*
 repository

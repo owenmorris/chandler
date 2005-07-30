@@ -105,6 +105,7 @@ exclude=.svn,*.pyo,*.pyc
 parcels
 exclude=.svn,tests,*.pyo,*.pyc
 util
+tools
 
 glob=*
 repository
