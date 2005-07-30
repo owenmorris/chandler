@@ -13,8 +13,6 @@ from repository.persistence.RepositoryError \
      RepositoryVersionError
 from repository.item.RefCollections import RefList
 
-from osaf.startup import run_reactor as initTwisted
-from osaf.startup import stop_reactor as stopTwisted
 
 # Increment this value whenever the schema changes and edit this comment (to
 # make sure Subversion knows you changed it, in case someone else changes it
@@ -327,6 +325,13 @@ def initCrypto(profileDir):
 def stopCrypto(profileDir):
     crypto.shutdown(profileDir)
 
+def initTwisted():
+    from osaf.startup import run_reactor
+    run_reactor()
+
+def stopTwisted():
+    from osaf.startup import stop_reactor
+    stop_reactor()
 
 def initWakeup(view):
     from osaf.startup import run_startup
