@@ -136,31 +136,33 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         view = self.itsView
         filters = self.share.filterAttributes
-        
+
         newItemParent = self.findPath("//userdata")
         eventKind = self.itsView.findPath(self._calendarEventPath)
         taskKind  = self.itsView.findPath(self._taskPath)
         textKind  = self.itsView.findPath(self._lobPath)
-        
-        if item is None:
-            item = ItemCollection.ItemCollection(view=view)
-        elif isinstance(item, Sharing.Share):
-            if item.contents is None:
-                item.contents = ItemCollection.ItemCollection(view=view)
-            item = item.contents
 
-        if not isinstance(item, ItemCollection.ItemCollection):
-            print "Only a share or an item collection can be passed in"
-            #@@@MOR Raise something
+        if self.fileStyle() == self.STYLE_SINGLE:
+            if item is None:
+                item = ItemCollection.ItemCollection(view=view)
+            elif isinstance(item, Sharing.Share):
+                if item.contents is None:
+                    item.contents = ItemCollection.ItemCollection(view=view)
+                item = item.contents
+
+            if not isinstance(item, ItemCollection.ItemCollection):
+                print "Only a share or an item collection can be passed in"
+                #@@@MOR Raise something
 
         input = StringIO.StringIO(text)
         calendar = vobject.readComponents(input, validate=True).next()
 
-        try:
-            calName = calendar.contents[u'x-wr-calname'][0].value
-        except:
-            calName = "Imported Calendar"
-        item.displayName = calName
+        if self.fileStyle() == self.STYLE_SINGLE:
+            try:
+                calName = calendar.contents[u'x-wr-calname'][0].value
+            except:
+                calName = "Imported Calendar"
+            item.displayName = calName
 
         countNew = 0
         countUpdated = 0
@@ -309,9 +311,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     if reminderDelta is not None:
                         eventItem.reminderTime = dt + reminderDelta
 
-                item.add(eventItem)
                 logger.debug("Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
+
+                if self.fileStyle() == self.STYLE_SINGLE:
+                    item.add(eventItem)
+                else:
+                    return eventItem
                  
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))

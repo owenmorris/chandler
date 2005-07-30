@@ -243,7 +243,7 @@ class wxApplication (wx.App):
           and stopped last.
         """
         if splash: splash.updateGauge('twisted')
-        self.__twistedReactorManager = Utility.initTwisted()
+        Utility.initTwisted()
 
         mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
         if (mainViewRoot.position.x == -1 and mainViewRoot.position.y == -1):
@@ -297,8 +297,7 @@ class wxApplication (wx.App):
 
 
         """Start the WakeupCaller Service"""
-        Globals.wakeupCaller = \
-            Utility.initWakeup(self.UIRepositoryView.repository)
+        Utility.initWakeup(self.UIRepositoryView.repository)
 
         """Start the Chandler Mail Service"""
         from osaf.mail.mailservice import MailService
@@ -571,9 +570,9 @@ class wxApplication (wx.App):
 
         Globals.mailService.shutdown()
 
-        Utility.stopWakeup(Globals.wakeupCaller)
+        Utility.stopWakeup()
 
-        Utility.stopTwisted(self.__twistedReactorManager)
+        Utility.stopTwisted()
 
         """
           Since Chandler doesn't have a save command and commits typically happen

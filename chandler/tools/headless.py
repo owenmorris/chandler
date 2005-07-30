@@ -16,8 +16,6 @@ from repository.persistence.DBRefs import DBRefList
 
 view = None
 app = None
-reactorManager = None
-wakeupCaller = None
 
 # This dictionary is a mapping of symbols that other modules might want
 # to use; it's populated by the @exportMethod decorator below.
@@ -69,20 +67,17 @@ def getExports(**kw):
 
 @exportMethod
 def go():
-    global reactorManager, wakeupCaller
 
     print "Igniting Twisted reactor..."
     view.commit()
-    reactorManager = Utility.initTwisted()
-    wakeupCaller = Utility.initWakeup(view)
+    Utility.initTwisted()
+    Utility.initWakeup(view)
     print "...ready"
 
 @exportMethod
 def shutdown():
-    if wakeupCaller is not None:
-        Utility.stopWakeup(wakeupCaller)
-    if reactorManager is not None:
-        Utility.stopTwisted(reactorManager)
+    Utility.stopWakeup()
+    Utility.stopTwisted()
     Utility.stopRepository(view)
     Utility.stopCrypto(Globals.options.profileDir)
 

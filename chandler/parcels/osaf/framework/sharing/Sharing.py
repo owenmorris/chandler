@@ -284,7 +284,7 @@ class ShareConduit(ContentModel.ContentItem):
                  prevVersion, externalItemExists))
                 data = self._putItem(item)
                 if data is not None:
-                    self.__addToManifest(item, data)
+                    self.__addToManifest(self._getItemPath(item), item, data)
                     logger.info("...done, data: %s, version: %d" %
                      (data, itemVersion))
             else:
@@ -405,9 +405,9 @@ class ShareConduit(ContentModel.ContentItem):
             (item, data) = self._getItem(itemPath, into)
 
             if item is not None:
-                self.__addToManifest(item, data)
-                logger.info("...imported '%s' %s, data: %s" % \
-                 (item.getItemDisplayName(), item, data))
+                self.__addToManifest(itemPath, item, data)
+                logger.info("...imported '%s' '%s' %s, data: %s" % \
+                 (itemPath, item.getItemDisplayName(), item, data))
                 return item
 
             logger.info("...NOT able to import '%s'" % itemPath)
@@ -461,16 +461,19 @@ class ShareConduit(ContentModel.ContentItem):
         sharingSelf.__resetSeen()
 
         itemPath = sharingSelf._getItemPath(sharingSelf.share)
-        item = sharingSelf.__conditionalGetItem(itemPath,
-                                                into=sharingSelf.share)
+        if itemPath:
+            item = sharingSelf.__conditionalGetItem(itemPath,
+                                                    into=sharingSelf.share)
+            if item is not None:
+                retrievedItems.append(item)
+            sharingSelf.__setSeen(itemPath)
+            try:
+                del sharingSelf.resourceList[itemPath]
+            except:
+                pass
 
-        if item is not None:
-            retrievedItems.append(item)
-        sharingSelf.__setSeen(itemPath)
-        try:
-            del sharingSelf.resourceList[itemPath]
-        except:
-            pass
+        if sharingSelf.share.contents is None:
+            sharingSelf.share.contents = ItemCollection(view=sharingView)
 
         # If share.contents is an ItemCollection, treat other resources as
         # items to add to the collection:
@@ -561,7 +564,26 @@ class ShareConduit(ContentModel.ContentItem):
             share, such as a URL path or a filesystem path.  These strings
             will be used for accessing the manifest and resourceList dicts.
         """
-        pass
+        extension = self.share.format.extension(item)
+        style = self.share.format.fileStyle()
+        if style == ImportExportFormat.STYLE_DIRECTORY:
+            if isinstance(item, Share):
+                path = self.share.format.shareItemPath()
+            else:
+                for (path, record) in self.manifest.iteritems():
+                    if record['uuid'] == item.itsUUID:
+                        return path
+                    
+                path = "%s.%s" % (item.itsUUID, extension)
+                self.manifest[path] = {'uuid':item.itsUUID, 'data':None}
+            return path
+
+        elif style == ImportExportFormat.STYLE_SINGLE:
+            return self.shareName
+
+        else:
+            print "@@@MOR Raise an exception here"
+
 
     def _getResourceList(self, location):
         """ Return a dictionary representing what items exist in the remote
@@ -598,9 +620,8 @@ class ShareConduit(ContentModel.ContentItem):
     def __clearManifest(self):
         self.manifest = {}
 
-    def __addToManifest(self, item, data):
+    def __addToManifest(self, path, item, data):
         # data is an ETAG, or last modified date
-        path = self._getItemPath(item)
         self.manifest[path] = {
          'uuid' : item.itsUUID,
          'data' : data,
@@ -685,7 +706,6 @@ class FileSystemConduit(ShareConduit):
 
     schema.kindInfo(displayName="File System Share Conduit Kind")
 
-    SHAREFILE = "share.xml"
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  sharePath=None, shareName=None):
@@ -708,23 +728,7 @@ class FileSystemConduit(ShareConduit):
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured()
-
-    def _getItemPath(self, item): # must implement
-        extension = self.share.format.extension(item)
-        style = self.share.format.fileStyle()
-        if style == ImportExportFormat.STYLE_DIRECTORY:
-            if isinstance(item, Share):
-                fileName = self.SHAREFILE
-            else:
-                fileName = "%s.%s" % (item.itsUUID, extension)
-            return fileName
-
-        elif style == ImportExportFormat.STYLE_SINGLE:
-            return self.shareName
-
-        else:
-            print "@@@MOR Raise an exception here"
-
+        
     def _putItem(self, item): # must implement
         path = self.__getItemFullPath(self._getItemPath(item))
         
@@ -928,27 +932,7 @@ class WebDAVConduit(ShareConduit):
         url = urlparse.urljoin(url, self.shareName)
         return url
 
-    def _getItemPath(self, item): # must implement
-        """ Return the path (not the full url) of an item given its external
-        UUID """
-
-        extension = self.share.format.extension(item)
-        style = self.share.format.fileStyle()
-        if style == ImportExportFormat.STYLE_DIRECTORY:
-            if isinstance(item, Share):
-                path = "share.xml"
-                return path
-            else:
-                path = "%s.%s" % (item.itsUUID, extension)
-                return path
-
-        elif style == ImportExportFormat.STYLE_SINGLE:
-            path = self.shareName
-            return path
-
-        else:
-            print "Error" #@@@MOR Raise something
-
+   
     def __getSharePath(self):
         return "/" + self.__getSettings()[2]
 
@@ -1405,6 +1389,9 @@ class ImportExportFormat(ContentModel.ContentItem):
         """ Should return 'single' or 'directory' """
         pass
 
+    def shareItemPath(self):
+        return None
+
 
 class CloudXMLFormat(ImportExportFormat):
 
@@ -1422,6 +1409,9 @@ class CloudXMLFormat(ImportExportFormat):
 
     def extension(self, item):
         return "xml"
+
+    def shareItemPath(self):
+        return "share.xml"
 
     def importProcess(self, text, extension=None, item=None):
         doc = libxml2.parseDoc(text)
