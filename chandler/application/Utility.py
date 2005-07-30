@@ -19,7 +19,7 @@ from osaf.startup import stop_reactor as stopTwisted
 # Increment this value whenever the schema changes and edit this comment (to
 # make sure Subversion knows you changed it, in case someone else changes it
 # at about the same time)....
-SCHEMA_VERSION = "38"
+SCHEMA_VERSION = "39"
 
 logger = None # initialized in initLogging()
 
