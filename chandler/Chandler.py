@@ -14,22 +14,14 @@ from application.Application import SchemaMismatchError
 def main():
     message = "while trying to start."
 
-    """
-    Find the directory that Chandler lives in by looking up the file that
-    the application module lives in.
-    """
-    pathComponents = sys.modules['application'].__file__.split(os.sep)
-    assert len(pathComponents) > 3
-    chandlerDirectory = os.sep.join(pathComponents[0:-2])
+    application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
 
-    application.Globals.chandlerDirectory = chandlerDirectory
-
-    os.chdir(chandlerDirectory)
+    os.chdir(application.Globals.chandlerDirectory)
 
     """
     Process any command line switches and any environment variable values
     """
-    application.Globals.options = Utility.initOptions(chandlerDirectory)
+    application.Globals.options = Utility.initOptions(application.Globals.chandlerDirectory)
 
     def realMain():
         if __debug__ and application.Globals.options.wing:

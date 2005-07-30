@@ -180,7 +180,11 @@ def initLogging(logFile):
 
 
 def locateChandlerDirectory():
-    return os.getenv('CHANDLERHOME')
+    """
+    Find the directory that Chandler lives in by looking up the file that
+    the application module lives in.
+    """
+    return os.path.dirname(os.path.dirname(__file__))
 
 
 def locateRepositoryDirectory(profileDir):
