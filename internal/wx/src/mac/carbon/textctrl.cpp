@@ -1081,13 +1081,13 @@ void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
     if (m_privateContextMenu == NULL)
     {
         m_privateContextMenu = new wxMenu;
-        m_privateContextMenu->Append(wxID_UNDO, wxT("&Undo"));
-        m_privateContextMenu->Append(wxID_REDO, wxT("&Redo"));
+        m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));
+        m_privateContextMenu->Append(wxID_REDO, _("&Redo"));
         m_privateContextMenu->AppendSeparator();
-        m_privateContextMenu->Append(wxID_CUT, wxT("Cu&t"));
-        m_privateContextMenu->Append(wxID_COPY, wxT("&Copy"));
-        m_privateContextMenu->Append(wxID_PASTE, wxT("&Paste"));
-        m_privateContextMenu->Append(wxID_CLEAR, wxT("&Delete"));
+        m_privateContextMenu->Append(wxID_CUT, _("Cu&t"));
+        m_privateContextMenu->Append(wxID_COPY, _("&Copy"));
+        m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
+        m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
         m_privateContextMenu->AppendSeparator();
         m_privateContextMenu->Append(wxID_SELECTALL, wxT("Select &All"));
     }
