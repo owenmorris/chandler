@@ -8,6 +8,7 @@ import application.Globals as Globals
 from application import schema
 import flickr
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.framework.blocks.Block as Block
@@ -59,7 +60,7 @@ class FlickrPhotoMixin(Photos.PhotoMixin):
             print "tags failed", e
         self.importFromURL(self.imageURL)
 
-class FlickrPhoto(FlickrPhotoMixin):
+class FlickrPhoto(FlickrPhotoMixin, Notes.Note):
     schema.kindInfo(displayName = "Flickr Photo")
 
     

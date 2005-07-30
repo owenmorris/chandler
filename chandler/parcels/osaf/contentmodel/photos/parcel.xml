@@ -11,55 +11,23 @@
     <!-- Block definitions for detail view -->
     <detail:DetailTrunkSubtree itsName="PhotoSubtree">
         <key itemref="photos:PhotoMixin"/>
-        <rootBlocks itemref="detail:TopSpacer"/>
-        <rootBlocks itemref="detail:MarkupBar"/>
-        <rootBlocks itemref="detail:HeadlineArea"/>
-        <rootBlocks itemref="photos:PhotoDetailsSpacer"/>
-        <rootBlocks itemref="photos:PhotoDetails"/>
+        <rootBlocks itemref="photos:PhotoImage"/>
     </detail:DetailTrunkSubtree>
-
-    <blocks:StaticText itsName="PhotoDetailsSpacer">
-        <blockName value="PhotoDetailsSpacer"/>
-        <title></title>
-        <position>0.84999</position>
-        <characterStyle itemref="blocks:LabelStyle"/>
-        <stretchFactor>0.0</stretchFactor>
-        <minimumSize>-1, 5</minimumSize>
-    </blocks:StaticText>
-
-    <blocks:ContentItemDetail itsName="PhotoDetails">
-        <blockName value="PhotoDetails"/>
-        <orientationEnum>Vertical</orientationEnum>
-        <position>.85</position>
-        <childrenBlocks itemref="photos:PhotoImage"/>
-        <childrenBlocks itemref="photos:DescriptionArea"/>
-    </blocks:ContentItemDetail>
 
     <blocks:AEBlock itsName="PhotoImage"
         itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
         <blockName value="AEPhotoImage"/>
-        <viewAttribute value="body"/>
+        <viewAttribute value="photoBody"/>
+        <position>0.86</position>
         <border>2, 2, 2, 2</border>
         <presentationStyle itemref="photos:PhotoImagePresentation"/>
+        <!--
         <stretchFactor>7</stretchFactor>
+        -->
     </blocks:AEBlock>
 
     <blocks:PresentationStyle itsName="PhotoImagePresentation">
         <format value="Image"/>
     </blocks:PresentationStyle>
-
-    <blocks:AEBlock itsName="DescriptionArea"
-        itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
-        <blockName value="AEDescriptionArea"/>
-        <viewAttribute value="description"/>
-        <border>2, 2, 2, 2</border>
-        <presentationStyle itemref="photos:DescriptionAreaPresentation"/>
-        <stretchFactor>3</stretchFactor>
-    </blocks:AEBlock>
-
-    <blocks:PresentationStyle itsName="DescriptionAreaPresentation">
-        <lineStyleEnum value="MultiLine" />
-    </blocks:PresentationStyle>
-
 
 </Parcel>

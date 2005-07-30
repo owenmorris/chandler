@@ -6,6 +6,7 @@ __parcel__ = "osaf.contentmodel.photos"
 
 import urllib, time, datetime, cStringIO, logging, mimetypes
 import osaf.contentmodel.ContentModel as ContentModel
+from osaf.contentmodel.Notes import Note
 import osaf.mail.utils as utils
 from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
@@ -21,33 +22,36 @@ class PhotoMixin(ContentModel.ContentItem):
     dateTaken = schema.One(schema.DateTime, displayName="taken")
     file = schema.One(schema.String)
     exif = schema.Mapping(schema.String, initialValue={})
+    photoBody = schema.One(schema.Lob)
 
     about = schema.One(redirectTo = 'displayName')
     date = schema.One(redirectTo = 'dateTaken')
     who = schema.One(redirectTo = 'creator')
 
-    schema.addClouds(sharing = schema.Cloud(dateTaken))
+    schema.addClouds(sharing = schema.Cloud(dateTaken, photoBody))
 
     def importFromFile(self, path):
         data = file(path, "rb").read()
         (mimeType, encoding) = mimetypes.guess_type(path)
-        self.body = utils.dataToBinary(self, 'body', data, mimeType=mimeType)
+        self.photoBody = utils.dataToBinary(self, 'photoBody', data,
+                                            mimeType=mimeType)
 
     def importFromURL(self, url):
         if isinstance(url, URL):
             url = str(url)
         data = urllib.urlopen(url).read()
         (mimeType, encoding) = mimetypes.guess_type(url)
-        self.body = utils.dataToBinary(self, 'body', data, mimeType=mimeType)
+        self.photoBody = utils.dataToBinary(self, 'photoBody', data,
+                                            mimeType=mimeType)
 
     def exportToFile(self, path):
-        data = utils.binaryToData(self.body)
+        data = utils.binaryToData(self.photoBody)
         out = file(path, "wb")
         out.write(data)
         out.close()
 
     def processEXIF(self):
-        input = self.body.getInputStream()
+        input = self.photoBody.getInputStream()
         data = input.read()
         input.close()
         stream = cStringIO.StringIO(data)
@@ -69,9 +73,9 @@ class PhotoMixin(ContentModel.ContentItem):
                 (self.itsPath, e))
 
     def onValueChanged(self, attribute):
-        if attribute == "body":
+        if attribute == "photoBody":
             self.processEXIF()
 
 
-class Photo(PhotoMixin):
+class Photo(PhotoMixin, Note):
     schema.kindInfo(displayName = "Photo")

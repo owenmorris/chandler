@@ -468,7 +468,8 @@ class MainView(View):
         photo.displayName = filename
         photo.importFromFile(path)
         self.setStatusMessage("")
-        self.addItemToAllCollection(photo)
+        # No longer needed since Photo is a Note
+        # self.addItemToAllCollection(photo)
 
         # Tell the sidebar we want to go to the All collection
         self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})

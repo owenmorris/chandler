@@ -8,6 +8,7 @@ from osaf.contentmodel.mail.Mail import (IMAPAccount, POPAccount, SMTPAccount,
                                          EmailAddress)
 from application.Parcel import Reference
 from osaf.contentmodel.ItemCollection import ItemCollection
+from repository.schema.Types import Lob
 
 def installParcel(parcel, oldVersion=None):
 
@@ -99,9 +100,21 @@ def installParcel(parcel, oldVersion=None):
                           displayName=u'Trash',
                           renameable=False)
     
-    Photo.update(parcel, 'WelcomePhoto',
+    welcome = Photo.update(parcel, 'WelcomePhoto',
       displayName=u'Welcome to Chandler 0.5',
-      description=u"""Welcome to the Chandler 0.5 Release!
+      dateTaken=datetime.datetime.now(),
+      creator=Contact.update(parcel, 'OSAFContact',
+                             emailAddress=u'dev@osafoundation.org',
+                             contactName=ContactName.update(parcel,
+                                    'OSAFContactName',
+                                    firstName=u'OSAF',
+                                    lastName=u'Development')
+                            )
+     )
+    welcome.importFromFile(os.path.join(os.path.dirname(__file__),
+        "TeamOSAF.jpg"))
+
+    body = u"""Welcome to the Chandler 0.5 Release!
 
 Chandler 0.5 contains support for early adopter developers who want to start building parcels. For example, developers now can create form-based parcels extending the kinds of information that Chandler manages. This release also brings significant improvements to infrastructure areas such as sharing, and to overall performance and reliability.
 
@@ -120,13 +133,6 @@ Please note, this release is still intended to be experimental, do not trust you
 Thank you for trying Chandler. Your feedback is welcome on our mail lists:
     http://wiki.osafoundation.org/bin/view/Chandler/OsafMailingLists
 
-The Chandler Team""",
-      dateTaken=datetime.datetime.now(),
-      creator=Contact.update(parcel, 'OSAFContact',
-                             emailAddress=u'dev@osafoundation.org',
-                             contactName=ContactName.update(parcel,
-                                    'OSAFContactName',
-                                    firstName=u'OSAF',
-                                    lastName=u'Development')
-                            )
-     ).importFromFile(os.path.join(os.path.dirname(__file__),"TeamOSAF.jpg"))
+The Chandler Team"""
+
+    welcome.body = welcome.getAttributeAspect('body', 'type').makeValue(body)
