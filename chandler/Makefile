@@ -27,12 +27,12 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-1.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-4.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-282-1.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
-         $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.2-32-1.tar.gz \
+         $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.3-42-1.tar.gz \
          $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-3.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-2.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
          $(CHANDLERARCHIVES)/twisted-$(SNAP)-r13651-9.tar.gz \
-         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-3.tar.gz \
+         $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.6.2.0-4.tar.gz \
          $(CHANDLERARCHIVES)/yapps-$(SNAP)-2.1.1-3.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.1-2.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.9-1.tar.gz \
