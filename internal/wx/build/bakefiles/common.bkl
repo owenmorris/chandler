@@ -238,13 +238,13 @@
     </set>
 
     <set var="RTTI_DEFINE">
-    	<if cond="USE_RTTI=='0'">wxNO_RTTI</if>
+        <if cond="USE_RTTI=='0'">wxNO_RTTI</if>
     </set>
     <set var="EXCEPTIONS_DEFINE">
-    	<if cond="USE_EXCEPTIONS=='0'">wxNO_EXCEPTIONS</if>
+        <if cond="USE_EXCEPTIONS=='0'">wxNO_EXCEPTIONS</if>
     </set>
     <set var="THREAD_DEFINE">
-    	<if cond="USE_THREADS=='0'">wxNO_THREADS</if>
+        <if cond="USE_THREADS=='0'">wxNO_THREADS</if>
     </set>
 
     <set var="DEBUG_DEFINE">
@@ -258,6 +258,9 @@
     </set>
     <set var="UNICODE_DEFINE">
         <if cond="FORMAT!='autoconf' and UNICODE=='1'">_UNICODE</if>
+    </set>
+    <set var="MSLU_DEFINE">
+        <if cond="FORMAT!='autoconf' and MSLU=='1'">wxUSE_UNICODE_MSLU=1</if>
     </set>
 
     <!-- fill for the specific case of the format/compiler -->
@@ -398,6 +401,7 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
         <define>$(RTTI_DEFINE)</define>
         <define>$(THREAD_DEFINE)</define>
         <define>$(UNICODE_DEFINE)</define>
+        <define>$(MSLU_DEFINE)</define>
         <!-- this include is added by configure, we need to put other
              includes before it: -->
         <include cond="FORMAT!='autoconf'">$(TOP_SRCDIR)include</include>
@@ -533,7 +537,7 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
         <dllname>$(WXDLLNAME)</dllname>
         <version>$(WX_VERSION)</version>
         <so_version>$(WXSOVERSION)</so_version>
-    
+
         <!-- FIXME: until libtool scheme is implemented in bakefile -->
         <ldflags cond="FORMAT=='autoconf'">$(WXMACVERSION_CMD)</ldflags>
 
