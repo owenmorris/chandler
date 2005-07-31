@@ -70,13 +70,13 @@ static void gtk_scrollbar_callback( GtkAdjustment *adjust,
     // throw a LINEUP / LINEDOWN event if necessary
     if (g_currentUpDownEvent != wxEVT_NULL)
     {
-        wxScrollEvent event( g_currentUpDownEvent, win->GetId(), value, orient );   
+        wxScrollEvent event( g_currentUpDownEvent, win->GetId(), value, orient );
         event.SetEventObject( win );
         win->GetEventHandler()->ProcessEvent( event );
-      }
-    
-	// throw other event (wxEVT_SCROLL_THUMBTRACK)
-	wxScrollEvent event( command, win->GetId(), value, orient );
+    }
+
+    // throw other event (wxEVT_SCROLL_THUMBTRACK)
+    wxScrollEvent event( command, win->GetId(), value, orient );
     event.SetEventObject( win );
     win->GetEventHandler()->ProcessEvent( event );
 
@@ -104,9 +104,9 @@ static gint gtk_scrollbar_button_press_callback( GtkRange *widget,
     {
         int scroll_height, mouse_pos;
 
-        // get the mouse position when the click is done 
-        if (win->HasFlag(wxSB_VERTICAL))        
-        {   
+        // get the mouse position when the click is done
+        if (win->HasFlag(wxSB_VERTICAL))
+        {
             scroll_height = GTK_WIDGET(widget)->allocation.height - 16;
             mouse_pos = (int)gdk_event->y;
         }
@@ -115,7 +115,7 @@ static gint gtk_scrollbar_button_press_callback( GtkRange *widget,
             scroll_height = GTK_WIDGET(widget)->allocation.width - 16;
             mouse_pos = (int)gdk_event->x;
         }
-	
+
         // compare mouse position to scrollbar height
         if  (mouse_pos > scroll_height)
             g_currentUpDownEvent = wxEVT_SCROLL_LINEDOWN;

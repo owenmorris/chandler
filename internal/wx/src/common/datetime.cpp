@@ -3005,12 +3005,12 @@ static wxString GetLocaleDateFormat()
 
                             fmtWX += *p;
                         }
-            }
+                }
 
                 if ( *p == _T('\0') )
                     break;
-                }
             }
+        }
         //else: GetLocaleInfo() failed, leave fmtDate value unchanged and
         //      try our luck with the default formats
     }
@@ -3393,17 +3393,17 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     if ( fmtDate.empty() )
 #endif
                     {
-                    if ( IsWestEuropeanCountry(GetCountry()) ||
-                         GetCountry() == Russia )
-                    {
-                        fmtDate = _T("%d/%m/%y");
-                        fmtDateAlt = _T("%m/%d/%y");
-                    }
-                    else // assume USA
-                    {
-                        fmtDate = _T("%m/%d/%y");
-                        fmtDateAlt = _T("%d/%m/%y");
-                    }
+                        if ( IsWestEuropeanCountry(GetCountry()) ||
+                             GetCountry() == Russia )
+                        {
+                            fmtDate = _T("%d/%m/%y");
+                            fmtDateAlt = _T("%m/%d/%y");
+                        }
+                        else // assume USA
+                        {
+                            fmtDate = _T("%m/%d/%y");
+                            fmtDateAlt = _T("%d/%m/%y");
+                        }
                     }
 
                     const wxChar *result = dt.ParseFormat(input, fmtDate);

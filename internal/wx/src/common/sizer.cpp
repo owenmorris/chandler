@@ -395,7 +395,7 @@ void wxSizerItem::DeleteWindows()
             m_window->Destroy();
             //Putting this after the switch will result in a spacer
             //not being deleted properly on destruction
-            m_kind = Item_None; 
+            m_kind = Item_None;
             break;
 
         case Item_Sizer:
@@ -1889,7 +1889,7 @@ void wxStdDialogButtonSizer::Realize()
             Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonHelp->ConvertDialogToPixels(wxSize(2, 0)).x);
 #else
         // GTK+1 and any other platform
-        
+
         // Add(0, 0, 0, wxLEFT, 5); // Not sure what this was for but it unbalances the dialog
         if (m_buttonHelp)
             Add((wxWindow*)m_buttonHelp, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, m_buttonHelp->ConvertDialogToPixels(wxSize(4, 0)).x);

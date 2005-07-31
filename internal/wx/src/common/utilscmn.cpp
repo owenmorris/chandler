@@ -122,13 +122,13 @@
 wxChar *
 copystring (const wxChar *s)
 {
-  if (s == NULL) s = wxEmptyString;
-  size_t len = wxStrlen (s) + 1;
+    if (s == NULL) s = wxEmptyString;
+    size_t len = wxStrlen (s) + 1;
 
-  wxChar *news = new wxChar[len];
-  memcpy (news, s, len * sizeof(wxChar));    // Should be the fastest
+    wxChar *news = new wxChar[len];
+    memcpy (news, s, len * sizeof(wxChar));    // Should be the fastest
 
-  return news;
+    return news;
 }
 
 #endif // WXWIN_COMPATIBILITY_2_4
@@ -145,65 +145,65 @@ WXDLLIMPEXP_DATA_BASE(const wxChar *) wxDoubleToStringStr = wxT("%.2f");
 void
 StringToFloat (const wxChar *s, float *number)
 {
-  if (s && *s && number)
-    *number = (float) wxStrtod (s, (wxChar **) NULL);
+    if (s && *s && number)
+        *number = (float) wxStrtod (s, (wxChar **) NULL);
 }
 
 void
 StringToDouble (const wxChar *s, double *number)
 {
-  if (s && *s && number)
-    *number = wxStrtod (s, (wxChar **) NULL);
+    if (s && *s && number)
+        *number = wxStrtod (s, (wxChar **) NULL);
 }
 
 wxChar *
 FloatToString (float number, const wxChar *fmt)
 {
-  static wxChar buf[256];
+    static wxChar buf[256];
 
-  wxSprintf (buf, fmt, number);
-  return buf;
+    wxSprintf (buf, fmt, number);
+    return buf;
 }
 
 wxChar *
 DoubleToString (double number, const wxChar *fmt)
 {
-  static wxChar buf[256];
+    static wxChar buf[256];
 
-  wxSprintf (buf, fmt, number);
-  return buf;
+    wxSprintf (buf, fmt, number);
+    return buf;
 }
 
 void
 StringToInt (const wxChar *s, int *number)
 {
-  if (s && *s && number)
-    *number = (int) wxStrtol (s, (wxChar **) NULL, 10);
+    if (s && *s && number)
+        *number = (int) wxStrtol (s, (wxChar **) NULL, 10);
 }
 
 void
 StringToLong (const wxChar *s, long *number)
 {
-  if (s && *s && number)
-    *number = wxStrtol (s, (wxChar **) NULL, 10);
+    if (s && *s && number)
+        *number = wxStrtol (s, (wxChar **) NULL, 10);
 }
 
 wxChar *
 IntToString (int number)
 {
-  static wxChar buf[20];
+    static wxChar buf[20];
 
-  wxSprintf (buf, wxT("%d"), number);
-  return buf;
+    wxSprintf (buf, wxT("%d"), number);
+    return buf;
 }
 
 wxChar *
 LongToString (long number)
 {
-  static wxChar buf[20];
+    static wxChar buf[20];
 
-  wxSprintf (buf, wxT("%ld"), number);
-  return buf;
+    wxSprintf (buf, wxT("%ld"), number);
+    return buf;
 }
 
 #endif // WXWIN_COMPATIBILITY_2_4
@@ -214,29 +214,29 @@ static wxChar hexArray[] = wxT("0123456789ABCDEF");
 // Convert 2-digit hex number to decimal
 int wxHexToDec(const wxString& buf)
 {
-  int firstDigit, secondDigit;
+    int firstDigit, secondDigit;
 
-  if (buf.GetChar(0) >= wxT('A'))
-    firstDigit = buf.GetChar(0) - wxT('A') + 10;
-  else
-    firstDigit = buf.GetChar(0) - wxT('0');
+    if (buf.GetChar(0) >= wxT('A'))
+        firstDigit = buf.GetChar(0) - wxT('A') + 10;
+    else
+       firstDigit = buf.GetChar(0) - wxT('0');
 
-  if (buf.GetChar(1) >= wxT('A'))
-    secondDigit = buf.GetChar(1) - wxT('A') + 10;
-  else
-    secondDigit = buf.GetChar(1) - wxT('0');
+    if (buf.GetChar(1) >= wxT('A'))
+        secondDigit = buf.GetChar(1) - wxT('A') + 10;
+    else
+        secondDigit = buf.GetChar(1) - wxT('0');
 
-  return (firstDigit & 0xF) * 16 + (secondDigit & 0xF );
+    return (firstDigit & 0xF) * 16 + (secondDigit & 0xF );
 }
 
 // Convert decimal integer to 2-character hex string
 void wxDecToHex(int dec, wxChar *buf)
 {
-  int firstDigit = (int)(dec/16.0);
-  int secondDigit = (int)(dec - (firstDigit*16.0));
-  buf[0] = hexArray[firstDigit];
-  buf[1] = hexArray[secondDigit];
-  buf[2] = 0;
+    int firstDigit = (int)(dec/16.0);
+    int secondDigit = (int)(dec - (firstDigit*16.0));
+    buf[0] = hexArray[firstDigit];
+    buf[1] = hexArray[secondDigit];
+    buf[2] = 0;
 }
 
 // Convert decimal integer to 2-character hex string

@@ -168,9 +168,7 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
         }
         else
         {
-#ifndef __WXMAC_OSX__
-           pt.y += h;
-#endif
+            pt.y += h;
         }
     }
 #endif // wxUSE_TOOLBAR

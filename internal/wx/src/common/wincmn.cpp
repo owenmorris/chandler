@@ -216,7 +216,7 @@ wxWindowBase::wxWindowBase()
 
     // VZ: this one shouldn't exist...
     m_isBeingDeleted = false;
-    
+
     // Reserved for future use
     m_windowReserved = NULL;
 }
@@ -687,7 +687,7 @@ wxSize wxWindowBase::DoGetBestSize() const
             wxConstCast(this, wxWindowBase)->SetMinSize(GetSize());
 
         // return as-is, unadjusted by the client size difference.
-            return GetMinSize();
+        return GetMinSize();
     }
 
     // Add any difference between size and client size

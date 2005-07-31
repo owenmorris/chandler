@@ -960,8 +960,8 @@ void wxGnomePrintDC::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,d
         gs_lgp->gnome_print_moveto ( m_gpc, xx, yy );
         
         gs_lgp->gnome_print_fill( m_gpc );
-}
-
+    }
+    
     if (m_pen.GetStyle () != wxTRANSPARENT)
     {
         SetPen (m_pen);

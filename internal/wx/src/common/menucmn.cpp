@@ -289,7 +289,7 @@ wxAcceleratorEntry *wxGetAccelFromString(const wxString& label)
                         keyCode = WXK_WINDOWS_LEFT;
                     else if ( current == wxT("WINDOWS_RIGHT") )
                         keyCode = WXK_WINDOWS_RIGHT;
-                     else if ( current == wxT("WINDOWS_MENU") )
+                    else if ( current == wxT("WINDOWS_MENU") )
                         keyCode = WXK_WINDOWS_MENU;
                     else if ( current == wxT("COMMAND") )
                         keyCode = WXK_COMMAND;

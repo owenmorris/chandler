@@ -213,7 +213,7 @@ void wxBitmapButton::OnSetBitmap()
     wxCHECK_RET( m_widget != NULL, wxT("invalid bitmap button") );
 
     InvalidateBestSize();
-    
+
     wxBitmap the_one;
     if (!m_isEnabled)
         the_one = m_bmpDisabled;

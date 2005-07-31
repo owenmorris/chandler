@@ -1208,7 +1208,7 @@ bool wxMenu::GtkAppend(wxMenuItem *mitem, int pos)
             gtk_signal_connect( GTK_OBJECT(menuItem), "activate",
                             GTK_SIGNAL_FUNC(gtk_menu_clicked_callback),
                             (gpointer)this );
-    }
+	}
 #ifndef __WXGTK20__
         guint accel_key = gtk_label_parse_uline (GTK_LABEL(label), wxGTK_CONV( text ) );
         if (accel_key != GDK_VoidSymbol)
@@ -1334,7 +1334,7 @@ static wxString GetGtkHotKey( const wxMenuItem& item )
                 // TODO: we should use gdk_keyval_name() (a.k.a.
                 //       XKeysymToString) here as well as hardcoding the keysym
                 //       names this might be not portable
-            case WXK_INSERT:
+           case WXK_INSERT:
                 hotkey << wxT("Insert" );
                 break;
             case WXK_DELETE:

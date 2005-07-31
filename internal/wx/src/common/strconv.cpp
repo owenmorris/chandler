@@ -359,7 +359,7 @@ size_t wxMBConvLibc::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 #ifdef __UNIX__
 
 // ----------------------------------------------------------------------------
-// wxConvBrokenFileNames 
+// wxConvBrokenFileNames
 // ----------------------------------------------------------------------------
 
 wxConvBrokenFileNames::wxConvBrokenFileNames(const wxChar *charset)

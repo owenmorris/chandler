@@ -349,9 +349,9 @@ int wxComboBox::DoAppend( const wxString &item )
     const int count = GetCount();
 
     if ( (int)m_clientDataList.GetCount() < count )
-    m_clientDataList.Append( (wxObject*) NULL );
+        m_clientDataList.Append( (wxObject*) NULL );
     if ( (int)m_clientObjectList.GetCount() < count )
-    m_clientObjectList.Append( (wxObject*) NULL );
+        m_clientObjectList.Append( (wxObject*) NULL );
 
     EnableEvents();
 
@@ -396,9 +396,9 @@ int wxComboBox::DoInsert( const wxString &item, int pos )
     count = GetCount();
 
     if ( (int)m_clientDataList.GetCount() < count )
-    m_clientDataList.Insert( pos, (wxObject*) NULL );
+        m_clientDataList.Insert( pos, (wxObject*) NULL );
     if ( (int)m_clientObjectList.GetCount() < count )
-    m_clientObjectList.Insert( pos, (wxObject*) NULL );
+        m_clientObjectList.Insert( pos, (wxObject*) NULL );
 
     EnableEvents();
 

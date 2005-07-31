@@ -414,7 +414,7 @@ bool wxFileType::Unassociate()
 
 bool wxFileType::SetCommand(const wxString& cmd,
                             const wxString& verb,
-bool overwriteprompt)
+                            bool overwriteprompt)
 {
 #if defined (__WXMSW__)  || defined(__UNIX__)
     return m_impl->SetCommand(cmd, verb, overwriteprompt);

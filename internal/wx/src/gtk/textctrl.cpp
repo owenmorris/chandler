@@ -291,7 +291,7 @@ au_check_word( GtkTextIter *s, GtkTextIter *e )
 
     GtkTextIter start = *s, end = *e;
     GtkTextBuffer *buffer = gtk_text_iter_get_buffer(s);
-    
+
     // Get our special link tag
     GtkTextTag *tag = gtk_text_tag_table_lookup(gtk_text_buffer_get_tag_table(buffer), "wxUrl");
 
@@ -939,7 +939,7 @@ void wxTextCtrl::SetValue( const wxString &value )
             // what else can we do? at least don't crash...
             return;
         }
-        
+
         gtk_text_buffer_set_text( m_buffer, buffer, strlen(buffer) );
 
 #else
@@ -1510,7 +1510,7 @@ long wxTextCtrl::GetInsertionPoint() const
     else
 #endif
     {
-    return (long) GET_EDITABLE_POS(m_text);
+        return (long) GET_EDITABLE_POS(m_text);
     }
 }
 
@@ -1929,14 +1929,14 @@ bool wxTextCtrl::SetStyle( long start, long end, const wxTextAttr& style )
         gtk_editable_delete_text( GTK_EDITABLE(m_text), start, end );
         gtk_editable_set_position( GTK_EDITABLE(m_text), start );
 
-#if wxUSE_UNICODE
+    #if wxUSE_UNICODE
         wxWX2MBbuf buf = tmp.mbc_str();
         const char *txt = buf;
         size_t txtlen = strlen(buf);
-#else
+    #else
         const char *txt = tmp;
         size_t txtlen = tmp.length();
-#endif
+    #endif
 
         // use the attributes from style which are set in it and fall back
         // first to the default style and then to the text control default
@@ -2081,7 +2081,7 @@ void wxTextCtrl::Freeze()
             gtk_widget_set_sensitive(m_widget, false);
             g_object_ref(m_buffer);
             gtk_text_view_set_buffer(GTK_TEXT_VIEW(m_text), gtk_text_buffer_new(NULL));
-    }
+        }
 #else
         gtk_text_freeze(GTK_TEXT(m_text));
 #endif

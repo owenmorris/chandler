@@ -353,17 +353,17 @@ wxIsAbsolutePath (const wxString& filename)
 
 void wxStripExtension(wxChar *buffer)
 {
-  int len = wxStrlen(buffer);
-  int i = len-1;
-  while (i > 0)
-  {
-    if (buffer[i] == wxT('.'))
+    int len = wxStrlen(buffer);
+    int i = len-1;
+    while (i > 0)
     {
-      buffer[i] = 0;
-      break;
+        if (buffer[i] == wxT('.'))
+        {
+            buffer[i] = 0;
+            break;
+        }
+        i --;
     }
-    i --;
-  }
 }
 
 void wxStripExtension(wxString& buffer)
@@ -961,7 +961,7 @@ wxConcatFiles (const wxString& file1, const wxString& file2, const wxString& fil
     wxTempFile out(file3);
 
     if ( !in1.IsOpened() || !in2.IsOpened() || !out.IsOpened() )
-      return false;
+        return false;
 
     ssize_t ofs;
     unsigned char buf[1024];
@@ -973,7 +973,7 @@ wxConcatFiles (const wxString& file1, const wxString& file2, const wxString& fil
             if ( (ofs = in->Read(buf,WXSIZEOF(buf))) == wxInvalidOffset ) return false;
             if ( ofs > 0 )
                 if ( !out.Write(buf,ofs) )
-      return false;
+                    return false;
         } while ( ofs == (ssize_t)WXSIZEOF(buf) );
     }
 
@@ -1612,11 +1612,11 @@ time_t WXDLLEXPORT wxFileModificationTime(const wxString& filename)
         return 0;
 
     // sure we want to translate to local time here?
-            FILETIME ftLocal;
+    FILETIME ftLocal;
     if ( !::FileTimeToLocalFileTime(&ftLastWrite, &ftLocal) )
-            {
-                wxLogLastError(_T("FileTimeToLocalFileTime"));
-            }
+    {
+        wxLogLastError(_T("FileTimeToLocalFileTime"));
+    }
 
     // FILETIME is a counted in 100-ns since 1601-01-01, convert it to
     // number of seconds since 1970-01-01
@@ -1781,123 +1781,123 @@ bool wxIsWild( const wxString& pattern )
 
 bool wxMatchWild( const wxString& pat, const wxString& text, bool dot_special )
 {
-        if (text.empty())
+    if (text.empty())
+    {
+        /* Match if both are empty. */
+        return pat.empty();
+    }
+
+    const wxChar *m = pat.c_str(),
+    *n = text.c_str(),
+    *ma = NULL,
+    *na = NULL,
+    *mp = NULL,
+    *np = NULL;
+    int just = 0,
+    pcount = 0,
+    acount = 0,
+    count = 0;
+
+    if (dot_special && (*n == wxT('.')))
+    {
+        /* Never match so that hidden Unix files
+         * are never found. */
+        return false;
+    }
+
+    for (;;)
+    {
+        if (*m == wxT('*'))
         {
-                /* Match if both are empty. */
-                return pat.empty();
+            ma = ++m;
+            na = n;
+            just = 1;
+            mp = NULL;
+            acount = count;
         }
-
-        const wxChar *m = pat.c_str(),
-        *n = text.c_str(),
-        *ma = NULL,
-        *na = NULL,
-        *mp = NULL,
-        *np = NULL;
-        int just = 0,
-        pcount = 0,
-        acount = 0,
-        count = 0;
-
-        if (dot_special && (*n == wxT('.')))
+        else if (*m == wxT('?'))
         {
-                /* Never match so that hidden Unix files
-                 * are never found. */
+            m++;
+            if (!*n++)
                 return false;
         }
-
-        for (;;)
+        else
         {
-                if (*m == wxT('*'))
+            if (*m == wxT('\\'))
+            {
+                m++;
+                /* Quoting "nothing" is a bad thing */
+                if (!*m)
+                    return false;
+            }
+            if (!*m)
+            {
+                /*
+                * If we are out of both strings or we just
+                * saw a wildcard, then we can say we have a
+                * match
+                */
+                if (!*n)
+                    return true;
+                if (just)
+                    return true;
+                just = 0;
+                goto not_matched;
+            }
+            /*
+            * We could check for *n == NULL at this point, but
+            * since it's more common to have a character there,
+            * check to see if they match first (m and n) and
+            * then if they don't match, THEN we can check for
+            * the NULL of n
+            */
+            just = 0;
+            if (*m == *n)
+            {
+                m++;
+                if (*n == wxT(' '))
+                    mp = NULL;
+                count++;
+                n++;
+            }
+            else
+            {
+
+                not_matched:
+
+                /*
+                * If there are no more characters in the
+                * string, but we still need to find another
+                * character (*m != NULL), then it will be
+                * impossible to match it
+                */
+                if (!*n)
+                    return false;
+                if (mp)
                 {
-                        ma = ++m;
-                        na = n;
-                        just = 1;
+                    m = mp;
+                    if (*np == wxT(' '))
+                    {
                         mp = NULL;
-                        acount = count;
-                }
-                else if (*m == wxT('?'))
-                {
-                        m++;
-                        if (!*n++)
-                        return false;
+                        goto check_percent;
+                    }
+                    n = ++np;
+                    count = pcount;
                 }
                 else
+                check_percent:
+
+                if (ma)
                 {
-                        if (*m == wxT('\\'))
-                        {
-                                m++;
-                                /* Quoting "nothing" is a bad thing */
-                                if (!*m)
-                                return false;
-                        }
-                        if (!*m)
-                        {
-                                /*
-                                * If we are out of both strings or we just
-                                * saw a wildcard, then we can say we have a
-                                * match
-                                */
-                                if (!*n)
-                                return true;
-                                if (just)
-                                return true;
-                                just = 0;
-                                goto not_matched;
-                        }
-                        /*
-                        * We could check for *n == NULL at this point, but
-                        * since it's more common to have a character there,
-                        * check to see if they match first (m and n) and
-                        * then if they don't match, THEN we can check for
-                        * the NULL of n
-                        */
-                        just = 0;
-                        if (*m == *n)
-                        {
-                                m++;
-                                if (*n == wxT(' '))
-                                mp = NULL;
-                                count++;
-                                n++;
-                        }
-                        else
-                        {
-
-                                not_matched:
-
-                                /*
-                                * If there are no more characters in the
-                                * string, but we still need to find another
-                                * character (*m != NULL), then it will be
-                                * impossible to match it
-                                */
-                                if (!*n)
-                                return false;
-                                if (mp)
-                                {
-                                        m = mp;
-                                        if (*np == wxT(' '))
-                                        {
-                                                mp = NULL;
-                                                goto check_percent;
-                                        }
-                                        n = ++np;
-                                        count = pcount;
-                                }
-                                else
-                                check_percent:
-
-                                if (ma)
-                                {
-                                        m = ma;
-                                        n = ++na;
-                                        count = acount;
-                                }
-                                else
-                                return false;
-                        }
+                    m = ma;
+                    n = ++na;
+                    count = acount;
                 }
+                else
+                    return false;
+            }
         }
+    }
 }
 
 // Return the type of an open file

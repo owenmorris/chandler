@@ -408,7 +408,7 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
                 GdkBitmap *mask = (GdkBitmap *)NULL;
                 if ( bitmap.GetMask() )
                     mask = bitmap.GetMask()->GetBitmap();
-            
+
                 tool_pixmap = gtk_pixmap_new( pixmap, mask );
                 gtk_pixmap_set_build_insensitive( GTK_PIXMAP(tool_pixmap), TRUE );
             }

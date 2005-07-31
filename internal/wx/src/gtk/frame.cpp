@@ -175,7 +175,7 @@ static void wxInsertChildInFrame( wxFrame* parent, wxWindow* child )
                          child->m_y,
                          child->m_width,
                          child->m_height );
-                         
+
 #if wxUSE_TOOLBAR_NATIVE
         // We connect to these events for recalculating the client area
         // space when the toolbar is floating
@@ -203,7 +203,7 @@ static void wxInsertChildInFrame( wxFrame* parent, wxWindow* child )
                          child->m_width,
                          child->m_height );
     }
-    
+
     // Resize on OnInternalIdle
     parent->GtkUpdateSize();
 }
@@ -230,7 +230,7 @@ bool wxFrame::Create( wxWindow *parent,
     bool rt = wxTopLevelWindow::Create(parent, id, title, pos, sizeOrig,
                                        style, name);
     m_insertCallback = (wxInsertChildFunction) wxInsertChildInFrame;
-    
+
     return rt;
 }
 
@@ -601,7 +601,7 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
             gtk_signal_connect( GTK_OBJECT(menuBar->m_widget), "child_detached",
                 GTK_SIGNAL_FUNC(gtk_menu_detached_callback), (gpointer)this );
         }
-        
+
         gtk_widget_show( m_frameMenuBar->m_widget );
 
         UpdateMenuBarSize();
@@ -619,15 +619,15 @@ void wxFrame::UpdateMenuBarSize()
 
     req.width = 2;
     req.height = 2;
-    
+
     // this is called after Remove with a NULL m_frameMenuBar
     if ( m_frameMenuBar )
-    (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_frameMenuBar->m_widget) )->size_request )
-        (m_frameMenuBar->m_widget, &req );
+        (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_frameMenuBar->m_widget) )->size_request )
+            (m_frameMenuBar->m_widget, &req );
 
     m_menuBarHeight = req.height;
 
-        // resize window in OnInternalIdle
+    // resize window in OnInternalIdle
 
     GtkUpdateSize();
 }
@@ -699,10 +699,10 @@ wxStatusBar* wxFrame::CreateStatusBar(int number,
 void wxFrame::SetStatusBar(wxStatusBar *statbar)
 {
     bool hadStatBar = m_frameStatusBar != NULL;
-    
+
     wxFrameBase::SetStatusBar(statbar);
-    
-    if (hadStatBar && !m_frameStatusBar) 
+
+    if (hadStatBar && !m_frameStatusBar)
         GtkUpdateSize();
 }
 

@@ -403,8 +403,8 @@ void wxChoice::SetString( int n, const wxString& str )
 
             wxASSERT_MSG( label != NULL , wxT("wxChoice: invalid label") );
 
-            gtk_label_set_text( label, wxGTK_CONV( str ) ); 
-            
+            gtk_label_set_text( label, wxGTK_CONV( str ) );
+
             return;
         }
         child = child->next;
@@ -545,9 +545,9 @@ int wxChoice::GtkAddHelper(GtkWidget *menu, int pos, const wxString& item)
         // normal control, just append
         if (pos == (int)m_clientList.GetCount())
         {
-        gtk_menu_append( GTK_MENU(menu), menu_item );
-        m_clientList.Append( (wxObject*) NULL );
-        index = m_clientList.GetCount() - 1;
+            gtk_menu_append( GTK_MENU(menu), menu_item );
+            m_clientList.Append( (wxObject*) NULL );
+            index = m_clientList.GetCount() - 1;
         }
         else
         {
@@ -570,7 +570,7 @@ int wxChoice::GtkAddHelper(GtkWidget *menu, int pos, const wxString& item)
     // changed, but at least after adding an item
     // it has to change. Adapted from Matt Ownby.
     InvalidateBestSize();
-    
+
     gtk_signal_connect_after( GTK_OBJECT( menu_item ), "activate",
       GTK_SIGNAL_FUNC(gtk_choice_clicked_callback), (gpointer*)this );
 

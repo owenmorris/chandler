@@ -704,7 +704,7 @@ bool DoShowAssertDialog(const wxString& msg)
 
     // continue with the asserts
     return false;
-    }
+}
 
 #if wxUSE_STACKWALKER
 static wxString GetAssertStackTrace()
@@ -768,7 +768,7 @@ static wxString GetAssertStackTrace()
     static const int maxLines = 20;
     const int count = stackTrace.Freq(wxT('\n'));
     for ( int i = 0; i < count - maxLines; i++ )
-            stackTrace = stackTrace.BeforeLast(wxT('\n'));
+        stackTrace = stackTrace.BeforeLast(wxT('\n'));
 
     return stackTrace;
 }

@@ -1508,7 +1508,7 @@ wxString wxFileName::GetShortPath() const
     DWORD sz = ::GetShortPathName(path, NULL, 0);
     if ( sz != 0 )
     {
-    wxString pathOut;
+        wxString pathOut;
         if ( ::GetShortPathName
                (
                 path,
@@ -1540,13 +1540,13 @@ wxString wxFileName::GetLongPath() const
     static GET_LONG_PATH_NAME s_pfnGetLongPathName = NULL;
     if ( !s_pfnGetLongPathName )
     {
-    static bool s_triedToLoad = false;
+        static bool s_triedToLoad = false;
 
-    if ( !s_triedToLoad )
-    {
-        s_triedToLoad = true;
+        if ( !s_triedToLoad )
+        {
+            s_triedToLoad = true;
 
-        wxDynamicLibrary dllKernel(_T("kernel32"));
+            wxDynamicLibrary dllKernel(_T("kernel32"));
 
             const wxChar* GetLongPathName = _T("GetLongPathName")
 #if wxUSE_UNICODE

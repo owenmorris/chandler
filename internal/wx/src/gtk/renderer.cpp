@@ -201,7 +201,7 @@ wxRendererGTK::DrawTreeItemButton(wxWindow* win,
         state = GTK_STATE_PRELIGHT;
     else
         state = GTK_STATE_NORMAL;
-        
+
     // VZ: I don't know how to get the size of the expander so as to centre it
     //     in the given rectangle, +2/3 below is just what looks good here...
     gtk_paint_expander
@@ -242,7 +242,7 @@ static int GetGtkSplitterFullSize()
 
     gint handle_size;
     gtk_widget_style_get (s_paned, "handle_size", &handle_size, NULL);
-      
+
     return handle_size;
 #else
     return SASH_SIZE + SASH_MARGIN;
@@ -287,7 +287,7 @@ wxRendererGTK::DrawSplitterSash(wxWindow *win,
         // window not realized yet
         return;
     }
-    
+
     wxCoord full_size = GetGtkSplitterFullSize();
 
     // are we drawing vertical or horizontal splitter?

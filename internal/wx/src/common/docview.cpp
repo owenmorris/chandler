@@ -605,7 +605,7 @@ bool wxDocument::DoOpenDocument(const wxString& file)
 #endif
     {
 #if wxUSE_STD_IOSTREAM
-    LoadObject(store);
+        LoadObject(store);
         if ( !!store || store.eof() )
 #else
         int res = LoadObject(store).GetLastError();

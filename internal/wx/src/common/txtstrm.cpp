@@ -406,7 +406,7 @@ void wxTextOutputStream::WriteString(const wxString& string)
         }
 
         out << c;
-   }
+    }
 
     // We must not write the trailing NULL here
 #if wxUSE_UNICODE
