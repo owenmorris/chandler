@@ -4,41 +4,32 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.sharing"
 
-import application.Globals as Globals
-import application.Parcel
-import osaf.mail.message
-import osaf.contentmodel.mail.Mail as Mail
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.contacts.Contacts as Contacts
-import osaf.contentmodel.calendar.Calendar as Calendar
-from osaf.contentmodel.ItemCollection import ItemCollection
+import time, StringIO, urlparse, libxml2, os, base64, logging
+from application import schema
 from chandlerdb.util.uuid import UUID
-from repository.util.Lob import Lob
+from osaf.contentmodel.ItemCollection import ItemCollection
 from repository.item.Item import Item
 from repository.schema.Types import Type
-from application import schema
-import repository.query.Query as Query
-import M2Crypto.BIO
-import repository
-import logging
-import wx
-import time, StringIO, urlparse, libxml2, os, base64
-import zanshin.webdav
-import WebDAV
-import zanshin.util
-import twisted.web.http
+from repository.util.Lob import Lob
 import AccountInfoPrompt
+import M2Crypto.BIO
+import WebDAV
+import application.Parcel
+import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.utils as utils
+import twisted.web.http
+import wx
+import zanshin.util
+import zanshin.webdav
 
 logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
 
-
-SHARING = "parcel:osaf.framework.sharing"
-EVENTS = "parcel:osaf.framework.blocks.Events"
-CONTENT = "parcel:osaf.contentmodel"
-
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
 
 class modeEnum(schema.Enumeration):
     schema.kindInfo(displayName="Mode Enumeration")
@@ -62,12 +53,14 @@ class Share(ContentModel.ContentItem):
               'such as transient import/export shares, .ics publishing, etc.',
         initialValue = False,
     )
+
     active = schema.One(
         schema.Boolean,
         doc = "This attribute indicates whether this share should be synced "
               "during a 'sync all' operation.",
         initialValue = True,
     )
+
     mode = schema.One(
         modeEnum,
         doc = 'This attribute indicates the sync mode for the share:  '
@@ -76,7 +69,9 @@ class Share(ContentModel.ContentItem):
     )
 
     contents = schema.One(ContentModel.ContentItem, otherName = 'shares')
+
     conduit = schema.One('ShareConduit', inverse = 'share')
+
     format = schema.One('ImportExportFormat', inverse = 'share')
 
     sharer = schema.One(
@@ -85,17 +80,20 @@ class Share(ContentModel.ContentItem):
         initialValue = None,
         otherName = 'sharerOf',
     )
+
     sharees = schema.Sequence(
         Contacts.Contact,
         doc = 'The people who were invited to this share',
         initialValue = [],
         otherName = 'shareeOf',
     )
+
     filterKinds = schema.Sequence(
         schema.String,
         doc = 'The list of kinds to import/export',
         initialValue = [],
     )
+
     filterAttributes = schema.Sequence(schema.String, initialValue=[])
 
     schema.addClouds(
@@ -114,16 +112,8 @@ class Share(ContentModel.ContentItem):
         except:
             self.displayName = ""
 
-        self.setConduit(conduit)
-        self.format = format
-
-        self.sharer = None
-        self.sharees = []
-        self.filterKinds = []
-
-    def setConduit(self, conduit):
         self.conduit = conduit
-        self.conduit.share = self
+        self.format = format
 
     def create(self):
         self.conduit.create()
@@ -161,6 +151,9 @@ class Share(ContentModel.ContentItem):
         return self.conduit.getLocation()
 
     def getSharedAttributes(self, item, cloudAlias='sharing'):
+        """ Examine sharing clouds and filterAttributes to determine which
+            attributes to share for a given item """
+
         attributes = {}
         skip = {}
         if hasattr(self, 'filterAttributes'):
@@ -216,17 +209,21 @@ class ShareConduit(ContentModel.ContentItem):
     schema.kindInfo(displayName = "Share Conduit Kind")
 
     share = schema.One(Share, inverse = Share.conduit)
+
     sharePath = schema.One(
         schema.String, doc = "The parent 'directory' of the share",
     )
+
     shareName = schema.One(
         schema.String,
         doc = "The 'directory' name of the share, relative to 'sharePath'",
     )
+
     manifest = schema.Mapping(
         schema.Dictionary,
         doc = "Keeps track of 'remote' item information, such as last "
               "modified date or ETAG",
+        initialValue = {}
     )
 
     marker = schema.One(schema.SingleRef)
@@ -234,12 +231,11 @@ class ShareConduit(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(ShareConduit, self).__init__(name, parent, kind, view)
 
-        self.__clearManifest()
-
         # 'marker' is an item which exists only to keep track of the repository
         # view version number at the time of last sync
         self.marker = Item('marker', self, None)
 
+    @classmethod
     def getSharingView(self, repo, version=None):
         # @@@MOR
         # Until we can switch over to using view merging, returning None
@@ -249,53 +245,47 @@ class ShareConduit(ContentModel.ContentItem):
 
         if not hasattr(self, 'sharingView'):
             self.sharingView = repo.createView("Sharing", version)
-            logger.info("Created sharing view (version %d)" % self.sharingView._version)
+            logger.info("Created sharing view (version %d)" % \
+                self.sharingView._version)
         return self.sharingView
 
-    getSharingView = classmethod(getSharingView)
 
+    def __conditionalPutItem(self, item):
+        """ Put an item if it's not on the server or is out of date """
 
-    def setShare(self, share):
-        self.share = share
+        # Assumes that self.resourceList has been populated:
+        externalItemExists = self.__externalItemExists(item)
 
-    def __conditionalPutItem(self, item, skipItems=None):
-        # assumes that self.resourceList has been populated
-        skip = False
-        if skipItems and item in skipItems:
-            skip = True
-        if not skip:
-            externalItemExists = self.__externalItemExists(item)
+        # Check to see if the item or any of its itemCloud items have a
+        # more recent version than the last time we synced
+        highVersion = -1
+        for relatedItem in item.getItemCloud('sharing'):
+            itemVersion = relatedItem.getVersion()
+            if itemVersion > highVersion:
+                highVersion = itemVersion
 
-            # itemVersion = item.getVersion()
-            # Check to see if the item or any of its itemCloud items have a
-            # more recent version than the last time we synced
+        prevVersion = self.marker.getVersion()
 
-            highVersion = -1
+        if highVersion > prevVersion or not externalItemExists:
 
-            for relatedItem in item.getItemCloud('sharing'):
-                itemVersion = relatedItem.getVersion()
-                if itemVersion > highVersion:
-                    highVersion = itemVersion
+            logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
+             (item.getItemDisplayName(), item.itsUUID, itemVersion,
+             prevVersion, externalItemExists))
 
-            prevVersion = self.marker.getVersion()
-            if highVersion > prevVersion or not externalItemExists:
-                logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-                 (item.getItemDisplayName(), item.itsUUID, itemVersion,
-                 prevVersion, externalItemExists))
-                data = self._putItem(item)
-                if data is not None:
-                    self.__addToManifest(self._getItemPath(item), item, data)
-                    logger.info("...done, data: %s, version: %d" %
-                     (data, itemVersion))
-            else:
-                pass
-                # logger.info("Item is up to date")
+            data = self._putItem(item)
+
+            if data is not None:
+                self.__addToManifest(self._getItemPath(item), item, data)
+                logger.info("...done, data: %s, version: %d" %
+                 (data, itemVersion))
+
         try:
             del self.resourceList[self._getItemPath(item)]
         except:
-            logger.info("...external item %s didn't previously exist" % self._getItemPath(item))
+            logger.info("...external item %s didn't previously exist" % \
+                self._getItemPath(item))
 
-    def put(self, skipItems=None, view=None):
+    def put(self, view=None):
         """ Transfer entire 'contents', transformed, to server. """
 
         self.connect()
@@ -331,6 +321,8 @@ class ShareConduit(ContentModel.ContentItem):
             location = sharingSelf.getLocation()
             logger.info("Starting PUT of %s" % (location))
 
+            # share.filterKinds includes paths so that they can be shared.
+            # Find the Kinds from those paths so we can call isItemOf( )
             filterKinds = None
             if len(sharingSelf.share.filterKinds) > 0:
                 filterKinds = []
@@ -348,34 +340,43 @@ class ShareConduit(ContentModel.ContentItem):
                 if isinstance(sharingSelf.share.contents, ItemCollection):
                     for item in sharingSelf.share.contents:
 
+                        # Skip private items
                         if item.isPrivate:
                             continue
 
+                        # Skip any items matching the filtered kinds
                         if filterKinds is not None:
                             match = False
                             for kind in filterKinds:
                                 if item.isItemOf(kind):
                                     match = True
                                     break
-
                             if not match:
                                 continue
 
-                        sharingSelf.__conditionalPutItem(item, skipItems)
+                        # Put the item
+                        sharingSelf.__conditionalPutItem(item)
 
-                sharingSelf.__conditionalPutItem(sharingSelf.share, skipItems)
+                # Put the Share item itself
+                sharingSelf.__conditionalPutItem(sharingSelf.share)
 
+                # Any items on the server that weren't in our collection now
+                # get removed from the server:
                 for (itemPath, value) in sharingSelf.resourceList.iteritems():
                     sharingSelf._deleteItem(itemPath)
                     sharingSelf.__removeFromManifest(itemPath)
 
+
             elif style == ImportExportFormat.STYLE_SINGLE:
+                # Put a monolithic file representing the share item.
                 #@@@MOR This should be beefed up to only publish if at least one
                 # of the items has changed.
                 sharingSelf._putItem(sharingSelf.share)
 
+
             # dirty our marker
             sharingSelf.marker.setDirty(Item.NDIRTY)
+
 
             # @@@DLD bug 1998 - why do we need a second commit here?
             # Is this just for the setDirty above?
@@ -393,7 +394,11 @@ class ShareConduit(ContentModel.ContentItem):
 
         logger.info("Finished PUT of %s" % (location))
 
+
     def __conditionalGetItem(self, itemPath, into=None):
+        """ Get an item from the server if we don't yet have it or our copy
+            is out of date """
+
         # assumes self.resourceList is populated
 
         if itemPath not in self.resourceList:
@@ -413,9 +418,6 @@ class ShareConduit(ContentModel.ContentItem):
             logger.info("...NOT able to import '%s'" % itemPath)
             msg = "Not able to import '%s'" % itemPath
             raise SharingError(message=msg)
-        else:
-            pass
-            # logger.info("...skipping")
 
         return None
 
@@ -455,29 +457,35 @@ class ShareConduit(ContentModel.ContentItem):
         if not sharingSelf.exists():
            raise NotFound(message="%s does not exist" % location)
 
-        retrievedItems = []
         sharingSelf.resourceList = sharingSelf._getResourceList(location)
 
+        # We need to keep track of which items we've seen on the server so
+        # we can tell when one has disappeared.
         sharingSelf.__resetSeen()
 
         itemPath = sharingSelf._getItemPath(sharingSelf.share)
+        # if itemPath is None, the Format we're using doesn't have a file
+        # that represents the Share item (CalDAV, for instance).
+
         if itemPath:
+            # Get the file that represents the Share item
             item = sharingSelf.__conditionalGetItem(itemPath,
                                                     into=sharingSelf.share)
-            if item is not None:
-                retrievedItems.append(item)
+
+            # Whenever we get an item, mark it seen in our manifest and remove
+            # it from the server resource list:
             sharingSelf.__setSeen(itemPath)
             try:
                 del sharingSelf.resourceList[itemPath]
             except:
                 pass
 
+        # Make sure we have a collection to add items to:
         if sharingSelf.share.contents is None:
             sharingSelf.share.contents = ItemCollection(view=sharingView)
 
         # If share.contents is an ItemCollection, treat other resources as
         # items to add to the collection:
-
         if isinstance(sharingSelf.share.contents, ItemCollection):
 
             filterKinds = None
@@ -492,7 +500,6 @@ class ShareConduit(ContentModel.ContentItem):
                 if item is not None:
                     if not item in sharingSelf.share.contents:
                         sharingSelf.share.contents.add(item)
-                    retrievedItems.append(item)
                 sharingSelf.__setSeen(itemPath)
 
             # When first importing a collection, name it after the share
@@ -551,13 +558,7 @@ class ShareConduit(ContentModel.ContentItem):
 
         return sharingView
 
-    # Methods that subclasses *must* implement:
 
-    def getLocation(self):
-        """ Return a string representing where the share is being exported
-            to or imported from, such as a URL or a filesystem path
-        """
-        pass
 
     def _getItemPath(self, item):
         """ Return a string that uniquely identifies a resource in the remote
@@ -573,7 +574,7 @@ class ShareConduit(ContentModel.ContentItem):
                 for (path, record) in self.manifest.iteritems():
                     if record['uuid'] == item.itsUUID:
                         return path
-                    
+
                 path = "%s.%s" % (item.itsUUID, extension)
                 self.manifest[path] = {'uuid':item.itsUUID, 'data':None}
             return path
@@ -584,30 +585,6 @@ class ShareConduit(ContentModel.ContentItem):
         else:
             print "@@@MOR Raise an exception here"
 
-
-    def _getResourceList(self, location):
-        """ Return a dictionary representing what items exist in the remote
-            share. """
-        # 'location' is a location returned from getLocation
-        # The returned dictionary should be keyed on a string that uniquely
-        # identifies a resource in the remote share.  For example, a url
-        # path or filesystem path.  The values of the dictionary should
-        # be dictionaries of the format { 'data' : <string> } where <string>
-        # is some piece of data that encapsulates version information for
-        # the remote resources (such as a last modified date, or an ETag).
-        pass
-
-    def _putItem(self, item, where):
-        """ Must implement """
-        pass
-
-    def _deleteItem(self, itemPath):
-        """ Must implement """
-        pass
-
-    def _getItem(self, itemPath, into=None):
-        """ Must implement """
-        pass
 
     # Manifest mangement routines
     # The manifest keeps track of the state of shared items at the time of
@@ -674,6 +651,38 @@ class ShareConduit(ContentModel.ContentItem):
                 yield path
 
 
+    # Methods that subclasses *must* implement:
+
+    def getLocation(self):
+        """ Return a string representing where the share is being exported
+            to or imported from, such as a URL or a filesystem path
+        """
+        pass
+
+    def _getResourceList(self, location):
+        """ Return a dictionary representing what items exist in the remote
+            share. """
+        # 'location' is a location returned from getLocation
+        # The returned dictionary should be keyed on a string that uniquely
+        # identifies a resource in the remote share.  For example, a url
+        # path or filesystem path.  The values of the dictionary should
+        # be dictionaries of the format { 'data' : <string> } where <string>
+        # is some piece of data that encapsulates version information for
+        # the remote resources (such as a last modified date, or an ETag).
+        pass
+
+    def _putItem(self, item, where):
+        """ Must implement """
+        pass
+
+    def _deleteItem(self, itemPath):
+        """ Must implement """
+        pass
+
+    def _getItem(self, itemPath, into=None):
+        """ Must implement """
+        pass
+
     def connect(self):
         pass
 
@@ -723,15 +732,15 @@ class FileSystemConduit(ShareConduit):
         # @@@MOR Probably should remove any slashes, or warn if there are any?
         self.shareName = self.shareName.strip("/")
 
-    def getLocation(self): # must implement
+    def getLocation(self):
         if self.hasLocalAttributeValue("sharePath") and \
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured()
-        
-    def _putItem(self, item): # must implement
+
+    def _putItem(self, item):
         path = self.__getItemFullPath(self._getItemPath(item))
-        
+
         try:
             text = self.share.format.exportProcess(item)
         except Exception, e:
@@ -745,13 +754,13 @@ class FileSystemConduit(ShareConduit):
         stat = os.stat(path)
         return stat.st_mtime
 
-    def _deleteItem(self, itemPath): # must implement
+    def _deleteItem(self, itemPath):
         path = self.__getItemFullPath(itemPath)
 
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
 
-    def _getItem(self, itemPath, into=None): # must implement
+    def _getItem(self, itemPath, into=None):
         # logger.info("Getting item: %s" % itemPath)
         path = self.__getItemFullPath(itemPath)
 
@@ -794,8 +803,7 @@ class FileSystemConduit(ShareConduit):
             path = os.path.join(self.sharePath, self.shareName)
         return path
 
-        
-        
+
     def exists(self):
         super(FileSystemConduit, self).exists()
 
@@ -912,7 +920,7 @@ class WebDAVConduit(ShareConduit):
     def __releaseServerHandle(self):
         self.serverHandle = None
 
-    def getLocation(self):  # must implement
+    def getLocation(self):
         """ Return the url of the share """
 
         (host, port, sharePath, username, password, useSSL) = \
@@ -932,7 +940,6 @@ class WebDAVConduit(ShareConduit):
         url = urlparse.urljoin(url, self.shareName)
         return url
 
-   
     def __getSharePath(self):
         return "/" + self.__getSettings()[2]
 
@@ -1034,7 +1041,7 @@ class WebDAVConduit(ShareConduit):
         return serverHandle.getResource(path)
 
 
-    def _putItem(self, item): # must implement
+    def _putItem(self, item):
         """ putItem should publish an item and return etag/date, etc.
         """
 
@@ -1049,7 +1056,7 @@ class WebDAVConduit(ShareConduit):
 
         itemName = self._getItemPath(item)
         container = self.__getContainerResource()
-        
+
         try:
             newResource = zanshin.util.blockUntil(container.createFile,
                                 itemName, body=text)
@@ -1063,24 +1070,25 @@ class WebDAVConduit(ShareConduit):
         except zanshin.webdav.PermissionsError:
             message = "Not authorized to PUT %s" % itemName
             raise NotAllowed(message=message)
-            
+
         except zanshin.webdav.WebDAVError, err:
 
-            if err.status == twisted.web.http.FORBIDDEN or err.status == twisted.web.http.CONFLICT:
+            if err.status == twisted.web.http.FORBIDDEN or \
+               err.status == twisted.web.http.CONFLICT:
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
                 message = "Parent collection for %s is not found" % itemName
                 raise NotFound(message=message)
 
 
         etag = newResource.etag
-        
+
         # @@@ [grant] Get mod-date?
         return etag
 
-    def _deleteItem(self, itemPath): # must implement
+    def _deleteItem(self, itemPath):
         resource = self.__resourceFromPath(itemPath)
         logger.info("...removing from server: %s" % resource.path)
-        
+
         if resource != None:
             try:
                 deleteResp = zanshin.util.blockUntil(resource.delete)
@@ -1111,7 +1119,7 @@ class WebDAVConduit(ShareConduit):
             raise NotAllowed(message=message)
 
         text = resp.body
-        
+
         etag = resource.etag
 
         try:
@@ -1127,9 +1135,9 @@ class WebDAVConduit(ShareConduit):
     def _getResourceList(self, location): # must implement
         """ Return information (etags) about all resources within a collection
         """
-        
+
         resourceList = {}
-        
+
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -1178,7 +1186,7 @@ class WebDAVConduit(ShareConduit):
 #                message = "Not found: %s" % url
 #                raise NotFound(message=message)
 #
-            
+
             etag = resource.etag
             # @@@ [grant] count use resource.path here
             path = urlparse.urlparse(location)[2]
@@ -1195,24 +1203,8 @@ class WebDAVConduit(ShareConduit):
         self.__releaseServerHandle()
 
 
-    def _dumpState(self):
-        print " - - - - - - - - - "
-        resourceList = self._getResourceList(self.getLocation())
-        print
-        print "Remote:"
-        for (itemPath, value) in resourceList.iteritems():
-            print itemPath, value
-        print
-        print "In manifest:"
-        for (path, value) in self.manifest.iteritems():
-            print path, value
-        print
-        print "In contents:"
-        for item in self.share.contents:
-            print item.getItemDisplayName(), item.itsUUID, item.getVersion(), item.getVersion(True)
-        print " - - - - - - - - - "
-
 class SimpleHTTPConduit(WebDAVConduit):
+    """ Useful for get-only subscriptions of remote .ics files """
 
     schema.kindInfo(displayName="Simple HTTP Share Conduit Kind")
 
@@ -1263,8 +1255,19 @@ class SimpleHTTPConduit(WebDAVConduit):
         self.lastModified = lastModified[-1]
         logger.info("...imported, new last modified: %s" % self.lastModified)
 
-    def put(self, skipItems=None):
+    def put(self):
         logger.info("'put( )' not support in SimpleHTTPConduit")
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+class OneTimeFileSystemShare(OneTimeShare):
+    def __init__(self, path, name, formatclass, kind=None, view=None,
+                 contents=None):
+        conduit = FileSystemConduit(kind=kind, view=view, sharePath=path,
+                                    shareName=name)
+        format  = formatclass(view=view)
+        super(OneTimeFileSystemShare, self).__init__(kind=kind, view=view,
+                 contents=contents, conduit=conduit, format=format)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1316,7 +1319,7 @@ class WebDAVAccount(ContentModel.ContentItem):
     )
     username = schema.One(
         schema.String, displayName = 'Username', initialValue = '',
-    )   
+    )
     password = schema.One(
         schema.String,
         displayName = 'Password',
@@ -1382,15 +1385,18 @@ class ImportExportFormat(ContentModel.ContentItem):
 
     share = schema.One(Share, inverse = Share.format)
 
-    STYLE_SINGLE = 'single'
-    STYLE_DIRECTORY = 'directory'
+    STYLE_SINGLE = 'single' # Share represented by monolithic file
+    STYLE_DIRECTORY = 'directory' # Share is a directory where each item has
+                                  # its own file
 
     def fileStyle(self):
         """ Should return 'single' or 'directory' """
         pass
 
     def shareItemPath(self):
-        return None
+        """ Return the path for the file representing the Share item """
+        return None # None indicates there is no file representing the Share
+                    # item
 
 
 class CloudXMLFormat(ImportExportFormat):
@@ -1689,37 +1695,6 @@ class CloudXMLFormat(ImportExportFormat):
         return item
 
 
-class MixedFormat(ImportExportFormat):
-    """
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 cloudAlias='sharing'):
-        super(CloudXMLFormat, self).__init__(name, parent, kind, view)
-        self.cloudAlias = cloudAlias
-
-    def fileStyle(self):
-        return self.STYLE_DIRECTORY
-
-    handlers = (
-        ('CalendarEvent', 'ics', iCalendarHandler),
-        ('Contact', 'vcd', vCardHandler),
-    )
-
-    def extension(self, item):
-        # search the handlers for appropriate extension
-
-    def importProcess(self, text, extension=None, item=None):
-        ### Import a chunk of text, need to figure out which handler to pass
-        ### it to.
-
-        # return item
-        pass
-
-    def exportProcess(self, item):
-        ### Output an item
-        pass
-    """
-    pass
-
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Sharing helper methods
 
@@ -1735,6 +1710,8 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
     @type view: L{repository.persistence.RepositoryView}
     @param collection: The ItemCollection that will be shared
     @type collection: ItemCollection
+    @param kinds: Which kinds to share
+    @type kinds: A list of Kind paths
     @param account: The WebDAV Account item to use
     @type account: An item of kind WebDAVAccount
     @return: A Share item, or None if no WebDAV account could be found.
@@ -1871,7 +1848,8 @@ def findMatchingWebDAVAccount(view, url):
     for account in WebDAVAccount.iterItems(view):
         # Does this account's url info match?
         accountPath = account.path.strip('/')
-        if account.useSSL == useSSL and account.host == host and account.port == port and accountPath == path:
+        if account.useSSL == useSSL and account.host == host and \
+           account.port == port and accountPath == path:
             return account
 
     return None
@@ -2156,12 +2134,3 @@ def unpublish(collection):
         share.format.delete(True)
         share.delete(True)
 
-
-class OneTimeFileSystemShare(OneTimeShare):
-    def __init__(self, path, name, formatclass, kind=None, view=None,
-                 contents=None):
-        conduit = FileSystemConduit(kind=kind, view=view, sharePath=path,
-                                    shareName=name)
-        format  = formatclass(view=view)
-        super(OneTimeFileSystemShare, self).__init__(kind=kind, view=view,
-                 contents=contents, conduit=conduit, format=format)
