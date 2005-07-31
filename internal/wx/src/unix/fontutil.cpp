@@ -759,6 +759,12 @@ bool wxGetNativeFontEncoding(wxFontEncoding encoding,
             }
             break;
 
+        case wxFONTENCODING_EUC_JP:
+        case wxFONTENCODING_SHIFT_JIS:
+            info->xregistry = "jis*";
+            info->xencoding = "*";
+            break;
+
         case wxFONTENCODING_SYSTEM:
             info->xregistry =
             info->xencoding = wxT("*");
@@ -875,7 +881,7 @@ wxNativeFont wxLoadQueryNearestFont(int pointSize,
         {
             // second round: use normal weight
             if ( round == 1 )
-        {
+            {
                 if ( testweight != wxNORMAL )
                 {
                     testweight = wxNORMAL;
@@ -904,11 +910,11 @@ wxNativeFont wxLoadQueryNearestFont(int pointSize,
                 font = wxLoadQueryFont(i, family, teststyle, testweight, underlined,
                                    facename, info.xregistry, info.xencoding,
                                    xFontName);
-        }
+            }
 
-        // Search for larger size (approx.)
-        for ( i = pointSize + 10; !font && i <= max_size; i += 10 )
-        {
+            // Search for larger size (approx.)
+            for ( i = pointSize + 10; !font && i <= max_size; i += 10 )
+            {
                 font = wxLoadQueryFont(i, family, teststyle, testweight, underlined,
                                    facename, info.xregistry, info.xencoding,
                                    xFontName);

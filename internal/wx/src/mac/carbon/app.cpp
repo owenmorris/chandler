@@ -72,7 +72,7 @@ extern wxList wxPendingDelete;
 // set wxMAC_USE_RAEL to 1 if RunApplicationEventLoop should be used
 // if 0 the lower level CarbonEventLoop will be used
 // on the long run RAEL should replace the low level event loop
-// we will have to clean up event handling to make sure we don't 
+// we will have to clean up event handling to make sure we don't
 // miss handling of things like pending events etc
 // perhaps we will also have to pipe events through an ueber-event-handler
 // to make sure we have one place to do all these house-keeping functions
@@ -178,7 +178,7 @@ short wxApp::MacHandleAEODoc(const WXEVENTREF event, WXEVENTREF WXUNUSED(reply))
     PSN.lowLongOfPSN = kCurrentProcess ;
     SetFrontProcess( &PSN ) ;
 
-    for (i = 1; i <= itemsInList; i++) 
+    for (i = 1; i <= itemsInList; i++)
     {
         wxString fName ;
 
@@ -325,10 +325,10 @@ void wxApp::MacReopenApp()
     // if there is no open window -> create a new one
     // if all windows are hidden -> show the first
     // if some windows are not hidden -> do nothing
-    
+
     wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
     if ( node == NULL )
-    {  
+    {
         MacNewFile() ;
     }
     else
@@ -383,14 +383,14 @@ static const EventTypeSpec eventList[] =
 
 static pascal OSStatus
 wxMacAppMenuEventHandler( EventHandlerCallRef handler , EventRef event , void *data )
-{    
+{
     wxMacCarbonEvent cEvent( event ) ;
     MenuRef menuRef = cEvent.GetParameter<MenuRef>(kEventParamDirectObject) ;
     wxMenu* menu = wxFindMenuFromMacMenu( menuRef ) ;
-    
+
     if ( menu )
     {
-        wxEventType type=0;        
+        wxEventType type=0;
         MenuCommand cmd=0;
         switch (GetEventKind(event))
         {
@@ -402,7 +402,7 @@ wxMacAppMenuEventHandler( EventHandlerCallRef handler , EventRef event , void *d
                 break;
             case kEventMenuTargetItem:
                 cmd = cEvent.GetParameter<MenuCommand>(kEventParamMenuCommand,typeMenuCommand) ;
-                if (cmd != 0) 
+                if (cmd != 0)
                     type = wxEVT_MENU_HIGHLIGHT;
                 break;
             default:
@@ -423,12 +423,12 @@ wxMacAppMenuEventHandler( EventHandlerCallRef handler , EventRef event , void *d
             else
             {
                 wxWindow *win = menu->GetInvokingWindow();
-                if (win) 
+                if (win)
                     win->GetEventHandler()->ProcessEvent(wxevent);
                 }
             }
     }
-    
+
     return eventNotHandledErr;
 }
 
@@ -440,14 +440,14 @@ static pascal OSStatus wxMacAppCommandEventHandler( EventHandlerCallRef handler 
 
     wxMacCarbonEvent cEvent( event ) ;
     cEvent.GetParameter<HICommand>(kEventParamDirectObject,typeHICommand,&command) ;
-        
+
     wxMenuItem* item = NULL ;
     MenuCommand id = command.commandID ;
     // for items we don't really control
     if ( id == kHICommandPreferences )
     {
         id = wxApp::s_macPreferencesMenuItemId ;
-        
+
         wxMenuBar* mbar = wxMenuBar::MacGetInstalledMenuBar() ;
         if ( mbar )
         {
@@ -459,7 +459,7 @@ static pascal OSStatus wxMacAppCommandEventHandler( EventHandlerCallRef handler 
     {
         GetMenuItemRefCon( command.menu.menuRef , command.menu.menuItemIndex , (UInt32*) &item ) ;
     }
-    
+
     if ( item )
     {
        switch( cEvent.GetKind() )
@@ -532,7 +532,7 @@ pascal OSStatus wxMacAppEventHandler( EventHandlerCallRef handler , EventRef eve
         case kEventClassMouse :
             {
                 wxMacCarbonEvent cEvent( event ) ;
-                
+
                 WindowRef window ;
                 Point screenMouseLocation = cEvent.GetParameter<Point>(kEventParamMouseLocation) ;
                 ::FindWindow(screenMouseLocation, &window);
@@ -567,8 +567,8 @@ WXIMPORT char std::__throws_bad_alloc ;
 
 #if __WXDEBUG__
 
-pascal static void wxMacAssertOutputHandler(OSType componentSignature, UInt32 options, 
-    const char *assertionString, const char *exceptionLabelString, 
+pascal static void wxMacAssertOutputHandler(OSType componentSignature, UInt32 options,
+    const char *assertionString, const char *exceptionLabelString,
     const char *errorString, const char *fileName, long lineNumber, void *value, ConstStr255Param outputMsg)
 {
     // flow into assert handling
@@ -590,10 +590,10 @@ pascal static void wxMacAssertOutputHandler(OSType componentSignature, UInt32 op
 
 #if 1
     // flow into log
-    wxLogDebug( wxT("AssertMacros: %s %s %s file: %s, line: %ld (value %p)\n"), 
-        assertionStr.c_str() , 
-        exceptionStr.c_str() , 
-        errorStr.c_str(), 
+    wxLogDebug( wxT("AssertMacros: %s %s %s file: %s, line: %ld (value %p)\n"),
+        assertionStr.c_str() ,
+        exceptionStr.c_str() ,
+        errorStr.c_str(),
         fileNameStr.c_str(), lineNumber ,
         value ) ;
 #else
@@ -675,7 +675,7 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
         CFRelease( url ) ;
         CFStringRef path = CFURLCopyFileSystemPath ( urlParent , kCFURLPOSIXPathStyle ) ;
         CFRelease( urlParent ) ;
-        wxString cwd = wxMacCFStringHolder(path).AsString(wxLocale::GetSystemEncoding());       
+        wxString cwd = wxMacCFStringHolder(path).AsString(wxLocale::GetSystemEncoding());
         wxSetWorkingDirectory( cwd ) ;
     }
 #endif
@@ -943,7 +943,7 @@ bool wxApp::Pending()
     // without the receive event (with pull param = false ) nothing is ever reported
     EventRef theEvent;
     ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &theEvent);
-    return GetNumEventsInQueue( GetMainEventQueue() ) > 0 ; 
+    return GetNumEventsInQueue( GetMainEventQueue() ) > 0 ;
 }
 
 // Dispatch a message.
@@ -1090,7 +1090,7 @@ void wxApp::MacDoOneEvent()
 
 /*virtual*/ void wxApp::MacHandleUnhandledEvent( WXEVENTREF evr )
 {
-    // Override to process unhandled events as you please    
+    // Override to process unhandled events as you please
 }
 
 void wxApp::MacHandleOneEvent( WXEVENTREF evr )
@@ -1116,118 +1116,118 @@ long wxMacTranslateKey(unsigned char key, unsigned char code)
     switch (key)
     {
         case kHomeCharCode :
-                 retval = WXK_HOME;
-          break;
+            retval = WXK_HOME;
+            break;
 
         case kEnterCharCode :
-                 retval = WXK_RETURN;
-          break;
+            retval = WXK_RETURN;
+            break;
         case kEndCharCode :
-                 retval = WXK_END;
-          break;
+            retval = WXK_END;
+            break;
 
         case kHelpCharCode :
-                 retval = WXK_HELP;
-          break;
+            retval = WXK_HELP;
+            break;
 
         case kBackspaceCharCode :
-                 retval = WXK_BACK;
-          break;
+            retval = WXK_BACK;
+            break;
 
         case kTabCharCode :
-                 retval = WXK_TAB;
-          break;
+            retval = WXK_TAB;
+            break;
 
         case kPageUpCharCode :
-                 retval = WXK_PAGEUP;
-          break;
+            retval = WXK_PAGEUP;
+            break;
 
         case kPageDownCharCode :
-                 retval = WXK_PAGEDOWN;
-          break;
+            retval = WXK_PAGEDOWN;
+            break;
 
         case kReturnCharCode :
-                 retval = WXK_RETURN;
-          break;
+            retval = WXK_RETURN;
+            break;
 
-            case kFunctionKeyCharCode :
+        case kFunctionKeyCharCode :
+        {
+            switch( code )
             {
-                switch( code )
-                {
-                    case 0x7a :
-                        retval = WXK_F1 ;
-                        break;
-                    case 0x78 :
-                        retval = WXK_F2 ;
-                        break;
-                    case 0x63 :
-                        retval = WXK_F3 ;
-                        break;
-                    case 0x76 :
-                        retval = WXK_F4 ;
-                        break;
-                    case 0x60 :
-                        retval = WXK_F5 ;
-                        break;
-                    case 0x61 :
-                        retval = WXK_F6 ;
-                        break;
-                    case 0x62:
-                        retval = WXK_F7 ;
-                        break;
-                    case 0x64 :
-                        retval = WXK_F8 ;
-                        break;
-                    case 0x65 :
-                        retval = WXK_F9 ;
-                        break;
-                    case 0x6D :
-                        retval = WXK_F10 ;
-                        break;
-                    case 0x67 :
-                        retval = WXK_F11 ;
-                        break;
-                    case 0x6F :
-                        retval = WXK_F12 ;
-                        break;
-                    case 0x69 :
-                        retval = WXK_F13 ;
-                        break;
-                    case 0x6B :
-                        retval = WXK_F14 ;
-                        break;
-                    case 0x71 :
-                        retval = WXK_F15 ;
-                        break;
-                }
+                case 0x7a :
+                    retval = WXK_F1 ;
+                    break;
+                case 0x78 :
+                    retval = WXK_F2 ;
+                    break;
+                case 0x63 :
+                    retval = WXK_F3 ;
+                    break;
+                case 0x76 :
+                    retval = WXK_F4 ;
+                    break;
+                case 0x60 :
+                    retval = WXK_F5 ;
+                    break;
+                case 0x61 :
+                    retval = WXK_F6 ;
+                    break;
+                case 0x62:
+                    retval = WXK_F7 ;
+                    break;
+                case 0x64 :
+                    retval = WXK_F8 ;
+                    break;
+                case 0x65 :
+                    retval = WXK_F9 ;
+                    break;
+                case 0x6D :
+                    retval = WXK_F10 ;
+                    break;
+                case 0x67 :
+                    retval = WXK_F11 ;
+                    break;
+                case 0x6F :
+                    retval = WXK_F12 ;
+                    break;
+                case 0x69 :
+                    retval = WXK_F13 ;
+                    break;
+                case 0x6B :
+                    retval = WXK_F14 ;
+                    break;
+                case 0x71 :
+                    retval = WXK_F15 ;
+                    break;
             }
+        }
+        break ;
+
+        case kEscapeCharCode :
+            retval = WXK_ESCAPE ;
             break ;
 
-            case kEscapeCharCode :
-                retval = WXK_ESCAPE ;
+        case kLeftArrowCharCode :
+            retval = WXK_LEFT ;
             break ;
 
-            case kLeftArrowCharCode :
-                retval = WXK_LEFT ;
+        case kRightArrowCharCode :
+            retval = WXK_RIGHT ;
             break ;
 
-            case kRightArrowCharCode :
-                retval = WXK_RIGHT ;
+        case kUpArrowCharCode :
+            retval = WXK_UP ;
             break ;
 
-            case kUpArrowCharCode :
-                retval = WXK_UP ;
+        case kDownArrowCharCode :
+            retval = WXK_DOWN ;
             break ;
 
-            case kDownArrowCharCode :
-                retval = WXK_DOWN ;
+        case kDeleteCharCode :
+            retval = WXK_DELETE ;
             break ;
 
-            case kDeleteCharCode :
-                retval = WXK_DELETE ;
-            break ;
-
-             default:
+        default:
             break ;
      } // end switch
 
@@ -1268,9 +1268,9 @@ bool wxGetKeyState(wxKeyCode key) //virtual key code if < 10.2.x, else see below
 //if OS X > 10.2 (i.e. 10.2.x)
 //a known apple bug prevents the system from determining led
 //states with GetKeys... can only determine caps lock led
-   return !!(GetCurrentKeyModifiers() & wxMacKeyCodeToModifier(key)); 
+     return !!(GetCurrentKeyModifiers() & wxMacKeyCodeToModifier(key));
 //else
-//  KeyMapByteArray keymap; 
+//  KeyMapByteArray keymap;
 //  GetKeys((BigEndianLong*)keymap);
 //  return !!(BitTst(keymap, (sizeof(KeyMapByteArray)*8) - iKey));
 }
@@ -1359,22 +1359,22 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
 
 #if wxUSE_ACCEL
     if ( !handled )
+    {
+        wxWindow *ancestor = focus;
+        while (ancestor)
         {
-            wxWindow *ancestor = focus;
-            while (ancestor)
+            int command = ancestor->GetAcceleratorTable()->GetCommand( event );
+            if (command != -1)
             {
-                int command = ancestor->GetAcceleratorTable()->GetCommand( event );
-                if (command != -1)
-                {
-                    wxCommandEvent command_event( wxEVT_COMMAND_MENU_SELECTED, command );
-                    handled = ancestor->GetEventHandler()->ProcessEvent( command_event );
-                    break;
-                }
-                if (ancestor->IsTopLevel())
-                    break;
-                ancestor = ancestor->GetParent();
+                wxCommandEvent command_event( wxEVT_COMMAND_MENU_SELECTED, command );
+                handled = ancestor->GetEventHandler()->ProcessEvent( command_event );
+                break;
             }
+            if (ancestor->IsTopLevel())
+                break;
+            ancestor = ancestor->GetParent();
         }
+    }
 #endif // wxUSE_ACCEL
 
     if (!handled)
@@ -1393,9 +1393,9 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
                 handled = false ;
         }
     }
-    
+
     if ( !handled )
-    {        
+    {
         event.Skip( false ) ;
         event.SetEventType( wxEVT_CHAR ) ;
         // raw value again
@@ -1443,7 +1443,7 @@ bool wxApp::MacSendKeyDownEvent( wxWindow* focus , long keymessage , long modifi
                      event.SetEventObject(def);
                      def->Command(event);
                      return true ;
-                }
+                 }
             }
             /* generate wxID_CANCEL if command-. or <esc> has been pressed (typically in dialogs) */
             else if (keyval == WXK_ESCAPE || (keyval == '.' && modifiers & cmdKey ) )

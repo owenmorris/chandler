@@ -1882,7 +1882,7 @@ bool wxDC::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) con
     status = ::ATSUCreateTextLayoutWithTextPtr( (UniCharArrayPtr) ubuf , 0 , chars , chars , 1 ,
         &chars , (ATSUStyle*) &m_macATSUIStyle , &atsuLayout ) ;
         
-    	for ( int pos = 0; pos < (int)chars; pos ++ ) {
+    	for ( int pos = 0; pos < chars; pos ++ ) {
 			unsigned long actualNumberOfBounds = 0;
 			ATSTrapezoid glyphBounds;
 

@@ -248,7 +248,7 @@ bool wxClipboard::AddData( wxDataObject *data )
         size_t sz = data->GetDataSize( array[i] ) ;
         void* buf = malloc( sz + 1 ) ;
         if ( buf )
-        {        
+        {
             // empty the buffer because in some case GetDataHere does not fill buf
             memset(buf, 0, sz+1);
             data->GetDataHere( array[i] , buf ) ;
@@ -300,16 +300,16 @@ void wxClipboard::Close()
     {
         delete m_data;
         m_data = (wxDataObject*) NULL;
-    }    
-	    
+    }
+
 }
 
 bool wxClipboard::IsSupported( const wxDataFormat &dataFormat )
 {
-  if ( m_data )
-  {
-    return m_data->IsSupported( dataFormat ) ;
-  }
+    if ( m_data )
+    {
+        return m_data->IsSupported( dataFormat ) ;
+    }
 #if TARGET_CARBON
     OSStatus err = noErr;
     ScrapRef scrapRef;

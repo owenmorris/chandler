@@ -45,13 +45,13 @@ BEGIN_EVENT_TABLE(wxPropertySheetDialog, wxDialog)
     EVT_ACTIVATE(wxPropertySheetDialog::OnActivate)
 END_EVENT_TABLE()
 
-bool wxPropertySheetDialog::Create(wxWindow* parent, wxWindowID id, const wxString& title, 
+bool wxPropertySheetDialog::Create(wxWindow* parent, wxWindowID id, const wxString& title,
                                        const wxPoint& pos, const wxSize& sz, long style,
                                        const wxString& name)
 {
     if (!wxDialog::Create(parent, id, title, pos, sz, style|wxCLIP_CHILDREN, name))
         return false;
-    
+
     wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL );
     SetSizer(topSizer);
 

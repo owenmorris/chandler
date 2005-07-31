@@ -18,8 +18,8 @@
 #include "wx/gdicmn.h"
 #include "wx/mac/uma.h"
 
-    IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
-    IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject)
+IMPLEMENT_DYNAMIC_CLASS(wxRegion, wxGDIObject)
+IMPLEMENT_DYNAMIC_CLASS(wxRegionIterator, wxObject)
 
 //-----------------------------------------------------------------------------
 // wxRegionRefData implementation

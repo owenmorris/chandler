@@ -716,7 +716,7 @@ void wxDatePickerCtrlGeneric::SetValue(const wxDateTime& date)
 
     if ( date.IsValid() )
     {
-            m_txt->SetValue(date.Format(m_format));
+        m_txt->SetValue(date.Format(m_format));
     }
     else // invalid date
     {
@@ -728,8 +728,8 @@ void wxDatePickerCtrlGeneric::SetValue(const wxDateTime& date)
 
     gs_inSetValue = NULL;
 
-        m_currentDate = date;
-    }
+    m_currentDate = date;
+}
 
 
 bool wxDatePickerCtrlGeneric::GetRange(wxDateTime *dt1, wxDateTime *dt2) const

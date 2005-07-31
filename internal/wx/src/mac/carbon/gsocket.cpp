@@ -23,16 +23,16 @@
 #if wxUSE_SOCKETS || defined(__GSOCKET_STANDALONE__)
 
 #ifdef __DARWIN__
-  #include <CoreServices/CoreServices.h>
+    #include <CoreServices/CoreServices.h>
 #else
-  #include <MacHeaders.c>
-  #define OTUNIXERRORS 1
-  #include <OpenTransport.h>
-  #include <OpenTransportProviders.h>
-  #include <OpenTptInternet.h>
+    #include <MacHeaders.c>
+    #define OTUNIXERRORS 1
+    #include <OpenTransport.h>
+    #include <OpenTransportProviders.h>
+    #include <OpenTptInternet.h>
 #endif
 #if TARGET_CARBON && !defined(OTAssert)
-  #define OTAssert( str , cond ) /* does not exists in Carbon */
+    #define OTAssert( str , cond ) /* does not exists in Carbon */
 #endif
 
 #include <assert.h>
@@ -60,14 +60,14 @@
 #endif
 #ifndef __GSOCKET_STANDALONE__
 
-#include "wx/mac/macnotfy.h"
-#include "wx/mac/gsockmac.h"
-#include "wx/gsocket.h"
+    #include "wx/mac/macnotfy.h"
+    #include "wx/mac/gsockmac.h"
+    #include "wx/gsocket.h"
 
 #else
 
-#include "gsockmac.h"
-#include "gsocket.h"
+    #include "gsockmac.h"
+    #include "gsocket.h"
 
 #endif /* __GSOCKET_STANDALONE__ */
 
@@ -94,13 +94,13 @@ OTNotifyUPP gOTNotifierUPP = NULL ;
 OSStatus DoNegotiateIPReuseAddrOption(EndpointRef ep, Boolean enableReuseIPMode);
 
 /* Input: ep - endpointref on which to negotiate the option
-			enableReuseIPMode - desired option setting - true/false
+               enableReuseIPMode - desired option setting - true/false
    Return: kOTNoError indicates that the option was successfully negotiated
-   			OSStatus is an error if < 0, otherwise, the status field is
-   			returned and is > 0.
-   	
-   	IMPORTANT NOTE: The endpoint is assumed to be in synchronous more, otherwise
-   			this code will not function as desired
+           OSStatus is an error if < 0, otherwise, the status field is
+           returned and is > 0.
+
+   IMPORTANT NOTE: The endpoint is assumed to be in synchronous more, otherwise
+                   this code will not function as desired
 */
 
 
@@ -135,63 +135,63 @@ OSStatus DoNegotiateIPReuseAddrOption(EndpointRef ep, Boolean enableReuseIPMode)
     opt->status = 0;
     *(UInt32*)opt->value = enableReuseIPMode;   // set the desired option level, true or false
 
-	err = OTOptionManagement(ep, &req, &ret);
-	
-		// if no error then return the option status value
-	if (err == kOTNoError)
-	{
-		if (opt->status != T_SUCCESS)
-			err = opt->status;
-		else
-			err = kOTNoError;
-	}
-				
-	return err;
+    err = OTOptionManagement(ep, &req, &ret);
+
+    // if no error then return the option status value
+    if (err == kOTNoError)
+    {
+        if (opt->status != T_SUCCESS)
+            err = opt->status;
+        else
+            err = kOTNoError;
+    }
+
+    return err;
 }
 
 
 pascal void OTInetEventHandler(void*s, OTEventCode event, OTResult, void *cookie) ;
 pascal void OTInetEventHandler(void*s, OTEventCode event, OTResult result, void *cookie)
 {
-	int wakeUp = true ;
-	GSocket* sock = (GSocket*) s ;
-	
-	if ( event == kOTSyncIdleEvent )
-	{
-		return ;
-	}
+    int wakeUp = true ;
+    GSocket* sock = (GSocket*) s ;
 
-	if ( s )
-	{
-		wxMacAddEvent( sock->m_mac_events , _GSocket_Internal_Proc , event , s , wakeUp ) ;
-	}
+    if ( event == kOTSyncIdleEvent )
+    {
+        return ;
+    }
 
-	return;
+    if ( s )
+    {
+        wxMacAddEvent( sock->m_mac_events , _GSocket_Internal_Proc , event , s , wakeUp ) ;
+    }
+
+    return;
 }
 
 static void SetDefaultEndpointModes(EndpointRef ep , void *data )
-	// This routine sets the supplied endpoint into the default
-	// mode used in this application.  The specifics are:
-	// blocking, synchronous, and using synch idle events with
-	// the standard YieldingNotifier.
+    // This routine sets the supplied endpoint into the default
+    // mode used in this application.  The specifics are:
+    // blocking, synchronous, and using synch idle events with
+    // the standard YieldingNotifier.
 {
-	OSStatus junk = kOTNoError ;
-	OTAssert ("SetDefaultEndpointModes:invalid ref", ep != kOTInvalidEndpointRef ) ;
-	junk = OTSetAsynchronous(ep);
-	OTAssert("SetDefaultEndpointModes: Could not set asynchronous", junk == noErr);
+    OSStatus junk = kOTNoError ;
+    OTAssert ("SetDefaultEndpointModes:invalid ref", ep != kOTInvalidEndpointRef ) ;
+    junk = OTSetAsynchronous(ep);
+    OTAssert("SetDefaultEndpointModes: Could not set asynchronous", junk == noErr);
 /*
-	junk = OTSetBlocking(ep);
-	OTAssert("SetDefaultEndpointModes: Could not set blocking", junk == noErr);
-	junk = OTSetSynchronous(ep);
-	OTAssert("SetDefaultEndpointModes: Could not set synchronous", junk == noErr);
-	junk = OTSetBlocking(ep);
-	OTAssert("SetDefaultEndpointModes: Could not set blocking", junk == noErr);
+    junk = OTSetBlocking(ep);
+    OTAssert("SetDefaultEndpointModes: Could not set blocking", junk == noErr);
+    junk = OTSetSynchronous(ep);
+    OTAssert("SetDefaultEndpointModes: Could not set synchronous", junk == noErr);
+    junk = OTSetBlocking(ep);
+    OTAssert("SetDefaultEndpointModes: Could not set blocking", junk == noErr);
 */
-	junk = OTInstallNotifier(ep, gOTNotifierUPP, data);
-	OTAssert("SetDefaultEndpointModes: Could not install notifier", junk == noErr);
+    junk = OTInstallNotifier(ep, gOTNotifierUPP, data);
+    OTAssert("SetDefaultEndpointModes: Could not install notifier", junk == noErr);
 /*
-	junk = OTUseSyncIdleEvents(ep, true);
-	OTAssert("SetDefaultEndpointModes: Could not use sync idle events", junk == noErr);
+    junk = OTUseSyncIdleEvents(ep, true);
+    OTAssert("SetDefaultEndpointModes: Could not use sync idle events", junk == noErr);
 */
 }
 
@@ -222,19 +222,19 @@ bool GSocket_Verify_Inited()
     InitOpenTransportInContext(kInitOTForApplicationMask, &clientcontext);
     gOTInited = 1 ;
     gInetSvcRef = OTOpenInternetServicesInContext(kDefaultInternetServicesPath,
-						NULL, &err, clientcontext);
-#else	
+                                                  NULL, &err, clientcontext);
+#else
     if ( gInetSvcRef )
       return true ;
- 
+
     InitOpenTransport() ;
     gOTInited = 1 ;
     gInetSvcRef = OTOpenInternetServices(kDefaultInternetServicesPath, NULL, &err);
 #endif
     if ( gInetSvcRef == NULL ||  err != kOTNoError )
     {
-	OTAssert("Could not open Inet Services", err == noErr);
-	return false ;
+        OTAssert("Could not open Inet Services", err == noErr);
+        return false ;
     }
     gOTNotifierUPP = NewOTNotifyUPP( OTInetEventHandler ) ;
     return true ;
@@ -244,8 +244,8 @@ void GSocket_Cleanup()
 {
     if ( gOTInited != 0 )
     {
-      if ( gInetSvcRef != NULL )
-    	OTCloseProvider( gInetSvcRef );
+        if ( gInetSvcRef != NULL )
+            OTCloseProvider( gInetSvcRef );
     #if TARGET_CARBON
       CloseOpenTransportInContext( NULL ) ;
     #else
@@ -284,19 +284,19 @@ GSocket::GSocket()
 
 GSocket::~GSocket()
 {
-  assert(this);
+    assert(this);
 
-  /* Check that the socket is really shutdowned */
-  if (m_endpoint != kOTInvalidEndpointRef)
-    Shutdown();
+    /* Check that the socket is really shutdowned */
+    if (m_endpoint != kOTInvalidEndpointRef)
+        Shutdown();
 
 
-  /* Destroy private addresses */
-  if (m_local)
-    GAddress_destroy(m_local);
+    /* Destroy private addresses */
+    if (m_local)
+        GAddress_destroy(m_local);
 
-  if (m_peer)
-    GAddress_destroy(m_peer);
+    if (m_peer)
+        GAddress_destroy(m_peer);
 }
 
 /* GSocket_Shutdown:
@@ -305,32 +305,32 @@ GSocket::~GSocket()
  */
 void GSocket::Shutdown()
 {
-  OSStatus err ;
-  int evt;
+    OSStatus err ;
+    int evt;
 
-  assert(this);
+    assert(this);
 
-  /* If socket has been created, shutdown it */
-  if (m_endpoint != kOTInvalidEndpointRef )
-  {
-    err = OTSndOrderlyDisconnect( m_endpoint ) ;
-  	if ( err != kOTNoError )
-  	{
+    /* If socket has been created, shutdown it */
+    if (m_endpoint != kOTInvalidEndpointRef )
+    {
+        err = OTSndOrderlyDisconnect( m_endpoint ) ;
+        if ( err != kOTNoError )
+        {
         }
 
-    err = OTRcvOrderlyDisconnect( m_endpoint ) ;
-  	err = OTUnbind( m_endpoint ) ;
-  	err = OTCloseProvider( m_endpoint ) ;
-  	m_endpoint = kOTInvalidEndpointRef ;
-  }
+        err = OTRcvOrderlyDisconnect( m_endpoint ) ;
+        err = OTUnbind( m_endpoint ) ;
+        err = OTCloseProvider( m_endpoint ) ;
+        m_endpoint = kOTInvalidEndpointRef ;
+    }
 
-  /* Disable GUI callbacks */
-  for (evt = 0; evt < GSOCK_MAX_EVENT; evt++)
-    m_cbacks[evt] = NULL;
+    /* Disable GUI callbacks */
+    for (evt = 0; evt < GSOCK_MAX_EVENT; evt++)
+        m_cbacks[evt] = NULL;
 
-  m_detected = 0;
-  Disable_Events();
-  wxMacRemoveAllNotifiersForData( wxMacGetNotifierTable() , this ) ;
+    m_detected = 0;
+    Disable_Events();
+    wxMacRemoveAllNotifiersForData( wxMacGetNotifierTable() , this ) ;
 }
 
 
@@ -352,109 +352,109 @@ void GSocket::Shutdown()
  */
 GSocketError GSocket::SetLocal(GAddress *address)
 {
-  assert(this);
+    assert(this);
 
-  /* the socket must be initialized, or it must be a server */
-  if ((m_endpoint != kOTInvalidEndpointRef && !m_server))
-  {
-    m_error = GSOCK_INVSOCK;
-    return GSOCK_INVSOCK;
-  }
+    /* the socket must be initialized, or it must be a server */
+    if ((m_endpoint != kOTInvalidEndpointRef && !m_server))
+    {
+        m_error = GSOCK_INVSOCK;
+        return GSOCK_INVSOCK;
+    }
 
-  /* check address */
-  if (address == NULL || address->m_family == GSOCK_NOFAMILY)
-  {
-    m_error = GSOCK_INVADDR;
-    return GSOCK_INVADDR;
-  }
+    /* check address */
+    if (address == NULL || address->m_family == GSOCK_NOFAMILY)
+    {
+        m_error = GSOCK_INVADDR;
+        return GSOCK_INVADDR;
+    }
 
-  if (m_local)
-    GAddress_destroy(m_local);
+    if (m_local)
+        GAddress_destroy(m_local);
 
-  m_local = GAddress_copy(address);
+    m_local = GAddress_copy(address);
 
-  return GSOCK_NOERROR;
+    return GSOCK_NOERROR;
 }
 
 GSocketError GSocket::SetPeer(GAddress *address)
 {
-  assert(this);
+    assert(this);
 
-  /* check address */
-  if (address == NULL || address->m_family == GSOCK_NOFAMILY)
-  {
-    m_error = GSOCK_INVADDR;
-    return GSOCK_INVADDR;
-  }
+    /* check address */
+    if (address == NULL || address->m_family == GSOCK_NOFAMILY)
+    {
+        m_error = GSOCK_INVADDR;
+        return GSOCK_INVADDR;
+    }
 
-  if (m_peer)
-    GAddress_destroy(m_peer);
+    if (m_peer)
+        GAddress_destroy(m_peer);
 
-  m_peer = GAddress_copy(address);
+    m_peer = GAddress_copy(address);
 
-  return GSOCK_NOERROR;
+    return GSOCK_NOERROR;
 }
 
 GAddress *GSocket::GetLocal()
 {
-  GAddress *address = NULL ;
-  GSocketError err;
-  InetAddress loc ;
+    GAddress *address = NULL ;
+    GSocketError err;
+    InetAddress loc ;
 
-  assert(this);
+    assert(this);
 
-  /* try to get it from the m_local var first */
-  if (m_local)
-    return GAddress_copy(m_local);
+    /* try to get it from the m_local var first */
+    if (m_local)
+        return GAddress_copy(m_local);
 
-  /* else, if the socket is initialized, try getsockname */
-  if (m_endpoint == kOTInvalidEndpointRef)
-  {
-    m_error = GSOCK_INVSOCK;
-    return NULL;
-  }
+    /* else, if the socket is initialized, try getsockname */
+    if (m_endpoint == kOTInvalidEndpointRef)
+    {
+        m_error = GSOCK_INVSOCK;
+        return NULL;
+    }
 
-	
+
 /* we do not support multihoming with this code at the moment
-   OTGetProtAddress will have to be used then - but we don't have a handy 
+   OTGetProtAddress will have to be used then - but we don't have a handy
    method to use right now
 */
-  {
+    {
         InetInterfaceInfo info;
-    OTInetGetInterfaceInfo(&info, kDefaultInetInterface);
-    loc.fHost = info.fAddress ;
-    loc.fPort = 0 ;
-   	loc.fAddressType = AF_INET ;
-  }
+        OTInetGetInterfaceInfo(&info, kDefaultInetInterface);
+        loc.fHost = info.fAddress ;
+        loc.fPort = 0 ;
+        loc.fAddressType = AF_INET ;
+    }
 
-  /* got a valid address from getsockname, create a GAddress object */
-  address = GAddress_new();
-  if (address == NULL)
-  {
-    m_error = GSOCK_MEMERR;
-    return NULL;
-  }
+    /* got a valid address from getsockname, create a GAddress object */
+    address = GAddress_new();
+    if (address == NULL)
+    {
+        m_error = GSOCK_MEMERR;
+        return NULL;
+    }
 
-  err = _GAddress_translate_from(address, &loc);
-  if (err != GSOCK_NOERROR)
-  {
-    GAddress_destroy(address);
-    m_error = err;
-    return NULL;
-  }
+    err = _GAddress_translate_from(address, &loc);
+    if (err != GSOCK_NOERROR)
+    {
+        GAddress_destroy(address);
+        m_error = err;
+        return NULL;
+    }
 
-  return address;
+    return address;
 }
 
 GAddress *GSocket::GetPeer()
 {
-  assert(this);
+    assert(this);
 
-  /* try to get it from the m_peer var */
-  if (m_peer)
-    return GAddress_copy(m_peer);
+    /* try to get it from the m_peer var */
+    if (m_peer)
+        return GAddress_copy(m_peer);
 
-  return NULL;
+    return NULL;
 }
 
 /* Server specific parts */
@@ -463,11 +463,11 @@ GAddress *GSocket::GetPeer()
  *  Sets up this socket as a server. The local address must have been
  *  set with GSocket_SetLocal() before GSocket_SetServer() is called.
  *  Returns GSOCK_NOERROR on success, one of the following otherwise:
- * 
+ *
  *  Error codes:
  *    GSOCK_INVSOCK - the socket is in use.
  *    GSOCK_INVADDR - the local address has not been set.
- *    GSOCK_IOERR   - low-level error. 
+ *    GSOCK_IOERR   - low-level error.
  */
 GSocketError GSocket::SetServer()
 {
@@ -535,7 +535,7 @@ GSocketError GSocket::SetServer()
  *    GSOCK_TIMEDOUT   - timeout, no incoming connections.
  *    GSOCK_WOULDBLOCK - the call would block and the socket is nonblocking.
  *    GSOCK_MEMERR     - couldn't allocate memory.
- *    GSOCK_IOERR      - low-level error. 
+ *    GSOCK_IOERR      - low-level error.
  */
 GSocket *GSocket::WaitConnection()
 {
@@ -652,7 +652,7 @@ GSocketError GSocket::SetNonOriented()
   m_oriented = false;
 
   /* Create the socket */
-  
+
 // TODO
 #if 0
   m_endpoint = socket(m_local->m_realfamily, SOCK_DGRAM, 0);
@@ -712,7 +712,7 @@ GSocketError GSocket::SetNonOriented()
  *    GSOCK_TIMEDOUT   - timeout, the connection failed.
  *    GSOCK_WOULDBLOCK - connection in progress (nonblocking sockets only)
  *    GSOCK_MEMERR     - couldn't allocate memory.
- *    GSOCK_IOERR      - low-level error. 
+ *    GSOCK_IOERR      - low-level error.
  */
 GSocketError GSocket::Connect(GSocketStream stream)
 {
@@ -745,22 +745,22 @@ GSocketError GSocket::Connect(GSocketStream stream)
 
   /* Create the socket */
 #if TARGET_CARBON
-  m_endpoint = 
-  	OTOpenEndpointInContext( OTCreateConfiguration( kTCPName) , 0 , &info , &err , NULL ) ;
+  m_endpoint =
+      OTOpenEndpointInContext( OTCreateConfiguration( kTCPName) , 0 , &info , &err , NULL ) ;
 #else
-  m_endpoint = 
-  	OTOpenEndpoint( OTCreateConfiguration( kTCPName) , 0 , &info , &err ) ;
+  m_endpoint =
+      OTOpenEndpoint( OTCreateConfiguration( kTCPName) , 0 , &info , &err ) ;
 #endif
   if ( m_endpoint == kOTInvalidEndpointRef || err != kOTNoError )
   {
-		m_endpoint = kOTInvalidEndpointRef ;
-    	m_error = GSOCK_IOERR;
-    	return GSOCK_IOERR;
+    m_endpoint = kOTInvalidEndpointRef ;
+    m_error = GSOCK_IOERR;
+    return GSOCK_IOERR;
   }
   err = OTBind( m_endpoint , nil , nil ) ;
   if ( err != kOTNoError )
   {
-    	return GSOCK_IOERR;
+    return GSOCK_IOERR;
   }
   SetDefaultEndpointModes( m_endpoint , this ) ;
 // TODO
@@ -780,13 +780,13 @@ GSocketError GSocket::Connect(GSocketStream stream)
      * is in blocking mode, we select() for the specified timeout
      * checking for writability to see if the connection request
      * completes.
-     */ 
-	
+     */
+
     if ((err == kOTNoDataErr ) && (!m_non_blocking))
     {
       if (Output_Timeout() == GSOCK_TIMEDOUT)
       {
-      	OTSndOrderlyDisconnect( m_endpoint ) ;
+        OTSndOrderlyDisconnect( m_endpoint ) ;
         m_endpoint = kOTInvalidEndpointRef ;
         /* m_error is set in _GSocket_Output_Timeout */
         return GSOCK_TIMEDOUT;
@@ -857,7 +857,7 @@ int GSocket::Read(char *buffer, int size)
     ret = Recv_Stream(buffer, size);
   else
     ret = Recv_Dgram(buffer, size);
-    
+
   if (ret == -1)
   {
     if (errno == EWOULDBLOCK)
@@ -865,12 +865,12 @@ int GSocket::Read(char *buffer, int size)
     else
       m_error = GSOCK_IOERR;
   }
-  
+
   return ret;
 }
 
 int GSocket::Write(const char *buffer, int size)
-{                        
+{
   int ret;
 
   assert(this);
@@ -890,7 +890,7 @@ int GSocket::Write(const char *buffer, int size)
     ret = Send_Stream(buffer, size);
   else
     ret = Send_Dgram(buffer, size);
-    
+
   if (ret == -1)
   {
     if (errno == EWOULDBLOCK)
@@ -906,7 +906,7 @@ int GSocket::Write(const char *buffer, int size)
     m_detected &= ~GSOCK_OUTPUT_FLAG;
     return -1;
   }
-  
+
   return ret;
 }
 
@@ -923,24 +923,24 @@ GSocketEventFlags GSocket::Select(GSocketEventFlags flags)
   wxMacProcessNotifierEvents() ;
   /*
   state = OTGetEndpointState(m_endpoint);
-  
+
   if ( ( flags & GSOCK_INPUT_FLAG ) && ! ( m_detected & GSOCK_INPUT_FLAG ) )
   {
-  	size_t sz = 0 ;
-  	OTCountDataBytes( m_endpoint , &sz ) ;
-  	if ( state == T_INCON || sz > 0 )
-  	{
-        m_detected |= GSOCK_INPUT_FLAG ;
-		(m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
- 	}
+    size_t sz = 0 ;
+    OTCountDataBytes( m_endpoint , &sz ) ;
+    if ( state == T_INCON || sz > 0 )
+    {
+      m_detected |= GSOCK_INPUT_FLAG ;
+      (m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
+    }
   }
   if ( ( flags & GSOCK_INPUT_FLAG ) && ! ( m_detected & GSOCK_OUTPUT_FLAG ) )
   {
-  	if ( state == T_DATAXFER || state == T_INREL )
-  	{
-        m_detected |=GSOCK_OUTPUT_FLAG ;
-		(m_cbacks[GSOCK_OUTPUT])(this, GSOCK_OUTPUT, m_data[GSOCK_OUTPUT]);
-  	}
+    if ( state == T_DATAXFER || state == T_INREL )
+    {
+      m_detected |=GSOCK_OUTPUT_FLAG ;
+      (m_cbacks[GSOCK_OUTPUT])(this, GSOCK_OUTPUT, m_data[GSOCK_OUTPUT]);
+    }
   }
   */
   return ( flags & m_detected ) ;
@@ -991,7 +991,7 @@ GSocketError WXDLLIMPEXP_NET GSocket::GetError()
  *   operation, there is still data available, the callback function will
  *   be called again.
  * GSOCK_OUTPUT:
- *   The socket is available for writing. That is, the next write call 
+ *   The socket is available for writing. That is, the next write call
  *   won't block. This event is generated only once, when the connection is
  *   first established, and then only if a call failed with GSOCK_WOULDBLOCK,
  *   when the output buffer empties again. This means that the app should
@@ -1060,31 +1060,31 @@ void GSocket::UnsetCallback(GSocketEventFlags flags)
 
 int GSocket::Recv_Stream(char *buffer, int size)
 {
-	OTFlags flags ;
-	OTResult res ;
-	OTByteCount sz = 0 ;
+    OTFlags flags ;
+    OTResult res ;
+    OTByteCount sz = 0 ;
 
-  	OTCountDataBytes( m_endpoint , &sz ) ;
-  	if ( size > (int)sz )
-  	  size = sz ;
-	res = OTRcv( m_endpoint , buffer , size , &flags ) ;
-	if ( res < 0 )
-	{
-		return -1 ;
-	}
-	
-	// we simulate another read event if there are still bytes
-	if ( m_takesEvents )
-	{
-  		OTByteCount sz = 0 ;
-  		OTCountDataBytes( m_endpoint , &sz ) ;
-  		if ( sz > 0 )
-  		{
-        	m_detected |= GSOCK_INPUT_FLAG ;
-			(m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
- 		}
- 	}
- 	return res ;
+    OTCountDataBytes( m_endpoint , &sz ) ;
+    if ( size > (int)sz )
+        size = sz ;
+    res = OTRcv( m_endpoint , buffer , size , &flags ) ;
+    if ( res < 0 )
+    {
+        return -1 ;
+    }
+
+    // we simulate another read event if there are still bytes
+    if ( m_takesEvents )
+    {
+        OTByteCount sz = 0 ;
+        OTCountDataBytes( m_endpoint , &sz ) ;
+        if ( sz > 0 )
+        {
+            m_detected |= GSOCK_INPUT_FLAG ;
+            (m_cbacks[GSOCK_INPUT])(this, GSOCK_INPUT, m_data[GSOCK_INPUT]);
+        }
+    }
+    return res ;
 }
 
 int GSocket::Recv_Dgram(char *buffer, int size)
@@ -1127,11 +1127,11 @@ int GSocket::Recv_Dgram(char *buffer, int size)
 
 int GSocket::Send_Stream(const char *buffer, int size)
 {
-	OTFlags flags = 0 ;
-	OTResult res ;
+    OTFlags flags = 0 ;
+    OTResult res ;
 
-	res = OTSnd( m_endpoint , (void*) buffer , size , flags ) ;
-	return res ;
+    res = OTSnd( m_endpoint , (void*) buffer , size , flags ) ;
+    return res ;
 }
 
 int GSocket::Send_Dgram(const char *buffer, int size)
@@ -1272,7 +1272,7 @@ GSocketError _GAddress_translate_from(GAddress *address,
 GSocketError _GAddress_translate_to(GAddress *address,
                                     InetAddress *addr)
 {
- if ( !GSocket_Verify_Inited() )
+  if ( !GSocket_Verify_Inited() )
     return GSOCK_IOERR ;
   memset(addr, 0 , sizeof(struct InetAddress));
   OTInitInetAddress( addr , address->m_port , address->m_host ) ;
@@ -1289,7 +1289,7 @@ GSocketError _GAddress_Init_INET(GAddress *address)
 {
   address->m_family = GSOCK_INET;
   address->m_host = kOTAnyInetAddress ;
-  
+
   return GSOCK_NOERROR;
 }
 
@@ -1307,10 +1307,10 @@ GSocketError GAddress_INET_SetHostName(GAddress *address, const char *hostname)
   ret = OTInetStringToAddress( gInetSvcRef , (char*) hostname , &hinfo ) ;
   if ( ret != kOTNoError )
   {
-  	address->m_host = INADDR_NONE ;
+    address->m_host = INADDR_NONE ;
     address->m_error = GSOCK_NOHOST;
     return GSOCK_NOHOST;
-  }  
+  }
   address->m_host = hinfo.addrs[0] ;
   return GSOCK_NOERROR;
 }
@@ -1332,17 +1332,17 @@ GSocketError GAddress_INET_SetHostAddress(GAddress *address,
   return GSOCK_NOERROR;
 }
 
-struct service_entry 
+struct service_entry
 {
-	const char * name ;
-	unsigned short port ;
-	const char * protocol ; 
+    const char * name ;
+    unsigned short port ;
+    const char * protocol ;
 } ;
 typedef struct service_entry service_entry ;
 
 service_entry gServices[] =
 {
-	{ "http" , 80 , "tcp" } 
+    { "http" , 80 , "tcp" }
 } ;
 
 GSocketError GAddress_INET_SetPortName(GAddress *address, const char *port,
@@ -1360,14 +1360,14 @@ GSocketError GAddress_INET_SetPortName(GAddress *address, const char *port,
   }
   for ( i = 0 ; i < sizeof( gServices) / sizeof( service_entry ) ; ++i )
   {
-  	if ( strcmp( port , gServices[i].name ) == 0 )
-  	{
-  		if ( protocol == NULL || strcmp( protocol , gServices[i].protocol ) )
-  		{
-  			address->m_port = gServices[i].port ;
-      		return GSOCK_NOERROR;
-  		}
-  	}
+    if ( strcmp( port , gServices[i].name ) == 0 )
+    {
+      if ( protocol == NULL || strcmp( protocol , gServices[i].protocol ) )
+      {
+        address->m_port = gServices[i].port ;
+        return GSOCK_NOERROR;
+      }
+    }
   }
 
   if (isdigit(port[0]))
@@ -1385,17 +1385,17 @@ GSocketError GAddress_INET_SetPort(GAddress *address, unsigned short port)
   assert(address != NULL);
   CHECK_ADDRESS(address, INET, GSOCK_INVADDR);
   address->m_port = port ;
- 
+
   return GSOCK_NOERROR;
 }
 
 GSocketError GAddress_INET_GetHostName(GAddress *address, char *hostname, size_t sbuf)
 {
   InetDomainName name ;
- if ( !GSocket_Verify_Inited() )
+  if ( !GSocket_Verify_Inited() )
     return GSOCK_IOERR ;
-  
-  assert(address != NULL); 
+
+  assert(address != NULL);
   CHECK_ADDRESS(address, INET, GSOCK_INVADDR);
 
   OTInetAddressToName( gInetSvcRef , address->m_host , name ) ;
@@ -1405,16 +1405,16 @@ GSocketError GAddress_INET_GetHostName(GAddress *address, char *hostname, size_t
 
 unsigned long GAddress_INET_GetHostAddress(GAddress *address)
 {
-  assert(address != NULL); 
-  CHECK_ADDRESS(address, INET, 0); 
+  assert(address != NULL);
+  CHECK_ADDRESS(address, INET, 0);
 
   return ntohl(address->m_host);
 }
 
 unsigned short GAddress_INET_GetPort(GAddress *address)
 {
-  assert(address != NULL); 
-  CHECK_ADDRESS(address, INET, 0); 
+  assert(address != NULL);
+  CHECK_ADDRESS(address, INET, 0);
 
   return address->m_port;
 }
@@ -1466,20 +1466,20 @@ GSocketError GSocket::Input_Timeout()
     Microseconds(&start);
     now = start ;
     m_takesEvents = false ;
-    
+
     while( (now.hi * 4294967296.0 + now.lo) - (start.hi * 4294967296.0 + start.lo) < m_timeout * 1000.0 )
     {
-    	OTResult state ;
-   		OTByteCount sz = 0 ;
- 		  state = OTGetEndpointState(m_endpoint);
-  
-  		OTCountDataBytes( m_endpoint , &sz ) ;
-  		if ( state == T_INCON || sz > 0 )
-  		{
-        	m_takesEvents = formerTakesEvents ;
-  			return GSOCK_NOERROR;
-    	}
-    	Microseconds(&now); 
+        OTResult state ;
+        OTByteCount sz = 0 ;
+        state = OTGetEndpointState(m_endpoint);
+
+        OTCountDataBytes( m_endpoint , &sz ) ;
+        if ( state == T_INCON || sz > 0 )
+        {
+            m_takesEvents = formerTakesEvents ;
+            return GSOCK_NOERROR;
+        }
+        Microseconds(&now);
     }
     m_takesEvents = formerTakesEvents ;
     m_error = GSOCK_TIMEDOUT;
@@ -1501,18 +1501,18 @@ GSocketError GSocket::Output_Timeout()
     Microseconds(&start);
     now = start ;
     m_takesEvents = false ;
-    
+
     while( (now.hi * 4294967296.0 + now.lo) - (start.hi * 4294967296.0 + start.lo) < m_timeout * 1000.0 )
     {
-    	OTResult state ;
- 		state = OTGetEndpointState(m_endpoint);
-  
-  		if ( state == T_DATAXFER || state == T_INREL )
- 		{
-        	m_takesEvents = formerTakesEvents ;
-  			return GSOCK_NOERROR;
-    	}
-    	Microseconds(&now); 
+        OTResult state ;
+        state = OTGetEndpointState(m_endpoint);
+
+        if ( state == T_DATAXFER || state == T_INREL )
+        {
+            m_takesEvents = formerTakesEvents ;
+            return GSOCK_NOERROR;
+        }
+        Microseconds(&now);
     }
     m_takesEvents = formerTakesEvents ;
     m_error = GSOCK_TIMEDOUT;
@@ -1526,7 +1526,7 @@ GSocketError GSocket::Output_Timeout()
  *   operation, there is still data available, the callback function will
  *   be called again.
  * GSOCK_OUTPUT:
- *   The socket is available for writing. That is, the next write call 
+ *   The socket is available for writing. That is, the next write call
  *   won't block. This event is generated only once, when the connection is
  *   first established, and then only if a call failed with GSOCK_WOULDBLOCK,
  *   when the output buffer empties again. This means that the app should
@@ -1548,13 +1548,13 @@ void _GSocket_Internal_Proc(unsigned long e , void* d )
     if ( !socket )
         return ;
 
-  OTEventCode ev = (OTEventCode) e ;
-  GSocketEvent event;
-  GSocketEvent event2;
-  GSocketCallback cback;
-  char *data;
-  GSocketCallback cback2;
-  char *data2;
+    OTEventCode ev = (OTEventCode) e ;
+    GSocketEvent event;
+    GSocketEvent event2;
+    GSocketCallback cback;
+    char *data;
+    GSocketCallback cback2;
+    char *data2;
 
     event = GSOCK_MAX_EVENT ;
     event2 = GSOCK_MAX_EVENT ;
@@ -1569,8 +1569,8 @@ void _GSocket_Internal_Proc(unsigned long e , void* d )
      */
     if ( /* (socket != NULL) && */ (socket->m_takesEvents))
     {
-    	switch (ev)
-    	{
+        switch (ev)
+        {
             case T_LISTEN :
                 event = GSOCK_CONNECTION ;
                 break ;

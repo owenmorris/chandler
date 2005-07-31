@@ -53,7 +53,7 @@ int wxDirDialog::ShowModal()
     NavDialogOptions        mNavOptions;
     NavObjectFilterUPP      mNavFilterUPP = NULL;
     NavReplyRecord          mNavReply;
-    
+
     ::NavGetDefaultDialogOptions(&mNavOptions);
 
     mNavReply.validRecord              = false;
@@ -64,11 +64,11 @@ int wxDirDialog::ShowModal()
     mNavReply.selection.dataHandle     = nil;
     mNavReply.keyScript                = smSystemScript;
     mNavReply.fileTranslation          = nil;
-    
+
     // Set default location, the location
     //   that's displayed when the dialog
     //   first appears
-    
+
     OSErr err = ::NavChooseFolder(
                         NULL,
                         &mNavReply,
@@ -76,22 +76,22 @@ int wxDirDialog::ShowModal()
                         NULL,
                         mNavFilterUPP,
                         0L);                            // User Data
-    
+
     if ( (err != noErr) && (err != userCanceledErr) ) {
         m_path = wxEmptyString ;
         return wxID_CANCEL ;
     }
 
     if (mNavReply.validRecord) {        // User chose a folder
-    
+
         FSRef folderInfo;
         AEDesc specDesc ;
-        
+
         OSErr err = ::AECoerceDesc( &mNavReply.selection , typeFSRef, &specDesc);
         if ( err != noErr ) {
             m_path = wxEmptyString ;
             return wxID_CANCEL ;
-        }            
+        }
         folderInfo = **(FSRef**) specDesc.dataHandle;
         if (specDesc.dataHandle != nil) {
             ::AEDisposeDesc(&specDesc);

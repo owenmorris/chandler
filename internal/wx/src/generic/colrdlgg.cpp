@@ -211,17 +211,17 @@ void wxGenericColourDialog::OnMouseEvent(wxMouseEvent& event)
 void wxGenericColourDialog::OnPaint(wxPaintEvent& event)
 {
 #if !defined(__WXMOTIF__) && !defined(__WXPM__) && !defined(__WXCOCOA__)
-  wxDialog::OnPaint(event);
+    wxDialog::OnPaint(event);
 #else
     wxUnusedVar(event);
 #endif
 
-  wxPaintDC dc(this);
+    wxPaintDC dc(this);
 
-  PaintBasicColours(dc);
-  PaintCustomColours(dc);
-  PaintCustomColour(dc);
-  PaintHighlight(dc, true);
+    PaintBasicColours(dc);
+    PaintCustomColours(dc);
+    PaintCustomColour(dc);
+    PaintHighlight(dc, true);
 }
 
 void wxGenericColourDialog::CalculateMeasurements()

@@ -40,7 +40,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_DYNAMIC_CLASS(wxFrame, wxTopLevelWindow)
 
-#define WX_MAC_STATUSBAR_HEIGHT 18 
+#define WX_MAC_STATUSBAR_HEIGHT 18
 // ----------------------------------------------------------------------------
 // creation/destruction
 // ----------------------------------------------------------------------------
@@ -48,15 +48,15 @@ IMPLEMENT_DYNAMIC_CLASS(wxFrame, wxTopLevelWindow)
 void wxFrame::Init()
 {
     m_frameMenuBar = NULL;
-    
+
 #if wxUSE_TOOLBAR
     m_frameToolBar = NULL ;
 #endif
     m_frameStatusBar = NULL;
     m_winLastFocused = NULL ;
-    
+
     m_iconized = false;
-    
+
 #if wxUSE_TOOLTIPS
     m_hwndToolTip = 0;
 #endif
@@ -70,12 +70,12 @@ bool wxFrame::Create(wxWindow *parent,
            long style,
            const wxString& name)
 {
-    
+
     if ( !wxTopLevelWindow::Create(parent, id, title, pos, size, style, name) )
         return false;
-    
+
     wxModelessWindows.Append(this);
-    
+
     return true;
 }
 
@@ -120,7 +120,7 @@ bool wxFrame::Enable(bool enable)
 
     if ( m_frameMenuBar && m_frameMenuBar == wxMenuBar::MacGetInstalledMenuBar() )
     {
-         int iMaxMenu = m_frameMenuBar->GetMenuCount(); 
+         int iMaxMenu = m_frameMenuBar->GetMenuCount();
         for ( int i = 0 ; i < iMaxMenu ; ++ i )
         {
             m_frameMenuBar->EnableTop( i , enable ) ;
@@ -148,7 +148,7 @@ void wxFrame::PositionStatusBar()
     {
         int w, h;
         GetClientSize(&w, &h);
-        
+
         // Since we wish the status bar to be directly under the client area,
         // we use the adjusted sizes without using wxSIZE_NO_ADJUSTMENTS.
         m_frameStatusBar->SetSize(0, h, w, WX_MAC_STATUSBAR_HEIGHT);
@@ -249,14 +249,14 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
 void wxFrame::DoGetClientSize(int *x, int *y) const
 {
     wxTopLevelWindow::DoGetClientSize( x , y ) ;
-    
+
 #if wxUSE_STATUSBAR
     if ( GetStatusBar() && GetStatusBar()->IsShown() && y )
     {
         *y -= WX_MAC_STATUSBAR_HEIGHT;
     }
 #endif // wxUSE_STATUSBAR
-    
+
 #if wxUSE_TOOLBAR
     wxToolBar *toolbar = GetToolBar();
     if ( toolbar && toolbar->IsShown() )
@@ -279,7 +279,7 @@ void wxFrame::DoGetClientSize(int *x, int *y) const
 #endif // wxUSE_TOOLBAR
 }
 
-bool wxFrame::MacIsChildOfClientArea( const wxWindow* child ) const 
+bool wxFrame::MacIsChildOfClientArea( const wxWindow* child ) const
 {
 #if wxUSE_STATUSBAR
     if ( child == GetStatusBar() )
@@ -298,14 +298,14 @@ void wxFrame::DoSetClientSize(int clientwidth, int clientheight)
 {
     int currentclientwidth , currentclientheight ;
     int currentwidth , currentheight ;
-    
+
     GetClientSize( &currentclientwidth , &currentclientheight ) ;
     if ( clientwidth == -1 )
         clientwidth = currentclientwidth ;
     if ( clientheight == -1 )
         clientheight = currentclientheight ;
     GetSize( &currentwidth , &currentheight ) ;
-    
+
     // find the current client size
 
   // Find the difference between the entire window (title bar and all)
@@ -362,7 +362,7 @@ void wxFrame::PositionToolBar()
     {
         int tx, ty, tw, th;
         tx = ty = 0 ;
-        
+
         GetToolBar()->GetSize(& tw, & th);
         if (GetToolBar()->GetWindowStyleFlag() & wxTB_VERTICAL)
         {

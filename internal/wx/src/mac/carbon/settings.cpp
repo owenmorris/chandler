@@ -33,7 +33,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
 {
     int major,minor;
     wxGetOsVersion( &major, &minor );
-    
+
     switch( index )
     {
         case wxSYS_COLOUR_SCROLLBAR :
@@ -84,7 +84,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_GRAYTEXT:
             return wxColor( 0xCC , 0xCC , 0xCC ) ;
             break ;
-    
+
         case wxSYS_COLOUR_3DDKSHADOW:
             return wxColor( 0x44 , 0x44 , 0x44 ) ;
             break ;
@@ -102,7 +102,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
             }
             break ;
         case wxSYS_COLOUR_INFOBK :
-        case wxSYS_COLOUR_APPWORKSPACE: 
+        case wxSYS_COLOUR_APPWORKSPACE:
             return *wxWHITE ;
             break ;
 
@@ -112,7 +112,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         case wxSYS_COLOUR_MENUHILIGHT:
             // TODO
             return *wxBLACK;
-         
+
         case wxSYS_COLOUR_MAX:
             wxFAIL_MSG( _T("unknown system colour index") );
             break ;
@@ -134,7 +134,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
         case wxSYS_DEFAULT_GUI_FONT :
             {
                 return *wxSMALL_FONT ;
-                    } ;
+            } ;
             break ;
 
         default :
@@ -157,7 +157,7 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         case wxSYS_MOUSE_BUTTONS:
             // we emulate a two button mouse (ctrl + click = right button )
             return 2;
-            
+
         // TODO case wxSYS_BORDER_X:
         // TODO case wxSYS_BORDER_Y:
         // TODO case wxSYS_CURSOR_X:
@@ -168,14 +168,14 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         // TODO case wxSYS_DRAG_Y:
         // TODO case wxSYS_EDGE_X:
         // TODO case wxSYS_EDGE_Y:
-            
+
         case wxSYS_HSCROLL_ARROW_X:
             return 16;
         case wxSYS_HSCROLL_ARROW_Y:
             return 16;
         case wxSYS_HTHUMB_X:
             return 16;
-            
+
         // TODO case wxSYS_ICON_X:
         // TODO case wxSYS_ICON_Y:
         // TODO case wxSYS_ICONSPACING_X:
@@ -189,12 +189,12 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
         case wxSYS_SCREEN_Y:
             wxDisplaySize(NULL, &value);
             return value;
-            
+
         // TODO case wxSYS_FRAMESIZE_X:
         // TODO case wxSYS_FRAMESIZE_Y:
         // TODO case wxSYS_SMALLICON_X:
         // TODO case wxSYS_SMALLICON_Y:
-            
+
         case wxSYS_HSCROLL_Y:
             return 16;
         case wxSYS_VSCROLL_X:
@@ -205,16 +205,16 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
             return 16;
         case wxSYS_VTHUMB_Y:
             return 16;
-            
+
         // TODO case wxSYS_CAPTION_Y:
         // TODO case wxSYS_MENU_Y:
         // TODO case wxSYS_NETWORK_PRESENT:
-            
+
         case wxSYS_PENWINDOWS_PRESENT:
             return 0;
-            
+
         // TODO case wxSYS_SHOW_SOUNDS:
-            
+
         case wxSYS_SWAP_BUTTONS:
             return 0;
 
@@ -228,10 +228,10 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
 {
     switch (index)
     {
-        case wxSYS_CAN_ICONIZE_FRAME: 
+        case wxSYS_CAN_ICONIZE_FRAME:
         case wxSYS_CAN_DRAW_FRAME_DECORATIONS:
             return true;
-            
+
         default:
             return false;
     }

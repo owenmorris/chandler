@@ -260,7 +260,7 @@ private:
     // Work around the fact that a focus kill event can be sent to
     // a combobox within a set focus event.
     bool                m_inSetFocus;
-    
+
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxGridCellEditorEvtHandler)
     DECLARE_NO_COPY_CLASS(wxGridCellEditorEvtHandler)

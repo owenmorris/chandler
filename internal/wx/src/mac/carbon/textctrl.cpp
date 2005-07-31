@@ -1089,7 +1089,7 @@ void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
         m_privateContextMenu->Append(wxID_PASTE, _("&Paste"));
         m_privateContextMenu->Append(wxID_CLEAR, _("&Delete"));
         m_privateContextMenu->AppendSeparator();
-        m_privateContextMenu->Append(wxID_SELECTALL, wxT("Select &All"));
+        m_privateContextMenu->Append(wxID_SELECTALL, _("Select &All"));
     }
 
     if (m_privateContextMenu != NULL)

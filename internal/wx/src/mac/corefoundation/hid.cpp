@@ -355,11 +355,11 @@ void wxHIDKeyboard::BuildCookies(wxCFArray& Array)
 		nUsage;
     bool bEOTriggered = false;
 	for (i = 0; i < Array.Count(); ++i)
-	{
+	{        
 		CFNumberGetValue(
 			(CFNumberRef) CFDictionaryGetValue((CFDictionaryRef) Array[i], CFSTR(kIOHIDElementUsageKey)), 
 				kCFNumberLongType, &nUsage);
-			
+		
         //
         // OK, this is strange - basically this kind of strange - 
         // Starting from 0xEO these elements (like shift) appear twice in
@@ -563,7 +563,7 @@ bool wxGetKeyState (wxKeyCode key)
                wxHIDModule::sm_keyboard->IsActive(WXK_RMENU);
         break;
     default:
-    return wxHIDModule::sm_keyboard->IsActive(key);
+        return wxHIDModule::sm_keyboard->IsActive(key);
         break;
     }
 }

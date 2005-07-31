@@ -705,7 +705,7 @@ void wxWizard::OnCancel(wxCommandEvent& WXUNUSED(eventUnused))
         // no objections - close the dialog
         if(IsModal())
         {
-        EndModal(wxID_CANCEL);
+            EndModal(wxID_CANCEL);
         }
         else
         {
@@ -774,7 +774,7 @@ void wxWizard::OnWizEvent(wxWizardEvent& event)
     }
     else
     {
-    wxWindow *parent = GetParent();
+        wxWindow *parent = GetParent();
 
         if ( !parent || !parent->GetEventHandler()->ProcessEvent(event) )
         {

@@ -1623,10 +1623,12 @@ enum wxBackgroundStyle
 /*  Standard menu IDs */
 enum
 {
+#if wxABI_VERSION >= 20602
     /* no id matches this one when compared to it */
     wxID_NONE = -3,
+#endif
 
-/*  id for a separator line in the menu (invalid for normal item) */
+    /*  id for a separator line in the menu (invalid for normal item) */
     wxID_SEPARATOR = -2,
 
     /* any id: means that we don't care about the id, whether when installing
@@ -2310,7 +2312,7 @@ enum wxUpdateUI
             NASTY HACK because the gethostname in sys/unistd.h which the gnu
             stl includes and wx builds with by default clash with each other
             (windows version 2nd param is int, sys/unistd.h version is unsigned
-            int).  
+            int).
           */
 #        define gethostname gethostnameHACK
 #        include <unistd.h>

@@ -46,7 +46,7 @@ void Mac_Socket_Callback(CFSocketRef s, CFSocketCallBackType callbackType,
       // timeframe so I'm not sure what to think, but after so many hours,
       // this seems to address the issue and it's time to move on.
       if (data == NULL)
-      socket->Detected_Write();
+        socket->Detected_Write();
       break;
     case kCFSocketReadCallBack:
       socket->Detected_Read();

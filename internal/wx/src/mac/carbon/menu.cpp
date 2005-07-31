@@ -135,9 +135,9 @@ wxMenu *
 _wxMenuAt(const wxMenuList &menuList, size_t pos)
 {
     wxMenuList::compatibility_iterator menuIter = menuList.GetFirst();
-  
+
     while (pos-- > 0) menuIter = menuIter->GetNext();
-    
+
     return menuIter->GetData() ;
 }
 
@@ -354,7 +354,7 @@ wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
 
 void wxMenu::SetTitle(const wxString& label)
 {
-       m_title = label ;
+    m_title = label ;
     UMASetMenuTitle(MAC_WXHMENU(m_hMenu) , label , wxFont::GetDefaultEncoding() ) ;
 }
 
@@ -458,60 +458,60 @@ void wxMenu::MacBeforeDisplay( bool isSubMenu )
         else // normal item
         {
             #if TARGET_CARBON
-                // what we do here is to hide the special items which are
-                // shown in the application menu anyhow -- it doesn't make
-                // sense to show them in their normal place as well
+            // what we do here is to hide the special items which are
+            // shown in the application menu anyhow -- it doesn't make
+            // sense to show them in their normal place as well
             if ( item->GetId() == wxApp::s_macAboutMenuItemId ||
                 ( UMAGetSystemVersion() >= 0x1000 && (
                     item->GetId() == wxApp::s_macPreferencesMenuItemId ||
                     item->GetId() == wxApp::s_macExitMenuItemId ) ) )
 
+            {
+                ChangeMenuItemAttributes( MAC_WXHMENU( GetHMenu() ),
+                                          pos + 1, kMenuItemAttrHidden, 0 );
+
+                // also check for a separator which was used just to
+                // separate this item from the others, so don't leave
+                // separator at the menu start or end nor 2 consecutive
+                // separators
+                wxMenuItemList::compatibility_iterator nextNode = node->GetNext();
+                wxMenuItem *next = nextNode ? nextNode->GetData() : NULL;
+
+                size_t posSeptoHide;
+                if ( !previousItem && next && next->IsSeparator() )
                 {
+                    // next (i.e. second as we must be first) item is
+                    // the separator to hide
+                    wxASSERT_MSG( pos == 0, _T("should be the menu start") );
+                    posSeptoHide = 2;
+                }
+                else if ( GetMenuItems().GetCount() == pos + 1 &&
+                            previousItem != NULL &&
+                                previousItem->IsSeparator() )
+                {
+                    // prev item is a trailing separator we want to hide
+                    posSeptoHide = pos;
+                }
+                else if ( previousItem && previousItem->IsSeparator() &&
+                            next && next->IsSeparator() )
+                {
+                    // two consecutive separators, this is one too many
+                    posSeptoHide = pos;
+                }
+                else // no separators to hide
+                {
+                    posSeptoHide = 0;
+                }
+
+                if ( posSeptoHide )
+                {
+                    // hide the separator as well
                     ChangeMenuItemAttributes( MAC_WXHMENU( GetHMenu() ),
-                                              pos + 1, kMenuItemAttrHidden, 0 );
-
-                    // also check for a separator which was used just to
-                    // separate this item from the others, so don't leave
-                    // separator at the menu start or end nor 2 consecutive
-                    // separators
-                    wxMenuItemList::compatibility_iterator nextNode = node->GetNext();
-                    wxMenuItem *next = nextNode ? nextNode->GetData() : NULL;
-
-                    size_t posSeptoHide;
-                    if ( !previousItem && next && next->IsSeparator() )
-                    {
-                        // next (i.e. second as we must be first) item is
-                        // the separator to hide
-                        wxASSERT_MSG( pos == 0, _T("should be the menu start") );
-                        posSeptoHide = 2;
-                    }
-                    else if ( GetMenuItems().GetCount() == pos + 1 &&
-                                previousItem != NULL &&
-                                    previousItem->IsSeparator() )
-                    {
-                        // prev item is a trailing separator we want to hide
-                        posSeptoHide = pos;
-                    }
-                    else if ( previousItem && previousItem->IsSeparator() &&
-                                next && next->IsSeparator() )
-                    {
-                        // two consecutive separators, this is one too many
-                        posSeptoHide = pos;
-                    }
-                    else // no separators to hide
-                    {
-                        posSeptoHide = 0;
-                    }
-
-                    if ( posSeptoHide )
-                    {
-                        // hide the separator as well
-                        ChangeMenuItemAttributes( MAC_WXHMENU( GetHMenu() ),
-                                                  posSeptoHide,
-                                                  kMenuItemAttrHidden,
-                                                  0 );
-                    }
-             }
+                                              posSeptoHide,
+                                              kMenuItemAttrHidden,
+                                              0 );
+                }
+            }
             #endif // TARGET_CARBON
         }
         previousItem = item ;
@@ -693,10 +693,10 @@ void wxMenuBar::MacInstallMenuBar()
             EnableMenuCommand( NULL , kHICommandQuit ) ;
     }
 #endif
-       wxMenuList::compatibility_iterator menuIter = m_menus.GetFirst();
-       //
-       for (size_t i = 0; i < m_menus.GetCount(); i++, menuIter = menuIter->GetNext())
-      {
+    wxMenuList::compatibility_iterator menuIter = m_menus.GetFirst();
+    //
+    for (size_t i = 0; i < m_menus.GetCount(); i++, menuIter = menuIter->GetNext())
+    {
         wxMenuItemList::compatibility_iterator node;
         wxMenuItem *item;
         int pos ;
@@ -704,10 +704,10 @@ void wxMenuBar::MacInstallMenuBar()
 
         if( m_titles[i] == wxT("?") || m_titles[i] == wxT("&?")  || m_titles[i] == wxApp::s_macHelpMenuTitleName )
         {
-              for (pos = 0 , node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext(), pos++)
-              {
-                 item = (wxMenuItem *)node->GetData();
-                 subMenu = item->GetSubMenu() ;
+            for (pos = 0 , node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext(), pos++)
+            {
+                item = (wxMenuItem *)node->GetData();
+                subMenu = item->GetSubMenu() ;
                 if (subMenu)
                 {
                     // we don't support hierarchical menus in the help menu yet
@@ -741,7 +741,7 @@ void wxMenuBar::MacInstallMenuBar()
                         if ( item->GetId() == wxApp::s_macAboutMenuItemId )
                         {
                             // this will be taken care of below
-                         }
+                        }
                         else
                         {
                             if ( mh )

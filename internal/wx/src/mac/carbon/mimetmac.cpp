@@ -159,7 +159,7 @@ OSErr FindApplication(OSType appCreator, Boolean includeRemote, Str255 appName, 
     long i, volCount;
     DTPBRec desktopPB;
     OSErr err;
-    
+
         /* get a list of volumes - with desktop files */
     volCount = kMaxVols;
     err = BuildVolumeList(includeRemote, rRefNums, &volCount,
@@ -207,14 +207,14 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
   OSErr    realResult;
   FSSpec    tempSpec;
   CInfoPBRec  pb;
-  
+
   *fullPathLength = 0;
   *fullPath = NULL;
-  
-  
+
+
   /* Default to noErr */
   realResult = result = noErr;
-  
+
   /* work around Nav Services "bug" (it returns invalid FSSpecs with empty names) */
 /*
   if ( spec->name[0] == 0 )
@@ -227,24 +227,24 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
     /* Make a copy of the input FSSpec that can be modified */
     BlockMoveData(spec, &tempSpec, sizeof(FSSpec));
 /*  }*/
-  
+
   if ( result == noErr )
   {
     if ( tempSpec.parID == fsRtParID )
     {
       /* The object is a volume */
-      
+
       /* Add a colon to make it a full pathname */
       ++tempSpec.name[0];
       tempSpec.name[tempSpec.name[0]] = ':';
-      
+
       /* We're done */
       result = PtrToHand(&tempSpec.name[1], fullPath, tempSpec.name[0]);
     }
     else
     {
       /* The object isn't a volume */
-      
+
       /* Is the object a file or a directory? */
       pb.dirInfo.ioNamePtr = tempSpec.name;
       pb.dirInfo.ioVRefNum = tempSpec.vRefNum;
@@ -261,7 +261,7 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
           ++tempSpec.name[0];
           tempSpec.name[tempSpec.name[0]] = ':';
         }
-        
+
         /* Put the object name in first */
         result = PtrToHand(&tempSpec.name[1], fullPath, tempSpec.name[0]);
         if ( result == noErr )
@@ -280,7 +280,7 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
               /* Append colon to directory name */
               ++tempSpec.name[0];
               tempSpec.name[tempSpec.name[0]] = ':';
-              
+
               /* Add directory name to beginning of fullPath */
               (void) Munger(*fullPath, 0, NULL, 0, &tempSpec.name[1], tempSpec.name[0]);
               result = MemError();
@@ -290,7 +290,7 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
       }
     }
   }
-  
+
   if ( result == noErr )
   {
     /* Return the length */
@@ -307,10 +307,10 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
     *fullPath = NULL;
     *fullPathLength = 0;
   }
-  
+
   return ( result );
-}                
-                 
+}
+
 //
 // On the mac there are two ways to open a file - one is through apple events and the
 // finder, another is through mime types.
@@ -318,7 +318,7 @@ pascal  OSErr  FSpGetFullPath(const FSSpec *spec,
 // So, really there are two ways to implement wxFileType...
 //
 // Mime types are only available on OS 8.1+ through the InternetConfig API
-// 
+//
 // Much like the old-style file manager, it has 3 levels of flexibility for its methods -
 // Low - which means you have to iterate yourself through the mime database
 // Medium - which lets you sort of cache the database if you want to use lowlevel functions
@@ -379,7 +379,7 @@ wxFileTypeImpl::GetPrintCommand(wxString *printCmd,
 // Internet Config vs. Launch Services
 //
 // From OS 8 on there was internet config...
-// However, OSX and its finder does not use info 
+// However, OSX and its finder does not use info
 // from Internet Config at all - the Internet Config
 // database ONLY CONTAINS APPS THAT ARE CLASSIC APPS
 // OR REGISTERED THROUGH INTERNET CONFIG
@@ -396,44 +396,44 @@ wxFileTypeImpl::GetPrintCommand(wxString *printCmd,
 wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
 {
     wxASSERT_MSG( m_manager != NULL , wxT("Bad wxFileType") );
-        
+
     if(verb == wxT("open"))
     {
         ICMapEntry entry;
-        ICGetMapEntry( (ICInstance) m_manager->m_hIC, 
-                       (Handle) m_manager->m_hDatabase, 
+        ICGetMapEntry( (ICInstance) m_manager->m_hIC,
+                       (Handle) m_manager->m_hDatabase,
                        m_lIndex, &entry);
-        
+
         wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
         sCurrentExtension = sCurrentExtension.Right(sCurrentExtension.Length()-1 );
 
         //type, creator, ext, roles, outapp (FSRef), outappurl
         CFURLRef cfurlAppPath;
         OSStatus status = LSGetApplicationForInfo (kLSUnknownType,
-            kLSUnknownCreator, 
-            wxMacCFStringHolder(sCurrentExtension, wxLocale::GetSystemEncoding()), 
-            kLSRolesAll, 
+            kLSUnknownCreator,
+            wxMacCFStringHolder(sCurrentExtension, wxLocale::GetSystemEncoding()),
+            kLSRolesAll,
             NULL,
             &cfurlAppPath);
-        
+
         if(status == noErr)
         {
             CFStringRef cfsUnixPath = CFURLCopyFileSystemPath(cfurlAppPath, kCFURLPOSIXPathStyle);
             CFRelease(cfurlAppPath);
-                
+
             //PHEW!  Success!
             if(cfsUnixPath)
-                return wxMacCFStringHolder(cfsUnixPath).AsString(wxLocale::GetSystemEncoding());            
+                return wxMacCFStringHolder(cfsUnixPath).AsString(wxLocale::GetSystemEncoding());
         }
         else
         {
-            wxLogDebug(wxString::Format(wxT("%i - %s - %i"), 
-            __LINE__, 
+            wxLogDebug(wxString::Format(wxT("%i - %s - %i"),
+            __LINE__,
             wxT("LSGetApplicationForInfo failed."),
-            (int)status)); 
+            (int)status));
         }
     }
-    
+
     return wxEmptyString;
 }
 
@@ -442,48 +442,48 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
 wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
 {
     wxASSERT_MSG( m_manager != NULL , wxT("Bad wxFileType") );
-        
+
     if(verb == wxT("open"))
     {
         ICMapEntry entry;
-        ICGetMapEntry( (ICInstance) m_manager->m_hIC, 
-                       (Handle) m_manager->m_hDatabase, 
+        ICGetMapEntry( (ICInstance) m_manager->m_hIC,
+                       (Handle) m_manager->m_hDatabase,
                        m_lIndex, &entry);
-        
+
         //The entry in the mimetype database only contains the app
         //that's registered - it may not exist... we need to remap the creator
         //type and find the right application
-                
+
         // THIS IS REALLY COMPLICATED :\.  There are a lot of conversions going
         // on here.
         Str255 outName;
         FSSpec outSpec;
         if(FindApplication(entry.fileCreator, false, outName, &outSpec) != noErr)
             return wxEmptyString;
-            
+
         Handle outPathHandle;
         short outPathSize;
         OSErr err = FSpGetFullPath(&outSpec, &outPathSize, &outPathHandle);
-        
+
         if(err == noErr)
         {
             char* szPath = *outPathHandle;
             wxString sClassicPath(szPath, wxConvLocal, outPathSize);
 #if defined(__DARWIN__)
             //Classic Path --> Unix (OSX) Path
-            CFURLRef finalURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, 
-                        wxMacCFStringHolder(sClassicPath, wxLocale::GetSystemEncoding()), 
+            CFURLRef finalURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
+                        wxMacCFStringHolder(sClassicPath, wxLocale::GetSystemEncoding()),
                         kCFURLHFSPathStyle,
                         false); //false == not a directory
 
             //clean up memory from the classic path handle
             DisposeHandle(outPathHandle);
-            
+
             if(finalURL)
             {
                 CFStringRef cfsUnixPath = CFURLCopyFileSystemPath(finalURL, kCFURLPOSIXPathStyle);
                 CFRelease(finalURL);
-                
+
                 //PHEW!  Success!
                 if(cfsUnixPath)
                     return wxMacCFStringHolder(cfsUnixPath).AsString(wxLocale::GetSystemEncoding());
@@ -504,12 +504,12 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
 bool wxFileTypeImpl::GetDescription(wxString *desc) const
 {
     wxASSERT_MSG( m_manager != NULL , wxT("Bad wxFileType") );
-    
+
     ICMapEntry entry;
-    ICGetMapEntry( (ICInstance) m_manager->m_hIC, 
-                   (Handle) m_manager->m_hDatabase, 
+    ICGetMapEntry( (ICInstance) m_manager->m_hIC,
+                   (Handle) m_manager->m_hDatabase,
                    m_lIndex, &entry);
-    
+
     *desc = wxMacMakeStringFromPascal(entry.entryName);
     return true;
 }
@@ -517,12 +517,12 @@ bool wxFileTypeImpl::GetDescription(wxString *desc) const
 bool wxFileTypeImpl::GetExtensions(wxArrayString& extensions)
 {
     wxASSERT_MSG( m_manager != NULL , wxT("Bad wxFileType") );
-    
+
     ICMapEntry entry;
-    ICGetMapEntry( (ICInstance) m_manager->m_hIC, 
-                   (Handle) m_manager->m_hDatabase, 
+    ICGetMapEntry( (ICInstance) m_manager->m_hIC,
+                   (Handle) m_manager->m_hDatabase,
                    m_lIndex, &entry);
-    
+
     //entry has period in it
     wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
     extensions.Add( sCurrentExtension.Right(sCurrentExtension.Length()-1) );
@@ -532,12 +532,12 @@ bool wxFileTypeImpl::GetExtensions(wxArrayString& extensions)
 bool wxFileTypeImpl::GetMimeType(wxString *mimeType) const
 {
     wxASSERT_MSG( m_manager != NULL , wxT("Bad wxFileType") );
-    
+
     ICMapEntry entry;
-    ICGetMapEntry( (ICInstance) m_manager->m_hIC, 
-                   (Handle) m_manager->m_hDatabase, 
+    ICGetMapEntry( (ICInstance) m_manager->m_hIC,
+                   (Handle) m_manager->m_hDatabase,
                    m_lIndex, &entry);
-    
+
     *mimeType = wxMacMakeStringFromPascal(entry.MIMEType);
     return true;
 }
@@ -545,14 +545,14 @@ bool wxFileTypeImpl::GetMimeType(wxString *mimeType) const
 bool wxFileTypeImpl::GetMimeTypes(wxArrayString& mimeTypes) const
 {
     wxString s;
-    
+
     if (GetMimeType(&s))
     {
         mimeTypes.Clear();
         mimeTypes.Add(s);
         return true;
     }
-    else 
+    else
         return false;
 }
 
@@ -571,14 +571,14 @@ size_t wxFileTypeImpl::GetAllCommands(wxArrayString * verbs, wxArrayString * com
 
     wxString sCommand;
     size_t ulCount = 0;
-    
+
     if(GetOpenCommand(&sCommand, params))
     {
         verbs->Add(wxString(wxT("open")));
         commands->Add(sCommand);
         ++ulCount;
     }
-    
+
     return ulCount;
 }
 
@@ -598,10 +598,10 @@ void wxMimeTypesManagerImpl::Initialize(int mailcapStyles, const wxString& extra
     //start internet config - log if there's an error
     //the second param is the signature of the application, also known
     //as resource ID 0.  However, as per some recent discussions, we may not
-    //have a signature for this app, so a generic 'APPL' which is the executable 
+    //have a signature for this app, so a generic 'APPL' which is the executable
     //type will work for now
-    OSStatus status = ICStart( (ICInstance*) &m_hIC, 'APPL'); 
-    
+    OSStatus status = ICStart( (ICInstance*) &m_hIC, 'APPL');
+
     if(status != noErr)
     {
         wxLogDebug(wxT("Could not initialize wxMimeTypesManager!"));
@@ -609,7 +609,7 @@ void wxMimeTypesManagerImpl::Initialize(int mailcapStyles, const wxString& extra
         m_hIC = NULL;
         return;
     }
-    
+
     ICAttr attr;
     m_hDatabase = (void**) NewHandle(0);
     status = ICFindPrefHandle( (ICInstance) m_hIC, kICMapping, &attr, (Handle) m_hDatabase );
@@ -631,24 +631,24 @@ void wxMimeTypesManagerImpl::Initialize(int mailcapStyles, const wxString& extra
     //debug stuff
     ICMapEntry entry;
     long pos;
-    
+
     for(long i = 1; i <= m_lCount; ++i)
     {
         OSStatus status = ICGetIndMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, i, &pos, &entry);
-        
+
         if(status == noErr)
-        {       
+        {
             wxString sCreator = wxMacMakeStringFromPascal(entry.creatorAppName);
             wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
             wxString sMIMEType = wxMacMakeStringFromPascal(entry.MIMEType);
-            
+
             wxFileTypeImpl impl;
             impl.Init(this, pos);
-            
+
             if(sMIMEType == wxT("text/html") && sCurrentExtension == wxT(".html"))
             {
                 wxString cmd;
-                    impl.GetOpenCommand (&cmd, 
+                    impl.GetOpenCommand (&cmd,
         wxFileType::MessageParameters (wxT("http://www.google.com")));
 
                 wxPrintf(wxT("APP: [%s]\n"), cmd.c_str());
@@ -678,17 +678,17 @@ void wxMimeTypesManagerImpl::ClearData()
 wxFileType* wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& e)
 {
     wxASSERT_MSG( m_hIC != NULL, wxT("wxMimeTypesManager not Initialized!") );
-    
-    //low level functions - iterate through the database    
+
+    //low level functions - iterate through the database
     ICMapEntry entry;
     long pos;
-    
+
     for(long i = 1; i <= m_lCount; ++i)
     {
         OSStatus status = ICGetIndMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, i, &pos, &entry);
-        
+
         if(status == noErr)
-        {       
+        {
             wxString sCurrentExtension = wxMacMakeStringFromPascal(entry.extension);
             if( sCurrentExtension.Right(sCurrentExtension.Length()-1) == e ) //entry has period in it
             {
@@ -698,8 +698,8 @@ wxFileType* wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& e)
             }
         }
     }
-    
-    return NULL;    
+
+    return NULL;
 }
 
 // MIME type -> extension -> file type
@@ -707,17 +707,17 @@ wxFileType* wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mime
 {
     wxASSERT_MSG( m_hIC != NULL, wxT("wxMimeTypesManager not Initialized!") );
 
-    //low level functions - iterate through the database    
+    //low level functions - iterate through the database
     ICMapEntry entry;
     long pos;
-    
+
     for(long i = 1; i <= m_lCount; ++i)
     {
         OSStatus status = ICGetIndMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, i, &pos, &entry);
         wxASSERT_MSG( status == noErr, wxString::Format(wxT("Error: %d"), (int)status) );
-        
+
         if(status == noErr)
-        {        
+        {
             if( wxMacMakeStringFromPascal(entry.MIMEType) == mimeType)
             {
                 wxFileType* pFileType = new wxFileType();
@@ -726,7 +726,7 @@ wxFileType* wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mime
             }
         }
     }
-    
+
     return NULL;
 }
 
@@ -734,19 +734,19 @@ size_t wxMimeTypesManagerImpl::EnumAllFileTypes(wxArrayString& mimetypes)
 {
     wxASSERT_MSG( m_hIC != NULL, wxT("wxMimeTypesManager not Initialized!") );
 
-    //low level functions - iterate through the database    
+    //low level functions - iterate through the database
     ICMapEntry entry;
     long pos;
-    
+
     long lStartCount = (long) mimetypes.GetCount();
-    
+
     for(long i = 1; i <= m_lCount; ++i)
     {
         OSStatus status = ICGetIndMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, i, &pos, &entry);
         if( status == noErr )
             mimetypes.Add( wxMacMakeStringFromPascal(entry.MIMEType) );
     }
-    
+
     return mimetypes.GetCount() - lStartCount;
 }
 
@@ -756,10 +756,10 @@ pascal  OSStatus  MoreProcGetProcessTypeSignature(
             OSType *pProcessType,
             OSType *pCreator)
 {
-  OSStatus      anErr = noErr;  
+  OSStatus      anErr = noErr;
   ProcessInfoRec    infoRec;
   ProcessSerialNumber localPSN;
-  
+
   infoRec.processInfoLength = sizeof(ProcessInfoRec);
   infoRec.processName = nil;
   infoRec.processAppSpec = nil;
@@ -770,14 +770,14 @@ pascal  OSStatus  MoreProcGetProcessTypeSignature(
   } else {
     localPSN = *pPSN;
   }
-  
+
   anErr = GetProcessInformation(&localPSN, &infoRec);
   if (anErr == noErr)
   {
     *pProcessType = infoRec.processType;
     *pCreator = infoRec.processSignature;
   }
-  
+
   return anErr;
 }//end MoreProcGetProcessTypeSignature
 
@@ -1643,7 +1643,7 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 
 #if defined(__DARWIN__)
     if(!bInfoSuccess)
-    return NULL;
+        return NULL;
 #endif
     //on mac you have to embed it into the mac's file reference resource ('FREF' I believe)
     //or, alternately, you could just add an entry to m_hDatabase, but you'd need to get
@@ -1652,30 +1652,30 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
     OSType processType,
            creator;
     OSStatus status = MoreProcGetProcessTypeSignature(NULL,&processType, &creator);
-    
+
     if(status == noErr)
     {
         Str255 psCreatorName;
         FSSpec dummySpec;
         status = FindApplication(creator, false, psCreatorName, &dummySpec);
-        
+
         if(status == noErr)
         {
 
-            //get the file type if it exists - 
+            //get the file type if it exists -
             //if it really does then modify the database then save it,
             //otherwise we need to create a whole new entry
             wxFileType* pFileType = GetFileTypeFromExtension(asExtensions[dwFoundIndex]);
             if(pFileType)
             {
                 ICMapEntry entry;
-                ICGetMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, 
+                ICGetMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase,
                                 pFileType->m_impl->m_lIndex, &entry);
-                
+
                 memcpy(entry.creatorAppName, psCreatorName, sizeof(Str255));
                 entry.fileCreator = creator;
-                    
-                status = ICSetMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, 
+
+                status = ICSetMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase,
                                 pFileType->m_impl->m_lIndex, &entry);
 
                 //success
@@ -1692,11 +1692,11 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 //                        wxLogDebug(wxString::Format(wxT("%i - %s"), (int)status, wxT("ICSetPrefHandle failed.")));
        //             }
                 }
-                else 
-                { 
-                    wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICSetMapEntry failed."))); 
+                else
+                {
+                    wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICSetMapEntry failed.")));
                 }
-                
+
                 //failure - cleanup
                 delete pFileType;
             }
@@ -1706,7 +1706,7 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                 Str255 psExtension;
                 Str255 psMimeType;
                 Str255 psDescription;
-                
+
                 wxMacStringToPascal(wxString(wxT(".")) + ftInfo.GetExtensions()[0], psExtension);
                 wxMacStringToPascal(ftInfo.GetMimeType(), psMimeType);
                 wxMacStringToPascal(ftInfo.GetDescription(), psDescription);
@@ -1729,16 +1729,16 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                 memcpy(entry.postAppName, psPostCreatorName, sizeof(Str255));
                 memcpy(entry.MIMEType, psMimeType, sizeof(Str255));
                 memcpy(entry.entryName, psDescription, sizeof(Str255));
-                
+
                 status = ICAddMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, &entry);
-                
+
                 if(status == noErr)
                 {
                     //kICAttrNoChange means we don't care about attributes such as
                     //locking in the database
          //           status = ICSetPrefHandle((ICInstance) m_hIC, kICMapping,
            //                                  kICAttrNoChange, (Handle) m_hDatabase);
-                                             
+
                     //return the entry in the database if successful
              //       if(status == noErr)
                         return GetFileTypeFromExtension(ftInfo.GetMimeType());
@@ -1747,20 +1747,20 @@ wxFileType* wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
                //         wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICSetPrefHandle failed.")));
                //     }
                 }
-                else 
-                { 
-                    wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICAppMapEntry failed."))); 
+                else
+                {
+                    wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICAppMapEntry failed.")));
                 }
             }
         } //end if FindApplcation was successful
-        else 
-        { 
-            wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("FindApplication failed."))); 
+        else
+        {
+            wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("FindApplication failed.")));
         }
     } //end if it could obtain app's signature
-    else 
-    { 
-        wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("GetProcessSignature failed."))); 
+    else
+    {
+        wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("GetProcessSignature failed.")));
     }
     return NULL;
 }
@@ -1942,11 +1942,11 @@ wxMimeTypesManagerImpl::Unassociate(wxFileType *pFileType)
         return false;
 #endif
 
-    //this should be as easy as removing the entry from the database and then saving 
+    //this should be as easy as removing the entry from the database and then saving
     //the database
-    OSStatus status = ICDeleteMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase, 
+    OSStatus status = ICDeleteMapEntry( (ICInstance) m_hIC, (Handle) m_hDatabase,
                             pFileType->m_impl->m_lIndex);
-                                
+
     if(status == noErr)
     {
         //kICAttrNoChange means we don't care about attributes such as
@@ -1962,10 +1962,10 @@ wxMimeTypesManagerImpl::Unassociate(wxFileType *pFileType)
 //        }
 
     }
-        else
-        { 
-            wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICDeleteMapEntry failed.")));
-        }
+    else
+    {
+        wxLogDebug(wxString::Format(wxT("%i - %s"), __LINE__, wxT("ICDeleteMapEntry failed.")));
+    }
 
     return false;
 }
@@ -1991,9 +1991,9 @@ wxMimeTypesManagerImpl::Unassociate(wxFileType *pFileType)
                                 wxString sMessage;
                                 cfdInfo.PrintOut(sMessage);
                                 wxLogDebug(sMessage);
-    }
-    else
-    { 
+                            }
+                            else
+                            {
                                 bInfoSuccess = true;
 //#if defined(__DARWIN__)
 //                //force launch services to update its database for the finder
@@ -2003,8 +2003,8 @@ wxMimeTypesManagerImpl::Unassociate(wxFileType *pFileType)
 //                    wxLogDebug(wxT("LSRegisterURL Failed."));
 //                }
 //#endif
-    }
-    
+                            }
+
                             CFWriteStreamClose(cfwsInfo);
 
 */

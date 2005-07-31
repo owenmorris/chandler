@@ -283,7 +283,7 @@ void wxListbook::OnSize(wxSizeEvent& event)
         wxWindow *page = m_pages[m_selection];
         wxCHECK_RET( page, _T("NULL page in wxListbook?") );
         page->SetSize(GetPageRect());
-        }
+    }
 }
 
 wxSize wxListbook::CalcSizeFromPage(const wxSize& sizePage) const
