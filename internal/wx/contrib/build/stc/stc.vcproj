@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="stc"
-	ProjectGUID="{28030B11-00D0-4387-A829-827BCB29AABC}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -32,7 +31,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\stc/"
 				ObjectFile=".\vc_mswuddll\stc/"
 				ProgramDataBaseFileName="..\..\src\stc\..\..\..\lib\vc_dll\wxmsw26ud_stc_vc_custom.pdb"
-				BrowseInformation="1"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -457,7 +455,6 @@
 				AssemblerListingLocation=".\vc_mswudll\stc/"
 				ObjectFile=".\vc_mswudll\stc/"
 				ProgramDataBaseFileName="..\..\src\stc\..\..\..\lib\vc_dll\wxmsw26u_stc_vc_custom.pdb"
-				BrowseInformation="0"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -10427,112 +10424,112 @@
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;WXDLLNAME=wxmsw26ud_stc_vc_custom;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Unicode Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Unicode Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="__WXMSW__;_UNICODE;WXDLLNAME=wxmsw26u_stc_vc_custom;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Unicode Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="__WXMSW__;__WXUNIVERSAL__;_UNICODE;WXDLLNAME=wxmswuniv26u_stc_vc_custom;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Unicode Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Unicode Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;WXDLLNAME=wxmswuniv26ud_stc_vc_custom;__WX__;SCI_LEXER;LINK_LEXERS;WXUSINGDLL;WXMAKINGDLL_STC;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Unicode Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Unicode Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 			</File>
 			<File

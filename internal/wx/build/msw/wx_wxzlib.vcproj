@@ -459,7 +459,6 @@
 				AssemblerListingLocation=".\vc_mswudll\wxzlib/"
 				ObjectFile=".\vc_mswudll\wxzlib/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxzlib.pdb"
-				BrowseInformation="0"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -743,7 +742,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\wxzlib/"
 				ObjectFile=".\vc_mswuddll\wxzlib/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxzlibd.pdb"
-				BrowseInformation="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
 			<Tool

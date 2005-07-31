@@ -526,7 +526,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\wxjpeg/"
 				ObjectFile=".\vc_mswuddll\wxjpeg/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxjpegd.pdb"
-				BrowseInformation="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
@@ -775,7 +774,6 @@
 				AssemblerListingLocation=".\vc_mswudll\wxjpeg/"
 				ObjectFile=".\vc_mswudll\wxjpeg/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxjpeg.pdb"
-				BrowseInformation="0"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool

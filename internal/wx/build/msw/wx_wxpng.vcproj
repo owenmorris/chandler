@@ -230,7 +230,6 @@
 				AssemblerListingLocation=".\vc_mswudll\wxpng/"
 				ObjectFile=".\vc_mswudll\wxpng/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxpng.pdb"
-				BrowseInformation="0"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -477,7 +476,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\wxpng/"
 				ObjectFile=".\vc_mswuddll\wxpng/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxpngd.pdb"
-				BrowseInformation="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>

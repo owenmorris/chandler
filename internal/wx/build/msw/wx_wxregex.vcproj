@@ -384,7 +384,6 @@
 				AssemblerListingLocation=".\vc_mswudll\wxregex/"
 				ObjectFile=".\vc_mswudll\wxregex/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxregexu.pdb"
-				BrowseInformation="0"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
 			<Tool
@@ -584,7 +583,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\wxregex/"
 				ObjectFile=".\vc_mswuddll\wxregex/"
 				ProgramDataBaseFileName="..\..\lib\vc_dll\wxregexud.pdb"
-				BrowseInformation="1"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
 				CompileAs="0"/>

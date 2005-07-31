@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="gizmos"
-	ProjectGUID="{9A558D1E-D94A-4465-9675-34353DA3EC4F}"
+	ProjectGUID="{BA1AC2E3-F24D-468A-92A8-80D982452734}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -613,7 +613,6 @@
 				AssemblerListingLocation=".\vc_mswudll\gizmos/"
 				ObjectFile=".\vc_mswudll\gizmos/"
 				ProgramDataBaseFileName="..\..\src\gizmos\..\..\..\lib\vc_dll\wxmsw26u_gizmos_vc_custom.pdb"
-				BrowseInformation="0"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -682,7 +681,6 @@
 				AssemblerListingLocation=".\vc_mswuddll\gizmos/"
 				ObjectFile=".\vc_mswuddll\gizmos/"
 				ProgramDataBaseFileName="..\..\src\gizmos\..\..\..\lib\vc_dll\wxmsw26ud_gizmos_vc_custom.pdb"
-				BrowseInformation="1"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
@@ -1996,112 +1994,112 @@
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Unicode Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Unicode Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="__WXMSW__;__WXUNIVERSAL__;_UNICODE;WXDLLNAME=wxmswuniv26u_gizmos_vc_custom;WXUSINGDLL;WXMAKINGDLL_GIZMOS;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Unicode Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Unicode Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions=""
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Universal Unicode Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;__WXMSW__;__WXUNIVERSAL__;__WXDEBUG__;_UNICODE;WXDLLNAME=wxmswuniv26ud_gizmos_vc_custom;WXUSINGDLL;WXMAKINGDLL_GIZMOS;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Unicode Release|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="__WXMSW__;_UNICODE;WXDLLNAME=wxmsw26u_gizmos_vc_custom;WXUSINGDLL;WXMAKINGDLL_GIZMOS;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="DLL Unicode Debug|Win32">
 					<Tool
 						Name="VCResourceCompilerTool"
 						PreprocessorDefinitions="_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;WXDLLNAME=wxmsw26ud_gizmos_vc_custom;WXUSINGDLL;WXMAKINGDLL_GIZMOS;$(NoInherit)"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Unicode Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Universal Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCResourceCompilerTool"
-						AdditionalIncludeDirectories="\John\osaf\internal\wxPython-2.5\src\msw"/>
+						AdditionalIncludeDirectories="\John\osaf\internal\wx\src\msw"/>
 				</FileConfiguration>
 			</File>
 		</Filter>
