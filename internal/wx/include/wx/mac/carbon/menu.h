@@ -156,10 +156,10 @@ public:
     static void SetAutoWindowMenu( bool enable ) { s_macAutoWindowMenu = enable ; }
     static bool GetAutoWindowMenu() { return s_macAutoWindowMenu ; }
 
-  void MacInstallMenuBar() ;
-  static wxMenuBar* MacGetInstalledMenuBar() { return s_macInstalledMenuBar ; }
-  static void MacSetCommonMenuBar(wxMenuBar* menubar) { s_macCommonMenuBar=menubar; }
-  static wxMenuBar* MacGetCommonMenuBar() { return s_macCommonMenuBar; }
+    void MacInstallMenuBar() ;
+    static wxMenuBar* MacGetInstalledMenuBar() { return s_macInstalledMenuBar ; }
+    static void MacSetCommonMenuBar(wxMenuBar* menubar) { s_macCommonMenuBar=menubar; }
+    static wxMenuBar* MacGetCommonMenuBar() { return s_macCommonMenuBar; }
 
 
     static WXHMENU MacGetWindowMenuHMenu() { return s_macWindowMenuHandle ; }

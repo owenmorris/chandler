@@ -159,7 +159,7 @@ public:
     void OnRedo(wxCommandEvent& event);
     void OnDelete(wxCommandEvent& event);
     void OnSelectAll(wxCommandEvent& event);
-
+    
     void OnUpdateCut(wxUpdateUIEvent& event);
     void OnUpdateCopy(wxUpdateUIEvent& event);
     void OnUpdatePaste(wxUpdateUIEvent& event);
