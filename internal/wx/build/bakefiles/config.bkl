@@ -53,7 +53,7 @@
             Type of compiled binaries
         </description>
     </option>
-   
+
     <!-- FIXME: restore this once bakefile is fixed to not use
                 /Gm /GZ (incompatible with /O2) w/ debug-info -->
     <set var="DEBUG_INFO_DEFAULT">
@@ -403,7 +403,7 @@ Set the version of your Mingw installation here.
     <if cond="FORMAT=='msevc4prj'">
         <set var="WXUNIV">0</set>
         <set var="UNICODE">1</set>
-	<!-- Uploading debug reports from PDAs seems impractical -->
+        <!-- Uploading debug reports from PDAs seems impractical -->
         <set var="USE_QA">0</set>
         <set var="MONOLITHIC">1</set> <!-- sic! -->
     </if>

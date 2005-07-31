@@ -266,7 +266,7 @@ void yyerror(char *s)
 #endif
 #endif
 #endif
-   
+
 // #line 247 "y_tab.c"
 #define YYABORT goto yyabort
 #define YYACCEPT goto yyaccept
