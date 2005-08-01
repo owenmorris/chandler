@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<Parcel xmlns="parcel:core" xmlns:certstore="parcel:osaf.framework.certstore">
+<Parcel xmlns="parcel:core"
+    xmlns:certstore="parcel:osaf.framework.certstore"
+    xmlns:data="parcel:osaf.framework.certstore.data"
+>
   <certstore:NotificationItem itsName="dummyCertNotification"/>
 </Parcel>
 
