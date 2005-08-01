@@ -572,7 +572,19 @@ class MainView(View):
                     except Exception:
                         self.LogTheException("Exception during reload of Python code.")
 
-    def onReloadParcelsEvent(self, event):
+    def onReloadParcelsEvent(self, event, traceItem = None):
+        """
+        Reloads the parcels and UI by deleting the UI elements and
+        creating a new set.  Often this operation exposes bugs in the
+        copying cloud where data items referenced by the UI get
+        deleted too.  If this happens, you can get debugging
+        help by passing in a traceItem to view how that item
+        gets included by the cloud.
+        """
+        # pass in an Item to trace, or set it here in the debugger
+        if traceItem is not None:
+            self.TraceMainViewCloud(traceItem)
+
         theApp = wx.GetApp()
         theApp.UnRenderMainView ()
 
@@ -587,6 +599,33 @@ class MainView(View):
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
 
+    def TraceMainViewCloud(self, traceItem):
+        # for debugging, trace through the mainViewRoot copy cloud
+        def commonName(item, showKind=True):
+            if showKind:
+                kindLabel = commonName(item.itsKind, False)+':'
+            else:
+                kindLabel = ''
+            if hasattr(item, 'about'): 
+                return kindLabel + item.about
+            if hasattr(item, 'blockName'): 
+                return kindLabel + item.blockName
+            if hasattr(item, 'displayName'): 
+                return kindLabel + item.displayName
+            if hasattr(item, 'itsName') and item.itsName is not None: 
+                return kindLabel + item.itsName
+            return str(item)
+
+        mainViewRoot = Globals.mainViewRoot
+        traceData = {}
+        mainViewRoot.getItemCloud(cloudAlias="copying", trace=traceData)
+        cloud = mainViewRoot.getKind().getClouds("copying")[0]
+        logger.info("MainViewRoot trace information:")
+        for item, other, endpoint, policy, indent in cloud.traceItem(traceItem, traceData):
+            logger.info( "   "*indent +'\t"'+
+                         commonName(item)+'"\t"'+
+                         commonName(other)+'"\t'+ 
+                         endpoint+'\t'+ policy)
 
     def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
@@ -682,43 +721,6 @@ class MainView(View):
         for server in Web.Server.iterItems(view=self.itsView):
             server.startup()
 
-    def onShareCollectionEvent (self, event):
-        # Triggered from "Test | Share collection..."
-
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            reload(osaf.framework.sharing.PublishCollection)
-            collection = self.getSidebarSelectedCollection()
-            sidebar = Block.findBlockByName("Sidebar")
-            if sidebar.filterKind is None:
-                filterKindPath = None 
-            else:
-                filterKindPath = str(sidebar.filterKind.itsPath)
-            osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
-                wx.GetApp().mainFrame,
-                view=self.itsView,
-                collection=collection,
-                filterKindPath=filterKindPath)
-
-
-    def onShareCollectionEventUpdateUI (self, event):
-        """
-        Update the menu to reflect the selected collection name
-        """
-        # Only enable if user has set their webdav account up
-        if not Sharing.isWebDAVSetUp(self.itsView):
-            event.arguments ['Enable'] = False
-            return
-
-        collection = self.getSidebarSelectedCollection ()
-        event.arguments ['Enable'] = collection is not None
-        if collection:
-            menuTitle = _('Share "%s" collection') \
-                    % collection.displayName
-        else:
-            menuTitle = _('Share a collection')
-        event.arguments ['Text'] = menuTitle
-
     def onShareSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
         
@@ -735,8 +737,20 @@ class MainView(View):
         The "Collection | Share collection " menu item
         """
 
-        self.onShareCollectionEvent(event)
-
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            reload(osaf.framework.sharing.PublishCollection)
+            collection = self.getSidebarSelectedCollection()
+            sidebar = Block.findBlockByName("Sidebar")
+            if sidebar.filterKind is None:
+                filterKindPath = None 
+            else:
+                filterKindPath = str(sidebar.filterKind.itsPath)
+            osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
+                wx.GetApp().mainFrame,
+                view=self.itsView,
+                collection=collection,
+                filterKindPath=filterKindPath)
 
     def onShareSidebarCollectionEventUpdateUI (self, event):
         """
