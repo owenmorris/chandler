@@ -20,7 +20,7 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
-import osaf.framework.attributeEditors.AttributeEditors as AttributeEditors
+import osaf.framework.attributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
@@ -1020,7 +1020,8 @@ class Table (RectangularChild):
         widget.SetLabelFont(Styles.getFont(getattr(self, "headerStyle", None)))
         defaultName = "_default"
         widget.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        aeKind = AttributeEditors.AttributeEditor.getKind(wx.GetApp().UIRepositoryView)
+        aeKind = AttributeEditors.AttributeEditorMapping.getKind(\
+            wx.GetApp().UIRepositoryView)
         for ae in aeKind.iterItems():
             key = ae.itsName
             if key != defaultName and not '+' in key:

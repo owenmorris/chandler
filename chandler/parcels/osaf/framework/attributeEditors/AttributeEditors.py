@@ -21,11 +21,55 @@ from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition
 from osaf.framework.blocks.Block import ShownSynchronizer
-from osaf.framework.attributeEditors import AttributeEditor
 from osaf.contentmodel.ContentModel import ContentItem
+from application import schema
 
 logger = logging.getLogger('ae')
 logger.setLevel(logging.INFO)
+
+#
+# The attribute editor registration mechanism:
+# For each editor, there's one or more AttributeEditorMapping objects that
+# map a string to the editor classname. Each one maps a differe
+
+class AttributeEditorMapping(schema.Item):
+    className = schema.One(schema.String)
+
+def installParcel(parcel, oldVersion=None):
+    """ Do initial registry of attribute editors """
+    # This creates individual AttributeEditor objects, which map
+    # a type string (their itsName attribute) to a class name.
+    # The resulting AttributeEditor objects are found each runtime using
+    # a kind query, below.
+    #
+    # Only add core classes in this parcel to this list (imitate the mechanism
+    # if you have your own; the detail view does this.)
+    # 
+    # If you do modify this list, please keep it in alphabetical 
+    # order by type string.
+    aeList = {
+        '_default': 'RepositoryAttributeEditor',
+        'Boolean': 'CheckboxAttributeEditor',
+        'Contact': 'ContactAttributeEditor',
+        'ContactName': 'ContactNameAttributeEditor', 
+        'ContentItem': 'StringAttributeEditor', 
+        'DateTime': 'DateTimeAttributeEditor', 
+        'DateTime+dateOnly': 'DateAttributeEditor', 
+        'DateTime+timeOnly': 'TimeAttributeEditor',
+        'EmailAddress': 'EmailAddressAttributeEditor',
+        'Integer': 'StringAttributeEditor',
+        'Kind': 'StampAttributeEditor',
+        'image/jpeg': 'LobImageAttributeEditor',
+        'Location': 'LocationAttributeEditor',
+        'SharingStatusEnum': 'EnumAttributeEditor',
+        'String': 'StringAttributeEditor',
+        'String+static': 'StaticStringAttributeEditor',
+        'Timedelta': 'TimeDeltaAttributeEditor',
+        'TimeTransparencyEnum': 'ChoiceAttributeEditor',
+    }
+    for typeName, className in aeList.items():
+        AttributeEditorMapping.update(parcel, typeName, className=\
+                                      __name__ + '.' + className)
 
 _TypeToEditorInstances = {}
 _TypeToEditorClasses = {}
@@ -60,10 +104,10 @@ def _getAEClass (type, readOnly=False, format=None):
     # Once per run, build a map of type -> class
     global _TypeToEditorClasses
     if len(_TypeToEditorClasses) == 0:
-        aeKind = AttributeEditor.getKind(wx.GetApp().UIRepositoryView)
+        aeKind = AttributeEditorMapping.getKind(wx.GetApp().UIRepositoryView)
         for ae in aeKind.iterItems():
             _TypeToEditorClasses[ae.itsName] = ae.className
-        assert _TypeToEditorClasses['_default'] is not None, "Default attribute editor doesn't exist ('_default')"
+        assert _TypeToEditorClasses['_default'] is not None, "Default AttributeEditorMapping doesn't exist ('_default')"
             
     # Try several ways to find an appropriate editor:
     # - If we're readOnly, try "+readOnly" before we try without it.
@@ -1004,11 +1048,10 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             cardinality = item.getAttributeAspect(attributeName, "cardinality")
             if cardinality == 'list':
                 # build a string of comma-separated email addresses
-                value = u', '.join(map(lambda x: \
-                                       Mail.EmailAddress.format(x), attrValue))
+                value = u', '.join(map(lambda x: unicode(x), attrValue))
             else:
                 # Just format one address
-                value = Mail.EmailAddress.format(attrValue)
+                value = unicode(attrValue)
         else:
             value = u''
         return value

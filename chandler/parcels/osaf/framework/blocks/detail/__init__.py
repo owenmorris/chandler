@@ -1,5 +1,6 @@
 
 from Detail import (
+    installParcel,
     AttachmentAreaBlock, 
     AttachmentTextFieldBlock, 
     AcceptShareButtonBlock,

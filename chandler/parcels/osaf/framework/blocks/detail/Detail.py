@@ -7,8 +7,9 @@ __parcel__ = "osaf.framework.blocks.detail"
 import sys
 import application
 from application import schema
-from osaf.framework.attributeEditors.AttributeEditors import \
-     DateTimeAttributeEditor, DateAttributeEditor, TimeAttributeEditor, \
+from osaf.framework.attributeEditors import \
+     AttributeEditorMapping, DateTimeAttributeEditor, \
+     DateAttributeEditor, TimeAttributeEditor, \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, DynamicContainerBlocks, \
@@ -43,6 +44,25 @@ Classes for the ContentItem Detail View
 
 logger = logging.getLogger("detail")
 logger.setLevel(logging.INFO)
+
+def installParcel(parcel, oldVersion=None):
+    # Declare our attribute editors at repository-init time
+    #
+    # If you modify this list, please keep it in alphabetical order by type string.
+    # Also, note that there are more attribute editors custom to the detail 
+    # view; they're declared in its installParcel method.
+    aeList = {
+        'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
+        'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
+        'EmailAddress+outgoing': 'OutgoingEmailAddressAttributeEditor',
+        'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
+        'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
+        'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
+        'TimeDelta+reminderPopup': 'ReminderDeltaAttributeEditor',
+    }
+    for typeName, className in aeList.items():
+        AttributeEditorMapping.update(parcel, typeName, className=\
+                                      __name__ + '.' + className)
 
 class DetailTrunkSubtree(TrunkSubtree):
     """All our subtrees are of this kind, so we can find 'em."""

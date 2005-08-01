@@ -63,17 +63,6 @@
   </blocks:BlockEvent>
 
   <!--
-    Attribute Editors custom to the detail view
-  -->
-  <ae:AttributeEditor itsName="DateTime+calendarDateOnly"><className>osaf.framework.blocks.detail.Detail.CalendarDateAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="DateTime+calendarTimeOnly"><className>osaf.framework.blocks.detail.Detail.CalendarTimeAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="EmailAddress+outgoing"><className>osaf.framework.blocks.detail.Detail.OutgoingEmailAddressAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="RecurrenceRuleSet+custom"><className>osaf.framework.blocks.detail.Detail.RecurrenceCustomAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="RecurrenceRuleSet+ends"><className>osaf.framework.blocks.detail.Detail.RecurrenceEndsAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="RecurrenceRuleSet+occurs"><className>osaf.framework.blocks.detail.Detail.RecurrenceAttributeEditor</className></ae:AttributeEditor>
-  <ae:AttributeEditor itsName="TimeDelta+reminderPopup"><className>osaf.framework.blocks.detail.Detail.ReminderDeltaAttributeEditor</className></ae:AttributeEditor>
-  
-  <!--
     An item collection we use to get notifications about the DV
   -->  
   <content:ItemCollection itsName="DetailViewSelectedItemCollection">

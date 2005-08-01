@@ -1,6 +1,24 @@
-from application import schema
 
-class AttributeEditor(schema.Item):
-    className = schema.One(schema.String)
+from AttributeEditors import (
+    AttributeEditorMapping,
+    installParcel, 
+    getSingleton,
+    getInstance,
 
-del schema  # clean up after ourselves
+    CheckboxAttributeEditor,
+    ChoiceAttributeEditor, 
+    ContactAttributeEditor,
+    ContactNameAttributeEditor,
+    DateAttributeEditor, 
+    DateTimeAttributeEditor, 
+    EmailAddressAttributeEditor,
+    EnumAttributeEditor,
+    LobImageAttributeEditor,
+    LocationAttributeEditor,
+    RepositoryAttributeEditor,
+    StampAttributeEditor,
+    StringAttributeEditor,
+    StaticStringAttributeEditor,
+    TimeAttributeEditor,
+    TimeDeltaAttributeEditor
+)
