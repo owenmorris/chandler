@@ -1189,9 +1189,14 @@ class wxInPlaceEditor(wx.TextCtrl):
         self.Move(position)
 
         self.SetInsertionPointEnd()
-        self.SetSelection(-1, -1)
+
+        #Note: It appears that setting the selection before self.Show() causes
+        #      the selection to get discarded. (so we set it after.)
+        
+        #self.SetSelection(-1, -1) # is ignored.
         self.Show()
         self.SetFocus()
+        self.SetSelection(-1, -1)
 
     def OnSize(self, event):
         self.Hide()
