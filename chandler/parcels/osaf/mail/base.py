@@ -267,28 +267,40 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             self.printCurrentView("catchErrors")
 
         if isinstance(err, failure.Failure):
-            err.printBriefTraceback()
             err = err.value
 
-        errorType = str(err.__class__)
-        errorStr  = err.__str__()
+        errorType   = str(err.__class__)
+        errorString = err.__str__()
 
-        if errorType == errors.M2CRYPTO_ERROR:
-            try:
-                errDesc = err.args[0]
-            except (AttributeError, IndexError):
-                errDesc = ""
+        if errorType.startswith(errors.M2CRYPTO_PREFIX):
 
-            if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                errorStr = errors.STR_SSL_CERTIFICATE_ERROR
+            if errorType == errors.M2CRYPTO_BIO_ERROR:
+                """Certificate Verification Error"""
+                try:
+                    errDesc = err.args[0]
+                except AttributeError, IndexError:
+                    errDesc = ""
+
+                if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                    errorString = errors.STR_SSL_CERTIFICATE_ERROR
+                else:
+                    errorString = str(err)
+
+            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
+                """Host does not match cert"""
+                #XXX: This need to be refined for i18h
+                errorString = str(err)
+
             else:
-                errorStr = errors.STR_SSL_ERROR
+                """Pass through for M2Crypto errors"""
+                errorString = str(err)
+
 
         if self.testing:
             utils.alert(constants.TEST_ERROR, \
-                        self.account.displayName, errorStr)
+                        self.account.displayName, errorString)
         else:
-            utils.alert(constants.DOWNLOAD_ERROR, errorStr)
+            utils.alert(constants.DOWNLOAD_ERROR, errorString)
 
         self._actionCompleted()
 

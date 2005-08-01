@@ -534,21 +534,34 @@ class _SMTPTransport(object):
             errorCode = errors.DNS_LOOKUP_CODE
             errorString = err.__str__()
 
-        elif errorType == errors.M2CRYPTO_ERROR:
+        elif errorType.startswith(errors.M2CRYPTO_PREFIX):
             errorCode = errors.M2CRYPTO_CODE
 
-            try:
-                errDesc = err.args[0]
-            except AttributeError, IndexError:
-                errDesc = ""
+            if errorType == errors.M2CRYPTO_BIO_ERROR:
+                """Certificate Verification Error"""
+                try:
+                    errDesc = err.args[0]
+                except AttributeError, IndexError:
+                    errDesc = ""
 
-            if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                errorString =  errors.STR_SSL_CERTIFICATE_ERROR
+                if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                    errorString =  errors.STR_SSL_CERTIFICATE_ERROR
+                else:
+                    errorString = errors.STR_SSL_ERROR
+
+            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
+                """Host does not match cert"""
+                #XXX: This need to be refined for i18h
+                errorString = str(err)
+
             else:
-                errorString = errors.STR_SSL_ERROR
+                """Pass through for M2Crypto errors"""
+                errorString = str(err)
+
         else:
             errorCode = errors.UNKNOWN_CODE
-            errorString = errors.STR_UNKNOWN_ERROR % (err.__module__, err.__doc__)
+            #XXX: casting an error to str is not going to work with i18n
+            errorString = "%s %s" % (err.__module__, str(err))
 
 
         return (errorCode, errorString)

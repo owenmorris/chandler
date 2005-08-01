@@ -8,7 +8,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 STR_SSL_CERTIFICATE_ERROR = _("The SSL Certificate returned can not be verified")
 STR_SSL_ERROR = _("SSL communication error")
-STR_UNKNOWN_ERROR = _("Unknown Error %s %s")
 STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
 STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later.")
 
@@ -30,7 +29,6 @@ M2CRYPTO_CERTIFICATE_VERIFY_FAILED  = 20
 __SMTP_PREFIX        = "twisted.mail.smtp."
 __IMAP4_PREFIX       = "twisted.mail.imap4."
 __TWISTED_PREFIX     = "twisted.internet.error."
-__M2CRYPTO_PREFIX    = "M2Crypto.BIO."
 __MAILSERVICE_PREFIX = "osaf.mail.errors."
 
 AUTH_DECLINED_ERROR       = __SMTP_PREFIX + "AUTHDeclinedError"
@@ -42,7 +40,6 @@ CONNECT_ERROR             = __TWISTED_PREFIX + "ConnectError"
 CONNECT_BIND_ERROR        = __TWISTED_PREFIX + "ConnectBindError"
 UNKNOWN_HOST_ERROR        = __TWISTED_PREFIX + "UnknownHostError"
 TIMEOUT_ERROR             = __TWISTED_PREFIX + "TimeoutError"
-M2CRYPTO_ERROR            = __M2CRYPTO_PREFIX + "BIOError"
 SSL_ERROR                 = __TWISTED_PREFIX + "SSLError"
 DNS_LOOKUP_ERROR          = __TWISTED_PREFIX + "DNSLookupError"
 CONNECTION_REFUSED_ERROR  = __TWISTED_PREFIX + "ConnectionRefusedError"
@@ -50,6 +47,14 @@ MAIL_EXCEPTION            = __MAILSERVICE_PREFIX + "MailException"
 IMAP_EXCEPTION            = __MAILSERVICE_PREFIX + "IMAPException"
 SMTP_EXCEPTION            = __MAILSERVICE_PREFIX + "SMTPException"
 POP_EXCEPTION             = __MAILSERVICE_PREFIX + "POPException"
+
+
+"""M2Crypto Errors"""
+M2CRYPTO_PREFIX        = "M2Crypto"
+M2CRYPTO_BIO_ERROR     = M2CRYPTO_PREFIX + ".BIO.BIOError"
+M2CRYPTO_CHECKER_ERROR = M2CRYPTO_PREFIX + ".SSL.Checker.WrongHost"
+
+
 
 """ Contains common transport error codes used by the mail service"""
 __offset = 600
