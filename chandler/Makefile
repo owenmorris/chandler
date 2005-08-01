@@ -37,7 +37,7 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-1.tar.gz \
          $(CHANDLERARCHIVES)/zopeinterface-$(SNAP)-3.0.1-2.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.9-1.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.3-1.tar.gz \
-         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-66-1.tar.gz \
+         $(CHANDLERARCHIVES)/zanshin-$(SNAP)-75-1.tar.gz \
          $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
