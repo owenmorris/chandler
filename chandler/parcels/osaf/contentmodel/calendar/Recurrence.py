@@ -9,6 +9,7 @@ __parcel__ = "osaf.contentmodel.calendar"
 from application import schema
 from osaf.contentmodel import ContentModel
 import dateutil.rrule
+import dateutil.tz
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
 
@@ -68,6 +69,13 @@ def fromDateUtilWeekday(val):
 def fromDateUtilFrequency(val):
     #hack!
     return FrequencyEnum.values[val]
+
+localtime = dateutil.tz.tzlocal()
+def stripTZ(dt):
+    if dt.tzinfo == None:
+        return dt
+    else:
+        return dt.astimezone(localtime).replace(tzinfo=None)
 
 class RecurrenceRule(ContentModel.ContentItem):
     """One rule defining recurrence for an item."""
@@ -217,9 +225,12 @@ class RecurrenceRule(ContentModel.ContentItem):
                 for day, n in listOfDayTuples:
                     day = fromDateUtilWeekday(day)
                     self.byweekday.append(WeekdayAndPositionStruct(day, n))
-        for key in self.normalNames:
-            if getattr(rrule, '_' + key) is not None:
-                setattr(self, key, getattr(rrule, '_' + key))
+        # While most dates are naive, strip tzinfo off
+        if rrule._until is not None:
+            self.until = stripTZ(rrule._until)
+        if rrule._interval != 1:
+            self.interval = rrule._interval
+            
         for key in self.listNames:
             if getattr(rrule, '_' + key) is not None and \
                                         (key not in self.interpretedNames or \
@@ -236,8 +247,8 @@ class RecurrenceRule(ContentModel.ContentItem):
             if len(rrule._bymonth) == 1:
                 if rrule._bymonth[0] == rrule._dtstart.month:
                     del self.bymonth
-            
-            
+
+
 
     def onValueChanged(self, name):
         """If the rule changes, update any associated events."""
@@ -316,7 +327,9 @@ class RecurrenceRuleSet(ContentModel.ContentItem):
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)
         for typ in 'rdate', 'exdate':
-            setattr(self, typ + 's', getattr(ruleSetOrRule, '_' + typ, []))
+            # While most dates are naive, strip tzinfo off
+            naive = [stripTZ(e) for e in getattr(ruleSetOrRule, '_' + typ, [])]
+            setattr(self, typ + 's', naive)
 
     def isCustomRule(self):
         """Determine if this is a custom rule.

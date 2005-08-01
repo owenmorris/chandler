@@ -26,6 +26,8 @@ class ICalendarTestCase(unittest.TestCase):
         self.DateImportAsAllDay()
         self.ItemsToVobject()
         self.writeICalendarUnicodeBug3338()
+        self.importRecurrence()
+        self.importRecurrenceWithTimezone()
         self._teardown()
 
     def _setup(self):
@@ -133,6 +135,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.assert_(cal.vevent[0].dtstart[0].value == datetime.date(2010,1,1),
          "dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent[0].summary[0].value)
+         # test bug 3509, all day event duration is off by one
          
     def writeICalendarUnicodeBug3338(self):
         event = Calendar.CalendarEvent(view = self.repo.view)
@@ -157,6 +160,22 @@ class ICalendarTestCase(unittest.TestCase):
         cal=vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent[0].summary[0].value, event.displayName)
         self.share.destroy()
+
+    def importRecurrence(self):
+        format = self.Import(self.repo.view, 'Recurrence.ics')
+        event = format.findUID('5B30A574-02A3-11DA-AA66-000A95DA3228')
+        third = event.getNextOccurrence().getNextOccurrence()
+        self.assertEqual(third.displayName, 'Changed title')
+        self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10))
+        # while were at it, test bug 3509, all day event duration is off by one
+        self.assertEqual(event.duration, datetime.timedelta(0))
+
+    def importRecurrenceWithTimezone(self):
+        format = self.Import(self.repo.view, 'RecurrenceWithTimezone.ics')
+        event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
+        third = event.modifications.first()
+        print third.serializeMods().getvalue()
+        self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
 
          
 # test import/export unicode

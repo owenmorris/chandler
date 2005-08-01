@@ -354,6 +354,9 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
 #tests to write:
 """
+
+test getOccurrencesBetween crossing THISANDFUTRE modification
+
 test simultaneous events
 
 test getNextOccurrence with wacky duration stuff, date ordering issues
@@ -418,5 +421,6 @@ pyicu timezone -> rrule
 # update spec: changeThis on something where modifies=THISANDFUTURE isn't quite right in the spec
 # update spec: changing the rule behavior
 # update spec: thisandfuture mod to stamped attribute is ignored for items not sharing that stamp?
+# update spec: lots of other new methods :)
 
 """

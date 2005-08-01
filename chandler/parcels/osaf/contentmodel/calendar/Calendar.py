@@ -474,7 +474,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
             ruleItem.setRuleFromDateUtil(rule)
             self.rruleset = ruleItem
         else:
-            self.rruleset.setRuleFromDateUtil(rule)
+            if self.getFirstInRule() != self:
+                rruleset = Recurrence.RecurrenceRuleSet(None, view=self.itsView)
+                rruleset.setRuleFromDateUtil(rule)
+                self.changeThisAndFuture('rruleset', rruleset)
+            else:
+                self.rruleset.setRuleFromDateUtil(rule)
 
     def _cloneEvent(self):
         new = self.copy()
@@ -556,12 +561,16 @@ class CalendarEventMixin(ContentModel.ContentItem):
             # take duration into account if after is set
             if after is not None:
                 earliest = after - first.duration
+                inc = True
             elif first == self: #recurrenceID means a different thing for first
                 earliest = self.startTime 
+                inc = False
             else:
                 earliest = min(self.recurrenceID, self.startTime)
+                inc = False
             while True:
-                nextRecurrenceID = self.createDateUtilFromRule().after(earliest)
+                nextRecurrenceID = self.createDateUtilFromRule().after(earliest,
+                                                                       inc)
                 if nextRecurrenceID == None or \
                    (before != None and nextRecurrenceID > before):
                     # no more generated occurrences, make sure no modifications
@@ -682,7 +691,32 @@ class CalendarEventMixin(ContentModel.ContentItem):
 ##        logger.debug("generating occurrences for %s, after: %s, "
 ##                     "before: %s, mods: %s" % (self, after,before,mods))
         return [e for mod in mods for e in mod._generateRule(after, before)]
-    
+
+    def getRecurrenceID(self, recurrenceID):
+        """Get or create the item matching recurrenceID, or None."""
+        # first look through modifications and occurrences
+        for mod in self.getMaster().modifications or []:
+            if mod.modifies == 'this':
+                if mod.recurrenceID == recurrenceID:
+                    return mod
+            elif mod.modifies == 'thisandfuture':
+                for occurrence in mod.occurrences or []:
+                    if occurrence.recurrenceID == recurrenceID:
+                        return occurrence
+
+        # look through master's occurrences
+        for occurrence in self.getMaster().occurrences:
+            if occurrence.recurrenceID == recurrenceID:
+                return occurrence
+
+        # no existing matches, see if one can be generated:
+        for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID):
+            if occurrence.recurrenceID == recurrenceID:
+                return occurrence
+
+        # no match
+        return None
+
     def _movePreviousRuleEnd(self):
         """Make sure the previous rule doesn't recreate or overlap with self."""
         newend = min(self.startTime, self.recurrenceID) - timedelta(minutes=1)
@@ -884,7 +918,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
         if name == "rruleset": 
             logger.debug("just set rruleset")
             gen = self._getFirstGeneratedOccurrence(True)
-            logger.debug("got first generated occurrence, %s" % gen.serializeMods().getvalue())
+            if gen:
+                logger.debug("got first generated occurrence, %s" % gen.serializeMods().getvalue())
 
             # make sure masters get modificationRecurrenceID set
             if self == self.getFirstInRule():
@@ -898,8 +933,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
 ##                          itemCollectionInclusions
 ##                          """.split():
         # this won't work with stamping, temporary solution to allow testing
-        if name in """displayName startTime endTime location body title
-                      lastModified
+        if name in """displayName startTime endTime location body lastModified
                    """.split():
             logger.debug("about to changeThis in onValueChanged(name=%s) for %s" % (name, str(self)))
             logger.debug("value is: %s" % getattr(self, name))
@@ -969,9 +1003,9 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
     def removeRecurrence(self):
         master = self.getMaster()
-        del master.rruleset
+        if master.rruleset is not None:
+            del master.rruleset
         master.cleanFuture()
-
    
     def isCustomRule(self):
         """Determine if self.rruleset represents a custom rule.

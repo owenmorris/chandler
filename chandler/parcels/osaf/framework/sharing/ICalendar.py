@@ -4,12 +4,15 @@ import Sharing
 import application.Parcel
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.calendar.Recurrence as Recurrence
 from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
 import logging
 import dateutil.tz
 import datetime
+from datetime import date
+from datetime import time
 import itertools
 import repository.query.Query as Query
 from application import schema
@@ -19,8 +22,6 @@ logger.setLevel(logging.INFO)
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
-
-MAXRECUR = 10
 
 def dateForVObject(dt, asDate = False):
     """Convert the given datetime into a date or datetime with tzinfo=UTC."""
@@ -120,10 +121,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         q = Query.Query(None, p, k, queryString)
-        # See if we have a corresponding item already, or create one
+
         q.args["$0"] = ( uid, )
         for match in q:
-            return match
+            return match.getMaster()
         return None
 
     def importProcess(self, text, extension=None, item=None):
@@ -180,9 +181,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             elif vtype == u'VTODO':
                 logger.debug("got VTODO")
                 pickKind = taskKind
-
-            # For now we'll expand recurrence sets, first find attributes that
-            # will be constant across the recurrence set.
 
             try:
                 displayName = event.summary[0].value
@@ -242,82 +240,104 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                             duration = datetime.timedelta(hours=1)
                         elif vtype == u'VTODO':
                             duration = None
-            # Iterate through recurrence set.  Infinite recurrence sets are
-            # common, something has to be done to avoid infinite loops.
-            # We'll arbitrarily limit ourselves to MAXRECUR recurrences.
+                            
+            dt = event.dtstart[0].value
+            isDate = type(dt) == date
+            if isDate:
+                dt = datetime.datetime.combine(dt, time(0))
+                if duration: # convert to Chandler's notion of all day duration
+                    duration -= datetime.timedelta(days=1)
 
             # See if we have a corresponding item already
+            recurrenceID = None
             uidMatchItem = self.findUID(event.uid[0].value)
-            first = True
-            
-            # FIXME total hack to deal with the fact that dateutil.rrule doesn't
-            # know how to deal with dates without time.
-            # If DTSTART's VALUE parameter is set to DATE, don't use rruleset
-            isDate = type(event.dtstart[0].value) == datetime.date
-            if isDate:
-                d = event.dtstart[0].value
-                recurrenceIter = [datetime.datetime(d.year, d.month, d.day)]
-            else:
-                recurrenceIter = itertools.islice(event.rruleset, MAXRECUR)
-            
-            for dt in recurrenceIter:
-                #give the repository a naive datetime, no timezone
+            if uidMatchItem is not None:
+                logger.debug("matched UID")
                 try:
-                    dt = dt.astimezone(localtime).replace(tzinfo=None)
-                except ValueError: # astimezone will fail for naive datetimes
-                    pass
-                if uidMatchItem is not None:
-                    logger.debug("matched UID")
-                    eventItem = uidMatchItem
-                    uidMatchItem = None
-                    countUpdated += 1
-                else:
-                    eventItem = pickKind.newItem(None, newItemParent)
-                    countNew += 1
-                    if first:
-                        eventItem.icalUID = event.uid[0].value
-                        first = False
+                    recurrenceID = event.contents['recurrence-id'][0].value
+                    if type(recurrenceID) == date:
+                        recurrenceID = datetime.datetime.combine(recurrenceID,
+                                                                 time(0))
                     else:
-                        eventItem.icalUID = unicode(eventItem.itsUUID)
-                    
-                logger.debug("eventItem is %s" % str(eventItem))
-                
-                #Default to NOT any time
-                eventItem.anyTime = False
-                
-                eventItem.displayName = displayName
-                if isDate:
-                    eventItem.allDay = True
-                eventItem.startTime   = dt
-                if vtype == u'VEVENT':
-                    eventItem.endTime = dt + duration
-                elif vtype == u'VTODO':
-                    if duration is not None:
-                        eventItem.dueDate = dt + duration
-                
-                if not filters or "transparency" not in filters:
-                    eventItem.transparency = status
-                
-                # I think Item.description describes a Kind, not userdata, so
-                # I'm using DESCRIPTION <-> body  
-                if description is not None:
-                    eventItem.body = textKind.makeValue(description)
-                
-                if location:
-                    eventItem.location = Calendar.Location.getLocation(view,
-                                                                       location)
-                
-                if not filters or "reminderTime" not in filters:
-                    if reminderDelta is not None:
-                        eventItem.reminderTime = dt + reminderDelta
-
-                logger.debug("Imported %s %s" % (eventItem.displayName,
-                 eventItem.startTime))
-
-                if self.fileStyle() == self.STYLE_SINGLE:
-                    item.add(eventItem)
+                        recurrenceID = Recurrence.stripTZ(recurrenceID)
+                except:
+                    pass
+                if recurrenceID:
+                    eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
+                    if eventItem == None:
+                        raise Exception, "RECURRENCE-ID didn't match rule. " + \
+                                         "RECURRENCE-ID = %s" % recurrenceID
                 else:
-                    return eventItem
+                    eventItem = uidMatchItem
+                    countUpdated += 1
+            else:
+                eventItem = pickKind.newItem(None, newItemParent)
+                countNew += 1
+                eventItem.icalUID = event.uid[0].value
+            
+
+            # vobject isn't meshing well with dateutil when dtstart isDate;
+            # dtstart is converted to a datetime for dateutil, but rdate
+            # isn't.  To make dateutil happy, convert rdates which are dates to
+            # datetimes until vobject is fixed.
+            for i, rdate in enumerate(event.rdate):
+                if type(rdate) == date:
+                    event.rdate[i] = datetime.datetime.combine(rdate, time(0))
+                # get rid of RDATES that match dtstart, created by vobject to
+                # deal with unusual RRULEs correctly
+                if event.rdate[i] == dt:
+                    del event.rdate[i]
+            
+            # ignore timezones and recurrence till tzinfo -> PyICU is written
+            # give the repository a naive datetime, no timezone
+            try:
+                dt = dt.astimezone(localtime).replace(tzinfo=None)
+            except ValueError: # astimezone will fail for naive datetimes
+                pass
+                
+            logger.debug("eventItem is %s" % str(eventItem))
+            
+            #Default to NOT any time
+            eventItem.anyTime = False
+            
+            eventItem.displayName = displayName
+            if isDate:
+                eventItem.allDay = True
+            eventItem.startTime   = dt
+            if vtype == u'VEVENT':
+                eventItem.endTime = dt + duration
+            elif vtype == u'VTODO':
+                if duration is not None:
+                    eventItem.dueDate = dt + duration
+            
+            if not filters or "transparency" not in filters:
+                eventItem.transparency = status
+            
+            # I think Item.description describes a Kind, not userdata, so
+            # I'm using DESCRIPTION <-> body  
+            if description is not None:
+                eventItem.body = textKind.makeValue(description)
+            
+            if location:
+                eventItem.location = Calendar.Location.getLocation(view,
+                                                                   location)
+            
+            if not filters or "reminderTime" not in filters:
+                if reminderDelta is not None:
+                    eventItem.reminderTime = dt + reminderDelta
+
+            if len(event.rdate) > 0 or len(event.rrule) > 0:
+                eventItem.setRuleFromDateUtil(event.rruleset)
+            elif recurrenceID is None: # delete any existing rule
+                eventItem.removeRecurrence()
+
+            logger.debug("Imported %s %s" % (eventItem.displayName,
+             eventItem.startTime))
+
+            if self.fileStyle() == self.STYLE_SINGLE:
+                item.add(eventItem)
+            else:
+                return eventItem
                  
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))
