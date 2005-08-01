@@ -3,6 +3,7 @@
 <item>
   <name>LocalizableString</name>
   <kind type="path">//Schema/Core/Struct</kind>
+  <class module="repository.packs.chandler.Types">LocalizableStringType</class>
 
   <attribute name="fields">
     <value name="parcelName">
@@ -10,7 +11,7 @@
         <value name="type" type="path" eval="True">/Core/Symbol</value>
       </values>
     </value>
-    <value name="defaultValue">
+    <value name="defaultText">
       <values>
         <value name="type" type="path" eval="True">/Core/UString</value>
       </values>

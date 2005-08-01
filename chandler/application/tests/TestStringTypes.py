@@ -27,6 +27,27 @@ class StringTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.failIf(isinstance(value, str))
         self.failUnlessEqual(value, u"Is this unicode?")
         
+    def testLocalizableString(self):
+        item = self.manager.lookup(STRING_PARCEL, "LocalizableStringItem")
+        value = item.localizableString
+        self.failUnless(isinstance(value, LocalizableString))
+
+        self.failUnless(hasattr(value, 'defaultText'))
+        self.failIf(isinstance(value.defaultText, str))
+        self.failUnless(isinstance(value.defaultText, unicode))
+        self.failUnlessEqual(value.defaultText,
+                u"S'il vous plait -- localizez-moi!")
+        self.failIfEqual(unicode(value), "")
+
+        #self.failUnlessEqual(unicode(value), u"S'il vous plait -- localizez-moi!")
+        
+    def testUStringText(self):
+        item = self.manager.lookup(STRING_PARCEL, "UStringTextItem")
+        value = item.text
+        self.failUnless(isinstance(value, unicode))
+        self.failIf(isinstance(value, str))
+        self.failUnlessEqual(value, u"I should be a UString")
+        
     def testUStringEscape(self):
         item = self.manager.lookup(STRING_PARCEL, "UStringEscapeItem")
         value = item.uString
@@ -42,3 +63,17 @@ class StringTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.failUnless(isinstance(value, unicode))
         self.failIf(isinstance(value, str))
         self.failUnlessEqual(value, u"\u2022 Was that a bullet?")
+
+    def testTextWithoutType(self):
+        item = self.manager.lookup(STRING_PARCEL, "TextItem")
+        value = item.text
+        #import pdb; pdb.set_trace()
+        self.failUnless(isinstance(value, LocalizableString))
+
+        self.failUnless(hasattr(value, 'defaultText'))
+        self.failIf(isinstance(value.defaultText, str))
+        self.failUnless(isinstance(value.defaultText, unicode))
+        self.failUnlessEqual(value.defaultText,
+            "I am a Text, but should be localizable")
+        self.failIfEqual(unicode(value), u"")
+

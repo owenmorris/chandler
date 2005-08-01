@@ -21,6 +21,22 @@
     <uString>Is this unicode?</uString>
 </String>
 
+<String itsName="LocalizableStringItem">
+    <localizableString>S'il vous plait -- localizez-moi!</localizableString>
+</String>
+
+<String itsName="UStringTextItem">
+    <text type="core:UString">I should be a UString</text>
+</String>
+
+<String itsName="LocalizableStringTextItem">
+    <text type="core:LocalizableString">I should be a LocalizableString</text>
+</String>
+
+<String itsName="TextItem">
+    <text>I am a Text, but should be localizable</text>
+</String>
+
 <String itsName="UStringEscapeItem">
     <uString>&#x2022; Was that a bullet?</uString>
 </String>

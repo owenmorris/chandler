@@ -25,5 +25,25 @@ class LocalizableString(object):
     customization and the LocalizableString schema type item needs to be of
     that class. (See the core schema Date type as an example).
     """
+    
+    def __unicode__(self):
+        # [@@@] Get translation from I18Manager
+        return self.defaultText
+        
+    def __init__(self, defaultText=""):
+        super(LocalizableString, self).__init__()
+        self.defaultText = defaultText
 
-    pass
+
+from repository.schema.Types import Struct
+from repository.schema.Alias import Alias
+
+class LocalizableStringType(Struct):
+    def makeValue(self, data):
+        return LocalizableString(data)
+
+class Text(Alias):
+    def makeValue(self, data):
+        return LocalizableString(data)
+
+

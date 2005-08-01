@@ -3,6 +3,7 @@
 <item>
   <name>Text</name>
   <kind type="path">//Schema/Core/Alias</kind>
+  <class module="repository.packs.chandler.Types">Text</class>
 
   <ref name="types">
     <ref type="path">/Core/UString</ref>

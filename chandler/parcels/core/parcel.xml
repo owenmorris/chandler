@@ -28,6 +28,7 @@
   <namespaceMap key="Kind" value="//Schema/Core/Kind" />
   <namespaceMap key="List" value="//Schema/Core/List" />
   <namespaceMap key="Lob" value="//Schema/Core/Lob" />
+  <namespaceMap key="LocalizableString" value="//Schema/Core/LocalizableString" />
   <namespaceMap key="Long" value="//Schema/Core/Long" />
   <namespaceMap key="None" value="//Schema/Core/None" />
   <namespaceMap key="Parcel" value="//Schema/Core/Parcel" />
@@ -46,6 +47,7 @@
   <namespaceMap key="Tuple" value="//Schema/Core/Tuple" />
   <namespaceMap key="Type" value="//Schema/Core/Type" />
   <namespaceMap key="URL" value="//Schema/Core/URL" />
+  <namespaceMap key="UString" value="//Schema/Core/UString" />
   <namespaceMap key="UUID" value="//Schema/Core/UUID" />
   <namespaceMap key="annotations" value="//Schema/Core/annotations" />
   <namespaceMap key="description" value="//Schema/Core/description" />
