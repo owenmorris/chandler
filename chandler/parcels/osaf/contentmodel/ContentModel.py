@@ -269,15 +269,10 @@ class ContentItem(schema.Item):
         return the list of candidate kinds for stamping
         right now, we consider only ContentItems.
         """
-        global cachedContentItemKinds
-        try:
-            contentItemKinds = cachedContentItemKinds
-        except NameError:
-            kindKind = self.findPath('//Schema/Core/Kind')
-            allKinds = Query.KindQuery().run([kindKind])
-            contentItemKind = ContentItem.getKind (self.itsView)
-            contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
-            cachedContentItemKinds = contentItemKinds
+        kindKind = self.findPath('//Schema/Core/Kind')
+        allKinds = Query.KindQuery().run([kindKind])
+        contentItemKind = ContentItem.getKind (self.itsView)
+        contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
         return contentItemKinds
 
     def _computeTargetKindSignature (self, operation, stampKind):
