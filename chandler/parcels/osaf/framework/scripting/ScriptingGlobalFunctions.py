@@ -118,7 +118,7 @@ def Focus(block):
 def SidebarSelect(itemOrName):
     """ Select the item in the Sidebar """
     # can pass in an item or a name
-    if isinstance(itemOrName, Item):
+    if isinstance(itemOrName, _Item):
         params = {'item':itemOrName}
     else:
         params = {'itemName':itemOrName}
@@ -127,7 +127,7 @@ def SidebarSelect(itemOrName):
 
 def SidebarAdd(itemCollection):
     """ Adds the given itemCollection to the sidebar """
-    Globals.mainViewRoot.postEventByName ( 'AddToSidebarWithoutCopying', {'items' : [itemCollection]} )
+    _Globals.mainViewRoot.postEventByName ( 'AddToSidebarWithoutCopying', {'items' : [itemCollection]} )
 
 def SummaryViewSelect(item):
     # Tell the ActiveView to select our item
@@ -201,7 +201,9 @@ def LeftClick(block):
     widget.ProcessEvent(mouseUp)
     widget.ProcessEvent(mouseLeave)
     _wx.GetApp().Yield()
-    
+    ev = _wx.IdleEvent()
+    _wx.GetApp().ProcessEvent(ev)
+     
 """
 TO BE DONE
 * Type(<string>) function to take the string and tell wx
