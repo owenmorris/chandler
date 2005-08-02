@@ -180,6 +180,68 @@ class Share(ContentModel.ContentItem):
 
         return attributes
 
+    def configureInbound(self, url):
+
+        view = self.itsView
+
+        (useSSL, host, port, path, query, fragment) = splitUrl(url)
+
+        account = findMatchingWebDAVAccount(view, url)
+
+        if account is None:
+            # Prompt user for account information then create an account
+
+            # Get the parent directory of the given path:
+            # '/dev1/foo/bar' becomes ['dev1', 'foo']
+            parentPath = path.strip('/').split('/')[:-1]
+            # ['dev1', 'foo'] becomes "dev1/foo"
+            parentPath = "/".join(parentPath)
+
+            # Examine the URL for scheme, host, port, path
+            frame = wx.GetApp().mainFrame
+            info = AccountInfoPrompt.PromptForNewAccountInfo(frame,
+                                                             host=host,
+                                                             path=parentPath)
+            if info is not None:
+                (description, username, password) = info
+                account = WebDAVAccount(view=view)
+                account.displayName = description
+                account.host = host
+                account.path = parentPath
+                account.username = username
+                account.password = password
+                account.useSSL = useSSL
+                account.port = port
+
+        if account is not None:
+            shareName = path.strip("/").split("/")[-1]
+            self.hidden = False
+
+            if url.endswith(".ics"):
+                import ICalendar
+                self.format = ICalendar.ICalendarFormat(view=view)
+                self.conduit = SimpleHTTPConduit(view=view, shareName=shareName,
+                                            account=account)
+                self.mode = "get"
+
+            else:
+                self.conduit = WebDAVConduit(view=view,
+                                             shareName=shareName,
+                                             account=account)
+                location = self.getLocation()
+                if not location.endswith("/"):
+                    location += "/"
+                resource = self.conduit._getServerHandle().getResource(location)
+
+                isCalendar = zanshin.util.blockUntil(resource.isCalendar)
+                isCollection =  zanshin.util.blockUntil(resource.isCollection)
+                if isCalendar:
+                    import ICalendar
+                    self.format = ICalendar.CalDAVFormat(view=view)
+                else:
+                    self.format = CloudXMLFormat(view=view)
+                self.mode = "both"
+
 
 class OneTimeShare(Share):
     """Delete format, conduit, and share after the first get or put."""
@@ -1738,72 +1800,6 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
     share.sharer = Contacts.Contact.getCurrentMeContact(view)
     return share
 
-
-def newInboundShare(view, url):
-    """ Create a new Share item for a URL this client is subscribing to.
-
-    Finds a WebDAV account which matches this URL; if none match then
-    prompt the user for username/password for that URL.  If either of
-    these result in finding/creating an account, then create a Share item
-    and return it.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @param url: The url which points to a collection to import
-    @type url: String
-    @return: A Share item, or None if no WebDAV account could be found.
-    """
-
-    (useSSL, host, port, path, query, fragment) = splitUrl(url)
-
-    parent = view.findPath("//userdata")
-
-    account = findMatchingWebDAVAccount(view, url)
-
-    if account is None:
-        # Prompt user for account information then create an account
-
-        # Get the parent directory of the given path:
-        # '/dev1/foo/bar' becomes ['dev1', 'foo']
-        parentPath = path.strip('/').split('/')[:-1]
-        # ['dev1', 'foo'] becomes "dev1/foo"
-        parentPath = "/".join(parentPath)
-
-        # Examine the URL for scheme, host, port, path
-        info = AccountInfoPrompt.PromptForNewAccountInfo(wx.GetApp().mainFrame,
-                                                         host=host,
-                                                         path=parentPath)
-        if info is not None:
-            (description, username, password) = info
-            kindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
-            webDAVAccountKind = view.findPath(kindPath)
-            account = webDAVAccountKind.newItem(name=None, parent=parent)
-            account.displayName = description
-            account.host = host
-            account.path = parentPath
-            account.username = username
-            account.password = password
-            account.useSSL = useSSL
-            account.port = port
-
-    share = None
-    if account is not None:
-        shareName = path.strip("/").split("/")[-1]
-        mode = "both"
-        if url.endswith(".ics"):
-            import ICalendar
-            format = ICalendar.ICalendarFormat(view=view)
-            conduit = SimpleHTTPConduit(view=view, shareName=shareName,
-                                        account=account)
-            mode = "get"
-        else:
-            conduit = WebDAVConduit(view=view, shareName=shareName,
-                                    account=account)
-            format = CloudXMLFormat(view=view)
-        share = Share(view=view, conduit=conduit, format=format)
-        share.hidden = False
-        share.mode = mode
-    return share
 
 
 def getWebDAVAccount(view):

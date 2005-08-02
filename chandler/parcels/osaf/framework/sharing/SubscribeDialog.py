@@ -75,7 +75,8 @@ class SubscribeDialog(wx.Dialog):
             self.__showStatus("You are already subscribed")
             return
 
-        share = Sharing.newInboundShare(view, url)
+        share = Sharing.Share(view=view)
+        share.configureInbound(url)
 
         if share is None:
             return

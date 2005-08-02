@@ -1036,7 +1036,8 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
         statusBlock.setStatusMessage( _('Subscribing to collection...') )
         wx.Yield()
-        share = Sharing.newInboundShare(self.itsView, url)
+        share = Sharing.Share(view=self.itsView)
+        share.configureInbound(url)
         share.get()
         statusBlock.setStatusMessage( _('Subscribed to collection') )
     
