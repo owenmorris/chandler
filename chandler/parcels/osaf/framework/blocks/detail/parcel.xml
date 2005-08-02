@@ -803,7 +803,7 @@
     <choices>Daily</choices>
     <choices>Weekly</choices>
     <choices>Monthly</choices>
-    <choices>Annually</choices>
+    <choices>Yearly</choices>
     <choices>Custom...</choices>
   </blocks:PresentationStyle>
   
