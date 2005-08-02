@@ -120,6 +120,10 @@ README.linux.txt
 src=chandler
 dest=
 chandler
+# and the launch scripts
+src=chandler/release
+dest=release
+RunPython
 
 # Grab the overall README
 src=chandler/distrib

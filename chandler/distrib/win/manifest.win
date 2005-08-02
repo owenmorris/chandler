@@ -77,6 +77,11 @@ dest=release/bin
 chandler.exe
 chandler.exe.manifest
 
+# and the launch scripts
+src=chandler/release
+dest=release
+RunPython.bat
+
 # Grab the overall README
 src=chandler/distrib
 README.txt
