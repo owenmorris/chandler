@@ -53,6 +53,12 @@
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
 
+  <BlockEvent itsName="EmptyTrash">
+    <blockName>EmptyTrash</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="EditAccountPreferences">
     <blockName>EditAccountPreferences</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -425,6 +431,8 @@
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
     <childrenBlocks itemref="doc:RemoveItem"/>
+    <childrenBlocks itemref="doc:EditSeparator2"/>
+    <childrenBlocks itemref="doc:EmptyTrashItem"/>
     <childrenBlocks itemref="doc:SelectAllItem"/>
   </Menu>
     
@@ -681,6 +689,11 @@
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
+  <MenuItem itsName="EditSeparator2">
+    <blockName>EditSeparator2</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
   <MenuItem itsName="CutItem">
     <blockName>CutItem</blockName>
     <title>Cut</title>
@@ -704,12 +717,19 @@
   
   <MenuItem itsName="RemoveItem">
     <blockName>RemoveItem</blockName>
-    <title>Remove</title>
+    <title>Move to Trash</title>
     <accel>DELETE</accel>
     <event itemref="Remove"/>
-    <helpString value="Remove the selection"/>
+    <helpString value="Move the current item to the trash"/>
   </MenuItem>
-  
+
+  <MenuItem itsName="EmptyTrashItem">
+    <blockName>EmptyTrashItem</blockName>
+    <title>Empty Trash</title>
+    <event itemref="doc:EmptyTrash"/>
+    <helpString value="Remove all items from the Trash collection"/>
+  </MenuItem>
+
   <MenuItem itsName="SelectAllItem">
     <blockName>SelectAllItem</blockName>
     <title>Select all</title>

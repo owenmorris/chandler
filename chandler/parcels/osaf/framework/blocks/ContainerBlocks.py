@@ -238,7 +238,8 @@ class wxSplitterWindow(wx.SplitterWindow):
                 distance = self.blockItem.size.width
             #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
             self.SetSashPosition (int (distance * self.blockItem.splitPercentage + 0.5))
-        event.Skip()
+        if event:
+            event.Skip()
 
     def OnSplitChanging(self, event):
         if not self.blockItem.allowResize:
@@ -334,10 +335,10 @@ class wxSplitterWindow(wx.SplitterWindow):
             parent.Layout()
         self.Thaw()
 
+    @classmethod
     def CalculateWXStyle(theClass, block):
         style = wx.SP_LIVE_UPDATE | wx.NO_BORDER | wx.SP_3DSASH
         return style
-    CalculateWXStyle = classmethod(CalculateWXStyle)
 
  
 class SplitterWindow(RectangularChild):

@@ -12,6 +12,7 @@ import wx
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.contentmodel import ItemCollection
+from osaf.app import Trash
 from application import schema
 from wx.lib import buttons
 
@@ -715,14 +716,13 @@ class CollectionCanvas(Block.RectangularChild):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
 
     def onRemoveEvent(self, event):
-        self.DeleteSelection()
+        Trash.MoveItemToTrash(self.selection, self.itsView)
+        self.ClearSelection()
 
-    def DeleteSelection(self):
-        if self.selection is not None:
-            self.contents.source.first().remove(self.selection)
-            self.selection = None
-            self.postSelectItemBroadcast ()
-            self.itsView.commit()
+    def ClearSelection(self):
+        self.selection = None
+        self.postSelectItemBroadcast()
+        self.itsView.commit()
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)

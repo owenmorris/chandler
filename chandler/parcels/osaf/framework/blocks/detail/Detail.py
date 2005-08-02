@@ -425,7 +425,7 @@ class DetailSynchronizer(Item):
 
     def selectedItem (self):
         # return the selected item
-        return self.contents
+        return getattr(self, 'contents', None)
 
     def finishSelectionChanges (self):
         # finish any changes in progress in editable text fields.

@@ -97,7 +97,7 @@ def installParcel(parcel, oldVersion=None):
                      )
 
     ItemCollection.update(parcel, 'trash',
-                          displayName=u'Trash',
+                          displayName=_('Trash'),
                           renameable=False)
     
     welcome = Photo.update(parcel, 'WelcomePhoto',

@@ -22,6 +22,7 @@ import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
+from osaf.app import Trash
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
@@ -835,7 +836,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         contents = self.blockItem.contents
         for range in selectionRanges:
             for row in xrange (range[1], range [0] - 1, -1):
-                contents.remove (contents [row])
+                #contents.remove (contents [row])
+                Trash.MoveItemToTrash(contents[row], self.blockItem.itsView)
                 newRowSelection = row
 
         self.blockItem.selection = []
@@ -856,6 +858,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         if totalItems > 0:
             newRowSelection = min(newRowSelection, totalItems - 1)
             self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
+        else:
+            self.blockItem.postEventByName("SelectItemBroadcast", {'item': None})
 
     def SelectedItems(self):
         """

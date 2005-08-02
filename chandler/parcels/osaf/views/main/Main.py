@@ -34,6 +34,7 @@ import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
 import osaf.framework.scripting.CPIAScript as CPIAScript
 import osaf.framework.webserver.Web as Web
+from osaf.app import Trash
 
 logger = logging.getLogger("mainview")
 logger.setLevel(logging.INFO)
@@ -111,6 +112,13 @@ class MainView(View):
 
     def onRemoveEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
+
+    def onEmptyTrashEvent(self, event):
+        Trash.EmptyTrash(self.itsView)
+
+    def onEmptyTrashEventUpdateUI(self, event):
+        trash = Trash.FindTrashCollection(self.itsView)
+        event.arguments['Enable'] = (len(trash) > 0)
 
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
