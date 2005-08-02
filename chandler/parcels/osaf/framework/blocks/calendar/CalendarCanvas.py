@@ -1369,6 +1369,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.Skip()
 
     def wxSynchronizeWidget(self):
+        #print "%s rebuilding canvas items" % self
         self.RebuildCanvasItems()
         self.Refresh()
 
@@ -1709,6 +1710,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.SetVirtualSize(self.size)
 
     def wxSynchronizeWidget(self):
+        #print "%s rebuilding canvas items" % self
         self._doDrawingCalculations()
         self.RebuildCanvasItems()
         self.Refresh()
@@ -2233,8 +2235,17 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # Set up sizers
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
+        # ugly! We have to add left/right/center so that
+        # the month text remains centered
         navigationRow = wx.BoxSizer(wx.HORIZONTAL)
+        navigationLeft = wx.BoxSizer(wx.HORIZONTAL)
+        navigationRight = wx.BoxSizer(wx.HORIZONTAL)
+        navigationCenter = wx.BoxSizer(wx.HORIZONTAL)
+        navigationRow.Add(navigationLeft, 1)
+        navigationRow.Add(navigationCenter, 1)
+        navigationRow.Add(navigationRight, 1)
+        
         
         sizer.Add((7,7), 0, wx.EXPAND)
         sizer.Add(navigationRow, 0, wx.EXPAND)
@@ -2243,8 +2254,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # beginnings of color in the calendar
         self.colorSelect = colourselect.ColourSelect(self, -1, size=wx.Size(30,15))
         self.Bind(colourselect.EVT_COLOURSELECT, self.OnSelectColor)
-        navigationRow.Add((7,7), 0, wx.EXPAND)
-        navigationRow.Add(self.colorSelect, 0, wx.ALIGN_CENTER)
+        navigationLeft.Add((7,7), 0, wx.EXPAND)
+        navigationLeft.Add(self.colorSelect, 0, wx.ALIGN_CENTER)
+        # keep color selector flush left
+        navigationLeft.Add((0,0), 1)
 
         today = date.today()
         today = datetime(today.year, today.month, today.day)
@@ -2255,53 +2268,21 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
 
-        # top row - left button, month, right buttons
-        navigationRow.Add((0,0), 1)
 
-
-        navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
-        navigationRow.Add((5,5), 0)
-        navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
-        navigationRow.Add((5,5), 0)
-        navigationRow.Add(self.nextButton, 0, wx.ALIGN_CENTER)
+        # center the month text
+        navigationCenter.Add((0,0), 1)
+        navigationCenter.Add(self.prevButton, 0, wx.ALIGN_CENTER)
+        navigationCenter.Add((5,5), 0)
+        navigationCenter.Add(self.monthText, 0, wx.ALIGN_CENTER)
+        navigationCenter.Add((5,5), 0)
+        navigationCenter.Add(self.nextButton, 0, wx.ALIGN_CENTER)
+        navigationCenter.Add((0,0), 1)
         
         # ... + timezone, anchored to the right
-        size = wx.DefaultSize
-        style = Styles.CharacterStyle(fontSize=11.0)
-        font = Styles.getFont(style)
-        if font is not None:
-            measurements = Styles.getMeasurements(font)
-            size = wx.Size(size.width, measurements.choiceCtrlHeight)
-
-        self.tzChoice = wx.Choice(self, size=size, style=wx.TAB_TRAVERSAL)
-        self.tzChoice.SetFont(font)
-
-        # self.blockItem hasn't been set yet, because
-        # CalendarControl.instantiateWidget() hasn't returned.
-        # So, we get the repo view from our parent's blockItem.
-        view = self.GetParent().blockItem.itsView
-        defaultTzinfo = DefaultTimeZone.get(view=view).tzinfo
-        
-        # Now, populate the wxChoice with DefaultTimeZone.knownTimeZones
-        selectIndex = -1
-        for zone in DefaultTimeZone.knownTimeZones:
-            index = self.tzChoice.Append(unicode(zone), clientData=zone)
-            
-            if defaultTzinfo.timezone == zone.timezone:
-                # [@@@] grant: Should be defaultTzinfo == zone; PyICU bug?
-                selectIndex = index
-        
-        if selectIndex is -1:
-            self.tzChoice.Insert(unicode(defaultTzinfo), 0, clientData=zone)
-            selectIndex = 0
-
-        self.tzChoice.Select(selectIndex)
-
-        self.Bind(wx.EVT_CHOICE, self.OnTZChoice, self.tzChoice)
-
-        navigationRow.Add((5,5), 1)
-        navigationRow.Add(self.tzChoice, 0, wx.ALIGN_RIGHT)
-        navigationRow.Add((7,7), 0)
+        self.tzChoice = self.MakeTimezoneChoice()
+        navigationRight.Add((0,0), 1)
+        navigationRight.Add(self.tzChoice, 0)
+        navigationRight.Add((7,7), 0)
 
         
         # finally the last row, with the header
@@ -2338,6 +2319,34 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.UpdateHeader()
         self._doDrawingCalculations() #hopefully this is early enough
 
+    def MakeTimezoneChoice(self):
+
+        tzChoice = wx.Choice(self)
+        # self.blockItem hasn't been set yet, because
+        # CalendarControl.instantiateWidget() hasn't returned.
+        # So, we get the repo view from our parent's blockItem.
+        view = self.GetParent().blockItem.itsView
+        defaultTzinfo = DefaultTimeZone.get(view=view).tzinfo
+        
+        # Now, populate the wxChoice with DefaultTimeZone.knownTimeZones
+        selectIndex = -1
+        for zone in DefaultTimeZone.knownTimeZones:
+            index = tzChoice.Append(unicode(zone), clientData=zone)
+            
+            if defaultTzinfo.timezone == zone.timezone:
+                # [@@@] grant: Should be defaultTzinfo == zone; PyICU bug?
+                selectIndex = index
+        
+        if selectIndex is -1:
+            tzChoice.Insert(unicode(defaultTzinfo), 0, clientData=zone)
+            selectIndex = 0
+
+        tzChoice.Select(selectIndex)
+
+        self.Bind(wx.EVT_CHOICE, self.OnTZChoice, tzChoice)
+
+        return tzChoice
+        
     def OnSelectColor(self, event):
         c = event.GetValue().Get()
 
