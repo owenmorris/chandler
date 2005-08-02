@@ -18,7 +18,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import logging
 
-import wingdbstub
+#import wingdbstub
 
 from datetime import datetime
 from repository.util.Path import Path
