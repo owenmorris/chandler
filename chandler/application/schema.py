@@ -1214,7 +1214,7 @@ def _get_nrv():
 core_types = """
 Boolean String Symbol BString UString Integer Long Float 
 Tuple List Set Class Dictionary Anything
-Date Time DateTime TimeDelta 
+Date Time DateTime TimeDelta TimeZone
 Lob URL Complex UUID Path SingleRef
 Text LocalizableString
 """.split()
