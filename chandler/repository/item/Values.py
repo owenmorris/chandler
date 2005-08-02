@@ -9,10 +9,10 @@ from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
 from repository.util.Lob import Lob
-from repository.item.PersistentCollections import PersistentCollection
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 from repository.schema.TypeHandler import TypeHandler
+from repository.item.ItemValue import ItemValue
 
 
 class Values(dict):
@@ -27,7 +27,7 @@ class Values(dict):
 
         for name, value in self.iteritems():
             if isinstance(value, ItemValue):
-                value._setItem(None, None)
+                value._setOwner(None, None)
             self._setDirty(name)
 
         super(Values, self).clear()
@@ -48,8 +48,6 @@ class Values(dict):
         for value in self.itervalues():
             if isinstance(value, ItemValue):
                 count += value._refCount()
-            elif isinstance(value, PersistentCollection):
-                count += value._refCount()
 
         return count
 
@@ -57,13 +55,9 @@ class Values(dict):
 
         item = self._item
         for name, value in orig.iteritems():
-            if isinstance(value, PersistentCollection):
-                self[name] = value._copy((item, name, value._owner[2]),
-                                         copyPolicy, copyFn)
-
-            elif isinstance(value, ItemValue):
+            if isinstance(value, ItemValue):
                 value = value._copy(item, name, copyPolicy, copyFn)
-                value._setItem(item, name)
+                value._setOwner(item, name)
                 self[name] = value
 
             elif isinstance(value, SingleRef):
@@ -96,7 +90,7 @@ class Values(dict):
         
         oldValue = self.get(key, None)
         if oldValue is not None and isinstance(oldValue, ItemValue):
-            oldValue._setItem(None, None)
+            oldValue._setOwner(None, None)
 
         return super(Values, self).__setitem__(key, value)
 
@@ -107,7 +101,7 @@ class Values(dict):
 
         value = self.get(key, None)
         if value is not None and isinstance(value, ItemValue):
-            value._setItem(None, None)
+            value._setOwner(None, None)
 
         return super(Values, self).__delitem__(key)
 
@@ -354,6 +348,10 @@ class Values(dict):
             pass
         
     def _checkValue(self, logger, name, value, attrType):
+
+        if isinstance(value, ItemValue):
+            if not value._check(logger, self._item, name):
+                return False
 
         if not attrType.recognizes(value):
             logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self._item.itsPath, attrType.itsPath)
@@ -987,62 +985,3 @@ class References(Values):
                         item.removeAttributeValue(key)
                         if localOther is not None:
                             item.setAttributeValue(key, localOther)
-
-
-class ItemValue(object):
-    'A superclass for values that are owned by an item.'
-    
-    def __init__(self):
-
-        self._item = None
-        self._attribute = None
-        self._dirty = False
-        self._readOnly = False
-
-    def _setItem(self, item, attribute):
-
-        if item is not None:
-            if self._item is not None and self._item is not item:
-                raise OwnedValueError, (self._item, self._attribute, self)
-        
-        self._item = item
-        self._attribute = attribute
-
-    def _setReadOnly(self, readOnly=True):
-
-        self._readOnly = readOnly
-        
-    def _getItem(self):
-
-        return self._item
-
-    def _getAttribute(self):
-
-        return self._attribute
-
-    def _getOwner(self):
-
-        return (self._item, self._attribute)
-
-    def _refCount(self):
-
-        return 1
-
-    def _isReadOnly(self):
-
-        return self._readOnly and self._item is not None
-
-    def _setDirty(self, noMonitors=False):
-
-        if self._isReadOnly():
-            raise ReadOnlyAttributeError, (self._item, self._attribute)
-
-        self._dirty = True
-        item = self._item
-        if item is not None:
-            item.setDirty(item.VDIRTY, self._attribute,
-                          item._values, noMonitors)
-
-    def _copy(self, item, attribute, copyPolicy, copyFn):
-
-        raise NotImplementedError, '%s._copy' %(type(self))

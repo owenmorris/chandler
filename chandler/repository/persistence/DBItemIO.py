@@ -10,7 +10,8 @@ from cStringIO import StringIO
 from chandlerdb.util.uuid import UUID, _hash
 from chandlerdb.item.item import Nil
 from repository.item.Item import Item
-from repository.item.Values import Values, References, ItemValue
+from repository.item.Values import Values, References
+from repository.item.ItemValue import ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict, PersistentSet
@@ -467,16 +468,8 @@ class DBItemReader(ItemReader):
         references._setItem(item)
 
         for name, value in values.iteritems():
-            if isinstance(value, PersistentCollection):
-                if withSchema:
-                    # mixed collections not supported in core schema
-                    companion = None
-                else:
-                    companion = kind.getAttribute(name).getAspect('companion',
-                                                                  None)
-                value._setOwner((item, name, companion))
-            elif isinstance(value, ItemValue):
-                value._setItem(item, name)
+            if isinstance(value, ItemValue):
+                value._setOwner(item, name)
 
         if kind is not None:
             afterLoadHooks.append(lambda view: kind._setupClass(cls))
@@ -703,7 +696,7 @@ class DBItemReader(ItemReader):
         count, = unpack('>I', data[offset:offset+4])
         offset += 4
 
-        value = PersistentList((None, None, None))
+        value = PersistentList()
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name, afterLoadHooks)
@@ -718,7 +711,7 @@ class DBItemReader(ItemReader):
         count, = unpack('>I', data[offset:offset+4])
         offset += 4
 
-        value = PersistentSet((None, None, None))
+        value = PersistentSet()
         for i in xrange(count):
             offset, v = self.readValue(offset, data, withSchema, attrType,
                                        view, name, afterLoadHooks)
@@ -733,7 +726,7 @@ class DBItemReader(ItemReader):
         count, = unpack('>I', data[offset:offset+4])
         offset += 4
 
-        value = PersistentDict((None, None, None))
+        value = PersistentDict()
         for i in xrange(count):
             offset, k = self.readValue(offset, data, False, None,
                                        view, name, afterLoadHooks)

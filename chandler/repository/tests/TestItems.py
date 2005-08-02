@@ -173,7 +173,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(kind is not None)
 
         # Test iterating over literal attributes
-        literalAttributeNames = ['notFoundAttributes', 'classes'] 
+        literalAttributeNames = ['classes'] 
         for i in kind.iterAttributeValues(valuesOnly=True):
             self.failUnless(i[0] in literalAttributeNames)
 

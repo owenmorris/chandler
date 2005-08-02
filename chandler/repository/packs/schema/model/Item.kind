@@ -74,7 +74,6 @@
          type="path" otherCard="list">/Core/Set</ref>
 
     <attribute name="cardinality">dict</attribute>
-    <attribute name="companion">watchers</attribute>
     <attribute name="copyPolicy">remove</attribute>
   </item>
 

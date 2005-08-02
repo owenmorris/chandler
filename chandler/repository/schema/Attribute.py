@@ -165,7 +165,7 @@ class Attribute(Item):
 
     valueAspects = ('required', 'persisted', 'indexed', 'cardinality',
                     'defaultValue', 'initialValue',
-                    'inheritFrom', 'redirectTo', 'otherName', 'companion',
+                    'inheritFrom', 'redirectTo', 'otherName',
                     'deletePolicy', 'copyPolicy', 'countPolicy', 'domains')
 
     refAspects = ('type', 'superAttribute')

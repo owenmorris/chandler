@@ -8,7 +8,8 @@ from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind
 from repository.item.PersistentCollections import PersistentCollection, \
     PersistentList, PersistentDict, PersistentSet, PersistentTuple
-from repository.item.Values import Values, References, ItemValue
+from repository.item.Values import Values, References
+from repository.item.ItemValue import ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
 from chandlerdb.item.item import Nil
 from chandlerdb.item.ItemError import *
@@ -163,11 +164,11 @@ class ValueHandler(ContentHandler, TypeHandler):
         cardinality = self.getCardinality(attribute, attrs)
         
         if cardinality == 'list':
-            self.collections.append(PersistentList((None, None, None)))
+            self.collections.append(PersistentList())
         elif cardinality == 'dict':
-            self.collections.append(PersistentDict((None, None, None)))
+            self.collections.append(PersistentDict())
         elif cardinality == 'set':
-            self.collections.append(PersistentSet((None, None, None)))
+            self.collections.append(PersistentSet())
         else:
             self.valueStart(itemHandler, attrs)
 
@@ -189,11 +190,11 @@ class ValueHandler(ContentHandler, TypeHandler):
             typeName = self.tagAttrs[-1]['type']
 
         if typeName == 'dict':
-            self.collections.append(PersistentDict((None, None, None)))
+            self.collections.append(PersistentDict())
         elif typeName in ('list', 'tuple'):
-            self.collections.append(PersistentList((None, None, None)))
+            self.collections.append(PersistentList())
         elif typeName == 'set':
-            self.collections.append(PersistentSet((None, None, None)))
+            self.collections.append(PersistentSet())
 
     # valueEnd is called when parsing 'dict' or 'list' cardinality values of
     # one type (type specified with cardinality) or of unspecified type
@@ -216,8 +217,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                 if typeName in ('list', 'dict', 'set'):
                     value = self.collections.pop()
                 elif typeName == 'tuple':
-                    value = PersistentTuple((None, None, None),
-                                            self.collections.pop())
+                    value = PersistentTuple(None, None, self.collections.pop())
                 else:
                     value = self.makeValue(typeName, self.data)
                     if attrs.get('eval', 'False') == 'True':
@@ -255,8 +255,7 @@ class ValueHandler(ContentHandler, TypeHandler):
             if typeName in ('list', 'dict', 'set'):
                 value = self.collections.pop()
             elif typeName == 'tuple':
-                value = PersistentTuple((None, None, None),
-                                        self.collections.pop())
+                value = PersistentTuple(None, None, self.collections.pop())
             else:
                 value = self.makeValue(typeName, self.data)
                 if attrs.get('eval', 'False') == 'True':
@@ -580,16 +579,8 @@ class ItemHandler(ValueHandler):
             self.references._setItem(item)
 
         for attribute, value in self.values.iteritems():
-            if isinstance(value, PersistentCollection):
-                if self.withSchema:
-                    # mixed collections not supported in core schema
-                    companion = None
-                else:
-                    companion = item.getAttributeAspect(attribute, 'companion',
-                                                        False, None, None)
-                value._setOwner((item, attribute, companion))
-            elif isinstance(value, ItemValue):
-                value._setItem(item, attribute)
+            if isinstance(value, ItemValue):
+                value._setOwner(item, attribute)
 
         for refArgs in self.refs:
             other = refArgs._setItem(item)

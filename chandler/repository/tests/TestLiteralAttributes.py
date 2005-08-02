@@ -38,9 +38,6 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         self.assert_(kind1.hasAttributeAspect('classes','cardinality') and
                      kind1.getAttributeAspect('classes','cardinality') == 'dict')
 
-        self.assert_(kind1.hasAttributeAspect('notFoundAttributes','persisted') and
-                     kind1.getAttributeAspect('notFoundAttributes','persisted') == False)
-
         # up to here displayName is an unset Chandler attribute
         self.failUnlessRaises(AttributeError, lambda: item1.displayName)
         # now set the attribute

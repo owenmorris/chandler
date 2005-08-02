@@ -10,7 +10,8 @@ from chandlerdb.item.item import CItem, Nil, Default
 from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList
-from repository.item.Values import Values, References, ItemValue
+from repository.item.Values import Values, References
+from repository.item.ItemValue import ItemValue
 from repository.item.Access import ACL
 from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, \
@@ -227,11 +228,6 @@ class Item(CItem):
               on the other item, ie the referenced item. This is the aspect
               that determines whether the attribute stored bi-directional
               references to items. This aspect takes a string value.
-            - C{companion}: for mixed collection attributes, this aspect
-              names the attribute used to store the bi-directional
-              references to the items stored in the mixed collection. By
-              default, if the companion aspect is not set, the entire
-              repository is considered. This aspect takes a string value.
             - C{copyPolicy}: when an item is copied this policy defines
               what happens to items that are referenced by this
               attribute. Possible C{copyPolicy} values are:
@@ -387,9 +383,7 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID, None)
-                attrValue = PersistentList((self, name, companion), value)
+                attrValue = PersistentList(self, name, value)
                 _values[name] = attrValue
                 setDirty = False
 
@@ -405,9 +399,7 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID, None)
-                attrValue = PersistentDict((self, name, companion), value)
+                attrValue = PersistentDict(self, name, value)
                 _values[name] = attrValue
                 setDirty = False
             
@@ -423,9 +415,7 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID, None)
-                attrValue = PersistentTuple((self, name, companion), value)
+                attrValue = PersistentTuple(self, name, value)
                 _values[name] = attrValue
                 dirty = Item.VDIRTY
             
@@ -441,14 +431,12 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                companion = self.getAttributeAspect(name, 'companion',
-                                                    False, _attrID, None)
-                attrValue = PersistentSet((self, name, companion), value)
+                attrValue = PersistentSet(self, name, value)
                 _values[name] = attrValue
                 setDirty = False
             
         elif isinstance(value, ItemValue):
-            value._setItem(self, name)
+            value._setOwner(self, name)
             _values[name] = value
             dirty = Item.VDIRTY
             
@@ -984,9 +972,7 @@ class Item(CItem):
                     else:
                         raise TypeError, type(value)
                 else:
-                    companion = self.getAttributeAspect(attribute, 'companion',
-                                                        False, None, None)
-                    attrValue = PersistentDict((self, attribute, companion))
+                    attrValue = PersistentDict(self, attribute)
                     _attrDict[attribute] = attrValue
                     attrValue[key] = value
                     
@@ -999,9 +985,7 @@ class Item(CItem):
                     else:
                         raise TypeError, type(value)
                 else:
-                    companion = self.getAttributeAspect(attribute, 'companion',
-                                                        False, None, None)
-                    attrValue = PersistentList((self, attribute, companion))
+                    attrValue = PersistentList(self, attribute)
                     _attrDict[attribute] = attrValue
                     attrValue.append(value)
 
@@ -1014,9 +998,7 @@ class Item(CItem):
                     else:
                         raise TypeError, type(value)
                 else:
-                    companion = self.getAttributeAspect(attribute, 'companion',
-                                                        False, None, None)
-                    attrValue = PersistentSet((self, attribute, companion))
+                    attrValue = PersistentSet(self, attribute)
                     _attrDict[attribute] = attrValue
                     attrValue.append(value)
 

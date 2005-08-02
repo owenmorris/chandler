@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import Nil
-from repository.item.Values import ItemValue
+from repository.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
 from repository.item.Indexed import Indexed
@@ -75,14 +75,6 @@ class AbstractSet(ItemValue, Indexed):
         for item in self:
             print item._repr_()
 
-    def _setItem(self, item, attribute):
-
-        oldItem = self._item
-        oldAttribute = self._attribute
-
-        super(AbstractSet, self)._setItem(item, attribute)
-        return oldItem, oldAttribute
-
     def _getView(self):
 
         item = self._item
@@ -135,7 +127,7 @@ class AbstractSet(ItemValue, Indexed):
     def _setSourceItem(self, source, item, attribute, oldItem, oldAttribute):
         
         if isinstance(source, AbstractSet):
-            source._setItem(item, attribute)
+            source._setOwner(item, attribute)
 
         elif item is not oldItem:
             view = self.itsView
@@ -204,7 +196,10 @@ class AbstractSet(ItemValue, Indexed):
 
         replace = {}
         for sourceItem in self._iterSourceItems():
-            replace[sourceItem._uuid] = copyFn(item, sourceItem, policy)
+            if copyFn is not None:
+                replace[sourceItem._uuid] = copyFn(item, sourceItem, policy)
+            else:
+                replace[sourceItem._uuid] = sourceItem
 
         return eval(self._repr_(replace))
 
@@ -240,9 +235,9 @@ class Set(AbstractSet):
         return "%s(%s)" %(type(self).__name__,
                           self._reprSource(self._source, replace))
         
-    def _setItem(self, item, attribute):
+    def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(Set, self)._setItem(item, attribute)
+        oldItem, oldAttribute = super(Set, self)._setOwner(item, attribute)
         self._setSourceItem(self._source,
                             item, attribute, oldItem, oldAttribute)
 
@@ -283,9 +278,9 @@ class BiSet(AbstractSet):
                               self._reprSource(self._left, replace),
                               self._reprSource(self._right, replace))
         
-    def _setItem(self, item, attribute):
+    def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(BiSet, self)._setItem(item, attribute)
+        oldItem, oldAttribute = super(BiSet, self)._setOwner(item, attribute)
         self._setSourceItem(self._left, item, attribute, oldItem, oldAttribute)
         self._setSourceItem(self._right, item, attribute, oldItem, oldAttribute)
 
@@ -445,9 +440,9 @@ class KindSet(AbstractSet):
         return "%s(UUID('%s'), %s)" %(type(self).__name__,
                                       self._kind.str64(), self._recursive)
         
-    def _setItem(self, item, attribute):
+    def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(KindSet, self)._setItem(item, attribute)
+        oldItem, oldAttribute = super(KindSet, self)._setOwner(item, attribute)
         
         if item is not oldItem:
             if not self.itsView.isLoading():

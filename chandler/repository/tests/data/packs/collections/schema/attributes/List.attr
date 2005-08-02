@@ -5,6 +5,5 @@
     <kind type="path">//Schema/Core/Attribute</kind>
 
     <attribute name="cardinality">single</attribute>
-    <attribute name="companion">listItems</attribute>
     <ref name="type" type="path">/Core/List</ref>
 </item>

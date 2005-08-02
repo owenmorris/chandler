@@ -13,7 +13,8 @@ from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
 from repository.item.Monitors import Monitor
-from repository.item.Values import ItemValue, Values, References
+from repository.item.Values import Values, References
+from repository.item.ItemValue import ItemValue
 from repository.item.PersistentCollections import PersistentCollection
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
@@ -32,9 +33,12 @@ class Kind(Item):
     def __init(self):
 
         self.monitorSchema = False
+        self.attributesCached = False
+        self.notFoundAttributes = []
+        self._initialValues = None
+        self._initialReferences = None
 
         # recursion avoidance
-        self._values['notFoundAttributes'] = []
         refList = self._refList('inheritedAttributes', 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refList
 
@@ -42,9 +46,6 @@ class Kind(Item):
         self._references['ofKind'] = ofKind
 
         self._status |= Item.SCHEMA | Item.PINNED
-
-        self.__dict__['_initialValues'] = None
-        self.__dict__['_initialReferences'] = None
 
     def _fillItem(self, name, parent, kind, **kwds):
 
@@ -364,8 +365,8 @@ class Kind(Item):
             attribute = refs['inheritedAttributes'].getByAlias(name)
 
             if attribute is None:
-                attribute = self._inheritAttribute(name)
-
+                if not self.attributesCached:                
+                    attribute = self._inheritAttribute(name)
                 if attribute is None and noError is False:
                     raise NoSuchAttributeError, (self, name)
 
@@ -383,8 +384,10 @@ class Kind(Item):
             return True
         elif self.inheritedAttributes.resolveAlias(name):
             return True
-        else:
+        elif not self.attributesCached:
             return self._inheritAttribute(name) is not None
+        
+        return False
 
     def getOtherName(self, name, _attrID=None, item=None, default=Default):
 
@@ -452,11 +455,14 @@ class Kind(Item):
         if inherited:
             inheritedAttributes = self.getAttributeValue('inheritedAttributes',
                                                          references)
-            for superKind in self.getAttributeValue('superKinds', references):
-                for name, attribute, k in superKind.iterAttributes():
-                    if (attribute._uuid not in inheritedAttributes and
-                        inheritedAttributes.resolveAlias(name) is None):
-                        inheritedAttributes.append(attribute, alias=name)
+            if not self.attributesCached:
+                for superKind in self.getAttributeValue('superKinds',
+                                                        references):
+                    for name, attribute, k in superKind.iterAttributes():
+                        if (attribute._uuid not in inheritedAttributes and
+                            inheritedAttributes.resolveAlias(name) is None):
+                            inheritedAttributes.append(attribute, name)
+                self.attributesCached = True
             for uuid in inheritedAttributes.iterkeys():
                 link = inheritedAttributes._get(uuid)
                 name = link._alias
@@ -470,7 +476,7 @@ class Kind(Item):
 
     def _inheritAttribute(self, name):
 
-        if self.hasValue('notFoundAttributes', name):
+        if name in self.notFoundAttributes:
             return None
 
         cache = True
@@ -478,13 +484,14 @@ class Kind(Item):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
-                    self._references['inheritedAttributes'].append(attribute, alias=name)
+                    self._references['inheritedAttributes'].append(attribute,
+                                                                   name)
                     return attribute
             else:
                 cache = False
                     
         if cache:
-            self._values['notFoundAttributes'].append(name)
+            self.notFoundAttributes.append(name)
 
         return None
 
@@ -587,11 +594,8 @@ class Kind(Item):
 
         for name, value in self._initialValues.iteritems():
             if name not in values:
-                if isinstance(value, PersistentCollection):
-                    value = value._copy((item, name, value._owner[2]),
-                                        'copy', lambda x, other, z: other)
-                elif isinstance(value, ItemValue):
-                    value = value._copy(item, name)
+                if isinstance(value, ItemValue):
+                    value = value._copy(item, name, 'copy')
 
                 values[name] = value
                 if not isNew:   # __setKind case
@@ -627,6 +631,8 @@ class Kind(Item):
         """
         
         self.inheritedAttributes.clear()
+        self.attributesCached = False
+
         del self.notFoundAttributes[:]
         self._initialValues = None
         self._initialReferences = None

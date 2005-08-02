@@ -1477,7 +1477,7 @@ class Dictionary(Collection):
 
     def _empty(self):
 
-        return PersistentDict((None, None, None))
+        return PersistentDict()
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
@@ -1546,7 +1546,7 @@ class List(Collection):
 
     def _empty(self):
 
-        return PersistentList((None, None, None))
+        return PersistentList()
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
@@ -1614,7 +1614,7 @@ class Tuple(Collection):
     def getParsedValue(self, itemHandler, data):
 
         values = super(Tuple, self).getParsedValue(itemHandler, data)
-        return PersistentTuple((None, None, None), values, False)
+        return PersistentTuple(None, None, values, False)
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
@@ -1626,7 +1626,7 @@ class Tuple(Collection):
 
         offset, value = itemReader.readList(offset, data, withSchema,
                                             None, view, name, afterLoadHooks)
-        return offset, PersistentTuple((None, None, None), value, False)
+        return offset, PersistentTuple(None, None, value, False)
 
 
 class Set(Collection):
@@ -1674,7 +1674,7 @@ class Set(Collection):
 
     def _empty(self):
 
-        return PersistentSet((None, None, None))
+        return PersistentSet()
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
