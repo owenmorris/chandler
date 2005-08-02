@@ -143,13 +143,22 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
 
 class wxPreviewArea(wx.Panel):
+    margin = 4 #oh how I wish I had css
+    
     def __init__(self, *arguments, **keywords):
         super(wxPreviewArea, self).__init__(*arguments, **keywords)
         self.currentDaysItems = []
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
         charStyle = Styles.CharacterStyle()
-        charStyle.fontSize = 10
+        
+        #see Bug 3625
+        if '__WXGTK__' in wx.PlatformInfo:
+            charStyle.fontSize = 10
+        elif '__WXMAC__' in wx.PlatformInfo:
+            charStyle.fontSize = 11
+        elif '__WXMSW__' in wx.PlatformInfo:
+            charStyle.fontSize = 9
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
         
@@ -164,18 +173,22 @@ class wxPreviewArea(wx.Panel):
 
         #White background
         dc.SetBackground(wx.WHITE_BRUSH)
+        
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.SetPen(wx.WHITE_PEN)
         dc.DrawRectangle(*iter(self.GetRect()))
         
         dc.SetTextBackground( (255,255,255) )
         dc.SetTextForeground( (0,0,0) )
-        
         dc.SetFont(self.font)
-        y = 0
+        
+        m, r = self.margin, self.GetRect()
+        dc.SetClippingRegion(m, m,  r.width - 2*m, r.height - 2*m)
+        y = self.margin
         for line in self.text.splitlines():
-            dc.DrawText(line, 0, y)
+            dc.DrawText(line, self.margin, y)
             y += self.fontHeight
+        dc.DestroyClippingRegion()
 ##         DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
 
     @staticmethod
@@ -244,7 +257,7 @@ class wxPreviewArea(wx.Panel):
         self.Draw(dc)
         
         numLines = len(self.text.splitlines())
-        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 3)
+        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 2*self.margin)
         
         
         
