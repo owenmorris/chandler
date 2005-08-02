@@ -9,7 +9,6 @@ import repository.item.Query as ItemQuery
 import osaf.framework.blocks.Block as Block
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.ContentModel as ContentModel
-import KindShorthand
 import ScriptingGlobalFunctions
 from application import schema
 import wx
@@ -38,40 +37,38 @@ def RunScript(scriptText, view):
     newScript = ExecutableScript(scriptText, view)
     return newScript.execute()
     
-_dialogScriptName = "DialogScript"
-_defaultDialogScript = "New(); About()"
-
 def GetDialogScript(aView):
     # return the text of the special DialogScript, or a suitable default if there is none.
-    for aScript in Script.iterItems(aView):
-        if aScript.displayName == _dialogScriptName:
-            previousScriptString = aScript.GetScriptString()
-            break
-    else:
-        previousScriptString = _defaultDialogScript
-    return previousScriptString
+    dialogScript = schema.ns('osaf.framework.scripting', aView).DialogScript
+    return dialogScript.bodyString
 
 def RunDialogScript(theScriptString, aView):
     # set up the special DialogScript, and run it.
-    dialogScript = GetSpecialScript(theScriptString, aView, _dialogScriptName)
+    dialogScript = schema.ns('osaf.framework.scripting', aView).DialogScript
+    dialogScript.bodyString = theScriptString
     dialogScript.execute()
-
-def GetSpecialScript(theScriptString, aView, scriptName):
-    # get the special DialogScript, or if not found create a new one.
-    for aScript in Script.iterItems(aView):
-        if aScript.displayName == scriptName:
-            aScript.SetScriptString(theScriptString)
-            break
-    else:
-        aScript = Script(scriptName)
-        aScript.SetScriptString(theScriptString)
-    return aScript
 
 def HotkeyScript(event, view):
     """
     Check if the event is a hot key to run a script.
     Returns True if it does trigger a script to run, False otherwise.
     """
+    def startsWithScriptNumber(candidateString, numberedStringToMatch):
+        # returns True if the candidate starts with the
+        # numberedStringToMatch.  Checks that the candidate
+        # isn't really a larger number by checking for 
+        # following digits.
+        if candidateString.startswith(numberedStringToMatch):
+            # make sure it's not a longer number than we're looking for
+            try:
+                nextString = candidateString[len(numberedStringToMatch)]
+            except IndexError:
+                return True
+            if nextString.isdigit():
+                return False
+            return True
+        return False
+
     keycode = event.GetKeyCode()
     # for now, we just allow function keys to be hot keys.
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
@@ -83,7 +80,16 @@ def HotkeyScript(event, view):
             except AttributeError:
                 continue
             else:
-                if noteTitle.startswith(targetScriptNameStart):
+                if startsWithScriptNumber(noteTitle, targetScriptNameStart):
+                    # make sure it's not a longer number than we're looking for
+                    try:
+                        nextString = noteTitle[len(targetScriptNameStart)]
+                    except IndexError:
+                        pass
+                    else:
+                        if nextString.isdigit():
+                            continue
+                    # get the body and execute it if we can
                     try:
                         scriptString = aNote.bodyString
                     except AttributeError:
@@ -95,7 +101,7 @@ def HotkeyScript(event, view):
 
         # maybe we have an existing script?
         for aScript in Script.iterItems(view):
-            if targetScriptName == aScript.displayName:
+            if startsWithScriptNumber(aScript.displayName, targetScriptNameStart):          
                 aScript.execute()
                 return True
 
@@ -105,13 +111,13 @@ def HotkeyScript(event, view):
 def RunStartupScript(view):
     script = None
     if not hasattr(Globals, 'CheckedStartupScripts'):
+        Globals.CheckedStartupScripts = True
         if Globals.options.script:
             script = ExecutableScript(Globals.options.script, view)
         if Globals.options.scriptFile:
             scriptFile = ScriptFile(Globals.options.scriptFile)
             if scriptFile:
                 script = ExecutableScript(scriptFile, view)
-        Globals.CheckedStartupScripts = True
     if script:
         script.execute()
 
@@ -136,16 +142,8 @@ class Script(ContentModel.ContentItem):
     def __init__(self, name=_('untitled'), parent=None, kind=None):
         super(Script, self).__init__(name, parent, kind, displayName=name)
 
-    # use the bodyString property to get and set the body attribute
-    # from string data
-    def GetScriptString(self):
-        return self.bodyString
-
-    def SetScriptString(self, scriptString):
-        self.bodyString = scriptString
-
     def execute(self):
-        executable = ExecutableScript(self.GetScriptString(), self.itsView)
+        executable = ExecutableScript(self.bodyString, self.itsView)
         executable.execute()
 
 class ExecutableScript(object):
@@ -181,10 +179,9 @@ class ExecutableScript(object):
         # next, build a dictionary of names that are predefined
         builtIns = {}
 
-        # For debugging, reload ScriptingGlobalFunctions and KindShorthand
+        # For debugging, reload modules containing script functions
         # @@@DLD TBD - remove
         reload(ScriptingGlobalFunctions)
-        reload(KindShorthand)
         reload(TestAppLib)
 
         # add all the known BlockEvents as builtin functions
@@ -196,17 +193,17 @@ class ExecutableScript(object):
         contentItemKind = ContentModel.ContentItem.getKind (self.itsView)
         for aKind in allKinds:
             if aKind.isKindOf (contentItemKind):
-                self._AddKindShorthand(builtIns, aKind)
+                self._AddPimClass(builtIns, aKind)
                 
         # Add Script, Item, BlockEvent and Block kind/shorthands
         itemKind = self.itsView.findPath('//Schema/Core/Item')
-        self._AddKindShorthand(builtIns, itemKind)
+        self._AddPimClass(builtIns, itemKind)
         scriptKind = self.itsView.findPath('//parcels/osaf/framework/scripting/Script')
-        self._AddKindShorthand(builtIns, scriptKind)
+        self._AddPimClass(builtIns, scriptKind)
         blockEventKind = self.itsView.findPath('//parcels/osaf/framework/blocks/BlockEvent')
-        self._AddKindShorthand(builtIns, blockEventKind)
+        self._AddPimClass(builtIns, blockEventKind)
         blockKind = self.itsView.findPath('//parcels/osaf/framework/blocks/Block')
-        self._AddKindShorthand(builtIns, blockKind)
+        self._AddPimClass(builtIns, blockKind)
 
         # add my Custom global functions
         for aFunc in dir(ScriptingGlobalFunctions):
@@ -234,15 +231,16 @@ class ExecutableScript(object):
         logger.exception( message )
         return message
 
-    def _AddKindShorthand(self, builtIns, theKind):
+    def _AddPimClass(self, builtIns, theKind):
         if not theKind:
             return
         kindName = theKind.itsName
-        builtIns[kindName] = theKind.getItemClass()
-
-        # add a shorthand dictionary for the kind (ending in 's', e.g. Note-->Notes)
-        dict = KindShorthand.KindShorthand(theKind)
-        builtIns['%ss' % kindName] = dict
+        try:
+            pim = builtIns['pim']
+        except KeyError:
+            pim = CPIAPimModule()
+            builtIns['pim'] = pim
+        pim.AddAttr(kindName, theKind.getItemClass())
 
     def _BindCPIAEvents(self, view, dict):
         # add all the known BlockEvents as builtin functions
@@ -258,11 +256,11 @@ class ExecutableScript(object):
     def _make_BlockEventCallable(self, eventName, view):
         # This is the template for a callable function for the given event
         # Copies of this function are invoked by user scripts for BlockEvent commands.
-        def BlockEventCallableClosure(argDict={}, _eventName=eventName, _view=view, **keys):
+        def ScriptInvokedBlockEvent(argDict={}, **keys):
             # merge the named parameters, into the dictionary positional arg
-            self.FindAndPostBlockEvent(_eventName, _view, argDict, keys)
+            self.FindAndPostBlockEvent(eventName, argDict, keys)
         # return the template, customized for this event
-        return BlockEventCallableClosure
+        return ScriptInvokedBlockEvent
 
     """
     We need to find the best BlockEvent at runtime on each invokation,
@@ -270,39 +268,20 @@ class ExecutableScript(object):
     are rendered and unrendered.  The best BlockEvent is the one copied
     into the soup and attached to rendered blocks that were also copied.
     """
-    def FindAndPostBlockEvent(self, eventName, view, argDict, keys):
-        # Find the best BlockEvent to use, by name.  Then post that event.
+    def FindAndPostBlockEvent(self, eventName, argDict, keys):
+        # Find the BlockEvent to use by name.  Then post that event.
         # Also, call Yield() on the application, so it gets some time during
         #   script execution.
-        best = self.FindBestBlockEvent(eventName, view)
+        best = Block.Block.findBlockEventByName(eventName)
         try:
             argDict.update(keys)
         except AttributeError:
             # make sure the first parameter was a dictionary, or give a friendly error
-            logger.error("BlockEvents only support one positional parameter - a dictionary")
-            # the eventName parameter may have gotten clobbered too.  Use it if we can.
-            if best is not None:
-                logger.error("  in function %s" % eventName)
-            return
+            message = "BlockEvents may only have one positional parameter - a dict"
+            raise AttributeError, message
         Globals.mainViewRoot.post(best, argDict)
         # seems like a good time to let the Application get some time
         wx.GetApp().Yield()
-
-    def FindBestBlockEvent(self, eventName, view):
-        # Find the best BlockEvent to use, by name.  
-        userCandidate = candidate = None
-        for anEvent in Block.BlockEvent.iterItems(view):
-            if self._BlockEventName(anEvent) == eventName:
-                candidate = anEvent
-                if self._inUserData(anEvent):
-                    if userCandidate:
-                        logger.warning("Duplicate events in user data for %s" % eventName)
-                    else:
-                        userCandidate = anEvent
-        if userCandidate:
-            return userCandidate
-        logger.warning("Can't find event %s in user data - block not rendered." % eventName)
-        return candidate
 
     def _inUserData(self, item):
         try:
@@ -319,4 +298,13 @@ class ExecutableScript(object):
             except AttributeError:
                 name = None
         return name
+
+class CPIAPimModule(object):
+    """ 
+    Acts as the 'pim' module with attributes
+    for the classes that the Personal Information Manager
+    defines.  E.g. Note, Task, etc.
+    """
+    def AddAttr(self, attr, value):
+        setattr(self, attr, value)
 

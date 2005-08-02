@@ -23,6 +23,7 @@
     <blockName>NewZaoBaoChannelItem</blockName>
     <title>New ZaoBao Channel</title>
     <event itemref="doc:NewZaoBaoChannelEvent"/>
+    <eventsForNamedDispatch itemref="doc:NewZaoBaoChannelEvent"/>
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
 

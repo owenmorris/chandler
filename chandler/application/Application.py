@@ -13,6 +13,7 @@ from repository.persistence.RepositoryError \
      import VersionConflictError, MergeError, RepositoryPasswordError, \
      RepositoryVersionError
 import Utility
+import schema
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
@@ -227,6 +228,10 @@ class wxApplication (wx.App):
 
         self.UIRepositoryView = view
 
+        # make our view be the default for schema API
+        # so when we say myClass.iterItems() and leave off the view
+        # we get the UI repository view.
+        schema.reset(self.UIRepositoryView)
 
         """
           Load Parcels
@@ -550,7 +555,7 @@ class wxApplication (wx.App):
 
         # Give CPIA Script a chance to execute a script
         import osaf.framework.scripting.CPIAScript as CPIAScript
-        CPIAScript.RunStartupScript(self.UIRepositoryView)
+        wx.CallAfter(CPIAScript.RunStartupScript, self.UIRepositoryView)
 
         event.Skip()
 

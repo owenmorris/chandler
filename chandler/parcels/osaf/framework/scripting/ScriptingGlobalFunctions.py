@@ -20,6 +20,39 @@ from repository.item.Item import Item as _Item
 _logger = _logging.getLogger('CPIA Script')
 _logger.setLevel(_logging.INFO)
 
+"""
+Named lookup of General Items
+"""
+def FindByName(itemClass, itemName):
+    for item in itemClass.iterItems():
+        if _itemName(item) == itemName:
+            return item
+    return None
+
+def _itemName(item):
+    try:
+        return item.about
+    except AttributeError:
+        pass
+    try:
+        return item.blockName
+    except AttributeError:
+        pass
+    try:
+        return item.displayName
+    except AttributeError:
+        pass
+    try:
+        return item.itsName
+    except AttributeError:
+        pass
+    return None
+
+"""
+Block lookup by name must be handled specially, because
+they come and go from view when they are rendered by CPIA
+"""
+
 # Functions that return a named block
 def FindNamedBlock(blockName):
     block = _Block.Block.findBlockByName(blockName)

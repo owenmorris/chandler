@@ -12,6 +12,7 @@
       <blockName>CertificateView</blockName>
       <title>Manage Certificates</title>
       <event itemref="doc:CertificateViewEvent"/>
+      <eventsForNamedDispatch itemref="doc:CertificateViewEvent"/>
       <parentBlock itemref="main:TestMenu"/>
     </MenuItem>
   
@@ -19,6 +20,7 @@
       <blockName>CertificateImport</blockName>
       <title>Import Certificate</title>
       <event itemref="doc:CertificateImportEvent"/>
+      <eventsForNamedDispatch itemref="doc:CertificateImportEvent"/>
       <parentBlock itemref="main:TestMenu"/>
     </MenuItem>
 
