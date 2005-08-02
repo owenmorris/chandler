@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat
 
 import osaf.contentmodel.calendar.Calendar as Calendar
+from osaf.contentmodel.calendar.TimeZone import DefaultTimeZone
 import osaf.contentmodel.ContentModel as ContentModel
 
 from osaf.framework.blocks import DragAndDrop
@@ -46,7 +47,7 @@ its children subblocks are as follows:
 
 -------------------------------------------------------------
 | wxCalendarControl - block: CalendarControl                                       
-| [color selector]    June 2005                  <- ->      
+| [color selector]   <- June 2005 ->      [timezone] 
 |                                                           
 | also has the row of week/7-days buttons as an inset widget:
 |-------------------------------------------------------
@@ -653,6 +654,20 @@ class CalendarEventHandler(object):
         self.blockItem.setRange(today)
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
+        
+    def OnTZChoice(self, event):
+        control = event.GetEventObject()
+        choiceIndex = control.GetSelection()
+        if choiceIndex != -1:
+            newTZ = control.GetClientData(choiceIndex)
+
+            view = self.blockItem.itsView
+            DefaultTimeZone.get(view=view).tzinfo = newTZ
+            view.commit()
+            
+            #self.blockItem.Refresh() def Refresh
+            self.wxSynchronizeWidget()
+            
 
 
 class CalendarBlock(CollectionCanvas.CollectionCanvas):
@@ -1760,9 +1775,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         timeFormatter = DateFormat.createTimeInstance()
         hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
         dummyDate = date.today()
+        defaultTzinfo = DefaultTimeZone.get().tzinfo
         
         for hour in hourrange:
-            hourdate = datetime.combine(dummyDate, time(hour))
+            timedate = time(hour=hour, tzinfo=defaultTzinfo)
+            hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
             hourString = str(timeString)[start:end]
@@ -2163,6 +2180,7 @@ class CalendarControl(CalendarBlock):
         
 
         w = wxCalendarControl(self.parentBlock.widget, -1)
+        
         return w
 
     def onSelectedDateChangedEvent(self, event):
@@ -2232,25 +2250,59 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         today = datetime(today.year, today.month, today.day)
 
         self.monthText = wx.StaticText(self, -1)
-
-        navigationRow.Add((0,0), 1)
-
-        navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
-        
-        navigationRow.Add((0,0), 1)
-        
-        # top row - left/right buttons, anchored to the right
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
 
+        # top row - left button, month, right buttons
+        navigationRow.Add((0,0), 1)
+
+
         navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
-        
-        
+        navigationRow.Add((5,5), 0)
+        navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
         navigationRow.Add((5,5), 0)
         navigationRow.Add(self.nextButton, 0, wx.ALIGN_CENTER)
+        
+        # ... + timezone, anchored to the right
+        size = wx.DefaultSize
+        style = Styles.CharacterStyle(fontSize=11.0)
+        font = Styles.getFont(style)
+        if font is not None:
+            measurements = Styles.getMeasurements(font)
+            size = wx.Size(size.width, measurements.choiceCtrlHeight)
+
+        self.tzChoice = wx.Choice(self, size=size, style=wx.TAB_TRAVERSAL)
+        self.tzChoice.SetFont(font)
+
+        # self.blockItem hasn't been set yet, because
+        # CalendarControl.instantiateWidget() hasn't returned.
+        # So, we get the repo view from our parent's blockItem.
+        view = self.GetParent().blockItem.itsView
+        defaultTzinfo = DefaultTimeZone.get(view=view).tzinfo
+        
+        # Now, populate the wxChoice with DefaultTimeZone.knownTimeZones
+        selectIndex = -1
+        for zone in DefaultTimeZone.knownTimeZones:
+            index = self.tzChoice.Append(unicode(zone), clientData=zone)
+            
+            if defaultTzinfo.timezone == zone.timezone:
+                # [@@@] grant: Should be defaultTzinfo == zone; PyICU bug?
+                selectIndex = index
+        
+        if selectIndex is -1:
+            self.tzChoice.Insert(unicode(defaultTzinfo), 0, clientData=zone)
+            selectIndex = 0
+
+        self.tzChoice.Select(selectIndex)
+
+        self.Bind(wx.EVT_CHOICE, self.OnTZChoice, self.tzChoice)
+
+        navigationRow.Add((5,5), 1)
+        navigationRow.Add(self.tzChoice, 0, wx.ALIGN_RIGHT)
         navigationRow.Add((7,7), 0)
+
         
         # finally the last row, with the header
         self.weekColumnHeader = wx.colheader.ColumnHeader(self)
