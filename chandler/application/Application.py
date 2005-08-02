@@ -160,12 +160,7 @@ class wxApplication (wx.App):
         """
           Splash Screen.
 
-          We don't show the splash screen when nocatchis set, which is typically
-        on when running in the debugger. Also, when in the debugger the splash
-        screen gets stuck on top of all other windows on some platforms, e.g. Linux,
-        so we'll use the nocatch flag to also turn off the splash screen. It didn't
-        seem worth adding yet another command line flag for just turning off the
-        splash screen.
+          We don't show the splash screen when nosplash is set
         """
         splash = None
         if not Globals.options.nosplash:
@@ -173,6 +168,7 @@ class wxApplication (wx.App):
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
             wx.Yield() #let the splash screen render itself
+
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
