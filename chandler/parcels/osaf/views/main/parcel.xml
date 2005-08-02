@@ -297,6 +297,13 @@
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
 
+  <BlockEvent itsName="GenerateContentItemsFromFile">
+   <blockName>GenerateContentItemsFromFile</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+    <commitAfterDispatch>True</commitAfterDispatch>
+  </BlockEvent>
+
   <BlockEvent itsName="StartProfiler">
     <blockName>StartProfiler</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -470,6 +477,7 @@
     <title>&amp;Test</title>
     <childrenBlocks itemref="doc:GenerateSomeDataItem"/>
     <childrenBlocks itemref="doc:GenerateMuchDataItem"/>
+    <childrenBlocks itemref="doc:GenerateDataItemFromFile"/>
     <childrenBlocks itemref="doc:EditCollectionRuleItem"/>    
     <childrenBlocks itemref="doc:MimeTestItem"/>
     <childrenBlocks itemref="doc:i18nMailTestItem"/>
@@ -823,6 +831,13 @@
     <event itemref="doc:GenerateContentItems"/>
     <helpString>generates many items of each kind</helpString>
   </MenuItem>
+  
+  <MenuItem itsName="GenerateDataItemFromFile">
+    <blockName>GenerateDataItemFromFile</blockName>
+    <title>Generate Items from a file</title>
+    <event itemref="doc:GenerateContentItemsFromFile"/>
+    <helpString>generates Items from a file</helpString>
+  </MenuItem>  
 
   <MenuItem itsName="StartProfilerItem">
     <blockName>StartProfilerItem</blockName>

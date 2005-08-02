@@ -321,6 +321,11 @@ class wxApplication (wx.App):
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
+        # data loading script execution
+        if Globals.options.createData:
+            import tools.GenerateItemsFromFile as GenerateItemsFromFile
+            GenerateItemsFromFile.RunScript(Globals.mainViewRoot.itsView, Globals.views[0])
+
         return True                     #indicates we succeeded with initialization
 
 

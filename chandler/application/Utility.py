@@ -113,6 +113,7 @@ def initOptions(chandlerDirectory, **kwds):
         'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
         'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
         'nosplash':    ('-N', '--nosplash',  'b', False, 'CHANDLERNOSPLASH', ''),
+        'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
     }
 
 

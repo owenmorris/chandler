@@ -20,6 +20,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
+import tools.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Item import Item
@@ -519,7 +520,24 @@ class MainView(View):
         mainView = Globals.views[0]
         GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
-
+    def onGenerateContentItemsFromFileEvent(self, event):
+        # triggered from "File | Import/Export" menu
+        wildcard = "CSV files|*.csv"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose a file to import",
+                            "", "import.csv", wildcard,
+                            wx.OPEN | wx.HIDE_READONLY)
+        if dlg.ShowModal() == wx.ID_OK:
+            (dir, filename) = os.path.split(dlg.GetPath())
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            self.setStatusMessage("Import aborted")
+            return
+        
+        self.setStatusMessage ("Importing from %s"  % filename)
+        mainView = Globals.views[0]
+        GenerateItemsFromFile.GenerateItems(self.itsView, mainView, dir+'/'+filename)
+    
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")
 
