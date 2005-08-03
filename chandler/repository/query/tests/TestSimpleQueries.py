@@ -15,7 +15,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
          ['parcel:osaf.contentmodel.mail']
         )
 
-        import osaf.contentmodel.mail.Mail as Mail
+        import osaf.contentmodel.mail as Mail
         # create an outbound Mail item
         view = self.rep.view
         aMessage = Mail.MailMessage(view=view)
