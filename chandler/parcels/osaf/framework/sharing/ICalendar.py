@@ -241,13 +241,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         elif vtype == u'VTODO':
                             duration = None
                             
-            dt = event.dtstart[0].value
-            isDate = type(dt) == date
+            isDate = type(dtstart) == date
             if isDate:
-                dt = datetime.datetime.combine(dt, time(0))
+                dtstart = datetime.datetime.combine(dtstart, time(0))
                 if duration: # convert to Chandler's notion of all day duration
                     duration -= datetime.timedelta(days=1)
-
+                    
+            # ignore timezones and recurrence till tzinfo -> PyICU is written
+            # give the repository a naive datetime, no timezone
+            dtstart = Recurrence.stripTZ(dtstart)
+            
             # See if we have a corresponding item already
             recurrenceID = None
             uidMatchItem = self.findUID(event.uid[0].value)
@@ -283,17 +286,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             for i, rdate in enumerate(event.rdate):
                 if type(rdate) == date:
                     event.rdate[i] = datetime.datetime.combine(rdate, time(0))
+                else:
+                    event.rdate[i] = Recurrence.stripTZ(event.rdate[i])
+                    
                 # get rid of RDATES that match dtstart, created by vobject to
                 # deal with unusual RRULEs correctly
-                if event.rdate[i] == dt:
+                if event.rdate[i] == dtstart:
                     del event.rdate[i]
-            
-            # ignore timezones and recurrence till tzinfo -> PyICU is written
-            # give the repository a naive datetime, no timezone
-            try:
-                dt = dt.astimezone(localtime).replace(tzinfo=None)
-            except ValueError: # astimezone will fail for naive datetimes
-                pass
                 
             logger.debug("eventItem is %s" % str(eventItem))
             
@@ -303,12 +302,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             eventItem.displayName = displayName
             if isDate:
                 eventItem.allDay = True
-            eventItem.startTime   = dt
+            eventItem.startTime   = dtstart
             if vtype == u'VEVENT':
-                eventItem.endTime = dt + duration
+                eventItem.endTime = dtstart + duration
             elif vtype == u'VTODO':
                 if duration is not None:
-                    eventItem.dueDate = dt + duration
+                    eventItem.dueDate = dtstart + duration
             
             if not filters or "transparency" not in filters:
                 eventItem.transparency = status
@@ -324,7 +323,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             
             if not filters or "reminderTime" not in filters:
                 if reminderDelta is not None:
-                    eventItem.reminderTime = dt + reminderDelta
+                    eventItem.reminderTime = dtstart + reminderDelta
 
             if len(event.rdate) > 0 or len(event.rrule) > 0:
                 eventItem.setRuleFromDateUtil(event.rruleset)

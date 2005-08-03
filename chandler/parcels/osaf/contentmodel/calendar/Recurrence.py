@@ -204,7 +204,8 @@ class RecurrenceRule(ContentModel.ContentItem):
         self.untilIsDate = False
         if rrule._count is not None:
             self.isCount = True
-            self.until = rrule[-1]
+            # While most dates are naive, strip tzinfo off
+            self.until = stripTZ(rrule[-1])
         self.wkst = fromDateUtilWeekday(rrule._wkst)
         self.freq = fromDateUtilFrequency(rrule._freq)
 
