@@ -252,13 +252,11 @@ class wxApplication (wx.App):
         else:
             position = (mainViewRoot.position.x, mainViewRoot.position.y)
 
-        # Temporary workaround for wx(?) bug involving window size and toolbar
-        # on MacOS (bug 3411). The problem is the mainFrame gets resized upon
-        # rendering, increasing the height by the height of the toolbar. Another
-        # strange behavior is that using SetClientSize(), instead of SetSize(), sets
-        # the wxFrame to an incorrect height (by 90 pixels). So, for the time being,
-        # we remember the size of the mainFrame, and resize it to that after rendering
-        # but before showing the window. -Arel
+        # arel: fix for bug involving window size and toolbar on MacOS (bug 3411).
+        # The problem is that mainFrame gets resized when it is rendered
+        # (particularly when the toolbar gets rendered), increasing the window's
+        # height by the height of the toolbar.  We fix by remembering the
+        # (correct) size before rendering and resizing. 
         rememberSize = (mainViewRoot.size.width, mainViewRoot.size.height)
             
         self.mainFrame = MainFrame(None,
@@ -305,7 +303,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 
-        # Workaround for bug 3411
+        # resize to intended size. (bug 3411)
         self.mainFrame.SetSize(rememberSize)
         
         self.mainFrame.Show()
