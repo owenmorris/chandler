@@ -163,7 +163,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         # make sure there's at least one good data item
         import osaf.contentmodel.calendar.Calendar as Calendar
-        import osaf.contentmodel.contacts.Contacts as Contacts
+        import osaf.contentmodel.contacts as Contacts
         import osaf.contentmodel.Notes as Notes
         event = GenerateItems.GenerateCalendarEvent(view, 1)
         event.displayName = "Meeting"
