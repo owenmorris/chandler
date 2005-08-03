@@ -70,7 +70,7 @@ class Block(schema.Item):
     )
 
     blockName = schema.One(schema.String)
-    eventsForNamedDispatch = schema.Sequence("BlockEvent")
+    eventsForNamedLookup = schema.Sequence("BlockEvent")
 
     itemCollectionInclusions = ContentItem.itemCollectionInclusions
     itemCollectionExclusions = ContentItem.itemCollectionExclusions
@@ -84,7 +84,7 @@ class Block(schema.Item):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[contents,childrenBlocks,eventsForNamedDispatch]
+            byCloud=[contents,childrenBlocks,eventsForNamedLookup]
         )
     )
     
@@ -212,11 +212,11 @@ class Block(schema.Item):
                   Add events to name lookup dictionary.
                 """
                 try:
-                    eventsForNamedDispatch = self.eventsForNamedDispatch
+                    eventsForNamedLookup = self.eventsForNamedLookup
                 except AttributeError:
                     pass
                 else:
-                    self.addToNameToItemUUIDDictionary (eventsForNamedDispatch,
+                    self.addToNameToItemUUIDDictionary (eventsForNamedLookup,
                                                         self.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
                                                     self.blockNameToItemUUID)
@@ -318,11 +318,11 @@ class Block(schema.Item):
             else:
                 unsubscribe (contents, self)
         try:
-            eventsForNamedDispatch = self.eventsForNamedDispatch
+            eventsForNamedLookup = self.eventsForNamedLookup
         except AttributeError:
             pass
         else:
-            self.removeFromNameToItemUUIDDictionary (eventsForNamedDispatch,
+            self.removeFromNameToItemUUIDDictionary (eventsForNamedLookup,
                                                      self.eventNameToItemUUID)
         self.removeFromNameToItemUUIDDictionary ([self],
                                                  self.blockNameToItemUUID)
@@ -927,7 +927,7 @@ class ModifyContentsEvent(BlockEvent):
 
 
 class EventList(schema.Item):
-    eventsForNamedDispatch = schema.Sequence(BlockEvent)
+    eventsForNamedLookup = schema.Sequence(BlockEvent)
 
 
 class lineStyleEnumType(schema.Enumeration):

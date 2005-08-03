@@ -101,7 +101,7 @@
     <title>Intro Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseIntroTab"/>
-    <eventsForNamedDispatch itemref="doc:ChooseIntroTab"/>
+    <eventsForNamedLookup itemref="doc:ChooseIntroTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -110,7 +110,7 @@
     <title>Buttons Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseButtonsTab"/>
-    <eventsForNamedDispatch itemref="doc:ChooseButtonsTab"/>
+    <eventsForNamedLookup itemref="doc:ChooseButtonsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -119,7 +119,7 @@
     <title>Controls Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseControlsTab"/>
-    <eventsForNamedDispatch itemref="doc:ChooseControlsTab"/>
+    <eventsForNamedLookup itemref="doc:ChooseControlsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -128,7 +128,7 @@
     <title>HTML Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseHTMLTab"/>
-    <eventsForNamedDispatch itemref="doc:ChooseHTMLTab"/>
+    <eventsForNamedLookup itemref="doc:ChooseHTMLTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -137,7 +137,7 @@
     <title>Atteibute Editors Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseAttributeEditorsTab"/>
-    <eventsForNamedDispatch itemref="doc:ChooseAttributeEditorsTab"/>
+    <eventsForNamedLookup itemref="doc:ChooseAttributeEditorsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -201,7 +201,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the next tab in block demo</helpString>
     <event itemref="doc:CycleTabs"/>
-    <eventsForNamedDispatch itemref="doc:CycleTabs"/>
+    <eventsForNamedLookup itemref="doc:CycleTabs"/>
     <!-- ToolbarItems must use subscribeAlways because they are not true wx widgets -->
     <!--  but we'll only get the event when pressed, which will only happen when visible. -->
   </ToolbarItem>
@@ -276,7 +276,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <size>80,30</size>
     <minimumSize>80,30</minimumSize>
     <event itemref="doc:AddText"/>
-    <eventsForNamedDispatch itemref="doc:AddText"/>
+    <eventsForNamedLookup itemref="doc:AddText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
@@ -289,7 +289,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <event itemref="doc:ReloadText"/>
-    <eventsForNamedDispatch itemref="doc:ReloadText"/>
+    <eventsForNamedLookup itemref="doc:ReloadText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>

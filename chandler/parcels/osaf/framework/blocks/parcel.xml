@@ -52,27 +52,27 @@
   <!-- Block Events dispatched by name -->
   <docSchema:EventList itsName="GlobalEvents">
     <!-- Don't add any events here unless your proposed event has been reviewed -->
-    <eventsForNamedDispatch itemref="docSchema:About"/>    
-    <eventsForNamedDispatch itemref="docSchema:Close"/>
-    <eventsForNamedDispatch itemref="docSchema:PrintPreview"/>
-    <eventsForNamedDispatch itemref="docSchema:Print"/>
-    <eventsForNamedDispatch itemref="docSchema:Copy"/>
-    <eventsForNamedDispatch itemref="docSchema:Cut"/>
-    <eventsForNamedDispatch itemref="docSchema:Remove"/>
-    <eventsForNamedDispatch itemref="docSchema:New"/>
-    <eventsForNamedDispatch itemref="docSchema:Open"/>
-    <eventsForNamedDispatch itemref="docSchema:Paste"/>
-    <eventsForNamedDispatch itemref="docSchema:Preferences"/>
-    <eventsForNamedDispatch itemref="docSchema:Quit"/>
-    <eventsForNamedDispatch itemref="docSchema:Redo"/>
-    <eventsForNamedDispatch itemref="docSchema:SelectedDateChanged"/>
-    <eventsForNamedDispatch itemref="docSchema:SelectWeek"/>
-    <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcast"/>
-    <eventsForNamedDispatch itemref="docSchema:SelectItemBroadcastInsideActiveView"/>
-    <eventsForNamedDispatch itemref="docSchema:SetContents"/>
-    <eventsForNamedDispatch itemref="docSchema:Undo"/>
+    <eventsForNamedLookup itemref="docSchema:About"/>    
+    <eventsForNamedLookup itemref="docSchema:Close"/>
+    <eventsForNamedLookup itemref="docSchema:PrintPreview"/>
+    <eventsForNamedLookup itemref="docSchema:Print"/>
+    <eventsForNamedLookup itemref="docSchema:Copy"/>
+    <eventsForNamedLookup itemref="docSchema:Cut"/>
+    <eventsForNamedLookup itemref="docSchema:Remove"/>
+    <eventsForNamedLookup itemref="docSchema:New"/>
+    <eventsForNamedLookup itemref="docSchema:Open"/>
+    <eventsForNamedLookup itemref="docSchema:Paste"/>
+    <eventsForNamedLookup itemref="docSchema:Preferences"/>
+    <eventsForNamedLookup itemref="docSchema:Quit"/>
+    <eventsForNamedLookup itemref="docSchema:Redo"/>
+    <eventsForNamedLookup itemref="docSchema:SelectedDateChanged"/>
+    <eventsForNamedLookup itemref="docSchema:SelectWeek"/>
+    <eventsForNamedLookup itemref="docSchema:SelectItemBroadcast"/>
+    <eventsForNamedLookup itemref="docSchema:SelectItemBroadcastInsideActiveView"/>
+    <eventsForNamedLookup itemref="docSchema:SetContents"/>
+    <eventsForNamedLookup itemref="docSchema:Undo"/>
 
-    <eventsForNamedDispatch itemref="docSchema:EnterPressed"/>
+    <eventsForNamedLookup itemref="docSchema:EnterPressed"/>
   </docSchema:EventList>
 
   <docSchema:BlockEvent itsName="About">

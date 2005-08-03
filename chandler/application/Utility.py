@@ -14,10 +14,11 @@ from repository.persistence.RepositoryError \
 from repository.item.RefCollections import RefList
 
 
-# Increment this value whenever the schema changes and edit this comment (to
-# make sure Subversion knows you changed it, in case someone else changes it
-# at about the same time)....
-SCHEMA_VERSION = "39"
+# Increment this value whenever the schema changes and edit its comment 
+#    to let others know what changed.  
+# Your comment also helps Subversion detect a conflict, in case 
+#    someone else changes it at about the same time.
+SCHEMA_VERSION = "40" # Block attribute eventsForNamedDispatch --> eventsForNamedLookup
 
 logger = None # initialized in initLogging()
 

@@ -534,7 +534,7 @@
     <accel>Ctrl+N</accel>
     <helpString>Create a new Note</helpString>
     <event itemref="doc:NewNote"/>
-    <eventsForNamedDispatch itemref="doc:NewNote"/>
+    <eventsForNamedLookup itemref="doc:NewNote"/>
   </MenuItem>
   
   <MenuItem itsName="NewMessageItem">
@@ -543,7 +543,7 @@
     <accel>Ctrl+M</accel>
     <helpString>Create a new Message</helpString>
     <event itemref="doc:NewMailMessage"/>
-    <eventsForNamedDispatch itemref="doc:NewMailMessage"/>
+    <eventsForNamedLookup itemref="doc:NewMailMessage"/>
   </MenuItem>
   
   <MenuItem itsName="NewTaskItem">
@@ -551,7 +551,7 @@
     <title>Task</title>
     <helpString>Create a new Task</helpString>
     <event itemref="doc:NewTask"/>
-    <eventsForNamedDispatch itemref="doc:NewTask"/>
+    <eventsForNamedLookup itemref="doc:NewTask"/>
   </MenuItem>
   
   <MenuItem itsName="NewEventItem">
@@ -559,7 +559,7 @@
     <title>Event</title>
     <helpString>Create a new Event</helpString>
     <event itemref="doc:NewCalendar"/>
-    <eventsForNamedDispatch itemref="doc:NewCalendar"/>
+    <eventsForNamedLookup itemref="doc:NewCalendar"/>
   </MenuItem>
   
   <MenuItem itsName="NewSeparator1">
@@ -573,7 +573,7 @@
     <helpString>Create a new Contact</helpString>
     <!-- removed to disable menu item until post-kibble, bug 2309:
         <event itemref="doc:NewContact"/> -->
-    <eventsForNamedDispatch itemref="doc:NewContact"/>
+    <eventsForNamedLookup itemref="doc:NewContact"/>
   </MenuItem>
   
   <MenuItem itsName="NewItemCollectionItem">
@@ -581,7 +581,7 @@
     <title>New Collection</title>
     <helpString>Create a new Collection</helpString>
     <event itemref="doc:NewItemCollection"/>
-    <eventsForNamedDispatch itemref="doc:NewItemCollection"/>
+    <eventsForNamedLookup itemref="doc:NewItemCollection"/>
   </MenuItem>
 
   <MenuItem itsName="PrintPreviewItem">
@@ -640,7 +640,7 @@
     <title>All</title>
     <helpString>Sync All</helpString>
     <event itemref="doc:SyncAll"/>
-    <eventsForNamedDispatch itemref="doc:SyncAll"/>
+    <eventsForNamedLookup itemref="doc:SyncAll"/>
   </MenuItem>
   
   <MenuItem itsName="SyncIMAPItem">
@@ -648,7 +648,7 @@
     <title>Mail</title>
     <helpString>Sync Mail</helpString>
     <event itemref="doc:GetNewMail"/>
-    <eventsForNamedDispatch itemref="doc:GetNewMail"/>
+    <eventsForNamedLookup itemref="doc:GetNewMail"/>
   </MenuItem>
   
   <MenuItem itsName="SyncWebDAVItem">
@@ -656,7 +656,7 @@
     <title>Shares</title>
     <helpString>Sync Shares</helpString>
     <event itemref="doc:SyncWebDAV"/>
-    <eventsForNamedDispatch itemref="doc:SyncWebDAV"/>
+    <eventsForNamedLookup itemref="doc:SyncWebDAV"/>
   </MenuItem>
   
   <MenuItem itsName="PrefsAccountsItem">
@@ -665,7 +665,7 @@
     <!-- <accel>Ctrl+A</accel> -->
     <helpString>Account Preferences</helpString>
     <event itemref="doc:EditAccountPreferences"/>
-    <eventsForNamedDispatch itemref="doc:EditAccountPreferences"/>
+    <eventsForNamedLookup itemref="doc:EditAccountPreferences"/>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
@@ -750,7 +750,7 @@
     <title>View Toolbar</title>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideApplicationBar"/>
-    <eventsForNamedDispatch itemref="doc:ShowHideApplicationBar"/>
+    <eventsForNamedLookup itemref="doc:ShowHideApplicationBar"/>
     <helpString value="Show or Hide the Toolbar"/>
   </MenuItem>
 
@@ -759,7 +759,7 @@
     <title>View Sidebar</title>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideSidebar"/>
-    <eventsForNamedDispatch itemref="doc:ShowHideSidebar"/>
+    <eventsForNamedLookup itemref="doc:ShowHideSidebar"/>
     <helpString value="Show or hide the Sidebar"/>
   </MenuItem>
 
@@ -768,7 +768,7 @@
     <title>View Status Bar</title>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideStatusBar"/>
-    <eventsForNamedDispatch itemref="doc:ShowHideStatusBar"/>
+    <eventsForNamedLookup itemref="doc:ShowHideStatusBar"/>
     <helpString value="Show or hide the Status bar"/>
   </MenuItem>
 
@@ -791,7 +791,7 @@
     <blockName>ChandlerSkinMenuItem</blockName>
     <title>Chandler</title>
     <event itemref="doc:ChooseChandlerMainView"/>
-    <eventsForNamedDispatch itemref="doc:ChooseChandlerMainView"/>
+    <eventsForNamedLookup itemref="doc:ChooseChandlerMainView"/>
     <helpString>Switch to Chandler</helpString>
   </MenuItem>
 
@@ -799,7 +799,7 @@
     <blockName>CPIATestSkinMenuItem</blockName>
     <title>CPIA Test</title>
     <event itemref="doc:ChooseCPIATestMainView"/>
-    <eventsForNamedDispatch itemref="doc:ChooseCPIATestMainView"/>
+    <eventsForNamedLookup itemref="doc:ChooseCPIATestMainView"/>
     <helpString>Switch to CPIA test</helpString>
   </MenuItem>
 
@@ -821,7 +821,7 @@
     <blockName>GenerateSomeDataItem</blockName>
     <title>Generate Data</title>
     <event itemref="doc:GenerateContentItems"/>
-    <eventsForNamedDispatch itemref="doc:GenerateContentItems"/>
+    <eventsForNamedLookup itemref="doc:GenerateContentItems"/>
     <helpString>generates a few items of each kind</helpString>
   </MenuItem>
 
@@ -843,7 +843,7 @@
     <blockName>StartProfilerItem</blockName>
     <title>Start Profiler</title>
     <event itemref="doc:StartProfiler"/>
-    <eventsForNamedDispatch itemref="doc:StartProfiler"/>
+    <eventsForNamedLookup itemref="doc:StartProfiler"/>
     <helpString>Start profiling events</helpString>
   </MenuItem>
   
@@ -851,7 +851,7 @@
     <blockName>StopProfilerItem</blockName>
     <title>Stop Profiler</title>
     <event itemref="doc:StopProfiler"/>
-    <eventsForNamedDispatch itemref="doc:StopProfiler"/>
+    <eventsForNamedLookup itemref="doc:StopProfiler"/>
     <helpString>Stop profiling events</helpString>
   </MenuItem>
 
@@ -867,7 +867,7 @@
     <blockName>ShareToolItem</blockName>
     <title>Share tool...</title>
     <event itemref="doc:ShareTool"/>
-    <eventsForNamedDispatch itemref="doc:ShareTool"/>
+    <eventsForNamedLookup itemref="doc:ShareTool"/>
     <helpString>Display the Share Tool</helpString>
   </MenuItem>
 
@@ -875,7 +875,7 @@
     <blockName>SyncCollectionItem</blockName>
     <title>Sync collection</title>
     <event itemref="doc:SyncCollection"/>
-    <eventsForNamedDispatch itemref="doc:SyncCollection"/>
+    <eventsForNamedLookup itemref="doc:SyncCollection"/>
     <helpString>Synchronize a shared collection</helpString>
   </MenuItem>
 
@@ -883,7 +883,7 @@
     <blockName>SharingSubscribeToCollectionItem</blockName>
     <title>Subscribe...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
-    <eventsForNamedDispatch itemref="doc:SharingSubscribeToCollection"/>
+    <eventsForNamedLookup itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published collection</helpString>
   </MenuItem>
 
@@ -891,7 +891,7 @@
     <blockName>SharingImportDemoCalendarItem</blockName>
     <title>Import demo calendar</title>
     <event itemref="doc:SharingImportDemoCalendar"/>
-    <eventsForNamedDispatch itemref="doc:SharingImportDemoCalendar"/>
+    <eventsForNamedLookup itemref="doc:SharingImportDemoCalendar"/>
     <helpString>Import a demo iCalendar file from osafoundation.org</helpString>
   </MenuItem>
 
@@ -899,7 +899,7 @@
     <blockName>EditCollectionRuleItem</blockName>
     <title>Edit collection rule...</title>
     <event itemref="doc:EditCollectionRule"/>
-    <eventsForNamedDispatch itemref="doc:EditCollectionRule"/>
+    <eventsForNamedLookup itemref="doc:EditCollectionRule"/>
     <helpString>Edit the rule of a collection</helpString>
   </MenuItem>
 
@@ -907,7 +907,7 @@
     <blockName>MimeTestItem</blockName>
     <title>MIME Torture Tests</title>
     <event itemref="doc:MimeTest"/>
-    <eventsForNamedDispatch itemref="doc:MimeTest"/>
+    <eventsForNamedLookup itemref="doc:MimeTest"/>
     <helpString>Loads real world complex / broken mime message examples provided by Anthony Baxter</helpString>
   </MenuItem>
 
@@ -915,7 +915,7 @@
     <blockName>i18nMailTestItem</blockName>
     <title>i18n Mail Tests</title>
     <event itemref="doc:i18nMailTest"/>
-    <eventsForNamedDispatch itemref="doc:i18nMailTest"/>
+    <eventsForNamedLookup itemref="doc:i18nMailTest"/>
     <helpString>Loads mail messages containing a variety of Charsets and Languages</helpString>
   </MenuItem>
 
@@ -923,7 +923,7 @@
     <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
     <event itemref="doc:CheckRepository"/>
-    <eventsForNamedDispatch itemref="doc:CheckRepository"/>
+    <eventsForNamedLookup itemref="doc:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
   </MenuItem>
 
@@ -931,7 +931,7 @@
     <blockName>BackupRepositoryItem</blockName>
     <title>Backup Repository</title>
     <event itemref="doc:BackupRepository"/>
-    <eventsForNamedDispatch itemref="doc:BackupRepository"/>
+    <eventsForNamedLookup itemref="doc:BackupRepository"/>
     <helpString>backup the repository</helpString>
   </MenuItem>
 
@@ -939,7 +939,7 @@
     <blockName>WxTestHarnessItem</blockName>
     <title>Wx Test Harness</title>
     <event itemref="doc:WxTestHarness"/>
-    <eventsForNamedDispatch itemref="doc:WxTestHarness"/>
+    <eventsForNamedLookup itemref="doc:WxTestHarness"/>
     <helpString>invoke the current flavor of wx debugging</helpString>
   </MenuItem>
 
@@ -947,7 +947,7 @@
     <blockName>ImportIcalendarItem</blockName>
     <title>Import iCalendar data</title>
     <event itemref="doc:ImportIcalendar"/>
-    <eventsForNamedDispatch itemref="doc:ImportIcalendar"/>
+    <eventsForNamedLookup itemref="doc:ImportIcalendar"/>
     <helpString>Import iCalendar file from import.ics</helpString>
   </MenuItem>
 
@@ -955,7 +955,7 @@
     <blockName>ExportIcalendarItem</blockName>
     <title>Export Events as iCalendar</title>
     <event itemref="doc:ExportIcalendar"/>
-    <eventsForNamedDispatch itemref="doc:ExportIcalendar"/>
+    <eventsForNamedLookup itemref="doc:ExportIcalendar"/>
     <helpString>Export Calendar Events to export.ics</helpString>
   </MenuItem>
 
@@ -963,7 +963,7 @@
     <blockName>ImportImageItem</blockName>
     <title>Import an image from disk</title>
     <event itemref="doc:ImportImage"/>
-    <eventsForNamedDispatch itemref="doc:ImportImage"/>
+    <eventsForNamedLookup itemref="doc:ImportImage"/>
     <helpString>Import an image from disk</helpString>
   </MenuItem>
 
@@ -986,7 +986,7 @@
     <blockName>ShowPyShellItem</blockName>
     <title>Show Python shell...</title>
     <event itemref="doc:ShowPyShell"/>
-    <eventsForNamedDispatch itemref="doc:ShowPyShell"/>
+    <eventsForNamedLookup itemref="doc:ShowPyShell"/>
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
 
@@ -994,7 +994,7 @@
     <blockName>ShowPyCrustItem</blockName>
     <title>Show Python shell with object browser...</title>
     <event itemref="doc:ShowPyCrust"/>
-    <eventsForNamedDispatch itemref="doc:ShowPyCrust"/>
+    <eventsForNamedLookup itemref="doc:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell and object browser</helpString>
   </MenuItem>
 
@@ -1002,7 +1002,7 @@
     <blockName>ActivateWebserverItem</blockName>
     <title>Activate built-in webserver</title>
     <event itemref="doc:ActivateWebserver"/>
-    <eventsForNamedDispatch itemref="doc:ActivateWebserver"/>
+    <eventsForNamedLookup itemref="doc:ActivateWebserver"/>
     <helpString>Activates the built-in webserver at localhost:1888</helpString>
   </MenuItem>
 
@@ -1011,7 +1011,7 @@
     <title>Reload Parcels</title>
     <accel>Ctrl+R</accel>
     <event itemref="doc:ReloadParcels"/>
-    <eventsForNamedDispatch itemref="doc:ReloadParcels"/>
+    <eventsForNamedLookup itemref="doc:ReloadParcels"/>
     <helpString>Reloads any parcels that have been modified</helpString>
   </MenuItem>
 
@@ -1019,7 +1019,7 @@
     <blockName>CommitRepositoryItem</blockName>
     <title>Commit Repository</title>
     <event itemref="doc:CommitRepository"/>
-    <eventsForNamedDispatch itemref="doc:CommitRepository"/>
+    <eventsForNamedLookup itemref="doc:CommitRepository"/>
     <helpString>Performs a repository commit()</helpString>
   </MenuItem>
 
@@ -1039,7 +1039,7 @@
     <blockName>AddAllAdditionalViewsItem</blockName>
     <title>Add All Additional Views</title>
     <event itemref="doc:AddAllAdditionalViews"/>
-    <eventsForNamedDispatch itemref="doc:AddAllAdditionalViews"/>
+    <eventsForNamedLookup itemref="doc:AddAllAdditionalViews"/>
     <helpString>Adds all of the extra views to the sidebar</helpString>
   </MenuItem>
 
@@ -1052,7 +1052,7 @@
     <blockName>AddDemoViewItem</blockName>
     <title>Add Block Demo View (Unstable)</title>
     <event itemref="doc:AddDemoView"/>
-    <eventsForNamedDispatch itemref="doc:AddDemoView"/>
+    <eventsForNamedLookup itemref="doc:AddDemoView"/>
     <helpString>Adds the block demo view to the sidebar (Known to be unstable on some systems)</helpString>
   </MenuItem>
   
@@ -1060,7 +1060,7 @@
     <blockName>AddRepositoryViewItem</blockName>
     <title>Add Repository Viewer</title>
     <event itemref="doc:AddRepositoryView"/>
-    <eventsForNamedDispatch itemref="doc:AddRepositoryView"/>
+    <eventsForNamedLookup itemref="doc:AddRepositoryView"/>
     <helpString>Adds the repository viewer to the sidebar</helpString>
   </MenuItem>
   
@@ -1068,7 +1068,7 @@
     <blockName>AddCPIAViewItem</blockName>
     <title>Add CPIA Viewer</title>
     <event itemref="doc:AddCPIAView"/>
-    <eventsForNamedDispatch itemref="doc:AddCPIAView"/>
+    <eventsForNamedLookup itemref="doc:AddCPIAView"/>
     <helpString>Adds the CPIA viewer to the sidebar</helpString>
   </MenuItem>
 
@@ -1107,7 +1107,7 @@
     <blockName>ShareSidebarCollectionItem</blockName>
     <title>Share</title>
     <event itemref="doc:ShareSidebarCollection"/>
-    <eventsForNamedDispatch itemref="doc:ShareSidebarCollection"/>
+    <eventsForNamedLookup itemref="doc:ShareSidebarCollection"/>
     <helpString>Share the selected collection</helpString>
   </MenuItem>
 
@@ -1115,7 +1115,7 @@
     <blockName>ManageSidebarCollectionItem</blockName>
     <title>Manage share...</title>
     <event itemref="doc:ManageSidebarCollection"/>
-    <eventsForNamedDispatch itemref="doc:ManageSidebarCollection"/>
+    <eventsForNamedLookup itemref="doc:ManageSidebarCollection"/>
     <helpString>Manage the selected collection</helpString>
   </MenuItem>
 
@@ -1123,7 +1123,7 @@
     <blockName>UnsubscribeSidebarCollectionItem</blockName>
     <title>Unsubscribe</title>
     <event itemref="doc:UnsubscribeSidebarCollection"/>
-    <eventsForNamedDispatch itemref="doc:UnsubscribeSidebarCollection"/>
+    <eventsForNamedLookup itemref="doc:UnsubscribeSidebarCollection"/>
     <helpString>Unsubscribe the selected collection</helpString>
   </MenuItem>
 
@@ -1131,7 +1131,7 @@
     <blockName>UnpublishSidebarCollectionItem</blockName>
     <title>Unpublish</title>
     <event itemref="doc:UnpublishSidebarCollection"/>
-    <eventsForNamedDispatch itemref="doc:UnpublishSidebarCollection"/>
+    <eventsForNamedLookup itemref="doc:UnpublishSidebarCollection"/>
     <helpString>Remove the collection from the sharing server</helpString>
   </MenuItem>
 
@@ -1139,7 +1139,7 @@
     <blockName>CopyCollectionURLItem</blockName>
     <title>Copy URL to clipboard</title>
     <event itemref="doc:CopyCollectionURL"/>
-    <eventsForNamedDispatch itemref="doc:CopyCollectionURL"/>
+    <eventsForNamedLookup itemref="doc:CopyCollectionURL"/>
     <helpString>Copy the selected collection's URL to the clipboard</helpString>
   </MenuItem>
 
@@ -1289,7 +1289,7 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Send the selected Item</helpString>
     <event itemref="SendShareItem"/>
-    <eventsForNamedDispatch itemref="SendShareItem"/>
+    <eventsForNamedLookup itemref="SendShareItem"/>
   </ToolbarItem>
 
   <!--
@@ -1306,7 +1306,7 @@
          itemClass="osaf.framework.blocks.ControlBlocks.ReminderTimer">
     <blockName>ReminderTimer</blockName>
     <event itemref="doc:ReminderTime"/>
-    <eventsForNamedDispatch itemref="doc:ReminderTime"/>
+    <eventsForNamedLookup itemref="doc:ReminderTime"/>
     <contents itemref="doc:ReminderItems"/>
   </Timer> 
   
@@ -1384,16 +1384,16 @@
     <childrenBlocks itemref="doc:ReminderTimer"/>
     <childrenBlocks itemref="doc:ToolbarContainer"/>
 
-    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
-    <eventsForNamedDispatch itemref="doc:SendMail"/>
-    <eventsForNamedDispatch itemref="doc:ShareItem"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
-    <eventsForNamedDispatch itemref="doc:ApplicationBarEvent"/>
-    <eventsForNamedDispatch itemref="doc:ApplicationBarTask"/>
-    <eventsForNamedDispatch itemref="doc:ApplicationBarMail"/>
-    <eventsForNamedDispatch itemref="doc:ApplicationBarAll"/>
+    <eventsForNamedLookup itemref="doc:RequestSelectSidebarItem"/>
+    <eventsForNamedLookup itemref="doc:SendMail"/>
+    <eventsForNamedLookup itemref="doc:ShareItem"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopying"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
+    <eventsForNamedLookup itemref="doc:ApplicationBarEvent"/>
+    <eventsForNamedLookup itemref="doc:ApplicationBarTask"/>
+    <eventsForNamedLookup itemref="doc:ApplicationBarMail"/>
+    <eventsForNamedLookup itemref="doc:ApplicationBarAll"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>
@@ -1637,12 +1637,12 @@
     <childrenBlocks itemref="doc:ReminderTimer" copy="CPIATestReminderTimer"/>
     <childrenBlocks itemref="doc:CPIATestMainContainer"/>
 
-    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
-    <eventsForNamedDispatch itemref="doc:SendMail"/>
-    <eventsForNamedDispatch itemref="doc:ShareItem"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
+    <eventsForNamedLookup itemref="doc:RequestSelectSidebarItem"/>
+    <eventsForNamedLookup itemref="doc:SendMail"/>
+    <eventsForNamedLookup itemref="doc:ShareItem"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopying"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
+    <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>
@@ -1714,7 +1714,7 @@
     <toolSize>16,16</toolSize>
     <separatorWidth>100</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
-    <eventsForNamedDispatch itemref="doc:ChangeLayout"/>
+    <eventsForNamedLookup itemref="doc:ChangeLayout"/>
   </Toolbar>
 
   <ToolbarItem itsName="ListViewButton">

@@ -202,7 +202,7 @@
     <toggle>True</toggle>
     <helpString>Never share this item</helpString>
     <event itemref="TogglePrivate"/>
-    <eventsForNamedDispatch itemref="TogglePrivate"/>
+    <eventsForNamedLookup itemref="TogglePrivate"/>
   </PrivateSwitchButtonBlock>
  
   <!--
@@ -280,7 +280,7 @@
     <minimumSize>220,24</minimumSize>
     <alignmentEnum>alignCenter</alignmentEnum>
     <event itemref="AcceptShare"/>
-    <eventsForNamedDispatch itemref="AcceptShare"/>
+    <eventsForNamedLookup itemref="AcceptShare"/>
     <border>6, 6, 6, 6</border>
   </AcceptShareButtonBlock>
 
@@ -407,7 +407,7 @@
     <size>70,24</size>
     <minimumSize>70,24</minimumSize>
     <event itemref="ToggleSharingActive"/>
-    <eventsForNamedDispatch itemref="ToggleSharingActive"/>
+    <eventsForNamedLookup itemref="ToggleSharingActive"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
     <border>2, 2, 2, 2</border>
@@ -469,7 +469,7 @@
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
     <position>0.8</position>
-    <eventsForNamedDispatch itemref="Resynchronize"/>
+    <eventsForNamedLookup itemref="Resynchronize"/>
   </blocks:ContentItemDetail>
 
   <CalendarLocationAreaBlock itsName="CalendarLocationArea">  

@@ -273,7 +273,7 @@ class wxApplication (wx.App):
         if splash: splash.updateGauge('globalevents')
         globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/GlobalEvents')
         from osaf.framework.blocks.Block import Block
-        Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
+        Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedLookup,
                                              Block.eventNameToItemUUID)
 
         self.ignoreSynchronizeWidget = False

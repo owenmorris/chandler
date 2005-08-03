@@ -11,7 +11,7 @@
         <blockName>NewAmazonCollectionMenu</blockName>
         <title>New Amazon Collection</title>
         <event itemref="doc:NewAmazonCollectionEvent" />
-        <eventsForNamedDispatch itemref="doc:NewAmazonCollectionEvent" />
+        <eventsForNamedLookup itemref="doc:NewAmazonCollectionEvent" />
         <parentBlock itemref="main:NewItemMenu" />
     </MenuItem>
     
@@ -19,7 +19,7 @@
         <blockName>NewAmazonWishListMenu</blockName>
         <title>New Amazon Wish List</title>
         <event itemref="doc:NewAmazonWishListEvent" />
-        <eventsForNamedDispatch itemref="doc:NewAmazonWishListEvent" />
+        <eventsForNamedLookup itemref="doc:NewAmazonWishListEvent" />
         <parentBlock itemref="main:NewItemMenu" />
     </MenuItem>
     

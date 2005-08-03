@@ -15,7 +15,7 @@
     <blockName>NewFlickrCollectionByOwnerItem</blockName>
     <title>New Flickr Collection by Owner</title>
     <event itemref="doc:NewFlickrCollectionByOwnerEvent"/>
-    <eventsForNamedDispatch itemref="doc:NewFlickrCollectionByOwnerEvent"/>
+    <eventsForNamedLookup itemref="doc:NewFlickrCollectionByOwnerEvent"/>
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
  
@@ -23,7 +23,7 @@
     <blockName>NewFlickrCollectionByTagItem</blockName>
     <title>New Flickr Collection by Tag</title>
     <event itemref="doc:NewFlickrCollectionByTagEvent"/>
-    <eventsForNamedDispatch itemref="doc:NewFlickrCollectionByTagEvent"/>
+    <eventsForNamedLookup itemref="doc:NewFlickrCollectionByTagEvent"/>
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
 
