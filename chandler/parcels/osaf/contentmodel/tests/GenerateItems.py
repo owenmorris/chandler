@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 import osaf.contentmodel.calendar.Calendar as Calendar
 from osaf.contentmodel.contacts import Contact, ContactName
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.ItemCollection as ItemCollection

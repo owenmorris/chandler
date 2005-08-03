@@ -487,8 +487,8 @@ class ContentItem(schema.Item):
         This method is here for convenient access, so users
         don't need to import Mail.
         """
-        import mail.Mail as Mail
-        return Mail.EmailAddress.getEmailAddress (self.itsView, nameOrAddressString)
+        from mail import EmailAddress
+        return EmailAddress.getEmailAddress (self.itsView, nameOrAddressString)
 
     def getCurrentMeEmailAddress (self):
         """
@@ -497,8 +497,8 @@ class ContentItem(schema.Item):
         This method is here for convenient access, so users
         don't need to import Mail.
         """
-        import mail.Mail as Mail
-        return Mail.EmailAddress.getCurrentMeEmailAddress (self.itsView)
+        from mail import EmailAddress
+        return EmailAddress.getCurrentMeEmailAddress (self.itsView)
 
     def getCurrentMeContact(self, view):
         """

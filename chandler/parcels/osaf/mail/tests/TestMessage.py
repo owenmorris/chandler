@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import MailTestCase as MailTestCase
 import osaf.mail.message as message
 import osaf.mail.utils as utils
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import email as email
 import email.Message as Message
 import email.Utils as emailUtils

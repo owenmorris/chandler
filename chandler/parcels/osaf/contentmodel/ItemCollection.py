@@ -37,7 +37,7 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
     destination = schema.Sequence(inverse=source)
 
     invitees = schema.Sequence(
-        "osaf.contentmodel.mail.Mail.EmailAddress",
+        "osaf.contentmodel.mail.EmailAddress",
         doc="The people who are being invited to share in this item; filled "
             "in when the user types in the DV's 'invite' box, then cleared on "
             "send (entries copied to the share object).\n\n"

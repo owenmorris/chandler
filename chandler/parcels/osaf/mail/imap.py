@@ -11,7 +11,7 @@ import twisted.mail.imap4 as imap4
 import email as email
 
 #Chandler imports
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports

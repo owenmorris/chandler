@@ -14,7 +14,7 @@ import osaf.mail.imap
 import osaf.mail.pop
 from application.SplashScreen import SplashScreen
 import application.Parcel
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 from osaf.contentmodel.contacts import Contact
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes

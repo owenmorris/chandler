@@ -32,7 +32,6 @@ class Counter:
 
 def loadMailTests(view, dir):
     import osaf.mail.message as message
-    import osaf.contentmodel.mail.Mail as Mail
 
     mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
                            'tests', dir)

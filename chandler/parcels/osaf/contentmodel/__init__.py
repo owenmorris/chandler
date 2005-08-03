@@ -15,19 +15,19 @@ from calendar.Calendar import Calendar, Location, RecurrencePattern
 # it's imported under an alias
 from ItemCollection import ItemCollection as __ItemCollection
 
-import tasks.Task, mail.Mail, calendar.Calendar
+import tasks.Task, mail, calendar.Calendar
 
 # Stamped Kinds
 
 from application import schema
 
-class MailedTask(tasks.Task.TaskMixin,mail.Mail.MailMessage):
+class MailedTask(tasks.Task.TaskMixin,mail.MailMessage):
     schema.kindInfo(
         displayName = "Mailed Task",
         description = "A Task stamped as a Mail, or vica versa",
     )
 
-class MailedEvent(calendar.Calendar.CalendarEventMixin,mail.Mail.MailMessage):
+class MailedEvent(calendar.Calendar.CalendarEventMixin,mail.MailMessage):
     schema.kindInfo(
         displayName = "Mailed Event",
         description = "An Event stamped as a Mail, or vica versa",
@@ -47,7 +47,7 @@ class MailedEventTask(
     tasks.Task.TaskMixin,
     tasks.Task.TaskEventExtraMixin,
     calendar.Calendar.CalendarEventMixin,
-    mail.Mail.MailMessage
+    mail.MailMessage
 ):
     schema.kindInfo(
         displayName = "Mailed Event Task",

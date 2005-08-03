@@ -13,7 +13,7 @@ import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.tasks.Task as Task
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import logging

@@ -4,7 +4,7 @@ from osaf.contentmodel.Notes import Note
 from osaf.contentmodel.photos.Photos import Photo
 from osaf.contentmodel.contacts import Contact, ContactName
 from osaf.framework.sharing.Sharing import WebDAVAccount
-from osaf.contentmodel.mail.Mail import (IMAPAccount, POPAccount, SMTPAccount,
+from osaf.contentmodel.mail import (IMAPAccount, POPAccount, SMTPAccount,
                                          EmailAddress)
 from application.Parcel import Reference
 from osaf.contentmodel.ItemCollection import ItemCollection

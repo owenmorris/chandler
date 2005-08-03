@@ -8,7 +8,7 @@ import wx
 from wx.lib.scrolledpanel import ScrolledPanel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query

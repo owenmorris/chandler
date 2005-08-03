@@ -16,7 +16,7 @@ from datetime import datetime
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 

@@ -14,7 +14,7 @@ from time import mktime
 from datetime import datetime
 
 #Chandler imports
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import chandlerdb.util.uuid as UUID
 
 #Chandler Mail Service imports

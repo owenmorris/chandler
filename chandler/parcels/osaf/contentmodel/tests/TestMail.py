@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 
 from datetime import datetime
 from repository.util.Path import Path

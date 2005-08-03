@@ -13,7 +13,7 @@ import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.tasks.Task as Task
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 
 logger = logging.getLogger('Data loading Script')
 logger.setLevel(logging.INFO)

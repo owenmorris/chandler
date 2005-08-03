@@ -5,7 +5,16 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.contentmodel.mail"
+
+__all__ = [
+    'AccountBase', 'DownloadAccountBase', 'EmailAddress', 'IMAPAccount',
+    'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
+    'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
+    'MailMessage', 'MailMessageMixin', 'POPAccount', 'POPDelivery',
+    'SMTPAccount', 'SMTPDelivery',
+    'getCurrentSMTPAccount', 'getCurrentMailAccount', 'ACCOUNT_TYPES',
+]
+
 
 import application
 from application import schema

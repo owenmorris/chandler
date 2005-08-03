@@ -18,7 +18,7 @@ import application.Parcel
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
 from osaf.contentmodel.contacts import Contact
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import osaf.mail.utils as utils
 import twisted.web.http
 import wx

@@ -8,7 +8,7 @@ import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 
 #Chandler imports
-import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.ItemCollection as ItemCollection
 import chandlerdb.item.ItemError as ItemError
 
