@@ -12,7 +12,7 @@ import random
 from datetime import datetime, timedelta
 
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact, ContactName
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.Notes as Notes
@@ -195,15 +195,6 @@ def GeneratePhoneNumber():
     number = random.randint(1000, 9999)
     return "(%3d) %3d-%4d" % (areaCode, exchange, number)
 
-def GeneratePhoneNumbers():
-    list = []
-    for i in range(random.randint(1, 3)):
-        phone = Contacts.PhoneNumber()
-        phone.phoneNumber = GeneratePhoneNumber()
-        # phone.phoneType = random.choice(PHONETYPES)
-        list.append(phone)
-    return list
-
 def GenerateEmailAddress(name):
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice([name.firstName, name.lastName])
@@ -218,13 +209,13 @@ def GenerateEmailAddresses(view, name):
     return list
 
 def GenerateContactName(view):
-    name = Contacts.ContactName(view=view)
+    name = ContactName(view=view)
     name.firstName = random.choice(FIRSTNAMES)
     name.lastName = random.choice(LASTNAMES)
     return name
 
 def GenerateContact(view):
-    contact = Contacts.Contact(view=view)
+    contact = Contact(view=view)
     contact.contactName = GenerateContactName(view)
     return contact
 

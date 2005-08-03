@@ -2,7 +2,7 @@ import datetime, os
 import application.schema as schema
 from osaf.contentmodel.Notes import Note
 from osaf.contentmodel.photos.Photos import Photo
-from osaf.contentmodel.contacts.Contacts import Contact, ContactName
+from osaf.contentmodel.contacts import Contact, ContactName
 from osaf.framework.sharing.Sharing import WebDAVAccount
 from osaf.contentmodel.mail.Mail import (IMAPAccount, POPAccount, SMTPAccount,
                                          EmailAddress)

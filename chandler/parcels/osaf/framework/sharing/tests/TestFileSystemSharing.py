@@ -14,7 +14,7 @@ import osaf.framework.sharing.Sharing as Sharing
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact, ContactName
 
 import time # @@@ temporary
 
@@ -97,8 +97,8 @@ class SharingTestCase(unittest.TestCase):
         contacts = []
 
         for name in names:
-            c = Contacts.Contact(parent=sandbox)
-            c.contactName = Contacts.ContactName(parent=sandbox)
+            c = Contact(parent=sandbox)
+            c.contactName = ContactName(parent=sandbox)
             c.contactName.firstName = name[0]
             c.contactName.lastName = name[1]
             c.emailAddress = name[2]

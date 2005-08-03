@@ -21,7 +21,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.calendar.Recurrence as Recurrence
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact, ContactName
 import osaf.contentmodel.Notes as Notes
 from osaf.contentmodel import ContentItem
 import application.dialogs.Util as Util
@@ -830,7 +830,7 @@ class EditToAddressTextAttribute (EditTextAttribute):
                 whoString = ', '.join(whoNames)
             else:
                 whoString = str (whoContacts)
-                if isinstance(whoContacts, Contacts.ContactName):
+                if isinstance(whoContacts, ContactName):
                     names = []
                     if len (whoContacts.firstName):
                         names.append (whoContacts.firstName)
@@ -919,7 +919,7 @@ class FromEditField (EditTextAttribute):
                     # Determine which kind of item to assign based on the
                     # types of the redirected-to attributes:
                     type = item.getAttributeAspect('whoFrom', 'type')
-                    contactKind = Contacts.Contact.getKind(self.itsView)
+                    contactKind = Contact.getKind(self.itsView)
                     if type is contactKind:
                         item.whoFrom = item.getCurrentMeContact(item.itsView)
                     else:

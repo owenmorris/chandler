@@ -10,7 +10,7 @@ __parcel__ = "osaf.contentmodel.tasks"
 
 import repository.item.Item as Item
 from osaf.contentmodel import ContentModel, Notes
-from osaf.contentmodel.contacts import Contacts
+from osaf.contentmodel.contacts import Contact
 
 from datetime import datetime, timedelta
 from application import schema
@@ -46,13 +46,13 @@ class TaskMixin(ContentModel.ContentItem):
         doc = 'This may not be general enough',
     )
     requestor = schema.One(
-        Contacts.Contact,
+        Contact,
         displayName = 'Requestor',
         issues = [
             'Type could be Contact, EmailAddress or String',
             'Think about using the icalendar terminology'
         ],
-        inverse = Contacts.Contact.requestedTasks,
+        inverse = Contact.requestedTasks,
     )
     requestee = schema.Sequence(
         ContentModel.ContentItem,
@@ -123,7 +123,7 @@ class TaskMixin(ContentModel.ContentItem):
             whoFrom = self.getAnyWhoFrom ()
 
             # I only want a Contact
-            if not isinstance(whoFrom, Contacts.Contact):
+            if not isinstance(whoFrom, Contact):
                 whoFrom = self.getCurrentMeContact(self.itsView)
 
             self.requestor = whoFrom

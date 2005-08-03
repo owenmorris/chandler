@@ -17,7 +17,7 @@ import WebDAV
 import application.Parcel
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.utils as utils
 import twisted.web.http
@@ -75,14 +75,14 @@ class Share(ContentModel.ContentItem):
     format = schema.One('ImportExportFormat', inverse = 'share')
 
     sharer = schema.One(
-        Contacts.Contact,
+        Contact,
         doc = 'The contact who initially published this share',
         initialValue = None,
         otherName = 'sharerOf',
     )
 
     sharees = schema.Sequence(
-        Contacts.Contact,
+        Contact,
         doc = 'The people who were invited to this share',
         initialValue = [],
         otherName = 'shareeOf',
@@ -1797,7 +1797,7 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
 
     share.displayName = collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
-    share.sharer = Contacts.Contact.getCurrentMeContact(view)
+    share.sharer = Contact.getCurrentMeContact(view)
     return share
 
 

@@ -15,7 +15,7 @@ from application import schema
 from osaf.contentmodel import ContentModel
 from osaf.contentmodel import Notes
 from osaf.contentmodel.ContentModel import Calculated
-from osaf.contentmodel.contacts import Contacts
+from osaf.contentmodel.contacts import Contact
 from osaf.contentmodel.calendar import Recurrence
 
 from repository.schema.Types import TimeZone
@@ -132,15 +132,15 @@ class CalendarEventMixin(ContentModel.ContentItem):
     )
 
     organizer = schema.One(
-        Contacts.Contact,
+        Contact,
         displayName="Meeting Organizer",
-        inverse=Contacts.Contact.organizedEvents
+        inverse=Contact.organizedEvents
     )
 
     participants = schema.Sequence(
-        Contacts.Contact,
+        Contact,
         displayName="Participants",
-        inverse=Contacts.Contact.participatingEvents
+        inverse=Contact.participatingEvents
     )
 
     icalUID = schema.One(
@@ -265,7 +265,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
             whoFrom = self.getAnyWhoFrom ()
 
             # I only want a Contact
-            if not isinstance(whoFrom, Contacts.Contact):
+            if not isinstance(whoFrom, Contact):
                 whoFrom = self.getCurrentMeContact(self.itsView)
 
             self.organizer = whoFrom

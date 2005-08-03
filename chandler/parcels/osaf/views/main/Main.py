@@ -15,7 +15,7 @@ import osaf.mail.pop
 from application.SplashScreen import SplashScreen
 import application.Parcel
 import osaf.contentmodel.mail.Mail as Mail
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
@@ -311,7 +311,7 @@ class MainView(View):
         for invitee in itemCollection.invitees:
             inviteeList.append(invitee)
             inviteeStringsList.append(invitee.emailAddress)
-            inviteeContact = Contacts.Contact.getContactForEmailAddress(self.itsView, invitee.emailAddress)
+            inviteeContact = Contact.getContactForEmailAddress(self.itsView, invitee.emailAddress)
 
             if not inviteeContact in share.sharees:
                 share.sharees.append(inviteeContact)

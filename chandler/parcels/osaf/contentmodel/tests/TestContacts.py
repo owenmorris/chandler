@@ -11,7 +11,7 @@ import unittest, os
 
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
-import osaf.contentmodel.contacts.Contacts as Contacts
+from osaf.contentmodel.contacts import Contact, ContactName
 
 from repository.util.Path import Path
 
@@ -33,20 +33,18 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         contactsPath = Path('//parcels/osaf/contentmodel/contacts')
         view = self.rep.view
         
-        self.assertEqual(Contacts.Contact.getKind(view),
+        self.assertEqual(Contact.getKind(view),
                          view.find(Path(contactsPath, 'Contact')))
-        self.assertEqual(Contacts.ContactName.getKind(view),
+        self.assertEqual(ContactName.getKind(view),
                          view.find(Path(contactsPath, 'ContactName')))
 
         # Construct sample items
-        contactItem = Contacts.Contact("contactItem", view=view)
-        contactNameItem = Contacts.ContactName("contactNameItem", view=view)
+        contactItem = Contact("contactItem", view=view)
+        contactNameItem = ContactName("contactNameItem", view=view)
 
         # Double check kinds
-        self.assertEqual(contactItem.itsKind,
-                         Contacts.Contact.getKind(view))
-        self.assertEqual(contactNameItem.itsKind,
-                         Contacts.ContactName.getKind(view))
+        self.assertEqual(contactItem.itsKind, Contact.getKind(view))
+        self.assertEqual(contactNameItem.itsKind, ContactName.getKind(view))
 
         # Literal properties
         contactNameItem.firstName = "Sylvia"

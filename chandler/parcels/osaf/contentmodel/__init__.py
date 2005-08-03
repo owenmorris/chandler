@@ -5,7 +5,7 @@ from ContentModel import (
     ContentKind, ContentItem, ImportanceEnum, Group, Project
 )
 from Notes import Note
-from contacts.Contacts import Contact
+from contacts import Contact
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
 

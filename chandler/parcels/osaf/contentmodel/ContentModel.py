@@ -400,7 +400,7 @@ class ContentItem(schema.Item):
     Accessors for Content Item attributes
     """
     def ItemWhoString (self):
-        import osaf.contentmodel.contacts.Contacts as Contacts
+        from osaf.contentmodel.contacts import ContactName
         """
         return str(item.who)
         @@@DLD - XMLRefDicts that have EmailAddress items should 
@@ -423,7 +423,7 @@ class ContentItem(schema.Item):
             whoString = ', '.join(whoNames)
         else:
             whoString = str (whoContacts)
-            if isinstance(whoContacts, Contacts.ContactName):
+            if isinstance(whoContacts, ContactName):
                 names = []
                 if len (whoContacts.firstName):
                     names.append (whoContacts.firstName)
@@ -504,8 +504,8 @@ class ContentItem(schema.Item):
         """
           Lookup the current "me" Contact.
         """
-        import contacts.Contacts
-        return contacts.Contacts.Contact.getCurrentMeContact(view)
+        from contacts import Contact
+        return Contact.getCurrentMeContact(view)
 
     def setStatusMessage (cls, message, *args):
         Globals.views[0].setStatusMessage (message, *args)
