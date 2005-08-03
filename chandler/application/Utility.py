@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "40" # Block attribute eventsForNamedDispatch --> eventsForNamedLookup
+SCHEMA_VERSION = "41" # "all day events canvas" -> AllDayEventsCanvas
 
 logger = None # initialized in initLogging()
 

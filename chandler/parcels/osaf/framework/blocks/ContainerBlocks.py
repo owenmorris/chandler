@@ -48,6 +48,25 @@ class wxBoxContainer (wxRectangularChild):
             self.Layout()
 
 
+            # @@@ this hack is so evil it belongs in a conrad novel
+            # to fix the mysterious negative sash position: bug 3497
+            # The sash goes negative after the MainCalendarContainer's Layout().
+            
+            try:
+                blockName = self.blockItem.blockName
+                splitter = list(self.blockItem.childrenBlocks)[1]
+                splitterBlockName = splitter.blockName
+            except (AttributeError, IndexError): 
+                pass
+            else:
+                if blockName == 'CalendarSummaryView' and \
+                   splitterBlockName == 'MainCalendarCanvasSplitter' and \
+                   splitter.widget.GetSashPosition() < 0:
+                    
+                    allDay = Block.findBlockByName('AllDayEventsCanvas')
+                    splitter.widget.MoveSash(allDay.widget.collapsedHeight)
+            
+
 
 class BoxContainer(RectangularChild):
 

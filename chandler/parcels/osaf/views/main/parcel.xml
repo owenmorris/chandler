@@ -1600,14 +1600,14 @@
     </calendar:CanvasSplitterWindow>
   
       <calendar:AllDayEventsCanvas itsName="AllDayEvents">
-        <blockName value="all day events canvas"/>
+        <blockName value="AllDayEventsCanvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/> <!-- splitterwindows, unlike boxcontainers, ignore this -->
         <contents itemref="doc:allItemCollection"/>
       </calendar:AllDayEventsCanvas>
   
       <calendar:TimedEventsCanvas itsName="TimedEvents">
-        <blockName value="timed events canvas"/>
+        <blockName value="TimedEventsCanvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/> <!-- ignored -->
         <contents itemref="doc:allItemCollection"/>
