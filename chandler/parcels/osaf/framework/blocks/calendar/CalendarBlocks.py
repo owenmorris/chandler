@@ -153,12 +153,7 @@ class wxPreviewArea(wx.Panel):
         charStyle = Styles.CharacterStyle()
         
         #see Bug 3625
-        if '__WXGTK__' in wx.PlatformInfo:
-            charStyle.fontSize = 10
-        elif '__WXMAC__' in wx.PlatformInfo:
-            charStyle.fontSize = 11
-        elif '__WXMSW__' in wx.PlatformInfo:
-            charStyle.fontSize = 9
+        charStyle.fontSize = 11
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
         
