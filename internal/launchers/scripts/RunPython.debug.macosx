@@ -29,4 +29,14 @@ else
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python $*
+export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
+export PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER
+export DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib
+export DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks
+
+if [ "$PARCELPATH" != "" ]
+then
+    export PYTHONPATH=$PYTHONPATH:$PARCELPATH
+fi
+
+exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python $*

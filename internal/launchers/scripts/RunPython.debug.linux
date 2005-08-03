@@ -24,4 +24,13 @@ else
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug LD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib $CHANDLERBIN/debug/bin/python_d $*
+export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
+export PYTHONHOME=$CHANDLERBIN/debug
+export LD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/icu/lib
+
+if [ "$PARCELPATH" != "" ]
+then
+    export PYTHONPATH=$PYTHONPATH:$PARCELPATH
+fi
+
+$CHANDLERBIN/debug/bin/python_d $*
