@@ -224,7 +224,7 @@ class wxPreviewArea(wx.Panel):
             self.ChangeHeightAndAdjustContainers(0)
             return
 
-        inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
+        inRange = list(self.blockItem.getItemsInCurrentRange(True))
         self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
         self.text  = ""

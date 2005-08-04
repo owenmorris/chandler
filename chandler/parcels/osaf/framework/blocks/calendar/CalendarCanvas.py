@@ -29,6 +29,7 @@ import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 from application import schema
 from colorsys import rgb_to_hsv, hsv_to_rgb
+import itertools
 import copy
 import logging
 
@@ -798,37 +799,26 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         if self.selectedDate:
             self.selectedDate -= self.rangeIncrement
 
+
+    @staticmethod
+    def isDayItem(item):
+        
+        anyTime = False
+        try:
+            anyTime = item.anyTime
+        except AttributeError:
+            pass
+        
+        allDay = False
+        try:
+            allDay = item.allDay
+        except AttributeError:
+            pass
+
+        return allDay or anyTime
+
+        
     # Get items from the collection
-
-    def getDayItemsInRange(self, date, endDate=None):
-        """
-        @param endDate: if omitted, only get items on @param date.
-        """
-        if not endDate:
-            endDate = date + timedelta(days=1)
-            
-        for item in self.contents:
-            try:
-                anyTime = item.anyTime
-            except AttributeError:
-                anyTime = False
-            try:
-                allDay = item.allDay
-            except AttributeError:
-                allDay = False
-
-            # @@@MOR Since two datetime objects with differing timezone
-            # naivete can't be compared, ignore startTime's timezone (via
-            # the replace( ) calls below); pardon my naivete if this is wrong.
-
-            if (item.hasLocalAttributeValue('startTime') and
-                (allDay or anyTime) and
-                (((item.startTime.replace(tzinfo=None) >= date) and
-                  (item.startTime.replace(tzinfo=None) < endDate)) or
-                 (item.hasLocalAttributeValue('endTime') and
-                  self.itemIsInRange(item, date, endDate)) )
-                ):
-                yield item
     
     def itemIsInRange(self, item, start, end):
         """
@@ -846,26 +836,36 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 ((item.startTime <= start) and
                  (item.endTime >= end)))
 
-    def generateItemsInRange(self, date, nextDate):
+    def generateItemsInRange(self, date, nextDate, dayItems):
 
         # getOccurrencesBetween is potentially expensive, so
         # make sure we cache the ones we've already visited
         generatedUIDs = []
+        generatedItems = []
         for item in self.contents:
             #logger.debug("got item %s" % str(item))
+
+            if self.isDayItem(item) != dayItems:
+                continue
+            
             try:
                 # not all items have UIDs
                 icalUID = item.icalUID
                 if icalUID not in generatedUIDs:
                     # This is the meat of it - ensure the items actually exist
                     newItems = item.getOccurrencesBetween(date, nextDate)
+                    # for jeffrey's API change
+                    # onlyGenerated=True)
+                    generatedItems.extend(newItems)
                     #logger.debug("generated items: %s" % newItems)
                 if icalUID is not None:
                     generatedUIDs.append(icalUID)
             except AttributeError:
                 continue
+            
+        return generatedItems
 
-    def getItemsInRange(self, date, nextDate, allowAnyTime=False, allowAllDay=False):
+    def getItemsInRange(self, date, nextDate, dayItems=False):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -878,26 +878,18 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         """
         # this is annoying - for the moment we have to first make sure all the
         # generated items exist, then reiterate self.contents
-        self.generateItemsInRange(date, nextDate)
+        generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
+        
+        # XXX Just to test before jeffrey's code lands - remove this line
+        # when generated items don't appear in the current collection
+        generatedItems = []
 
-        for item in self.contents:
-            try:
-                anyTime = item.anyTime
-            except AttributeError:
-                anyTime = False
-            try:
-                allDay = item.allDay
-            except AttributeError:
-                allDay = False
-            # simplify into short circuit expressions?
-            if allowAnyTime: anyTimeTest = True
-            else:            anyTimeTest = not anyTime
-            if allowAllDay:  allDayTest  = True
-            else:            allDayTest  = not allDay
+        for item in itertools.chain(self.contents, generatedItems):
+            isDayItem = self.isDayItem(item)
 
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                (anyTimeTest and allDayTest) and
+                (isDayItem == dayItems) and
                 self.itemIsInRange(item, date, nextDate)):
                 # For the moment, master events can be overridden.  Until
                 # this is changed (which should happen soon), don't display
@@ -1035,12 +1027,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         event.Skip()
 
     def OnSelectItem(self, item):
-        self.blockItem.postSelectItemBroadcast(item)
+        super(wxCalendarCanvas, self).OnSelectItem(item)
 
-        # need to REFACTOR out the self.parent's
-        
-        # but it was removed for 0.5.04 because it causes the view to be torn
-        # down and rerendered, causing PyDeadObjectErrors on the widgets
+        # The following was removed for 0.5.04 because it causes the view
+        # to be torn down and rerendered, whenever you were clicking around
+        # multiple overlayed calendars. This was causing PyDeadObjectErrors
+        # on the widgets. yuck.
         
         # tell the sidebar to select the collection    that contains
         # this event - makes the sidebar track the "current" calendar
@@ -1048,8 +1040,8 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         #coll = self.parent.blockItem.getContainingCollection(item)
         #if coll and coll != self.parent.blockItem.contents.source.first():
         #    self.parent.blockItem.SelectCollectionInSidebar(coll)
-
         #self.parent.wxSynchronizeWidget()
+
 
     def OnEditItem(self, box):
         styles = self.blockItem.calendarContainer
@@ -1334,10 +1326,6 @@ class AllDayEventsCanvas(CalendarBlock):
         self.setRange(event.arguments['start'])
         self.widget.wxSynchronizeWidget()
 
-    def onSelectItemEvent(self, event):
-        #don't need to do anything..
-        pass
-
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch='DrawBackground|DrawCells|_doDrawingCalc'
     legendBorderWidth = 1
@@ -1404,10 +1392,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             pastEnd = itemToDraw.GetItem().endTime > self.blockItem.rangeEnd	
             itemToDraw.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
 
+        selection = self.blockItem.selection
         for canvasItem in self.canvasItemList:
             # save the selected box to be drawn last
             item = canvasItem.GetItem()
-            if self.blockItem.selection is item:
+            if selection is item:
                 selectedBox = canvasItem
             else:
                 draw(canvasItem, False)
@@ -1428,7 +1417,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
         
         startDateTime, endDateTime = self.GetCurrentDateRange()
-        visibleItems = list(self.blockItem.getDayItemsInRange(startDateTime, endDateTime))
+        visibleItems = list(self.blockItem.getItemsInRange(startDateTime, endDateTime, True))
         visibleItems.sort(self.sortByDurationAndStart)
         
         oldNumEventRows = self.numEventRows
