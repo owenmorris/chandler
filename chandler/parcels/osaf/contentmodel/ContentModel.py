@@ -19,8 +19,6 @@ import repository.item.Item as Item
 import repository.item.Query as Query
 import logging
 
-import application.Globals as Globals
-
 class ContentKind(Kind):
     """This kind is a metakind for creating other kinds.  Kinds which are
     an instance of ContentKind will have an attribute 'detailView' of type
@@ -506,12 +504,6 @@ class ContentItem(schema.Item):
         """
         from contacts import Contact
         return Contact.getCurrentMeContact(view)
-
-    def setStatusMessage (cls, message, *args):
-        Globals.views[0].setStatusMessage (message, *args)
-    setStatusMessage = classmethod (setStatusMessage)
-
-
 
     READWRITE = 'read-write'
     READONLY = 'read-only'
