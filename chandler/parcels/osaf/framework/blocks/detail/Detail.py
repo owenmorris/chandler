@@ -18,7 +18,7 @@ import osaf.framework.sharing.Sharing as Sharing
 import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import TaskMixin
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.calendar.Recurrence as Recurrence
 from osaf.contentmodel.contacts import Contact, ContactName
@@ -715,10 +715,10 @@ class TaskStampBlock(DetailStampButton):
       Task button in the Markup Bar
     """
     def stampMixinClass(self):
-        return Task.TaskMixin
+        return TaskMixin
 
     def stampMixinKind(self):
-        return Task.TaskMixin.getKind(self.itsView)
+        return TaskMixin.getKind(self.itsView)
 
 
 class PrivateSwitchButtonBlock(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):

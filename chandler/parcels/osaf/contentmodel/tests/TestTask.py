@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import Task
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 
 from repository.util.Path import Path
@@ -35,14 +35,14 @@ class TaskTest(TestContentModel.ContentModelTestCase):
         # Check that the globals got created by the parcel
         view = self.rep.view
         taskPath = Path('//parcels/osaf/contentmodel/tasks')
-        self.assert_(Task.Task.getKind(view) != None)
+        self.assert_(Task.getKind(view) != None)
         self.assert_(view.find(Path(taskPath, 'Task')) != None)
 
-        self.assertEqual(Task.Task.getKind(view),
+        self.assertEqual(Task.getKind(view),
                          view.find(Path(taskPath, 'Task')))
 
         # Construct A Sample Item
-        taskItem = Task.Task("TestTask", view=view)
+        taskItem = Task("TestTask", view=view)
         taskItem.displayName = "test headline"
         taskItem.importance = "important"
 

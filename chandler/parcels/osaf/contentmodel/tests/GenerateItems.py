@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import osaf.contentmodel.calendar.Calendar as Calendar
 from osaf.contentmodel.contacts import Contact, ContactName
 import osaf.contentmodel.mail as Mail
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import Task, TaskMixin
 import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.ItemCollection as ItemCollection
 
@@ -122,11 +122,11 @@ def GenerateMailMessage(view):
         body += M_EVENT
 
     if type == TASK:
-        message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+        message.StampKind('add', TaskMixin.getKind(message.itsView))
         body += M_TASK
 
     if type == BOTH:
-        message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+        message.StampKind('add', TaskMixin.getKind(message.itsView))
         message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
         body += M_BOTH
 
@@ -145,7 +145,7 @@ def GenerateNote(view):
 
 def GenerateTask(view):
     """ Generate one Task item """
-    task = Task.Task(view=view)
+    task = Task(view=view)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     task.dueDate = datetime.today() + delta    
@@ -155,7 +155,7 @@ def GenerateTask(view):
 def GenerateEventTask(view, days=30):
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(view, days)
-    event.StampKind('add', Task.TaskMixin.getKind(event.itsView))
+    event.StampKind('add', TaskMixin.getKind(event.itsView))
     return event
 
 DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',

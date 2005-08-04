@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import dateutil.rrule
 
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import TaskMixin
 from osaf.contentmodel.calendar.Recurrence import RecurrenceRule, \
                                                   RecurrenceRuleSet
 
@@ -139,7 +139,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
         evtaskmod = calmod.getNextOccurrence()
         
-        evtaskmod.StampKind('add', Task.TaskMixin.getKind(self.rep.view))
+        evtaskmod.StampKind('add', TaskMixin.getKind(self.rep.view))
         
         # changes to an event should, by default, create a THIS modification
         self.assertEqual(evtaskmod.modificationFor, self.event)

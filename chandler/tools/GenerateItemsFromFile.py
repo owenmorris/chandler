@@ -12,7 +12,7 @@ import application.Globals as Globals
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import Task, TaskMixin
 import osaf.contentmodel.mail as Mail
 
 logger = logging.getLogger('Data loading Script')
@@ -186,7 +186,7 @@ def GenerateCalendarEvent(view, mainView, args):
 
 def GenerateTask(view, mainView, args):
     """ Generate one Task item """
-    task = Task.Task(view=view)
+    task = Task(view=view)
 
     # displayName
     if args[0]=='*': # semi-random data
@@ -258,7 +258,7 @@ def ReturnCompleteDatetime(date, time):
 def GenerateEventTask(view, mainView, args):
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(view, mainView, args)
-    event.StampKind('add', Task.TaskMixin.getKind(event.itsView))
+    event.StampKind('add', TaskMixin.getKind(event.itsView))
     return event
 
 
@@ -339,9 +339,9 @@ def GenerateMailMessage(view, mainView, args):
     if args[8]=='*':
         type = random.randint(0, 1)
         if type:
-            message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+            message.StampKind('add', TaskMixin.getKind(message.itsView))
     elif args[8]=='TRUE':
-        message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+        message.StampKind('add', TaskMixin.getKind(message.itsView))
 
     # body
     if args[9]=='*':

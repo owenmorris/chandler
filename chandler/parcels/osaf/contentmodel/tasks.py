@@ -1,4 +1,3 @@
-
 """ Class used for Items of Kind Task
 """
 
@@ -6,11 +5,11 @@ __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.contentmodel.tasks"
 
-import repository.item.Item as Item
-from osaf.contentmodel import ContentModel, Notes
-from osaf.contentmodel.contacts import Contact
+__all__ = ['TaskStatusEnum', 'TaskMixin', 'Task', 'TaskEventExtraMixin']
+
+import ContentModel, Notes
+from contacts import Contact
 
 from datetime import datetime, timedelta
 from application import schema

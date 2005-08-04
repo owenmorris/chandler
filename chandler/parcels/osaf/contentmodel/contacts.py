@@ -58,14 +58,14 @@ class Contact(ContentModel.ContentItem):
     )
 
     requestedTasks = schema.Sequence(
-        "osaf.contentmodel.tasks.Task.TaskMixin",
+        "osaf.contentmodel.tasks.TaskMixin",
         displayName="Requested Tasks",
         doc="List of tasks requested by this user.",
         inverse="requestor"
     )
 
     taskRequests= schema.Sequence(
-        "osaf.contentmodel.tasks.Task.TaskMixin",
+        "osaf.contentmodel.tasks.TaskMixin",
         displayName="Task Requests",
         doc="List of tasks requested for this user.",
         otherName="requestee"   # XXX other end points to ContentItem???

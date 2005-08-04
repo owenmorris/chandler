@@ -3,7 +3,7 @@ import ScriptingGlobalFunctions as Sgf
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import Task
 import osaf.contentmodel.mail as Mail
 import wx
 import time
@@ -128,7 +128,7 @@ class ItemByUI :
                 # set up the expected data dictionary with the default values
                 self.expected_field_dict = {"displayName" : "New Task", "createdOn" : now}
                 # create a default Task
-                item = Task.Task(view=view)
+                item = Task(view=view)
                 self.isTask = True
             elif type == "MailMessage": # New Mail Message
                 # set up the expected data dictionary with the default values

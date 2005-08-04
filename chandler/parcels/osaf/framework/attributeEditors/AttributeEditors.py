@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, cStringIO
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import TaskMixin
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.mail as Mail
 import repository.item.ItemHandler as ItemHandler
@@ -1260,7 +1260,7 @@ class EnumAttributeEditor (IconAttributeEditor):
 
 class StampAttributeEditor (IconAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
-        if isinstance(item, Task.TaskMixin):
+        if isinstance(item, TaskMixin):
             return 'taskStamp'
         elif isinstance(item, Calendar.CalendarEventMixin):
             return 'eventStamp'

@@ -12,7 +12,7 @@ import unittest, os
 import osaf.contentmodel.tests.TestContentModel as TestContentModel
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.tasks.Task as Task
+from osaf.contentmodel.tasks import Task, TaskMixin
 import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
@@ -34,13 +34,13 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         view = self.rep.view
         
         # Get the stamp kinds
-        taskMixin = Task.TaskMixin.getKind(view)
+        taskMixin = TaskMixin.getKind(view)
         eventMixin = Calendar.CalendarEventMixin.getKind(view)
         add = 'add'
         remove = 'remove'
 
         # Create a Task, and do all kinds of stamping on it
-        aTask = Task.Task("aTask", view=view)
+        aTask = Task("aTask", view=view)
 
         aTask.StampKind(add, eventMixin)
         aTask.StampKind(remove, taskMixin)
