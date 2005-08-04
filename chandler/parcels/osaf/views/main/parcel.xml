@@ -1115,7 +1115,7 @@
     <title>Remove</title>
     <helpString>Remove the collection and its contents from the sidebar</helpString>
     <event itemref="doc:RemoveSidebarItem"/>
-    <eventsForNamedDispatch itemref="doc:RemoveSidebarItem"/>
+    <eventsForNamedLookup itemref="doc:RemoveSidebarItem"/>
   </MenuItem>
 
   <MenuItem itsName="ShareSidebarCollectionItem">
