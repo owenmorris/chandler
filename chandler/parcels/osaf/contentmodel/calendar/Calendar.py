@@ -671,6 +671,8 @@ class CalendarEventMixin(ContentModel.ContentItem):
         master = self.getMaster()
 
         if not master.hasLocalAttributeValue('rruleset'):
+            if onlyGenerated:
+                return[]
             if master.isBetween(after, before):
                 return [master]
             else: return []
