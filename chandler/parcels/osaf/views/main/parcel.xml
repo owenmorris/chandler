@@ -1344,7 +1344,11 @@
   <contentModel:ItemCollection itsName="allItemCollection">
     <displayName>All</displayName>
     <renameable>False</renameable>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
+    <_rule value="difference(
+   for i inevery '//parcels/osaf/contentmodel/Note' where True,
+   for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where
+                                                           i.isGenerated == True
+    )"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="inItemCollection">
