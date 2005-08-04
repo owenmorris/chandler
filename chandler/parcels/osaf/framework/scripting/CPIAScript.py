@@ -12,7 +12,7 @@ import osaf.contentmodel.ContentModel as ContentModel
 import ScriptingGlobalFunctions
 from application import schema
 import wx
-import TestAppLib
+import QATestAppLib
 
 logger = logging.getLogger('CPIA Script')
 logger.setLevel(logging.INFO)
@@ -182,7 +182,7 @@ class ExecutableScript(object):
         # For debugging, reload modules containing script functions
         # @@@DLD TBD - remove
         reload(ScriptingGlobalFunctions)
-        reload(TestAppLib)
+        reload(QATestAppLib)
 
         # add all the known BlockEvents as builtin functions
         self._BindCPIAEvents(self.itsView, builtIns)
