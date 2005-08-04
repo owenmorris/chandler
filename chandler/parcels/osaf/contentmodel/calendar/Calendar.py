@@ -487,6 +487,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
         
         #now get all reference attributes whose inverse has multiple cardinality 
         for attr, val in self.iterAttributeValues(referencesOnly=True):
+            # exclude itemCollectionInclusions so generated occurrences don't
+            # appear in the collection
+            if attr is 'itemCollectionInclusions':
+                continue
             inversekind = self.getAttributeAspect(attr, 'type')
             inverse = self.getAttributeAspect(attr, 'otherName')
             if inversekind is not None:
@@ -495,7 +499,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     setattr(new, attr, val)
         del new._ignoreValueChanges
         return new
-
+    
     def _createOccurrence(self, recurrenceID):
         """Generate an occurrence for recurrenceID, return it."""
         first = self.getFirstInRule()
@@ -611,14 +615,15 @@ class CalendarEventMixin(ContentModel.ContentItem):
 
 
 
-    def _generateRule(self, after=None, before=None):
+    def _generateRule(self, after=None, before=None, onlyGenerated = False):
         """Yield all occurrences in this rule."""
         event = first = self.getFirstInRule()
         if not first.isBetween(after, before):
             event = first.getNextOccurrence(after, before)        
         while event is not None:
             if event.isBetween(after, before):
-                yield event
+                if event.isGenerated or not onlyGenerated:
+                    yield event
             # isBetween really means AFTER here
             elif event.isBetween(after=before):
                 break
@@ -656,12 +661,12 @@ class CalendarEventMixin(ContentModel.ContentItem):
         # no generated occurrences
         return None
 
-    def getOccurrencesBetween(self, after, before):
+    def getOccurrencesBetween(self, after, before, onlyGenerated = False):
         """Return a list of events ordered by startTime.
         
         Get events starting on or before "before", ending on or after "after".
-        Generate any events needing generating. 
-        
+        Generate any events needing generating.
+                
         """     
         master = self.getMaster()
 
@@ -690,7 +695,10 @@ class CalendarEventMixin(ContentModel.ContentItem):
             mods = mods[index - 1:]
 ##        logger.debug("generating occurrences for %s, after: %s, "
 ##                     "before: %s, mods: %s" % (self, after,before,mods))
-        return [e for mod in mods for e in mod._generateRule(after, before)]
+        occurrences = []
+        for mod in mods:
+            occurrences.extend(mod._generateRule(after, before, onlyGenerated))
+        return occurrences
 
     def getRecurrenceID(self, recurrenceID):
         """Get or create the item matching recurrenceID, or None."""
@@ -742,6 +750,13 @@ class CalendarEventMixin(ContentModel.ContentItem):
             previousMod.rruleset.rdates = [rdate for rdate in \
                    previousMod.rruleset.getAttributeValue('rdates', default=[])\
                    if rdate > newend]
+
+    def _makeGeneralChange(self):
+        """Do everything that should happen for any change call."""
+        master = self.getMaster()
+        if master.hasLocalAttributeValue('itemCollectionInclusions'):
+            self.itemCollectionInclusions = master.itemCollectionInclusions
+        self.isGenerated = False
                            
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -757,7 +772,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
             self.occurrenceFor = self
             if attr is not 'rruleset':
                 self.rruleset = self.rruleset.copy(cloudAlias='copying')
-            self.isGenerated = False
+            self._makeGeneralChange()
             self.modificationFor = master
             self.modificationRecurrenceID = self.startTime
             
@@ -829,6 +844,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     newfirst.occurrenceFor = None #self overrides newfirst
                     newfirst.modificationFor = master
                     newfirst.modifies = 'thisandfuture'
+                    newfirst._makeGeneralChange()
                     self.occurrenceFor = self.modificationFor = newfirst
                     # move THIS modifications after self to newfirst
                     if first.hasLocalAttributeValue('modifications'):
@@ -889,7 +905,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
                     # Unnecessary when we switch endTime->duration
                     newfirst.duration = backup.duration
                     self.occurrenceFor = self.modificationFor = newfirst
-                    self.isGenerated = False
+                    self._makeGeneralChange()
                     self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
                     del self.modificationRecurrenceID
@@ -903,7 +919,7 @@ class CalendarEventMixin(ContentModel.ContentItem):
 
             else:
                 self.modificationFor = first
-                self.isGenerated = False
+                self._makeGeneralChange()
                 self.modifies = 'this'
                 self._getFirstGeneratedOccurrence(True)
         if attr is not None:

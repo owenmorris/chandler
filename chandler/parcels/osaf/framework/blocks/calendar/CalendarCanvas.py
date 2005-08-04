@@ -853,9 +853,8 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
                 icalUID = item.icalUID
                 if icalUID not in generatedUIDs:
                     # This is the meat of it - ensure the items actually exist
-                    newItems = item.getOccurrencesBetween(date, nextDate)
-                    # for jeffrey's API change
-                    # onlyGenerated=True)
+                    newItems = item.getOccurrencesBetween(date, nextDate,
+                                                          onlyGenerated=True)
                     generatedItems.extend(newItems)
                     #logger.debug("generated items: %s" % newItems)
                 if icalUID is not None:
@@ -879,10 +878,6 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         # this is annoying - for the moment we have to first make sure all the
         # generated items exist, then reiterate self.contents
         generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
-        
-        # XXX Just to test before jeffrey's code lands - remove this line
-        # when generated items don't appear in the current collection
-        generatedItems = []
 
         for item in itertools.chain(self.contents, generatedItems):
             isDayItem = self.isDayItem(item)
