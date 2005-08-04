@@ -1,13 +1,6 @@
 import datetime, os
 import application.schema as schema
-from osaf.contentmodel.Notes import Note
-from osaf.contentmodel.photos.Photos import Photo
-from osaf.contentmodel.contacts import Contact, ContactName
-from osaf.framework.sharing.Sharing import WebDAVAccount
-from osaf.contentmodel.mail import (IMAPAccount, POPAccount, SMTPAccount,
-                                         EmailAddress)
 from application.Parcel import Reference
-from osaf.contentmodel.ItemCollection import ItemCollection
 from repository.schema.Types import Lob
 
 def installParcel(parcel, oldVersion=None):
@@ -17,100 +10,105 @@ def installParcel(parcel, oldVersion=None):
     curSmtp = Reference.update(parcel, 'currentSMTPAccount')
     curCon = Reference.update(parcel, 'currentContact')
 
+    sharing = schema.ns("osaf.framework.sharing", parcel)
+    model = schema.ns("osaf.contentmodel", parcel)
+    mail = schema.ns("osaf.contentmodel.mail", parcel)
+    photos = schema.ns("osaf.contentmodel.photos", parcel)
+    contacts = schema.ns("osaf.contentmodel.contacts", parcel)
 
     # Items created in osaf.app (this parcel):
 
-    WebDAVAccount.update(parcel,
-                         'OSAFWebDAVAccount',
-                         displayName=u'OSAF sharing',
-                         host=u'pilikia.osafoundation.org',
-                         path=u'/dev1',
-                         username=u'dev1',
-                         password=u'd4vShare',
-                         useSSL=False,
-                         port=80,
-                         references=[curDav]
-                         )
+    sharing.WebDAVAccount.update(parcel, 'OSAFWebDAVAccount',
+        displayName=u'OSAF sharing',
+        host=u'pilikia.osafoundation.org',
+        path=u'/dev1',
+        username=u'dev1',
+        password=u'd4vShare',
+        useSSL=False,
+        port=80,
+        references=[curDav]
+    )
 
-    WebDAVAccount.update(parcel,
-                         'XythosWebDAVAccount',
-                         displayName=u'Xythos sharing',
-                         host=u'www.sharemation.com',
-                         path=u'/OSAFdot5',
-                         username=u'OSAFdot5',
-                         password=u'osafdemo',
-                         useSSL=False,
-                         port=80,
-                         )
+    sharing.WebDAVAccount.update(parcel, 'XythosWebDAVAccount',
+        displayName=u'Xythos sharing',
+        host=u'www.sharemation.com',
+        path=u'/OSAFdot5',
+        username=u'OSAFdot5',
+        password=u'osafdemo',
+        useSSL=False,
+        port=80,
+    )
 
-    WebDAVAccount.update(parcel,
-                         'VenueWebDAVAccount',
-                         displayName=u'Venue sharing',
-                         host=u'webdav.venuecom.com',
-                         path=u'/calendar/OSAFdot5/calendars',
-                         username=u'OSAFdot5',
-                         password=u'demo',
-                         useSSL=False,
-                         port=80,
-                         )
+    sharing.WebDAVAccount.update(parcel, 'VenueWebDAVAccount',
+        displayName=u'Venue sharing',
+        host=u'webdav.venuecom.com',
+        path=u'/calendar/OSAFdot5/calendars',
+        username=u'OSAFdot5',
+        password=u'demo',
+        useSSL=False,
+        port=80,
+    )
 
-    preReply = EmailAddress.update(parcel, 'PredefinedReplyAddress')
+    preReply = mail.EmailAddress.update(parcel, 'PredefinedReplyAddress')
 
-    preSmtp = SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
-                                 displayName=u'Outgoing SMTP mail',
-                                 references=[curSmtp]
-                                )
+    preSmtp = mail.SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
+        displayName=u'Outgoing SMTP mail',
+        references=[curSmtp]
+    )
 
-    IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
-                       displayName=u'Incoming IMAP mail',
-                       replyToAddress=preReply,
-                       defaultSMTPAccount=preSmtp,
-                       references=[curMail]
-                      )
+    mail.IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
+        displayName=u'Incoming IMAP mail',
+        replyToAddress=preReply,
+        defaultSMTPAccount=preSmtp,
+        references=[curMail]
+    )
 
-    POPAccount.update(parcel, 'PredefinedPOPAccount',
-                      displayName=u'Incoming POP mail',
-                      replyToAddress=preReply,
-                      defaultSMTPAccount=preSmtp
-                      )
+    mail.POPAccount.update(parcel, 'PredefinedPOPAccount',
+        displayName=u'Incoming POP mail',
+        replyToAddress=preReply,
+        defaultSMTPAccount=preSmtp
+    )
 
 
-    testReply = EmailAddress.update(parcel, 'TestReplyAddress')
+    testReply = mail.EmailAddress.update(parcel, 'TestReplyAddress')
 
-    testSmtp = SMTPAccount.update(parcel, 'TestSMTPAccount',
-                                 displayName=u'Test SMTP Account',
-                                 isActive=False
-                                )
+    testSmtp = mail.SMTPAccount.update(parcel, 'TestSMTPAccount',
+        displayName=u'Test SMTP Account',
+        isActive=False
+    )
 
-    IMAPAccount.update(parcel, 'TestIMAPAccount',
-                       displayName=u'Test IMAP mail',
-                       replyToAddress=testReply,
-                       defaultSMTPAccount=testSmtp,
-                       isActive=False
-                      )
+    mail.IMAPAccount.update(parcel, 'TestIMAPAccount',
+        displayName=u'Test IMAP mail',
+        replyToAddress=testReply,
+        defaultSMTPAccount=testSmtp,
+        isActive=False
+    )
 
-    POPAccount.update(parcel, 'TestPOPAccount',
-                      displayName=u'Test POP mail',
-                      replyToAddress=testReply,
-                      defaultSMTPAccount=testSmtp,
-                      isActive=False
-                     )
+    mail.POPAccount.update(parcel, 'TestPOPAccount',
+        displayName=u'Test POP mail',
+        replyToAddress=testReply,
+        defaultSMTPAccount=testSmtp,
+        isActive=False
+    )
 
-    ItemCollection.update(parcel, 'trash',
-                          displayName=_('Trash'),
-                          renameable=False)
-    
-    welcome = Photo.update(parcel, 'WelcomePhoto',
-      displayName=u'Welcome to Chandler 0.5',
-      dateTaken=datetime.datetime.now(),
-      creator=Contact.update(parcel, 'OSAFContact',
-                             emailAddress=u'dev@osafoundation.org',
-                             contactName=ContactName.update(parcel,
-                                    'OSAFContactName',
-                                    firstName=u'OSAF',
-                                    lastName=u'Development')
-                            )
-     )
+
+    model.ItemCollection.ItemCollection.update(parcel, 'trash',
+        displayName=_('Trash'),
+        renameable=False
+    )
+
+    welcome = photos.Photo.update(parcel, 'WelcomePhoto',
+        displayName=u'Welcome to Chandler 0.5',
+        dateTaken=datetime.datetime.now(),
+        creator=contacts.Contact.update(parcel, 'OSAFContact',
+             emailAddress=u'dev@osafoundation.org',
+             contactName=contacts.ContactName.update(parcel, 'OSAFContactName',
+                firstName=u'OSAF',
+                lastName=u'Development'
+             )
+        )
+    )
+
     welcome.importFromFile(os.path.join(os.path.dirname(__file__),
         "TeamOSAF.jpg"))
 
