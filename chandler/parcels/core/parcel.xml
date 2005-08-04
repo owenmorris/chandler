@@ -8,6 +8,7 @@
   <namespaceMap key="Anything" value="//Schema/Core/Anything" />
   <namespaceMap key="Attribute" value="//Schema/Core/Attribute" />
   <namespaceMap key="Boolean" value="//Schema/Core/Boolean" />
+  <namespaceMap key="BString" value="//Schema/Core/BString" />
   <namespaceMap key="Cardinality" value="//Schema/Core/Cardinality" />
   <namespaceMap key="Class" value="//Schema/Core/Class" />
   <namespaceMap key="Cloud" value="//Schema/Core/Cloud" />
