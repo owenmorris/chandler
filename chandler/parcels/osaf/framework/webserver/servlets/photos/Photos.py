@@ -23,7 +23,7 @@ class PhotosResource(resource.Resource):
                 output("<h3>Photos</h3><br>")
 
                 photoList = []
-                for photo in Photos.Photo.iterItems(view=repoView):
+                for photo in Photos.PhotoMixin.iterItems(view=repoView):
                     photoList.append(photo)
                     if not hasattr(photo, 'dateTaken'):
                         photo.dateTaken = datetime.datetime.now()
@@ -31,7 +31,7 @@ class PhotosResource(resource.Resource):
                 photoList.sort(lambda x, y: cmp(y.dateTaken, x.dateTaken))
 
                 for photo in photoList:
-                    output("<a href=/photos/%s><img src=/lobster/%s/data height=128 alt='%s'></a>" % (photo.itsUUID, photo.itsUUID, photo.caption))
+                    output("<a href=/photos/%s><img src=/lobster/%s/photoBody height=128 alt='%s'></a>" % (photo.itsUUID, photo.itsUUID, photo.displayName))
                 output("</body></html>")
 
             else:
@@ -41,11 +41,11 @@ class PhotosResource(resource.Resource):
                     output("<h3>Photo not found: %s</h3>" % uuid)
 
                 else:
-                    output("<html><head><title>%s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % photo.caption)
+                    output("<html><head><title>%s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % photo.displayName)
                     output("<body>")
 
-                    output("<span class=title>%s</span><br>" % photo.caption)
-                    output("<img src=/lobster/%s/data>" % photo.itsUUID)
+                    output("<span class=title>%s</span><br>" % photo.displayName)
+                    output("<img src=/lobster/%s/photoBody>" % photo.itsUUID)
 
         except Exception, e:
             output("<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback))))
