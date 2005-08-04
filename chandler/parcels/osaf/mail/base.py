@@ -59,7 +59,7 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.timedOut = False
 
         if self.useTLS:
-            self.sslContext = ssl.getContext(repositoryView=delegate.view, protocol="sslv3")
+            self.sslContext = ssl.getContext(repositoryView=delegate.view, protocol="tlsv1")
 
         retries = delegate.account.numRetries
 
