@@ -5,6 +5,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.Notes as Notes
 from osaf.contentmodel.tasks import Task
 import osaf.contentmodel.mail as Mail
+import osaf.framework.sharing.WebDAV as WebDAV
 import wx
 import time
 import string
@@ -788,7 +789,101 @@ class BaseByUI :
                     self.logger.ReportFailure("(On all Day Checking) || object all day = %s ; expected all day = %s" %(allDay, dict[field]))
                 else:
                     self.logger.ReportPass("(On all Day Checking)")
-            
 
+        
+class Accounts:
+    def __init__(self, view = None, logger=None):
+        import wx
+        self.view = view
+        self.logger = logger
+        self.window = None
+        self.accountNames = {'SMTP': 'Outgoing mail (SMTP)', 'IMAP': 'Incoming mail (IMAP)', 'POP': 'Incoming mail (POP)', 'WebDAV': 'Sharing (WebDAV)'}
+        SMTPfields = {'displayName': 3, 'host': 5, 'username': 15, 'password': 17, 'security': 7, 'port':11,  'authentication': 13}
+        IMAPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15, 'port': 19, 'default': 21, 'server': 24}
+        POPfields = {'displayName': 3, 'email': 5, 'name': 7, 'host': 9, 'username': 11, 'password': 13, 'security': 15,'port': 19, 'leave': 21,  'default': 23, 'server': 26}
+        DAVfields = {'displayName': 3, 'host':5, 'path': 7, 'username':9, 'password':11, 'port': 13, 'ssl': 14, 'default': 16}
+        self.fieldMap = {'SMTP': SMTPfields, 'IMAP': IMAPfields, 'WebDAV': DAVfields, 'POP': POPfields}        
+        
+    def Open(self):
+        # EditAccountPreferences()
+        # Have to do it the hard way since Account Preferences is modal by default
+        import application
+        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.view, modal=False)
+        self.window = Sgf.GetWindow("Account Preferences")
+        
+    def Ok(self):
+        self.window.OnOk(None)
+        self.window = None
+        
+    def Cancel(self):
+        self.window.OnCancel(None)
+        self.window = None
 
+    def CreateAccount(self, type):
+        self.window.choiceNewType.SetStringSelection(self.accountNames[type])
+        self.window.OnNewAccount(None)
+
+    def _GetField(self, field):
+        index = self._GetIndex(field)
+        return self._GetChild(index)
     
+    def _GetIndex(self, field):
+        type = self.window.currentPanelType
+        return self.fieldMap[type][field]
+    
+    def _GetChild(self, child):
+        return self.window.currentPanel.GetChildren()[child]
+        
+    def TypeValue(self, field, value):
+        child = self._GetField(field)
+        child.SetFocus()
+        child.SelectAll()
+        Sgf.Type(value);
+        wx.GetApp().Yield()
+
+    def ToggleValue(self, field, value):
+        child = self._GetField(field)
+        child.SetValue(value)
+        event = wx.CommandEvent()
+        event.SetEventObject(child)
+        self.window.OnLinkedControl(event)
+        self.window.OnExclusiveRadioButton(event)
+        wx.GetApp().Yield()
+        
+    def SelectValue(self, field, value):
+        child = self._GetField(field)
+        if isinstance(child, wx.RadioButton):
+            offset = {'None': 0, 'No':0, 'TLS': 1, 'SSL': 2}[value]
+            index = self._GetIndex(field)
+            button = self._GetChild(index + offset)
+            button.SetValue(True)
+            event = wx.CommandEvent()
+            event.SetEventObject(button)
+            self.window.OnLinkedControl(event)  
+            self.window.OnExclusiveRadioButton(event)
+        else:
+            child.SetStringSelection(value)
+        
+    def VerifyValues(self, type, name, **keys):
+        if type == "SMTP":
+            iter = Mail.SMTPAccount.iterItems()
+        elif type == "IMAP":
+            iter = Mail.IMAPAccount.iterItems()
+        elif type == "WebDAV":
+            iter = Sharing.WebDAVAccount.iterItems()
+        elif type == "POP":
+            iter = Mail.POPAccount.iterItems()
+        else:
+            raise AttributeError
+        for account in iter:
+            if account.displayName == name:
+                break
+        self.logger.SetChecked(True)
+        result = True
+        for (key, value) in keys.items():
+            if account._values[key] != value:
+                self.logger.ReportFailure("Checking %s %s: expected %s, but got %s" % (type, key, value, account._values[key]))
+                result = False
+            else:
+                self.logger.ReportPass("Checking %s %s" % (type, key))
+        return result
