@@ -133,6 +133,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="RemoveSidebarItem">
+     <blockName>RemoveSidebarItem</blockName>
+     <dispatchEnum>SendToBlockByName</dispatchEnum>
+     <dispatchToBlockName>Sidebar</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="ManageSidebarCollection">
     <blockName>ManageSidebarCollection</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -470,6 +476,7 @@
     <childrenBlocks itemref="doc:CopyCollectionURLItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:RenameItem"/>
+    <childrenBlocks itemref="doc:RemoveCollectionItem"/>
   </Menu>
   
   <Menu itsName="TestMenu">
@@ -725,7 +732,7 @@
   
   <MenuItem itsName="RemoveItem">
     <blockName>RemoveItem</blockName>
-    <title>Move to Trash</title>
+    <title>Delete</title>
     <accel>DELETE</accel>
     <event itemref="Remove"/>
     <helpString value="Move the current item to the trash"/>
@@ -1101,6 +1108,14 @@
     <blockName>RenameItem</blockName>
     <title>Rename</title>
     <helpString>Rename the selected collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="RemoveCollectionItem">
+    <blockName>RemoveCollectionItem</blockName>
+    <title>Remove</title>
+    <helpString>Remove the collection and its contents from the sidebar</helpString>
+    <event itemref="doc:RemoveSidebarItem"/>
+    <eventsForNamedDispatch itemref="doc:RemoveSidebarItem"/>
   </MenuItem>
 
   <MenuItem itsName="ShareSidebarCollectionItem">

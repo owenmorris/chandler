@@ -813,7 +813,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             self.ClearSelection()
         self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
 
-    def DeleteSelection (self):
+    def DeleteSelection (self, DeleteItemCallback):
         topLeftList = self.GetSelectionBlockTopLeft()
         bottomRightList = self.GetSelectionBlockBottomRight()
         """
@@ -832,12 +832,18 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         # now delete rows - since we reverse sorted, the 
         # "newRowSelection" will be the highest row that we're not deleting
+        
+        # this is broken - we shouldn't be going through the widget
+        # to delete the items! Instead, when items are removed from the
+        # current collection, the widget should be notified to remove
+        # the corresponding rows.
+        # (that probably can't be fixed until ItemCollection
+        # becomes Collection and notifications work again)
         newRowSelection = 0
         contents = self.blockItem.contents
         for range in selectionRanges:
             for row in xrange (range[1], range [0] - 1, -1):
-                #contents.remove (contents [row])
-                Trash.MoveItemToTrash(contents[row], self.blockItem.itsView)
+                DeleteItemCallback(contents[row])
                 newRowSelection = row
 
         self.blockItem.selection = []
@@ -1062,7 +1068,17 @@ class Table (RectangularChild):
             self.postEventByName ('SelectItemBroadcast', {'item':event.arguments ['item']})
 
     def onRemoveEvent (self, event):
-        self.widget.DeleteSelection()
+
+        # precache the trash so we don't have to keep looking it up
+        trash = Trash.FindTrashCollection(self.itsView)
+        
+        def MoveToTrash(item):
+            Trash.MoveItemToTrash(item, self.itsView, trash)
+
+        # this is broken, we shouldn't be going through the widget
+        # see additional comments in DeleteSelection itself
+        self.widget.DeleteSelection(MoveToTrash)
+        self.itsView.commit()
         
     def onRemoveEventUpdateUI (self, event):
         readOnly = True

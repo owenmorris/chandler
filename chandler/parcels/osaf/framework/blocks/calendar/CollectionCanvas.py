@@ -718,11 +718,11 @@ class CollectionCanvas(Block.RectangularChild):
     def onRemoveEvent(self, event):
         Trash.MoveItemToTrash(self.selection, self.itsView)
         self.ClearSelection()
+        self.itsView.commit()
 
     def ClearSelection(self):
         self.selection = None
         self.postSelectItemBroadcast()
-        self.itsView.commit()
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)

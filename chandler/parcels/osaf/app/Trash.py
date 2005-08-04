@@ -23,7 +23,7 @@ def EmptyTrash(view):
         # should remove it from all collections, etc
         item.delete()
 
-def MoveItemToTrash(item, view):
+def MoveItemToTrash(item, view, trash=None):
     """
     Moves the item from all collections into the trash collection, and sets
     the deleted attribute on the item
@@ -31,7 +31,9 @@ def MoveItemToTrash(item, view):
 
     # add to trash first, and skip trash later, in case the item is already
     # in the trash
-    trash = FindTrashCollection(view)
+    if not trash:
+        trash = FindTrashCollection(view)
+        
     trash.add(item)
 
     # now remove it from all other collections
