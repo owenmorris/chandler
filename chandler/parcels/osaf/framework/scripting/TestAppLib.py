@@ -20,34 +20,61 @@ import string
         
 #        widget.ProcessEvent(ret)
 
+def getTime(date):
+    hour = date.hour
+    minute = date.minute
+    if minute == 0:
+        minute = "00"
+    else:
+        minute = "%s" %minute
+    if hour > 12:
+        hour = hour - 12
+        minute = minute + " PM"
+    else:
+        minute = minute + "AM"
+    return "%s:%s" %(hour, minute)
+
 
 class TestLogger:
-    def __init__(self,filepath):
-        try:
-            self.File = open(filepath, 'a')
-        except IOError:
-            print "Unable to open file %s" % filepath
-            print "log report in default_test.log"
-            self.File = open("default_test.log", 'a')
+    def __init__(self,filepath=None):
+        if filepath:
+            self.inTerminal = False
+            try:
+                self.File = open(filepath, 'a')
+            except IOError:
+                print "Unable to open file %s" % filepath
+                print "log report in default_test.log"
+                self.File = open("default_test.log", 'a')
+        else:
+            self.inTerminal = True
+        # usefull inits
         self.startDate = datetime.now()
-        # usefull counters init
         self.nbPass = 0
         self.nbFail = 0
         self.nbUnchecked = 0
         self.nbTestCase = 0
+        self.failureList = []
+        self.passedList = []
+        self.checked = False
+        self.description = "No description"
+        self.startTime = self.stopTime = time.time()
+        # some printing
         self.Print("")
         self.Print("******* New Report :  date : %s *******" % self.startDate)
             
     def Print(self,string):
-        self.File.write(string+'\n')
+        if self.inTerminal:
+            print "%s" %string
+        else:
+            self.File.write(string+'\n')
 
     def Start(self,string):
+        # usefull inits
         self.failureList = []
         self.passedList = []
         self.checked = False
         self.description = string
-        self.startTime = time.time()
-        self.stopTime = None
+        self.startTime = self.stopTime = time.time()
 
     def Stop(self):
         self.stopTime = time.time()
@@ -57,7 +84,10 @@ class TestLogger:
         elapsed = self.stopTime - self.startTime
         self.Print("")
         self.Print("Test case = "+self.description)
-        self.Print("Start Time = %s // Stop Time = %s // Time Elapsed = %s" %(self.startTime, self.stopTime, elapsed))
+        if self.startTime == self.stopTime: # Stop method has not been called
+            self.Print("Start Time = %s // No stop time available" %self.startTime)
+        else:
+            self.Print("Start Time = %s // Stop Time = %s // Time Elapsed = %s" %(self.startTime, self.stopTime, elapsed))
         self.Print("Report : ")
         for failure in self.failureList:
             self.Print("        - Error : %s" % failure)
@@ -100,15 +130,16 @@ class TestLogger:
         self.Print("Total number of test case UNCHECKED : %s" % self.nbUnchecked)
         self.Print("")
         self.Print("******* End of Report *******")
-        self.File.close()
+        if not self.inTerminal:
+            self.File.close()
 
 
-class ItemByUI :
+class BaseByUI :
     def __init__(self, view, type, logger):
         if not type in ["Event", "Note", "Task", "MailMessage", "Collection"]:
             return
         else:
-            self.isNote = self.isEvent = self.isTask = self.isMessage = False
+            self.isNote = self.isEvent = self.isTask = self.isMessage = self.allDay = False
             self.logger = logger
             now = datetime.now()
             if type == "Event": # New Calendar Event
@@ -156,8 +187,11 @@ class ItemByUI :
                 Sgf.SidebarSelect(self.item)
             else:
                 Sgf.SummaryViewSelect(self.item)
+                
 
-    def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, dict=None):
+    def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, note=None,
+                status=None, alarm=None, fromAddress=None, toAddress=None, allDay=None, stampEvent=None, stampMail=None,
+                stampTask=None, dict=None):
         if displayName:
             self.SetDisplayName(displayName)
         if startDate:
@@ -168,6 +202,26 @@ class ItemByUI :
             self.SetEndDate(endDate)
         if endTime:
             self.SetEndTime(endTime)
+        if location:
+            self.SetLocation(location)
+        if note:
+            self.SetNote(note)
+        if status:
+            self.SetStatus(status)
+        if alarm:
+            self.SetAlarm(alarm)
+        if fromAddress:
+            self.SetFromAddress(fromAddress)
+        if toAddress:
+            self.SetToAddress(toAddress)
+        if allDay:
+            self.SetAllDay(allDay)
+        if stampEvent:
+            self.StampAsEvent(stampEvent)
+        if stampMail:
+            self.StampAsMailMessage(stampMail)
+        if stampTask:
+            self.StampAsTask(stampTask)
         if dict:
             self.logger.Start("Multiple Attribute Setting")
             self.logger.Stop()
@@ -224,9 +278,10 @@ class ItemByUI :
             
                 
     def SetDisplayName(self, displayName, dict=None):
-        if (self.isNote or self.isEvent or self.isTask or self.isMessage) :
+        if (self.isNote or self.isEvent or self.isTask or self.isMessage):
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the display name")
+            if dict:
+                self.logger.Start("Set the display name to : %s" %displayName)
             Sgf.SummaryViewSelect(self.item)
             displayNameBlock = Sgf.DisplayName()
             # Emulate the mouse click in the display name block
@@ -236,18 +291,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(displayName)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()  
+                self.logger.Report()  
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetDisplayName is not available for this kind of item")
             return
 
     def SetStartTime(self, startTime, dict=None):
-        if self.isEvent:
+        if (self.isEvent and not self.allDay):
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the start time")
+            if dict:
+                self.logger.Start("Set the start time to : %s" %startTime)
             Sgf.SummaryViewSelect(self.item)
             startTimeBlock = Sgf.StartTime()
             # Emulate the mouse click in the start time block
@@ -257,18 +313,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(startTime)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()  
+                self.logger.Report()  
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetStartTime is not available for this kind of item")
             return
 
     def SetStartDate(self, startDate, dict=None):
         if self.isEvent:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the start date")
+            if dict:
+                self.logger.Start("Set the start date to : %s" %startDate)
             Sgf.SummaryViewSelect(self.item)
             startDateBlock = Sgf.StartDate()
             # Emulate the mouse click in the start date block
@@ -278,18 +335,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(startDate)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetStartDate is not available for this kind of item")
             return
 
     def SetEndTime(self, endTime, dict=None):
-        if self.isEvent:
+        if (self.isEvent and not self.allDay):
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the end time")
+            if dict:
+                self.logger.Start("Set the end time to : %s" %endTime)
             Sgf.SummaryViewSelect(self.item)
             endTimeBlock = Sgf.EndTime()
             # Emulate the mouse click in the end time block
@@ -299,18 +357,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(endTime)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetEndTime is not available for this kind of item")
             return
     
     def SetEndDate(self, endDate, dict=None):
         if self.isEvent:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the end date")
+            if dict:
+                self.logger.Start("Set the end date to : %s" %endDate)
             Sgf.SummaryViewSelect(self.item)
             endDateBlock = Sgf.EndDate()
             # Emulate the mouse click in the end date block
@@ -320,18 +379,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(endDate)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetEndDate is not available for this kind of item")
             return
 
     def SetLocation(self, location, dict=None):
         if self.isEvent:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the location")
+            if dict:
+                self.logger.Start("Set the location to : %s" %location)
             Sgf.SummaryViewSelect(self.item)
             locationBlock = Sgf.Location()
             Sgf.LeftClick(locationBlock)
@@ -340,29 +400,35 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(location)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetLocation is not available for this kind of item")
             return
 
-    def ClickAllDay(self):
+    def SetAllDay(self, allDay, dict=None):
         if self.isEvent:
+            if dict:
+                self.logger.Start("Set the all Day to : %s" %allDay)
             Sgf.SummaryViewSelect(self.item)
-            allDayBlock = Sgf.AllDay()
+            allDayBlock = Sgf.FindNamedBlock("EditAllDay")
             # Emulate the mouse click in the all-day block
             Sgf.LeftClick(allDayBlock)
             # Process the event corresponding to the selection
-            allDayBlock.widget.SetValue(True)
+            allDayBlock.widget.SetValue(allDay)
             selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHECKBOX_CLICKED)
             selectionEvent.SetEventObject(allDayBlock.widget)
             allDayBlock.widget.ProcessEvent(selectionEvent)
             Sgf.SummaryViewSelect(self.item)
-            
+            if dict:
+                self.logger.Stop()
+                self.Check_DetailView(dict)
+                self.logger.Report()
+            self.allDay = allDay
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetAllDay is not available for this kind of item")
             return
    
     def SetStatus(self, status, dict=None):
@@ -375,6 +441,8 @@ class ItemByUI :
             if not status in list_of_value:
                 return
             else:
+                if dict:
+                    self.logger.Start("Set the status to : %s" %status)
                 # Emulate the mouse click in the status block
                 Sgf.LeftClick(statusBlock)
                 statusBlock.widget.SetStringSelection(status)
@@ -382,12 +450,13 @@ class ItemByUI :
                 selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
                 selectionEvent.SetEventObject(statusBlock.widget)
                 statusBlock.widget.ProcessEvent(selectionEvent)
-                
-
-                    
-                #Sgf.SummaryViewSelect(self.item)
+                Sgf.SummaryViewSelect(self.item)
+                if dict:
+                    self.logger.Stop()
+                    self.Check_DetailView(dict)
+                    self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetStatus is not available for this kind of item")
             return
 
     def SetAlarm(self, alarm, dict=None):
@@ -395,22 +464,33 @@ class ItemByUI :
             #self.updateExpectedFieldDict(dict) # update the expected field dict
             alarmBlock = Sgf.FindNamedBlock("EditReminder")
             list_of_value = []
-            for i in range(0,statusBlock.widget.GetCount()):
-                list_of_value.append(statusBlock.widget.GetString(i))
+            for k in range(0,alarmBlock.widget.GetCount()):
+                list_of_value.append(alarmBlock.widget.GetString(k))
             if not alarm in list_of_value:
                 return
             else:
+                if dict:
+                    self.logger.Start("Set the alarm to : %s" %alarm)
                 # Emulate the mouse click in the reminder block
                 Sgf.LeftClick(alarmBlock)
-                alarmBlock.widget.SetStringSelection(alarm) # bad: the status is not saved
+                alarmBlock.widget.SetStringSelection(alarm)
+                # Process the event corresponding to the selection
+                selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
+                selectionEvent.SetEventObject(alarmBlock.widget)
+                alarmBlock.widget.ProcessEvent(selectionEvent)
                 Sgf.SummaryViewSelect(self.item)
+                if dict:
+                    self.logger.Stop()
+                    self.Check_DetailView(dict)
+                    self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetAlarm is not available for this kind of item")
             return
     
     def SetNote(self, note, dict=None):
         #self.updateExpectedFieldDict(dict) # update the expected field dict
-        self.logger.Start("Set the location")
+        if dict:
+            self.logger.Start("Set the note")
         Sgf.SummaryViewSelect(self.item)
         noteArea = Sgf.FindNamedBlock("NotesArea")
         # Emulate the mouse click in the note area
@@ -419,15 +499,16 @@ class ItemByUI :
         # Emulate the keyboard events
         Sgf.Type(note)
         Sgf.SummaryViewSelect(self.item)
-        self.logger.Stop()
         if dict:
+            self.logger.Stop()
             self.Check_DetailView(dict)
-        self.logger.Report()
+            self.logger.Report()
 
     def SetToAddress(self, toAdd, dict=None):
         if self.isMessage:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the to address")
+            if dict:
+                self.logger.Start("Set the to address to : %s" %toAdd)
             Sgf.SummaryViewSelect(self.item)
             toBlock = Sgf.FindNamedBlock("ToMailEditField")
             # Emulate the mouse click in the to block
@@ -436,18 +517,19 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(toAdd)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetToAddress is not available for this kind of item")
             return
         
     def SetFromAddress(self, fromAdd, dict=None):
         if self.isMessage:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
-            self.logger.Start("Set the from address")
+            if dict:
+                self.logger.Start("Set the from address to : %s" %fromAdd)
             Sgf.SummaryViewSelect(self.item)
             fromBlock = Sgf.FindNamedBlock("FromEditField")
             # Emulate the mouse click in the from block
@@ -456,38 +538,58 @@ class ItemByUI :
             # Emulate the keyboard events
             Sgf.Type(fromAdd)
             Sgf.SummaryViewSelect(self.item)
-            self.logger.Stop()
             if dict:
+                self.logger.Stop()
                 self.Check_DetailView(dict)
-            self.logger.Report()
+                self.logger.Report()
         else:
-            print "not available for this kind of item"
+            self.logger.Print("SetFromAddress is not available for this kind of item")
             return
 
     
-    def StampAsMailMessage(self):
-        Sgf.SummaryViewSelect(self.item)
-        Sgf.StampAsMailMessage()
-        if not self.isMessage :
-            self.isMessage = True
+    def StampAsMailMessage(self, stampMail, dict=None):
+        if stampMail == self.isMessage:# Nothing to do
+            return
         else:
-            self.isMessage = False
+            if dict:
+                self.logger.Start("Change the Mail stamp to : %s" %stampMail)
+            Sgf.SummaryViewSelect(self.item)
+            Sgf.StampAsMailMessage()
+            self.isMessage = stampMail
+            if dict:
+                self.logger.Stop()
+                self.Check_DetailView(dict)
+                self.logger.Report()
 
-    def StampAsTask(self):
-        Sgf.SummaryViewSelect(self.item)
-        Sgf.StampAsTask()
-        if not self.isTask :
-            self.isTask = True
+    def StampAsTask(self, stampTask, dict=None):
+        if stampTask == self.isTask:# Nothing to do
+            return
         else:
-            self.isTask = False
+            if dict:
+                self.logger.Start("Change the Task stamp to : %s" %stampTask)
+            Sgf.SummaryViewSelect(self.item)
+            Sgf.StampAsTask()
+            self.isTask = stampTask
+            stampTaskBlock = Sgf.FindNamedBlock("TaskStamp")
+            stampTaskBlock.widget.SetToggle(stampTask)
+            if dict:
+                self.logger.Stop()
+                self.Check_DetailView(dict)
+                self.logger.Report()
 
-    def StampAsCalendarEvent(self):
-        Sgf.SummaryViewSelect(self.item)
-        Sgf.StampAsCalendarEvent()
-        if not self.isEvent :
-            self.isEvent = True
+    def StampAsCalendarEvent(self, stampEvent, dict=None):
+        if stampEvent == self.isEvent:# Nothing to do
+            return
         else:
-            self.isEvent = False
+            if dict:
+                self.logger.Start("Change the Calendar Event stamp to : %s" %stampEvent)
+            Sgf.SummaryViewSelect(self.item)
+            Sgf.StampAsCalendarEvent()
+            self.isEvent = stampEvent
+            if dict:
+                self.logger.Stop()
+                self.Check_DetailView(dict)
+                self.logger.Report()
         
     def Check_DetailView(self, dict):
         self.logger.InitFailureList()
@@ -544,20 +646,6 @@ class ItemByUI :
                     self.logger.ReportFailure("(On note Checking) || detail view note = %s ; expected note = %s" %(note, dict[field]))
                 else:
                      self.logger.ReportPass("(On note Checking)")
-            elif field == "status": # status checking
-                statusBlock = Sgf.FindNamedBlock("EditTransparency")
-                status = statusBlock.GetStringSelection()
-                if not dict[field] == status :
-                    self.logger.ReportFailure("(On status Checking) || detail view status = %s ; expected status = %s" %(status, dict[field]))
-                else:
-                    self.logger.ReportPass("(On status Checking)")
-            elif field == "alarm": # alarm checking
-                alarmBlock = Sgf.FindNamedBlock("EditTransparency")
-                alarm = alarmBlock.GetStringSelection()
-                if not dict[field] == alarm :
-                    self.logger.ReportFailure("(On alarm Checking) || detail view alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
-                else:
-                    self.logger.ReportPass("(On alarm Checking)")
             elif field == "fromAddress": # from address checking
                 fromBlock = Sgf.FindNamedBlock("FromEditField")
                 f = fromBlock.widget.GetValue()
@@ -572,14 +660,135 @@ class ItemByUI :
                     self.logger.ReportFailure("(On to address Checking) || detail view to address = %s ; expected to address = %s" %(t, dict[field]))
                 else:
                     self.logger.ReportPass("(On to address Checking)")
-
+            elif field == "status": # status checking
+                statusBlock = Sgf.FindNamedBlock("EditTransparency")
+                status = statusBlock.widget.GetStringSelection()
+                if not dict[field] == status :
+                    self.logger.ReportFailure("(On status Checking) || detail view status = %s ; expected status = %s" %(status, dict[field]))
+                else:
+                    self.logger.ReportPass("(On status Checking)")
+            elif field == "alarm": # status checking
+                alarmBlock = Sgf.FindNamedBlock("EditReminder")
+                alarm = alarmBlock.widget.GetStringSelection()
+                if not dict[field] == alarm :
+                    self.logger.ReportFailure("(On alarm Checking) || detail view alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
+                else:
+                    self.logger.ReportPass("(On alarm Checking)")
+            elif field == "allDay": # status checking
+                allDayBlock = Sgf.FindNamedBlock("EditAllDay")
+                allDay = allDayBlock.widget.GetValue()
+                if not dict[field] == allDay :
+                    self.logger.ReportFailure("(On all Day Checking) || detail view all day = %s ; expected all day = %s" %(allDay, dict[field]))
+                else:
+                    self.logger.ReportPass("(On all Day Checking)")
+            #elif field == "stampMail": # Mail stamp checking
+            #    stampMailBlock = Sgf.FindNamedBlock("MailMessageButton")
+            #    markupBar = Sgf.FindNamedBlock("MarkupBar")
+            #    stampMail = markupBar.widget.GetToolState(stampMailBlock.widget.GetId())
+            #    print stampMail
+            #    if not dict[field] == stampMail :
+            #        self.logger.ReportFailure("(On Mail Stamp Checking) || detail view Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, dict[field]))
+            #    else:
+            #        self.logger.ReportPass("(On Mail Stamp Checking)")
+            #elif field == "stampTask": # Task stamp checking
+            #    stampTaskBlock = Sgf.FindNamedBlock("TaskStamp")
+            #    toolbarWidget = stampTaskBlock.dynamicParent.widget
+            #    stampTask = toolbarWidget.GetToolState(stampTaskBlock.toolID)
+            #    if not dict[field] == stampTask :
+            #        self.logger.ReportFailure("(On Task Stamp Checking) || detail view Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, dict[field]))
+            #    else:
+            #        self.logger.ReportPass("(On Task Stamp Checking)")
+            #elif field == "stampEvent": # Event stamp checking
+            #    stampEventBlock = Sgf.FindNamedBlock("CalendarStamp")
+            #    
+            #    if not dict[field] == stampEvent :
+            #        self.logger.ReportFailure("(On Event Stamp Checking) || detail view Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
+            #    else:
+            #        self.logger.ReportPass("(On Event Stamp Checking)")
+        
     
-
-    
-
-    
-
-
+    def Check_Object(self, dict):
+        self.logger.InitFailureList()
+        self.logger.SetChecked(True)
+        # check the changing values
+        for field in dict.keys():
+            if field == "displayName": # display name checking
+                d_name = "%s" %self.item.displayName
+                if not dict[field] == d_name :
+                    self.logger.ReportFailure("(On display name Checking)  || object title = %s ; expected title = %s" %(d_name, dict[field]))
+                else:
+                    self.logger.ReportPass("(On display name Checking)")
+            elif field == "startDate": # start date checking
+                startTime = self.item.startTime
+                s_date = "%s/%s/%s" %(startTime.month, startTime.day, startTime.year) 
+                if not dict[field] == s_date :
+                    self.logger.ReportFailure("(On start date Checking) || object start date = %s ; expected start date = %s" %(s_date, dict[field]))
+                else:
+                    self.logger.ReportPass("(On start date Checking)")
+            elif field == "startTime": # start time checking
+                startTime = self.item.startTime
+                s_time = getTime(startTime)
+                if not dict[field] == s_time :
+                    self.logger.ReportFailure("(On start time Checking) || object start time = %s ; expected start time = %s" %(s_time, dict[field]))
+                else:
+                    self.logger.ReportPass("(On start time Checking)")
+            elif field == "endDate": # end date checking
+                endTime = self.item.startTime + self.item.duration
+                e_date = "%s/%s/%s" %(endTime.month, endTime.day, endTime.year) 
+                if not dict[field] == e_date :
+                    self.logger.ReportFailure("(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dict[field]))
+                else:
+                    self.logger.ReportPass("(On end date Checking)")
+            elif field == "endTime": # end time checking
+                endTime = self.item.startTime + self.item.duration
+                e_time = getTime(endTime)
+                if not dict[field] == e_time :
+                    self.logger.ReportFailure("(On end time Checking) || object end time = %s ; expected end time = %s" %(e_time, dict[field]))
+                else:
+                    self.logger.ReportPass("(On end time Checking)")
+            elif field == "location": # location checking
+                loc = "%s" %self.item.location
+                if not dict[field] == loc :
+                    self.logger.ReportFailure("(On location Checking) || object location = %s ; expected location = %s" %(loc, dict[field]))
+                else:
+                    self.logger.ReportPass("(On location Checking)")
+            elif field == "note": # note checking
+                note = "%s" %self.item.body
+                if not dict[field] == note :
+                    self.logger.ReportFailure("(On note Checking) || object note = %s ; expected note = %s" %(note, dict[field]))
+                else:
+                     self.logger.ReportPass("(On note Checking)")
+            elif field == "fromAddress": # from address checking
+                f = "%s" %self.item.fromAddress
+                if not dict[field] == f :
+                    self.logger.ReportFailure("(On from address Checking) || object from address = %s ; expected from address = %s" %(f, dict[field]))
+                else:
+                    self.logger.ReportPass("(On from address Checking)")
+            elif field == "toAddress": # to address checking
+                t = "%s" %self.item.toAddress
+                if not dict[field] == t :
+                    self.logger.ReportFailure("(On to address Checking) || object to address = %s ; expected to address = %s" %(t, dict[field]))
+                else:
+                    self.logger.ReportPass("(On to address Checking)")
+            #elif field == "status": # status checking
+            #    status = "%s" %self.item.status
+            #    if not dict[field] == status :
+            #        self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
+            #    else:
+            #        self.logger.ReportPass("(On status Checking)")
+            #elif field == "alarm": # status checking
+            #    alarm = "%s" %self.item.reminderTime
+            #    if not dict[field] == alarm :
+            #        self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
+            #    else:
+            #        self.logger.ReportPass("(On alarm Checking)")
+            elif field == "allDay": # status checking
+                allDay = self.item.allDay
+                if not dict[field] == allDay :
+                    self.logger.ReportFailure("(On all Day Checking) || object all day = %s ; expected all day = %s" %(allDay, dict[field]))
+                else:
+                    self.logger.ReportPass("(On all Day Checking)")
+            
 
 
     
