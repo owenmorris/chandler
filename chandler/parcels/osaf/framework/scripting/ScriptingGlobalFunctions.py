@@ -157,6 +157,17 @@ def PressStampButton(buttonName):
                 block.post(block.event, {})
                 break
 
+def ButtonPressed(toolBlockName):
+    uiView = _wx.GetApp().UIRepositoryView
+    for block in _Block.Block.iterItems(uiView):
+        if getattr(block, 'blockName', None) == toolBlockName:
+            if hasattr(block, 'widget'):
+                toolbarWidget = getattr(block.dynamicParent, 'widget', None)
+                if toolbarWidget is not None:
+                    break
+    else:
+        return False
+    return toolbarWidget.GetToolState(block.toolID) 
 
 def GetWindow(label):
     """ Returns the window with the given label """

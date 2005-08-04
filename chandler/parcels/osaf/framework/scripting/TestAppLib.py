@@ -190,7 +190,7 @@ class BaseByUI :
                 Sgf.SummaryViewSelect(self.item)
                 
 
-    def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, note=None,
+    def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
                 status=None, alarm=None, fromAddress=None, toAddress=None, allDay=None, stampEvent=None, stampMail=None,
                 stampTask=None, dict=None):
         if displayName:
@@ -205,8 +205,8 @@ class BaseByUI :
             self.SetEndTime(endTime)
         if location:
             self.SetLocation(location)
-        if note:
-            self.SetNote(note)
+        if body:
+            self.SetBody(body)
         if status:
             self.SetStatus(status)
         if alarm:
@@ -463,6 +463,10 @@ class BaseByUI :
     def SetAlarm(self, alarm, dict=None):
         if self.isEvent:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
+            if alarm == "1":
+                alarm = alarm + " minute"
+            else:
+                alarm = alarm + " minutes"
             alarmBlock = Sgf.FindNamedBlock("EditReminder")
             list_of_value = []
             for k in range(0,alarmBlock.widget.GetCount()):
@@ -488,17 +492,17 @@ class BaseByUI :
             self.logger.Print("SetAlarm is not available for this kind of item")
             return
     
-    def SetNote(self, note, dict=None):
+    def SetBody(self, body, dict=None):
         #self.updateExpectedFieldDict(dict) # update the expected field dict
         if dict:
-            self.logger.Start("Set the note")
+            self.logger.Start("Set the body")
         Sgf.SummaryViewSelect(self.item)
         noteArea = Sgf.FindNamedBlock("NotesArea")
         # Emulate the mouse click in the note area
         Sgf.LeftClick(noteArea)
         noteArea.widget.SelectAll()
         # Emulate the keyboard events
-        Sgf.Type(note)
+        Sgf.Type(body)
         Sgf.SummaryViewSelect(self.item)
         if dict:
             self.logger.Stop()
@@ -640,13 +644,13 @@ class BaseByUI :
                     self.logger.ReportFailure("(On location Checking) || detail view location = %s ; expected location = %s" %(loc, dict[field]))
                 else:
                     self.logger.ReportPass("(On location Checking)")
-            elif field == "note": # note checking
+            elif field == "body": # body checking
                 noteBlock = Sgf.FindNamedBlock("NotesArea")
-                note = noteBlock.widget.GetValue()
-                if not dict[field] == note :
-                    self.logger.ReportFailure("(On note Checking) || detail view note = %s ; expected note = %s" %(note, dict[field]))
+                body = noteBlock.widget.GetValue()
+                if not dict[field] == body :
+                    self.logger.ReportFailure("(On body Checking) || detail view body = %s ; expected body = %s" %(body, dict[field]))
                 else:
-                     self.logger.ReportPass("(On note Checking)")
+                     self.logger.ReportPass("(On body Checking)")
             elif field == "fromAddress": # from address checking
                 fromBlock = Sgf.FindNamedBlock("FromEditField")
                 f = fromBlock.widget.GetValue()
@@ -682,30 +686,25 @@ class BaseByUI :
                     self.logger.ReportFailure("(On all Day Checking) || detail view all day = %s ; expected all day = %s" %(allDay, dict[field]))
                 else:
                     self.logger.ReportPass("(On all Day Checking)")
-            #elif field == "stampMail": # Mail stamp checking
-            #    stampMailBlock = Sgf.FindNamedBlock("MailMessageButton")
-            #    markupBar = Sgf.FindNamedBlock("MarkupBar")
-            #    stampMail = markupBar.widget.GetToolState(stampMailBlock.widget.GetId())
-            #    print stampMail
-            #    if not dict[field] == stampMail :
-            #        self.logger.ReportFailure("(On Mail Stamp Checking) || detail view Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, dict[field]))
-            #    else:
-            #        self.logger.ReportPass("(On Mail Stamp Checking)")
-            #elif field == "stampTask": # Task stamp checking
-            #    stampTaskBlock = Sgf.FindNamedBlock("TaskStamp")
-            #    toolbarWidget = stampTaskBlock.dynamicParent.widget
-            #    stampTask = toolbarWidget.GetToolState(stampTaskBlock.toolID)
-            #    if not dict[field] == stampTask :
-            #        self.logger.ReportFailure("(On Task Stamp Checking) || detail view Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, dict[field]))
-            #    else:
-            #        self.logger.ReportPass("(On Task Stamp Checking)")
-            #elif field == "stampEvent": # Event stamp checking
-            #    stampEventBlock = Sgf.FindNamedBlock("CalendarStamp")
-            #    
-            #    if not dict[field] == stampEvent :
-            #        self.logger.ReportFailure("(On Event Stamp Checking) || detail view Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
-            #    else:
-            #        self.logger.ReportPass("(On Event Stamp Checking)")
+            elif field == "stampMail": # Mail stamp checking
+                stampMail = Sgf.ButtonPressed("MailMessageButton")
+                print stampMail
+                if not dict[field] == stampMail :
+                    self.logger.ReportFailure("(On Mail Stamp Checking) || detail view Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, dict[field]))
+                else:
+                    self.logger.ReportPass("(On Mail Stamp Checking)")
+            elif field == "stampTask": # Task stamp checking
+                stampTask = Sgf.ButtonPressed("TaskStamp")
+                if not dict[field] == stampTask :
+                    self.logger.ReportFailure("(On Task Stamp Checking) || detail view Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, dict[field]))
+                else:
+                    self.logger.ReportPass("(On Task Stamp Checking)")
+            elif field == "stampEvent": # Event stamp checking
+                stampEvent = Sgf.ButtonPressed("CalendarStamp")
+                if not dict[field] == stampEvent :
+                    self.logger.ReportFailure("(On Event Stamp Checking) || detail view Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
+                else:
+                    self.logger.ReportPass("(On Event Stamp Checking)")
         
     
     def Check_Object(self, dict):
@@ -753,12 +752,12 @@ class BaseByUI :
                     self.logger.ReportFailure("(On location Checking) || object location = %s ; expected location = %s" %(loc, dict[field]))
                 else:
                     self.logger.ReportPass("(On location Checking)")
-            elif field == "note": # note checking
-                note = "%s" %self.item.body
-                if not dict[field] == note :
-                    self.logger.ReportFailure("(On note Checking) || object note = %s ; expected note = %s" %(note, dict[field]))
+            elif field == "body": # body checking
+                body = "%s" %self.item.bodyString
+                if not dict[field] == body :
+                    self.logger.ReportFailure("(On body Checking) || object body = %s ; expected body = %s" %(body, dict[field]))
                 else:
-                     self.logger.ReportPass("(On note Checking)")
+                     self.logger.ReportPass("(On body Checking)")
             elif field == "fromAddress": # from address checking
                 f = "%s" %self.item.fromAddress
                 if not dict[field] == f :
@@ -771,14 +770,16 @@ class BaseByUI :
                     self.logger.ReportFailure("(On to address Checking) || object to address = %s ; expected to address = %s" %(t, dict[field]))
                 else:
                     self.logger.ReportPass("(On to address Checking)")
-            #elif field == "status": # status checking
-            #    status = "%s" %self.item.status
-            #    if not dict[field] == status :
-            #        self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
-            #    else:
-            #        self.logger.ReportPass("(On status Checking)")
+            elif field == "status": # status checking
+                status = "%s" %string.upper(self.item.transparency)
+                if not dict[field] == status :
+                    self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
+                else:
+                    self.logger.ReportPass("(On status Checking)")
             #elif field == "alarm": # status checking
-            #    alarm = "%s" %self.item.reminderTime
+            #    print self.item.createdOn
+            #    r_time = self.item.reminderTime - self.item.createdOn
+            #    alarm = "%s" %r_time
             #    if not dict[field] == alarm :
             #        self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
             #    else:
