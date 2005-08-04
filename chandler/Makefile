@@ -165,8 +165,7 @@ endif
 clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
 	rm -f chandler.log randpool.dat
-	find . -name '*.pyo' | xargs rm -f
-	find . -name '*.pyc' | xargs rm -f
+	python $(CHANDLERBIN)/tools/purge.py $(CHANDLERBIN)
 
 realclean: clean
 	rm -rf $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
