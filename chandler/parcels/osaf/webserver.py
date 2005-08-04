@@ -1,4 +1,3 @@
-__parcel__ = "osaf.framework.webserver"
 import twisted
 from twisted.web import server, resource, static, script
 from twisted.internet import reactor
@@ -13,20 +12,14 @@ import logging
 logger = logging.getLogger('WebServer')
 logger.setLevel(logging.INFO)
 
-class WebParcel(application.Parcel.Parcel):
-    def startupParcel(self):
-        super(WebParcel, self).startupParcel()
-        activate = False
-        try:
-            if Globals.options.webserver:
-                activate = True
-        except:
-            pass
+def start_servers(startup_item):
+    if getattr(Globals.options,'webserver',False):
+        from osaf.startup import run_reactor
+        # Start up all webservers
+        run_reactor()
+        for server in Server.iterItems(startup_item.itsView):
+            server.startup()
 
-        if activate:
-            # Start up all webservers
-            for server in Server.iterItems(self.itsView):
-                server.startup()
 
 class Server(schema.Item):
     """
@@ -100,7 +93,7 @@ class Server(schema.Item):
 
         site = server.Site(root)
         try:
-            reactor.listenTCP(self.port, site)
+            reactor.callFromThread(reactor.listenTCP, self.port, site)
             self.activated = True
         except twisted.internet.error.CannotListenError, e:
             logger.error("Twisted error: %s" % str(e))

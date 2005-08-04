@@ -4,7 +4,7 @@ from twisted.web import resource
 logger = logging.getLogger("Lobster")
 logger.setLevel(logging.INFO)
 
-class LobsterResource(resource.Resource):
+class LobViewerResource(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
 

@@ -136,3 +136,48 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 The Chandler Team"""
 
     welcome.body = welcome.getAttributeAspect('body', 'type').makeValue(body)
+
+
+    # Set up the main web server
+    startup = schema.ns("osaf.startup", parcel)
+    webserver = schema.ns("osaf.webserver", parcel)
+
+    startup.Startup.update(parcel, "startServers",
+        invoke = "osaf.webserver.start_servers"
+    )
+
+    webserver.Server.update(parcel, "mainServer",
+        # Port to listen on.  1888 was the year Raymond Chandler was born.
+        port=1888,
+
+        # This path specifies the "doc root" of this web server, and is
+        # relative to webserver/servers, but you may also put in an
+        # absolute path if you wish.
+        #
+        path="webhome",
+
+        resources = [
+            webserver.Resource.update(parcel, "lobsterResource",
+                displayName="Lob Server",
+                location="lobs",
+                resourceClass=schema.importString(
+                    "osaf.servlets.lobviewer.LobViewerResource"
+                ),
+            ),
+            webserver.Resource.update(parcel, "photoResource",
+                displayName="Photo Viewer",
+                location="photos",
+                resourceClass=schema.importString(
+                    "osaf.servlets.photos.PhotosResource"
+                ),
+            ),
+            webserver.Resource.update(parcel, "repoResource",
+                displayName="Repository Viewer",
+                location="repo",
+                resourceClass=schema.importString(
+                    "osaf.servlets.repo.RepoResource"
+                ),
+            )
+        ]
+    )
+

@@ -31,7 +31,7 @@ class PhotosResource(resource.Resource):
                 photoList.sort(lambda x, y: cmp(y.dateTaken, x.dateTaken))
 
                 for photo in photoList:
-                    output("<a href=/photos/%s><img src=/lobster/%s/photoBody height=128 alt='%s'></a>" % (photo.itsUUID, photo.itsUUID, photo.displayName))
+                    output("<a href=/photos/%s><img src=/lobs/%s/photoBody height=128 alt='%s'></a>" % (photo.itsUUID, photo.itsUUID, photo.displayName))
                 output("</body></html>")
 
             else:
@@ -45,7 +45,7 @@ class PhotosResource(resource.Resource):
                     output("<body>")
 
                     output("<span class=title>%s</span><br>" % photo.displayName)
-                    output("<img src=/lobster/%s/photoBody>" % photo.itsUUID)
+                    output("<img src=/lobs/%s/photoBody>" % photo.itsUUID)
 
         except Exception, e:
             output("<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback))))

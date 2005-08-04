@@ -819,7 +819,7 @@ def RenderItem(repoView, item):
             result += "</td><td valign=top>"
             mimeType = value.mimetype
             if mimeType.startswith("image/"):
-                result += "<img src=/lobster/%s/%s><br>" % (item.itsUUID, name)
+                result += "<img src=/lobs/%s/%s><br>" % (item.itsUUID, name)
                 result += "(%s)<br>" % mimeType
             else:
                 try:

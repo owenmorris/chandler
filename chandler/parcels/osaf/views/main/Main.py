@@ -34,7 +34,7 @@ import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.framework.sharing.PublishCollection
 import osaf.framework.sharing.SubscribeDialog
 import osaf.framework.scripting.CPIAScript as CPIAScript
-import osaf.framework.webserver.Web as Web
+from osaf import webserver
 from osaf.app import Trash
 
 logger = logging.getLogger("mainview")
@@ -736,7 +736,7 @@ class MainView(View):
         wx.GetApp().ShowPyShell(withFilling=True)
 
     def onActivateWebserverEventUpdateUI (self, event):
-        for server in Web.Server.iterItems(view=self.itsView):
+        for server in webserver.Server.iterItems(view=self.itsView):
             if server.isActivated():
                 event.arguments['Enable'] = False
                 return
@@ -744,7 +744,7 @@ class MainView(View):
 
     def onActivateWebserverEvent(self, event):
         # Test menu item
-        for server in Web.Server.iterItems(view=self.itsView):
+        for server in webserver.Server.iterItems(view=self.itsView):
             server.startup()
 
     def onShareSidebarCollectionEvent(self, event):
