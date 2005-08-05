@@ -184,22 +184,9 @@ class AbstractRepositoryViewManager(object):
 
         return self.repository.getCurrentView(False)
 
-    def printCurrentView(self, printString = None):
-        """
-        Writes the current C{RepositoryView} as well as optional printString to the C{logging.Logger}
-        instance. This method is useful for C{RepositoryView} debugging.
-
-        @param printString: An optional string to display with the message (i.e. the name of the calling method)
-        @type printString: string
-        @return: C{None}
-        """
-
-        str = None
-
-        if printString is None:
-             self.log.info("Current View is: %s" % self.getCurrentView())
-        else:
-             self.log.info("[%s] Current View is: %s" % (printString, self.getCurrentView()))
+    def printCurrentView(self, printString):
+        if printString is not None:
+             self.log.warn("[%s] " % printString)
 
 
     def commitInView(self, useThread=False):
