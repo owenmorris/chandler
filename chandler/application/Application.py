@@ -566,10 +566,14 @@ class wxApplication (wx.App):
                 self.needsUpdateUI = False
 
         # Give CPIA Script a chance to execute a script
-        import osaf.framework.scripting.CPIAScript as CPIAScript
-        wx.CallAfter(CPIAScript.RunStartupScript, self.UIRepositoryView)
+        if not self.StartupScriptDone:
+            self.StartupScriptDone = True
+            import osaf.framework.scripting.CPIAScript as CPIAScript
+            wx.CallAfter(CPIAScript.RunStartupScript, self.UIRepositoryView)
 
         event.Skip()
+
+    StartupScriptDone = False
 
     def OnKeyDown(self, event):
         import osaf.framework.scripting.CPIAScript as CPIAScript

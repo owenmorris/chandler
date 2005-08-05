@@ -109,14 +109,12 @@ def HotkeyScript(event, view):
 
 def RunStartupScript(view):
     script = None
-    if not hasattr(Globals, 'CheckedStartupScripts'):
-        Globals.CheckedStartupScripts = True
-        if Globals.options.script:
-            script = ExecutableScript(Globals.options.script, view)
-        if Globals.options.scriptFile:
-            scriptFile = ScriptFile(Globals.options.scriptFile)
-            if scriptFile:
-                script = ExecutableScript(scriptFile, view)
+    if Globals.options.script:
+        script = ExecutableScript(Globals.options.script, view)
+    if Globals.options.scriptFile:
+        scriptFile = ScriptFile(Globals.options.scriptFile)
+        if scriptFile:
+            script = ExecutableScript(scriptFile, view)
     if script:
         script.execute()
 
