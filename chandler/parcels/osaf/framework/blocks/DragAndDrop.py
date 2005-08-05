@@ -351,18 +351,22 @@ class ItemClipboardHandler(_ClipboardHandler):
         return self.CanCopy()
 
     def Copy(self):
+        items = []
         clipboard = wx.TheClipboard
         if clipboard.Open():
+            items = self.SelectedItems()
             data = self.CopyData()
             clipboard.SetData(data)
             clipboard.Close()
+        return items
 
     def Cut(self):
-        self.Copy()
+        result = self.Copy()
         try:
             self.DeleteSelection()
         except AttributeError:
             pass # doesn't know DeleteSelection()
+        return result
 
     def CanPaste(self):
         clipboard = wx.TheClipboard

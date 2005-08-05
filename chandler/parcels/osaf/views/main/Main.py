@@ -104,6 +104,7 @@ class MainView(View):
         splash = SplashScreen(None, _("About Chandler"), 
                               None, html, True, False)
         splash.Show(True)
+        return splash
 
     def onCopyEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
@@ -150,6 +151,7 @@ class MainView(View):
 
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
+        return [newItem]
 
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
@@ -515,10 +517,10 @@ class MainView(View):
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Some Content Items" and
         # "Test | Generate Many Content Items" menu items
-        count = event.arguments['sender'].blockName == 'GenerateSomeDataItem' and 4 or 100
+        count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
         sidebarCollection = Block.findBlockByName ("Sidebar").contents
         mainView = Globals.views[0]
-        GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
+        return GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
@@ -536,7 +538,7 @@ class MainView(View):
         
         self.setStatusMessage ("Importing from %s"  % filename)
         mainView = Globals.views[0]
-        GenerateItemsFromFile.GenerateItems(self.itsView, mainView, dir+'/'+filename)
+        return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, dir+'/'+filename)
     
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")

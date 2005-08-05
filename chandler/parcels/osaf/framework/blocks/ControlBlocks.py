@@ -216,7 +216,15 @@ class wxEditText(ShownSynchronizer,
     def OnKillFocus(self, event):
         del self.focusedSince
 
+    def Cut(self):
+        result = self.GetStringSelection()
+        super(wxEditText, self).Cut()
+        return result
 
+    def Copy(self):
+        result = self.GetStringSelection()
+        super(wxEditText, self).Copy()
+        return result
 
 class textStyleEnumType(schema.Enumeration):
       values = "PlainText", "RichText"
@@ -1062,10 +1070,11 @@ class Table (RectangularChild):
                 self.widget.MakeCellVisible (row, 0)
 
     def onModifyContentsEvent(self, event):
-        super (Table, self).onModifyContentsEvent (event)
+        result = super (Table, self).onModifyContentsEvent (event)
         if event.selectFirstItem:
             self.onSelectItemEvent (event)
             self.postEventByName ('SelectItemBroadcast', {'item':event.arguments ['item']})
+        return result
 
     def onRemoveEvent (self, event):
 

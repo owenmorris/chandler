@@ -13,12 +13,12 @@
   
   <Script itsName="StartupTest">
     <displayName>StartupTest</displayName>
-    <body>ReloadParcels(); Quit()</body>
+    <body file="StartupTestScript.py" />
   </Script>
 
   <Script itsName="DialogScript">
     <displayName>DialogScript</displayName>
-    <body>New(); About()</body>
+    <body file="DialogTestScript.py" />
   </Script>
 
 </core:Parcel>

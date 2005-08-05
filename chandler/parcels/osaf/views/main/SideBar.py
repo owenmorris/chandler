@@ -404,6 +404,7 @@ class Sidebar(ControlBlocks.Table):
                 return
 
         self.postEventByName("SelectItemBroadcast", {'item':item})
+        return item
 
     def onRemoveEventUpdateUI(self, event):
         """

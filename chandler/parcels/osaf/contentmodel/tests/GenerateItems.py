@@ -264,7 +264,9 @@ def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
     existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
     collections = GenerateItems(view, 5, GenerateCollection, [], mainView, existingNames)
     
+    items = []
     for fn in GenerateMailMessage, GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
-        GenerateItems(view, count, fn, collections)
+        items.append(GenerateItems(view, count, fn, collections))
 
     view.commit() 
+    return items

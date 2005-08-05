@@ -258,7 +258,7 @@ class ExecutableScript(object):
         # Copies of this function are invoked by user scripts for BlockEvent commands.
         def ScriptInvokedBlockEvent(argDict={}, **keys):
             # merge the named parameters, into the dictionary positional arg
-            self.FindAndPostBlockEvent(eventName, argDict, keys)
+            return self.FindAndPostBlockEvent(eventName, argDict, keys)
         # return the template, customized for this event
         return ScriptInvokedBlockEvent
 
@@ -279,15 +279,10 @@ class ExecutableScript(object):
             # make sure the first parameter was a dictionary, or give a friendly error
             message = "BlockEvents may only have one positional parameter - a dict"
             raise AttributeError, message
-        Globals.mainViewRoot.post(best, argDict)
+        result = Globals.mainViewRoot.post(best, argDict)
         # seems like a good time to let the Application get some time
         wx.GetApp().Yield()
-
-    def _inUserData(self, item):
-        try:
-            return str(item.itsPath).startswith('//userdata/')
-        except AttributeError:
-            return False
+        return result
 
     def _BlockEventName(self, event):
         try:

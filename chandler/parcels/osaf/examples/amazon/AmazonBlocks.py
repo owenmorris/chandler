@@ -8,11 +8,11 @@ import osaf.framework.blocks.detail.Detail as Detail
 class AmazonController(Block.Block):
     def onNewAmazonCollectionEvent(self, event):
         print "Creating a new amazon collection"
-        AmazonKinds.CreateCollection(self.itsView, Globals.views[0])
+        return AmazonKinds.CreateCollection(self.itsView, Globals.views[0])
         
     def onNewAmazonWishListEvent(self, event):
         print "Creating a new amazon wish list"
-        AmazonKinds.CreateWishListCollection(self.itsView, Globals.views[0])
+        return AmazonKinds.CreateWishListCollection(self.itsView, Globals.views[0])
 
 class ImageBlock(Detail.HTMLDetailArea):
     def getHTMLText(self, item):

@@ -183,14 +183,11 @@ class BaseAttributeEditor (object):
         """
         raise NotImplementedError
     
-    def DestroyControl (self, control, losingFocus=False):
+    def DestroyControl (self, control):
         """ 
-        Destroy the control at next idle, by default.
-        Return True if we did, or False if we did nothing because we were just
-        losing focus.
+        Notification that the control is about to be destroyed.
         """
-        wx.CallAfter(control.Destroy)
-        return True
+        pass
  
     def BeginControlEdit (self, item, attributeName, control):
         """ 
@@ -270,6 +267,16 @@ class AETextCtrl(ShownSynchronizer,
 
     def OnKillFocus(self, event):
         del self.focusedSince
+
+    def Cut(self):
+        result = self.GetStringSelection()
+        super(AETextCtrl, self).Cut()
+        return result
+
+    def Copy(self):
+        result = self.GetStringSelection()
+        super(AETextCtrl, self).Copy()
+        return result
 
     """ Try without this:
     def Destroy(self):
@@ -1123,15 +1130,6 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
             control.Enable(False)
         return control
         
-    def DestroyControl (self, control, losingFocus=False):
-        # @@@ still needed?
-        # Only destroy the control if we're not just losing focus
-        if losingFocus:
-            return False # we didn't destroy the control
-        
-        wx.CallAfter(control.Destroy)
-        return True
-    
     def onChecked(self, event):
         #logger.debug("CheckboxAE.onChecked: new choice is %s", 
                      #self.GetControlValue(event.GetEventObject()))
@@ -1178,14 +1176,6 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
             control.Enable(False)
         return control
         
-    def DestroyControl (self, control, losingFocus=False):
-        # Only destroy the control if we're not just losing focus
-        if losingFocus:
-            return False # we didn't destroy the control
-        
-        wx.CallAfter(control.Destroy)
-        return True
-    
     def onChoice(self, event):
         control = event.GetEventObject()
         newChoice = self.GetControlValue(control)

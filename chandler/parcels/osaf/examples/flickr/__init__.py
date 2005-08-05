@@ -169,10 +169,10 @@ class PhotoCollection(ContentModel.ContentItem):
 
 class FlickrCollectionController(Block.Block):
     def onNewFlickrCollectionByOwnerEvent(self, event):
-        CreateCollectionFromUsername(self.itsView, Globals.views[0])
+        return CreateCollectionFromUsername(self.itsView, Globals.views[0])
 
     def onNewFlickrCollectionByTagEvent(self, event):
-        CreateCollectionFromTag(self.itsView, Globals.views[0])
+        return CreateCollectionFromTag(self.itsView, Globals.views[0])
 
 def CreateCollectionFromUsername(repView, cpiaView):
     username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
@@ -186,7 +186,7 @@ def CreateCollectionFromUsername(repView, cpiaView):
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
-            cpiaView.postEventByName('AddToSidebarWithoutCopying',
+            return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
         except flickr.FlickrError, fe:
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
@@ -205,7 +205,7 @@ def CreateCollectionFromTag(repView, cpiaView):
             myPhotoCollection.getCollectionFromFlickr(repView)
 
             # Add the channel to the sidebar
-            cpiaView.postEventByName('AddToSidebarWithoutCopying',
+            return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
         except flickr.FlickrError, fe:
             application.dialogs.Util.ok(wx.GetApp().mainFrame,

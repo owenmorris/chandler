@@ -62,6 +62,7 @@ class ZaoBaoController(Block.Block):
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
                 mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel.items]})
+                return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 
                     "Could not create channel for " + url + "\nCheck the URL and try again.")

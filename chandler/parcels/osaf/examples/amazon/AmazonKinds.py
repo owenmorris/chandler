@@ -15,7 +15,7 @@ def CreateCollection(repView, cpiaView):
         "Enter your Amazon search keywords:",
         "Theodore Leung")
     newAmazonCollection = AmazonCollection(view=repView, keywords=keywords)
-    cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+    return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
     
 def CreateWishListCollection(repView, cpiaView):
     emailAddr = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
@@ -23,7 +23,7 @@ def CreateWishListCollection(repView, cpiaView):
         "What is the Amazon email address of the wish list?",
         "")
     newAmazonCollection = AmazonCollection(view=repView, email=emailAddr)
-    cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
+    return cpiaView.postEventByName('AddToSidebarWithoutCopying', {'items' : [newAmazonCollection]})
 
 def NewCollectionFromKeywords(view, keywords, update = True):
     collection = AmazonCollection(keywords=keywords,view=view)

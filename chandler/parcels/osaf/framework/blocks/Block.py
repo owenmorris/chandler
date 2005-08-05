@@ -92,6 +92,14 @@ class Block(schema.Item):
         """
           Events that are posted by the block pass along the block
         that sent it.
+        
+        @param event: the event to post
+        @type event: a C{BlockEvent}
+        @param arguments: arguments to pass to the event
+        @type arguments: a C{dict}
+        @return: the value returned by the event handler, except
+            C{False} if the event was not handled, 
+            C{True} if broadcast, or the handler returned None
         """
         try:
             try:
@@ -100,7 +108,7 @@ class Block(schema.Item):
                 pass
             arguments ['sender'] = self
             event.arguments = arguments
-            self.dispatchEvent (event)
+            return self.dispatchEvent (event) # return after the finally clause
         finally:
             try:
                 event.arguments = stackedArguments
@@ -110,7 +118,7 @@ class Block(schema.Item):
     def postEventByName (self, eventName, args):
         assert self.eventNameToItemUUID.has_key (eventName), "Event name " + eventName + " not found"
         list = self.eventNameToItemUUID [eventName]
-        self.post (self.find (list [0]), args)
+        return self.post (self.find (list [0]), args)
 
     eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
@@ -420,8 +428,10 @@ class Block(schema.Item):
 
         assert (event.copyItems or not event.disambiguateItemNames), "Can't disabiguate names unless items are copied"
 
+        resultItems = []
         for item in event.items:
             modifyContents (item)
+            resultItems.append (item)
         try:
             items = event.arguments ['items']
         except KeyError:
@@ -429,7 +439,9 @@ class Block(schema.Item):
         else:
             for item in items:
                 modifyContents (item)
-
+                resultItems.append (item)
+        return resultItems
+        
     def synchronizeWidget (self):
         """
           synchronizeWidget's job is to make the wxWidget match the state of
@@ -586,8 +598,9 @@ class Block(schema.Item):
               Call a method on a block or if it doesn't handle it try it's parents
             """
             while (block):
-                if callMethod (block, methodName, event):
-                    break
+                result = callMethod (block, methodName, event)
+                if result is not False:
+                    return result
                 block = block.parentBlock
         
         def broadcast (block, methodName, event, childTest):
@@ -599,6 +612,7 @@ class Block(schema.Item):
         """
           Construct method name based upon the type of the event.
         """
+        result = None # broadcast dispatches don't return results
         try:
             methodName = event.methodName
         except AttributeError:
@@ -612,10 +626,10 @@ class Block(schema.Item):
 
         dispatchEnum = event.dispatchEnum
         if dispatchEnum == 'SendToBlockByReference':
-            callMethod (event.destinationBlockReference, methodName, event)
+            result = callMethod (event.destinationBlockReference, methodName, event)
 
         elif dispatchEnum == 'SendToBlockByName':
-            callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
+            result = callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']
@@ -628,6 +642,7 @@ class Block(schema.Item):
                        lambda child: (child is not None and
                                       child.isShown and 
                                       not child.eventBoundary))
+            result = True
 
         elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
             try:
@@ -641,16 +656,18 @@ class Block(schema.Item):
                            lambda child: (child is not None and
                                           child.isShown and 
                                           not child.eventBoundary))
+                result = True
 
         elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.views[0],
                        methodName,
                        event,
                        lambda child: (child is not None and child.isShown))
+            result = True
 
         elif dispatchEnum == 'FocusBubbleUp':
             block = theClass.getFocusBlock()
-            bubbleUpCallMethod (block, methodName, event)
+            result = bubbleUpCallMethod (block, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             try:
@@ -658,13 +675,16 @@ class Block(schema.Item):
             except IndexError:
                 pass
             else:                
-                bubbleUpCallMethod (block, methodName, event)
+                result = bubbleUpCallMethod (block, methodName, event)
 
         elif __debug__:
             assert (False)
 
         if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
+
+        # return the result of any non-broadcast dispatch
+        return result
 
     # event profiler (class attributes)
     profileEvents = False        # Make "True" to profile events
@@ -796,7 +816,7 @@ class RectangularChild (Block):
 
     def onCopyEvent (self, event):
         try:
-            self.widget.Copy()
+            return self.widget.Copy()
         except AttributeError:
             # don't know, so BubbleUp            
             return False
@@ -853,8 +873,9 @@ class RectangularChild (Block):
         except AttributeError:
             # don't know, so BubbleUp
             return False
-        method()
+        result = method()
         self._tryDataChanged()
+        return result
     
     def _tryDataChanged (self):
         # notify that data has changed, if we can
