@@ -6,7 +6,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import unittest, sys, logging, os
+import unittest, sys, os
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
@@ -37,13 +37,6 @@ class ICalendarTestCase(unittest.TestCase):
          os.path.join(rootdir, 'repository', 'packs', 'chandler.pack'),
         )
         parcelpath = [os.path.join(rootdir, 'parcels')]
-
-        handler = logging.FileHandler(os.path.join(rootdir,'chandler.log'))
-        formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
-        handler.setFormatter(formatter)
-        root = logging.getLogger()
-        root.setLevel(logging.INFO)
-        root.addHandler(handler)
 
         namespaces = [
          'parcel:osaf.framework.sharing',

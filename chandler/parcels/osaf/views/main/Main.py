@@ -37,8 +37,7 @@ import osaf.framework.scripting.CPIAScript as CPIAScript
 from osaf import webserver
 from osaf.app import Trash
 
-logger = logging.getLogger("mainview")
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class MainView(View):
     """
@@ -424,7 +423,7 @@ class MainView(View):
             self.setStatusMessage ("Import completed")
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
-            self.itsView.getLogger().info("Failed importFile:\n%s" % trace)
+            logger.info("Failed importFile:\n%s" % trace)
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
@@ -454,7 +453,7 @@ class MainView(View):
             self.setStatusMessage("Export completed")
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
-            self.itsView.getLogger().info("Failed exportFile:\n%s" % trace)
+            logger.info("Failed exportFile:\n%s" % trace)
             self.setStatusMessage("Export failed")
 
 
@@ -749,6 +748,10 @@ class MainView(View):
         for server in webserver.Server.iterItems(view=self.itsView):
             server.startup()
 
+    def onLoadLoggingConfigEvent(self, event):
+        # Test menu item
+        wx.GetApp().ChooseLogConfig()
+
     def onShareSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
         
@@ -814,7 +817,10 @@ class MainView(View):
 
     def onUnsubscribeSidebarCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
+        if collection is not None:
+            share = Sharing.getShare(collection)
+            sharedByMe = Sharing.isSharedByMe(share)
+        event.arguments['Enable'] = collection is not None and Sharing.isShared(collection) and not sharedByMe
 
     def onUnpublishSidebarCollectionEvent(self, event):
         collection = self.getSidebarSelectedCollection ()
@@ -823,7 +829,10 @@ class MainView(View):
 
     def onUnpublishSidebarCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
+        if collection is not None:
+            share = Sharing.getShare(collection)
+            sharedByMe = Sharing.isSharedByMe(share)
+        event.arguments['Enable'] = collection is not None and Sharing.isShared(collection) and sharedByMe
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."

@@ -13,8 +13,7 @@ from repository.util.Streams import BlockInputStream
 from application import schema
 import EXIF
 
-logger = logging.getLogger('Photos')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class PhotoMixin(ContentModel.ContentItem):
     schema.kindInfo(displayName="Photo Mixin Kind",

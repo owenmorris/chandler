@@ -9,8 +9,7 @@ from repository.util.ClassLoader import ClassLoader
 import os, sys
 import logging
 
-logger = logging.getLogger('WebServer')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 def start_servers(startup_item):
     if getattr(Globals.options,'webserver',False):

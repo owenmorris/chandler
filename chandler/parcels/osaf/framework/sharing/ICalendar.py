@@ -17,8 +17,7 @@ import itertools
 import repository.query.Query as Query
 from application import schema
 
-logger = logging.getLogger('ICalendar')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()

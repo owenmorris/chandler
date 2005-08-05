@@ -1,8 +1,7 @@
 import logging
 from twisted.web import resource
 
-logger = logging.getLogger("Lobster")
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class LobViewerResource(resource.Resource):
     isLeaf = True

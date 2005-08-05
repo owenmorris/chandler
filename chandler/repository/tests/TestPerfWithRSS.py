@@ -13,7 +13,7 @@ from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-from osaf.examples.zaobao.RSSData import RSSChannel
+import osaf.examples.zaobao as zaobao
 
 # get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
@@ -113,7 +113,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             urlhash = str(hash(url))
             item = repository.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = RSSChannel(view = repository.view)
+                item = zaobao.RSSChannel(view = repository.view)
                 item.url = url
             feeds.append(item.itsUUID)
 

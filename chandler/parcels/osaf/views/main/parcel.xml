@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- $Revision$ -->
 <!-- $Date$ -->
@@ -402,6 +402,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
   
+  <BlockEvent itsName="LoadLoggingConfig">
+    <blockName>LoadLoggingConfig</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
   <BlockEvent itsName="ShareTool">
     <blockName>ShareTool</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -500,6 +506,7 @@
     <childrenBlocks itemref="doc:ShowPyShellItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ActivateWebserverItem"/>
+    <childrenBlocks itemref="doc:LoadLoggingConfigItem"/>
     <childrenBlocks itemref="doc:ShareMenu"/>
     <childrenBlocks itemref="doc:SkinsMenu"/>
     <childrenBlocks itemref="doc:AddAdditionalViews"/>
@@ -1011,6 +1018,14 @@
     <event itemref="doc:ActivateWebserver"/>
     <eventsForNamedLookup itemref="doc:ActivateWebserver"/>
     <helpString>Activates the built-in webserver at localhost:1888</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="LoadLoggingConfigItem">
+    <blockName>LoadLoggingConfigItem</blockName>
+    <title>Load logging configuration file...</title>
+    <event itemref="doc:LoadLoggingConfig"/>
+    <eventsForNamedLookup itemref="doc:LoadLoggingConfig"/>
+    <helpString>Load logging configuration file</helpString>
   </MenuItem>
 
   <MenuItem itsName="ReloadParcelsItem">

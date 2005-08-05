@@ -9,8 +9,7 @@ import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
 
-logger = logging.getLogger('Sharing')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 SHARING = "parcel:osaf.framework.sharing"
 CONTENTMODEL = "parcel:osaf.contentmodel"
@@ -54,6 +53,8 @@ class SubscribeDialog(wx.Dialog):
         self.textStatus = wx.xrc.XRCCTRL(self, "TEXT_STATUS")
         self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
         self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
+        self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
+        self.checkboxKeepOut.Enable(False) # Not yet supported
 
         self.Bind(wx.EVT_BUTTON, self.OnSubscribe, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
@@ -92,6 +93,19 @@ class SubscribeDialog(wx.Dialog):
             collection = share.contents
             mainView = Globals.views[0]
             mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
+
+            event = 'ApplicationBarAll'
+            if share.filterKinds and len(share.filterKinds) == 1:
+                filterKind = share.filterKinds[0]
+                if filterKind == '//parcels/osaf/contentmodel/calendar/CalendarEventMixin':
+                    event = 'ApplicationBarEvent'
+                elif filterKind == '//parcels/osaf/contentmodel/tasks/TaskMixin':
+                    event = 'ApplicationBarTask'
+                elif filterKind == '//parcels/osaf/contentmodel/mail/MailMessageMixin':
+                    event = 'ApplicationBarMail'
+
+            mainView.postEventByName(event, {})
+
             self.EndModal(True)
 
         except Sharing.NotAllowed, err:

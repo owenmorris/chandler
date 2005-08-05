@@ -20,7 +20,7 @@ class ClassLoader(object):
         except ImportError:
             raise
         except:
-            logging.getLogger('repository').exception('Importing class %s.%s failed', module, name)
+            logging.getLogger(__name__).exception('Importing class %s.%s failed', module, name)
             x, value, traceback = sys.exc_info()
             # yes, this is valid python, a traceback can be raise's third arg
             raise ImportError, value, traceback

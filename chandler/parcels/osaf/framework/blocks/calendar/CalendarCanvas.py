@@ -33,8 +33,7 @@ import itertools
 import copy
 import logging
 
-logger = logging.getLogger('CalendarCanvas')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
 

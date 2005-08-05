@@ -15,8 +15,7 @@ import osaf.contentmodel.Notes as Notes
 from osaf.contentmodel.tasks import Task, TaskMixin
 import osaf.contentmodel.mail as Mail
 
-logger = logging.getLogger('Data loading Script')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 collectionsDict={}
 
@@ -56,18 +55,21 @@ def GenerateCollection(view, mainView, args):
              if not collectionsDict.has_key(potentialName):
                  collection.displayName = potentialName
                  collectionsDict[potentialName] = collection
-                 mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+                 if mainView:
+                     mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
              break
     elif not args[0]=='':
         collection.displayName = args[0]
         if not collectionsDict.has_key(args[0]):
-            mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+            if mainView:
+                mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
             collectionsDict[args[0]]=collection
     else:
         #default value
         collection.displayName = 'Untitled'
         if not collectionsDict.has_key('Untitled'):
-            mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
+            if mainView:
+                mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
             collectionsDict['Untitled']=collection
         
     return collection
@@ -367,7 +369,7 @@ def GenerateMailMessage(view, mainView, args):
 
 
 
-def RunScript(view, mainView):
+def RunScript(view, mainView=None):
     """ Run this script (command line invocation) """
     if Globals.options.createData:
         filepath = Globals.options.createData

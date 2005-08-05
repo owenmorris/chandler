@@ -529,18 +529,36 @@ class ContentItem(schema.Item):
 
     sharedState = property(getSharedState)
 
+
     def isAttributeModifiable(self, attribute):
 
-        if self.sharedState in (ContentItem.READWRITE, ContentItem.UNSHARED):
+        # fast path -- item is unshared; have at it!
+        if self.sharedState == ContentItem.UNSHARED:
             return True
+
+        # slow path -- item is shared; we need to look at all the *inbound*
+        # shares this item participates in -- if *any* of those inbound shares
+        # are writable, the attribute is modifiable; otherwise, if *all* of
+        # those inbound shares are read-only, but none of those shares
+        # actually *share* that attribute (i.e., it's being filtered either
+        # by sharing cloud or explicit filter), then it's modifiable.
+
+        me = self.getCurrentMeContact(self.itsView)
+
+        isSharedInAnyReadOnlyShares = False
 
         for collection in self.queries:
             for share in collection.shares:
-                # We know that share must be read-only.
-                # If the attribute is shared as part of this read-only share,
-                # then the user can't modify it.
-                if attribute in share.getSharedAttributes(self):
-                    return False
+                if share.sharer is not me:          # inbound share
+                    if share.mode in ('put', 'both'):   # writable share
+                        return True
+                    else:                               # read-only share
+                        if attribute in share.getSharedAttributes(self):
+                            isSharedInAnyReadOnlyShares = True
+
+        if isSharedInAnyReadOnlyShares:
+            return False
+
         return True
 
 

@@ -48,8 +48,7 @@ class AbstractRepositoryViewManager(object):
         @return: C{logging.Logger}
         """
 
-        log = logging.getLogger("AbstractRepositoryViewManager")
-        log.setLevel(logging.DEBUG)
+        log = logging.getLogger(__name__)
         return log
 
     def setViewCurrent(self):

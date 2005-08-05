@@ -15,8 +15,7 @@ from repository.persistence.RepositoryError \
 import Utility
 import schema
 
-logger = logging.getLogger('App')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # SCHEMA_VERSION has moved to Utility.py
@@ -205,7 +204,7 @@ class wxApplication (wx.App):
                 Globals.options.create = True
                 view = Utility.initRepository(repoDir, Globals.options)
             else:
-                raise SchemaMismatchError
+                raise Utility.SchemaMismatchError
 
         self.repository = view.repository
 
@@ -220,7 +219,7 @@ class wxApplication (wx.App):
                 view = Utility.initRepository(repoDir, Globals.options)
                 self.repository = view.repository
             else:
-                raise SchemaMismatchError
+                raise Utility.SchemaMismatchError
 
         self.UIRepositoryView = view
 
@@ -712,6 +711,21 @@ class wxApplication (wx.App):
         self.pyFrame.SetSize((700,700))
         self.pyFrame.Show(True)
 
+    def ChooseLogConfig(self):
+        wildcard = "Config files|*.conf|All files (*.*)|*.*"
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                            "Choose logging configuration file",
+                            "", "", wildcard, wx.OPEN)
+
+        path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            path = str(dlg.GetPath())
+        dlg.Destroy()
+        if path:
+            logger.warning("Loading logging configuration: %s" % path)
+            Utility.fileConfig(path)
+
+
     def ShowSchemaMismatchWindow(self):
         logger.info("Schema version of repository doesn't match app")
 
@@ -836,7 +850,3 @@ class StartupSplash(wx.Frame):
         wx.Yield()
         time.sleep(.25) #give the user a chance to see the gauge reach 100%
         wx.Frame.Destroy(self)
-
-class SchemaMismatchError(Exception):
-    """ The schema version in the repository doesn't match the application. """
-    pass

@@ -5,15 +5,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import zanshin.webdav
 
-import logging
 import crypto.ssl as ssl
 import M2Crypto.BIO
 import M2Crypto.SSL.Checker
 import chandlerdb.util.uuid
 import twisted.internet.error as error
-
-logger = logging.getLogger('WebDAV')
-logger.setLevel(logging.INFO)
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     """

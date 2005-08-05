@@ -23,8 +23,7 @@ mechanism is managed by a TrunkDelegate object, which can be subclassed and/or c
 to customize its behavior.
 """
 
-logger = logging.getLogger('trunk')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
     """ 

@@ -24,8 +24,7 @@ from repository.item.RefCollections import RefList
 import repository.item.Values
 from repository.schema.Attribute import Attribute
 
-logger = logging.getLogger('Parcel')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "parcel:core"
@@ -179,7 +178,7 @@ class Manager(schema.Item):
         @type name: string
         """
 
-        logger.debug("lookup: args (%s) (%s)" % (namespace, name))
+        # logger.debug("lookup: args (%s) (%s)" % (namespace, name))
 
         if not self.registryLoaded:
             self.__refreshRegistry()
@@ -189,8 +188,8 @@ class Manager(schema.Item):
             return None
 
         if not self._ns2parcel.has_key(namespace):
-            logger.debug("lookup: no such namespace (%s)" % \
-             namespace)
+            # logger.debug("lookup: no such namespace (%s)" % \
+            #  namespace)
             return None
 
         pDesc = self._ns2parcel[namespace]
@@ -235,13 +234,13 @@ class Manager(schema.Item):
             item = self.repo.findPath(path)
             if item is None:
                 # There is no item with this name
-                logger.debug("lookup: no such name (%s) in namespace "
-                 "(%s)" % (nameHead, namespace))
+                # logger.debug("lookup: no such name (%s) in namespace "
+                #  "(%s)" % (nameHead, namespace))
                 return None
             else:
                 # Found an item with this name
-                logger.debug("lookup: found matching item (%s)" % \
-                 item.itsPath)
+                # logger.debug("lookup: found matching item (%s)" % \
+                #  item.itsPath)
                 if nameTail:
                     return item.findPath(nameTail)
                 return item
@@ -250,8 +249,7 @@ class Manager(schema.Item):
             repoPath = pDesc["aliases"][nameHead]
             if nameTail:
                 repoPath = "%s/%s" % (repoPath, nameTail)
-            logger.debug("lookup: yielded item (%s)" % \
-             repoPath)
+            # logger.debug("lookup: yielded item (%s)" % repoPath)
             return self.repo.findPath(repoPath)
 
     def _parcelDescriptor(self, parcel):
@@ -410,23 +408,23 @@ class Manager(schema.Item):
                 self._file2ns[parcelFile] = namespace
 
                 # Load this file during LoadParcels
-                logger.debug("scan: adding %s to load list" % namespace)
+                # logger.debug("scan: adding %s to load list" % namespace)
                 self.__parcelsToLoad.append(namespace)
 
 
-            for file in self._file2ns.keys():
-                logger.debug("scan: file (%s) --> ns (%s)" % \
-                 ( file, self._file2ns[file] ) )
-            for repoPath in self._repo2ns.keys():
-                logger.debug("scan: path (%s) --> ns (%s)" % \
-                 ( repoPath, self._repo2ns[repoPath] ) )
-            for uri in self._ns2parcel.keys():
-                pDesc = self._ns2parcel[uri]
-                logger.debug("scan: pDesc ns (%s), file (%s), path (%s)" % \
-                 ( uri, pDesc["file"], pDesc["path"] ) )
-                for alias in pDesc["aliases"].keys():
-                    logger.debug("scan:    alias (%s) --> (%s)" % \
-                     (alias, pDesc["aliases"][alias]) )
+            # for file in self._file2ns.keys():
+            #     logger.debug("scan: file (%s) --> ns (%s)" % \
+            #      ( file, self._file2ns[file] ) )
+            # for repoPath in self._repo2ns.keys():
+            #     logger.debug("scan: path (%s) --> ns (%s)" % \
+            #      ( repoPath, self._repo2ns[repoPath] ) )
+            # for uri in self._ns2parcel.keys():
+            #     pDesc = self._ns2parcel[uri]
+            #     logger.debug("scan: pDesc ns (%s), file (%s), path (%s)" % \
+            #      ( uri, pDesc["file"], pDesc["path"] ) )
+            #     for alias in pDesc["aliases"].keys():
+            #         logger.debug("scan:    alias (%s) --> (%s)" % \
+            #          (alias, pDesc["aliases"][alias]) )
 
         except xml.sax._exceptions.SAXParseException, e:
             self.saveState(file=e.getSystemId(), line=e.getLineNumber())
@@ -699,13 +697,13 @@ class Manager(schema.Item):
 
             self.__delayedOperations = None
             
-            self.resetState()
-            logger.info("Starting parcels...")
-            root = self.repo.findPath("//parcels")
-            for parcel in self.__walkParcels(root):
-                parcel.startupParcel()
-            logger.info("...done")
-            self.resetState()
+            # self.resetState()
+            # logger.info("Starting parcels...")
+            # root = self.repo.findPath("//parcels")
+            # for parcel in self.__walkParcels(root):
+            #     parcel.startupParcel()
+            # logger.info("...done")
+            # self.resetState()
 
         except:
             self.__displayError()
@@ -806,9 +804,7 @@ class Parcel(schema.Item):
     The parcel item class.
 
     parcel.xml files should always define an item of kind Parcel as the root
-    element of the document.  These items receive a callback, startupParcel(),
-    each time the loadParcels() method is run, after all parcel items have
-    been loaded in.
+    element of the document.
 
     Items within a parcel may be retrieved via the lookup() method.
     """
@@ -832,13 +828,6 @@ class Parcel(schema.Item):
 
     def _fillItem(self, name, parent, kind, **kwds):
         super(Parcel, self)._fillItem(name, parent, kind, **kwds)
-
-    def startupParcel(self):
-        """
-        Method called at the end of loadParcels().  Parcel items can perform
-        whatever non-persisted setup they need to do.
-        """
-        pass
 
     def lookup(self, name=None):
         """
@@ -1594,8 +1583,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             displayPath = "None"
                         else:
                             displayPath = reference.itsPath
-                        logger.debug("Reload: item %s, assigning %s = %s" % \
-                         (item.itsPath, attributeName, displayPath))
+                        # logger.debug("Reload: item %s, assigning %s = %s" % \
+                        #  (item.itsPath, attributeName, displayPath))
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1628,9 +1617,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     assignmentCallable = item.addValue
                     assignmentArgs = (attributeName, reference.itsUUID, )
 
-                    if reloading:
-                        logger.debug("Reload: item %s, assigning %s = UUID of %s" % \
-                         (item.itsPath, attributeName, reference.itsPath))
+                    # if reloading:
+                    #     logger.debug("Reload: item %s, assigning %s = UUID of %s" % \
+                    #     (item.itsPath, attributeName, reference.itsPath))
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
@@ -1698,16 +1687,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     if key is not None:
                         assignmentCallable = item.setValue
                         assignmentArgs = (attributeName, value, key, )
-                        if reloading:
-                            logger.debug("Reload: item %s, assigning %s[%s] = " \
-                             "'%s'" % \
-                             (item.itsPath, attributeName, key, value))
+                        # if reloading:
+                        #     logger.debug("Reload: item %s, assigning %s[%s] = " \
+                        #      "'%s'" % \
+                        #      (item.itsPath, attributeName, key, value))
                     else:
                         assignmentCallable = item.addValue
                         assignmentArgs = (attributeName, value, )
-                        if reloading:
-                            logger.debug("Reload: item %s, assigning %s = '%s'" % \
-                             (item.itsPath, attributeName, value))
+                        # if reloading:
+                        #     logger.debug("Reload: item %s, assigning %s = '%s'" % \
+                        #      (item.itsPath, attributeName, value))
 
                 # If this is the first time we're assigning to this
                 # attribute for this item within this method, let's
@@ -1917,8 +1906,8 @@ class ValueSet(object):
         for (attrName, value, key) in self.getAssignments():
             card = self.item.getAttributeAspect(attrName, "cardinality")
             if card == "dict":
-                logger.debug("Reload: item %s, unassigning %s[%s] = '%s'" % \
-                 (self.item.itsPath, attrName, key, value))
+                # logger.debug("Reload: item %s, unassigning %s[%s] = '%s'" % \
+                #  (self.item.itsPath, attrName, key, value))
                 self.item.removeValue(attrName, key=key)
             elif card == "list":
                 # First, see if this is a ref collection, since we handle those
@@ -1931,8 +1920,8 @@ class ValueSet(object):
                     # remove it from this collection
                     otherItem = self.item.findUUID(value)
                     attr.remove(otherItem)
-                    logger.debug("Reload: item %s, unassigning %s = '%s'" % \
-                     (self.item.itsPath, attrName, otherItem.itsPath))
+                    # logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                    #  (self.item.itsPath, attrName, otherItem.itsPath))
                     continue
 
                 # For list and single cardinality attributes, unassigning
@@ -1944,25 +1933,25 @@ class ValueSet(object):
                     if isinstance(listValue, repository.item.Item.Item):
                         if str(listValue.itsUUID) == value:
                             list.remove(listValue)
-                            logger.debug("Reload: item %s, unassigning %s = '%s'" % \
-                             (self.item.itsPath, attrName, listValue.itsPath))
+                            # logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                            #  (self.item.itsPath, attrName, listValue.itsPath))
                     else:
                         if str(listValue) == value:
                             list.remove(listValue)
-                            logger.debug("Reload: item %s, unassigning %s = '%s'" % \
-                             (self.item.itsPath, attrName, value))
+                            # logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                            #  (self.item.itsPath, attrName, value))
             else:
                 attrValue = self.item.getAttributeValue(attrName)
                 if isinstance(attrValue, repository.item.Item.Item):
                     if str(attrValue.itsUUID) == value:
                         self.item.removeAttributeValue(attrName)
-                        logger.debug("Reload: item %s, unassigning %s = '%s'" % \
-                         (self.item.itsPath, attrName, attrValue.itsPath))
+                        # logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                        #  (self.item.itsPath, attrName, attrValue.itsPath))
                 else:
                     if str(attrValue) == value:
                         self.item.removeAttributeValue(attrName)
-                        logger.debug("Reload: item %s, unassigning %s = '%s'" % \
-                         (self.item.itsPath, attrName, value))
+                        # logger.debug("Reload: item %s, unassigning %s = '%s'" % \
+                        #  (self.item.itsPath, attrName, value))
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

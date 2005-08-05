@@ -8,7 +8,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import application
-import osaf.examples.zaobao.RSSData as RSSData
+import osaf.examples.zaobao as zaobao
 import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
@@ -57,11 +57,11 @@ class ZaoBaoController(Block.Block):
         if url and url != "":
             try: 
                 # create the zaobao channel
-                channel = RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
+                channel = zaobao.NewChannelFromURL(view=self.itsView, url=url, update=True)
 
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
-                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel.items]})
+                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel]})
                 return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 

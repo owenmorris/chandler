@@ -35,8 +35,7 @@ def startup(**kwds):
     Globals.options = Utility.initOptions(Globals.chandlerDirectory, **kwds)
     profileDir = Globals.options.profileDir
 
-    logFile = os.path.join(profileDir, 'chandler.log')
-    Utility.initLogging(logFile)
+    Utility.initLogging(Globals.options)
 
     parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                        Globals.options.parcelPath)
@@ -50,6 +49,10 @@ def startup(**kwds):
 
     Utility.initCrypto(Globals.options.profileDir)
     Utility.initParcels(view, parcelPath)
+
+    if Globals.options.createData:
+        import GenerateItemsFromFile
+        GenerateItemsFromFile.RunScript(view)
 
     return view
 

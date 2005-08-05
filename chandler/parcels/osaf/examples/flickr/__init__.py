@@ -20,8 +20,7 @@ import dateutil
 import wx
 import os, logging
 
-logger = logging.getLogger('Flickr')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class FlickrPhotoMixin(Photos.PhotoMixin):

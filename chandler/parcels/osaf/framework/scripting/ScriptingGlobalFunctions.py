@@ -19,8 +19,7 @@ import osaf.framework.blocks.Block as _Block
 import application.Globals as _Globals
 from repository.item.Item import Item as _Item
 
-_logger = _logging.getLogger('CPIA Script')
-_logger.setLevel(_logging.INFO)
+_logger = _logging.getLogger(__name__)
 
 """
 Named lookup of General Items

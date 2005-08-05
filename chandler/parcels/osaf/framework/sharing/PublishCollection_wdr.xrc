@@ -300,7 +300,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxButton" name="BUTTON_UNPUBLISH">
-                        <label>Unpublish</label>
+                        <label>Unsubscribe</label>
                     </object>
                 </object>
                 <object class="sizeritem">

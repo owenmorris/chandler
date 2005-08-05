@@ -14,8 +14,7 @@ import logging
 import hotshot
 from DocumentTypes import SizeType, RectType, PositionType, ColorType
 
-logger = logging.getLogger('cpia')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class TrunkSubtree(schema.Item):

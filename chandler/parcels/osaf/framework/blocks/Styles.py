@@ -12,8 +12,7 @@ import wx
 import logging
 from DocumentTypes import ColorType
 
-logger = logging.getLogger('styles')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class fontFamilyEnumType(schema.Enumeration):
     values = "DefaultUIFont", "SerifFont", "SansSerifFont", "FixedPitchFont"

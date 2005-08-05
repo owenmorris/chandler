@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import gettext, os, sys, crypto, logging
+import gettext, os, sys, crypto, logging, logging.config, string
 from optparse import OptionParser
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "41" # "all day events canvas" -> AllDayEventsCanvas
+SCHEMA_VERSION = "42" # rearranged zaobao
 
 logger = None # initialized in initLogging()
 
@@ -114,6 +114,7 @@ def initOptions(chandlerDirectory, **kwds):
         'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
         'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
         'nosplash':    ('-N', '--nosplash',  'b', False, 'CHANDLERNOSPLASH', ''),
+        'logging':     ('-L', '--logging',   's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
     }
 
@@ -161,24 +162,31 @@ def initOptions(chandlerDirectory, **kwds):
     return options
 
 
-def initLogging(logFile):
+def initLogging(options):
     global logger
 
     if logger is None:
-        handler = logging.FileHandler(logFile)
-        formatter = \
-         logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
-        handler.setFormatter(formatter)
-        root = logging.getLogger()
-        root.addHandler(handler)
+        # Make PROFILEDIR available within the logging config file
+        logging.PROFILEDIR = options.profileDir
 
-        logger = logging.getLogger('util')
-        logger.setLevel(logging.INFO)
+        logConfFile = options.logging
+        if os.path.isfile(logConfFile):
+            # Replacing the standard fileConfig with our own, below
+            # logging.config.fileConfig(options.logging)
+            fileConfig(options.logging)
+        else:
+            # Log config file doesn't exist
+            logging.basicConfig(level=logging.WARNING,
+                format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+                filename=os.path.join(options.profileDir, 'chandler.log'),
+                filemode='a')
 
-        # Also send twisted output to chandler.log, per bug 1997
-        # @@@ Probably not a good long term solution(?)
+        logger = logging.getLogger(__name__)
+
+        # Send twisted output to twisted.log in the profile directory
         import twisted.python.log
-        twisted.python.log.startLogging(file(logFile, 'a+'), 0)
+        twistedLogFile = os.path.join(options.profileDir, 'twisted.log')
+        twisted.python.log.startLogging(file(twistedLogFile, 'a+'), 0)
 
 
 def locateChandlerDirectory():
@@ -346,3 +354,160 @@ def initWakeup(view):
 
 def stopWakeup():
     pass
+
+class SchemaMismatchError(Exception):
+    """ The schema version in the repository doesn't match the application. """
+    pass
+
+# Replacement for logging.config.fileConfig, which doesn't disable loggers:
+
+def fileConfig(fname, defaults=None):
+    """
+    Read the logging configuration from a ConfigParser-format file.
+
+    This can be called several times from an application, allowing an end user
+    the ability to select from various pre-canned configurations (if the
+    developer provides a mechanism to present the choices and load the chosen
+    configuration).
+    In versions of ConfigParser which have the readfp method [typically
+    shipped in 2.x versions of Python], you can pass in a file-like object
+    rather than a filename, in which case the file-like object will be read
+    using readfp.
+    """
+    import ConfigParser
+
+    cp = ConfigParser.ConfigParser(defaults)
+    if hasattr(cp, 'readfp') and hasattr(fname, 'readline'):
+        cp.readfp(fname)
+    else:
+        cp.read(fname)
+    #first, do the formatters...
+    flist = cp.get("formatters", "keys")
+    if len(flist):
+        flist = string.split(flist, ",")
+        formatters = {}
+        for form in flist:
+            sectname = "formatter_%s" % form
+            opts = cp.options(sectname)
+            if "format" in opts:
+                fs = cp.get(sectname, "format", 1)
+            else:
+                fs = None
+            if "datefmt" in opts:
+                dfs = cp.get(sectname, "datefmt", 1)
+            else:
+                dfs = None
+            f = logging.Formatter(fs, dfs)
+            formatters[form] = f
+    #next, do the handlers...
+    #critical section...
+    logging._acquireLock()
+    try:
+        try:
+            #first, lose the existing handlers...
+            logging._handlers.clear()
+            #now set up the new ones...
+            hlist = cp.get("handlers", "keys")
+            if len(hlist):
+                hlist = string.split(hlist, ",")
+                handlers = {}
+                fixups = [] #for inter-handler references
+                for hand in hlist:
+                    try:
+                        sectname = "handler_%s" % hand
+                        klass = cp.get(sectname, "class")
+                        opts = cp.options(sectname)
+                        if "formatter" in opts:
+                            fmt = cp.get(sectname, "formatter")
+                        else:
+                            fmt = ""
+                        klass = eval(klass, vars(logging))
+                        args = cp.get(sectname, "args")
+                        args = eval(args, vars(logging))
+                        h = apply(klass, args)
+                        if "level" in opts:
+                            level = cp.get(sectname, "level")
+                            h.setLevel(logging._levelNames[level])
+                        if len(fmt):
+                            h.setFormatter(formatters[fmt])
+                        #temporary hack for FileHandler and MemoryHandler.
+                        if klass == logging.handlers.MemoryHandler:
+                            if "target" in opts:
+                                target = cp.get(sectname,"target")
+                            else:
+                                target = ""
+                            if len(target): #the target handler may not be loaded yet, so keep for later...
+                                fixups.append((h, target))
+                        handlers[hand] = h
+                    except:     #if an error occurs when instantiating a handler, too bad
+                        pass    #this could happen e.g. because of lack of privileges
+                #now all handlers are loaded, fixup inter-handler references...
+                for fixup in fixups:
+                    h = fixup[0]
+                    t = fixup[1]
+                    h.setTarget(handlers[t])
+            #at last, the loggers...first the root...
+            llist = cp.get("loggers", "keys")
+            llist = string.split(llist, ",")
+            llist.remove("root")
+            sectname = "logger_root"
+            root = logging.root
+            log = root
+            opts = cp.options(sectname)
+            if "level" in opts:
+                level = cp.get(sectname, "level")
+                log.setLevel(logging._levelNames[level])
+            for h in root.handlers[:]:
+                root.removeHandler(h)
+            hlist = cp.get(sectname, "handlers")
+            if len(hlist):
+                hlist = string.split(hlist, ",")
+                for hand in hlist:
+                    log.addHandler(handlers[hand])
+            #and now the others...
+            #we don't want to lose the existing loggers,
+            #since other threads may have pointers to them.
+            #existing is set to contain all existing loggers,
+            #and as we go through the new configuration we
+            #remove any which are configured. At the end,
+            #what's left in existing is the set of loggers
+            #which were in the previous configuration but
+            #which are not in the new configuration.
+            existing = root.manager.loggerDict.keys()
+            #now set up the new ones...
+            for log in llist:
+                sectname = "logger_%s" % log
+                qn = cp.get(sectname, "qualname")
+                opts = cp.options(sectname)
+                if "propagate" in opts:
+                    propagate = cp.getint(sectname, "propagate")
+                else:
+                    propagate = 1
+                logger = logging.getLogger(qn)
+                if qn in existing:
+                    existing.remove(qn)
+                if "level" in opts:
+                    level = cp.get(sectname, "level")
+                    logger.setLevel(logging._levelNames[level])
+                for h in logger.handlers[:]:
+                    logger.removeHandler(h)
+                logger.propagate = propagate
+                logger.disabled = 0
+                hlist = cp.get(sectname, "handlers")
+                if len(hlist):
+                    hlist = string.split(hlist, ",")
+                    for hand in hlist:
+                        logger.addHandler(handlers[hand])
+            #Disable any old loggers. There's no point deleting
+            #them as other threads may continue to hold references
+            #and by disabling them, you stop them doing any logging.
+            # for log in existing:
+            #     root.manager.loggerDict[log].disabled = 1
+        except:
+            import traceback
+            ei = sys.exc_info()
+            traceback.print_exception(ei[0], ei[1], ei[2], None, sys.stderr)
+            del ei
+    finally:
+        logging._releaseLock()
+

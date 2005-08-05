@@ -25,8 +25,7 @@ import wx
 import zanshin.util
 import zanshin.webdav
 
-logger = logging.getLogger('Sharing')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1486,10 +1485,9 @@ class CloudXMLFormat(ImportExportFormat):
         node = doc.children
         try:
             item = self.__importNode(node, item)
-        except KeyError:
-            print "Couldn't parse:", text
+        finally:
+            doc.freeDoc()
 
-        doc.freeDoc()
         return item
 
     def exportProcess(self, item, depth=0):
@@ -1919,6 +1917,12 @@ def isShared(collection):
         if share.hidden == False:
             return True
     return False
+
+def isSharedByMe(share):
+    if share is None:
+        return False
+    me = Contact.getCurrentMeContact(share.itsView)
+    return share.sharer is me
 
 
 def getShare(collection):

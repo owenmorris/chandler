@@ -25,8 +25,7 @@ import itertools
 import StringIO
 import logging
 
-logger = logging.getLogger('Calendar')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 TIMECHANGES = ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset')
 

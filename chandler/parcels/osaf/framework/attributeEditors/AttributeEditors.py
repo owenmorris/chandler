@@ -24,8 +24,7 @@ from osaf.framework.blocks.Block import ShownSynchronizer
 from osaf.contentmodel.ContentModel import ContentItem
 from application import schema
 
-logger = logging.getLogger('ae')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 #
 # The attribute editor registration mechanism:

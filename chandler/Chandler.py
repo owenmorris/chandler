@@ -8,7 +8,6 @@ import application.Globals
 import application.Utility as Utility
 from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
-from application.Application import SchemaMismatchError
 
 
 def main():
@@ -22,6 +21,7 @@ def main():
     Process any command line switches and any environment variable values
     """
     application.Globals.options = Utility.initOptions(application.Globals.chandlerDirectory)
+    Utility.initLogging(application.Globals.options)
 
     def realMain():
         if __debug__ and application.Globals.options.wing:
@@ -43,9 +43,6 @@ def main():
             dbgp.client.brk()
         from application.Application import wxApplication
 
-        logFile = os.path.join(application.Globals.options.profileDir,
-                               'chandler.log')
-        Utility.initLogging(logFile)
 
 
         """
@@ -67,6 +64,7 @@ def main():
         realMain()
     else:
         # The normal way: wrap the app in an exception frame
+
         try:
             import logging, traceback, wx
             realMain()
@@ -79,7 +77,7 @@ def main():
             dialog.ShowModal()
             dialog.Destroy()
 
-        except SchemaMismatchError:
+        except Utility.SchemaMismatchError:
             logging.info("User chose not to clear the repository.  Exiting.")
 
         except Exception:

@@ -10,8 +10,7 @@ import WebDAV
 import zanshin.webdav
 import zanshin.util
 
-logger = logging.getLogger('Sharing')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 class PublishCollectionDialog(wx.Dialog):
 
@@ -96,9 +95,9 @@ class PublishCollectionDialog(wx.Dialog):
                   id=wx.xrc.XRCID("CHOICE_ACCOUNT"))
 
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.CheckboxShareAlarms.SetValue(True)
+        self.CheckboxShareAlarms.SetValue(False)
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-        self.CheckboxShareStatus.SetValue(True)
+        self.CheckboxShareStatus.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -110,6 +109,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_BUTTON, self.OnCopy,
                   id=wx.xrc.XRCID("BUTTON_CLIPBOARD"))
+        self.Bind(wx.EVT_BUTTON, self.OnUnPubSub,
+                  id=wx.xrc.XRCID("BUTTON_UNPUBLISH"))
 
         name = self.collection.displayName
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
@@ -120,8 +121,13 @@ class PublishCollectionDialog(wx.Dialog):
         url = self.shareXML.conduit.getLocation()
         wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
 
-        # Not yet supported
-        wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH").Enable(False)
+        self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
+
+        share = Sharing.getShare(self.collection)
+        if Sharing.isSharedByMe(share):
+            self.UnPubSub.SetLabel("Unpublish")
+        else:
+            self.UnPubSub.SetLabel("Unsubscribe")
 
         # Controls for managing filtered shares:
 
@@ -148,9 +154,9 @@ class PublishCollectionDialog(wx.Dialog):
                         self.OnFilterClicked)
 
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.CheckboxShareAlarms.Enable(True)
+        self.CheckboxShareAlarms.Enable(False)
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-        self.CheckboxShareStatus.Enable(True)
+        self.CheckboxShareStatus.Enable(False)
 
         self.filterKinds = self.shareXML.filterKinds
 
@@ -404,6 +410,15 @@ class PublishCollectionDialog(wx.Dialog):
 
     def OnPublishDone(self, evt):
         self.EndModal(True)
+
+    def OnUnPubSub(self, evt):
+        share = Sharing.getShare(self.collection)
+        if Sharing.isSharedByMe(share):
+            Sharing.unpublish(self.collection)
+        else:
+            Sharing.unsubscribe(self.collection)
+        self.EndModal(True)
+
 
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()

@@ -42,8 +42,7 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-logger = logging.getLogger("detail")
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
     # Declare our attribute editors at repository-init time

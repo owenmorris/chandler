@@ -14,8 +14,7 @@ from application import schema
 import wx
 import QATestAppLib
 
-logger = logging.getLogger('CPIA Script')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 """
 Handle running a Script.

@@ -1139,9 +1139,7 @@ class NullRepositoryView(RepositoryView):
 
     def __init__(self):
 
-        self._logger = logging.getLogger('repository')
-        if not (self._logger.root.handlers or self._logger.handlers):
-            self._logger.addHandler(logging.StreamHandler())
+        self._logger = logging.getLogger(__name__)
         
         super(NullRepositoryView, self).__init__(None, "null view", 0)
 
