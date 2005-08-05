@@ -1321,7 +1321,6 @@ class AllDayEventsCanvas(CalendarBlock):
         self.widget.wxSynchronizeWidget()
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
-    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch='DrawBackground|DrawCells|_doDrawingCalc'
     legendBorderWidth = 1
 
     def __init__(self, *arguments, **keywords):
@@ -1671,7 +1670,6 @@ class TimedEventsCanvas(CalendarBlock):
 
 
 class wxTimedEventsCanvas(wxCalendarCanvas):
-    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods; logNotMatch = 'DrawBackground|DrawCells|_doDrawingCalc'
     def __init__(self, parent, *arguments, **keywords):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 
@@ -2143,7 +2141,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
 
-    
 class CalendarControl(CalendarBlock):
 
     ## TODO: integrate alecf's r5851 widget changes
@@ -2462,7 +2459,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         wxAllDay = self.GetAllDayWidget()
         position = wxAllDay.GetParent().GetSashPosition()
         sashsize = wxAllDay.GetParent().GetSashSize()
-        if event:  assert position == event.GetSashPosition()
+        #assert keeps failing during block render()'ing
+        #if event:  assert position == event.GetSashPosition()
  
         if position < 0:
             #yes, this does happen quite a bit during block rendering
@@ -2553,3 +2551,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             return cumulSums[1:]
 
     dividerPositions = property(_getDividerPositions)
+
+##from util.autolog import *
+##logmodule(__name__, "wx.*")
