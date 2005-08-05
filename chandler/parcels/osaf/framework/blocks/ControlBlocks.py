@@ -1076,18 +1076,24 @@ class Table (RectangularChild):
             self.postEventByName ('SelectItemBroadcast', {'item':event.arguments ['item']})
         return result
 
-    def onRemoveEvent (self, event):
+    def onDeleteEvent(self, event):
 
         # precache the trash so we don't have to keep looking it up
         trash = Trash.FindTrashCollection(self.itsView)
         
         def MoveToTrash(item):
-            Trash.MoveItemToTrash(item, self.itsView, trash)
+            Trash.MoveItemToTrash(item, trash)
 
         # this is broken, we shouldn't be going through the widget
         # see additional comments in DeleteSelection itself
         self.widget.DeleteSelection(MoveToTrash)
-        self.itsView.commit()
+        
+    def onRemoveEvent (self, event):
+
+        def Delete(item):
+            Trash.RemoveItemFromCollection(item, self.contents)
+
+        self.widget.DeleteSelection(Delete)
         
     def onRemoveEventUpdateUI (self, event):
         readOnly = True
@@ -1100,6 +1106,7 @@ class Table (RectangularChild):
         event.arguments['Enable'] = not readOnly
         return True
 
+    onDeleteEventUpdateUI = onRemoveEventUpdateUI
 
 class radioAlignEnumType(schema.Enumeration):
       values = "Across", "Down"

@@ -406,14 +406,7 @@ class Sidebar(ControlBlocks.Table):
         self.postEventByName("SelectItemBroadcast", {'item':item})
         return item
 
-    def onRemoveEventUpdateUI(self, event):
-        """
-        At the moment, you can't use Remove to remove items from the
-        sidebar - see RemoveSidebarItem
-        """
-        event.arguments['Enable'] = False
-
-    def onRemoveSidebarItemEvent(self, event):
+    def onRemoveItemEvent(self, event):
         """
         Permanently remove the collection - we eventually need a user
         confirmation here
@@ -428,8 +421,12 @@ class Sidebar(ControlBlocks.Table):
             self.contents.remove(item)
 
         self.widget.DeleteSelection(deleteItem)
-        
-    def onRemoveSidebarItemEventUpdateUI(self, event):
+
+    onDeleteItemEvent = onRemoveItemEvent
+
+    def onDeleteEventUpdateUI(self, event):
+        self.onRemoveEventUpdateUI(event)
+        event.arguments['Text'] = _('Delete Collection')
         """
         this is enabled if any user item is selected in the sidebar
         """
@@ -438,6 +435,10 @@ class Sidebar(ControlBlocks.Table):
             event.arguments['Enable'] = True
         else:
             event.arguments['Enable'] = False
+            
+    def onRemoveEventUpdateUI(self, event):
+        # doesn't seem to be taking effect?
+        event.arguments['Enabled'] = False
             
     def getButtonState (self, buttonName, item):
         if buttonName == u'Icon':

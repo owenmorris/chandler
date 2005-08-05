@@ -23,7 +23,7 @@ def EmptyTrash(view):
         # should remove it from all collections, etc
         item.delete()
 
-def MoveItemToTrash(item, view, trash=None):
+def MoveItemToTrash(item, trash=None):
     """
     Moves the item from all collections into the trash collection, and sets
     the deleted attribute on the item
@@ -32,7 +32,7 @@ def MoveItemToTrash(item, view, trash=None):
     # add to trash first, and skip trash later, in case the item is already
     # in the trash
     if not trash:
-        trash = FindTrashCollection(view)
+        trash = FindTrashCollection(item.itsView)
         
     trash.add(item)
 
@@ -46,6 +46,33 @@ def MoveItemToTrash(item, view, trash=None):
             except AttributeError:
                 # not all collections support remove()
                 pass
+
+
+def RemoveItemFromCollection(item, collection):
+    """
+    Smart routine to remove an item from a collection, and optionally
+    move it to the trash if this item appears only in this collection,
+    and not any other user-defined collections
+    """
+
+    # first check for other collections. This is where we will eventually
+    # handle deleting within the same 'sphere' of collections (i.e. mineness)
+    # for now, we just check itemCollectionInclusions
+    isInOtherCollections = False
+    
+    # the one problem right now is that often the "other" collection is
+    # some sort of internal collection - we really want to know,
+    # is this the only /sidebar/ collection that it appears in?
+    for otherCollection in item.itemCollectionInclusions:
+        if (otherCollection != collection and 
+            not getattr(otherCollection, 'renameable', True)):
+            isInOtherCollections = True
+            break
+
+    if isInOtherCollections:
+        collection.remove(item)
+    else:
+        MoveItemToTrash(item)
 
 def IsTrashCollection(collection):
     """

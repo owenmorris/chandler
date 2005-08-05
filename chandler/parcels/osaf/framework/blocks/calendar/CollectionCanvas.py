@@ -715,10 +715,14 @@ class CollectionCanvas(Block.RectangularChild):
     def SelectCollectionInSidebar(self, collection):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
 
+    def onDeleteEvent(self, event):
+        Trash.RemoveItemFromCollection(self.selection, self.contents)
+        
     def onRemoveEvent(self, event):
-        Trash.MoveItemToTrash(self.selection, self.itsView)
+        Trash.MoveItemToTrash(self.selection)
         self.ClearSelection()
         self.itsView.commit()
+
 
     def ClearSelection(self):
         self.selection = None
@@ -726,6 +730,8 @@ class CollectionCanvas(Block.RectangularChild):
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)
+
+    onDeleteEventUpdateUI = onRemoveEventUpdateUI
 
 
 CollectionBlock = CollectionCanvas      # backward compatibility
