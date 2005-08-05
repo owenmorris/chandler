@@ -690,6 +690,7 @@ class Manager(schema.Item):
                     else:
                         call(*arguments, **keywords)
                 except Exception, e:
+                    logger.exception(e)
                     self.saveState(file, line)
                     explanation = "Unable to perform assignment: %s" % e
                     self.saveExplanation(explanation)
