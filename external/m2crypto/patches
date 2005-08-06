@@ -1,9 +1,9 @@
---- M2Crypto-282/setup.py	Thu May 19 15:32:50 2005
-+++ M2Crypto-282-patched/setup.py	Thu May 19 23:57:19 2005
-@@ -7,29 +7,49 @@
+--- M2Crypto-310/setup.py	2005-08-04 15:58:57.906475200 -0700
++++ M2Crypto-310-patched/setup.py	2005-08-04 16:02:15.270270400 -0700
+@@ -10,29 +10,49 @@
  """
  
- _RCS_id = '$Id: setup.py,v 1.13 2004/03/28 11:30:01 ngps Exp $'
+ _RCS_id = '$Id: setup.py 290 2005-06-09 02:43:59Z heikki $'
  
  import os, sys
  from distutils.core import setup, Extension
@@ -30,14 +30,13 @@
 +                    openssl_dir + '\\lib']
 +    swig_opts_str = '-I"' + prefix_dir + '\\..\\include"'
      libraries = ['ssleay32', 'libeay32']
--    
-+   
+     
  elif os.name == 'posix':
 -    include_dirs = [my_inc, '/usr/include']
 -    swig_opts_str = '-I/usr/include'
 -    library_dirs = ['/usr/lib']
 +    # XXX This is a hack to force search order that works
-+    # XXX for Chandler.    
++    # XXX for Chandler.
 +    if sys.platform != 'darwin':
 +        chandler_inc = get_config_var('INCLUDEDIR')
 +        chandler_lib = get_config_var('LIBDIR')
