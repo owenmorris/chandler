@@ -1739,6 +1739,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         else:
                             assignmentCallable(*assignmentArgs)
                     except Exception, e:
+                        logger.exception(e)
                         explanation = "Couldn't add value to item (%s)" % e
                         self.saveExplanation(explanation)
                         raise ParcelException(explanation)
