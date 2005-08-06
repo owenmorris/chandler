@@ -23,9 +23,6 @@ class SMTPException(MailException):
 class POPException(MailException):
     """Base class for all Chandler POP based exceptions"""
 
-"""Code return by M2Crypto when a certificate can not be verified"""
-M2CRYPTO_CERTIFICATE_VERIFY_FAILED  = 20
-
 __SMTP_PREFIX        = "twisted.mail.smtp."
 __IMAP4_PREFIX       = "twisted.mail.imap4."
 __TWISTED_PREFIX     = "twisted.internet.error."
