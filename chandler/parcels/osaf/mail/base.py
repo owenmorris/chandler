@@ -22,6 +22,7 @@ import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryV
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 import osaf.contentmodel.mail as Mail
+import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports
@@ -56,6 +57,9 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.useTLS = (delegate.account.connectionSecurity == 'TLS')
         self.timeout = delegate.account.timeout
         self.timedOut = False
+
+        if self.useTLS:
+            self.sslContext = ssl.getContext(repositoryView=delegate.view, protocol="tlsv1")
 
         retries = delegate.account.numRetries
 
@@ -233,12 +237,24 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             self.factory.timeout = constants.TESTING_TIMEOUT
 
         if self.account.connectionSecurity == 'SSL':
-            ssl.connectSSL(self.account.host, self.account.port,
-                           self.factory, self.view)
-        else:
-            ssl.connectTCP(self.account.host, self.account.port,
-                           self.factory, self.view)
-            
+            #XXX: This method actually begins the SSL exchange. Confusing name!
+            self.factory.startTLS   = True
+            if self.testing:
+                reconnect = self.testAccountSettings
+            else:
+                reconnect = self.getMail
+            verifyCallback = ssl._VerifyCallback(self.view,
+                                                 self._actionCompleted,
+                                                 reconnect)
+            self.factory.getContext = lambda : ssl.getContext(repositoryView=self.view,
+                                                              verifyCallback=verifyCallback)
+
+        self.factory.sslChecker = ssl.postConnectionCheck
+
+        wrappingFactory = policies.WrappingFactory(self.factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+        reactor.connectTCP(self.account.host, self.account.port, wrappingFactory)
+
     def catchErrors(self, err):
         """
         This method captures all errors thrown while in the Twisted Reactor Thread.
@@ -256,47 +272,23 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         errorType   = str(err.__class__)
         errorString = err.__str__()
 
-        if errorType == 'crypto.ssl.CertificateVerificationError':
-            assert err.args[1] == 'certificate verify failed'
-            # Reason why verification failed is stored in err.args[0], see
-            # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
-
-            # We are being conservative for now and only asking the user
-            # if they would like to trust certificates that are otherwise
-            # valid but we don't know about them. In the future we must make
-            # it possible for the user to accept expired certificates and
-            # so on.
-            if err.args[0] in ssl.unknown_issuer:
-                # Post an asynchronous event to the main thread where
-                # we ask the user if they would like to trust this
-                # certificate. The main thread will then initiate a retry
-                # when the new certificate has been added.
-                if self.testing:
-                    reconnect = self.testAccountSettings
-                else:
-                    reconnect = self.getMail
-                import application.Globals as Globals
-                Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
-                                          'askTrustSiteCertificate',
-                                          err.untrustedCertificates[0],
-                                          reconnect)
-                self._actionCompleted()
-                return
-            else:
-                # See chandler.log for the exception that was raised for
-                # the verification error code
-                errorString = errors.STR_SSL_CERTIFICATE_ERROR
-
         if errorType.startswith(errors.M2CRYPTO_PREFIX):
 
             if errorType == errors.M2CRYPTO_BIO_ERROR:
-                """Generic BIO error"""
-                errorString = str(err)
+                """Certificate Verification Error"""
+                try:
+                    errDesc = err.args[0]
+                except AttributeError, IndexError:
+                    errDesc = ""
+
+                if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
+                    errorString = errors.STR_SSL_CERTIFICATE_ERROR
+                else:
+                    errorString = str(err)
 
             elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
                 """Host does not match cert"""
-                #XXX Need to pop up a dialog and ask the user if they
-                #XXX would like to proceed anyway
+                #XXX: This need to be refined for i18h
                 errorString = str(err)
 
             else:
