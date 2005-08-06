@@ -7,6 +7,7 @@ from osaf.contentmodel.tasks import Task
 import osaf.contentmodel.mail as Mail
 import osaf.framework.sharing.WebDAV as WebDAV
 import wx
+import sys
 import time
 import string
 
@@ -37,7 +38,7 @@ def getTime(date):
 
 
 class TestLogger:
-    def __init__(self,filepath=None):
+    def __init__(self,filepath=None,description="A testcase"):
         if filepath:
             self.inTerminal = False
             try:
@@ -53,15 +54,16 @@ class TestLogger:
         self.nbPass = 0
         self.nbFail = 0
         self.nbUnchecked = 0
-        self.nbTestCase = 0
+        self.nbAction = 0
         self.failureList = []
         self.passedList = []
         self.checked = False
-        self.description = "No description"
-        self.startTime = self.stopTime = time.time()
+        self.actionDescription = "No action description"
+        self.mainDescription = description
+        self.actionStartTime = self.actionEndTime = self.actionStartDate = self.actionEndDate = None
         # some printing
         self.Print("")
-        self.Print("******* New Report :  date : %s *******" % self.startDate)
+        self.Print("******* Testcase : %s (date : %s) *******" %(self.mainDescription, self.startDate))
             
     def Print(self,string):
         if self.inTerminal:
@@ -74,21 +76,26 @@ class TestLogger:
         self.failureList = []
         self.passedList = []
         self.checked = False
-        self.description = string
-        self.startTime = self.stopTime = time.time()
+        self.actionDescription = string
+        self.actionStartTime = self.actionEndTime = time.time()
+        self.actionStartDate = datetime.now()
 
     def Stop(self):
-        self.stopTime = time.time()
+        self.actionEndTime = time.time()
+        self.actionEndDate = datetime.now()
+        
 
     def Report(self):
-        self.nbTestCase = self.nbTestCase + 1
-        elapsed = self.stopTime - self.startTime
+        self.nbAction = self.nbAction + 1
+        elapsed = self.actionEndTime - self.actionStartTime
         self.Print("")
-        self.Print("Test case = "+self.description)
-        if self.startTime == self.stopTime: # Stop method has not been called
-            self.Print("Start Time = %s // No stop time available" %self.startTime)
+        self.Print("Action = "+self.actionDescription)
+        if self.actionStartTime == None: # Stop method has not been called
+            self.Print("!!! No time informations available !!!")
         else:
-            self.Print("Start Time = %s // Stop Time = %s // Time Elapsed = %s" %(self.startTime, self.stopTime, elapsed))
+            self.Print("Start date (before %s) = %s" %(self.actionDescription, self.actionStartDate))
+            self.Print("End date (after %s) = %s" %(self.actionDescription, self.actionEndDate))
+            self.Print("Time Elapsed = %.3f seconds" %elapsed)
         self.Print("Report : ")
         for failure in self.failureList:
             self.Print("        - Error : %s" % failure)
@@ -103,10 +110,10 @@ class TestLogger:
         else:
             status = "FAIL"
             self.nbFail = self.nbFail + 1
-        self.Print("STATUS = %s" % status)
+        self.Print("ACTION STATUS = %s" % status)
         if self.checked:
             self.Print("-------------------------------------------------------------------------------------------------")
-        else:
+        else: 
             self.Print(".................................................................................................")
         
     def InitFailureList(self):
@@ -123,13 +130,33 @@ class TestLogger:
     
     def Close(self):
         now = datetime.now()
+        elapsed = now - self.startDate
         self.Print("------------------------------------------REPORT-------------------------------------------------")
-        self.Print("start : %s // end : %s // Time Elapsed : %s" %(self.startDate, now, now-self.startDate))
-        self.Print("Total number of test case : %s" % self.nbTestCase)
-        self.Print("Total number of test case PASSED : %s" % self.nbPass)
-        self.Print("Total number of test case FAILED : %s" % self.nbFail)
-        self.Print("Total number of test case UNCHECKED : %s" % self.nbUnchecked)
+        self.Print("Start date (before %s testcase) = %s" %(self.mainDescription, self.startDate))
+        self.Print("End date (after %s testcase) = %s" %(self.mainDescription, now))
+        self.Print("Time Elapsed = %s" %elapsed)
         self.Print("")
+        self.Print("Total number of actions : %s" % self.nbAction)
+        self.Print("Total number of actions PASSED : %s" %self.nbPass)
+        self.Print("Total number of actions FAILED : %s" %self.nbFail)
+        self.Print("Total number of actions UNCHECKED : %s" %self.nbUnchecked)
+        self.Print("")
+        if self.nbPass == self.nbAction:
+            status = "PASS"
+        else:
+            status = "FAIL"
+        # convert the elapsed tme in minutes
+        elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
+        self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+        self.Print("#TINDERBOX# Status = %s" %status)
+        self.Print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+        self.Print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
+        self.Print("")
+        self.Print("******* End of Report *******")
+        print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+        print("#TINDERBOX# Status = %s" %status)
+        print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+        print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
         self.Print("******* End of Report *******")
         if not self.inTerminal:
             self.File.close()
@@ -283,6 +310,7 @@ class BaseByUI :
             #self.updateExpectedFieldDict(dict) # update the expected field dict
             if dict:
                 self.logger.Start("Set the display name to : %s" %displayName)
+            s1 = time.time()
             Sgf.SummaryViewSelect(self.item)
             displayNameBlock = Sgf.DisplayName()
             # Emulate the mouse click in the display name block
@@ -777,8 +805,7 @@ class BaseByUI :
                 else:
                     self.logger.ReportPass("(On status Checking)")
             #elif field == "alarm": # status checking
-            #    print self.item.createdOn
-            #    r_time = self.item.reminderTime - self.item.createdOn
+            #    r_time = self.item.reminderTime - self.item.startTime
             #    alarm = "%s" %r_time
             #    if not dict[field] == alarm :
             #        self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
