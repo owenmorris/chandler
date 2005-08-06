@@ -12,33 +12,24 @@ import chandlerdb.util.uuid
 import twisted.internet.error as error
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
-    """
-    Subclass of zanshin.webdav.ServerHandle that can access
-    the repository (needed to plug in to Chandler crypto's
-    certificate verification).
-    """
     def __init__(self, host=None, port=None, username=None, password=None,
-        useSSL=False, repositoryView=None):
+                 useSSL=False, repositoryView=None):
         
-        super(ChandlerServerHandle, self).__init__(host=host, port=port,
-            username=username, password=password, useSSL=useSSL)
-            
-        if useSSL and repositoryView != None:
-            
-            self.factory.startTLS = True # Starts SSL immediately.
-            
-            # zanshin.webdav is already smart enough to set up a wrapping
-            # factory if it can find M2Crypto. However, to do certificate
-            # verification, it needs the following customizations (e.g.,
-            # to check the user's certstore for trusted certs).
-            if self.factory.sslContextFactory == None:
-                verifyCallback = ssl._VerifyCallback(repositoryView)
-            
-                self.factory.getContext = lambda: \
-                     ssl.getContext(repositoryView=repositoryView,
-                                    verifyCallback=verifyCallback)
-                self.factory.sslChecker = ssl.postConnectionCheck
-                                
+        self.resourcesByPath = {}   # Caches resources indexed by path
+
+        self.factory = ChandlerHTTPClientFactory()
+        self.factory.protocol = zanshin.webdav.WebDAVProtocol
+        self.factory.startTLS = useSSL
+        self.factory.host = host
+        self.factory.port = port
+        self.factory.username = username
+        self.factory.password = password
+        self.factory.retries = zanshin.webdav.DEFAULT_RETRIES
+        self.factory.repositoryView = repositoryView
+
+        #self.factory.extraHeaders = { 'Connection' : "close" }
+        self.factory.logging = True
+
     def _translateSSLError(self, failure):
         if failure.check(M2Crypto.BIO.BIOError):
             failure.value = error.SSLError(osError=failure.value)
@@ -52,6 +43,22 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
             d.addErrback(self._translateSSLError)
             
         return d
+
+class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
+    def _makeConnection(self):
+        if self.logging:
+            #_doLog("[Connecting to %s:%s]" % (self.host, self.port))
+            pass
+            
+        if self.startTLS:
+            result = ssl.connectSSL(self.host, self.port, self,
+                                    self.repositoryView)
+        else:
+            result = reactor.connectTCP(self.host, self.port, self)
+            
+        self._active = result
+        
+        return result
 
 
 
