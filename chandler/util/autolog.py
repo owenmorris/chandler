@@ -1,8 +1,13 @@
 import re, sys, types
 
 """
-Have all your function & method calls automatically logged, in
-indented outline form (tracking stack depth levels across time!)
+Have all your function & method calls automatically logged, in indented outline
+form - unlike the stack snapshots in an interactive debugger, it tracks call
+structure & stack depths across time!
+
+It hooks into all function calls that you specify, and logs each time they're
+called.  I find it especially useful when I don't know what's getting called
+when, or need to continuously test for state changes.  (by hacking this file)
 
 Originally inspired from the python cookbook: 
 http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
@@ -15,7 +20,11 @@ Currently you can
 TODO:
  * allow tagging of ALL modules in the program on startup?
 
-USAGE: see examples on the bottom of this file
+CAVEATS:
+ * certain classes barf when you logclass() them -- most notably,
+   SWIG-generated wrappers, and perhaps others.
+
+USAGE: see examples on the bottom of this file.
 
 
 Viewing tips
@@ -38,7 +47,7 @@ If you want long lines to be chopped realtime, try piping through less:
 """
 
 
-#@@@ should use the logging system?
+#@@@ should use the standard python logging system?
 log = sys.stdout
 
 # Globally incremented across function calls, so tracks stack depth
@@ -314,7 +323,6 @@ if __name__=='__main__':
                 return 1
             else:
                 return val * self.fac(val-1)
-        
     
     Test2 = logclass(Test2, logMatch='fac|add')
 
@@ -324,7 +332,7 @@ if __name__=='__main__':
     t2.ignoreThis()
     
     
-    print; print "-------------------- metclass usage ------------------"
+    print; print "-------------------- metaclass usage ------------------"
     class Test3(object):
         __metaclass__ = LogMetaClass
         logNotMatch = 'ignoreThis'
@@ -365,7 +373,7 @@ if __name__=='__main__':
     t4.sm(4,3)
     t4.cm(4,3)
     
-    #print; print "-------------- static & classmethods: where to put decorators --------------"
+    #print; print "-------------- static & classmethods: where to put decorators? --------------"
     #class Test5(object):
         #@classmethod
         #@logmethod
