@@ -912,7 +912,12 @@ class BlockEvent(schema.Item):
         # is guaranteed to be there?  -brendano
 
         if hasattr(self, "arguments"):
-            return "%s, arguments=%s" %(self.blockName, repr(self.arguments))
+            try:
+                name = self.blockName
+            except AttributeError:
+                name = self.itsUUID
+            return "%s, arguments=%s" %(name, repr(self.arguments))
+
         else:
             return super(BlockEvent, self).__repr__()
 

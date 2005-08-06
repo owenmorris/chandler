@@ -9,6 +9,10 @@ import application.Utility as Utility
 from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
 
+#import psy
+#psy.bindmodules(*[m for m in open("optimize_these").read().split()
+#                  if not m.startswith("#")])
+
 
 def main():
     message = "while trying to start."

@@ -14,13 +14,13 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 from application import schema
 import wx
 import time
-import util.autologging
+import util.autolog
 
 class orientationEnumType(schema.Enumeration):
     values = "Horizontal", "Vertical"
 
 class wxBoxContainer (wxRectangularChild):
-    #import util.autologging; __metaclass__ = util.autologging.LogTheMethods; logMatch = "^On.*"
+    #import util.autolog; __metaclass__ = util.autolog.LogTheMethods; logMatch = "^On.*"
     def wxSynchronizeWidget(self):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
 
@@ -199,9 +199,9 @@ class ScrolledContainer(BoxContainer):
     def instantiateWidget (self):
         return wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))    
 
-#from util.autologging import indentlog
+#from util.autolog import indentlog
 class wxSplitterWindow(wx.SplitterWindow):
-    #import util.autologging;  __metaclass__ = util.autologging.LogTheMethods
+    #import util.autolog;  __metaclass__ = util.autolog.LogTheMethods
     def __init__(self, *arguments, **keywords):
         super (wxSplitterWindow, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
@@ -274,7 +274,7 @@ class wxSplitterWindow(wx.SplitterWindow):
                 self.blockItem.splitPercentage = position / height
             else:
                 self.blockItem.splitPercentage = position / width
-            #indentlog("%sset splitperc to %s%s" %(util.autologging.BOLDGREEN, self.blockItem.splitPercentage, util.autologging.NORMAL))
+            #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
         event.Skip()
 
     def wxSynchronizeWidget(self):
