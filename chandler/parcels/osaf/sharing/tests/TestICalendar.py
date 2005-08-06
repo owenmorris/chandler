@@ -10,8 +10,8 @@ import unittest, sys, os
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
-import osaf.framework.sharing.Sharing as Sharing
-import osaf.framework.sharing.ICalendar as ICalendar
+import osaf.sharing.Sharing as Sharing
+import osaf.sharing.ICalendar as ICalendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.query.Query as Query
@@ -39,7 +39,7 @@ class ICalendarTestCase(unittest.TestCase):
         parcelpath = [os.path.join(rootdir, 'parcels')]
 
         namespaces = [
-         'parcel:osaf.framework.sharing',
+         'parcel:osaf.sharing',
          'parcel:osaf.contentmodel.calendar',
         ]
 
@@ -65,7 +65,7 @@ class ICalendarTestCase(unittest.TestCase):
     def Import(self, view, filename):
 
         path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                            'parcels', 'osaf', 'framework', 'sharing', 'tests')
+                            'parcels', 'osaf', 'sharing', 'tests')
 
         sandbox = self.repo.findPath("//sandbox")
 

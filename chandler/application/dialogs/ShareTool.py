@@ -1,8 +1,7 @@
 import os
 import wx
 import wx.xrc
-import Sharing
-import ICalendar
+from osaf.sharing import Sharing, ICalendar
 import application.Globals as Globals
 import application.dialogs.Util
 
@@ -163,7 +162,7 @@ class ShareToolDialog(wx.Dialog):
 
 def ShowShareToolDialog(parent, view=None):
         xrcFile = os.path.join(Globals.chandlerDirectory,
-         'parcels', 'osaf', 'framework', 'sharing', 'ShareTool_wdr.xrc')
+         'application', 'dialogs', 'ShareTool_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
         win = ShareToolDialog(parent, "Share Tool",
          resources=resources, view=view)

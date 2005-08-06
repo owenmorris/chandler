@@ -11,7 +11,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
-import osaf.framework.sharing.Sharing as Sharing
+import osaf.sharing.Sharing as Sharing
 from application import schema
 
 def GetRectFromOffsets (rect, offsets):

@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "42" # rearranged zaobao
+SCHEMA_VERSION = "43" # moved osaf.framework.sharing to osaf.sharing
 
 logger = None # initialized in initLogging()
 

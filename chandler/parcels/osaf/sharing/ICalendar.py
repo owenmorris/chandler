@@ -1,4 +1,4 @@
-__parcel__ = "osaf.framework.sharing"
+__parcel__ = "osaf.sharing"
 
 import Sharing
 import application.Parcel

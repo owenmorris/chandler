@@ -2,7 +2,7 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.framework.sharing"
+__parcel__ = "osaf.sharing"
 
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
@@ -11,7 +11,7 @@ from osaf.contentmodel.ItemCollection import ItemCollection
 from repository.item.Item import Item
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
-import AccountInfoPrompt
+import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
 import M2Crypto.BIO
 import WebDAV
 import application.Parcel

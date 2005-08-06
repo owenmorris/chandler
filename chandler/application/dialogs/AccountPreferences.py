@@ -10,8 +10,8 @@ import application.Globals
 import application.Parcel
 import application.dialogs.Util
 import osaf.contentmodel.mail as Mail
-import osaf.framework.sharing.WebDAV as WebDAV
-import osaf.framework.sharing.Sharing as Sharing
+import osaf.sharing.WebDAV as WebDAV
+import osaf.sharing.Sharing as Sharing
 
 
 # Special handlers referenced in the PANELS dictionary below:

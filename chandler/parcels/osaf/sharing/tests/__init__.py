@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 def suite():
-    """Unit test suite; run by testing 'parcels.osaf.framework.sharing.tests.suite'"""
+    """Unit test suite; run by testing 'parcels.osaf.sharing.tests.suite'"""
     from run_tests import ScanningLoader
     from unittest import defaultTestLoader, TestSuite
     loader = ScanningLoader()

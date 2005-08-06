@@ -1,7 +1,7 @@
 import unittest, os
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-import osaf.framework.sharing.Sharing as Sharing
-import osaf.framework.sharing.ICalendar as ICalendar
+import osaf.sharing.Sharing as Sharing
+import osaf.sharing.ICalendar as ICalendar
 
 class TestLargeImport(RepositoryTestCase):
 
@@ -9,7 +9,7 @@ class TestLargeImport(RepositoryTestCase):
         if os.environ.get('CHANDLER_PERFORMANCE_TEST'):
             self.loadParcel("parcel:osaf.contentmodel.calendar")
             path = os.path.join(os.getenv('CHANDLERHOME') or '.',
-                                'parcels', 'osaf', 'framework', 'sharing', 'tests')
+                                'parcels', 'osaf', 'sharing', 'tests')
 
             conduit = Sharing.FileSystemConduit(name="conduit",
                                                 sharePath=path,

@@ -5,8 +5,7 @@ import wx
 import traceback, logging
 import os, urlparse, urllib
 import application.Globals as Globals
-import Sharing, ICalendar
-import WebDAV
+from osaf.sharing import Sharing, ICalendar, WebDAV
 import zanshin.webdav
 import zanshin.util
 
@@ -492,8 +491,7 @@ class PublishCollectionDialog(wx.Dialog):
 
 def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'parcels', 'osaf', 'framework', 'sharing',
-     'PublishCollection_wdr.xrc')
+     'application', 'dialogs', 'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, "Collection Sharing",
      resources=resources, view=view, collection=collection,

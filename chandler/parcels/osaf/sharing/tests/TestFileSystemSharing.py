@@ -10,7 +10,7 @@ import unittest, sys, os
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
-import osaf.framework.sharing.Sharing as Sharing
+import osaf.sharing.Sharing as Sharing
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
@@ -39,7 +39,7 @@ class SharingTestCase(unittest.TestCase):
         parcelpath = [os.path.join(rootdir, 'parcels')]
 
         namespaces = [
-         'parcel:osaf.framework.sharing',
+         'parcel:osaf.sharing',
          'parcel:osaf.contentmodel.calendar',
         ]
 

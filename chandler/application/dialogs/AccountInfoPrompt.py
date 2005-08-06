@@ -69,9 +69,8 @@ class AccountInfoPromptDialog(wx.Dialog):
 
 def PromptForNewAccountInfo(parent, host=None, path=None):
 
-    xrcFile = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf',
-                           'framework', 'sharing',
-                           'AccountInfoPrompt_wdr.xrc')
+    xrcFile = os.path.join(Globals.chandlerDirectory,
+        'application', 'dialogs', 'AccountInfoPrompt_wdr.xrc')
 
     resources = wx.xrc.XmlResource(xrcFile)
 

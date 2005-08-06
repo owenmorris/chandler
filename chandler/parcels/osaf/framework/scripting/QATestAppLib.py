@@ -5,7 +5,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.Notes as Notes
 from osaf.contentmodel.tasks import Task
 import osaf.contentmodel.mail as Mail
-import osaf.framework.sharing.WebDAV as WebDAV
+import osaf.sharing.WebDAV as WebDAV
 import wx
 import sys
 import time

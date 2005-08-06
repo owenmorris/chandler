@@ -10,7 +10,7 @@ def installParcel(parcel, oldVersion=None):
     curSmtp = Reference.update(parcel, 'currentSMTPAccount')
     curCon = Reference.update(parcel, 'currentContact')
 
-    sharing = schema.ns("osaf.framework.sharing", parcel)
+    sharing = schema.ns("osaf.sharing", parcel)
     model = schema.ns("osaf.contentmodel", parcel)
     mail = schema.ns("osaf.contentmodel.mail", parcel)
     photos = schema.ns("osaf.contentmodel.photos", parcel)

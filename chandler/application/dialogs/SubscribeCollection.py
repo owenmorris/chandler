@@ -3,15 +3,14 @@ import traceback
 import logging
 import wx
 import wx.xrc
-import Sharing
-import ICalendar
+from osaf.sharing import Sharing, ICalendar
 import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
 
 logger = logging.getLogger(__name__)
 
-SHARING = "parcel:osaf.framework.sharing"
+SHARING = "parcel:osaf.sharing"
 CONTENTMODEL = "parcel:osaf.contentmodel"
 
 class SubscribeDialog(wx.Dialog):
@@ -180,8 +179,7 @@ class SubscribeDialog(wx.Dialog):
 
 def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
-     'parcels', 'osaf', 'framework', 'sharing',
-     'SubscribeDialog_wdr.xrc')
+     'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = SubscribeDialog(parent, "Subscribe to Shared Collection",
      resources=resources, view=view, url=url)

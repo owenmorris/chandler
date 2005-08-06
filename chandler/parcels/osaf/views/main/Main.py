@@ -8,7 +8,9 @@ from osaf.framework.blocks.Views import View
 from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging
-import application.dialogs.AccountPreferences
+from application.dialogs import ( AccountPreferences, PublishCollection,
+    SubscribeCollection, ShareTool
+)
 import application.dialogs.Util
 import osaf.mail.imap
 import osaf.mail.pop
@@ -21,7 +23,7 @@ import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.photos.Photos as Photos
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 import tools.GenerateItemsFromFile as GenerateItemsFromFile
-import osaf.framework.sharing.Sharing as Sharing
+import osaf.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Item import Item
 import application.Printing as Printing
@@ -30,9 +32,7 @@ import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
-import osaf.framework.sharing.ICalendar as ICalendar
-import osaf.framework.sharing.PublishCollection
-import osaf.framework.sharing.SubscribeDialog
+import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting.CPIAScript as CPIAScript
 from osaf import webserver
 from osaf.app import Trash
@@ -124,10 +124,8 @@ class MainView(View):
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
 
-        # Handy during development:
-        reload(application.dialogs.AccountPreferences)
-
-        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.itsView)
+        AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
+                                                        view=self.itsView)
 
     def onNewEvent (self, event):
         # Create a new Content Item
@@ -657,17 +655,14 @@ class MainView(View):
     def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
 
-        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame,
-                                                    self.itsView)
+        SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView)
 
     def onSharingImportDemoCalendarEvent(self, event):
         # Triggered from "Tests | Import demo calendar..."
 
         url="http://www.osafoundation.org/0.5/DemoCalendar.ics"
 
-        osaf.framework.sharing.SubscribeDialog.Show(wx.GetApp().mainFrame,
-                                                    self.itsView,
-                                                    url=url)
+        SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView, url=url)
 
 
     def onEditCollectionRuleEvent(self, event):
@@ -770,18 +765,16 @@ class MainView(View):
 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            reload(osaf.framework.sharing.PublishCollection)
             collection = self.getSidebarSelectedCollection()
             sidebar = Block.findBlockByName("Sidebar")
             if sidebar.filterKind is None:
                 filterKindPath = None 
             else:
                 filterKindPath = str(sidebar.filterKind.itsPath)
-            osaf.framework.sharing.PublishCollection.ShowPublishDialog( \
-                wx.GetApp().mainFrame,
-                view=self.itsView,
-                collection=collection,
-                filterKindPath=filterKindPath)
+            PublishCollection.ShowPublishDialog(wx.GetApp().mainFrame,
+                                                view=self.itsView,
+                                                collection=collection,
+                                                filterKindPath=filterKindPath)
 
     def onShareSidebarCollectionEventUpdateUI (self, event):
         """
@@ -836,9 +829,7 @@ class MainView(View):
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
-        import osaf.framework.sharing.ShareTool
-        reload(osaf.framework.sharing.ShareTool)
-        osaf.framework.sharing.ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
+        ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
 
  
     def onSyncCollectionEvent (self, event):

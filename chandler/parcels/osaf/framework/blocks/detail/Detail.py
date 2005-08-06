@@ -14,7 +14,7 @@ from osaf.framework.attributeEditors import \
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, DynamicContainerBlocks, \
      Trunk, TrunkSubtree
-import osaf.framework.sharing.Sharing as Sharing
+import osaf.sharing.Sharing as Sharing
 import osaf.contentmodel.mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
