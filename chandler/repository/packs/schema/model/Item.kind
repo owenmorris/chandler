@@ -59,6 +59,23 @@
     <attribute name="otherName">_resultSet</attribute>
   </item>
 
+  <!-- temporarily add 'collections'. Remove 'queries' when transition
+  complete -->
+  <item withSchema="True">
+    <name>collections</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Item</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path" otherAlias="collections">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">ref_collection</attribute>
+  </item>
+
   <item withSchema="True">
     <name>watcherDispatch</name>
     <kind type="path">//Schema/Core/Attribute</kind>
