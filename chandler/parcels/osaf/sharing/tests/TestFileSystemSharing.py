@@ -11,10 +11,9 @@ import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
 import osaf.sharing.Sharing as Sharing
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.calendar.Calendar as Calendar
-from osaf.contentmodel.contacts import Contact, ContactName
+from osaf.pim import ItemCollection, ContentItem
+import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.contacts import Contact, ContactName
 
 import time # @@@ temporary
 
@@ -40,7 +39,7 @@ class SharingTestCase(unittest.TestCase):
 
         namespaces = [
          'parcel:osaf.sharing',
-         'parcel:osaf.contentmodel.calendar',
+         'parcel:osaf.pim.calendar',
         ]
 
         self.repos = []
@@ -72,7 +71,7 @@ class SharingTestCase(unittest.TestCase):
     def _createCollection(self, repo):
         sandbox = repo.findPath("//sandbox")
 
-        coll = ItemCollection.ItemCollection(name="testcollection",
+        coll = ItemCollection(name="testcollection",
          parent=sandbox)
 
 
@@ -166,7 +165,7 @@ class SharingTestCase(unittest.TestCase):
 
         # Export
         repo = self.repos[0]
-        theItem = ContentModel.ContentItem(view=repo.view)
+        theItem = ContentItem(view=repo.view)
         theItem.displayName = "I'm an item"
 
         conduit = Sharing.FileSystemConduit(sharePath=".",

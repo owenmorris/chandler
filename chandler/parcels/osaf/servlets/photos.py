@@ -1,6 +1,6 @@
 
 from twisted.web import resource
-import osaf.contentmodel.photos.Photos as Photos
+import osaf.pim.photos.Photos as Photos
 import traceback
 import os, sys, datetime
 

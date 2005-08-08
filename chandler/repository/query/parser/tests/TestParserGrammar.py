@@ -149,20 +149,20 @@ def test():
   ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000'], False]
   >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasLocalAttributeValue("itsName")')
   ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasLocalAttributeValue'], None], ['"itsName"']], False]
-  >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
-  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], False]
-  >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date('2004-08-01') and i.startTime < date('2004-08-01')")
-  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]], False]
+  >>> print parse('for_stmt', u"for i in '//parcels/osaf/pim/calendar/CalendarEvent' where i.importance == 'fyi'")
+  ['for', u'i', u"'//parcels/osaf/pim/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], False]
+  >>> print parse('for_stmt', u"for i in '//parcels/osaf/pim/calendar/CalendarEvent' where i.startTime > date('2004-08-01') and i.startTime < date('2004-08-01')")
+  ['for', u'i', u"'//parcels/osaf/pim/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]], False]
   >>> print parse('for_stmt', u"for i in '//Schema/Core/Kind' where ftcontains(i.description,'\\"howard johnson\\" and pancakes')")
   ['for', u'i', u"'//Schema/Core/Kind'", ['fn', u'ftcontains', [['path', [u'i', u'description'], None], u'\\'"howard johnson" and pancakes\\'']], False]
   >>> print parse('for_stmt', u"for i in ftcontains('\\"howard johnson\\" and pancakes') where i.itsKind.itsName == 'Movie'")
   ['for', u'i', ('ftcontains', [u'\\'"howard johnson" and pancakes\\'']), [u'==', ['path', [u'i', u'itsKind', u'itsName'], None], u"'Movie'"], False]
-  >>> print parse('for_stmt', u"for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.importance == 'fyi'")
-  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEventMixin'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], True]
+  >>> print parse('for_stmt', u"for i inevery '//parcels/osaf/pim/calendar/CalendarEventMixin' where i.importance == 'fyi'")
+  ['for', u'i', u"'//parcels/osaf/pim/calendar/CalendarEventMixin'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], True]
 
   ### UNION_EXPR
-  >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
-  ['union', [['for', 'i', '"//parcels/osaf/contentmodel/calendar/CalendarEvent"', 'True', False], ['for', 'i', '"//parcels/osaf/contentmodel/Note"', 'True', False], ['for', 'i', '"//parcels/osaf/contentmodel/contacts/Contact"', 'True', False]]]
+  >>> print parse('union_stmt','union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where True, for i in "//parcels/osaf/pim/Note" where True, for i in "//parcels/osaf/pim/contacts/Contact" where True)')
+  ['union', [['for', 'i', '"//parcels/osaf/pim/calendar/CalendarEvent"', 'True', False], ['for', 'i', '"//parcels/osaf/pim/Note"', 'True', False], ['for', 'i', '"//parcels/osaf/pim/contacts/Contact"', 'True', False]]]
   """
   pass
 

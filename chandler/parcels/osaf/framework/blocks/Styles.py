@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
 from repository.item.Item import Item
-from osaf.contentmodel.ContentModel import ContentItem
+from osaf.pim.items import ContentItem
 import application.Globals as Globals
 from application import schema
 import wx

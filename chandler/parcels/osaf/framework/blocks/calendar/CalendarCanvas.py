@@ -14,9 +14,9 @@ import wx.lib.colourselect as colourselect
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat
 
-import osaf.contentmodel.calendar.Calendar as Calendar
-from osaf.contentmodel.calendar.TimeZone import DefaultTimeZone
-import osaf.contentmodel.ContentModel as ContentModel
+import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar.TimeZone import DefaultTimeZone
+import osaf.pim.items as items
 
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
@@ -82,7 +82,7 @@ class CachedAttribute(object):
         setattr(inst, self.name, result)
         return result
 
-class CalendarData(ContentModel.ContentItem):
+class CalendarData(items.ContentItem):
 
     calendarColor = schema.One(Styles.ColorStyle)
 

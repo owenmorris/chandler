@@ -12,10 +12,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testOutBoxQueryWithMail(self):
         self.loadParcels(
-         ['parcel:osaf.contentmodel.mail']
+         ['parcel:osaf.pim.mail']
         )
 
-        import osaf.contentmodel.mail as Mail
+        import osaf.pim.mail as Mail
         # create an outbound Mail item
         view = self.rep.view
         aMessage = Mail.MailMessage(view=view)
@@ -23,7 +23,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         view.commit()
         # now run the query
 
-        qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"
+        qString = u"for i in '//parcels/osaf/pim/mail/MailMessageMixin' where i.isInbound == True"
         results = self._compileQuery('testOutboxQuery',qString)
         self._checkQuery(lambda i: not i.isInbound is True, results)
 
@@ -91,10 +91,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testItemTraversalQuery(self):
         """ Test a multiple item path traversal in the query predicate """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.contentmodel.contacts']
+         ['parcel:osaf.pim.contacts']
         )
 
         view = self.rep.view
@@ -102,15 +102,15 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
         view.commit()
         
-        results = self._compileQuery('testItemTraversalQuery',u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
+        results = self._compileQuery('testItemTraversalQuery',u"for i in '//parcels/osaf/pim/contacts/Contact' where contains(i.contactName.firstName,'a')")
         self._checkQuery(lambda i: not 'a' in i.contactName.firstName, results)
 
     def testEnumerationQuery(self):
         """ Test an enumeration attribute in the query predicate """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.contentmodel.calendar']
+         ['parcel:osaf.pim.calendar']
         )
 
         view = self.rep.view
@@ -118,7 +118,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
         view.commit()
         
-        results = self._compileQuery('testEnumerationQuery',u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
+        results = self._compileQuery('testEnumerationQuery',u"for i in '//parcels/osaf/pim/calendar/CalendarEvent' where i.importance == 'fyi'")
         self._checkQuery(lambda i: not i.importance == 'fyi', results)
 
     def testRefCollectionQuery(self):
@@ -147,10 +147,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testDateQuery(self):
         """ Test a date range in the query predicate """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.contentmodel.calendar']
+         ['parcel:osaf.pim.calendar']
         )
 
         view = self.rep.view
@@ -172,7 +172,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
             month = month+1
         endDate = datetime(year, month, 1)
         
-        queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date(), endDate.date())
+        queryString = u"for i in '//parcels/osaf/pim/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date(), endDate.date())
         results = self._compileQuery('testDateQuery',queryString)
         self._checkQuery(lambda i: not (i.startTime > startDate and i.startTime < endDate), results)
 

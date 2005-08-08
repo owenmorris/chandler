@@ -11,7 +11,7 @@ import twisted.mail.pop3client as pop3
 import email as email
 
 #Chandler imports
-import osaf.contentmodel.mail as Mail
+import osaf.pim.mail as Mail
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports

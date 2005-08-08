@@ -11,7 +11,7 @@ import application.Parcel
 logger = logging.getLogger(__name__)
 
 SHARING = "parcel:osaf.sharing"
-CONTENTMODEL = "parcel:osaf.contentmodel"
+CONTENTMODEL = "parcel:osaf.pim"
 
 class SubscribeDialog(wx.Dialog):
 
@@ -96,11 +96,11 @@ class SubscribeDialog(wx.Dialog):
             event = 'ApplicationBarAll'
             if share.filterKinds and len(share.filterKinds) == 1:
                 filterKind = share.filterKinds[0]
-                if filterKind == '//parcels/osaf/contentmodel/calendar/CalendarEventMixin':
+                if filterKind == '//parcels/osaf/pim/calendar/CalendarEventMixin':
                     event = 'ApplicationBarEvent'
-                elif filterKind == '//parcels/osaf/contentmodel/tasks/TaskMixin':
+                elif filterKind == '//parcels/osaf/pim/tasks/TaskMixin':
                     event = 'ApplicationBarTask'
-                elif filterKind == '//parcels/osaf/contentmodel/mail/MailMessageMixin':
+                elif filterKind == '//parcels/osaf/pim/mail/MailMessageMixin':
                     event = 'ApplicationBarMail'
 
             mainView.postEventByName(event, {})

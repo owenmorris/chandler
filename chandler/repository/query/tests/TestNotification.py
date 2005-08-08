@@ -16,12 +16,12 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
     def testNotifyFor(self):
         """ Test query notification """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['parcel:osaf.contentmodel.contacts',
-          'parcel:osaf.contentmodel',
+         ['parcel:osaf.pim.contacts',
+          'parcel:osaf.pim',
           'parcel:repository.query.tests.parcels.notification']
         )
 
@@ -33,7 +33,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         view.commit()
 
         # basic query processing
-        queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
+        queryString = 'for i in "//parcels/osaf/pim/contacts/ContactName" where contains(i.firstName,"i"))'
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
@@ -65,12 +65,12 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
     def testMonitorFor(self):
         """ Test query notification via monitors """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['parcel:osaf.contentmodel.contacts',
-          'parcel:osaf.contentmodel',
+         ['parcel:osaf.pim.contacts',
+          'parcel:osaf.pim',
           'parcel:repository.query.tests.parcels.notification']
         )
 
@@ -82,7 +82,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         # basic query processing
-        queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
+        queryString = 'for i in "//parcels/osaf/pim/contacts/ContactName" where contains(i.firstName,"i"))'
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
@@ -149,10 +149,10 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
     def testNotifyUnion(self):
         """ Test notification of union query """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.contentmodel']
+         ['parcel:osaf.pim']
         )
 
         #create test data
@@ -162,9 +162,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         GenerateItems.GenerateItems(view, 10, GenerateItems.GenerateContact)
 
         # make sure there's at least one good data item
-        import osaf.contentmodel.calendar.Calendar as Calendar
-        import osaf.contentmodel.contacts as Contacts
-        import osaf.contentmodel.Notes as Notes
+        import osaf.pim.calendar.Calendar as Calendar
+        import osaf.pim.contacts as Contacts
         event = GenerateItems.GenerateCalendarEvent(view, 1)
         event.displayName = "Meeting"
         note = GenerateItems.GenerateNote(view)
@@ -173,7 +172,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         contact.contactName.firstName = "Alexis"
         view.commit()
 
-        queryString = 'union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i"))'
+        queryString = 'union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/pim/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i"))'
 
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
@@ -187,7 +186,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         union_query.resultSet.first() # force evaluation of some of the query at least
 
         #test first query in union
-        for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting"')        
+        for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == "Meeting"')        
         one = for1_query.resultSet.first()
         self.rep.commit()
         one.displayName = "Lunch"
@@ -202,7 +201,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.assert_(len(added) == 1 and len(removed) == 0)
         
         # test second query in union
-        for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea")')
+        for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/pim/Note" where contains(i.displayName,"idea")')
         two = for2_query.resultSet.first()
         self.rep.commit()
 
@@ -218,7 +217,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.assert_(len(added) == 1 and len(removed) == 0)
 
         # test third query in Union -- has an item traversal
-        for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i")')
+        for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i")')
         
         three = for3_query.resultSet.first()
         self.rep.commit()
@@ -265,17 +264,17 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
     def testBug2288(self):
         """ regression test for bug 2288 """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-            ['parcel:osaf.contentmodel.calendar']
+            ['parcel:osaf.pim.calendar']
         )
 
         view = self.rep.view
         GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateCalendarEvent)
         view.commit()
 
-        queryString = "for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"
+        queryString = "for i inevery '//parcels/osaf/pim/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('bug2288Query', p, k, queryString)
@@ -306,7 +305,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         print len(q.resultSet)
         
         # create a new event.  without the reminderTime attribute
-        from osaf.contentmodel.calendar.Calendar import CalendarEvent
+        from osaf.pim.calendar.Calendar import CalendarEvent
         monitor_client.action = ([],[])
         ev = CalendarEvent("test event", view=self.rep.view)
         (added, removed) = monitor_client.action

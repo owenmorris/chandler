@@ -9,10 +9,10 @@
              xmlns="parcel:osaf.framework.blocks.detail"
              xmlns:core="parcel:core"
              xmlns:blocks="parcel:osaf.framework.blocks"
-             xmlns:calendar="parcel:osaf.contentmodel.calendar"
-             xmlns:contact="parcel:osaf.contentmodel.contacts"
-             xmlns:content="parcel:osaf.contentmodel"
-             xmlns:mail="parcel:osaf.contentmodel.mail"
+             xmlns:calendar="parcel:osaf.pim.calendar"
+             xmlns:contact="parcel:osaf.pim.contacts"
+             xmlns:content="parcel:osaf.pim"
+             xmlns:mail="parcel:osaf.pim.mail"
              xmlns:ae="parcel:osaf.framework.attributeEditors">
 
   <core:version>0.3</core:version>

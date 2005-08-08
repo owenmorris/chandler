@@ -12,7 +12,7 @@ from Block import (
     ShownSynchronizer, lineStyleEnumType, logger
 )
 from ContainerBlocks import BoxContainer
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ItemCollection
 import DragAndDrop
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx

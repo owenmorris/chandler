@@ -17,7 +17,7 @@ class MailTestCase(RepositoryTestCase.RepositoryTestCase):
         super(MailTestCase, self)._setup(self)
 
         self.testdir = os.path.join(self.rootdir, 'parcels', 'osaf',
-         'contentmodel', 'mail')
+         'pim', 'mail')
 
         super(MailTestCase, self)._openRepository(self)
 

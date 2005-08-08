@@ -21,7 +21,7 @@ import logging
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
-import osaf.contentmodel.mail as Mail
+import osaf.pim.mail as Mail
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 

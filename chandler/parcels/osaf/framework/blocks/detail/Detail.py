@@ -7,6 +7,7 @@ __parcel__ = "osaf.framework.blocks.detail"
 import sys
 import application
 from application import schema
+from osaf import pim
 from osaf.framework.attributeEditors import \
      AttributeEditorMapping, DateTimeAttributeEditor, \
      DateAttributeEditor, TimeAttributeEditor, \
@@ -15,15 +16,12 @@ from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, DynamicContainerBlocks, \
      Trunk, TrunkSubtree
 import osaf.sharing.Sharing as Sharing
-import osaf.contentmodel.mail as Mail
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.ItemCollection as ItemCollection
-from osaf.contentmodel.tasks import TaskMixin
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.calendar.Recurrence as Recurrence
-from osaf.contentmodel.contacts import Contact, ContactName
-import osaf.contentmodel.Notes as Notes
-from osaf.contentmodel import ContentItem
+import osaf.pim.mail as Mail
+import osaf.pim.items as items
+from osaf.pim.tasks import TaskMixin
+import osaf.pim.calendar.Calendar as Calendar
+import osaf.pim.calendar.Recurrence as Recurrence
+from osaf.pim import ContentItem
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
 import osaf.mail.constants as MailConstants
@@ -239,7 +237,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         enabled = False
         label = _("Send")
         if item is not None:            
-            if isinstance(item, ItemCollection.ItemCollection):
+            if isinstance(item, pim.ItemCollection):
                 # It's a collection: label should read "Send", or "Send to new" if it's already shared.
                 enabled = len(item.invitees) > 0
                 try:
@@ -280,7 +278,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         # preflight the send/share request
         # mail items and collections need their sender and recievers set up
         message = None
-        if isinstance (item, ItemCollection.ItemCollection):
+        if isinstance (item, pim.ItemCollection):
             try:
                 whoTo = item.invitees
             except AttributeError:
@@ -593,7 +591,7 @@ def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
     mailKind = Mail.MailMessageMixin.getKind (item.itsView)
-    isCollection = isinstance (item, ItemCollection.ItemCollection)
+    isCollection = isinstance (item, pim.ItemCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
 
@@ -605,7 +603,7 @@ class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """
     def shouldShow (self, item):
         # if the item is a collection, we should not show ourself
-        shouldShow = not isinstance (item, ItemCollection.ItemCollection)
+        shouldShow = not isinstance (item, pim.ItemCollection)
         return shouldShow
 
     def onButtonPressedEvent (self, event):
@@ -662,7 +660,7 @@ class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
 
     def _isStampable(self, item):
         # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
-        return item.isItemOf(ContentModel.ContentItem.getKind(self.itsView))
+        return item.isItemOf(items.ContentItem.getKind(self.itsView))
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
@@ -918,7 +916,7 @@ class FromEditField (EditTextAttribute):
                     # Determine which kind of item to assign based on the
                     # types of the redirected-to attributes:
                     type = item.getAttributeAspect('whoFrom', 'type')
-                    contactKind = Contact.getKind(self.itsView)
+                    contactKind = pim.Contact.getKind(self.itsView)
                     if type is contactKind:
                         item.whoFrom = item.getCurrentMeContact(item.itsView)
                     else:

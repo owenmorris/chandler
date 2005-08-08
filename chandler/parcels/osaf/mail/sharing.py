@@ -8,8 +8,8 @@ import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 
 #Chandler imports
-import osaf.contentmodel.mail as Mail
-import osaf.contentmodel.ItemCollection as ItemCollection
+from osaf import pim
+import osaf.pim.mail as Mail
 import chandlerdb.item.ItemError as ItemError
 
 #Chandler Mail Service imports
@@ -49,8 +49,8 @@ class SMTPInvitationSender:
         assert isinstance(url, basestring), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
-        assert isinstance(itemCollection, ItemCollection.ItemCollection), \
-                          "itemCollection must be of type osaf.contentmodel.ItemCollection"
+        assert isinstance(itemCollection, pim.ItemCollection), \
+                          "itemCollection must be of type osaf.pim.ItemCollection"
 
 
         #XXX: Theses may eventual need i18n decoding

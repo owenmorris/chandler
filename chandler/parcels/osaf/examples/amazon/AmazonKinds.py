@@ -2,8 +2,7 @@ __parcel__ = "osaf.examples.amazon"
 
 import amazon
 import application
-from osaf.contentmodel.ContentModel import ContentItem
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ContentItem, ItemCollection
 import wx
 from application import schema
 

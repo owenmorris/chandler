@@ -233,19 +233,19 @@ class PublishCollectionDialog(wx.Dialog):
 
             # Conditionally set the individual kind checkboxes:
 
-            path = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
+            path = "//parcels/osaf/pim/mail/MailMessageMixin"
             if path in self.filterKinds:
                 self.CheckboxMail.SetValue(True)
             else:
                 self.CheckboxMail.SetValue(False)
 
-            path = "//parcels/osaf/contentmodel/tasks/TaskMixin"
+            path = "//parcels/osaf/pim/tasks/TaskMixin"
             if path in self.filterKinds:
                 self.CheckboxTasks.SetValue(True)
             else:
                 self.CheckboxTasks.SetValue(False)
 
-            path = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+            path = "//parcels/osaf//calendar/CalendarEventMixin"
             if path in self.filterKinds:
                 self.CheckboxEvents.SetValue(True)
             else:
@@ -261,15 +261,15 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.RadioItems.GetValue():  # Filtering
 
             if self.CheckboxMail.GetValue():
-                path = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
+                path = "//parcels/osaf/pim/mail/MailMessageMixin"
                 self.filterKinds.append(path)
 
             if self.CheckboxTasks.GetValue():
-                path = "//parcels/osaf/contentmodel/tasks/TaskMixin"
+                path = "//parcels/osaf/pim/tasks/TaskMixin"
                 self.filterKinds.append(path)
 
             if self.CheckboxEvents.GetValue():
-                path = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
+                path = "//parcels/osaf/pim/calendar/CalendarEventMixin"
                 self.filterKinds.append(path)
 
         self.shareXML.filterKinds = self.filterKinds

@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, unittest
 import repository.tests.RepositoryTestCase as RepositoryTestCase
-import osaf.contentmodel.tests.GenerateItems as GenerateItems
+import osaf.pim.tests.GenerateItems as GenerateItems
 import util.timing
 
 class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
@@ -15,7 +15,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testContacts-load")
         self.loadParcels(
-         ['parcel:osaf.contentmodel.contacts']
+         ['parcel:osaf.pim.contacts']
         )
         util.timing.end("application.tests.testParcelPerf.testContacts-load")
 
@@ -35,7 +35,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-load")
         self.loadParcels(
-         ['parcel:osaf.contentmodel.calendar']
+         ['parcel:osaf.pim.calendar']
         )
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-load")
 
@@ -59,7 +59,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
                 count += 1 + load(child)
             return count
 
-        self.loadParcels(['parcel:osaf.contentmodel'])
+        self.loadParcels(['parcel:osaf.pim'])
         self.rep.commit()
 
         ##TODO SHOULD NOT RUN IN RAMDB

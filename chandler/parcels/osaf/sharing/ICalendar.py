@@ -2,9 +2,9 @@ __parcel__ = "osaf.sharing"
 
 import Sharing
 import application.Parcel
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.calendar.Recurrence as Recurrence
+from osaf.pim import ItemCollection
+import osaf.pim.calendar.Calendar as Calendar
+import osaf.pim.calendar.Recurrence as Recurrence
 from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
@@ -102,8 +102,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
     schema.kindInfo(displayName="iCalendar Import/Export Format Kind")
 
-    _calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
-    _taskPath = "//parcels/osaf/contentmodel/EventTask"
+    _calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
+    _taskPath = "//parcels/osaf/pim/EventTask"
     _lobPath = "//Schema/Core/Lob"
     
     def fileStyle(self):
@@ -144,13 +144,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         if self.fileStyle() == self.STYLE_SINGLE:
             if item is None:
-                item = ItemCollection.ItemCollection(view=view)
+                item = ItemCollection(view=view)
             elif isinstance(item, Sharing.Share):
                 if item.contents is None:
-                    item.contents = ItemCollection.ItemCollection(view=view)
+                    item.contents = ItemCollection(view=view)
                 item = item.contents
 
-            if not isinstance(item, ItemCollection.ItemCollection):
+            if not isinstance(item, ItemCollection):
                 print "Only a share or an item collection can be passed in"
                 #@@@MOR Raise something
 

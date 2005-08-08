@@ -9,7 +9,7 @@ import application.schema as schema
 import application.Globals
 import application.Parcel
 import application.dialogs.Util
-import osaf.contentmodel.mail as Mail
+import osaf.pim.mail as Mail
 import osaf.sharing.WebDAV as WebDAV
 import osaf.sharing.Sharing as Sharing
 

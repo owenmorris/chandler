@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Parcel itsName="photos"
+    xmlns="parcel:core"
+    xmlns:blocks="parcel:osaf.framework.blocks"
+    xmlns:detail="parcel:osaf.framework.blocks.detail"
+    xmlns:contacts="parcel:osaf.pim.contacts"
+    xmlns:main="parcel:osaf.views.main"
+    xmlns:photos="parcel:osaf.pim.photos">
+
+    <!-- Block definitions for detail view -->
+    <detail:DetailTrunkSubtree itsName="PhotoSubtree">
+        <key itemref="photos:PhotoMixin"/>
+        <rootBlocks itemref="photos:PhotoImage"/>
+    </detail:DetailTrunkSubtree>
+
+    <blocks:AEBlock itsName="PhotoImage"
+        itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+        <blockName value="AEPhotoImage"/>
+        <viewAttribute value="photoBody"/>
+        <position>0.86</position>
+        <border>2, 2, 2, 2</border>
+        <presentationStyle itemref="photos:PhotoImagePresentation"/>
+        <!--
+        <stretchFactor>7</stretchFactor>
+        -->
+    </blocks:AEBlock>
+
+    <blocks:PresentationStyle itsName="PhotoImagePresentation">
+        <format value="Image"/>
+    </blocks:PresentationStyle>
+
+</Parcel>

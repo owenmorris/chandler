@@ -1,7 +1,7 @@
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ItemCollection
 
 """
 At the moment, this is just a bunch of helper routines to find, fill,

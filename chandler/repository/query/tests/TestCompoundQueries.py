@@ -23,10 +23,10 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
 
     def testUnionQuery(self):
         """ Test a union query """
-        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.contentmodel']
+         ['parcel:osaf.pim']
         )
 
         #create test data
@@ -37,7 +37,7 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
 
         view.commit()
 
-        results = self._compileQuery('testUnionQuery','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
+        results = self._compileQuery('testUnionQuery','union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where True, for i in "//parcels/osaf/pim/Note" where True, for i in "//parcels/osaf/pim/contacts/Contact" where True)')
         # these checks could be more robust
         # check twice to make sure generator restarts
         self._checkQuery(lambda i: False, results)

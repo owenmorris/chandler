@@ -11,8 +11,7 @@ import application
 from application import schema
 import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.ContentModel as ContentModel
+from osaf import pim
 import osaf.framework.blocks.detail.Detail as Detail
 from osaf.framework.certstore import notification
 import M2Crypto.X509 as X509
@@ -35,7 +34,7 @@ class typeEnum(schema.Enumeration):
     values = "root", "site"
 
 
-class Certificate(ContentModel.ContentItem):
+class Certificate(pim.ContentItem):
 
     schema.kindInfo(displayName = "Certificate")
 
@@ -294,7 +293,7 @@ def ImportCertificate(repView, cpiaView):
 
 
 def CreateSidebarView(repView, cpiaView):
-    sidebar = ItemCollection.ItemCollection(view=repView)
+    sidebar = pim.ItemCollection(view=repView)
     sidebar.displayName = 'Certificate Store'
     sidebar._rule = ALL_CERTS_QUERY
 

@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta
 import ScriptingGlobalFunctions as Sgf
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.Notes as Notes
-from osaf.contentmodel.tasks import Task
-import osaf.contentmodel.mail as Mail
+import osaf.pim.calendar.Calendar as Calendar
+from osaf import pim
+import osaf.pim.mail as Mail
 import osaf.sharing.WebDAV as WebDAV
 import wx
 import sys
@@ -181,13 +179,13 @@ class BaseByUI :
                 # set up the expected data dictionary with the default values
                 self.expected_field_dict = {"displayName" : "New Note", "createdOn" : now}
                 # create a default Note
-                item = Notes.Note(view=view)
+                item = pim.Note(view=view)
                 self.isNote = True
             elif type == "Task": # New Task
                 # set up the expected data dictionary with the default values
                 self.expected_field_dict = {"displayName" : "New Task", "createdOn" : now}
                 # create a default Task
-                item = Task(view=view)
+                item = pim.Task(view=view)
                 self.isTask = True
             elif type == "MailMessage": # New Mail Message
                 # set up the expected data dictionary with the default values
@@ -201,7 +199,7 @@ class BaseByUI :
                 # set up the expected data dictionary with the default values
                 self.expected_field_dict = {"displayName" : "Untitled"}
                 # create a default Collection
-                item = ItemCollection.ItemCollection(view=view)
+                item = pim.ItemCollection(view=view)
                 
                 
             # fields affectation

@@ -7,7 +7,7 @@ __parcel__ = "osaf.sharing"
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
 from chandlerdb.util.uuid import UUID
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ItemCollection
 from repository.item.Item import Item
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
@@ -15,10 +15,10 @@ import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
 import M2Crypto.BIO
 import WebDAV
 import application.Parcel
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.calendar.Calendar as Calendar
-from osaf.contentmodel.contacts import Contact
-import osaf.contentmodel.mail as Mail
+import osaf.pim.items as items
+import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.contacts import Contact
+import osaf.pim.mail as Mail
 import osaf.mail.utils as utils
 import twisted.web.http
 import wx
@@ -35,7 +35,7 @@ class modeEnum(schema.Enumeration):
     values = "put", "get", "both"
 
 
-class Share(ContentModel.ContentItem):
+class Share(items.ContentItem):
     """ Represents a set of shared items, encapsulating contents, location,
         access method, data format, sharer and sharees. """
 
@@ -67,7 +67,7 @@ class Share(ContentModel.ContentItem):
         initialValue = 'both',
     )
 
-    contents = schema.One(ContentModel.ContentItem, otherName = 'shares')
+    contents = schema.One(items.ContentItem, otherName = 'shares')
 
     conduit = schema.One('ShareConduit', inverse = 'share')
 
@@ -264,7 +264,7 @@ class OneTimeShare(Share):
 
 
 
-class ShareConduit(ContentModel.ContentItem):
+class ShareConduit(items.ContentItem):
     """ Transfers items in and out. """
 
     schema.kindInfo(displayName = "Share Conduit Kind")
@@ -1368,7 +1368,7 @@ class TransformationFailed(SharingError):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVAccount(ContentModel.ContentItem):
+class WebDAVAccount(items.ContentItem):
     schema.kindInfo(
         displayName="WebDAV Account",
         description="A WebDAV 'Account'",
@@ -1440,7 +1440,7 @@ class WebDAVAccount(ContentModel.ContentItem):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class ImportExportFormat(ContentModel.ContentItem):
+class ImportExportFormat(items.ContentItem):
 
     schema.kindInfo(displayName="Import/Export Format Kind")
 
@@ -2102,11 +2102,11 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
 
     if len(filterKinds) > 0:
         path = filterKinds[0] # Only look at the first filterKind
-        if path == "//parcels/osaf/contentmodel/tasks/TaskMixin":
+        if path == "//parcels/osaf/pim/tasks/TaskMixin":
            ext = " tasks"
-        if path == "//parcels/osaf/contentmodel/mail/MailMessageMixin":
+        if path == "//parcels/osaf/pim/mail/MailMessageMixin":
            ext = " mail"
-        if path == "//parcels/osaf/contentmodel/calendar/CalendarEventMixin":
+        if path == "//parcels/osaf/pim/calendar/CalendarEventMixin":
            ext = " calendar"
 
     name = collection.displayName

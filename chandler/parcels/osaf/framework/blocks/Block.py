@@ -8,7 +8,7 @@ import application.Globals as Globals
 from application import schema
 from repository.item.Item import Item
 from chandlerdb.util.uuid import UUID
-from osaf.contentmodel.ContentModel import ContentItem
+from osaf.pim.items import ContentItem
 import wx
 import logging
 import hotshot

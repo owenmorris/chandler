@@ -16,12 +16,12 @@ import osaf.mail.imap
 import osaf.mail.pop
 from application.SplashScreen import SplashScreen
 import application.Parcel
-import osaf.contentmodel.mail as Mail
-from osaf.contentmodel.contacts import Contact
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.photos.Photos as Photos
-import osaf.contentmodel.tests.GenerateItems as GenerateItems
+import osaf.pim.mail as Mail
+from osaf.pim import Contact
+import osaf.pim.calendar.Calendar as Calendar
+from osaf import pim
+import osaf.pim.photos.Photos as Photos
+import osaf.pim.tests.GenerateItems as GenerateItems
 import tools.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
 import repository.query.Query as Query
@@ -31,7 +31,7 @@ import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 from osaf.framework.blocks.Block import Block
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ItemCollection
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting.CPIAScript as CPIAScript
 from osaf import webserver
@@ -133,7 +133,7 @@ class MainView(View):
         try:
             kindParam = event.kindParameter
         except AttributeError:
-            kindParam = Notes.Note.getKind(self.itsView) # default kind for "New"
+            kindParam = pim.Note.getKind(self.itsView) # default kind for "New"
         newItem = kindParam.newItem (None, None)
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
@@ -930,7 +930,7 @@ class MainView(View):
         #  attribute is correctly set.
         UseNewQuery = False
         if UseNewQuery:
-            qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where len (i.sharedURL) > 0"
+            qString = u"for i in '//parcels/osaf/pim/ItemCollection' where len (i.sharedURL) > 0"
             collQuery = Query.Query (self.itsView.repository, qString)
             collQuery.recursive = False
             collections = list(collQuery)

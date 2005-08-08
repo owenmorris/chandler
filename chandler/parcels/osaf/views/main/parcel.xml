@@ -11,13 +11,13 @@
              xmlns:doc="parcel:osaf.views.main"
              xmlns:repository="parcel:osaf.views.repositoryviewer"
              xmlns:demo="parcel:osaf.views.demo"
-             xmlns:contentModel="parcel:osaf.contentmodel"
-             xmlns:mail="parcel:osaf.contentmodel.mail"
-             xmlns:tasks="parcel:osaf.contentmodel.tasks"
+             xmlns:contentModel="parcel:osaf.pim"
+             xmlns:mail="parcel:osaf.pim.mail"
+             xmlns:tasks="parcel:osaf.pim.tasks"
              xmlns:app="parcel:osaf.app"
              xmlns:calendar="parcel:osaf.framework.blocks.calendar"
-             xmlns:calendarModel="parcel:osaf.contentmodel.calendar"
-             xmlns:contacts="parcel:osaf.contentmodel.contacts"
+             xmlns:calendarModel="parcel:osaf.pim.calendar"
+             xmlns:contacts="parcel:osaf.pim.contacts"
              xmlns:detail="parcel:osaf.framework.blocks.detail"
              >
 
@@ -1342,7 +1342,7 @@
   <contentModel:ItemCollection itsName="ReminderItems">
     <displayName>ReminderItems</displayName>
     <indexName value="reminderTime"/>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"/>
+    <_rule value="for i inevery '//parcels/osaf/pim/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"/>
   </contentModel:ItemCollection>
 
   <!--
@@ -1359,8 +1359,8 @@
     <displayName>All</displayName>
     <renameable>False</renameable>
     <_rule value="difference(
-   for i inevery '//parcels/osaf/contentmodel/Note' where True,
-   for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where
+   for i inevery '//parcels/osaf/pim/Note' where True,
+   for i inevery '//parcels/osaf/pim/calendar/CalendarEventMixin' where
                                                            i.isGenerated == True
     )"/>
   </contentModel:ItemCollection>
@@ -1368,13 +1368,13 @@
   <contentModel:ItemCollection itsName="inItemCollection">
     <displayName>In</displayName>
     <renameable>False</renameable>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
+    <_rule value="for i inevery '//parcels/osaf/pim/mail/MailMessageMixin' where i.isInbound == True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="outItemCollection">
     <displayName>Out</displayName>
     <renameable>False</renameable>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
+    <_rule value="for i inevery '//parcels/osaf/pim/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="untitledItemCollection">

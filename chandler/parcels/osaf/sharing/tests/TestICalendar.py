@@ -12,8 +12,8 @@ import repository.item.Item as Item
 import application.Parcel as Parcel
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.calendar.Calendar as Calendar
+from osaf.pim import ItemCollection
+import osaf.pim.calendar.Calendar as Calendar
 import repository.query.Query as Query
 import datetime
 import vobject
@@ -40,7 +40,7 @@ class ICalendarTestCase(unittest.TestCase):
 
         namespaces = [
          'parcel:osaf.sharing',
-         'parcel:osaf.contentmodel.calendar',
+         'parcel:osaf.pim.calendar',
         ]
 
         self.repo = self._initRamDB(packs)
@@ -136,7 +136,7 @@ class ICalendarTestCase(unittest.TestCase):
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)
 
-        coll = ItemCollection.ItemCollection(name="testcollection", 
+        coll = ItemCollection(name="testcollection", 
                                              parent=self.sandbox)
         coll.add(event)
         filename = "unicode_export.ics"

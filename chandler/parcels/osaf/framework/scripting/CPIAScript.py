@@ -7,10 +7,9 @@ import application.Globals as Globals
 import logging, types
 import repository.item.Query as ItemQuery
 import osaf.framework.blocks.Block as Block
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.ContentModel as ContentModel
 import ScriptingGlobalFunctions
 from application import schema
+from osaf import pim
 import wx
 import QATestAppLib
 
@@ -73,7 +72,7 @@ def HotkeyScript(event, view):
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
         # try to find the corresponding Note
         targetScriptNameStart = "Script F%s" % str(keycode-wx.WXK_F1+1)
-        for aNote in Notes.Note.iterItems(view):
+        for aNote in pim.Note.iterItems(view):
             try:
                 noteTitle = aNote.about
             except AttributeError:
@@ -132,7 +131,7 @@ def ScriptFile(fileName):
     return scriptText
 
 
-class Script(ContentModel.ContentItem):
+class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
     schema.kindInfo(displayName="Script", displayAttribute="displayName")
 
@@ -187,7 +186,7 @@ class ExecutableScript(object):
         # add all the known ContentItem sub-Kinds
         kindKind = self.itsView.findPath('//Schema/Core/Kind')
         allKinds = ItemQuery.KindQuery().run([kindKind])
-        contentItemKind = ContentModel.ContentItem.getKind (self.itsView)
+        contentItemKind = pim.ContentItem.getKind (self.itsView)
         for aKind in allKinds:
             if aKind.isKindOf (contentItemKind):
                 self._AddPimClass(builtIns, aKind)

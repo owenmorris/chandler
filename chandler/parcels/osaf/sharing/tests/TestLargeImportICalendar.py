@@ -7,7 +7,7 @@ class TestLargeImport(RepositoryTestCase):
 
     def testImport(self):
         if os.environ.get('CHANDLER_PERFORMANCE_TEST'):
-            self.loadParcel("parcel:osaf.contentmodel.calendar")
+            self.loadParcel("parcel:osaf.pim.calendar")
             path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                                 'parcels', 'osaf', 'sharing', 'tests')
 

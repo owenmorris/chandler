@@ -9,11 +9,10 @@ import urllib
 from datetime import datetime, timedelta
 import logging
 import application.Globals as Globals
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.Notes as Notes
-from osaf.contentmodel.tasks import Task, TaskMixin
-import osaf.contentmodel.mail as Mail
+import osaf.pim.calendar.Calendar as Calendar
+from osaf import pim
+from osaf.pim.tasks import Task, TaskMixin
+import osaf.pim.mail as Mail
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
 
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
-    collection = ItemCollection.ItemCollection(view=view)
+    collection = pim.ItemCollection(view=view)
     
     args[0]=args[0]
     if args[0]=='*': # semi-random data
@@ -77,7 +76,7 @@ def GenerateCollection(view, mainView, args):
 
 def GenerateNote(view, mainView, args):
     """ Generate one Note item """
-    note = Notes.Note(view=view)
+    note = pim.Note(view=view)
     #displayName
     if args[0]=='*': # semi-random data
         note.displayName = random.choice(TITLES)

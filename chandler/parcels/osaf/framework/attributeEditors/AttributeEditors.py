@@ -6,9 +6,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, cStringIO
 import wx
 from wx.lib.scrolledpanel import ScrolledPanel
-from osaf.contentmodel.tasks import TaskMixin
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.mail as Mail
+from osaf.pim.tasks import TaskMixin
+import osaf.pim.calendar.Calendar as Calendar
+import osaf.pim.mail as Mail
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
@@ -21,7 +21,7 @@ from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition
 from osaf.framework.blocks.Block import ShownSynchronizer
-from osaf.contentmodel.ContentModel import ContentItem
+from osaf.pim.items import ContentItem
 from application import schema
 
 logger = logging.getLogger(__name__)

@@ -6,9 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import time, os, logging, datetime
 from dateutil.parser import parse
 from application import schema
-from osaf.contentmodel.ContentModel import ContentItem
-# from osaf.contentmodel.Notes import Note
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ContentItem, ItemCollection
 import feedparser
 from xml.sax import SAXParseException
 import socket

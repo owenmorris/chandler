@@ -11,7 +11,7 @@ import wx
 
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
-from osaf.contentmodel import ItemCollection
+from osaf.pim import ItemCollection
 from osaf.app import Trash
 from application import schema
 from wx.lib import buttons
@@ -689,7 +689,7 @@ class CollectionCanvas(Block.RectangularChild):
           Clear the selection each time we view a new contents
         """
         item = event.arguments ['item']
-        assert isinstance (item, ItemCollection.ItemCollection)
+        assert isinstance (item, ItemCollection)
         self.contents = item
 
         self.selection = None

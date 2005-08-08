@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import logging as logging
 
 #Chandler imports
-import osaf.contentmodel.mail as Mail
+import osaf.pim.mail as Mail
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 

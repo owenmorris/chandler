@@ -5,7 +5,7 @@ from twisted.web import resource
 import repository
 import application
 import re
-from osaf.contentmodel.ContentModel import ContentItem
+from osaf.pim.items import ContentItem
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type

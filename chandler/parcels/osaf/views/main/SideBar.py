@@ -7,7 +7,7 @@ __parcel__ = "osaf.views.main"
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
-import osaf.contentmodel.ItemCollection as ItemCollection
+from osaf.pim import ItemCollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
@@ -106,7 +106,7 @@ class wxSidebar(ControlBlocks.wxTable):
         if (cellRect.InsideXY (x, y) and
             not hasattr (self, 'hoverImageRow') and
             not self.IsCellEditControlEnabled() and
-            isinstance (item, ItemCollection.ItemCollection)):
+            isinstance (item, ItemCollection)):
                 assert not gridWindow.HasCapture()
                 gridWindow.CaptureMouse()
 
@@ -127,7 +127,7 @@ class wxSidebar(ControlBlocks.wxTable):
             if event.LeftDown():
                 for (buttonName, button) in self.buttonState.iteritems():
                     if (button['imageRect'].InsideXY (x, y)
-                        and isinstance (item, ItemCollection.ItemCollection)):
+                        and isinstance (item, ItemCollection)):
                         event.Skip (False) #Gobble the event
                         self.SetFocus()
         
@@ -268,7 +268,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.SetBackgroundMode (wx.TRANSPARENT)
         item, attribute = grid.GetTable().GetValue (row, col)
 
-        if isinstance (item, ItemCollection.ItemCollection):
+        if isinstance (item, ItemCollection):
             def drawButton (name):
                 imagePrefix = "Sidebar" + name
                 imageSuffix = ".png"
@@ -489,7 +489,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
           collectionList should be in the order that the source items are overlayed in the Calendar view
         """
         collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
-        if isinstance (item, ItemCollection.ItemCollection):
+        if isinstance (item, ItemCollection):
             collectionList.insert (0, item)
         if len (collectionList) > 0:
             """
@@ -520,7 +520,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                       rule) which has another problem: When the rule in the original
                       ItemCollection change we don't update our copied rule.                      
                     """
-                    key = ItemCollection.ItemCollection (view=self.itsView)
+                    key = ItemCollection(view=self.itsView)
                     key.source = collectionList
                     
                     displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
@@ -549,11 +549,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):
-        if isinstance (keyItem, ItemCollection.ItemCollection):
+        if isinstance (keyItem, ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
             filterKind = sidebar.filterKind
             if (filterKind is not None and
-                unicode (filterKind.itsPath) == "//parcels/osaf/contentmodel/calendar/CalendarEventMixin" and
+                unicode (filterKind.itsPath) == "//parcels/osaf/pim/calendar/CalendarEventMixin" and
                 keyItem.displayName not in sidebar.dontShowCalendarForItemsWithName):
                     trunk = self.findPath (self.calendarTemplatePath)
                     keyUUID = trunk.itsUUID
@@ -579,7 +579,7 @@ class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
     templatePath = schema.One(schema.String)
 
     def _makeTrunkForCacheKey(self, keyItem):
-        if isinstance (keyItem, ItemCollection.ItemCollection):
+        if isinstance (keyItem, ItemCollection):
             trunk = self.findPath (self.templatePath)
         else:
             trunk = keyItem

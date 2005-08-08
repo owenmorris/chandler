@@ -5,8 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import application.Globals as Globals
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.ItemCollection as ItemCollection
 import time
 
 """

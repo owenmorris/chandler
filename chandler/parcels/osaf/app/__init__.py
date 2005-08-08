@@ -11,10 +11,10 @@ def installParcel(parcel, oldVersion=None):
     curCon = Reference.update(parcel, 'currentContact')
 
     sharing = schema.ns("osaf.sharing", parcel)
-    model = schema.ns("osaf.contentmodel", parcel)
-    mail = schema.ns("osaf.contentmodel.mail", parcel)
-    photos = schema.ns("osaf.contentmodel.photos", parcel)
-    contacts = schema.ns("osaf.contentmodel.contacts", parcel)
+    model = schema.ns("osaf.pim", parcel)
+    mail = schema.ns("osaf.pim.mail", parcel)
+    photos = schema.ns("osaf.pim.photos", parcel)
+    contacts = schema.ns("osaf.pim.contacts", parcel)
 
     # Items created in osaf.app (this parcel):
 
@@ -92,7 +92,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
 
-    model.ItemCollection.ItemCollection.update(parcel, 'trash',
+    model.ItemCollection.update(parcel, 'trash',
         displayName=_('Trash'),
         renameable=False
     )

@@ -7,10 +7,8 @@ import application.dialogs.Util
 import application.Globals as Globals
 from application import schema
 import flickr
-import osaf.contentmodel.ContentModel as ContentModel
-import osaf.contentmodel.Notes as Notes
-import osaf.contentmodel.photos.Photos as Photos
-import osaf.contentmodel.ItemCollection as ItemCollection
+from osaf import pim
+import osaf.pim.photos.Photos as Photos
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 import repository.query.Query as Query
@@ -59,12 +57,12 @@ class FlickrPhotoMixin(Photos.PhotoMixin):
             print "tags failed", e
         self.importFromURL(self.imageURL)
 
-class FlickrPhoto(FlickrPhotoMixin, Notes.Note):
+class FlickrPhoto(FlickrPhotoMixin, pim.Note):
     schema.kindInfo(displayName = "Flickr Photo")
 
     
 #copied from Location class
-class Tag(ContentModel.ContentItem):
+class Tag(pim.ContentItem):
 
     schema.kindInfo(displayName="Flickr Tag")
 
@@ -128,7 +126,7 @@ def getPhotoByFlickrTitle(view, title):
         return x
     return None
 
-class PhotoCollection(ContentModel.ContentItem):
+class PhotoCollection(pim.ContentItem):
 
     schema.kindInfo(displayName="Collection of Flickr Photos")
 
@@ -141,7 +139,7 @@ class PhotoCollection(ContentModel.ContentItem):
     )
        
     def getCollectionFromFlickr(self,repView):
-        coll = ItemCollection.ItemCollection(view = repView)
+        coll = pim.ItemCollection(view = repView)
         if self.username:
             flickrUsername = flickr.people_findByUsername(self.username)
             flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)

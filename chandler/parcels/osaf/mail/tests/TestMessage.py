@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import MailTestCase as MailTestCase
 import osaf.mail.message as message
 import osaf.mail.utils as utils
-import osaf.contentmodel.mail as Mail
+import osaf.pim.mail as Mail
 import email as email
 import email.Message as Message
 import email.Utils as emailUtils
@@ -226,7 +226,7 @@ This is the body"""
 
     def setUp(self):
         super(MessageTest, self).setUp()
-        self.loadParcel("parcel:osaf.contentmodel.mail")
+        self.loadParcel("parcel:osaf.pim.mail")
         self.__messageObject = None
         self.__mailMessage = None
 

@@ -10,7 +10,7 @@ import DragAndDrop
 from DynamicContainerBlocks import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
-from osaf.contentmodel.ItemCollection import ItemCollection
+from osaf.pim import ItemCollection
 from application import schema
 import wx
 import time

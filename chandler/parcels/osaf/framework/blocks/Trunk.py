@@ -10,7 +10,7 @@ from osaf.framework.blocks import ContainerBlocks
 from repository.item.Item import Item
 from application import schema
 import wx
-import osaf.contentmodel.ContentModel as ContentModel
+import osaf.pim.items as items
 import logging
 
 """
