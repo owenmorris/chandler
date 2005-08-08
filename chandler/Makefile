@@ -163,7 +163,7 @@ endif
 endif
 
 purge:
-	python $(CHANDLERBIN)/tools/purge.py $(CHANDLERBIN)
+	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
 
 clean: purge
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
