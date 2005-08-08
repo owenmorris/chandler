@@ -1,7 +1,7 @@
 from application import schema
-from osaf.contentmodel import ContentItem
+from osaf import pim
 
-class MyKind1(ContentItem):
+class MyKind1(pim.ContentItem):
     """An example content kind"""
     
     attr1 = schema.One(schema.String, displayName="Attribute 1")
