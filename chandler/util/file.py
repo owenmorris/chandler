@@ -1,5 +1,5 @@
 """
-Utilities for crypto and other security conscious operations.
+File-specific utilities.
 
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
