@@ -35,7 +35,7 @@ class FlickrPhotoMixin(Photos.PhotoMixin):
     owner = schema.One(schema.String, displayName="owner")
 
     # about = schema.Role(redirectTo="title")
-    who = schema.Role(redirectTo="owner")
+    who = schema.One(redirectTo="owner")
 
     schema.addClouds(sharing = schema.Cloud(owner, flickrID, imageURL, tags))
 
