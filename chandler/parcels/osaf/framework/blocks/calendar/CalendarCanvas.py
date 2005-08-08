@@ -1142,13 +1142,18 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
 
 class wxInPlaceEditor(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
-        style=wx.TE_PROCESS_ENTER | wx.NO_BORDER
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
         # and GTK does not. Further, if GTK is not multiline, then the single
-        # line mode looks really wonky with a huge cursor
-        if '__WXGTK__' in wx.PlatformInfo:
-                style |= wx.TE_MULTILINE
+        # line mode looks really wonky with a huge cursor. The undocumented
+        # flag TE_NO_VSCROLL may solve the former problem, introducing another:
+        # (Text does not scroll at all)
+
+        style=wx.NO_BORDER | wx.TE_NO_VSCROLL | wx.TE_MULTILINE | wx.TE_AUTO_SCROLL
+        #if '__WXGTK__' in wx.PlatformInfo:
+        #        style |= wx.TE_MULTILINE
+        #style |= wx.TE_PROCESS_ENTER # not needed when using TE_MULTILINE flag.
+
         super(wxInPlaceEditor, self).__init__(style=style,
                                               *arguments, **keywords)
         
