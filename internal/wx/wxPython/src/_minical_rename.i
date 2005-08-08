@@ -16,6 +16,7 @@
 %rename(CAL_HITTEST_INCMONTH)               wxCAL_HITTEST_INCMONTH;
 %rename(CAL_HITTEST_DECMONTH)               wxCAL_HITTEST_DECMONTH;
 %rename(CAL_HITTEST_SURROUNDING_WEEK)       wxCAL_HITTEST_SURROUNDING_WEEK;
+%rename(MiniCalendarDateAttr)               wxMiniCalendarDateAttr;
 %rename(MiniCalendarEvent)                  wxMiniCalendarEvent;
 %rename(MiniCalendar)                       wxMiniCalendar;
 
