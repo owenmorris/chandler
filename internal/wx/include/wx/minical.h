@@ -51,6 +51,55 @@ enum wxCalendarHitTestResult
 };
 
 // ----------------------------------------------------------------------------
+// wxMiniCalendarData: class to be overridden to provide calendar data
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_ADV wxMiniCalendarData
+{
+public:
+    // ctors
+    wxMiniCalendarData() { }
+
+    // setters
+    void SetBusy(const double busyPercentage) { m_busy = busyPercentage; }
+
+    // accessors
+    const double GetBusy() const { return m_busy; }
+
+private:
+    double    m_busy;
+};
+
+// ----------------------------------------------------------------------------
+// wxMiniCalendarDateAttr: custom attributes for a calendar date
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_ADV wxMiniCalendarDateAttr
+{
+public:
+    // ctors
+    wxMiniCalendarDateAttr(double busyPercentage = 0)
+    {
+        Init(busyPercentage);
+    }
+
+    // setters
+    void SetBusy(const double busyPercentage) { m_busy = busyPercentage; }
+
+    // accessors
+    const double GetBusy() const { return m_busy; }
+
+protected:
+    void Init(double busyPercentage = 0)
+    {
+        m_busy = busyPercentage;
+    }
+
+private:
+    double    m_busy;
+};
+
+// ----------------------------------------------------------------------------
 // wxMiniCalendar events
 // ----------------------------------------------------------------------------
 
@@ -94,12 +143,14 @@ BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_DAY_CHANGED, 951)
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_MONTH_CHANGED, 952)
     DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_YEAR_CHANGED, 953)
-    DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_DOUBLECLICKED, 954)
+    DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_UPDATE_BUSY, 954)
+    DECLARE_EXPORTED_EVENT_TYPE(WXDLLIMPEXP_ADV, wxEVT_MINI_CALENDAR_DOUBLECLICKED, 955)
 END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxMiniCalendarEventFunction)(wxMiniCalendarEvent&);
 
 #define EVT_MINI_CALENDAR_DOUBLECLICKED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_DOUBLECLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
+#define EVT_MINI_CALENDAR_UPDATE_BUSY(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_UPDATE_BUSY, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_SEL_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_SEL_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_DAY(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_DAY_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_MONTH(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_MONTH_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),

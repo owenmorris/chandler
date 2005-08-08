@@ -106,6 +106,7 @@ DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_SEL_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_DAY_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_MONTH_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_YEAR_CHANGED)
+DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_UPDATE_BUSY)
 DEFINE_EVENT_TYPE(wxEVT_MINI_CALENDAR_DOUBLECLICKED)
 
 // ============================================================================
@@ -145,6 +146,11 @@ void wxMiniCalendar::Init()
     for ( wd = wxDateTime::Sun; wd < wxDateTime::Inv_WeekDay; wxNextWDay(wd) )
     {
         m_weekdays[wd] = wxDateTime::GetWeekDayName(wd, wxDateTime::Name_Abbr).GetChar(0);
+    }
+
+    for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
+    {
+        m_attrs[n] = NULL;
     }
 
     m_colHighlightFg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
@@ -194,6 +200,10 @@ bool wxMiniCalendar::Create(wxWindow *parent,
 
 wxMiniCalendar::~wxMiniCalendar()
 {
+    for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
+    {
+        delete m_attrs[n];
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -737,6 +747,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 bool changedColours = false,
                      changedFont = false;
 
+                wxMiniCalendarDateAttr *attr = NULL;
                 wxCoord x = wd * m_widthCol + (m_widthCol - width) / 2;
 
                 if ( highlightDay )
@@ -771,6 +782,8 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 }
                 else
                 {
+                    attr = m_attrs[dayPosition];
+
                     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
                     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
