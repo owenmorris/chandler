@@ -143,6 +143,12 @@ __UNICODE_DEFINE_p = -D_UNICODE
 !if "$(UNICODE)" == "1"
 __UNICODE_DEFINE_p_1 = -d_UNICODE
 !endif
+!if "$(MSLU)" == "1"
+__MSLU_DEFINE_p = -DwxUSE_UNICODE_MSLU=1
+!endif
+!if "$(MSLU)" == "1"
+__MSLU_DEFINE_p_1 = -dwxUSE_UNICODE_MSLU=1
+!endif
 !if "$(SHARED)" == "1"
 __DLLFLAG_p = -DWXUSINGDLL
 !endif
@@ -212,7 +218,7 @@ $(OBJS)\minimal.exe: $(MINIMAL_OBJECTS)  $(OBJS)\minimal_sample.res
 |
 
 $(OBJS)\minimal_sample.res: .\..\..\samples\sample.rc
-	brcc32 -32 -r -fo$@ -i$(BCCDIR)\include   -d__WXMSW__ $(__WXUNIV_DEFINE_p_1) $(__DEBUG_DEFINE_p_1) $(__EXCEPTIONS_DEFINE_p_1) $(__RTTI_DEFINE_p_1) $(__THREAD_DEFINE_p_1) $(__UNICODE_DEFINE_p_1) -i.\..\..\include -i$(SETUPHDIR) -i. $(__DLLFLAG_p_1) -i.\..\..\samples $**
+	brcc32 -32 -r -fo$@ -i$(BCCDIR)\include   -d__WXMSW__ $(__WXUNIV_DEFINE_p_1) $(__DEBUG_DEFINE_p_1) $(__EXCEPTIONS_DEFINE_p_1) $(__RTTI_DEFINE_p_1) $(__THREAD_DEFINE_p_1) $(__UNICODE_DEFINE_p_1) $(__MSLU_DEFINE_p_1) -i.\..\..\include -i$(SETUPHDIR) -i. $(__DLLFLAG_p_1) -i.\..\..\samples $**
 
 $(OBJS)\minimal_minimal.obj: .\minimal.cpp
 	$(CXX) -q -c -P -o$@ $(MINIMAL_CXXFLAGS) $**
