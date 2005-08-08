@@ -649,14 +649,6 @@ void wxTextCtrl::Remove(long from, long to)
 
 void wxTextCtrl::SetSelection(long from, long to)
 {
-
-    // specified behavior is that SetSelection(-1, -1)  => select all
-    if (from == -1 && to == -1)
-    {
-        from = 0;
-        to = GetValue().Length();
-    }
-
     GetPeer()->SetSelection( from , to ) ;
 }
 
@@ -1415,6 +1407,11 @@ void wxMacUnicodeTextControl::GetSelection( long* from, long* to) const
 void wxMacUnicodeTextControl::SetSelection( long from , long to )
 {
     ControlEditTextSelectionRec sel ;
+    if ((from == -1) && (to == -1))
+    {
+        from = 0 ;
+        to = 32767 ; // sel has 16 bit signed values, max is 32767
+    }
     sel.selStart = from ;
     sel.selEnd = to ;
     SetData<ControlEditTextSelectionRec>( 0 , kControlEditTextSelectionTag, &sel ) ;

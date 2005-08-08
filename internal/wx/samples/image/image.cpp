@@ -654,6 +654,7 @@ MyCanvas::~MyCanvas()
     delete my_anti;
     delete my_horse_asciigrey_pnm;
     delete my_horse_rawgrey_pnm;
+    delete colorized_horse_jpeg;
 }
 
 void MyCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )

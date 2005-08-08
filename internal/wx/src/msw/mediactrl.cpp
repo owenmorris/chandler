@@ -9,6 +9,16 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+/*
+   FIXME FIXME FIXME:
+    - extract different backends in different files (better yet, make backends
+      dynamically loadable...), they have nothing to do with each other and
+      this file is huge and also separate the standard contents from our code
+      itself
+    - extract ~1000 lines of wxActiveX code in its own file, why does it have
+      to be here??
+ */
+
 //===========================================================================
 //  DECLARATIONS
 //===========================================================================
@@ -46,6 +56,7 @@
 #include "wx/msw/private.h" //user info and wndproc setting/getting
 #include "wx/dcclient.h"
 #include "wx/timer.h"
+#include "wx/dynlib.h"
 
 //---------------------------------------------------------------------------
 // Externals (somewhere in src/msw/app.cpp and src/msw/window.cpp)
@@ -63,6 +74,34 @@ LRESULT WXDLLIMPEXP_CORE APIENTRY _EXPORT wxWndProc(HWND hWnd, UINT message,
 //===========================================================================
 //  BACKEND DECLARATIONS
 //===========================================================================
+
+// ----------------------------------------------------------------------------
+// common backend base class used by all other backends
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_MEDIA wxMediaBackendCommonBase : public wxMediaBackend
+{
+public:
+    // add a pending wxMediaEvent of the given type
+    void QueueEvent(wxEventType evtType);
+
+    // notify that the movie playback is finished
+    void QueueFinishEvent() { QueueEvent(wxEVT_MEDIA_FINISHED); }
+
+    // send the stop event and return true if it hasn't been vetoed
+    bool SendStopEvent();
+
+protected:
+    // call this when the movie size has changed but not because it has just
+    // been loaded (in this case, call NotifyMovieLoaded() below)
+    void NotifyMovieSizeChanged();
+
+    // call this when the movie is fully loaded
+    void NotifyMovieLoaded();
+
+
+    wxControl *m_ctrl;      // parent control
+};
 
 //---------------------------------------------------------------------------
 //
@@ -1775,15 +1814,7 @@ void wxActiveX::OnKillFocus(wxFocusEvent& event)
 
 typedef BOOL (WINAPI* LPAMGETERRORTEXT)(HRESULT, wxChar *, DWORD);
 
-//cludgy workaround for wx events.  slots would be nice :)
-class WXDLLIMPEXP_MEDIA wxAMMediaEvtHandler : public wxEvtHandler
-{
-public:
-    void OnPaint(wxPaintEvent&);
-    void OnEraseBackground(wxEraseEvent&);
-};
-
-class WXDLLIMPEXP_MEDIA wxAMMediaBackend : public wxMediaBackend
+class WXDLLIMPEXP_MEDIA wxAMMediaBackend : public wxMediaBackendCommonBase
 {
 public:
     wxAMMediaBackend();
@@ -1841,17 +1872,17 @@ public:
         return total;
     }
 
-    wxControl* m_ctrl;
     wxActiveX* m_pAX;
     IActiveMovie* m_pAM;
     IMediaPlayer* m_pMP;
     wxTimer* m_pTimer;
     wxSize m_bestSize;
+
 #ifdef __WXDEBUG__
-    HMODULE m_hQuartzDll;
+    wxDynamicLibrary m_dllQuartz;
     LPAMGETERRORTEXT m_lpAMGetErrorText;
     wxString GetErrorString(HRESULT hrdsv);
-#endif
+#endif // __WXDEBUG__
 
     DECLARE_DYNAMIC_CLASS(wxAMMediaBackend)
 };
@@ -1867,7 +1898,7 @@ public:
 //---------------------------------------------------------------------------
 #include <mmsystem.h>
 
-class WXDLLIMPEXP_MEDIA wxMCIMediaBackend : public wxMediaBackend
+class WXDLLIMPEXP_MEDIA wxMCIMediaBackend : public wxMediaBackendCommonBase
 {
 public:
 
@@ -1915,7 +1946,6 @@ public:
                                      WPARAM wParam, LPARAM lParam);
 
     MCIDEVICEID m_hDev;     //Our MCI Device ID/Handler
-    wxControl* m_ctrl;      //Parent control
     HWND m_hNotifyWnd;      //Window to use for MCI events
     bool m_bVideo;          //Whether or not we have video
 
@@ -2223,15 +2253,7 @@ bool wxQuickTimeLibrary::Initialize()
     return true;
 }
 
-//cludgy workaround for wx events.  slots would be nice :)
-class WXDLLIMPEXP_MEDIA wxQTMediaEvtHandler : public wxEvtHandler
-{
-public:
-    void OnPaint(wxPaintEvent&);
-    void OnEraseBackground(wxEraseEvent&);
-};
-
-class WXDLLIMPEXP_MEDIA wxQTMediaBackend : public wxMediaBackend
+class WXDLLIMPEXP_MEDIA wxQTMediaBackend : public wxMediaBackendCommonBase
 {
 public:
     wxQTMediaBackend();
@@ -2285,7 +2307,6 @@ public:
 
     wxSize m_bestSize;              //Original movie size
     Movie m_movie;    //QT Movie handle/instance
-    wxControl* m_ctrl;              //Parent control
     bool m_bVideo;                  //Whether or not we have video
     bool m_bPlaying;                //Whether or not movie is playing
     wxTimer* m_timer;               //Load or Play timer
@@ -2295,10 +2316,70 @@ public:
     DECLARE_DYNAMIC_CLASS(wxQTMediaBackend)
 };
 
+// helper to hijack background erasing for the QT window
+class WXDLLIMPEXP_MEDIA wxQTMediaEvtHandler : public wxEvtHandler
+{
+public:
+    wxQTMediaEvtHandler(wxQTMediaBackend *qtb, WXHWND hwnd)
+    {
+        m_qtb = qtb;
+        m_hwnd = hwnd;
+    }
+
+    void OnEraseBackground(wxEraseEvent& event);
+
+private:
+    wxQTMediaBackend *m_qtb;
+    WXHWND m_hwnd;
+
+    DECLARE_NO_COPY_CLASS(wxQTMediaEvtHandler)
+};
+
 
 //===========================================================================
 //  IMPLEMENTATION
 //===========================================================================
+
+// ----------------------------------------------------------------------------
+// wxMediaBackendCommonBase
+// ----------------------------------------------------------------------------
+
+void wxMediaBackendCommonBase::NotifyMovieSizeChanged()
+{
+    // our best size changed after opening a new file
+    m_ctrl->InvalidateBestSize();
+    m_ctrl->SetSize(m_ctrl->GetSize());
+
+    // if the parent of the control has a sizer ask it to refresh our size
+    wxWindow * const parent = m_ctrl->GetParent();
+    if ( parent->GetSizer() )
+    {
+        m_ctrl->GetParent()->Layout();
+        m_ctrl->GetParent()->Refresh();
+        m_ctrl->GetParent()->Update();
+    }
+}
+
+void wxMediaBackendCommonBase::NotifyMovieLoaded()
+{
+    NotifyMovieSizeChanged();
+
+    // notify about movie being fully loaded
+    QueueEvent(wxEVT_MEDIA_LOADED);
+}
+
+bool wxMediaBackendCommonBase::SendStopEvent()
+{
+    wxMediaEvent theEvent(wxEVT_MEDIA_STOP, m_ctrl->GetId());
+
+    return !m_ctrl->ProcessEvent(theEvent) || theEvent.IsAllowed();
+}
+
+void wxMediaBackendCommonBase::QueueEvent(wxEventType evtType)
+{
+    wxMediaEvent theEvent(evtType, m_ctrl->GetId());
+    m_ctrl->AddPendingEvent(theEvent);
+}
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -2433,20 +2514,14 @@ public:
            //they can still get sent in some cases
            m_parent->GetPosition() == m_parent->GetDuration())
         {
-            wxMediaEvent theEvent(wxEVT_MEDIA_STOP,
-                                  m_parent->m_ctrl->GetId());
-            m_parent->m_ctrl->ProcessEvent(theEvent);
-
-            if(theEvent.IsAllowed())
+            if ( m_parent->SendStopEvent() )
             {
                 //Seek to beginning of movie
                 m_parent->wxAMMediaBackend::SetPosition(0);
                 Stop();
 
                 //send the event to our child
-                wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED,
-                                      m_parent->m_ctrl->GetId());
-                m_parent->m_ctrl->AddPendingEvent(theEvent);
+                m_parent->QueueFinishEvent();
             }
         }
     }
@@ -2512,18 +2587,11 @@ public:
             // If this is the end of the clip, notify handler
             else if(1 == evCode) //EC_COMPLETE
             {
-                wxMediaEvent theEvent(wxEVT_MEDIA_STOP,
-                                    m_pBE->m_ctrl->GetId());
-                m_pBE->m_ctrl->ProcessEvent(theEvent);
-
-                if(theEvent.IsAllowed())
+                if ( m_pBE->SendStopEvent() )
                 {
                     Stop();
 
-                    //send the event to our child
-                    wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED,
-                                        m_pBE->m_ctrl->GetId());
-                    m_pBE->m_ctrl->AddPendingEvent(theEvent);
+                    m_pBE->QueueFinishEvent();
                 }
             }
         }
@@ -2543,9 +2611,6 @@ wxAMMediaBackend::wxAMMediaBackend()
                   m_pAM(NULL),
                   m_pMP(NULL),
                   m_pTimer(NULL)
-#ifdef __WXDEBUG__
-                 ,m_hQuartzDll(NULL)
-#endif
 {
 }
 
@@ -2565,10 +2630,6 @@ wxAMMediaBackend::~wxAMMediaBackend()
         if(m_pMP)
             m_pMP->Release();
     }
-#ifdef __WXDEBUG__
-    if(m_hQuartzDll)
-        ::FreeLibrary(m_hQuartzDll);
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2596,26 +2657,13 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     // First get the AMGetErrorText procedure in debug
     // mode for more meaningful messages
 #ifdef __WXDEBUG__
-    m_hQuartzDll = ::LoadLibrary(wxT("quartz.dll"));
-    if(m_hQuartzDll)
+    if ( m_dllQuartz.Load(_T("quartz.dll"), wxDL_VERBATIM) )
     {
-            m_lpAMGetErrorText = (LPAMGETERRORTEXT) ::GetProcAddress(
-                m_hQuartzDll,
-            wxString::Format(wxT("AMGetErrorText%s"),
-
-#if wxUSE_UNICODE
-            wxT("W")
-#else
-            wxT("A")
-#endif
-#ifdef __WXWINCE__
-                             )
-#else
-                             ).mb_str(wxConvLocal)
-#endif
-                             );
+        m_lpAMGetErrorText = (LPAMGETERRORTEXT)
+                                m_dllQuartz.GetSymbolAorW(wxT("AMGetErrorText"));
     }
-#endif
+#endif // __WXDEBUG__
+
     // Now determine which (if any) media player interface is
     // available - IMediaPlayer or IActiveMovie
     if( ::CoCreateInstance(CLSID_MediaPlayer, NULL,
@@ -2625,7 +2673,7 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
         if( ::CoCreateInstance(CLSID_ActiveMovie, NULL,
                                   CLSCTX_INPROC_SERVER,
                                   IID_IActiveMovie, (void**)&m_pAM) != 0 )
-        return false;
+            return false;
         m_pAM->QueryInterface(IID_IMediaPlayer, (void**)&m_pMP);
     }
     else
@@ -2675,16 +2723,9 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     //by default with AM only 0.5
     wxAMMediaBackend::SetVolume(1.0);
 
-    // My problem with this was only with a previous patch, probably the
-    // third rewrite fixed it as a side-effect. In fact, the erase
-    // background style of drawing not only works now, but is much better
-    // than paint-based updates (the paint event handler flickers if the
-    // wxMediaCtrl shares a sizer with another child window, or is on a
-    // notebook)
-    //  - Greg Hazel
-    m_ctrl->Connect(m_ctrl->GetId(), wxEVT_ERASE_BACKGROUND,
-        wxEraseEventHandler(wxAMMediaEvtHandler::OnEraseBackground),
-        NULL, (wxEvtHandler*) this);
+    // don't erase the background of our control window so that resizing is a
+    // bit smoother
+    m_ctrl->SetBackgroundStyle(wxBG_STYLE_CUSTOM);
 
     // success
     return true;
@@ -2791,20 +2832,7 @@ void wxAMMediaBackend::FinishLoad()
     //
     m_pTimer = new wxAMPlayTimer(this);
 
-    //Here, if the parent of the control has a sizer - we
-    //tell it to recalculate the size of this control since
-    //the user opened a separate media file
-    //
-    m_ctrl->InvalidateBestSize();
-    m_ctrl->GetParent()->Layout();
-    m_ctrl->GetParent()->Refresh();
-    m_ctrl->GetParent()->Update();
-    m_ctrl->SetSize(m_ctrl->GetSize());
-
-    //Send event to our children
-    wxMediaEvent theEvent(wxEVT_MEDIA_LOADED,
-                            m_ctrl->GetId());
-    m_ctrl->AddPendingEvent(theEvent);
+    NotifyMovieLoaded();
 }
 
 //---------------------------------------------------------------------------
@@ -3154,16 +3182,6 @@ void wxAMMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y),
 }
 
 //---------------------------------------------------------------------------
-// wxAMMediaEvtHandler::OnEraseBackground
-//
-// Tell WX not to erase the background of our control window
-// so that resizing is a bit smoother
-//---------------------------------------------------------------------------
-void wxAMMediaEvtHandler::OnEraseBackground(wxEraseEvent& WXUNUSED(evt))
-{
-}
-
-//---------------------------------------------------------------------------
 // End of wxAMMediaBackend
 //---------------------------------------------------------------------------
 
@@ -3381,21 +3399,7 @@ bool wxMCIMediaBackend::Load(const wxString& fileName)
     wxSetWindowProc(m_hNotifyWnd, wxMCIMediaBackend::NotifyWndProc);
     wxSetWindowUserData(m_hNotifyWnd, this);
 
-    //
-    //Here, if the parent of the control has a sizer - we
-    //tell it to recalculate the size of this control since
-    //the user opened a separate media file
-    //
-    m_ctrl->InvalidateBestSize();
-    m_ctrl->GetParent()->Layout();
-    m_ctrl->GetParent()->Refresh();
-    m_ctrl->GetParent()->Update();
-    m_ctrl->SetSize(m_ctrl->GetSize());
-
-    //send loaded event
-    wxMediaEvent theEvent(wxEVT_MEDIA_LOADED,
-                            m_ctrl->GetId());
-    m_ctrl->AddPendingEvent(theEvent);
+    NotifyMovieLoaded();
 
     return true;
 }
@@ -3694,18 +3698,12 @@ LRESULT CALLBACK wxMCIMediaBackend::OnNotifyWndProc(HWND hWnd, UINT nMsg,
         wxASSERT(lParam == (LPARAM) m_hDev);
         if(wParam == MCI_NOTIFY_SUCCESSFUL && lParam == (LPARAM)m_hDev)
         {
-            wxMediaEvent theEvent(wxEVT_MEDIA_STOP, m_ctrl->GetId());
-            m_ctrl->ProcessEvent(theEvent);
-
-            if(theEvent.IsAllowed())
+            if ( SendStopEvent() )
             {
                 wxMCIVERIFY( mciSendCommand(m_hDev, MCI_SEEK,
                                             MCI_SEEK_TO_START, 0) );
 
-                //send the event to our child
-                wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED,
-                                      m_ctrl->GetId());
-                m_ctrl->ProcessEvent(theEvent);
+                QueueFinishEvent();
             }
         }
     }
@@ -3804,19 +3802,12 @@ public:
         {
             if(m_pLib->IsMovieDone(m_movie))
             {
-                wxMediaEvent theEvent(wxEVT_MEDIA_STOP,
-                                      m_parent->m_ctrl->GetId());
-                m_parent->m_ctrl->ProcessEvent(theEvent);
-
-                if(theEvent.IsAllowed())
+                if ( m_parent->SendStopEvent() )
                 {
                     m_parent->Stop();
                     wxASSERT(m_pLib->GetMoviesError() == noErr);
 
-                    //send the event to our child
-                    wxMediaEvent theEvent(wxEVT_MEDIA_FINISHED,
-                                          m_parent->m_ctrl->GetId());
-                    m_parent->m_ctrl->AddPendingEvent(theEvent);
+                    m_parent->QueueFinishEvent();
                 }
             }
         }
@@ -3886,6 +3877,9 @@ wxQTMediaBackend::~wxQTMediaBackend()
         //    m_pMC = NULL;
         }
 
+        // destroy wxQTMediaEvtHandler we pushed on it
+        m_ctrl->PopEventHandler(true);
+
         m_lib.DestroyPortAssociation(
             (CGrafPtr)m_lib.GetNativeWindowPort(m_ctrl->GetHWND()));
 
@@ -3944,9 +3938,7 @@ bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
 
     //Part of a suggestion from Greg Hazel to repaint
     //movie when idle
-    m_ctrl->Connect(m_ctrl->GetId(), wxEVT_ERASE_BACKGROUND,
-        wxEraseEventHandler(wxQTMediaEvtHandler::OnEraseBackground),
-        NULL, (wxEvtHandler*) this);
+    m_ctrl->PushEventHandler(new wxQTMediaEvtHandler(this, m_ctrl->GetHWND()));
 
     // done
     return true;
@@ -4144,23 +4136,7 @@ void wxQTMediaBackend::FinishLoad()
     m_lib.SetMovieTimeScale(m_movie, 1000);
     wxASSERT(m_lib.GetMoviesError() == noErr);
 
-    //
-    //Here, if the parent of the control has a sizer - we
-    //tell it to recalculate the size of this control since
-    //the user opened a separate media file
-    //
-    m_ctrl->InvalidateBestSize();
-    m_ctrl->GetParent()->Layout();
-    m_ctrl->GetParent()->Refresh();
-    m_ctrl->GetParent()->Update();
-    m_ctrl->SetSize(m_ctrl->GetSize());
-
-    //loaded - note that MoviesTask must and will be called before this
-    //by the previous timer since this gets appended to the event list after
-    //the timer's first go
-    wxMediaEvent theEvent(wxEVT_MEDIA_LOADED,
-                            m_ctrl->GetId());
-    m_ctrl->AddPendingEvent(theEvent);
+    NotifyMovieLoaded();
 }
 
 //---------------------------------------------------------------------------
@@ -4450,16 +4426,7 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
         }
     }
 
-    //
-    //Here, if the parent of the control has a sizer - we
-    //tell it to recalculate the size of this control since
-    //the user opened a separate media file
-    //
-    m_ctrl->InvalidateBestSize();
-    m_ctrl->GetParent()->Layout();
-    m_ctrl->GetParent()->Refresh();
-    m_ctrl->GetParent()->Update();
-    m_ctrl->SetSize(m_ctrl->GetSize());
+    NotifyMovieSizeChanged();
 
     return m_lib.GetMoviesError() == noErr;
 }
@@ -4548,28 +4515,31 @@ void wxQTMediaBackend::Move(int WXUNUSED(x), int WXUNUSED(y), int w, int h)
 //---------------------------------------------------------------------------
 void wxQTMediaEvtHandler::OnEraseBackground(wxEraseEvent& evt)
 {
-    wxQTMediaBackend* qtb = (wxQTMediaBackend*)this;
-    wxQuickTimeLibrary* m_pLib = &(qtb->m_lib);
+    wxQuickTimeLibrary& m_pLib = m_qtb->m_lib;
 
-    if(qtb->m_pMC)
+    if ( m_qtb->m_pMC )
     {
-        //repaint movie controller
-        m_pLib->MCDoAction(qtb->m_pMC, 2 /*mcActionDraw*/,
-            m_pLib->GetNativeWindowPort(qtb->m_ctrl->GetHWND())
-                           );
+        // repaint movie controller
+        m_pLib.MCDoAction(m_qtb->m_pMC, 2 /*mcActionDraw*/,
+                            m_pLib.GetNativeWindowPort(m_hwnd));
     }
-    else if(qtb->m_movie)
+    else // no movie controller
     {
-        CGrafPtr port = (CGrafPtr)m_pLib->GetNativeWindowPort
-        (qtb->m_ctrl->GetHWND());
+        if ( m_qtb->m_movie )
+        {
+            CGrafPtr port = (CGrafPtr)m_pLib.GetNativeWindowPort(m_hwnd);
 
-        m_pLib->BeginUpdate(port);
-        m_pLib->UpdateMovie(qtb->m_movie);
-        wxASSERT(m_pLib->GetMoviesError() == noErr);
-        m_pLib->EndUpdate(port);
+            m_pLib.BeginUpdate(port);
+            m_pLib.UpdateMovie(m_qtb->m_movie);
+            wxASSERT(m_pLib.GetMoviesError() == noErr);
+            m_pLib.EndUpdate(port);
+        }
+        else // no movie
+        {
+            // let the system repaint the window
+            evt.Skip();
+        }
     }
-
-    evt.Skip(); //repaint with window background (TODO: maybe !m_movie?)
 }
 
 //---------------------------------------------------------------------------

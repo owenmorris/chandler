@@ -253,8 +253,8 @@ bool wxToolBar::Create(wxWindow *parent,
         if ( !(style & TBSTYLE_FLAT) )
         {
             ::SendMessage(GetHwnd(), TB_SETSTYLE, 0, style | TBSTYLE_FLAT);
-            }
         }
+    }
 #endif // wxUSE_UXTHEME
 
     return true;
@@ -883,7 +883,7 @@ bool wxToolBar::Realize()
                                 wxToolBarToolBase *tool = nodePrev->GetData();
                                 if ( !tool->IsButton() || tool->GetKind() != wxITEM_RADIO )
                                     break;
-                                
+
                                 if ( tool->Toggle(false) )
                                 {
                                     DoToggleTool(tool, false);
@@ -891,7 +891,7 @@ bool wxToolBar::Realize()
                                 prevButton.fsState = TBSTATE_ENABLED;
                                 nodePrev = nodePrev->GetPrevious();
                                 prevIndex--;
-                            }                            
+                            }
                         }
 
                         isRadio = true;
@@ -1071,6 +1071,8 @@ bool wxToolBar::Realize()
     }
 
     InvalidateBestSize();
+    SetBestFittingSize();
+
     return true;
 }
 

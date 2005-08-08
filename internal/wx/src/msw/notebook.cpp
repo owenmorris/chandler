@@ -42,7 +42,7 @@
 
 #include  <windowsx.h>
 
-    #include <commctrl.h>
+#include <commctrl.h>
 
 #include "wx/msw/winundef.h"
 
@@ -62,7 +62,7 @@
 // expense of some extra GDI resource consumption
 #ifdef __WXWINCE__
     // notebooks are never resized under CE anyhow
-#define USE_NOTEBOOK_ANTIFLICKER    0
+    #define USE_NOTEBOOK_ANTIFLICKER    0
 #else
     #define USE_NOTEBOOK_ANTIFLICKER    1
 #endif
@@ -344,6 +344,11 @@ bool wxNotebook::Create(wxWindow *parent,
             wxSystemOptions::IsFalse(wxT("msw.notebook.themed-background")) )
     {
         SetBackgroundColour(GetThemeBackgroundColour());
+    }
+    else // use themed background by default
+    {
+        // create backing store
+        UpdateBgBrush();
     }
 #endif // wxUSE_UXTHEME
 
@@ -834,7 +839,7 @@ void wxNotebook::OnPaint(wxPaintEvent& WXUNUSED(event))
     {
         brush = wxBrush(GetBackgroundColour());
         hbr = GetHbrushOf(brush);
-}
+    }
 
     ::FillRect(GetHdcOf(memdc), &rc, hbr);
 
@@ -867,17 +872,17 @@ void wxNotebook::OnSize(wxSizeEvent& event)
         // This needs to be reconciled with the RefreshRect calls
         // at the end of this function, which weren't enough to prevent
         // the droppings.
-        
+
         wxSize sz = GetClientSize();
 
         // Refresh right side
         wxRect rect(sz.x-4, 0, 4, sz.y);
         RefreshRect(rect);
-        
+
         // Refresh bottom side
         rect = wxRect(0, sz.y-4, sz.x, 4);
         RefreshRect(rect);
-        
+
         // Refresh left side
         rect = wxRect(0, 0, 4, sz.y);
         RefreshRect(rect);
@@ -997,7 +1002,7 @@ void wxNotebook::OnSelChange(wxNotebookEvent& event)
         // a child window) since it erroneously selects radio button controls and also
         // breaks keyboard handling for a notebook's scroll buttons. So
         // we always focus the notebook and not the page.
-            SetFocus();
+        SetFocus();
 
       }
       else // no pages in the notebook, give the focus to itself
@@ -1347,5 +1352,5 @@ bool wxNotebook::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM* result)
   *result = !event.IsAllowed();
   return processed;
 }
-    
+
 #endif // wxUSE_NOTEBOOK

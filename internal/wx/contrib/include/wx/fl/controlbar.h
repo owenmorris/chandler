@@ -905,10 +905,10 @@ public:
     bool          mHasLeftHandle;
     bool          mHasRightHandle;
 
-    // determines if this bar can float. The layout's setting as priority. For 
+    // determines if this bar can float. The layout's setting as priority. For
     // example, if the layout's mFloatingOn is false, this setting is irrelevant
     // since nothing will float at all. If the layout's floating is on, use this
-    // setting to prevent specific bars from floating. In other words, all bars 
+    // setting to prevent specific bars from floating. In other words, all bars
     // float by default and floating can be turned off on individual bars.
     bool          mFloatingOn;    // default: ON (which is also the layout's mFloatingOn default setting)
 
@@ -1037,11 +1037,11 @@ class WXDLLIMPEXP_FL cbCommonPaneProperties : public wxObject
     cbCommonPaneProperties(void);
 
         // Copy constructor
-    
+
     cbCommonPaneProperties(const cbCommonPaneProperties&);
 
         // Assignment operator
-    
+
     cbCommonPaneProperties& operator=(const cbCommonPaneProperties&);
 };
 

@@ -55,12 +55,13 @@ static void wxGtkOnRemoveTag(GtkTextBuffer *buffer,
                              GtkTextTag *tag,
                              GtkTextIter *start,
                              GtkTextIter *end,
-                             gpointer user_data)
+                             char *prefix)
 {
     gchar *name;
     g_object_get (tag, "name", &name, NULL);
 
-    if (!name || strncmp(name, "WX", 2)) // anonymous tag or not starting with "WX"
+    if (!name || strncmp(name, prefix, strlen(prefix)))
+        // anonymous tag or not starting with prefix - don't remove
         g_signal_stop_emission_by_name(buffer, "remove_tag");
 
     g_free(name);
@@ -77,7 +78,7 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
     GtkTextTag *tag;
 
     gulong remove_handler_id = g_signal_connect( text_buffer, "remove_tag",
-                                                 G_CALLBACK(wxGtkOnRemoveTag), NULL);
+            G_CALLBACK(wxGtkOnRemoveTag), gpointer("WX"));
     gtk_text_buffer_remove_all_tags(text_buffer, start, end);
     g_signal_handler_disconnect( text_buffer, remove_handler_id );
 
@@ -121,6 +122,44 @@ static void wxGtkTextApplyTagsFromAttr(GtkTextBuffer *text_buffer,
             tag = gtk_text_buffer_create_tag( text_buffer, buf,
                                               "background-gdk", colBg, NULL );
         gtk_text_buffer_apply_tag (text_buffer, tag, start, end);
+    }
+
+    if (attr.HasAlignment())
+    {
+        GtkTextIter para_start, para_end = *end;
+        gtk_text_buffer_get_iter_at_line( text_buffer,
+                                          &para_start,
+                                          gtk_text_iter_get_line(start) );
+        gtk_text_iter_forward_line(&para_end);
+
+        remove_handler_id = g_signal_connect( text_buffer, "remove_tag",
+                                              G_CALLBACK(wxGtkOnRemoveTag),
+                                              gpointer("WXALIGNMENT"));
+        gtk_text_buffer_remove_all_tags( text_buffer, &para_start, &para_end );
+        g_signal_handler_disconnect( text_buffer, remove_handler_id );
+
+        GtkJustification align;
+        switch (attr.GetAlignment())
+        {
+            default:
+                align = GTK_JUSTIFY_LEFT;
+                break;
+            case wxTEXT_ALIGNMENT_RIGHT:
+                align = GTK_JUSTIFY_RIGHT;
+                break;
+            case wxTEXT_ALIGNMENT_CENTER:
+                align = GTK_JUSTIFY_CENTER;
+                break;
+            // gtk+ doesn't support justify as of gtk+-2.7.4
+        }
+
+        g_snprintf(buf, sizeof(buf), "WXALIGNMENT %d", align);
+        tag = gtk_text_tag_table_lookup( gtk_text_buffer_get_tag_table( text_buffer ),
+                                         buf );
+        if (!tag)
+            tag = gtk_text_buffer_create_tag( text_buffer, buf,
+                                              "justification", align, NULL );
+        gtk_text_buffer_apply_tag( text_buffer, tag, &para_start, &para_end );
     }
 }
 }
@@ -1117,6 +1156,15 @@ bool wxTextCtrl::PositionToXY(long pos, long *x, long *y ) const
 {
     if ( m_windowStyle & wxTE_MULTILINE )
     {
+#ifdef __WXGTK20__
+        GtkTextIter iter;
+        gtk_text_buffer_get_iter_at_offset(m_buffer, &iter, pos);
+        if (gtk_text_iter_is_end(&iter))
+            return false;
+
+        *y = gtk_text_iter_get_line(&iter);
+        *x = gtk_text_iter_get_line_offset(&iter);
+#else
         wxString text = GetValue();
 
         // cast to prevent warning. But pos really should've been unsigned.
@@ -1137,6 +1185,7 @@ bool wxTextCtrl::PositionToXY(long pos, long *x, long *y ) const
             else
                 (*x)++;
         }
+#endif
     }
     else // single line control
     {
@@ -1159,17 +1208,45 @@ long wxTextCtrl::XYToPosition(long x, long y ) const
 {
     if (!(m_windowStyle & wxTE_MULTILINE)) return 0;
 
+#ifdef __WXGTK20__
+    GtkTextIter iter;
+    if (y >= gtk_text_buffer_get_line_count (m_buffer))
+        return -1;
+
+    gtk_text_buffer_get_iter_at_line(m_buffer, &iter, y);
+    if (x >= gtk_text_iter_get_chars_in_line (&iter))
+        return -1;
+
+    return gtk_text_iter_get_offset(&iter) + x;
+#else
     long pos=0;
     for( int i=0; i<y; i++ ) pos += GetLineLength(i) + 1; // one for '\n'
 
     pos += x;
     return pos;
+#endif
 }
 
 int wxTextCtrl::GetLineLength(long lineNo) const
 {
-    wxString str = GetLineText (lineNo);
-    return (int) str.Length();
+#ifdef __WXGTK20__
+    if (m_windowStyle & wxTE_MULTILINE)
+    {
+        int last_line = gtk_text_buffer_get_line_count( m_buffer ) - 1;
+        if (lineNo > last_line)
+            return -1;
+
+        GtkTextIter iter;
+        gtk_text_buffer_get_iter_at_line(m_buffer, &iter, lineNo);
+        // get_chars_in_line return includes paragraph delimiters, so need to subtract 1 IF it is not the last line
+        return gtk_text_iter_get_chars_in_line(&iter) - ((lineNo == last_line) ? 0 : 1);
+    }
+    else
+#endif
+    {
+        wxString str = GetLineText (lineNo);
+        return (int) str.Length();
+    }
 }
 
 int wxTextCtrl::GetNumberOfLines() const

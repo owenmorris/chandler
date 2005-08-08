@@ -138,7 +138,7 @@ public:
        { m_offsetY = offsetY; }
     int GetOffsetY()
        { return m_offsetY; }
-       
+
     void SetPenNormal( const wxPen &pen )
        { m_penNormal = pen; }
     void SetPenSelected( const wxPen &pen )
@@ -185,10 +185,10 @@ public:
        { m_offsetY = offsetY; }
     int GetOffsetY()
        { return m_offsetY; }
-       
+
     void Add( wxInt32 on, wxInt32 off, void *clientData = NULL );
     size_t GetCount();
-    
+
     wxInt32 GetOn( size_t index );
     wxInt32 GetOff( size_t index );
     void* GetClientData( size_t index );
@@ -201,7 +201,7 @@ private:
     int               m_offsetY;
     wxInt32           m_minX;
     wxInt32           m_maxX;
-    
+
     wxArrayPlotOnOff   m_marks;
 
     DECLARE_CLASS(wxPlotOnOffCurve)
@@ -302,7 +302,7 @@ public:
 
     void Add( wxPlotOnOffCurve *curve );
     void Delete( wxPlotOnOffCurve* curve );
-    
+
     size_t GetOnOffCurveCount();
     wxPlotOnOffCurve *GetOnOffCurveAt( size_t n );
 
@@ -368,7 +368,7 @@ private:
 
     wxList             m_curves;
     wxList             m_onOffCurves;
-    
+
     wxPlotArea        *m_area;
     wxPlotXAxisArea   *m_xaxis;
     wxPlotYAxisArea   *m_yaxis;

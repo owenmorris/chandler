@@ -4151,8 +4151,7 @@ void wxWindowGTK::GtkSendPaintEvents()
 
     m_clipPaintRegion = false;
 
-#ifndef __WXUNIVERSAL__
-#ifndef __WXGTK20__
+#if !defined(__WXUNIVERSAL__) && !defined(__WXGTK20__)
     // The following code will result in all window-less widgets
     // being redrawn because the wxWidgets class is allowed to
     // paint over the window-less widgets.
@@ -4173,6 +4172,7 @@ void wxWindowGTK::GtkSendPaintEvents()
             gdk_event.type = GDK_EXPOSE;
             gdk_event.window = pizza->bin_window;
             gdk_event.count = 0;
+            gdk_event.send_event = TRUE;
 
             wxRegionIterator upd( m_updateRegion );
             while (upd)
@@ -4192,8 +4192,7 @@ void wxWindowGTK::GtkSendPaintEvents()
             }
         }
     }
-#endif
-#endif
+#endif // native GTK 1
 
     m_updateRegion.Clear();
 }
@@ -4419,13 +4418,13 @@ bool wxWindowGTK::SetBackgroundStyle(wxBackgroundStyle style)
 
 #if wxUSE_MENUS_NATIVE
 
-extern "C"
+extern "C" WXDLLIMPEXP_CORE
 void gtk_pop_hide_callback( GtkWidget *WXUNUSED(widget), bool* is_waiting  )
 {
     *is_waiting = FALSE;
 }
 
-void SetInvokingWindow( wxMenu *menu, wxWindow* win )
+WXDLLIMPEXP_CORE void SetInvokingWindow( wxMenu *menu, wxWindow* win )
 {
     menu->SetInvokingWindow( win );
 
@@ -4442,12 +4441,13 @@ void SetInvokingWindow( wxMenu *menu, wxWindow* win )
     }
 }
 
-extern "C" void wxPopupMenuPositionCallback( GtkMenu *menu,
-                                             gint *x, gint *y,
+extern "C" WXDLLIMPEXP_CORE
+void wxPopupMenuPositionCallback( GtkMenu *menu,
+                                  gint *x, gint *y,
 #ifdef __WXGTK20__
-                                             gboolean * WXUNUSED(whatever),
+                                  gboolean * WXUNUSED(whatever),
 #endif
-                                             gpointer user_data )
+                                  gpointer user_data )
 {
     // ensure that the menu appears entirely on screen
     GtkRequisition req;

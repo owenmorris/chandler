@@ -933,19 +933,6 @@
 // (just use Windows printing).
 #define wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW 0
 
-// Define as 1 to use Microsoft's ItsyBitsy small title bar library, for
-// wxMiniFrame. This setting is only used for Win3.1; Win9x and NT use native
-// miniframes support instead.
-//
-// Default is 0 for (most) Win32 (systems), 1 for Win16
-//
-// Recommended setting: same as default
-#if defined(__WIN95__)
-#define wxUSE_ITSY_BITSY             0
-#else
-#define wxUSE_ITSY_BITSY             1
-#endif
-
 // Set this to 1 to use RICHEDIT controls for wxTextCtrl with style wxTE_RICH
 // which allows to put more than ~32Kb of text in it even under Win9x (NT
 // doesn't have such limitation).
@@ -980,9 +967,6 @@
 
 // NB: all settings in this section are obsolete and should not be used/changed
 //     at all, they will disappear
-
-// Set to 1 to use PenWindows
-#define wxUSE_PENWINDOWS             0
 
 // Define 1 to use bitmap messages.
 #define wxUSE_BITMAP_MESSAGE         1

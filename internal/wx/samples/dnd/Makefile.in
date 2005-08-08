@@ -36,7 +36,7 @@ SAMPLES_RPATH_POSTLINK = @SAMPLES_RPATH_POSTLINK@
 
 DESTDIR = 
 WX_RELEASE = 2.6
-WX_VERSION = $(WX_RELEASE).1
+WX_VERSION = $(WX_RELEASE).2
 LIBDIRNAME = $(top_builddir)lib
 DND_CXXFLAGS = -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
 	$(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) $(__THREAD_DEFINE_p) \
@@ -185,7 +185,7 @@ dnd_dnd.o: $(srcdir)/dnd.cpp
 	$(CXXC) -c -o $@ $(DND_CXXFLAGS) $(srcdir)/dnd.cpp
 
 dnd_dnd_rc.o: $(srcdir)/dnd.rc
-	$(RESCOMP) -i$< -o$@   --define __WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p_2)  $(__EXCEPTIONS_DEFINE_p_2) $(__RTTI_DEFINE_p_2) $(__THREAD_DEFINE_p_2)  --include-dir $(srcdir) $(__DLLFLAG_p_2) --include-dir $(srcdir)/../../samples --include-dir $(top_srcdir)/include
+	$(RESCOMP) -i$< -o$@   --define __WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p_2)  $(__EXCEPTIONS_DEFINE_p_2) $(__RTTI_DEFINE_p_2) $(__THREAD_DEFINE_p_2)   --include-dir $(srcdir) $(__DLLFLAG_p_2) --include-dir $(srcdir)/../../samples --include-dir $(top_srcdir)/include
 
 
 # Include dependency info, if present:
