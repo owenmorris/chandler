@@ -205,7 +205,7 @@ class wxPreviewArea(wx.Panel):
         
         # need to do 2 resizings. Freeze/Thaw are in hopes of elminiating the
         # flicker between them, but it doesn't seem to be doing much. The WX
-        # docs say they're only "hints".
+        # docs say they're only "hints", but maybe this is using them wrong.
         
         self.GetParent().GetParent().Freeze()
         self.GetParent().Freeze()
@@ -224,7 +224,7 @@ class wxPreviewArea(wx.Panel):
             self.ChangeHeightAndAdjustContainers(0)
             return
 
-        inRange = list(self.blockItem.getItemsInCurrentRange(True))
+        inRange = list(self.blockItem.getItemsInCurrentRange(allItems=True))
         self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
         self.text  = ""

@@ -863,7 +863,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
             
         return generatedItems
 
-    def getItemsInRange(self, date, nextDate, dayItems=False):
+    def getItemsInRange(self, date, nextDate, dayItems=False, allItems=False):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -871,19 +871,23 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         
         @type date: datetime
         @type nextDate: datetime
+        
+        @param dayItems: whether you want day items, or timed items
+        @param allItems: overrides dayItems and gives you everything
+        
         @return: the items in this collection that appear within the given range
-        @rtype: list of Items
+        @rtype: generator of Items
         """
         # this is annoying - for the moment we have to first make sure all the
         # generated items exist, then reiterate self.contents
         generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
 
         for item in itertools.chain(self.contents, generatedItems):
-            isDayItem = self.isDayItem(item)
+            dayTest = allItems or self.isDayItem(item) == dayItems
 
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                (isDayItem == dayItems) and
+                dayTest and
                 self.itemIsInRange(item, date, nextDate)):
                 # For the moment, master events can be overridden.  Until
                 # this is changed (which should happen soon), don't display
