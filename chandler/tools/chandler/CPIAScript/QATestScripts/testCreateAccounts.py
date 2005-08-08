@@ -1,0 +1,62 @@
+import osaf.framework.scripting.QATestAppLib as QATestAppLib
+# initialization
+logger = QATestAppLib.TestLogger()
+logger.Start("Account Preferences Dialog")
+ap = QATestAppLib.Accounts(__view__, logger)
+
+# action
+ap.Open()
+
+ap.CreateAccount("SMTP")
+ap.TypeValue("displayName", "Personal SMTP")
+ap.TypeValue("host","smtp.osafoundation.org")
+ap.SelectValue("security",  'TLS')
+ap.ToggleValue("authentication", True)
+ap.TypeValue("port", '25')
+ap.TypeValue('username', 'demo1')
+ap.TypeValue('password', 'ad3leib5')
+
+ap.CreateAccount("IMAP")
+ap.TypeValue("displayName", "Personal IMAP")
+ap.TypeValue("email", "demo1@osaofundation.org")
+ap.TypeValue("name","Demo One")
+ap.TypeValue("host", "imap.osafoundation.org")
+ap.TypeValue("username", "demo1")
+ap.TypeValue("password", "ad3leib5")
+ap.SelectValue("security", "SSL")
+ap.ToggleValue("default", True)
+ap.SelectValue("server", "Personal SMTP")
+
+ap.CreateAccount("POP")
+ap.TypeValue("displayName", "Personal POP")
+ap.TypeValue("email", "demo1@osafoundation.org")
+ap.TypeValue("name", "Demo One")
+ap.TypeValue("host", "pop.osafoundation.org")
+ap.TypeValue("username", "demo1")
+ap.TypeValue("password", "ad3leib5")
+ap.SelectValue("security", "SSL")
+ap.TypeValue("port", "143")
+ap.ToggleValue("leave", True)
+ap.ToggleValue("default", True)
+ap.SelectValue("server", "Personal SMTP")
+
+ap.CreateAccount("WebDAV")
+ap.TypeValue("displayName", "Personal WebDAV")
+ap.TypeValue("host", "qacosmo.osafoundation.org")
+ap.TypeValue("path", "home/demo1")
+ap.TypeValue("username", "demo1")
+ap.TypeValue("password", "ad3leib5")
+ap.TypeValue("port", "8080")
+ap.ToggleValue("ssl", False)
+ap.ToggleValue("default", True)
+
+ap.Ok()
+logger.Stop()
+
+# Verification
+ap.VerifyValues("SMTP", "Personal SMTP", displayName = "Personal SMTP", host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 25, username = 'demo1', password = 'ad3leib5' )
+ap.VerifyValues("IMAP", "Personal IMAP", displayName = "Personal IMAP", host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
+ap.VerifyValues("POP", "Personal POP", displayName = "Personal POP", host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
+ap.VerifyValues("WebDAV", "Perosnal WebDAV", displayName = "Personal WebDAV", host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
+logger.Report()
+logger.Close()
