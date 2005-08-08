@@ -1061,16 +1061,13 @@
 // wxWebKit is a wrapper for Apple's WebKit framework, use it if you want to
 // embed the Safari browser control
 // 0 by default because of Jaguar compatibility problems
-#define wxUSE_WEBKIT        0
-
+#define wxUSE_WEBKIT        1
 
 // Set to 0 for no libmspack
 #define wxUSE_LIBMSPACK     0
 
 // native toolbar does not support embedding controls yet, please test by setting to 1
 #define wxMAC_USE_NATIVE_TOOLBAR 1
-
-
 
 
 #endif
