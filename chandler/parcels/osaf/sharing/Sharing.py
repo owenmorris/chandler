@@ -218,13 +218,14 @@ class Share(items.ContentItem):
 
             if url.endswith(".ics"):
                 import ICalendar
-                self.format = ICalendar.ICalendarFormat(view=view)
-                self.conduit = SimpleHTTPConduit(view=view, shareName=shareName,
-                                            account=account)
+                self.format = ICalendar.ICalendarFormat(parent=self)
+                self.conduit = SimpleHTTPConduit(parent=self,
+                                                 shareName=shareName,
+                                                 account=account)
                 self.mode = "get"
 
             else:
-                self.conduit = WebDAVConduit(view=view,
+                self.conduit = WebDAVConduit(parent=self,
                                              shareName=shareName,
                                              account=account)
                 location = self.getLocation()
@@ -232,13 +233,17 @@ class Share(items.ContentItem):
                     location += "/"
                 resource = self.conduit._getServerHandle().getResource(location)
 
+                exists = zanshin.util.blockUntil(resource.exists)
+                if not exists:
+                    raise NotFound(message="%s does not exist" % location)
+
                 isCalendar = zanshin.util.blockUntil(resource.isCalendar)
                 isCollection =  zanshin.util.blockUntil(resource.isCollection)
                 if isCalendar:
                     import ICalendar
-                    self.format = ICalendar.CalDAVFormat(view=view)
+                    self.format = ICalendar.CalDAVFormat(parent=self)
                 else:
-                    self.format = CloudXMLFormat(view=view)
+                    self.format = CloudXMLFormat(parent=self)
                 self.mode = "both"
 
 

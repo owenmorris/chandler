@@ -75,17 +75,17 @@ class SubscribeDialog(wx.Dialog):
             self.__showStatus("You are already subscribed")
             return
 
-        share = Sharing.Share(view=view)
-        share.configureInbound(url)
-
-        if share is None:
-            return
-
-        if self.accountPanel.IsShown():
-            share.conduit.account.username = self.textUsername.GetValue()
-            share.conduit.account.password = self.textPassword.GetValue()
-
         try:
+            share = Sharing.Share(view=view)
+            share.configureInbound(url)
+
+            if share is None:
+                return
+
+            if self.accountPanel.IsShown():
+                share.conduit.account.username = self.textUsername.GetValue()
+                share.conduit.account.password = self.textPassword.GetValue()
+
             self.__showStatus("In progress...")
             wx.Yield()
             share.sync()
@@ -109,25 +109,17 @@ class SubscribeDialog(wx.Dialog):
 
         except Sharing.NotAllowed, err:
             self.__showAccountInfo(share.conduit.account)
-            share.conduit.delete(True)
-            share.format.delete(True)
             share.delete(True)
         except Sharing.NotFound, err:
             self.__showStatus("That collection was not found")
-            share.conduit.delete(True)
-            share.format.delete(True)
             share.delete(True)
         except Sharing.SharingError, err:
             self.__showStatus("Sharing Error:\n%s" % err.message)
             logger.exception("Error during subscribe for %s" % url)
-            share.conduit.delete(True)
-            share.format.delete(True)
             share.delete(True)
         except Exception, e:
             self.__showStatus("Sharing Error:\n%s" % e)
             logger.exception("Error during subscribe for %s" % url)
-            share.conduit.delete(True)
-            share.format.delete(True)
             share.delete(True)
 
     def OnTyping(self, evt):
