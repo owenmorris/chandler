@@ -80,7 +80,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if self.factory.useTLS:
             """The Twisted IMAP4Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
-            d = self.startTLS(self.factory.sslContext)
+            d = self.startTLS(self.transport.contextFactory.getContext())
 
             d.addCallbacks(lambda _: self.delegate.loginClient(), \
                                      self.delegate.catchErrors)

@@ -17,7 +17,6 @@ from datetime import datetime
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.pim.mail as Mail
-import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports
@@ -25,6 +24,7 @@ import constants as constants
 import errors as errors
 import message as message
 import utils as utils
+
 
 class _TwistedESMTPSender(smtp.ESMTPSender):
 
@@ -68,6 +68,23 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
             return self.sentMail(200, None, None, None, None)
 
         return smtp.ESMTPSender.smtpState_from(self, code, resp)
+
+    def esmtpState_starttls(self, code, resp):
+        """
+        Overrides C{smtp.ESMTPClient} to call startTLS with the correct
+        context factory.
+        """
+        try:
+            self.transport.startTLS(self.transport.contextFactory.getContext())
+            self.tlsMode = True
+        except Exception, e:
+            #log.err()
+            
+            self.esmtpTLSFailed(451)
+
+        # Send another EHLO once TLS has been started to
+        # get the TLS / AUTH schemes. Some servers only allow AUTH in TLS mode.
+        self.esmtpState_ehlo(code, resp)
 
 
 class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
@@ -273,6 +290,7 @@ class _SMTPTransport(object):
 
         d = defer.Deferred()
         d.addCallback(self.parent.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
+        d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.handleSSLError)
         d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
 
         self.__sendMail(sender.emailAddress, self.__getRcptTo(), messageText, d)
@@ -286,9 +304,7 @@ class _SMTPTransport(object):
 
         d = defer.Deferred()
         d.addCallback(self.__testSuccess)
-        # XXX This probably should not be needed because we should just succeed in
-        # XXX disconnect
-        d.addErrback(ssl.verifyErrorFilter)
+        d.addErrback(self.handleSSLError)
         d.addErrback(self.__testFailure)
 
         self.__sendMail("", [], "", d, True)
@@ -303,7 +319,6 @@ class _SMTPTransport(object):
         username         = None
         password         = None
         authRequired     = False
-        tlsContext       = None
         securityRequired = False
         heloFallback     = True
 
@@ -314,44 +329,36 @@ class _SMTPTransport(object):
             heloFallback = False
 
         if testing:
-            reconnect = self.parent.testAccountSettings
             retries = 0
             timeout = constants.TESTING_TIMEOUT
         else:
             retries = account.numRetries
             timeout = account.timeout
-            reconnect = lambda: self.parent.sendMail(self.mailMessage)
-
-        verifyCallback = ssl._VerifyCallback(self.parent.view,
-                                             self.parent._actionComplete,
-                                             reconnect)
 
         if account.connectionSecurity == 'TLS':
-            tlsContext = ssl.getContext(self.parent.view,
-                                        verifyCallback=verifyCallback)
             securityRequired = True
 
         msg = StringIO.StringIO(messageText)
 
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
+        # Note that we cheat with the context factory here (value=1),
+        # because ssl.connectSSL does it automatically, and in the
+        # case of STARTTLS we override esmtpState_starttls above
+        # to supply the correct SSL context.
+        factory = smtp.ESMTPSenderFactory(username, password, from_addr, 
+                                          to_addrs, msg,
                                           deferred, retries, timeout,
-                                          tlsContext, heloFallback, authRequired, securityRequired)
+                                          1, heloFallback, authRequired, 
+                                          securityRequired)
 
-
-        if account.connectionSecurity == 'SSL':
-            #XXX: This method actually begins the SSL exchange. Confusing name!
-            factory.startTLS = True
-            factory.getContext = lambda : ssl.getContext(self.parent.view,
-                                                         verifyCallback=verifyCallback)
-
-        factory.sslChecker = ssl.postConnectionCheck
         factory.protocol   = _TwistedESMTPSender
         factory.testing    = testing
 
-        wrappingFactory = policies.WrappingFactory(factory)
-        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-
-        reactor.connectTCP(account.host, account.port, wrappingFactory)
+        if account.connectionSecurity == 'SSL':
+            ssl.connectSSL(account.host, account.port, factory, 
+                           self.parent.view)
+        else:
+            ssl.connectTCP(account.host, account.port, factory, 
+                           self.parent.view)
 
     def __testSuccess(self, result):
         self.testing = False
@@ -473,6 +480,36 @@ class _SMTPTransport(object):
 
         self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
 
+    def handleSSLError(self, err):
+        if err.check(ssl.CertificateVerificationError):
+            assert err.value.args[1] == 'certificate verify failed'
+            # Reason why verification failed is stored in err.args[0], see
+            # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
+
+            # We are being conservative for now and only asking the user
+            # if they would like to trust certificates that are otherwise
+            # valid but we don't know about them. In the future we must make
+            # it possible for the user to accept expired certificates and
+            # so on.
+            if err.value.args[0] in ssl.unknown_issuer:
+                # Post an asynchronous event to the main thread where
+                # we ask the user if they would like to trust this
+                # certificate. The main thread will then initiate a retry
+                # when the new certificate has been added.
+                if self.parent.testing:
+                    reconnect = self.parent.testAccountSettings
+                else:
+                    reconnect = lambda: self.parent.sendMail(self.mailMessage)
+                import application.Globals as Globals
+                Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
+                                          'askTrustSiteCertificate',
+                                          err.value.untrustedCertificates[0],
+                                          reconnect)
+                # XXX Do we need to do any cleanup here?
+                return
+                
+        err.raiseException()
+
     def __getError(self, err):
         errorCode   = None
         errorString = None
@@ -537,19 +574,7 @@ class _SMTPTransport(object):
         elif errorType.startswith(errors.M2CRYPTO_PREFIX):
             errorCode = errors.M2CRYPTO_CODE
 
-            if errorType == errors.M2CRYPTO_BIO_ERROR:
-                """Certificate Verification Error"""
-                try:
-                    errDesc = err.args[0]
-                except AttributeError, IndexError:
-                    errDesc = ""
-
-                if errDesc == errors.M2CRYPTO_CERTIFICATE_VERIFY_FAILED:
-                    errorString =  errors.STR_SSL_CERTIFICATE_ERROR
-                else:
-                    errorString = errors.STR_SSL_ERROR
-
-            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
+            if errorType == errors.M2CRYPTO_CHECKER_ERROR:
                 """Host does not match cert"""
                 #XXX: This need to be refined for i18h
                 errorString = str(err)
@@ -650,3 +675,4 @@ class _SMTPTransport(object):
             return True
 
         return False 
+

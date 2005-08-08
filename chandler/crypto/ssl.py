@@ -5,9 +5,17 @@ SSL/TLS-related functionality.
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
+import twisted.protocols.policies as policies
+import twisted.internet.reactor
+
 import M2Crypto.SSL as SSL
 import M2Crypto.SSL.Checker as Checker
+import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.m2 as m2
+import M2Crypto
+
+import logging
+log = logging.getLogger(__name__)
 
 class SSLContextError(Exception):
     pass
@@ -62,7 +70,7 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
         import osaf.framework.certstore.ssl as ssl
 
         repositoryView.refresh()
-        ssl.addCertificates(repositoryView, ctx)
+        ssl.addCertificates(repositoryView, ctx) # XXX loadCertificatesToContext?
         
         # XXX TODO In some cases, for example when connecting directly
         #          to P2P partner, we want to authenticate mutually using
@@ -71,9 +79,6 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
         #          leak our identity when connecting to random SSL servers
         #          out there.
         #ctx.load_cert_chain('client.pem')
-
-        if not verifyCallback:
-            verifyCallback = _VerifyCallback(repositoryView)
 
         ctx.set_verify(SSL.verify_peer | SSL.verify_fail_if_no_peer_cert,
                        9, verifyCallback)
@@ -85,40 +90,66 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     # comes first, which can help peers select the strongest common
     # cipher.
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
+        log.error('Could not set cipher list')
         raise SSLContextError, 'Could not set cipher list'
 
     return ctx
 
 
+class ContextFactory(object):
+    def __init__(self, repositoryView, protocol='sslv23', verify=True,
+               verifyCallback=None):
+        self.repositoryView = repositoryView
+        self.protocol = protocol
+        self.verify = verify
+        self.verifyCallback = verifyCallback
+        
+    def getContext(self):
+        return getContext(self.repositoryView, self.protocol, self.verify,
+                          self.verifyCallback)
+
+
 trusted_until_shutdown_site_certs = []
 
-# XXX Make this public class
-class _VerifyCallback(object):
-    # We need to use a class to transmit the repository view and
-    # callbacks. Otherwise this could be an ordinary function 
-    # instead of a class with __call__.
-    
-    def __init__(self, repositoryView, disconnect=None,
-                 reconnect=None):
-        self.repositoryView = repositoryView
-        self.disconnect = disconnect
-        self.reconnect = reconnect
+# There are (at least) these errors that will happen when
+# the certificate can't be verified because we don't have
+# the issuing certificate.
+# We are being conservative for now and failing validation if the
+# error code is something else. We'll need to expand that so that
+# users can accept expired certificates, for example.
+unknown_issuer = [m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
+                 m2.X509_V_ERR_CERT_UNTRUSTED,
+                 m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE]
+
+
+class CertificateVerificationError(Exception):
+    def __init__(self, code, message, untrustedCertificates):
+        Exception.__init__(self, code, message)
+        self.untrustedCertificates = untrustedCertificates
         
-    def __call__(self, ok, store):
-        global trusted_until_shutdown_site_certs
+
+class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
+    def __init__(self, repositoryView, protocol, factory, wrappedProtocol, 
+                 startPassThrough, client, postConnectionCheck):
+        log.debug('TwistedProtocolWrapper.__init__')
+        self.contextFactory = ContextFactory(repositoryView, protocol, 
+                                            verifyCallback=self.verifyCallback)
+        wrapper.TLSProtocolWrapper.__init__(self, factory, wrappedProtocol, 
+                                            startPassThrough, client,
+                                            self.contextFactory,
+                                            postConnectionCheck)
+        self.repositoryView = repositoryView
+        # List for now, even though only first might be needed:
+        self.untrustedCertificates = []
+
+    def verifyCallback(self, ok, store):
+        log.debug('TwistedProtocolWrapper.verifyCallback')
+        global trusted_until_shutdown_site_certs, unknown_issuer
                 
         if not ok:
             err = store.get_error()
 
-            # There are (at least) these errors that will happen when
-            # the certificate can't be verified because we don't have
-            # the issuing certificate.
-            # We are being conservative for now and failing validation if the
-            # error code is something else - this may need to be tweaked.
-            unknownIssuer = [m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
-                             m2.X509_V_ERR_CERT_UNTRUSTED,
-                             m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE]
-            if err not in unknownIssuer:
+            if err not in unknown_issuer:
                 return ok
 
             x509 = store.get_current_cert()
@@ -126,6 +157,7 @@ class _VerifyCallback(object):
             # Check temporarily trusted certificates
             pem = x509.as_pem()
             if pem in trusted_until_shutdown_site_certs:
+                log.debug('Found temporarily trusted site cert')
                 return 1
 
             # Check permanently trusted certificates
@@ -141,46 +173,72 @@ class _VerifyCallback(object):
             if q is not None:
                 for cert in q:
                     if cert.pemAsString() == pem:
+                        log.debug('Found permanently trusted site cert')
                         return 1
+                        
+            self.untrustedCertificates.append(pem)
 
-            # XXX Should maybe require disconnect and reconnect, but for now,
-            # XXX make it work so that manual reconnect works (even if you get
-            # XXX multiple trust dialogs).
-            if self.disconnect is not None:
-                # Silently terminate current connection, prevent retries and error messages
-                self.disconnect()
-            if self.disconnect is None or self.reconnect is None:
-                # If we can't disconnect, we should not automatically reconnect
-                # because doing so could cause multiple copies of mail being
-                # sent, for example, in case the underlying code was doing
-                # automatic retries.
-                self.reconnect = lambda: 0
-                
-            # Post an asynchronous event to the main thread where
-            # we ask the user if they would like to trust this
-            # certificate. The main thread will then initiate a retry when the
-            # new certificate has been added.
-            import application.Globals as Globals
-            Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
-                                                      'askTrustSiteCertificate',
-                                                      pem,
-                                                      self.reconnect)
-                
+        log.debug('Returning %d' % ok)
         return ok
-
-
-def verifyErrorFilter(err):
-    """
-    This function is intended to be chained into twisted deferred errbacks.
-    This should be called before the application level errback, and will filter
-    out SSL verification errors that we know how to deal with. For example:
         
-        d = defer.Deferred()
-        d.addCallback(self._testSuccess)
-        d.addErrback(ssl.verifyErrorFilter)
-        d.addErrback(self._testFailure)
+    def dataReceived(self, data):
+        log.debug('TwistedProtocolWrapper.dataReceived')
+        try:
+            wrapper.TLSProtocolWrapper.dataReceived(self, data)
+        except M2Crypto.BIO.BIOError, e:
+            if e.args[1] == 'certificate verify failed':
+                raise CertificateVerificationError(e.args[0], e.args[1], 
+                                                   self.untrustedCertificates)
+            raise
+
+
+def connectSSL(host, port, factory, repositoryView, 
+               protocol='sslv23',
+               timeout=30,
+               bindAddress=None,
+               reactor=twisted.internet.reactor,
+               postConnectionCheck=Checker.Checker()):
     """
-    import M2Crypto
-    if err.check(M2Crypto.BIO.BIOError) is None or \
-       err.value[0] != m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
-        err.raiseException()
+    A convenience function to start an SSL/TLS connection using Twisted.
+    
+    See IReactorSSL interface in Twisted. 
+    """
+    log.debug('connectSSL(host=%s, port=%d)' %(host, port))
+    wrappingFactory = policies.WrappingFactory(factory)
+    wrappingFactory.protocol = lambda factory, wrappedProtocol: \
+        TwistedProtocolWrapper(repositoryView,
+                               protocol,
+                               factory,
+                               wrappedProtocol,
+                               startPassThrough=0,
+                               client=1,
+                               postConnectionCheck=postConnectionCheck)
+    return reactor.connectTCP(host, port, wrappingFactory, timeout,
+                              bindAddress)
+    
+
+def connectTCP(host, port, factory, repositoryView, 
+               protocol='tlsv1',
+               timeout=30,
+               bindAddress=None,
+               reactor=twisted.internet.reactor,
+               postConnectionCheck=Checker.Checker()):
+    """
+    A convenience function to start a TCP connection using Twisted.
+    
+    NOTE: You must call startTLS(ctx) to go into SSL/TLS mode.
+    
+    See IReactorSSL interface in Twisted. 
+    """
+    log.debug('connectSSL(host=%s, port=%d)' %(host, port))
+    wrappingFactory = policies.WrappingFactory(factory)
+    wrappingFactory.protocol = lambda factory, wrappedProtocol: \
+        TwistedProtocolWrapper(repositoryView,
+                               protocol,
+                               factory,
+                               wrappedProtocol,
+                               startPassThrough=1,
+                               client=1,
+                               postConnectionCheck=postConnectionCheck)
+    return reactor.connectTCP(host, port, wrappingFactory, timeout,
+                              bindAddress)    
