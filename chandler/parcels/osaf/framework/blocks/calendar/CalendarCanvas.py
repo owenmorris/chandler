@@ -863,7 +863,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
             
         return generatedItems
 
-    def getItemsInRange(self, date, nextDate, dayItems=False, allItems=False):
+    def getItemsInRange(self, date, nextDate, dayItems=False, timedItems=True):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. We might be able to push this
@@ -883,11 +883,13 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
 
         for item in itertools.chain(self.contents, generatedItems):
-            dayTest = allItems or self.isDayItem(item) == dayItems
+            dayItem = self.isDayItem(item)
+            daynessTest =  dayItem == dayItems  or  (not dayItem == timedItems)
+            
 
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                dayTest and
+                daynessTest and
                 self.itemIsInRange(item, date, nextDate)):
                 # For the moment, master events can be overridden.  Until
                 # this is changed (which should happen soon), don't display
@@ -1414,7 +1416,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         size = self.GetSize()
         
         startDateTime, endDateTime = self.GetCurrentDateRange()
-        visibleItems = list(self.blockItem.getItemsInRange(startDateTime, endDateTime, True))
+        visibleItems = list(self.blockItem.getItemsInRange(startDateTime, endDateTime, True, False))
         visibleItems.sort(self.sortByDurationAndStart)
         
         oldNumEventRows = self.numEventRows
@@ -1870,7 +1872,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
-        visibleItems = list(self.blockItem.getItemsInRange(startDay, endDay))
+        visibleItems = list(self.blockItem.getItemsInRange(startDay, endDay, False, True))
         visibleItems.sort(self.sortByStartTime)
                 
         
