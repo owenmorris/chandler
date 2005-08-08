@@ -154,8 +154,8 @@ def GenerateCalendarEvent(view, mainView, args):
         reminderInterval = random.choice(REMINDERS)
         event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
     elif not args[7]=='':
-        reminderTime = string.split(args[7],'/')
-        event.reminderTime = datetime(month=string.atoi(reminderTime[0]),day=string.atoi(reminderTime[1]),year=string.atoi(reminderTime[2]))
+        reminderInterval = string.atoi(args[7])
+        event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
         
     #location
     if args[8]=='*': # semi-random data
