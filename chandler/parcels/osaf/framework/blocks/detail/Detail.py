@@ -1350,6 +1350,18 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         newChoice = self.GetControlValue(control)
         oldChoice = self.GetAttributeValue(self.item, self.attributeName)
         if newChoice != oldChoice:
+            # If the old choice was Custom, make sure the user really wants to
+            # lose the custom setting
+            if oldChoice == RecurrenceAttributeEditor.customIndex:
+                caption = _("Discard custom recurrence?")
+                msg = _("The custom recurrence rule on this event will be lost "
+                        "if you change it, and you won't be able to restore it."
+                        "\n\nAre you sure you want to do this?")
+                if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                    # No: Reselect 'custom' in the menu
+                    self.SetControlValue(control, oldChoice)
+                    return
+
             self.SetAttributeValue(self.item, self.attributeName, 
                                    newChoice)
 
