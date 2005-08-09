@@ -31,7 +31,10 @@
 //#if wxUSE_COLUMNHEADER
 
 #if defined(__WXMSW__)
-	#define _WIN32_WINNT	0x5010
+	#if !defined(_WIN32_WINNT)
+		#define _WIN32_WINNT	0x5010
+	#endif
+
 	#include <commctrl.h>
 #elif defined(__WXMAC__)
 	#include <TextEdit.h>
@@ -47,7 +50,7 @@
 #endif
 
 #if defined(__WXMAC__)
-#include "wx/mac/uma.h"
+	#include "wx/mac/uma.h"
 #endif
 
 #include "wx/renderer.h"
