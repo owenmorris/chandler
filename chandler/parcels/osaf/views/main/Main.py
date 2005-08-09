@@ -22,7 +22,7 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 import osaf.pim.photos.Photos as Photos
 import osaf.pim.tests.GenerateItems as GenerateItems
-import tools.GenerateItemsFromFile as GenerateItemsFromFile
+import util.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Item import Item
