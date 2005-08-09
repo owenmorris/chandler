@@ -183,10 +183,29 @@ def initLogging(options):
 
         logger = logging.getLogger(__name__)
 
-        # Send twisted output to twisted.log in the profile directory
-        import twisted.python.log
+
+        # If there is a logging FileHandler writing to a chandler.log,
+        # then put twisted.log next to it.  Otherwise send twisted output
+        # to twisted.log in the profile directory
+
         twistedLogFile = os.path.join(options.profileDir, 'twisted.log')
+        try:
+            rootLogger = logging.getLogger()
+            for handler in rootLogger.handlers:
+                if isinstance(handler, logging.FileHandler):
+                    if handler.baseFilename.endswith('chandler.log'):
+                        # We found the chandler.log handler.  Let's put
+                        # twisted.log here next to it
+                        chandlerLogDir = os.path.dirname(handler.baseFilename)
+                        twistedLogFile = os.path.join(chandlerLogDir,
+                                                      'twisted.log')
+                        break
+        except:
+            pass # Just stick with profileDir
+
+        import twisted.python.log
         twisted.python.log.startLogging(file(twistedLogFile, 'a+'), 0)
+        logger.info("Twisted logging output to %s" % twistedLogFile)
 
 
 def locateChandlerDirectory():
