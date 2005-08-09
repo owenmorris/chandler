@@ -3,7 +3,7 @@ import ScriptingGlobalFunctions as Sgf
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 import osaf.pim.mail as Mail
-import osaf.sharing.WebDAV as WebDAV
+import osaf.sharing as Sharing
 import wx
 import sys
 import time
