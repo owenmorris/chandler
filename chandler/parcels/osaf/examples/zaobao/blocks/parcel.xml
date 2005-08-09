@@ -4,7 +4,7 @@
       xmlns:core="parcel:core"
       xmlns:doc="parcel:osaf.examples.zaobao.blocks"
       xmlns:detail="parcel:osaf.framework.blocks.detail"
-      xmlns:zaobao="parcel:osaf.examples.zaobao"
+      xmlns:feeds="parcel:osaf.pim.feeds"
       xmlns="parcel:osaf.framework.blocks"
       xmlns:main="parcel:osaf.views.main">
 
@@ -35,7 +35,7 @@
   <!-- The actual detail area block -->
   <detail:DetailTrunkSubtree itsName="ChannelSubtree">
     <!-- This ensures that this detail view gets attached to RSSItems -->
-    <key itemref="zaobao:RSSItem"/>
+    <key itemref="feeds:FeedItem"/>
     
     <!-- UI Elements for detail view -->
     <rootBlocks itemref="detail:MarkupBar"/>

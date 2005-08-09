@@ -88,7 +88,7 @@ def locateProfileDir():
     return profileDir
 
 
-def initOptions(chandlerDirectory, **kwds):
+def initOptions(**kwds):
     """
     Load and parse the command line options, with overrides in **kwds.
     Returns options
@@ -116,6 +116,8 @@ def initOptions(chandlerDirectory, **kwds):
         'nosplash':    ('-N', '--nosplash',  'b', False, 'CHANDLERNOSPLASH', ''),
         'logging':     ('-L', '--logging',   's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
+        'verbose':    ('-v', '--verbose',    'b', False,  None, 'Verbosity option (currently just for run_tests.py)'),
+        'quiet':    ('-q', '--quiet',    'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
     }
 
 
@@ -149,7 +151,7 @@ def initOptions(chandlerDirectory, **kwds):
     if not options.profileDir:
         profileDir = locateProfileDir()
         if profileDir is None:
-            profileDir = chandlerDirectory
+            profileDir = locateChandlerDirectory()
         options.profileDir = os.path.expanduser(profileDir)
 
     for (opt,val) in kwds.iteritems():
@@ -158,6 +160,9 @@ def initOptions(chandlerDirectory, **kwds):
     if options.locale is not None:
         from PyICU import Locale
         Locale.setDefault(Locale(options.locale))
+
+    # Store up the remaining args
+    options.args = args
 
     return options
 

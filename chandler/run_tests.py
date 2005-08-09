@@ -41,6 +41,12 @@ module, in order for run_test's test finder to be able to locate them.
 The function should return a 'unittest.TestSuite' object (such as is
 returned by 'doctest.DocFileSuite' or 'doctest.DocTestSuite').
 
+Logging is configured in the same manner as for Chandler or headless.py,
+i.e. by setting the CHANDLERLOGCONFIG environment variable or the -L <file>
+command line argument to specify a logging configuration file.  For example:
+
+    RunPython -m run_tests -L custom.conf -v application osaf
+
 (Note: specifying package names on the 'run_tests' command line will
 cause *all* modules in all sub-packages of that package to be imported.)
 
@@ -49,6 +55,7 @@ cause *all* modules in all sub-packages of that package to be imported.)
 import sys, os
 
 from unittest import TestLoader, main
+from application import Utility
 
 class ScanningLoader(TestLoader):
 
@@ -83,9 +90,23 @@ class ScanningLoader(TestLoader):
 
 
 if __name__ == '__main__':
+
     if len(sys.argv)<2 or sys.argv[1] in ('-h','--help'):   # XXX
         print __doc__
         sys.exit(2)
+
+    options = Utility.initOptions()
+    Utility.initLogging(options)
+
+    # Rebuild the command line for unittest.main
+    args = [sys.argv[0]]
+    if options.verbose:
+        args.append('-v')
+    if options.quiet:
+        args.append('-q')
+    # options.args has all the leftover arguments from Utility
+    sys.argv = args + options.args
+
 
     main(module=None, testLoader=ScanningLoader())
 

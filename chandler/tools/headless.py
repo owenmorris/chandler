@@ -24,15 +24,11 @@ exportedSymbols = { }
 def startup(**kwds):
     global view
 
+    Globals.options = Utility.initOptions(**kwds)
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
-    if not Globals.chandlerDirectory:
-        print "Please set CHANDLERHOME"
-        return None
     os.chdir(Globals.chandlerDirectory)
 
     Utility.initLocale('en')
-
-    Globals.options = Utility.initOptions(Globals.chandlerDirectory, **kwds)
     profileDir = Globals.options.profileDir
 
     Utility.initLogging(Globals.options)

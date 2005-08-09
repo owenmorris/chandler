@@ -17,14 +17,16 @@ from repository.persistence.RepositoryError \
 def main():
     message = "while trying to start."
 
-    application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
 
-    os.chdir(application.Globals.chandlerDirectory)
 
     """
     Process any command line switches and any environment variable values
     """
-    application.Globals.options = Utility.initOptions(application.Globals.chandlerDirectory)
+    application.Globals.options = Utility.initOptions()
+
+    application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
+    os.chdir(application.Globals.chandlerDirectory)
+
     Utility.initLogging(application.Globals.options)
 
     def realMain():
