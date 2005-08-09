@@ -5,7 +5,6 @@ from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Project
 )
 from notes import Note
-from feeds import FeedChannel, FeedItem
 from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern

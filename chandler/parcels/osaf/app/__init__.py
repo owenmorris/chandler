@@ -2,28 +2,21 @@ import datetime, os
 import application.schema as schema
 from application.Parcel import Reference
 from repository.schema.Types import Lob
-from osaf import pim
 
 def installParcel(parcel, oldVersion=None):
 
-    curCon = Reference.update(parcel, 'currentContact')
     curDav = Reference.update(parcel, 'currentWebDAVAccount')
     curMail = Reference.update(parcel, 'currentMailAccount')
     curSmtp = Reference.update(parcel, 'currentSMTPAccount')
+    curCon = Reference.update(parcel, 'currentContact')
 
-    pim = schema.ns("osaf.pim", parcel)
+    sharing = schema.ns("osaf.sharing", parcel)
+    model = schema.ns("osaf.pim", parcel)
     mail = schema.ns("osaf.pim.mail", parcel)
     photos = schema.ns("osaf.pim.photos", parcel)
-    sharing = schema.ns("osaf.sharing", parcel)
-    startup = schema.ns("osaf.startup", parcel)
+    contacts = schema.ns("osaf.pim.contacts", parcel)
 
     # Items created in osaf.app (this parcel):
-
-    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="osaf.app.FeedUpdateTaskClass",
-        run_at_startup=True,
-        interval=datetime.timedelta(minutes=30)
-    )
 
     sharing.WebDAVAccount.update(parcel, 'OSAFWebDAVAccount',
         displayName=u'OSAF sharing',
@@ -99,7 +92,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
 
-    pim.ItemCollection.update(parcel, 'trash',
+    model.ItemCollection.update(parcel, 'trash',
         displayName=_('Trash'),
         renameable=False
     )
@@ -107,9 +100,9 @@ def installParcel(parcel, oldVersion=None):
     welcome = photos.Photo.update(parcel, 'WelcomePhoto',
         displayName=u'Welcome to Chandler 0.5',
         dateTaken=datetime.datetime.now(),
-        creator=pim.Contact.update(parcel, 'OSAFContact',
+        creator=contacts.Contact.update(parcel, 'OSAFContact',
              emailAddress=u'dev@osafoundation.org',
-             contactName=pim.ContactName.update(parcel, 'OSAFContactName',
+             contactName=contacts.ContactName.update(parcel, 'OSAFContactName',
                 firstName=u'OSAF',
                 lastName=u'Development'
              )
@@ -186,28 +179,3 @@ The Chandler Team"""
         ]
     )
 
-
-class FeedUpdateTaskClass:
-
-    def __init__(self, item):
-        self.view = item.itsView
-
-    def run(self):
-        self.view.refresh()
-
-        for item in pim.FeedChannel.iterItems(self.view):
-            try:
-                item.Update()
-            except socket.timeout:
-                logging.exception('socket timed out')
-                pass
-            except Exception, e:
-                logging.exception('failed to update %s' % item.url)
-                pass
-        try:
-            self.view.commit()
-        except Exception, e:
-            logging.exception('failed to commit')
-            pass
-
-        return True     # run it again next time

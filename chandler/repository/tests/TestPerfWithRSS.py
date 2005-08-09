@@ -13,11 +13,11 @@ from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-from osaf import pim
+import osaf.examples.zaobao as zaobao
 
-# get feedparser
+# get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
-sys.path.append(os.path.join(_chandlerDir,'parcels','osaf','pim','feeds'))
+sys.path.append(os.path.join(_chandlerDir,'parcels','osaf','examples','zaobao'))
 import feedparser
 
 # get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
@@ -31,7 +31,7 @@ else:
 # make them file URL's
 _defaultBlogs = [ "%s%s%s" %("", RSS_HOME, f) for f in _rssfiles ]
 
-BASE_PATH = Path('//parcels/osaf/app/feeds')
+BASE_PATH = Path('//parcels/osaf/examples/zaobao/schema')
 
 class TestPerfWithRSS(RepositoryTestCase):
     """ Simple performance tests """
@@ -104,7 +104,7 @@ class TestPerfWithRSS(RepositoryTestCase):
     def __getFeeds(self):
         """Return a list of channel items"""
         repository = self.rep
-        chanKind = repository.find(Path(BASE_PATH, 'FeedChannel'))
+        chanKind = repository.find(Path(BASE_PATH, 'RSSChannel'))
 
         feeds = []
         parent = repository.find(BASE_PATH)
@@ -113,7 +113,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             urlhash = str(hash(url))
             item = repository.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = pim.FeedChannel(view = repository.view)
+                item = zaobao.RSSChannel(view = repository.view)
                 item.url = url
             feeds.append(item.itsUUID)
 
