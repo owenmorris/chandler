@@ -35,8 +35,8 @@ def installParcel(parcel, oldVersion=None):
         path=u'/OSAFdot5',
         username=u'OSAFdot5',
         password=u'osafdemo',
-        useSSL=False,
-        port=80,
+        useSSL=True,
+        port=443,
     )
 
     sharing.WebDAVAccount.update(parcel, 'VenueWebDAVAccount',
