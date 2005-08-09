@@ -8,6 +8,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import application
+from osaf import pim
 import osaf.examples.zaobao as zaobao
 import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
@@ -53,11 +54,11 @@ class LinkDetail(Detail.StaticRedirectAttribute):
 
 class ZaoBaoController(Block.Block):
     def onNewZaoBaoChannelEvent(self, event):
-        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
+        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the Feed Channel", "http://")
         if url and url != "":
             try: 
                 # create the zaobao channel
-                channel = zaobao.NewChannelFromURL(view=self.itsView, url=url, update=True)
+                channel = pim.feeds.NewChannelFromURL(view=self.itsView, url=url, update=True)
 
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
