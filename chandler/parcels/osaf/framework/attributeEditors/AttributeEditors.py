@@ -362,7 +362,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             #   it will be deleted when its parent widget goes away.
             block = getattr(existingControl, "blockItem", None)
             if block is not None:
-                block.previousEditInPlace = existingControl
                 block.widget = None
                 delattr(existingControl, "blockItem")
                 existingControl.Show(False)
