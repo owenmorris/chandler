@@ -1,6 +1,6 @@
 import osaf.framework.scripting.QATestAppLib as QATestAppLib
 # initialization
-logger = QATestAppLib.TestLogger()
+logger = QATestAppLib.Logger()
 logger.Start("Account Preferences Dialog")
 ap = QATestAppLib.Accounts(__view__, logger)
 

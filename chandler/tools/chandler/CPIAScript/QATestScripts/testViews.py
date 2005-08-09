@@ -1,6 +1,6 @@
 import osaf.framework.scripting.QATestAppLib as QATestAppLib
 import wx
-logger = QATestAppLib.TestLogger()
+logger = QATestAppLib.Logger()
 ApplicationBarAll()
 
 logger.Start("All View to Mail View")

@@ -3,7 +3,7 @@ import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting.QATestAppLib as QATestAppLib
 import os, wx
 
-logger = QATestAppLib.TestLogger()
+logger = QATestAppLib.Logger()
 path = os.path.join(os.getenv('CHANDLERHOME') or '.', 'parcels', 'osaf','sharing','tests')
 share = Sharing.OneTimeFileSystemShare(path, '3kevents.ics', ICalendar.ICalendarFormat, view=__view__)
 

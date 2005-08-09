@@ -2,7 +2,7 @@ import wx
 import osaf.framework.scripting.QATestAppLib as QATestAppLib
 import time
 
-logger = QATestAppLib.TestLogger()
+logger = QATestAppLib.Logger()
 
 ApplicationBarEvent()
 click = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
