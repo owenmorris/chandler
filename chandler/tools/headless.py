@@ -51,8 +51,8 @@ def startup(**kwds):
     Utility.initParcels(view, parcelPath)
 
     if Globals.options.createData:
-        import GenerateItemsFromFile
-        GenerateItemsFromFile.RunScript(view)
+        import util.GenerateItemsFromFile
+        util.GenerateItemsFromFile.RunScript(view)
 
     return view
 
