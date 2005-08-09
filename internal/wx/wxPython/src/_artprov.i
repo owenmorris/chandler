@@ -198,7 +198,7 @@ or wx.NullIcon.  The default theme is typically installed in /usr/share/icons/hi
     * wx.ART_QUESTION
     * wx.ART_WARNING
     * wx.ART_INFORMATION
-    * wx.ART_MISSING_IMAGE 
+    * wx.ART_MISSING_IMAGE
     * wx.ART_COPY
     * wx.ART_CUT
     * wx.ART_PASTE

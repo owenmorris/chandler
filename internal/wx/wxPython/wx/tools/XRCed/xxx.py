@@ -47,12 +47,16 @@ class xxxParam(xxxNode):
             self.textNode.data = value
     else:
         def value(self):
-            return self.textNode.data.encode(g.currentEncoding)
+            try:
+                return self.textNode.data.encode(g.currentEncoding)
+            except LookupError:
+                return self.textNode.data.encode()
         def update(self, value):
             try: # handle exception if encoding is wrong
                 self.textNode.data = unicode(value, g.currentEncoding)
             except UnicodeDecodeError:
-                wxLogMessage("Unicode error: set encoding in file\nglobals.py to something appropriate")
+                self.textNode.data = unicode(value)
+                #wxLogMessage("Unicode error: set encoding in file\nglobals.py to something appropriate")
 
 # Integer parameter
 class xxxParamInt(xxxParam):
@@ -204,12 +208,24 @@ class xxxObject:
     #image = -1
     # Construct a new xxx object from DOM element
     # parent is parent xxx object (or None if none), element is DOM element object
-    def __init__(self, parent, element):
+    def __init__(self, parent, element, refElem=None):
         self.parent = parent
         self.element = element
+        self.refElem = refElem
         self.undo = None
-        # Get attributes
-        self.className = element.getAttribute('class')
+        # Reference are dereferenced
+        if element.tagName == 'object_ref':
+            # Find original object
+            self.ref = element.getAttribute('ref')
+            if refElem:
+                self.className = self.refElem.getAttribute('class')
+            else:
+                self.className = 'xxxUnknown'
+            self.required = []
+        else:
+            # Get attributes
+            self.ref = None
+            self.className = element.getAttribute('class')
         self.subclass = element.getAttribute('subclass')
         if self.hasName: self.name = element.getAttribute('name')
         # Set parameters (text element children)
@@ -218,9 +234,9 @@ class xxxObject:
         for node in nodes:
             if node.nodeType == minidom.Node.ELEMENT_NODE:
                 tag = node.tagName
-                if tag == 'object':
+                if tag in ['object', 'object_ref']:
                     continue            # do nothing for object children here
-                if tag not in self.allParams and tag not in self.styles:
+                elif tag not in self.allParams and tag not in self.styles:
                     print 'WARNING: unknown parameter for %s: %s' % \
                           (self.className, tag)
                 elif tag in self.specials:
@@ -237,11 +253,10 @@ class xxxObject:
                     self.params[tag] = xxxParamBitmap(node)
                 else:                   # simple parameter
                     self.params[tag] = xxxParam(node)
-            else:
-                pass
-                # Remove all other nodes
-#                element.removeChild(node)
-#                node.unlink()
+            elif node.nodeType == minidom.Node.TEXT_NODE and node.data.isspace():
+                # Remove empty text nodes
+                element.removeChild(node)
+                node.unlink()
 
         # Check that all required params are set
         for param in self.required:
@@ -289,14 +304,48 @@ class xxxObject:
         return className
     # Class name or subclass
     def panelName(self):
-        if self.subclass: return self.subclass + '(' + self.className + ')'
-        else: return self.className
+        if self.subclass: name = self.subclass + '(' + self.className + ')'
+        name = self.className
+        if self.ref: name = 'ref: ' + self.ref + ', ' + name
+        return name
+    # Sets name of tree object
+    def setTreeName(self, name):
+        if self.hasChild: obj = self.child
+        else: obj = self
+        obj.name = name
+        obj.element.setAttribute('name', name)
+
+# Imitation of FindResource/DoFindResource from xmlres.cpp
+def DoFindResource(parent, name, classname, recursive):
+    for n in parent.childNodes:
+        if n.nodeType == minidom.Node.ELEMENT_NODE and \
+               n.tagName in ['object', 'object_ref'] and \
+               n.getAttribute('name') == name:
+            cls = n.getAttribute('class')
+            if not classname or cls == classname:  return n
+            if not cls or n.tagName == 'object_ref':
+                refName = n.getAttribute('ref')
+                if not refName:  continue
+                refNode = FindResource(refName)
+                if refName and refNode.getAttribute('class') == classname:
+                    return n
+    if recursive:
+        for n in parent.childNodes:
+            if n.nodeType == minidom.Node.ELEMENT_NODE and \
+                   n.tagName in ['object', 'object_ref']:
+                found = DoFindResource(n, name, classname, True)
+                if found:  return found
+def FindResource(name, classname='', recursive=True):
+    found = DoFindResource(g.tree.mainNode, name, classname, recursive)
+    if found:  return found
+    wxLogError('XRC resource "%s" not found!' % name)
+                
 
 ################################################################################
 
 # This is a little special: it is both xxxObject and xxxNode
 class xxxParamFont(xxxObject, xxxNode):
-    allParams = ['size', 'style', 'weight', 'family', 'underlined',
+    allParams = ['size', 'family', 'style', 'weight', 'underlined',
                  'face', 'encoding']
     def __init__(self, parent, element):
         xxxObject.__init__(self, parent, element)
@@ -393,19 +442,21 @@ class xxxFrame(xxxContainer):
               'tooltip']
 
 class xxxTool(xxxObject):
-    allParams = ['bitmap', 'bitmap2', 'toggle', 'tooltip', 'longhelp', 'label']
+    allParams = ['bitmap', 'bitmap2', 'radio', 'toggle', 'tooltip', 'longhelp', 'label']
     required = ['bitmap']
-    paramDict = {'bitmap2': ParamBitmap, 'toggle': ParamBool}
+    paramDict = {'bitmap2': ParamBitmap, 'radio': ParamBool, 'toggle': ParamBool}
     hasStyle = False
 
 class xxxToolBar(xxxContainer):
-    allParams = ['bitmapsize', 'margins', 'packing', 'separation',
+    allParams = ['bitmapsize', 'margins', 'packing', 'separation', 'dontattachtoframe',
                  'pos', 'size', 'style']
     hasStyle = False
     paramDict = {'bitmapsize': ParamPosSize, 'margins': ParamPosSize,
                  'packing': ParamInt, 'separation': ParamInt,
-                 'style': ParamNonGenericStyle}
-    winStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_VERTICAL', 'wxTB_HORIZONTAL', 'wxTB_TEXT']
+                 'dontattachtoframe': ParamBool, 'style': ParamNonGenericStyle}
+    winStyles = ['wxTB_FLAT', 'wxTB_DOCKABLE', 'wxTB_VERTICAL', 'wxTB_HORIZONTAL',
+                 'wxTB_3DBUTTONS','wxTB_TEXT', 'wxTB_NOICONS', 'wxTB_NODIVIDER',
+                 'wxTB_NOALIGN', 'wxTB_HORZ_LAYOUT', 'wxTB_HORZ_TEXT']
 
 class xxxWizard(xxxContainer):
     allParams = ['title', 'bitmap', 'pos']
@@ -474,7 +525,7 @@ class xxxSlider(xxxObject):
     required = ['value', 'min', 'max']
     winStyles = ['wxSL_HORIZONTAL', 'wxSL_VERTICAL', 'wxSL_AUTOTICKS', 'wxSL_LABELS',
                  'wxSL_LEFT', 'wxSL_RIGHT', 'wxSL_TOP', 'wxSL_BOTTOM',
-                 'wxSL_BOTH', 'wxSL_SELRANGE']
+                 'wxSL_BOTH', 'wxSL_SELRANGE', 'wxSL_INVERSE']
 
 class xxxGauge(xxxObject):
     allParams = ['range', 'pos', 'size', 'style', 'value', 'shadow', 'bezel']
@@ -618,6 +669,7 @@ class xxxSizer(xxxContainer):
     hasName = hasStyle = False
     paramDict = {'orient': ParamOrient}
     isSizer = True
+    itemTag = 'sizeritem'               # different for some sizers
 
 class xxxBoxSizer(xxxSizer):
     allParams = ['orient']
@@ -639,6 +691,7 @@ class xxxGridSizer(xxxSizer):
 
 class xxxStdDialogButtonSizer(xxxSizer):
     allParams = []
+    itemTag = 'button'
 
 # For repeated parameters
 class xxxParamMulti:
@@ -704,13 +757,13 @@ class xxxGridBagSizer(xxxSizer):
 class xxxChildContainer(xxxObject):
     hasName = hasStyle = False
     hasChild = True
-    def __init__(self, parent, element):
-        xxxObject.__init__(self, parent, element)
+    def __init__(self, parent, element, refElem=None):
+        xxxObject.__init__(self, parent, element, refElem)
         # Must have one child with 'object' tag, but we don't check it
         nodes = element.childNodes[:]   # create copy
         for node in nodes:
             if node.nodeType == minidom.Node.ELEMENT_NODE:
-                if node.tagName == 'object':
+                if node.tagName in ['object', 'object_ref']:
                     # Create new xxx object for child node
                     self.child = MakeXXXFromDOM(self, node)
                     self.child.parent = parent
@@ -727,11 +780,21 @@ class xxxSizerItem(xxxChildContainer):
     allParams = ['option', 'flag', 'border', 'minsize', 'ratio']
     paramDict = {'option': ParamInt, 'minsize': ParamPosSize, 'ratio': ParamPosSize}
     #default = {'cellspan': '1,1'}
-    def __init__(self, parent, element):
+    def __init__(self, parent, element, refElem=None):
         # For GridBag sizer items, extra parameters added
         if isinstance(parent, xxxGridBagSizer):
             self.allParams = self.allParams + ['cellpos', 'cellspan']
-        xxxChildContainer.__init__(self, parent, element)
+        xxxChildContainer.__init__(self, parent, element, refElem)
+        # Remove pos parameter - not needed for sizeritems
+        if 'pos' in self.child.allParams:
+            self.child.allParams = self.child.allParams[:]
+            self.child.allParams.remove('pos')
+
+class xxxSizerItemButton(xxxSizerItem):
+    allParams = []
+    paramDict = {}
+    def __init__(self, parent, element, refElem=None):
+        xxxChildContainer.__init__(self, parent, element, refElem=None)
         # Remove pos parameter - not needed for sizeritems
         if 'pos' in self.child.allParams:
             self.child.allParams = self.child.allParams[:]
@@ -741,8 +804,8 @@ class xxxNotebookPage(xxxChildContainer):
     allParams = ['label', 'selected']
     paramDict = {'selected': ParamBool}
     required = ['label']
-    def __init__(self, parent, element):
-        xxxChildContainer.__init__(self, parent, element)
+    def __init__(self, parent, element, refElem=None):
+        xxxChildContainer.__init__(self, parent, element, refElem)
         # pos and size dont matter for notebookpages
         if 'pos' in self.child.allParams:
             self.child.allParams = self.child.allParams[:]
@@ -837,7 +900,7 @@ xxxDict = {
     'wxFlexGridSizer': xxxFlexGridSizer,
     'wxGridBagSizer': xxxGridBagSizer,
     'wxStdDialogButtonSizer': xxxStdDialogButtonSizer,
-    'sizeritem': xxxSizerItem,
+    'sizeritem': xxxSizerItem, 'button': xxxSizerItemButton,
     'spacer': xxxSpacer,
 
     'wxMenuBar': xxxMenuBar,
@@ -865,17 +928,25 @@ for cl in xxxDict.values():
 
 # Test for object elements
 def IsObject(node):
-    return node.nodeType == minidom.Node.ELEMENT_NODE and node.tagName == 'object'
+    return node.nodeType == minidom.Node.ELEMENT_NODE and node.tagName in ['object', 'object_ref']
 
 # Make XXX object from some DOM object, selecting correct class
 def MakeXXXFromDOM(parent, element):
+    if element.tagName == 'object_ref':
+        ref = element.getAttribute('ref')
+        refElem = FindResource(ref)
+        if refElem: cls = refElem.getAttribute('class')
+        else: return xxxUnknown(parent, element)
+    else:
+        refElem = None
+        cls = element.getAttribute('class')
     try:
-        klass = xxxDict[element.getAttribute('class')]
+        klass = xxxDict[cls]
     except KeyError:
         # If we encounter a weird class, use unknown template
         print 'WARNING: unsupported class:', element.getAttribute('class')
         klass = xxxUnknown
-    return klass(parent, element)
+    return klass(parent, element, refElem)
 
 # Make empty DOM element
 def MakeEmptyDOM(className):
@@ -902,7 +973,30 @@ def MakeEmptyXXX(parent, className):
     # If parent is a sizer, we should create sizeritem object, except for spacers
     if parent:
         if parent.isSizer and className != 'spacer':
-            sizerItemElem = MakeEmptyDOM('sizeritem')
+            sizerItemElem = MakeEmptyDOM(parent.itemTag)
+            sizerItemElem.appendChild(elem)
+            elem = sizerItemElem
+        elif isinstance(parent, xxxNotebook):
+            pageElem = MakeEmptyDOM('notebookpage')
+            pageElem.appendChild(elem)
+            elem = pageElem
+    # Now just make object
+    return MakeXXXFromDOM(parent, elem)
+
+# Make empty DOM element for reference
+def MakeEmptyRefDOM(ref):
+    elem = g.tree.dom.createElement('object_ref')
+    elem.setAttribute('ref', ref)
+    return elem
+
+# Make empty XXX object
+def MakeEmptyRefXXX(parent, ref):
+    # Make corresponding DOM object first
+    elem = MakeEmptyRefDOM(ref)
+    # If parent is a sizer, we should create sizeritem object, except for spacers
+    if parent:
+        if parent.isSizer:
+            sizerItemElem = MakeEmptyDOM(parent.itemTag)
             sizerItemElem.appendChild(elem)
             elem = sizerItemElem
         elif isinstance(parent, xxxNotebook):

@@ -296,7 +296,7 @@ XRCed: Updated to version 0.1.5.
 
 
 
-2.5.5.1
+2.5.5.1    
 -------
 * 8-Apr-2005
 

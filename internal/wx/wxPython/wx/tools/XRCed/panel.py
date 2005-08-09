@@ -72,7 +72,7 @@ class Panel(wxNotebook):
         # First page
         # Remove current objects and sizer
         sizer = self.ResetPage(self.page1)
-        if not xxx or (not xxx.allParams and not xxx.hasName):
+        if not xxx or (not xxx.allParams and not xxx.hasName and not xxx.hasChild):
             if g.tree.selection:
                 sizer.Add(wxStaticText(self.page1, -1, 'This item has no properties.'))
             else:                       # nothing selected
@@ -171,8 +171,6 @@ class Panel(wxNotebook):
 class ParamPage(wxPanel):
     def __init__(self, parent, xxx):
         wxPanel.__init__(self, parent, -1)
-        self.SetBackgroundColour(parent.GetBackgroundColour())
-        self.SetForegroundColour(parent.GetForegroundColour())
         self.xxx = xxx
         # Register event handlers
         for id in paramIDs.values():

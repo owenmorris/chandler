@@ -121,7 +121,7 @@ class DocFrameMixIn:
         editMenu.Append(wx.ID_PASTE, _("&Paste\tCtrl+V"), _("Inserts Clipboard contents"))
         wx.EVT_MENU(self, wx.ID_PASTE, self.ProcessEvent)
         wx.EVT_UPDATE_UI(self, wx.ID_PASTE, self.ProcessUpdateUIEvent)
-        editMenu.Append(wx.ID_CLEAR, _("Cle&ar"), _("Erases the selection"))
+        editMenu.Append(wx.ID_CLEAR, _("&Delete"), _("Erases the selection"))
         wx.EVT_MENU(self, wx.ID_CLEAR, self.ProcessEvent)
         wx.EVT_UPDATE_UI(self, wx.ID_CLEAR, self.ProcessUpdateUIEvent)
         editMenu.AppendSeparator()
@@ -144,9 +144,9 @@ class DocFrameMixIn:
 
         helpMenu = wx.Menu()
         helpMenu.Append(wx.ID_ABOUT, _("&About" + " " + wx.GetApp().GetAppName()), _("Displays program information, version number, and copyright"))
-        wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
         menuBar.Append(helpMenu, _("&Help"))
 
+        wx.EVT_MENU(self, wx.ID_ABOUT, self.OnAbout)
         wx.EVT_UPDATE_UI(self, wx.ID_ABOUT, self.ProcessUpdateUIEvent)  # Using ID_ABOUT to update the window menu, the window menu items are not triggering
 
         if sdi:  # TODO: Is this really needed?
@@ -301,13 +301,17 @@ class DocMDIParentFrameMixIn:
         self.CreateEmbeddedWindows(embeddedWindows)
         self._LayoutFrame()
 
+        if wx.Platform == '__WXMAC__':
+            self.SetMenuBar(menuBar)  # wxBug: Have to set the menubar at the very end or the automatic MDI "window" menu doesn't get put in the right place when the services add new menus to the menubar
+
         wx.GetApp().SetTopWindow(self)  # Need to do this here in case the services are looking for wx.GetApp().GetTopWindow()
         for service in wx.GetApp().GetServices():
             service.InstallControls(self, menuBar = menuBar, toolBar = toolBar, statusBar = statusBar)
             if hasattr(service, "ShowWindow"):
                 service.ShowWindow()  # instantiate service windows for correct positioning, we'll hide/show them later based on user preference
 
-        self.SetMenuBar(menuBar)  # wxBug: Have to set the menubar at the very end or the automatic MDI "window" menu doesn't get put in the right place when the services add new menus to the menubar
+        if wx.Platform != '__WXMAC__':
+            self.SetMenuBar(menuBar)  # wxBug: Have to set the menubar at the very end or the automatic MDI "window" menu doesn't get put in the right place when the services add new menus to the menubar
 
 
     def ProcessEvent(self, event):
@@ -362,7 +366,7 @@ class DocMDIParentFrameMixIn:
             return wx.GetApp().ProcessUpdateUIEvent(event)
 
 
-    def CreateEmbeddedWindows(self, windows = 0):
+    def CreateEmbeddedWindows(self, windows=0):
         """
         Create the specified embedded windows around the edges of the frame.
         """
@@ -484,7 +488,7 @@ class DocMDIParentFrameMixIn:
         return None
 
 
-    def _CreateEmbeddedWindow(self, parent, size, orientation, alignment, visible = True, sash = None):
+    def _CreateEmbeddedWindow(self, parent, size, orientation, alignment, visible=True, sash=None):
         """
         Creates the embedded window with the specified size, orientation, and alignment.  If the 
         window is not visible it will retain the size with which it was last viewed.
@@ -523,7 +527,7 @@ class DocMDIParentFrameMixIn:
         return window
 
 
-    def ShowEmbeddedWindow(self, window, show = True):
+    def ShowEmbeddedWindow(self, window, show=True):
         """
         Shows or hides the embedded window specified by the embedded window location constant.
         """
@@ -587,7 +591,7 @@ class DocTabbedChildFrame(wx.Panel):
     """
 
 
-    def __init__(self, doc, view, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, doc, view, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -769,6 +773,7 @@ class DocTabbedParentFrame(wx.Frame, DocFrameMixIn, DocMDIParentFrameMixIn):
         # self._notebook.SetSizer(wx.NotebookSizer(self._notebook))
         wx.EVT_NOTEBOOK_PAGE_CHANGED(self, self._notebook.GetId(), self.OnNotebookPageChanged)
         wx.EVT_RIGHT_DOWN(self._notebook, self.OnNotebookRightClick)
+        wx.EVT_MOTION(self._notebook, self.OnNotebookMouseOver)
 
         templates = wx.GetApp().GetDocumentManager().GetTemplates()
         iconList = wx.ImageList(16, 16, initialCount = len(templates))
@@ -776,18 +781,20 @@ class DocTabbedParentFrame(wx.Frame, DocFrameMixIn, DocMDIParentFrameMixIn):
         for template in templates:
             icon = template.GetIcon()
             if icon:
-                if icon.GetHeight() != 16:
-                    icon.SetHeight(16)  # wxBug: img2py.py uses EmptyIcon which is 32x32
-                if icon.GetWidth() != 16:
-                    icon.SetWidth(16)   # wxBug: img2py.py uses EmptyIcon which is 32x32
+                if icon.GetHeight() != 16 or icon.GetWidth() != 16:
+                    icon.SetHeight(16)
+                    icon.SetWidth(16)
+                    if wx.GetApp().GetDebug():
+                        print "Warning: icon for '%s' isn't 16x16, not crossplatform" % template._docTypeName
                 iconIndex = iconList.AddIcon(icon)
                 self._iconIndexLookup.append((template, iconIndex))
                 
         icon = getBlankIcon()
-        if icon.GetHeight() != 16:
-            icon.SetHeight(16)  # wxBug: img2py.py uses EmptyIcon which is 32x32
-        if icon.GetWidth() != 16:
-            icon.SetWidth(16)   # wxBug: img2py.py uses EmptyIcon which is 32x32
+        if icon.GetHeight() != 16 or icon.GetWidth() != 16:
+            icon.SetHeight(16)
+            icon.SetWidth(16)
+            if wx.GetApp().GetDebug():
+                print "Warning: getBlankIcon isn't 16x16, not crossplatform"
         self._blankIconIndex = iconList.AddIcon(icon)
         self._notebook.AssignImageList(iconList)
 
@@ -819,6 +826,17 @@ class DocTabbedParentFrame(wx.Frame, DocFrameMixIn, DocMDIParentFrameMixIn):
             self._notebook.GetPage(index).GetView().Activate()
 
 
+    def OnNotebookMouseOver(self, event):
+        # wxBug: On Windows XP the tooltips don't automatically disappear when you move the mouse and it is on a notebook tab, has nothing to do with this code!!!
+        index, type = self._notebook.HitTest(event.GetPosition())
+        if index > -1:
+            doc = self._notebook.GetPage(index).GetView().GetDocument()
+            self._notebook.SetToolTip(wx.ToolTip(doc.GetFilename()))
+        else:
+            self._notebook.SetToolTip(wx.ToolTip(""))
+        event.Skip()
+            
+
     def OnNotebookRightClick(self, event):
         """
         Handles right clicks for the notebook, enabling users to either close
@@ -836,6 +854,15 @@ class DocTabbedParentFrame(wx.Frame, DocFrameMixIn, DocMDIParentFrameMixIn):
                 doc.DeleteAllViews()
             wx.EVT_MENU(self, id, OnRightMenuSelect)
             if self._notebook.GetPageCount() > 1:
+                id = wx.NewId()
+                menu.Append(id, _("Close All but \"%s\"" % doc.GetPrintableName()))
+                def OnRightMenuSelect(event):
+                    for i in range(self._notebook.GetPageCount()-1, -1, -1): # Go from len-1 to 0
+                        if i != index:
+                            doc = self._notebook.GetPage(i).GetView().GetDocument()
+                            if not self.GetDocumentManager().CloseDocument(doc, False):
+                                return
+                wx.EVT_MENU(self, id, OnRightMenuSelect)
                 menu.AppendSeparator()
                 tabsMenu = wx.Menu()
                 menu.AppendMenu(wx.NewId(), _("Select Tab"), tabsMenu)
@@ -893,6 +920,7 @@ class DocTabbedParentFrame(wx.Frame, DocFrameMixIn, DocMDIParentFrameMixIn):
         """
         index = self.GetNotebookPageIndex(panel)
         if index > -1:
+            self._notebook.SetFocus()
             self._notebook.SetSelection(index)
         
 
@@ -1009,7 +1037,7 @@ class DocMDIChildFrame(wx.MDIChildFrame):
     """
 
 
-    def __init__(self, doc, view, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, doc, view, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -1170,7 +1198,7 @@ class DocService(wx.EvtHandler):
         self._docManager = docManager
 
 
-    def InstallControls(self, frame, menuBar = None, toolBar = None, statusBar = None, document = None):
+    def InstallControls(self, frame, menuBar=None, toolBar=None, statusBar=None, document=None):
         """Called to install controls into the menubar and toolbar of a SDI or MDI window.  Override this method for a particular service."""
         pass
 
@@ -1257,7 +1285,7 @@ class DocOptionsService(DocService):
     """
 
 
-    def __init__(self, showGeneralOptions=True, allowModeChanges=True):
+    def __init__(self, showGeneralOptions=True, supportedModes=wx.lib.docview.DOC_SDI & wx.lib.docview.DOC_MDI):
         """
         Initializes the options service with the option of suppressing the default
         general options pane that is included with the options service by setting
@@ -1267,13 +1295,13 @@ class DocOptionsService(DocService):
         """
         DocService.__init__(self)
         self.ClearOptionsPanels()
-        self._allowModeChanges = allowModeChanges
+        self._supportedModes = supportedModes
         self._toolOptionsID = wx.NewId()
         if showGeneralOptions:
             self.AddOptionsPanel(GeneralOptionsPanel)
 
 
-    def InstallControls(self, frame, menuBar = None, toolBar = None, statusBar = None, document = None):
+    def InstallControls(self, frame, menuBar=None, toolBar=None, statusBar=None, document=None):
         """
         Installs a "Tools" menu with an "Options" menu item.
         """
@@ -1304,20 +1332,20 @@ class DocOptionsService(DocService):
             return False
 
 
-    def GetAllowModeChanges(self):
+    def GetSupportedModes(self):
         """
-        Return true if the default general options pane should allow users to
-        change the document interface mode between SDI and MDI modes.
+        Return the modes supported by the application.  Use docview.DOC_SDI and
+        docview.DOC_MDI flags to check if SDI and/or MDI modes are supported.
         """
-        return self._allowModeChanges        
+        return self._supportedModes        
 
 
-    def SetAllowModeChanges(self, allowModeChanges):
+    def SetSupportedModes(self, _supportedModessupportedModes):
         """
-        Set to true if the default general options pane should allow users to
-        change the document interface mode between SDI and MDI modes.
+        Sets the modes supported by the application.  Use docview.DOC_SDI and
+        docview.DOC_MDI flags to set if SDI and/or MDI modes are supported.
         """
-        self._allowModeChanges = allowModeChanges
+        self._supportedModes = supportedModes
 
 
     def ClearOptionsPanels(self):
@@ -1359,7 +1387,7 @@ class OptionsDialog(wx.Dialog):
         Initializes the options dialog with a notebook page that contains new
         instances of the passed optionsPanelClasses.
         """
-        wx.Dialog.__init__(self, parent, -1, _("Options"), size = (310, 400))
+        wx.Dialog.__init__(self, parent, -1, _("Options"), size = (570, 365))
 
         self._optionsPanels = []
         self._docManager = docManager
@@ -1369,7 +1397,7 @@ class OptionsDialog(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        optionsNotebook = wx.Notebook(self, -1, size = (310, 375))
+        optionsNotebook = wx.Notebook(self, -1, size=(560, 325))
         sizer.Add(optionsNotebook, 0, wx.ALL | wx.EXPAND, SPACE)
         for optionsPanelClass in optionsPanelClasses:
             optionsPanel = optionsPanelClass(optionsNotebook, -1)
@@ -1377,7 +1405,8 @@ class OptionsDialog(wx.Dialog):
         sizer.Add(self.CreateButtonSizer(wx.OK | wx.CANCEL), 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM, HALF_SPACE)
         self.SetSizer(sizer)
         self.Layout()
-        self.Fit()
+        if wx.Platform != '__WXMAC__' or len(optionsPanelClasses) < 6:  # wxBug: Notebook tabs are truncated and user can't get to them on the Mac
+            self.Fit()
         wx.CallAfter(self.DoRefresh)
 
 
@@ -1423,26 +1452,33 @@ class GeneralOptionsPanel(wx.Panel):
         config = wx.ConfigBase_Get()
         self._showTipsCheckBox = wx.CheckBox(self, -1, _("Show tips at start up"))
         self._showTipsCheckBox.SetValue(config.ReadInt("ShowTipAtStartup", True))
-        if wx.GetApp().GetService(DocOptionsService).GetAllowModeChanges():
-            choices = [_("Show each document in its own window"), _("Show all documents in a single window with tabs")]
+        if self._AllowModeChanges():
+            supportedModes = wx.GetApp().GetService(DocOptionsService).GetSupportedModes()
+            choices = []
+            self._sdiChoice = _("Show each document in its own window")
+            self._mdiChoice = _("Show all documents in a single window with tabs")
+            self._winMdiChoice = _("Show all documents in a single window with child windows")
+            if supportedModes & wx.lib.docview.DOC_SDI:
+                choices.append(self._sdiChoice)
+            choices.append(self._mdiChoice)
             if wx.Platform == "__WXMSW__":
-                choices.append(_("Show all documents in a single window with child windows"))
+                choices.append(self._winMdiChoice)
             self._documentRadioBox = wx.RadioBox(self, -1, _("Document Interface"),
                                           choices = choices,
                                           majorDimension=1,
                                           )
             if config.ReadInt("UseWinMDI", False):
-                self._documentRadioBox.SetSelection(2)
+                self._documentRadioBox.SetStringSelection(self._winMdiChoice)
             elif config.ReadInt("UseMDI", True):
-                self._documentRadioBox.SetSelection(1)
+                self._documentRadioBox.SetStringSelection(self._mdiChoice)
             else:
-                self._documentRadioBox.SetSelection(0)
+                self._documentRadioBox.SetStringSelection(self._sdiChoice)
             def OnDocumentInterfaceSelect(event):
                 if not self._documentInterfaceMessageShown:
                     msgTitle = wx.GetApp().GetAppName()
                     if not msgTitle:
                         msgTitle = _("Document Options")
-                    wx.MessageBox("Document interface changes will not appear until the application is restarted.",
+                    wx.MessageBox(_("Document interface changes will not appear until the application is restarted."),
                                   msgTitle,
                                   wx.OK | wx.ICON_INFORMATION,
                                   self.GetParent())
@@ -1450,7 +1486,7 @@ class GeneralOptionsPanel(wx.Panel):
             wx.EVT_RADIOBOX(self, self._documentRadioBox.GetId(), OnDocumentInterfaceSelect)
         optionsBorderSizer = wx.BoxSizer(wx.VERTICAL)
         optionsSizer = wx.BoxSizer(wx.VERTICAL)
-        if wx.GetApp().GetService(DocOptionsService).GetAllowModeChanges():
+        if self._AllowModeChanges():
             optionsSizer.Add(self._documentRadioBox, 0, wx.ALL, HALF_SPACE)
         optionsSizer.Add(self._showTipsCheckBox, 0, wx.ALL, HALF_SPACE)
         optionsBorderSizer.Add(optionsSizer, 0, wx.ALL, SPACE)
@@ -1460,15 +1496,20 @@ class GeneralOptionsPanel(wx.Panel):
         parent.AddPage(self, _("Options"))
 
 
+    def _AllowModeChanges(self):
+        supportedModes = wx.GetApp().GetService(DocOptionsService).GetSupportedModes()
+        return supportedModes & wx.lib.docview.DOC_SDI and supportedModes & wx.lib.docview.DOC_MDI or wx.Platform == "__WXMSW__" and supportedModes & wx.lib.docview.DOC_MDI  # More than one mode is supported, allow selection
+
+
     def OnOK(self, optionsDialog):
         """
         Updates the config based on the selections in the options panel.
         """
         config = wx.ConfigBase_Get()
         config.WriteInt("ShowTipAtStartup", self._showTipsCheckBox.GetValue())
-        if wx.GetApp().GetService(DocOptionsService).GetAllowModeChanges():
-            config.WriteInt("UseMDI", (self._documentRadioBox.GetSelection() == 1))
-            config.WriteInt("UseWinMDI", (self._documentRadioBox.GetSelection() == 2))
+        if self._AllowModeChanges():
+            config.WriteInt("UseMDI", (self._documentRadioBox.GetStringSelection() == self._mdiChoice))
+            config.WriteInt("UseWinMDI", (self._documentRadioBox.GetStringSelection() == self._winMdiChoice))
 
 
 class DocApp(wx.PySimpleApp):
@@ -1562,7 +1603,7 @@ class DocApp(wx.PySimpleApp):
             args = pickle.loads(data)
             for arg in args:
                 if arg[0] != '/' and arg[0] != '-' and os.path.exists(arg):
-                    self.GetDocumentManager().CreateDocument(arg, wx.lib.docview.DOC_SILENT)
+                    self.GetDocumentManager().CreateDocument(os.path.normpath(arg), wx.lib.docview.DOC_SILENT)
             
             # force display of running app
             topWindow = wx.GetApp().GetTopWindow()
@@ -1583,7 +1624,7 @@ class DocApp(wx.PySimpleApp):
         args = sys.argv[1:]
         for arg in args:
             if arg[0] != '/' and arg[0] != '-' and os.path.exists(arg):
-                self.GetDocumentManager().CreateDocument(arg, wx.lib.docview.DOC_SILENT)
+                self.GetDocumentManager().CreateDocument(os.path.normpath(arg), wx.lib.docview.DOC_SILENT)
 
 
     def GetDocumentManager(self):
@@ -1786,7 +1827,7 @@ class DocApp(wx.PySimpleApp):
         return frame
 
 
-    def CreateSDIDocumentFrame(self, doc, view, id = -1, title = "", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE):
+    def CreateSDIDocumentFrame(self, doc, view, id=-1, title="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
         """
         Creates and returns an SDI Document Frame.
         """
@@ -1794,7 +1835,7 @@ class DocApp(wx.PySimpleApp):
         return frame
 
 
-    def CreateTabbedDocumentFrame(self, doc, view, id = -1, title = "", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE):
+    def CreateTabbedDocumentFrame(self, doc, view, id=-1, title="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
         """
         Creates and returns an MDI Document Frame for a Tabbed MDI view
         """
@@ -1802,7 +1843,7 @@ class DocApp(wx.PySimpleApp):
         return frame
 
 
-    def CreateMDIDocumentFrame(self, doc, view, id = -1, title = "", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE):
+    def CreateMDIDocumentFrame(self, doc, view, id=-1, title="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE):
         """
         Creates and returns an MDI Document Frame.
         """
@@ -1917,7 +1958,7 @@ class DocApp(wx.PySimpleApp):
 
 
 
-    def CreateChildDocument(self, parentDocument, documentType, objectToEdit, path = ''):
+    def CreateChildDocument(self, parentDocument, documentType, objectToEdit, path=''):
         """
         Creates a child window of a document that edits an object.  The child window
         is managed by the parent document frame, so it will be prompted to close if its
@@ -1954,10 +1995,7 @@ class DocApp(wx.PySimpleApp):
             if isinstance(document, ChildDocument) and document.GetParentDocument() == parentDocument:
                 if document.GetFirstView().GetFrame():
                     document.GetFirstView().GetFrame().SetFocus()
-                if document.GetFirstView().OnClose(deleteWindow = False):
-                    if document.GetFirstView().GetFrame():
-                        document.GetFirstView().GetFrame().Close()  # wxBug: Need to do this for some random reason
-                else:
+                if not document.GetFirstView().OnClose():
                     return False
         return True
 
@@ -2036,7 +2074,7 @@ class DocMDIParentFrame(wx.lib.docview.DocMDIParentFrame, DocFrameMixIn, DocMDIP
     """
     
 
-    def __init__(self, docManager, parent, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "DocMDIFrame", embeddedWindows = 0):
+    def __init__(self, docManager, parent, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="DocMDIFrame", embeddedWindows=0):
         """
         Initializes the DocMDIParentFrame with the default menubar, toolbar, and status bar.  Use the
         optional embeddedWindows parameter with the embedded window constants to create embedded
@@ -2141,7 +2179,7 @@ class DocSDIFrame(wx.lib.docview.DocChildFrame, DocFrameMixIn):
     """
     
 
-    def __init__(self, doc, view, parent, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "DocSDIFrame"):
+    def __init__(self, doc, view, parent, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="DocSDIFrame"):
         """
         Initializes the DocSDIFrame with the default menubar, toolbar, and status bar.
         """
@@ -2367,7 +2405,7 @@ class FilePropertiesService(DocService):
         self._customEventHandlers = []
 
 
-    def InstallControls(self, frame, menuBar = None, toolBar = None, statusBar = None, document = None):
+    def InstallControls(self, frame, menuBar=None, toolBar=None, statusBar=None, document=None):
         """
         Installs a File/Properties menu item.
         """
@@ -2411,7 +2449,7 @@ class FilePropertiesService(DocService):
             return False
 
 
-    def ShowPropertiesDialog(self, filename = None):
+    def ShowPropertiesDialog(self, filename=None):
         """
         Shows the PropertiesDialog for the specified file.
         """
@@ -2446,7 +2484,7 @@ class FilePropertiesService(DocService):
         self._customEventHandlers.remove(handler)
 
 
-    def chopPath(self, text, length = 36):
+    def chopPath(self, text, length=36):
         """
         Simple version of textwrap.  textwrap.fill() unfortunately chops lines at spaces
         and creates odd word boundaries.  Instead, we will chop the path without regard to
@@ -2487,7 +2525,7 @@ class FilePropertiesDialog(wx.Dialog):
         """
         Initializes the properties dialog.
         """
-        wx.Dialog.__init__(self, parent, -1, _("File Properties"), size = (310, 330))
+        wx.Dialog.__init__(self, parent, -1, _("File Properties"), size=(310, 330))
 
         HALF_SPACE = 5
         SPACE = 10
@@ -2628,14 +2666,14 @@ class ChildDocTemplate(wx.lib.docview.DocTemplate):
     """    
 
 
-    def __init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags = wx.lib.docview.TEMPLATE_INVISIBLE, icon = None):
+    def __init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags=wx.lib.docview.TEMPLATE_INVISIBLE, icon=None):
         """
         Initializes the ChildDocTemplate.
         """
-        wx.lib.docview.DocTemplate.__init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags = flags, icon = icon)
+        wx.lib.docview.DocTemplate.__init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags=flags, icon=icon)
 
 
-    def CreateDocument(self, path, flags, data = None, parentDocument = None):
+    def CreateDocument(self, path, flags, data=None, parentDocument=None):
         """
         Called when a ChildDocument is to be created and does the minimum such that the
         ChildDocument looks like a real Document to the framework.
@@ -2680,7 +2718,7 @@ class WindowMenuService(DocService):
         self.SELECT_MORE_WINDOWS_ID = wx.NewId()
 
 
-    def InstallControls(self, frame, menuBar = None, toolBar = None, statusBar = None, document = None):
+    def InstallControls(self, frame, menuBar=None, toolBar=None, statusBar=None, document=None):
         """
         Installs the Window menu.
         """
@@ -2789,7 +2827,7 @@ class WindowMenuService(DocService):
         return [self.SELECT_WINDOW_1_ID, self.SELECT_WINDOW_2_ID, self.SELECT_WINDOW_3_ID, self.SELECT_WINDOW_4_ID, self.SELECT_WINDOW_5_ID, self.SELECT_WINDOW_6_ID, self.SELECT_WINDOW_7_ID, self.SELECT_WINDOW_8_ID, self.SELECT_WINDOW_9_ID]
 
 
-    def _GetWindowMenuFrameList(self, currentFrame = None):
+    def _GetWindowMenuFrameList(self, currentFrame=None):
         """
         Returns the Frame associated with each menu item in the Window menu.
         """
@@ -2885,7 +2923,6 @@ class WindowMenuService(DocService):
 # File generated by encode_bitmaps.py
 #----------------------------------------------------------------------------
 from wx import ImageFromStream, BitmapFromImage
-from wx import EmptyIcon
 import cStringIO
 
 #----------------------------------------------------------------------
@@ -3110,14 +3147,13 @@ def getRedoImage():
 
 def getBlankData():
     return \
-"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00 \x00\x00\x00 \x08\x06\x00\
-\x00\x00szz\xf4\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\x00\
-\x85IDATX\x85\xed\x97\xc9\n\xc0 \x0cD3\xda\xff\xffcMo\x96Z\xc4\xa5\x91\x14:9\
-\x8a\xe8\xcb\xd3\xb8\x00!\x8ag\x04\xd7\xd9E\xe4\xa8\x1b4'}3 B\xc4L\x7fs\x03\
-\xb3\t<\x0c\x94\x81tN\x04p%\xae9\xe9\xa8\x89m{`\xd4\x84\xfd\x12\xa8\x16{#\
-\x10\xdb\xab\xa0\x07a\x0e\x00\xe0\xb6\x1fz\x10\xdf;\x07V\xa3U5\xb5\x8d:\xdc\
-\r\x10\x80\x00\x04 \x00\x01\x08@\x80\xe6{\xa0w\x8f[\x85\xbb\x01\xfc\xfeoH\
-\x80\x13>\xf9(3zH\x1e\xfb\x00\x00\x00\x00IEND\xaeB`\x82" 
+'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
+\x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\
+\x00\x00]IDAT8\x8d\xed\x931\x0e\xc00\x08\x03m\x92\xff\xff8q\x87\xb6C\x11\x89\
+\xa8X:\xd4\x13\x03:\x1b\x01\xa45T\xd4\xefBsh\xd7Hk\xdc\x02\x00@\x8a\x19$\xa1\
+9\x14A,\x95\xf3\x82G)\xd3\x00\xf24\xf7\x90\x1ev\x07\xee\x1e\xf4:\xc1J?\xe0\
+\x0b\x80\xc7\x1d\xf8\x1dg\xc4\xea7\x96G8\x00\xa8\x91\x19(\x85#P\x7f\x00\x00\
+\x00\x00IEND\xaeB`\x82' 
 
 
 def getBlankBitmap():
@@ -3128,8 +3164,6 @@ def getBlankImage():
     return ImageFromStream(stream)
 
 def getBlankIcon():
-    icon = EmptyIcon()
-    icon.CopyFromBitmap(getBlankBitmap())
-    return icon
+    return wx.IconFromBitmap(getBlankBitmap())
     
 

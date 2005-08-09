@@ -297,7 +297,7 @@ EVT_SCROLL_THUMBTRACK = wx.PyEventBinder( wxEVT_SCROLL_THUMBTRACK )
 EVT_SCROLL_THUMBRELEASE = wx.PyEventBinder( wxEVT_SCROLL_THUMBRELEASE )
 EVT_SCROLL_CHANGED = wx.PyEventBinder( wxEVT_SCROLL_CHANGED )
 EVT_SCROLL_ENDSCROLL = EVT_SCROLL_CHANGED
-
+     
 %# Scrolling from wx.Slider and wx.ScrollBar, with an id
 EVT_COMMAND_SCROLL = wx.PyEventBinder([ wxEVT_SCROLL_TOP, 
                                        wxEVT_SCROLL_BOTTOM, 
@@ -2259,8 +2259,8 @@ class wxContextMenuEvent : public wxCommandEvent
 {
 public:
     DocCtorStr(
-    wxContextMenuEvent(wxEventType type = wxEVT_NULL,
-                       wxWindowID winid = 0,
+        wxContextMenuEvent(wxEventType type = wxEVT_NULL,
+                           wxWindowID winid = 0,
                            const wxPoint& pt = wxDefaultPosition),
         "Constructor.", "");
 

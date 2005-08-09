@@ -18,18 +18,9 @@
 
 """
 This module implements various forms of generic buttons, meaning that
-they are not built on native controls but are self-drawn.
-
-The GenButton is the base.  It acts like a normal button but you
-are able to better control how it looks, bevel width, colours, etc.
-
-GenBitmapButton is a button with one or more bitmaps that show
-the various states the button can be in.
-
-GenToggleButton stays depressed when clicked, until clicked again.
-
-GenBitmapToggleButton the same but with bitmaps.
-
+they are not built on native controls but are self-drawn.  They act
+like normal buttons but you are able to better control how they look,
+bevel width, colours, etc.
 """
 
 import wx
@@ -39,6 +30,7 @@ import imageutils
 #----------------------------------------------------------------------
 
 class GenButtonEvent(wx.PyCommandEvent):
+    """Event sent from the generic buttons when the button is activated. """
     def __init__(self, eventType, ID):
         wx.PyCommandEvent.__init__(self, eventType, ID)
         self.isDown = False
@@ -60,6 +52,8 @@ class GenButtonEvent(wx.PyCommandEvent):
 #----------------------------------------------------------------------
 
 class GenButton(wx.PyControl):
+    """A generic button, and base class for the other generic buttons."""
+
     labelDelta = 1
 
     def __init__(self, parent, ID, label,
@@ -68,12 +62,13 @@ class GenButton(wx.PyControl):
                  name = "genbutton"):
         cstyle = style
         if cstyle == 0:
-            cstyle = wx.NO_BORDER
+            cstyle = wx.BORDER_NONE
         wx.PyControl.__init__(self, parent, ID, pos, size, cstyle, validator, name)
 
         self.up = True
         self.hasFocus = False
-        if style & wx.NO_BORDER:
+        self.style = style
+        if style & wx.BORDER_NONE:
             self.bezelWidth = 0
             self.useFocusInd = False
         else:
@@ -94,7 +89,6 @@ class GenButton(wx.PyControl):
         self.Bind(wx.EVT_KILL_FOCUS,       self.OnLoseFocus)
         self.Bind(wx.EVT_KEY_DOWN,         self.OnKeyDown)
         self.Bind(wx.EVT_KEY_UP,           self.OnKeyUp)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_PAINT,            self.OnPaint)
 
 
@@ -267,20 +261,37 @@ class GenButton(wx.PyControl):
         x1 = y1 = 0
         x2 = width-1
         y2 = height-1
+        
         dc = wx.BufferedPaintDC(self)
+        brush = None
+        
         if self.up:
-            dc.SetBackground(wx.Brush(self.GetBackgroundColour(), wx.SOLID))
+            colBg = self.GetBackgroundColour()
+            brush = wx.Brush(colBg, wx.SOLID)
+            if self.style & wx.BORDER_NONE:
+                myAttr = self.GetDefaultAttributes()
+                parAttr = self.GetParent().GetDefaultAttributes()
+                myDef = colBg == myAttr.colBg
+                parDef = self.GetParent().GetBackgroundColour() == parAttr.colBg
+                if myDef and parDef:
+                    if wx.Platform == "__WXMAC__":
+                        brush.MacSetTheme(1) # 1 == kThemeBrushDialogBackgroundActive
+                    elif wx.Platform == "__WXMSW__":
+                        if self.DoEraseBackground(dc):
+                            brush = None
+                elif myDef and not parDef:
+                    colBg = self.GetParent().GetBackgroundColour()
+                    brush = wx.Brush(colBg, wx.SOLID)
         else:
-            dc.SetBackground(wx.Brush(self.faceDnClr, wx.SOLID))
-        dc.Clear()
+            brush = wx.Brush(self.faceDnClr, wx.SOLID)
+        if brush is not None:
+            dc.SetBackground(brush)
+            dc.Clear()
+                    
         self.DrawBezel(dc, x1, y1, x2, y2)
         self.DrawLabel(dc, width, height)
         if self.hasFocus and self.useFocusInd:
             self.DrawFocusIndicator(dc, width, height)
-
-
-    def OnEraseBackground(self, event):
-        pass
 
 
     def OnLeftDown(self, event):
@@ -356,6 +367,8 @@ class GenButton(wx.PyControl):
 #----------------------------------------------------------------------
 
 class GenBitmapButton(GenButton):
+    """A generic bitmap button."""
+
     def __init__(self, parent, ID, bitmap,
                  pos = wx.DefaultPosition, size = wx.DefaultSize,
                  style = 0, validator = wx.DefaultValidator,
@@ -429,7 +442,8 @@ class GenBitmapButton(GenButton):
 #----------------------------------------------------------------------
 
 
-class GenBitmapTextButton(GenBitmapButton):     # generic bitmapped button with Text Label
+class GenBitmapTextButton(GenBitmapButton):
+    """A generic bitmapped button with text label"""
     def __init__(self, parent, ID, bitmap, label,
                  pos = wx.DefaultPosition, size = wx.DefaultSize,
                  style = 0, validator = wx.DefaultValidator,
@@ -550,12 +564,15 @@ class __ToggleMixin:
 
 
 class GenToggleButton(__ToggleMixin, GenButton):
+    """A generic toggle button"""
     pass
 
 class GenBitmapToggleButton(__ToggleMixin, GenBitmapButton):
+    """A generic toggle bitmap button"""
     pass
 
 class GenBitmapTextToggleButton(__ToggleMixin, GenBitmapTextButton):
+    """A generic toggle bitmap button with text label"""
     pass
 
 #----------------------------------------------------------------------

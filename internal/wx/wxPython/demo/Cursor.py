@@ -79,7 +79,7 @@ class TestPanel(wx.Panel):
     def OnChooseCursor(self, evt):
         # clear the dots
         self.win.Refresh()
-        
+
         choice = evt.GetString() #self.cb.GetStringSelection()
         self.log.write("Selecting the %s cursor\n" % choice)
 

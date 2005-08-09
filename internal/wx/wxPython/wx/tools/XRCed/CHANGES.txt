@@ -1,3 +1,35 @@
+0.1.6-1
+-------
+
+New (experimental ;) ) feature: support for "object_ref" tag, for
+creating references to named objects (see tn0014.txt). "reference..." 
+menu command creates new object_ref node. Properties of the top-level
+object can be overriden, but overriding child controls is not working
+as expected (maybe a bug in wx).
+
+0.1.5-3
+-------
+
+xxxStdDialogButtonSizer pulldown menu with standard buttons.
+
+Some fixes for selecting tools inside toolbar with test window open
+(whole toolbar is selected).
+
+Toolbars can be added inside windows.
+
+0.1.5-2
+-------
+
+Using wx.GetDefaultPyEncoding/wx.SetDefaultPyEncoding for changing active encoding.
+
+Fixed pasting siblings (Ctrl key pressed while pasting).
+
+Dealed with ascii build (Python does not recognize 'ascii' as valid encoding).
+If encoding is not specified it is not written in XRC. Will add more
+customization in the future.
+
+Changed to use SimpleTool instead or Toggle tool (does not work on Win32).
+
 0.1.5-1
 -------
 

@@ -62,7 +62,7 @@ class ColumnSorterMixin:
         list = self.GetListCtrl()
         if not list:
             raise ValueError, "No wx.ListCtrl available"
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.__OnColClick, list)
+        list.Bind(wx.EVT_LIST_COL_CLICK, self.__OnColClick, list)
 
 
     def SetColumnCount(self, newNumColumns):
@@ -226,7 +226,10 @@ class ListCtrlAutoWidthMixin:
 
             We automatically resize the last column in the list.
         """
-        wx.CallAfter(self._doResize)
+        if 'gtk2' in wx.PlatformInfo:
+            self._doResize()
+        else:
+            wx.CallAfter(self._doResize)
         event.Skip()
 
 

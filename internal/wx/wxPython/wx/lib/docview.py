@@ -13,6 +13,7 @@
 
 import os
 import os.path
+import shutil
 import wx
 import sys
 _ = wx.GetTranslation
@@ -76,17 +77,20 @@ class Document(wx.EvtHandler):
     The document class can be used to model an application's file-based data. It
     is part of the document/view framework supported by wxWindows, and cooperates
     with the wxView, wxDocTemplate and wxDocManager classes.
+    
+    Note this wxPython version also keeps track of the modification date of the
+    document and if it changes on disk outside of the application, we will warn the
+    user before saving to avoid clobbering the file.
     """
 
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         """
         Constructor.  Define your own default constructor to initialize
         application-specific data.
         """
         wx.EvtHandler.__init__(self)
 
-        self._documentModified = False
         self._documentParent = parent
         self._documentTemplate = None
         self._commandProcessor = None
@@ -97,6 +101,7 @@ class Document(wx.EvtHandler):
         self._documentFile = None
         self._documentTypeName = None
         self._documentModified = False
+        self._documentModificationDate = None
         self._documentViews = []
 
 
@@ -167,7 +172,7 @@ class Document(wx.EvtHandler):
         return self._savedYet
 
 
-    def SetDocumentSaved(self, saved = True):
+    def SetDocumentSaved(self, saved=True):
         """
         Sets whether the document has been saved.  This method has been
         added to wxPython and is not in wxWindows.
@@ -209,6 +214,24 @@ class Document(wx.EvtHandler):
         xTextWindow to view and edit the document).
         """
         self._documentModified = modify
+
+
+    def SetDocumentModificationDate(self):
+        """
+        Saves the file's last modification date.
+        This is used to check if the file has been modified outside of the application.
+        This method has been added to wxPython and is not in wxWindows.
+        """
+        self._documentModificationDate = os.path.getmtime(self.GetFilename())
+
+
+    def GetDocumentModificationDate(self):
+        """
+        Returns the file's modification date when it was loaded from disk.
+        This is used to check if the file has been modified outside of the application.        
+        This method has been added to wxPython and is not in wxWindows.
+        """
+        return self._documentModificationDate
 
 
     def GetViews(self):
@@ -338,6 +361,23 @@ class Document(wx.EvtHandler):
         if not self.IsModified():  # and self._savedYet:  This was here, but if it is not modified who cares if it hasn't been saved yet?
             return True
 
+        """ check for file modification outside of application """
+        if os.path.exists(self.GetFilename()) and os.path.getmtime(self.GetFilename()) != self.GetDocumentModificationDate():
+            msgTitle = wx.GetApp().GetAppName()
+            if not msgTitle:
+                msgTitle = _("Application")
+            res = wx.MessageBox(_("'%s' has been modified outside of %s.  Overwrite '%s' with current changes?") % (self.GetPrintableName(), msgTitle, self.GetPrintableName()),
+                                msgTitle,
+                                wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION,
+                                self.GetDocumentWindow())
+    
+            if res == wx.NO:
+                return True
+            elif res == wx.YES:
+                pass
+            else: # elif res == wx.CANCEL:
+                return False
+        
         if not self._documentFile or not self._savedYet:
             return self.SaveAs()
         return self.OnSaveDocument(self._documentFile)
@@ -396,6 +436,8 @@ class Document(wx.EvtHandler):
             msgTitle = _("File Error")
 
         backupFilename = None
+        fileObject = None
+        copied = False
         try:
             # if current file exists, move it to a safe place temporarily
             if os.path.exists(filename):
@@ -413,18 +455,27 @@ class Document(wx.EvtHandler):
                 while os.path.exists(backupFilename):
                     i += 1
                     backupFilename = "%s.bak%s" % (filename, i)
-                os.rename(filename, backupFilename)
+                shutil.copy(filename, backupFilename)
+                copied = True
 
             fileObject = file(filename, 'w')
             self.SaveObject(fileObject)
-
+            fileObject.close()
+            fileObject = None
+            
             if backupFilename:
                 os.remove(backupFilename)
         except:
-            # save failed, restore old file
-            if backupFilename:
-                os.remove(filename)
-                os.rename(backupFilename, filename)
+            # for debugging purposes
+            import traceback
+            traceback.print_exc()
+
+            if fileObject:
+                fileObject.close()  # file is still open, close it, need to do this before removal 
+
+            # save failed, remove copied file
+            if backupFilename and copied:
+                os.remove(backupFilename)
 
             wx.MessageBox("Could not save '%s'.  %s" % (FileNameFromPath(filename), sys.exc_value),
                           msgTitle,
@@ -434,6 +485,7 @@ class Document(wx.EvtHandler):
 
         self.SetFilename(filename, True)
         self.Modify(False)
+        self.SetDocumentModificationDate()
         self.SetDocumentSaved(True)
         #if wx.Platform == '__WXMAC__':  # Not yet implemented in wxPython
         #    wx.FileName(file).MacSetDefaultTypeAndCreator()
@@ -459,7 +511,16 @@ class Document(wx.EvtHandler):
         fileObject = file(filename, 'r')
         try:
             self.LoadObject(fileObject)
+            fileObject.close()
+            fileObject = None
         except:
+            # for debugging purposes
+            import traceback
+            traceback.print_exc()
+
+            if fileObject:
+                fileObject.close()  # file is still open, close it 
+
             wx.MessageBox("Could not open '%s'.  %s" % (FileNameFromPath(filename), sys.exc_value),
                           msgTitle,
                           wx.OK | wx.ICON_EXCLAMATION,
@@ -468,6 +529,7 @@ class Document(wx.EvtHandler):
 
         self.SetFilename(filename, True)
         self.Modify(False)
+        self.SetDocumentModificationDate()
         self.SetDocumentSaved(True)
         self.UpdateAllViews()
         return True
@@ -548,6 +610,24 @@ class Document(wx.EvtHandler):
         """
         if not self.IsModified():
             return True
+
+        """ check for file modification outside of application """
+        if os.path.exists(self.GetFilename()) and os.path.getmtime(self.GetFilename()) != self.GetDocumentModificationDate():
+            msgTitle = wx.GetApp().GetAppName()
+            if not msgTitle:
+                msgTitle = _("Warning")
+            res = wx.MessageBox(_("'%s' has been modified outside of %s.  Overwrite '%s' with current changes?") % (self.GetPrintableName(), msgTitle, self.GetPrintableName()),
+                                msgTitle,
+                                wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION,
+                                self.GetDocumentWindow())
+    
+            if res == wx.NO:
+                self.Modify(False)
+                return True
+            elif res == wx.YES:
+                return wx.lib.docview.Document.Save(self)
+            else: # elif res == wx.CANCEL:
+                return False
 
         msgTitle = wx.GetApp().GetAppName()
         if not msgTitle:
@@ -816,7 +896,7 @@ class View(wx.EvtHandler):
         self._viewTypeName = name
 
 
-    def Close(self, deleteWindow = True):
+    def Close(self, deleteWindow=True):
         """
         Closes the view by calling OnClose. If deleteWindow is true, this
         function should delete the window associated with the view.
@@ -827,7 +907,7 @@ class View(wx.EvtHandler):
             return False
 
 
-    def Activate(self, activate = True):
+    def Activate(self, activate=True):
         """
         Call this from your view frame's OnActivate member to tell the
         framework which view is currently active. If your windowing system
@@ -843,7 +923,7 @@ class View(wx.EvtHandler):
             self.GetDocumentManager().ActivateView(self, activate)
 
 
-    def OnClose(self, deleteWindow = True):
+    def OnClose(self, deleteWindow=True):
         """
         Implements closing behaviour. The default implementation calls
         wxDocument.Close to close the associated document. Does not delete the
@@ -884,7 +964,7 @@ class View(wx.EvtHandler):
 
         Override to return an instance of a class other than wxDocPrintout.
         """
-        return DocPrintout(self)
+        return DocPrintout(self, self.GetDocument().GetPrintableName())
 
 
     def GetFrame(self):
@@ -924,7 +1004,7 @@ class DocTemplate(wx.Object):
     """
 
 
-    def __init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags = DEFAULT_TEMPLATE_FLAGS, icon = None):
+    def __init__(self, manager, description, filter, dir, ext, docTypeName, viewTypeName, docType, viewType, flags=DEFAULT_TEMPLATE_FLAGS, icon=None):
         """
         Constructor. Create instances dynamically near the start of your
         application after creating a wxDocManager instance, and before doing
@@ -1181,7 +1261,7 @@ class DocManager(wx.EvtHandler):
     classes.
     """
 
-    def __init__(self, flags = DEFAULT_DOCMAN_FLAGS, initialize = True):
+    def __init__(self, flags=DEFAULT_DOCMAN_FLAGS, initialize=True):
         """
         Constructor. Create a document manager instance dynamically near the
         start of your application before doing any document or view operations.
@@ -1254,7 +1334,7 @@ class DocManager(wx.EvtHandler):
         return self._flags
 
 
-    def CloseDocument(self, doc, force = True):
+    def CloseDocument(self, doc, force=True):
         """
         Closes the specified document.
         """
@@ -1266,7 +1346,7 @@ class DocManager(wx.EvtHandler):
         return False
 
 
-    def CloseDocuments(self, force = True):
+    def CloseDocuments(self, force=True):
         """
         Closes all currently opened documents.
         """
@@ -1277,7 +1357,7 @@ class DocManager(wx.EvtHandler):
         return True
 
 
-    def Clear(self, force = True):
+    def Clear(self, force=True):
         """
         Closes all currently opened document by callling CloseDocuments and
         clears the document manager's templates.
@@ -1330,7 +1410,7 @@ class DocManager(wx.EvtHandler):
         """
         return self.CloseDocuments(force = False)
 
-
+    
     def OnFileNew(self, event):
         """
         Creates a new document and reads in the selected file.
@@ -1389,9 +1469,14 @@ class DocManager(wx.EvtHandler):
 
         printout = view.OnCreatePrintout()
         if printout:
-            pdd = wx.PrintDialogData()
+            if not hasattr(self, "printData"):
+                self.printData = wx.PrintData()
+                self.printData.SetPaperId(wx.PAPER_LETTER)
+            self.printData.SetPrintMode(wx.PRINT_MODE_PRINTER)
+                
+            pdd = wx.PrintDialogData(self.printData)
             printer = wx.Printer(pdd)
-            printer.Print(view.GetFrame(), printout) # , True)
+            printer.Print(view.GetFrame(), printout)
 
 
     def OnPrintSetup(self, event):
@@ -1404,11 +1489,21 @@ class DocManager(wx.EvtHandler):
         else:
             parentWin = wx.GetApp().GetTopWindow()
 
-        data = wx.PrintDialogData()
+        if not hasattr(self, "printData"):
+            self.printData = wx.PrintData()
+            self.printData.SetPaperId(wx.PAPER_LETTER)
+            
+        data = wx.PrintDialogData(self.printData)
         printDialog = wx.PrintDialog(parentWin, data)
         printDialog.GetPrintDialogData().SetSetupDialog(True)
         printDialog.ShowModal()
-        # TODO: Confirm that we don't have to remember PrintDialogData
+        
+        # this makes a copy of the wx.PrintData instead of just saving
+        # a reference to the one inside the PrintDialogData that will
+        # be destroyed when the dialog is destroyed
+        self.printData = wx.PrintData(printDialog.GetPrintDialogData().GetPrintData())
+        
+        printDialog.Destroy()
 
 
     def OnPreview(self, event):
@@ -1422,13 +1517,22 @@ class DocManager(wx.EvtHandler):
 
         printout = view.OnCreatePrintout()
         if printout:
+            if not hasattr(self, "printData"):
+                self.printData = wx.PrintData()
+                self.printData.SetPaperId(wx.PAPER_LETTER)
+            self.printData.SetPrintMode(wx.PRINT_MODE_PREVIEW)
+                
+            data = wx.PrintDialogData(self.printData)
             # Pass two printout objects: for preview, and possible printing.
-            preview = wx.PrintPreview(printout, view.OnCreatePrintout())
+            preview = wx.PrintPreview(printout, view.OnCreatePrintout(), data)
+            if not preview.Ok():
+                wx.MessageBox(_("Unable to display print preview."))
+                return
             # wxWindows source doesn't use base frame's pos, size, and icon, but did it this way so it would work like MS Office etc.
             mimicFrame =  wx.GetApp().GetTopWindow()
             frame = wx.PreviewFrame(preview, mimicFrame, _("Print Preview"), mimicFrame.GetPosition(), mimicFrame.GetSize())
             frame.SetIcon(mimicFrame.GetIcon())
-            frame.SetTitle(mimicFrame.GetTitle() + _(" - Preview"))
+            frame.SetTitle(_("%s - %s - Preview") % (mimicFrame.GetTitle(), view.GetDocument().GetPrintableName()))
             frame.Initialize()
             frame.Show(True)
 
@@ -1514,7 +1618,7 @@ class DocManager(wx.EvtHandler):
         if doc and doc.GetCommandProcessor():
             doc.GetCommandProcessor().SetMenuStrings()
         else:
-            event.SetText(_("Undo") + '\t' + _('Ctrl+Z'))
+            event.SetText(_("&Undo\tCtrl+Z"))
 
 
     def OnUpdateRedo(self, event):
@@ -1526,7 +1630,7 @@ class DocManager(wx.EvtHandler):
         if doc and doc.GetCommandProcessor():
             doc.GetCommandProcessor().SetMenuStrings()
         else:
-            event.SetText(_("Redo") + '\t' + _('Ctrl+Y'))
+            event.SetText(_("&Redo\tCtrl+Y"))
 
 
     def OnUpdatePrint(self, event):
@@ -1677,7 +1781,7 @@ class DocManager(wx.EvtHandler):
             return False
 
 
-    def CreateDocument(self, path, flags = 0):
+    def CreateDocument(self, path, flags=0):
         """
         Creates a new document in a manner determined by the flags parameter,
         which can be:
@@ -1739,9 +1843,27 @@ class DocManager(wx.EvtHandler):
             temp, path = self.SelectDocumentPath(templates, path, flags)
 
         # Existing document
-        if self.GetFlags() & DOC_OPEN_ONCE:
+        if path and self.GetFlags() & DOC_OPEN_ONCE:
             for document in self._docs:
-                if document.GetFilename() == path:
+                if document.GetFilename() and os.path.normcase(document.GetFilename()) == os.path.normcase(path):
+                    """ check for file modification outside of application """
+                    if os.path.exists(path) and os.path.getmtime(path) != document.GetDocumentModificationDate():
+                        msgTitle = wx.GetApp().GetAppName()
+                        if not msgTitle:
+                            msgTitle = _("Warning")
+                        shortName = document.GetPrintableName()
+                        res = wx.MessageBox(_("'%s' has been modified outside of %s.  Reload '%s' from file system?") % (shortName, msgTitle, shortName),
+                                            msgTitle,
+                                            wx.YES_NO | wx.ICON_QUESTION,
+                                            self.FindSuitableParent())
+                        if res == wx.YES:
+                           if not self.CloseDocument(document, False):
+                               wx.MessageBox(_("Couldn't reload '%s'.  Unable to close current '%s'.") % (shortName, shortName))
+                               return None
+                           return self.CreateDocument(path, flags)
+                        elif res == wx.NO:  # don't ask again
+                            document.SetDocumentModificationDate()
+
                     firstView = document.GetFirstView()
                     if firstView and firstView.GetFrame():
                         firstView.GetFrame().SetFocus()  # Not in wxWindows code but useful nonetheless
@@ -1764,7 +1886,7 @@ class DocManager(wx.EvtHandler):
         return None
 
 
-    def CreateView(self, document, flags = 0):
+    def CreateView(self, doc, flags=0):
         """
         Creates a new view for the given document. If more than one view is
         allowed for the document (by virtue of multiple templates mentioning
@@ -1925,7 +2047,7 @@ class DocManager(wx.EvtHandler):
             self._fileHistory.Save(config)
 
 
-    def FileHistoryAddFilesToMenu(self, menu = None):
+    def FileHistoryAddFilesToMenu(self, menu=None):
         """
         Appends the files in the history list, to all menus managed by the
         file history object.
@@ -1955,11 +2077,17 @@ class DocManager(wx.EvtHandler):
         Given a path, try to find template that matches the extension. This is
         only an approximate method of finding a template for creating a
         document.
+        
+        Note this wxPython verson looks for and returns a default template if no specific template is found.
         """
+        default = None
         for temp in self._templates:
             if temp.FileMatchesTemplate(path):
                 return temp
-        return None
+                
+            if "*.*" in temp.GetFileFilter():
+                default = temp
+        return default
 
 
     def FindSuitableParent(self):
@@ -1998,7 +2126,7 @@ class DocManager(wx.EvtHandler):
                         allfilter = allfilter + _(';')
                     descr = descr + temp.GetDescription() + _(" (") + temp.GetFileFilter() + _(") |") + temp.GetFileFilter()  # spacing is important, make sure there is no space after the "|", it causes a bug on wx_gtk
                     allfilter = allfilter + temp.GetFileFilter()
-            descr = _("All") + _(" (") + allfilter + _(") |") + allfilter + _('|') + descr  # spacing is important, make sure there is no space after the "|", it causes a bug on wx_gtk
+            descr = _("All (%s)|%s|%s|Any (*.*) | *.*") %  (allfilter, allfilter, descr)  # spacing is important, make sure there is no space after the "|", it causes a bug on wx_gtk
         else:
             descr = _("*.*")
 
@@ -2033,7 +2161,7 @@ class DocManager(wx.EvtHandler):
         pass
 
 
-    def SelectDocumentType(self, temps, sort = False):
+    def SelectDocumentType(self, temps, sort=False):
         """
         Returns a document template by asking the user (if there is more than
         one template). This function is used in wxDocManager.CreateDocument.
@@ -2081,7 +2209,7 @@ class DocManager(wx.EvtHandler):
         return templates[res]
 
 
-    def SelectViewType(self, temps, sort = False):
+    def SelectViewType(self, temps, sort=False):
         """
         Returns a document template by asking the user (if there is more than one template), displaying a list of valid views. This function is used in wxDocManager::CreateView. The dialog normally will not appear because the array of templates only contains those relevant to the document in question, and often there will only be one such.
         """
@@ -2151,7 +2279,7 @@ class DocManager(wx.EvtHandler):
             self._docs.remove(doc)
 
 
-    def ActivateView(self, view, activate = True, deleting = False):
+    def ActivateView(self, view, activate=True, deleting=False):
         """
         Sets the current view.
         """
@@ -2198,7 +2326,7 @@ class DocParentFrame(wx.Frame):
     classes.
     """
 
-    def __init__(self, manager, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, manager, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -2308,7 +2436,7 @@ class DocChildFrame(wx.Frame):
     """
 
 
-    def __init__(self, doc, view, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, doc, view, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -2454,7 +2582,7 @@ class DocMDIParentFrame(wx.MDIParentFrame):
     """
 
 
-    def __init__(self, manager, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, manager, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -2564,7 +2692,7 @@ class DocMDIChildFrame(wx.MDIChildFrame):
     """
 
 
-    def __init__(self, doc, view, frame, id, title, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_FRAME_STYLE, name = "frame"):
+    def __init__(self, doc, view, frame, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE, name="frame"):
         """
         Constructor.  Note that the event table must be rebuilt for the
         frame since the EvtHandler is not virtual.
@@ -2662,8 +2790,10 @@ class DocMDIChildFrame(wx.MDIChildFrame):
                 self._childView.Activate(False)
                 self._childView.Destroy()
                 self._childView = None
-                if self._childDocument:
-                    self._childDocument.Destroy()  # This isn't in the wxWindows codebase but the document needs to be disposed of somehow
+                if self._childDocument:  # This isn't in the wxWindows codebase but the document needs to be disposed of somehow
+                    self._childDocument.DeleteContents()
+                    if self._childDocument.GetDocumentManager():
+                        self._childDocument.GetDocumentManager().RemoveDocument(self._childDocument)
                 self._childDocument = None
                 self.Destroy()
             else:
@@ -2707,11 +2837,11 @@ class DocPrintout(wx.Printout):
     """
 
 
-    def __init__(self, view, title = "Printout"):
+    def __init__(self, view, title="Printout"):
         """
         Constructor.
         """
-        wx.Printout.__init__(self)
+        wx.Printout.__init__(self, title)
         self._printoutView = view
 
 
@@ -2853,7 +2983,7 @@ class CommandProcessor(wx.Object):
     """
 
 
-    def __init__(self, maxCommands = -1):
+    def __init__(self, maxCommands=-1):
         """
         Constructor.  maxCommands may be set to a positive integer to limit
         the number of commands stored to it, otherwise (and by default) the
@@ -2979,15 +3109,15 @@ class CommandProcessor(wx.Object):
             else:
                 redoAccel = ''
             if undoCommand and undoItem and undoCommand.CanUndo():
-                undoItem.SetText(_("Undo ") + undoCommand.GetName() + undoAccel)
+                undoItem.SetText(_("&Undo ") + undoCommand.GetName() + undoAccel)
             #elif undoCommand and not undoCommand.CanUndo():
             #    undoItem.SetText(_("Can't Undo") + undoAccel)
             else:
-                undoItem.SetText(_("Undo" + undoAccel))
+                undoItem.SetText(_("&Undo" + undoAccel))
             if redoCommand and redoItem:
-                redoItem.SetText(_("Redo ") + redoCommand.GetName() + redoAccel)
+                redoItem.SetText(_("&Redo ") + redoCommand.GetName() + redoAccel)
             else:
-                redoItem.SetText(_("Redo") + redoAccel)
+                redoItem.SetText(_("&Redo") + redoAccel)
 
 
     def CanUndo(self):
@@ -3008,7 +3138,7 @@ class CommandProcessor(wx.Object):
         return self._GetCurrentRedoCommand() != None
 
 
-    def Submit(self, command, storeIt = True):
+    def Submit(self, command, storeIt=True):
         """
         Submits a new command to the command processor. The command processor
         calls wxCommand::Do to execute the command; if it succeeds, the

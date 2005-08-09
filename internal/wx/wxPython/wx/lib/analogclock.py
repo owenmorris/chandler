@@ -20,6 +20,9 @@
 # o Many ehnacements
 #
 
+"""
+`AnalogClockWindow` is a simple analog clock class.
+"""
 
 import math
 import sys
@@ -456,13 +459,13 @@ class AnalogClockWindow(wx.PyWindow):
         drawDC.DrawPolygon(points)
 
 
-    def _pol2rect(self, r, w, deg=1):        # radian if deg=0; degree if deg=1
+    def _pol2rect(self, r, w, deg=1):           # radian if deg=0; degree if deg=1
         if deg:
              w = math.pi * w / 180.0
         return r * math.cos(w), r * math.sin(w)
 
 
-    def _rect2pol(self, x, y, deg=1):        # radian if deg=0; degree if deg=1
+    def _rect2pol(self, x, y, deg=1):           # radian if deg=0; degree if deg=1
         if deg:
             return math.hypot(x, y), 180.0 * math.atan2(y, x) / math.pi
         else:

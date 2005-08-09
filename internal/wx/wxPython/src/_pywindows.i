@@ -162,7 +162,7 @@ public:
 
     void SetBestSize(const wxSize& size);
     bool DoEraseBackground(wxDC* dc);
-
+    
     void base_DoMoveWindow(int x, int y, int width, int height);
     void base_DoSetSize(int x, int y, int width, int height,
                         int sizeFlags = wxSIZE_AUTO);
@@ -323,7 +323,7 @@ public:
 
     void SetBestSize(const wxSize& size);
     bool DoEraseBackground(wxDC* dc);
-
+    
     void base_DoMoveWindow(int x, int y, int width, int height);
     void base_DoSetSize(int x, int y, int width, int height,
                         int sizeFlags = wxSIZE_AUTO);
@@ -477,7 +477,7 @@ public:
 
     void SetBestSize(const wxSize& size);
     bool DoEraseBackground(wxDC* dc);
-
+    
     void base_DoMoveWindow(int x, int y, int width, int height);
     void base_DoSetSize(int x, int y, int width, int height,
                         int sizeFlags = wxSIZE_AUTO);

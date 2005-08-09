@@ -112,7 +112,7 @@ IMP_PYCALLBACK_VIZATTR_(wxPyControl, wxControl, GetDefaultAttributes);
 IMP_PYCALLBACK_BOOL_(wxPyControl, wxControl, HasTransparentBackground);
 
 IMP_PYCALLBACK_VOID_(wxPyControl, wxControl, OnInternalIdle);
- %}
+%}
 
 // And now the one for SWIG to see
 MustHaveApp(wxPyControl);
@@ -135,7 +135,7 @@ public:
 
     void SetBestSize(const wxSize& size);
     bool DoEraseBackground(wxDC* dc);
-
+    
     void base_DoMoveWindow(int x, int y, int width, int height);
     void base_DoSetSize(int x, int y, int width, int height,
                         int sizeFlags = wxSIZE_AUTO);

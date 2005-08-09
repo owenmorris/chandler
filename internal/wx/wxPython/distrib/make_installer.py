@@ -157,6 +157,9 @@ Source: "scripts\xrced";                    DestDir: "{code:GetPythonDir}\Script
 
 Source: "distrib\README.win32.txt";         DestDir: "{app}\%(PKGDIR)s\docs";  Flags: isreadme; Components: core
 Source: "licence\*.txt";                    DestDir: "{app}\%(PKGDIR)s\docs\licence"; Components: core
+Source: "docs\CHANGES.*";                   DestDir: "{app}\%(PKGDIR)s\docs"; Components: core
+Source: "docs\MigrationGuide.*";            DestDir: "{app}\%(PKGDIR)s\docs"; Components: core
+Source: "docs\default.css";                 DestDir: "{app}\%(PKGDIR)s\docs"; Components: core
 
 
 
@@ -359,13 +362,11 @@ Source: "demo\demo.py";                     DestDir: "{app}\demo"; DestName: "de
 Source: "demo\*.py";                        DestDir: "{app}\demo"; 
 Source: "demo\*.xml";                       DestDir: "{app}\demo"; 
 Source: "demo\*.txt";                       DestDir: "{app}\demo"; 
-Source: "demo\*.ico";                       DestDir: "{app}\demo"; 
 
 Source: "demo\bitmaps\*.bmp";               DestDir: "{app}\demo\bitmaps"; 
 Source: "demo\bitmaps\*.gif";               DestDir: "{app}\demo\bitmaps"; 
 Source: "demo\bitmaps\*.jpg";               DestDir: "{app}\demo\bitmaps"; 
 Source: "demo\bitmaps\*.png";               DestDir: "{app}\demo\bitmaps"; 
-Source: "demo\bitmaps\*.ico";               DestDir: "{app}\demo\bitmaps"; 
 
 Source: "demo\bmp_source\*.gif";               DestDir: "{app}\demo\bmp_source"; 
 Source: "demo\bmp_source\*.bmp";               DestDir: "{app}\demo\bmp_source"; 
@@ -383,7 +384,6 @@ Source: "demo\data\*.txt";                  DestDir: "{app}\demo\data";
 Source: "demo\data\*.wav";                  DestDir: "{app}\demo\data"; 
 Source: "demo\data\*.wdr";                  DestDir: "{app}\demo\data"; 
 Source: "demo\data\*.xrc";                  DestDir: "{app}\demo\data"; 
-Source: "demo\data\*.gif";                  DestDir: "{app}\demo\data"; 
 Source: "demo\data\*.swf";                  DestDir: "{app}\demo\data";
 Source: "demo\data\*.mpg";                  DestDir: "{app}\demo\data";
 
@@ -411,7 +411,7 @@ Source: "samples\doodle\superdoodle.iss";   DestDir: "{app}\samples\doodle";
 
 Source: "samples\docview\*.py";                DestDir: "{app}\samples\docview"; 
 Source: "samples\pydocview\*.py";              DestDir: "{app}\samples\pydocview";
-Source: "samples\pydocview\*.jpg";             DestDir: "{app}\samples\pydocview";
+Source: "samples\pydocview\*.png";             DestDir: "{app}\samples\pydocview";
 Source: "samples\pydocview\*.txt";             DestDir: "{app}\samples\pydocview";
 
 Source: "samples\ide\*.py";                       DestDir: "{app}\samples\ide"; 
@@ -513,6 +513,20 @@ Type: files; Name: "{app}\samples\wx_examples\hello\*.pyc";
 Type: files; Name: "{app}\samples\wx_examples\hello\*.pyo";
 Type: files; Name: "{app}\samples\wxProject\*.pyc";
 Type: files; Name: "{app}\samples\wxProject\*.pyo";
+
+Type: files; Name: "{app}\samples\ide\*.pyc";
+Type: files; Name: "{app}\samples\ide\activegrid\*.pyc";
+Type: files; Name: "{app}\samples\ide\activegrid\tool\*.pyc";
+Type: files; Name: "{app}\samples\ide\activegrid\util\*.pyc";
+Type: files; Name: "{app}\samples\ide\*.pyo";
+Type: files; Name: "{app}\samples\ide\activegrid\*.pyo";
+Type: files; Name: "{app}\samples\ide\activegrid\tool\*.pyo";
+Type: files; Name: "{app}\samples\ide\activegrid\util\*.pyo";
+
+Type: files; Name: "{app}\samples\docview\*.pyc";
+Type: files; Name: "{app}\samples\pydocview\*.pyc";
+Type: files; Name: "{app}\samples\docview\*.pyo";
+Type: files; Name: "{app}\samples\pydocview\*.pyo";
 
 
 '''

@@ -54,7 +54,7 @@ public:
     
     DocDeclStr(
         virtual void , SetScrollbar(int position, int thumbSize,
-                              int range, int pageSize,
+                                    int range, int pageSize,
                                     bool refresh = true),
         "", "");
     

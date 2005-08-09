@@ -83,7 +83,7 @@ class TestPanel(wx.Panel):
             self.GetSizer().Layout()
             self.slider.SetRange(0, self.mc.Length())
             self.mc.Play()
-                     
+        
     
     def OnPlay(self, evt):
         self.mc.Play()

@@ -510,8 +510,8 @@ public:
     %pythonPrepend wxFont   "if kwargs.has_key('faceName'): kwargs['face'] = kwargs['faceName'];del kwargs['faceName']"
 
     DocCtorStr(
-    wxFont( int pointSize, int family, int style, int weight,
-            bool underline=false, const wxString& face = wxPyEmptyString,
+        wxFont( int pointSize, int family, int style, int weight,
+                bool underline=false, const wxString& face = wxPyEmptyString,
                 wxFontEncoding encoding = wxFONTENCODING_DEFAULT),
         "Creates a font object with the specified attributes.
 
@@ -555,11 +555,11 @@ public:
             "Construct a `wx.Font` from the string representation of a
 `wx.NativeFontInfo` object.", "", 
             wxFont(const wxString& info))
-        {
-            wxNativeFontInfo nfi;
-            nfi.FromString(info);
-            return new wxFont(nfi);
-        }
+            {
+                wxNativeFontInfo nfi;
+                nfi.FromString(info);
+                return new wxFont(nfi);
+            }
     }
 
     
@@ -585,13 +585,13 @@ combination of the following:
 :see: `wx.Font.__init__`", "",
 
             wxFont(int pointSize,
-                                   wxFontFamily family,
-                                   int flags = wxFONTFLAG_DEFAULT,
-                                   const wxString& face = wxPyEmptyString,
-                                   wxFontEncoding encoding = wxFONTENCODING_DEFAULT))
-        {
-            return wxFont::New(pointSize, family, flags, face, encoding);
-        }
+                   wxFontFamily family,
+                   int flags = wxFONTFLAG_DEFAULT,
+                   const wxString& face = wxPyEmptyString,
+                   wxFontEncoding encoding = wxFONTENCODING_DEFAULT))
+            {
+                return wxFont::New(pointSize, family, flags, face, encoding);
+            }
 
 
         // There is a real ctor for this on wxMSW, but not the others, so just
@@ -605,17 +605,17 @@ the closest size is found using a binary search.
 
 :see: `wx.Font.__init__`", "", 
             wxFont(const wxSize& pixelSize,
-                                              int family,
-                                              int style,
-                                              int weight,
-                                              bool underlined = false,
-                                              const wxString& face = wxEmptyString,
-                                              wxFontEncoding encoding = wxFONTENCODING_DEFAULT))
-        {
-            return wxFontBase::New(pixelSize, family,
-                                   style, weight, underlined,
-                                   face, encoding);
-        }
+                   int family,
+                   int style,
+                   int weight,
+                   bool underlined = false,
+                   const wxString& face = wxEmptyString,
+                   wxFontEncoding encoding = wxFONTENCODING_DEFAULT))
+            {
+                return wxFontBase::New(pixelSize, family,
+                                       style, weight, underlined,
+                                       face, encoding);
+            }
 
         %RenameDocCtor(
             FFontFromPixelSize,
@@ -642,7 +642,7 @@ the closest size is found using a binary search.
         "Returns ``True`` if this font was successfully created.", "");    
     %pythoncode { def __nonzero__(self): return self.Ok() }
 
-
+    
     // comparison
     %extend {
         bool __eq__(const wxFont* other) { return other ? (*self == *other) : false; }

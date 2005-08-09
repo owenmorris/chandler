@@ -564,8 +564,7 @@ class PlotCanvas(wx.Window):
         """Print current plot."""
         if paper != None:
             self.print_data.SetPaperId(paper)
-        pdd = wx.PrintDialogData()
-        pdd.SetPrintData(self.print_data)
+        pdd = wx.PrintDialogData(self.print_data)
         printer = wx.Printer(pdd)
         out = PlotPrintout(self)
         print_ok = printer.Print(self.parent, out)
@@ -689,9 +688,11 @@ class PlotCanvas(wx.Window):
     def ScrollUp(self, units):
         """Move view up number of axis units."""
         self.last_PointLabel = None        #reset pointLabel
-        if self.BeenDrawn():
-            self._drawCmd.scrollAxisY(units, self._ySpec)
-            self._draw()
+        if self.last_draw is not None: 	
+             graphics, xAxis, yAxis= self.last_draw
+             yAxis= (yAxis[0]+units, yAxis[1]+units)
+             self.Draw(graphics,xAxis,yAxis)
+
         
     def GetXY(self,event):
         """Takes a mouse event and returns the XY user axis values."""
@@ -1025,7 +1026,9 @@ class PlotCanvas(wx.Window):
         # The Buffer init is done here, to make sure the buffer is always
         # the same size as the Window
         Size  = self.GetClientSize()
-
+        if Size.width <= 0 or Size.height <= 0:
+            return
+        
         # Make new offscreen bitmap: this bitmap will always have the
         # current drawing in it, so it can be used to save the image to
         # a file, or whatever.
