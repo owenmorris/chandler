@@ -94,13 +94,14 @@ def HotkeyScript(event, view):
                         continue
                     else:
                         fKeyScript = ExecutableScript(scriptString, view=view)
-                        fKeyScript.execute()
+                        # delay script execution, so it's not done in the middle of a key event handler.
+                        wx.CallAfter(fKeyScript.execute)
                         return True
 
         # maybe we have an existing script?
         for aScript in Script.iterItems(view):
             if startsWithScriptNumber(aScript.displayName, targetScriptNameStart):          
-                aScript.execute()
+                wx.CallAfter(aScript.execute)
                 return True
 
     # not a hot key
