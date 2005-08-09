@@ -1,21 +1,13 @@
 import osaf.framework.scripting.QATestAppLib as QATestAppLib
 import os
-import string
 
-login = os.getlogin()
-plateform = os.uname()[0]
-if not string.find(plateform,"Linux") == -1:
-    filePath = "/home/%s" %login
-elif not string.find(plateform,"Darwin") == -1:
-    filePath = "/Users/%s" %login
-elif not string.find(plateform,"Windows") == -1:
-    filePath = "C:\temp"
-else:
+filePath = os.path.expandvars('$QAPROFILEDIR')
+if not os.path.exists(filePath):
     filePath = os.getcwd()
     
 #initialization
 fileName = "TestNewMail.log"
-logger = QATestAppLib.TestLogger(os.path.join(filePath, fileName),"TestNewMail")
+logger = QATestAppLib.Logger(os.path.join(filePath, fileName),"TestNewMail")
 mail = QATestAppLib.BaseByUI(__view__, "MailMessage", logger)
 
 #action
