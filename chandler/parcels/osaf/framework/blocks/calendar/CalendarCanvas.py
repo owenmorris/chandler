@@ -1218,8 +1218,9 @@ class wxInPlaceEditor(wx.TextCtrl):
         # move the frame so that the default Mac Aqua focus "halo"
         # is aligned with the outer event frame
         if '__WXMAC__' in wx.PlatformInfo:
-            position.x -= 4
+            position.x -= 1
             newSize.width += 4
+            newSize.height -= 1
 
         self.SetSize(newSize)
         self.Move(position)
