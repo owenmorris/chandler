@@ -5,9 +5,9 @@ import os, wx
 
 logger = QATestAppLib.TestLogger()
 path = os.path.join(os.getenv('CHANDLERHOME') or '.', 'parcels', 'osaf','sharing','tests')
-share = Sharing.OneTimeFileSystemShare(path, 'Chandler.ics', ICalendar.ICalendarFormat, view=__view__)
+share = Sharing.OneTimeFileSystemShare(path, '3kevents.ics', ICalendar.ICalendarFormat, view=__view__)
 
-logger.Start("Import Small Calendar")
+logger.Start("Import Large Calendar")
 try:
 	collection = share.get()
 except:
