@@ -182,12 +182,6 @@ class BaseAttributeEditor (object):
         """
         raise NotImplementedError
     
-    def DestroyControl (self, control):
-        """ 
-        Notification that the control is about to be destroyed.
-        """
-        pass
- 
     def BeginControlEdit (self, item, attributeName, control):
         """ 
         Load this attribute into the editing control. 
@@ -265,7 +259,9 @@ class AETextCtrl(ShownSynchronizer,
         self.focusedSince = datetime.now()
 
     def OnKillFocus(self, event):
-        del self.focusedSince
+        # looks like grid will kill the focus without ever setting it.
+        if hasattr(self, 'focusedSince'):
+            del self.focusedSince
 
     def Cut(self):
         result = self.GetStringSelection()
@@ -277,16 +273,6 @@ class AETextCtrl(ShownSynchronizer,
         super(AETextCtrl, self).Copy()
         return result
 
-    """ Try without this:
-    def Destroy(self):
-        # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
-        # (in which case we're a PyDeadObject)
-        if isinstance(self, AETextCtrl):
-            super(AETextCtrl, self).Destroy()
-        else:
-            pass # (give me a place to set a breakpoint)
-    """
-    
 class AEStaticText(ShownSynchronizer,
                    wx.StaticText):
     """ 
@@ -369,6 +355,17 @@ class StringAttributeEditor (BaseAttributeEditor):
         must = existingControl is None or \
              (self.EditInPlace() and \
              (forEditing != isinstance(existingControl, AETextCtrl)))
+        if must and not forEditing and self.EditInPlace():
+            # some parts of wxWidgets gets upset of the widget is gone
+            #  (see bugs 3176, 3304, 3623)
+            # just hide and detach the edit control
+            #   it will be deleted when its parent widget goes away.
+            block = getattr(existingControl, "blockItem", None)
+            if block is not None:
+                block.previousEditInPlace = existingControl
+                block.widget = None
+                delattr(existingControl, "blockItem")
+                existingControl.Show(False)
         # logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
         return must
 

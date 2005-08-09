@@ -214,7 +214,8 @@ class wxEditText(ShownSynchronizer,
         self.focusedSince = datetime.now()
 
     def OnKillFocus(self, event):
-        del self.focusedSince
+        if hasattr(self, 'focusedSince'):
+            del self.focusedSince
 
     def Cut(self):
         result = self.GetStringSelection()
@@ -1787,37 +1788,38 @@ class AEBlock(BoxContainer):
         presentationstyle, and the state we're in (editing or not).
         """
         def rerender():
-            # Find the widget that corresponds to the view we're in
+            # Find the view we're contained in
             existingWidget = getattr(self, 'widget', None)
-            evtBoundaryWidget = existingWidget
-            while evtBoundaryWidget is not None:
-                if evtBoundaryWidget.blockItem.eventBoundary:
-                    break
-                evtBoundaryWidget = evtBoundaryWidget.GetParent()
-            assert evtBoundaryWidget
-                
-            # Tell it not to update
-            evtBoundaryWidget.Freeze()
-            try:
-                # Destroy the old widget
-                if existingWidget is not None:
-                    self.saveValue()
-                    self.unRender()
-                
-                # Set up the new widget
-                self.render()
-                
-                # Grab focus if we're supposed to.
-                if self.forEditing and grabFocus:
-                    logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
-                                 self.attributeName)
-                    self.widget.SetFocus()
-
-                # Sync the view to update the sizers
-                if evtBoundaryWidget:
-                    evtBoundaryWidget.blockItem.synchronizeWidget()
-            finally:
-                if evtBoundaryWidget:
+            evtBoundaryBlock = self
+            while not evtBoundaryBlock.eventBoundary:
+                evtBoundaryBlock = evtBoundaryBlock.parentBlock
+            assert evtBoundaryBlock
+            
+            # since we're called in a delayed fashion, make sure we're still rendered
+            evtBoundaryWidget = getattr(evtBoundaryBlock, 'widget', None)
+            if evtBoundaryWidget is not None:
+                # Tell the view not to update
+                evtBoundaryWidget.Freeze()
+                try:
+                    # Destroy our old widget
+                    if existingWidget is not None:
+                        self.saveValue()
+                    if hasattr(existingWidget, "blockItem"):
+                        self.unRender()
+                    
+                    # Set up the new widget
+                    self.render()
+                    
+                    # Grab focus if we're supposed to.
+                    if self.forEditing and grabFocus:
+                        logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
+                                     self.attributeName)
+                        self.widget.SetFocus() # go reentrant here
+    
+                    # Sync the view to update the sizers
+                    if self.widget is not None:
+                        evtBoundaryBlock.synchronizeWidget()
+                finally:
                     evtBoundaryWidget.Thaw()
                 
         editor = self.lookupEditor()
