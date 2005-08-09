@@ -85,7 +85,6 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\parcels"
   File /r "..\..\..\${DISTRIB_DIR}\repository"
   File /r "..\..\..\${DISTRIB_DIR}\util"
-  File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
   CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\chandler.ico" 
@@ -140,7 +139,6 @@ Section Uninstall
   RMDir /r "$INSTDIR\parcels"
   RMDir /r "$INSTDIR\repository"
   RMDir /r "$INSTDIR\util"
-  RMDir /r "$INSTDIR\tools"
 
   Delete "$INSTDIR\*.*"
 
