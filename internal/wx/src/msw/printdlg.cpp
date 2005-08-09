@@ -247,12 +247,12 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
                 data.SetPaperId( wxPAPER_NONE );
                 data.SetPaperSize( wxSize(0,0) );
                 m_customWindowsPaperId = 0;
-                
+
                 GlobalUnlock(hDevMode);
                 return false;
             }
         }
-        
+
         if (!foundPaperSize) {
             if ((devMode->dmFields & DM_PAPERWIDTH) && (devMode->dmFields & DM_PAPERLENGTH))
             {
@@ -452,7 +452,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
             if(m_customWindowsPaperId != 0)
                 devMode->dmPaperSize = m_customWindowsPaperId;
             else
-            devMode->dmPaperSize = DMPAPER_USER;
+                devMode->dmPaperSize = DMPAPER_USER;
             devMode->dmFields |= DM_PAPERWIDTH;
             devMode->dmFields |= DM_PAPERLENGTH;
         }

@@ -79,7 +79,7 @@ static bool LoadHtmlHelpLibrary()
 static void UnloadHtmlHelpLibrary()
 {
     if ( gs_htmlHelp )
-    {
+    {		
         if (wxPluginManager::UnloadLibrary( _T("HHCTRL.OCX") ))
             gs_htmlHelp = 0;
     }

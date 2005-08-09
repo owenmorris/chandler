@@ -126,7 +126,7 @@ bool wxStaticBox::Create(wxWindow *parent,
 
 #ifndef __WXWINCE__
     if (!wxSystemOptions::IsFalse(wxT("msw.staticbox.optimized-paint")))
-    Connect(wxEVT_PAINT, wxPaintEventHandler(wxStaticBox::OnPaint));
+        Connect(wxEVT_PAINT, wxPaintEventHandler(wxStaticBox::OnPaint));
 #endif // !__WXWINCE__
 
     return true;
@@ -293,7 +293,7 @@ WXHRGN wxStaticBox::MSWGetRegionWithoutChildren()
             // if the window isn't visible then it doesn't need clipped
             continue;
         }
-        
+
         LONG style = ::GetWindowLong(child, GWL_STYLE);
         wxString str(wxGetWindowClass(child));
         str.UpperCase();
@@ -305,7 +305,7 @@ WXHRGN wxStaticBox::MSWGetRegionWithoutChildren()
             // overlapping windows anyway.
             continue;
         }
-        
+
         ::GetWindowRect(child, &rc);
         if ( ::RectInRegion(hrgn, &rc) )
         {
@@ -315,7 +315,7 @@ WXHRGN wxStaticBox::MSWGetRegionWithoutChildren()
             {
                 style &= ~WS_CLIPSIBLINGS;
                 ::SetWindowLong(child, GWL_STYLE, style);
-                
+
                 // MSDN: "If you have changed certain window data using
                 // SetWindowLong, you must call SetWindowPos to have the
                 // changes take effect."

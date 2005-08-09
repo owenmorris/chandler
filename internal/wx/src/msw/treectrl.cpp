@@ -2359,7 +2359,7 @@ WXLRESULT wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                     {
                         // avoid doing anything if we click on the only
                         // currently selected item
-
+                        
                         SetFocus();
 
                         wxArrayTreeItemIds selections;

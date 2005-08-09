@@ -271,7 +271,7 @@ void wxCheckBox::DoSet3StateValue(wxCheckBoxState state)
 {
     m_state = state;
     if ( !IsOwnerDrawn() )
-    ::SendMessage(GetHwnd(), BM_SETCHECK, (WPARAM) state, 0);
+        ::SendMessage(GetHwnd(), BM_SETCHECK, (WPARAM) state, 0);
     else // owner drawn buttons don't react to this message
         Refresh();
 }

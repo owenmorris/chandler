@@ -574,7 +574,7 @@ bool wxComboBox::CanUndo() const
 {
     if (!IsEditable())
         return false;
-    
+
     HWND hEditWnd = (HWND) GetEditHWND() ;
     if ( hEditWnd )
         return ::SendMessage(hEditWnd, EM_CANUNDO, 0, 0) != 0;
@@ -586,7 +586,7 @@ bool wxComboBox::CanRedo() const
 {
     if (!IsEditable())
         return false;
-    
+
     HWND hEditWnd = (HWND) GetEditHWND() ;
     if ( hEditWnd )
         return ::SendMessage(hEditWnd, EM_CANUNDO, 0, 0) != 0;

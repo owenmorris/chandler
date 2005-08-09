@@ -174,8 +174,8 @@ bool wxCheckListBoxItem::OnDrawItem(wxDC& dc, const wxRect& rc,
                                     wxODAction act, wxODStatus stat)
 {
     // first draw the label
-  if ( IsChecked() )
-    stat = (wxOwnerDrawn::wxODStatus)(stat | wxOwnerDrawn::wxODChecked);
+    if ( IsChecked() )
+        stat = (wxOwnerDrawn::wxODStatus)(stat | wxOwnerDrawn::wxODChecked);
 
     if ( !wxOwnerDrawn::OnDrawItem(dc, rc, act, stat) )
         return false;
@@ -183,7 +183,7 @@ bool wxCheckListBoxItem::OnDrawItem(wxDC& dc, const wxRect& rc,
 
     // now draw the check mark part
     size_t nCheckWidth  = GetDefaultMarginWidth(),
-         nCheckHeight = m_pParent->GetItemHeight();
+           nCheckHeight = m_pParent->GetItemHeight();
 
     int x = rc.GetX(),
         y = rc.GetY();
@@ -212,7 +212,7 @@ bool wxCheckListBoxItem::OnDrawItem(wxDC& dc, const wxRect& rc,
         MonoBitmap hbmpCheck(nCheckWidth, nCheckHeight);
         SelectInHDC selBmp(hdcMem, hbmpCheck);
 
-      // then draw a check mark into it
+        // then draw a check mark into it
         RECT rect = { 0, 0, nCheckWidth, nCheckHeight };
         ::DrawFrameControl(hdcMem, &rect,
 #ifdef __WXWINCE__

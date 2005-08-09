@@ -16,8 +16,8 @@
 
 #include "wx/dnd.h"
 #include "wx/log.h"
-									       
-									        
+
+
 #if wxUSE_DRAG_AND_DROP
 
 #include "wx/window.h"
@@ -655,11 +655,11 @@ source_drag_data_get  (GtkWidget          *WXUNUSED(widget),
     /* disable GUI threads */
 #endif
 
-                gtk_selection_data_set( selection_data,
-                                        selection_data->target,
-                                        8,   // 8-bit
-                                        d,
-                                        size );
+    gtk_selection_data_set( selection_data,
+                            selection_data->target,
+                            8,   // 8-bit
+                            d,
+                            size );
 
 #if wxUSE_THREADS
     /* enable GUI threads */

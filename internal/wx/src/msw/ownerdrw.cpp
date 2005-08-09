@@ -274,9 +274,9 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc,
                               wxODAction act,
                               wxODStatus st)
 {
-  // we do nothing on focus change
-  if ( act == wxODFocusChanged )
-    return true;
+    // we do nothing on focus change
+    if ( act == wxODFocusChanged )
+        return true;
 
 
     // this flag determines whether or not an edge will
@@ -290,8 +290,8 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc,
 
     bool draw_bitmap_edge = true;
 
-   // set the colors
-   // --------------
+    // set the colors
+    // --------------
     DWORD colBack, colText;
     if ( st & wxODSelected )
     {
@@ -332,31 +332,31 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc,
     }
 
 
-  HDC hdc = GetHdcOf(dc);
-  COLORREF colOldText = ::SetTextColor(hdc, colText),
-           colOldBack = ::SetBkColor(hdc, colBack);
+    HDC hdc = GetHdcOf(dc);
+    COLORREF colOldText = ::SetTextColor(hdc, colText),
+             colOldBack = ::SetBkColor(hdc, colBack);
 
-  // *2, as in wxSYS_EDGE_Y
-  int margin = GetMarginWidth() + 2 * wxSystemSettings::GetMetric(wxSYS_EDGE_X);
+    // *2, as in wxSYS_EDGE_Y
+    int margin = GetMarginWidth() + 2 * wxSystemSettings::GetMetric(wxSYS_EDGE_X);
 
-  // select the font and draw the text
-  // ---------------------------------
-
-
-  // determine where to draw and leave space for a check-mark.
-  // + 1 pixel to separate the edge from the highlight rectangle
-  int xText = rc.x + margin + 1;
+    // select the font and draw the text
+    // ---------------------------------
 
 
-  // using native API because it recognizes '&'
-  if ( IsOwnerDrawn() )
-  {
-    int nPrevMode = SetBkMode(hdc, TRANSPARENT);
-    AutoHBRUSH hbr(colBack);
-    SelectInHDC selBrush(hdc, hbr);
+    // determine where to draw and leave space for a check-mark.
+    // + 1 pixel to separate the edge from the highlight rectangle
+    int xText = rc.x + margin + 1;
 
-    RECT rectFill = { rc.GetLeft(), rc.GetTop(),
-                        rc.GetRight() + 1, rc.GetBottom() + 1 };
+
+    // using native API because it recognizes '&'
+    if ( IsOwnerDrawn() )
+    {
+        int nPrevMode = SetBkMode(hdc, TRANSPARENT);
+        AutoHBRUSH hbr(colBack);
+        SelectInHDC selBrush(hdc, hbr);
+
+        RECT rectFill = { rc.GetLeft(), rc.GetTop(),
+                            rc.GetRight() + 1, rc.GetBottom() + 1 };
 
         if ( (st & wxODSelected) && m_bmpChecked.Ok() && draw_bitmap_edge )
         {
@@ -365,45 +365,45 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc,
             rectFill.left = xText;
         }
 
-    FillRect(hdc, &rectFill, hbr);
+        FillRect(hdc, &rectFill, hbr);
 
-    // use default font if no font set
-    wxFont fontToUse = GetFontToUse();
-    SelectInHDC selFont(hdc, GetHfontOf(fontToUse));
+        // use default font if no font set
+        wxFont fontToUse = GetFontToUse();
+        SelectInHDC selFont(hdc, GetHfontOf(fontToUse));
 
-    wxString strMenuText = m_strName.BeforeFirst('\t');
+        wxString strMenuText = m_strName.BeforeFirst('\t');
 
-    xText += 3; // separate text from the highlight rectangle
+        xText += 3; // separate text from the highlight rectangle
 
-    SIZE sizeRect;
-    ::GetTextExtentPoint32(hdc, strMenuText.c_str(), strMenuText.Length(), &sizeRect);
-    ::DrawState(hdc, NULL, NULL,
-                (LPARAM)strMenuText.c_str(), strMenuText.length(),
-                xText, rc.y + (int) ((rc.GetHeight()-sizeRect.cy)/2.0), // centre text vertically
-                rc.GetWidth()-margin, sizeRect.cy,
-                DST_PREFIXTEXT |
-                (((st & wxODDisabled) && !(st & wxODSelected)) ? DSS_DISABLED : 0) |
-                (((st & wxODHidePrefix) && !wxMSWSystemMenuFontModule::ms_showCues) ? 512 : 0)); // 512 == DSS_HIDEPREFIX
-
-    // ::SetTextAlign(hdc, TA_RIGHT) doesn't work with DSS_DISABLED or DSS_MONO
-    // as the last parameter in DrawState() (at least with Windows98). So we have
-    // to take care of right alignment ourselves.
-    if ( !m_strAccel.empty() )
-    {
-        int accel_width, accel_height;
-        dc.GetTextExtent(m_strAccel, &accel_width, &accel_height);
-        // right align accel string with right edge of menu ( offset by the
-        // margin width )
+        SIZE sizeRect;
+        ::GetTextExtentPoint32(hdc, strMenuText.c_str(), strMenuText.Length(), &sizeRect);
         ::DrawState(hdc, NULL, NULL,
-                (LPARAM)m_strAccel.c_str(), m_strAccel.length(),
-                rc.GetWidth()-16-accel_width, rc.y+(int) ((rc.GetHeight()-sizeRect.cy)/2.0),
-                0, 0,
-                DST_TEXT |
-                (((st & wxODDisabled) && !(st & wxODSelected)) ? DSS_DISABLED : 0));
-    }
+                    (LPARAM)strMenuText.c_str(), strMenuText.length(),
+                    xText, rc.y + (int) ((rc.GetHeight()-sizeRect.cy)/2.0), // centre text vertically
+                    rc.GetWidth()-margin, sizeRect.cy,
+                    DST_PREFIXTEXT |
+                    (((st & wxODDisabled) && !(st & wxODSelected)) ? DSS_DISABLED : 0) |
+                    (((st & wxODHidePrefix) && !wxMSWSystemMenuFontModule::ms_showCues) ? 512 : 0)); // 512 == DSS_HIDEPREFIX
 
-    (void)SetBkMode(hdc, nPrevMode);
-  }
+        // ::SetTextAlign(hdc, TA_RIGHT) doesn't work with DSS_DISABLED or DSS_MONO
+        // as the last parameter in DrawState() (at least with Windows98). So we have
+        // to take care of right alignment ourselves.
+        if ( !m_strAccel.empty() )
+        {
+            int accel_width, accel_height;
+            dc.GetTextExtent(m_strAccel, &accel_width, &accel_height);
+            // right align accel string with right edge of menu ( offset by the
+            // margin width )
+            ::DrawState(hdc, NULL, NULL,
+                    (LPARAM)m_strAccel.c_str(), m_strAccel.length(),
+                    rc.GetWidth()-16-accel_width, rc.y+(int) ((rc.GetHeight()-sizeRect.cy)/2.0),
+                    0, 0,
+                    DST_TEXT |
+                    (((st & wxODDisabled) && !(st & wxODSelected)) ? DSS_DISABLED : 0));
+        }
+
+        (void)SetBkMode(hdc, nPrevMode);
+    }
 
 
     // draw the bitmap

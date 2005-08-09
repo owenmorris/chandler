@@ -800,8 +800,8 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc, int flags)
     if ( !ok || rc == STILL_ACTIVE )
         return -1;
 
-        if ( krc )
-            *krc = wxKILL_OK;
+    if ( krc )
+        *krc = wxKILL_OK;
 
     return 0;
 }

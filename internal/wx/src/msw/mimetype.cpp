@@ -551,57 +551,57 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 
             key.SetValue(wxEmptyString, filetype);
         }
+    }
+    else
+    {
+        // key already exists, maybe we want to change it ??
+        if (!filetypeOrig.empty())
+        {
+            filetype = filetypeOrig;
+            key.SetValue(wxEmptyString, filetype);
         }
         else
         {
-            // key already exists, maybe we want to change it ??
-            if (!filetypeOrig.empty())
-                {
-                    filetype = filetypeOrig;
-                    key.SetValue(wxEmptyString, filetype);
-                }
-            else
-                {
-                    key.QueryValue(wxEmptyString, filetype);
-                }
+            key.QueryValue(wxEmptyString, filetype);
         }
+    }
 
-        // now set a mimetypeif we have it, but ignore it if none
-        const wxString& mimetype = ftInfo.GetMimeType();
-        if ( !mimetype.empty() )
+    // now set a mimetypeif we have it, but ignore it if none
+    const wxString& mimetype = ftInfo.GetMimeType();
+    if ( !mimetype.empty() )
+    {
+        // set the MIME type
+        ok = key.SetValue(_T("Content Type"), mimetype);
+
+        if ( ok )
         {
-            // set the MIME type
-            ok = key.SetValue(_T("Content Type"), mimetype);
+            // create the MIME key
+            wxString strKey = MIME_DATABASE_KEY;
+            strKey << mimetype;
+            wxRegKey keyMIME(wxRegKey::HKCR, strKey);
+            ok = keyMIME.Create();
 
             if ( ok )
             {
-                // create the MIME key
-                wxString strKey = MIME_DATABASE_KEY;
-                strKey << mimetype;
-                wxRegKey keyMIME(wxRegKey::HKCR, strKey);
-                ok = keyMIME.Create();
-
-                if ( ok )
-                {
-                    // and provide a back link to the extension
-                    keyMIME.SetValue(_T("Extension"), extWithDot);
-                }
+                // and provide a back link to the extension
+                keyMIME.SetValue(_T("Extension"), extWithDot);
             }
         }
+    }
 
 
     // now make other extensions have the same filetype
 
     for (iExtCount=1; iExtCount < ftInfo.GetExtensionsCount(); iExtCount++ )
-        {
-            ext = ftInfo.GetExtensions()[iExtCount];
-            if ( ext[0u] != _T('.') )
-               extWithDot = _T('.');
-            extWithDot += ext;
+    {
+        ext = ftInfo.GetExtensions()[iExtCount];
+        if ( ext[0u] != _T('.') )
+           extWithDot = _T('.');
+        extWithDot += ext;
 
-            wxRegKey key(wxRegKey::HKCR, extWithDot);
-            if ( !key.Exists() ) key.Create();
-            key.SetValue(wxEmptyString, filetype);
+        wxRegKey key(wxRegKey::HKCR, extWithDot);
+        if ( !key.Exists() ) key.Create();
+        key.SetValue(wxEmptyString, filetype);
 
         // now set any mimetypes we may have, but ignore it if none
         const wxString& mimetype = ftInfo.GetMimeType();
@@ -610,8 +610,8 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
             // set the MIME type
             ok = key.SetValue(_T("Content Type"), mimetype);
 
-        if ( ok )
-        {
+            if ( ok )
+            {
                 // create the MIME key
                 wxString strKey = MIME_DATABASE_KEY;
                 strKey << mimetype;
@@ -637,11 +637,11 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 
     if (ft)
     {
-            if (! ftInfo.GetOpenCommand ().empty() ) ft->SetCommand (ftInfo.GetOpenCommand (), wxT("open"  ) );
-            if (! ftInfo.GetPrintCommand().empty() ) ft->SetCommand (ftInfo.GetPrintCommand(), wxT("print" ) );
-            // chris: I don't like the ->m_impl-> here FIX this ??
-            if (! ftInfo.GetDescription ().empty() ) ft->m_impl->SetDescription (ftInfo.GetDescription ()) ;
-            if (! ftInfo.GetIconFile().empty() ) ft->SetDefaultIcon (ftInfo.GetIconFile(), ftInfo.GetIconIndex() );
+        if (! ftInfo.GetOpenCommand ().empty() ) ft->SetCommand (ftInfo.GetOpenCommand (), wxT("open"  ) );
+        if (! ftInfo.GetPrintCommand().empty() ) ft->SetCommand (ftInfo.GetPrintCommand(), wxT("print" ) );
+        // chris: I don't like the ->m_impl-> here FIX this ??
+        if (! ftInfo.GetDescription ().empty() ) ft->m_impl->SetDescription (ftInfo.GetDescription ()) ;
+        if (! ftInfo.GetIconFile().empty() ) ft->SetDefaultIcon (ftInfo.GetIconFile(), ftInfo.GetIconIndex() );
 
     }
 
@@ -762,7 +762,7 @@ bool wxFileTypeImpl::Unassociate()
         result = false;
     if ( !RemoveMimeType() )
         result = false;
-   if ( !RemoveDescription() )
+    if ( !RemoveDescription() )
         result = false;
 
 /*

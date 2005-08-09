@@ -466,8 +466,8 @@ bool wxDialog::DoOK()
     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetAffirmativeId());
     event.SetEventObject(this);
 
-        return GetEventHandler()->ProcessEvent(event);
-    }
+    return GetEventHandler()->ProcessEvent(event);
+}
 #endif // __POCKETPC__
 
 #if wxUSE_TOOLBAR && defined(__POCKETPC__)
