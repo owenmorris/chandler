@@ -73,7 +73,7 @@
     </ref>
 
     <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">ref_collection</attribute>
+    <attribute name="otherName">refCollection</attribute>
   </item>
 
   <item withSchema="True">
