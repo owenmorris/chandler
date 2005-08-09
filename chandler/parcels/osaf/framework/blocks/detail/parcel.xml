@@ -234,8 +234,7 @@
     <format>outgoing</format>
   </blocks:PresentationStyle>
   
-  <DetailSynchronizedAttributeEditorBlock itsName="FromEditField"
-           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
+  <DetailSynchronizedAttributeEditorBlock itsName="FromEditField">
     <blockName value="FromEditField"/>
     <!--<presentationStyle itemref="FromEditFieldStyle"/>-->
     <viewAttribute value="fromAddress"/>
@@ -548,15 +547,14 @@
     <minimumSize>-1, 4</minimumSize>
   </blocks:StaticText>
 
-  <blocks:StaticText itsName="CalendarAtLabel"
-              itemClass="osaf.framework.blocks.detail.Detail.CalendarAtLabel">
+  <CalendarAtLabelBlock itsName="CalendarAtLabel">
     <blockName value="CalendarAtLabel"/>
     <title>at</title>
     <characterStyle itemref="blocks:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <border>4, 4, 0, 4</border>
-  </blocks:StaticText>
+  </CalendarAtLabelBlock>
 
   <blocks:ContentItemDetail itsName="CalendarStartTimeArea">
     <blockName value="CalendarStartTimeArea"/>

@@ -5,6 +5,7 @@ from Detail import (
     AttachmentTextFieldBlock, 
     AcceptShareButtonBlock,
     CalendarAllDayAreaBlock,
+    CalendarAtLabelBlock,
     CalendarLocationAreaBlock, 
     CalendarRecurrenceCustomAreaBlock, 
     CalendarRecurrenceEndAreaBlock, 

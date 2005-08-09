@@ -1076,7 +1076,7 @@ class CalendarLocationAreaBlock(ControlBlocks.ContentItemDetail):
         #return item.isAttributeModifiable('location') \
                #or hasattr(item, 'location')
 
-class CalendarAtLabel (StaticTextLabel):
+class CalendarAtLabelBlock(StaticTextLabel):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
                and not item.allDay
