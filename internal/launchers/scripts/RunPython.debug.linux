@@ -33,4 +33,4 @@ then
     export PYTHONPATH=$PYTHONPATH:$PARCELPATH
 fi
 
-$CHANDLERBIN/debug/bin/python_d $*
+$CHANDLERBIN/debug/bin/python_d "$@"

@@ -39,4 +39,4 @@ then
     export PYTHONPATH=$PYTHONPATH:$PARCELPATH
 fi
 
-exec $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python $*
+exec $CHANDLERBIN/release/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python "$@"

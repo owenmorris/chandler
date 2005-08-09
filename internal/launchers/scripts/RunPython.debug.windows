@@ -7,5 +7,5 @@ echo CHANDLERBIN is %CHANDLERBIN%
 path %CHANDLERBIN%\debug\bin
 set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
-"%CHANDLERBIN%\debug\bin\python_d.exe" %*
+"%CHANDLERBIN%\debug\bin\python_d.exe" "%*"
 endlocal
