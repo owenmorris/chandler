@@ -320,7 +320,7 @@ class wxApplication (wx.App):
 
         # data loading script execution
         if Globals.options.createData:
-            import tools.GenerateItemsFromFile as GenerateItemsFromFile
+            import utils.GenerateItemsFromFile as GenerateItemsFromFile
             GenerateItemsFromFile.RunScript(Globals.mainViewRoot.itsView, Globals.views[0])
 
         return True                     #indicates we succeeded with initialization
