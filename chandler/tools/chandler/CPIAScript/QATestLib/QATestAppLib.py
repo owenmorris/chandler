@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
 import ScriptingGlobalFunctions as Sgf
-import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.Notes as Notes
-from osaf.contentmodel.tasks import Task
-import osaf.contentmodel.mail as Mail
-import osaf.framework.sharing.WebDAV as WebDAV
+import osaf.pim.calendar.Calendar as Calendar
+from osaf import pim
+import osaf.pim.mail as Mail
+import osaf.sharing as Sharing
+import application.Globals as Globals
 import wx
-import sys
 import time
 import string
 
@@ -36,8 +34,18 @@ def getTime(date):
         minute = minute + "AM"
     return "%s:%s" %(hour, minute)
 
+def Logger(filepath=None,description="A testcase"):
+    try:
+        TestLogger.logger
+    except AttributeError:
+        return TestLogger(filepath=filepath,description=description)
+    else:
+        TestLogger.logger.toClose = False
+        TestLogger.logger.Print("----- Testcase = %s -----" %description)
+        TestLogger.logger.subTestcaseDesc = description
+        return TestLogger.logger
 
-class TestLogger:
+class TestLogger:        
     def __init__(self,filepath=None,description="A testcase"):
         if filepath:
             self.inTerminal = False
@@ -50,11 +58,14 @@ class TestLogger:
         else:
             self.inTerminal = True
         # usefull inits
+        self.subTestcaseDesc = None
+        self.toClose = True
         self.startDate = datetime.now()
         self.nbPass = 0
         self.nbFail = 0
         self.nbUnchecked = 0
         self.nbAction = 0
+        self.testcaseList = []
         self.failureList = []
         self.passedList = []
         self.checked = False
@@ -63,7 +74,9 @@ class TestLogger:
         self.actionStartTime = self.actionEndTime = self.actionStartDate = self.actionEndDate = None
         # some printing
         self.Print("")
-        self.Print("******* Testcase : %s (date : %s) *******" %(self.mainDescription, self.startDate))
+        self.Print("******* Test Script : %s (date : %s) *******" %(self.mainDescription, self.startDate))
+        # affectation
+        TestLogger.logger = self
             
     def Print(self,string):
         if self.inTerminal:
@@ -129,37 +142,64 @@ class TestLogger:
         self.checked = bool
     
     def Close(self):
-        now = datetime.now()
-        elapsed = now - self.startDate
-        self.Print("------------------------------------------REPORT-------------------------------------------------")
-        self.Print("Start date (before %s testcase) = %s" %(self.mainDescription, self.startDate))
-        self.Print("End date (after %s testcase) = %s" %(self.mainDescription, now))
-        self.Print("Time Elapsed = %s" %elapsed)
-        self.Print("")
-        self.Print("Total number of actions : %s" % self.nbAction)
-        self.Print("Total number of actions PASSED : %s" %self.nbPass)
-        self.Print("Total number of actions FAILED : %s" %self.nbFail)
-        self.Print("Total number of actions UNCHECKED : %s" %self.nbUnchecked)
-        self.Print("")
-        if self.nbPass == self.nbAction:
-            status = "PASS"
+        if self.toClose:
+            now = datetime.now()
+            elapsed = now - self.startDate
+            self.Print("++++++++++++++++++++++++SUMMARY++++++++++++++++++++++++")
+            self.Print("Start date (before %s test script) = %s" %(self.mainDescription, self.startDate))
+            self.Print("End date (after %s test script) = %s" %(self.mainDescription, now))
+            self.Print("Time Elapsed = %s" %elapsed)
+            self.Print("")
+            #self.Print("Total number of actions : %s" % self.nbAction)
+            #self.Print("Total number of actions PASSED : %s" %self.nbPass)
+            #self.Print("Total number of actions FAILED : %s" %self.nbFail)
+            #self.Print("Total number of actions UNCHECKED : %s" %self.nbUnchecked)
+            #self.Print("")
+            #display the sub-testcase status summary
+            if not len(self.testcaseList) == 0:
+                self.Print("Sub-Testcase Status summary :")
+                nbTCFailed = 0
+                nbTCPassed = 0
+                for tc in self.testcaseList:
+                    if tc[1] == "FAIL":
+                        nbTCFailed = nbTCFailed + 1
+                    else:
+                        nbTCPassed = nbTCPassed + 1
+                    self.Print("-  %s  =  %s" %(tc[0],tc[1]))
+                self.Print("")
+                self.Print("Total number of Sub-Testcase : %s" %len(self.testcaseList))
+                self.Print("Total number of Sub-Testcase PASSED : %s" %nbTCPassed)
+                self.Print("Total number of Sub-Testcase FAILED : %s" %nbTCFailed)
+                self.Print("")
+            
+            # compute the status of the testcase
+            if self.nbPass == self.nbAction:
+                status = "PASS"
+            else:
+                status = "FAIL"
+            # convert the elapsed tme in minutes
+            elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
+            self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+            self.Print("#TINDERBOX# Status = %s" %status)
+            self.Print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+            self.Print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
+            self.Print("")
+            self.Print("*******               End of Report               *******")
+            print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+            print("#TINDERBOX# Status = %s" %status)
+            print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+            print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
+            if not self.inTerminal:
+                self.File.close()
         else:
-            status = "FAIL"
-        # convert the elapsed tme in minutes
-        elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
-        self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
-        self.Print("#TINDERBOX# Status = %s" %status)
-        self.Print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
-        self.Print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
-        self.Print("")
-        self.Print("******* End of Report *******")
-        print("#TINDERBOX# Testname = %s" %self.mainDescription)    
-        print("#TINDERBOX# Status = %s" %status)
-        print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
-        print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
-        self.Print("******* End of Report *******")
-        if not self.inTerminal:
-            self.File.close()
+            if self.subTestcaseDesc:
+                if self.nbPass == self.nbAction:
+                    status = "PASS"
+                else:
+                    status = "FAIL"
+                self.testcaseList.append((self.subTestcaseDesc,status))
+            self.subTestcaseDesc = None
+            self.toClose = True
 
 
 class BaseByUI :
@@ -167,51 +207,43 @@ class BaseByUI :
         if not type in ["Event", "Note", "Task", "MailMessage", "Collection"]:
             return
         else:
-            self.isNote = self.isEvent = self.isTask = self.isMessage = self.allDay = False
+            self.isNote = self.isEvent = self.isTask = self.isMessage = self.isCollection = self.allDay = False
             self.logger = logger
             now = datetime.now()
             if type == "Event": # New Calendar Event
+                # post the corresponding CPIA-event
+                item = Globals.mainViewRoot.postEventByName('NewCalendar',{})[0]
                 # set up the expected data dictionary with the default values
-                self.expected_field_dict = {"displayName" : "New Event", "startTime" : now, "endTime" : now, "duration" : timedelta(minutes=60)}
-                # create a default Calendar Event
-                item = Calendar.CalendarEvent(view=view)
-                item.startTime = self.expected_field_dict["startTime"] # because startTime is needed befor duration
+                self.expected_field_dict = {"displayName" : item.displayName, "startTime" : item.startTime, "endTime" : item.endTime, "duration" : item.duration}
                 self.isEvent = True
             elif type == "Note": # New Note
+                # post the corresponding CPIA-event
+                item = Globals.mainViewRoot.postEventByName('NewNote',{})[0]
                 # set up the expected data dictionary with the default values
-                self.expected_field_dict = {"displayName" : "New Note", "createdOn" : now}
-                # create a default Note
-                item = Notes.Note(view=view)
+                self.expected_field_dict = {"displayName" : item.displayName, "createdOn" : item.createdOn}
                 self.isNote = True
             elif type == "Task": # New Task
+                # post the corresponding CPIA-event
+                item = Globals.mainViewRoot.postEventByName('NewTask',{})[0]
                 # set up the expected data dictionary with the default values
-                self.expected_field_dict = {"displayName" : "New Task", "createdOn" : now}
-                # create a default Task
-                item = Task(view=view)
+                self.expected_field_dict = {"displayName" : item.displayName, "createdOn" : item.createdOn}
                 self.isTask = True
             elif type == "MailMessage": # New Mail Message
+                # post the corresponding CPIA-event
+                item = Globals.mainViewRoot.postEventByName('NewMailMessage',{})[0]
                 # set up the expected data dictionary with the default values
-                email = Mail.EmailAddress(view=view)
-                email.emailAddress = 'me'
-                self.expected_field_dict = {"subject" : "untitled", "dateSent" : now, "fromAddress" : email}
-                # create a default Message
-                item = Mail.MailMessage(view=view)
+                self.expected_field_dict = {"subject" : item.subject}
                 self.isMessage = True
             elif type == "Collection": # New Collection
+                # post the corresponding CPIA-event
+                item = Globals.mainViewRoot.postEventByName('NewItemCollection',{})[0]
                 # set up the expected data dictionary with the default values
-                self.expected_field_dict = {"displayName" : "Untitled"}
-                # create a default Collection
-                item = ItemCollection.ItemCollection(view=view)
+                self.expected_field_dict = {"displayName" : item.displayName}
+                self.isCollection = True
                 
-                
-            # fields affectation
-            for field in self.expected_field_dict.keys():
-                setattr(item, field, self.expected_field_dict[field])
-
             self.item = item
-
+            
             if type =="Collection":
-                Sgf.SidebarAdd(self.item)
                 Sgf.SidebarSelect(self.item)
             else:
                 Sgf.SummaryViewSelect(self.item)
@@ -220,6 +252,7 @@ class BaseByUI :
     def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
                 status=None, alarm=None, fromAddress=None, toAddress=None, allDay=None, stampEvent=None, stampMail=None,
                 stampTask=None, dict=None):
+        """ Set the item attributes in a predefined order """
         if displayName:
             self.SetDisplayName(displayName)
         if startDate:
@@ -255,8 +288,46 @@ class BaseByUI :
             self.logger.Stop()
             self.Check_DetailView(dict)
             self.logger.Report()
-        
-        
+
+    def SetAttrInOrder(self, argList, dict=None):
+        """ Set the item attributes in the argList order """
+        for (key, value) in argList:
+            if key == "displayName":
+                self.SetDisplayName(value)
+            if key == "startDate":
+                self.SetStartDate(value)
+            if key == "startTime":
+                self.SetStartTime(value)
+            if key == "endDate":
+                self.SetEndDate(value)
+            if key == "endTime":
+                self.SetEndTime(value)
+            if key == "location":
+                self.SetLocation(value)
+            if key == "body":
+                self.SetBody(value)
+            if key == "status":
+                self.SetStatus(value)
+            if key == "alarm":
+                self.SetAlarm(value)
+            if key == "fromAddress":
+                self.SetFromAddress(value)
+            if key == "toAddress":
+                self.SetToAddress(value)
+            if key == "allDay":
+                self.SetAllDay(value)
+            if key == "stampEvent":
+                self.StampAsEvent(value)
+            if key == "stampMail":
+                self.StampAsMailMessage(value)
+            if key == "stampTask":
+                self.StampAsTask(value)
+            if key == "dict":
+                self.logger.Start("Multiple Attribute Setting")
+                self.logger.Stop()
+                self.Check_DetailView(value)
+                self.logger.Report()    
+     
     
     def updateExpectedFieldDict(self, dict):
         for field in dict.keys():
@@ -463,6 +534,7 @@ class BaseByUI :
     def SetStatus(self, status, dict=None):
         if self.isEvent:
             #self.updateExpectedFieldDict(dict) # update the expected field dict
+            Sgf.SummaryViewSelect(self.item)
             statusBlock = Sgf.FindNamedBlock("EditTransparency")
             list_of_value = []
             for k in range(0,statusBlock.widget.GetCount()):
@@ -495,6 +567,7 @@ class BaseByUI :
                 alarm = alarm + " minute"
             else:
                 alarm = alarm + " minutes"
+            Sgf.SummaryViewSelect(self.item)
             alarmBlock = Sgf.FindNamedBlock("EditReminder")
             list_of_value = []
             for k in range(0,alarmBlock.widget.GetCount()):
@@ -741,7 +814,10 @@ class BaseByUI :
         # check the changing values
         for field in dict.keys():
             if field == "displayName": # display name checking
-                d_name = "%s" %self.item.displayName
+                if self.isMessage:
+                    d_name = "%s" %self.item.subject
+                else:
+                    d_name = "%s" %self.item.displayName
                 if not dict[field] == d_name :
                     self.logger.ReportFailure("(On display name Checking)  || object title = %s ; expected title = %s" %(d_name, dict[field]))
                 else:
@@ -761,14 +837,14 @@ class BaseByUI :
                 else:
                     self.logger.ReportPass("(On start time Checking)")
             elif field == "endDate": # end date checking
-                endTime = self.item.startTime + self.item.duration
+                endTime = self.item.endTime
                 e_date = "%s/%s/%s" %(endTime.month, endTime.day, endTime.year) 
                 if not dict[field] == e_date :
                     self.logger.ReportFailure("(On end date Checking) || object end date = %s ; expected end date = %s" %(e_date, dict[field]))
                 else:
                     self.logger.ReportPass("(On end date Checking)")
             elif field == "endTime": # end time checking
-                endTime = self.item.startTime + self.item.duration
+                endTime = self.item.endTime
                 e_time = getTime(endTime)
                 if not dict[field] == e_time :
                     self.logger.ReportFailure("(On end time Checking) || object end time = %s ; expected end time = %s" %(e_time, dict[field]))
@@ -804,13 +880,13 @@ class BaseByUI :
                     self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
                 else:
                     self.logger.ReportPass("(On status Checking)")
-            #elif field == "alarm": # status checking
-            #    r_time = self.item.reminderTime - self.item.startTime
-            #    alarm = "%s" %r_time
-            #    if not dict[field] == alarm :
-            #        self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
-            #    else:
-            #        self.logger.ReportPass("(On alarm Checking)")
+            elif field == "alarm": # status checking
+                alarm = self.item.startTime - self.item.reminderTime
+                field = timedelta(minutes = string.atoi(dict[field]))
+                if not field == alarm :
+                    self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" %(alarm, field))
+                else:
+                    self.logger.ReportPass("(On alarm Checking)")
             elif field == "allDay": # status checking
                 allDay = self.item.allDay
                 if not dict[field] == allDay :
