@@ -12,8 +12,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, ShareTool
 )
 import application.dialogs.Util
-import osaf.mail.imap
-import osaf.mail.pop
+import osaf.mail.constants as constants
 from application.SplashScreen import SplashScreen
 import application.Parcel
 import osaf.pim.mail as Mail
@@ -43,37 +42,37 @@ class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
     """
+    def displayMailError (self, message, account):
+        application.dialogs.Util.mailError(wx.GetApp().mainFrame, self.itsView, message, account)
+
     def displaySMTPSendError (self, mailMessage):
         """
           Called when the SMTP Send generated an error.
         """
         if mailMessage is not None and mailMessage.isOutbound:
             """ Maybe we should select the message in CPIA? """
-    
+
             errorStrings = []
-    
+
             for error in mailMessage.deliveryExtension.deliveryErrors:
                  errorStrings.append(error.errorString)
-   
+
             if len (errorStrings) == 0:
-                errorMessage = _("An unknown error occurred.")
+                errorMessage = constants.UNKNOWN_ERROR
             else:
-                if len (errorStrings) == 1:
-                    str = _("error")
-                else:
-                    str = _("errors")
-   
-                errorMessage = _("The following %s occurred. %s") % (str, ', '.join(errorStrings))
-                errorMessage = errorMessage.encode ('utf-8')
-            self.setStatusMessage (errorMessage, alert=True)
-        
+                errorMessage = constants.UPLOAD_ERROR % (', '.join(errorStrings))
+
+            """Clear the status message"""
+            self.setStatusMessage('')
+            self.displayMailError (errorMessage, mailMessage.parentAccount)
+
     def displaySMTPSendSuccess (self, mailMessage):
         """
           Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
             self.setStatusMessage (_('Mail "%s" sent.') % mailMessage.about)
-        
+
         # If this was a sharing invitation, find its collection and remove the
         # successfully-notified addressees from the invites list.
         try:
@@ -83,7 +82,7 @@ class MainView(View):
         else:
             share = Sharing.findMatchingShare(self.itsView, url)
             itemCollection = share.contents
-            
+
             for addresseeContact in mailMessage.toAddress:
                 if addresseeContact in itemCollection.invitees:
                     itemCollection.invitees.remove(addresseeContact)
@@ -210,6 +209,7 @@ class MainView(View):
             
         self.itsView.commit()
         self.setStatusMessage ('')
+
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
         """
