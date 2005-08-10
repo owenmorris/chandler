@@ -6,8 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """Localized error strings which will in a later version
    be replaced by calls to the Respository for LocalizableStrings"""
 
-STR_SSL_CERTIFICATE_ERROR = _("The SSL Certificate returned can not be verified")
-STR_SSL_ERROR = _("SSL communication error")
+STR_SSL_CERTIFICATE_ERROR = _("An SSL Communication Error Occurred:\n%s")
 STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
 STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later.")
 
@@ -44,13 +43,6 @@ MAIL_EXCEPTION            = __MAILSERVICE_PREFIX + "MailException"
 IMAP_EXCEPTION            = __MAILSERVICE_PREFIX + "IMAPException"
 SMTP_EXCEPTION            = __MAILSERVICE_PREFIX + "SMTPException"
 POP_EXCEPTION             = __MAILSERVICE_PREFIX + "POPException"
-
-
-"""M2Crypto Errors"""
-M2CRYPTO_PREFIX        = "M2Crypto"
-M2CRYPTO_BIO_ERROR     = M2CRYPTO_PREFIX + ".BIO.BIOError"
-M2CRYPTO_CHECKER_ERROR = M2CRYPTO_PREFIX + ".SSL.Checker.WrongHost"
-
 
 
 """ Contains common transport error codes used by the mail service"""

@@ -71,7 +71,13 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
           @return: an object extending  L{twisted.internet.protocol.Protocol}
         """
         p = protocol.ClientFactory.buildProtocol(self, addr)
+
+        """Set up a reference so delegate can call the proto and proto
+          can call the delegate.
+        """
         p.delegate = self.delegate
+        self.delegate.proto = p
+
         """Set the protocol timeout value to that specified in the account"""
         p.timeout = self.timeout
         p.factory  = self
@@ -238,7 +244,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         else:
             ssl.connectTCP(self.account.host, self.account.port,
                            self.factory, self.view)
-            
+
     def catchErrors(self, err):
         """
         This method captures all errors thrown while in the Twisted Reactor Thread.
@@ -258,6 +264,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         if errorType == 'crypto.ssl.CertificateVerificationError':
             assert err.args[1] == 'certificate verify failed'
+
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
@@ -275,42 +282,25 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
                     reconnect = self.testAccountSettings
                 else:
                     reconnect = self.getMail
-                import application.Globals as Globals
-                Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
-                                          'askTrustSiteCertificate',
-                                          err.untrustedCertificates[0],
-                                          reconnect)
+
+                utils.displaySSLCertDialog(err.untrustedCertificates[0],
+                                           reconnect)
                 self._actionCompleted()
                 return
+
             else:
                 # See chandler.log for the exception that was raised for
                 # the verification error code
-                errorString = errors.STR_SSL_CERTIFICATE_ERROR
-
-        if errorType.startswith(errors.M2CRYPTO_PREFIX):
-
-            if errorType == errors.M2CRYPTO_BIO_ERROR:
-                """Generic BIO error"""
-                errorString = str(err)
-
-            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
-                """Host does not match cert"""
-                #XXX Need to pop up a dialog and ask the user if they
-                #XXX would like to proceed anyway
-                errorString = str(err)
-
-            else:
-                """Pass through for M2Crypto errors"""
-                errorString = str(err)
-
+                errorString = errors.STR_SSL_CERTIFICATE_ERROR % errorString
 
         if self.testing:
             utils.alert(constants.TEST_ERROR, \
                         self.account.displayName, errorString)
         else:
-            utils.alert(constants.DOWNLOAD_ERROR, errorString)
+            utils.alertMailError(constants.DOWNLOAD_ERROR, self.account, errorString)
 
         self._actionCompleted()
+
 
     def loginClient(self):
         """

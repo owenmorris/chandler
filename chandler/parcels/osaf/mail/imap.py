@@ -63,8 +63,6 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         @return C{defer.Deferred}
         """
 
-        self.delegate.proto = self
-
         if caps is None:
             """If no capabilities returned in server greeting then get
                the server capabilities """

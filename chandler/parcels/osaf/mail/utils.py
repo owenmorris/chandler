@@ -97,13 +97,21 @@ def disableTwistedTLS(items, TLSKEY='STARTTLS'):
     return items
 
 def alert(message, *args):
-    """Temp method for displaying an Alert box in CPIA
-    """
+    """Displays a generic alert dialog"""
     NotifyUIAsync(message % args, alert=True)
 
-def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
+def alertMailError(message, account, *args):
+    """Displays a mail specific alert dialog with a Edit Account Settings 
+       button which takes the user to the Account Dialog"""
+    NotifyUIAsync(message % args, None, 'displayMailError', account)
+
+def displaySSLCertDialog(cert, reconnectMethod):
+    """Displays the Do you want to add this cert dialog"""
+    NotifyUIAsync(cert, None, 'askTrustSiteCertificate', reconnectMethod)
+
+def NotifyUIAsync(message, logger=None, callable='setStatusMessage', *args, **keys):
     """Temp method for posting a event to the CPIA layer. This
-       method will be refactored soon"""
+       method will be refactored when notifcations come in to play"""
 
     if logger is not None:
         logger(message)
@@ -112,7 +120,7 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
 
     if wxApplication is not None: # test framework has no wxApplication
         wxApplication.CallItemMethodAsync(Globals.views[0], callable,
-                                          message, **keys)
+                                          message, *args, **keys)
 
 
 def dateTimeToRFC2882Date(dt):

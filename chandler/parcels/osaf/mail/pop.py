@@ -59,8 +59,6 @@ class _TwistedPOP3Client(pop3.POP3Client):
         @return C{defer.Deferred}
         """
 
-        self.delegate.proto = self
-
         d = self.capabilities()
         d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
 

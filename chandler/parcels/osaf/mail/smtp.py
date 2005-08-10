@@ -45,6 +45,9 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
         """
         if not self.requireTransportSecurity:
             items = utils.disableTwistedTLS(items)
+        else:
+            """We want to use the M2Crypto SSL context so assign it here"""
+            self.context = self.transport.contextFactory.getContext()
 
         return smtp.ESMTPSender.tryTLS(self, code, resp, items)
 
@@ -69,23 +72,6 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
 
         return smtp.ESMTPSender.smtpState_from(self, code, resp)
 
-    def esmtpState_starttls(self, code, resp):
-        """
-        Overrides C{smtp.ESMTPClient} to call startTLS with the correct
-        context factory.
-        """
-        try:
-            self.transport.startTLS(self.transport.contextFactory.getContext())
-            self.tlsMode = True
-        except Exception, e:
-            #log.err()
-            
-            self.esmtpTLSFailed(451)
-
-        # Send another EHLO once TLS has been started to
-        # get the TLS / AUTH schemes. Some servers only allow AUTH in TLS mode.
-        self.esmtpState_ehlo(code, resp)
-
 
 class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends a Chandler mail message via SMTP"""
@@ -107,6 +93,7 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         self.curTransport = None
         self.pending = []
         self.testing = False
+        self.displayed = False
 
     def sendMail(self, mailMessage):
         """
@@ -149,19 +136,18 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
         if __debug__:
             self.printCurrentView("_actionComplete")
 
-        if not self.testing:
-            key = None
-
+        if not self.displayed:
             mailMessage = self.curTransport.mailMessage
 
             if mailMessage.deliveryExtension.state == "FAILED":
-                key = "displaySMTPSendError"
+                 key = "displaySMTPSendError"
             else:
-                key = "displaySMTPSendSuccess"
+                 key = "displaySMTPSendSuccess"
 
             utils.NotifyUIAsync(mailMessage, callable=key)
 
         self.curTransport = None
+        self.displayed = False
 
         """If there are messages send the next one in the Queue"""
         if len(self.pending) > 0:
@@ -172,7 +158,6 @@ class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
 
             """Yield to Twisted Event Loop"""
             reactor.callLater(0, self.__sendMail, mUUID)
-
 
     def __sendMail(self, mailMessageUUID):
         """Sends a mail message via SMTP using the account and mailMessage
@@ -290,7 +275,6 @@ class _SMTPTransport(object):
 
         d = defer.Deferred()
         d.addCallback(self.parent.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
-        d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.handleSSLError)
         d.addErrback(self.parent.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
 
         self.__sendMail(sender.emailAddress, self.__getRcptTo(), messageText, d)
@@ -304,7 +288,6 @@ class _SMTPTransport(object):
 
         d = defer.Deferred()
         d.addCallback(self.__testSuccess)
-        d.addErrback(self.handleSSLError)
         d.addErrback(self.__testFailure)
 
         self.__sendMail("", [], "", d, True)
@@ -344,33 +327,43 @@ class _SMTPTransport(object):
         # because ssl.connectSSL does it automatically, and in the
         # case of STARTTLS we override esmtpState_starttls above
         # to supply the correct SSL context.
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr, 
+        factory = smtp.ESMTPSenderFactory(username, password, from_addr,
                                           to_addrs, msg,
                                           deferred, retries, timeout,
-                                          1, heloFallback, authRequired, 
+                                          1, heloFallback, authRequired,
                                           securityRequired)
 
         factory.protocol   = _TwistedESMTPSender
         factory.testing    = testing
 
         if account.connectionSecurity == 'SSL':
-            ssl.connectSSL(account.host, account.port, factory, 
+            ssl.connectSSL(account.host, account.port, factory,
                            self.parent.view)
         else:
-            ssl.connectTCP(account.host, account.port, factory, 
+            ssl.connectTCP(account.host, account.port, factory,
                            self.parent.view)
 
     def __testSuccess(self, result):
-        self.testing = False
+        if __debug__:
+            self.parent.printCurrentView("transport.__testSuccess")
+
         utils.alert(constants.TEST_SUCCESS, self.parent.account.displayName)
 
+        self.parent.testing = False
+
+
     def __testFailure(self, exc):
-        self.testing = False
+        if __debug__:
+            self.parent.printCurrentView("transport.__testFailure")
 
-        """Just get the error string do not need the error code"""
-        err = self.__getError(exc.value)[1]
-        utils.alert(constants.TEST_ERROR, self.parent.account.displayName, err)
+        exc = exc.value
 
+        if not self.displayedAddCertDialog(exc):
+            """Just get the error string do not need the error code"""
+            err = self.__getError(exc)[1]
+            utils.alert(constants.TEST_ERROR, self.parent.account.displayName, err)
+
+        self.parent.testing = False
 
     def __mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if
@@ -459,13 +452,27 @@ class _SMTPTransport(object):
             no data changed in view in yet """
         self.parent.view.refresh()
 
-        self.__recordError(exc.value)
-        self.mailMessage.deliveryExtension.sendFailed()
+        exc = exc.value
 
-        if __debug__:
-            for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                s = constants.UPLOAD_FAILED % deliveryError
-                self.parent.log.error(s)
+        displayed = self.displayedAddCertDialog(exc)
+
+        if not displayed:
+            """Only record errors if the add cert is not displayed.
+               The state of a add cert will remain draft until a
+               user actually adds a cert at which point the mail code
+               will be called again and the state will be updated"""
+
+            self.__recordError(exc)
+
+            if __debug__:
+                for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
+                    s = constants.UPLOAD_FAILED % deliveryError
+                    self.parent.log.error(s)
+        else:
+            """Clear the status bar message"""
+            self.parent.displayed = True
+            utils.NotifyUIAsync("", callable='setStatusMessage')
+
 
     def __recordError(self, err):
         """Helper method to record the C{DeliveryErrors} to the C{SMTPDelivery} object"""
@@ -479,10 +486,14 @@ class _SMTPTransport(object):
         deliveryError.errorString = result[1]
 
         self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
+        self.mailMessage.deliveryExtension.sendFailed()
 
-    def handleSSLError(self, err):
-        if err.check(ssl.CertificateVerificationError):
-            assert err.value.args[1] == 'certificate verify failed'
+    def displayedAddCertDialog(self, err):
+        if __debug__:
+            self.parent.printCurrentView("transport.displayedAddCertDialog")
+
+        if isinstance(err, ssl.CertificateVerificationError):
+            assert err.args[1] == 'certificate verify failed'
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
@@ -491,7 +502,7 @@ class _SMTPTransport(object):
             # valid but we don't know about them. In the future we must make
             # it possible for the user to accept expired certificates and
             # so on.
-            if err.value.args[0] in ssl.unknown_issuer:
+            if err.args[0] in ssl.unknown_issuer:
                 # Post an asynchronous event to the main thread where
                 # we ask the user if they would like to trust this
                 # certificate. The main thread will then initiate a retry
@@ -500,19 +511,18 @@ class _SMTPTransport(object):
                     reconnect = self.parent.testAccountSettings
                 else:
                     reconnect = lambda: self.parent.sendMail(self.mailMessage)
-                import application.Globals as Globals
-                Globals.wxApplication.CallItemMethodAsync(Globals.views[0],
-                                          'askTrustSiteCertificate',
-                                          err.value.untrustedCertificates[0],
-                                          reconnect)
-                # XXX Do we need to do any cleanup here?
-                return
-                
-        err.raiseException()
+
+                utils.displaySSLCertDialog(err.untrustedCertificates[0],
+                                           reconnect)
+
+                return True
+
+        return False
+
 
     def __getError(self, err):
         errorCode   = None
-        errorString = None
+        errorString = str(err)
         errorType   = str(err.__class__)
 
         if isinstance(err, smtp.SMTPClientError):
@@ -541,7 +551,6 @@ class _SMTPTransport(object):
 
         elif errorType == errors.SMTP_EXCEPTION:
             errorCode = errors.MISSING_VALUE_CODE
-            errorString = err.__str__()
 
         elif isinstance(err, error.ConnectError):
             """ Record the error code of a ConnectionError.
@@ -549,8 +558,6 @@ class _SMTPTransport(object):
                 a problem communicating with an SMTP server
                 and no error code will be returned by the
                 server."""
-
-            errorString = err.__str__()
 
             if errorType == errors.CONNECT_BIND_ERROR:
                 errorCode = errors.BIND_CODE
@@ -569,25 +576,9 @@ class _SMTPTransport(object):
 
         elif errorType == errors.DNS_LOOKUP_ERROR:
             errorCode = errors.DNS_LOOKUP_CODE
-            errorString = err.__str__()
-
-        elif errorType.startswith(errors.M2CRYPTO_PREFIX):
-            errorCode = errors.M2CRYPTO_CODE
-
-            if errorType == errors.M2CRYPTO_CHECKER_ERROR:
-                """Host does not match cert"""
-                #XXX: This need to be refined for i18h
-                errorString = str(err)
-
-            else:
-                """Pass through for M2Crypto errors"""
-                errorString = str(err)
 
         else:
             errorCode = errors.UNKNOWN_CODE
-            #XXX: casting an error to str is not going to work with i18n
-            errorString = "%s %s" % (err.__module__, str(err))
-
 
         return (errorCode, errorString)
 
@@ -601,7 +592,6 @@ class _SMTPTransport(object):
 
         e = errors.SMTPException(str)
         self.__recordError(e)
-        self.mailMessage.deliveryExtension.sendFailed()
 
         if __debug__:
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
