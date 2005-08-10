@@ -98,6 +98,9 @@ class AbstractSet(ItemValue, Indexed):
 
     def _sourceContains(self, item, source):
 
+        if item is None:
+            return False
+
         if isinstance(source, AbstractSet):
             return item in source
 
@@ -424,6 +427,9 @@ class KindSet(AbstractSet):
         super(KindSet, self).__init__(view)
 
     def __contains__(self, item):
+
+        if item is None:
+            return False
 
         if self._recursive:
             return item.isItemOf(self.itsView[self._kind])
