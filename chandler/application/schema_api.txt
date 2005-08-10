@@ -688,6 +688,58 @@ objects the same name, so you need to check these things yourself.  If you
 need to delete old items or rename/relocate items in your ``installParcel()``
 function, you should just use the normal repository APIs to do so.
 
+Template Classes
+================
+It is possible to create a template class for your items, so that it and all 
+other items can be described in a fairly declarative format.
+
+The easiest way to do this is to use Item's default template() class method.
+To create a template for your class, just reference the class method
+``template`` on the Item class, and save it for later.
+
+PersonT = Person.template
+
+Now you can create a person template like this:
+PersonT().install(parcel)
+
+The advantage of the template system is that you can define your own
+specialized template method, and take advantage of child relationships.
+
+In the simplest case, all your class has to do is define template_child_attrs
+to list the names of the child attributes.
+class Person(Item):
+    template_child_attrs = ['sons', 'daughters']
+
+The base class Item has a default template() implementation which will use
+template_child_attrs to ensure the children appear in the repository as 
+children of the item. Now you could write
+
+    PersonT(name='Dad',
+            sons=[PersonT(name='junior')], 
+            daughters=[PersonT(name='little sis')]
+           ).install(parcel)
+
+Specialized versions of the template method could also be used to define 
+domain-specific syntax. 
+
+For instance, a template for a parent with exactly one son, and one daughter:
+
+    @classmethod
+    def americanfamily(cls, son=None, daughter=None, **attrs):
+	sons = daughters = None
+        if son: sons=[son]
+	if daughter: daughters=[daughter]
+        return schema.ItemTemplate(cls, menuname, ['sons', 'daughters'], 
+                                   sons=sons, daughters=daughters, **attrs)
+
+Then you just define a template reference for family members:
+FamilyMemberT = Person.americanfamily
+
+And use it in installParcels():
+    FamilyMemberT('Dad',
+                  FamilyMemberT('junior'),
+                  FamilyMemberT('little sis')).install(parcel)
+
 
 Forward References
 ==================

@@ -528,6 +528,8 @@ class Item(Base):
     __metaclass__ = ItemClass
     __default_path__ = "//userdata"
 
+    template_child_attrs = []
+
     def __init__(self,
         name=None, parent=None, kind=None, view=None, *args, **values
     ):
@@ -575,6 +577,17 @@ class Item(Base):
         is used.
         """
         return KindQuery(not exact).run([itemFor(cls,view)])
+
+    @classmethod
+    def template(cls, itsName, **attrs):
+        """
+        Easy default implementation for using ItemTemplate
+        Most classes can just set the class attribute
+        template_child_attrs to the list of child attributes,
+        like ['children']
+        """
+        return ItemTemplate(cls, itsName,
+                            cls.template_child_attrs, **attrs)
 
 
 class StructClass(Activator):
@@ -1121,7 +1134,37 @@ def itemFor(obj, view=None):
     finally:
         global_lock.release()
 
+# -------------
+# Item creation
+# -------------
+class ItemTemplate(object):
+    """
+    Template class for easy domain-specific item creation
+    In general, this allows a class to make a 'template' wrapper which
+    will create all items and their children appropriately.
+    """
+    def __init__(self, target_class, itsName, childAttributeNames, **attrs):
+        self.attrs = attrs
+        self.itsName = itsName
+        self.target_class = target_class
+        self.childAttributeNames = childAttributeNames
 
+    def install(parent, name=None):
+        if name is None: name=self.itsName
+
+        # first make parent exist
+        me = self.target_class.update(parent, name)
+
+        # this is a temporary attribute list, which will contain
+        # all the instantiated children, to be passed to .update
+        attrs = self.attrs.copy()
+
+        # now hook up the children, and replace the templates
+        # with the real things
+        for childAttribute in self.childAttributeName:
+            if childAttribute in attrs:
+                attrs[childAttribute] = [t.install(me) for t in attrs[childAttribute]]
+        return self.target_class.update(parent, name, **attrs)
 
 # -------------------------------
 # Initialization/Utility Routines
