@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os
 import application.Globals
+import AccountPreferences
 import wx
 
 # A helper method and class for allowing the user to modify an item's attributes
@@ -132,13 +133,67 @@ def promptUser(frame, title, message, value):
     val = win.ShowModal()
 
     if val == wx.ID_OK:
-        # Assign the new values
-        value = win.GetValue()
+       # Assign the new values
+       value = win.GetValue()
+
     else:
-        value = None
+       value = None
 
     win.Destroy()
+
     return value
+
+def mailError(frame, view, message, account):
+    win = mailErrorDialog(frame, message, account)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+
+    if val == wx.ID_OK:
+       AccountPreferences.ShowAccountPreferencesDialog(frame, account, view)
+
+class mailErrorDialog(wx.Dialog):
+    def __init__(self, parent, message, account):
+
+        size = wx.DefaultSize
+        pos = wx.DefaultPosition
+        style = wx.DEFAULT_DIALOG_STYLE
+
+        self.account = account
+
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        pre.Create(parent, -1, account.displayName, pos, size, style)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        label = wx.StaticText(self, -1, message)
+        sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 55)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        #XXX: Does this OK need to be localized or will wx handle this for us?
+        btn = wx.Button(self, wx.ID_CANCEL, " OK ")
+        btn.SetDefault()
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_OK, _(" Edit Account Settings "))
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)
+
 
 class promptUserDialog(wx.Dialog):
     def __init__(self, parent, ID, title, message, value, isPassword=False,
