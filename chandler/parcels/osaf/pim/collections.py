@@ -4,7 +4,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
 from application import schema
-from repository.item.Sets import Set, Union, Intersection, Difference, KindSet
+from repository.item.Sets import Set, Union, Intersection, Difference, KindSet, FilteredSet
 from repository.item.Item import Item
 from osaf.pim import items
 import os
@@ -290,46 +290,6 @@ class IntersectionCollection(AbstractCollection):
             except AttributeError:
                 pass
 
-class FilteredSet(Set):
-    """
-    """
-    def __init__(self, source, expr):
-        super(FilteredSet, self).__init__(source)
-        self.filter = expr
-    
-    def __contains__(self, item):
-        return self._sourceContains(item, self._source) and self.filter(item)
-
-    def __iter__(self):
-        for item in self._iterSource(self._source):
-            if self.filter(item):
-                yield item
-
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
-        op = self._sourceChanged(self._source, op, change,
-                                 sourceOwner, sourceName, other, *args)
-
-        if not (inner is True or op is None):
-            item = self._item
-            if item is not None:
-                matched = self.filter(other)
-                if op == 'changed': # changed is handled differently from normal
-                    if matched:
-                        op = 'add'
-                    elif not matched and other in self:
-                        op = 'remove'
-                    else:
-                        op = None
-                elif not matched: # if we we fail the predicate, NOP
-                    op = None
-                item.collectionChanged(op, item, self._attribute, other)
-                item._collectionChanged(op, self._attribute, other)
-
-        return op
-
-    def onValueChanged(self, name):
-        pass
 
 class FilteredCollection(AbstractCollection):
     """
