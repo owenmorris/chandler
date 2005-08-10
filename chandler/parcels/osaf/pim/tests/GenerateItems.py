@@ -152,7 +152,7 @@ def GenerateTask(view):
 def GenerateEventTask(view, days=30):
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(view, days)
-    event.StampKind('add', TaskMixin.getKind(event.itsView))
+    event.StampKind('add', pim.TaskMixin.getKind(event.itsView))
     return event
 
 DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
