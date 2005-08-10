@@ -143,7 +143,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
 
 class wxPreviewArea(wx.Panel):
-    margin = 4 #oh how I wish I had css
+    margin = 4 #oh how I wish I had css :)
     
     def __init__(self, *arguments, **keywords):
         super(wxPreviewArea, self).__init__(*arguments, **keywords)
@@ -157,13 +157,96 @@ class wxPreviewArea(wx.Panel):
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
         
-        self.text = ""
+        charStyle.fontStyle = 'fakesuperscript'
+        self.superscriptFont = Styles.getFont(charStyle)
 
+        self.bigDigitWidth   = Styles.getMeasurements(self.font).digitWidth
+        self.smallDigitWidth = Styles.getMeasurements(self.superscriptFont).digitWidth
+
+        self.dashMargin = self.bigDigitWidth // 2
+        self.eventTitleLeftMargin = int(self.bigDigitWidth * 1.5)
+        self.text = ""
+        
+    def DrawEventLine(self, dc, y, item):
+        #  A B  C  D  D E  F G
+        #  | |  |  |  | |  | |
+        #                    my allday or anytime event
+        #  12 15   -  14 45  doctor's appointment
+        #   9      -  11 10  happy hour
+        #  @ 10 45           my at-time event
+        
+        # len(C->D) = len(D->E)  =  self.dashMargin
+        # len(F->G) = self.eventTitleLeftMargin
+        # A is at self.margin
+        # there is no space between the hour and minute blocks.
+
+        #should cache more of these calculations
+        dc.SetFont(self.font)
+        dashWidth, _ = dc.GetTextExtent('-')
+        eventTitleOffset = 4*self.bigDigitWidth + 4*self.smallDigitWidth + \
+                         dashWidth + 2*self.dashMargin + self.eventTitleLeftMargin
+            
+        if item.allDay or item.anyTime:
+            dc.DrawText(item.displayName, eventTitleOffset, y)
+
+        elif item.startTime == item.endTime:
+            # at-time event
+            start = "  @ "
+            dc.DrawText(start, self.margin, y)
+            startWidth, _ = dc.GetTextExtent(start)
+            self.DrawTime(item.startTime.time(), dc, self.margin + startWidth, y, leftpad=False)
+            dc.DrawText(item.displayName, eventTitleOffset, y)
+            
+        else:
+            self.DrawTime(item.startTime.time(), dc, self.margin, y)
+            dashOffset = self.margin + 2*self.bigDigitWidth + 2*self.smallDigitWidth + self.dashMargin
+            dc.DrawText('-', dashOffset, y)
+            self.DrawTime(item.endTime.time(), dc, dashOffset + self.dashMargin + dashWidth, y)
+            dc.DrawText(item.displayName, eventTitleOffset, y)
+        
+    def DrawTime(self, time, dc, x, y, leftpad=True):
+        """
+        @param time: a datetime.time object, its hour and minute get drawn with superscripts for the minutes
+        does NOT change dc's font as a side effect.
+        """
+        oldFont = dc.GetFont()
+
+        #tricky: we want to right-align the hour digit(s)
+        #assumption: digits are monospaced (true of many but not all proportional fonts)
+        # times new roman, arial, verdana, yes.  comic sans ms, no.
+        hour = time.hour
+        ##if hour == 0:  hour = 24
+        hourstr = str(time.hour)
+        if   len(hourstr) == 1 and leftpad:
+            offset = self.bigDigitWidth
+            hoursWidth = 2 * self.bigDigitWidth
+        elif len(hourstr) == 1 and not leftpad:
+            offset = 0
+            hoursWidth = self.bigDigitWidth
+        else:
+            offset = 0
+            hoursWidth = 2 * self.bigDigitWidth
+        dc.SetFont(self.font)        
+        dc.DrawText(str(time.hour), x+offset, y)
+        
+        if time.minute == 0:
+            minutestr = " "
+        else: minutestr = "%.2d" %time.minute  # zero pad <10
+        if True   or time.minute != 0: 
+            dc.SetFont(self.superscriptFont)
+            dc.DrawText(minutestr, x+hoursWidth, y)
+        
+        dc.SetFont(oldFont)
+        
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         self.Draw(dc)
 
     def Draw(self, dc):
+        """
+        Draw all the items, based on what's in self.currentDaysItems
+        @return the height of all the text drawn
+        """
         dc.Clear()
 
         #White background
@@ -179,21 +262,19 @@ class wxPreviewArea(wx.Panel):
         
         m, r = self.margin, self.GetRect()
         dc.SetClippingRegion(m, m,  r.width - 2*m, r.height - 2*m)
-        y = self.margin
-        for line in self.text.splitlines():
-            dc.DrawText(line, self.margin, y)
-            y += self.fontHeight
-        dc.DestroyClippingRegion()
-##         DrawingUtilities.DrawWrappedText(dc, self.text, self.GetRect())
 
-    @staticmethod
-    def TimeFormat(time):
-        # @@@ needs to be locale specific using ?PyICU.  But then how would you
-        # do spacing, vertical alignment?
-        # TODO: superscripted minutes, vertical alignment/spacing
-        if time.minute == 0:
-            return "%d" % time.hour
-        return "%d:%.2d" % (time.hour, time.minute)
+        y = self.margin
+        for i, item in enumerate(self.currentDaysItems):
+            if i == self.blockItem.maximumEventsDisplayed:
+                dc.DrawText("%d more confirmed..." %(len(self.currentDaysItems) - i),  
+                            self.margin, y)
+                y += self.fontHeight  #For end calculation
+                break
+            self.DrawEventLine(dc, y, item)
+            y += self.fontHeight
+        
+        dc.DestroyClippingRegion()
+        return y - self.margin + self.fontHeight
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
         # @@@ hack until block-to-block attributes are safer to define: climb the tree
@@ -227,35 +308,12 @@ class wxPreviewArea(wx.Panel):
         inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
         self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
-        self.text  = ""
         self.currentDaysItems.sort(cmp = self.SortForPreview)
-        for i, item in enumerate(self.currentDaysItems):
-            if i == self.blockItem.maximumEventsDisplayed:
-                self.text += "%d more confirmed events...\n" % (len(self.currentDaysItems) - i,)
-                break
-            if item.allDay or item.anyTime:
-                self.text += "%s\n" % item.displayName
-            elif item.startTime == item.endTime:
-                # at-time event
-                self.text += "@ %s: %s\n" %(self.TimeFormat(item.startTime.time()), item.displayName)
-            else:
-                self.text += "%s - %s: %s\n" % (
-                                self.TimeFormat(item.startTime.time()),
-                                self.TimeFormat(item.endTime.time()),
-                                item.displayName)
-        if not self.text:
-            self.ChangeHeightAndAdjustContainers(0)
-            return
-        
-        
         dc = wx.ClientDC(self)
-        self.Draw(dc)
+        drawnHeight = self.Draw(dc)
         
-        numLines = len(self.text.splitlines())
-        self.ChangeHeightAndAdjustContainers(numLines * self.fontHeight + 2*self.margin)
-        
-        
-        
+        self.ChangeHeightAndAdjustContainers(drawnHeight + 2*self.margin)
+
 
     @staticmethod
     def SortForPreview(item1, item2):
@@ -272,3 +330,30 @@ class wxPreviewArea(wx.Panel):
             return cmp(item1.endTime, item2.endTime)
         return cmp(item1.startTime, item2.startTime)
         
+
+def dimTest():
+    """find out the dimensions of digits in some font"""
+    class TestFrame(wx.Frame):
+        def __init__(self, *args, **kwds):
+            super(TestFrame, self).__init__(*args, **kwds)
+            self.Bind(wx.EVT_PAINT, self.OnPaint)
+        def OnPaint(self, event):
+            dc = wx.PaintDC(self)
+            dc.Clear()
+                    
+            for d in range(10):
+                dstr = str(d)
+                dc.SetFont(Styles.getFont(Styles.CharacterStyle()))
+                width, height = dc.GetTextExtent(dstr)
+                print "%d has dimensions %d,%d" % (d,  width,height)            
+        
+    class TestApp(wx.App):
+        def OnInit(self):
+            frame = TestFrame(None, -1, "Test frame.")
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+     
+    app = TestApp(0)
+    app.MainLoop()
+    

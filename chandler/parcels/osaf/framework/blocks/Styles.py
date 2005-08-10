@@ -32,7 +32,8 @@ class CharacterStyle(Style):
     fontSize = schema.One(schema.Float, initialValue = 11.0)
 
     # Currently, fontStyle is a string containing any of the following words:
-    # bold light italic underline, but others will be included in the future
+    # bold light italic underline fakesuperscript
+    # but others will be included in the future
     fontStyle = schema.One(schema.String, initialValue = '')
 
     fontName = schema.One(schema.String, initialValue = '')
@@ -65,6 +66,16 @@ measurementsCache = {}
 platformDefaultFaceName = None
 platformDefaultFamily = None
 platformSizeScalingFactor = 0.0
+
+# "Fake" superscript (implemented in this file, wx doesn't seem to have any
+# concept of super- or subscripting) is smaller, but its top is supposed to
+# line up with non-fakesuperscript text.
+#
+# NB: unlike normal text, the CharacterStyle.fontSize will be different
+# (bigger) than the post-scaling height reported by dc.GetTextExtent(), since wx
+# fonts don't know about super/subscriptness.
+
+fakeSuperscriptSizeScalingFactor = 0.7
 
 def getFont(characterStyle):
     # First time, get a couple of defaults
@@ -107,6 +118,8 @@ def getFont(characterStyle):
                 style = wx.ITALIC
             elif lowerStyle == "underline":
                 underline = True
+            elif lowerStyle == "fakesuperscript":
+                size *= fakeSuperscriptSizeScalingFactor
         
     if family == platformDefaultFamily:
         name = platformDefaultFaceName
@@ -173,11 +186,19 @@ class FontMeasurements(object):
                 self.textCtrlHeight = self.height + 6
                 self.choiceCtrlHeight = self.height + 8
                 self.checkboxCtrlHeight  = self.height + 6
+            
+            # Don't need to worry about descenders/leaders bcs digits dont have 'em (i think?)
+            # Lots of proportional fonts seem to have monospaced digits, so using
+            #  max() instead of random.choice() is just safety
+            
+            digitDimensions = [dc.GetTextExtent(str(digit)) for digit in range(10)]
+            self.digitWidth  = max([w for w,h in digitDimensions])
+            self.digitHeight = max([h for w,h in digitDimensions])
 
         finally:
             aWidget.SetFont(oldWidgetFont)
             
-if False:    
+def testFonts():
     # To try to work out font differences between the platforms, I wrote the
     # following: 
     # 
@@ -226,3 +247,72 @@ if False:
     # This means that we don't need to do anything explicitly platform-specific,
     # other than the mechanism above that uses the DEFAULT_GUI_FONT's size as
     # a scaling factor.
+
+
+def testSuperscript():
+    cs = CharacterStyle()
+    
+
+    class TestFrame(wx.Frame):
+        def __init__(self, *args, **kwds):
+            super(TestFrame, self).__init__(*args, **kwds)
+            self.Bind(wx.EVT_PAINT, self.OnPaint)
+            self.SetSize((1000, 500))
+        def OnPaint(self, event):
+            dc = wx.PaintDC(self)
+            dc.Clear()
+            
+            
+            text = "lorem ipsum forever"
+            
+            y=0
+            cs.fontSize = 15
+            dc.SetFont( getFont(cs) )
+            width, height  =  dc.GetTextExtent(text)
+            dc.DrawText(text, 0,y)
+            
+            cs.fontStyle = 'fakesuperscript'
+            dc.SetFont( getFont(cs) )
+            dc.DrawText("exponent", width, y)
+            
+            y += height
+            x = 0
+            cs.fontSize = 11
+            
+            for h in range(8,14):
+                h = str(h)
+                for m in ("15", "30", "45"):                    
+                    cs.fontStyle = 'normal'
+                    dc.SetFont(getFont(cs))
+                    width, height = dc.GetTextExtent(h)
+                    dc.DrawText(h,  x,y)
+                    x+= width
+                    
+                    cs.fontStyle = 'fakesuperscript'
+                    dc.SetFont(getFont(cs))
+                    width, height = dc.GetTextExtent(m)
+                    dc.DrawText(m,  x,y)
+                    x+= width + 5
+                x += 10
+            
+            ##padding = 10
+            ##r = wx.Rect(padding, padding, self.GetRect().width - padding*2, self.GetRect().height-padding*2)
+            
+            ##dc.DrawRectangle(*iter(r))
+    
+    class TestApp(wx.App):
+        def OnInit(self):
+            frame = TestFrame(None, -1, "Test frame.")
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+     
+    app = TestApp(0)
+    app.MainLoop()
+
+
+if __name__ == '__main__':
+    # relative import weirdness, you may have to make a wrapper script
+    # RunPython -c 'from osaf.framework.blocks.Styles import testSuperscript; testSuperscript()'
+
+    testSuperscript()
