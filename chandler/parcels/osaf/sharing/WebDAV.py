@@ -10,6 +10,7 @@ import M2Crypto.BIO
 import M2Crypto.SSL.Checker
 import chandlerdb.util.uuid
 import twisted.internet.error as error
+from twisted.internet import reactor
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
