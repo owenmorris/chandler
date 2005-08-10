@@ -68,38 +68,23 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
-    # @@@ There's a lot of overlap between onSetContentsEvent and onSelectItemEvent, and scrungy old
-    # code related to selection down the block tree - we'll revisit it all in 0.6
-
-    selection = schema.One(schema.Item, initialValue = None)
-
-    schema.addClouds(
-        copying = schema.Cloud(byRef=[selection])
-    )
-
     def onSetContentsEvent (self, event):
-        logger.debug("DetailRoot.onSetContentsEvent: %s", event.arguments['item'])
-        self.__changeSelection(event.arguments['item'])
+        item = event.arguments['item']
+        logger.debug("DetailRoot.onSetContentsEvent: %s", item)
+        
+        # Make sure the itemcollection that we monitor includes only the selected item.
+        if item is not None and (len(self.contents.inclusions) != 1 or \
+                                 self.contents.inclusions.first() is not item):
+            self.contents.inclusions.clear()
+            self.contents.add(item)
 
-    def onSelectItemEvent (self, event):
-        """
-          A DetailTrunk is an event boundary; this keeps all the events 
-        sent between blocks of the Detail View to ourselves.
-        """
-        logger.debug("DetailRoot.onSelectItemEvent: %s", event.arguments['item'])
-        
-        # Finish changes to previous selected item 
-        self.finishSelectionChanges () 
-        
-        # Remember the new selected ContentItem.
-        self.__changeSelection(event.arguments['item'])
- 
-        # Synchronize to this item; this'll swap in an appropriate detail trunk.
-        self.synchronizeWidget()
-        if __debug__:
-            dumpSelectItem = False
-            if dumpSelectItem:
-                self.dumpShownHierarchy ('onSelectItemEvent')
+    def selectedItem(self):
+        # return the item being viewed
+        try:
+            item = self.contents.inclusions.first()    
+        except:
+            item = None
+        return item
 
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
@@ -114,19 +99,6 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         # no-op EVT_KILL_FOCUS.
         super(DetailRootBlock, self).unRender()
         
-    def __changeSelection(self, item):
-        self.selection = item
-        
-        # Make sure the itemcollection that we monitor includes only the selected item.
-        if item is not None and (len(self.contents.inclusions) != 1 or \
-                                 self.contents.inclusions.first() is not item):
-            self.contents.inclusions.clear()
-            self.contents.add(item)
-
-    def selectedItem(self):
-        # return the item being viewed
-        return self.selection    
-
     def detailRoot (self):
         # we are the detail root object
         return self
@@ -1181,7 +1153,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                     # events: increasing the start date by three days 
                     # will increase the end date the same amount.)
                     if value > item.endTime:
-                        endTime = value + (item.endTime - item.getEffectiveStartTime())
+                        endTime = value + (item.endTime - item.startTime)
                     else:
                         endTime = item.endTime
                     item.ChangeStart(value)
