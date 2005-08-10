@@ -293,6 +293,18 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
                 # the verification error code
                 errorString = errors.STR_SSL_CERTIFICATE_ERROR % errorString
 
+        if errorType.startswith(errors.M2CRYPTO_PREFIX):
+            if errorType == errors.M2CRYPTO_BIO_ERROR:
+                """Generic BIO error"""
+                #XXX: pleace holder for future code enhancement
+                pass
+
+            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
+                """Host does not match cert"""
+                #XXX Need to pop up a dialog and ask the user if they
+                #XXX would like to proceed anyway
+                pass
+
         if self.testing:
             utils.alert(constants.TEST_ERROR, \
                         self.account.displayName, errorString)
