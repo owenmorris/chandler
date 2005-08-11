@@ -6,6 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 class LocalizableString(object):
+    __slots__ = ['_domain', '_defaultText'] 
+
     """
     This class is just a stand-in. If more fields are added and they need to
     be persisted, the LocalizableString.type file needs to be modified
@@ -28,11 +30,13 @@ class LocalizableString(object):
     
     def __unicode__(self):
         # [@@@] Get translation from I18Manager
-        return self.defaultText
+        return self._defaultText
         
-    def __init__(self, defaultText=""):
+    def __init__(self, domain, defaultText):
         super(LocalizableString, self).__init__()
-        self.defaultText = defaultText
+
+        self._defaultText = defaultText
+        self._domain = domain
 
 
 from repository.schema.Types import Struct
@@ -44,6 +48,8 @@ class LocalizableStringType(Struct):
 
 class Text(Alias):
     def makeValue(self, data):
+        #XXX Is always returning a localizableString the right thing to do
+        # With out xml it should return the implementation type
         return LocalizableString(data)
 
 
