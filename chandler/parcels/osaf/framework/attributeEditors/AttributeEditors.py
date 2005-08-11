@@ -182,12 +182,6 @@ class BaseAttributeEditor (object):
         """
         raise NotImplementedError
     
-    def DestroyControl (self, control):
-        """ 
-        Notification that the control is about to be destroyed.
-        """
-        pass
- 
     def BeginControlEdit (self, item, attributeName, control):
         """ 
         Load this attribute into the editing control. 
@@ -265,7 +259,9 @@ class AETextCtrl(ShownSynchronizer,
         self.focusedSince = datetime.now()
 
     def OnKillFocus(self, event):
-        del self.focusedSince
+        # when grid creates the control, it never gets the EVT_SET_FOCUS
+        if hasattr(self, 'focusedSince'):
+            del self.focusedSince
 
     def Cut(self):
         result = self.GetStringSelection()
@@ -276,16 +272,6 @@ class AETextCtrl(ShownSynchronizer,
         result = self.GetStringSelection()
         super(AETextCtrl, self).Copy()
         return result
-
-    """ Try without this:
-    def Destroy(self):
-        # @@@BJS Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
-        # (in which case we're a PyDeadObject)
-        if isinstance(self, AETextCtrl):
-            super(AETextCtrl, self).Destroy()
-        else:
-            pass # (give me a place to set a breakpoint)
-    """
     
 class AEStaticText(ShownSynchronizer,
                    wx.StaticText):
