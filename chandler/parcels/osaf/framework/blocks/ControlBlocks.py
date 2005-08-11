@@ -26,6 +26,7 @@ from osaf.app import Trash
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
+from osaf.pim.calendar import Calendar
 
 
 class textAlignmentEnumType(schema.Enumeration):
@@ -205,7 +206,7 @@ class wxEditText(ShownSynchronizer,
                 if event.LeftIsDown(): # still down?
                     # have we had the focus for a little while?
                     if hasattr(self, 'focusedSince'):
-                        if datetime.now() - self.focusedSince > timedelta(seconds=.2):
+                        if Calendar.datetimeOp(datetime.now(), '-', self.focusedSince) > timedelta(seconds=.2):
                             self.DoDragAndDrop()
                             return # don't skip, eat the click.
         event.Skip()
@@ -1578,7 +1579,7 @@ class Timer(Block):
         # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
         # don't bother firing.
         if when is not None:
-            td = when - datetime.now()
+            td = Calendar.datetimeOp(when, '-', datetime.now())
             millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100

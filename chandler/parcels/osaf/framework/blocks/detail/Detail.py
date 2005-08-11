@@ -507,7 +507,7 @@ class StaticRedirectAttribute (StaticTextLabel):
     def staticTextLabelValue (self, item):
         try:
             value = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
-            theLabel = str(value)
+            theLabel = unicode(value)
         except AttributeError:
             theLabel = ""
         return theLabel
@@ -1053,15 +1053,21 @@ class CalendarAtLabelBlock(StaticTextLabel):
         return item.isAttributeModifiable('startTime') \
                and not item.allDay
         
-class CalendarTimeAEBlock(DetailSynchronizedAttributeEditorBlock):
+class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
                and not item.allDay
 
-class CalendarReminderAreaBlock(DetailSynchronizedContentItemDetail):
+class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('reminderTime') \
                or hasattr(item, 'reminderTime')
+
+class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('startTime') \
+               and not item.allDay
+
 
 # Centralize the recurrence blocks' visibility decisions
 showPopup = 1
@@ -1126,24 +1132,21 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             self.SetControlValue(self.control, 
                                  self.GetAttributeValue(item, attributeName))
         else:
-            # First, get ICU to parse it into a float
+            oldValue = getattr(item, attributeName, None)
+            # Here, the ICUError covers ICU being unable to handle
+            # the input value. ValueErrors can occur when I've seen ICU
+            # claims to parse bogus  values like "06/05/0506/05/05" 
+            #successfully, which causes fromtimestamp() to throw.)
             try:
-                dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString)
-            except ICUError:
-                self._changeTextQuietly(self.control, "%s ?" % newValueString)
-                return
-            # Then, convert that float to a datetime (I've seen ICU parse bogus 
-            # values like "06/05/0506/05/05", which causes fromtimestamp() 
-            # to throw.)
-            try:
-                dateTimeValue = datetime.fromtimestamp(dateValue)
-            except ValueError:
+                dateTimeValue = DateTimeAttributeEditor.shortDateFormat.parse(
+                                    newValueString, referenceDate=oldValue)
+            except ICUError, ValueError:
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
 
             # If this results in a new value, put it back.
-            oldValue = getattr(item, attributeName)
-            value = datetime.combine(dateTimeValue.date(), oldValue.time())
+            value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
+            
             if oldValue != value:
                 if attributeName == 'startTime':
                     # Changing the start date or time such that the start 
@@ -1196,15 +1199,19 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
             return
         
         # We have _something_; parse it.
+        oldValue = getattr(item, attributeName)
+
         try:
-            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(newValueString)
-        except ICUError:
+            time = DateTimeAttributeEditor.shortTimeFormat.parse(
+                newValueString, referenceDate=oldValue)
+        except ICUError, ValueError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
 
         # If we got a new value, put it back.
-        oldValue = getattr(item, attributeName)
-        value = datetime.combine(oldValue.date(), datetime.fromtimestamp(timeValue).time())
+        value = datetime.combine(oldValue.date(), time.timetz())
+        # Preserve the time zone!
+        value = value.replace(tzinfo=oldValue.tzinfo)
         if item.anyTime or oldValue != value:
             # Something changed.                
             # Implement the rules for changing one of the four values:

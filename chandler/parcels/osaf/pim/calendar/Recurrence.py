@@ -8,10 +8,12 @@ __parcel__ = "osaf.pim.calendar"
 
 from application import schema
 from osaf.pim import items
+from datetime import datetime
 import dateutil.rrule
-import dateutil.tz
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
+from PyICU import ICUtzinfo
+from TimeZone import stripTimeZone, coerceTimeZone
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
@@ -69,13 +71,6 @@ def fromDateUtilWeekday(val):
 def fromDateUtilFrequency(val):
     #hack!
     return FrequencyEnum.values[val]
-
-localtime = dateutil.tz.tzlocal()
-def stripTZ(dt):
-    if dt.tzinfo == None:
-        return dt
-    else:
-        return dt.astimezone(localtime).replace(tzinfo=None)
 
 class RecurrenceRule(items.ContentItem):
     """One rule defining recurrence for an item."""
@@ -179,16 +174,26 @@ class RecurrenceRule(items.ContentItem):
                 return self.until.replace(hour=23, minute=59)
         else:
             return self.until
+            
 
     def createDateUtilFromRule(self, dtstart):
         """Return an appropriate dateutil.rrule.rrule."""
+
+        tzinfo = dtstart.tzinfo
+
+        def coerceIfDatetime(value):
+            if isinstance(value, datetime):
+                value = coerceTimeZone(value, tzinfo)
+            return value
+
         kwargs = dict((k, getattr(self, k)) for k in 
                                             self.listNames + self.normalNames)
         for key in self.specialNames:
-            if getattr(self, key) is not None:
-                kwargs[key]=toDateUtil(getattr(self, key))
+            value = coerceIfDatetime(getattr(self, key))
+            if value is not None:
+                kwargs[key]=toDateUtil(value)
         if self.until is not None and self.untilIsDate:
-            kwargs['until'] = self.calculatedUntil()
+            kwargs['until'] = coerceIfDatetime(self.calculatedUntil())
         rule = rrule(dtstart=dtstart, **kwargs)
         if not self.isCount or self.until is None:
             return rule
@@ -205,7 +210,7 @@ class RecurrenceRule(items.ContentItem):
         if rrule._count is not None:
             self.isCount = True
             # While most dates are naive, strip tzinfo off
-            self.until = stripTZ(rrule[-1])
+            self.until = stripTimeZone(rrule[-1])
         self.wkst = fromDateUtilWeekday(rrule._wkst)
         self.freq = fromDateUtilFrequency(rrule._freq)
 
@@ -228,7 +233,7 @@ class RecurrenceRule(items.ContentItem):
                     self.byweekday.append(WeekdayAndPositionStruct(day, n))
         # While most dates are naive, strip tzinfo off
         if rrule._until is not None:
-            self.until = stripTZ(rrule._until)
+            self.until = stripTimeZone(rrule._until)
         if rrule._interval != 1:
             self.interval = rrule._interval
             
@@ -302,6 +307,7 @@ class RecurrenceRuleSet(items.ContentItem):
                 getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart))
         for datetype in 'rdate', 'exdate':
             for date in getattr(self, datetype + 's', []):
+                date = coerceTimeZone(date, dtstart.tzinfo)
                 getattr(ruleset, datetype)(date)
         return ruleset
 
@@ -329,7 +335,7 @@ class RecurrenceRuleSet(items.ContentItem):
             setattr(self, rtype + 's', itemlist)
         for typ in 'rdate', 'exdate':
             # While most dates are naive, strip tzinfo off
-            naive = [stripTZ(e) for e in getattr(ruleSetOrRule, '_' + typ, [])]
+            naive = [stripTimeZone(e) for e in getattr(ruleSetOrRule, '_' + typ, [])]
             setattr(self, typ + 's', naive)
 
     def isCustomRule(self):

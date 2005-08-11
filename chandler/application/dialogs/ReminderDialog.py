@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, sys, wx
 from datetime import datetime, timedelta
+from osaf.pim.calendar import Calendar
 
 class ReminderDialog(wx.Dialog):
     def __init__(self, parent, ID, size=wx.DefaultSize,
@@ -109,13 +110,16 @@ class ReminderDialog(wx.Dialog):
         nextReminder = None
         now = datetime.now()
         for reminder in reminders:
-            if reminder.reminderTime < datetime.now():
+            if Calendar.datetimeOp(reminder.reminderTime,
+                                        '<', datetime.now()):
                 # Another pending reminder add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, reminder.displayName)
                 self.remindersInList[index] = reminder
 
                 # Make a relative expression of its time ("3 minutes from now")
-                deltaMessage = self.RelativeDateTimeMessage(now - reminder.getEffectiveStartTime())
+                delta = Calendar.datetimeOp(now, '-',
+                         reminder.getEffectiveStartTime())
+                deltaMessage = self.RelativeDateTimeMessage(delta)
                 listCtrl.SetStringItem(index, 1, deltaMessage)
                 
                 # Select it if it was selected before

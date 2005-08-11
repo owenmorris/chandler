@@ -4,7 +4,7 @@ import Sharing
 import application.Parcel
 from osaf.pim import ItemCollection
 import osaf.pim.calendar.Calendar as Calendar
-import osaf.pim.calendar.Recurrence as Recurrence
+import osaf.pim.calendar.TimeZone as TimeZone
 from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
@@ -248,7 +248,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     
             # ignore timezones and recurrence till tzinfo -> PyICU is written
             # give the repository a naive datetime, no timezone
-            dtstart = Recurrence.stripTZ(dtstart)
+            dtstart = TimeZone.stripTimeZone(dtstart)
             
             # See if we have a corresponding item already
             recurrenceID = None
@@ -261,7 +261,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         recurrenceID = datetime.datetime.combine(recurrenceID,
                                                                  time(0))
                     else:
-                        recurrenceID = Recurrence.stripTZ(recurrenceID)
+                        recurrenceID = TimeZone.stripTimeZone(recurrenceID)
                 except:
                     pass
                 if recurrenceID:
@@ -286,7 +286,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if type(rdate) == date:
                     event.rdate[i] = datetime.datetime.combine(rdate, time(0))
                 else:
-                    event.rdate[i] = Recurrence.stripTZ(event.rdate[i])
+                    event.rdate[i] = TimeZone.stripTimeZone(event.rdate[i])
                     
                 # get rid of RDATES that match dtstart, created by vobject to
                 # deal with unusual RRULEs correctly

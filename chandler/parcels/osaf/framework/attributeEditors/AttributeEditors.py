@@ -9,6 +9,8 @@ from wx.lib.scrolledpanel import ScrolledPanel
 from osaf.pim.tasks import TaskMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
+from osaf.pim.calendar.TimeZone import DefaultTimeZone
+
 import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
@@ -19,7 +21,7 @@ from osaf.framework.blocks import Styles
 import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
-from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition
+from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition, ICUtzinfo
 from osaf.framework.blocks.Block import ShownSynchronizer
 from osaf.pim.items import ContentItem
 from application import schema
@@ -55,6 +57,7 @@ def installParcel(parcel, oldVersion=None):
         'DateTime': 'DateTimeAttributeEditor', 
         'DateTime+dateOnly': 'DateAttributeEditor', 
         'DateTime+timeOnly': 'TimeAttributeEditor',
+        'DateTime+timeZoneOnly': 'TimeZoneAttributeEditor',
         'EmailAddress': 'EmailAddressAttributeEditor',
         'Integer': 'StringAttributeEditor',
         'Kind': 'StampAttributeEditor',
@@ -691,19 +694,94 @@ class LobImageAttributeEditor (BaseAttributeEditor):
         control.SetupScrolling()
 
 
-class DateTimeAttributeEditor (StringAttributeEditor):
+class DatetimeFormatter(object):
+    """This class works around some issues with timezone dependence of
+    PyICU DateFormat objects; for details, see:
+
+    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>
+    
+    @ivar dateFormat: A C{PyICU.DateFormat} object, which we want to
+      use to parse or format dates/times in a timezone-aware fashion.
+    """
+
+
+
+    def __init__(self, dateFormat):
+        super(DatetimeFormatter, self).__init__()
+        self.dateFormat = dateFormat
+        
+    def parse(self, string, referenceDate=None):
+        """
+        @param string: The date/time string to parse
+        @type string: C{str} or C{unicode}
+
+        @param referenceDate: Specifies what timezone to use when
+            interpretting the parsed result.
+        @type referenceDate: C{datetime}
+
+        @return: C{datetime}
+        
+        @raises: ICUError or ValueError (The latter occurs because
+            PyICU DateFormat objects sometimes claim to parse bogus
+            inputs like "06/05/0506/05/05". This triggers an exception
+            later when trying to create a C{datetime}).
+        """
+
+        tzinfo = None
+        if referenceDate is not None:
+            tzinfo = referenceDate.tzinfo
+            
+        if tzinfo is None:
+            self.dateFormat.setTimeZone(ICUtzinfo.getDefault().timezone)
+        else:
+            self.dateFormat.setTimeZone(tzinfo.timezone)
+        
+        timestamp = self.dateFormat.parse(string)
+        
+        if tzinfo is None:
+            # We started with a naive datetime, so return one
+            return datetime.fromtimestamp(timestamp)
+        else:
+            # Similarly, return a naive datetime
+            return datetime.fromtimestamp(timestamp, tzinfo)
+        
+    def format(self, datetime):
+        """
+        @param datetime: The C{datetime} to format. If it's naive,
+            its interpreted as being in the user's default timezone.
+
+        @return: A C{unicode}
+        
+        @raises: ICUError
+        """
+        tzinfo = datetime.tzinfo
+        if tzinfo is None: tzinfo = ICUtzinfo.getDefault()
+        self.dateFormat.setTimeZone(tzinfo.timezone)
+        return unicode(self.dateFormat.format(datetime))
+
+class DateTimeAttributeEditor(StringAttributeEditor):
     # Cache formatting info
-    shortTimeFormat = DateFormat.createTimeInstance(DateFormat.kShort)
-    shortDateFormat = DateFormat.createDateInstance(DateFormat.kShort)
-    mediumDateFormat = DateFormat.createDateInstance(DateFormat.kMedium)
+    shortTimeFormat = DatetimeFormatter(
+            DateFormat.createTimeInstance(DateFormat.kShort))
+    shortDateFormat = DatetimeFormatter(
+            DateFormat.createDateInstance(DateFormat.kShort))
+    mediumDateFormat = DatetimeFormatter(
+            DateFormat.createDateInstance(DateFormat.kMedium))
+
+    
     symbols = DateFormatSymbols()
     weekdays = symbols.getWeekdays()
     
-    def GetAttributeValue (self, item, attributeName):
+    def GetAttributeValue(self, item, attributeName):
         itemDateTime = getattr (item, attributeName, None) # getattr will work with properties
         if itemDateTime is None:
             return u''
         
+        # [grant] This means we always display datetimes in the
+        # user's default timezone in the summary table.
+        if itemDateTime.tzinfo is not None:
+            itemDateTime = itemDateTime.astimezone(ICUtzinfo.getDefault())
+
         itemDate = itemDateTime.date()
         today = datetime.today()
         todayDate = today.date()
@@ -712,10 +790,11 @@ class DateTimeAttributeEditor (StringAttributeEditor):
             # (same day last week or earlier). (We'll do day names for days
             # in the last week (below), but this excludes this day last week
             # from that, to avoid confusion.)
-            value = unicode(DateTimeAttributeEditor.mediumDateFormat.format(itemDateTime))
+            value = DateTimeAttributeEditor.mediumDateFormat.format(\
+                            itemDateTime)
         elif itemDate == todayDate:
             # Today? Just use the time.
-            value = unicode(DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime))
+            value = DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime)
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
             value = _(u'Yesterday')
@@ -741,7 +820,8 @@ class DateAttributeEditor (StringAttributeEditor):
             value = u''
         else:
             value = dateTimeValue is not None \
-                  and unicode(DateTimeAttributeEditor.shortDateFormat.format(dateTimeValue)) \
+                  and DateTimeAttributeEditor.shortDateFormat.format(
+                                                          dateTimeValue) \
                   or u''
         return value
 
@@ -751,26 +831,18 @@ class DateAttributeEditor (StringAttributeEditor):
         if len(newValueString) == 0:
             return # leave the value alone if the user clears it out.
 
-        # First, get ICU to parse it into a float
+        oldValue = getattr(item, attributeName, None)
+
         try:
-            dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString)
-        except ICUError:
+            dateValue = DateTimeAttributeEditor.shortDateFormat.parse(newValueString, referenceDate=oldValue)
+        except ICUError, ValueError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
         
-        # Then, convert that float to a datetime (I've seen ICU parse bogus 
-        # values like "06/05/0506/05/05", which causes fromtimestamp() 
-        # to throw.)
-        try:
-            dateTimeValue = datetime.fromtimestamp(dateValue)
-        except ValueError:
-            self._changeTextQuietly(self.control, "%s ?" % newValueString)
-            return
 
         # If this results in a new value, put it back.
-        oldValue = getattr(item, attributeName, None)
-        value = (oldValue is None) and dateTimeValue \
-              or datetime.combine(dateTimeValue.date(), oldValue.time())
+        value = (oldValue is None) and dateValue \
+              or datetime.combine(dateValue.date(), oldValue.timetz())
         if oldValue != value:
             setattr(item, attributeName, value)
             self.AttributeChanged()
@@ -789,25 +861,22 @@ class DateAttributeEditor (StringAttributeEditor):
             month = _(u"mm")
             day = _(u"dd")
             sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
-            def replace(numbers, example):
-                i = sampleText.indexOf(numbers)
-                if i != -1:
-                    sampleText[i:i+len(numbers)] = example
-            replace("2003", year4) # Some locales use 4-digit year, some use 2.
-            replace("03", year2)   # so we'll handle both.
-            replace("10", month)
-            replace("30", day)
+            sampleText = sampleText.replace(u"2003", year4) # Some locales use 4-digit year, some use 2.
+            sampleText = sampleText.replace(u"03", year2)   # so we'll handle both.
+            sampleText = sampleText.replace(u"10", month)
+            sampleText = sampleText.replace(u"30", day)
             self.cachedSampleText = unicode(sampleText)
         return self.cachedSampleText
     
-class TimeAttributeEditor (StringAttributeEditor):
-    def GetAttributeValue (self, item, attributeName):
+class TimeAttributeEditor(StringAttributeEditor):
+    def GetAttributeValue(self, item, attributeName):
         try:
             dateTimeValue = getattr (item, attributeName) # getattr will work with properties
         except AttributeError:
             value = u''
         else:
-            value = unicode(DateTimeAttributeEditor.shortTimeFormat.format(dateTimeValue))
+            value = \
+                DateTimeAttributeEditor.shortTimeFormat.format(dateTimeValue)
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -816,15 +885,23 @@ class TimeAttributeEditor (StringAttributeEditor):
             return # leave the value alone if the user clears it out.
         
         # We have _something_; parse it.
+        oldValue = getattr(item, attributeName, None)
         try:
-            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(newValueString)
+            timeValue = DateTimeAttributeEditor.shortTimeFormat.parse(
+                            newValueString, referenceDate=oldValue)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
             return
+            
+
+        if oldValue is not None:
+            time = datetime.fromtimestamp(timeValue, oldValue.tzinfo).time()
+        else:
+            time = datetime.fromtimestamp(timeValue).time()
 
         # If we got a new value, put it back.
-        oldValue = getattr(item, attributeName)
-        value = datetime.combine(oldValue.date(), datetime.fromtimestamp(timeValue).time())
+        value = datetime.combine(oldValue.date(), time)
+        
         if item.anyTime or oldValue != value:
             # Something changed.                
             setattr (item, attributeName, value)
@@ -843,15 +920,12 @@ class TimeAttributeEditor (StringAttributeEditor):
             minute = _(u"mm")
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
-            def replace(numbers, example):
-                i = sampleText.indexOf(numbers)
-                if i != -1:
-                    sampleText[i:i+len(numbers)] = example
-            replace("11", hour)
-            replace("45", minute)
-            self.cachedSampleText = unicode(sampleText)
+
+            sampleText = sampleText.replace("11", hour)
+            sampleText = sampleText.replace("45", minute)
+            self.cachedSampleText = sampleText
         return self.cachedSampleText
-    
+
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
     def ReadOnly (self, (item, attribute)):
@@ -1133,7 +1207,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
 class AEChoice(ShownSynchronizer, wx.Choice):
     pass
 
-class ChoiceAttributeEditor (BasePermanentAttributeEditor):
+class ChoiceAttributeEditor(BasePermanentAttributeEditor):
     """ A pop-up control. The list of choices comes from presentationStyle.choices """        
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         # We have to implement Draw, but we don't need to do anything
@@ -1196,6 +1270,80 @@ class ChoiceAttributeEditor (BasePermanentAttributeEditor):
                 choiceIndex = 0
             control.Select(choiceIndex)
 
+class TimeZoneAttributeEditor(ChoiceAttributeEditor):
+    """ A pop-up control for the tzinfo field of a datetime. The list of
+    choices comes from the calendar.TimeZone module """
+    
+    def SetAttributeValue(self, item, attributeName, tzinfo):
+        oldValue = getattr(item, attributeName, None)
+
+        if oldValue is not None and tzinfo != oldValue.tzinfo:
+            # Something changed.                
+            value = oldValue.replace(tzinfo=tzinfo)
+            setattr(item, attributeName, value)
+            
+            # [@@@] grant
+            # A disgusting hack till we switch to start+duration
+            # instead of start+end
+            if attributeName == 'startTime':
+                oldValue = getattr(item, 'endTime', None)
+                if oldValue is not None:
+                    value = oldValue.replace(tzinfo=tzinfo)
+                    setattr(item, 'endTime', value)
+            
+            self.AttributeChanged()
+
+    def GetControlValue (self, control):
+        """ Get the selected choice's time zone """
+        choiceIndex = control.GetSelection()
+        if choiceIndex != -1:
+            return control.GetClientData(choiceIndex)
+        else:
+            return None
+
+    def SetControlValue(self, control, value):
+        """ Select the choice with the given time zone """
+        
+        # We also take this opportunity to populate the menu
+        existingValue = self.GetControlValue(control)
+        if existingValue != value:            
+            control.Clear()
+
+            selectIndex = -1
+            
+            # rebuild the list of choices
+            if value is not None:
+                selectTz = value.tzinfo
+            else:
+                selectTz = None
+            
+            # Map "floating" timezones to the user's default for now
+            if selectTz is None:
+                selectTz = ICUtzinfo.getDefault()
+                
+            for zone in DefaultTimeZone.knownTimeZones:
+                # [@@@] Localization
+                index = control.Append(unicode(zone), clientData=zone)
+            
+                # [@@@] grant: Should be value == zone; PyICU bug?
+                if selectTz is not None and zone.timezone == selectTz.timezone:
+                    selectIndex = index
+
+            # [@@@] grant: Experimental
+            #index = control.Append(_(u"Floating"), clientData=None)
+            #if selectTz is None:
+            #    selectIndex = index
+        
+            if selectIndex is -1:
+                control.Insert(unicode(selectTz), 0, clientData=selectTz)
+                selectIndex = 0
+                
+            if selectIndex != -1:
+                control.Select(selectIndex)
+
+
+
+    
 class IconAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True # The Icon editor doesn't support editing.

@@ -14,6 +14,7 @@ from Detail import (
     CalendarReminderAreaBlock, 
     CalendarStampBlock,
     CalendarTimeAEBlock,
+    CalendarTimeZoneAreaBlock,
     DetailRootBlock, 
     DetailSynchronizedAttributeEditorBlock,
     DetailSynchronizedContentItemDetail,

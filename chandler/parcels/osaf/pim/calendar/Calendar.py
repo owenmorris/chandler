@@ -16,8 +16,8 @@ from osaf.pim.items import Calculated, ContentItem
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 
-from repository.schema.Types import TimeZone
-
+from osaf.pim.calendar.TimeZone import coerceTimeZone
+from PyICU import ICUtzinfo
 from datetime import datetime, time, timedelta
 import itertools
 import StringIO
@@ -43,14 +43,75 @@ class ModificationEnum(schema.Enumeration):
     schema.kindInfo(displayName="Modification")
     values="this", "thisandfuture"
 
+
+def removeTypeError(f):
+    def g(dt1, dt2):
+        naive1 = (dt1.tzinfo is None)
+        naive2 = (dt2.tzinfo is None)
+        
+        if naive1 != naive2:
+            if naive1:
+                dt2 = dt2.replace(tzinfo=None)
+            else:
+                dt1 = dt1.replace(tzinfo=None)
+        return f(dt1, dt2)
+    return g
+
+__opFunctions = {
+    'cmp': removeTypeError(lambda x, y: cmp(x, y)),
+    'max': removeTypeError(lambda x, y: max(x, y)),
+    'min': removeTypeError(lambda x, y: min(x, y)),
+    '-':   removeTypeError(lambda x, y: x - y),
+    '<':   removeTypeError(lambda x, y: x < y),
+    '>':   removeTypeError(lambda x, y: x > y),
+    '<=':  removeTypeError(lambda x, y: x <= y),
+    '>=':  removeTypeError(lambda x, y: x >= y),
+    '==':  removeTypeError(lambda x, y: x == y),
+    '!=':  removeTypeError(lambda x, y: x != y)
+}
+
+def datetimeOp(dt1, operator, dt2):
+    """This function is a workaround for some issues with
+    comparisons of naive and non-naive C{datetimes}. Its usage
+    is slightly goofy (but makes diffs easier to read):
+    
+    If you had in code:
+    
+        dt1 < dt2
+        
+    and you weren't sure whether dt1 and dt2 had timezones, you could
+    convert this to:
+    
+       datetimeOp(dt1, '<', dt2)
+       
+   and not have to deal with the TypeError you'd get in the original code. 
+   
+   Similar conversions hold for other comparisons, '-', '>', '<=', '>=',
+   '==', '!='. Also, there are functions with implied comparison; you can do
+   
+      max(dt1, dt2) --> datetimeOp(dt1, 'max', dt2)
+      
+    and similarly for min, cmp.
+    
+    For more details (and why this is a kludge), see:
+    
+    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>)
+    """
+    
+    f = __opFunctions.get(operator, None)
+    if f is None:
+        raise ValueError, "Unrecognized operator '%s'" % (operator)
+    return f(dt1, dt2)
+
 def _sortEvents(eventlist, reverse=False):
     """Helper function for working with events."""
     def cmpEventStarts(event1, event2):
-        return cmp(event1.startTime, event2.startTime)
+        return datetimeOp(event1.startTime, 'cmp', event2.startTime)
     eventlist = list(eventlist)
     eventlist.sort(cmp=cmpEventStarts)
     if reverse: eventlist.reverse()
     return eventlist
+    
 
 class CalendarEventMixin(ContentItem):
     """
@@ -252,9 +313,11 @@ class CalendarEventMixin(ContentItem):
         Called when stamping adds these attributes, and from __init__ above.
         """
         # start at the nearest half hour, duration of an hour
-        now = datetime.now()
-        self.startTime = datetime(now.year, now.month, now.day,
-                                  now.hour, (now.minute/30) * 30)
+        now = datetime.now(ICUtzinfo.getDefault())
+        self.startTime = datetime.combine(now,
+                                  time(hour=now.hour,
+                                       minute=((now.minute/30) * 30),
+                                       tzinfo=now.tzinfo))
         self.duration = timedelta(hours=1)
 
         # default the organizer to an existing value, or "me"
@@ -334,7 +397,8 @@ class CalendarEventMixin(ContentItem):
         
         if (self.hasLocalAttributeValue("startTime") and
             self.hasLocalAttributeValue("endTime")):
-            return self.getEffectiveEndTime() - self.getEffectiveStartTime()
+            return datetimeOp(self.getEffectiveEndTime(), '-',
+                 self.getEffectiveStartTime())
         else:
             return None
 
@@ -359,7 +423,8 @@ class CalendarEventMixin(ContentItem):
         """
         # If startTime's time is invalid, ignore it.
         if self.anyTime or self.allDay:
-            result = datetime.combine(self.startTime, time(0))
+            result = datetime.combine(self.startTime,
+                time(0, tzinfo=self.startTime.tzinfo))
         else:
             result = self.startTime
         return result
@@ -372,7 +437,8 @@ class CalendarEventMixin(ContentItem):
         """
         # If endTime's time is invalid, ignore it.
         if self.anyTime or self.allDay:
-            result = datetime.combine(self.endTime, time(0))
+            result = datetime.combine(self.endTime, 
+                        time(0, tzinfo=self.endTime.tzinfo))
         else:
             result = self.endTime
         return result
@@ -441,11 +507,12 @@ class CalendarEventMixin(ContentItem):
             return self
         else:
             return self.occurrenceFor.getMaster()
+            
 
     def isBetween(self, after=None, before=None):
         #TODO: deal with different sorts of events
-        return (before is None or self.startTime <= before) and \
-               (after is None or self.endTime >= after)
+        return (before is None or datetimeOp(self.startTime, '<=', before)) and \
+               (after is None or datetimeOp(self.endTime, '>=', after))
 
     def createDateUtilFromRule(self):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
@@ -529,8 +596,8 @@ class CalendarEventMixin(ContentItem):
             if after is None:
                 # isBetween isn't quite what we want if after is None
                 def test(mod):
-                    return self.startTime < mod.startTime and \
-                           (before is None or mod.startTime < before)
+                    return datetimeOp(self.startTime, '<', mod.startTime) and \
+                           (before is None or datetimeOp(mod.startTime, '<', before))
             else:
                 def test(mod):
                     return mod.isBetween(after, before)
@@ -540,9 +607,9 @@ class CalendarEventMixin(ContentItem):
                         nextEvent = mod
                         # finally, well-ordering requires that we sort by
                         # recurrenceID if startTimes are equal
-                    elif mod.startTime <= nextEvent.startTime:
-                        if mod.startTime == nextEvent.startTime and \
-                           mod.recurrenceID >= nextEvent.recurrenceID:
+                    elif datetimeOp(mod.startTime, '<=', nextEvent.startTime):
+                        if datetimeOp(mod.startTime, '==', nextEvent.startTime) and \
+                           datetimeOp(mod.recurrenceID,'>=', nextEvent.recurrenceID):
                             pass #this 
                         else:
                             # check to make sure mod isn't self, wacky things
@@ -567,13 +634,28 @@ class CalendarEventMixin(ContentItem):
                 earliest = self.startTime 
                 inc = False
             else:
-                earliest = min(self.recurrenceID, self.startTime)
+                earliest = datetimeOp(self.recurrenceID, 'min', self.startTime)
                 inc = False
             while True:
-                nextRecurrenceID = self.createDateUtilFromRule().after(earliest,
-                                                                       inc)
+            
+                fromRule = self.createDateUtilFromRule()
+                # Here, we want to make sure that anything we pass
+                # to fromRule has the same timezone as all the rules
+                # and dates within fromRule.
+                #
+                # Otherwise, we could well end up with unsafe datetime
+                # comparisons inside dateutil.
+                try:
+                    tzinfo = fromRule[0].tzinfo
+                except IndexError:
+                    tzinfo = self.startTime.tzinfo
+                
+                earliestWithTz = coerceTimeZone(earliest, tzinfo)
+                    
+                nextRecurrenceID = fromRule.after(earliestWithTz, inc)
+                
                 if nextRecurrenceID == None or \
-                   (before != None and nextRecurrenceID > before):
+                   (before != None and datetimeOp(nextRecurrenceID, '>', before)):
                     # no more generated occurrences, make sure no modifications
                     # match
                     return checkModifications(first, before)
@@ -581,7 +663,8 @@ class CalendarEventMixin(ContentItem):
                 # First, see if an occurrence for nextRecurrenceID exists.
                 calculated = None
                 for occurrence in first.occurrences:
-                    if occurrence.recurrenceID == nextRecurrenceID:
+                    if datetimeOp(occurrence.recurrenceID, '==',
+                                    nextRecurrenceID):
                         calculated = occurrence
                         break
                     
@@ -593,8 +676,11 @@ class CalendarEventMixin(ContentItem):
                 # actual startTime may be too early, or there may be a
                 # modification which is even earlier.
                 
-                if (after == None and calculated.startTime < self.startTime) or\
-                   (after != None and not calculated.isBetween(after, before)):
+                if (after == None and \
+                     datetimeOp(calculated.startTime, '<', self.startTime)) \
+                  or (
+                      after is not None
+                      and not calculated.isBetween(after, before)):
                         # too early, but there may be a later modification
                         mod = checkModifications(first, nextRecurrenceID)
                         if mod is None:
@@ -678,12 +764,12 @@ class CalendarEventMixin(ContentItem):
         if master.hasLocalAttributeValue('modifications'):
             mods.extend(mod for mod in master.modifications
                                     if mod.modifies == 'thisandfuture'
-                                    and mod.startTime <= before)
+                                    and datetimeOp(mod.startTime, '<=', before))
         _sortEvents(mods)
         # cut out mods which end before "after"
         index = -1
         for i, mod in enumerate(mods):
-            if mod.startTime >= after:
+            if datetimeOp(mod.startTime, '>=', after):
                 index = i
                 break
         if index == -1:
@@ -704,21 +790,21 @@ class CalendarEventMixin(ContentItem):
         # first look through modifications and occurrences
         for mod in self.getMaster().modifications or []:
             if mod.modifies == 'this':
-                if mod.recurrenceID == recurrenceID:
+                if datetimeOp(mod.recurrenceID, '==', recurrenceID):
                     return mod
             elif mod.modifies == 'thisandfuture':
                 for occurrence in mod.occurrences or []:
-                    if occurrence.recurrenceID == recurrenceID:
+                    if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
                         return occurrence
 
         # look through master's occurrences
         for occurrence in self.getMaster().occurrences:
-            if occurrence.recurrenceID == recurrenceID:
+            if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
                 return occurrence
 
         # no existing matches, see if one can be generated:
         for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID):
-            if occurrence.recurrenceID == recurrenceID:
+            if datetimeOp(occurrence.recurrenceID, '==', recurrenceID):
                 return occurrence
 
         # no match
@@ -736,19 +822,19 @@ class CalendarEventMixin(ContentItem):
             
             for modification in _sortEvents(master.modifications, reverse=True):
                 if modification.modifies == 'thisandfuture':
-                    if modification.startTime < startBefore:
+                    if datetimeOp(modification.startTime, '<',  startBefore):
                         previousMod = modification
                         break
         
         #change the rule, onValueChanged will trigger cleanRule for previouMod
         for rule in previousMod.rruleset.getAttributeValue('rrules',default=[]):
             if not rule.hasLocalAttributeValue('until') or \
-               rule.calculatedUntil() > newend:
+               datetimeOp(rule.calculatedUntil(), '>', newend):
                 rule.until = newend
                 rule.untilIsDate = False
             previousMod.rruleset.rdates = [rdate for rdate in \
                    previousMod.rruleset.getAttributeValue('rdates', default=[])\
-                   if rdate > newend]
+                   if datetimeOp(rdate, '>', newend)]
 
     def _makeGeneralChange(self):
         """Do everything that should happen for any change call."""
@@ -777,7 +863,7 @@ class CalendarEventMixin(ContentItem):
             
         def propagateChange(modification, changer=None):
             changer = changer or self
-            if modification.startTime >= changer.startTime:
+            if datetimeOp(modification.startTime, '>=',  changer.startTime):
                 # future 'this' modifications in master should move to self
                 if modification.modifies == 'this':
                     modification.modificationFor = changer
@@ -816,7 +902,7 @@ class CalendarEventMixin(ContentItem):
                 makeThisAndFutureMod()
                 self._movePreviousRuleEnd()
             elif self.modificationFor is not None:# changing 'this' modification
-                if self.recurrenceID == first.startTime:
+                if datetimeOp(self.recurrenceID, '==', first.startTime):
                     self.modifies = 'thisandfuture'
                     if first == master: # replacing master
                         self.modificationFor = None
@@ -849,7 +935,7 @@ class CalendarEventMixin(ContentItem):
                     if first.hasLocalAttributeValue('modifications'):
                         for mod in first.modifications:
                             if mod.modifies == 'this':
-                                if mod.recurrenceID > newfirst.startTime:
+                                if datetimeOp(mod.recurrenceID, '>', newfirst.startTime):
                                     mod.occurrenceFor = newfirst
                                     mod.modificationFor = newfirst
                     self._movePreviousRuleEnd()
@@ -907,7 +993,8 @@ class CalendarEventMixin(ContentItem):
                     self._makeGeneralChange()
                     self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
-                    del self.modificationRecurrenceID
+                    if self.hasLocalAttributeValue('modificationRecurrenceID'):
+                        del self.modificationRecurrenceID
                     del newfirst._ignoreValueChanges
                 # if backup is None, allow the change to stand, applying just
                 # to self.  This relies on _getFirstGeneratedOccurrence() always
@@ -940,6 +1027,7 @@ class CalendarEventMixin(ContentItem):
             if self == self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
+                
             # this kludge should be replaced with the new domain attribute aspect
 ##        elif name not in """modifications modificationFor occurrences
 ##                          occurrenceFor modifies isGenerated recurrenceID
@@ -970,8 +1058,8 @@ class CalendarEventMixin(ContentItem):
             for mod in first.modifications:
                 if mod.modifies == 'this':
                     # this won't work for complicated rrulesets
-                    if mod.recurrenceID > first.rruleset.rrules.first().calculatedUntil() \
-                       and mod != first:
+                    if datetimeOp(mod.recurrenceID, '>', first.rruleset.rrules.first().calculatedUntil()) \
+                       and mod !=  first:
                         mod._ignoreValueChanges = True
                         mod.delete()
                     
@@ -999,14 +1087,14 @@ class CalendarEventMixin(ContentItem):
         """Delete all future occurrences and modifications."""
 
         def deleteLater(item):
-            if item.startTime > self.startTime: 
+            if datetimeOp(item.startTime, '>',  self.startTime): 
                 item._ignoreValueChanges = True
                 item.delete()
                 
         master = self.getMaster()
         for mod in master.modifications or []:
             if mod.modifies == 'thisandfuture':
-                if mod.startTime > self.startTime:
+                if datetimeOp(mod.startTime, '>', self.startTime):
                         mod._deleteThisAndFutureModification()
                 else:
                     for event in mod.occurrences or []:

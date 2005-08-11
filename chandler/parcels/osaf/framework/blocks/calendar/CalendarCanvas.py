@@ -12,10 +12,10 @@ import wx.colheader
 import wx.lib.colourselect as colourselect
 
 from datetime import datetime, timedelta, date, time
-from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat
+from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat, ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.calendar.TimeZone import DefaultTimeZone
+from osaf.pim.calendar.TimeZone import DefaultTimeZone, formatTime
 import osaf.pim.items as items
 
 from osaf.framework.blocks import DragAndDrop
@@ -339,7 +339,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 hasBottomRightRounded = True	
        
             # zero-duration events get fully rounded
-            hasLeftRounded = (item.startTime == item.endTime)
+            hasLeftRounded = Calendar.datetimeOp(item.startTime, '==',
+                                             item.endTime)
             
             self.DrawEventRectangle(dc, itemRect,
                                     hasLeftRounded,
@@ -372,11 +373,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             width = itemRect.width - self.textOffset.x - (self.textMargin + 10)
             
             # only draw date/time on first item	
-            if drawEventText:	
+            if drawEventText:
                 # only draw time on timed events
-                if not isAnyTimeOrAllDay:	
-                    timeString = "%d:%s" %((time.hour % 12) or 12,	
-                                           time.strftime("%M %p"))	
+                if not isAnyTimeOrAllDay:
+                    timeString = formatTime(time)
                     te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
                     timeHeight = te[1]	
        
@@ -579,18 +579,34 @@ class TimedCanvasItem(CalendarCanvasItem):
             one from midnight wednesday morning to noon wednesday"""
         
         # calculate how many unique days this appears on 
-        days = endTime.toordinal() - startTime.toordinal() + 1
+        defaultTzinfo = ICUtzinfo.getDefault()
         
+        if startTime.tzinfo is None:
+            startTime = startTime.replace(tzinfo=defaultTzinfo)
+        else:
+            startTime = startTime.astimezone(defaultTzinfo)
+
+
+        if endTime.tzinfo is None:
+            endTime = endTime.replace(tzinfo=defaultTzinfo)
+        else:
+            endTime = endTime.astimezone(defaultTzinfo)
+        
+        # Safe to do comparison here because we've made sure
+        # that neither datetime is naive
+        days = 1 + (endTime.date() - startTime.date()).days
+        
+        currentDayStart = datetime.combine(startTime, 
+                            time(tzinfo=startTime.tzinfo))
         for i in xrange(days):
             
             # first calculate the midnight time for the beginning and end
             # of the current day
-            absDay = startTime.toordinal() + i
-            absDayStart = datetime.fromordinal(absDay)
-            absDayEnd = datetime.fromordinal(absDay + 1)
+            currentDayEnd = currentDayStart + timedelta(days=1)
             
-            boundsStartTime = max(startTime, absDayStart)
-            boundsEndTime = min(endTime, absDayEnd)
+            # ok to use min, max, since startTime, endTime are not naive
+            boundsStartTime = max(startTime, currentDayStart)
+            boundsEndTime = min(endTime, currentDayEnd)
             
             try:
                 rect = TimedCanvasItem.MakeRectForRange(calendarCanvas,
@@ -601,6 +617,8 @@ class TimedCanvasItem(CalendarCanvasItem):
                 yield rect
             except ValueError:
                 pass
+                
+            currentDayStart = currentDayEnd
         
     @staticmethod
     def MakeRectForRange(calendarCanvas, startTime, endTime):
@@ -649,8 +667,8 @@ class CalendarEventHandler(object):
         self.wxSynchronizeWidget()
 
     def OnToday(self, event):
-        today = date.today()
-        today = datetime(today.year, today.month, today.day)
+        today = CalendarBlock.startOfToday()
+        
         self.blockItem.setRange(today)
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
@@ -721,7 +739,8 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     @staticmethod
     def startOfToday():
         today = date.today()
-        return datetime(today.year, today.month, today.day)
+        start = time(tzinfo=ICUtzinfo.getDefault())
+        return datetime.combine(today, start)
         
         
     # Event handling
@@ -769,6 +788,8 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         @param date: date to include
         @type date: datetime
         """
+
+        date = datetime.combine(date, time())
 
         # basic behavior
         self.rangeStart = date
@@ -828,12 +849,12 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         # 1) start time is within range
         # 2) end time is within range
         # 3) start time before range, end time after
-        return (((item.startTime >= start) and
-                 (item.startTime < end)) or 
-                ((item.endTime >= start) and
-                 (item.endTime < end)) or 
-                ((item.startTime <= start) and
-                 (item.endTime >= end)))
+        return ((Calendar.datetimeOp(item.startTime, '>=', start) and
+                 Calendar.datetimeOp(item.startTime, '<', end)) or 
+                (Calendar.datetimeOp(item.endTime, '>=', start) and
+                 Calendar.datetimeOp(item.endTime, '<', end)) or 
+                (Calendar.datetimeOp(item.startTime, '<=', start) and
+                 Calendar.datetimeOp(item.endTime, '>=', end)))
 
     def generateItemsInRange(self, date, nextDate, dayItems):
 
@@ -878,6 +899,19 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         @return: the items in this collection that appear within the given range
         @rtype: generator of Items
         """
+        
+        defaultTzinfo = ICUtzinfo.getDefault()
+        if date.tzinfo is None:
+            date = date.replace(tzinfo=defaultTzinfo)
+        else:
+            date = date.astimezone(defaultTzinfo)
+
+        defaultTzinfo = ICUtzinfo.getDefault()
+        if nextDate.tzinfo is None:
+            nextDate = nextDate.replace(tzinfo=defaultTzinfo)
+        else:
+            nextDate = nextDate.astimezone(defaultTzinfo)
+        
         # this is annoying - for the moment we have to first make sure all the
         # generated items exist, then reiterate self.contents
         generatedItems = self.generateItemsInRange(date, nextDate, dayItems)
@@ -1418,7 +1452,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
         
         def draw(itemToDraw, selected):	
-            pastEnd = itemToDraw.GetItem().endTime > self.blockItem.rangeEnd	
+            pastEnd = Calendar.datetimeOp(itemToDraw.GetItem().endTime, '>',
+                         self.blockItem.rangeEnd)
             itemToDraw.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
 
         selection = self.blockItem.selection
@@ -1470,10 +1505,15 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
             for item in visibleItems:
                 # get first and last column of its span
-                if item.startTime < startDateTime: dayStart = 0
-                else:  dayStart = self.DayOfWeekNumber(item.startTime)
-                if item.endTime > endDateTime: dayEnd = 6
-                else:  dayEnd = self.DayOfWeekNumber(item.endTime)
+                if Calendar.datetimeOp(item.startTime, '<', startDateTime):
+                    dayStart = 0
+                else:
+                    dayStart = self.DayOfWeekNumber(item.startTime)
+                    
+                if Calendar.datetimeOp(item.endTime, '>', endDateTime):
+                    dayEnd = 6
+                else:
+                    dayEnd = self.DayOfWeekNumber(item.endTime)
                 
                 #search downward, looking for a spot where it'll fit
                 for y in xrange(MAX_ROWS):
@@ -1553,7 +1593,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         if spanResult != 0:
             return spanResult
         else:
-            return cmp(item1.startTime, item2.startTime)
+            return Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime)
         
         # another possibililty is ORDER BY date, duration
         #dateResult = cmp(item1.startTime, item2.startTime)
@@ -1568,8 +1608,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # creating event with no start time to acquire
         # defaults for hour/minute
         event = self.CreateEmptyEvent(None, True, False)
-        event.startTime = datetime.combine(newTime.date(),
-                                           event.startTime.time())
+        event.startTime = datetime.combine(newTime, event.startTime.timetz())
                 
         event.endTime = event.startTime + timedelta(hours=1)
 
@@ -1612,15 +1651,34 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         item = dragState.currentDragBox.GetItem()
         newTime = self.getDateTimeFromPosition(adjustedPosition, mustBeInBounds=False)
         
-        # bounding rules are: at least one cell of the event must stay visible.
-        if newTime >= self.blockItem.rangeEnd:
-            newTime = self.blockItem.rangeEnd - timedelta(days=1)
-        elif newTime + item.duration < self.blockItem.rangeStart:
-            newTime = self.blockItem.rangeStart - item.duration
+        oldStartTime = item.startTime
+        tzinfo = oldStartTime.tzinfo
         
-        if (newTime.toordinal() != item.startTime.toordinal()):
+        if tzinfo is None or newTime.tzinfo is None:
+            newTime = newTime.replace(tzinfo=tzinfo)
+        else:
+            newTime = newTime.astimezone(tzinfo)
+        
+        # bounding rules are: at least one cell of the event must stay visible.
+        if Calendar.datetimeOp(newTime, '>=', self.blockItem.rangeEnd):
+            newTime = self.blockItem.rangeEnd - timedelta(days=1)
+            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault)
+        elif Calendar.datetimeOp(newTime + item.duration, '<',
+             self.blockItem.rangeStart):
+            newTime = self.blockItem.rangeStart - item.duration
+            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault)
+        
+        if tzinfo is None:
+            oldStartTime = \
+                item.startTime.tzinfo.replace(tzinfo=ICUtzinfo.getDefault())
+        else:
+            oldStartTime = \
+                item.startTime.tzinfo.astimezone(ICUtzinfo.getDefault())
+        # [@@@] grant .toordinal() & tzinfo?
+
+        if (newTime.date() != oldStartTime.date()):
             item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                      item.startTime.hour, item.startTime.minute))
+                                      item.startTime.hour, item.startTime.minute, tzinfo=tzinfo))
             self.Refresh()
 
     def getDateTimeFromPosition(self, position, mustBeInBounds=True):
@@ -1665,9 +1723,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         event = Calendar.CalendarEvent(view=view)
         event.InitOutgoingAttributes()
-        event.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                   event.startTime.hour,
-                                   event.startTime.minute))
+        
+        startTimetz = time(hour=event.startTime.hour,
+                        minute=event.startTime.minute,
+                        tzinfo=ICUtzinfo.getDefault())
+        event.ChangeStart(datetime.combine(newTime, startTimetz))
         event.endTime = event.startTime + timedelta(hours=1)
         event.allDay = True
         event.anyTime = False
@@ -1886,12 +1946,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Comparison function for sorting, mostly by start time
         """
-        dateResult = cmp(item1.startTime, item2.startTime)
+        dateResult = Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime)
         
         # when two items start at the same time, we actually want to show the
         # SHORTER event last, so that painting draws it on top
         if dateResult == 0:
-            dateResult = cmp(item2.endTime, item1.endTime)
+            dateResult = Calendar.datetimeOp(item2.endTime, 'cmp', item1.endTime)
         return dateResult
 
     def RebuildCanvasItems(self):
@@ -1966,7 +2026,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                 # have a guarantee that innerItem.startTime >= item.endTime
                 # Since item.endTime < item.startTime, we know we're
                 # done
-                if innerItem.GetItem().startTime >= canvasItem.GetItem().endTime: break
+                if Calendar.datetimeOp(innerItem.GetItem().startTime, '>=',
+                             canvasItem.GetItem().endTime):
+                     break
                 
                 # item and innerItem MUST conflict now
                 canvasItem.AddConflict(innerItem)
@@ -1996,8 +2058,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # only select something new if there's no existing selection, or if 
         # we're outside of an existing selection
         if (not self._bgSelectionStartTime or
-            selectedTime < self._bgSelectionStartTime or
-            selectedTime > self._bgSelectionEndTime):
+            Calendar.datetimeOp(selectedTime, '<', self._bgSelectionStartTime) or
+            Calendar.datetimeOp(selectedTime, '>', self._bgSelectionEndTime)):
             self._bgSelectionStartTime = self.getDateTimeFromPosition(unscrolledPosition)
             self._bgSelectionDragEnd = True
             self._bgSelectionEndTime = self._bgSelectionStartTime + \
@@ -2049,12 +2111,18 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         resizeMode = self.GetResizeMode()
         delta = timedelta(minutes=15)
         
+        tzinfo = item.startTime.tzinfo
+        if tzinfo is None or newTime.tzinfo is None:
+            newTime = newTime.replace(tzinfo=tzinfo)
+        else:
+            newTime = newTime.astimezone(tzinfo)
+        
         # make sure we're changing by at least delta 
         if (resizeMode == TimedCanvasItem.RESIZE_MODE_END and 
-            newTime > (item.startTime + delta)):
+            Calendar.datetimeOp(newTime, '>', (item.startTime + delta))):
             item.endTime = newTime
         elif (resizeMode == TimedCanvasItem.RESIZE_MODE_START and 
-              newTime < (item.endTime - delta)):
+              Calendar.datetimeOp(newTime, '<', (item.endTime - delta))):
             item.startTime = newTime
         self.Refresh()
     
@@ -2086,7 +2154,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             self._bgSelectionStartTime = dragDateTime
             
-        if (self._bgSelectionEndTime < self._bgSelectionStartTime):
+        if Calendar.datetimeOp(self._bgSelectionEndTime, '<',
+                self._bgSelectionStartTime):
             # swap values, drag the other end
             self._bgSelectionDragEnd = not self._bgSelectionDragEnd
             (self._bgSelectionStartTime, self._bgSelectionEndTime) = \
@@ -2118,7 +2187,14 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         newTime = self.getDateTimeFromPosition(position)
         item = dragState.currentDragBox.GetItem()
-        if ((newTime.toordinal() != item.startTime.toordinal()) or
+        tzinfo = item.startTime.tzinfo
+        
+        if tzinfo is None or newTime.tzinfo is None:
+            newTime = newTime.replace(tzinfo=tzinfo)
+        else:
+            newTime = newTime.astimezone(tzinfo)
+        
+        if ((newTime.date() != item.startTime.date()) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
             item.ChangeStart(newTime)
@@ -2163,16 +2239,21 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         newTime = startDay + timedelta(days=deltaDays,
                                        hours=deltaHours,
                                        minutes=deltaMinutes)
-        return newTime
+        return newTime.replace(tzinfo=ICUtzinfo.getDefault())
 
     def getPositionFromDateTime(self, datetime):
         (startDay, endDay) = self.GetCurrentDateRange()
         
-        if datetime < startDay or \
-           datetime > endDay:
-            raise ValueError, "Must be visible on the calendar"
+        if datetime.tzinfo is None:
+            datetime = datetime.replace(tzinfo=ICUtzinfo.getDefault())
+        else:
+            datetime = datetime.astimezone(ICUtzinfo.getDefault())
             
-        delta = datetime - startDay
+        if datetime.date() < startDay.date() or \
+           datetime.date() > endDay.date():
+            raise ValueError, "Must be visible on the calendar"
+        
+        delta = Calendar.datetimeOp(datetime, '-', startDay)
         x = (self.dayWidth * delta.days) + self.xOffset
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
         return wx.Point(x, y)
@@ -2215,6 +2296,8 @@ class CalendarControl(CalendarBlock):
         its range over an entire week, even if a specific day is selected (and
         dayMode is true)"""
         assert self.daysPerView == 7, "daysPerView is a legacy variable, keep it at 7 plz"
+        
+        date = datetime.combine(date, time())
 
         #Set rangeStart
         # start at the beginning of the week (Sunday midnight)
@@ -2275,9 +2358,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # keep color selector flush left
         navigationLeft.Add((0,0), 1)
 
-        today = date.today()
-        today = datetime(today.year, today.month, today.day)
-
         self.monthText = wx.StaticText(self, -1)
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "forwardarrow.png")
@@ -2336,6 +2416,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self):
+        # [@@@] grant: On Linux, ICUtzinfo.getDefault() returns "PDT",
+        # not "US/Pacific". Should we do something to figure out
+        # that it's equivalent?
 
         tzChoice = wx.Choice(self)
         # self.blockItem hasn't been set yet, because
@@ -2418,8 +2501,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.monthText.SetLabel(monthText)
 
         today = date.today()
-        today = datetime(today.year, today.month, today.day)
-
         # ICU makes this list 1-based, 1st element is an empty string, so that
         # shortWeekdays[Calendar.SUNDAY] == 'short name for sunday'
         shortWeekdays = dateFormatSymbols.getShortWeekdays()
@@ -2428,15 +2509,15 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         for day in xrange(7):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
-            if currentDate == today:
+            if currentDate.date() == today:
                 dayName = "Today"
             else:
                 dayName = u"%s %02d" %(shortWeekdays[actualDay + 1],
                                        currentDate.day)
             self.weekColumnHeader.SetLabelText(day+1, dayName)
             
-        self.currentSelectedDate = selectedDate
-        self.currentStartDate = startDate
+        self.currentSelectedDate = datetime.combine(selectedDate, time())
+        self.currentStartDate = datetime.combine(startDate, time())
         
         self.Layout()
 

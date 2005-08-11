@@ -453,6 +453,8 @@
     <childrenBlocks itemref="CalendarStartTimeArea"/>
     <childrenBlocks itemref="CalendarEndSpacer"/>
     <childrenBlocks itemref="CalendarEndTimeArea"/>
+    <childrenBlocks itemref="CalendarTimeZoneSpacer"/>
+    <childrenBlocks itemref="CalendarTimeZoneArea"/>
     <childrenBlocks itemref="CalendarTransparencySpacer"/>
     <childrenBlocks itemref="CalendarTransparencyArea"/>
 
@@ -891,6 +893,52 @@
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
   </blocks:AEBlock>
+
+  <blocks:StaticText itsName="CalendarTimeZoneSpacer">
+    <blockName value="CalendarTimeZoneSpacer"/>
+    <title></title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>-1, 7</minimumSize>
+  </blocks:StaticText>
+
+  <CalendarTimeZoneAreaBlock itsName="CalendarTimeZoneArea">
+    <blockName value="CalendarTimeZoneArea"/>
+    <childrenBlocks itemref="CalTimeZoneLabel"/>
+    <childrenBlocks itemref="HorizontalSpacer" copy="CalTimeZoneHorizontalSpacer" />
+    <childrenBlocks itemref="EditTimeZone"/>
+    <!-- Attributes -->
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <border>0, 0, 0, 6</border>
+  </CalendarTimeZoneAreaBlock>
+
+  <blocks:StaticText itsName="CalTimeZoneLabel">
+    <blockName value="CalTimeZoneLabel"/>
+    <title>time zone</title>
+    <characterStyle itemref="blocks:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>60, -1</minimumSize>
+    <border>5, 0, 0, 0</border>
+  </blocks:StaticText>
+
+  <CalendarTimeAEBlock itsName="EditTimeZone">
+    <blockName value="EditTimeZone"/>
+    <characterStyle itemref="blocks:TextStyle"/>
+    <viewAttribute value="startTime"/>
+    <presentationStyle itemref="TimeZonePresentation"/>
+    <stretchFactor>0.0</stretchFactor>
+    <size>75, -1</size>
+    <border>2, 2, 2, 2</border>
+    <event itemref="Resynchronize"/>
+  </CalendarTimeAEBlock>
+  
+  <blocks:PresentationStyle itsName="TimeZonePresentation">
+    <format>timeZoneOnly</format>
+  </blocks:PresentationStyle>
+
+
 
   <!-- NotesArea -->
 

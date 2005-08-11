@@ -60,7 +60,7 @@ class DefaultTimeZone(schema.Item):
         super(DefaultTimeZone, self).__init__(*args, **keywds)
         
         self.tzinfo = PyICU.ICUtzinfo.getDefault()
-
+        
     def onItemLoad(self, view):
         # This is overridden to ensure that storing the
         # default timezone in the repository overrides ICU's
@@ -75,4 +75,74 @@ class DefaultTimeZone(schema.Item):
             tzinfo = self.tzinfo
             if tzinfo is not None:
                 PyICU.TimeZone.adoptDefault(tzinfo.timezone)
-            
+
+def stripTimeZone(dt):
+    """This method returns a naive C{datetime} (i.e. one with a C{tzinfo}
+    of C{None}.
+    
+    @param dt: The input.
+    @type dt: C{datetime}
+    
+    @return: If the input is naive, just returns dt. Otherwise, converts
+        the input into the user's default timezone, and then strips that out.
+    """
+    
+    if dt.tzinfo == None:
+        return dt
+    else:
+        return dt.astimezone(PyICU.ICUtzinfo.getDefault()).replace(tzinfo=None)
+
+
+def coerceTimeZone(dt, tzinfo):
+    """This method returns a C{datetime} with a specified C{tzinfo}.
+    
+    @param dt: The input.
+    @type dt: C{datetime}
+    
+    @param tzinfo: The target tzinfo (may be None)
+    @type tzinfo:  C{tzinfo}
+    
+    @return: A C{datetime} whose C{tzinfo} field is the same as the target.
+    
+    If the target tzinfo is C{None}, this returns C{stripTimeZone(dt)}.
+    Otherwise, if C{dt} is naive, it's interpreted as being in the user's
+    default timezone.
+    """
+    if tzinfo is None:
+        return stripTimeZone(dt)
+    else:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=PyICU.ICUtzinfo.getDefault())
+        return dt.astimezone(tzinfo)
+
+def formatTime(dt, tzinfo=None):
+
+    def __setTimeZoneInSubformats(msgFormat, tz):
+        subformats = msgFormat.getFormats()
+        for format in subformats:
+                if hasattr(format, "setTimeZone"):
+                    format.setTimeZone(tz)
+
+        msgFormat.setFormats(subformats)
+
+    
+    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.getDefault()
+    
+    useSameTimeZoneFormat = True
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=tzinfo)
+    elif dt.tzinfo != tzinfo:
+        useSameTimeZoneFormat = False
+        
+    if useSameTimeZoneFormat:
+        format = PyICU.MessageFormat("{0,time,short}")
+        __setTimeZoneInSubformats(format, tzinfo.timezone)
+    else:
+        # This string should be localizable
+        format = PyICU.MessageFormat("{0,time,short} {0,time,z}")
+        __setTimeZoneInSubformats(format, dt.tzinfo.timezone)
+        
+    formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
+
+    return unicode(format.format([formattable], PyICU.FieldPosition()))

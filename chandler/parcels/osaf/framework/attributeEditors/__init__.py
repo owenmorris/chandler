@@ -20,5 +20,6 @@ from AttributeEditors import (
     StringAttributeEditor,
     StaticStringAttributeEditor,
     TimeAttributeEditor,
-    TimeDeltaAttributeEditor
+    TimeDeltaAttributeEditor,
+    TimeZoneAttributeEditor
 )
