@@ -12,7 +12,7 @@ mail = QATestAppLib.BaseByUI(__view__, "MailMessage", logger)
 
 #action
 mail.logger.Start("Setting attributes of message")
-mail.SetAttr(displayName="bar", fromAddress="from@bar.com", toAddress="to@foo.org", body="a message")
+mail.SetAttr(displayName="bar", toAddress="to@foo.org", body="a message")
 mail.logger.Stop()
 
 #verification
