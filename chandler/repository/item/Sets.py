@@ -491,8 +491,13 @@ class FilteredSet(Set):
     """
     def __init__(self, source, expr):
         super(FilteredSet, self).__init__(source)
-        self.filter = expr
+        self.filterExpression = expr
+        self.filter = eval("lambda item: %s" % self.filterExpression)
     
+    def _repr_(self, replace=None):
+        return "%s(%s, \"%s\")" %(type(self).__name__,
+                                        self._reprSource(self._source, replace),
+                                        self.filterExpression)
     def __contains__(self, item):
         return self._sourceContains(item, self._source) and self.filter(item)
 
