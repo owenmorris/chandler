@@ -13,7 +13,7 @@ class WXDLLEXPORT wxStaticText;
 #define wxCalendarNameStr _T("MiniCalendar")
 #define DAYS_PER_WEEK 7
 #define WEEKS_TO_DISPLAY 6
-#define MONTHS_TO_DISPLAY 5
+#define MONTHS_TO_DISPLAY 3
 #define NUMBER_TO_PREVIEW 5
 
 // ----------------------------------------------------------------------------
@@ -91,30 +91,41 @@ public:
     const wxColour& GetHighlightColourFg() const { return m_colHighlightFg; }
     const wxColour& GetHighlightColourBg() const { return m_colHighlightBg; }
 
+    void SetBusy(const wxDateTime& date, double busyPercentage = 0);
+
     // an item without custom attributes is drawn with the default colours and
     // font and without border, setting custom attributes allows to modify this
     //
-    // the dayPosition parameter should be in 1..(DAYS_PER_WEEK * WEEKS_TO_DISPLAY)
+    // the dayPosition parameter should be in 0..(DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY - 1)
     // range.  For days that are not displayed the attribute is just unused
 
     wxMiniCalendarDateAttr *GetAttr(size_t dayPosition) const
     {
-        wxCHECK_MSG( dayPosition > 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY + 1),
+        wxCHECK_MSG( dayPosition >= 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY),
                      NULL, _T("invalid day") );
 
-        return m_attrs[dayPosition - 1];
+        return m_attrs[dayPosition];
     }
 
     void SetAttr(size_t dayPosition, wxMiniCalendarDateAttr *attr)
     {
-        wxCHECK_RET( dayPosition > 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY + 1),
+        wxCHECK_RET( dayPosition >= 0 && dayPosition < (DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY),
                      _T("invalid day") );
 
-        delete m_attrs[dayPosition - 1];
-        m_attrs[dayPosition - 1] = attr;
+        delete m_attrs[dayPosition];
+        m_attrs[dayPosition] = attr;
     }
 
     void ResetAttr(size_t dayPosition) { SetAttr(dayPosition, (wxMiniCalendarDateAttr *)NULL); }
+
+    void ClearAllAttr()
+    {
+        for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
+        {
+            delete m_attrs[n];
+            m_attrs[n] = NULL;
+        }
+    }
 
     // returns one of wxCAL_HITTEST_XXX constants and fills either date or wd
     // with the corresponding value (none for NOWHERE, the date for DAY and wd
@@ -122,8 +133,6 @@ public:
     wxCalendarHitTestResult HitTest(const wxPoint& pos,
                                     wxDateTime *date = NULL,
                                     wxDateTime::WeekDay *wd = NULL);
-
-	double GetBusy(int date) const;
 
     // implementation only from now on
     // -------------------------------
@@ -137,6 +146,9 @@ public:
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
+
+    // get the date from which we start drawing days
+    wxDateTime GetStartDate() const;
 
 private:
     // common part of all ctors
@@ -158,16 +170,13 @@ private:
     void RecalcGeometry();
     
     // draw a single month
-    void DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, bool highlightDat = false);
+    void DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, int startDayPosition, bool highlightDat = false);
 
     // set the date and send the notification
     void SetDateAndNotify(const wxDateTime& date);
 
     // get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
     size_t GetWeek(const wxDateTime& date, bool useRelative = true) const;
-
-    // get the date from which we start drawing days
-    wxDateTime GetStartDate() const;
 
     // is this date shown?
     bool IsDateShown(const wxDateTime& date) const;
@@ -178,6 +187,9 @@ private:
     // redraw the given date
     void RefreshDate(const wxDateTime& date);
 
+    // get the busy state for the desired position
+    double GetBusy(int dayPosition) const;
+     
     // change the date inside the same month/year
     void ChangeDay(const wxDateTime& date);
 
@@ -231,7 +243,7 @@ private:
              m_colHeaderBg;
 
     // the attributes for each of the displayed days
-    wxMiniCalendarDateAttr *m_attrs[DAYS_PER_WEEK * WEEKS_TO_DISPLAY];
+    wxMiniCalendarDateAttr *m_attrs[DAYS_PER_WEEK * WEEKS_TO_DISPLAY * MONTHS_TO_DISPLAY];
 
     // the width and height of one column/row in the calendar
     wxCoord m_widthCol,

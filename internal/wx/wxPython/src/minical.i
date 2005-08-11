@@ -96,10 +96,12 @@ public:
 %constant wxEventType wxEVT_MINI_CALENDAR_DAY_CHANGED;
 %constant wxEventType wxEVT_MINI_CALENDAR_MONTH_CHANGED;
 %constant wxEventType wxEVT_MINI_CALENDAR_YEAR_CHANGED;
+%constant wxEventType wxEVT_MINI_CALENDAR_UPDATE_BUSY;
 
 
 %pythoncode {
 EVT_MINI_CALENDAR_DOUBLECLICKED =   wx.PyEventBinder( wxEVT_MINI_CALENDAR_DOUBLECLICKED, 1)
+EVT_MINI_CALENDAR_UPDATE_BUSY =   wx.PyEventBinder( wxEVT_MINI_CALENDAR_UPDATE_BUSY, 1)
 EVT_MINI_CALENDAR_SEL_CHANGED =     wx.PyEventBinder( wxEVT_MINI_CALENDAR_SEL_CHANGED, 1)
 EVT_MINI_CALENDAR_DAY =             wx.PyEventBinder( wxEVT_MINI_CALENDAR_DAY_CHANGED, 1)
 EVT_MINI_CALENDAR_MONTH =           wx.PyEventBinder( wxEVT_MINI_CALENDAR_MONTH_CHANGED, 1)
@@ -141,7 +143,7 @@ public:
         void SetHighlightColours(const wxColour& colFg, const wxColour& colBg);
         wxColour GetHighlightColourFg() const;
         wxColour GetHighlightColourBg() const;
-        double GetBusy(int date) const;
+        void SetBusy(const wxDateTime& date, double busyPercentage);
         wxMiniCalendarDateAttr* GetAttr(size_t day) const;
         void SetAttr(size_t day, wxMiniCalendarDateAttr *attr);
 };

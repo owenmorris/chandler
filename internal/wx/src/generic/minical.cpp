@@ -293,6 +293,9 @@ bool wxMiniCalendar::SetDate(const wxDateTime& date)
             // change everything
             m_date = date;
 
+			ClearAllAttr();
+			GenerateEvent(wxEVT_MINI_CALENDAR_UPDATE_BUSY);
+
             // update the calendar
             Refresh();
         }
@@ -656,13 +659,15 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
 
     wxDateTime dateToDraw = m_date;
     int i;
+	int dayPosition = 0;
     for (i = 0; i < MONTHS_TO_DISPLAY; i++) {
-        DrawMonth(dc, dateToDraw, &y, i == 0);
+        DrawMonth(dc, dateToDraw, &y, dayPosition, i == 0);
         dateToDraw += wxDateSpan::Month();
+		dayPosition += DAYS_PER_WEEK * WEEKS_TO_DISPLAY;
     }
 }
 
-void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, bool highlightDay)
+void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, int startDayPosition, bool highlightDay)
 {
     dc.SetTextForeground(*wxBLACK);
     // Get extent of month-name + year
@@ -710,7 +715,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 
     dc.SetBackgroundMode(wxSOLID);
 
-    int dayPosition;
+	int dayPosition;
     wxColour mainColour = wxColour(128, 128, 128);
     wxColour lightColour = wxColour(191, 191, 191);
     wxColour highlightColour = wxColour(204, 204, 204);
@@ -735,7 +740,7 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
 
         for ( size_t wd = 0; wd < DAYS_PER_WEEK; wd++ )
         {
-            dayPosition = (nWeek - 1) * DAYS_PER_WEEK + wd;
+            dayPosition = startDayPosition + (nWeek - 1) * DAYS_PER_WEEK + wd;
             if ( IsDateShown(date) )
             {
                 // don't use wxDate::Format() which prepends 0s
@@ -747,7 +752,6 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 bool changedColours = false,
                      changedFont = false;
 
-                wxMiniCalendarDateAttr *attr = NULL;
                 wxCoord x = wd * m_widthCol + (m_widthCol - width) / 2;
 
                 if ( highlightDay )
@@ -782,8 +786,6 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 }
                 else
                 {
-                    attr = m_attrs[dayPosition];
-
                     dc.SetBrush(wxBrush(*wxBLACK, wxSOLID));
                     dc.SetPen(wxPen(*wxBLACK, 1, wxSOLID));
 
@@ -802,9 +804,9 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                 // draw free/busy indicator
                 if ( (GetWindowStyle() & wxCAL_SHOW_BUSY) != 0 )
                 {
-                    double busyPercentage = GetBusy(1);
-                    double height = (m_heightRow - 6) * busyPercentage;
-                    dc.DrawRectangle(x-2, *y + (m_heightRow - (int)height - 3), 2, (int)height);                                
+                    double busyPercentage = GetBusy(dayPosition);
+                    double height = (m_heightRow - 7) * busyPercentage;
+                    dc.DrawRectangle(x-3, *y + (m_heightRow - (int)height - 4), 2, (int)height);                                
                 }
 
                 dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -1064,9 +1066,56 @@ void wxMiniCalendar::OnClick(wxMouseEvent& event)
     }
 }
 
-double wxMiniCalendar::GetBusy(int date) const
+void wxMiniCalendar::SetBusy(const wxDateTime& date, double busyPercentage)
 {
-	return 0;
+	wxDateTime startDate = GetStartDate();
+	// Only update months that are being displayed
+	if ( ( date < startDate ) ||
+		( date > ( startDate + MONTHS_TO_DISPLAY * wxDateSpan::Month() ) ) )
+	{
+		return;
+	}
+
+	// Figure out which month this date is in
+	wxDateTime::Tm currentTm = m_date.GetTm();
+	wxDateTime::Tm dateTm = date.GetTm();
+	int monthDiff = dateTm.mon - currentTm.mon;
+	if ( monthDiff < 0 )
+	{
+		monthDiff += 12;
+	}
+	
+	// Calculate the startDate of the proper month
+	startDate = wxDateTime(1, dateTm.mon, dateTm.year);
+    startDate.SetToPrevWeekDay(GetWindowStyle() & wxCAL_MONDAY_FIRST
+                          ? wxDateTime::Mon : wxDateTime::Sun);
+	
+	int difference = date.GetDayOfYear() - startDate.GetDayOfYear();
+	if ( difference < 0 )
+	{
+		difference += 365;
+	}
+
+	difference += ( monthDiff * DAYS_PER_WEEK * WEEKS_TO_DISPLAY );
+
+	wxMiniCalendarDateAttr *attr = new wxMiniCalendarDateAttr(busyPercentage);
+	SetAttr(difference, attr);
+	Refresh();
+}
+
+
+double wxMiniCalendar::GetBusy(int dayPosition) const
+{
+    wxMiniCalendarDateAttr *attr = m_attrs[dayPosition];
+
+	if ( attr == NULL )
+	{
+		return 0;
+	}
+	else
+	{
+		return attr->GetBusy();
+	}
 }
 
 
