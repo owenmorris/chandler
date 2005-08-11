@@ -527,7 +527,9 @@ class StringAttributeEditor (BaseAttributeEditor):
                 textColor = normalTextColor
             
             if not alreadyChanged:
-                control.SetValue(text)
+                oldValue = control.GetValue()
+                if oldValue != text:
+                    control.SetValue(text)
     
             if isinstance(control, AETextCtrl):
                 # Trying to make the text in the editbox gray doesn't seem to work on Win.
