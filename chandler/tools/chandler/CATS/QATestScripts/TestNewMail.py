@@ -16,7 +16,7 @@ mail.SetAttr(displayName="bar", toAddress="to@foo.org", body="a message")
 mail.logger.Stop()
 
 #verification
-mail.Check_DetailView({"displayName":"bar","fromAddress":"from@bar.com","toAddress":"to@foo.org","body":"a message"})
+mail.Check_DetailView({"displayName":"bar","toAddress":"to@foo.org","body":"a message"})
 mail.logger.Report()
 
 #cleaning

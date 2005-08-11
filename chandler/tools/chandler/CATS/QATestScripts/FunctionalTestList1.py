@@ -10,10 +10,10 @@ fileName = "FunctionalTestList1.log"
 logger = QATestAppLib.Logger(os.path.join(filePath, fileName),"FunctionalTestList1")
 
 #actions
-execfile("/home/olivier/Desktop/TestNewEvent.py")
-execfile("/home/olivier/Desktop/TestNewMail.py")
-execfile("/home/olivier/Desktop/TestNewTask.py")
-execfile("/home/olivier/Desktop/TestNewNote.py")
+execfile("/home/olivier/qa/chandler/CATS/QATestScripts/TestNewEvent.py")
+execfile("/home/olivier/qa/chandler/CATS/QATestScripts/TestNewMail.py")
+execfile("/home/olivier/qa/chandler/CATS/QATestScripts/TestNewTask.py")
+execfile("/home/olivier/qa/chandler/CATS/QATestScripts/TestNewNote.py")
 
 #cleaning
 logger.Close()
