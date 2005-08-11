@@ -150,11 +150,6 @@ class TestLogger:
             self.Print("End date (after %s test script) = %s" %(self.mainDescription, now))
             self.Print("Time Elapsed = %s" %elapsed)
             self.Print("")
-            #self.Print("Total number of actions : %s" % self.nbAction)
-            #self.Print("Total number of actions PASSED : %s" %self.nbPass)
-            #self.Print("Total number of actions FAILED : %s" %self.nbFail)
-            #self.Print("Total number of actions UNCHECKED : %s" %self.nbUnchecked)
-            #self.Print("")
             #display the sub-testcase status summary
             if not len(self.testcaseList) == 0:
                 self.Print("Sub-Testcase Status summary :")
@@ -171,12 +166,17 @@ class TestLogger:
                 self.Print("Total number of Sub-Testcase PASSED : %s" %nbTCPassed)
                 self.Print("Total number of Sub-Testcase FAILED : %s" %nbTCFailed)
                 self.Print("")
-            
-            # compute the status of the testcase
-            if self.nbPass == self.nbAction:
-                status = "PASS"
+                # compute the status of the main testcase if is composed by sub-testcase
+                if nbTCFailed == 0:
+                    status = "PASS"
+                else:
+                    status = "FAIL"
+            # compute the status of the main testcase if is composed by actions
             else:
-                status = "FAIL"
+                if self.nbPass == self.nbAction:
+                    status = "PASS"
+                else:
+                    status = "FAIL"
             # convert the elapsed tme in minutes
             elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
             self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
@@ -198,9 +198,16 @@ class TestLogger:
                 else:
                     status = "FAIL"
                 self.testcaseList.append((self.subTestcaseDesc,status))
-            self.subTestcaseDesc = None
-            self.toClose = True
-
+             # usefull inits
+             self.subTestcaseDesc = None
+             self.toClose = True
+             self.startDate = datetime.now()
+             self.nbPass = 0
+             self.nbFail = 0
+             self.nbUnchecked = 0
+             self.nbAction = 0
+             self.failureList = []
+             self.passedList = []
 
 class BaseByUI :
     def __init__(self, view, type, logger):
@@ -411,7 +418,9 @@ class BaseByUI :
             # Select the old text
             startTimeBlock.widget.SelectAll()
             # Emulate the keyboard events
-            Sgf.Type(startTime)
+            #Sgf.Type(startTime)
+            # Demo work around
+            startTimeBlock.widget.SetValue(startTime)
             Sgf.SummaryViewSelect(self.item)
             if dict:
                 self.logger.Stop()
@@ -498,7 +507,9 @@ class BaseByUI :
             # Select the old text
             locationBlock.widget.SelectAll()
             # Emulate the keyboard events
-            Sgf.Type(location)
+            #Sgf.Type(location)
+            # Demo work around
+            locationBlock.widget.SetValue(location)
             Sgf.SummaryViewSelect(self.item)
             if dict:
                 self.logger.Stop()
