@@ -11,8 +11,9 @@ import __main__, repository, threading, os, sys
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
-    'importString', 'parcel_for_module', 'TypeReference', 'Enumeration',
-    'Cloud', 'Endpoint', 'addClouds', 'Struct', 'assertResolved',
+    'importString', 'parcel_for_module', 'ItemTemplate', 'TypeReference',
+    'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
+    'assertResolved',
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
@@ -1149,7 +1150,7 @@ class ItemTemplate(object):
         self.target_class = target_class
         self.childAttributeNames = childAttributeNames
 
-    def install(parent, name=None):
+    def install(self, parent, name=None):
         if name is None: name=self.itsName
 
         # first make parent exist
@@ -1161,7 +1162,7 @@ class ItemTemplate(object):
 
         # now hook up the children, and replace the templates
         # with the real things
-        for childAttribute in self.childAttributeName:
+        for childAttribute in self.childAttributeNames:
             if childAttribute in attrs:
                 attrs[childAttribute] = [t.install(me) for t in attrs[childAttribute]]
         return self.target_class.update(parent, name, **attrs)
