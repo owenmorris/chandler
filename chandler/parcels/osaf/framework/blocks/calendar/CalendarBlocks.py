@@ -198,13 +198,13 @@ class wxPreviewArea(wx.Panel):
             dc.DrawText(item.displayName, eventTitleOffset, y)
             
         else:
-            self.DrawTime(item.startTime.time(), dc, self.margin, y)
+            self.DrawTime(item.startTime.time(), dc, self.margin, y, rightalign=True)
             dashOffset = self.margin + 2*self.bigDigitWidth + 2*self.smallDigitWidth + self.dashMargin
             dc.DrawText('-', dashOffset, y)
             self.DrawTime(item.endTime.time(), dc, dashOffset + self.dashMargin + dashWidth, y)
             dc.DrawText(item.displayName, eventTitleOffset, y)
         
-    def DrawTime(self, time, dc, x, y, leftpad=True):
+    def DrawTime(self, time, dc, x, y, leftpad=True, rightalign=False):
         """
         @param time: a datetime.time object, its hour and minute get drawn with superscripts for the minutes
         does NOT change dc's font as a side effect.
@@ -226,13 +226,17 @@ class wxPreviewArea(wx.Panel):
         else:
             offset = 0
             hoursWidth = 2 * self.bigDigitWidth
+        
+        # and right align over the small digit space on the hour
+        if time.minute == 0 and rightalign:
+            offset += 2 * self.smallDigitWidth
+            
         dc.SetFont(self.font)        
         dc.DrawText(str(time.hour), x+offset, y)
         
-        if time.minute == 0:
-            minutestr = " "
-        else: minutestr = "%.2d" %time.minute  # zero pad <10
-        if True   or time.minute != 0: 
+        
+        if time.minute != 0: 
+            minutestr = "%.2d" %time.minute  # zero pad <10
             dc.SetFont(self.superscriptFont)
             dc.DrawText(minutestr, x+hoursWidth, y)
         
@@ -274,7 +278,7 @@ class wxPreviewArea(wx.Panel):
             y += self.fontHeight
         
         dc.DestroyClippingRegion()
-        return y - self.margin + self.fontHeight
+        return y - self.margin
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
         # @@@ hack until block-to-block attributes are safer to define: climb the tree
