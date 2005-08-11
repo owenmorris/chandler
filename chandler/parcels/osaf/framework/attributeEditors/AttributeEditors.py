@@ -260,11 +260,13 @@ class AETextCtrl(ShownSynchronizer,
 
     def OnSetFocus(self, event):
         self.focusedSince = datetime.now()
+        event.Skip()        
 
     def OnKillFocus(self, event):
         # when grid creates the control, it never gets the EVT_SET_FOCUS
         if hasattr(self, 'focusedSince'):
             del self.focusedSince
+        event.Skip()        
 
     def Cut(self):
         result = self.GetStringSelection()
