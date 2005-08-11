@@ -96,9 +96,7 @@ class Block(schema.Item):
         @type event: a C{BlockEvent}
         @param arguments: arguments to pass to the event
         @type arguments: a C{dict}
-        @return: the value returned by the event handler, except
-            C{False} if the event was not handled, 
-            C{True} if broadcast, or the handler returned None
+        @return: the value returned by the event handler
         """
         try:
             try:
@@ -106,8 +104,11 @@ class Block(schema.Item):
             except AttributeError:
                 pass
             arguments ['sender'] = self
+            arguments ['results'] = None
             event.arguments = arguments
-            return self.dispatchEvent (event) # return after the finally clause
+            self.dispatchEvent (event)
+            results = event.arguments ['results']
+            return results # return after the finally clause
         finally:
             try:
                 event.arguments = stackedArguments
@@ -438,7 +439,7 @@ class Block(schema.Item):
         else:
             for item in items:
                 modifyContents (item)
-                resultItems.append (item)
+            resultItems.extend (items)
         return resultItems
         
     def synchronizeWidget (self):
@@ -578,7 +579,7 @@ class Block(schema.Item):
             try:
                 member = getattr (type(block), methodName)
             except AttributeError:
-                result = False
+                return False
             else:
                 if __debug__ and not methodName.endswith("UpdateUI"):
                     # show dispatched events
@@ -587,19 +588,20 @@ class Block(schema.Item):
                                   block, getattr(event, "arguments", 
                                                  "(no arguments)")))
 
-                result = member (block, event)
-                if result is None:
-                    result = True
-            return result
+                event.arguments ['results'] = member (block, event)
+                return True
         
         def bubbleUpCallMethod (block, methodName, event):
             """
               Call a method on a block or if it doesn't handle it try it's parents
             """
+            event.arguments ['continueBubbleUp'] = False # default to stop bubbling
             while (block):
-                result = callMethod (block, methodName, event)
-                if result is not False:
-                    return result
+                if callMethod (block, methodName, event): # method called?
+                    if event.arguments ['continueBubbleUp']: # overwrote the default?  
+                        event.arguments ['continueBubbleUp'] = False # reset the default
+                    else:
+                        break
                 block = block.parentBlock
         
         def broadcast (block, methodName, event, childTest):
@@ -611,7 +613,6 @@ class Block(schema.Item):
         """
           Construct method name based upon the type of the event.
         """
-        result = None # broadcast dispatches don't return results
         try:
             methodName = event.methodName
         except AttributeError:
@@ -625,10 +626,10 @@ class Block(schema.Item):
 
         dispatchEnum = event.dispatchEnum
         if dispatchEnum == 'SendToBlockByReference':
-            result = callMethod (event.destinationBlockReference, methodName, event)
+            callMethod (event.destinationBlockReference, methodName, event)
 
         elif dispatchEnum == 'SendToBlockByName':
-            result = callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
+            callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']
@@ -641,7 +642,6 @@ class Block(schema.Item):
                        lambda child: (child is not None and
                                       child.isShown and 
                                       not child.eventBoundary))
-            result = True
 
         elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
             try:
@@ -655,18 +655,16 @@ class Block(schema.Item):
                            lambda child: (child is not None and
                                           child.isShown and 
                                           not child.eventBoundary))
-                result = True
 
         elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.views[0],
                        methodName,
                        event,
                        lambda child: (child is not None and child.isShown))
-            result = True
 
         elif dispatchEnum == 'FocusBubbleUp':
             block = theClass.getFocusBlock()
-            result = bubbleUpCallMethod (block, methodName, event)
+            bubbleUpCallMethod (block, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             try:
@@ -674,16 +672,13 @@ class Block(schema.Item):
             except IndexError:
                 pass
             else:                
-                result = bubbleUpCallMethod (block, methodName, event)
+                bubbleUpCallMethod (block, methodName, event)
 
         elif __debug__:
             assert (False)
 
         if commitAfterDispatch:
             wx.GetApp().UIRepositoryView.commit()
-
-        # return the result of any non-broadcast dispatch
-        return result
 
     # event profiler (class attributes)
     profileEvents = False        # Make "True" to profile events
@@ -804,11 +799,11 @@ class RectangularChild (Block):
         
     """
     Edit Menu enabling and handling.
-    These events are all sent with FocusBubbleUp, which
-        means we need to return False to continue the bubbling
-        if we don't handle these events.
-    The block handles menu enabling and bubbling, delegating
-        the actual Cut & Paste operations to the widget.
+    
+    If our widget knows how to do the edit, we handle the event
+        by delegating to our widget.
+    Otherwise we let the event continue to bubble up the container
+        hierarchy.
     """
     def onCopyEventUpdateUI (self, event):
         return self._GenericEditUpdateUI (event, 'CanCopy')
@@ -818,7 +813,7 @@ class RectangularChild (Block):
             return self.widget.Copy()
         except AttributeError:
             # don't know, so BubbleUp            
-            return False
+            event.arguments['continueBubbleUp'] = True
         # doesn't change the data
 
     def onCutEventUpdateUI (self, event):
@@ -845,7 +840,8 @@ class RectangularChild (Block):
             canUndo = self.widget.CanUndo()
         except AttributeError:
             # don't know, so BubbleUp            
-            return False
+            event.arguments['continueBubbleUp'] = True
+            return
         event.arguments ['Enable'] = canUndo
         if canUndo:
             event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
@@ -861,7 +857,8 @@ class RectangularChild (Block):
             method = getattr (self.widget, methodName)
         except AttributeError:
             # don't know, so BubbleUp
-            return False
+            event.arguments['continueBubbleUp'] = True
+            return
         canDo = method()
         # We know if we can, so enable or disable menu item
         event.arguments ['Enable'] = canDo
@@ -871,7 +868,8 @@ class RectangularChild (Block):
             method = getattr (self.widget, methodName)
         except AttributeError:
             # don't know, so BubbleUp
-            return False
+            event.arguments['continueBubbleUp'] = True
+            return
         result = method()
         self._tryDataChanged()
         return result
@@ -920,8 +918,6 @@ class BlockEvent(schema.Item):
 
         else:
             return super(BlockEvent, self).__repr__()
-
-
 
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)

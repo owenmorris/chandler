@@ -1104,7 +1104,6 @@ class Table (RectangularChild):
                     break
 
         event.arguments['Enable'] = not readOnly
-        return True
 
     onDeleteEventUpdateUI = onRemoveEventUpdateUI
 
