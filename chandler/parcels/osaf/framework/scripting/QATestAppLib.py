@@ -198,16 +198,16 @@ class TestLogger:
                 else:
                     status = "FAIL"
                 self.testcaseList.append((self.subTestcaseDesc,status))
-             # usefull inits
-             self.subTestcaseDesc = None
-             self.toClose = True
-             self.startDate = datetime.now()
-             self.nbPass = 0
-             self.nbFail = 0
-             self.nbUnchecked = 0
-             self.nbAction = 0
-             self.failureList = []
-             self.passedList = []
+            # usefull inits
+            self.subTestcaseDesc = None
+            self.toClose = True
+            self.startDate = datetime.now()
+            self.nbPass = 0
+            self.nbFail = 0
+            self.nbUnchecked = 0
+            self.nbAction = 0
+            self.failureList = []
+            self.passedList = []
 
 class BaseByUI :
     def __init__(self, view, type, logger):
