@@ -18,6 +18,12 @@ else:
 	wx.GetApp().Yield()
 	logger.Stop()
 	logger.ReportPass("Importing calendar")
+testEvent = FindByName(pim.CalendarEvent, "Feed dog")
+if testEvent is not None:
+    logger.ReportPass("Testing event creation")
+else:
+    logger.ReportFail("Testing event creation: event not created")	
+
 logger.SetChecked(True)
 logger.Report()
 logger.Close()

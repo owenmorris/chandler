@@ -5,13 +5,13 @@ logger.Start("Account Preferences Dialog")
 ap = QATestAppLib.Accounts(__view__, logger)
 
 # action
-ap.Open()
+ap.Open() # first, open the accounts dialog window
 
-ap.CreateAccount("SMTP")
-ap.TypeValue("displayName", "Personal SMTP")
+ap.CreateAccount("SMTP") # create a new SMTP account
+ap.TypeValue("displayName", "Personal SMTP") # type the following values into their apporpriate fields
 ap.TypeValue("host","smtp.osafoundation.org")
-ap.SelectValue("security",  'TLS')
-ap.ToggleValue("authentication", True)
+ap.SelectValue("security",  'TLS') # select the TLS radio button
+ap.ToggleValue("authentication", True) # turn on the authentication checkbox
 ap.TypeValue("port", '25')
 ap.TypeValue('username', 'demo1')
 ap.TypeValue('password', 'ad3leib5')

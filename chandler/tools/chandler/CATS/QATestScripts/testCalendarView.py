@@ -12,11 +12,12 @@ timedCanvas = FindNamedBlock('TimedEventsCanvas')
 
 logger.Start("Creating Calendar View Event")
 timedCanvas.widget.ProcessEvent(click)
+wx.GetApp().Yield()
 timedCanvas.widget.ProcessEvent(click)
 Type("Timed Event")
 enter = wx.CommandEvent(wx.wxEVT_COMMAND_ENTER)
 wx.Window_FindFocus().OnTextEnter(enter)
-Idle()
+wx.GetApp().Yield()
 logger.Stop()
 
 logger.SetChecked(True)
