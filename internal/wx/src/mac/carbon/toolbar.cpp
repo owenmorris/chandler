@@ -1096,7 +1096,7 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos),
                 {
                     HIToolbarItemSetLabel( item, wxMacCFStringHolder(tool->GetLabel(), m_font.GetEncoding()) );
                     HIToolbarItemSetIconRef( item, info.u.iconRef );
-                    HIToolbarItemSetCommandID( item, tool->GetId() );
+                    HIToolbarItemSetCommandID( item, kHIToolbarCommandPressAction );
                     tool->SetToolbarItemRef( item );
                 }
 #endif
