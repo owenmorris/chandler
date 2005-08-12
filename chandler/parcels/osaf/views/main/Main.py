@@ -19,7 +19,7 @@ import osaf.pim.mail as Mail
 from osaf.pim import Contact
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
-import osaf.pim.photos.Photos as Photos
+from photos import Photo
 import osaf.pim.tests.GenerateItems as GenerateItems
 import util.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
@@ -464,7 +464,7 @@ class MainView(View):
             return
 
         self.setStatusMessage ("Importing %s" % path)
-        photo = Photos.Photo(view=self.itsView)
+        photo = Photo(view=self.itsView)
         (dir, filename) = os.path.split(path)
         photo.displayName = filename
         photo.importFromFile(path)

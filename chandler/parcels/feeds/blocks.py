@@ -1,26 +1,27 @@
-""" ZaoBao blocks
-"""
-
-__version__ = "$Revision$"
-__date__ = "$Date$"
+__revision__  = "$Revision$"
+__date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import wx
+import os, logging
 import application
-from osaf import pim
 import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 from PyICU import ICUtzinfo, DateFormat
 import datetime
+import channels
 
-class ZaoBaoItemDetail(Detail.HTMLDetailArea):
+
+logger = logging.getLogger(__name__)
+
+class FeedItemDetail(Detail.HTMLDetailArea):
     def getHTMLText(self, item):
         if item == item.itsView:
             return
         if item is not None:
-            displayName = item.getAttributeValue('displayName', default='<Untitled>')
+            displayName = item.getAttributeValue('displayName',
+                                                 default='<Untitled>')
 
             # make the html
             HTMLText = '<html><body>\n\n'
@@ -40,7 +41,8 @@ class ZaoBaoItemDetail(Detail.HTMLDetailArea):
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
             HTMLText = HTMLText + '<p>' + content + '</p>\n\n'
             #should find a good way to localize "more..."
-            HTMLText = HTMLText + '<br><a href="' + str(item.link) + '">more...</a>'
+            HTMLText = HTMLText + '<br><a href="' + str(item.link) + \
+                '">more...</a>'
 
             HTMLText = HTMLText + '</body></html>\n'
 
@@ -51,14 +53,16 @@ class LinkDetail(Detail.StaticRedirectAttribute):
     def staticTextLabelValue(self, item):
         theLabel = unicode(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
         return theLabel
-        
+
+
 class DateDetail(Detail.StaticRedirectAttribute):
     def staticTextLabelValue(self, item):
         try:
-            value = item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute()))
+            value = item.getAttributeValue(Detail.GetRedirectAttribute(item,
+                self.whichAttribute()))
         except AttributeError:
             return ""
-            
+
         # [@@@] grant: Refactor to use code in AttributeEditors?
         aujourdhui = datetime.date.today() # naive
         userTzinfo = ICUtzinfo.getDefault()
@@ -66,7 +70,7 @@ class DateDetail(Detail.StaticRedirectAttribute):
             value = value.replace(tzinfo=userTzinfo)
         else:
             value = value.astimezone(userTzinfo)
-            
+
         if aujourdhui == value.date():
             format = DateFormat.createTimeInstance(DateFormat.kShort)
         else:
@@ -75,21 +79,25 @@ class DateDetail(Detail.StaticRedirectAttribute):
 
 
 
-class ZaoBaoController(Block.Block):
-    def onNewZaoBaoChannelEvent(self, event):
-        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
+class FeedController(Block.Block):
+    def onNewFeedChannelEvent(self, event):
+        import wx
+        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+            "New Channel", "Enter a URL for the RSS Channel", "http://")
         if url and url != "":
-            try: 
+            try:
                 # create the feed channel
-                channel = pim.feeds.NewChannelFromURL(view=self.itsView,
-                                                      url=url, update=True)
+                channel = channels.NewChannelFromURL(view=self.itsView, url=url,
+                                                     update=True)
 
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
-                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel]})
+                mainView.postEventByName ('AddToSidebarWithoutCopying',
+                    {'items': [channel]})
                 return [channel]
             except:
-                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 
-                    "Could not create channel for " + url + "\nCheck the URL and try again.")
+                application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                    "New Channel Error",
+                    "Could not create channel for " + url + \
+                    "\nCheck the URL and try again.")
                 raise
-

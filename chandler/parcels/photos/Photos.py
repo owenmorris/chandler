@@ -2,11 +2,10 @@ __revision__  = "$Revision: 5958 $"
 __date__      = "$Date: 2005-07-12 11:17:39 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-__parcel__ = "osaf.pim.photos"
+__parcel__ = "photos"
 
 import urllib, time, datetime, cStringIO, logging, mimetypes
-import osaf.pim.items as items
-from osaf.pim.notes import Note
+from osaf import pim
 import osaf.mail.utils as utils
 from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
@@ -15,7 +14,7 @@ import EXIF
 
 logger = logging.getLogger(__name__)
 
-class PhotoMixin(items.ContentItem):
+class PhotoMixin(pim.ContentItem):
     schema.kindInfo(displayName="Photo Mixin Kind",
                     displayAttribute="displayName")
     dateTaken = schema.One(schema.DateTime, displayName="taken")
@@ -76,5 +75,5 @@ class PhotoMixin(items.ContentItem):
             self.processEXIF()
 
 
-class Photo(PhotoMixin, Note):
+class Photo(PhotoMixin, pim.Note):
     schema.kindInfo(displayName = "Photo")

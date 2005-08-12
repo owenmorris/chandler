@@ -8,7 +8,7 @@ import application.Globals as Globals
 from application import schema
 import flickr
 from osaf import pim
-import osaf.pim.photos.Photos as Photos
+from photos import PhotoMixin
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
 import repository.query.Query as Query
@@ -21,7 +21,7 @@ import os, logging
 logger = logging.getLogger(__name__)
 
 
-class FlickrPhotoMixin(Photos.PhotoMixin):
+class FlickrPhotoMixin(PhotoMixin):
 
     schema.kindInfo(displayName="Flickr Photo Mixin",
                     displayAttribute="displayName")

@@ -1,12 +1,13 @@
 
 from twisted.web import resource
-import osaf.pim.photos.Photos as Photos
 import traceback
 import os, sys, datetime
 
 class PhotosResource(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
+
+        from photos import PhotoMixin
 
         result = []
         output = result.append
@@ -23,7 +24,7 @@ class PhotosResource(resource.Resource):
                 output("<h3>Photos</h3><br>")
 
                 photoList = []
-                for photo in Photos.PhotoMixin.iterItems(view=repoView):
+                for photo in PhotoMixin.iterItems(view=repoView):
                     photoList.append(photo)
                     if not hasattr(photo, 'dateTaken'):
                         photo.dateTaken = datetime.datetime.now()

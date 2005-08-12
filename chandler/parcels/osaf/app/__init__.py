@@ -3,6 +3,7 @@ import application.schema as schema
 from application.Parcel import Reference
 from repository.schema.Types import Lob
 from osaf import pim
+from feeds import FeedChannel
 
 def installParcel(parcel, oldVersion=None):
 
@@ -14,7 +15,7 @@ def installParcel(parcel, oldVersion=None):
     sharing = schema.ns("osaf.sharing", parcel)
     pim = schema.ns("osaf.pim", parcel)
     mail = schema.ns("osaf.pim.mail", parcel)
-    photos = schema.ns("osaf.pim.photos", parcel)
+    photos = schema.ns("photos", parcel)
     contacts = schema.ns("osaf.pim.contacts", parcel)
     startup = schema.ns("osaf.startup", parcel)
 
@@ -174,7 +175,7 @@ The Chandler Team"""
                 displayName="Photo Viewer",
                 location="photos",
                 resourceClass=schema.importString(
-                    "osaf.servlets.photos.PhotosResource"
+                    "osaf.servlets.photo.PhotosResource"
                 ),
             ),
             webserver.Resource.update(parcel, "repoResource",
@@ -196,7 +197,7 @@ class FeedUpdateTaskClass:
     def run(self):
         self.view.refresh()
 
-        for item in pim.FeedChannel.iterItems(self.view):
+        for item in FeedChannel.iterItems(self.view):
             try:
                 item.Update()
             except socket.timeout:

@@ -6,7 +6,7 @@
     xmlns:detail="parcel:osaf.framework.blocks.detail"
     xmlns:contacts="parcel:osaf.pim.contacts"
     xmlns:main="parcel:osaf.views.main"
-    xmlns:photos="parcel:osaf.pim.photos">
+    xmlns:photos="parcel:photos">
 
     <!-- Block definitions for detail view -->
     <detail:DetailTrunkSubtree itsName="PhotoSubtree">

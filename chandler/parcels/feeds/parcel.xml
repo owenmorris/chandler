@@ -1,66 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<core:Parcel
-      xmlns:core="parcel:core"
-      xmlns:doc="parcel:osaf.examples.zaobao.blocks"
-      xmlns:detail="parcel:osaf.framework.blocks.detail"
-      xmlns:feeds="parcel:osaf.pim.feeds"
+<core:Parcel itsName="feeds"
       xmlns="parcel:osaf.framework.blocks"
+      xmlns:core="parcel:core"
+      xmlns:detail="parcel:osaf.framework.blocks.detail"
+      xmlns:feeds="parcel:feeds"
+      xmlns:feedblocks="parcel:feeds.blocks"
       xmlns:main="parcel:osaf.views.main">
 
-  <core:displayName value="ZaoBao View Items"/>
+  <core:displayName value="Feed View Items"/>
   <core:description value="Events and menu items and such"/>
-  
+
   <!-- blocks and menu items -->
-  <BlockEvent itsName="NewZaoBaoChannelEvent">
-    <blockName>NewZaoBaoChannel</blockName>
+  <BlockEvent itsName="NewFeedChannelEvent">
+    <blockName>NewFeedChannel</blockName>
     <dispatchEnum>SendToBlockByReference</dispatchEnum>
-    <destinationBlockReference itemref="doc:ZaoBaoControllerItem"/>
+    <destinationBlockReference itemref="feeds:FeedControllerItem"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
-  
-  <MenuItem itsName="NewZaoBaoChannel">
-    <blockName>NewZaoBaoChannelItem</blockName>
-    <title>New ZaoBao Channel</title>
-    <event itemref="doc:NewZaoBaoChannelEvent"/>
-    <eventsForNamedLookup itemref="doc:NewZaoBaoChannelEvent"/>
+
+  <MenuItem itsName="NewFeedChannel">
+    <blockName>NewFeedChannelItem</blockName>
+    <title>New Feed Channel</title>
+    <event itemref="feeds:NewFeedChannelEvent"/>
+    <eventsForNamedLookup itemref="feeds:NewFeedChannelEvent"/>
     <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
 
-  <Block itsName="ZaoBaoControllerItem" itemClass="osaf.examples.zaobao.blocks.ZaoBaoController">
+  <Block itsName="FeedControllerItem" itemClass="feeds.blocks.FeedController">
   </Block>
-  
+
   <!-- detail view stuff -->
 
   <!-- The actual detail area block -->
   <detail:DetailTrunkSubtree itsName="ChannelSubtree">
     <!-- This ensures that this detail view gets attached to RSSItems -->
     <key itemref="feeds:FeedItem"/>
-    
+
     <!-- UI Elements for detail view -->
     <rootBlocks itemref="detail:MarkupBar"/>
-    <rootBlocks itemref="doc:ItemBodyArea"/>
-    <rootBlocks itemref="doc:LinkArea"/>
-    <rootBlocks itemref="doc:AuthorArea"/>
-    <rootBlocks itemref="doc:DateArea"/>
-    <!--<rootBlocks itemref="doc:DateArea"/> -->
-    <rootBlocks itemref="doc:CategoryArea"/>
+    <rootBlocks itemref="feeds:ItemBodyArea"/>
+    <rootBlocks itemref="feeds:LinkArea"/>
+    <rootBlocks itemref="feeds:AuthorArea"/>
+    <rootBlocks itemref="feeds:DateArea"/>
+    <!--<rootBlocks itemref="feeds:DateArea"/> -->
+    <rootBlocks itemref="feeds:CategoryArea"/>
   </detail:DetailTrunkSubtree>
-  
-  
-  
-  <ItemDetail itsName="ItemBodyArea" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
+
+  <ItemDetail itsName="ItemBodyArea" itemClass="feeds.blocks.FeedItemDetail">
     <blockName value="articletext"/>
     <size>100,50</size>
-    <minimumSize>100,50</minimumSize>    
+    <minimumSize>100,50</minimumSize>
   </ItemDetail>
-  
+
   <!-- URL -->
   <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="LinkArea">
     <position>0.3</position>
     <selectedItemsAttribute>link</selectedItemsAttribute>
-    <childrenBlocks itemref="doc:LinkLabel"/>
-    <childrenBlocks itemref="doc:LinkAttribute"/>
+    <childrenBlocks itemref="feeds:LinkLabel"/>
+    <childrenBlocks itemref="feeds:LinkAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
   </detail:DetailSynchronizedLabeledTextAttributeBlock>
@@ -70,7 +68,7 @@
     <fontSize>10</fontSize>
     <fontStyle>underline</fontStyle>
   </CharacterStyle>
-  
+
   <!-- huh, I only seem to be able to apply this to whole ContentItemDetail items -->
   <ColorStyle itsName="LinkColor">
     <foregroundColor>0,0,255,255</foregroundColor>
@@ -80,25 +78,25 @@
     <title>link</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </detail:StaticRedirectAttributeLabel>
-  
-  <StaticText itsName="LinkAttribute" itemClass="osaf.examples.zaobao.blocks.LinkDetail">
-    <characterStyle itemref="doc:LinkStyle"/>
-    <!-- <colorStyle itemref="doc:LinkColor"/> -->
+
+  <StaticText itsName="LinkAttribute" itemClass="feeds.blocks.LinkDetail">
+    <characterStyle itemref="feeds:LinkStyle"/>
+    <!-- <colorStyle itemref="feeds:LinkColor"/> -->
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>   
+    <textAlignmentEnum>Left</textAlignmentEnum>
     <title>linkattribute</title>
   </StaticText>
-  
+
   <!-- Category -->
   <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="CategoryArea">
     <position>0.2</position>
     <selectedItemsAttribute>category</selectedItemsAttribute>
-    <childrenBlocks itemref="doc:CategoryLabel"/>
-    <childrenBlocks itemref="doc:CategoryAttribute"/>
+    <childrenBlocks itemref="feeds:CategoryLabel"/>
+    <childrenBlocks itemref="feeds:CategoryAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
   </detail:DetailSynchronizedLabeledTextAttributeBlock>
@@ -107,50 +105,50 @@
     <title>category</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </detail:StaticRedirectAttributeLabel>
-  
+
   <detail:StaticRedirectAttribute itsName="CategoryAttribute">
     <title>category</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>1.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>
   </detail:StaticRedirectAttribute>
-  
+
   <!-- Author area -->
   <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="AuthorArea">
     <position>0.19</position>
     <selectedItemsAttribute>author</selectedItemsAttribute>
-    <childrenBlocks itemref="doc:AuthorLabel"/>
-    <childrenBlocks itemref="doc:AuthorAttribute"/>
+    <childrenBlocks itemref="feeds:AuthorLabel"/>
+    <childrenBlocks itemref="feeds:AuthorAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
   </detail:DetailSynchronizedLabeledTextAttributeBlock>
-  
+
   <detail:StaticRedirectAttributeLabel itsName="AuthorLabel">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </detail:StaticRedirectAttributeLabel>
-  
+
   <detail:StaticRedirectAttribute itsName="AuthorAttribute">
     <title>author</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <textAlignmentEnum>Left</textAlignmentEnum>
   </detail:StaticRedirectAttribute>
-  
+
   <!-- Date area -->
   <detail:DetailSynchronizedLabeledTextAttributeBlock itsName="DateArea">
     <position>0.4</position>
     <selectedItemsAttribute>date</selectedItemsAttribute>
-    <childrenBlocks itemref="doc:DateLabel"/>
-    <childrenBlocks itemref="doc:DateAttribute"/>
+    <childrenBlocks itemref="feeds:DateLabel"/>
+    <childrenBlocks itemref="feeds:DateAttribute"/>
     <stretchFactor>0.0</stretchFactor>
     <border>5, 0, 0, 5</border>
   </detail:DetailSynchronizedLabeledTextAttributeBlock>
@@ -159,16 +157,16 @@
     <title>date</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>
     <minimumSize>60, 24</minimumSize>
     <border>0, 0, 0, 5</border>
   </detail:StaticRedirectAttributeLabel>
-  
-  <doc:DateDetail itsName="DateAttribute">
+
+  <feedblocks:DateDetail itsName="DateAttribute">
     <title>date</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-  </doc:DateDetail>
-  
+    <textAlignmentEnum>Left</textAlignmentEnum>
+  </feedblocks:DateDetail>
+
 </core:Parcel>

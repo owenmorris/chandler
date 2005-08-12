@@ -14,6 +14,7 @@ from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from osaf import pim
+from feeds import FeedChannel
 
 # get feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
@@ -31,7 +32,7 @@ else:
 # make them file URL's
 _defaultBlogs = [ "%s%s%s" %("", RSS_HOME, f) for f in _rssfiles ]
 
-BASE_PATH = Path('//parcels/osaf/pim/feeds')
+BASE_PATH = Path('//parcels/feeds')
 
 class TestPerfWithRSS(RepositoryTestCase):
     """ Simple performance tests """
@@ -113,7 +114,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             urlhash = str(hash(url))
             item = repository.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = pim.FeedChannel(view = repository.view)
+                item = FeedChannel(view = repository.view)
                 item.url = url
             feeds.append(item.itsUUID)
 
@@ -135,7 +136,7 @@ class TestPerfWithRSS(RepositoryTestCase):
 #        self.rep.close()
 #        self.rep = DBRepository(os.path.join(self.testdir, '__repository__'))
 #        self.rep.open()
-#        RSSItem = self.rep.findPath('//parcels/osaf/examples/zaobao/RSSItem')
+#        RSSItem = self.rep.findPath('//parcels/feeds/FeedItem')
 #        self._readItems(RSSItem.itsKind)
 #        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
 #        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.itsKind)

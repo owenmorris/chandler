@@ -10,7 +10,6 @@ from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
 from tasks import Task, TaskMixin
 from item_collections import ItemCollection
-from feeds import FeedChannel, FeedItem
 
 import tasks, mail, calendar.Calendar
 

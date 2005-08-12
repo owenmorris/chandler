@@ -2,16 +2,18 @@ __revision__  = "$Revision: 6435 $"
 __date__      = "$Date: 2005-08-09 09:43:05 -0700 (Tue, 09 Aug 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__parcel__    = "feeds"
 
 import time, os, logging, datetime
 from PyICU import ICUtzinfo
 from dateutil.parser import parse
 from application import schema
-from items import ContentItem
-from item_collections import ItemCollection
 from util import feedparser
 from xml.sax import SAXParseException
 import socket
+import application
+from osaf import pim
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,7 @@ def NewChannelFromURL(view, url, update = True):
 
     return channel
 
-class FeedChannel(ItemCollection):
+class FeedChannel(pim.ItemCollection):
 
     schema.kindInfo(displayName="Feed Channel")
 
@@ -224,7 +226,7 @@ class FeedChannel(ItemCollection):
 ##
 # FeedItem
 ##
-class FeedItem(ContentItem):
+class FeedItem(pim.ContentItem):
 
     schema.kindInfo(displayName="Feed Item")
 
