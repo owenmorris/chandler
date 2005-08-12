@@ -227,17 +227,10 @@ class MainView(View):
 
     def askTrustSiteCertificate(self, pem, reconnect):
         import M2Crypto.X509 as X509
-        import osaf.framework.certstore.certificate as certificate
+        import crypto.dialogs
         x509 = X509.load_cert_string(pem)
-        fingerprint = certificate._fingerprint(x509)
-        # XXX Need to design real dialog
-        dlg = wx.SingleChoiceDialog(wx.GetApp().mainFrame,
-                                   'Do you want to trust this certificate?\n' +
-                                   'SHA1 fingerprint: ' + fingerprint +
-                                   '\n' + x509.as_text(),
-                                   'Trust Site Certificate?',
-                                   choices=['Trust the authenticity of this certificate until program exit.',
-                                            'Trust the authenticity of this certificate permanently.'])
+        dlg = crypto.dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
+                                                        x509)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selection = dlg.GetSelection()

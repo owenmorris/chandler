@@ -6,6 +6,8 @@ Certificate
 """
 __parcel__ = "osaf.framework.certstore"
 
+import logging
+
 import wx
 import application
 from application import schema
@@ -14,6 +16,7 @@ import application.Globals as Globals
 from osaf import pim
 import osaf.framework.blocks.detail.Detail as Detail
 from osaf.framework.certstore import notification
+from osaf.framework.certstore import dialogs
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
@@ -21,6 +24,7 @@ import M2Crypto.EVP as EVP
 # XXX Should be done using ref collections instead?
 import repository.query.Query as Query
 
+log = logging.getLogger(__name__)
 
 TRUST_AUTHENTICITY = 1
 TRUST_SITE         = 2
@@ -239,8 +243,8 @@ def _importCertificate(x509, fingerprint, trust, repView):
 
 def ImportCertificate(repView, cpiaView):
     dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                        "Choose a certificate to import",
-                        "", "", "PEM files|*.pem;*.crt|All files (*.*)|*.*",
+                        _("Choose a certificate to import"),
+                        "", "", _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
                         wx.OPEN | wx.HIDE_READONLY)
     if dlg.ShowModal() == wx.ID_OK:
         path = dlg.GetPath()
@@ -257,17 +261,14 @@ def ImportCertificate(repView, cpiaView):
         fingerprint = _fingerprint(x509)
         type = _certificateType(x509)
         # Note: the order of choices must match the selections code below
-        choices = ["Trust the authenticity of this certificate."]
+        choices = [_("Trust the authenticity of this certificate.")]
         if type == 'root':
-            choices += ["Trust this certificate to sign site certificates."]
+            choices += [_("Trust this certificate to sign site certificates.")]
 
-        dlg = wx.MultiChoiceDialog(wx.GetApp().mainFrame,
-                                   "Do you want to import this certificate?\n" +
-                                   "Type: " + type +
-                                   "\nSHA1 fingerprint: " + fingerprint +
-                                   "\n" + x509.as_text(),
-                                   "Import check",
-                                   choices=choices)
+        dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
+                                   type,
+                                   x509,
+                                   choices)
         trust = 0
         if dlg.ShowModal() == wx.ID_OK:
             selections = dlg.GetSelections()
@@ -283,12 +284,12 @@ def ImportCertificate(repView, cpiaView):
             return
 
         _importCertificate(x509, fingerprint, trust, repView)
-    except:
+    except Exception, e:
+        log.exception(e)
         # XXX Inform the user what went wrong so they can figure out how to
         # XXX fix this.
-        application.dialogs.Util.ok(wx.GetApp().mainFrame, "Error", 
-            "Could not add certificate from: " + path + 
-            "\nCheck the path and try again.")
+        application.dialogs.Util.ok(wx.GetApp().mainFrame, _("Error"), 
+            _("Could not add certificate from: %s\nCheck the path and try again.") % path)
         return
 
 
