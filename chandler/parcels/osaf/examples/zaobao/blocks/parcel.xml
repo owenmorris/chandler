@@ -164,11 +164,11 @@
     <border>0, 0, 0, 5</border>
   </detail:StaticRedirectAttributeLabel>
   
-  <detail:StaticRedirectAttribute itsName="DateAttribute">
+  <doc:DateDetail itsName="DateAttribute">
     <title>date</title>
     <characterStyle itemref="LabelStyle"/>
     <stretchFactor>0.0</stretchFactor>
     <textAlignmentEnum>Left</textAlignmentEnum>    
-  </detail:StaticRedirectAttribute>
+  </doc:DateDetail>
   
 </core:Parcel>

@@ -12,6 +12,8 @@ from osaf import pim
 import osaf.framework.blocks.detail.Detail as Detail
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
+from PyICU import ICUtzinfo, DateFormat
+import datetime
 
 class ZaoBaoItemDetail(Detail.HTMLDetailArea):
     def getHTMLText(self, item):
@@ -47,8 +49,30 @@ class ZaoBaoItemDetail(Detail.HTMLDetailArea):
 
 class LinkDetail(Detail.StaticRedirectAttribute):
     def staticTextLabelValue(self, item):
-        theLabel = str(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
+        theLabel = unicode(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
         return theLabel
+        
+class DateDetail(Detail.StaticRedirectAttribute):
+    def staticTextLabelValue(self, item):
+        try:
+            value = item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute()))
+        except AttributeError:
+            return ""
+            
+        # [@@@] grant: Refactor to use code in AttributeEditors?
+        aujourdhui = datetime.date.today() # naive
+        userTzinfo = ICUtzinfo.getDefault()
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=userTzinfo)
+        else:
+            value = value.astimezone(userTzinfo)
+            
+        if aujourdhui == value.date():
+            format = DateFormat.createTimeInstance(DateFormat.kShort)
+        else:
+            format = DateFormat.createDateTimeInstance(DateFormat.kShort)
+        return unicode(format.format(value))
+
 
 
 class ZaoBaoController(Block.Block):

@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import time, os, logging, datetime
+from PyICU import ICUtzinfo
 from dateutil.parser import parse
 from application import schema
 from items import ContentItem
@@ -136,7 +137,7 @@ class FeedChannel(ItemCollection):
         # set lastModified
         modified = data.get('modified')
         if modified:
-            self.lastModified = datetime.datetime.fromtimestamp(time.mktime(modified)).replace(tzinfo=None)
+            self.lastModified = datetime.datetime.fromtimestamp(time.mktime(modified))
 
         # if the feed is bad, raise the sax exception
         try:
@@ -194,10 +195,7 @@ class FeedChannel(ItemCollection):
                 newItem.date = parse(str(itemDate))
             else:
                 # Give the item a date so we can sort on it
-                newItem.date = datetime.datetime.now()
-
-            # Disregard timezone for now
-            newItem.date = newItem.date.replace(tzinfo=None)
+                newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
 
             found = False
             for oldItem in self.resultSet:
