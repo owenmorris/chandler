@@ -170,6 +170,17 @@ class Block(schema.Item):
                     if list [1] == 0:
                         del dictionary [name]
 
+    @classmethod
+    def template(theClass, blockName, **attrs):
+        """
+        Very similar to the default template() routine, except that
+        1) childrenBlocks is used for children
+        2) the repository name and blockname are unified
+        """
+        return schema.ItemTemplate(theClass, blockName,
+                                   ['childrenBlocks'],
+                                   blockName=blockName, **attrs)
+
     def render (self):
         try:
             instantiateWidgetMethod = getattr (type (self), "instantiateWidget")
@@ -688,7 +699,8 @@ class Block(schema.Item):
     
 class ShownSynchronizer:
     """
-    A mixin that handles isShown-ness: Make sure my visibility matches my block's.
+    A mixin that handles isShown-ness: Make sure my visibility
+    matches my block's.
     """
     def wxSynchronizeWidget(self):
         if self.blockItem.isShown != self.IsShown():
@@ -919,6 +931,17 @@ class BlockEvent(schema.Item):
         else:
             return super(BlockEvent, self).__repr__()
 
+    @classmethod
+    def template(theClass, blockName, dispatchEnum, **attrs):
+        """
+        Very similar to the default template() routine, except that
+        1) the repository name and blockname are unified
+        2) The dispatchEnum is required
+        """
+        return schema.ItemTemplate(theClass, blockName, [],
+                                   blockName=blockName,
+                                   dispatchEnum=dispatchEnum,
+                                   **attrs)
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
 
