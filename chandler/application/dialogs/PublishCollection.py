@@ -478,7 +478,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         parent = handle.getResource(sharePath)
         skipLen = len(sharePath)
-        for resource in zanshin.util.blockUntil(parent.getAllChildren):
+        for resource in handle.blockUntil(parent.getAllChildren):
             path = resource.path[skipLen:]
             path = path.strip("/")
             if path:

@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import zanshin.webdav
+import zanshin.util
 
 import crypto.ssl as ssl
 import M2Crypto.BIO
@@ -11,6 +12,8 @@ import M2Crypto.SSL.Checker
 import chandlerdb.util.uuid
 import twisted.internet.error as error
 from twisted.internet import reactor
+
+import application.Globals as Globals
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
@@ -31,19 +34,36 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         #self.factory.extraHeaders = { 'Connection' : "close" }
         self.factory.logging = True
 
-    def _translateSSLError(self, failure):
-        if failure.check(M2Crypto.BIO.BIOError):
-            failure.value = error.SSLError(osError=failure.value)
+    def blockUntil(self, callable, *args, **keywds):
+        try:
+            return zanshin.util.blockUntil(callable, *args, **keywds)
+        except ssl.CertificateVerificationError, err:
+            assert err.args[1] == 'certificate verify failed'
+            # We are being conservative for now and only asking the user
+            # if they would like to trust certificates that are otherwise
+            # valid but we don't know about them. In the future we must make
+            # it possible for the user to accept expired certificates and
+            # so on.
+            self._reconnect = False
+            retry = (lambda: setattr(self, '_retry', True))
+
+            wxApplication = Globals.wxApplication
         
-        return failure
-        
-    def addRequest(self, request):
-        d = super(ChandlerServerHandle, self).addRequest(request)
-        
-        if d is not None:
-            d.addErrback(self._translateSSLError)
+            if wxApplication is not None: # test framework has no wxApplication
+                Globals.views[0].askTrustSiteCertificate(err.untrustedCertificates[0], retry)
             
-        return d
+            if hasattr(self, '_retry'):
+                del self._retry
+            
+                return zanshin.util.blockUntil(callable, *args, **keywds)
+            else:
+                raise err
+        except M2Crypto.BIO.BIOError, error:
+            # Translate the mysterious M2Crypto.BIO.BIOError
+            raise error.SSLError(error)
+
+    
+
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
     def _makeConnection(self):
@@ -103,8 +123,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # or other failures (e.g., nonexistent path, mistyped
     # host).
     try:
-        resourceList = zanshin.util.blockUntil(topLevelResource.propfind,
-                         depth=1)
+        resourceList = handle.blockUntil(topLevelResource.propfind, depth=1)
     except zanshin.webdav.ConnectionError, err:
         return (CANT_CONNECT, err.message)
     except zanshin.webdav.WebDAVError, err:
@@ -151,15 +170,15 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # Now, we try to PUT a small test file on the server. If that
     # fails, we're going to say the user only has read-only access.
     try:
-        tmpResource = zanshin.util.blockUntil(topLevelResource.createFile,
-                             testFilename, body='Write access test')
+        tmpResource = handle.blockUntil(topLevelResource.createFile,
+                                testFilename, body='Write access test')
     except zanshin.webdav.WebDAVError, e:
         return (READ_ONLY, e.status)
         
     # Remove the temporary resource, and ignore failures (since there's
     # not much we can do here, anyway).
     try:
-        zanshin.util.blockUntil(tmpResource.delete)
+        handle.blockUntil(tmpResource.delete)
     except:
         pass
         

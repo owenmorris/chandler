@@ -22,7 +22,6 @@ import osaf.pim.mail as Mail
 import osaf.mail.utils as utils
 import twisted.web.http
 import wx
-import zanshin.util
 import zanshin.webdav
 
 logger = logging.getLogger(__name__)
@@ -231,14 +230,15 @@ class Share(items.ContentItem):
                 location = self.getLocation()
                 if not location.endswith("/"):
                     location += "/"
-                resource = self.conduit._getServerHandle().getResource(location)
+                handle = self.conduit._getServerHandle()
+                resource = handle.getResource(location)
 
-                exists = zanshin.util.blockUntil(resource.exists)
+                exists = handle.blockUntil(resource.exists)
                 if not exists:
                     raise NotFound(message="%s does not exist" % location)
 
-                isCalendar = zanshin.util.blockUntil(resource.isCalendar)
-                isCollection =  zanshin.util.blockUntil(resource.isCollection)
+                isCalendar = handle.blockUntil(resource.isCalendar)
+                isCollection =  handle.blockUntil(resource.isCollection)
                 if isCalendar:
                     import ICalendar
                     self.format = ICalendar.CalDAVFormat(parent=self)
@@ -1027,7 +1027,7 @@ class WebDAVConduit(ShareConduit):
         resource = self.__resourceFromPath("")
 
         try:
-            result = zanshin.util.blockUntil(resource.exists)
+            result = self._getServerHandle().blockUntil(resource.exists)
         except zanshin.error.ConnectionError, err:
             raise CouldNotConnect(message=err.args[0])
         except M2Crypto.BIO.BIOError, err:
@@ -1046,9 +1046,10 @@ class WebDAVConduit(ShareConduit):
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
+            handle = self._getServerHandle()
             try:
                 if url[-1] != '/': url += '/'
-                response = zanshin.util.blockUntil(self.serverHandle.mkcol, url)
+                response = handle.blockUntil(handle.mkcol, url)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
             except M2Crypto.BIO.BIOError, err:
@@ -1124,8 +1125,8 @@ class WebDAVConduit(ShareConduit):
         container = self.__getContainerResource()
 
         try:
-            newResource = zanshin.util.blockUntil(container.createFile,
-                                itemName, body=text)
+            newResource = self._getServerHandle().blockUntil(
+                                    container.createFile, itemName, body=text)
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
         except M2Crypto.BIO.BIOError, err:
@@ -1157,7 +1158,7 @@ class WebDAVConduit(ShareConduit):
 
         if resource != None:
             try:
-                deleteResp = zanshin.util.blockUntil(resource.delete)
+                deleteResp = self._getServerHandle().blockUntil(resource.delete)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
             except M2Crypto.BIO.BIOError, err:
@@ -1168,7 +1169,7 @@ class WebDAVConduit(ShareConduit):
         resource = self.__resourceFromPath(itemPath)
 
         try:
-            resp = zanshin.util.blockUntil(resource.get)
+            resp = self._getServerHandle().blockUntil(resource.get)
 
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
@@ -1210,7 +1211,7 @@ class WebDAVConduit(ShareConduit):
             shareCollection = self.__getContainerResource()
 
             try:
-                children = zanshin.util.blockUntil(
+                children = self._getServerHandle().blockUntil(
                                 shareCollection.getAllChildren)
 
             except zanshin.webdav.ConnectionError, err:
@@ -1239,7 +1240,7 @@ class WebDAVConduit(ShareConduit):
             # @@@ [grant] Error handling and reporting here
             # are crapski
             try:
-                zanshin.util.blockUntil(resource.propfind, depth=0)
+                self._getServerHandle().blockUntil(resource.propfind, depth=0)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
             except M2Crypto.BIO.BIOError, err:
@@ -1287,8 +1288,9 @@ class SimpleHTTPConduit(WebDAVConduit):
             logger.info("...last modified: %s" % self.lastModified)
 
         try:
-            resp = zanshin.util.blockUntil(self._getServerHandle().get,
-                        location, extraHeaders=extraHeaders)
+            handle = self._getServerHandle()
+            resp = handle.blockUntil(handle.get, location,
+                                    extraHeaders=extraHeaders)
 
             if resp.status == twisted.web.http.NOT_MODIFIED:
                 # The remote resource is as we saw it before
