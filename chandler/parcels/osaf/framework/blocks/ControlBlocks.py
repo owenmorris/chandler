@@ -1615,7 +1615,12 @@ class ReminderTimer(Timer):
                 timesAndReminders.append((reminderTime, item))
             
         if len(timesAndReminders) != 0:
-            timesAndReminders.sort(cmp=lambda x,y:Calendar.datetimeOp(x, 'cmp', y))
+            def compareTimesAndReminders(tuple1, tuple2):
+                result = Calendar.datetimeOp(tuple1[0], 'cmp', tuple2[0])
+                if result == 0:
+                    result = cmp(tuple1[1], tuple2[1])
+                return result
+            timesAndReminders.sort(cmp=compareTimesAndReminders)
             timesAndReminders = [ item[1] for item in timesAndReminders ]
         return timesAndReminders
     
