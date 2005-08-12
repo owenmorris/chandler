@@ -446,7 +446,8 @@ class CalendarEventMixin(ContentItem):
     def GetReminderDelta(self):
         """ Returns the difference between startTime and reminderTime, a timedelta """
         try:
-            return self.reminderTime - self.getEffectiveStartTime()
+            return datetimeOp(self.reminderTime, '-',
+                            self.getEffectiveStartTime())
         except AttributeError:
             return None
    
@@ -476,7 +477,8 @@ class CalendarEventMixin(ContentItem):
 
         # Adjust the reminder first, while we still have the old time.
         try:
-            self.reminderTime = self.reminderTime - (self.startTime - dateTime)
+            self.reminderTime = self.reminderTime - datetimeOp(
+                                                self.startTime, '-', dateTime)
         except AttributeError:
                 pass
 
