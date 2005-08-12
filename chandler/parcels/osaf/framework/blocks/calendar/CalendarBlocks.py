@@ -172,7 +172,7 @@ class wxPreviewArea(wx.Panel):
         #  | |  |  |  | |  | |
         #                    my allday or anytime event
         #  12 15   -  14 45  doctor's appointment
-        #   9      -  11 10  happy hour
+        #      9   -  11 10  happy hour
         #  @ 10 45           my at-time event
         
         # len(C->D) = len(D->E)  =  self.dashMargin
@@ -201,7 +201,7 @@ class wxPreviewArea(wx.Panel):
             self.DrawTime(item.startTime.time(), dc, self.margin, y, rightalign=True)
             dashOffset = self.margin + 2*self.bigDigitWidth + 2*self.smallDigitWidth + self.dashMargin
             dc.DrawText('-', dashOffset, y)
-            self.DrawTime(item.endTime.time(), dc, dashOffset + self.dashMargin + dashWidth, y)
+            self.DrawTime(item.endTime.time(), dc, dashOffset + self.dashMargin + dashWidth, y, leftpad=False)
             dc.DrawText(item.displayName, eventTitleOffset, y)
         
     def DrawTime(self, time, dc, x, y, leftpad=True, rightalign=False):
