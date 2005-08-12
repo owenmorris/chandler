@@ -5,7 +5,7 @@ import os, wx
 
 logger = QATestAppLib.Logger()
 path = os.path.join(os.getenv('CHANDLERHOME') or '.', 'parcels', 'osaf','sharing','tests')
-share = Sharing.OneTimeFileSystemShare(path, '3kevents.ics', ICalendar.ICalendarFormat, view=__view__)
+share = Sharing.OneTimeFileSystemShare(path, '1kevents.ics', ICalendar.ICalendarFormat, view=__view__)
 
 logger.Start("Import Large Calendar")
 try:
@@ -18,11 +18,20 @@ else:
 	wx.GetApp().Yield()
 	logger.Stop()
 	logger.ReportPass("Importing calendar")
-testEvent = FindByName(pim.CalendarEvent, "Feed dog")
-if testEvent is not None:
-    logger.ReportPass("Testing event creation")
-else:
-    logger.ReportFail("Testing event creation: event not created")	
+
+def TestEventCreation(title):
+    global logger
+    testEvent = FindByName(pim.CalendarEvent, title)
+    if testEvent is not None:
+        logger.ReportPass("Testing event creation: '%s'" % title)
+    else:
+        logger.ReportFailure("Testing event creation: '%s' not created" % title)
+TestEventCreation("Go to the beach")
+TestEventCreation("Basketball game")
+TestEventCreation("Visit friend")
+TestEventCreation("Library")
+TestEventCreation("Vacation")
+
 
 logger.SetChecked(True)
 logger.Report()
