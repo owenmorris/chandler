@@ -5,7 +5,10 @@ Crypto dialogs
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
+import logging
 import wx
+
+log = logging.getLogger(__name__)
 
 class TrustSiteCertificateDialog(wx.Dialog):
     def __init__(self, parent, x509, size=wx.DefaultSize,
@@ -92,4 +95,5 @@ class TrustSiteCertificateDialog(wx.Dialog):
         for rb in self.rbs:
             if rb.GetValue():
                 return sel
-            self += 1
+            sel += 1
+            

@@ -227,7 +227,7 @@ class MainView(View):
 
     def askTrustSiteCertificate(self, pem, reconnect):
         import M2Crypto.X509 as X509
-        import crypto.dialogs
+        import crypto.dialogs        
         x509 = X509.load_cert_string(pem)
         dlg = crypto.dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
                                                         x509)
@@ -239,6 +239,8 @@ class MainView(View):
                     import crypto.ssl as ssl
                     ssl.trusted_until_shutdown_site_certs += [pem]
                 else:
+                    import osaf.framework.certstore.certificate as certificate
+                    fingerprint = certificate._fingerprint(x509)
                     certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
     
                 reconnect()
