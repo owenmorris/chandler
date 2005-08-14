@@ -15,14 +15,12 @@ import repository.item.ItemHandler as ItemHandler
 import repository.item.Query as ItemQuery
 import repository.query.Query as Query
 from repository.util.Lob import Lob
-from osaf.framework.blocks import DragAndDrop
-from osaf.framework.blocks import DrawingUtilities
-from osaf.framework.blocks import Styles
+from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, ParsePosition, ICUtzinfo
-from osaf.framework.blocks.Block import ShownSynchronizer
+from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
 from osaf.pim.items import ContentItem
 from application import schema
 
@@ -167,16 +165,6 @@ class BaseAttributeEditor (object):
         """
         return False
     
-    def MustChangeControl(self, forEditing, existingControl):
-        """
-        Return False if this control is good enough for displaying
-        (forEditing == False) or editing (forEditing == True) in this
-        editor, or True if we have to render us up a new one.
-        Note that existingControl may be None.
-        """
-        # Default to "if we have a control, it's good enough".
-        return existingControl is None
-    
     def CreateControl (self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         """ 
@@ -233,7 +221,6 @@ class BaseAttributeEditor (object):
             if callback is not None:
                 callback()
 
-    
 class AETextCtrl(ShownSynchronizer,
                  DragAndDrop.DraggableWidget,
                  DragAndDrop.DropReceiveWidget,
@@ -278,6 +265,17 @@ class AETextCtrl(ShownSynchronizer,
         super(AETextCtrl, self).Copy()
         return result
     
+class wxEditText(AETextCtrl):
+    def __init__(self, *arguments, **keywords):
+        super (wxEditText, self).__init__ (*arguments, **keywords)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
+        minW, minH = arguments[-1] # assumes minimum size passed as last arg
+        self.SetSizeHints(minW=minW, minH=minH)
+
+    def OnEnterPressed(self, event):
+        self.blockItem.postEventByName ('EnterPressed', {'text':self.GetValue()})
+        event.Skip()
+
 class AEStaticText(ShownSynchronizer,
                    wx.StaticText):
     """ 
@@ -288,6 +286,133 @@ class AEStaticText(ShownSynchronizer,
     GetValue = wx.StaticText.GetLabel
     SetValue = wx.StaticText.SetLabel
     
+class AETypeOverTextCtrl(wxRectangularChild):
+    def __init__(self, parent, id, title='', position=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0, *args, **keys):
+        super(AETypeOverTextCtrl, self).__init__(parent, id)
+        staticSize = keys['staticSize']
+        del keys['staticSize']
+        self.hideLoc = (-100,-100)
+        self.showLoc = (0,0)
+        editControl = AETextCtrl(self, -1, pos=position, size=size, 
+                                                  style=style, *args, **keys)
+        self.editControl = editControl
+        editControl.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
+        editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
+        editControl.Bind(wx.EVT_LEFT_DOWN, self.OnEditClick)
+        staticControl = AEStaticText(self, -1, pos=position, 
+                                                      size=staticSize, style=style, 
+                                                      *args, **keys)
+        self.staticControl = staticControl
+        staticControl.Bind(wx.EVT_LEFT_DOWN, self.OnStaticClick)
+        self.shownControl = staticControl
+        self.otherControl = editControl
+        self.shownControl.Move(self.showLoc)
+        self.otherControl.Move(self.hideLoc)
+        self._resize()
+
+    def _showingSample(self):
+        try:
+            showingSample = self.editor.showingSample
+        except AttributeError:
+            showingSample = False
+        return showingSample
+
+    def OnStaticClick(self, event):
+        editControl = self.editControl
+        editControl.SetFocus()
+        # if we're currently displaying the "sample text", select
+        # the entire field, otherwise position the insertion appropriately
+        # The AE should provide a SampleText api for this,
+        #  or better yet, encapsulate the concept of SampleText into
+        #  the control so the AE doesn't have that complication.
+        if self._showingSample():
+            editControl.SelectAll()
+        else:
+            result, row, column = editControl.HitTest(event.GetPosition())
+            if result != wx.TE_HT_UNKNOWN: 
+                editControl.SetInsertionPoint(editControl.XYToPosition(row, column))
+        event.Skip()
+
+    def OnEditClick(self, event):
+        if self._showingSample():
+            self.editControl.SelectAll() # eat the click
+        else:
+            event.Skip() # continue looking for a click handler
+            
+    def OnEditGainFocus(self, event):
+        self._swapControls(self.editControl)
+        event.Skip()
+
+    def OnEditLoseFocus(self, event):
+        self._swapControls(self.staticControl)
+        event.Skip()
+
+    def _swapControls(self, controlToShow):
+        if controlToShow is self.otherControl:
+            hiddenControl = controlToShow
+            shownControl = self.shownControl
+            self.Freeze()
+            hiddenControl.SetValue(shownControl.GetValue())
+            shownControl.Move(self.hideLoc)
+            hiddenControl.Move(self.showLoc)
+            self.shownControl = hiddenControl
+            self.otherControl = shownControl
+            self._resize()
+            self.Thaw()
+
+    def _resize(self):
+        if self.IsShown():
+            # first relayout our sizer with the new shown control
+            shownControl = self.shownControl
+            sizer = self.GetSizer()
+            if not sizer:
+                sizer = wx.BoxSizer (wx.HORIZONTAL)
+                self.SetSizer (sizer)
+            sizer.Clear()
+            stretchFactor = 1
+            border = 0
+            borderFlag = 0
+            self.SetSize(shownControl.GetSize())
+            sizer.Add (shownControl,
+                       stretchFactor, 
+                       borderFlag, 
+                       border)
+            sizer.Hide (self.otherControl)
+            self.Layout()
+
+            # need to relayout the view container - so tell the block
+            try:
+                sizeChangedMethod = self.blockItem.onWidgetChangedSize
+            except AttributeError:
+                pass
+            else:
+                sizeChangedMethod()
+
+    # delegate selected unknown attributes to our shown control.
+    delegatedAttributes = ('GetValue', 'SetValue', 'SetStyle')
+    def __getattr__(self, attr):
+        if attr in self.delegatedAttributes:
+            return getattr(self.shownControl, attr)
+        else:
+            raise AttributeError, "%s has no attribute named '%s'" % (self, attr)
+
+    def SetFont(self, font):
+        self.editControl.SetFont(font)
+        self.staticControl.SetFont(font)
+
+    def SetSelection(self, *args):
+        self._swapControls(self.editControl)
+        self.editControl.SetSelection(*args)
+
+    def SelectAll(self, *args):
+        self._swapControls(self.editControl)
+        self.editControl.SelectAll()
+
+    # For some reason we can't delegate this method.
+    def SetForegroundColour(self, *args):
+        self.shownControl.SetForegroundColour(*args)
+
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
     Uses a Text Control to edit attributes in string form. 
@@ -344,8 +469,6 @@ class StringAttributeEditor (BaseAttributeEditor):
             dc.SetTextForeground (textColor)
 
         if len(theText) > 0:
-            #stearns says this code isn't used anymore  (irc, 7/22/05) -brendano
-            
             # Draw inside the lines.
             dc.SetBackgroundMode (wx.TRANSPARENT)
             rect.Inflate (-1, -1)
@@ -356,13 +479,6 @@ class StringAttributeEditor (BaseAttributeEditor):
                 
             dc.DestroyClippingRegion()
         
-    def MustChangeControl(self, forEditing, existingControl):
-        must = existingControl is None or \
-             (self.EditInPlace() and \
-             (forEditing != isinstance(existingControl, AETextCtrl)))
-        # logger.debug("StringAE: Must change control is %s (%s, %s)", must, forEditing, existingControl)
-        return must
-
     def CreateControl(self, forEditing, readOnly, parentWidget, 
                        id, parentBlock, font):
         # logger.debug("StringAE.CreateControl")
@@ -388,11 +504,11 @@ class StringAttributeEditor (BaseAttributeEditor):
             # First, base our height on our font:
             if font is not None:
                 measurements = Styles.getMeasurements(font)
-                height = useStaticText \
-                       and measurements.height \
-                       or measurements.textCtrlHeight
+                height = measurements.textCtrlHeight
+                staticHeight = measurements.height
             else:
                 height = wx.DefaultSize.GetHeight()
+                staticHeight = height
             
             # Next, do width... pick one:
             # - our block's value if it's not default
@@ -409,10 +525,16 @@ class StringAttributeEditor (BaseAttributeEditor):
             size = wx.Size(width, height)
 
         if useStaticText:
-            border = parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER
-            control = AEStaticText(parentWidget, id, '', wx.DefaultPosition, 
-                                   size,
-                                   wx.TAB_TRAVERSAL | border)
+            style = wx.TAB_TRAVERSAL | (parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER)
+            control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
+                                                      size, style, staticSize=wx.Size(width, staticHeight)
+                                                      )
+            editControl = control.editControl
+            editControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+            editControl.Bind(wx.EVT_TEXT, self.onTextChanged)      
+            editControl.Bind(wx.EVT_SET_FOCUS, self.onGainFocus)
+            editControl.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+            
         else:
             style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
             if readOnly: style |= wx.TE_READONLY
@@ -474,7 +596,7 @@ class StringAttributeEditor (BaseAttributeEditor):
 
     def onGainFocus(self, event):
         if self.showingSample:
-            self.control.SetSelection(-1, -1)  # (select all)
+            self.control.SelectAll()  # (select all)
         event.Skip()
     
     def onLoseFocus(self, event):
@@ -500,6 +622,20 @@ class StringAttributeEditor (BaseAttributeEditor):
                 logger.debug("StringAE.onTextChanged: ignoring (no sample text)")
         else:
             pass # logger.debug("StringAE.onTextChanged: ignoring (self-changed); value is '%s'" % event.GetEventObject().GetValue())
+        
+    def _isFocused(self, control):
+        """
+        Return True if the control is in the cluster of widgets
+        within a single block.
+        """
+        focus = wx.Window_FindFocus()
+        while control != None:
+            if control == focus:
+                return True
+            if hasattr(control, 'blockItem'):
+                break
+            control = control.GetParent()
+        return False
         
     def _changeTextQuietly(self, control, text, isSample=False, alreadyChanged=False):
         self.ignoreTextChanged = True
@@ -533,13 +669,13 @@ class StringAttributeEditor (BaseAttributeEditor):
                 if oldValue != text:
                     control.SetValue(text)
     
-            if isinstance(control, AETextCtrl):
+            if hasattr(control, 'SetStyle'):
                 # Trying to make the text in the editbox gray doesn't seem to work on Win.
                 # (I'm doing it anyway, because it seems to work on Mac.)
                 control.SetStyle(0, len(text), wx.TextAttr(textColor))
                 
-                if isSample and wx.Window.FindFocus() == control:
-                    control.SetSelection(-1, -1) # (select all)
+                if isSample and self._isFocused(control):
+                    control.SelectAll()
             else:
                 control.SetForegroundColour(textColor)
         finally:
@@ -561,9 +697,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         """ Ignore clicks if we're showing the sample """
         control = event.GetEventObject()
         if self.showingSample:
-            if control == wx.Control.FindFocus():
+            if self._isFocused(control):
                 # logger.debug("onClick: ignoring click because we're showing the sample.")
-                control.SetSelection(-1, -1) # (select all) Make sure the whole thing's still selected
+                control.SelectAll() # Make sure the whole thing's still selected
         else:
             event.Skip()
             
@@ -644,10 +780,6 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     
     def EditInPlace(self):
         return True
-
-    def MustChangeControl(self, forEditing, existingControl):
-        # We only need to change controls if we don't have one.
-        return existingControl is None
 
 class LobImageAttributeEditor (BaseAttributeEditor):
 

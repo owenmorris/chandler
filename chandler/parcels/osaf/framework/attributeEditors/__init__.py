@@ -21,5 +21,6 @@ from AttributeEditors import (
     StaticStringAttributeEditor,
     TimeAttributeEditor,
     TimeDeltaAttributeEditor,
-    TimeZoneAttributeEditor
+    TimeZoneAttributeEditor,
+    wxEditText
 )

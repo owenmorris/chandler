@@ -179,53 +179,6 @@ class ContextMenuItem(RectangularChild):
         wxContextMenu.Append(id, self.title)
         wxContextMenu.Bind(wx.EVT_MENU, wx.GetApp().OnCommand, id=id)
 
-    
-class wxEditText(ShownSynchronizer, 
-                 DragAndDrop.DraggableWidget,
-                 DragAndDrop.DropReceiveWidget,
-                 DragAndDrop.TextClipboardHandler,
-                 wx.TextCtrl):
-    def __init__(self, *arguments, **keywords):
-        super (wxEditText, self).__init__ (*arguments, **keywords)
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
-        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-        minW, minH = arguments[-1] # assumes minimum size passed as last arg
-        self.SetSizeHints(minW=minW, minH=minH)
-
-    def OnEnterPressed(self, event):
-        self.blockItem.postEventByName ('EnterPressed', {'text':self.GetValue()})
-        event.Skip()
-
-    def OnMouseEvents(self, event):
-        # trigger a Drag and Drop if we're a single line and all selected
-        if self.IsSingleLine() and event.LeftDown():
-            selStart, selEnd = self.GetSelection()
-            if selStart==0 and selEnd>1 and selEnd==self.GetLastPosition():
-                if event.LeftIsDown(): # still down?
-                    # have we had the focus for a little while?
-                    if hasattr(self, 'focusedSince'):
-                        if Calendar.datetimeOp(datetime.now(), '-', self.focusedSince) > timedelta(seconds=.2):
-                            self.DoDragAndDrop()
-                            return # don't skip, eat the click.
-        event.Skip()
-
-    def OnSetFocus(self, event):
-        self.focusedSince = datetime.now()
-
-    def OnKillFocus(self, event):
-        del self.focusedSince
-
-    def Cut(self):
-        result = self.GetStringSelection()
-        super(wxEditText, self).Cut()
-        return result
-
-    def Copy(self):
-        result = self.GetStringSelection()
-        super(wxEditText, self).Copy()
-        return result
 
 class textStyleEnumType(schema.Enumeration):
       values = "PlainText", "RichText"
@@ -265,7 +218,7 @@ class EditText(RectangularChild):
         if self.readOnly:
             style |= wx.TE_READONLY
 
-        editText = wxEditText (self.parentBlock.widget,
+        editText = AttributeEditors.wxEditText (self.parentBlock.widget,
                                -1,
                                "",
                                wx.DefaultPosition,
@@ -1765,7 +1718,6 @@ class AEBlock(BoxContainer):
         # Cache a little information in the widget.
         widget.editor = editor
         
-        widget.Bind(wx.EVT_SET_FOCUS, self.onGainFocusFromWidget)
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocusFromWidget)
         widget.Bind(wx.EVT_KEY_UP, self.onKeyUpFromWidget)
         widget.Bind(wx.EVT_LEFT_DOWN, self.onClickFromWidget)
@@ -1785,60 +1737,20 @@ class AEBlock(BoxContainer):
             finally:
                 wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
-    def ChangeWidgetIfNecessary(self, forEditing, grabFocus):
+    def onWidgetChangedSize(self):
+        """ 
+        Called by our widget when it changes size.
+        Presumes that there's an event boundary at the point where
+        we need to resynchronize, so it will work with the Detail View.
         """
-        Make sure we've got the right widget, given
-        the item+attribute we're configured for, our
-        presentationstyle, and the state we're in (editing or not).
-        """
-        def rerender():
-            # Find the widget that corresponds to the view we're in
-            existingWidget = getattr(self, 'widget', None)
-            evtBoundaryWidget = existingWidget
-            while evtBoundaryWidget is not None:
-                if evtBoundaryWidget.blockItem.eventBoundary:
-                    break
-                evtBoundaryWidget = evtBoundaryWidget.GetParent()
-            assert evtBoundaryWidget
-                
-            # Tell it not to update
-            evtBoundaryWidget.Freeze()
-            try:
-                # Destroy the old widget
-                if existingWidget is not None:
-                    self.saveValue()
-                    self.unRender()
-                
-                # Set up the new widget
-                self.render()
-                
-                # Grab focus if we're supposed to.
-                if self.forEditing and grabFocus:
-                    logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Grabbing focus." % \
-                                 self.attributeName)
-                    self.widget.SetFocus()
+        evtBoundaryWidget = self.widget
+        while evtBoundaryWidget is not None:
+            if evtBoundaryWidget.blockItem.eventBoundary:
+                break
+            evtBoundaryWidget = evtBoundaryWidget.GetParent()
+        if evtBoundaryWidget:
+            evtBoundaryWidget.blockItem.synchronizeWidget()
 
-                # Sync the view to update the sizers
-                if evtBoundaryWidget:
-                    evtBoundaryWidget.blockItem.synchronizeWidget()
-            finally:
-                if evtBoundaryWidget:
-                    evtBoundaryWidget.Thaw()
-                
-        editor = self.lookupEditor()
-        existingWidget = getattr(self, 'widget', None)
-        changing = editor.MustChangeControl(forEditing, existingWidget)
-        if changing:
-            self.forEditing = forEditing
-            logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Must change." % \
-                         self.attributeName)
-            wx.CallAfter(rerender)
-        else:
-            logger.debug("AEBlock.ChangeWidgetIfNecessary: '%s': Not changing." % \
-                         self.attributeName)
-
-        return changing
-        
     def lookupEditor(self):
         """
         Make sure we've got the right attribute editor for this type
@@ -1923,39 +1835,28 @@ class AEBlock(BoxContainer):
           The widget got clicked on - make sure we're in edit mode.
         """
         logger.debug("AEBlock: %s widget got clicked on", self.attributeName)
-        changing = self.ChangeWidgetIfNecessary(True, True)
 
         # If the widget didn't get focus as a result of the click,
         # grab focus now.
         # @@@ This was an attempt to fix bug 2878 on Mac, which doesn't focus
         # on popups when you click on them (or tab to them!)
-        if not changing:
-            oldFocus = wx.Window.FindFocus()
-            if oldFocus is not self.widget:
-                # Find our view - if it has a finishSelectionChanges method, call it.
-                b = self
-                while b is not None and not b.eventBoundary:
-                    b = b.parentBlock
-                if b is not None:
-                    try:
-                        method = b.finishSelectionChanges
-                    except AttributeError:
-                        pass
-                    else:
-                        method()
-            
-                logger.debug("Grabbing focus.")
-                wx.Window.SetFocus(self.widget)
-
-        event.Skip()
-
-    def onGainFocusFromWidget(self, event):
-        """
-          The widget got the focus - make sure we're in edit mode.
-        """
-        logger.debug("AEBlock: %s widget gained focus", self.attributeName)
+        oldFocus = self.getFocusBlock()
+        if oldFocus is not self:
+            # Find our view - if it has a finishSelectionChanges method, call it.
+            b = self
+            while b is not None and not b.eventBoundary:
+                b = b.parentBlock
+            if b is not None:
+                try:
+                    method = b.finishSelectionChanges
+                except AttributeError:
+                    pass
+                else:
+                    method()
         
-        self.ChangeWidgetIfNecessary(True, True)
+            logger.debug("Grabbing focus.")
+            wx.Window.SetFocus(self.widget)
+
         event.Skip()
 
     def onLoseFocusFromWidget(self, event):
@@ -1976,8 +1877,6 @@ class AEBlock(BoxContainer):
         # Make sure the value is written back to the item. 
         self.saveValue()
 
-        self.ChangeWidgetIfNecessary(False, False)
-
     def saveValue(self):
         # Make sure the value is written back to the item. 
         widget = getattr(self, 'widget', None)
@@ -1993,8 +1892,7 @@ class AEBlock(BoxContainer):
             
     def onKeyUpFromWidget(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
-            if not self.ChangeWidgetIfNecessary(False, True):
-                self.saveValue()
+            self.saveValue()
             
             # Do the tab thing if we're not a multiline thing
             # @@@ Actually, don't; it doesn't mix well when one of the fields you'd
