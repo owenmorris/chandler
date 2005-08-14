@@ -37,7 +37,7 @@ class wxBoxContainer (wxRectangularChild):
             if not sizer:
                 sizer = wx.BoxSizer ({'Horizontal': wx.HORIZONTAL,
                                     'Vertical': wx.VERTICAL} [self.blockItem.orientationEnum])
-            self.SetSizer (sizer)
+                self.SetSizer (sizer)
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
                 if childBlock.isShown and isinstance (childBlock, RectangularChild):
