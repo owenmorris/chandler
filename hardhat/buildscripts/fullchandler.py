@@ -242,6 +242,11 @@ def changesInSVN(workingDir, log):
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
 
+        if moduleDir == 'chandler':
+            outputList = hardhatutil.executeCommandReturnOutputRetry(['python', os.path.join('tools', 'purge.py')])
+
+            hardhatutil.dumpOutputList(outputList, log)
+ 
         outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
 
         hardhatutil.dumpOutputList(outputList, log) 
