@@ -415,3 +415,7 @@ class Indexed(object):
             return self[previousKey]
 
         return None
+
+    def getIndexSize(self, indexName):
+
+        return len(self._index(indexName))

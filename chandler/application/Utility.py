@@ -238,7 +238,8 @@ def initRepository(directory, options):
              'create': True,
              'recover': options.recover,
              'exclusive': True,
-             'refcounted': True }
+             'refcounted': True,
+             'logged': not not options.logging }
 
     if options.restore:
         kwds['restore'] = options.restore
@@ -266,9 +267,9 @@ def initRepository(directory, options):
             del kwds
             break
 
-    view = repository.getCurrentView()
+    view = repository.view
 
-    if not view.findPath("//Packs/Chandler"):
+    if not view.getRoot("Packs").hasChild("Chandler"):
         view.loadPack("repository/packs/chandler.pack")
 
     return view
@@ -286,7 +287,7 @@ def stopRepository(view):
 
 def verifySchema(view):
     # Fetch the top-level parcel item to check schema version info
-    parcelRoot = view.findPath("//parcels")
+    parcelRoot = view.getRoot("parcels")
     if parcelRoot is not None:
         if (not hasattr(parcelRoot, 'version') or
             parcelRoot.version != SCHEMA_VERSION):
@@ -326,8 +327,9 @@ def initParcelEnv(chandlerDirectory, path):
 
     insertionPoint = 1
     for directory in parcelPath:
-        sys.path.insert(insertionPoint, directory)
-        insertionPoint += 1
+        if directory not in sys.path:
+            sys.path.insert(insertionPoint, directory)
+            insertionPoint += 1
 
     logger.info("Using PARCELPATH %s" % parcelPath)
 
@@ -343,7 +345,7 @@ def initParcels(view, path):
     Parcel.Manager.get(view, path=path).loadParcels()
 
     # Record the current schema version into the repository
-    parcelRoot = view.findPath("//parcels")
+    parcelRoot = view.getRoot("parcels")
     parcelRoot.version = SCHEMA_VERSION
 
 

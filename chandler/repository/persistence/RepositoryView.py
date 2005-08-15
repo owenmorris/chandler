@@ -1140,7 +1140,6 @@ class NullRepositoryView(RepositoryView):
     def __init__(self):
 
         self._logger = logging.getLogger(__name__)
-        
         super(NullRepositoryView, self).__init__(None, "null view", 0)
 
     def setCurrentView(self):

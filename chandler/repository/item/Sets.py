@@ -41,8 +41,7 @@ class AbstractSet(ItemValue, Indexed):
     def __len__(self):
 
         if self._indexes:
-            for index in self._indexes.itervalues():
-                return len(index)
+            return len(self._indexes.itervalues().next())
 
         raise ValueError, "set has no indexes, length is unknown"
 
