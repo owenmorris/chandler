@@ -529,7 +529,7 @@ class Item(Base):
     __metaclass__ = ItemClass
     __default_path__ = "//userdata"
 
-    template_child_attrs = []
+    template_child_attrs = ()
 
     def __init__(self,
         name=None, parent=None, kind=None, view=None, *args, **values
@@ -587,8 +587,7 @@ class Item(Base):
         template_child_attrs to the list of child attributes,
         like ['children']
         """
-        return ItemTemplate(cls, itsName,
-                            cls.template_child_attrs, **attrs)
+        return ItemTemplate(cls, itsName, cls.template_child_attrs, **attrs)
 
 
 class StructClass(Activator):
@@ -1148,7 +1147,13 @@ class ItemTemplate(object):
         self.attrs = attrs
         self.itsName = itsName
         self.target_class = target_class
-        self.childAttributeNames = childAttributeNames
+        self.childAttributeNames = tuple(childAttributeNames)
+
+    def __repr__(self):
+        return "ItemTemplate(%s, %r, %r, **%r)" % (
+            self.target_class.__name__, self.itsName, self.childAttributeNames,
+            self.attrs
+        )
 
     def install(self, parent, name=None):
         if name is None: name=self.itsName
