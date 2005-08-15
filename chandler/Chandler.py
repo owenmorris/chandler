@@ -60,8 +60,7 @@ def main():
           useBestVisual, uses best screen resolutions on some old computers. See
         wxApp.SetUseBestVisual
         """
-        #app = wxApplication(redirect=__debug__, useBestVisual=True)
-        app = wxApplication(redirect=False, useBestVisual=True)
+        app = wxApplication(redirect=__debug__, useBestVisual=True)
         app.MainLoop()
 
     if application.Globals.options.nocatch:
