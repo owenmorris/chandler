@@ -268,7 +268,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         """
           Override this to return the list of selected items.
         """
-        pass
+        return []
     
     def DeleteSelection(self):
         """
