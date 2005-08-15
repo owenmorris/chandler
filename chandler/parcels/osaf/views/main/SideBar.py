@@ -151,17 +151,20 @@ class wxSidebar(ControlBlocks.wxTable):
                     elif not self.cellRect.InsideXY (x, y):
                         self.RefreshRect (imageRect)
                         del self.hoverImageRow
-                        gridWindow.ReleaseMouse()
+                        """
+                        @@@ this comment is applicable for all 3 ReleaseMouse calls in this routine
+                        A possible bug (either here in SideBar or perhaps within wxWidgets) causes
+                        this window to not have the mouse capture event though it never explicit released it.
+                        You can verify this by enabling (i.e., commenting in) this assert:
+                        assert gridWindow.HasCapture()
+                        """
+                        if (gridWindow.HasCapture()):
+                            gridWindow.ReleaseMouse()
                     self.buttonPressed = False
 
             elif event.LeftDClick():
-                """
-                  On Macintosh, an apparent wxWidgets bug causes us to not
-                have the mouse capture event though we never released it.
-                You can verify his by commenting in this assert:
-                assert gridWindow.HasCapture()
-                """
-                gridWindow.ReleaseMouse()
+                if (gridWindow.HasCapture()):
+                    gridWindow.ReleaseMouse()
                 del self.hoverImageRow
 
             elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
@@ -169,7 +172,8 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.RefreshRect (button['imageRect'])
                 self.buttonPressed = False
                 del self.hoverImageRow
-                gridWindow.ReleaseMouse()
+                if (gridWindow.HasCapture()):
+                    gridWindow.ReleaseMouse()
 
             elif (self.buttonPressed):
                 button = self.buttonState[self.buttonPressed]
