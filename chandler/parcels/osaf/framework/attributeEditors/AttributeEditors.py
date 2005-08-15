@@ -300,6 +300,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
         editControl.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
         editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
         editControl.Bind(wx.EVT_LEFT_DOWN, self.OnEditClick)
+        editControl.Bind(wx.EVT_LEFT_DCLICK, self.OnEditClick)
         staticControl = AEStaticText(self, -1, pos=position, 
                                                       size=staticSize, style=style, 
                                                       *args, **keys)
@@ -332,7 +333,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
             result, row, column = editControl.HitTest(event.GetPosition())
             if result != wx.TE_HT_UNKNOWN: 
                 editControl.SetInsertionPoint(editControl.XYToPosition(row, column))
-        event.Skip()
+        # return without calling event.Skip(), since we eat the click
 
     def OnEditClick(self, event):
         if self._showingSample():
@@ -345,6 +346,14 @@ class AETypeOverTextCtrl(wxRectangularChild):
         event.Skip()
 
     def OnEditLoseFocus(self, event):
+        # when we lose focus, check if we have a block and tell it
+        #  to save the value.
+        try:
+            saveMethod = self.blockItem.saveValue
+        except AttributeError:
+            pass
+        else:
+            saveMethod()
         self._swapControls(self.staticControl)
         event.Skip()
 
