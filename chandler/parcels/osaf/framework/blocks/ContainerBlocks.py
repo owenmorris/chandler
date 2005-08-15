@@ -215,7 +215,9 @@ class wxSplitterWindow(wx.SplitterWindow):
         # Setting minimum pane size prevents unsplitting a window by double-clicking
         self.SetMinimumPaneSize(7) #weird number to help debug the weird sizing bug 3497
         
-    def Layout(self, *a, **k): return super(wxSplitterWindow, self).__init__(*a, **k)
+    def Layout(self, *arguments, **keywords):
+        #this is here for debugging bug 3497
+        return super(wxSplitterWindow, self).Layout(*arguments, **keywords)
     
     def OnInit(self, *arguments, **keywords):
         #vain attempts to solve weird sizing bug
