@@ -14,7 +14,6 @@ should not be used.  If you have any questions please contact me
 
   -- bear bear@osafoundation.org (aka Mike Taylor)
 
-
 HardHat is the Chandler project build tool, consisting of a set
 of Python scripts which orchestrate the building of all the modules
 required by Chandler.  In our CVS repository we have checked in copies
