@@ -176,7 +176,19 @@ class Block(schema.Item):
         Very similar to the default template() routine, except that
         1) childrenBlocks is used for children
         2) the repository name and blockname are unified
+        3) eventsForNamedLookup is automatically populated
         """
+        
+        # There might already be an eventsForNamedLookup, so just
+        # append to the existing one if its already there
+        event = attrs.get('event')
+        eventsForNamedLookup = attrs.get('eventsForNamedLookup', [])
+
+        if event and event not in eventsForNamedLookup:
+            eventsForNamedLookup.append(event)
+            # just in case it wasn't there originally
+            attrs['eventsForNamedLookup'] = eventsForNamedLookup
+            
         return schema.ItemTemplate(theClass, blockName,
                                    ['childrenBlocks'],
                                    blockName=blockName, **attrs)
