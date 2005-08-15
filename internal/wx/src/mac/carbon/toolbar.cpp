@@ -524,7 +524,7 @@ void wxToolBar::Init()
 bool wxToolBar::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
             long style, const wxString& name)
 {
-    if ( !wxToolBarBase::Create( parent , id , pos , size , style ) )
+    if ( !wxToolBarBase::Create( parent , id , pos , size , style, wxDefaultValidator, name ) )
         return false ;
 
     OSStatus err = 0;
@@ -936,6 +936,9 @@ bool wxToolBar::Realize()
     SetSize( maxWidth, maxHeight );
     InvalidateBestSize();
 #endif
+
+    SetBestFittingSize();
+
     return true;
 }
 
