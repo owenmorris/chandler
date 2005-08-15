@@ -1244,7 +1244,7 @@ class ContactAttributeEditor (StringAttributeEditor):
         return value
 
 class EmailAddressAttributeEditor (StringAttributeEditor):
-    def GetAttributeValue (self, item, attributeName):
+    def GetAttributeValue(self, item, attributeName):
         attrValue = getattr(item, attributeName, None)
         if attrValue is not None:
             cardinality = item.getAttributeAspect(attributeName, "cardinality")
@@ -1428,6 +1428,13 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
                     setattr(item, 'endTime', value)
             
             self.AttributeChanged()
+            
+    def GetAttributeValue(self, item, attributeName):
+        value = getattr(item, attributeName, None)
+        if value is not None:
+            return value.tzinfo
+        else:
+            return None
 
     def GetControlValue (self, control):
         """ Get the selected choice's time zone """
@@ -1442,36 +1449,31 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
-        if existingValue != value:            
+        if existingValue != value:
             control.Clear()
 
             selectIndex = -1
             
-            # rebuild the list of choices
-            if value is not None:
-                selectTz = value.tzinfo
-            else:
-                selectTz = None
-            
             # Map "floating" timezones to the user's default for now
-            if selectTz is None:
-                selectTz = ICUtzinfo.getDefault()
+            if value is None:
+                value = ICUtzinfo.getDefault()
                 
+            # rebuild the list of choices
             for zone in DefaultTimeZone.knownTimeZones:
                 # [@@@] Localization
                 index = control.Append(unicode(zone), clientData=zone)
             
                 # [@@@] grant: Should be value == zone; PyICU bug?
-                if selectTz is not None and zone.timezone == selectTz.timezone:
+                if value is not None and zone.timezone == value.timezone:
                     selectIndex = index
 
             # [@@@] grant: Experimental
             #index = control.Append(_(u"Floating"), clientData=None)
-            #if selectTz is None:
+            #if value is None:
             #    selectIndex = index
         
             if selectIndex is -1:
-                control.Insert(unicode(selectTz), 0, clientData=selectTz)
+                control.Insert(unicode(value), 0, clientData=value)
                 selectIndex = 0
                 
             if selectIndex != -1:
