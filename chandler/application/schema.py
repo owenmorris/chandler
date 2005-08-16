@@ -11,7 +11,7 @@ import __main__, repository, threading, os, sys
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Role', 'itemFor', 'kindInfo',
     'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
-    'importString', 'parcel_for_module', 'ItemTemplate', 'TypeReference',
+    'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
     'assertResolved',
 ]
@@ -529,8 +529,6 @@ class Item(Base):
     __metaclass__ = ItemClass
     __default_path__ = "//userdata"
 
-    template_child_attrs = ()
-
     def __init__(self,
         name=None, parent=None, kind=None, view=None, *args, **values
     ):
@@ -578,16 +576,6 @@ class Item(Base):
         is used.
         """
         return KindQuery(not exact).run([itemFor(cls,view)])
-
-    @classmethod
-    def template(cls, itsName, **attrs):
-        """
-        Easy default implementation for using ItemTemplate
-        Most classes can just set the class attribute
-        template_child_attrs to the list of child attributes,
-        like ['children']
-        """
-        return ItemTemplate(cls, itsName, cls.template_child_attrs, **attrs)
 
 
 class StructClass(Activator):
@@ -865,6 +853,7 @@ class ns(object):
         if name=='parcel':
             self.parcel = parcel_for_module(self.__module.__name__, self.view)
             return self.parcel
+
         try:
             return getattr(self.__module,name)
         except AttributeError:
@@ -875,7 +864,12 @@ class ns(object):
             "%s is not in %r or %r" % (name, self.__module, self.parcel)
         )
 
-
+    def _makeTemplates(self):
+        result = {}
+        for k,v in self.__module.__dict__.items():
+            if isinstance(v, ItemClass):
+                result[k] = v.template
+        return result
 
 def _refMap(ob):
     view = ob.itsView
@@ -1133,44 +1127,6 @@ def itemFor(obj, view=None):
             return item
     finally:
         global_lock.release()
-
-# -------------
-# Item creation
-# -------------
-class ItemTemplate(object):
-    """
-    Template class for easy domain-specific item creation
-    In general, this allows a class to make a 'template' wrapper which
-    will create all items and their children appropriately.
-    """
-    def __init__(self, target_class, itsName, childAttributeNames, **attrs):
-        self.attrs = attrs
-        self.itsName = itsName
-        self.target_class = target_class
-        self.childAttributeNames = tuple(childAttributeNames)
-
-    def __repr__(self):
-        return "ItemTemplate(%s, %r, %r, **%r)" % (
-            self.target_class.__name__, self.itsName, self.childAttributeNames,
-            self.attrs
-        )
-
-    def install(self, parent, name=None):
-        if name is None: name=self.itsName
-
-        # first make parent exist
-        me = self.target_class.update(parent, name)
-
-        # this is a temporary attribute list, which will contain
-        # all the instantiated children, to be passed to .update
-        attrs = self.attrs.copy()
-
-        # now hook up the children, and replace the templates
-        # with the real things
-        for childAttribute in self.childAttributeNames:
-            if childAttribute in attrs:
-                attrs[childAttribute] = [t.install(me) for t in attrs[childAttribute]]
-        return self.target_class.update(parent, name, **attrs)
 
 # -------------------------------
 # Initialization/Utility Routines
