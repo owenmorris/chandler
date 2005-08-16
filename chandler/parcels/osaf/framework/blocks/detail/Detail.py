@@ -390,6 +390,14 @@ class DetailSynchronizer(Item):
         
 
     def onSetContentsEvent (self, event):
+        logger.debug("DetailSynchronizer: onSetContentsEvent")
+        try:
+            superMethod = super(DetailSynchronizer, self).onSetContentsEvent
+        except AttributeError:
+            pass
+        else:
+            superMethod(event)
+
         self.contents = event.arguments['item']
 
     def selectedItem (self):
@@ -1037,16 +1045,10 @@ class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('allDay')
 
-# @@@ For now, just inherit from ContentItemDetail; when we don't, 
-#     layout gets funny on Mac (bug 3543). By turning this off,
-#     I'm reopening bug 2976: location will be shown even for
-#     readonly shares.
-class CalendarLocationAreaBlock(ControlBlocks.ContentItemDetail):
-    pass
-#class CalendarLocationArea(DetailSynchronizedContentItemDetail):
-    #def shouldShow (self, item):
-        #return item.isAttributeModifiable('location') \
-               #or hasattr(item, 'location')
+class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
+    def shouldShow (self, item):
+        return item.isAttributeModifiable('location') \
+               or hasattr(item, 'location')
 
 class CalendarAtLabelBlock(StaticTextLabel):
     def shouldShow (self, item):

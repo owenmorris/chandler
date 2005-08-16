@@ -1794,7 +1794,19 @@ class AEBlock(BoxContainer):
         return selectedEditor
 
     def onSetContentsEvent (self, event):
-        self.item = event.arguments['item']
+        logger.debug("AEBlock: onSetContentsEvent")
+        try:
+            superMethod = super(AEBlock, self).onSetContentsEvent
+        except AttributeError:
+            pass
+        else:
+            superMethod(event)
+            
+        if False: # Don't do this until Jeffrey's ready
+            self.item = Calendar.getProxy(u'ui', event.arguments['item'])
+        else:
+            self.item = event.arguments['item']
+            
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):
