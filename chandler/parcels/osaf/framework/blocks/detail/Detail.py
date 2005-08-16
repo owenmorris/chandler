@@ -42,25 +42,6 @@ Classes for the ContentItem Detail View
 
 logger = logging.getLogger(__name__)
 
-def installParcel(parcel, oldVersion=None):
-    # Declare our attribute editors at repository-init time
-    #
-    # If you modify this list, please keep it in alphabetical order by type string.
-    # Also, note that there are more attribute editors custom to the detail 
-    # view; they're declared in its installParcel method.
-    aeList = {
-        'DateTime+calendarDateOnly': 'CalendarDateAttributeEditor',
-        'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
-        'EmailAddress+outgoing': 'OutgoingEmailAddressAttributeEditor',
-        'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
-        'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
-        'RecurrenceRuleSet+occurs': 'RecurrenceAttributeEditor',
-        'TimeDelta+reminderPopup': 'ReminderDeltaAttributeEditor',
-    }
-    for typeName, className in aeList.items():
-        AttributeEditorMapping.update(parcel, typeName, className=\
-                                      __name__ + '.' + className)
-
 class DetailTrunkSubtree(TrunkSubtree):
     """All our subtrees are of this kind, so we can find 'em."""
 
@@ -391,13 +372,6 @@ class DetailSynchronizer(Item):
 
     def onSetContentsEvent (self, event):
         logger.debug("DetailSynchronizer: onSetContentsEvent")
-        try:
-            superMethod = super(DetailSynchronizer, self).onSetContentsEvent
-        except AttributeError:
-            pass
-        else:
-            superMethod(event)
-
         self.contents = event.arguments['item']
 
     def selectedItem (self):
@@ -566,6 +540,15 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
 
     def OnDataChanged (self):
         self.saveTextValue()
+
+    def onSetContentsEvent(self, event):
+        logger.debug("DSAEBlock: onSetContentsEvent")
+
+        if False: # Don't do this until Jeffrey's ready
+            self.contents = Calendar.getProxy(u'ui', event.arguments['item'])
+        else:
+            self.contents = event.arguments['item']
+        assert not hasattr(self, 'widget')
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,

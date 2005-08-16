@@ -1811,19 +1811,7 @@ class AEBlock(BoxContainer):
         return not item.isAttributeModifiable(names[-1])
         
     def onSetContentsEvent (self, event):
-        logger.debug("AEBlock: onSetContentsEvent")
-        try:
-            superMethod = super(AEBlock, self).onSetContentsEvent
-        except AttributeError:
-            pass
-        else:
-            superMethod(event)
-            
-        if False: # Don't do this until Jeffrey's ready
-            self.item = Calendar.getProxy(u'ui', event.arguments['item'])
-        else:
-            self.item = event.arguments['item']
-            
+        self.item = event.arguments['item']            
         assert not hasattr(self, 'widget')
             
     def getItemAttributeTypeName(self):

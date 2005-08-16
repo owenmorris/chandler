@@ -1,6 +1,7 @@
 
+from detailblocks import installParcel
+
 from Detail import (
-    installParcel,
     AttachmentAreaBlock, 
     AttachmentTextFieldBlock, 
     AcceptShareButtonBlock,
@@ -36,3 +37,4 @@ from Detail import (
     StaticTextLabel, 
     TaskStampBlock
 )
+    
