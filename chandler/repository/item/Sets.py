@@ -168,10 +168,12 @@ class AbstractSet(ItemValue, Indexed):
                 key = other.itsUUID
                 if op == 'add':
                     for index in self._indexes.itervalues():
-                        index.insertKey(key, index.getLastKey())
+                        if key not in index:
+                            index.insertKey(key, index.getLastKey())
                 elif op == 'remove':
                     for index in self._indexes.itervalues():
-                        index.removeKey(key)
+                        if key in index:
+                            index.removeKey(key)
                 else:
                     raise ValueError, op
 
