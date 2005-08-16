@@ -2,19 +2,18 @@
 from twisted.internet.protocol import Factory
 from twisted.protocols import basic
 from twisted.internet import reactor
+from twisted.test.ssl_helpers import ServerTLSContext
 import sys
 import os
 
-"""
-Notes:
-1. Add bad Auth sharing
-2. TLS
-"""
+LOGIN_PLAIN = "test test"
 
+CERT_FILE = "./certs/server.pem"
 PORT = 1430
-LOGIN_PLAIN = "testuser testuser"
+SSL_PORT = 9950
 
 SSL_SUPPORT = True
+START_SSL = False
 INVALID_SERVER_RESPONSE = False
 INVALID_CAPABILITY_RESPONSE = False
 INVALID_LOGIN_RESPONSE = False
@@ -38,14 +37,22 @@ AUTH_ACCEPTED = "OK user testuser authenticated"
 NOOP_OK = "OK NOOP completed"
 AUTH_DECLINED = "NO LOGIN failed"
 UNKNOWN_COMMAND = "Bad Command unrecognized"
-TLS_ERROR = "server side error start TLS handshake"
+TLS_ERROR = "BAD server side error start TLS handshake"
 NO_MAILBOX_ERROR = "NO SELECT failed"
 LOGOUT_COMPLETE = "OK LOGOUT completed"
+BEGIN_TLS = "OK begin TLS negotiation"
 CAPABILITY_COMPLETE = "OK CAPABILITY completed"
 BAD_REQUEST = "BAD Missing command"
 NOT_LOGGED_IN = "BAD Command unrecognized/login please: INBOX"
 
-INBOX_SELECTED = [
+FOLDERS = [
+'* LIST (\NoInferiors \UnMarked) "/" Sent',
+'* LIST (\NoInferiors \UnMarked) "/" Trash',
+'* LIST (\NoInferiors \UnMarked) "/" Drafts',
+'* LIST (\NoInferiors) NIL INBOX'
+]
+
+FOLDER_SELECTED = [
 "* 0 EXISTS",
 "* 0 RECENT",
 "* OK [UIDVALIDITY 1092939128] UID validity status",
@@ -54,11 +61,13 @@ INBOX_SELECTED = [
 "* OK [PERMANENTFLAGS (Junk \* \Answered \Flagged \Deleted \Draft \Seen)] Permanent flags"
 ]
 
-INBOX_SELECT_COMPLETE = "OK [READ-WRITE] SELECT completed"
+FOLDER_SELECT_COMPLETE = "OK [READ-WRITE] SELECT completed"
+LIST_COMPLETE = "OK LIST completed" 
 
 class IMAPTestServer(basic.LineReceiver):
     def __init__(self):
         self.loggedIn = False
+        self.ctx = None
 
     def getCode(self, str):
         return str.split(" ")[0]
@@ -71,9 +80,12 @@ class IMAPTestServer(basic.LineReceiver):
             return False
 
     def sendSelectResp(self, req):
-        #XXX: need to refine this
-        self.sendLine("\r\n".join(INBOX_SELECTED))
-        self.sendResponse(INBOX_SELECT_COMPLETE, req)
+        self.sendLine("\r\n".join(FOLDER_SELECTED))
+        self.sendResponse(FOLDER_SELECT_COMPLETE, req)
+
+    def sendListResp(self, req):
+        self.sendLine("\r\n".join(FOLDERS))
+        self.sendResponse(LIST_COMPLETE, req)
 
     def sendCapabilities(self, req):
         caps = SSL_SUPPORT and CAP_SSL or CAP
@@ -124,7 +136,10 @@ class IMAPTestServer(basic.LineReceiver):
                 self.sendCapabilities(line)
 
         elif "STARTTLS" in line.upper() and SSL_SUPPORT:
-            self.sendResponse(TLS_ERROR, line)
+            if BAD_TLS_RESPONSE: 
+                self.sendResponse(TLS_ERROR, line)
+            else:
+                self.startTLS(line)
 
         elif "LOGIN" in line.upper():
             if INVALID_LOGIN_RESPONSE:
@@ -156,14 +171,17 @@ class IMAPTestServer(basic.LineReceiver):
         elif "NOOP" in line.upper():
             self.sendResponse(NOOP_OK, line)
 
-        elif "SELECT" in line.upper():
+        elif "SELECT" or "EXAMINE" in line.upper():
             if TIMEOUT_DEFERRED:
-                return 
+                return
 
-            if NO_MAILBOX or "INBOX" not in line.upper():
+            if NO_MAILBOX:
                 self.sendResponse(NO_MAILBOX_ERROR, line)
             else:
                 self.sendSelectResp(line)
+
+        elif "LIST" in line.upper():
+            self.sendListResp(line)
 
         else:
             self.sendResponse(UNKNOWN_COMMAND, line)
@@ -171,11 +189,24 @@ class IMAPTestServer(basic.LineReceiver):
     def disconnect(self):
         self.transport.loseConnection()
 
+    def startTLS(self, line):
+        if self.ctx is None:
+            self.ctx = ServerTLSContext(CERT_FILE)
 
-usage = """imapServer.py [arg] (default is Standard IMAP Server with no messages in Inbox)
+        if SSL_SUPPORT and self.ctx is not None:
+            self.sendResponse(BEGIN_TLS, line)
+            self.transport.startTLS(self.ctx)
+        else:
+            self.sendResponse(TLS_ERROR, line)
+
+    def disconnect(self):
+        self.transport.loseConnection()
+
+usage = """imapServer.py [arg] (default is Standard IMAP Server with no messages)
 cap_greeting - send the IMAP Server 'CAPABILITY' list in the Server Greeting response
+start_ssl  - Start in SSL mode only accept encypted traffic
 no_ssl - Start with no SSL support
-no_mailbox - Start with no Inbox
+no_mailbox - Start with no in folder
 bad_resp - Send a non-RFC compliant response to the Client
 bad_cap_resp - send a non-RFC compliant response when the Client sends a 'CAPABILITY' request
 bad_login_resp - send a non-RFC compliant response when the Client sends a 'LOGIN' request
@@ -197,6 +228,12 @@ def processArg(arg):
         global SEND_CAPABILITY_IN_GREETING
         SEND_CAPABILITY_IN_GREETING = True
         printMessage("Send Capability in Greeting")
+
+    elif arg.lower() == 'start_ssl':
+        global START_SSL
+        START_SSL = True
+        printMessage("Starting in SSL Mode")
+
 
     elif arg.lower() == 'no_ssl':
         global SSL_SUPPORT
@@ -264,7 +301,7 @@ def processArg(arg):
 
 def main():
     if len(sys.argv) < 2:
-        printMessage("Inbox with no messages")
+        printMessage("Folders with no messages")
 
     else:
         args = sys.argv[1:]
@@ -274,7 +311,11 @@ def main():
 
     f = Factory()
     f.protocol = IMAPTestServer
-    reactor.listenTCP(PORT, f)
+    if START_SSL:
+        reactor.listenSSL(SSL_PORT, f, ServerTLSContext(CERT_FILE))
+    else:
+        reactor.listenTCP(PORT, f)
+
     reactor.run()
 
 if __name__ == '__main__':

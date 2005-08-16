@@ -44,6 +44,7 @@ To Do:
 3. Add i18n support to outbound message
 4. Look at why certain encodings are failing from bear server move move encodings to 
    i18n Package
+5. Look at test_Big5-2 it is not working anymore
 
 
 ARE THESES HANDLED BY THE EMAIL LIBRARY?
