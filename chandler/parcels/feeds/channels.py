@@ -146,8 +146,9 @@ class FeedChannel(pim.ItemCollection):
             if data.bozo and not isinstance(data.bozo_exception, feedparser.CharacterEncodingOverride):
                 logger.error("For url '%s', feedparser exception: %s" % (self.url, data.bozo_exception))
                 raise data.bozo_exception
-        except KeyError:
-            print "Error"
+        except KeyError, e:
+            logger.error("For url '%s', feedparser KeyError: %s" % \
+                (self.url, e))
             return
 
         self._DoChannel(data['channel'])
@@ -321,3 +322,31 @@ class FeedItem(pim.ContentItem):
             logger.error("Feed item comparison failed")
 
         return False
+
+
+class FeedUpdateTaskClass:
+
+    def __init__(self, item):
+        self.view = item.itsView
+
+    def run(self):
+        self.view.refresh()
+
+        for channel in FeedChannel.iterItems(self.view):
+            try:
+                channel.Update()
+            except socket.timeout:
+                logging.exception('socket timed out')
+                pass
+            except:
+                logging.exception('failed to update %s' % channel.url)
+                pass
+        try:
+            self.view.commit()
+        except Exception, e:
+            logging.exception('failed to commit')
+            pass
+
+        return True     # run it again next time
+
+

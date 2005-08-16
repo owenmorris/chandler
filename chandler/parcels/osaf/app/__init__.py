@@ -22,7 +22,7 @@ def installParcel(parcel, oldVersion=None):
     # Items created in osaf.app (this parcel):
 
     startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="osaf.app.FeedUpdateTaskClass",
+        invoke="feeds.FeedUpdateTaskClass",
         run_at_startup=True,
         interval=datetime.timedelta(minutes=30)
     )
@@ -187,31 +187,3 @@ The Chandler Team"""
             )
         ]
     )
-
-
-class FeedUpdateTaskClass:
-
-    def __init__(self, item):
-        self.view = item.itsView
-
-    def run(self):
-        self.view.refresh()
-
-        for item in FeedChannel.iterItems(self.view):
-            try:
-                item.Update()
-            except socket.timeout:
-                logging.exception('socket timed out')
-                pass
-            except Exception, e:
-                logging.exception('failed to update %s' % item.url)
-                pass
-        try:
-            self.view.commit()
-        except Exception, e:
-            logging.exception('failed to commit')
-            pass
-
-        return True     # run it again next time
-
-
