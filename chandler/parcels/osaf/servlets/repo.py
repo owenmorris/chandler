@@ -1,7 +1,6 @@
 import os, sys, string, traceback
 
 from twisted.web import resource
-# import application.Globals as Globals
 import repository
 import application
 import re
@@ -16,7 +15,6 @@ from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
-
 
 class RepoResource(resource.Resource):
     isLeaf = True
@@ -1033,11 +1031,7 @@ def toLink(path):
 
 def clean(s):
     s = unicode(s)
-    try:
-        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
-    except Exception, e:
-        print e, s, type(s)
-        raise
+    return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
 
 def indent(depth):
     result = ""
