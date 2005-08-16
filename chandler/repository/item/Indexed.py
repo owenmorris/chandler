@@ -326,9 +326,9 @@ class Indexed(object):
 
         if item in self:
             return self._index(indexName).getPosition(item._uuid)
-        else:
-            ownerItem, name = self._getOwner()
-            raise NoSuchItemInCollectionError, (ownerItem, name, item)
+
+        ownerItem, name = self._getOwner()
+        raise NoSuchItemInCollectionError, (ownerItem, name, item)
 
     def firstInIndex(self, indexName):
         """

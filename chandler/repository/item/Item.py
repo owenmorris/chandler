@@ -383,9 +383,9 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                attrValue = PersistentList(self, name, value)
+                attrValue = PersistentList(self, name, value, False)
                 _values[name] = attrValue
-                setDirty = False
+                dirty = Item.VDIRTY
 
         elif isinstance(value, dict):
             if _attrDict is _references:
@@ -399,9 +399,9 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                attrValue = PersistentDict(self, name, value)
+                attrValue = PersistentDict(self, name, value, False)
                 _values[name] = attrValue
-                setDirty = False
+                dirty = Item.VDIRTY
             
         elif isinstance(value, tuple):
             if _attrDict is _references:
@@ -431,9 +431,9 @@ class Item(CItem):
                 value = refList
                 setDirty = False
             else:
-                attrValue = PersistentSet(self, name, value)
+                attrValue = PersistentSet(self, name, value, False)
                 _values[name] = attrValue
-                setDirty = False
+                dirty = Item.VDIRTY
             
         elif isinstance(value, ItemValue):
             value._setOwner(self, name)

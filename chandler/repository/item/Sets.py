@@ -32,9 +32,6 @@ class AbstractSet(ItemValue, Indexed):
     def __repr__(self):
         return self._repr_()
 
-    def _setChanged(self, op, setOwner, setName, other):
-        raise NotImplementedError, "%s._setChanged" %(type(self))
-
     def __getitem__(self, uuid):
 
         return self._getView()[uuid]
@@ -163,23 +160,33 @@ class AbstractSet(ItemValue, Indexed):
     def _collectionChanged(self, op, other):
 
         item = self._item
+        attribute = self._attribute
 
         if item is not None:
             if self._indexes:
                 key = other.itsUUID
+                dirty = False
+
                 if op == 'add':
                     for index in self._indexes.itervalues():
                         if key not in index:
                             index.insertKey(key, index.getLastKey())
+                            dirty = True
+
                 elif op == 'remove':
                     for index in self._indexes.itervalues():
                         if key in index:
                             index.removeKey(key)
+                            dirty = True
+
                 else:
                     raise ValueError, op
 
-            item.collectionChanged(op, item, self._attribute, other)
-            item._collectionChanged(op, self._attribute, other)
+                if dirty:
+                    self._setDirty()
+
+            item.collectionChanged(op, item, attribute, other)
+            item._collectionChanged(op, attribute, other)
 
     def removeByIndex(self, indexName, position):
 
