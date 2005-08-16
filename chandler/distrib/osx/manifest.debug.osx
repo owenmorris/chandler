@@ -63,7 +63,9 @@ util
 tools
 glob=*
 repository
-locale
+resources
+i18n
+
 
 # Grab the osx README
 src=chandler/distrib/osx

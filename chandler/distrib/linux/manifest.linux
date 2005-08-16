@@ -109,7 +109,9 @@ tools
 
 glob=*
 repository
-locale
+resources
+i18n
+
 
 
 # Grab the linux README

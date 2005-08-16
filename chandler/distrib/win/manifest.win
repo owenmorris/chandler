@@ -60,7 +60,9 @@ tools
 
 glob=*
 repository
-locale
+resources
+i18n
+
 
 # Grab the launchers, icon file and windows README
 src=chandler/distrib/win
