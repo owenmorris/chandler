@@ -827,8 +827,7 @@ def RenderItem(repoView, item):
                      value)
                     typeName = theType.getImplementationType().__name__
                     result += "<b>(%s)</b> " % typeName
-                    uStr = value.getReader().read()
-                    content = uStr.encode('ascii', 'replace')
+                    content = value.getReader().read()
                     result += clean(content)
 
                 except Exception, e:
@@ -1035,7 +1034,7 @@ def toLink(path):
 def clean(s):
     s = unicode(s)
     try:
-        return s.replace("<", "").replace(">","")
+        return s.replace("<", "&lt;").replace(">","&gt;")
     except Exception, e:
         print e, s, type(s)
         raise
