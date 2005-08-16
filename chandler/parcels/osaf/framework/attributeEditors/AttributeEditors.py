@@ -1503,12 +1503,13 @@ class IconAttributeEditor (BaseAttributeEditor):
         except AttributeError:
             value = ""
         return value
-    
+
     def Draw (self, dc, rect, item, attributeName, isInSelection=False):
         dc.SetPen (wx.TRANSPARENT_PEN)
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName)
         if len(imageName):
+            #XXX: i18n Upcast to unicode. All Image names need to be unicode 
             imageName += ".png"
             image = wx.GetApp().GetImage(imageName)
             if image is not None:

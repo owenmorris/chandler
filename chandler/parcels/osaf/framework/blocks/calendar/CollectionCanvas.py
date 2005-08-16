@@ -151,9 +151,10 @@ class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
 
         @param parent: like all controls, requires a parent window
         @type parent: wx.Window
-        @param name: name of an image file
-        @type name: string
-        """
+        @param name: unicode name of an image file
+        @type name: unicode
+       """
+
         self.forcedBorder = GetPlatformBorder()
 
         bitmap = wx.GetApp().GetImage (name)

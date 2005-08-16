@@ -7,6 +7,8 @@ from osaf.sharing import Sharing, ICalendar
 import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
+from repository.packs.chandler.Types import LocalizableString
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ class SubscribeDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
 
         self.view = view
         self.resources = resources
@@ -72,7 +74,7 @@ class SubscribeDialog(wx.Dialog):
             url = 'http:' + url[7:]
         share = Sharing.findMatchingShare(view, url)
         if share is not None:
-            self.__showStatus("You are already subscribed")
+            self.__showStatus(_("You are already subscribed"))
             return
 
         try:
@@ -86,7 +88,7 @@ class SubscribeDialog(wx.Dialog):
                 share.conduit.account.username = self.textUsername.GetValue()
                 share.conduit.account.password = self.textPassword.GetValue()
 
-            self.__showStatus("In progress...")
+            self.__showStatus(_("In progress..."))
             wx.Yield()
             share.sync()
             collection = share.contents
@@ -111,14 +113,14 @@ class SubscribeDialog(wx.Dialog):
             self.__showAccountInfo(share.conduit.account)
             share.delete(True)
         except Sharing.NotFound, err:
-            self.__showStatus("That collection was not found")
+            self.__showStatus(_("That collection was not found"))
             share.delete(True)
         except Sharing.SharingError, err:
-            self.__showStatus("Sharing Error:\n%s" % err.message)
+            self.__showStatus(_("Sharing Error:\n%s") % err.message)
             logger.exception("Error during subscribe for %s" % url)
             share.delete(True)
         except Exception, e:
-            self.__showStatus("Sharing Error:\n%s" % e)
+            self.__showStatus(_(u"Sharing Error:\n%s") % e)
             logger.exception("Error during subscribe for %s" % url)
             share.delete(True)
 
@@ -151,7 +153,7 @@ class SubscribeDialog(wx.Dialog):
             self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
 
-        self.textStatus.SetLabel(text)
+        self.textStatus.SetLabel(unicode(text))
         self.__resize()
 
     def __hideStatus(self):
@@ -173,7 +175,7 @@ def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
-    win = SubscribeDialog(parent, "Subscribe to Shared Collection",
+    win = SubscribeDialog(parent, _("Subscribe to Shared Collection"),
      resources=resources, view=view, url=url)
     win.CenterOnScreen()
     win.ShowModal()

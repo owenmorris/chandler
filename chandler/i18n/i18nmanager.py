@@ -28,18 +28,7 @@ jp.po
 
 TO DO:
 1. Implement cache withthread lock
-2. Create generic localeset look interface
-
-
-Today:
-1. Move all resources
-2. Hook up the locale lookup
-3. Test a message dialog with a localizableString
-4. Look at makevalue closer
-5. Decide what is in i18n and what is utility
-6. Turn off gettext and update all _() strings
-7. Determine where is the best dir for help and resources
-
+2. Create generic localeset fallback interface
 """
 
 OSAF_DOMAIN = "osaf"
@@ -76,6 +65,10 @@ class I18nManager(object):
 
         self._localeSet = localeSet
 
+        #XXX: Need to translate the locale i.e. "en_US'" to a
+        #     wx.LANGUAGE key
+        #wx.Locale(wx.LANGUAGE_ENGLISH)
+
         """Set the PyICU Locale"""
         Locale.setDefault(Locale(self._localeSet[0]))
         try:
@@ -88,16 +81,6 @@ class I18nManager(object):
         os.environ['LANGUAGE'] = self._localeSet[0]
         os.environ['LANG'] = self._localeSet[0]
         os.environ['LC_MESSAGES'] = self._localeSet[0]
-
-        #We temporarily assign _() to return the value it is passed.
-        # till  LocalizableString is put in place in the Chandler code base
-
-        def gettextStandin(text):
-            return text
-
-        import __builtin__
-        __builtin__.__dict__['_'] = gettextStandin
-
 
     def getLocaleSet(self, domain=OSAF_DOMAIN):
         return self._localeSet
@@ -134,8 +117,9 @@ class I18nManager(object):
            locale set occurs
         """
 
-        assert isinstance(relPath, UnicodeType)
-        assert isinstance(resourceName, UnicodeType)
+        #XXX: These amy throw UnicodeDecodeErrors
+        relPath = unicode(relPath)
+        resourceName = unicode(resourceName)
 
         if domain != OSAF_DOMAIN:
             raise i18n.I18nException("Only OSAF domain supported in .6")

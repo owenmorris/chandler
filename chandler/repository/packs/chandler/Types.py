@@ -1,4 +1,3 @@
-
 __revision__  = "$Revision: 5970 $"
 __date__      = "$Date: 2005-07-12 16:27:25 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
@@ -15,13 +14,16 @@ class LocalizableString(object):
     __slots__ = ['_domain', '_defaultText', "_args"]
 
     def __init__(self, domain, defaultText):
-        assert isinstance(domain, StringType)
-        assert isinstance(defaultText, UnicodeType)
-
         super(LocalizableString, self).__init__()
+
+        assert isinstance(domain, StringType)
+
+        #This may throw a UnicodeDecodeError
+        defaultText = unicode(defaultText)
 
         self._domain = domain
         self._defaultText = defaultText
+
         """Non-persisted value"""
         self._args = None
 
@@ -31,6 +33,7 @@ class LocalizableString(object):
 
     def __mod__(self, args):
        #xXX: what restrictions to put on args?
+
         if __debug__:
             """If we are running in debug mode test the args against the
                key to make sure correct number of args passed in. This
@@ -39,6 +42,7 @@ class LocalizableString(object):
 
             self._defaultText % args
 
+        # the __unicode__ method of each arg will be called
         self._args = args
 
         return self
@@ -69,10 +73,12 @@ from repository.schema.Alias import Alias
 
 class LocalizableStringType(Struct):
     def makeValue(self, data):
+        print "data: ", data
         return LocalizableString(data)
 
 class Text(Alias):
     def makeValue(self, data):
+        print "data: ", data
         return LocalizableString(data)
 
 

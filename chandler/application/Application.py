@@ -3,9 +3,10 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys, threading, time, cStringIO, logging
+import os, sys, threading, time, logging, cStringIO
 
 from new import classobj
+from i18n import I18nManager
 import wx
 import Globals
 from repository.persistence.DBRepository import DBRepository
@@ -168,28 +169,22 @@ class wxApplication (wx.App):
             splash.Show()
             wx.Yield() #let the splash screen render itself
 
-        """
-          Setup internationalization
-        To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
-        """
-        os.environ['LANGUAGE'] = 'en'
-#        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-        """
-          @@@ Sets the python locale, used by wx.CalendarCtrl
-        for month and weekday names. When running on Linux, 'en' is not
-        understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
-        locale.setlocale(locale.LC_ALL, 'en')
-        """
-#        wx.Locale_AddCatalogLookupPathPrefix('locale')
-#        self.locale.AddCatalog('Chandler.mo')
-        gettext.install('chandler', 'locale')
+
+        localeSet = None
+
+        if Globals.options.locale is not None:
+            """If a locale is passed in on the command line
+               we set it as the root in the localeset."""
+
+            I18nManager.setLocaleSet([Globals.options.locale])
+        else:
+            I18nManager.discoverLocaleSet()
+
         """
           Crypto initialization
         """
         if splash: splash.updateGauge('crypto')
         Utility.initCrypto(Globals.options.profileDir)
-
-
 
         if splash: splash.updateGauge('repository')
         # The repository opening code was moved to a method so that it can
@@ -257,14 +252,17 @@ class wxApplication (wx.App):
         # height by the height of the toolbar.  We fix by remembering the
         # (correct) size before rendering and resizing. 
         rememberSize = (mainViewRoot.size.width, mainViewRoot.size.height)
-            
+
+
+        #XXX: [i18n] The Application name Chandler will remain constant
+        #     across translations.
         self.mainFrame = MainFrame(None,
                                    -1,
-                                   "Chandler",
+                                   u"Chandler",
                                    pos=position,
                                    size=(mainViewRoot.size.width, mainViewRoot.size.height),
                                    style=wx.DEFAULT_FRAME_STYLE)
-        
+ 
         mainViewRoot.frame = self.mainFrame
         """
           Register to some global events for name lookup.
@@ -393,32 +391,17 @@ class wxApplication (wx.App):
                             name = window.blockItem
                         print indent, name
                         self.PrintTree (window, indent + "  ")
-        
-    def GetRawImage (self, name):
-        """
-          Return None if image isn't found, otherwise return the raw image.
-        Also look first for platform specific images.
-        """
-        root, extension = os.path.splitext (name)
-        root = os.sep.join([Globals.chandlerDirectory, "application", "images",  root])
-        try:
-            file = open(root + "-" + sys.platform + extension, "rb")
-        except IOError:
-            try:
-                file = open(root + extension, "rb")
-            except IOError:
-                return None
-        stream = cStringIO.StringIO (file.read())
-        return wx.ImageFromStream (stream)
 
     def GetImage (self, name):
         """
           Return None if image isn't found, otherwise loads a bitmap.
         Looks first for platform specific bitmaps.
         """
-        rawImage = self.GetRawImage (name)
-        if rawImage is None:
+        file = I18nManager.getImage(name)
+        if file is None:
             return None
+
+        rawImage = wx.ImageFromStream (cStringIO.StringIO(file.read()))
         return wx.BitmapFromImage (rawImage)
 
 

@@ -4,6 +4,8 @@ import wx.xrc
 from osaf.sharing import Sharing, ICalendar
 import application.Globals as Globals
 import application.dialogs.Util
+from repository.packs.chandler.Types import LocalizableString
+from i18n import OSAFMessageFactory as _
 
 class ShareToolDialog(wx.Dialog):
 
@@ -11,7 +13,7 @@ class ShareToolDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
 
         self.view = view
         self.resources = resources
@@ -214,8 +216,8 @@ class ShareEditorDialog(wx.Dialog):
         else: # creating the share
 
             account = Sharing.getWebDAVAccount(self.view)
-            self.textTitle.SetValue("Enter a descriptive title")
-            self.textShareName.SetValue("Enter directory name to use")
+            self.textTitle.SetValue(_("Enter a descriptive title").toUnicode())
+            self.textShareName.SetValue(_("Enter directory name to use").toUnicode())
 
         self.accounts = []
         i = 0
@@ -234,6 +236,9 @@ class ShareEditorDialog(wx.Dialog):
             for item in ItemCollection.iterItems(self.view):
                 self.collections.append(item)
                 self.choiceColl.Append(item.getItemDisplayName())
+
+                #XXX i18n the displayName is locale dependent and
+                # should not be used as a lookup key 
                 if item.getItemDisplayName() == "Calendar Demo":
                     defaultChoice = i
                 if share is not None and share.contents is not None:
@@ -299,7 +304,7 @@ class ShareEditorDialog(wx.Dialog):
 
 def ShowShareEditorDialog(parent, share=None, join=False, resources=None,
  view=None):
-        win = ShareEditorDialog(parent, "Share Editor", share=share, join=join,
+        win = ShareEditorDialog(parent, _("Share Editor"), share=share, join=join,
          resources=resources, view=view)
         win.CenterOnScreen()
         val = win.ShowModal()
@@ -320,7 +325,7 @@ class CollectionEditorDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, collection=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
 
         self.view = view
         self.collection = collection
@@ -369,7 +374,7 @@ class CollectionEditorDialog(wx.Dialog):
 
 def ShowCollectionEditorDialog(parent, collection=None, resources=None,
  view=None):
-        win = CollectionEditorDialog(parent, "Collection Editor",
+        win = CollectionEditorDialog(parent, _("Collection Editor"),
          collection=collection, resources=resources, view=view)
         win.CenterOnScreen()
         win.ShowModal()

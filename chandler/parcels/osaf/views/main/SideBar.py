@@ -283,9 +283,9 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                         imageSuffix = "Checked" + imageSuffix
                 else:
                     imageSuffix = sidebar.getButtonState (name, item) + imageSuffix
-        
+ 
                 image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
-        
+
                 if image is None:
                     image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
 
@@ -315,7 +315,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
             """
             for buttonName in sidebar.buttonOffsets.iterkeys():
                 drawButton (buttonName)
-            
+
         else:
             name = getattr (item, attribute)
 

@@ -12,7 +12,18 @@ import application.dialogs.Util
 import osaf.pim.mail as Mail
 import osaf.sharing.WebDAV as WebDAV
 import osaf.sharing.Sharing as Sharing
+from repository.packs.chandler.Types import LocalizableString
+from i18n import OSAFMessageFactory as _
 
+"""
+Notes: still more i18n work to do on this file. This is just a first pass.
+"""
+
+CANT_CONNECT = _("Couldn't connect to server '%s'.\nPlease double-check the server name and port settings.\nError was: '%s'.")
+NO_ACCESS    = _("Permission denied by server '%s'.")
+READ_ONLY    = _("You have read access but not write access.")
+READ_WRITE   = _("Test was successful.\nThis account has read/write access.")
+UNKNOWN      = _("Test failed with an unknown response.")
 
 # Special handlers referenced in the PANELS dictionary below:
 
@@ -25,7 +36,7 @@ def IMAPValidationHandler(item, fields, values):
         Mail.EmailAddress.isValidEmailAddress(newAddressString):
         return None
     else:
-        return "'%s' is not a valid email address" % newAddressString
+        return (_("'%s' is not a valid email address") % newAddressString).toUnicode()
 
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
@@ -109,7 +120,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": "New IMAP account"
+                "default": _("New IMAP account").toUnicode()
             },
             "IMAP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -165,7 +176,7 @@ PANELS = {
         "validationHandler" : IMAPValidationHandler,
         "deleteHandler" : IMAPDeleteHandler,
         "displayName" : "IMAP_DESCRIPTION",
-        "description" : "Incoming mail (IMAP)",
+        "description" : _("Incoming mail (IMAP)").toUnicode(),
         "callbacks" : (
             ("IMAP_TEST", "OnTestIMAP"),
         )
@@ -176,7 +187,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": "New POP account"
+                "default": _("New POP account").toUnicode()
             },
             "POP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -235,7 +246,7 @@ PANELS = {
         "saveHandler" : POPSaveHandler,
         "deleteHandler" : POPDeleteHandler,
         "displayName" : "POP_DESCRIPTION",
-        "description" : "Incoming mail (POP)",
+        "description" : _("Incoming mail (POP)").toUnicode(),
         "callbacks" : (
             ("POP_TEST", "OnTestPOP"),
         )
@@ -246,7 +257,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : "New SMTP account"
+                "default" : _("New SMTP account").toUnicode()
             },
             "SMTP_SERVER" : {
                 "attr" : "host",
@@ -286,7 +297,7 @@ PANELS = {
         "id" : "SMTPPanel",
         "deleteHandler" : SMTPDeleteHandler,
         "displayName" : "SMTP_DESCRIPTION",
-        "description" : "Outgoing mail (SMTP)",
+        "description" : _("Outgoing mail (SMTP)").toUnicode(),
         "callbacks" : (
             ("SMTP_TEST", "OnTestSMTP"),
         )
@@ -297,7 +308,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : "New WebDAV account"
+                "default" : _("New WebDAV account").toUnicode()
             },
             "WEBDAV_SERVER" : {
                 "attr" : "host",
@@ -335,7 +346,7 @@ PANELS = {
         "id" : "WebDAVPanel",
         "deleteHandler" : WebDAVDeleteHandler,
         "displayName" : "WEBDAV_DESCRIPTION",
-        "description" : "Sharing (WebDAV)",
+        "description" : _("Sharing (WebDAV)").toUnicode(),
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
         )
@@ -353,7 +364,7 @@ class AccountPreferencesDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
          account=None, view=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
 
         self.resources = resources
         self.view = view
@@ -928,7 +939,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif accountType == "WebDAV":
             item = Sharing.WebDAVAccount(view=self.view)
 
-        accountName = "New %s account" % accountType
+        accountName = (_("New %s account") % accountType).toUnicode()
         item.displayName = accountName
 
         values = { }
@@ -979,8 +990,8 @@ class AccountPreferencesDialog(wx.Dialog):
             self.accountsList.SetSelection(0)
             self.__SwapDetailPanel(0)
         else:
-            msg = "This account currently may not be deleted because it has been marked as a 'default' account"
-            application.dialogs.Util.ok(self, "Cannot delete default account",
+            msg =_("This account currently may not be deleted because it has been marked as a 'default' account")
+            application.dialogs.Util.ok(self, _("Cannot delete default account"),
                                         msg)
 
 
@@ -1055,23 +1066,23 @@ class AccountPreferencesDialog(wx.Dialog):
         reason = access[1]
 
         if result == WebDAV.CANT_CONNECT:
-            msg = "Couldn't connect to server '%s'.\nPlease double-check the server name and port settings." % host
-            msg += "\nError was: '%s'." % reason
+            msg = CANT_CONNECT % (host, reason)
+
         elif result == WebDAV.NO_ACCESS:
-            msg = "Permission denied by server '%s'." % host
+            msg = NO_ACCESS % host
         elif result == WebDAV.READ_ONLY:
-            msg = "You have read access but not write access."
+            msg = READ_ONLY 
         elif result == WebDAV.READ_WRITE:
-            msg = "Test was successful.\nThis account has read/write access."
+            msg = READ_WRITE
         elif result == WebDAV.IGNORE:
             # Leave msg as None to ignore it
             msg = None
         else:
             # This shouldn't happen
-            msg = "Test failed with an unknown response."
+            msg = UNKNOWN
 
         if msg is not None:
-            application.dialogs.Util.ok(self, "WebDAV Test Results", msg)
+            application.dialogs.Util.ok(self, _("WebDAV Test Results"), msg)
 
 
     def OnAccountSel(self, evt):
@@ -1172,7 +1183,7 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:
-    win = AccountPreferencesDialog(parent, "Account Preferences",
+    win = AccountPreferencesDialog(parent, _("Account Preferences"),
      resources=resources, account=account, view=view)
     win.CenterOnScreen()
     if modal:

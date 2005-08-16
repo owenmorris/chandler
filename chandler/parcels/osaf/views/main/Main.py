@@ -25,6 +25,7 @@ import util.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Item import Item
+from repository.packs.chandler.Types import LocalizableString
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
@@ -35,8 +36,16 @@ import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting.CPIAScript as CPIAScript
 from osaf import webserver
 from osaf.app import Trash
+from i18n import I18nManager
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
+
+"""
+Notes:
+1. Need to update event framework to handle LocalizableStrings
+
+"""
 
 class MainView(View):
     """
@@ -63,7 +72,7 @@ class MainView(View):
                 errorMessage = constants.UPLOAD_ERROR % (', '.join(errorStrings))
 
             """Clear the status message"""
-            self.setStatusMessage('')
+            self.setStatusMessage(u'')
             self.displayMailError (errorMessage, mailMessage.parentAccount)
 
     def displaySMTPSendSuccess (self, mailMessage):
@@ -93,13 +102,13 @@ class MainView(View):
           Show the splash screen in response to the about command
         """
         import version
-        pageLocation = os.path.join ('application', 'welcome.html')
         html = ''
-        for line in open(pageLocation):
+        for line in I18nManager.getHTML('welcome.html'):
             if line.find('@@buildid@@') >= 0:
                 line = "<p>Build identifier: '%s'</p>" % version.build
             html += line
-        splash = SplashScreen(None, _("About Chandler"), 
+        title = _("About Chandler").toUnicode()
+        splash = SplashScreen(None, title,
                               None, html, True, False)
         splash.Show(True)
         return splash
@@ -138,6 +147,8 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
 
         # Tell the sidebar we want to go to the All collection
+        #XXX: [i18n] the displayName is probally not the best identifier to 
+        #     use to look up collections since it is translatable
         self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
 
         # If the event cannot be displayed in this viewer, we need to switch to the all view
@@ -151,10 +162,10 @@ class MainView(View):
 
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
-        
+
     def onPrintPreviewEvent (self, event):
         self.printEvent(True)
-        
+
     def onPrintEvent (self, event):
         self.printEvent(False)
 
@@ -172,11 +183,12 @@ class MainView(View):
                     else:
                         printObject.OnPrint()
                     return
-        message = "Printing is currently only supported when viewing week or day view of the calendar."
-        dialog = wx.MessageDialog(None, message, 'Chandler', wx.OK | wx.ICON_INFORMATION)
-        dialog.ShowModal()
-        dialog.Destroy()
-        
+        message = _("Printing is currently only supported when viewing week or \
+                    day view of the calendar.")
+
+        title = _("chandler")
+        application.dialogs.Util.ok(None, message, title)
+
     def onQuitEvent (self, event):
         wx.GetApp().mainFrame.Close ()
 
@@ -190,7 +202,7 @@ class MainView(View):
         event.arguments ['Enable'] = False
 
     def onUndoEventUpdateUI (self, event):
-        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z").toUnicode()
         event.arguments ['Enable'] = False
 
     def onNewEventUpdateUI (self, event):
@@ -206,7 +218,7 @@ class MainView(View):
         detailView = self.findBlockByName("DetailRoot")
         if detailView is not None:
             detailView.finishSelectionChanges()
-            
+
         self.itsView.commit()
         self.setStatusMessage ('')
 
@@ -218,7 +230,8 @@ class MainView(View):
         specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
         no percentage is specified the progress bar will disappear.
         """
-        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
+
+        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (unicode(statusMessage), progressPercentage)
         if alert:
             # XXX This is not right, the alert should have a caption
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
@@ -234,7 +247,7 @@ class MainView(View):
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selection = dlg.GetSelection()
-            
+
                 if selection == 0:
                     import crypto.ssl as ssl
                     ssl.trusted_until_shutdown_site_certs += [pem]
@@ -242,7 +255,7 @@ class MainView(View):
                     import osaf.framework.certstore.certificate as certificate
                     fingerprint = certificate._fingerprint(x509)
                     certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
-    
+
                 reconnect()
         finally:
             dlg.Destroy()
@@ -251,7 +264,7 @@ class MainView(View):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
-        event.arguments ['Text'] = _(u"Send")
+        event.arguments ['Text'] = _("Send").toUnicode()
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
@@ -262,7 +275,7 @@ class MainView(View):
         account = Mail.getCurrentSMTPAccount(self.itsView)[0]
 
         # put a sending message into the status bar
-        self.setStatusMessage ('Sending mail...')
+        self.setStatusMessage (_('Sending mail...'))
 
         # Now send the mail
         Globals.mailService.getSMTPInstance(account).sendMail(item)
@@ -320,9 +333,10 @@ class MainView(View):
         except Sharing.SharingError, err:
             self.setStatusMessage (_("Sharing failed."))
 
-            msg = "Couldn't share collection:\n%s" % err.message
+            msg = _("Couldn't share collection:\n%s") % err.message
+
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        "Error", msg)
+                                        _("Error"), msg)
 
             if isNewShare:
                 share.conduit.delete()
@@ -368,35 +382,35 @@ class MainView(View):
         # triggered from "Test | Check Repository" Menu
         repository = self.itsView.repository
         progressMessage = _('Checking repository...')
-        repository.logger.info(progressMessage)
+        repository.logger.info("Checking repository ...")
         self.setStatusMessage(progressMessage)
         before = time()
         if repository.check():
             after = time()
-            successMessage = _('Check completed successfully in %s'
-                               %(timedelta(seconds=after-before)))
-            repository.logger.info(successMessage)
+            successMessage = _('Check completed successfully in %s') % (timedelta(seconds=after-before))
+            repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))
             self.setStatusMessage(successMessage)
         else:
             errorMessage = _('Check completed with errors')
-            repository.logger.info(errorMessage)
+            repository.logger.info('Check completed with errors')
             self.setStatusMessage(errorMessage)
 
     def onBackupRepositoryEvent(self, event):
         # triggered from "Test | Backup Repository" Menu
         repository = self.itsView.repository
         progressMessage = _('Backing up repository...')
-        repository.logger.info(progressMessage)
+        repository.logger.info('Backing up repository...')
         self.setStatusMessage(progressMessage)
         dbHome = repository.backup()
-        successMessage = _('Repository was backed up into %s' %(dbHome))
-        repository.logger.info(successMessage)
+        successMessage = _('Repository was backed up into %s') % (dbHome)
+        repository.logger.info('Repository was backed up into %s' % (dbHome))
         self.setStatusMessage(successMessage)
 
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        wildcard = "iCalendar files|*.ics|All files (*.*)|*.*"
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose a file to import",
+        #XXX: need to migrate this to application dialogs utils
+        wildcard = _("iCalendar files|*.ics|All files (*.*)|*.*").toUnicode()
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose a file to import").toUnicode(),
                               "", "import.ics", wildcard,
                               wx.OPEN | wx.HIDE_READONLY)
         if dlg.ShowModal() == wx.ID_OK:
@@ -404,26 +418,26 @@ class MainView(View):
             dlg.Destroy()
         else:
             dlg.Destroy()
-            self.setStatusMessage("Import aborted")
+            self.setStatusMessage(_("Import aborted"))
             return
-            
-        self.setStatusMessage ("Importing from %s" % filename)
+
+        self.setStatusMessage (_("Importing from %s") % filename)
         try:
             share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
-            self.setStatusMessage ("Import completed")
+            self.setStatusMessage (_("Import completed"))
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
             logger.info("Failed importFile:\n%s" % trace)
-            self.setStatusMessage("Import failed")
+            self.setStatusMessage(_("Import failed"))
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
-
-        wildcard = "iCalendar files|*.ics|All files (*.*)|*.*"
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose filename to export to",
+        #XXX: need to migrate this to application dialogs utils
+        wildcard = _("iCalendar files|*.ics|All files (*.*)|*.*").toUnicode()
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose filename to export to").toUnicode(),
                               "", "export.ics", wildcard,
                               wx.SAVE | wx.OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
@@ -431,10 +445,10 @@ class MainView(View):
             dlg.Destroy()
         else:
             dlg.Destroy()
-            self.setStatusMessage("Export aborted")
+            self.setStatusMessage(_("Export aborted"))
             return
 
-        self.setStatusMessage ("Exporting to %s" % filename)
+        self.setStatusMessage (_("Exporting to %s") % filename)
         try:
             share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
@@ -443,18 +457,18 @@ class MainView(View):
                 collection.add(event)
             share.contents = collection
             share.put()
-            self.setStatusMessage("Export completed")
+            self.setStatusMessage(_("Export completed"))
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
             logger.info("Failed exportFile:\n%s" % trace)
-            self.setStatusMessage("Export failed")
+            self.setStatusMessage(_("Export failed"))
 
 
     def onImportImageEvent(self, event):
         # triggered from "File | Import/Export" Menu
-
-        wildcard = "Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose image to import",
+        #XXX: need to migrate this to application dialogs utils
+        wildcard = _("Images|*.jpg;*.gif;*.png|All files (*.*)|*.*").toUnicode()
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose image to import").toUnicode(),
                               "", "", wildcard,
                               wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
@@ -465,7 +479,7 @@ class MainView(View):
             self.setStatusMessage("")
             return
 
-        self.setStatusMessage ("Importing %s" % path)
+        self.setStatusMessage (_("Importing %s") % path)
         photo = Photo(view=self.itsView)
         (dir, filename) = os.path.split(path)
         photo.displayName = filename
@@ -475,7 +489,9 @@ class MainView(View):
         # self.addItemToAllCollection(photo)
 
         # Tell the sidebar we want to go to the All collection
-        self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
+        #XXX [i18n] The collection name probally should not be tied
+        #    to the translatable displayName
+        self.postEventByName ('RequestSelectSidebarItem', {'itemName': u"All"})
         self.postEventByName ('ApplicationBarAll', { })
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView',
@@ -483,6 +499,7 @@ class MainView(View):
 
     def addItemToAllCollection(self, item):
         for coll in Block.findBlockByName("Sidebar").contents:
+            #XXX: This wrong will fail with i18n
             if coll.displayName == "All":
                 coll.add(item)
                 return
@@ -492,6 +509,10 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
         
     def onWxTestHarnessEvent(self, event):
+        """
+           This method is for testing and 
+           does not require translation strings
+        """
         # Test menu item
         #mainWidget = Globals.views[0].widget
         mainWidget = wx.GetApp().mainFrame
@@ -516,8 +537,8 @@ class MainView(View):
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
-        wildcard = "CSV files|*.csv"
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose a file to import",
+        wildcard = _("CSV files|*.csv").toUnicode()
+        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose a file to import").toUnicode(),
                             "", "import.csv", wildcard,
                             wx.OPEN | wx.HIDE_READONLY)
         if dlg.ShowModal() == wx.ID_OK:
@@ -525,13 +546,13 @@ class MainView(View):
             dlg.Destroy()
         else:
             dlg.Destroy()
-            self.setStatusMessage("Import aborted")
+            self.setStatusMessage(_("Import aborted"))
             return
-        
-        self.setStatusMessage ("Importing from %s"  % filename)
+
+        self.setStatusMessage (_("Importing from %s")  % filename)
         mainView = Globals.views[0]
         return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, dir+'/'+filename)
-    
+
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")
 
@@ -664,7 +685,8 @@ class MainView(View):
         # Triggered from "Tests | Edit collection rule..."
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Edit rule", "Enter a rule for this collection", str(collection.getRule()))
+            #XXX: i18n str cast of rule seems wrong 
+            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _("Edit rule"), _("Enter a rule for this collection"), str(collection.getRule()))
             if rule:
                 collection.setRule(rule)
 
@@ -688,7 +710,7 @@ class MainView(View):
     def onRunScriptEvent(self, event):
         # Triggered from "Tests | Run script..."
         previousScript = CPIAScript.GetDialogScript(self.itsView)
-        script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Run Script", "Enter a CPIA script to run.", previousScript)
+        script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _("Run Script"), _("Enter a CPIA script to run."), previousScript)
         if script:
             CPIAScript.RunDialogScript(script, self.itsView)
 
@@ -711,12 +733,10 @@ class MainView(View):
         item = self._SelectedItemScript()
         event.arguments ['Enable'] = item is not None
         if item is not None:
-            menuTitle = _('Run "%s"') \
-                    % item.about
+            menuTitle = _('Run "%s\tCtrl+S"') % item.about
         else:
-            menuTitle = _('Run an Item')
-        menuTitle = menuTitle + '\t' + 'Ctrl+S'
-        event.arguments ['Text'] = menuTitle
+            menuTitle = _('Run an Item\tCtrl+S')
+        event.arguments ['Text'] = menuTitle.toUnicode()
 
     def onShowPyShellEvent(self, event):
         # Test menu item
@@ -791,7 +811,7 @@ class MainView(View):
         else:
             menuTitle = _('Share a collection...')
 
-        event.arguments ['Text'] = menuTitle
+        event.arguments ['Text'] = menuTitle.toUnicode()
         event.arguments['Enable'] = collection is not None and (not Sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
@@ -859,7 +879,7 @@ class MainView(View):
         else:
             event.arguments['Enable'] = False
             menuTitle = _('Sync a collection')
-        event.arguments ['Text'] = menuTitle
+        event.arguments ['Text'] = menuTitle.toUnicode()
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -867,7 +887,7 @@ class MainView(View):
             share = Sharing.getShare(collection)
             if share is not None:
                 url = str(share.getLocation())
-                gotClipboard = wx.TheClipboard.Open()        
+                gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:
                     wx.TheClipboard.SetData(wx.TextDataObject(url))
                     wx.TheClipboard.Close()
@@ -935,4 +955,3 @@ class MainView(View):
                      if Sharing.isShared(coll)
             ]
         return collections
-        

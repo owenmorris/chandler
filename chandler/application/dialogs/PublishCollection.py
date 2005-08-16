@@ -8,6 +8,8 @@ import application.Globals as Globals
 from osaf.sharing import Sharing, ICalendar, WebDAV
 import zanshin.webdav
 import zanshin.util
+from repository.packs.chandler.Types import LocalizableString
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class PublishCollectionDialog(wx.Dialog):
                  resources=None, view=None, collection=None,
                  filterKindPath=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
         self.resources = resources
         self.view = view
         self.parent = parent
@@ -346,27 +348,28 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.format = format
             shareICal.hidden = True
 
-            self._showStatus("Wait for Sharing URLs...\n")
+            self._showStatus(_("Wait for Sharing URLs...\n"))
             if shareXML.exists():
-                raise Sharing.SharingError("Share already exists")
+                #XXX: i18n does this need to be translated?
+                raise Sharing.SharingError(_("Share already exists").toUnicode())
             else:
-                self._showStatus("Creating collection on server...")
+                self._showStatus(_("Creating collection on server..."))
                 shareXML.create()
-                self._showStatus(" done.\n")
+                self._showStatus(_(" done.\n"))
 
-            self._showStatus("Publishing collection to server...")
+            self._showStatus(_("Publishing collection to server..."))
             shareXML.put()
-            self._showStatus(" done.\n")
+            self._showStatus(_(" done.\n"))
 
-            self._showStatus("Publishing calendar file to server...")
+            self._showStatus(_("Publishing calendar file to server..."))
             shareICal.put()
-            self._showStatus(" done.\n")
+            self._showStatus(_(" done.\n"))
 
         except (Sharing.SharingError, zanshin.error.Error), e:
 
             # Display the error
             # self._clearStatus()
-            self._showStatus("\nSharing error:\n%s\n" % e.message)
+            self._showStatus(_("\nSharing error:\n%s\n") % e.message)
             logger.exception("Failed to publish collection")
             # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 
@@ -390,8 +393,8 @@ class PublishCollectionDialog(wx.Dialog):
 
             return
 
-        self._showStatus("%s\n" % shareXML.getLocation())
-        self._showStatus("%s\n" % shareICal.getLocation())
+        self._showStatus(u"%s\n" % shareXML.getLocation())
+        self._showStatus(u"%s\n" % shareICal.getLocation())
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -432,7 +435,7 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.statusPanel.IsShown():
             self.mySizer.Insert(1, self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
-        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
+        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), unicode(msg)))
         # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
         wx.Yield()
@@ -473,7 +476,7 @@ class PublishCollectionDialog(wx.Dialog):
             sharePath = "/%s/" % (sharePath)
         else:
             sharePath = "/"
-            
+
         existing = []
 
         parent = handle.getResource(sharePath)
@@ -484,7 +487,7 @@ class PublishCollectionDialog(wx.Dialog):
             if path:
                 path = urllib.unquote_plus(path).decode('utf-8')
                 existing.append(path)
-        
+
         # @@@ [grant] Localized sort?
         existing.sort()
         return existing
@@ -493,7 +496,7 @@ def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
-    win = PublishCollectionDialog(parent, "Collection Sharing",
+    win = PublishCollectionDialog(parent, _("Collection Sharing"),
      resources=resources, view=view, collection=collection,
      filterKindPath=filterKindPath)
     win.CenterOnScreen()

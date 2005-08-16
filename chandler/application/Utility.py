@@ -23,6 +23,7 @@ SCHEMA_VERSION = "44" # moved feeds and photos to /parcels
 logger = None # initialized in initLogging()
 
 
+#XXX: i18n a users home directory can be non-ascii path
 def locateProfileDir():
     """
     Locate the Chandler repository.
@@ -32,7 +33,7 @@ def locateProfileDir():
 
     def _makeRandomProfileDir(pattern):
         import M2Crypto.BN as BN
-        profileDir = pattern.replace('*', '%s') % (BN.randfname(8))
+        profileDir = unicode(pattern.replace('*', '%s') % (BN.randfname(8)))
         os.makedirs(profileDir, 0700)
         return profileDir
 
@@ -44,36 +45,36 @@ def locateProfileDir():
             dataDir = os.environ['APPDATA']
         elif os.environ.has_key('USERPROFILE'):
             dataDir = os.environ['USERPROFILE']
-            if os.path.isdir(os.path.join(dataDir, 'Application Data')):
-                dataDir = os.path.join(dataDir, 'Application Data')
+            if os.path.isdir(os.path.join(dataDir, u'Application Data')):
+                dataDir = os.path.join(dataDir, u'Application Data')
 
         if dataDir is None or not os.path.isdir(dataDir):
             if os.environ.has_key('HOMEDRIVE') and \
                 os.environ.has_key('HOMEPATH'):
-                dataDir = '%s%s' % (os.environ['HOMEDRIVE'],
+                dataDir = u'%s%s' % (os.environ['HOMEDRIVE'],
                                     os.environ['HOMEPATH'])
 
         if dataDir is None or not os.path.isdir(dataDir):
-            dataDir = os.path.expanduser('~')
+            dataDir = os.path.expanduser(u'~')
 
         profileDir = os.path.join(dataDir,
-                                  'Open Source Applications Foundation',
-                                  'Chandler')
+                                  u'Open Source Applications Foundation',
+                                  u'Chandler')
 
     elif sys.platform == 'darwin':
-        dataDir = os.path.join(os.path.expanduser('~'),
-                               'Library',
-                               'Application Support')
+        dataDir = os.path.join(os.path.expanduser(u'~'),
+                               u'Library',
+                               u'Application Support')
         profileDir = os.path.join(dataDir,
-                                  'Open Source Applications Foundation',
-                                  'Chandler')
+                                  u'Open Source Applications Foundation',
+                                  u'Chandler')
 
     else:
-        dataDir = os.path.expanduser('~')
-        profileDir = os.path.join(dataDir, '.chandler')
+        dataDir = os.path.expanduser(u'~')
+        profileDir = os.path.join(dataDir, u'.chandler')
 
     # Deal with the random part
-    pattern = '%s%s*.default' % (profileDir, os.sep)
+    pattern = u'%s%s*.default' % (profileDir, os.sep)
     try:
         import glob
         profileDir = glob.glob(pattern)[0]
@@ -93,7 +94,7 @@ def initOptions(**kwds):
     Load and parse the command line options, with overrides in **kwds.
     Returns options
     """
-
+    #XXX i18n parcelPath, profileDir could have non-ascii paths
     #    option name,  (value, short cmd, long cmd, type flag, default, environment variable, help text)
     _configItems = {
         'parcelPath':  ('-p', '--parcelPath','s', None,  'PARCELPATH', 'Parcel search path'),
@@ -148,6 +149,7 @@ def initOptions(**kwds):
 
     (options, args) = parser.parse_args()
 
+    #XXX: i18n a users home directory can be non-ascii path
     if not options.profileDir:
         profileDir = locateProfileDir()
         if profileDir is None:
@@ -156,10 +158,6 @@ def initOptions(**kwds):
 
     for (opt,val) in kwds.iteritems():
         setattr(options, opt, val)
-
-    if options.locale is not None:
-        from PyICU import Locale
-        Locale.setDefault(Locale(options.locale))
 
     # Store up the remaining args
     options.args = args
@@ -218,14 +216,14 @@ def locateChandlerDirectory():
     Find the directory that Chandler lives in by looking up the file that
     the application module lives in.
     """
-    return os.path.dirname(os.path.dirname(__file__))
+    return os.path.dirname(os.path.dirname(unicode(__file__)))
 
 
 def locateRepositoryDirectory(profileDir):
     if profileDir:
-        path = os.sep.join([profileDir, '__repository__'])
+        path = os.sep.join([profileDir, u'__repository__'])
     else:
-        path = '__repository__'
+        path = u'__repository__'
     return path
 
 
@@ -349,20 +347,20 @@ def initParcels(view, path):
     parcelRoot.version = SCHEMA_VERSION
 
 
-def initLocale(locale):
-    """
-      Setup internationalization
-    To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
-    """
-    os.environ['LANGUAGE'] = locale
-    gettext.install('chandler', 'locale')
-
-
 def initCrypto(profileDir):
+    #XXX: [i18n] M2Xrypto can not handle unicode
+
+    if profileDir:
+        profileDir = profileDir.encode("utf8")
+
     crypto.startup(profileDir)
 
 
 def stopCrypto(profileDir):
+    #XXX: [i18n] M2Xrypto can not handle unicode
+    if profileDir:
+        profileDir = profileDir.encode("utf8")
+
     crypto.shutdown(profileDir)
 
 def initTwisted():
