@@ -4,6 +4,7 @@ __date__      = "$Date: 2005-05-01 23:42:25 -0700 (Sun, 01 May 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from itertools import izip
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import Nil
@@ -415,6 +416,146 @@ class Difference(BiSet):
         return None
 
 
+class MultiSet(AbstractSet):
+
+    def __init__(self, *sources):
+
+        self._sources = []
+        for source in sources:
+            view, source = self._prepareSource(source)
+            self._sources.append(source)
+
+        super(MultiSet, self).__init__(view)
+
+    def _repr_(self, replace=None):
+
+        return "%s(%s)" %(type(self).__name__,
+                          ", ".join([self._reprSource(source, replace)
+                                     for source in self._sources]))
+        
+    def _setOwner(self, item, attribute):
+
+        oldItem, oldAttribute = super(MultiSet, self)._setOwner(item, attribute)
+        for source in self._sources:
+            self._setSourceItem(source, item, attribute, oldItem, oldAttribute)
+
+    def _setView(self, view):
+
+        super(MultiSet, self)._setView(view)
+        for source in self._sources:
+            self._setSourceView(source, view)
+
+    def _op(self, ops, other):
+
+        raise NotImplementedError, "%s._op" %(type(self))
+
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
+                      *args):
+
+        ops = [self._sourceChanged(source, op, change,
+                                   sourceOwner, sourceName, other, *args)
+               for source in self._sources]
+        op = self._op(ops, other)
+
+        if not (inner is True or op is None):
+            self._collectionChanged(op, other)
+
+        return op
+
+    def iterSources(self):
+
+        for source in self._sources:
+            for src in self._iterSources(source):
+                yield src
+
+
+class MultiUnion(MultiSet):
+
+    def __contains__(self, item):
+
+        for source in self._sources:
+            if self._sourceContains(item, source):
+                return True
+
+        return False
+
+    def __iter__(self):
+
+        sources = self._sources
+        for source in sources:
+            for item in self._iterSource(source):
+                unique = True
+                for src in sources:
+                    if src is source:
+                        break
+                    if self._sourceContains(item, src):
+                        unique = False
+                        break
+                if unique:
+                    yield item
+
+    def _op(self, ops, other):
+
+        sources = self._sources
+        for op, source in izip(ops, sources):
+            if op is not None:
+                unique = True
+                for src in sources:
+                    if src is source:
+                        continue
+                    if self._sourceContains(other, src):
+                        unique = False
+                        break
+                if unique:
+                    return op
+
+        return None
+
+
+class MultiIntersection(MultiSet):
+
+    def __contains__(self, item):
+
+        for source in self._sources:
+            if not self._sourceContains(item, source):
+                return False
+
+        return True
+
+    def __iter__(self):
+
+        sources = self._sources
+        if sources:
+            source = sources[0]
+            for item in self._iterSource(source):
+                everywhere = True
+                for src in sources:
+                    if src is source:
+                        continue
+                    if not self._sourceContains(item, src):
+                        everywhere = False
+                        break
+                if everywhere:
+                    yield item
+
+    def _op(self, ops, other):
+
+        sources = self._sources
+        for op, source in izip(ops, sources):
+            if op is not None:
+                everywhere = True
+                for src in sources:
+                    if src is source:
+                        continue
+                    if not self._sourceContains(other, src):
+                        everywhere = False
+                        break
+                if everywhere:
+                    return op
+
+        return None
+
+
 class KindSet(AbstractSet):
 
     def __init__(self, kind, recursive=False):
@@ -486,6 +627,7 @@ class KindSet(AbstractSet):
     def iterSources(self):
 
         raise StopIteration
+
 
 class FilteredSet(Set):
     """

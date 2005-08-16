@@ -12,6 +12,8 @@ import unittest, os
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.tests.classes.Movie import Movie
 from repository.item.Sets import Union, Intersection, Difference, Set, KindSet
+from repository.item.Sets import MultiUnion, MultiIntersection
+
 
 class movie(Movie):
 
@@ -39,6 +41,8 @@ class TestAbstractSets(RepositoryTestCase):
 
         self.cineguide = self.rep.view['CineGuide']
         self.movie = self.cineguide['KHepburn'].movies.first().itsKind
+        self.m1 = self.cineguide['KHepburn'].movies.first()
+        self.m2 = self.cineguide['m2']
         self.m3 = self.cineguide['m3']
         self.m4 = self.cineguide['m4']
         self.m5 = self.cineguide['m5']
@@ -164,6 +168,74 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(m.calls[0] == ('add', m, 'set', l))
 
         self.assert_(len(list(m.set)) == count)
+
+    def testMultiUnion(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        m.set = MultiUnion((self.m1, 'writers'), (self.m2, 'writers'),
+                           (self.m3, 'writers'), (self.m4, 'writers'),
+                           (self.m5, 'writers'))
+        w = self.m4.writers.last()
+
+        self.m4.writers.remove(w)
+        self.assert_(len(m.calls) == 0)
+
+        self.m5.writers.remove(w)
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+
+        del m.calls[:]
+        self.m5.writers.add(w)
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('add', m, 'set', w))
+
+        del m.calls[:]
+        self.m4.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+
+        l = list(m.set)
+        self.assert_(len(l) == 13)
+
+        for i in xrange(0, len(l)):
+            self.assert_(l.index(l[i]) == i)
+
+    def testMultiIntersection(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        m.set = MultiIntersection((self.m1, 'writers'), (self.m2, 'writers'),
+                                  (self.m3, 'writers'), (self.m4, 'writers'),
+                                  (self.m5, 'writers'))
+        w = self.m4.writers.last()
+
+        self.m1.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m2.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m3.writers.add(w)
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('add', m, 'set', w))
+
+        del m.calls[:]
+        self.m4.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m5.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+
+        self.assert_(len(list(m.set)) == 1)
+
+        self.m1.writers.remove(w)
+        self.assert_(len(m.calls) == 1)
+        self.assert_(m.calls[0] == ('remove', m, 'set', w))
+
+        del m.calls[:]
+        self.m2.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m3.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m4.writers.add(w)
+        self.assert_(len(m.calls) == 0)
+        self.m5.writers.add(w)
+        self.assert_(len(m.calls) == 0)
 
 
 if __name__ == "__main__":
