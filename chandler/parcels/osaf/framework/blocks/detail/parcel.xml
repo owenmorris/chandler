@@ -532,14 +532,14 @@
     <border>4, 0, 0, 0</border>
   </blocks:StaticText>
 
-  <blocks:AEBlock itsName="EditAllDay">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditAllDay">
     <blockName value="EditAllDay"/>
     <stretchFactor>0.0</stretchFactor>
     <viewAttribute value="allDay"/>
     <border>2, 2, 2, 2</border>
     <minimumSize>16, -1</minimumSize>
     <event itemref="Resynchronize"/>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
   
   <blocks:StaticText itsName="CalendarStartSpacer">
     <blockName value="CalendarStartSpacer"/>
@@ -585,7 +585,7 @@
     <format>calendarDateOnly</format>
   </blocks:PresentationStyle>
 
-  <blocks:AEBlock itsName="EditCalendarStartDate">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditCalendarStartDate">
     <blockName value="EditCalendarStartDate"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <presentationStyle itemref="StartDatePresentation"/>
@@ -594,7 +594,7 @@
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
     <event itemref="Resynchronize"/>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <blocks:PresentationStyle itsName="StartTimePresentation">
     <format>calendarTimeOnly</format>
@@ -646,7 +646,7 @@
     <format>calendarDateOnly</format>
   </blocks:PresentationStyle>
 
-  <blocks:AEBlock itsName="EditCalendarEndDate">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditCalendarEndDate">
     <blockName value="EditCalendarEndDate"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <presentationStyle itemref="EndDatePresentation"/>
@@ -655,7 +655,7 @@
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
     <event itemref="Resynchronize"/>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <blocks:PresentationStyle itsName="EndTimePresentation">
     <format>calendarTimeOnly</format>
@@ -709,14 +709,14 @@
     <choices>FYI</choices>
   </blocks:PresentationStyle>
   
-  <blocks:AEBlock itsName="EditTransparency">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditTransparency">
     <blockName value="EditTransparency"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
     <presentationStyle itemref="TransparencyPresentationStyle"/>
     <viewAttribute value="transparency"/>
     <border>2, 2, 2, 2</border>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <blocks:StaticText itsName="CalendarReminderSpacer">
     <blockName value="CalendarReminderSpacer"/>
@@ -758,14 +758,14 @@
     <choices>90 minutes</choices>
   </blocks:PresentationStyle>
   
-  <blocks:AEBlock itsName="EditReminder">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditReminder">
     <blockName value="EditReminder"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
     <presentationStyle itemref="ReminderPresentationStyle"/>
     <viewAttribute value="reminderDelta"/>
     <border>2, 2, 2, 2</border>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <blocks:StaticText itsName="CalendarRecurrenceSpacer">
     <blockName value="CalendarRecurrenceSpacer"/>
@@ -807,7 +807,7 @@
     <choices>Custom...</choices>
   </blocks:PresentationStyle>
   
-  <blocks:AEBlock itsName="EditRecurrence">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditRecurrence">
     <blockName value="EditRecurrence"/>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>100, -1</minimumSize>
@@ -815,7 +815,7 @@
     <viewAttribute value="rruleset"/>
     <border>2, 2, 2, 2</border>
     <event itemref="Resynchronize"/>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <CalendarRecurrenceSpacer2Area itsName="CalendarRecurrenceSpacer2">
     <blockName value="CalendarRecurrenceSpacer2"/>
@@ -850,14 +850,14 @@
     <format>custom</format>
    </blocks:PresentationStyle>
   
-  <blocks:AEBlock itsName="CalCustomValue">
+  <DetailSynchronizedAttributeEditorBlock itsName="CalCustomValue">
     <blockName value="CalCustomValue"/>
     <stretchFactor>1.0</stretchFactor>
     <minimumSize>300, -1</minimumSize>
     <presentationStyle itemref="RecurrenceCustomPresentationStyle"/>
     <viewAttribute value="rruleset"/>
     <border>2, 2, 2, 2</border>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <CalendarRecurrenceEndAreaBlock itsName="CalendarRecurrenceEndArea">
     <blockName value="CalendarRecurrenceEndArea"/>
@@ -884,7 +884,7 @@
     <format>ends</format>
    </blocks:PresentationStyle>
   
-  <blocks:AEBlock itsName="EditRecurrenceEnd">
+  <DetailSynchronizedAttributeEditorBlock itsName="EditRecurrenceEnd">
     <blockName value="EditRecurrenceEnd"/>
     <characterStyle itemref="blocks:TextStyle"/>
     <viewAttribute value="rruleset"/>
@@ -892,7 +892,7 @@
     <stretchFactor>0.0</stretchFactor>
     <size>75, -1</size>
     <border>2, 2, 2, 2</border>
-  </blocks:AEBlock>
+  </DetailSynchronizedAttributeEditorBlock>
 
   <blocks:StaticText itsName="CalendarTimeZoneSpacer">
     <blockName value="CalendarTimeZoneSpacer"/>
