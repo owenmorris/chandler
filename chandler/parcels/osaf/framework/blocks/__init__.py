@@ -19,7 +19,7 @@ from Views import View
 from ControlBlocks import (
     AEBlock, Button, CheckBox, Choice, ComboBox, ContentItemDetail,
     ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail, List, RadioBox,
-    StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
+    ReminderTimer, StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
 )
 
 from DynamicContainerBlocks import (

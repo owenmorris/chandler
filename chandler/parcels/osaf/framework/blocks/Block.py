@@ -116,7 +116,7 @@ class Block(schema.Item):
                 delattr (event, 'arguments')
 
     def postEventByName (self, eventName, args):
-        assert self.eventNameToItemUUID.has_key (eventName), "Event name " + eventName + " not found"
+        assert self.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
         list = self.eventNameToItemUUID [eventName]
         return self.post (self.find (list [0]), args)
 
@@ -189,9 +189,8 @@ class Block(schema.Item):
             # just in case it wasn't there originally
             attrs['eventsForNamedLookup'] = eventsForNamedLookup
             
-        return schema.ItemTemplate(theClass, blockName,
-                                   ['childrenBlocks'],
-                                   blockName=blockName, **attrs)
+        return BlockTemplate(theClass, blockName,
+                             blockName=blockName, **attrs)
 
     def render (self):
         try:
@@ -950,10 +949,10 @@ class BlockEvent(schema.Item):
         1) the repository name and blockname are unified
         2) The dispatchEnum is required
         """
-        return schema.ItemTemplate(theClass, blockName, [],
-                                   blockName=blockName,
-                                   dispatchEnum=dispatchEnum,
-                                   **attrs)
+        return BlockTemplate(theClass, blockName,
+                             blockName=blockName,
+                             dispatchEnum=dispatchEnum,
+                             **attrs)
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
 
@@ -988,4 +987,37 @@ class EventList(schema.Item):
 
 class lineStyleEnumType(schema.Enumeration):
       values = "SingleLine", "MultiLine"
+
+# -------------
+# Item creation
+# -------------
+class BlockTemplate(object):
+    """
+    Template class for easy domain-specific item creation
+    In general, this allows a class to make a 'template' wrapper which
+    will create all items and their children appropriately.
+    """
+    def __init__(self, target_class, itsName, **attrs):
+        self.attrs = attrs
+        self.itsName = itsName
+        self.target_class = target_class
+
+    def install(self, parent, name=None):
+        if name is None: name=self.itsName
+
+        # first make parent exist
+        me = self.target_class.update(parent, name)
+
+        # this is a temporary attribute list, which will contain
+        # all the instantiated children, to be passed to .update
+        attrs = self.attrs.copy()
+
+        # now hook up the children, and replace the templates
+        # with the real things
+        if 'childrenBlocks' in attrs:
+            children = [t.install(parent) for t in attrs['childrenBlocks']]
+            attrs['childrenBlocks'] = children
+            
+        return self.target_class.update(parent, name, **attrs)
+
 

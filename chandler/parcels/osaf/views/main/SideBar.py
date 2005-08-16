@@ -339,8 +339,7 @@ class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
         self.control.SetRect (textRect);
 
 
-class Sidebar(ControlBlocks.Table):
-
+class SidebarBlock(ControlBlocks.Table):
     filterKind = schema.One(
         schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
     )
