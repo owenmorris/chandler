@@ -1757,12 +1757,11 @@ class AEBlock(BoxContainer):
         """
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
+        readOnly = self.isReadOnly(self.item, self.attributeName)
         try:
             presentationStyle = self.presentationStyle
         except AttributeError:
             presentationStyle = None
-        readOnly = self.readOnly \
-                 or not self.item.isAttributeModifiable(self.attributeName)
         
         # If we have one already, and it's the right one, return it.
         try:
@@ -1793,6 +1792,24 @@ class AEBlock(BoxContainer):
         selectedEditor.SetChangeCallback(self.onAttributeEditorValueChange)
         return selectedEditor
 
+    def isReadOnly(self, item, attributeName):
+        if self.readOnly or not item.isAttributeModifiable(attributeName):
+            return True
+        
+        # See if this attribute is redirected.
+        try:
+            redirect = item.getAttributeAspect(attributeName, 'redirectTo')
+        except AttributeError:
+            redirect = None
+        if redirect is None:
+            return False # no redirect? must not be readonly.
+
+        # Follow the redirection and see if that attr is readonly.
+        names = redirect.split('.')
+        for name in names [:-1]:
+            item = item.getAttributeValue (name)
+        return not item.isAttributeModifiable(names[-1])
+        
     def onSetContentsEvent (self, event):
         logger.debug("AEBlock: onSetContentsEvent")
         try:

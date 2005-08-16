@@ -533,8 +533,11 @@ class StringAttributeEditor (BaseAttributeEditor):
                     width = 200
             size = wx.Size(width, height)
 
+        style = wx.TAB_TRAVERSAL
+        if readOnly: style |= wx.TE_READONLY
+        
         if useStaticText:
-            style = wx.TAB_TRAVERSAL | (parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER)
+            style |= (parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER)
             control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
                                                       size, style, staticSize=wx.Size(width, staticHeight)
                                                       )
@@ -545,9 +548,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             editControl.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
             
         else:
-            style = wx.TAB_TRAVERSAL | wx.TE_AUTO_SCROLL
-            if readOnly: style |= wx.TE_READONLY
-            
+            style |= wx.TE_AUTO_SCROLL
             try:
                 lineStyleEnum = parentBlock.presentationStyle.lineStyleEnum
             except AttributeError:
