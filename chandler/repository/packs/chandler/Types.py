@@ -4,39 +4,64 @@ __date__      = "$Date: 2005-07-12 16:27:25 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from types import UnicodeType, StringType
+
+"""
+Notes:
+1. Should Exception be i18nException or RepositoryException
+"""
 
 class LocalizableString(object):
-    __slots__ = ['_domain', '_defaultText'] 
+    __slots__ = ['_domain', '_defaultText', "_args"]
 
-    """
-    This class is just a stand-in. If more fields are added and they need to
-    be persisted, the LocalizableString.type file needs to be modified
-    accordingly.
-
-    The reason for this class, is solely to serve as a python implementation
-    type for Chandler values of the LocalizableString schema type.
-
-    It can, of course, have any number of methods and implementation
-    details. Only persistent fields (python attributes) need to be described
-    in the schema type file, LocalizableString.type.
-
-    If custom persistence needs to be implemented, that is the persisting of
-    values of this type needs to be customized with regards to the default
-    implementation on the Struct core schema type item, then a subclass of
-    repository.schema.Types.Struct needs to be implemented with the relevant
-    customization and the LocalizableString schema type item needs to be of
-    that class. (See the core schema Date type as an example).
-    """
-    
-    def __unicode__(self):
-        # [@@@] Get translation from I18Manager
-        return self._defaultText
-        
     def __init__(self, domain, defaultText):
+        assert isinstance(domain, StringType)
+        assert isinstance(defaultText, UnicodeType)
+
         super(LocalizableString, self).__init__()
 
-        self._defaultText = defaultText
         self._domain = domain
+        self._defaultText = defaultText
+        """Non-persisted value"""
+        self._args = None
+
+
+    def __repr__(self):
+        return "LocalizableString(%r, %r)" % (self._domain, self._defaultText)
+
+    def __mod__(self, args):
+       #xXX: what restrictions to put on args?
+        if __debug__:
+            """If we are running in debug mode test the args against the
+               key to make sure correct number of args passed in. This
+               may still cause a failure in translation if the localized
+               text arguments do not match the default arguments"""
+
+            self._defaultText % args
+
+        self._args = args
+
+        return self
+
+    def __str__(self):
+        from i18n import I18nException
+        raise I18nException("String casts are not supported. \
+                             Use the encode method to convert unicode to bytes")
+
+    def __unicode__(self):
+        from i18n import I18nManager
+        args = self._args
+
+        #Clear the args after returning translation
+        self._args = None
+
+        return I18nManager.translate(self._domain, self._defaultText, args)
+
+    def encode(self, charset):
+        return self.__unicode__().encode(charset)
+
+    def toUnicode(self):
+        return self.__unicode__()
 
 
 from repository.schema.Types import Struct
@@ -48,8 +73,6 @@ class LocalizableStringType(Struct):
 
 class Text(Alias):
     def makeValue(self, data):
-        #XXX Is always returning a localizableString the right thing to do
-        # With out xml it should return the implementation type
         return LocalizableString(data)
 
 
