@@ -1034,7 +1034,7 @@ def toLink(path):
 def clean(s):
     s = unicode(s)
     try:
-        return s.replace("<", "&lt;").replace(">","&gt;")
+        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
     except Exception, e:
         print e, s, type(s)
         raise
