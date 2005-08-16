@@ -189,6 +189,9 @@ class DelegatingIndex(object):
     def __getattr__(self, name):
         return getattr(self._index, name)
 
+    def __contains__(self, key):
+        return self._index.__contains__(key)
+
     def _writeValue(self, itemWriter, buffer, version):
         self._index._writeValue(itemWriter, buffer, version)
 
