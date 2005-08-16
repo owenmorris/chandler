@@ -252,22 +252,58 @@ def installParcel(parcel, oldVersion=None):
                       destinationBlockReference = controller,
                       commitAfterDispatch = True)
 
-#    newItemMenu = schema.ns('osaf.views.main', parcel).parcel.getItemChild('NewItemMenu')
+    newItemMenu = schema.ns('osaf.views.main', parcel).NewItemMenu
 
-#    MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
-#                    blockName = 'NewFlickrCollectionByOwnerItem',
-#                    title = 'New Flickr Collection by Owner',
-#                    event = ownerEvent,
-#                    parentBlock = newItemMenu)
+    MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
+                    blockName = 'NewFlickrCollectionByOwnerItem',
+                    title = 'New Flickr Collection by Owner',
+                    event = ownerEvent,
+                    parentBlock = newItemMenu)
  
-#    MenuItem.update(parcel, 'NewFlickrCollectionByTag',
-#                    blockName = 'NewFlickrCollectionByTagItem',
-#                    title = 'New Flickr Collection by Tag',
-#                    event = tagEvent,
-#                    parentBlock = newItemMenu)
+    MenuItem.update(parcel, 'NewFlickrCollectionByTag',
+                    blockName = 'NewFlickrCollectionByTagItem',
+                    title = 'New Flickr Collection by Tag',
+                    event = tagEvent,
+                    parentBlock = newItemMenu)
 
 
     PeriodicTask.update(parcel, 'FlickrUpdateTask',
                         invoke = 'osaf.examples.flickr.UpdateTask',
                         run_at_startup = True,
                         interval = timedelta(minutes=2))
+
+
+    blocks = schema.ns('osaf.framework.blocks', parcel)
+    detail = schema.ns('osaf.framework.blocks.detail', parcel)
+
+    detail.DetailTrunkSubtree.update(parcel, "flickr_detail_view",
+        key = FlickrPhoto.getKind(parcel.itsView),
+        rootBlocks = [
+            detail.DetailSynchronizedLabeledTextAttributeBlock.update(
+                parcel, "AuthorArea",
+                position = 0.6,
+                selectedItemsAttribute="owner",
+                stretchFactor = 0,
+                childrenBlocks = [
+                    detail.StaticRedirectAttributeLabel.update(
+                        parcel, "AuthorLabel",
+                        title = "author",
+                        characterStyle = blocks.LabelStyle,
+                        stretchFactor = 0.0,
+                        textAlignmentEnum = "Right",
+                        minimumSize = blocks.SizeType(70, 24),
+                        border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
+                    ),
+                    detail.StaticRedirectAttribute.update(
+                        parcel  , "AuthorAttribute",
+                        title = "author",
+                        characterStyle = blocks.LabelStyle,
+                        stretchFactor = 0.0,
+                        textAlignmentEnum = "Left",
+                    ),
+                ]
+            )
+        ]
+    )
+
+

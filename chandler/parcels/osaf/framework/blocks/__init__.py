@@ -97,5 +97,24 @@ def installParcel(parcel, oldName=None):
         
         BlockEvent.template('EnterPressed',
                             'BroadcastInsideMyEventBoundary').install(parcel),
-        ])
+    ])
+
+    # A few specific styles
+
+    CharacterStyle.update(parcel, "TextStyle", fontFamily="DefaultUIFont")
+
+    CharacterStyle.update(parcel, "BigTextStyle",
+        fontFamily="DefaultUIFont", fontSize = 15, fontStyle = "bold",
+    )
+    CharacterStyle.update(parcel, "LabelStyle", fontFamily="DefaultUIFont")
+
+    CharacterStyle.update(parcel, "SummaryHeaderStyle",
+        fontFamily="DefaultUIFont", fontStyle = "bold",
+    )
+
+    CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
+
+    ColorStyle.update(parcel, "WhiteBackground",
+        backgroundColor = ColorType(255,255,255,0)
+    )
 
