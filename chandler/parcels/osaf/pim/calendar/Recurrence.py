@@ -216,7 +216,7 @@ class RecurrenceRule(items.ContentItem):
 
         # ignore byweekday if freq is WEEKLY and day correlates with dtstart
         # because it was automatically set by dateutil
-        if rrule._freq is not dateutil.rrule.WEEKLY or \
+        if rrule._freq != dateutil.rrule.WEEKLY or \
            len(rrule._byweekday) != 1 or \
            rrule._dtstart.weekday() != rrule._byweekday[0]:
             listOfDayTuples = []

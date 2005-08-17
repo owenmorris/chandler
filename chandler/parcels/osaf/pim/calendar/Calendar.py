@@ -555,7 +555,7 @@ class CalendarEventMixin(ContentItem):
         for attr, val in self.iterAttributeValues(referencesOnly=True):
             # exclude itemCollectionInclusions so generated occurrences don't
             # appear in the collection
-            if attr is 'itemCollectionInclusions':
+            if attr == 'itemCollectionInclusions':
                 continue
             inversekind = self.getAttributeAspect(attr, 'type')
             inverse = self.getAttributeAspect(attr, 'otherName')
@@ -838,9 +838,10 @@ class CalendarEventMixin(ContentItem):
                    previousMod.rruleset.getAttributeValue('rdates', default=[])\
                    if datetimeOp(rdate, '>', newend)]
 
-    def _makeGeneralChange(self):
+    def _makeGeneralChange(self, master=None):
         """Do everything that should happen for any change call."""
-        master = self.getMaster()
+        if master is None:
+            master = self.getMaster()
         if master.hasLocalAttributeValue('itemCollectionInclusions'):
             self.itemCollectionInclusions = master.itemCollectionInclusions
         self.isGenerated = False
@@ -856,10 +857,13 @@ class CalendarEventMixin(ContentItem):
         
         def makeThisAndFutureMod():
             self.modifies='thisandfuture'
+            # Changing occurrenceFor before changing rruleset is important, it
+            # keeps the rruleset change from propagating inappropriately
             self.occurrenceFor = self
-            if attr is not 'rruleset':
+            if attr != 'rruleset':
                 self.rruleset = self.rruleset.copy(cloudAlias='copying')
-            self._makeGeneralChange()
+            # We have to pass in master because occurrenceFor has been changed
+            self._makeGeneralChange(master)
             self.modificationFor = master
             self.modificationRecurrenceID = self.startTime
             
@@ -898,7 +902,7 @@ class CalendarEventMixin(ContentItem):
             self.cleanFuture()
             if self == master: # self is master, nothing to do
                 pass
-            elif self.modifies is 'thisandfuture':
+            elif self.modifies == 'thisandfuture':
                 self._movePreviousRuleEnd()
             elif self.isGenerated:
                 makeThisAndFutureMod()
@@ -919,7 +923,7 @@ class CalendarEventMixin(ContentItem):
                     makeThisAndFutureMod()
                     self._movePreviousRuleEnd()
         else: # not time related, propagate changes forward
-            if self.modifies is 'this' and self.modificationFor is not None:
+            if self.modifies == 'this' and self.modificationFor is not None:
                 #preserve self as a THIS modification
                 if self.recurrenceID != first.startTime:
                     # create a new event, cloned from first, make it a
@@ -931,7 +935,7 @@ class CalendarEventMixin(ContentItem):
                     newfirst.occurrenceFor = None #self overrides newfirst
                     newfirst.modificationFor = master
                     newfirst.modifies = 'thisandfuture'
-                    newfirst._makeGeneralChange()
+                    newfirst._makeGeneralChange(master)
                     self.occurrenceFor = self.modificationFor = newfirst
                     # move THIS modifications after self to newfirst
                     if first.hasLocalAttributeValue('modifications'):
@@ -968,7 +972,7 @@ class CalendarEventMixin(ContentItem):
         startTime so it begins in a different rule will ........FIXME
         
         """
-        if self.modifies is 'this' and self.modificationFor is not None:
+        if self.modifies == 'this' and self.modificationFor is not None:
             pass
         elif self.rruleset is not None:
             first = self.getFirstInRule()
@@ -1039,7 +1043,7 @@ class CalendarEventMixin(ContentItem):
 ##                          """.split():
         # this won't work with stamping, temporary solution to allow testing
         if name in """displayName startTime endTime location body lastModified
-                   """.split():
+                      allDay""".split():
             logger.debug("about to changeThis in onValueChanged(name=%s) for %s" % (name, str(self)))
             logger.debug("value is: %s" % getattr(self, name))
             self.changeThis()
@@ -1138,7 +1142,7 @@ class CalendarEventMixin(ContentItem):
             buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
                              % (self.modifies, self.modificationFor.startTime))
         buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
-        if self.modifies is 'thisandfuture' or self.modificationFor is None:
+        if self.modifies == 'thisandfuture' or self.modificationFor is None:
             try:
                 buf.write(pad + "until: %s\n" % list(self.rruleset.rrules)[0].until)
             except:
@@ -1152,16 +1156,32 @@ class CalendarEventMixin(ContentItem):
     def isProxy(self):
         """Is this a proxy of an event?"""
         return False
+
+_proxies = {}
+
+def getProxy(context, obj):
+    """Return a proxy for obj, reusing cached proxies in the same context.
     
-def getProxy(obj):
-    return OccurrenceProxy(obj)
+    Return obj if obj doesn't support the changeThis and changeThisAndFuture
+    interface.
+    
+    """
+    if hasattr(obj, 'changeThis') and hasattr(obj, 'changeThisAndFuture'):      
+        if not _proxies.has_key(context) or _proxies[context][0] != obj.itsUUID:
+            logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
+            _proxies[context] = (obj.itsUUID, OccurrenceProxy(obj))
+        return _proxies[context][1]
+    else:
+        return obj
 
 class OccurrenceProxy(object):
-    proxyAttributes = 'proxiedItem', 'currentlyModifying'
+    __class__ = 'temp'
+    proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__','isProxy'
     
     def __init__(self, item):
         self.proxiedItem = item
         self.currentlyModifying = None
+        self.__class__ = self.proxiedItem.__class__
     
     def __eq__(self, other):
         return self.proxiedItem == other
@@ -1170,10 +1190,15 @@ class OccurrenceProxy(object):
         return getattr(self.proxiedItem, name)
         
     def __setattr__(self, name, value):
+        if name not in self.proxyAttributes:
+            logger.info('in proxy setattr, name: %s, value: %s' % (name, value))
         if name in self.proxyAttributes:
             object.__setattr__(self, name, value)
-        else:
+        elif self.proxiedItem.rruleset is None:
             setattr(self.proxiedItem, name, value)
+        else:
+            self.proxiedItem.changeThisAndFuture(name, value)
+            logger.info('after changeThisAndFuture, name: %s, value: %s' % (name, value))
     
     def isProxy(self):
         return True

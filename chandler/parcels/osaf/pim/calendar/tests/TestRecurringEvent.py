@@ -207,12 +207,14 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
     def testProxy(self):
         self.failIf(self.event.isProxy())
         
-        proxy = Calendar.getProxy(self.event)
+        proxy = Calendar.getProxy('test', self.event)
         self.assert_(proxy.isProxy())
         self.assertEqual(proxy, self.event)
         self.assertEqual(proxy.currentlyModifying, None)
+        self.assert_(proxy is Calendar.getProxy('test', proxy))
 
         proxy.rruleset = self._createRuleSetItem('weekly')
+        print proxy.rruleset
         self.assert_(self.event in proxy.rruleset.events)
         self.assertEqual(proxy.getNextOccurrence().occurrenceFor, self.event)
         self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
