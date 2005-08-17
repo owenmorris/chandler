@@ -1628,20 +1628,19 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             return
         
         # we have to deduce the offset, so you can begin a drag in any cell of
-        # a multi-day event. Code borrowed from
-        # wxTimedEventsCanvas.OnDraggingItem()
+        # a multi-day event. Code borrowed from wxTimedEventsCanvas.OnDraggingItem()
         dragState = self.dragState
         (boxX,boxY) = self.dragState.originalDragBox.GetDragOrigin()
         
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
         
-        # but if the event starts before the current week, make boxX negative.
-        """
+        # but if the event starts before the current week, make boxX negative:
+        # where the event would start on the screen, if it was drawn
         ost = dragState.originalDragBox.originalStartTime
-        if ost < self.blockItem.rangeStart:
-            earlier = (self.blockItem.rangeStart - ost)
+        if Calendar.datetimeOp(ost, '<', self.blockItem.rangeStart):
+            earlier = Calendar.datetimeOp(self.blockItem.rangeStart, '-', ost)
             boxX -= (earlier.days + 1) * drawInfo.dayWidth
-        """
+        
         
         dy = dragState.originalPosition.y - boxY
         dx = dragState.originalPosition.x - boxX
@@ -1662,20 +1661,20 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # bounding rules are: at least one cell of the event must stay visible.
         if Calendar.datetimeOp(newTime, '>=', self.blockItem.rangeEnd):
             newTime = self.blockItem.rangeEnd - timedelta(days=1)
-            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault)
+            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
         elif Calendar.datetimeOp(newTime + item.duration, '<',
              self.blockItem.rangeStart):
             newTime = self.blockItem.rangeStart - item.duration
-            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault)
+            newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
         
         if tzinfo is None:
             oldStartTime = \
                 item.startTime.tzinfo.replace(tzinfo=ICUtzinfo.getDefault())
         else:
             oldStartTime = \
-                item.startTime.tzinfo.astimezone(ICUtzinfo.getDefault())
+                item.startTime.astimezone(ICUtzinfo.getDefault())
         # [@@@] grant .toordinal() & tzinfo?
-
+        
         if (newTime.date() != oldStartTime.date()):
             item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
                                       item.startTime.hour, item.startTime.minute, tzinfo=tzinfo))
@@ -2471,7 +2470,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.weekColumnHeader.SetUIExtent(i, (0,width))
 
     def OnSize(self, event):
-        # print "CalendarControl.OnSize() to %s, %sx%s" %(self.GetPosition(), self.GetSize().width, self.GetSize().height)
         self._doDrawingCalculations()
         self.ResizeHeader()
         event.Skip()
@@ -2544,40 +2542,70 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # OnDaySelect takes a zero-based day, and our first day is in column 1
         return self.OnDaySelect(colIndex-1)
 
-    ## all this height logic should move to wxAllDayEventsCanvas. it's here
-    ## only because it was easier to code at first
+
+    # Should this height logic should move to wxAllDayEventsCanvas?
+    # yes: most of it centers around properties of the all day area
+    # no: procedurally more clear if all here, and some info from the splitter is important
     
     def OnExpandButtonClick(self, event):
-        #wxAllDay = self.blockItem.calendarContainer.allDayEventsCanvas.widget
         wxAllDay = self.GetAllDayWidget()
-        currentHeight = wxAllDay.GetSize()[1]
+        wxSplitter = wxAllDay.GetParent()
+        wxTimed = wxSplitter.GetWindow2()
         
-        if currentHeight >= wxAllDay.collapsedHeight and \
-           currentHeight < wxAllDay.expandedHeight:
-            # Expand!
+        #Would be asserts, but they fail in simple boundary cases (e.g. really
+        #short window) until wx's SplitterWindow can be massively bugfixed
+        if __debug__:
+            ht = lambda widget: widget.GetSize()[1]
+            sumIsHappy =   ht(wxSplitter)  ==  ht(wxAllDay) + ht(wxTimed) + wxSplitter.GetSashSize()
+            sashIsAllDayHeight =   wxSplitter.GetSashPosition() == ht(wxAllDay)
+            if not (sumIsHappy and sashIsAllDayHeight):
+                logger.debug("Calendar splitter sanity check FAILED.  sumIsHappy: %s\t sashIsAllDayHeight: %s" % (sumIsHappy, sashIsAllDayHeight))
+                return
+            logger.debug("min pane size: %s" % wxSplitter.GetMinimumPaneSize())
+            logger.debug("wxTimed height: %s" % wxTimed.GetSize()[1])
+            logger.debug("BEFORE: curHeight=%d allday's size=%s  collHeight=%d, expHeight=%d" %(ht(wxAllDay), wxAllDay.GetSize(), wxAllDay.collapsedHeight, wxAllDay.expandedHeight))
+            
+        # There are two possible "expanded" heights of the all day area
+        #  (1) wxAllDay.expandedHeight, which is the needed size to show all events
+        #  (2) the biggest it can be if you drag the splitter all the way to the bottom
+
+        # here we back-calculate (2) with heuristics i HOPE always are true
+        # from the wx splitter. Their correctness should be ensured by the
+        # sumIsHappy check.        
+        maxAllDayHeightConstrainedByWindow = wxSplitter.GetSize()[1] - wxSplitter.GetSashSize() - wxSplitter.GetMinimumPaneSize()
+        logger.debug("max from window: %s" % maxAllDayHeightConstrainedByWindow)
+        
+        effectiveExpandedHeight = min( wxAllDay.expandedHeight,
+                                       maxAllDayHeightConstrainedByWindow)
+        currentHeight = wxAllDay.GetSize()[1]
+        if (currentHeight >= wxAllDay.collapsedHeight and
+            currentHeight < effectiveExpandedHeight):
+            logger.debug("Expand to %s" % wxAllDay.expandedHeight)
             wxAllDay.GetParent().MoveSash(wxAllDay.expandedHeight)
             wxAllDay.autoExpandMode = True
             self.OnSashPositionChange()
-        elif currentHeight >= wxAllDay.expandedHeight:
-            # Collapse, I guess
+        else:
+            logger.debug("Collapse to %s" %wxAllDay.collapsedHeight)
             wxAllDay.autoExpandMode = False
             wxAllDay.GetParent().MoveSash(wxAllDay.collapsedHeight)
             self.OnSashPositionChange()
-        #print wxAllDay.autoExpandMode, currentHeight, wxAllDay.collapsedHeight, wxAllDay.expandedHeight
-        
+        event.Skip()
+    
+
     def GetAllDayWidget(self):
         # @@@ hack that depends on tree structure! would be better to have an
         # allDay reference in calcontainer or calctrl, but that causes
         # initialization order weirdness
-        # ALTERNATIVE: getBlockByName?
+        # ALTERNATIVE: findBlockByName?
         return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0].widget
     
     def OnSashPositionChange(self, event=None):
         wxAllDay = self.GetAllDayWidget()
         position = wxAllDay.GetParent().GetSashPosition()
         sashsize = wxAllDay.GetParent().GetSashSize()
-        #assert keeps failing during block render()'ing
-        #if event:  assert position == event.GetSashPosition()
+        #would write as assert, but keeps failing during block render()'ing
+        if event and not position == event.GetSashPosition():
+            logger.debug("event & splitter sash positions MISMATCH")
  
         if position < 0:
             #yes, this does happen quite a bit during block rendering
