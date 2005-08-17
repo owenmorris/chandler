@@ -843,7 +843,10 @@ class CalendarEventMixin(ContentItem):
         if master is None:
             master = self.getMaster()
         if master.hasLocalAttributeValue('itemCollectionInclusions'):
-            self.itemCollectionInclusions = master.itemCollectionInclusions
+            # [Bug 3767] We want self to be in all master's
+            # itemCollectionInclusions.
+            for coll in master.itemCollectionInclusions:
+                coll.add(self)
         self.isGenerated = False
                            
     def changeThisAndFuture(self, attr=None, value=None):
