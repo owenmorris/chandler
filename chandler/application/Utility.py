@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "44" # moved feeds and photos to /parcels
+SCHEMA_VERSION = "45" # stearns: converted DV parcel.xml to python
 
 logger = None # initialized in initLogging()
 
