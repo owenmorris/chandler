@@ -392,10 +392,10 @@ class wxApplication (wx.App):
                         print indent, name
                         self.PrintTree (window, indent + "  ")
 
-    def GetImage (self, name):
+    def GetRawImage (self, name):
         """
-          Return None if image isn't found, otherwise loads a bitmap.
-        Looks first for platform specific bitmaps.
+        Return None if image isn't found, otherwise return the raw image.
+        Also look first for platform specific images.
         """
 
         root, extension = os.path.splitext (name)
@@ -408,9 +408,19 @@ class wxApplication (wx.App):
             if file is None:
                 return None
 
-        rawImage = wx.ImageFromStream (cStringIO.StringIO(file.read()))
-        return wx.BitmapFromImage (rawImage)
+        return wx.ImageFromStream (cStringIO.StringIO(file.read()))
 
+    def GetImage (self, name):
+        """
+        Return None if image isn't found, otherwise loads a bitmap.
+        Looks first for platform specific bitmaps.
+        """
+        rawImage = self.GetRawImage(name)
+
+        if rawImage is not None:
+            return wx.BitmapFromImage (rawImage)
+
+        return None
 
     def OnCommand(self, event):
         """
