@@ -258,7 +258,9 @@ class wxSplitterWindow(wx.SplitterWindow):
             else:
                 distance = self.blockItem.size.width
             #indentlog("SetSashPosition to: %s" % int (distance * self.blockItem.splitPercentage + 0.5))
-            self.SetSashPosition (int (distance * self.blockItem.splitPercentage + 0.5))
+            position = int (distance * self.blockItem.splitPercentage + 0.5)
+            self.SetSashPosition (position)
+            self.adjustSplit(position)
         if event:
             event.Skip()
 
@@ -272,12 +274,51 @@ class wxSplitterWindow(wx.SplitterWindow):
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
             splitMode = self.GetSplitMode()
-            if splitMode == wx.SPLIT_HORIZONTAL:
-                self.blockItem.splitPercentage = position / height
-            else:
-                self.blockItem.splitPercentage = position / width
-            #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
+            if not self.adjustSplit(position):
+                if splitMode == wx.SPLIT_HORIZONTAL:
+                    self.blockItem.splitPercentage = position / height
+                else:
+                    self.blockItem.splitPercentage = position / width
+                    #indentlog("%sset splitperc to %s%s" %(util.autolog.BOLDGREEN, self.blockItem.splitPercentage, util.autolog.NORMAL))
+            
         event.Skip()
+
+    def adjustSplit(self, position):
+        # Ask the children if they wish to override the split
+        if position == 0:
+            return
+        splitMode = self.GetSplitMode()
+        width, height = self.GetSizeTuple()
+        child1 = self.GetWindow1()
+        didAdjust = False
+        if child1:
+            for childBlock in child1.blockItem.childrenBlocks:
+                adjustSplit = getattr(childBlock.widget, "AdjustSplit", None)
+                if ( adjustSplit ):
+                    newSize = adjustSplit(self, position)
+                    didAdjust = True
+                    continue
+        if not didAdjust:
+            child2 = self.GetWindow2()
+            if child2:
+                for childBlock in child2.blockItem.childrenBlocks:
+                    adjustSplit = getattr(childBlock.widget, "AdjustSplit", None)
+                    if ( adjustSplit ):
+                        if splitMode == wx.SPLIT_HORIZONTAL:
+                            newSize = height - adjustSplit(self, height - position)
+                        else:
+                            newSize = width - adjustSplit(self, width - position)                        
+                        didAdjust = True
+                        continue
+
+        if ( didAdjust ):
+            floatSize = float (newSize)
+            if splitMode == wx.SPLIT_HORIZONTAL:
+                self.blockItem.splitPercentage = floatSize / height
+            else:
+                self.blockItem.splitPercentage = floatSize / width
+            self.SetSashPosition(floatSize)
+        return didAdjust
 
     def wxSynchronizeWidget(self):
         self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
