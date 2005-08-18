@@ -12,6 +12,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, ShareTool
 )
 import application.dialogs.Util
+from  application.dialogs import ImportExport
 import osaf.mail.constants as constants
 from application.SplashScreen import SplashScreen
 import application.Parcel
@@ -107,9 +108,8 @@ class MainView(View):
             if line.find('@@buildid@@') >= 0:
                 line = "<p>Build identifier: '%s'</p>" % version.build
             html += line
-        title = _("About Chandler").toUnicode()
-        splash = SplashScreen(None, title,
-                              None, html, True, False)
+        splash = SplashScreen(None, _("About Chandler"),
+                                   None, html, True, False)
         splash.Show(True)
         return splash
 
@@ -231,7 +231,9 @@ class MainView(View):
         no percentage is specified the progress bar will disappear.
         """
 
-        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (unicode(statusMessage), progressPercentage)
+        statusMessage = unicode(statusMessage)
+
+        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
             # XXX This is not right, the alert should have a caption
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
@@ -408,16 +410,15 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        #XXX: need to migrate this to application dialogs utils
-        wildcard = _("iCalendar files|*.ics|All files (*.*)|*.*").toUnicode()
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose a file to import").toUnicode(),
-                              "", "import.ics", wildcard,
-                              wx.OPEN | wx.HIDE_READONLY)
-        if dlg.ShowModal() == wx.ID_OK:
-            (dir, filename) = os.path.split(dlg.GetPath())
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
+        #XXX: need to migrate this to application dialogs utilsA
+
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a file to import"), "",
+                                          "import.ics", _("iCalendar files|*.ics|All files (*.*)|*.*"),
+                                          wx.OPEN | wx.HIDE_READONLY)
+
+        (cmd, dir, filename) = res
+
+        if cmd  != wx.ID_OK:
             self.setStatusMessage(_("Import aborted"))
             return
 
@@ -435,16 +436,13 @@ class MainView(View):
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        #XXX: need to migrate this to application dialogs utils
-        wildcard = _("iCalendar files|*.ics|All files (*.*)|*.*").toUnicode()
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose filename to export to").toUnicode(),
-                              "", "export.ics", wildcard,
-                              wx.SAVE | wx.OVERWRITE_PROMPT)
-        if dlg.ShowModal() == wx.ID_OK:
-            (dir, filename) = os.path.split(dlg.GetPath())
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a filename to export to"), "",
+                                          "export.ics", _("iCalendar files|*.ics|All files (*.*)|*.*"),
+                                          wx.SAVE | wx.OVERWRITE_PROMPT)
+
+        (cmd, dir, filename) = res
+
+        if cmd != wx.ID_OK:
             self.setStatusMessage(_("Export aborted"))
             return
 
@@ -466,22 +464,20 @@ class MainView(View):
 
     def onImportImageEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        #XXX: need to migrate this to application dialogs utils
-        wildcard = _("Images|*.jpg;*.gif;*.png|All files (*.*)|*.*").toUnicode()
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose image to import").toUnicode(),
-                              "", "", wildcard,
-                              wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            path = str(dlg.GetPath())
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose an image to import"), "",
+                                          "", _("Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
+                                          wx.OPEN)
+
+        (cmd, dir, filename) = res
+
+        if cmd != wx.ID_OK:
             self.setStatusMessage("")
             return
 
+        path = os.path.join(dir, filename)
+
         self.setStatusMessage (_("Importing %s") % path)
         photo = Photo(view=self.itsView)
-        (dir, filename) = os.path.split(path)
         photo.displayName = filename
         photo.importFromFile(path)
         self.setStatusMessage("")
@@ -537,21 +533,19 @@ class MainView(View):
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
-        wildcard = _("CSV files|*.csv").toUnicode()
-        dlg = wx.FileDialog(wx.GetApp().mainFrame, _("Choose a file to import").toUnicode(),
-                            "", "import.csv", wildcard,
-                            wx.OPEN | wx.HIDE_READONLY)
-        if dlg.ShowModal() == wx.ID_OK:
-            (dir, filename) = os.path.split(dlg.GetPath())
-            dlg.Destroy()
-        else:
-            dlg.Destroy()
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a file to import"), "",
+                                          "import.csv", _("CSV files|*.csv"),
+                                          wx.OPEN | wx.HIDE_READONLY)
+
+        (cmd, dir, filename) = res
+
+        if cmd != wx.ID_OK:
             self.setStatusMessage(_("Import aborted"))
             return
 
         self.setStatusMessage (_("Importing from %s")  % filename)
         mainView = Globals.views[0]
-        return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, dir+'/'+filename)
+        return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, os.path.join(dir, filename))
 
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")
