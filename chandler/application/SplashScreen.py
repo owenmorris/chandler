@@ -24,7 +24,7 @@ class SplashScreen(wx.Dialog):
             style= wx.FRAME_FLOAT_ON_PARENT|wx.DEFAULT_FRAME_STYLE
         else:
             style = wx.DEFAULT_FRAME_STYLE|wx.DIALOG_NO_PARENT
-        super (SplashScreen, self).__init__ (parent, -1, title, style=style)
+        super (SplashScreen, self).__init__ (parent, -1, unicode(title), style=style)
         defaultWindowWidth = 700
         maxWindowHeight = 600
         self.isModal = isModal
