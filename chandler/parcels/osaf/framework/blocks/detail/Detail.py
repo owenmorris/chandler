@@ -1030,7 +1030,7 @@ class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
         return item.isAttributeModifiable('location') \
                or hasattr(item, 'location')
 
-class CalendarAtLabelBlock(StaticTextLabel):
+class CalendarConditionalLabelBlock(StaticTextLabel):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
                and not item.allDay

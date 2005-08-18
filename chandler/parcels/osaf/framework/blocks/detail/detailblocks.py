@@ -34,18 +34,18 @@ def installPresentationStyle(parcel, name=None, **kwds):
     return ps
 
 _spacerID = 0 # used to give each spacer a unique name
-def makeSpacerBlock(parcel, size, name=None, **kwds):
+def makeSpacerBlock(parcel, size, name=None, spacerClass=StaticText, **kwds):
     if name is None:
         global _spacerID
         _spacerID += 1
         name = 'Spacer_%d' % _spacerID
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     spacer = \
-        StaticText.template(name,
-                            title='',
-                            characterStyle=blocks.LabelStyle,
-                            stretchFactor=0.0,
-                            minimumSize=size, **kwds)
+        spacerClass.template(name,
+                             title='',
+                             characterStyle=blocks.LabelStyle,
+                             stretchFactor=0.0,
+                             minimumSize=size, **kwds)
     return spacer
 
 def installSpacerBlock(parcel, size, name=None, **kwds):
@@ -225,6 +225,11 @@ def makeCalendarEventSubtree(parcel, oldVersion):
             minimumSize=SizeType(300,10),
             border=RectType(0, 6, 0, 6))
 
+    if '__WXMSW__' in wx.PlatformInfo:
+        allDaySpacerWidth = 8
+    else:
+        allDaySpacerWidth = 6
+        
     allDayArea = \
         CalendarAllDayAreaBlock.template('CalendarAllDayArea',
             childrenBlocks=[
@@ -235,7 +240,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     stretchFactor=0.0,
                     minimumSize=SizeType(60, -1),
                     border=RectType(4, 0, 0, 0)),            
-                makeSpacerBlock(parcel, SizeType(8, -1)),
+                makeSpacerBlock(parcel, SizeType(allDaySpacerWidth, -1)),
                 DetailSynchronizedAttributeEditorBlock.template('EditAllDay',
                     stretchFactor=0.0,
                     viewAttribute=u'allDay',
@@ -265,13 +270,13 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     size=SizeType(75, -1),
                     border=RectType(2, 2, 2, 2),
                     event=parcel['Resynchronize']),
-                CalendarAtLabelBlock.template('CalendarStartAtLabel',
+                CalendarConditionalLabelBlock.template('CalendarStartAtLabel',
                     title=_(u'at'),
                     characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
                     stretchFactor=0.0,
                     border=RectType(4, 4, 0, 4)),
-                DetailSynchronizedAttributeEditorBlock.template('EditCalendarStartTime',
+                CalendarTimeAEBlock.template('EditCalendarStartTime',
                     characterStyle=blocks.TextStyle,
                     presentationStyle=installPresentationStyle(parcel, 
                         format='calendarTimeOnly'),
@@ -304,13 +309,13 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     size=SizeType(75, -1),
                     border=RectType(2, 2, 2, 2),
                     event=parcel['Resynchronize']),
-                CalendarAtLabelBlock.template('CalendarEndAtLabel',
+                CalendarConditionalLabelBlock.template('CalendarEndAtLabel',
                     title=_(u'at'),
                     characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
                     stretchFactor=0.0,
                     border=RectType(4, 4, 0, 4)),
-                DetailSynchronizedAttributeEditorBlock.template('EditCalendarEndTime',
+                CalendarTimeAEBlock.template('EditCalendarEndTime',
                     characterStyle=blocks.TextStyle,
                     presentationStyle=installPresentationStyle(parcel, 
                         format='calendarTimeOnly'),
@@ -334,7 +339,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     minimumSize=SizeType(60, -1),
                     border=RectType(5, 0, 0, 0)),
                 makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditTimeZone',
+                CalendarTimeAEBlock.template('EditTimeZone',
                     characterStyle=blocks.TextStyle,
                     viewAttribute=u'startTime',
                     presentationStyle=installPresentationStyle(parcel, 
@@ -485,9 +490,10 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                 startTimeArea,
                 makeSpacerBlock(parcel, SizeType(-1, 1)),
                 endTimeArea,
-                makeSpacerBlock(parcel, SizeType(-1, 7)),
+                makeSpacerBlock(parcel, SizeType(-1, 7), 
+                                spacerClass=CalendarConditionalLabelBlock),
                 timeZoneArea,
-                makeSpacerBlock(parcel, SizeType(-1, 1)),
+                makeSpacerBlock(parcel, SizeType(-1, 7)),
                 transparencyArea,
                 makeSpacerBlock(parcel, SizeType(-1, 7)),
                 recurrencePopupArea,
