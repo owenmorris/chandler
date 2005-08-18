@@ -16,6 +16,9 @@ from osaf.pim.items import Calculated, ContentItem
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
+import wx
+
 from osaf.pim.calendar.TimeZone import coerceTimeZone
 from PyICU import ICUtzinfo
 from datetime import datetime, time, timedelta
@@ -1179,12 +1182,15 @@ def getProxy(context, obj):
 
 class OccurrenceProxy(object):
     __class__ = 'temp'
-    proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__','isProxy'
+    proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
+                      'dialogUp', 'changeBuffer'
     
     def __init__(self, item):
         self.proxiedItem = item
         self.currentlyModifying = None
         self.__class__ = self.proxiedItem.__class__
+        self.dialogUp = False
+        self.changeBuffer = []
     
     def __eq__(self, other):
         return self.proxiedItem == other
@@ -1193,15 +1199,30 @@ class OccurrenceProxy(object):
         return getattr(self.proxiedItem, name)
         
     def __setattr__(self, name, value):
-        if name not in self.proxyAttributes:
-            logger.info('in proxy setattr, name: %s, value: %s' % (name, value))
         if name in self.proxyAttributes:
             object.__setattr__(self, name, value)
         elif self.proxiedItem.rruleset is None:
             setattr(self.proxiedItem, name, value)
         else:
-            self.proxiedItem.changeThisAndFuture(name, value)
-            logger.info('after changeThisAndFuture, name: %s, value: %s' % (name, value))
+            if self.currentlyModifying is None:
+                self.changeBuffer.append(('change', name, value))
+                if not self.dialogUp:
+                    self.dialogUp = True
+                    RecurrenceDialog.RecurrenceDialog(wx.GetApp().mainFrame, self)
+            else:
+                self.propagateChange(name, value)
+    
+    def propagateBufferChanges(self):
+        while len(self.changeBuffer) > 0:
+            self.propagateChange(*self.changeBuffer.pop(0)[1:])
+    
+    def propagateChange(self, name, value):
+        table = {'this'          : self.changeThis,
+                 'thisandfuture' : self.changeThisAndFuture}
+        table[self.currentlyModifying](name, value)
+    
+    def cancelBuffer(self):
+        self.changeBuffer = []
     
     def isProxy(self):
         return True

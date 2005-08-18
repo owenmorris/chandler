@@ -208,22 +208,19 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.failIf(self.event.isProxy())
         
         proxy = Calendar.getProxy('test', self.event)
+        proxy.dialogUp = True # don't try to create a dialog in a test
         self.assert_(proxy.isProxy())
         self.assertEqual(proxy, self.event)
         self.assertEqual(proxy.currentlyModifying, None)
         self.assert_(proxy is Calendar.getProxy('test', proxy))
 
         proxy.rruleset = self._createRuleSetItem('weekly')
-        print proxy.rruleset
         self.assert_(self.event in proxy.rruleset.events)
         self.assertEqual(proxy.getNextOccurrence().occurrenceFor, self.event)
         self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
         
         proxy.startTime = self.start + timedelta(days=1)
-        
-        # the change shouldn't propagate
-        # holding off on this test
-        #self.assertEqual(proxy.startTime, self.start)
+        self.assertEqual(proxy.startTime, self.start)
 
     def testThisAndFutureModification(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
