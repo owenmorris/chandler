@@ -23,7 +23,9 @@
         *wxMediaCtrl*ShowPlayerControls*wxMediaPlayerControls*;
         *wxMessageOutputBest*;
         *wxShadowObject*;
+        *wxStaticText*Wrap*;
         *wxTopLevelWindowGTK*RequestUserAttention*;
+        *wxWindowMSW*MSWWindowProc*;
         *wxWizard*FinishLayout*;
         *wxWizardPage*TransferDataFromWindow*;
         *wxWizardPage*TransferDataToWindow*;
