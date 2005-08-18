@@ -321,6 +321,9 @@ if (ctxRef != NULL) \
     CGContextRestoreGState( ctxRef ); \
 }
 
+#define _NEW_GC_DASHES_
+#define _NEW_GC_SUPPORT_
+
 #if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
 #define kCGColorSpaceGenericRGB   CFSTR("kCGColorSpaceGenericRGB")
 #endif
@@ -541,7 +544,7 @@ void wxMacCGContext::SetPen( const wxPen &pen )
         }
         if ( stroke )
         {
- #if 1
+#if defined(_NEW_GC_SUPPORT_)
             // new candidate
             {
                 CGPatternRef  patternRef;
@@ -627,10 +630,83 @@ void wxMacCGContext::SetPen( const wxPen &pen )
             }
             CGContextSetLineJoin( m_cgContext , join ) ;
 
-            CGContextSetLineWidth( m_cgContext , pen.GetWidth() == 0 ? 0.1 :  pen.GetWidth() /* TODO * m_dc->m_scaleX */ ) ; 
+            /* TODO * m_dc->m_scaleX */
+            float penWidth = pen.GetWidth();
+            if (penWidth <= 0.0)
+                penWidth = 0.1;
+            CGContextSetLineWidth( m_cgContext , penWidth ) ; 
 
             m_mode = kCGPathStroke ;
             int count = 0 ;
+
+#if defined(_NEW_GC_DASHES_)
+            const char *dashData = NULL ;
+            char *userDashData = NULL ;
+            float  alphaArray[1];
+
+            const char dotted[] = { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55 };
+            const char dashed[] = { 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00 };
+            const char short_dashed[] = { 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00 };
+            const char dotted_dashed[] = { 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0x00 };
+
+            switch (pen.GetStyle())
+            {
+                case wxSOLID:
+                    // default, undashed pen
+                    break;
+
+                case wxDOT:
+                    dashData = dotted;
+                    count = WXSIZEOF(dotted);
+                    break;
+                case wxLONG_DASH:
+                    dashData = dashed;
+                    count = WXSIZEOF(dashed);
+                    break;
+                case wxSHORT_DASH:
+                    dashData = short_dashed;
+                    count = WXSIZEOF(short_dashed);
+                    break;
+                case wxDOT_DASH:
+                    dashData = dotted_dashed;
+                    count = WXSIZEOF(dotted_dashed);
+                    break;
+                case wxUSER_DASH:
+                    count = pen.GetDashes( (wxDash**)&userDashData );
+                    dashData = userDashData;
+                    break;
+
+                default :
+                    break; 
+            }
+
+            if ((dashData != NULL) && (count > 0))
+            {
+                CGPatternRef  patternRef;
+                RGBColor col;
+                long  result;
+                bool  useMultibit;
+
+                    useMultibit = true;
+                    result = CreatePatternFromDashes( &patternRef, (const wxDash*)dashData, count, useMultibit );
+                    if (result == 0)
+                    {
+                        col = MAC_WXCOLORREF( pen.GetColour().GetPixel() );
+                        CGContextSetRGBStrokeColor(
+                            m_cgContext, (float) col.red / 65536.0,
+                            (float) col.green / 65536.0, (float) col.blue / 65536.0, 1.0 );
+
+                        EstablishPatternColorSpace( m_cgContext, useMultibit, false );
+
+                        alphaArray[0] = 1.0;
+                        CGContextSetStrokePattern( m_cgContext, patternRef, alphaArray );
+                        CGPatternRelease( patternRef );
+                    }
+ 
+                if (result != 0)
+                    wxLogDebug( wxT("CreatePatternFromDashes failed: result [%ld]"), result );
+           }
+#else
             const float *lengths = NULL ;
             float *userLengths = NULL ;
             
@@ -643,6 +719,7 @@ void wxMacCGContext::SetPen( const wxPen &pen )
             {
                 case wxSOLID :
                     break ;
+
                 case wxDOT :
                     lengths = dotted ;
                     count = WXSIZEOF(dotted);
@@ -664,13 +741,6 @@ void wxMacCGContext::SetPen( const wxPen &pen )
                     count = pen.GetDashes( &dashes ) ;
                     if ((dashes != NULL) && (count > 0))
                     {
-//                CGPatternRef  patternRef;
-//                long  result;
-//                bool  useMultibit;
-//
-//                    useMultibit = false;
-//                    result = CreatePatternFromDashes( &patternRef, (char*)dashes, count, useMultibit );
-
                         userLengths = new float[count] ;
                         for( int i = 0 ; i < count ; ++i )
                         {
@@ -697,10 +767,11 @@ void wxMacCGContext::SetPen( const wxPen &pen )
             }
             else if (count < 0)
             {
-//                wxLogDebug( wxT("wxMacCGContext::SetPen - bad count [%d]"), count );
+//            wxLogDebug( wxT("wxMacCGContext::SetPen - bad count [%d]"), count );
             }
 
             delete[] userLengths ;
+#endif
         }
         if ( fill && stroke )
         {
@@ -730,7 +801,7 @@ void wxMacCGContext::SetBrush( const wxBrush &brush )
 
         if ( fill )
         {
-#if 1
+#if defined(_NEW_GC_SUPPORT_)
             // new candidate
             {
                 CGPatternRef  patternRef;
@@ -1882,7 +1953,7 @@ bool wxDC::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) con
     status = ::ATSUCreateTextLayoutWithTextPtr( (UniCharArrayPtr) ubuf , 0 , chars , chars , 1 ,
         &chars , (ATSUStyle*) &m_macATSUIStyle , &atsuLayout ) ;
         
-    	for ( int pos = 0; pos < chars; pos ++ ) {
+    	for ( int pos = 0; pos < (int)chars; pos ++ ) {
 			unsigned long actualNumberOfBounds = 0;
 			ATSTrapezoid glyphBounds;
 
