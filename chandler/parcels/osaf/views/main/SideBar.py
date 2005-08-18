@@ -13,6 +13,7 @@ import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
 import osaf.sharing.Sharing as Sharing
 from application import schema
+from i18n import OSAFMessageFactory as _
 
 def GetRectFromOffsets (rect, offsets):
     def GetEdge (rect, offset):
@@ -429,7 +430,7 @@ class SidebarBlock(ControlBlocks.Table):
 
     def onDeleteEventUpdateUI(self, event):
         self.onRemoveEventUpdateUI(event)
-        event.arguments['Text'] = _('Delete Collection')
+        event.arguments['Text'] = _('Delete Collection').toUnicode()
         """
         this is enabled if any user item is selected in the sidebar
         """

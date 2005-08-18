@@ -9,6 +9,7 @@ import AccountPreferences
 import wx
 from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
+import messages
 
 # A helper method and class for allowing the user to modify an item's attributes
 """
@@ -92,11 +93,11 @@ class ItemValuesDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, _(" OK ").toUnicode())
+        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, _(" Cancel ").toUnicode())
+        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -186,8 +187,7 @@ class mailErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        #XXX: Does this OK need to be localized or will wx handle this for us?
-        btn = wx.Button(self, wx.ID_CANCEL, _(" OK ").toUnicode())
+        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.OK_BUTTON))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
@@ -241,11 +241,11 @@ class promptUserDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, _(" OK ").toUnicode())
+        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, _(" Cancel ").toUnicode())
+        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)

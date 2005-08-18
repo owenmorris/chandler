@@ -160,19 +160,19 @@ class ReminderDialog(wx.Dialog):
 
         absDeltaMinutes = abs(deltaMinutes)
         if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two
-            format = _("%d day%s %s").toUnicode()
+            format = _("%d day%s %s")
             scale = 1440
         elif (absDeltaMinutes >= 120): # Use "hours" only if it's more than two
-            format = _("%d hour%s %s").toUnicode()
+            format = _("%d hour%s %s")
             scale = 60
         else:
-            format = _("%d minute%s %s").toUnicode()
+            format = _("%d minute%s %s")
             scale = 1
 
         value = round((absDeltaMinutes / scale) + 0.49999)
 
         #XXX: [i18n] This need to be formatted clearer for translators
-        return format % (value, value != 1 and "s" or "", absDeltaMinutes == deltaMinutes and _("ago").toUnicode() or _("from now").toUnicode())
+        t = format % (value, value != 1 and "s" or "", absDeltaMinutes == deltaMinutes and _("ago") or _("from now"))
 
     def onDismiss(self, event):
         """ 

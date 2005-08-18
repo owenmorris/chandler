@@ -405,7 +405,7 @@ class _SMTPTransport(object):
             for address in result[1]:
                 addrs.append(address[0])
 
-            self.parent.log.info(constants.UPLOAD_SUCCESS % (", ".join(addrs)))
+            self.parent.log.info("Message sent to [%s]" % (", ".join(addrs)))
 
     def __mailSomeFailed(self, result):
         """
@@ -433,7 +433,7 @@ class _SMTPTransport(object):
         self.mailMessage.deliveryExtension.sendFailed()
 
         if __debug__:
-            s = [constants.UPLOAD_FAILED_FOR_RECIPIENTS]
+            s = ["Send failed for the following recipients"]
 
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
                 s.append(deliveryError.__str__())
@@ -466,7 +466,7 @@ class _SMTPTransport(object):
 
             if __debug__:
                 for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                    s = constants.UPLOAD_FAILED % deliveryError
+                    s = "Unable to send %s" % deliveryError
                     self.parent.log.error(s)
         else:
             """Clear the status bar message"""
@@ -607,8 +607,7 @@ class _SMTPTransport(object):
 
         if __debug__:
             for deliveryError in self.mailMessage.deliveryExtension.deliveryErrors:
-                self.log.error(constants.UPLOAD_FAILED % deliveryError)
-
+                self.log.error("Unable to send: %s" % deliveryError)
 
     def __getSender(self):
         """Get the sender of the message"""

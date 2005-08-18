@@ -76,7 +76,7 @@ def PromptForNewAccountInfo(parent, host=None, path=None):
 
     resources = wx.xrc.XmlResource(xrcFile)
 
-    win = AccountInfoPromptDialog(parent, _("New Account").toUnicode(),
+    win = AccountInfoPromptDialog(parent, _("New Account"),
                                   resources=resources, host=host, path=path)
 
     win.CenterOnScreen()

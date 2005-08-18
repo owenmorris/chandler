@@ -24,6 +24,8 @@ from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
 from osaf.pim.items import ContentItem
 from application import schema
 
+from i18n import OSAFMessageFactory as _
+
 logger = logging.getLogger(__name__)
 
 #
@@ -943,13 +945,13 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             value = DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime)
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
-            value = _(u'Yesterday')
+            value = _('Yesterday').toUnicode()
         else:
             # Do day names for days in the last week. We'll need to convert 
             # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
             wkDay = ((itemDateTime.weekday() + 1) % 7) + 1
             value = DateTimeAttributeEditor.weekdays[wkDay]
-        
+
         return value
 
     def ReadOnly (self, (item, attribute)):
@@ -1002,10 +1004,10 @@ class DateAttributeEditor (StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.
         if not hasattr(self, 'cachedSampleText'):
-            year4 = _(u"yyyy")
-            year2 = _(u"yy")
-            month = _(u"mm")
-            day = _(u"dd")
+            year4 = _(u"yyyy").toUnicode()
+            year2 = _(u"yy").toUnicode()
+            month = _(u"mm").toUnicode()
+            day = _(u"dd").toUnicode()
             sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
             sampleText = sampleText.replace(u"2003", year4) # Some locales use 4-digit year, some use 2.
             sampleText = sampleText.replace(u"03", year2)   # so we'll handle both.
@@ -1062,8 +1064,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.            
         if not hasattr(self, 'cachedSampleText'):
-            hour = _(u"hh")
-            minute = _(u"mm")
+            hour = _(u"hh").toUnicode()
+            minute = _(u"mm").toUnicode()
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
 

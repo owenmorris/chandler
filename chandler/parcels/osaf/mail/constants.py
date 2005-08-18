@@ -10,6 +10,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 #python imports
 import version
 
+from i18n import OSAFMessageFactory as _
+
 DEFAULT_CHARSET = "utf-8"
 LF    = unicode("\n", DEFAULT_CHARSET)
 CR    = unicode("\r", DEFAULT_CHARSET)

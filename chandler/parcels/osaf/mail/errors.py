@@ -6,6 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """Localized error strings which will in a later version
    be replaced by calls to the Respository for LocalizableStrings"""
 
+from i18n import OSAFMessageFactory as _
+
 STR_SSL_CERTIFICATE_ERROR = _("An SSL Communication Error Occurred:\n%s")
 STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
 STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later.")

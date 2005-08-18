@@ -34,6 +34,7 @@ import sets
 import logging
 from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
 from datetime import datetime, time, timedelta
+from i18n import OSAFMessageFactory as _
 
 """
 Detail.py
@@ -214,7 +215,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
                     enabled = len(item.toAddress) > 0
         
         event.arguments['Enable'] = enabled    
-        event.arguments ['Text'] = label
+        event.arguments ['Text'] = unicode(label)
             
     def onSendShareItemEvent (self, event):
         """
@@ -247,7 +248,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
                 whoTo = []
             if len (whoTo) == 0:
                 message = _('Please specify who to send this message to in the "to" field.')
-                
+
         if message:
             Util.ok(wx.GetApp().mainFrame,
              _("No Receivers"), message)
@@ -908,7 +909,7 @@ class EditRedirectAttribute (EditTextAttribute):
         except AttributeError:
             value = _('untitled')
         if widget.GetValue() != value:
-            widget.SetValue(value)
+            widget.SetValue(unicode(value))
 
 class StaticEmailAddressAttribute (StaticRedirectAttributeLabel):
     """
@@ -1014,7 +1015,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
             enabled = True
         else:
             if existingSharedCollection is not None:
-                self.widget.SetLabel(_("(Already sharing this collection)"))
+                self.widget.SetLabel(_("(Already sharing this collection)").toUnicode())
                 enabled = False
         event.arguments['Enable'] = enabled
 
@@ -1273,7 +1274,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             else:
                 minutes = ((value.days * 1440) + (value.seconds / 60))
                 reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
-                choiceIndex = control.FindString(reminderChoice)
+                choiceIndex = control.FindString(unicode(reminderChoice))
                 # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
                 if choiceIndex == -1:
                     choiceIndex = 0 # the "None" choice

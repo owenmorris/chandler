@@ -4,6 +4,10 @@ from application.Parcel import Reference
 from repository.schema.Types import Lob
 from osaf import pim
 from feeds import FeedChannel
+from i18n import OSAFMessageFactory as _
+
+#XXX[i18n] this file needs to have displayName converted to _()
+#   once displayName is made a LocalizableString
 
 def installParcel(parcel, oldVersion=None):
 
@@ -102,7 +106,7 @@ def installParcel(parcel, oldVersion=None):
 
 
     pim.ItemCollection.update(parcel, 'trash',
-        displayName=_('Trash'),
+        displayName='Trash',
         renameable=False
     )
 

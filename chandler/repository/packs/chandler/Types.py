@@ -8,6 +8,7 @@ from types import UnicodeType, StringType
 """
 Notes:
 1. Should Exception be i18nException or RepositoryException
+2. Add in Explicit argument adding and clearing method
 """
 
 class LocalizableString(object):
@@ -47,6 +48,7 @@ class LocalizableString(object):
 
         return self
 
+
     def __str__(self):
         from i18n import I18nException
         raise I18nException("String casts are not supported. \
@@ -54,12 +56,7 @@ class LocalizableString(object):
 
     def __unicode__(self):
         from i18n import I18nManager
-        args = self._args
-
-        #Clear the args after returning translation
-        self._args = None
-
-        return I18nManager.translate(self._domain, self._defaultText, args)
+        return I18nManager.translate(self._domain, self._defaultText, self._args)
 
     def encode(self, charset):
         return self.__unicode__().encode(charset)
@@ -73,12 +70,10 @@ from repository.schema.Alias import Alias
 
 class LocalizableStringType(Struct):
     def makeValue(self, data):
-        print "data: ", data
         return LocalizableString(data)
 
 class Text(Alias):
     def makeValue(self, data):
-        print "data: ", data
         return LocalizableString(data)
 
 

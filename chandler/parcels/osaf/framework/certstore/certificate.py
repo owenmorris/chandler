@@ -20,6 +20,9 @@ from osaf.framework.certstore import dialogs
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
+from application.dialogs import ImportExport
+from i18n import OSAFMessageFactory as _
+import os
 
 # XXX Should be done using ref collections instead?
 import repository.query.Query as Query
@@ -242,22 +245,21 @@ def _importCertificate(x509, fingerprint, trust, repView):
 
 
 def ImportCertificate(repView, cpiaView):
-    dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                        _("Choose a certificate to import"),
-                        "", "", _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
-                        wx.OPEN | wx.HIDE_READONLY)
-    if dlg.ShowModal() == wx.ID_OK:
-        path = dlg.GetPath()
-        dlg.Destroy()
-        if path == '':
-            return
-    else:
-        dlg.Destroy()
+    res = ImportExport.showFileDialog(wx.GetApp().mainFrame,
+                                       _("Choose a certificate to import"),
+                                       "", "", _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
+                                        wx.OPEN | wx.HIDE_READONLY)
+
+    (cmd, dir, filename) = res
+
+    if cmd  != wx.ID_OK:
         return
-    
+
+    path = os.path.join(dir, filename)
+
     try: 
         x509 = X509.load_cert(path)
-        
+
         fingerprint = _fingerprint(x509)
         type = _certificateType(x509)
         # Note: the order of choices must match the selections code below

@@ -7,6 +7,8 @@ Crypto dialogs
 
 import logging
 import wx
+from i18n import OSAFMessageFactory as _
+from application.dialogs import messages
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         """
         Ask the user if they would like to trust the certificate presented by
         the site we are connecting to.
-        
+
         @param x509: The certificate the site returned.
         """ 
 
@@ -25,7 +27,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _('Trust site certificate?'), pos, size, style)
+        pre.Create(parent, -1, _('Trust site certificate?').toUnicode(), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -41,7 +43,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         # XXX depends on parcels
         import osaf.framework.certstore.certificate as certificate
         message = _('Do you want to trust this certificate?\nSHA1 fingerprint: %s') % certificate._fingerprint(x509)
-        label = wx.StaticText(self, -1, message)
+        label = wx.StaticText(self, -1, unicode(message))
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         # multiline readonly edit control
@@ -64,7 +66,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
                 first = False
             else:
                 style = wx.ALIGN_LEFT
-            rb = wx.RadioButton(self, -1, choice, wx.DefaultPosition, 
+            rb = wx.RadioButton(self, -1, unicode(choice), wx.DefaultPosition, 
                                 wx.DefaultSize, style)
             rbs += [rb]
             radiobox.Add(rb, 1, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -75,10 +77,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, " OK ")
+        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, " Cancel ")
+        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -89,7 +91,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         sizer.Fit(self)
 
         self.rbs = rbs
-        
+
     def GetSelection(self):
         sel = 0
         for rb in self.rbs:

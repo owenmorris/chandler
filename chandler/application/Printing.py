@@ -1,4 +1,5 @@
 import  wx
+from i18n import OSAFMessageFactory as _
 
 ID_Setup    =   wx.NewId()
 ID_Preview  =   wx.NewId()
@@ -32,7 +33,7 @@ class Printing(object):
         if not self.preview.Ok():
             return
         
-        frame = wx.PreviewFrame(self.preview, self.frame, "Print preview")
+        frame = wx.PreviewFrame(self.preview, self.frame, _("Print preview").toUnicode())
         
         frame.Initialize()
         frame.SetPosition(self.frame.GetPosition())
@@ -49,7 +50,7 @@ class Printing(object):
         if not printSuccess:
             printError = printer.GetLastError()
             if ((printError != wx.PRINTER_CANCELLED) and (printError != 0)):
-                wx.MessageBox("There was a problem printing.\nPerhaps your current printer is not set correctly?", "Printing", wx.OK)
+                wx.MessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?").toUnicode(), _("Printing").toUnicode(), wx.OK)
         else:
             self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
         printout.Destroy()

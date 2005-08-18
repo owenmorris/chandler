@@ -47,7 +47,7 @@ class RecurrenceDialog(wx.Dialog):
               name=u'RecurrenceDialog', parent=prnt, pos=wx.Point(533, 294),
               size=wx.Size(443, 121),
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
-              title=u'Recurring event change')
+              title=_('Recurring event change').toUnicode())
         self.SetMinSize(wx.Size(400, 100))
         self.SetClientSize(wx.Size(435, 87))
         self.Bind(wx.EVT_CLOSE, self.onCancel)
@@ -80,33 +80,36 @@ class RecurrenceDialog(wx.Dialog):
     def __init__(self, parent, proxy):
         self.proxy = proxy
         self._init_ctrls(parent)
-        labels = {self.cancelButton : 'Cancel',
-                  self.allButton    : 'All events',
-                  self.futureButton : 'All future events',
-                  self.thisButton   : 'Just this event'}
+        labels = {self.cancelButton : _('Cancel'),
+                  self.allButton    : _('All events'),
+                  self.futureButton : _('All future events'),
+                  self.thisButton   : _('Just this event')}
 
         for item, label in labels.iteritems():
-            item.SetLabel(_(label).toUnicode())
+            item.SetLabel(label.toUnicode())
 
-        # XXX Fixme, how should this be localized?
+        # XXX [i18n] Fixme, how should this be localized?
         verb = proxy.changeBuffer[0][0]
-        self.questionText.SetLabel(u'"%s" is a recurring event.'
-                              ' Do you want to %s:' % (proxy.displayName, verb))
 
-        self.SetTitle(_(u'Recurring event change').toUnicode())
+        txt = _('"%s" is a recurring event. Do you want to %s:' ) % (proxy.displayName, verb)
+        title = _('Recurring event change')
+
+        self.questionText.SetLabel(unicode(text))
+
+        self.SetTitle(unicode(title))
 
         # Make sure the dialog can fit the buttons and question text
         self.SetSize(self.GetBestSize())
-        
+
         if verb == 'change': # changes don't apply to all, hide the all button
             self.allButton.Show(False)
-        
+
         self.CenterOnScreen()
         self.Show()
 
     def _end(self):
         self.proxy.dialogUp = False
-        self.Destroy()  
+        self.Destroy() 
 
     def onCancel(self, event):
         self.proxy.cancelBuffer()

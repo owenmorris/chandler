@@ -6,6 +6,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.packs.chandler.Types import LocalizableString
 import i18nmanager
 
+class I18nException(Exception):
+    pass
+
 #We temporarily assign _() to return the value it is passed.
 # till  LocalizableString is put in place in the Chandler code base
 
