@@ -397,9 +397,16 @@ class wxApplication (wx.App):
           Return None if image isn't found, otherwise loads a bitmap.
         Looks first for platform specific bitmaps.
         """
-        file = I18nManager.getImage(name)
+
+        root, extension = os.path.splitext (name)
+
+        file = I18nManager.getImage(root + "-" + sys.platform + extension)
+
         if file is None:
-            return None
+            file = I18nManager.getImage(name)
+
+            if file is None:
+                return None
 
         rawImage = wx.ImageFromStream (cStringIO.StringIO(file.read()))
         return wx.BitmapFromImage (rawImage)
