@@ -150,6 +150,10 @@ public:
     // get the date from which we start drawing days
     wxDateTime GetStartDate() const;
 
+	// Get sizes of individual components
+	wxSize GetHeaderSize() const;
+    wxSize GetMonthSize() const;
+
 private:
     // common part of all ctors
     void Init();

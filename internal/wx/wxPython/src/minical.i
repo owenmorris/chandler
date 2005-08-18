@@ -146,6 +146,9 @@ public:
         void SetBusy(const wxDateTime& date, double busyPercentage);
         wxMiniCalendarDateAttr* GetAttr(size_t day) const;
         void SetAttr(size_t day, wxMiniCalendarDateAttr *attr);
+        wxDateTime GetStartDate() const;
+        wxSize GetHeaderSize() const;
+        wxSize GetMonthSize() const;
 };
 
 //---------------------------------------------------------------------------
