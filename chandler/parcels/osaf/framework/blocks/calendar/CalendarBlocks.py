@@ -21,7 +21,7 @@ from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 from datetime import datetime
 
-    
+
 class wxMiniCalendar(wx.minical.MiniCalendar):
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
@@ -172,6 +172,10 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         self.widget.wxSynchronizeWidget()
         self.widget.Refresh()        
 
+    def onSetContentsEvent(self, event):
+        #We want to ignore, because view changes could come in here, and we
+        #never want to change our collection
+        pass
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
     maximumEventsDisplayed = 5 #Not at schema level .. unless user customization?
@@ -183,7 +187,11 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     def onSelectItemEvent(self, event):
         self.widget.wxSynchronizeWidget()
         #self.widget.Refresh() 
-        
+    def onSetContentsEvent(self, event):
+        #We want to ignore, because view changes could come in here, and we
+        #never want to change our collection
+        pass
+    
     def instantiateWidget(self):
         return wxPreviewArea(self.parentBlock.widget, Block.Block.getWidgetID(self))
 
