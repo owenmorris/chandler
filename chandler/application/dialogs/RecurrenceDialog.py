@@ -94,7 +94,7 @@ class RecurrenceDialog(wx.Dialog):
         txt = _('"%s" is a recurring event. Do you want to %s:' ) % (proxy.displayName, verb)
         title = _('Recurring event change')
 
-        self.questionText.SetLabel(unicode(text))
+        self.questionText.SetLabel(unicode(txt))
 
         self.SetTitle(unicode(title))
 
