@@ -56,22 +56,18 @@ class Calculated(property):
 
 
 class ContentItem(schema.Item):
-    """Content Item"""
+    """Content Item
 
-    schema.kindInfo(
-        displayName = "Content Item",
-        examples = [
-            "an Calendar Event -- 'Lunch with Tug'",
-            "a Contact -- 'Terry Smith'",
-            "a Task -- 'mail 1040 to IRS'",
-        ],
-        description =
-            "Content Item is the abstract super-kind for things like "
-            "Contacts, Calendar Events, Tasks, Mail Messages, and Notes. "
-            "Content Items are user-level items, which a user might file, "
-            "categorize, share, and delete.",
-    )
-
+    Content Item is the abstract super-kind for things like Contacts, Calendar
+    Events, Tasks, Mail Messages, and Notes.  Content Items are user-level
+    items, which a user might file, categorize, share, and delete.
+    
+    Examples:
+        a Calendar Event -- 'Lunch with Tug'
+        a Contact -- 'Terry Smith'
+        a Task -- 'mail 1040 to IRS'
+    """
+    schema.kindInfo( displayName = "Content Item" )
 
     body = schema.One(
         schema.Lob,
@@ -155,7 +151,7 @@ class ContentItem(schema.Item):
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
 
     schema.addClouds(
-        sharing = schema.Cloud("displayName", body, "issues", createdOn,
+        sharing = schema.Cloud("displayName", body, createdOn,
                                "description"),
         copying = schema.Cloud()
     )
@@ -637,15 +633,14 @@ class Project(ContentItem):
 
     schema.kindInfo(
         displayName = "Project",
-        examples = [
-            'my "Housewarming Party" project',
-            "my department's \"Move to new building\" project",
-            "my company's \"Open Seattle Store\" project",
-        ],
         description =
             "Users can create projects to help organize their work. Users can "
             "take content items (like tasks and mail messages) and assign "
-            "them to different projects."
+            "them to different projects.\n\n"
+            "Examples:\n"
+            '   my "Housewarming Party" project\n'
+            "   my department's \"Move to new building\" project\n"
+            "   my company's \"Open Seattle Store\" project\n"
     )
 
     parentProject = schema.One(
@@ -667,10 +662,9 @@ class Group(ContentItem):
     schema.kindInfo(
         displayName = '"Playlist"/"Item Collection"',
         description =
-            "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject",
-        issues = [
-            'We still need to work out some issues about how '
-            '"playlists"/"item collections" are modeled.',
-            'We need to find a name for these things.',
-        ]
+            "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject\n\n"
+            "Issues:\n"
+            '   We still need to work out some issues about how '
+                '"playlists"/"item collections" are modeled.\n'
+            '   We need to find a name for these things.\n'
     )

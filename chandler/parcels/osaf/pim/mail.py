@@ -135,11 +135,10 @@ class AccountBase(items.ContentItem):
         displayName = 'Password',
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
-              'for this account type.',
-        issues = [
-            'This should not be a simple string. We need some solution for '
-            'encrypting it.'
-        ],
+              'for this account type.\n\n'
+            'Issues:\n'
+            '   This should not be a simple string. We need some solution for '
+            'encrypting it.\n',
         initialValue = '',
     )
     host = schema.One(
@@ -241,12 +240,11 @@ class SMTPAccount(AccountBase):
     port = schema.One(
         schema.Integer,
         displayName = 'Port',
-        doc = 'The non-SSL port number to use',
-        issues = [
-            "In order to get a custom initialValue for this attribute for an "
+        doc = 'The non-SSL port number to use\n\n'
+            "Issues:\n"
+            "   In order to get a custom initialValue for this attribute for an "
             "SMTPAccount, I defined a 'duplicate' attribute, also named "
-            "'port', which normally would have been inherited from AccountBase",
-        ],
+            "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 25,
     )
     useAuth = schema.One(
@@ -264,10 +262,10 @@ class SMTPAccount(AccountBase):
     )
     signature = schema.One(
         schema.String,
-        issues = [
-            'Basic signiture addition to an outgoing message will be refined '
-            'in future releases',
-        ],
+        description =
+            "Issues:\n"
+            '   Basic signiture addition to an outgoing message will be refined '
+            'in future releases\n',
     )
 
 
@@ -283,8 +281,11 @@ class IMAPAccount(DownloadAccountBase):
     port = schema.One(
         schema.Integer,
         displayName = 'Port',
-        doc = 'The non-SSL port number to use',
-        issues = [u"In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase"],
+        doc = 'The non-SSL port number to use\n\n'
+            "Issues:\n"
+            "   In order to get a custom initialValue for this attribute for "
+            "an IMAPAccount, I defined a 'duplicate' attribute, also named "
+            "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 143,
     )
     messageDownloadSequence = schema.One(
@@ -305,8 +306,11 @@ class POPAccount(DownloadAccountBase):
     port = schema.One(
         schema.Integer,
         displayName = 'Port',
-        doc = 'The non-SSL port number to use',
-        issues = [u"In order to get a custom initialValue for this attribute for a POPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase"],
+        doc = 'The non-SSL port number to use\n\n'
+            "Issues:\n"
+            "   In order to get a custom initialValue for this attribute for "
+            "a POPAccount, I defined a 'duplicate' attribute, also named "
+            "'port', which normally would have been inherited from AccountBase\n",
         initialValue = 110,
     )
     downloadedMessageUIDS = schema.Mapping(
@@ -394,11 +398,10 @@ class SMTPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
         displayName = "SMTP Delivery",
-        description = "Tracks the status of an outgoing message",
-        issues = [
-            "Currently the parcel loader can't set a default value for the "
-            "state attribute",
-        ]
+        description = "Tracks the status of an outgoing message\n\n"
+            "Issues:\n\n"
+            "   Currently the parcel loader can't set a default value for the "
+            "state attribute\n",
     )
 
     history = schema.Sequence(
@@ -415,12 +418,11 @@ class SMTPDelivery(MailDeliveryBase):
     state = schema.One(
         stateEnum,
         displayName = 'State',
-        doc = 'The current state of the message',
-        issues = [
-            "We don't appear to be able to set an initialValue for an "
+        doc = 'The current state of the message\n\n'
+        "Issues:\n"
+        "   We don't appear to be able to set an initialValue for an "
             "attribute whose enumeration is defined in the same file "
-            "(a deficiency in the parcel loader)",
-        ],
+            "(a deficiency in the parcel loader)\n",
     )
    
     def __init__(self, name=None, parent=None, kind=None, view=None):
@@ -539,22 +541,20 @@ class MIMEContainer(MIMEBase):
 
 
 class MailMessageMixin(MIMEContainer):
-    """
-      Mail Message Mixin is the bag of Message-specific attributes.
+    """MailMessageMixin is the bag of Message-specific attributes.
 
+    Used to mixin mail message attributes into a content item.
+
+    Issues:
+        Once we have attributes and a cloud defined for Attachment, 
+        we need to include attachments by cloud, and not by value.
+
+        Really not sure what to do with the 'downloadAccount' attribute 
+        and how it should be included in the cloud.  For now it's byValue.
     """
     schema.kindInfo(
         displayName="Mail Message Mixin",
         displayAttribute="subject",
-        description="Used to mixin mail message attributes into a content item",
-        issues=[
-            "Once we have attributes and a cloud defined for Attachment, "
-            "we need to include attachments by cloud, and not by value.",
-
-            "Really not sure what to do with the 'downloadAccount' attribute "
-            "and how it should be included in the cloud.  For now it's by "
-            "value.",
-        ]
     )
     deliveryExtension = schema.One(
         MailDeliveryBase,
@@ -786,34 +786,32 @@ class EmailAddress(items.ContentItem):
     schema.kindInfo(
         displayName = "Email Address Kind",
         displayAttribute = "emailAddress",
-        examples = ["abe@osafoundation.org"],
         description = "An item that represents a simple email address, plus "
                       "all the info we might want to associate with it, like "
-                      "lists of message to and from this address.",
-        issues = [
-            "Someday we might want to have other attributes.  One example "
+                      "lists of message to and from this address.\n\n"
+            "Example: abe@osafoundation.org\n\n"
+            "Issues:\n"
+            "   Someday we might want to have other attributes.  One example "
             "might be an 'is operational' flag that tells whether this "
             "address is still in service, or whether mail to this has been "
             "bouncing lately. Another example might be a 'superceded by' "
-            "attribute, which would point to another Email Address item.",
+            "attribute, which would point to another Email Address item.\n"
 
-            "Depending on how we end up using the 'emailAddress' attribute, "
+            "   Depending on how we end up using the 'emailAddress' attribute, "
             "we might want to break it into two attributes, one for the 'Abe "
             "Lincoln' part, and one for the 'abe@osafoundation.org' part. "
             "Alternatively, we might want to use one of Andi's compound "
-            "types, with two fields.",
-        ]
+            "types, with two fields.\n",
     )
 
     emailAddress = schema.One(
         schema.String,
         displayName = 'Email Address',
-        doc = 'An RFC 822 email address.',
-        examples = [
-            '"abe@osafoundation.org"',
-            '"Abe Lincoln {abe@osafoundation.org}" (except with angle '
-                'brackets instead of \'{\' and \'}\')'
-        ],
+        doc = 'An RFC 822 email address.\n\n'
+            "Examples:\n"
+            '   "abe@osafoundation.org"\n'
+            '   "Abe Lincoln {abe@osafoundation.org}" (except with ;angle '
+                'brackets instead of \'{\' and \'}\')\n',
         initialValue = '',
     )
     fullName = schema.One(

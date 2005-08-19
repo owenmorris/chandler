@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 all_aspects = Attribute.valueAspects + Attribute.refAspects + \
-    ('displayName','description','issues','examples')
+    ('displayName','description')
 
 global_lock = threading.RLock()
 
@@ -136,6 +136,9 @@ class Role(ActiveDescriptor,CDescriptor):
 
     def __init__(self,type=None,**kw):
         super(Role,self).__init__(kw.get('name'))
+        for docattr in 'description','doc':
+            if docattr in kw:
+                self.__setDoc(kw.pop(docattr))
         if type is not None:
             if isinstance(type,str):
                 type = ForwardReference(type, self)

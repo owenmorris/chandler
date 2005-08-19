@@ -1378,12 +1378,11 @@ class TransformationFailed(SharingError):
 class WebDAVAccount(items.ContentItem):
     schema.kindInfo(
         displayName="WebDAV Account",
-        description="A WebDAV 'Account'",
-        issues=[
-            "Long term we're probably not going to treat WebDAV as an "
+        description="A WebDAV 'Account'\n\n"
+            "Issues:\n"
+            "   Long term we're probably not going to treat WebDAV as an "
             "account, but rather how a web browser maintains URL-to-ACL "
-            "mappings."
-        ]
+            "mappings.\n",
     )
     username = schema.One(
         schema.String, displayName = 'Username', initialValue = '',
@@ -1391,10 +1390,9 @@ class WebDAVAccount(items.ContentItem):
     password = schema.One(
         schema.String,
         displayName = 'Password',
-        issues = [
-            'This should not be a simple string. We need some solution for '
-            'encrypting it.'
-        ],
+        description = 
+            'Issues: This should not be a simple string. We need some solution for '
+            'encrypting it.\n',
         initialValue = '',
     )
     host = schema.One(

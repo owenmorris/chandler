@@ -47,19 +47,19 @@ class TaskMixin(items.ContentItem):
     requestor = schema.One(
         Contact,
         displayName = 'Requestor',
-        issues = [
-            'Type could be Contact, EmailAddress or String',
-            'Think about using the icalendar terminology'
-        ],
+        description =
+            "Issues:\n"
+            '   Type could be Contact, EmailAddress or String\n'
+            '   Think about using the icalendar terminology\n',
         inverse = Contact.requestedTasks,
     )
     requestee = schema.Sequence(
         items.ContentItem,
         displayName = 'Requestee',
-        issues = [
-            'Type could be Contact, EmailAddress or String',
-            'Think about using the icalendar terminology'
-        ],
+        description =
+            "Issues:\n"
+            '   Type could be Contact, EmailAddress or String\n'
+            '   Think about using the icalendar terminology\n',
         otherName = 'taskRequests',
     )
 
@@ -231,15 +231,15 @@ class TaskEventExtraMixin(items.ContentItem):
         except AttributeError:
             pass
 
-class Task(TaskMixin, notes.Note):
 
-    schema.kindInfo(
-        displayName = "Task",
-        issues = [
-            "Do we want to support the idea of tasks having sub-tasks? If so, "
-            "then we need to add attributes for 'superTask' and 'subTasks'.",
-            
-            "Task should maybe have a 'Timezone' attribute.",
-        ]
-    )
+class Task(TaskMixin, notes.Note):
+    """Task type
+    
+    Issues:
+        * Do we want to support the idea of tasks having sub-tasks? If so, 
+          then we need to add attributes for 'superTask' and 'subTasks'.
+          
+        * Task should maybe have a 'Timezone' attribute.
+    """
+    schema.kindInfo( displayName = "Task" )
 

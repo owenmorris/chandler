@@ -623,14 +623,6 @@ def RenderItem(repoView, item):
     except:
         pass
 
-    try:
-        issues = item.issues
-        result += "<div class='subheader'><b>Issues:</b>\n<ul></div>\n"
-        for issue in issues:
-            result += "<li>%s\n" % issue
-        result += "</ul></p>\n"
-    except: pass
-
     result += "<div class='children'><b>Child items:</b><br> "
     children = {}
     for child in item.iterChildren():
@@ -693,13 +685,6 @@ def RenderItem(repoView, item):
              (toLink(attribute.itsPath), key, inherited, other)
             result += "<td valign=top>%s" % \
              (attribute.getAttributeValue('description', default = "&nbsp;"))
-            try:
-                issues = attribute.issues
-                result += "<p>Issues:<ul>"
-                for issue in issues:
-                    result += "<li>%s\n" % issue
-                result += "</ul></p>"
-            except: pass
             result += "</td>\n"
             cardinality = attribute.getAttributeValue('cardinality',
              default='single')

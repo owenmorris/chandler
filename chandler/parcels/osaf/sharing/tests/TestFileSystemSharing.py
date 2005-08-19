@@ -112,7 +112,6 @@ class SharingTestCase(unittest.TestCase):
             c.displayName = events[i % 6]
             c.organizer = contacts[0]
             c.participants = [contacts[1], contacts[2]]
-            c.issues = ["123", "abc", "xyz"]
             coll.add(c)
 
 

@@ -104,50 +104,51 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         """Test attributes which have sub attributes (subAttributes and superAttribute attributes)"""
         itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
-
+        attr_name = 'references'
+        
         item = Item('item1', self.rep, itemKind)
         attrKind = itemKind.itsParent['Attribute']
 
         # subattributes are created by assigning the "parent" attribute
         # to the superAttribute attribute of the "child" attribute
-        issuesAttr = itemKind.getAttribute('issues')
-        criticalSubAttr = Attribute('critical', issuesAttr, attrKind)
-        criticalSubAttr.superAttribute = issuesAttr
-        self.assert_(criticalSubAttr.superAttribute is issuesAttr)
-        self.assert_(criticalSubAttr in issuesAttr.subAttributes)
+        testAttr = itemKind.getAttribute(attr_name)
+        criticalSubAttr = Attribute('critical', testAttr, attrKind)
+        criticalSubAttr.superAttribute = testAttr
+        self.assert_(criticalSubAttr.superAttribute is testAttr)
+        self.assert_(criticalSubAttr in testAttr.subAttributes)
 
         # now do it by assigning to the subAttributes list to ensure that
         # the bidirectional ref is getting updated.
-        normalSubAttr = Attribute('normal', issuesAttr, attrKind)
-        issuesAttr.subAttributes.append(normalSubAttr)
-        self.assert_(normalSubAttr.superAttribute is issuesAttr)
-        self.assert_(normalSubAttr in issuesAttr.subAttributes)
+        normalSubAttr = Attribute('normal', testAttr, attrKind)
+        testAttr.subAttributes.append(normalSubAttr)
+        self.assert_(normalSubAttr.superAttribute is testAttr)
+        self.assert_(normalSubAttr in testAttr.subAttributes)
         
         # now do it by callin addValue on the Attribute item
-        minorSubAttr = Attribute('minor', issuesAttr, attrKind)
-        issuesAttr.addValue('subAttributes', minorSubAttr)
-        self.assert_(minorSubAttr.superAttribute is issuesAttr)
-        self.assert_(minorSubAttr in issuesAttr.subAttributes)
+        minorSubAttr = Attribute('minor', testAttr, attrKind)
+        testAttr.addValue('subAttributes', minorSubAttr)
+        self.assert_(minorSubAttr.superAttribute is testAttr)
+        self.assert_(minorSubAttr in testAttr.subAttributes)
 
         # now write what we've done and read it back
         self._reopenRepository()
         item = self._find('//item1')
         itemKind = item.itsKind
-        issuesAttr = itemKind.getAttribute('issues')
+        testAttr = itemKind.getAttribute(attr_name)
 
         attMap = {}
-        for i in issuesAttr.subAttributes:
+        for i in testAttr.subAttributes:
             attMap[i.itsName] = i 
             
         criticalSubAttr = attMap['critical']
         normalSubAttr = attMap['normal']
         minorSubAttr = attMap['minor']
-        self.assert_(criticalSubAttr.superAttribute is issuesAttr)
-        self.assert_(criticalSubAttr in issuesAttr.subAttributes)
-        self.assert_(normalSubAttr.superAttribute is issuesAttr)
-        self.assert_(normalSubAttr in issuesAttr.subAttributes)
-        self.assert_(minorSubAttr.superAttribute is issuesAttr)
-        self.assert_(minorSubAttr in issuesAttr.subAttributes)
+        self.assert_(criticalSubAttr.superAttribute is testAttr)
+        self.assert_(criticalSubAttr in testAttr.subAttributes)
+        self.assert_(normalSubAttr.superAttribute is testAttr)
+        self.assert_(normalSubAttr in testAttr.subAttributes)
+        self.assert_(minorSubAttr.superAttribute is testAttr)
+        self.assert_(minorSubAttr in testAttr.subAttributes)
         
 if __name__ == "__main__":
 #    import hotshot

@@ -48,7 +48,7 @@ class Certificate(pim.ContentItem):
     who = schema.One(redirectTo = 'subjectCommonName')
     displayName = schema.One(redirectTo = 'subjectCommonName')
     about = schema.One(
-        issues = [u"type would make more sense, but it isn't supported for summary view."],
+        doc = "Issues: type would make more sense, but it isn't supported for summary view.",
         redirectTo = 'trust',
     )
     date = schema.One(redirectTo = 'createdOn')

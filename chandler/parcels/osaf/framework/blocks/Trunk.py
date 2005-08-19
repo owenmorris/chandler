@@ -124,14 +124,11 @@ class TrunkDelegate(schema.Item):
     The default implementation is suitable when the item the view to be used;
     it'll be returned as-is (except that a copy will be made if the original's
     in the read-only part of the repository).
-    """
 
-    schema.kindInfo(
-        issues=[
-            "We'd like to use itemrefs as keys, so reference tracking & "
-            "cleanup would work"
-        ]
-    )
+    Issues:
+        We'd like to use itemrefs as keys, so reference tracking & cleanup
+        would work.
+    """
 
     trunkParentBlock = schema.One(
         TrunkParentBlock,
