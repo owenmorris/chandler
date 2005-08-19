@@ -1911,16 +1911,16 @@ class AEBlock(BoxContainer):
         if event.m_keyCode == wx.WXK_RETURN:
             self.saveValue()
             
-            # Do the tab thing if we're not a multiline thing
-            # @@@ Actually, don't; it doesn't mix well when one of the fields you'd
-            # "enter" through is multiline - it clears the content.
-            if False:
-                try:
-                    isMultiLine = self.presentationStyle.lineStyleEnum == "MultiLine"
-                except AttributeError:
-                    isMultiLine = False
-                if not isMultiLine:
-                    self.widget.Navigate()
+            # Do the tab thing if we're not a multiline thing.
+            # stearns says: I think this is wrong (it doesn't mix well when one 
+            # of the fields you'd "enter" through is multiline - it clears the 
+            # content!) but Mimi wants it to work like iCal.
+            try:
+                isMultiLine = self.presentationStyle.lineStyleEnum == "MultiLine"
+            except AttributeError:
+                isMultiLine = False
+            if not isMultiLine:
+                self.widget.Navigate()
         event.Skip()
 
     def onAttributeEditorValueChange(self):
