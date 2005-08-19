@@ -15,7 +15,6 @@ import logging
 log = logging.getLogger(__name__)
 
 import time
-from util.autolog import logmethod
 
 class Query(Item.Item):
 
@@ -328,7 +327,6 @@ class Query(Item.Item):
 
         return plan
 
-    @logmethod
     def monitorCallback(self, op, item, attribute, *args, **kwds):
         #@@@ the following try block is an attempt to generate useful output to help track down 2535 - it will be removed when we fix the bug
         if not self.itsView.name in self._sameViewNames:
