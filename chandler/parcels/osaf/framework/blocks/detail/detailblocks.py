@@ -403,7 +403,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                                            
     recurrenceEndArea = \
         makeArea(parcel, 'CalendarRecurrenceEndArea',
-            baseClass=CalendarRecurrenceCustomAreaBlock,
+            baseClass=CalendarRecurrenceEndAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'ends')),
                 makeSpacer(parcel, width=8),
