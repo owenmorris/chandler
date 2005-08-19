@@ -11,7 +11,7 @@ import ScriptingGlobalFunctions
 from application import schema
 from osaf import pim
 import wx
-import QATestAppLib
+import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +179,6 @@ class ExecutableScript(object):
         # For debugging, reload modules containing script functions
         # @@@DLD TBD - remove
         reload(ScriptingGlobalFunctions)
-        reload(QATestAppLib)
 
         # add all the known BlockEvents as builtin functions
         self._BindCPIAEvents(self.itsView, builtIns)

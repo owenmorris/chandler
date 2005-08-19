@@ -87,7 +87,7 @@ def DisplayName():
 
 def Location():
     # The Location block of the Detail View
-    return FindNamedBlock("AECalendarLocation")
+    return FindNamedBlock("CalendarLocation")
 
 def StartDate():
     # The Start date edit field of the Detail View
@@ -136,15 +136,15 @@ def SummaryViewSelect(item):
     Focus(SummaryView())
 
 def StampAsMailMessage():
-    PressStampButton('MailMessageButton')
+    PressButton('MailMessageButton')
 
 def StampAsTask():
-    PressStampButton('TaskStamp')
+    PressButton('TaskStamp')
 
 def StampAsCalendarEvent():
-    PressStampButton('CalendarStamp')
+    PressButton('CalendarStamp')
 
-def PressStampButton(buttonName):
+def PressButton(buttonName):
     """ Press a Stamp button in the markup bar, by firing its event"""
     uiView = _wx.GetApp().UIRepositoryView
     for block in _Block.Block.iterItems(uiView):
@@ -215,7 +215,44 @@ def LeftClick(block):
     _wx.GetApp().Yield()
     ev = _wx.IdleEvent()
     _wx.GetApp().ProcessEvent(ev)
-     
+
+def KeyboardReturn(block=None):
+    """ Simulates a return-key event in the givent block """
+    try:
+        if block :
+            widget = block.widget
+        else :
+            widget = _wx.Window_FindFocus()
+    except AttributeError:
+        _logger.warning("Can't get the widget of the block %s" % block)
+    else:
+        # return-key down
+        ret_d = _wx.KeyEvent(_wx.wxEVT_KEY_DOWN)
+        ret_d.m_keyCode = _wx.WXK_RETURN
+        # return-key up
+        ret_up = _wx.KeyEvent(_wx.wxEVT_KEY_UP)
+        ret_up.m_keyCode = _wx.WXK_RETURN
+        # text updated event
+        tu = _wx.CommandEvent(_wx.wxEVT_COMMAND_TEXT_UPDATED)
+        tu.SetEventObject(widget)
+        # kill focus event
+        kf = _wx.FocusEvent(_wx.wxEVT_KILL_FOCUS)
+        kf.SetEventObject(widget)
+        # Text enter
+        ent = _wx.CommandEvent(_wx.wxEVT_COMMAND_TEXT_ENTER)
+        ent.SetEventObject(widget)
+        
+        # events processing
+        #widget.ProcessEvent(ret_d)
+        #widget.ProcessEvent(ret_up)
+        # work around for bug on MAC
+        #widget.ProcessEvent(tu)
+        widget.ProcessEvent(kf)
+        widget.ProcessEvent(ent)
+        
+
+    
+
 """
 TO BE DONE
 * Type(<string>) function to take the string and tell wx
