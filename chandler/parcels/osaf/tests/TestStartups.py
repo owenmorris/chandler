@@ -1,10 +1,5 @@
 import unittest
 
-from application import schema
-from repository.schema import Types
-from repository.persistence.RepositoryView import NullRepositoryView
-from repository.query.Query import Query
-
 def test_startups():
     import doctest
     return doctest.DocFileSuite(
