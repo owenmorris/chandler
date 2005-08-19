@@ -15,7 +15,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import time
-
+from util.autolog import logmethod
 
 class Query(Item.Item):
 
@@ -180,7 +180,7 @@ class Query(Item.Item):
         
         Call this method on code paths which will require access
         to the _logical_plan (e.g. generating query results, or 
-        processing incremental changes"
+        processing incremental changes
         """
         if self._queryStringIsStale and self.queryString:
             self._compile()
@@ -328,6 +328,7 @@ class Query(Item.Item):
 
         return plan
 
+    @logmethod
     def monitorCallback(self, op, item, attribute, *args, **kwds):
         #@@@ the following try block is an attempt to generate useful output to help track down 2535 - it will be removed when we fix the bug
         if not self.itsView.name in self._sameViewNames:

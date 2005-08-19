@@ -262,18 +262,6 @@ class CalendarEventMixin(ContentItem):
         displayName="Generated",
         defaultValue=False
     )
-    
-    calendar = schema.Sequence(
-        "Calendar",
-        displayName="Calendar",
-        doc="Is this used?"
-    )
-
-    resources = schema.Sequence(
-        schema.String,
-        displayName="Resources",
-        doc="Is this used?"
-    )
 
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),

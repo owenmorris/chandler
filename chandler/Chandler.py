@@ -97,9 +97,9 @@ def main():
             raise
 
     #@@@Temporary testing tool written by Morgen -- DJA
-    # import util.timing
-    # print "\nTiming results:\n"
-    # util.timing.results()
+    import util.timing
+    print "\nTiming results:\n"
+    util.timing.results()
 
 if __name__== "__main__":
     main()

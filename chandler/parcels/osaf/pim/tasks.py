@@ -35,10 +35,6 @@ class TaskMixin(items.ContentItem):
             "can be instantiated"
     )
 
-    recurrence = schema.Sequence(
-        displayName = 'Recurrence Patterns',
-        doc = 'This is a placeholder and probably not used for 0.5',
-    )
     reminderTime = schema.One(
         schema.DateTime,
         displayName = 'ReminderTime',
@@ -72,20 +68,9 @@ class TaskMixin(items.ContentItem):
     whoFrom = schema.One(redirectTo = 'requestor')
     about = schema.One(redirectTo = 'displayName')
 
-    # XXX these two links should probably point to TaskMixin instead of
-    #     Task, because as-is they won't support stamping.  Note that if
-    #     this is corrected, the opposite ends should be set using 'inverse'
-    #     instead of 'otherName'.
-    dependsOn = schema.Sequence(
-        'Task', displayName = 'Depends On', otherName = 'preventsProgressOn',
-    )
-    preventsProgressOn = schema.Sequence(
-        'Task', displayName = 'Blocks', otherName = 'dependsOn',
-    )
-
     schema.addClouds(
         copying = schema.Cloud(
-            requestor, requestee, dependsOn, preventsProgressOn
+            requestor, requestee
         )
     )
     

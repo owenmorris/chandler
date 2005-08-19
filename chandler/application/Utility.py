@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "46" # stearns: modified the detail view build mechanism.
+SCHEMA_VERSION = "47" # capps: deleted unused schema
 
 logger = None # initialized in initLogging()
 
