@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "45" # stearns: converted DV parcel.xml to python
+SCHEMA_VERSION = "46" # stearns: modified the detail view build mechanism.
 
 logger = None # initialized in initLogging()
 

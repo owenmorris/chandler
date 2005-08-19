@@ -1,5 +1,12 @@
 
-from detailblocks import installParcel
+from detailblocks import (
+    installParcel,
+    makeArea,
+    makeEditor,
+    makeLabel,
+    makeSpacer,
+    uniqueName
+)
 
 from Detail import (
     AttachmentAreaBlock, 

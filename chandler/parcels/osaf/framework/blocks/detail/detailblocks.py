@@ -1,9 +1,101 @@
-
 from Detail import *
 from osaf.framework.blocks import *
 from osaf.pim.item_collections import ItemCollection
 import osaf.pim
 
+#
+# A few public utilities: any detail view client can use these to help
+# assure consistent alignment...
+#
+# More docs to come, but the key points:
+# - Adding to the detail view means creating a DetailTrunkSubtree, which
+#   maps a Kind to a list of rootBlocks that should appear if an item of
+#   that Kind is displayed.
+# - An item can inherit from multiple Kinds; each block in the 
+#   DetailTrunkSubtree's rootBlocks list has a 'position' attribute that 
+#   determines the ordering in the resulting detail view. 
+# - The block hierarchies you create will likely look like:
+#      (area)
+#         (label)
+#         (spacer)
+#         (Attribute Editor)
+#   I've created functions (makeArea, makeSpacer, makeEditor) to simplify
+#   the process for the common case; there are lots of examples below in the
+#   basic pim Kinds' subtrees.
+#
+
+_uniqueNameIndex = 0
+def uniqueName(parcel, prefix=''):
+    """ 
+    Return an item name unique in this parcel. Used when we don't
+    need to refer to an item by name. """
+    while True:
+        global _uniqueNameIndex
+        _uniqueNameIndex += 1
+        name = "%s%s" % (prefix, _uniqueNameIndex)
+        if not parcel.hasChild(name):
+            return name
+
+def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None, 
+             baseClass=ContentItemDetail, **kwds):
+    """
+    Make one horizontal slice of the detail view
+    """
+    return baseClass.template(name,
+                              stretchFactor=stretchFactor or 0.0,
+                              minimumSize=minimumSize or SizeType(300, 24),
+                              border=border or RectType(0, 0, 0, 6),
+                              **kwds)
+
+def makeLabel(parcel, label=u'', borderTop=5, border=None):
+    """ Make a StaticText label template. """
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
+    border = border or RectType(borderTop, 0, 0, 0)
+    return StaticText.template(uniqueName(parcel, 'Label'),
+                               title=label,
+                               characterStyle=blocks.LabelStyle,
+                               textAlignmentEnum='Right',
+                               stretchFactor=0.0,
+                               minimumSize=SizeType(60, -1),
+                               border=border)
+
+def makeSpacer(parcel, size=None, width=-1, height=-1, 
+               name=None, baseClass=StaticText, **kwds):
+    """ 
+    Make a spacer block template. Size can be specified as a SizeType, or as
+    individual height or width. 
+    """
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
+    size = size or SizeType(width, height)
+    return baseClass.template(name or uniqueName(parcel, 'Spacer'),
+                                title='',
+                                characterStyle=blocks.LabelStyle,
+                                stretchFactor=0.0,
+                                minimumSize=size, **kwds)
+
+def makeEditor(parcel, name, viewAttribute, border=None, 
+               baseClass=DetailSynchronizedAttributeEditorBlock,
+               characterStyle=None,
+               presentationStyle=None, **kwds):
+    """
+    Make an Attribute Editor block template for the detail view.
+    """
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
+    ps = presentationStyle is not None \
+       and PresentationStyle.update(parcel, 
+                                    uniqueName(parcel, 'PresentationStyle'),
+                                    **presentationStyle) \
+       or None
+    border = border or RectType(2, 2, 2, 2)       
+    ae = baseClass.template(name, viewAttribute=viewAttribute,
+                            characterStyle=characterStyle or blocks.TextStyle,
+                            presentationStyle=ps, border=border,
+                            event=parcel['Resynchronize'], **kwds)
+    return ae
+          
+#
+# The detail view parcel itself
+#
 def installParcel(parcel, oldVersion=None):
     """ Instantiate all the blocks, events, etc for the detail view. """
     
@@ -22,36 +114,7 @@ def installParcel(parcel, oldVersion=None):
     makeCalendarEventSubtree(parcel, oldVersion)
     makeItemCollectionSubtree(parcel, oldVersion)
     makeEmptySubtree(parcel, oldVersion)
-
-_presentationStyleID = 0 # used to give each presentationStyle a unique name
-def installPresentationStyle(parcel, name=None, **kwds):
-    """ Build and return a PresentationStyle """
-    if name is None:
-        global _presentationStyleID
-        _presentationStyleID += 1
-        name = 'PresentationStyle_%d' % _presentationStyleID
-    ps = PresentationStyle.update(parcel, name, **kwds)
-    return ps
-
-_spacerID = 0 # used to give each spacer a unique name
-def makeSpacerBlock(parcel, size, name=None, spacerClass=StaticText, **kwds):
-    if name is None:
-        global _spacerID
-        _spacerID += 1
-        name = 'Spacer_%d' % _spacerID
-    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
-    spacer = \
-        spacerClass.template(name,
-                             title='',
-                             characterStyle=blocks.LabelStyle,
-                             stretchFactor=0.0,
-                             minimumSize=size, **kwds)
-    return spacer
-
-def installSpacerBlock(parcel, size, name=None, **kwds):
-    spacerTemplate = makeSpacerBlock(parcel, size, name, **kwds)
-    return spacerTemplate.install(parcel)
-
+                      
 def registerAttributeEditors(parcel, oldVersion):
     # make the detail view's attribute editors at repository-init time
     # If you edit this dictionary, please keep it in alphabetical order by key.
@@ -92,10 +155,14 @@ def makeRootStuff(parcel, oldVersion):
             dispatchToBlockName='DetailRoot').install(parcel)
  
     # A few spacer blocks, copied by other parcel.xml blocks.
-    installSpacerBlock(parcel, SizeType(-1, 6), name='TopSpacer', position=0.01)
-    installSpacerBlock(parcel, SizeType(8, -1), name='HorizontalSpacer')
+    # @@@ Should go away when parcel.xml conversion is complete!
+    makeSpacer(parcel, height=6, name='TopSpacer', position=0.01).install(parcel)
+    makeSpacer(parcel, width=8, name='HorizontalSpacer').install(parcel)
 
 def makeMarkupBar(parcel, oldVersion):
+    """ Build the markup bar. """
+    
+    # Predeclare this - we'll flesh it out below.
     markupBar = MarkupBarBlock.template('MarkupBar').install(parcel)
     
     # The events.
@@ -149,7 +216,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     helpString=_(u'Never share this item'),
                                     event=togglePrivate)
 
-    # Finally, do the bar itself.
+    # Finally, (re-)do the bar itself.
     markupBar = MarkupBarBlock.template('MarkupBar',
                                         childrenBlocks=[mailMessageButton,
                                                         taskStamp,
@@ -159,51 +226,43 @@ def makeMarkupBar(parcel, oldVersion):
                                         position=0.0,
                                         toolSize=SizeType(20, 20),
                                         separatorWidth=16,
-                                        stretchFactor=0.0)
-    markupBar.install(parcel)
+                                        stretchFactor=0.0).install(parcel)
     
 def makeNoteSubtree(parcel, oldVersion):
     """ Build the subtree (and related stuff) for Note """
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
     # First, the headline AEBlock and the area it sits in
-    headlineAEBlock = DetailSynchronizedAttributeEditorBlock.template(\
-        'HeadlineBlock',
-        characterStyle=blocks.BigTextStyle,
-        presentationStyle=installPresentationStyle(parcel, \
-            sampleText=u'', # empty sample means "use displayname"
-            editInPlace=True),
-        viewAttribute=u'about',
-        border=RectType(2, 2, 2, 2))
+    headlineAEBlock = makeEditor(parcel, 'HeadlineBlock',
+                                 viewAttribute=u'about',
+                                 characterStyle=blocks.BigTextStyle,
+                                 presentationStyle={
+                                     # empty sample means "use displayname"
+                                     'sampleText': u'',
+                                     'editInPlace': True })
     headlineArea = \
-        blocks.ContentItemDetail.template('HeadlineArea',
+        makeArea(parcel, 'HeadlineArea',
             childrenBlocks = [
-                makeSpacerBlock(parcel, SizeType(0,22)),
+                makeSpacer(parcel, SizeType(0,22)),
                 headlineAEBlock],
             position=0.5,
-            minimumSize=SizeType(300,10),
-            stretchFactor=0.0,
             border=RectType(0,6,0,6)).install(parcel)
     
-    # Then, the Note AEBlock and its area
-    notesBlock = \
-        DetailSynchronizedAttributeEditorBlock.template('NotesBlock',
-            position=0.9,
-            characterStyle=blocks.TextStyle,
-            presentationStyle=installPresentationStyle(parcel, \
-                lineStyleEnum='MultiLine'),
-            viewAttribute=u'bodyString',
-            border=RectType(2, 2, 2, 2)).install(parcel)
+    # Then, the Note AEBlock
+    notesBlock = makeEditor(parcel, 'NotesBlock',
+                            viewAttribute=u'bodyString',
+                            presentationStyle={'lineStyleEnum': 'MultiLine'},
+                            position=0.9).install(parcel)
     
     # Finally, the subtree
     notesSubtree = \
         DetailTrunkSubtree.update(parcel, 'NoteSubtree',
             key=osaf.pim.Note.getKind(),
             rootBlocks=[
-                parcel['TopSpacer'],
+                makeSpacer(parcel, height=6, position=0.01).install(parcel),
                 parcel['MarkupBar'],
                 headlineArea, 
-                installSpacerBlock(parcel, SizeType(-1, 7), position=0.8999),
+                makeSpacer(parcel, height=7, position=0.8999).install(parcel),
                 notesBlock])      
 
 def makeCalendarEventSubtree(parcel, oldVersion):
@@ -212,15 +271,11 @@ def makeCalendarEventSubtree(parcel, oldVersion):
     locationArea = \
         CalendarLocationAreaBlock.template('CalendarLocationArea',
             childrenBlocks=[
-                makeSpacerBlock(parcel, SizeType(0, 22)),
-                DetailSynchronizedAttributeEditorBlock.template('CalendarLocation',
-                    characterStyle=blocks.TextStyle,
-                    #minimumSize=SizeType(300,22),
-                    presentationStyle=installPresentationStyle(parcel,
-                        sampleText=u'',
-                        editInPlace=True),
-                    viewAttribute=u'location',
-                    border=RectType(2, 2, 2, 2))],
+                makeSpacer(parcel, SizeType(0, 22)),
+                makeEditor(parcel, 'CalendarLocation',
+                           viewAttribute=u'location',
+                           presentationStyle={'sampleText': u'', 
+                                              'editInPlace': True})],
             stretchFactor=0.0,
             minimumSize=SizeType(300,10),
             border=RectType(0, 6, 0, 6))
@@ -231,281 +286,176 @@ def makeCalendarEventSubtree(parcel, oldVersion):
         allDaySpacerWidth = 6
         
     allDayArea = \
-        CalendarAllDayAreaBlock.template('CalendarAllDayArea',
+        makeArea(parcel, 'CalendarAllDayArea',
+            baseClass=CalendarAllDayAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalDetailsAllDayLabel',
-                    title=_(u'all-day'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(4, 0, 0, 0)),            
-                makeSpacerBlock(parcel, SizeType(allDaySpacerWidth, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditAllDay',
-                    stretchFactor=0.0,
+                makeLabel(parcel, _(u'all-day'), borderTop=4),
+                makeSpacer(parcel, width=allDaySpacerWidth),
+                makeEditor(parcel, 'EditAllDay',
                     viewAttribute=u'allDay',
-                    minimumSize=SizeType(16,-1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            stretchFactor=0.0,
-            border=RectType(0, 0, 0, 6))
+                    stretchFactor=0.0,
+                    minimumSize=SizeType(16,-1))])
     
     startTimeArea = \
-        ContentItemDetail.template('CalendarStartTimeArea',
+        makeArea(parcel, 'CalendarStartTimeArea',
             childrenBlocks=[
-                StaticText.template('StaticCalendarStart',
-                    title=_(u'starts'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(4, 0, 0, 0)),            
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditCalendarStartDate',
-                    characterStyle=blocks.TextStyle,
-                    presentationStyle=installPresentationStyle(parcel, 
-                        format='calendarDateOnly'),
+                makeLabel(parcel, _(u'starts'), borderTop=4),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditCalendarStartDate',
                     viewAttribute=u'startTime',
+                    presentationStyle={'format': 'calendarDateOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(75, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize']),
+                    size=SizeType(75, -1)),
                 CalendarConditionalLabelBlock.template('CalendarStartAtLabel',
                     title=_(u'at'),
                     characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
                     stretchFactor=0.0,
                     border=RectType(4, 4, 0, 4)),
-                CalendarTimeAEBlock.template('EditCalendarStartTime',
-                    characterStyle=blocks.TextStyle,
-                    presentationStyle=installPresentationStyle(parcel, 
-                        format='calendarTimeOnly'),
+                makeEditor(parcel, 'EditCalendarStartTime',
+                    baseClass=CalendarTimeAEBlock,
                     viewAttribute=u'startTime',
+                    presentationStyle={'format': 'calendarTimeOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(85, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            minimumSize=SizeType(300, 24),
-            stretchFactor=0.0,
-            border=RectType(0, 0, 0, 6))
+                    size=SizeType(85, -1))])
     
     endTimeArea = \
-        ContentItemDetail.template('CalendarEndTimeArea',
+        makeArea(parcel, 'CalendarEndTimeArea',
             childrenBlocks=[
-                StaticText.template('StaticCalendarEnd',
-                    title=_(u'ends'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(4, 0, 0, 0)),            
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditCalendarEndDate',
-                    characterStyle=blocks.TextStyle,
-                    presentationStyle=installPresentationStyle(parcel, 
-                        format='calendarDateOnly'),
+                makeLabel(parcel, _(u'ends'), borderTop=4),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditCalendarEndDate',
                     viewAttribute=u'endTime',
+                    presentationStyle={'format': 'calendarDateOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(75, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize']),
+                    size=SizeType(75, -1)),
                 CalendarConditionalLabelBlock.template('CalendarEndAtLabel',
                     title=_(u'at'),
                     characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
                     stretchFactor=0.0,
                     border=RectType(4, 4, 0, 4)),
-                CalendarTimeAEBlock.template('EditCalendarEndTime',
-                    characterStyle=blocks.TextStyle,
-                    presentationStyle=installPresentationStyle(parcel, 
-                        format='calendarTimeOnly'),
+                makeEditor(parcel, 'EditCalendarEndTime',
+                    baseClass=CalendarTimeAEBlock,
                     viewAttribute=u'endTime',
+                    presentationStyle={'format': 'calendarTimeOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(85, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            minimumSize=SizeType(300, 24),
-            stretchFactor=0.0,
-            border=RectType(0, 0, 0, 6))
+                    size=SizeType(85, -1))])
 
     timeZoneArea = \
-        CalendarTimeZoneAreaBlock.template('CalendarTimeZoneArea',
+        makeArea(parcel, 'CalendarTimeZoneArea',
+            baseClass=CalendarTimeZoneAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalTimeZoneLabel',
-                    title=_(u'time zone'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(5, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                CalendarTimeAEBlock.template('EditTimeZone',
-                    characterStyle=blocks.TextStyle,
+                makeLabel(parcel, _(u'time zone')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditTimeZone',
+                    baseClass=CalendarTimeAEBlock,
                     viewAttribute=u'startTime',
-                    presentationStyle=installPresentationStyle(parcel, 
-                        format='timeZoneOnly'),
+                    presentationStyle={'format': 'timeZoneOnly'},
                     stretchFactor=0.0,
-                    size=SizeType(75, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
+                    size=SizeType(75, -1))])
 
     transparencyArea = \
-        ContentItemDetail.template('CalendarTransparencyArea',
+        makeArea(parcel, 'CalendarTransparencyArea',
             childrenBlocks=[
-                StaticText.template('CalDetailsTransparencyLabel',
-                    title=_(u'status'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(5, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditTransparency',
+                makeLabel(parcel, _(u'status')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditTransparency',
                     viewAttribute=u'transparency',
-                    presentationStyle=installPresentationStyle(parcel,
-                        format='popup',
+                    presentationStyle={
+                        'format': 'popup',
                         # It'd be nice to not maintain the transparency choices 
                         # separately from the enum values; currently, the 
                         # choices must match the enum's items and ordering.
                         # @@@ XXX i18n!
-                        choices=[_(u'Confirmed'), _(u'Tentative'), _(u'FYI')]),
+                        'choices': [_(u'Confirmed'), _(u'Tentative'), _(u'FYI')]},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1),
-                    border=RectType(2, 2, 2, 2))],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
+                    minimumSize=SizeType(100, -1))])
   
     recurrencePopupArea = \
-        CalendarRecurrencePopupAreaBlock.template('CalendarRecurrencePopupArea',
+        makeArea(parcel, 'CalendarRecurrencePopupArea',
+            baseClass=CalendarRecurrencePopupAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalOccursLabel',
-                    title=_(u'occurs'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(5, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditRecurrence',
+                makeLabel(parcel, _(u'occurs')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditRecurrence',
                     viewAttribute=u'rruleset',
-                    presentationStyle=installPresentationStyle(parcel,
-                        format='occurs',
+                    presentationStyle={
+                        'format': 'occurs',
                         # These choices must match the enumerated indexes in the
                         # RecurrenceAttributeEditor python code
-                        choices=[_(u'Once'), _(u'Daily'), _(u'Weekly'), 
-                                 _(u'Monthly'), _(u'Yearly'), _(u'Custom...')]),
+                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'), 
+                                    _(u'Monthly'), _(u'Yearly'), 
+                                    _(u'Custom...')]},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
-                                                  
+                    minimumSize=SizeType(100, -1))])
+
     recurrenceCustomArea = \
-        CalendarRecurrenceCustomAreaBlock.template('CalendarRecurrenceCustomArea',
+        makeArea(parcel, 'CalendarRecurrenceCustomArea',
+            baseClass=CalendarRecurrenceCustomAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalCustomLabel',
-                    title=u'', # no label.
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(2, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('CalCustomValue',
+                makeLabel(parcel, _(u''), borderTop=2), # leave label blank.
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'CalCustomValue',
                     viewAttribute=u'rruleset',
-                    presentationStyle=installPresentationStyle(parcel,
-                        format='custom'),
-                    stretchFactor=1.0,
-                    minimumSize=SizeType(300, -1),
-                    border=RectType(2, 2, 2, 2),
-                    event=parcel['Resynchronize'])],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
+                    presentationStyle={'format': 'custom'},
+                    minimumSize=SizeType(300, -1))])
                                            
     recurrenceEndArea = \
-        CalendarRecurrenceEndAreaBlock.template('CalendarRecurrenceEndArea',
+        makeArea(parcel, 'CalendarRecurrenceEndArea',
+            baseClass=CalendarRecurrenceCustomAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalRecurrenceEndLabel',
-                    title=_(u'ends'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(5, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditRecurrenceEnd',
+                makeLabel(parcel, _(u'ends')),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditRecurrenceEnd',
                     viewAttribute=u'rruleset',
-                    characterStyle=blocks.TextStyle,
-                    presentationStyle=installPresentationStyle(parcel,
-                        format='ends'),
+                    presentationStyle={'format': 'ends'},
                     stretchFactor=0.0,
-                    size=SizeType(75, -1),
-                    border=RectType(2, 2, 2, 2))],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
+                    size=SizeType(75, -1))])
 
     reminderArea = \
-        CalendarReminderAreaBlock.template('CalendarReminderArea',
+        makeArea(parcel, 'CalendarReminderArea',
+            baseClass=CalendarReminderAreaBlock,
             childrenBlocks=[
-                StaticText.template('CalDetailsReminderLabel',
-                    title=_(u'alarm'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(5, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('EditReminder',
+                makeLabel(parcel, _(u'alarm'), borderTop=5),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'EditReminder',
                     viewAttribute=u'reminderDelta',
-                    presentationStyle=installPresentationStyle(parcel,
-                        format='reminderPopup',
+                    presentationStyle={
+                        'format': 'reminderPopup',
                         # @@@ XXX i18n: the code assumes that if the value
                         # starts with a digit, it's a number of minutes; if not,
                         # it's None.
-                        choices=[_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
-                                 _(u'10 minutes'), _(u'30 minutes'), 
-                                 _(u'60 minutes'), _(u'90 minutes')]),
+                        'choices': [_(u'None'), _(u'1 minute'), _(u'5 minutes'), 
+                                    _(u'10 minutes'), _(u'30 minutes'), 
+                                    _(u'60 minutes'), _(u'90 minutes')]},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1),
-                    border=RectType(2, 2, 2, 2))],
-            stretchFactor=0.0,
-            minimumSize=SizeType(300, 24),
-            border=RectType(0, 0, 0, 6))
+                    minimumSize=SizeType(100, -1))])
  
     calendarDetails = \
-        ContentItemDetail.template('CalendarDetails',
+        makeArea(parcel, 'CalendarDetails',
+            orientationEnum='Vertical',
+            position=0.8,
             childrenBlocks = [
                 locationArea,
-                makeSpacerBlock(parcel, SizeType(-1, 4)),
+                makeSpacer(parcel, height=4),
                 allDayArea,
-                makeSpacerBlock(parcel, SizeType(-1, 4)),
+                makeSpacer(parcel, height=4),
                 startTimeArea,
-                makeSpacerBlock(parcel, SizeType(-1, 1)),
+                makeSpacer(parcel, height=1),
                 endTimeArea,
-                makeSpacerBlock(parcel, SizeType(-1, 7), 
-                                spacerClass=CalendarConditionalLabelBlock),
+                makeSpacer(parcel, height=7,
+                           baseClass=CalendarConditionalLabelBlock),
                 timeZoneArea,
-                makeSpacerBlock(parcel, SizeType(-1, 7)),
+                makeSpacer(parcel, height=7),
                 transparencyArea,
-                makeSpacerBlock(parcel, SizeType(-1, 7)),
+                makeSpacer(parcel, height=7),
                 recurrencePopupArea,
-                makeSpacerBlock(parcel, SizeType(-1, 1)),
+                makeSpacer(parcel, height=1),
                 recurrenceCustomArea,
                 recurrenceEndArea,
-                makeSpacerBlock(parcel, SizeType(-1, 7)),
-                reminderArea],
-            orientationEnum='Vertical',
-            stretchFactor=0.0,
-            #event=parcel['Resynchronize'],
-            position=0.8).install(parcel)
+                makeSpacer(parcel, height=7),
+                reminderArea]).install(parcel)
 
     calendarEventSubtree = \
         DetailTrunkSubtree.update(parcel, 'CalendarEventSubtree',
@@ -515,45 +465,24 @@ def makeCalendarEventSubtree(parcel, oldVersion):
 def makeMailSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
     fromArea = \
-        DetailSynchronizedLabeledTextAttributeBlock.template('FromArea',
+        makeArea(parcel, 'FromArea',
             childrenBlocks=[
-                StaticText.template('FromString',
-                    title=u'from',
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(4, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('FromEditField',
-                    #presentationStyle=installPresentationStyle(parcel, 
-                        #format='outgoing'),
-                    viewAttribute=u'fromAddress',
-                    border=RectType(2, 2, 2, 2))],
-            position=0.1,
-            selectedItemsAttribute=u'whoFrom',
-            stretchFactor=0.0,
-            border=RectType(0, 0, 0, 6)).install(parcel)
+                makeLabel(parcel, u'from'),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'FromEditField',
+                    #presentationStyle={'format': 'outgoing'},
+                    viewAttribute=u'fromAddress')],
+            position=0.1).install(parcel)
     
     toMailArea = \
-        DetailSynchronizedLabeledTextAttributeBlock.template('ToMailArea',
+        makeArea(parcel, 'ToArea',
             childrenBlocks=[
-                StaticText.template('ToString',
-                    title=u'to',
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(60, -1),
-                    border=RectType(4, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
-                DetailSynchronizedAttributeEditorBlock.template('ToMailEditField',
-                    viewAttribute=u'toAddress',
-                    border=RectType(2, 2, 2, 2))],
-            position=0.1,
-            selectedItemsAttribute=u'who',
-            stretchFactor=0.0,
+                makeLabel(parcel, u'to'),
+                makeSpacer(parcel, width=8),
+                makeEditor(parcel, 'ToMailEditField',
+                    viewAttribute=u'toAddress')],
+            position=0.11,
             border=RectType(0, 0, 6, 6)).install(parcel)
-
     
     acceptShareButton = \
         AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
@@ -576,16 +505,11 @@ def makeMailSubtree(parcel, oldVersion):
             border=RectType(6, 6, 6, 6)).install(parcel)
     
     attachmentArea = \
-        AttachmentAreaBlock.template('AttachmentArea',
+        makeArea(parcel, 'AttachmentArea',
+            baseClass=AttachmentAreaBlock,
             childrenBlocks=[
-                StaticText.template('AttachmentString',
-                    title=_(u'attachments'),
-                    characterStyle=blocks.LabelStyle,
-                    textAlignmentEnum='Right',
-                    stretchFactor=0.0,
-                    minimumSize=SizeType(70, 24),
-                    border=RectType(4, 0, 0, 0)),
-                makeSpacerBlock(parcel, SizeType(8, -1)),
+                makeLabel(parcel, 'attachments'),
+                makeSpacer(parcel, width=8),
                 AttachmentTextFieldBlock.template('AttachmentTextField',
                     characterStyle=blocks.TextStyle,
                     lineStyleEnum='MultiLine',
@@ -593,9 +517,7 @@ def makeMailSubtree(parcel, oldVersion):
                     textAlignmentEnum='Left',
                     minimumSize=SizeType(100, 48),
                     border=RectType(2, 2, 2, 2))],
-            position=0.95,
-            stretchFactor=0.0,
-            border=RectType(0, 0, 0, 6)).install(parcel)
+            position=0.95).install(parcel)
     
     mailSubtree = \
         DetailTrunkSubtree.update(parcel, 'MailSubtree',
