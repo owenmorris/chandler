@@ -179,6 +179,9 @@ class AbstractSet(ItemValue, Indexed):
                             index.removeKey(key)
                             dirty = True
 
+                elif op == 'changed':
+                    pass
+
                 else:
                     raise ValueError, op
 
