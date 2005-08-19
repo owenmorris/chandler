@@ -19,6 +19,7 @@ from osaf.framework.blocks import Styles
 from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
+from datetime import datetime
 
     
 class wxMiniCalendar(wx.minical.MiniCalendar):
@@ -28,9 +29,11 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXSelectItem)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
                   self.OnWXDoubleClick)
+        self.Bind(wx.minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
+                  self.setFreeBusy)
 
     def wxSynchronizeWidget(self):
-        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS
+        style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.minical.CAL_SHOW_BUSY
         if '__WXMAC__' in wx.PlatformInfo:
             style |= wx.BORDER_SIMPLE
         else:
@@ -39,6 +42,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
+        self.setFreeBusy(None)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -66,7 +70,6 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         self.SetDate(wxdate)
 
     def setSelectedDateRange(self, start, end):
-        self.resetMonth()
         self.setSelectedDate(start)
 
         if (start.month != end.month):
@@ -85,11 +88,54 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def resetMonth(self):
-        for day in range(1,32):
-            self.ResetAttr(day)
+    def GetBusy(self, busyDate):
+        """
+          The exact algorithm for the busy state is yet to be determined.  For now, just 
+        get the number of confirmed items on the given day.  Each item on that day adds 1/4
+        bar to the busy state of the day.
+        """
+        startDate = datetime(busyDate.GetYear(), busyDate.GetMonth() + 1, busyDate.GetDay())
+        endDate = startDate + timedelta(days=1)
 
+        inRange = list(self.blockItem.getItemsInRange(startDate, endDate, True, True))
+        itemList = [item for item in inRange if item.transparency == "confirmed"]
+        
+        totalHours = 0
+        percentage = 0
+        if len(itemList) > 0:
+            percentage = 0.25
+        for item in inRange:
+            if item.transparency == "confirmed":
+                if item.allDay:
+                    totalHours = 12
+                else:
+                    totalHours += (item.duration.seconds / (60 * 60) )
+        percentage += (totalHours / 12.0)
+        if percentage > 1.0:
+            percentage = 1.0
+        return percentage
 
+    def setFreeBusy(self, event):
+        startDate = self.GetStartDate();
+        endDate = startDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
+        
+        while (startDate != endDate):
+            startDate += wx.DateSpan.Day()
+            self.SetBusy(startDate, self.GetBusy(startDate))
+
+    def AdjustSplit(self, splitter, height):
+        headerHeight = self.GetHeaderSize().height
+        previewWidget = Block.Block.findBlockByName("PreviewArea").widget
+        previewHeight = previewWidget.GetSize()[1]
+        monthHeight = self.GetMonthSize().height
+        
+        newHeight = headerHeight + previewHeight
+        numMonths = 0
+        while ( ( (newHeight + 0.5 * monthHeight) < height) and numMonths < 3 ):
+            newHeight += monthHeight
+            numMonths += 1
+        return newHeight
+            
 def isMainCalendarVisible():
     # Heuristic: is the appbar calendar button selected (depressed)?
     calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
@@ -100,7 +146,7 @@ def isMainCalendarVisible():
         return False
 
 
-class MiniCalendar(Block.RectangularChild):
+class MiniCalendar(CalendarCanvas.CalendarBlock):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
     
     def __init__(self, *arguments, **keywords):

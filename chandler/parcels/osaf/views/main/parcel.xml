@@ -123,6 +123,7 @@
 
   <calendar:MiniCalendar itsName="MiniCalendar">
     <blockName>MiniCalendar</blockName>
+    <contents itemref="doc:allItemCollection"/>    
   </calendar:MiniCalendar>
 
   <TrunkParentBlock itsName="SidebarTPB">
