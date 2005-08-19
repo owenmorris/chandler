@@ -2420,6 +2420,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # that it's equivalent?
 
         tzChoice = wx.Choice(self)
+        style = Styles.CharacterStyle(fontSize=11.0)
+        font = Styles.getFont(style)
+        if font is not None:
+            tzChoice.SetFont(font)
+
         # self.blockItem hasn't been set yet, because
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
