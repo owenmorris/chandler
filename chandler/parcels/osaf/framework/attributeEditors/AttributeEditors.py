@@ -303,6 +303,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
         editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
         editControl.Bind(wx.EVT_LEFT_DOWN, self.OnEditClick)
         editControl.Bind(wx.EVT_LEFT_DCLICK, self.OnEditClick)
+        editControl.Bind(wx.EVT_KEY_UP, self.OnEditKeyUp)
         staticControl = AEStaticText(self, -1, pos=position, 
                                                       size=staticSize, style=style, 
                                                       *args, **keys)
@@ -350,14 +351,28 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def OnEditLoseFocus(self, event):
         # when we lose focus, check if we have a block and tell it
         #  to save the value.
+        self.NotifyBlockToSaveValue()
+        self._swapControls(self.staticControl)
+        event.Skip()
+
+    def OnEditKeyUp(self, event):
+        if event.m_keyCode == wx.WXK_RETURN:
+            self.NotifyBlockToSaveValue()
+            self.Navigate()
+        event.Skip()
+
+    def NotifyBlockToSaveValue(self):
+        """
+        Tell the block associated with us to save our value now.
+        I wish there were a cleaner way to do this notification.
+        """
         try:
+            # if we have a block, call its save method
             saveMethod = self.blockItem.saveValue
         except AttributeError:
             pass
         else:
             saveMethod()
-        self._swapControls(self.staticControl)
-        event.Skip()
 
     def _swapControls(self, controlToShow):
         if controlToShow is self.otherControl:
@@ -541,8 +556,9 @@ class StringAttributeEditor (BaseAttributeEditor):
         if useStaticText:
             style |= (parentWidget.GetWindowStyle() & wx.SIMPLE_BORDER)
             control = AETypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                                      size, style, staticSize=wx.Size(width, staticHeight)
-                                                      )
+                                         size, style, 
+                                         staticSize=wx.Size(width, staticHeight)
+                                         )
             editControl = control.editControl
             editControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
             editControl.Bind(wx.EVT_TEXT, self.onTextChanged)      
