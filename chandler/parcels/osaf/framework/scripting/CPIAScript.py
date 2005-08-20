@@ -11,7 +11,6 @@ import ScriptingGlobalFunctions
 from application import schema
 from osaf import pim
 import wx
-import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
 
 logger = logging.getLogger(__name__)
 
