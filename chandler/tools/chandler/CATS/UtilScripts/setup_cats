@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#change here your personnal path to Chandler
+chandler_home=/home/olivier/chandler
+#change here your personnal path to CATS
+cats_home=/home/olivier/qa/chandler/CATS
+#change here your personnal report directory
+cats_reportdir=/home/olivier
+
+
+if [ "$CHANDLER_HOME" = "" ]
+then
+    CHANDLER_HOME=$chandler_home
+fi
+
+if [ "$CATS_HOME" = "" ]
+then
+    CATS_HOME=$cats_home
+fi
+
+if [ "$CATS_REPORTDIR" = "" ]
+then
+    CATS_REPORTDIR=$cats_reportdir
+fi
+
+export CHANDLER_HOME
+export CATS_HOME
+export CATS_REPORTDIR
+
+#make CATS libraries available on Chandler
+cp -f $CATS_HOME/QATestLib/*.py $CHANDLER_HOME/parcels/osaf/framework/scripting/

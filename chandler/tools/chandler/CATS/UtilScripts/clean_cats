@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm /home/olivier/chandler/parcels/osaf/framework/scripting/QAUITestAppLib.*
+rm /home/olivier/chandler/parcels/osaf/framework/scripting/QALogger.*

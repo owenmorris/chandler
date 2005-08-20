@@ -2,7 +2,7 @@ import osaf.framework.scripting.QATestAppLib as QATestAppLib
 # initialization
 logger = QATestAppLib.Logger()
 logger.Start("Account Preferences Dialog")
-ap = QATestAppLib.Accounts(__view__, logger)
+ap = QATestAppLib.UITestAccounts(__view__, logger)
 
 # action
 ap.Open() # first, open the accounts dialog window
