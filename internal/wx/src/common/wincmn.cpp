@@ -495,8 +495,8 @@ void wxWindowBase::Centre(int direction)
     yNew += posParent.y;
 
     // FIXME:  This needs to get the client display rect of the display
-    // the window is (via wxDisplay::GetFromWindow). 
-    
+    // the window is (via wxDisplay::GetFromWindow).
+
     // Base size of the visible dimensions of the display
     // to take into account the taskbar. And the Mac menu bar at top.
     wxRect clientrect = wxGetClientDisplayRect();
@@ -683,11 +683,15 @@ wxSize wxWindowBase::DoGetBestSize() const
         // then, when the containing window is shrunk back (because our initial
         // best size had been used for computing the parent min size), we can't
         // be shrunk back any more because our best size is now bigger
-        if ( !GetMinSize().IsFullySpecified() )
-            wxConstCast(this, wxWindowBase)->SetMinSize(GetSize());
+        wxSize size = GetMinSize();
+        if ( !size.IsFullySpecified() )
+        {
+            size.SetDefaults(GetSize());
+            wxConstCast(this, wxWindowBase)->SetMinSize(size);
+        }
 
         // return as-is, unadjusted by the client size difference.
-        return GetMinSize();
+        return size;
     }
 
     // Add any difference between size and client size
@@ -2251,26 +2255,30 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
 
         switch ( wxGetOsVersion() )
         {
-            case wxMOTIF_X:     port += _T("Motif"); break;
+            case wxMOTIF_X:            port += _T("Motif"); break;
             case wxMAC:
-            case wxMAC_DARWIN:  port += _T("Mac"); break;
-            case wxBEOS:        port += _T("BeOS"); break;
+            case wxMAC_DARWIN:         port += _T("Mac"); break;
+            case wxBEOS:               port += _T("BeOS"); break;
             case wxGTK:
             case wxGTK_WIN32:
             case wxGTK_OS2:
-            case wxGTK_BEOS:    port += _T("GTK"); break;
+            case wxGTK_BEOS:           port += _T("GTK"); break;
             case wxWINDOWS:
             case wxPENWINDOWS:
             case wxWINDOWS_NT:
             case wxWIN32S:
             case wxWIN95:
-            case wxWIN386:      port += _T("MS Windows"); break;
+            case wxWIN386:             port += _T("MS Windows"); break;
             case wxMGL_UNIX:
             case wxMGL_X:
             case wxMGL_WIN32:
-            case wxMGL_OS2:     port += _T("MGL"); break;
+            case wxMGL_OS2:            port += _T("MGL"); break;
             case wxWINDOWS_OS2:
-            case wxOS2_PM:      port += _T("OS/2"); break;
+            case wxOS2_PM:             port += _T("OS/2"); break;
+            case wxPALMOS:             port += _T("Palm OS"); break;
+            case wxWINDOWS_CE:         port += _T("Windows CE (generic)"); break;
+            case wxWINDOWS_POCKETPC:   port += _T("Windows CE PocketPC"); break;
+            case wxWINDOWS_SMARTPHONE: port += _T("Windows CE Smartphone"); break;
             default:            port += _T("unknown"); break;
         }
 

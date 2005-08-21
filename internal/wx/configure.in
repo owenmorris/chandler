@@ -1874,9 +1874,12 @@ if test "x$wx_largefile" = "xyes"; then
         WX_LARGEFILE_FLAGS="-D_FILE_OFFSET_BITS=64 -D_LARGE_FILES"
 
         dnl we get "Large Files (ILP32) not supported in strict ANSI mode."
-        dnl #error from HP standard headers without this
-        if test "$USE_HPUX" = 1; then
-            CPPFLAGS="$CPPFLAGS -D__STDC_EXT__"
+        dnl #error from HP standard headers when compiling with g++ without this
+        dnl
+        dnl NB: gcc defines __STDC_EXT__=1 for C code, but not for C++, hence
+        dnl     we do this only for CXXFLAGS and not CPPFLAGS
+        if test "$USE_HPUX" = 1 -a "$GXX" = "yes"; then
+            CXXFLAGS="$CXXFLAGS -D__STDC_EXT__=1"
         fi
     else
         WX_LARGEFILE_FLAGS="-D_LARGE_FILES"
@@ -3932,7 +3935,7 @@ AC_LANG_CPLUSPLUS
 
 dnl check for vsnprintf() -- a safe version of vsprintf())
 dnl
-dnl the trouble here is that on some systems (notable HP-UX) this function is
+dnl the trouble here is that on some systems (e.g HP-UX 10) this function is
 dnl present in libc but not in the system headers and so AC_CHECK_FUNCS (which,
 dnl stupidly, provides a dummy function declaration inside its extension)
 dnl succeeds, even with C++ compiler, but the compilation of wxWidgets fails
@@ -3944,38 +3947,29 @@ if test "$ac_cv_func_vsnprintf" = "yes"; then
     dnl yes it is -- now check if it is in the headers
     AC_CACHE_CHECK([for vsnprintf declaration], wx_cv_func_vsnprintf_decl,
         [
+            dnl our troubles are not over: HP-UX 11 prototypes vsnprintf() as
+            dnl taking "char *" and not "const char *" while Metrowerks does
+            dnl provide a correct vsnprintf declaration but in C++ mode it's
+            dnl always in std namespace and so we have to bring it in scope
             AC_TRY_COMPILE(
                 [
                     #include <stdio.h>
                     #include <stdarg.h>
+                    #ifdef __MSL__
+                    #if __MSL__ >= 0x6000
+                    namespace std {}
+                    using namespace std;
+                    #endif
+                    #endif
                 ],
                 [
                     char *buf;
                     va_list ap;
-                    vsnprintf(buf, 10u, "%s", ap);
+                    const char *fmt = "%s";
+                    vsnprintf(buf, 10u, fmt, ap);
                 ],
                 wx_cv_func_vsnprintf_decl=yes,
-                [
-                    dnl Metrowerks does provide a vsnprintf declaration
-                    dnl but in C++ mode it's always in std namespace.
-                    dnl FIXME: Do we have any UNIX C++ compilers that would
-                    dnl fail this test if using namespace std; was
-                    dnl simply always included?
-                    AC_TRY_COMPILE(
-                        [
-                            #include <stdio.h>
-                            #include <stdarg.h>
-                            using namespace std;
-                        ],
-                        [
-                            char *buf;
-                            va_list ap;
-                            vsnprintf(buf, 10u, "%s", ap);
-                        ],
-                        wx_cv_func_vsnprintf_decl=yes,
-                        wx_cv_func_vsnprintf_decl=no
-                    )
-                ]
+                wx_cv_func_vsnprintf_decl=no
             )
         ]
     )
@@ -4425,10 +4419,14 @@ if test "$TOOLKIT" != "MSW" -a "$USE_OS2" != 1; then
                 THREAD_OPTS="pthreads"
                 ;;
           *-hp-hpux* )
-                dnl HP-UX aCC only gives a warning, not an error about
-                dnl -pthread but it doesn't work and we have to use -lpthread
-                dnl there
-                if test "x$GCC" != "xyes"; then
+                if test "x$GCC" = "xyes"; then
+                    dnl the correct option for gcc is -threads, at least under
+                    dnl HP-UX 11.00
+                    THREAD_OPTS="-threads"
+                fi
+                    dnl HP-UX aCC only gives a warning, not an error about
+                    dnl -pthread but it doesn't work and we have to use
+                    dnl -lpthread there
                     THREAD_OPTS=""
                 fi
                 ;;
