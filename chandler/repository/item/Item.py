@@ -472,6 +472,13 @@ class Item(CItem):
                 set.sourceChanged('add', 'kind',
                                   self, name, False, item, kind)
 
+    def _filteredItemChanged(self, op, item, attribute, name):
+
+        if self._status & Item.NODIRTY:
+            return
+
+        getattr(self, name).itemChanged(item, attribute)
+
     def _collectionChanged(self, op, change, name, other):
 
         if self._status & Item.NODIRTY:

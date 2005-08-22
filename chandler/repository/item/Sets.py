@@ -261,6 +261,8 @@ class Set(AbstractSet):
         self._setSourceItem(self._source,
                             item, attribute, oldItem, oldAttribute)
 
+        return oldItem, oldAttribute
+
     def _setView(self, view):
 
         super(Set, self)._setView(view)
@@ -307,6 +309,8 @@ class BiSet(AbstractSet):
         oldItem, oldAttribute = super(BiSet, self)._setOwner(item, attribute)
         self._setSourceItem(self._left, item, attribute, oldItem, oldAttribute)
         self._setSourceItem(self._right, item, attribute, oldItem, oldAttribute)
+
+        return oldItem, oldAttribute
 
     def _setView(self, view):
 
@@ -457,6 +461,8 @@ class MultiSet(AbstractSet):
         oldItem, oldAttribute = super(MultiSet, self)._setOwner(item, attribute)
         for source in self._sources:
             self._setSourceItem(source, item, attribute, oldItem, oldAttribute)
+
+        return oldItem, oldAttribute
 
     def _setView(self, view):
 
@@ -620,6 +626,8 @@ class KindSet(AbstractSet):
                     Monitors.attach(item, '_kindChanged',
                                     'schema', 'kind', attribute)
 
+        return oldItem, oldAttribute
+
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       *args):
 
@@ -675,6 +683,27 @@ class FilteredSet(Set):
             if self.filter(item):
                 yield item
 
+    def _setOwner(self, item, attribute):
+
+        oldItem, oldAttribute = super(FilteredSet, self)._setOwner(item,
+                                                                   attribute)
+        
+        if item is not oldItem:
+            if not self.itsView.isLoading():
+                attrs = self.attributes
+                if oldItem is not None:
+                    if attrs:
+                        for attr in attrs:
+                            Monitors.detach(oldItem, '_filteredItemChanged',
+                                            'set', attr, oldAttribute)
+                if item is not None:
+                    if attrs:
+                        for attr in attrs:
+                            Monitors.attach(item, '_filteredItemChanged',
+                                            'set', attr, attribute)
+
+        return oldItem, oldAttribute
+
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       *args):
 
@@ -690,3 +719,18 @@ class FilteredSet(Set):
                 self._collectionChanged(op, change, other)
 
         return op
+
+    def itemChanged(self, other, attribute):
+
+        if self._sourceContains(other, self._source):
+            matched = self.filter(other)
+
+            if self._indexes:
+                contains = other.itsUUID in self._indexes.itervalues().next()
+            else:
+                contains = None
+                
+            if matched and not contains is True:
+                self._collectionChanged('add', 'collection', other)
+            elif not matched and not contains is False:
+                self._collectionChanged('remove', 'collection', other)
