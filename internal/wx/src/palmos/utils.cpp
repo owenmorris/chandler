@@ -39,6 +39,7 @@
 #include <MemoryMgr.h>
 #include <DLServer.h>
 #include <SoundMgr.h>
+#include <SysUtils.h>
 
 // ============================================================================
 // implementation
@@ -212,6 +213,7 @@ wxString wxGetOsDescription()
 wxToolkitInfo& wxAppTraits::GetToolkitInfo()
 {
     static wxToolkitInfo info;
+    info.os = wxPALMOS;
     info.name = _T("wxBase");
     return info;
 }
