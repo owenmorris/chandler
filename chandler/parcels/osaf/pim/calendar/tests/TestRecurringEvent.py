@@ -224,6 +224,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
 
     def testThisAndFutureModification(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
+        lastUntil = self.event.rruleset.rrules.first().until
         second = self.event.getNextOccurrence()
         
         #one simple THISANDFUTURE modification
@@ -235,6 +236,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(list(second.rruleset.rrules)[0].freq, 'weekly')
         self.assertEqual(second.startTime, second.modificationRecurrenceID)
         self.assertEqual(len(list(self.event.modifications)), 1)
+        self.assertEqual(self.event.getLastUntil(), lastUntil)
         
         # make sure a backup occurrence is created
         self.assertEqual(len(list(second.occurrences)), 2)
@@ -258,6 +260,7 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(third.startTime, thirdChangedStart)
         self.assertEqual(third.displayName, 'Twice modified title')
         self.assertEqual(len(list(self.event.modifications)), 2)
+        self.assertEqual(second.getLastUntil(), lastUntil)
         
         # change second's rule, deleting third
         second.changeThisAndFuture('rruleset', 

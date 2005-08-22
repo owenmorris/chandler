@@ -1341,6 +1341,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 RecurrenceAttributeEditor.menuFrequencies[value])
             rruleset = Recurrence.RecurrenceRuleSet(None, view=item.itsView)
             rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq))
+            rruleset.rrules.first().until = item.getLastUntil()
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
         self.AttributeChanged()    

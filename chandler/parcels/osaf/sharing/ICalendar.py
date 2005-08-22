@@ -66,7 +66,12 @@ def itemsToVObject(view, items, cal=None, filters=None):
             if taskorevent == 'TASK':
                 comp.add('due').value = dateForVObject(item.dueDate,item.allDay)
             else:
-                comp.add('dtend').value = dateForVObject(item.endTime,item.allDay)
+                #convert Chandler's notion of allDay duration to iCalendar's
+                if item.allDay:
+                    comp.add('dtend').value = dateForVObject(item.endTime,item.allDay) + \
+                                              datetime.timedelta(days=1)
+                else:
+                    comp.add('dtend').value = dateForVObject(item.endTime,item.allDay)
         except AttributeError:
             pass
 

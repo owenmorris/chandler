@@ -492,6 +492,32 @@ class CalendarEventMixin(ContentItem):
         else:
             return self.occurrenceFor
 
+    def getLastUntil(self):
+        """Find the last modification's rruleset, return it's until value."""
+        master = self.getMaster()
+        if master.rruleset is None:
+            return None
+        
+        def getUntil(obj):
+            try:
+                return obj.rruleset.rrules.first().until
+            except:
+                return None
+        
+        until = getUntil(master)
+        if until is None:
+            return None
+        
+        for mod in master.getAttributeValue('modifications', default=[]):
+            if mod.modifies == 'this': continue
+            newuntil = getUntil(mod)
+            if newuntil is None:
+                return None
+            if datetimeOp(newuntil, '>', until):
+                until = newuntil
+        
+        return until
+                   
     def getMaster(self):
         """Return the master event in modifications or occurrences."""
         if self.modificationFor is not None:
