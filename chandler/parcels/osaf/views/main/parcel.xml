@@ -291,7 +291,7 @@
     <eventsForNamedLookup itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
 
     <orientationEnum>Vertical</orientationEnum>
-    <size>1024,720</size>
+    <size>900,600</size>
     <eventBoundary>True</eventBoundary>
     <viewContainer itemref="doc:MainViewRoot"/>
   </View>
