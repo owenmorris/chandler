@@ -186,11 +186,25 @@ bool wxDropTarget::GetData()
             UInt16 flavors = 0 ;
             GetDragItemReferenceNumber((DragReference)m_currentDrag, index, &theItem);
             CountDragItemFlavors( (DragReference)m_currentDrag, theItem , &flavors ) ;
+            bool hasPreferredFormat = false ;
+            wxDataFormat preferredFormat = m_dataObject->GetPreferredFormat( wxDataObject::Set ) ;
+            
             for ( UInt16 flavor = 1 ; flavor <= flavors ; ++flavor )
             {
                 result = GetFlavorType((DragReference)m_currentDrag, theItem, flavor , &theType);
                 wxDataFormat format(theType) ;
-                if ( m_dataObject->IsSupportedFormat( format ) )
+                if ( preferredFormat == format )
+                {
+                    hasPreferredFormat = true ;
+                    break ;
+                }
+            }
+            
+            for ( UInt16 flavor = 1 ; flavor <= flavors ; ++flavor )
+            {
+                result = GetFlavorType((DragReference)m_currentDrag, theItem, flavor , &theType);
+                wxDataFormat format(theType) ;
+                if ( (hasPreferredFormat && format==preferredFormat) || (!hasPreferredFormat && m_dataObject->IsSupportedFormat( format )))
                 {
                     FlavorFlags theFlags;
                     result = GetFlavorFlags((DragReference)m_currentDrag, theItem, theType, &theFlags);
@@ -287,7 +301,7 @@ wxDropSource::~wxDropSource()
 }
 
 
-wxDragResult wxDropSource::DoDragDrop(int WXUNUSED(flags))
+wxDragResult wxDropSource::DoDragDrop(int flags)
 {
     wxASSERT_MSG( m_data, wxT("Drop source: no data") );
     
@@ -315,13 +329,18 @@ wxDragResult wxDropSource::DoDragDrop(int WXUNUSED(flags))
         Ptr dataPtr = new char[dataSize] ;
         m_data->GetDataHere( formats[i] , dataPtr ) ;
         OSType type = formats[i].GetFormatId() ;
-        if ( type == 'TEXT' )
+        if ( type == 'TEXT' || type == 'utxt' )
         {
-            dataSize-- ;
+            if ( dataSize > 0 )
+                dataSize-- ;
             dataPtr[ dataSize ] = 0 ;
-            wxString st( (wxChar*) dataPtr ) ;
-            wxCharBuffer buf = st.mb_str( wxConvLocal) ;
-            AddDragItemFlavor(theDrag, theItem, type , buf.data(), strlen(buf), 0);
+            if ( type == 'utxt' )
+            {
+                if ( dataSize > 0 )
+                    dataSize-- ;
+                dataPtr[ dataSize ] = 0 ;
+            }
+            AddDragItemFlavor(theDrag, theItem, type , dataPtr, dataSize, 0);      
         }
         else if (type == kDragFlavorTypeHFS )
         {
@@ -397,7 +416,12 @@ wxDragResult wxDropSource::DoDragDrop(int WXUNUSED(flags))
     gTrackingGlobals.m_currentSource = NULL ;
     
     bool optionDown = GetCurrentKeyModifiers() & optionKey ;
-    wxDragResult dndresult = optionDown ? wxDragCopy : wxDragMove;
+    wxDragResult dndresult = wxDragCopy ;
+    if ( flags != wxDrag_CopyOnly ) 
+    {
+        // on mac the option key is always the indication for copy
+        dndresult = optionDown ? wxDragCopy : wxDragMove;
+    }
     return dndresult;
 }
 
