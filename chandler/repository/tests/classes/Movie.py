@@ -23,7 +23,7 @@ class Movie(Item):
 
     def collectionChanged(self, op, item, name, other, *args):
 
-        print op, self, item, name, other, args
+        print op, self, name, other, args
 
 
 class Cartoon(Movie):

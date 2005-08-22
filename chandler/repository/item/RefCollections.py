@@ -272,7 +272,8 @@ class RefList(LinkedMap, Indexed):
             other._references._getRef(self._otherName, self._item)
 
         if not loading:
-            self._item._collectionChanged('add', self._name, other)
+            self._item._collectionChanged('add', 'collection',
+                                          self._name, other)
 
         return other
 
@@ -385,7 +386,7 @@ class RefList(LinkedMap, Indexed):
                 index.removeKey(key)
 
         link = super(RefList, self).__delitem__(key)
-        self._item._collectionChanged('remove', self._name, other)
+        self._item._collectionChanged('remove', 'collection', self._name, other)
 
         return link
 

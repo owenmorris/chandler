@@ -41,16 +41,16 @@ class Monitors(Item):
         except KeyError:
             pass
 
-    def _collectionChanged(self, op, name, other):
+    def _collectionChanged(self, op, change, name, other):
 
-        if name == 'monitors':
+        if change == 'collection' and name == 'monitors':
             if op == 'remove':
                 self.cacheMonitors()
             elif op == 'add':
                 if other is self:
                     raise TypeError, "Monitors dispatcher cannot have monitors"
 
-        super(Monitors, self)._collectionChanged(op, name, other)
+        super(Monitors, self)._collectionChanged(op, change, name, other)
                             
     def getInstance(cls, view):
 

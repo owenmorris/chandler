@@ -472,7 +472,7 @@ class Item(CItem):
                 set.sourceChanged('add', 'kind',
                                   self, name, False, item, kind)
 
-    def _collectionChanged(self, op, name, other):
+    def _collectionChanged(self, op, change, name, other):
 
         if self._status & Item.NODIRTY:
             return
@@ -490,8 +490,7 @@ class Item(CItem):
                 for (watcher, args) in watchers:
                     if len(args) == 2 and args[0] == 'set':
                         set = getattr(watcher, args[1])
-                        set.sourceChanged(op, 'collection',
-                                          self, name, False, other)
+                        set.sourceChanged(op, change, self, name, False, other)
                     else:
                         watcher.collectionChanged(op, self, name, other, *args)
 
