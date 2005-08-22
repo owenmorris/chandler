@@ -31,7 +31,16 @@
     <blockName>ChangeLayout</blockName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
-
+  
+  <!-- This is BroadcastEverywhere because several different
+       parts of the app need to redisplay in the event (sic) of
+       the user changing timezone; e.g. the minical, preview,
+       calendar and detail views. -->
+  <BlockEvent itsName="TimeZoneChange">
+    <blockName>TimeZoneChange</blockName>
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+  </BlockEvent>
+  
   <ContextMenu itsName="sidebarContextMenu">
     <childrenBlocks itemref="doc:OpenTabContextItem"/>
     <childrenBlocks itemref="doc:CloseTabContextItem"/>
@@ -206,6 +215,7 @@
     <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/> -->
     <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
     <orientationEnum>Vertical</orientationEnum>
+    <eventsForNamedLookup itemref="doc:TimeZoneChange"/>
   </calendar:CalendarContainer>
 
 

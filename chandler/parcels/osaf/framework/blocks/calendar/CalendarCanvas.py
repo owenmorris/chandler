@@ -683,9 +683,8 @@ class CalendarEventHandler(object):
             DefaultTimeZone.get(view=view).tzinfo = newTZ
             view.commit()
             
-            #self.blockItem.Refresh() def Refresh
-            self.wxSynchronizeWidget()
-            
+            self.blockItem.postEventByName("TimeZoneChange",
+                                            {'tzinfo':newTZ})
 
 
 class CalendarBlock(CollectionCanvas.CollectionCanvas):
@@ -1761,6 +1760,9 @@ class TimedEventsCanvas(CalendarBlock):
 
     def onSelectedDateChangedEvent(self, event):
         self.setRange(event.arguments['start'])
+        self.widget.wxSynchronizeWidget()
+        
+    def onTimeZoneChangeEvent(self, event):
         self.widget.wxSynchronizeWidget()
 
 
