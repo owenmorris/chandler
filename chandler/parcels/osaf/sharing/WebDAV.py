@@ -66,16 +66,17 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
 
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
-    def _makeConnection(self):
+    def _makeConnection(self, timeout):
         if self.logging:
             #_doLog("[Connecting to %s:%s]" % (self.host, self.port))
             pass
             
         if self.startTLS:
             result = ssl.connectSSL(self.host, self.port, self,
-                                    self.repositoryView)
+                                    self.repositoryView, timeout=timeout)
         else:
-            result = reactor.connectTCP(self.host, self.port, self)
+            result = reactor.connectTCP(self.host, self.port,
+                                        self, timeout=timeout)
             
         self._active = result
         
