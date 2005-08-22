@@ -12,11 +12,11 @@ task = QAUITestAppLib.UITestItem(__view__, "Task", logger)
 
 #action
 task.logger.Start("Setting Task attributes")
-task.SetAttr(displayName="a Task", body="task body")
+task.SetAttr(displayName="Task of sending birthday invites", body="Send birthday invitations")
 task.logger.Stop()
 
 #verification
-task.Check_DetailView({"displayName":"a Task","body":"task body"})
+task.Check_DetailView({"displayName":"Task of sending birthday invites","body":"Send birthday invitations"})
 
 #cleaning
 logger.Close()

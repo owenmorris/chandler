@@ -12,11 +12,11 @@ mail = QAUITestAppLib.UITestItem(__view__, "MailMessage", logger)
 
 #action
 mail.logger.Start("Setting attributes of message")
-mail.SetAttr(displayName="bar", toAddress="to@foo.org", body="a message")
+mail.SetAttr(displayName="Invitation Mail", toAddress="osafuser@osafoundation.org", body="This is an email to invite you")
 mail.logger.Stop()
 
 #verification
-mail.Check_DetailView({"displayName":"bar","toAddress":"to@foo.org","body":"a message"})
+mail.Check_DetailView({"displayName":"Invitation Mail","toAddress":"osafuser@osafoundation.org","body":"This is an email to invite you"})
 
 #cleaning
 logger.Close()

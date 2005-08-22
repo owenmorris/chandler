@@ -12,11 +12,11 @@ note = QAUITestAppLib.UITestItem(__view__, "Note", logger)
 
 #action
 note.logger.Start("Setting the note attributes")
-note.SetAttr(displayName="a Note", body="note body")
+note.SetAttr(displayName="A note to myself about filing taxes", body="FILE TAXES!")
 note.logger.Stop()
 
 #verification
-note.Check_DetailView({"displayName":"a Note","body":"note body"})
+note.Check_DetailView({"displayName":"A note to myself about filing taxes","body":"FILE TAXES!"})
 
 #cleaning
 logger.Close()

@@ -12,11 +12,11 @@ event = QAUITestAppLib.UITestItem(__view__, "Event", logger)
 
 #action
 event.logger.Start("setting calendar attributes")
-event.SetAttr(displayName="bar", startDate="09/12/2004", startTime="6:00 PM", location="Office", status="FYI",body="test test")
+event.SetAttr(displayName="Birthday Party", startDate="09/12/2004", startTime="6:00 PM", location="Club101", status="FYI",body="This is a birthday party invitation")
 event.logger.Stop()
 
 #verification
-event.Check_DetailView({"displayName":"bar","startDate":"9/12/04","endDate":"9/12/04","startTime":"6:00 PM","endTime":"7:00 PM","location":"Office","status":"FYI","body":"test test"})
+event.Check_DetailView({"displayName":"Birthday Party","startDate":"9/12/04","endDate":"9/12/04","startTime":"6:00 PM","endTime":"7:00 PM","location":"Club101","status":"FYI","body":"This is a birthday party invitation"})
 
 #cleaning
 logger.Close()

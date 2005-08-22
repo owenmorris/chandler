@@ -1,3 +1,8 @@
+## FunctionalList1.py
+## Author : Olivier Giroussens
+## Description: This test suite runs the 4 basic testcases of generating event, mail, task and note items in chandler
+ 
+
 import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
 import os
 
