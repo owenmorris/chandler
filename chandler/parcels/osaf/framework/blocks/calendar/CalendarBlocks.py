@@ -241,7 +241,7 @@ class wxPreviewArea(wx.Panel):
                          dashWidth + 2*self.dashMargin + self.eventTitleLeftMargin
             
         if item.allDay or item.anyTime:
-            dc.DrawText(item.displayName, eventTitleOffset, y)
+            dc.DrawText(item.displayName, self.margin, y)
 
         elif item.startTime == item.endTime:
             # at-time event
