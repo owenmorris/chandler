@@ -80,6 +80,11 @@
     #endif // __BSD__/!__BSD__
 
     #define wxStatfs statfs
+
+    #ifndef HAVE_STATFS_DECL
+        // some systems lack statfs() prototype in the system headers (AIX 4)
+        extern "C" int statfs(const char *path, struct statfs *buf);
+    #endif
 #endif // HAVE_STATFS
 
 #ifdef HAVE_STATVFS
@@ -452,7 +457,7 @@ bool wxPipeInputStream::CanRead() const
 #ifdef __VMS
     #pragma message disable codeunreachable
 #endif
-
+               
 long wxExecute(wxChar **argv,
                int flags,
                wxProcess *process)
@@ -604,7 +609,7 @@ long wxExecute(wxChar **argv,
         }
 
         execvp (*mb_argv, mb_argv);
-
+       
         fprintf(stderr, "execvp(");
         // CS changed ppc to ppc_ as ppc is not available under mac os CW Mach-O
         for ( char **ppc_ = mb_argv; *ppc_; ppc_++ )
