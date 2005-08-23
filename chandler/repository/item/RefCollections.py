@@ -372,8 +372,7 @@ class RefList(LinkedMap, Indexed):
 
         self._item._references._removeValue(self._name, self._getRef(key),
                                             self._otherName)
-
-    def _removeRef(self, other):
+    def _removeRef_(self, other):
 
         if self._flags & RefList.READONLY:
             raise ReadOnlyAttributeError, (self._item, self._name)
@@ -385,10 +384,12 @@ class RefList(LinkedMap, Indexed):
             for index in self._indexes.itervalues():
                 index.removeKey(key)
 
-        link = super(RefList, self).__delitem__(key)
-        self._item._collectionChanged('remove', 'collection', self._name, other)
+        return super(RefList, self).__delitem__(key)
 
-        return link
+    def _removeRef(self, other):
+
+        self._removeRef_(other)
+        self._item._collectionChanged('remove', 'collection', self._name, other)
 
     def _load(self, key):
 

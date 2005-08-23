@@ -90,7 +90,7 @@ class PersistentRefs(object):
             else:
                 raise AssertionError, '%s: unloading non-loaded ref %s' %(self, item._repr_())
 
-    def _removeRef(self, key, link):
+    def _removeRef_(self, key, link):
 
         if not self.view.isLoading():
             op, alias = self._changedRefs.get(key, (0, link._alias))
@@ -99,7 +99,7 @@ class PersistentRefs(object):
                 self._changedRefs[key] = (1, alias)
             self._count -= 1
         else:
-            raise ValueError, '_removeRef during load'
+            raise ValueError, '_removeRef_ during load'
 
     def _isRemoved(self, key):
 
@@ -248,10 +248,10 @@ class DBRefList(RefList, PersistentRefs):
         super(DBRefList, self).linkChanged(link, key)
         self._changeRef(key, link)
         
-    def _removeRef(self, other):
+    def _removeRef_(self, other):
 
-        link = RefList._removeRef(self, other)
-        PersistentRefs._removeRef(self, other._uuid, link)
+        link = RefList._removeRef_(self, other)
+        PersistentRefs._removeRef_(self, other._uuid, link)
 
     def _setItem(self, item):
 
@@ -559,7 +559,7 @@ class DBChildren(Children, PersistentRefs):
     def __delitem__(self, key):
 
         link = super(DBChildren, self).__delitem__(key)
-        self._removeRef(key, link)
+        self._removeRef_(key, link)
 
     def __setitem__(self, key, value,
                     previousKey=None, nextKey=None, alias=None):
