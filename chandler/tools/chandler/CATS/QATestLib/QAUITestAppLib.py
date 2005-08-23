@@ -178,7 +178,7 @@ class UITestItem :
             displayNameBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(displayName)
-            Sgf.KeyboardReturn(displayNameBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)          
@@ -199,7 +199,7 @@ class UITestItem :
             startTimeBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(startTime)
-            Sgf.KeyboardReturn(startTimeBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)    
@@ -220,7 +220,7 @@ class UITestItem :
             startDateBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(startDate)
-            Sgf.KeyboardReturn(startDateBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -241,7 +241,7 @@ class UITestItem :
             endTimeBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(endTime)
-            Sgf.KeyboardReturn(endTimeBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -262,7 +262,7 @@ class UITestItem :
             endDateBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(endDate)
-            Sgf.KeyboardReturn(endDateBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -277,14 +277,12 @@ class UITestItem :
                 self.logger.Start("Set the location to : %s" %location)
             self.SelectItem()
             locationBlock = Sgf.Location()
-            print locationBlock
-            print locationBlock.widget
             Sgf.LeftClick(locationBlock)
             # Select the old text
             locationBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(location)
-            Sgf.KeyboardReturn(locationBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -383,7 +381,7 @@ class UITestItem :
         noteArea.widget.SelectAll()
         # Emulate the keyboard events
         Sgf.Type(body)
-        Sgf.KeyboardReturn(noteArea)
+        Sgf.KeyboardReturn()
         if dict:
             self.logger.Stop()
             self.Check_DetailView(dict)
@@ -401,7 +399,7 @@ class UITestItem :
             toBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(toAdd)
-            Sgf.KeyboardReturn(toBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -421,7 +419,7 @@ class UITestItem :
             fromBlock.widget.SelectAll()
             # Emulate the keyboard events
             Sgf.Type(fromAdd)
-            Sgf.KeyboardReturn(fromBlock)
+            Sgf.KeyboardReturn()
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
@@ -895,7 +893,7 @@ class UITestView:
         #report the checkings
         self.logger.Report("View")
         
-    def DoubleClickInCalView(self, x=101, y=25):
+    def DoubleClickInCalView(self, x=300, y=100):
         if self.state == "CV":
             self.timedCanvas = Sgf.FindNamedBlock('TimedEventsCanvas') 
             canvasItem = None
