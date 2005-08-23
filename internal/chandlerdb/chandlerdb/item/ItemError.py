@@ -58,7 +58,7 @@ class OwnedValueError(ValueError, ItemError):
 
     def __str__(self):
         return self.__doc__ %(self.args[2],
-                              self.getItem().itsPath,
+                              self.getItem()._repr_(),
                               self.args[1])
 
 

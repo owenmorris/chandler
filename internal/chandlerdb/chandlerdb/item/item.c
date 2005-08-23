@@ -27,6 +27,7 @@ static PyObject *t_item__isView(t_item *self, PyObject *args);
 static PyObject *t_item__isItem(t_item *self, PyObject *args);
 static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
+static PyObject *t_item__isMerged(t_item *self, PyObject *args);
 
 #define isNew_DOC \
 "Tell whether this item is new.\n\nA new item is defined as an item that\
@@ -79,7 +80,10 @@ static PyMemberDef t_item_members[] = {
     { "_parent", T_OBJECT, offsetof(t_item, parent), 0, "item parent" },
     { "_children", T_OBJECT, offsetof(t_item, children), 0, "item children" },
     { "_root", T_OBJECT, offsetof(t_item, root), 0, "item root" },
+    { "_view", T_OBJECT, offsetof(t_item, view), 0, "item view" },
     { "_acls", T_OBJECT, offsetof(t_item, acls), 0, "item acls" },
+    { "itsUUID", T_OBJECT, offsetof(t_item, uuid), READONLY, "item uuid" },
+    { "itsView", T_OBJECT, offsetof(t_item, view), READONLY, "item view" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -100,6 +104,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isItem", (PyCFunction) t_item__isItem, METH_NOARGS, "" },
     { "_isRefList", (PyCFunction) t_item__isRefList, METH_NOARGS, "" },
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
+    { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -303,6 +308,14 @@ static PyObject *t_item__isRefList(t_item *self, PyObject *args)
 static PyObject *t_item__isUUID(t_item *self, PyObject *args)
 {
     Py_RETURN_FALSE;
+}
+
+static PyObject *t_item__isMerged(t_item *self, PyObject *args)
+{
+    if (self->status & MERGED)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
 }
 
 
