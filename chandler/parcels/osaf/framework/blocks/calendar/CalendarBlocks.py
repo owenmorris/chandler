@@ -42,7 +42,10 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        self.setFreeBusy(None)
+        # Turning off free busy until set changes come in for performance reasons
+        # There is a bug with notifications that each item is getting wxSynchronizeWidget
+        # called 25 times as often as intended.
+        #self.setFreeBusy(None)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
