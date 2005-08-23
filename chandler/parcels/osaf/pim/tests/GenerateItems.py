@@ -10,7 +10,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import random
 
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
@@ -42,9 +41,9 @@ def GenerateCalendarEvent(view, days=30):
     startDelta = timedelta(days=random.randint(0, days),
                            hours=random.randint(0, 24))
 
-    now = datetime.now(ICUtzinfo.getDefault())
+    now = datetime.now()
     closeToNow = datetime(now.year, now.month, now.day, now.hour,
-                          int(now.minute/30) * 30, tzinfo=now.tzinfo)
+                          int(now.minute/30) * 30)
     event.startTime = closeToNow + startDelta
 
     # Events are anyTime by default. Give a 5% chance of allDay instead,
@@ -138,7 +137,7 @@ def GenerateNote(view):
     note.displayName = random.choice(TITLES)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
-    note.createdOn = datetime.now(ICUtzinfo.getDefault()) + delta
+    note.createdOn = datetime.now() + delta
     return note
 
 def GenerateTask(view):
