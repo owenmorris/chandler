@@ -1727,7 +1727,7 @@ class AbstractSet(Type):
 
         offset, string = itemReader.readString(offset, data)
         value = Sets.AbstractSet.makeValue(string)
-        value.itsView = view
+        value._setView(view)
 
         offset = itemReader.readIndexes(offset, data, value, afterLoadHooks)
 
