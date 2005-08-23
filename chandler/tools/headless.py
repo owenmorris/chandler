@@ -302,10 +302,20 @@ def main():
             shutdown()
 
     else:
-        interact(banner,
-                 None,
-                 getExports(__name__="__console__", __doc__=None)
-                 )
+        try:
+            from IPython.Shell import IPShellEmbed
+            argv = ['-pi1','In [\\#]: ','-pi2','   .\\D.:','-po','Out[\\#]: ']
+            banner += """\n
+In IPython-enabled headless, you have syntactic shortcuts like leaving off 
+() for calls, and using '?obj' instead help(obj)."""
+            exit_msg = "*** Exiting IPython ***"
+            ipshell = IPShellEmbed(argv,banner=banner,exit_msg=exit_msg)
+            ipshell()
+        except ImportError:
+            interact(banner,
+                    None,
+                    getExports(__name__="__console__", __doc__=None)
+                    )
 
         print "Shutting down..."
         shutdown()
