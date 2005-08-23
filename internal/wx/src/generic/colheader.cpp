@@ -191,6 +191,10 @@ void wxColumnHeader::Init( void )
 	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
 	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
 	m_SelectionDrawStyle = CH_SELECTIONDRAWSTYLE_Native;
+#elif defined(__WXGTK__)
+	// NB: perhaps for MSW too? (after testing, of course)
+	m_Font = wxSystemSettings::GetFont( wxSYS_DEFAULT_GUI_FONT );
+	m_SelectionDrawStyle = CH_SELECTIONDRAWSTYLE_Underline;
 #else
 	m_Font.SetFamily( 0 );
 	m_SelectionDrawStyle = CH_SELECTIONDRAWSTYLE_Underline;
@@ -820,6 +824,195 @@ long					deltaV, newExtent1, newExtent2;
 	RefreshItem( itemIndex, true );
 
 	return true;
+}
+
+void wxColumnHeader::OnMouseEvent( wxMouseEvent &event )
+{
+#if 1
+	// under construction
+#else
+#endif
+}
+
+void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
+{
+#if 1
+	// under construction
+#else
+	int x, y, col;
+	wxPoint pos( event.GetPosition() );
+	CalcUnscrolledPosition( pos.x, pos.y, &x, &y );
+
+	if (event.Dragging())
+	{
+		if (! m_isDragging)
+		{
+			m_isDragging = true;
+			m_ParentWin->CaptureMouse();
+		}
+
+		if (event.LeftIsDown())
+		{
+			int cw, ch, dummy, top;
+			m_gridWin->GetClientSize( &cw, &ch );
+			CalcUnscrolledPosition( 0, 0, &dummy, &top );
+
+			wxClientDC dc( m_ParentWin );
+			PrepareDC( dc );
+
+			x = wxMax(
+				x,
+				GetColLeft( m_dragRowOrCol )
+				+ GetColMinimalWidth( m_dragRowOrCol ) );
+			dc.SetLogicalFunction( wxINVERT );
+			if (m_dragLastPos >= 0)
+				dc.DrawLine( m_dragLastPos, top, m_dragLastPos, top + ch );
+			dc.DrawLine( x, top, x, top + ch );
+			m_dragLastPos = x;
+		}
+
+		return;
+	}
+
+	if (m_isDragging && (event.Entering() || event.Leaving()))
+		return;
+
+	if (m_isDragging)
+	{
+		if (m_colLabelWin->HasCapture())
+			m_colLabelWin->ReleaseMouse();
+		m_isDragging = false;
+	}
+
+	if (event.Entering() || event.Leaving())
+	{
+		// -- Entering or leaving the window
+		ChangeCursorMode( WXGRID_CURSOR_SELECT_CELL, m_colLabelWin );
+	}
+	else if (event.LeftDown())
+	{
+		// -- Left button pressed
+		// don't send a label click event for a hit on the edge of the column label 
+		// - this is probably the user wanting to resize the column
+		//
+		if (XToEdgeOfCol( x ) < 0)
+		{
+			col = XToCol( x );
+			if ((col >= 0) &&
+				 !SendEvent( wxEVT_GRID_LABEL_LEFT_CLICK, -1, col, event ))
+			{
+				if (! event.ShiftDown() && !event.ControlDown())
+					ClearSelection();
+				if (m_selection)
+				{
+					if (event.ShiftDown())
+					{
+						m_selection->SelectBlock(
+							0,
+							m_currentCellCoords.GetCol(),
+							GetNumberRows() - 1,
+							col,
+							event.ControlDown(),
+							event.ShiftDown(),
+							event.AltDown(),
+							event.MetaDown() );
+					}
+					else
+					{
+						m_selection->SelectCol(
+							col,
+							event.ControlDown(),
+							event.ShiftDown(),
+							event.AltDown(),
+							event.MetaDown() );
+					}
+				}
+
+				ChangeCursorMode( WXGRID_CURSOR_SELECT_COL, m_colLabelWin );
+			}
+		}
+		else
+		{
+			// starting to drag-resize a column
+			if (CanDragColSize())
+				ChangeCursorMode( WXGRID_CURSOR_RESIZE_COL, m_colLabelWin );
+		}
+	}
+
+	if (event.LeftDClick())
+	{
+		// -- Left double click
+		int col = XToEdgeOfCol( x );
+		if (col < 0)
+		{
+			col = XToCol( x );
+			if ((col >= 0) &&
+				 ! SendEvent( wxEVT_GRID_LABEL_LEFT_DCLICK, -1, col, event ))
+			{
+				// no default action at the moment
+			}
+		}
+		else
+		{
+			// adjust column width depending on label text
+			AutoSizeColLabelSize( col );
+
+			ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL, m_colLabelWin);
+			m_dragLastPos  = -1;
+		}
+	}
+	else if (event.LeftUp())
+	{
+		// -- Left button released
+		DoEndDragResizeCol();
+
+		// Note: we are ending the event *after* doing
+		// default processing in this case
+		//
+		SendEvent( wxEVT_GRID_COL_SIZE, -1, m_dragRowOrCol, event );
+
+		ChangeCursorMode( WXGRID_CURSOR_SELECT_CELL, m_colLabelWin );
+		m_dragLastPos  = -1;
+	}
+	else if (event.RightDown())
+	{
+		// -- Right button down
+		col = XToCol( x );
+		if ((col >= 0) &&
+			 ! SendEvent( wxEVT_GRID_LABEL_RIGHT_CLICK, -1, col, event ))
+		{
+			// no default action at the moment
+		}
+	}
+	else if (event.RightDClick())
+	{
+		// -- Right double click
+		col = XToCol( x );
+		if ((col >= 0) &&
+			 ! SendEvent( wxEVT_GRID_LABEL_RIGHT_DCLICK, -1, col, event ))
+		{
+			// no default action at the moment
+		}
+	}
+	else if (event.Moving())
+	{
+		// -- No buttons down and mouse moving
+		m_dragRowOrCol = XToEdgeOfCol( x );
+		if (m_dragRowOrCol >= 0)
+		{
+			if (m_cursorMode == WXGRID_CURSOR_SELECT_CELL)
+			{
+				// don't capture the cursor yet
+				if (CanDragColSize())
+					ChangeCursorMode( WXGRID_CURSOR_RESIZE_COL, m_colLabelWin, false );
+			}
+		}
+		else if (m_cursorMode != WXGRID_CURSOR_SELECT_CELL)
+		{
+			ChangeCursorMode( WXGRID_CURSOR_SELECT_CELL, m_colLabelWin, false );
+		}
+	}
+#endif
 }
 
 // ================
@@ -2250,6 +2443,7 @@ long wxColumnHeaderItem::GenericDrawItem(
 {
 wxRect			localBoundsR, subItemBoundsR;
 long			startX, originX, maxExtentX, descentY;
+int			drawFlags;
 bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	wxUnusedVar( bUseUnicode );
@@ -2269,7 +2463,8 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
 	localBoundsR = *boundsR;
-	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
+	drawFlags = 0;
+	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
 	if (bHasButtonArrow)
@@ -2293,7 +2488,8 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 			descentY = (localBoundsR.height - m_LabelTextExtent.y) / 2;
 
 			// FIXME: why is this needed? The previous calculation should be exact.
-			descentY--;
+			if ( ! ((wxColumnHeader*)parentW)->m_BUseGenericRenderer)
+				descentY--;
 		}
 
 		if (m_LabelTextExtent.x <= maxExtentX)

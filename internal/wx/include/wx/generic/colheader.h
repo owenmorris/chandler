@@ -44,6 +44,8 @@ wxColumnHeaderMetric;
 
 class WXDLLIMPEXP_ADV wxColumnHeader : public wxControl
 {
+friend class wxColumnHeaderItem;
+
 public:
 	// construction
 	wxColumnHeader(
@@ -82,6 +84,9 @@ public:
 	bool ResizeDivision(
 		long				itemIndex,
 		long				originX );
+
+	void OnMouseEvent( wxMouseEvent &event );
+	void ProcessLabelMouseEvent( wxMouseEvent &event );
 
 	void GetSelectionColour(
 		wxColour			&targetColour ) const;
