@@ -323,7 +323,9 @@ class FeedItem(pim.ContentItem):
                     return True
 
         except:
-            logger.error("Feed item comparison failed")
+            logger.exception("Feed item comparison failed")
+            logger.error("Failed in %s", feedItem.title)
+            logger.error("%s vs %s" % (self.date, feedItem.date))
 
         return False
 
