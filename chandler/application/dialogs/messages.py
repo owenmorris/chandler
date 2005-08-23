@@ -9,4 +9,4 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from i18n import OSAFMessageFactory as _
 
 OK_BUTTON = _(" OK ")
-CANCEL_BUTTON = _(" CANCEL ")
+CANCEL_BUTTON = _(" Cancel ")
