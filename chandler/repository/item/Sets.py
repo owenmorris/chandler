@@ -38,7 +38,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def __getitem__(self, uuid):
 
-        return self._getView()[uuid]
+        return self._view[uuid]
 
     def __len__(self):
 
@@ -67,7 +67,7 @@ class AbstractSet(ItemValue, Indexed):
             for source in source.iterSources():
                 yield source
         else:
-            yield (self.itsView[source[0]], source[1])
+            yield (self._view[source[0]], source[1])
 
     def dir(self):
         """
@@ -78,11 +78,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def _getView(self):
 
-        item = self._item
-        if item is not None:
-            return item.itsView
-        else:
-            return self._view
+        return self._view
 
     def _setView(self, view):
 
@@ -105,7 +101,7 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return item in source
 
-        return item in getattr(self.itsView[source[0]], source[1])
+        return item in getattr(self._view[source[0]], source[1])
 
     def _iterSource(self, source):
 
@@ -113,7 +109,7 @@ class AbstractSet(ItemValue, Indexed):
             for item in source:
                 yield item
         else:
-            for item in getattr(self.itsView[source[0]], source[1]):
+            for item in getattr(self._view[source[0]], source[1]):
                 yield item
 
     def _reprSource(self, source, replace):
@@ -134,7 +130,7 @@ class AbstractSet(ItemValue, Indexed):
             source._setOwner(item, attribute)
 
         elif item is not oldItem:
-            view = self.itsView
+            view = self._view
             if not view.isLoading():
                 if item is None:
                     oldItem.unwatchCollection(view[source[0]], source[1],
@@ -156,7 +152,7 @@ class AbstractSet(ItemValue, Indexed):
                                         True, other, *args)
 
         if (change == 'collection' and
-            sourceOwner is self.itsView[source[0]] and sourceName == source[1]):
+            sourceOwner is self._view[source[0]] and sourceName == source[1]):
             return op
 
         if change == 'notification' and other in self:
@@ -230,8 +226,6 @@ class AbstractSet(ItemValue, Indexed):
     @classmethod
     def makeString(cls, value):
         return value._repr_()
-
-    itsView = property(_getView, lambda self, view: self._setView(view))
 
 
 class Set(AbstractSet):
@@ -599,13 +593,13 @@ class KindSet(AbstractSet):
             return False
 
         if self._recursive:
-            return item.isItemOf(self.itsView[self._kind])
+            return item.isItemOf(self._view[self._kind])
         else:
-            return item.itsKind is self.itsView[self._kind]
+            return item.itsKind is self._view[self._kind]
 
     def __iter__(self):
 
-        for item in KindQuery(self._recursive).run([self.itsView[self._kind]]):
+        for item in KindQuery(self._recursive).run([self._view[self._kind]]):
             yield item
 
     def _repr_(self, replace=None):
@@ -618,7 +612,7 @@ class KindSet(AbstractSet):
         oldItem, oldAttribute = super(KindSet, self)._setOwner(item, attribute)
         
         if item is not oldItem:
-            if not self.itsView.isLoading():
+            if not self._view.isLoading():
                 if oldItem is not None:
                     Monitors.detach(oldItem, '_kindChanged',
                                     'schema', 'kind', oldAttribute)
@@ -636,10 +630,10 @@ class KindSet(AbstractSet):
                 kind = args[0]
 
                 if self._recursive:
-                    if not kind.isKindOf(self.itsView[self._kind]):
+                    if not kind.isKindOf(self._view[self._kind]):
                         op = None
                 else:
-                    if kind is not self.itsView[self._kind]:
+                    if kind is not self._view[self._kind]:
                         op = None
 
                 if not (inner is True or op is None):
@@ -689,7 +683,7 @@ class FilteredSet(Set):
                                                                    attribute)
         
         if item is not oldItem:
-            if not self.itsView.isLoading():
+            if not self._view.isLoading():
                 attrs = self.attributes
                 if oldItem is not None:
                     if attrs:
