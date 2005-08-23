@@ -958,7 +958,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 			AutoSizeColLabelSize( col );
 
 			ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL, m_colLabelWin);
-			m_dragLastPos  = -1;
+			m_dragLastPos = (-1);
 		}
 	}
 	else if (event.LeftUp())
@@ -972,7 +972,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 		SendEvent( wxEVT_GRID_COL_SIZE, -1, m_dragRowOrCol, event );
 
 		ChangeCursorMode( WXGRID_CURSOR_SELECT_CELL, m_colLabelWin );
-		m_dragLastPos  = -1;
+		m_dragLastPos = (-1);
 	}
 	else if (event.RightDown())
 	{

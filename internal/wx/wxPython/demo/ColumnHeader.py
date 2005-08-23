@@ -61,9 +61,12 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
         cb1.SetValue( ch1.IsEnabled() )
 
+        # NB: generic rendering is mandatory for non-[Mac,Win] platforms
         cb2 = wx.CheckBox( self, -1, "Generic Renderer", (self.colStartX, miscControlsY + 25), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestGenericRendererCheckBox, cb2 )
         cb2.SetValue( ch1.GetAttribute( wx.colheader.CH_ATTR_GenericRenderer ) )
+        if (not '__WXMAC__' in wx.PlatformInfo) and (not '__WXMSW__' in wx.PlatformInfo):
+            cb2.Enable( False )
 
         cb3 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX, miscControlsY + 50), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb3 )
