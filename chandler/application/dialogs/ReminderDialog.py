@@ -152,25 +152,47 @@ class ReminderDialog(wx.Dialog):
         return (nextReminderTime, closeIt)
 
     def RelativeDateTimeMessage(self, delta):
+        #XXX: [i18n] This function might need restrategizing for l10n:
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 1 > deltaMinutes >= 0:
             return _("Now")
 
+        # We're going to produce a string containing a number and a singular or
+        # plural "units" word, possibly also including a phrase indicating
+        # a time in the past (in English, "ago") or the future ("from now").
+        # Examples: "12 minutes from now", "1 day ago", "3 hours from now".
         absDeltaMinutes = abs(deltaMinutes)
         if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two
-            format = _("%d day%s %s")
+            singular = _("day")
+            plural = _("days")
             scale = 1440
         elif (absDeltaMinutes >= 120): # Use "hours" only if it's more than two
-            format = _("%d hour%s %s")
+            singular = _("hour")
+            plural = _("hours")
             scale = 60
         else:
-            format = _("%d minute%s %s")
+            singular = _("minute")
+            plural = _("minutes")
             scale = 1
 
+        # Now that we've picked units, scale the value to the units.
         value = round((absDeltaMinutes / scale) + 0.49999)
+        
+        # Build a little dictionary that we'll format with:
+        words = {
+            # The value itself:
+            'value': value,
+            
+            # The units, singular or plural:
+            'units': value != 1 and plural or singular,
+            
+            # The "sign": "ago" if negative, "from now" if positive.
+            'sign': absDeltaMinutes == deltaMinutes and _("ago") or _("from now")
+        }
 
-        #XXX: [i18n] This need to be formatted clearer for translators
-        t = format % (value, value != 1 and "s" or "", absDeltaMinutes == deltaMinutes and _("ago") or _("from now"))
+        # Format & return it.
+        format = _("%(value)d %(units)s %(sign)s")
+        return format % words
 
     def onDismiss(self, event):
         """ 

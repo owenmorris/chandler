@@ -49,7 +49,7 @@ def GenerateCalendarEvent(view, days=30):
     # Events are anyTime by default. Give a 5% chance of allDay instead,
     # or 90% of a normal event.
     r = random.randint(0,100)
-    if r < 95: # 5% chance that we'll turn anyTime off
+    if r < 95: # 5% chance that we'll leave anyTime on
         event.anyTime = False
     if r < 5: # 5% chance of allDay
         event.allDay = True
