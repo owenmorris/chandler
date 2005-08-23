@@ -8,16 +8,6 @@ import i18nmanager
 class I18nException(Exception):
     pass
 
-#We temporarily assign _() to return the value it is passed.
-# till  LocalizableString is put in place in the Chandler code base
-
-"""def gettextStandin(text):
-    return text
-
-import __builtin__
-__builtin__.__dict__['_'] = gettextStandin
-"""
-
 I18nManager = i18nmanager.I18nManager()
 
 
