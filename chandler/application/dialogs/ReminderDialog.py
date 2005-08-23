@@ -6,7 +6,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, wx
 from datetime import datetime, timedelta
 from osaf.pim.calendar import Calendar
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 
 class ReminderDialog(wx.Dialog):
@@ -18,8 +17,7 @@ class ReminderDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        title = _("Reminders")
-        pre.Create(parent, ID, unicode(title), pos, size, style)
+        pre.Create(parent, ID, _("Reminders"), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -34,8 +32,8 @@ class ReminderDialog(wx.Dialog):
         # contents: a list, then a row of buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
         listCtrl = wx.ListCtrl(self, -1, size=(400,80), style=wx.LC_REPORT|wx.LC_NO_HEADER)
-        listCtrl.InsertColumn(0, _("title").toUnicode())
-        listCtrl.InsertColumn(1, _("event time").toUnicode())
+        listCtrl.InsertColumn(0, _("title"))
+        listCtrl.InsertColumn(1, _("event time"))
         listCtrl.SetColumnWidth(0, 250)
         listCtrl.SetColumnWidth(1, 140)
         listCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectionChanged)
@@ -44,15 +42,15 @@ class ReminderDialog(wx.Dialog):
         sizer.Add(listCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        snoozeButton = wx.Button(self, -1, _("Snooze 5 minutes").toUnicode())
+        snoozeButton = wx.Button(self, -1, _("Snooze 5 minutes"))
         snoozeButton.Enable(False)
         snoozeButton.Bind(wx.EVT_BUTTON, self.onSnooze)
         box.Add(snoozeButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        dismissButton = wx.Button(self, wx.ID_OK, _("Dismiss").toUnicode())
+        dismissButton = wx.Button(self, wx.ID_OK, _("Dismiss"))
         dismissButton.Enable(False)
         dismissButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissButton, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-        dismissAllButton = wx.Button(self, wx.ID_OK, _("Dismiss All").toUnicode())
+        dismissAllButton = wx.Button(self, wx.ID_OK, _("Dismiss All"))
         dismissAllButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissAllButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -156,7 +154,7 @@ class ReminderDialog(wx.Dialog):
     def RelativeDateTimeMessage(self, delta):
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 1 > deltaMinutes >= 0:
-            return _("Now").toUnicode()
+            return _("Now")
 
         absDeltaMinutes = abs(deltaMinutes)
         if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two

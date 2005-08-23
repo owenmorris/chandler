@@ -1,5 +1,6 @@
 from Repository import RepositoryItemDetail
 from osaf.framework.blocks import Tree, SplitterWindow, SizeType
+from i18n import OSAFMessageFactory as _
 
 def installParcel(parcel, oldName=None):
 

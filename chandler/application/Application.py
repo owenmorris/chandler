@@ -15,6 +15,7 @@ from repository.persistence.RepositoryError \
      RepositoryVersionError
 import Utility
 import schema
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -794,12 +795,12 @@ class StartupSplash(wx.Frame):
         self.SetBackgroundColour(wx.WHITE)
         
         #                    name            weight      text
-        self.statusTable = {'crypto'      : ( 5,  "Initializing crypto services"),
-                            'repository'  : ( 10,  "Opening the repository"),
-                            'parcels'     : ( 15, "Loading parcels"),
-                            'twisted'     : ( 10,  "Starting Twisted"),
-                            'globalevents': ( 15,  "Registering global events"),
-                            'mainview'    : ( 10,  "Rendering the main view")}
+        self.statusTable = {'crypto'      : ( 5,  _("Initializing crypto services")),
+                            'repository'  : ( 10, _( "Opening the repository")),
+                            'parcels'     : ( 15, _("Loading parcels")),
+                            'twisted'     : ( 10, _( "Starting Twisted")),
+                            'globalevents': ( 15, _( "Registering global events")),
+                            'mainview'    : ( 10, _("Rendering the main view"))}
         
         self.gaugeTicks = reduce(lambda x, y: x + y[0], self.statusTable.values(), 0)
         

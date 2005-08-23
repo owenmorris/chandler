@@ -430,7 +430,7 @@ class SidebarBlock(ControlBlocks.Table):
 
     def onDeleteEventUpdateUI(self, event):
         self.onRemoveEventUpdateUI(event)
-        event.arguments['Text'] = _('Delete Collection').toUnicode()
+        event.arguments['Text'] = _('Delete Collection')
         """
         this is enabled if any user item is selected in the sidebar
         """

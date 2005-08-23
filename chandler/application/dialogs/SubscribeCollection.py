@@ -7,7 +7,6 @@ from osaf.sharing import Sharing, ICalendar
 import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ class SubscribeDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None):
 
-        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.view = view
         self.resources = resources
@@ -153,7 +152,7 @@ class SubscribeDialog(wx.Dialog):
             self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
 
-        self.textStatus.SetLabel(unicode(text))
+        self.textStatus.SetLabel(text)
         self.__resize()
 
     def __hideStatus(self):

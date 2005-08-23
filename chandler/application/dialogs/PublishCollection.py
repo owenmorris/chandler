@@ -8,7 +8,6 @@ import application.Globals as Globals
 from osaf.sharing import Sharing, ICalendar, WebDAV
 import zanshin.webdav
 import zanshin.util
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ class PublishCollectionDialog(wx.Dialog):
                  resources=None, view=None, collection=None,
                  filterKindPath=None):
 
-        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
         self.parent = parent
@@ -350,8 +349,8 @@ class PublishCollectionDialog(wx.Dialog):
 
             self._showStatus(_("Wait for Sharing URLs...\n"))
             if shareXML.exists():
-                #XXX: i18n does this need to be translated?
-                raise Sharing.SharingError(_("Share already exists").toUnicode())
+                #XXX: [i18n] does this need to be translated?
+                raise Sharing.SharingError(_("Share already exists"))
             else:
                 self._showStatus(_("Creating collection on server..."))
                 shareXML.create()
@@ -435,7 +434,7 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.statusPanel.IsShown():
             self.mySizer.Insert(1, self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
-        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), unicode(msg)))
+        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
         # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
         wx.Yield()

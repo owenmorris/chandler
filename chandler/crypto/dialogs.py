@@ -27,7 +27,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _('Trust site certificate?').toUnicode(), pos, size, style)
+        pre.Create(parent, -1, _('Trust site certificate?'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -43,7 +43,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         # XXX depends on parcels
         import osaf.framework.certstore.certificate as certificate
         message = _('Do you want to trust this certificate?\nSHA1 fingerprint: %s') % certificate._fingerprint(x509)
-        label = wx.StaticText(self, -1, unicode(message))
+        label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         # multiline readonly edit control
@@ -66,7 +66,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
                 first = False
             else:
                 style = wx.ALIGN_LEFT
-            rb = wx.RadioButton(self, -1, unicode(choice), wx.DefaultPosition, 
+            rb = wx.RadioButton(self, -1, choice, wx.DefaultPosition, 
                                 wx.DefaultSize, style)
             rbs += [rb]
             radiobox.Add(rb, 1, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -77,10 +77,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
+        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
+        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 

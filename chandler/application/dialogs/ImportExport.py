@@ -9,8 +9,8 @@ def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
     if defaultDir is None:
         defaultDir = ""
 
-    dlg = wx.FileDialog(parent, unicode(message), unicode(defaultDir), unicode(defaultFile),
-                        unicode(wildcard), style)
+    dlg = wx.FileDialog(parent, message, unicode(defaultDir), unicode(defaultFile),
+                        wildcard, style)
 
     """Blocking call"""
     cmd = dlg.ShowModal()

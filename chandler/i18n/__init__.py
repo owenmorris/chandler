@@ -3,7 +3,6 @@ __date__      = "$Date: 2005-07-12 16:27:25 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.packs.chandler.Types import LocalizableString
 import i18nmanager
 
 class I18nException(Exception):
@@ -12,31 +11,25 @@ class I18nException(Exception):
 #We temporarily assign _() to return the value it is passed.
 # till  LocalizableString is put in place in the Chandler code base
 
-def gettextStandin(text):
+"""def gettextStandin(text):
     return text
 
 import __builtin__
 __builtin__.__dict__['_'] = gettextStandin
+"""
 
 I18nManager = i18nmanager.I18nManager()
 
 
 def MessageFactory(domain):
-    def createLocalizableString(ustring):
-        return LocalizableString(domain, ustring)
-    return createLocalizableString
+    def translate(defaultText):
+        #XXX This will raise UnicodeDecodeError on failure
+        defaultText = unicode(defaultText)
 
-def OSAFMessageFactory(ustring):
-    return MessageFactory(i18nmanager.OSAF_DOMAIN)(ustring)
+        return I18nManager.translate(domain, defaultText)
+    return translate
 
-#XXX: is this needed?
-def MessageFactoryUnicode(domain):
-    def createUnicode(ustring):
-        return LocalizableString(domain, ustring).toUnicode()
-    return createUnicode
-
-#XXX: is this needed?
-def OSAFMessageFactoryUnicode(ustring):
-    return MessageFactoryUnicode(i18nmanager.OSAF_DOMAIN)(ustring)
+def OSAFMessageFactory(defaultText):
+    return MessageFactory(i18nmanager.OSAF_DOMAIN)(defaultText)
 
 

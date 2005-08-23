@@ -12,7 +12,6 @@ import application.dialogs.Util
 import osaf.pim.mail as Mail
 import osaf.sharing.WebDAV as WebDAV
 import osaf.sharing.Sharing as Sharing
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 
 """
@@ -36,7 +35,7 @@ def IMAPValidationHandler(item, fields, values):
         Mail.EmailAddress.isValidEmailAddress(newAddressString):
         return None
     else:
-        return (_("'%s' is not a valid email address") % newAddressString).toUnicode()
+        return (_("'%s' is not a valid email address") % newAddressString)
 
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
@@ -120,7 +119,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _("New IMAP account").toUnicode()
+                "default": _("New IMAP account")
             },
             "IMAP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -176,7 +175,7 @@ PANELS = {
         "validationHandler" : IMAPValidationHandler,
         "deleteHandler" : IMAPDeleteHandler,
         "displayName" : "IMAP_DESCRIPTION",
-        "description" : _("Incoming mail (IMAP)").toUnicode(),
+        "description" : _("Incoming mail (IMAP)"),
         "callbacks" : (
             ("IMAP_TEST", "OnTestIMAP"),
         )
@@ -187,7 +186,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _("New POP account").toUnicode()
+                "default": _("New POP account")
             },
             "POP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -246,7 +245,7 @@ PANELS = {
         "saveHandler" : POPSaveHandler,
         "deleteHandler" : POPDeleteHandler,
         "displayName" : "POP_DESCRIPTION",
-        "description" : _("Incoming mail (POP)").toUnicode(),
+        "description" : _("Incoming mail (POP)"),
         "callbacks" : (
             ("POP_TEST", "OnTestPOP"),
         )
@@ -257,7 +256,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : _("New SMTP account").toUnicode()
+                "default" : _("New SMTP account")
             },
             "SMTP_SERVER" : {
                 "attr" : "host",
@@ -297,7 +296,7 @@ PANELS = {
         "id" : "SMTPPanel",
         "deleteHandler" : SMTPDeleteHandler,
         "displayName" : "SMTP_DESCRIPTION",
-        "description" : _("Outgoing mail (SMTP)").toUnicode(),
+        "description" : _("Outgoing mail (SMTP)"),
         "callbacks" : (
             ("SMTP_TEST", "OnTestSMTP"),
         )
@@ -308,7 +307,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : _("New WebDAV account").toUnicode()
+                "default" : _("New WebDAV account")
             },
             "WEBDAV_SERVER" : {
                 "attr" : "host",
@@ -346,7 +345,7 @@ PANELS = {
         "id" : "WebDAVPanel",
         "deleteHandler" : WebDAVDeleteHandler,
         "displayName" : "WEBDAV_DESCRIPTION",
-        "description" : _("Sharing (WebDAV)").toUnicode(),
+        "description" : _("Sharing (WebDAV)"),
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
         )
@@ -364,7 +363,7 @@ class AccountPreferencesDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
          account=None, view=None):
 
-        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.resources = resources
         self.view = view
@@ -939,7 +938,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif accountType == "WebDAV":
             item = Sharing.WebDAVAccount(view=self.view)
 
-        accountName = (_("New %s account") % accountType).toUnicode()
+        accountName = (_("New %s account") % accountType)
         item.displayName = accountName
 
         values = { }

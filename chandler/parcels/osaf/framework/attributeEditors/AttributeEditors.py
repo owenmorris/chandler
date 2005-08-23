@@ -961,7 +961,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             value = DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime)
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
-            value = _('Yesterday').toUnicode()
+            value = _('Yesterday')
         else:
             # Do day names for days in the last week. We'll need to convert 
             # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).
@@ -1020,10 +1020,10 @@ class DateAttributeEditor (StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.
         if not hasattr(self, 'cachedSampleText'):
-            year4 = _(u"yyyy").toUnicode()
-            year2 = _(u"yy").toUnicode()
-            month = _(u"mm").toUnicode()
-            day = _(u"dd").toUnicode()
+            year4 = _(u"yyyy")
+            year2 = _(u"yy")
+            month = _(u"mm")
+            day = _(u"dd")
             sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
             sampleText = sampleText.replace(u"2003", year4) # Some locales use 4-digit year, some use 2.
             sampleText = sampleText.replace(u"03", year2)   # so we'll handle both.
@@ -1080,8 +1080,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.            
         if not hasattr(self, 'cachedSampleText'):
-            hour = _(u"hh").toUnicode()
-            minute = _(u"mm").toUnicode()
+            hour = _(u"hh")
+            minute = _(u"mm")
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
 
@@ -1527,7 +1527,6 @@ class IconAttributeEditor (BaseAttributeEditor):
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName)
         if len(imageName):
-            #XXX: i18n Upcast to unicode. All Image names need to be unicode 
             imageName += ".png"
             image = wx.GetApp().GetImage(imageName)
             if image is not None:

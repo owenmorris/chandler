@@ -11,6 +11,7 @@ import ScriptingGlobalFunctions
 from application import schema
 from osaf import pim
 import wx
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 

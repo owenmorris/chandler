@@ -202,7 +202,7 @@ class MainView(View):
         event.arguments ['Enable'] = False
 
     def onUndoEventUpdateUI (self, event):
-        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z").toUnicode()
+        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
         event.arguments ['Enable'] = False
 
     def onNewEventUpdateUI (self, event):
@@ -230,8 +230,6 @@ class MainView(View):
         specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
         no percentage is specified the progress bar will disappear.
         """
-
-        statusMessage = unicode(statusMessage)
 
         wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
@@ -266,7 +264,7 @@ class MainView(View):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
-        event.arguments ['Text'] = _("Send").toUnicode()
+        event.arguments ['Text'] = _("Send")
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
@@ -730,7 +728,7 @@ class MainView(View):
             menuTitle = _('Run "%s\tCtrl+S"') % item.about
         else:
             menuTitle = _('Run an Item\tCtrl+S')
-        event.arguments ['Text'] = menuTitle.toUnicode()
+        event.arguments ['Text'] = menuTitle
 
     def onShowPyShellEvent(self, event):
         # Test menu item
@@ -805,7 +803,7 @@ class MainView(View):
         else:
             menuTitle = _('Share a collection...')
 
-        event.arguments ['Text'] = menuTitle.toUnicode()
+        event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = collection is not None and (not Sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
@@ -873,7 +871,7 @@ class MainView(View):
         else:
             event.arguments['Enable'] = False
             menuTitle = _('Sync a collection')
-        event.arguments ['Text'] = menuTitle.toUnicode()
+        event.arguments ['Text'] = menuTitle
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()

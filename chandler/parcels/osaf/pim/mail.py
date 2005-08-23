@@ -28,6 +28,7 @@ import re as re
 import chandlerdb.item.ItemError as ItemError
 
 from repository.util.Path import Path
+from i18n import OSAFMessageFactory as _
 
 """
 Design Issues:
@@ -120,19 +121,19 @@ class AccountBase(items.ContentItem):
 
     numRetries = schema.One(
         schema.Integer,
-        displayName = 'Number of Retries',
+        displayName = _('Number of Retries'),
         doc = 'How many times to retry before giving up',
         initialValue = 1,
     )
     username = schema.One(
         schema.String,
-        displayName = 'Username',
+        displayName = _('Username'),
         doc = 'The account login name',
         initialValue = '',
     )
     password = schema.One(
         schema.String,
-        displayName = 'Password',
+        displayName = _('Password'),
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
               'for this account type.\n\n'
@@ -143,16 +144,16 @@ class AccountBase(items.ContentItem):
     )
     host = schema.One(
         schema.String,
-        displayName = 'Host',
+        displayName = _('Host'),
         doc = 'The hostname of the account',
         initialValue = '',
     )
     port = schema.One(
-        schema.Integer, displayName = 'Port', doc = 'The port number to use',
+        schema.Integer, displayName = _('Port'), doc = 'The port number to use',
     )
     connectionSecurity = schema.One(
         connectionSecurityEnum,
-        displayName = 'Connection Security',
+        displayName = _('Connection Security'),
         doc = 'The security mechanism to leverage for a network connection',
         initialValue = 'NONE',
     )
@@ -171,7 +172,7 @@ class AccountBase(items.ContentItem):
     )
     timeout = schema.One(
         schema.Integer,
-        displayName = 'Timeout',
+        displayName = _('Timeout'),
         doc = 'The number of seconds before timing out a stalled connection',
         initialValue = 60,
     )
@@ -201,7 +202,7 @@ class DownloadAccountBase(AccountBase):
 
     defaultSMTPAccount = schema.One(
         'SMTPAccount',
-        displayName = 'Default SMTP Account',
+        displayName = _('Default SMTP Account'),
         doc = 'Which SMTP account to use for sending mail from this account',
         initialValue = None,
         inverse = 'accounts',
@@ -214,7 +215,7 @@ class DownloadAccountBase(AccountBase):
     )
     replyToAddress = schema.One(
         'EmailAddress',
-        displayName = 'Reply-To Address',
+        displayName = _('Reply-To Address'),
         initialValue = None,
         inverse = 'accounts',
     )
@@ -233,13 +234,13 @@ class SMTPAccount(AccountBase):
     accountType = "SMTP"
 
     schema.kindInfo(
-        displayName="SMTP Account",
+        displayName=_("SMTP Account"),
         description="An SMTP Account",
     )
 
     port = schema.One(
         schema.Integer,
-        displayName = 'Port',
+        displayName = _('Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for an "
@@ -249,7 +250,7 @@ class SMTPAccount(AccountBase):
     )
     useAuth = schema.One(
         schema.Boolean,
-        displayName = 'Use Authentication',
+        displayName = _('Use Authentication'),
         doc = 'Whether or not to use authentication when sending mail',
         initialValue = False,
     )
@@ -274,13 +275,13 @@ class IMAPAccount(DownloadAccountBase):
     accountType = "IMAP"
 
     schema.kindInfo(
-        displayName = "IMAP Account",
+        displayName = _("IMAP Account"),
         description = "An IMAP Account",
     )
 
     port = schema.One(
         schema.Integer,
-        displayName = 'Port',
+        displayName = _('Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "
@@ -300,12 +301,12 @@ class POPAccount(DownloadAccountBase):
     accountType = "POP"
 
     schema.kindInfo(
-        displayName = "POP Account",
+        displayName = _("POP Account"),
         description = "An POP Account",
     )
     port = schema.One(
         schema.Integer,
-        displayName = 'Port',
+        displayName = _('Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "
@@ -517,9 +518,9 @@ class MIMENote(MIMEBase):
     )
 
     filename = schema.One(
-        schema.String, displayName = 'File name', initialValue = '',
+        schema.String, displayName = _('File name'), initialValue = '',
     )
-    filesize = schema.One(schema.Long, displayName = 'File Size')
+    filesize = schema.One(schema.Long, displayName = _('File Size'))
 
     schema.addClouds(
         sharing = schema.Cloud(filename, filesize),
@@ -749,7 +750,7 @@ class MailMessageMixin(MIMEContainer):
 
 class MailMessage(MailMessageMixin, notes.Note):
     schema.kindInfo(
-        displayName = "Mail Message",
+        displayName = _("Mail Message"),
         displayAttribute = "subject",
         description = "MailMessageMixin, and Note, all rolled up into one",
     )
@@ -806,7 +807,7 @@ class EmailAddress(items.ContentItem):
 
     emailAddress = schema.One(
         schema.String,
-        displayName = 'Email Address',
+        displayName = _('Email Address'),
         doc = 'An RFC 822 email address.\n\n'
             "Examples:\n"
             '   "abe@osafoundation.org"\n'
@@ -816,7 +817,7 @@ class EmailAddress(items.ContentItem):
     )
     fullName = schema.One(
         schema.String,
-        displayName = 'Full Name',
+        displayName = _('Full Name'),
         doc = 'A first and last name associated with this email address',
         initialValue = '',
     )

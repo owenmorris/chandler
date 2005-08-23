@@ -11,6 +11,7 @@ import osaf.pim.mail
 import osaf.pim.tasks
 
 from application import schema
+from i18n import OSAFMessageFactory as _
 
 def make_mainview(parcel):
 

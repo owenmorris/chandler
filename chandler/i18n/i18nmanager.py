@@ -3,7 +3,7 @@ __date__      = "$Date: 2005-07-12 16:27:25 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from types import ListType, UnicodeType
+from types import ListType, UnicodeType, StringType
 from PyICU import Locale
 import os, locale, logging, gettext
 from application import  Globals
@@ -48,6 +48,9 @@ class I18nManager(object):
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
         self._localeSet = None
 
+    def __repr__(self):
+        return "I18nManager()"
+
     def flushCache(self):
         del self._cache
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
@@ -85,13 +88,11 @@ class I18nManager(object):
     def getLocaleSet(self, domain=OSAF_DOMAIN):
         return self._localeSet
 
-    def translate(self, domain, defaultText, args):
-        #XXX: This is where the translation lookup occurs
-        # using gettext to read the .po
-        if args is None:
-            return defaultText
-        else:
-            return defaultText % args
+    def translate(self, domain, defaultText):
+        assert isinstance(domain, StringType)
+        assert isinstance(defaultText, UnicodeType)
+
+        return defaultText
 
     def getImage(self, fileName, domain=OSAF_DOMAIN):
         return self.__getResource(self.RESOURCE_ROOT, self.IMAGE_PATH, fileName, domain)

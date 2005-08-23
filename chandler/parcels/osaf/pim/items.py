@@ -18,6 +18,7 @@ from repository.schema.Kind import Kind
 import repository.item.Item as Item
 import repository.item.Query as Query
 import logging
+from i18n import OSAFMessageFactory as _
 
 class ContentKind(Kind):
     """This kind is a metakind for creating other kinds.  Kinds which are

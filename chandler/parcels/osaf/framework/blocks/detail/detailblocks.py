@@ -2,6 +2,7 @@ from Detail import *
 from osaf.framework.blocks import *
 from osaf.pim.item_collections import ItemCollection
 import osaf.pim
+from i18n import OSAFMessageFactory as _
 
 #
 # A few public utilities: any detail view client can use these to help

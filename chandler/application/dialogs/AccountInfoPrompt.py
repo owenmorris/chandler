@@ -2,7 +2,6 @@ import os
 import wx
 import wx.xrc
 import application.Globals as Globals
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 
 class AccountInfoPromptDialog(wx.Dialog):
@@ -11,7 +10,7 @@ class AccountInfoPromptDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, host=None, path=None):
 
-        wx.Dialog.__init__(self, parent, -1, unicode(title), pos, size, style)
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.host = host
         self.path = path

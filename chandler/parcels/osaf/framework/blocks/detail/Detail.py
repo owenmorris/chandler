@@ -214,8 +214,8 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
                     # Not sent yet - enable it if it's outbound and we have valid addressees?
                     enabled = len(item.toAddress) > 0
         
-        event.arguments['Enable'] = enabled    
-        event.arguments ['Text'] = unicode(label)
+        event.arguments['Enable'] = enabled
+        event.arguments ['Text'] = label
             
     def onSendShareItemEvent (self, event):
         """
@@ -909,7 +909,7 @@ class EditRedirectAttribute (EditTextAttribute):
         except AttributeError:
             value = _('untitled')
         if widget.GetValue() != value:
-            widget.SetValue(unicode(value))
+            widget.SetValue(value)
 
 class StaticEmailAddressAttribute (StaticRedirectAttributeLabel):
     """
@@ -1015,7 +1015,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
             enabled = True
         else:
             if existingSharedCollection is not None:
-                self.widget.SetLabel(_("(Already sharing this collection)").toUnicode())
+                self.widget.SetLabel(_("(Already sharing this collection)"))
                 enabled = False
         event.arguments['Enable'] = enabled
 
@@ -1274,7 +1274,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
             else:
                 minutes = ((value.days * 1440) + (value.seconds / 60))
                 reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
-                choiceIndex = control.FindString(unicode(reminderChoice))
+                choiceIndex = control.FindString(reminderChoice)
                 # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
                 if choiceIndex == -1:
                     choiceIndex = 0 # the "None" choice
@@ -1284,9 +1284,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # These are the values we pass around; they're the same as the menu indices.
     # This is a list of the frequency enumeration names, in the order we present
     # them in the menu... plus "once" at the beginning and "custom" at the end.
-    menuFrequencies = ['once', 'daily', 'weekly', 'monthly', 'yearly', 'custom']
-    onceIndex = menuFrequencies.index('once')
-    customIndex = menuFrequencies.index('custom')
+
+    #XXX: [i18n] does PyICU have support for calculating these localized names?
+    menuFrequencies = [_('once'), _('daily'), _('weekly'), _('monthly'), _('yearly'), _('custom')]
+    onceIndex = menuFrequencies.index(_('once'))
+    customIndex = menuFrequencies.index(_('custom'))
     
     @classmethod
     def mapRecurrenceFrequency(theClass, item):

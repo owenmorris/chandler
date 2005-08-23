@@ -7,7 +7,6 @@ import os
 import application.Globals
 import AccountPreferences
 import wx
-from repository.packs.chandler.Types import LocalizableString
 from i18n import OSAFMessageFactory as _
 import messages
 
@@ -57,7 +56,7 @@ class ItemValuesDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, unicode(title), pos, size, style)
+        pre.Create(parent, ID, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -93,11 +92,11 @@ class ItemValuesDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
+        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
+        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -182,16 +181,16 @@ class mailErrorDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-        label = wx.StaticText(self, -1, unicode(message))
+        label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 55)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.OK_BUTTON))
+        btn = wx.Button(self, wx.ID_CANCEL, messages.OK_BUTTON)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_OK, _(" Edit Account Settings ").toUnicode())
+        btn = wx.Button(self, wx.ID_OK, _(" Edit Account Settings "))
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -211,7 +210,7 @@ class promptUserDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, unicode(title), pos, size, style)
+        pre.Create(parent, ID, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -241,11 +240,11 @@ class promptUserDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, unicode(messages.OK_BUTTON))
+        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, unicode(messages.CANCEL_BUTTON))
+        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -276,7 +275,7 @@ def okCancel(parent, caption, message):
         @type item:  String
     """
 
-    dlg = wx.MessageDialog(parent, unicode(message), unicode(caption),
+    dlg = wx.MessageDialog(parent, message, caption,
      wx.OK | wx.CANCEL | wx.ICON_QUESTION)
     val = dlg.ShowModal()
 
@@ -302,7 +301,7 @@ def yesNo(parent, caption, message):
         @type item:  String
     """
 
-    dlg = wx.MessageDialog(parent, unicode(message), unicode(caption),
+    dlg = wx.MessageDialog(parent, message, caption,
      wx.YES_NO | wx.ICON_QUESTION)
     val = dlg.ShowModal()
 
@@ -329,7 +328,7 @@ def ok(parent, caption, message):
     """
 
 
-    dlg = wx.MessageDialog(parent, unicode(message), unicode(caption),
+    dlg = wx.MessageDialog(parent, message, caption,
      wx.OK | wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
