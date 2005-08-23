@@ -35,7 +35,7 @@ OSAF_DOMAIN = "osaf"
 
 class I18nManager(object):
 
-    DEFAULT_LOCALE_SET = ["en_US"]
+    DEFAULT_LOCALE_SET = ["en_US", "en"]
     RESOURCE_ROOT = u"resources"
     IMAGE_PATH = u"images"
     AUDIO_PATH = u"audio"
@@ -74,16 +74,19 @@ class I18nManager(object):
 
         """Set the PyICU Locale"""
         Locale.setDefault(Locale(self._localeSet[0]))
-        try:
-            """Set the Python locale"""
-            locale.setlocale(locale.LC_ALL, self._localeSet[0])
-        except locale.Error:
-            logging.error("Unable to set Python locale to: '%s'" % self._localeSet[0])
+
+        """Set the Python locale"""
+        #XXX: [i18n] need to investigate how python uses this locale info
+        #     since the setting of the locale fails quit a bit
+        for locale in self._localeSet:
+            if self.__setPythonLocale(locale):
+                break
 
         """Set the OS Environment"""
         os.environ['LANGUAGE'] = self._localeSet[0]
         os.environ['LANG'] = self._localeSet[0]
         os.environ['LC_MESSAGES'] = self._localeSet[0]
+
 
     def getLocaleSet(self, domain=OSAF_DOMAIN):
         return self._localeSet
@@ -140,3 +143,15 @@ class I18nManager(object):
             return None
 
         return file
+
+    def __setPythonLocale(self, lc):
+        try:
+            """Set the Python locale"""
+            locale.setlocale(locale.LC_ALL, lc)
+        except locale.Error:
+            if __debug__:
+                """Log the error only in debug mode"""
+                logging.error("Unable to set Python locale to: '%s'" % lc)
+            return False
+
+        return True
