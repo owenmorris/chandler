@@ -202,19 +202,46 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
 }
 
 
-void wxNativeFontInfo::SetPointSize(int WXUNUSED(pointsize))
+void wxNativeFontInfo::SetPointSize(int pointsize)
 {
-    wxFAIL_MSG( _T("not implemented") );
+    pango_font_description_set_size( description, pointsize * PANGO_SCALE );
 }
 
-void wxNativeFontInfo::SetStyle(wxFontStyle WXUNUSED(style))
+void wxNativeFontInfo::SetStyle(wxFontStyle style)
 {
-    wxFAIL_MSG( _T("not implemented") );
+    switch (style)
+    {
+        case wxFONTSTYLE_ITALIC:
+            pango_font_description_set_style( description, PANGO_STYLE_ITALIC );
+            break;
+        case wxFONTSTYLE_SLANT:
+            pango_font_description_set_style( description, PANGO_STYLE_OBLIQUE );
+            break;
+        default:
+            wxFAIL_MSG( _T("unknown font style") );
+            // fall through
+        case wxFONTSTYLE_NORMAL:
+            pango_font_description_set_style( description, PANGO_STYLE_NORMAL );
+            break;
+    }
 }
 
-void wxNativeFontInfo::SetWeight(wxFontWeight WXUNUSED(weight))
+void wxNativeFontInfo::SetWeight(wxFontWeight weight)
 {
-    wxFAIL_MSG( _T("not implemented") );
+    switch (weight)
+    {
+        case wxFONTWEIGHT_BOLD:
+            pango_font_description_set_weight(description, PANGO_WEIGHT_BOLD);
+            break;
+        case wxFONTWEIGHT_LIGHT:
+            pango_font_description_set_weight(description, PANGO_WEIGHT_LIGHT);
+            break;
+        default:
+            wxFAIL_MSG( _T("unknown font weight") );
+            // fall through
+        case wxFONTWEIGHT_NORMAL:
+            pango_font_description_set_weight(description, PANGO_WEIGHT_NORMAL);
+    }
 }
 
 void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
@@ -222,9 +249,9 @@ void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
     wxFAIL_MSG( _T("not implemented") );
 }
 
-void wxNativeFontInfo::SetFaceName(wxString WXUNUSED(facename))
+void wxNativeFontInfo::SetFaceName(wxString facename)
 {
-    wxFAIL_MSG( _T("not implemented") );
+    pango_font_description_set_family( description, wxGTK_CONV(facename) );
 }
 
 void wxNativeFontInfo::SetFamily(wxFontFamily WXUNUSED(family))
