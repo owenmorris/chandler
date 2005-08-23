@@ -6,8 +6,8 @@
 import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
 import os
 
-filePath = os.path.expandvars('$CATS_REPORTDIR')
-cats_home = os.path.expandvars('$CATS_HOME')
+filePath = os.path.expandvars('$CATSREPORTDIR')
+cats_home = os.path.expandvars('$CATSHOME')
 if not os.path.exists(filePath):
     filePath = os.getcwd()
 

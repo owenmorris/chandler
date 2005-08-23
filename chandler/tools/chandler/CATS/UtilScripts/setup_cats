@@ -1,31 +1,31 @@
 #!/bin/sh
 
 #change here your personnal path to Chandler
-chandler_home=/home/olivier/chandler
+CHANDLERHOME=/Users/olivier/chandler
 #change here your personnal path to CATS
-cats_home=/home/olivier/qa/chandler/CATS
+CATSHOME=/Users/olivier/qa/chandler/CATS
 #change here your personnal report directory
-cats_reportdir=/home/olivier
+CATSREPORTDIR=/Users/olivier
 
 
-if [ "$CHANDLER_HOME" = "" ]
+if [ "$CHANDLERHOME" = "" ]
 then
-    CHANDLER_HOME=$chandler_home
+    CHANDLERHOME=$CHANDLERHOME
 fi
 
-if [ "$CATS_HOME" = "" ]
+if [ "$CATSHOME" = "" ]
 then
-    CATS_HOME=$cats_home
+    CATSHOME=$CATSHOME
 fi
 
-if [ "$CATS_REPORTDIR" = "" ]
+if [ "$CATSREPORTDIR" = "" ]
 then
-    CATS_REPORTDIR=$cats_reportdir
+    CATSREPORTDIR=$CATSREPORTDIR
 fi
 
-export CHANDLER_HOME
-export CATS_HOME
-export CATS_REPORTDIR
+export CHANDLERHOME
+export CATSHOME
+export CATSREPORTDIR
 
 #make CATS libraries available on Chandler
-cp -f $CATS_HOME/QATestLib/*.py $CHANDLER_HOME/parcels/osaf/framework/scripting/
+cp -f $CATSHOME/QATestLib/*.py $CHANDLERHOME/parcels/osaf/framework/scripting/
