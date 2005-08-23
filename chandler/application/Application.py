@@ -569,16 +569,16 @@ class wxApplication (wx.App):
         # Give CPIA Script a chance to execute a script
         if not self.StartupScriptDone:
             self.StartupScriptDone = True
-            import osaf.framework.scripting.CPIAScript as CPIAScript
-            wx.CallAfter(CPIAScript.RunStartupScript, self.UIRepositoryView)
+            import osaf.framework.scripting as Scripting
+            wx.CallAfter(Scripting.RunStartupScript, self.UIRepositoryView)
 
         event.Skip()
 
     StartupScriptDone = False
 
     def OnKeyDown(self, event):
-        import osaf.framework.scripting.CPIAScript as CPIAScript
-        if CPIAScript.HotkeyScript(event, self.UIRepositoryView):
+        import osaf.framework.scripting as Scripting
+        if Scripting.HotkeyScript(event, self.UIRepositoryView):
             pass # consume the keystroke (the script is now running)
         else:
             event.Skip() # pass the key along to another widget
@@ -689,8 +689,8 @@ class wxApplication (wx.App):
         headless.view = self.UIRepositoryView
 
         def run(scriptText):
-            import osaf.framework.scripting.CPIAScript as CPIAScript
-            CPIAScript.RunScript(scriptText, headless.view)
+            import osaf.framework.scripting as Scripting
+            Scripting.RunScript(scriptText, headless.view)
 
         # Import helper methods/variables from headless, and also add
         # whatever other methods we want to the mix (such as the run method,

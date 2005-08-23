@@ -22,14 +22,11 @@ class LaunchChandlerTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # You must set this environment variable, or this test is a noop.
         if os.environ.get('CHANDLER_LAUNCH_TEST'):
 
-            # Script to execute
-            scriptToExecute = "Quit()"
-    
             # Set up the environment for non-catching and a fresh repository
             chandlerArgs = ['Chandler.py', '--nocatch', '--create']
     
             # Set up the script argument
-            chandlerArgs.append('--script=%s' % scriptToExecute)
+            chandlerArgs.append('--testScript')
     
             # User's can specify the profile directory to use for the launch test
             profileDir = os.environ.get('CHANDLER_LAUNCH_TEST_PROFILEDIR')

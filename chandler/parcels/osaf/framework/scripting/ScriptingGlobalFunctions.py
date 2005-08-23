@@ -18,7 +18,7 @@ import logging as _logging
 import osaf.framework.blocks.Block as _Block
 import application.Globals as _Globals
 from repository.item.Item import Item as _Item
-
+import CPIAScript as Scripting
 _logger = _logging.getLogger(__name__)
 
 """
@@ -251,16 +251,3 @@ def KeyboardReturn(block=None):
         widget.ProcessEvent(ent)
         
 
-    
-
-"""
-TO BE DONE
-* Type(<string>) function to take the string and tell wx
-    to act like the user typed it in.
-    (Could add modifier flags using optional parameters)
-* Look at Select(item) method on Block, for SummaryView,
-    Sidebar, etc.  I think Table.GotoItem() method or something
-    like that might work.
-* RunScript(<script> | <scriptNameString>) - run a script
-* Click(<location>) should be possible.
-"""

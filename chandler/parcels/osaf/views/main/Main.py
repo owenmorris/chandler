@@ -34,7 +34,7 @@ import osaf.mail.smtp as smtp
 from osaf.framework.blocks.Block import Block
 from osaf.pim import ItemCollection
 import osaf.sharing.ICalendar as ICalendar
-import osaf.framework.scripting.CPIAScript as CPIAScript
+import osaf.framework.scripting as Scripting
 from osaf import webserver
 from osaf.app import Trash
 from i18n import I18nManager
@@ -699,17 +699,10 @@ class MainView(View):
                 item = None
         return item
 
-    def onRunScriptEvent(self, event):
-        # Triggered from "Tests | Run script..."
-        previousScript = CPIAScript.GetDialogScript(self.itsView)
-        script = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _("Run Script"), _("Enter a CPIA script to run."), previousScript)
-        if script:
-            CPIAScript.RunDialogScript(script, self.itsView)
-
     def onRunSelectedScriptEvent(self, event):
-        # Triggered from "Tests | Run an Item"
+        # Triggered from "Tests | Run a Script"
         item = self._SelectedItemScript()
-        if item:
+        if item and isinstance(item, Scripting.Script):
             # in case the user was just editing the script,
             # ask the focus to finish changes, if it can
             focusedWidget = wx.Window_FindFocus()
@@ -718,16 +711,17 @@ class MainView(View):
             except AttributeError:
                 pass
             # run the script from the item's body
-            CPIAScript.RunScript(item.bodyString, self.itsView)
+            item.execute()
 
     def onRunSelectedScriptEventUpdateUI(self, event):
-        # Triggered from "Tests | Run an Item"
+        # Triggered from "Tests | Run a Script"
         item = self._SelectedItemScript()
-        event.arguments ['Enable'] = item is not None
-        if item is not None:
-            menuTitle = _('Run "%s\tCtrl+S"') % item.about
+        enable = item is not None and isinstance(item, Scripting.Script)
+        event.arguments ['Enable'] = enable
+        if enable:
+            menuTitle = _('Run "%s"\tCtrl+S') % item.about
         else:
-            menuTitle = _('Run an Item\tCtrl+S')
+            menuTitle = _('Run a Script\tCtrl+S')
         event.arguments ['Text'] = menuTitle
 
     def onShowPyShellEvent(self, event):

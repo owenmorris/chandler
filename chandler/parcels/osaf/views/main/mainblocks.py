@@ -111,11 +111,6 @@ def make_mainview(parcel):
     sidebarContextMenu = \
         ContextMenu.update(parcel, 'sidebarContextMenu',)
     # from //parcels/osaf/views/main
-    RunScriptEvent = \
-        BlockEvent.template('RunScript',
-            dispatchEnum='SendToBlockByName',
-            dispatchToBlockName='MainView').install(parcel)
-    # from //parcels/osaf/views/main
     ManageSidebarCollectionEvent = \
         BlockEvent.template('ManageSidebarCollection',
             dispatchEnum='SendToBlockByName',
@@ -702,13 +697,9 @@ def make_mainview(parcel):
                                 event=BackupRepositoryEvent,
                                 title=_(u'Backup Repository'),
                                 helpString=_(u'backup the repository')),
-                            MenuItem.template('RunScriptItem',
-                                event=RunScriptEvent,
-                                title=_(u'Run script...'),
-                                helpString=_(u'Run a CPIA Script')),
                             MenuItem.template('RunSelectedScriptItem',
                                 event=RunSelectedScriptEvent,
-                                title=_(u'Run an Item'),
+                                title=_(u'Run a Script'),
                                 accel=_(u'Ctrl+S'),
                                 helpString=_(u'Run the CPIA Script from the Detail View')),
                             MenuItem.template('WxTestHarnessItem',

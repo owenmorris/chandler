@@ -22,6 +22,7 @@ def installParcel(parcel, oldVersion=None):
     photos = schema.ns("photos", parcel)
     contacts = schema.ns("osaf.pim.contacts", parcel)
     startup = schema.ns("osaf.startup", parcel)
+    scripting = schema.ns("osaf.framework.scripting", parcel)
 
     # Items created in osaf.app (this parcel):
 
@@ -110,16 +111,18 @@ def installParcel(parcel, oldVersion=None):
         renameable=False
     )
 
+    osafDev = contacts.Contact.update(parcel, 'OSAFContact',
+        emailAddress=u'dev@osafoundation.org',
+        contactName=contacts.ContactName.update(parcel, 'OSAFContactName',
+           firstName=u'OSAF',
+           lastName=u'Development'
+        )
+    )
+
     welcome = photos.Photo.update(parcel, 'WelcomePhoto',
         displayName=u'Welcome to Chandler 0.5',
         dateTaken=datetime.datetime.now(),
-        creator=contacts.Contact.update(parcel, 'OSAFContact',
-             emailAddress=u'dev@osafoundation.org',
-             contactName=contacts.ContactName.update(parcel, 'OSAFContactName',
-                firstName=u'OSAF',
-                lastName=u'Development'
-             )
-        )
+        creator=osafDev
     )
 
     welcome.importFromFile(os.path.join(os.path.dirname(__file__),
@@ -191,3 +194,12 @@ The Chandler Team"""
             )
         ]
     )
+
+    # Startup script used to test Chandler startup
+    startupScript = scripting.Script.update(parcel, "Script F1 - Startup Test Script",
+        creator = osafDev,
+        bodyString=scripting.ScriptFile(
+            os.path.join(os.path.dirname(__file__),
+                         "StartupTest.py"))
+    )
+

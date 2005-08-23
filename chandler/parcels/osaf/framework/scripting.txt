@@ -1,0 +1,124 @@
+----------------------------------------
+Scripting Chandler using CPIA Script
+----------------------------------------
+
+
+Creating and Running Scripts using CPIA Script
+==============================================
+
+The ``osaf.framework.scripting`` module provides an API for running python-based
+scripts within Chandler.  There's a Script Kind that persistently stores
+scripts as a flavor of ContentItem, and a few functions to make it easy
+to run scripts.
+
+First, some setup for our tests.
+
+For our examples, we'll be using a null
+repository view, ``rv``::
+
+    >>> from repository.persistence.RepositoryView import NullRepositoryView
+    >>> rv = NullRepositoryView()
+
+You can easily create and run a script through the RunScript API::
+
+    >>> import osaf.framework.scripting as Scripting
+    >>> result = Scripting.RunScript("print 3*4;", view = rv)
+    12
+
+Use HotkeyScript to run a script in response to a function key pressed.
+Normally the event would come in to your key event handler.  For testing
+purposes, we'll just create a key event.  Only F-keys can be hot keys.
+If a script is found whose title starts with "Script Fx" where x is the
+number of the F-key pressed, True will be returned, and the script will be
+executed.  Otherwise False is returned and your event handler should
+call the event's Skip() method to keep looking for a handler::
+
+    >>> import wx
+    >>> event = wx.KeyEvent() 
+    >>> print Scripting.HotkeyScript(event, view = rv)
+    False
+
+There is an APIs to run scripts based on options passed in to Chandler
+on the command line.  It checks the global options for a script to run.
+I won't test this function here.
+
+Script Kind
+-----------
+Most of the API goes through the Script Kind.  You can create scripts
+by passing in a bodyString for the script, and then calling execute()::
+
+    >>> myScript = Scripting.Script(bodyString="t = 'New Task'; print t")
+    >>> myScript.execute()
+    New Task
+
+Without the application around we can't actually make our scripts do very much.
+
+Lets check that the script object we created has attributes like we'd expect.
+We initialize scripts without any name to Untitled::
+   
+    >>> myScript.displayName
+    u'Untitled'
+
+Like any repository Item, you can name the script using the name parameter
+if you want to give it a unique name::
+
+    >>> namedScript = Scripting.Script(name="Empty")
+    >>> namedScript.itsName
+    'Empty'
+
+This also becomes its displayName::
+
+    >>> namedScript.displayName
+    'Empty'
+
+Or you can just pass in none to get an untitled Script.
+
+    >>> unnamedScript = Scripting.Script()
+    >>> unnamedScript.displayName
+    u'Untitled'
+
+Scripts keep track of the last time they ran.  This is used for date redirection::
+
+    >>> myScript.lastRan == myScript.date
+    True
+
+The lastRan attribute is pdated when you execute() your script::
+
+    >>> from datetime import datetime 
+    >>> beforeExecute = datetime.now()
+    >>> myScript.lastRan < beforeExecute
+    True
+
+Updated when you execute() them::
+
+    >>> myScript.execute()
+    New Task
+    >>> myScript.lastRan < beforeExecute
+    False
+
+The lastRan attribute is a datetime value::
+    >>> myScript.lastRan
+    datetime.datetime(20...)
+
+EventTiming dict Object
+-----------------------
+There's an EventTiming dict object that keeps track of the times taken
+by CPIA events when they are posted.  Since we can't post events now,
+it's empty::
+
+    >>> Scripting.EventTiming
+    {}
+
+It's organized as a dictionary whose keys are the event names, and whose
+values are the list of times taken for each event in dateTimeDelta format.
+It has a method that will convert the timings into strings for you, so you
+can more easily read them::
+
+    >>> Scripting.EventTiming.timingStrings()
+    {}
+
+Use the dict method clear() to clear the values::
+
+    >>> Scripting.EventTiming.clear()
+    
+    

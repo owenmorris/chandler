@@ -10,10 +10,18 @@ import osaf.framework.blocks.Block as Block
 import ScriptingGlobalFunctions
 from application import schema
 from osaf import pim
+from datetime import datetime
 import wx
 from i18n import OSAFMessageFactory as _
 
+__parcel__="osaf.framework.scripting"
+
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    'EventTiming', 'FindAndPostBlockEvent', 'HotkeyScript', 
+    'RunScript', 'RunStartupScript', 'Script', 'ScriptFile'
+]
 
 """
 Handle running a Script.
@@ -27,96 +35,68 @@ def RunScript(scriptText, view):
         - DialogScript - run from the dialog
     * Change --script parameter to something else, to --startupTest
        to run the special test script at startup.
-
-    * How does the Pass/Fail result from the TestScript get back
-        to SQA?  Just end up raising the exception?  Make sure
-        the startup test failure won't hang T-Box.
     """
-    newScript = ExecutableScript(scriptText, view)
+    # update our parcel's NewRunScript Script item with this text
+    scriptParcel = schema.ns('osaf.framework.scripting', view).parcel
+    newScript = Script.update(scriptParcel, name="NewRunScript", bodyString=scriptText)
     return newScript.execute()
     
-def GetDialogScript(aView):
-    # return the text of the special DialogScript, or a suitable default if there is none.
-    dialogScript = schema.ns('osaf.framework.scripting', aView).DialogScript
-    return dialogScript.bodyString
-
-def RunDialogScript(theScriptString, aView):
-    # set up the special DialogScript, and run it.
-    dialogScript = schema.ns('osaf.framework.scripting', aView).DialogScript
-    dialogScript.bodyString = theScriptString
-    dialogScript.execute()
-
 def HotkeyScript(event, view):
     """
     Check if the event is a hot key to run a script.
     Returns True if it does trigger a script to run, False otherwise.
     """
-    def startsWithScriptNumber(candidateString, numberedStringToMatch):
-        # returns True if the candidate starts with the
-        # numberedStringToMatch.  Checks that the candidate
-        # isn't really a larger number by checking for 
-        # following digits.
-        if candidateString.startswith(numberedStringToMatch):
-            # make sure it's not a longer number than we're looking for
-            try:
-                nextString = candidateString[len(numberedStringToMatch)]
-            except IndexError:
-                return True
-            if nextString.isdigit():
-                return False
-            return True
-        return False
-
     keycode = event.GetKeyCode()
     # for now, we just allow function keys to be hot keys.
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
         # try to find the corresponding Note
         targetScriptNameStart = "Script F%s" % str(keycode-wx.WXK_F1+1)
-        for aNote in pim.Note.iterItems(view):
-            try:
-                noteTitle = aNote.about
-            except AttributeError:
-                continue
-            else:
-                if startsWithScriptNumber(noteTitle, targetScriptNameStart):
-                    # make sure it's not a longer number than we're looking for
-                    try:
-                        nextString = noteTitle[len(targetScriptNameStart)]
-                    except IndexError:
-                        pass
-                    else:
-                        if nextString.isdigit():
-                            continue
-                    # get the body and execute it if we can
-                    try:
-                        scriptString = aNote.bodyString
-                    except AttributeError:
-                        continue
-                    else:
-                        fKeyScript = ExecutableScript(scriptString, view=view)
-                        # delay script execution, so it's not done in the middle of a key event handler.
-                        wx.CallAfter(fKeyScript.execute)
-                        return True
 
         # maybe we have an existing script?
-        for aScript in Script.iterItems(view):
-            if startsWithScriptNumber(aScript.displayName, targetScriptNameStart):          
-                wx.CallAfter(aScript.execute)
-                return True
+        script = _findScriptStartingWith(targetScriptNameStart, view)
+        if script:          
+            wx.CallAfter(script.execute)
+            return True
 
     # not a hot key
     return False
 
+def _findScriptStartingWith(targetScriptNameStart, view):
+    # find a script that starts with the given name
+    for aScript in Script.iterItems(view):
+        if _startsWithScriptNumber(aScript.displayName, targetScriptNameStart):          
+            return aScript
+    return None
+
+def _startsWithScriptNumber(candidateString, numberedStringToMatch):
+    # returns True if the candidate starts with the
+    # numberedStringToMatch.  Checks that the candidate
+    # isn't really a larger number by checking for 
+    # following digits.
+    if candidateString.startswith(numberedStringToMatch):
+        # make sure it's not a longer number than we're looking for
+        try:
+            nextString = candidateString[len(numberedStringToMatch)]
+        except IndexError:
+            return True
+        if nextString.isdigit():
+            return False
+        return True
+    return False
+
 def RunStartupScript(view):
     script = None
-    if Globals.options.script:
-        script = ExecutableScript(Globals.options.script, view)
+    fileName = ""
+    if Globals.options.testScript:
+        script = _findScriptStartingWith("Script F1", view)
     if Globals.options.scriptFile:
-        scriptFile = ScriptFile(Globals.options.scriptFile)
-        if scriptFile:
-            script = ExecutableScript(scriptFile, view)
+        scriptFileText = ScriptFile(Globals.options.scriptFile)
+        if scriptFileText:
+            scriptParcel = schema.ns('osaf.framework.scripting', view).parcel
+            script = Script.update(scriptParcel, name="StartupScriptFile", bodyString=scriptFileText)
+            fileName=Globals.options.scriptFile
     if script:
-        script.execute()
+        script.execute(fileName=fileName)
 
 def ScriptFile(fileName):
     # read the script from a file, and return it.
@@ -131,47 +111,51 @@ def ScriptFile(fileName):
         logger.warning("Unable to open script file '%s'" % fileName)
     return scriptText
 
-
 class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
     schema.kindInfo(displayName="Script", displayAttribute="displayName")
+    lastRan = schema.One(schema.DateTime, displayName = _(u'last ran'))
 
-    def __init__(self, name=_('untitled'), parent=None, kind=None):
+    # redirections
+
+    about = schema.One(redirectTo = 'displayName')
+    who = schema.One(redirectTo = 'creator')
+    date = schema.One(redirectTo = 'lastRan')
+
+    def __init__(self, name=None, parent=None, kind=None, 
+                 bodyString=None, creator=None):
         super(Script, self).__init__(name, parent, kind, displayName=name)
+        if name is None:
+            self.displayName = _('Untitled')
+        self.lastRan = datetime.now()
+        if bodyString is not None:
+            self.bodyString = bodyString
+        if creator is not None:
+            self.creator = creator
+        self.isPrivate = True
 
-    def execute(self):
-        executable = ExecutableScript(self.bodyString, self.itsView)
-        executable.execute()
+    def isAttributeModifiable(self, attribute):
+        return True
 
-class ExecutableScript(object):
-    """ Script to be executed. """
+    defaultFileName = 'UserScript.py'
 
-    def __init__(self, scriptText, view):
-        self.scriptString = scriptText
-        self.scriptCode = None
-        self.itsView = view
+    def execute(self, fileName=""):
+        assert len(self.bodyString) > 0, "Empty script body"
 
-    def execute(self):
-        """
-        Explore python execution of scripts!
-        There are currently some issues which I'm investigating:
-        * I may need to implement threading to keep the wx App
-           happily processing events in cases like Chandler
-           moving to the background during script execution.
-        * Is my use of wx.App.Yeild correct?  Dangerous?
-        * Can I use __getattr__ for my global properties?
-            Send email to pje about how to make an attribute call code.
-        """
+        self.lastRan = datetime.now()
+
         # compile the code
-        if __debug__:
-            debugFile = open('UserScript.py', 'wt')
+        if __debug__ and not fileName:
+            fileName = self.defaultFileName
+            debugFile = open(self.defaultFileName, 'wt')
             try:
                 # to be nice to debuggers, we write the code to a file so it can be located
                 # in the case of an error
-                debugFile.write(self.scriptString)
+                debugFile.write(self.bodyString)
             finally:
                 debugFile.close()
-        self.scriptCode = compile(self.scriptString, 'UserScript.py', 'exec')
+
+        self.scriptCode = compile(self.bodyString, fileName, 'exec')
 
         # next, build a dictionary of names that are predefined
         builtIns = {}
@@ -211,6 +195,9 @@ class ExecutableScript(object):
         
         # add the current view      
         builtIns['__view__'] = self.itsView
+
+        # add the event timing object      
+        builtIns['EventTiming'] = EventTiming
 
         # now run that script in our predefined scope
         try:
@@ -254,31 +241,9 @@ class ExecutableScript(object):
         # Copies of this function are invoked by user scripts for BlockEvent commands.
         def ScriptInvokedBlockEvent(argDict={}, **keys):
             # merge the named parameters, into the dictionary positional arg
-            return self.FindAndPostBlockEvent(eventName, argDict, keys)
+            return FindAndPostBlockEvent(eventName, argDict, keys)
         # return the template, customized for this event
         return ScriptInvokedBlockEvent
-
-    """
-    We need to find the best BlockEvent at runtime on each invokation,
-    because the BlockEvents come and go from the soup as UI portions
-    are rendered and unrendered.  The best BlockEvent is the one copied
-    into the soup and attached to rendered blocks that were also copied.
-    """
-    def FindAndPostBlockEvent(self, eventName, argDict, keys):
-        # Find the BlockEvent to use by name.  Then post that event.
-        # Also, call Yield() on the application, so it gets some time during
-        #   script execution.
-        best = Block.Block.findBlockEventByName(eventName)
-        try:
-            argDict.update(keys)
-        except AttributeError:
-            # make sure the first parameter was a dictionary, or give a friendly error
-            message = "BlockEvents may only have one positional parameter - a dict"
-            raise AttributeError, message
-        result = Globals.mainViewRoot.post(best, argDict)
-        # seems like a good time to let the Application get some time
-        wx.GetApp().Yield()
-        return result
 
     def _BlockEventName(self, event):
         try:
@@ -290,6 +255,33 @@ class ExecutableScript(object):
                 name = None
         return name
 
+"""
+We need to find the best BlockEvent at runtime on each invokation,
+because the BlockEvents come and go from the soup as UI portions
+are rendered and unrendered.  The best BlockEvent is the one copied
+into the soup and attached to rendered blocks that were also copied.
+"""
+def FindAndPostBlockEvent(eventName, argDict, keys):
+    # Find the BlockEvent to use by name.  Then post that event.
+    # Also, call Yield() on the application, so it gets some time during
+    #   script execution.
+    best = Block.Block.findBlockEventByName(eventName)
+    try:
+        argDict.update(keys)
+    except AttributeError:
+        # make sure the first parameter was a dictionary, or give a friendly error
+        message = "BlockEvents may only have one positional parameter - a dict"
+        raise AttributeError, message
+    # remember timing information
+    startTime = EventTiming.startTimer()
+    # post the event
+    result = Globals.mainViewRoot.post(best, argDict)
+    # finish timing
+    EventTiming.endTimer(startTime, eventName)
+    # let the Application get some time
+    wx.GetApp().Yield()
+    return result
+
 class CPIAPimModule(object):
     """ 
     Acts as the 'pim' module with attributes
@@ -298,4 +290,28 @@ class CPIAPimModule(object):
     """
     def AddAttr(self, attr, value):
         setattr(self, attr, value)
+
+class CPIAEventTiming(dict):
+    """
+    dictionary of event timings for events that have
+    been sent by CPIA script since this dictionary was reset.
+    Use clear() to reset timings.
+    """
+    def startTimer(self):
+        return datetime.now()
+
+    def endTimer(self, startTime, eventName):
+        self.setdefault(eventName, []).append(datetime.now()-startTime)
+    
+    def timingStrings(self):
+        strTimings = {}
+        for eName, timingList in self.iteritems():
+            strList = []
+            for timing in timingList:
+                strList.append(str(timing))
+            strTimings[eName] = strList
+        return strTimings
+
+# global to use for event timing
+EventTiming = CPIAEventTiming()
 
