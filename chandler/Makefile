@@ -22,12 +22,12 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-2.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-10.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.28-1.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-3.tar.gz \
-         $(CHANDLERARCHIVES)/icu-$(SNAP)-3.2-1.tar.gz \
+         $(CHANDLERARCHIVES)/icu-$(SNAP)-3.4-1.tar.gz \
          $(CHANDLERARCHIVES)/jabberpy-$(SNAP)-0.4-0-3.tar.gz \
          $(CHANDLERARCHIVES)/libxml2-$(SNAP)-2.6.16-4.tar.gz \
          $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-310-1.tar.gz \
          $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.13-3.tar.gz \
-         $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.3-42-1.tar.gz \
+         $(CHANDLERARCHIVES)/pyicu-$(SNAP)-0.4-44-1.tar.gz \
          $(CHANDLERARCHIVES)/pylucene-$(SNAP)-0.9.9-192-3.tar.gz \
          $(CHANDLERARCHIVES)/python-$(SNAP)-2.4.1-2.tar.gz \
          $(CHANDLERARCHIVES)/soappy-$(SNAP)-0.10.2-3.tar.gz \
