@@ -578,7 +578,7 @@ class Item(CItem):
                 _attrDict is None and name in self._values):
                 value = self._values[name]
                 if isinstance(value, SingleRef):
-                    value = self.getRepositoryView().find(value.itsUUID)
+                    value = self._view.find(value.itsUUID)
                 return value
 
             elif (_attrDict is self._references or
@@ -797,7 +797,7 @@ class Item(CItem):
         if not referencesOnly:
             for name, value in self._values.iteritems():
                 if isinstance(value, SingleRef):
-                    value = self.getRepositoryView().find(value.itsUUID)
+                    value = self._view.find(value.itsUUID)
                 yield name, value
 
         if not valuesOnly:
@@ -865,7 +865,7 @@ class Item(CItem):
         """
 
         if latest:
-            return self.getRepositoryView().getItemVersion(0x7fffffff, self)
+            return self._view.getItemVersion(0x7fffffff, self)
 
         return self._version
         
@@ -1315,7 +1315,7 @@ class Item(CItem):
             _countAccess(self)
             dirty |= Item.FDIRTY
 
-            view = self.getRepositoryView()
+            view = self._view
             view._status |= view.FDIRTY
             
             if not self.isDirty():
@@ -1545,7 +1545,7 @@ class Item(CItem):
             if not recursive and self.hasChildren():
                 raise RecursiveDeleteError, self
 
-            view = self.getRepositoryView()
+            view = self._view
             refs = self._references
 
             if hasattr(type(self), 'onItemDelete'):
@@ -1690,10 +1690,6 @@ class Item(CItem):
 
         return count
 
-    def __getUUID(self):
-        
-        return self._uuid
-
     def _getPath(self, path=None):
 
         if path is None:
@@ -1707,18 +1703,19 @@ class Item(CItem):
     def _getRoot(self):
 
         if self._root.isStale():
-            self._root = self.getRepositoryView()[self._root._uuid]
+            self._root = self._view[self._root._uuid]
             
         return self._root
 
     def _setRoot(self, root, oldView):
 
         if root is not self._root:
-            self._root = root
-            newView = self.getRepositoryView()
+            if root is None:
+                newView = None
+            else:
+                newView = root._parent
 
             if oldView is not newView:
-
                 if oldView is not None and newView is not None:
                     raise NotImplementedError, 'changing views'
 
@@ -1727,6 +1724,9 @@ class Item(CItem):
 
                 if newView is not None:
                     newView._registerItem(self)
+
+            self._root = root
+            self._view = newView
 
             for child in self.iterChildren(load=False):
                 child._setRoot(root, oldView)
@@ -1737,7 +1737,7 @@ class Item(CItem):
     def __getParent(self):
 
         if self._parent.isStale():
-            self._parent = self.getRepositoryView()[self._parent._uuid]
+            self._parent = self._view[self._parent._uuid]
             
         return self._parent
 
@@ -1745,7 +1745,7 @@ class Item(CItem):
 
         kind = self._kind
         if kind is not None and kind.isStale():
-            kind = self.getRepositoryView()[kind._uuid]
+            kind = self._view[kind._uuid]
             self._kind = kind
                 
         return kind
@@ -1915,27 +1915,9 @@ class Item(CItem):
             acl = Nil
 
         if acl is Nil:
-            acl = self.getRepositoryView().getACL(self._uuid, name,
-                                                  self._version)
+            acl = self._view.getACL(self._uuid, name, self._version)
 
         return acl
-
-    def getRepositoryView(self):
-        """
-        Return this item's repository view.
-
-        The item's repository view is defined as the item's root's parent.
-        @return: a repository view
-        """
-
-        try:
-            return self._root._parent
-        except AttributeError:
-            return None
-
-    def __setRepositoryView(self, view):
-
-        view.importItem(self)
 
     def rename(self, name):
         """
@@ -1992,7 +1974,7 @@ class Item(CItem):
             
         parent = self.itsParent
         if parent is not newParent:
-            oldView = parent.getRepositoryView()
+            oldView = parent.itsView
             parent._removeItem(self)
             self._setParent(newParent, previous, next, oldView)
             self.setDirty(Item.NDIRTY)
@@ -2018,13 +2000,12 @@ class Item(CItem):
 
         if self._children is not None:
             if name is not None:
-                loading = self.getRepositoryView().isLoading()
+                loading = self._view.isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
                     raise ChildNameError, (self, item._name)
 
         else:
-            self._children = self.getRepositoryView()._createChildren(self,
-                                                                      True)
+            self._children = self._view._createChildren(self, True)
 
         self._children.__setitem__(item._uuid, item, previous, next, name)
 
@@ -2138,8 +2119,7 @@ class Item(CItem):
                 if attr is not None:
                     return attr._walk(path, callable, **kwds)
                 else:
-                    return self.getRepositoryView().walk(path, callable, 1,
-                                                         **kwds)
+                    return self._view.walk(path, callable, 1, **kwds)
 
             elif path[0] == '/':
                 if attr is not None:
@@ -2243,7 +2223,7 @@ class Item(CItem):
         """
 
         if isinstance(spec, UUID):
-            return self.getRepositoryView().find(spec, load)
+            return self._view.find(spec, load)
 
         if isinstance(spec, Path):
             if attribute is None:
@@ -2295,7 +2275,7 @@ class Item(CItem):
         elif not isinstance(uuid, UUID):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
 
-        return self.getRepositoryView().find(uuid, load)
+        return self._view.find(uuid, load)
 
     def findMatch(self, view, matches=None):
 
@@ -2341,6 +2321,7 @@ class Item(CItem):
             if not reloadable:
                 self._parent = None
                 self._root = None
+                self._view = None
                 self._kind = None
             
             self._status |= Item.STALE
@@ -2358,9 +2339,8 @@ class Item(CItem):
             persisted = self.getAttributeAspect(name, 'persisted',
                                                 False, None, True)
 
-        return self.getRepositoryView()._createRefList(self, name, otherName,
-                                                       persisted, False, True,
-                                                       None)
+        return self._view._createRefList(self, name, otherName,
+                                         persisted, False, True, None)
 
     def _commitMerge(self, version):
 
@@ -2487,22 +2467,6 @@ class Item(CItem):
                        siblings. 
                        """)
 
-    itsUUID = property(fget = __getUUID,
-                       doc =
-                       """
-                       Return the Universally Unique ID for this item.
-
-                       The UUID for an item is generated when the item is
-                       first created and never changes. This UUID is valid
-                       for the life of the item.
-
-                       The UUID is a 128 bit number intended to be unique in
-                       the entire universe and is implemented as specified
-                       in the IETF's U{UUID draft
-                       <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}
-                       spec. 
-                       """)
-
     itsPath = property(fget = _getPath,
                        doc = 
                        """
@@ -2528,15 +2492,6 @@ class Item(CItem):
                        A repository root is a direct child of the repository.
                        All single-slash rooted paths are expressed relative
                        to this root when used with this item.
-                       """)
-
-    itsView = property(fget = getRepositoryView,
-                       fset = __setRepositoryView,
-                       doc =
-                       """
-                       Return this item's repository view.
-                       
-                       See L{getRepositoryView} for more information.
                        """)
 
     itsKind = property(fget = __getKind,

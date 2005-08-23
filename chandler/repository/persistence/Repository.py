@@ -498,13 +498,12 @@ class Repository(object):
         else:
             self.logger.setLevel(logging.INFO)
 
-    itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
-
     OPEN       = 0x0001
     REFCOUNTED = 0x0002
     RAMDB      = 0x0004
     CLOSED     = 0x0008
 
+    itsUUID = RepositoryView.itsUUID
     view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)
     repository = property(lambda self: self)

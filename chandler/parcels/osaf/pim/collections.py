@@ -190,7 +190,7 @@ class KindCollection(AbstractCollection):
 
     def contentsUpdated(self, item):
 #        print "KindCollection.contentsUpdated: ",item
-        self._collectionChanged('changed' , 'rep', item)
+        self.rep.notify('changed', item)
         pass
 
     def onValueChanged(self, name):
@@ -221,7 +221,7 @@ class ListCollection(AbstractCollection):
         self.refCollection.remove(item)
 
     def contentsUpdated(self, item):
-        self._collectionChanged('changed' , 'rep', item)
+        self.rep.notify('changed', item)
         pass
 
 class DifferenceCollection(AbstractCollection):

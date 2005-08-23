@@ -779,10 +779,6 @@ class RepositoryView(object):
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
 
-    def __getUUID(self):
-
-        return self.repository.itsUUID
-
     def __getName(self):
 
         return self.name
@@ -794,10 +790,6 @@ class RepositoryView(object):
     def isDebug(self):
 
         return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
-
-    def getRepositoryView(self):
-
-        return self
 
     def mapChanges(self, callable, freshOnly=False):
         """
@@ -939,6 +931,7 @@ class RepositoryView(object):
             view._unregisterItem(_item, False)
             self._registerItem(_item)
             _item._root = root
+            _item._view = root._parent
             for child in _item.iterChildren():
                 setRoot(root, child)
 
@@ -964,14 +957,15 @@ class RepositoryView(object):
                     item._parent = localParent
                     setRoot(root, item)
 
-    itsUUID = property(__getUUID)
+    itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    itsParent = None
+    
     itsName = property(__getName)
     itsPath = property(_getPath)
     itsView = property(lambda self: self)
     itsVersion = property(lambda self: self._version,
                           lambda self, value: self.refresh(version=value))
-    itsParent = None
-    
+
     logger = property(getLogger)
     debug = property(isDebug)
     store = property(_getStore)
@@ -1242,10 +1236,6 @@ class NullRepositoryView(RepositoryView):
     def __getUUID(self):
 
         return self.itsUUID
-
-    def getRepositoryView(self):
-
-        return self
 
     def getItemVersion(self, version, item):
 
