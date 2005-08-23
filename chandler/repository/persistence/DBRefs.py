@@ -6,11 +6,12 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from cStringIO import StringIO
 
+from chandlerdb.item.item import Nil
+from chandlerdb.util.uuid import UUID
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
-from chandlerdb.util.uuid import UUID
 from repository.util.LinkedMap import LinkedMap
 
 
@@ -102,10 +103,11 @@ class PersistentRefs(object):
 
     def _isRemoved(self, key):
 
-        try:
-            return self._changedRefs[key][0] == 1
-        except KeyError:
-            return False
+        change = self._changedRefs.get(key, None)
+        if change is not None:
+            return change[0] == 1
+
+        return False
 
     def _loadRef(self, key):
 
@@ -441,11 +443,8 @@ class DBNumericIndex(NumericIndex):
         version = self._version
 
         if version > 0:
-            try:
-                if self._changedKeys[key] is None:   # removed key
-                    return None
-            except KeyError:
-                pass
+            if self._changedKeys.get(key, Nil) is None:   # removed key
+                return None
 
             node = self._getIndexes().loadKey(self, self._key, version, key)
             if node is not None:
