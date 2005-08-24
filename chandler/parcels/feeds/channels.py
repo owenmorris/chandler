@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__    = "feeds"
 
 import time, os, logging, datetime
-from PyICU import ICUtzinfo
+from PyICU import ICUtzinfo, TimeZone
 from dateutil.parser import parse
 from application import schema
 from util import feedparser
@@ -193,15 +193,34 @@ class FeedChannel(pim.ItemCollection):
         for newItem in items:
 
             # Convert date to datetime object
-            try:
-                itemDate = newItem.date
-            except:
-                itemDate = None
+            if newItem.date_parsed:
 
-            if itemDate:
-                newItem.date = parse(str(itemDate))
+                try:
+
+                    # date_parsed is a tuple of 9 integers, like gmtime( )
+                    # returns...
+                    d = newItem.date_parsed
+
+                    # date_parsed seems to always be converted to GMT, so
+                    # let's make a datetime object using values from
+                    # date_parsed, coupled with a GMT tzinfo...
+                    itemDate = datetime.datetime(d[0], d[1], d[2], d[3], d[4],
+                        d[5], 0, ICUtzinfo(TimeZone.getGMT()))
+
+                    logger.debug("%s, %s, %s" % \
+                        (newItem.date, newItem.date_parsed, itemDate))
+
+                    newItem.date = itemDate
+
+                except:
+                    logger.exception("Couldn't get date: %s (%s)" % \
+                        (newItem.date, newItem.date_parsed))
+                    newItem.date = None
             else:
-                # Give the item a date so we can sort on it
+                newItem.date = None
+
+            if newItem.date is None:
+                # No date was available in the feed, so assign it 'now'
                 newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
 
             found = False
@@ -342,15 +361,15 @@ class FeedUpdateTaskClass:
             try:
                 channel.Update()
             except socket.timeout:
-                logging.exception('socket timed out')
+                logger.exception('socket timed out')
                 pass
             except:
-                logging.exception('failed to update %s' % channel.url)
+                logger.exception('failed to update %s' % channel.url)
                 pass
         try:
             self.view.commit()
         except Exception, e:
-            logging.exception('failed to commit')
+            logger.exception('failed to commit')
             pass
 
         return True     # run it again next time
