@@ -20,6 +20,7 @@ from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 from datetime import datetime
+from i18n import OSAFMessageFactory as _
 
 
 class wxMiniCalendar(wx.minical.MiniCalendar):
@@ -327,7 +328,10 @@ class wxPreviewArea(wx.Panel):
         y = self.margin
         for i, item in enumerate(self.currentDaysItems):
             if i == self.blockItem.maximumEventsDisplayed:
-                dc.DrawText("%d more confirmed..." %(len(self.currentDaysItems) - i),  
+                #XXX: [i18n] what is this text for?
+                #     It will be hard for a translator to work with
+                #     since it is vague
+                dc.DrawText(_("%d more confirmed...") % (len(self.currentDaysItems) - i),  
                             self.margin, y)
                 y += self.fontHeight  #For end calculation
                 break

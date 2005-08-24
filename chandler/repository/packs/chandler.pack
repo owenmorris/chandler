@@ -11,9 +11,6 @@
 <!--
     <item file="String.type" />
   -->
-
-    <item file="LocalizableString.type" />
-    <item file="Text.type" />
   </item>
 
 </pack>

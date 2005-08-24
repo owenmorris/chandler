@@ -121,7 +121,9 @@ class I18nManager(object):
            locale set occurs
         """
 
-        #XXX: These amy throw UnicodeDecodeErrors
+        #XXX: These may throw UnicodeDecodeErrors
+        #    which is ok cause the errror will alert the developer 
+        #    to the error. I.e. they did not pass in an ascii string
         relPath = unicode(relPath)
         resourceName = unicode(resourceName)
 

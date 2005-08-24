@@ -26,7 +26,6 @@ import util.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
 import repository.query.Query as Query
 from repository.item.Item import Item
-from repository.packs.chandler.Types import LocalizableString
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
@@ -41,12 +40,6 @@ from i18n import I18nManager
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
-
-"""
-Notes:
-1. Need to update event framework to handle LocalizableStrings
-
-"""
 
 class MainView(View):
     """

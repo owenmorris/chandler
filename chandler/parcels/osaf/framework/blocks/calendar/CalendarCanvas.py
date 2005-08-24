@@ -33,6 +33,8 @@ import itertools
 import copy
 import logging
 
+from i18n import OSAFMessageFactory as _
+
 logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
@@ -1285,6 +1287,9 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
 
     def InitializeStyles(self):
+
+        #XXX: [i18n] The colors and fonts should be configurable for i18n and accessibility
+        #     or at least should come from the host OS
         defaultStyle = Styles.CharacterStyle()
         defaultBoldStyle = \
             Styles.CharacterStyle(fontStyle='bold', fontSize=10.0)
@@ -2389,6 +2394,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
 
         #these labels get overriden by wxSynchronizeWidget()
+        #XXX: [i18n] These Header labels need to leverage PyICU for the display names
         headerLabels = ["Week", "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:
             self.weekColumnHeader.AppendItem(header, wx.colheader.CH_JUST_Center, 0, bSortEnabled=False)
@@ -2515,7 +2521,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
             if currentDate.date() == today:
-                dayName = "Today"
+                dayName = _("Today")
             else:
                 dayName = u"%s %02d" %(shortWeekdays[actualDay + 1],
                                        currentDate.day)

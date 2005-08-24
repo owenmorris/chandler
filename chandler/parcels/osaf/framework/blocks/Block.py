@@ -13,6 +13,7 @@ import wx
 import logging
 import hotshot
 from DocumentTypes import SizeType, RectType, PositionType, ColorType
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -867,9 +868,9 @@ class RectangularChild (Block):
             return
         event.arguments ['Enable'] = canUndo
         if canUndo:
-            event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
+            event.arguments ['Text'] = _('Undo Command\tCtrl+Z')
         else:
-            event.arguments ['Text'] = "Can't Undo\tCtrl+Z"            
+            event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
 
     def onUndoEvent (self, event):
         return self._GenericEditEvent ('Undo')

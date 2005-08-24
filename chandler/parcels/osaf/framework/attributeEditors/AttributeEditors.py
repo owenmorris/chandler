@@ -1020,10 +1020,10 @@ class DateAttributeEditor (StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.
         if not hasattr(self, 'cachedSampleText'):
-            year4 = _(u"yyyy")
-            year2 = _(u"yy")
-            month = _(u"mm")
-            day = _(u"dd")
+            year4 = u"yyyy"
+            year2 = u"yy"
+            month = u"mm"
+            day   = u"dd"
             sampleText = DateTimeAttributeEditor.shortDateFormat.format(datetime(2003,10,30))
             sampleText = sampleText.replace(u"2003", year4) # Some locales use 4-digit year, some use 2.
             sampleText = sampleText.replace(u"03", year2)   # so we'll handle both.
@@ -1080,8 +1080,8 @@ class TimeAttributeEditor(StringAttributeEditor):
         # specific ordering of these fields. Format a date with distinct values,
         # then replace the resulting string's pieces with text.            
         if not hasattr(self, 'cachedSampleText'):
-            hour = _(u"hh")
-            minute = _(u"mm")
+            hour = u"hh"
+            minute = u"mm"
             sampleText = DateTimeAttributeEditor.shortTimeFormat.format(\
                 datetime(2003,10,30,11,45))
 

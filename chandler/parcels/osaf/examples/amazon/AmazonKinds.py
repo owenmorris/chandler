@@ -8,7 +8,6 @@ from application import schema
 from i18n import OSAFMessageFactory as _
 
 #XXX[i18n] this file needs to have displayName converted to _()
-#   once displayName is made a LocalizableString
 
 amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 

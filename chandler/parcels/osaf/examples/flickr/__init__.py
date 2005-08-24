@@ -20,7 +20,6 @@ import os, logging
 from i18n import OSAFMessageFactory as _
 
 #XXX[i18n] this file needs to have displayName converted to _()
-#   once displayName is made a LocalizableString
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +29,11 @@ class FlickrPhotoMixin(PhotoMixin):
     schema.kindInfo(displayName="Flickr Photo Mixin",
                     displayAttribute="displayName")
 
-    flickrID = schema.One(schema.String, displayName="Flickr ID")
-    imageURL = schema.One(schema.URL, displayName="imageURL")
-    datePosted = schema.One(schema.DateTime, displayName="Upload Date")
-    tags = schema.Sequence(displayName="Tag")
-    owner = schema.One(schema.String, displayName="owner")
+    flickrID = schema.One(schema.String, displayName=_("Flickr ID"))
+    imageURL = schema.One(schema.URL, displayName=_("imageURL"))
+    datePosted = schema.One(schema.DateTime, displayName=_("Upload Date"))
+    tags = schema.Sequence(displayName=_("Tag"))
+    owner = schema.One(schema.String, displayName=_("owner"))
 
     # about = schema.Role(redirectTo="title")
     who = schema.One(redirectTo="owner")
@@ -47,6 +46,7 @@ class FlickrPhotoMixin(PhotoMixin):
             self.populate(photo)
 
     def populate(self, photo):
+        #XXX: [i18n] why are these encoding in ascii why not utf-8?
         self.flickrID = photo.id.encode('ascii', 'replace')
         self.displayName = photo.title.encode('ascii', 'replace')
         self.description = photo.description.encode('ascii', 'replace')
@@ -62,20 +62,21 @@ class FlickrPhotoMixin(PhotoMixin):
         self.importFromURL(self.imageURL)
 
 class FlickrPhoto(FlickrPhotoMixin, pim.Note):
-    schema.kindInfo(displayName = "Flickr Photo")
+    schema.kindInfo(displayName = _("Flickr Photo"))
 
-    
 #copied from Location class
 class Tag(pim.ContentItem):
 
-    schema.kindInfo(displayName="Flickr Tag")
+    schema.kindInfo(displayName=_("Flickr Tag"))
 
-    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName="Tag")
+    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName=_("Tag"))
 
     def __str__ (self):
         """
           User readable string version of this Tag
         """
+        #XXX: [i18n] displayName will be unicode. Should need __unicode__ method
+        #     and will need to encode displayName to str but is this the correct behavior?
         if self.isStale():
             return super(Tag, self).__str__()
             # Stale items can't access their attributes
@@ -132,11 +133,11 @@ def getPhotoByFlickrTitle(view, title):
 
 class PhotoCollection(pim.ContentItem):
 
-    schema.kindInfo(displayName="Collection of Flickr Photos")
+    schema.kindInfo(displayName=_("Collection of Flickr Photos"))
 
-    photos = schema.Sequence(FlickrPhotoMixin, displayName="Flickr Photos")
+    photos = schema.Sequence(FlickrPhotoMixin, displayName=_("Flickr Photos"))
     username = schema.One(
-        schema.String, displayName="Username", initialValue=''
+        schema.String, displayName=_("Username"), initialValue=''
     )
     tag = schema.One(
         Tag, otherName="itemsWithTag", displayName="Tag", initialValue=None
@@ -177,8 +178,8 @@ class FlickrCollectionController(Block.Block):
 
 def CreateCollectionFromUsername(repView, cpiaView):
     username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   "Username",
-                                                   "Enter a Flickr Username",
+                                                   _("Username"),
+                                                   _("Enter a Flickr Username"),
                                                    "")
     if username:
         myPhotoCollection = PhotoCollection(view = repView)
@@ -189,15 +190,16 @@ def CreateCollectionFromUsername(repView, cpiaView):
             # Add the channel to the sidebar
             return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
-        except flickr.FlickrError, fe:
+        except flickr.FlickrError, fe: 
+            #XXX: [i18n] will need to capture exception and localize error text
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        "Flickr Error",
+                                        _("Flickr Error"),
                                         str(fe))
 
 def CreateCollectionFromTag(repView, cpiaView):
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   "Tag",
-                                                   "Enter a Flickr Tag",
+                                                   _("Tag"),
+                                                   _("Enter a Flickr Tag"),
                                                    "")
     if tagstring:
         myPhotoCollection = PhotoCollection(view = repView)
@@ -210,7 +212,7 @@ def CreateCollectionFromTag(repView, cpiaView):
                                      {'items': [myPhotoCollection.sidebarCollection]})
         except flickr.FlickrError, fe:
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        "Flickr Error",
+                                        _("Flickr Error"),
                                         str(fe))
 
 #

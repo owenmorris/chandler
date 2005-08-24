@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import gettext, os, sys, crypto, logging, logging.config, string
+import os, sys, crypto, logging, logging.config, string
 from optparse import OptionParser
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \

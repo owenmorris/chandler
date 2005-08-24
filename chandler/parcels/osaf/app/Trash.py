@@ -6,7 +6,6 @@ from osaf.pim import ItemCollection
 from i18n import OSAFMessageFactory as _
 
 #XXX[i18n] this file needs to have displayName converted to _()
-#   once displayName is made a LocalizableString
 
 """
 At the moment, this is just a bunch of helper routines to find, fill,

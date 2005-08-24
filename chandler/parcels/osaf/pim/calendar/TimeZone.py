@@ -2,6 +2,7 @@ import application.schema as schema
 
 import PyICU
 import datetime
+from i18n import OSAFMessageFactory as _
 
 class DefaultTimeZone(schema.Item):
     """
@@ -22,14 +23,15 @@ class DefaultTimeZone(schema.Item):
     # Future expansions:
     #
     #  (1) List will become larger (not quite 400 or so)
-    #  (2) Elements in the list will be LocalizableStrings
+    #  (2) Elements in the list will be Text
     #  (3) List will probably become a schema.Sequence()
     #
+    # XXX: [i18n] Are these names translated in ICU or do we need to do this manually?
     knownTimeZones = map(
         PyICU.ICUtzinfo.getInstance,
-        ["US/Pacific", "US/Mountain", "US/Central", "US/Eastern",
-         "Europe/Paris",
-         "Africa/Johannesburg" # A long name to show how wide the popup can become
+        [_("US/Pacific"), _("US/Mountain"), _("US/Central"), _("US/Eastern"),
+         _("Europe/Paris"),
+         _("Africa/Johannesburg") # A long name to show how wide the popup can become
         ])
     
     

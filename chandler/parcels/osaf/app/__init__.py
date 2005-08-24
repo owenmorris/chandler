@@ -7,7 +7,6 @@ from feeds import FeedChannel
 from i18n import OSAFMessageFactory as _
 
 #XXX[i18n] this file needs to have displayName converted to _()
-#   once displayName is made a LocalizableString
 
 def installParcel(parcel, oldVersion=None):
 

@@ -54,33 +54,33 @@ class Certificate(pim.ContentItem):
     date = schema.One(redirectTo = 'createdOn')
     subjectCommonName = schema.One(
         schema.String,
-        displayName = 'Subject commonName',
+        displayName = _('Subject commonName'),
         doc = 'Subject commonName.',
     )
     type = schema.One(
         typeEnum,
-        displayName = 'Certificate type',
+        displayName = _('Certificate type'),
         doc = 'Certificate type.',
         initialValue = 'root',
     )
     trust = schema.One(
         schema.Integer,
-        displayName = 'Trust',
+        displayName = _('Trust'),
         doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
     )
     pem = schema.One(
         schema.Lob,
-        displayName = 'PEM',
+        displayName = _('PEM'),
         doc = 'An X.509 certificate in PEM format.',
     )
     asText = schema.One(
         schema.Lob,
-        displayName = 'Human readable certificate value',
+        displayName = _('Human readable certificate value'),
         doc = 'An X.509 certificate in human readable format.',
     )
     fingerprintAlgorithm = schema.One(
         schema.String,
-        displayName = 'fingerprint algorithm',
+        displayName = _('fingerprint algorithm'),
         doc = 'A name of a hash algorithm that was used to compute fingerprint.',
     )
     fingerprint = schema.One(
@@ -92,7 +92,7 @@ class Certificate(pim.ContentItem):
         # M2Crypto needs this to be str rather than unicode - safe conversion
         return str(self.pem.getReader().read())
 
-    def asTextAsString(self):        
+    def asTextAsString(self):
         return self.asText.getReader().read()
 
     def asX509(self):

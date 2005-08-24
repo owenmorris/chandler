@@ -1220,11 +1220,10 @@ def _get_nrv():
 
 
 core_types = """
-Boolean String Symbol BString UString Integer Long Float 
+Boolean String Symbol BString UString Integer Long Float
 Tuple List Set Class Dictionary Anything
 Date Time DateTime TimeDelta TimeZone
 Lob URL Complex UUID Path SingleRef
-Text LocalizableString
 """.split()
 
 for name in core_types:

@@ -145,6 +145,9 @@ class wxApplication (wx.App):
         we don't do this, our mapping of _ to gettext can get overwritten.
         This is useful in interactive debugging with PyShell.
         """
+        #XXX: [i18n] Test whether removing this will cause any issues now that
+        #     we explicitly define _
+
         def _displayHook(obj):
             if obj is not None:
                 print repr(obj)

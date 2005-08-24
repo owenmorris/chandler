@@ -11,6 +11,7 @@ import osaf.framework.blocks.Block as Block
 from PyICU import ICUtzinfo, DateFormat
 import datetime
 import channels
+from i18n import OSAFMessageFactory as _
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class FeedItemDetail(Detail.HTMLDetailArea):
             return
         if item is not None:
             displayName = item.getAttributeValue('displayName',
-                                                 default='<Untitled>')
+                                                 default=_('<Untitled>'))
 
             # make the html
             HTMLText = '<html><body>\n\n'
@@ -83,7 +84,7 @@ class FeedController(Block.Block):
     def onNewFeedChannelEvent(self, event):
         import wx
         url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-            "New Channel", "Enter a URL for the RSS Channel", "http://")
+            _("New Channel"), _("Enter a URL for the RSS Channel"), "http://")
         if url and url != "":
             try:
                 # create the feed channel
@@ -97,7 +98,6 @@ class FeedController(Block.Block):
                 return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                    "New Channel Error",
-                    "Could not create channel for " + url + \
-                    "\nCheck the URL and try again.")
+                    _("New Channel Error"),
+                    _("Could not create channel for %s\nCheck the URL and try again.") % url)
                 raise

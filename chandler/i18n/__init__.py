@@ -14,6 +14,8 @@ I18nManager = i18nmanager.I18nManager()
 def MessageFactory(domain):
     def translate(defaultText):
         #XXX This will raise UnicodeDecodeError on failure
+        #    which is ok cause the errror will alert the developer 
+        #    to the error. I.e. they did not pass in an ascii string
         defaultText = unicode(defaultText)
 
         return I18nManager.translate(domain, defaultText)

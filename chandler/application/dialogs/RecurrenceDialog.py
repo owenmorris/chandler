@@ -96,7 +96,7 @@ class RecurrenceDialog(wx.Dialog):
 
         self.questionText.SetLabel(txt)
 
-        self.SetTitle(unicode(title))
+        self.SetTitle(title)
 
         # Make sure the dialog can fit the buttons and question text
         self.SetSize(self.GetBestSize())
@@ -109,7 +109,7 @@ class RecurrenceDialog(wx.Dialog):
 
     def _end(self):
         self.proxy.dialogUp = False
-        self.Destroy() 
+        self.Destroy()
 
     def onCancel(self, event):
         self.proxy.cancelBuffer()
