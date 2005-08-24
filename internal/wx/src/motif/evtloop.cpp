@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     01.11.02
-// RCS-ID:      $Id: evtloop.cpp,v 1.16 2005/02/14 11:11:55 JJ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.17 2005/08/24 17:36:00 VZ Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,11 +162,13 @@ bool wxEventLoop::Dispatch()
         ProcessXEvent( &event );
     }
     else
-#ifdef __VMS
-     XtAppProcessEvent( context, XtIMTimer|XtIMAlternateInput );
-#else
-     XtAppProcessEvent( context, XtIMTimer|XtIMAlternateInput|XtIMSignal );
+    {
+        XtAppProcessEvent( context, XtIMTimer | XtIMAlternateInput
+#ifdef XtIMSignal
+                           | XtIMSignal
 #endif
+                         );
+    }
 
     return m_impl ? m_impl->GetKeepGoing() : true;
 }
