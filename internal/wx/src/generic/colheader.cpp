@@ -2462,8 +2462,12 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
-	localBoundsR = *boundsR;
+    localBoundsR = wxRect(boundsR->x + 1, 
+                          boundsR->y + 1, 
+                          boundsR->width - 2,
+                          boundsR->height - 2);
 	drawFlags = 0;
+
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
