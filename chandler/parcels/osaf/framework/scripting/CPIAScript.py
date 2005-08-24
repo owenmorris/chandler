@@ -137,24 +137,12 @@ class Script(pim.ContentItem):
     def isAttributeModifiable(self, attribute):
         return True
 
-    defaultFileName = 'UserScript.py'
-
     def execute(self, fileName=""):
         assert len(self.bodyString) > 0, "Empty script body"
 
         self.lastRan = datetime.now()
 
         # compile the code
-        if __debug__ and not fileName:
-            fileName = self.defaultFileName
-            debugFile = open(self.defaultFileName, 'wt')
-            try:
-                # to be nice to debuggers, we write the code to a file so it can be located
-                # in the case of an error
-                debugFile.write(self.bodyString)
-            finally:
-                debugFile.close()
-
         self.scriptCode = compile(self.bodyString, fileName, 'exec')
 
         # next, build a dictionary of names that are predefined
