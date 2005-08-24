@@ -899,7 +899,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 		{
 			col = XToCol( x );
 			if ((col >= 0) &&
-				 !SendEvent( wxEVT_GRID_LABEL_LEFT_CLICK, -1, col, event ))
+				! SendEvent( wxEVT_GRID_LABEL_LEFT_CLICK, -1, col, event ))
 			{
 				if (! event.ShiftDown() && !event.ControlDown())
 					ClearSelection();
@@ -947,7 +947,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 		{
 			col = XToCol( x );
 			if ((col >= 0) &&
-				 ! SendEvent( wxEVT_GRID_LABEL_LEFT_DCLICK, -1, col, event ))
+				! SendEvent( wxEVT_GRID_LABEL_LEFT_DCLICK, -1, col, event ))
 			{
 				// no default action at the moment
 			}
@@ -979,7 +979,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 		// -- Right button down
 		col = XToCol( x );
 		if ((col >= 0) &&
-			 ! SendEvent( wxEVT_GRID_LABEL_RIGHT_CLICK, -1, col, event ))
+			! SendEvent( wxEVT_GRID_LABEL_RIGHT_CLICK, -1, col, event ))
 		{
 			// no default action at the moment
 		}
@@ -989,7 +989,7 @@ void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
 		// -- Right double click
 		col = XToCol( x );
 		if ((col >= 0) &&
-			 ! SendEvent( wxEVT_GRID_LABEL_RIGHT_DCLICK, -1, col, event ))
+			! SendEvent( wxEVT_GRID_LABEL_RIGHT_DCLICK, -1, col, event ))
 		{
 			// no default action at the moment
 		}
@@ -2462,12 +2462,9 @@ bool			bSelected, bHasButtonArrow, bHasBitmap;
 
 	// draw column header background:
 	// leverage native (GTK?) wxRenderer
-    localBoundsR = wxRect(boundsR->x + 1, 
-                          boundsR->y + 1, 
-                          boundsR->width - 2,
-                          boundsR->height - 2);
+	localBoundsR = *boundsR;
+	localBoundsR.Deflate( 1, 1 );
 	drawFlags = 0;
-
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR, drawFlags );
 
 	// as specified, render (justified) either: button arrow, bitmap or label text
