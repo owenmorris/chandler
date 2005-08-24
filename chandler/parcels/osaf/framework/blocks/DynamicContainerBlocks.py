@@ -947,8 +947,8 @@ class ToolbarItem(Block.Block, DynamicChild):
         doc = 'For Buttons, makes it stay pressed down until pressed again.',
         initialValue = False,
     )
-    bitmap = schema.One(schema.BString)
-    disabledBitmap = schema.One(schema.BString)
+    bitmap = schema.One(schema.Bytes)
+    disabledBitmap = schema.One(schema.Bytes)
     event = schema.One(Block.BlockEvent)
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
     

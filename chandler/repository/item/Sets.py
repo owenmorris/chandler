@@ -217,7 +217,10 @@ class AbstractSet(ItemValue, Indexed):
             else:
                 replace[sourceItem._uuid] = sourceItem
 
-        return eval(self._repr_(replace))
+        copy = eval(self._repr_(replace))
+        copy._setView(item.itsView)
+
+        return copy
 
     @classmethod
     def makeValue(cls, string):

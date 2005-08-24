@@ -9,13 +9,13 @@
   </item>
 
   <item withSchema="True">
-    <name>BString</name>
+    <name>Bytes</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">BString</class>
   </item>
 
   <item withSchema="True">
-    <name>UString</name>
+    <name>Text</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">UString</class>
   </item>

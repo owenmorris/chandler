@@ -8,7 +8,7 @@
   <namespaceMap key="Anything" value="//Schema/Core/Anything" />
   <namespaceMap key="Attribute" value="//Schema/Core/Attribute" />
   <namespaceMap key="Boolean" value="//Schema/Core/Boolean" />
-  <namespaceMap key="BString" value="//Schema/Core/BString" />
+  <namespaceMap key="Bytes" value="//Schema/Core/Bytes" />
   <namespaceMap key="Cardinality" value="//Schema/Core/Cardinality" />
   <namespaceMap key="Class" value="//Schema/Core/Class" />
   <namespaceMap key="Cloud" value="//Schema/Core/Cloud" />
@@ -47,7 +47,7 @@
   <namespaceMap key="Tuple" value="//Schema/Core/Tuple" />
   <namespaceMap key="Type" value="//Schema/Core/Type" />
   <namespaceMap key="URL" value="//Schema/Core/URL" />
-  <namespaceMap key="UString" value="//Schema/Core/UString" />
+  <namespaceMap key="Text" value="//Schema/Core/Text" />
   <namespaceMap key="UUID" value="//Schema/Core/UUID" />
   <namespaceMap key="annotations" value="//Schema/Core/annotations" />
   <namespaceMap key="description" value="//Schema/Core/description" />
