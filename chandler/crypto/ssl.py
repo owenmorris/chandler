@@ -121,9 +121,6 @@ trusted_until_shutdown_invalid_site_certs = {}
 # There are (at least) these errors that will happen when
 # the certificate can't be verified because we don't have
 # the issuing certificate.
-# We are being conservative for now and failing validation if the
-# error code is something else. We'll need to expand that so that
-# users can accept expired certificates, for example.
 unknown_issuer = [m2.X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT,
                   m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
                   m2.X509_V_ERR_CERT_UNTRUSTED,
