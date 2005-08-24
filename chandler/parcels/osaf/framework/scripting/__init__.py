@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from CPIAScript import *
 import application.schema as schema
-import osaf.framework.blocks.DocumentTypes as DocumentTypes
 import os
 
 __all__ = [
@@ -60,53 +59,24 @@ def installParcel(parcel, oldVersion=None):
                                                         methodName = "onModifyContentsEvent",
                                                         items = [scriptsSet], 
                                                         selectFirstItem=True,
-                                                        copyItems=False,
+                                                        copyItems=True,
                                                         commitAfterDispatch = True
                                                         )
 
     # Menu item to put "Scripts" in the Sidebar
-    blocks.MenuItem.update(parcel, "AddScriptsCollectionMenu",
-                           blockName = "AddScriptsCollectionMenu",
+    blocks.MenuItem.template("AddScriptsCollectionMenu",
                            title = "Add Scripts to Sidebar",
                            event = addScriptsEvent,
-                           eventsForNamedLookup = [addScriptsEvent],
                            parentBlock = main.TestMenu
-                           )
+                           ).install(parcel)
     
-    # Blocks for the Detail View of a Script
+    # Block Subtree for the Detail View of a Script
     # ------------
-    # Our Resynchronize event.
-    blocks.BlockEvent.template('Resynchronize',
-                               dispatchEnum='SendToBlockByName',
-                               dispatchToBlockName='DetailRoot').install(parcel)
-
-    # First, the headline AEBlock and the area it sits in
-    headlineAEBlock = detail.makeEditor(parcel, 'HeadlineBlock',
-                                        viewAttribute=u'about',
-                                        characterStyle=blocks.BigTextStyle,
-                                        presentationStyle={
-                                            'sampleText': u'',
-                                            'editInPlace': True })
-    headlineArea = detail.makeArea(parcel, 'HeadlineArea',
-                                   childrenBlocks = [
-                                       detail.makeSpacer(parcel, DocumentTypes.SizeType(0,22)),
-                                       headlineAEBlock],
-                                   position=0.5,
-                                   border=DocumentTypes.RectType(0,6,0,6)).install(parcel)
-    
-    # Then, the Note AEBlock
-    notesBlock = detail.makeEditor(parcel, 'NotesBlock',
-                                   viewAttribute=u'bodyString',
-                                   presentationStyle={'lineStyleEnum': 'MultiLine'},
-                                   position=0.9).install(parcel)
-    
-    # Finally, the subtree
-    scriptSubtree = \
-        detail.DetailTrunkSubtree.update(parcel, 'script_detail_view',
-                                         key=scripting.Script.getKind(parcel.itsView),
-                                         rootBlocks=[
-                                             detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
-                                             headlineArea,
-                                             detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
-                                             notesBlock
-                                             ])      
+    detail.DetailTrunkSubtree.update(parcel, 'script_detail_view',
+                                     key=scripting.Script.getKind(parcel.itsView),
+                                     rootBlocks=[
+                                         detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
+                                         detail.HeadlineArea,
+                                         detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
+                                         detail.NotesBlock
+                                         ])      
