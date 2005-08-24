@@ -286,7 +286,7 @@ def main():
              "Type 'go()' to fire up Twisted services, or 'readme()' for " \
              "more info."
 
-    script = Globals.options.script
+    script = Globals.options.scriptFile
     if script:
         try:
             if script.endswith('.py'):
