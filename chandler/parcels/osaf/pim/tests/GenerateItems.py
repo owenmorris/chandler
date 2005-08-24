@@ -10,6 +10,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import random
 
 from datetime import datetime, timedelta
+from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
@@ -33,7 +34,7 @@ LOCATIONS  = ["Home", "Office", "School"]
 
 
 
-def GenerateCalendarEvent(view, days=30):
+def GenerateCalendarEvent(view, days=30, tzinfo=None):
     event = Calendar.CalendarEvent(view=view)
     event.displayName = random.choice(HEADLINES)
     
@@ -41,9 +42,9 @@ def GenerateCalendarEvent(view, days=30):
     startDelta = timedelta(days=random.randint(0, days),
                            hours=random.randint(0, 24))
 
-    now = datetime.now()
+    now = datetime.now(tzinfo)
     closeToNow = datetime(now.year, now.month, now.day, now.hour,
-                          int(now.minute/30) * 30)
+                          int(now.minute/30) * 30, tzinfo=now.tzinfo)
     event.startTime = closeToNow + startDelta
 
     # Events are anyTime by default. Give a 5% chance of allDay instead,
@@ -81,7 +82,7 @@ M_TASK  = " that has been stamped as a Task"
 M_BOTH  = " that has been stamped as a Task and a Calendar Event"
 M_FROM  = None
 
-def GenerateMailMessage(view):
+def GenerateMailMessage(view, tzinfo=None):
     global M_FROM
     message  = Mail.MailMessage(view=view)
     body     = M_TEXT
@@ -131,27 +132,27 @@ def GenerateMailMessage(view):
 
     return message
 
-def GenerateNote(view):
+def GenerateNote(view, tzinfo=None):
     """ Generate one Note item """
     note = pim.Note(view=view)
     note.displayName = random.choice(TITLES)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
-    note.createdOn = datetime.now() + delta
+    note.createdOn = datetime.now(tzinfo) + delta
     return note
 
-def GenerateTask(view):
+def GenerateTask(view, tzinfo=None):
     """ Generate one Task item """
     task = pim.Task(view=view)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
-    task.dueDate = datetime.today() + delta    
+    task.dueDate = datetime.today() + delta
     task.displayName = random.choice(TITLES)
     return task
 
-def GenerateEventTask(view, days=30):
+def GenerateEventTask(view, days=30, tzinfo=None):
     """ Generate one Task/Event stamped item """
-    event = GenerateCalendarEvent(view, days)
+    event = GenerateCalendarEvent(view, days, tzinfo=tzinfo)
     event.StampKind('add', pim.TaskMixin.getKind(event.itsView))
     return event
 
@@ -262,8 +263,12 @@ def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
     collections = GenerateItems(view, 5, GenerateCollection, [], mainView, existingNames)
     
     items = []
+    defaultTzinfo = ICUtzinfo.getDefault()
     for fn in GenerateMailMessage, GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
-        items.append(GenerateItems(view, count, fn, collections))
+        def newFn(*args, **keywds):
+            keywds['tzinfo'] = defaultTzinfo
+            return fn(*args, **keywds)
+        items.append(GenerateItems(view, count, newFn, collections))
 
     view.commit() 
     return items
