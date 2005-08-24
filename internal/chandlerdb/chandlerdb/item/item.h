@@ -16,7 +16,6 @@ typedef struct {
     PyObject *parent;
     PyObject *children;
     PyObject *root;
-    PyObject *view;
     PyObject *acls;
 } t_item;
 

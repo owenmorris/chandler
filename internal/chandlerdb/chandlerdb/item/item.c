@@ -28,6 +28,23 @@ static PyObject *t_item__isItem(t_item *self, PyObject *args);
 static PyObject *t_item__isRefList(t_item *self, PyObject *args);
 static PyObject *t_item__isUUID(t_item *self, PyObject *args);
 static PyObject *t_item__isMerged(t_item *self, PyObject *args);
+static PyObject *t_item__getKind(t_item *self, void *data);
+static int t_item__setKind(t_item *self, PyObject *kind, void *data);
+static PyObject *t_item__getView(t_item *self, void *data);
+static int t_item__setView(t_item *self, PyObject *view, void *data);
+static PyObject *t_item__getParent(t_item *self, void *data);
+static int t_item__setParent(t_item *self, PyObject *view, void *data);
+static PyObject *t_item__getName(t_item *self, void *data);
+static int t_item__setName(t_item *self, PyObject *view, void *data);
+static PyObject *t_item__getRoot(t_item *self, void *data);
+static PyObject *t_item__getUUID(t_item *self, void *data);
+static PyObject *t_item__getPath(t_item *self, void *data);
+
+static PyObject *_setKind_NAME;
+static PyObject *importItem_NAME;
+static PyObject *move_NAME;
+static PyObject *rename_NAME;
+static PyObject *_getPath_NAME;
 
 #define isNew_DOC \
 "Tell whether this item is new.\n\nA new item is defined as an item that\
@@ -80,10 +97,7 @@ static PyMemberDef t_item_members[] = {
     { "_parent", T_OBJECT, offsetof(t_item, parent), 0, "item parent" },
     { "_children", T_OBJECT, offsetof(t_item, children), 0, "item children" },
     { "_root", T_OBJECT, offsetof(t_item, root), 0, "item root" },
-    { "_view", T_OBJECT, offsetof(t_item, view), 0, "item view" },
     { "_acls", T_OBJECT, offsetof(t_item, acls), 0, "item acls" },
-    { "itsUUID", T_OBJECT, offsetof(t_item, uuid), READONLY, "item uuid" },
-    { "itsView", T_OBJECT, offsetof(t_item, view), READONLY, "item view" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -106,6 +120,24 @@ static PyMethodDef t_item_methods[] = {
     { "_isUUID", (PyCFunction) t_item__isUUID, METH_NOARGS, "" },
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
+};
+
+static PyGetSetDef t_item_properties[] = {
+    { "itsKind", (getter) t_item__getKind, (setter) t_item__setKind,
+      "itsKind property", NULL },
+    { "itsView", (getter) t_item__getView, (setter) t_item__setView,
+      "itsView property", NULL },
+    { "itsParent", (getter) t_item__getParent, (setter) t_item__setParent,
+      "itsParent property", NULL },
+    { "itsName", (getter) t_item__getName, (setter) t_item__setName,
+      "itsName property", NULL },
+    { "itsRoot", (getter) t_item__getRoot, NULL,
+      "itsRoot property", NULL },
+    { "itsUUID", (getter) t_item__getUUID, NULL,
+      "itsUUID property", NULL },
+    { "itsPath", (getter) t_item__getPath, NULL,
+      "itsPath property", NULL },
+    { NULL, NULL, NULL, NULL, NULL }
 };
 
 static PyMethodDef item_funcs[] = {
@@ -143,7 +175,7 @@ static PyTypeObject ItemType = {
     0,                                         /* tp_iternext */
     t_item_methods,                            /* tp_methods */
     t_item_members,                            /* tp_members */
-    0,                                         /* tp_getset */
+    t_item_properties,                         /* tp_getset */
     0,                                         /* tp_base */
     0,                                         /* tp_dict */
     0,                                         /* tp_descr_get */
@@ -319,6 +351,140 @@ static PyObject *t_item__isMerged(t_item *self, PyObject *args)
 }
 
 
+/* itsKind */
+
+static PyObject *t_item__getKind(t_item *self, void *data)
+{
+    PyObject *kind = self->kind;
+
+    if (kind != Py_None && ((t_item *) kind)->status & STALE)
+    {
+        PyObject *view = ((t_item *) self->root)->parent;
+        self->kind = kind = PyObject_GetItem(view, ((t_item *) kind)->uuid);
+    }
+
+    Py_INCREF(kind);
+    return kind;
+}
+
+static int t_item__setKind(t_item *self, PyObject *kind, void *data)
+{
+    if (!PyObject_CallMethodObjArgs((PyObject *) self, _setKind_NAME,
+                                    kind, NULL))
+        return -1;
+
+    return 0;
+}
+
+
+/* itsView */
+
+static PyObject *t_item__getView(t_item *self, void *data)
+{
+    PyObject *root = self->root;
+    PyObject *view;
+
+    if (root != Py_None)
+        view = ((t_item *) root)->parent;
+    else
+        view = Py_None;
+
+    Py_INCREF(view);
+    return view;
+}
+
+static int t_item__setView(t_item *self, PyObject *view, void *data)
+{
+    if (!PyObject_CallMethodObjArgs(view, importItem_NAME,
+                                    (PyObject *) self, NULL))
+        return -1;
+
+    return 0;
+}
+
+
+/* itsParent */
+
+static PyObject *t_item__getParent(t_item *self, void *data)
+{
+    PyObject *parent = self->parent;
+
+    if (parent != Py_None && ((t_item *) parent)->status & STALE)
+    {
+        PyObject *view = ((t_item *) self->root)->parent;
+        self->parent = parent =
+            PyObject_GetItem(view, ((t_item *) parent)->uuid);
+    }
+
+    Py_INCREF(parent);
+    return parent;
+}
+
+static int t_item__setParent(t_item *self, PyObject *parent, void *data)
+{
+    if (!PyObject_CallMethodObjArgs((PyObject *) self, move_NAME, parent, NULL))
+        return -1;
+
+    return 0;
+}
+
+
+/* itsName */
+
+static PyObject *t_item__getName(t_item *self, void *data)
+{
+    PyObject *name = self->name;
+
+    Py_INCREF(name);
+    return name;
+}
+
+static int t_item__setName(t_item *self, PyObject *name, void *data)
+{
+    if (!PyObject_CallMethodObjArgs((PyObject *) self, rename_NAME, name, NULL))
+        return -1;
+
+    return 0;
+}
+
+
+/* itsRoot */
+
+static PyObject *t_item__getRoot(t_item *self, void *data)
+{
+    PyObject *root = self->root;
+
+    if (root != Py_None && ((t_item *) root)->status & STALE)
+    {
+        PyObject *view = ((t_item *) root)->parent;
+        self->root = root =
+            PyObject_GetItem(view, ((t_item *) root)->uuid);
+    }
+
+    Py_INCREF(root);
+    return root;
+}
+
+
+/* itsUUID */
+
+static PyObject *t_item__getUUID(t_item *self, void *data)
+{
+    PyObject *uuid = self->uuid;
+
+    Py_INCREF(uuid);
+    return uuid;
+}
+
+
+/* itsPath */
+
+static PyObject *t_item__getPath(t_item *self, void *data)
+{
+    return PyObject_CallMethodObjArgs((PyObject *) self, _getPath_NAME, NULL);
+}
+
+
 typedef struct {
     PyObject_HEAD
 } t_nil;
@@ -435,6 +601,12 @@ void inititem(void)
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);
             PyDict_SetItemString_Int(dict, "MERGED", MERGED);
             PyDict_SetItemString_Int(dict, "SAVEMASK", SAVEMASK);
+
+            _setKind_NAME = PyString_FromString("_setKind");
+            importItem_NAME = PyString_FromString("importItem");
+            move_NAME = PyString_FromString("move");
+            rename_NAME = PyString_FromString("rename");
+            _getPath_NAME = PyString_FromString("_getPath");
         }
     }
 }
