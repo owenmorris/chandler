@@ -358,7 +358,7 @@ class _SMTPTransport(object):
 
         exc = exc.value
 
-        if not self.displayedAddCertDialog(exc):
+        if not self.displayedRecoverableSSLErrorDialog(exc):
             """Just get the error string do not need the error code"""
             err = self.__getError(exc)[1]
             utils.alert(constants.TEST_ERROR, self.parent.account.displayName, err)
@@ -454,7 +454,7 @@ class _SMTPTransport(object):
 
         exc = exc.value
 
-        displayed = self.displayedAddCertDialog(exc)
+        displayed = self.displayedRecoverableSSLErrorDialog(exc)
 
         if not displayed:
             """Only record errors if the add cert is not displayed.
@@ -488,34 +488,40 @@ class _SMTPTransport(object):
         self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
         self.mailMessage.deliveryExtension.sendFailed()
 
-    def displayedAddCertDialog(self, err):
+    def displayedRecoverableSSLErrorDialog(self, err):
         if __debug__:
-            self.parent.printCurrentView("transport.displayedAddCertDialog")
+            self.parent.printCurrentView("transport.displayedRecoverableSSLErrorDialog")
+
+        if self.parent.testing:
+            reconnect = self.parent.testAccountSettings
+        else:
+            reconnect = lambda: self.parent.sendMail(self.mailMessage)
 
         if str(err.__class__) == 'crypto.ssl.CertificateVerificationError':
             assert err.args[1] == 'certificate verify failed'
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
-            # We are being conservative for now and only asking the user
-            # if they would like to trust certificates that are otherwise
-            # valid but we don't know about them. In the future we must make
-            # it possible for the user to accept expired certificates and
-            # so on.
+            # Post an asynchronous event to the main thread where
+            # we ask the user if they would like to trust this
+            # certificate. The main thread will then initiate a retry
+            # when the new certificate has been added.
             if err.args[0] in ssl.unknown_issuer:
-                # Post an asynchronous event to the main thread where
-                # we ask the user if they would like to trust this
-                # certificate. The main thread will then initiate a retry
-                # when the new certificate has been added.
-                if self.parent.testing:
-                    reconnect = self.parent.testAccountSettings
-                else:
-                    reconnect = lambda: self.parent.sendMail(self.mailMessage)
-
                 utils.displaySSLCertDialog(err.untrustedCertificates[0],
                                            reconnect)
-
-                return True
+            else:
+                utils.displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
+                                                  err.args[0],
+                                                  reconnect)
+                
+            return True
+        elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
+            utils.displayIgnoreSSLErrorDialog(err.pem,
+                                              str(err),#XXX intl
+                                              reconnect)
+            
+            return True
+            
 
         return False
 

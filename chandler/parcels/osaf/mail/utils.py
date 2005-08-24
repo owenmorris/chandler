@@ -109,6 +109,11 @@ def displaySSLCertDialog(cert, reconnectMethod):
     """Displays the Do you want to add this cert dialog"""
     NotifyUIAsync(cert, None, 'askTrustSiteCertificate', reconnectMethod)
 
+def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
+    """Displays the invalid cert dialog"""
+    NotifyUIAsync(cert, None, 'askIgnoreSSLError', err, 
+                  reconnectMethod)
+
 def NotifyUIAsync(message, logger=None, callable='setStatusMessage', *args, **keys):
     """Temp method for posting a event to the CPIA layer. This
        method will be refactored when notifcations come in to play"""

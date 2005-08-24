@@ -268,42 +268,36 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
-            # We are being conservative for now and only asking the user
-            # if they would like to trust certificates that are otherwise
-            # valid but we don't know about them. In the future we must make
-            # it possible for the user to accept expired certificates and
-            # so on.
-            if err.args[0] in ssl.unknown_issuer:
-                # Post an asynchronous event to the main thread where
-                # we ask the user if they would like to trust this
-                # certificate. The main thread will then initiate a retry
-                # when the new certificate has been added.
-                if self.testing:
-                    reconnect = self.testAccountSettings
-                else:
-                    reconnect = self.getMail
+            if self.testing:
+                reconnect = self.testAccountSettings
+            else:
+                reconnect = self.getMail
 
+            # Post an asynchronous event to the main thread where
+            # we ask the user if they would like to trust this
+            # certificate. The main thread will then initiate a retry
+            # when the new certificate has been added.
+            if err.args[0] in ssl.unknown_issuer:
                 utils.displaySSLCertDialog(err.untrustedCertificates[0],
                                            reconnect)
-                self._actionCompleted()
-                return
-
             else:
-                # See chandler.log for the exception that was raised for
-                # the verification error code
-                errorString = errors.STR_SSL_CERTIFICATE_ERROR % errorString
+                utils.displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
+                                                  err.args[0],
+                                                  reconnect)
 
-        if errorType.startswith(errors.M2CRYPTO_PREFIX):
-            if errorType == errors.M2CRYPTO_BIO_ERROR:
-                """Generic BIO error"""
-                #XXX: pleace holder for future code enhancement
-                pass
+            self._actionCompleted()
+            return
 
-            elif errorType == errors.M2CRYPTO_CHECKER_ERROR:
-                """Host does not match cert"""
-                #XXX Need to pop up a dialog and ask the user if they
-                #XXX would like to proceed anyway
-                pass
+        if errorType == errors.M2CRYPTO_CHECKER_ERROR:
+            # Post an asynchronous event to the main thread where
+            # we ask the user if they would like to continue even though
+            # the certificate identifies a different host.
+            utils.displayIgnoreSSLErrorDialog(err.pem,
+                                              errorString,#XXX intl
+                                              reconnect)
+
+            self._actionCompleted()
+            return
 
         if self.testing:
             utils.alert(constants.TEST_ERROR, \

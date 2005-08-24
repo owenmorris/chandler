@@ -35,34 +35,54 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         self.factory.logging = True
 
     def blockUntil(self, callable, *args, **keywds):
-        try:
-            return zanshin.util.blockUntil(callable, *args, **keywds)
-        except ssl.CertificateVerificationError, err:
-            assert err.args[1] == 'certificate verify failed'
-            # We are being conservative for now and only asking the user
-            # if they would like to trust certificates that are otherwise
-            # valid but we don't know about them. In the future we must make
-            # it possible for the user to accept expired certificates and
-            # so on.
-            self._reconnect = False
-            retry = (lambda: setattr(self, '_retry', True))
-
-            wxApplication = Globals.wxApplication
-        
-            if wxApplication is not None: # test framework has no wxApplication
-                Globals.views[0].askTrustSiteCertificate(err.untrustedCertificates[0], retry)
-            
-            if hasattr(self, '_retry'):
-                del self._retry
-            
+        # Since there can be several errors in a connection, we must keep 
+        # trying until we either get a successful connection or the user 
+        # decides to cancel/disconnect, or there is an error we don't know 
+        # how to deal with.
+        while True:
+            try:
                 return zanshin.util.blockUntil(callable, *args, **keywds)
-            else:
-                raise err
-        except M2Crypto.BIO.BIOError, error:
-            # Translate the mysterious M2Crypto.BIO.BIOError
-            raise error.SSLError(error)
-
+            except ssl.CertificateVerificationError, err:
+                assert err.args[1] == 'certificate verify failed'
     
+                # Reason why verification failed is stored in err.args[0], see
+                # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
+    
+                retry = (lambda: setattr(self, '_retry', True))
+    
+                if err.args[0] in ssl.unknown_issuer:
+                    handler = lambda: \
+                        Globals.views[0].askTrustSiteCertificate(err.untrustedCertificates[0], retry)
+                else:
+                    handler = lambda: \
+                        Globals.views[0].askIgnoreSSLError(err.untrustedCertificates[0], err.args[0], retry)
+    
+                self._handleSSLError(handler, err, callable, *args, **keywds)
+                        
+            except M2Crypto.SSL.Checker.WrongHost, err:
+                retry = (lambda: setattr(self, '_retry', True))
+    
+                handler = lambda: \
+                    Globals.views[0].askIgnoreSSLError(err.pem, 
+                                                       str(err), # XXX intl
+                                                       retry)
+                self._handleSSLError(handler, err, callable, *args, **keywds)
+    
+            except M2Crypto.BIO.BIOError, error:
+                # Translate the mysterious M2Crypto.BIO.BIOError
+                raise error.SSLError(error)
+
+    def _handleSSLError(self, handler, err, callable, *args, **keywds):
+        self._reconnect = False
+
+        if Globals.wxApplication is not None: # test framework has no wxApplication
+            handler()
+            
+        if hasattr(self, '_retry'):
+            del self._retry
+        else:
+            raise err
+        
 
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
@@ -130,12 +150,13 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     except zanshin.webdav.WebDAVError, err:
         return (NO_ACCESS, err.status)
     except error.SSLError, err:
-        return (IGNORE, None)
-    except M2Crypto.SSL.Checker.SSLVerificationError, err:
-        return (CANT_CONNECT, err)
+        return (CANT_CONNECT, err) # Unhandled SSL error
+    except M2Crypto.SSL.Checker.WrongHost:
+        return (IGNORE, None) # The user cancelled SSL error dialog
+    except ssl.CertificateVerificationError:
+        return (IGNORE, None) # The user cancelled trust cert/SSL error dialog
     except error.ConnectionDone, err:
         return (CANT_CONNECT, err)
-        
     
     # Unique the child names returned by the server. (Note that
     # collection subresources will have a name that ends in '/').

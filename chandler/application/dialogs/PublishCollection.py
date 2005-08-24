@@ -2,6 +2,8 @@
 # Invoke using the ShowPublishDialog( ) method.
 
 import wx
+import M2Crypto
+import crypto.ssl as ssl
 import traceback, logging
 import os, urlparse, urllib
 import application.Globals as Globals
@@ -364,11 +366,16 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.put()
             self._showStatus(_(" done.\n"))
 
-        except (Sharing.SharingError, zanshin.error.Error), e:
+        except (Sharing.SharingError, zanshin.error.Error, 
+                M2Crypto.SSL.Checker.WrongHost, 
+                ssl.CertificateVerificationError), e:
 
             # Display the error
             # self._clearStatus()
-            self._showStatus(_("\nSharing error:\n%s\n") % e.message)
+            try:
+                self._showStatus(_("\nSharing error:\n%s\n") % e.message)
+            except AttributeError:
+                pass
             logger.exception("Failed to publish collection")
             # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
 

@@ -33,10 +33,17 @@ def postConnectionCheck(peerX509, expectedHost):
     be talking to.
     """
     check = Checker.Checker()
-    # XXX This may raise exceptions about wrong host. Sometimes this is due
-    # XXX to server misconfiguration rather than an active attack. We should
-    # XXX really ask the user what they want to do. This is bug 3156.
-    return check(peerX509, expectedHost)
+    try:
+        return check(peerX509, expectedHost)
+    except Checker.WrongHost, e:
+        e.pem = peerX509.as_pem()
+
+        acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
+        if acceptedErrList is not None and str(e) in acceptedErrList:
+            log.debug('Ignoring post connection error %s' %str(e))
+            return 1
+
+        raise e
 
 
 def getContext(repositoryView, protocol='sslv23', verify=True,
@@ -108,8 +115,8 @@ class ContextFactory(object):
         return getContext(self.repositoryView, self.protocol, self.verify,
                           self.verifyCallback)
 
-
 trusted_until_shutdown_site_certs = []
+trusted_until_shutdown_invalid_site_certs = {}
 
 # There are (at least) these errors that will happen when
 # the certificate can't be verified because we don't have
@@ -145,18 +152,27 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
 
     def verifyCallback(self, ok, store):
         log.debug('TwistedProtocolWrapper.verifyCallback')
-        global trusted_until_shutdown_site_certs, unknown_issuer
-                
+        global trusted_until_shutdown_site_certs, \
+               trusted_until_shutdown_invalid_site_certs, \
+               unknown_issuer
+                        
         if not ok:
             err = store.get_error()
-
-            if err not in unknown_issuer:
-                return ok
 
             x509 = store.get_current_cert()
 
             # Check temporarily trusted certificates
             pem = x509.as_pem()
+
+            if err not in unknown_issuer:
+                # Check if we are temporarily ignoring errors with this cert
+                acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
+                if acceptedErrList is not None and err in acceptedErrList:
+                    log.debug('Ignoring certificate error %d' %err)
+                    return 1
+                self.untrustedCertificates.append(pem)
+                return ok
+
             if pem in trusted_until_shutdown_site_certs:
                 log.debug('Found temporarily trusted site cert')
                 return 1
@@ -198,7 +214,7 @@ def connectSSL(host, port, factory, repositoryView,
                timeout=30,
                bindAddress=None,
                reactor=twisted.internet.reactor,
-               postConnectionCheck=Checker.Checker()):
+               postConnectionCheck=postConnectionCheck):
     """
     A convenience function to start an SSL/TLS connection using Twisted.
     
@@ -223,7 +239,7 @@ def connectTCP(host, port, factory, repositoryView,
                timeout=30,
                bindAddress=None,
                reactor=twisted.internet.reactor,
-               postConnectionCheck=Checker.Checker()):
+               postConnectionCheck=postConnectionCheck):
     """
     A convenience function to start a TCP connection using Twisted.
     
@@ -231,7 +247,7 @@ def connectTCP(host, port, factory, repositoryView,
     
     See IReactorSSL interface in Twisted. 
     """
-    log.debug('connectSSL(host=%s, port=%d)' %(host, port))
+    log.debug('connectTCP(host=%s, port=%d)' %(host, port))
     wrappingFactory = policies.WrappingFactory(factory)
     wrappingFactory.protocol = lambda factory, wrappedProtocol: \
         TwistedProtocolWrapper(repositoryView,

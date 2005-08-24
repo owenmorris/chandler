@@ -253,6 +253,25 @@ class MainView(View):
         finally:
             dlg.Destroy()
 
+    def askIgnoreSSLError(self, pem, err, reconnect):
+        import M2Crypto.X509 as X509
+        import crypto.dialogs        
+        x509 = X509.load_cert_string(pem)
+        dlg = crypto.dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
+                                                  x509,
+                                                  err)
+        try:
+            if dlg.ShowModal() == wx.ID_OK:
+                import crypto.ssl as ssl
+                acceptedErrList = ssl.trusted_until_shutdown_invalid_site_certs.get(pem)
+                if acceptedErrList is None:
+                    ssl.trusted_until_shutdown_invalid_site_certs[pem] = [err]
+                else:
+                    ssl.trusted_until_shutdown_invalid_site_certs[pem].append(err)
+                reconnect()
+        finally:
+            dlg.Destroy()
+
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
