@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp,v 1.29 2005/06/19 19:11:20 MBN Exp $
+// RCS-ID:      $Id: stattext.cpp,v 1.30 2005/08/24 07:57:49 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +21,9 @@
 #endif
 
 #include "wx/defs.h"
+
+#if wxUSE_STATTEXT
+
 #include "wx/stattext.h"
 
 #ifdef __VMS__
@@ -93,7 +96,7 @@ void wxStaticText::SetLabel(const wxString& label)
         XtVaSetValues(widget,
             XmNwidth, width,
             XmNheight, height,
-            NULL);        
+            NULL);
         XtManageChild(widget);
     }
     else
@@ -104,3 +107,5 @@ void wxStaticText::SetLabel(const wxString& label)
             NULL);
     }
 }
+
+#endif // wxUSE_STATTEXT
