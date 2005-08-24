@@ -578,7 +578,7 @@ class Item(CItem):
                 _attrDict is None and name in self._values):
                 value = self._values[name]
                 if isinstance(value, SingleRef):
-                    value = self._view.find(value.itsUUID)
+                    value = self.itsView.find(value.itsUUID)
                 return value
 
             elif (_attrDict is self._references or
@@ -797,7 +797,7 @@ class Item(CItem):
         if not referencesOnly:
             for name, value in self._values.iteritems():
                 if isinstance(value, SingleRef):
-                    value = self._view.find(value.itsUUID)
+                    value = self.itsView.find(value.itsUUID)
                 yield name, value
 
         if not valuesOnly:
@@ -865,7 +865,7 @@ class Item(CItem):
         """
 
         if latest:
-            return self._view.getItemVersion(0x7fffffff, self)
+            return self.itsView.getItemVersion(0x7fffffff, self)
 
         return self._version
         
@@ -1315,7 +1315,7 @@ class Item(CItem):
             _countAccess(self)
             dirty |= Item.FDIRTY
 
-            view = self._view
+            view = self.itsView
             view._status |= view.FDIRTY
             
             if not self.isDirty():
@@ -1545,7 +1545,7 @@ class Item(CItem):
             if not recursive and self.hasChildren():
                 raise RecursiveDeleteError, self
 
-            view = self._view
+            view = self.itsView
             refs = self._references
 
             if hasattr(type(self), 'onItemDelete'):
@@ -1578,7 +1578,7 @@ class Item(CItem):
                 if other.refCount(True) == 0:
                     other.delete(recursive, deletePolicy)
 
-            self.__setKind(None, _noMonitors)
+            self._setKind(None, _noMonitors)
 
             self.itsParent._removeItem(self)
             self._setRoot(None, view)
@@ -1606,10 +1606,6 @@ class Item(CItem):
 
         return matches[uuid]
             
-    def __getName(self):
-
-        return self._name
-
     def getItemDisplayName(self):
         """
         Return this item's display name.
@@ -1700,13 +1696,6 @@ class Item(CItem):
 
         return path
 
-    def _getRoot(self):
-
-        if self._root.isStale():
-            self._root = self._view[self._root._uuid]
-            
-        return self._root
-
     def _setRoot(self, root, oldView):
 
         if root is not self._root:
@@ -1726,7 +1715,6 @@ class Item(CItem):
                     newView._registerItem(self)
 
             self._root = root
-            self._view = newView
 
             for child in self.iterChildren(load=False):
                 child._setRoot(root, oldView)
@@ -1734,23 +1722,7 @@ class Item(CItem):
         elif root is not None:
             root.itsView._registerItem(self)
 
-    def __getParent(self):
-
-        if self._parent.isStale():
-            self._parent = self._view[self._parent._uuid]
-            
-        return self._parent
-
-    def __getKind(self):
-
-        kind = self._kind
-        if kind is not None and kind.isStale():
-            kind = self._view[kind._uuid]
-            self._kind = kind
-                
-        return kind
-
-    def __setKind(self, kind, _noMonitors=False):
+    def _setKind(self, kind, _noMonitors=False):
 
         if kind is not self._kind:
             self.setDirty(Item.NDIRTY)
@@ -1857,7 +1829,7 @@ class Item(CItem):
                 kind = superKinds.pop(0)
             kind = kind.mixin(superKinds)
 
-        self.__setKind(kind)
+        self._setKind(kind)
 
         return kind
 
@@ -1915,7 +1887,7 @@ class Item(CItem):
             acl = Nil
 
         if acl is Nil:
-            acl = self._view.getACL(self._uuid, name, self._version)
+            acl = self.itsView.getACL(self._uuid, name, self._version)
 
         return acl
 
@@ -2000,12 +1972,12 @@ class Item(CItem):
 
         if self._children is not None:
             if name is not None:
-                loading = self._view.isLoading()
+                loading = self.itsView.isLoading()
                 if self._children.resolveAlias(name, not loading) is not None:
                     raise ChildNameError, (self, item._name)
 
         else:
-            self._children = self._view._createChildren(self, True)
+            self._children = self.itsView._createChildren(self, True)
 
         self._children.__setitem__(item._uuid, item, previous, next, name)
 
@@ -2119,7 +2091,7 @@ class Item(CItem):
                 if attr is not None:
                     return attr._walk(path, callable, **kwds)
                 else:
-                    return self._view.walk(path, callable, 1, **kwds)
+                    return self.itsView.walk(path, callable, 1, **kwds)
 
             elif path[0] == '/':
                 if attr is not None:
@@ -2223,7 +2195,7 @@ class Item(CItem):
         """
 
         if isinstance(spec, UUID):
-            return self._view.find(spec, load)
+            return self.itsView.find(spec, load)
 
         if isinstance(spec, Path):
             if attribute is None:
@@ -2275,7 +2247,7 @@ class Item(CItem):
         elif not isinstance(uuid, UUID):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
 
-        return self._view.find(uuid, load)
+        return self.itsView.find(uuid, load)
 
     def findMatch(self, view, matches=None):
 
@@ -2321,7 +2293,6 @@ class Item(CItem):
             if not reloadable:
                 self._parent = None
                 self._root = None
-                self._view = None
                 self._kind = None
             
             self._status |= Item.STALE
@@ -2339,8 +2310,8 @@ class Item(CItem):
             persisted = self.getAttributeAspect(name, 'persisted',
                                                 False, None, True)
 
-        return self._view._createRefList(self, name, otherName,
-                                         persisted, False, True, None)
+        return self.itsView._createRefList(self, name, otherName,
+                                           persisted, False, True, None)
 
     def _commitMerge(self, version):
 
@@ -2450,61 +2421,3 @@ class Item(CItem):
 
             else:
                 print indent2, "%s: <%s>" %(name, type(value).__name__), repr(value)
-
-
-    itsName = property(fget = __getName,
-                       fset = rename,
-                       doc =
-                       """
-                       Return this item's name.
-
-                       The item name is used to lookup an item in its parent
-                       container and construct the item's path in the
-                       repository. 
-                       An item may be renamed by setting this property.
-
-                       The name of an item must be unique among all its
-                       siblings. 
-                       """)
-
-    itsPath = property(fget = _getPath,
-                       doc = 
-                       """
-                       Return the path to this item relative to its repository.
-
-                       A path is a C{/} separated sequence of item names.
-                       """)
-
-    itsParent = property(fget = __getParent,
-                         fset = move,
-                         doc = 
-                         """
-                         Return this item's parent.
-
-                         An item may be moved by setting this property.
-                         """)
-
-    itsRoot = property(fget = _getRoot,
-                       doc = 
-                       """
-                       Return this item's repository root.
-
-                       A repository root is a direct child of the repository.
-                       All single-slash rooted paths are expressed relative
-                       to this root when used with this item.
-                       """)
-
-    itsKind = property(fget = __getKind,
-                       fset = __setKind,
-                       doc = 
-                       """
-                       Return or set this item's kind.
-
-                       When setting an item's kind, only the values for
-                       attributes common to both current and new kind are
-                       retained. After the new kind is set, its attributes'
-                       optional L{initial values<getAttributeAspect>} are
-                       set for attributes for which there is no value on the
-                       item. Setting an item's kind to C{None} clears all
-                       its values.
-                       """)

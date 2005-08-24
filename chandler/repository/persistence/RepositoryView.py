@@ -931,7 +931,6 @@ class RepositoryView(object):
             view._unregisterItem(_item, False)
             self._registerItem(_item)
             _item._root = root
-            _item._view = root._parent
             for child in _item.iterChildren():
                 setRoot(root, child)
 
