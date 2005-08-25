@@ -2,6 +2,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from osaf.pim import AbstractCollection
+from application import schema
 
 from i18n import OSAFMessageFactory as _
 
