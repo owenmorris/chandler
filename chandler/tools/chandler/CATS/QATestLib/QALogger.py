@@ -12,8 +12,9 @@ def QALogger(filepath=None,description="No description"):
             return TestLogger(filepath=filepath,description=description)
         else:
             TestLogger.logger.toClose = False
+            TestLogger.logger.testcaseStartDate = datetime.now()
             TestLogger.logger.Print("")
-            TestLogger.logger.Print("----- Testcase = %s -----" %description)
+            TestLogger.logger.Print("----- Testcase %s = %s -----" %(len(TestLogger.logger.testcaseList)+1, description))
             TestLogger.logger.subTestcaseDesc = description
             return TestLogger.logger
 
@@ -102,15 +103,16 @@ class TestLogger:
         for passed in self.passedList:
             self.Print("        - Ok : %s" % passed)
         if len(self.failureList) == 0 and self.checked:
-            status = "PASS"
+            status = "Pass"
             self.nbPass = self.nbPass + 1
         elif len(self.failureList) == 0 and not self.checked:
-            status = "UNCHECK"
+            status = "Uncheck"
             self.nbUnchecked = self.nbUnchecked + 1
         else:
-            status = "FAIL"
+            status = "Fail"
             self.nbFail = self.nbFail + 1
-        self.Print("ACTION STATUS = %s" % status)
+        self.Print("Action status = %s" % status)
+        self.Print("")
 
         #reset
         self.failureList = []
@@ -140,47 +142,61 @@ class TestLogger:
             self.Print("End date (after %s test script) = %s" %(self.mainDescription, now))
             self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))
             self.Print("")
-            #display the sub-testcase status summary
+            #display the TestSuite status summary
             if not len(self.testcaseList) == 0:
-                self.Print("Sub-Testcase Status summary :")
+                self.Print("TestSuite Summary :")
                 nbTCFailed = 0
                 nbTCPassed = 0
+                nbTCUnchecked = 0
                 for tc in self.testcaseList:
                     if tc[1] == "FAIL":
                         nbTCFailed = nbTCFailed + 1
-                    else:
+                    elif tc[1] == "PASS":
                         nbTCPassed = nbTCPassed + 1
+                    else:
+                        nbTCUnchecked = nbTCUnchecked + 1
                     self.Print("-  %s  =  %s" %(tc[0],tc[1]))
                 self.Print("")
-                self.Print("Total number of Sub-Testcase : %s" %len(self.testcaseList))
-                self.Print("Total number of Sub-Testcase PASSED : %s" %nbTCPassed)
-                self.Print("Total number of Sub-Testcase FAILED : %s" %nbTCFailed)
+                self.Print("Total number of Testcases RUN : %s" %len(self.testcaseList))
+                self.Print("Total number of Testcases PASSED : %s" %nbTCPassed)
+                self.Print("Total number of Testcases FAILED : %s" %nbTCFailed)
                 self.Print("")
-                # compute the status of the main testcase if is composed by sub-testcase
+                # compute the status of the Testscript if is composed by sub-testcases
                 if nbTCFailed == 0:
-                    status = "PASS"
+                    status = "PASSED"
                 else:
-                    status = "FAIL"
+                    status = "FAILED"
+                # Test suite status
+                self.Print("Status : %s test suite %s" %(self.mainDescription, status))
             # compute the status of the main testcase if is composed by actions
             else:
                 if self.nbPass == self.nbAction:
-                    status = "PASS"
+                    status = "PASSED"
                 elif self.nbUnchecked == self.nbAction:
-                    status = "UNCHECK"
+                    status = "UNCHECKED"
                 else:
-                    status = "FAIL"
+                    status = "FAILED"
+                
+                self.Print("Total number of test actions executed : %s" %self.nbAction)
+                self.Print("Total number of test actions PASSED : %s" %self.nbPass)
+                self.Print("Total number of test actions FAILED : %s" %self.nbFail)
+                self.Print("")
+                #Test case status
+                self.Print("Status : %s testcase %s" %(self.mainDescription, status))
+
             # Tindebox printing
             # convert the elapsed tme in minutes
             elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
+            self.Print("")
             self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
             self.Print("#TINDERBOX# Status = %s" %status)
-            self.Print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+            self.Print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
             self.Print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
             self.Print("")
             self.Print("*******               End of Report               *******")
             print("#TINDERBOX# Testname = %s" %self.mainDescription)    
             print("#TINDERBOX# Status = %s" %status)
-            print("#TINDERBOX# Time elapsed = %s" %elapsed_min)
+            print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
             print("OSAF_QA: %s | %s | %s | %s" %(self.mainDescription, 1, elapsed_min, elapsed_min)) 
             if not self.inTerminal:
                 # close the file
@@ -189,9 +205,20 @@ class TestLogger:
             if self.subTestcaseDesc:
                 if self.nbPass == self.nbAction:
                     status = "PASS"
+                elif self.nbUnchecked == self.nbAction:
+                    status = "UNCHECKED"
                 else:
                     status = "FAIL"
                 self.testcaseList.append((self.subTestcaseDesc,status))
+            # Test case status
+            now = datetime.now()
+            elapsed = now - self.testcaseStartDate
+            self.Print("-----  %s summary  -----" %self.subTestcaseDesc)
+            self.Print("Start date (before %s testcase) = %s" %(self.subTestcaseDesc, self.testcaseStartDate))
+            self.Print("End date (after %s testcase) = %s" %(self.subTestcaseDesc, now))
+            self.Print("Time Elapsed = %s.%s seconds" %(elapsed.seconds, elapsed.microseconds))
+            self.Print("Testcase Name= %s" %self.subTestcaseDesc)
+            self.Print("Testcase Status = %s" %status)
             # new testcase inits
             self.Reset()
-           
+            

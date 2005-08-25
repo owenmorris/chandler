@@ -1,10 +1,20 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-import osaf.framework.scripting.QATestAppLib as QATestAppLib
+import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
 import os, wx
 
-logger = QATestAppLib.Logger()
-path = os.path.join(os.getenv('CHANDLERHOME') or '.', 'parcels', 'osaf','sharing','tests')
+
+filePath = os.path.expandvars('$CATSREPORTDIR')
+if not os.path.exists(filePath):
+    filePath = os.getcwd()
+
+# initialization
+fileName = "TestImporting.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestImporting")
+
+
+path = os.path.join(os.path.expandvars('$CATSHOME'),"QATestScripts")
+print path
 share = Sharing.OneTimeFileSystemShare(path, '1kevents.ics', ICalendar.ICalendarFormat, view=__view__)
 
 logger.Start("Import Large Calendar")

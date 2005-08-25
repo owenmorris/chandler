@@ -704,7 +704,6 @@ class UITestItem :
         
 class UITestAccounts:
     def __init__(self, view = None, logger=None):
-        import wx
         self.view = view
         self.logger = logger
         self.window = None
@@ -721,6 +720,7 @@ class UITestAccounts:
         import application
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.view, modal=False)
         self.window = Sgf.GetWindow("Account Preferences")
+        wx.GetApp().Yield()
         
     def Ok(self):
         self.window.OnOk(None)
@@ -748,9 +748,10 @@ class UITestAccounts:
     def TypeValue(self, field, value):
         child = self._GetField(field)
         child.SetFocus()
-        child.SelectAll()
-        Sgf.Type(value);
         wx.GetApp().Yield()
+        child.SelectAll()
+        Sgf.Type(value)
+        
 
     def ToggleValue(self, field, value):
         child = self._GetField(field)
@@ -797,6 +798,8 @@ class UITestAccounts:
                 result = False
             else:
                 self.logger.ReportPass("Checking %s %s" % (type, key))
+        #report the checkings
+        self.logger.Report("%s values" %type)
         return result
 
 

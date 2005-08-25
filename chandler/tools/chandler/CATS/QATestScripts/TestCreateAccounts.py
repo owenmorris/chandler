@@ -1,8 +1,16 @@
-import osaf.framework.scripting.QATestAppLib as QATestAppLib
+import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
+import os
+
+filePath = os.path.expandvars('$CATSREPORTDIR')
+if not os.path.exists(filePath):
+    filePath = os.getcwd()
+
+
 # initialization
-logger = QATestAppLib.Logger()
+fileName = "TestCreateAccounts.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestCreateAccounts")
 logger.Start("Account Preferences Dialog")
-ap = QATestAppLib.UITestAccounts(__view__, logger)
+ap = QAUITestAppLib.UITestAccounts(__view__, logger)
 
 # action
 ap.Open() # first, open the accounts dialog window
@@ -53,10 +61,12 @@ ap.ToggleValue("default", True)
 ap.Ok()
 logger.Stop()
 
-# Verification
+#verification
 ap.VerifyValues("SMTP", "Personal SMTP", displayName = "Personal SMTP", host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 25, username = 'demo1', password = 'ad3leib5' )
 ap.VerifyValues("IMAP", "Personal IMAP", displayName = "Personal IMAP", host = "imap.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
 ap.VerifyValues("POP", "Personal POP", displayName = "Personal POP", host = "pop.osafoundation.org", connectionSecurity = "SSL", username = "demo1", password = "ad3leib5")
 ap.VerifyValues("WebDAV", "Perosnal WebDAV", displayName = "Personal WebDAV", host = "qacosmo.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
-logger.Report()
+
+
+#cleaning
 logger.Close()
