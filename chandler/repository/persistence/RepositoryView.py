@@ -1217,6 +1217,10 @@ class NullRepositoryView(RepositoryView):
 
         return None
 
+    def mapChanges(self, callable, freshOnly=False):
+
+        pass
+
     def _logItem(self, item):
 
         return True
