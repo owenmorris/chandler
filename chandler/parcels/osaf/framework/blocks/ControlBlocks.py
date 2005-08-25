@@ -547,11 +547,18 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
 
+    def OnKeyUp(self, event):
+        if event.m_keyCode == wx.WXK_DELETE:
+            self.blockItem.onRemoveEvent(event)
+        else:
+            event.Skip()
+            
     def OnGainFocus (self, event):
         self.SetSelectionBackground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_HIGHLIGHT))
         self.InvalidateSelection ()
@@ -855,21 +862,22 @@ class wxTable(DragAndDrop.DraggableWidget,
     When a single cell is selected, these methods delegate the
         cut and paste operations to the attribute editor.
     """
-    def _DelegateCellEdit(self, operation):
+    def _DelegateCellEdit(self, operation, method=None):
         # maybe we're in grid select - see if the widget there can do it.
-        method = getattr(super(wxTable, self), operation) # super method to fall back on
+        method = method or getattr(super(wxTable, self), operation, None) # super method to fall back on
         cursorPos = (self.GetGridCursorRow(), self.GetGridCursorCol())
         editor = self.GetCellEditor(*cursorPos)
         try:
             editingCell = editor.editingCell
         except AttributeError:
-            return method()
-        if editingCell == cursorPos:
-            try:
-                method = getattr(editor.control, operation)
-            except AttributeError:
-                pass
-        return method()
+            pass
+        else:
+            if editingCell == cursorPos:
+                try:
+                    method = getattr(editor.control, operation)
+                except AttributeError:
+                    method = None
+        return (method is not None) and method()
 
     def CanCopy(self):
         return self._DelegateCellEdit('CanCopy')
@@ -889,6 +897,20 @@ class wxTable(DragAndDrop.DraggableWidget,
     def Paste(self):
         return self._DelegateCellEdit('Paste')
 
+    def CanClear(self):
+        # Disallow Clear if we're not editing. (Remove works instead)
+        return self._DelegateCellEdit('CanCut', lambda: False)
+
+    def Clear(self):
+        return self._DelegateCellEdit('Clear', lambda: False)
+
+    def CanSelectAll(self):
+        return self._DelegateCellEdit('CanSelectAll',
+                                      lambda: self.GetNumberRows() > 0)
+
+    def SelectAll(self):
+        return self._DelegateCellEdit('SelectAll')
+    
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()

@@ -196,7 +196,9 @@ class MainView(View):
         event.arguments ['Enable'] = False
 
     def onUndoEventUpdateUI (self, event):
-        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+        # BJS: commented out - see rant in Block.py, 
+        # RectangularChild.onUndoEventUpdateUI
+        #event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
         event.arguments ['Enable'] = False
 
     def onNewEventUpdateUI (self, event):

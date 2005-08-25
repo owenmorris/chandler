@@ -544,6 +544,11 @@ class ContentItem(schema.Item):
 
         isSharedInAnyReadOnlyShares = False
 
+        # If the attribute is one of our calculated properties, map it to the
+        # real attribute.
+        if attribute == 'bodyString':
+            attribute = 'body'
+            
         for collection in self.queries:
             for share in collection.shares:
                 if share.sharer is not me:          # inbound share

@@ -38,10 +38,12 @@ def installParcel(parcel, oldName=None):
 
     EventList.update(parcel, 'GlobalEvents',
                      eventsForNamedLookup=[
-        BlockEvent.template('Undo', 'ActiveViewBubbleUp').install(parcel),
+        BlockEvent.template('Undo', 'FocusBubbleUp').install(parcel),
 
         BlockEvent.template('Cut', 'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),
+
+        BlockEvent.template('SelectAll', 'FocusBubbleUp').install(parcel),
 
         BlockEvent.template('PrintPreview',
                             'ActiveViewBubbleUp').install(parcel),
@@ -49,7 +51,13 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('SendShareItem',
                             'FocusBubbleUp').install(parcel),
 
+        # It's possible that Clear and Remove should be the same event,
+        # contextually applied to either text or items. For now, I'm trying
+        # them separately. --stearns
         BlockEvent.template('Remove',
+                            'FocusBubbleUp',
+                            commitAfterDispatch=True).install(parcel),
+        BlockEvent.template('Clear',
                             'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),
 
@@ -63,7 +71,7 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template('Copy', 'FocusBubbleUp',
                             commitAfterDispatch=True).install(parcel),
 
-        BlockEvent.template('Redo', 'ActiveViewBubbleUp').install(parcel),
+        BlockEvent.template('Redo', 'FocusBubbleUp').install(parcel),
 
         BlockEvent.template('Quit', 'ActiveViewBubbleUp').install(parcel),
 

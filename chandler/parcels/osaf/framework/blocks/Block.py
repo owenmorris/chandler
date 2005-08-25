@@ -766,6 +766,12 @@ class wxRectangularChild (ShownSynchronizer, wx.Panel):
 
     def CanRedo(self):
         return False
+    
+    def CanClear(self):
+        return False
+    
+    def CanSelectAll(self):
+        return False
 
 class alignmentEnumType(schema.Enumeration):
     values = (
@@ -803,12 +809,7 @@ class RectangularChild (Block):
         return self._GenericEditUpdateUI (event, 'CanCopy')
 
     def onCopyEvent (self, event):
-        try:
-            return self.widget.Copy()
-        except AttributeError:
-            # don't know, so BubbleUp            
-            event.arguments['continueBubbleUp'] = True
-        # doesn't change the data
+        return self._GenericEditEvent('Copy', changesData=False)
 
     def onCutEventUpdateUI (self, event):
         return self._GenericEditUpdateUI (event, 'CanCut')
@@ -822,6 +823,18 @@ class RectangularChild (Block):
     def onPasteEvent (self, event):
         return self._GenericEditEvent ('Paste')
 
+    def onClearEventUpdateUI (self, event):
+        return self._GenericEditUpdateUI (event, 'CanClear')
+    
+    def onClearEvent(self, event):
+        return self._GenericEditEvent('Clear')
+    
+    def onSelectAllEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanSelectAll')
+
+    def onSelectAllEvent(self, event):
+        return self._GenericEditEvent('SelectAll', changesData=False)
+        
     def onRedoEventUpdateUI (self, event):
         return self._GenericEditUpdateUI (event, 'CanRedo')
 
@@ -829,18 +842,30 @@ class RectangularChild (Block):
         return self._GenericEditEvent ('Redo')
 
     def onUndoEventUpdateUI (self, event):
-        # enable "Undo" menu item
-        try:
-            canUndo = self.widget.CanUndo()
-        except AttributeError:
-            # don't know, so BubbleUp            
-            event.arguments['continueBubbleUp'] = True
-            return
-        event.arguments ['Enable'] = canUndo
-        if canUndo:
-            event.arguments ['Text'] = _('Undo Command\tCtrl+Z')
-        else:
-            event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+        return self._GenericEditUpdateUI(event, 'CanUndo')
+    
+        # @@@ BJS: I've commented out this old implementation,
+        # which customized the Undo enabling to change the text
+        # between "Undo Command" and "Can't Undo" to match the
+        # enabledness. This mechanism has two problems:
+        # - It adds unnecessary complication (why don't all menu items
+        # change their text to "Can't Whatever" when we disable them?)
+        # - It's wrong when it says "Command", because this method
+        # also gets used when enabling undo for text edits. Adding an
+        # even-more-complicated mechanism to allow delegation of the 
+        # noun is even more unnecessary. <end rant> ;-)
+        ## enable "Undo" menu item
+        #try:
+            #canUndo = self.widget.CanUndo()
+        #except AttributeError:
+            ## don't know, so BubbleUp            
+            #event.arguments['continueBubbleUp'] = True
+            #return
+        #event.arguments ['Enable'] = canUndo
+        #if canUndo:
+            #event.arguments ['Text'] = _("Undo Command\tCtrl+Z")
+        #else:
+            #event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
 
     def onUndoEvent (self, event):
         return self._GenericEditEvent ('Undo')
@@ -857,7 +882,7 @@ class RectangularChild (Block):
         # We know if we can, so enable or disable menu item
         event.arguments ['Enable'] = canDo
 
-    def _GenericEditEvent (self, methodName):
+    def _GenericEditEvent (self, methodName, changesData=True):
         try:
             method = getattr (self.widget, methodName)
         except AttributeError:
@@ -865,19 +890,16 @@ class RectangularChild (Block):
             event.arguments['continueBubbleUp'] = True
             return
         result = method()
-        self._tryDataChanged()
+        if changesData:
+            # notify that data has changed, if we can
+            try:
+                # use type() to skip repository lookup and get an unbound method
+                method = type(self).OnDataChanged
+            except AttributeError:
+                pass
+            else:
+                method(self)
         return result
-    
-    def _tryDataChanged (self):
-        # notify that data has changed, if we can
-        try:
-            # use type() to skip repository lookup and get an unbound method
-            method = type(self).OnDataChanged
-        except AttributeError:
-            pass
-        else:
-            method(self)
-
 
 class dispatchEnumType(schema.Enumeration):
     values = (

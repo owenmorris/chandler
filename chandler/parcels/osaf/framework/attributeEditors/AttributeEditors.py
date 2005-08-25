@@ -23,7 +23,6 @@ from PyICU import DateFormat, DateFormatSymbols, SimpleDateFormat, ICUError, Par
 from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
 from osaf.pim.items import ContentItem
 from application import schema
-
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -231,9 +230,10 @@ class AETextCtrl(ShownSynchronizer,
     def __init__(self, *arguments, **keywords):
         super (AETextCtrl, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
-
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
+                      
     def OnMouseEvents(self, event):
         # trigger a Drag and Drop if we're a single line and all selected
         if self.IsSingleLine() and event.LeftDown():
@@ -256,6 +256,78 @@ class AETextCtrl(ShownSynchronizer,
         if hasattr(self, 'focusedSince'):
             del self.focusedSince
         event.Skip()        
+    
+    def OnRightClick(self, event):
+        """ Build and display our context menu """
+        # @@@ In the future, it might be nice to base this menu
+        # on CPIA mechanisms, but we don't need that for now.
+        menu = wx.Menu()
+        menu.Append(wx.ID_UNDO, _("Undo"))
+        menu.Append(wx.ID_REDO, _("Redo"))
+        menu.AppendSeparator()
+        menu.Append(wx.ID_CUT, _("Cut"))
+        menu.Append(wx.ID_COPY, _("Copy"))
+        menu.Append(wx.ID_PASTE, _("Paste"))
+        menu.Append(wx.ID_CLEAR, _("Clear"))
+        menu.AppendSeparator()
+        menu.Append(wx.ID_SELECTALL, _("Select All"))
+
+        if '__WXGTK__' in wx.PlatformInfo:
+            # (see note below re: GTK)
+            menu.Bind(wx.EVT_MENU, self.OnMenuChoice)
+            menu.Bind(wx.EVT_UPDATE_UI, self.OnMenuUpdateUI)
+    
+        self.PopupMenu(menu)
+        menu.Destroy()
+        
+        # event.Skip() intentionally not called: we don't want
+        # the menu built into wx to appear!
+
+    # GTK's popup handling seems totally broken (our menu does pop up,
+    # but the enabling and actual execution don't happen). So, do our own.
+    if '__WXGTK__' in wx.PlatformInfo:
+        popupHandlers = {
+            # (FYI: these are method names, and so should not be localized.)
+            wx.ID_UNDO: 'Undo',
+            wx.ID_REDO: 'Redo',
+            wx.ID_CUT: 'Cut',
+            wx.ID_COPY: 'Copy',
+            wx.ID_PASTE: 'Paste',
+            wx.ID_CLEAR: 'Clear',
+            wx.ID_SELECTALL: 'SelectAll'
+            }
+        def OnMenuChoice(self, event):
+            handlerName = AETextCtrl.popupHandlers.get(event.GetId(), None)
+            if handlerName is None:
+                event.Skip()
+                return
+            h = getattr(self, handlerName)
+            return h()
+    
+        def OnMenuUpdateUI(self, event):
+            evtName = AETextCtrl.popupHandlers.get(event.GetId(), None)
+            if evtName is None:
+                event.Skip()
+                return
+            handlerName = "Can%s" % evtName
+            h = getattr(self, handlerName)
+            enabled = h()
+            event.Enable(enabled)
+        
+        # wx.TextCtrl.Clear is documented to remove all the text in the
+        # control; only the GTK version works this way (the others do what
+        # we want, which is to remove the selection). So, here, we hack
+        # Clear to just remove the selection on GTK only.
+        def Clear(self):
+            self.Remove(*self.GetSelection())
+
+        def CanClear(self):    
+            (selStart, selEnd) = self.GetSelection()
+            return self.CanCut() and selStart != selEnd
+    else:
+        # CanClear for all other platforms.
+        def CanClear(self):
+            return self.CanCut()
 
     def Cut(self):
         result = self.GetStringSelection()
@@ -266,6 +338,12 @@ class AETextCtrl(ShownSynchronizer,
         result = self.GetStringSelection()
         super(AETextCtrl, self).Copy()
         return result
+    
+    def CanSelectAll(self):
+        return self.GetLastPosition() > 0
+    
+    def SelectAll(self):
+        self.SetSelection(-1, -1)
     
 class wxEditText(AETextCtrl):
     def __init__(self, *arguments, **keywords):
@@ -415,13 +493,32 @@ class AETypeOverTextCtrl(wxRectangularChild):
             else:
                 sizeChangedMethod()
 
-    # delegate selected unknown attributes to our shown control.
+    # Delegate selected methods to our shown control.
+    # (This only works for methods that aren't implemented in our own base
+    # classes - those we'll need to override specifically, because __getattr__
+    # won't be called for them. See them below.)
     delegatedAttributes = ('GetValue', 'SetValue', 'SetStyle')
     def __getattr__(self, attr):
         if attr in self.delegatedAttributes:
             return getattr(self.shownControl, attr)
         else:
             raise AttributeError, "%s has no attribute named '%s'" % (self, attr)
+    
+    def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
+    def CanUndo(self): return self.shownControl.CanUndo()
+    def CanRedo(self): return self.shownControl.CanRedo()
+    def CanCut(self): return self.shownControl.CanCut()
+    def CanCopy(self): return self.shownControl.CanCopy()
+    def CanPaste(self): return self.shownControl.CanPaste()
+    def CanClear(self): return self.shownControl.CanClear()
+    def CanSelectAll(self): return self.shownControl.CanSelectAll()
+    def Undo(self): return self.shownControl.Undo()
+    def Redo(self): return self.shownControl.Redo()
+    def Cut(self): return self.shownControl.Cut()
+    def Copy(self): return self.shownControl.Copy()
+    def Paste(self): return self.shownControl.Paste()
+    def Clear(self): return self.shownControl.Clear()
+    def SelectAll(self): return self.shownControl.SelectAll()
 
     def SetFont(self, font):
         self.editControl.SetFont(font)
@@ -434,10 +531,6 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def SelectAll(self, *args):
         self._swapControls(self.editControl)
         self.editControl.SelectAll()
-
-    # For some reason we can't delegate this method.
-    def SetForegroundColour(self, *args):
-        self.shownControl.SetForegroundColour(*args)
 
 class StringAttributeEditor (BaseAttributeEditor):
     """ 
@@ -1422,7 +1515,7 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         """ Select the choice with the given text """
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
-        if existingValue != value:            
+        if existingValue is None or existingValue != value:            
             # rebuild the list of choices
             choices = self.GetChoices()
             control.Clear()
@@ -1477,7 +1570,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
-        if existingValue != value:
+        if existingValue is None or existingValue != value:            
             control.Clear()
 
             selectIndex = -1

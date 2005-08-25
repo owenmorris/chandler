@@ -1034,12 +1034,12 @@ class CalendarLocationAreaBlock(DetailSynchronizedContentItemDetail):
 class CalendarConditionalLabelBlock(StaticTextLabel):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
-               and not item.allDay
+               or not (item.allDay or item.anyTime)
         
 class CalendarTimeAEBlock (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
-               and not item.allDay
+               or not (item.allDay or item.anyTime)
 
 class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
@@ -1049,7 +1049,7 @@ class CalendarReminderAreaBlock (DetailSynchronizedContentItemDetail):
 class CalendarTimeZoneAreaBlock (DetailSynchronizedContentItemDetail):
     def shouldShow (self, item):
         return item.isAttributeModifiable('startTime') \
-               and not item.allDay
+               or not (item.allDay or item.anyTime)
 
 
 # Centralize the recurrence blocks' visibility decisions
@@ -1282,13 +1282,13 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
 
 class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     # These are the values we pass around; they're the same as the menu indices.
-    # This is a list of the frequency enumeration names, in the order we present
+    # This is a list of the frequency enumeration names (defined in 
+    # Recurrence.py's FrequencyEnum) in the order we present
     # them in the menu... plus "once" at the beginning and "custom" at the end.
-
-    #XXX: [i18n] does PyICU have support for calculating these localized names?
-    menuFrequencies = [_('once'), _('daily'), _('weekly'), _('monthly'), _('yearly'), _('custom')]
-    onceIndex = menuFrequencies.index(_('once'))
-    customIndex = menuFrequencies.index(_('custom'))
+    # These should not be localized!
+    menuFrequencies = [ 'once', 'daily', 'weekly', 'monthly', 'yearly', 'custom']
+    onceIndex = menuFrequencies.index('once')
+    customIndex = menuFrequencies.index('custom')
     
     @classmethod
     def mapRecurrenceFrequency(theClass, item):
