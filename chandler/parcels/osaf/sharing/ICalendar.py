@@ -118,6 +118,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return "ics"
 
     def findUID(self, uid):
+        uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
+        return uid_map.items.getByAlias(uid)
+
+        # @@@MOR The following can be removed once Jeffrey has verified
+        # my new lookup mechanism meets his needs:
+
+        """
         view = self.itsView
         queryString='union(for i in "%s" where i.icalUID == $0, \
                            for i in "%s" where i.icalUID == $0)' % \
@@ -130,6 +137,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         for match in q:
             return match.getMaster()
         return None
+        """
 
     def importProcess(self, text, extension=None, item=None):
         # the item parameter is so that a share item can be passed in for us
@@ -281,7 +289,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 eventItem = pickKind.newItem(None, newItemParent)
                 countNew += 1
                 eventItem.icalUID = event.uid[0].value
-            
+
+                # Add this event to our UID map:
+                uid_map = schema.ns('osaf.sharing', view).uid_map
+                uid_map.items.append(eventItem, eventItem.icalUID)
+
 
             # vobject isn't meshing well with dateutil when dtstart isDate;
             # dtstart is converted to a datetime for dateutil, but rdate

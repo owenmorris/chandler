@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "50" # john: branch changes.
+SCHEMA_VERSION = "51" # Added iCalendar UID mapping
 
 logger = None # initialized in initLogging()
 
