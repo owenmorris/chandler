@@ -65,13 +65,16 @@ class TrustSiteCertificateDialog(wx.Dialog):
         for choice in choices:
             if first:
                 style = wx.ALIGN_LEFT|wx.RB_GROUP
-                first = False
             else:
                 style = wx.ALIGN_LEFT
             rb = wx.RadioButton(self, -1, choice, wx.DefaultPosition, 
                                 wx.DefaultSize, style)
             rbs += [rb]
             radiobox.Add(rb, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+            if first:
+                rb.SetValue(True)
+
+            first = False
 
         sizer.Add(radiobox, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
