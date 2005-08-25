@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
+from application import schema
 from osaf.framework.blocks.Views import View
 from datetime import timedelta
 from time import time
@@ -31,7 +32,7 @@ import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 from osaf.framework.blocks.Block import Block
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection, ListCollection
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as Scripting
 from osaf import webserver
@@ -119,7 +120,7 @@ class MainView(View):
         Trash.EmptyTrash(self.itsView)
 
     def onEmptyTrashEventUpdateUI(self, event):
-        trash = Trash.FindTrashCollection(self.itsView)
+        trash = schema.ns("osaf.app", self).TrashCollection
         event.arguments['Enable'] = (len(trash) > 0)
 
     def onEditAccountPreferencesEvent (self, event):
@@ -294,7 +295,7 @@ class MainView(View):
 
     def onShareItemEvent (self, event):
         """
-          Share an ItemCollection.
+          Share a Collection.
         """
         itemCollection = event.arguments ['item']
 
@@ -379,7 +380,7 @@ class MainView(View):
           Return the sidebar's selected item collection.
         """
         item = Block.findBlockByName ("Sidebar").selectedItemToView
-        if not isinstance (item, ItemCollection):
+        if not isinstance (item, AbstractCollection):
             item = None
         return item
 
@@ -440,8 +441,8 @@ class MainView(View):
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
             self.setStatusMessage (_("Import completed"))
         except:
-            trace = "".join(traceback.format_exception (*sys.exc_info()))
-            logger.info("Failed importFile:\n%s" % trace)
+            logger.exception("Failed importFile %s" % \
+                os.path.join(dir, filename))
             self.setStatusMessage(_("Import failed"))
 
     def onExportIcalendarEvent(self, event):
@@ -460,7 +461,7 @@ class MainView(View):
         try:
             share = Sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
-            collection = ItemCollection(view=self.itsView)
+            collection = ListCollection(view=self.itsView)
             for event in Calendar.CalendarEvent.iterItems(self.itsView):
                 collection.add(event)
             share.contents = collection
@@ -936,20 +937,3 @@ class MainView(View):
         if Sharing.isInboundMailSetUp(self.itsView):
             self.setStatusMessage (_("Getting new Mail"))
             self.onGetNewMailEvent (event)
-
-    def sharedWebDAVCollections (self):
-        # return the list of all the shared collections
-        # @@@DLD - use new query, once it can handle method calls, or when our item.isShared
-        #  attribute is correctly set.
-        UseNewQuery = False
-        if UseNewQuery:
-            qString = u"for i in '//parcels/osaf/pim/ItemCollection' where len (i.sharedURL) > 0"
-            collQuery = Query.Query (self.itsView.repository, qString)
-            collQuery.recursive = False
-            collections = list(collQuery)
-        else:
-            collections = [
-                coll for coll in ItemCollection.iterItems(self.itsView)
-                     if Sharing.isShared(coll)
-            ]
-        return collections

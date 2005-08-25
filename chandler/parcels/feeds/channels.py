@@ -62,7 +62,7 @@ def NewChannelFromURL(view, url, update = True):
 
     return channel
 
-class FeedChannel(pim.ItemCollection):
+class FeedChannel(pim.ListCollection):
 
     schema.kindInfo(displayName="Feed Channel")
 
@@ -223,7 +223,7 @@ class FeedChannel(pim.ItemCollection):
                 newItem.date = datetime.datetime.now(ICUtzinfo.getDefault())
 
             found = False
-            for oldItem in self.resultSet:
+            for oldItem in self:
                 # check to see if this doesn't already exist
                 if oldItem.isSimilar(newItem):
                     found = True

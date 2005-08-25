@@ -7,7 +7,7 @@ __parcel__ = "osaf.views.main"
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.Trunk as Trunk
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection, FilteredCollection, IntersectionCollection, KindCollection, UnionCollection
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
@@ -107,7 +107,7 @@ class wxSidebar(ControlBlocks.wxTable):
         if (cellRect.InsideXY (x, y) and
             not hasattr (self, 'hoverImageRow') and
             not self.IsCellEditControlEnabled() and
-            isinstance (item, ItemCollection)):
+            isinstance (item, AbstractCollection)):
                 assert not gridWindow.HasCapture()
                 gridWindow.CaptureMouse()
 
@@ -128,7 +128,7 @@ class wxSidebar(ControlBlocks.wxTable):
             if event.LeftDown():
                 for (buttonName, button) in self.buttonState.iteritems():
                     if (button['imageRect'].InsideXY (x, y)
-                        and isinstance (item, ItemCollection)):
+                        and isinstance (item, AbstractCollection)):
                         event.Skip (False) #Gobble the event
                         self.SetFocus()
         
@@ -273,7 +273,7 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.SetBackgroundMode (wx.TRANSPARENT)
         item, attribute = grid.GetTable().GetValue (row, col)
 
-        if isinstance (item, ItemCollection):
+        if isinstance (item, AbstractCollection):
             def drawButton (name):
                 imagePrefix = "Sidebar" + name
                 imageSuffix = ".png"
@@ -480,6 +480,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     tableTemplatePath = schema.One(schema.String)
     calendarTemplatePath = schema.One(schema.String)
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
+    kindToKindCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
@@ -493,7 +494,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
           collectionList should be in the order that the source items are overlayed in the Calendar view
         """
         collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
-        if isinstance (item, ItemCollection):
+        if isinstance (item, AbstractCollection):
             collectionList.insert (0, item)
         if len (collectionList) > 0:
             """
@@ -513,31 +514,37 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                 try:
                     key = self.itemTupleKeyToCacheKey [tupleKey]
                 except KeyError:
-                    """
-                      We need to make a new filtered item collection that depends
-                      upon the unfiltered collection. Unfortunately, making a new
-                      ItemCollection with a rule whose results include all items
-                      in the original ItemCollection has a problem: when the results
-                      in the unfiltered ItemCollection change we don't get notified.
+                    if len (collectionList) == 1:
+                        key = collectionList [0]
+                    else:
+                        key = UnionCollection (view=self.itsView)
+                        for col in collectionList:
+                            key.sources.append(col)
 
-                      Alternatively we make a copy of the ItemCollection (and it's
-                      rule) which has another problem: When the rule in the original
-                      ItemCollection change we don't update our copied rule.                      
-                    """
-                    key = ItemCollection(view=self.itsView)
-                    key.source = collectionList
-                    
                     displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+
                     if filterKind is not None:
-                        key.addFilterKind (filterKind)
-                        displayName += u" filtered by " + filterKind.displayName                    
+                        newKey = IntersectionCollection(view=self.itsView)
+                        try:
+                            kindCollection = self.kindToKindCollectionCache [filterKind]
+                        except KeyError:
+                            kindCollection = KindCollection (view=self.itsView)
+                            kindCollection.kind = filterKind
+                            kindCollection.recursive = True
+                            self.kindToKindCollectionCache [filterKind] = kindCollection
+
+                        newKey.sources = [key, kindCollection]
+                        displayName += u" filtered by " + filterKind.displayName
+                        key = newKey
+
                     key.displayName = displayName
 
                     self.itemTupleKeyToCacheKey [tupleKey] = key
                 else:
                     """
-                      Check to see if we need to reorder the source list. The list is kept
-                    sorted by the order of the collections as they overlay one another.
+                      Check to see if we need to reorder the source list of the UnionCollection.
+                    The list is kept sorted by the order of the collections as they overlay one
+                    another in the Calendar.
                       We don't bother to sort when we're looking up a collection that isn't
                     displayed in the summary view, both because it's not necessary and because
                     it causes the source attribute to change which causes a notification to
@@ -545,15 +552,15 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     notification, ... repeating forever.
                     """
                     if sidebar.selectedItemToView is item:
-                        for new, old in map (None, key.source, collectionList):
+                        for new, old in map (None, key.collectionList, collectionList):
                             if new is not old:
-                                key.source = collectionList
+                                key.collectionList = collectionList
                                 rerender = True
                                 break
         return key, rerender
 
     def _makeTrunkForCacheKey(self, keyItem):
-        if isinstance (keyItem, ItemCollection):
+        if isinstance (keyItem, AbstractCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
             filterKind = sidebar.filterKind
             if (filterKind is not None and
@@ -583,7 +590,7 @@ class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
     templatePath = schema.One(schema.String)
 
     def _makeTrunkForCacheKey(self, keyItem):
-        if isinstance (keyItem, ItemCollection):
+        if isinstance (keyItem, AbstractCollection):
             trunk = self.findPath (self.templatePath)
         else:
             trunk = keyItem

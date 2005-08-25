@@ -218,7 +218,7 @@ def GenerateContact(view):
     return contact
 
 def GenerateCollection(view, postToView=None, existingNames=None):
-    collection = pim.ItemCollection(view=view)
+    collection = pim.ListCollection(view=view)
     
     while True:
         # Find a name that isn't already in use

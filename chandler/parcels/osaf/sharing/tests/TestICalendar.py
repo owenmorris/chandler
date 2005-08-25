@@ -12,7 +12,7 @@ import repository.item.Item as Item
 import application.Parcel as Parcel
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-from osaf.pim import ItemCollection
+from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
 import repository.query.Query as Query
 import datetime
@@ -136,7 +136,7 @@ class ICalendarTestCase(unittest.TestCase):
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)
 
-        coll = ItemCollection(name="testcollection", 
+        coll = ListCollection(name="testcollection", 
                                              parent=self.sandbox)
         coll.add(event)
         filename = "unicode_export.ics"

@@ -4,42 +4,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
 from application import schema
-from repository.item.Sets import Set, Union, Intersection, Difference, KindSet, FilteredSet
+from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Difference, KindSet, FilteredSet
 from repository.item.Item import Item
+from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
 import os
-
-class NotifyHandler(schema.Item):
-    """
-    An item that exists only to handle notifications
-    we should change notifications to work on callables -- John is cool with that.
-    """
-    log = schema.Sequence(initialValue=[])
-    collectionEventHandler = schema.One(schema.String, initialValue="onCollectionEvent")
-
-    def checkLog(self, op, item, other):
-        if len(self.log) == 0:
-            return False
-        rec = self.log[-1]
-        return rec[0] == op and rec[1] == item and rec[2] == "rep" and rec[3] == other and rec[4] == ()
-    
-
-    def onCollectionEvent(self, op, item, name, other, *args):
-        self.log.append((op, item, name, other, args))
-
-class SimpleItem(schema.Item):
-    """
-    A dirt simple item -- think content item here, if you like
-    """
-
-    label = schema.One(schema.String, displayName="My Label")
-
-class OtherSimpleItem(schema.Item):
-    """
-    Another dirt simple item -- think content item here, if you like
-    """
-
-    label = schema.One(schema.String, displayName="My Label")
 
 def mapChangesCallable(item, version, status, literals, references):
     """
@@ -48,16 +17,21 @@ def mapChangesCallable(item, version, status, literals, references):
         if item.collections: 
             for i in item.collections:
                 i.contentsUpdated(item)
+                break
     except AttributeError:
-        try: # handle changes to items in an existing KindCollection
-            # is the item in a kind collection?
-            kc = item.itsView.findPath('//userdata/%sKindCollection' % item.getKind(item.itsView).itsName)
-            if kc is not None:
+        pass
+
+    try: # handle changes to items in an existing KindCollection
+        # is the item in a kind collection?
+
+        #@@@ this is not the most efficient way...
+        kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
+        for i in kc.collections:
+            if item in i:
                 kc.contentsUpdated(item)
-        except AttributeError:
-            pass
-    except Exception, e:
-        print "Exception in mapChangesCallable ",e
+                break
+    except AttributeError, ae:
+        pass # intentionally swallow AttributeErrors
 
 class AbstractCollection(items.ContentItem):
     """
@@ -69,6 +43,14 @@ class AbstractCollection(items.ContentItem):
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
     renameable  = schema.One(schema.Boolean)
 
+    collectionList = schema.Sequence(
+        'AbstractCollection',
+        doc="Views, e.g. the Calendar, that display collections need to know "
+            "which collection are combined to make up the calendar. collectionList"
+            "is an optional parameter for this purpose.",
+        defaultValue = []
+    )
+
     invitees = schema.Sequence(
         "osaf.pim.mail.EmailAddress",
         doc="The people who are being invited to share in this item; filled "
@@ -76,7 +58,7 @@ class AbstractCollection(items.ContentItem):
             "send (entries copied to the share object).\n\n"
             "Issue: Bad that we have just one of these per item collection, "
             "though an item collection could have multiple shares post-0.5",
-        otherName="inviteeOf",  # can't use inverse here while ItemCollection lives!
+        inverse="inviteeOf",
         initialValue=()
     )   
 
@@ -86,17 +68,13 @@ class AbstractCollection(items.ContentItem):
     schema.addClouds(
         copying = schema.Cloud(
             invitees,
-            byCloud=[items.ContentItem.contentsOwner]
+            byRef=['contentsOwner']
         ),
         sharing = schema.Cloud( none = ["displayName"] ),
     )
 
-    rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'), initialValue=None)
+    rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
     subscribers = schema.Sequence(initialValue=[])
-
-    def __init__(self, *args, **kw):
-        super(AbstractCollection, self).__init__(*args, **kw)
-        self.subscribers = []
 
     def collectionChanged(self, op, item, name, other, *args):
         if op:
@@ -107,77 +85,46 @@ class AbstractCollection(items.ContentItem):
 
     def notifySubscribers(self, op, item, name, other, *args):
         for i in self.subscribers:
-            method_name = getattr(i, "collectionEventHandler")
-            method = getattr(i, method_name)
-            method(op, item, name, other, *args)
+            method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
+            method = getattr(type(i), method_name)
+            method(i, op, item, name, other, *args)
 
     def contentsUpdated(self, item):
         pass
+
+    def __contains__(self, item):
+        return self.rep.__contains__(item)
 
     def __iter__(self):
         for i in self.rep:
             yield i
 
-    def size(self):
-        return len(self.rep)
+    def __len__(self):
+        try:
+            return len(self.rep)
+        except ValueError:
+            self.createIndex()
+            return len(self.rep)
 
-    # index delegates
-    def addIndex(self, indexName, indexType, **kwds):
-        return self.rep.addIndex(indexName, indexType, **kwds)
+    def createIndex (self):
+        if self.indexName == "__adhoc__":
+            self.rep.addIndex (self.indexName, 'numeric')
+        else:
+            self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
 
-    def removeIndex(self, indexName):
-        return self.rep.removeIndex(indexName)
+    def __getitem__ (self, index):
+        try:
+            return self.rep.getByIndex (self.indexName, index)
+        except NoSuchIndexError:
+            self.createIndex()
+            return self.rep.getByIndex (self.indexName, index)
 
-    def setIndexDescending(self, indexName, descending=True):
-        return self.rep.setDescending(indexName, descending)
-
-    def getByIndex(self, indexName, position):
-        return self.rep.getByIndex(indexName, position)
-
-    def removeByIndex(self, indexName, position):
-        return self.rep.removeByIndex(indexName, position)
-
-    def insertByIndex(self, indexName, position, item):
-        return self.rep.insertByIndex(indexName, position, item)
-
-    def replaceByIndex(self, indexName, position, with):
-        return self.rep.replaceByIndex(indexName, position, with)
-        
-    def placeInIndex(self, item, after, *indexNames):
-        return self.rep.placeInIndex(item, after, indexNames)
-        
-    def iterindexkeys(self, indexName):
-        for key in self.rep.iterindexkeys(indexName):
-            yield key
-        
-    def iterindexvalues(self, indexName):
-        for value in self.rep.iterindexvalues(indexName):
-            yield value
-        
-    def iterindexitems(self, indexName):
-        for pair in self.rep.iterindexitems(indexName):
-            yield pair
-        
-    def getIndexEntryValue(self, indexName, item):
-        return self.rep.getIndexEntryValue(indexName, item)
-        
-    def setIndexEntryValue(self, indexName, item, value):
-        return self.rep.setIndexEntryValue(indexName, item, value)
-        
-    def getIndexPosition(self, indexName, item):
-        return self.rep.getIndexPosition(indexName, item)
-        
-    def firstInIndex(self, indexName):
-        return self.rep.firstInIndex(indexName)
-        
-    def lastInIndex(self, indexName):
-        return self.rep.lastInIndex(indexName)
-        
-    def nextInIndex(self, previous, indexName):
-        return self.rep.nextInIndex(previous, indexName)
-
-    def previousInIndex(self, next, indexName):
-        return self.rep.previousInIndex(next, indexName)
+    def index (self, item):
+        try:
+            return self.rep.getIndexPosition (self.indexName, item)
+        except NoSuchIndexError:
+            self.createIndex()
+            return self.resultSet.getIndexPosition (self.indexName, item)
 
 class KindCollection(AbstractCollection):
     """
@@ -187,18 +134,29 @@ class KindCollection(AbstractCollection):
     )
 
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'), initialValue=None)
+    recursive = schema.One(schema.Boolean, initialValue=False)
+    directory = schema.One("KindCollectionDirectory", initialValue=None)
 
+    def __init__(self, *args, **kw):
+        super(KindCollection, self).__init__(*args, **kw)
+        kc = schema.ns("osaf.pim.collections", self.itsView).kind_collections
+        kc.collections.append(self)
+    
     def contentsUpdated(self, item):
-#        print "KindCollection.contentsUpdated: ",item
         self.rep.notify('changed', item)
-        pass
 
     def onValueChanged(self, name):
-        if name == "kind":
-            try:
-                self.rep = KindSet(self.kind)
-            except AttributeError:
-                pass
+        if name == "kind" or name == "recursive":
+            self.rep = KindSet(self.kind, self.recursive)
+
+class KindCollectionDirectory(schema.Item):
+    collections = schema.Sequence(
+        "KindCollection",
+        inverse = KindCollection.directory,
+        doc="all KindCollections - intended to be a singleton.  Use to propagate change notifications", initialValue=[])
+
+def installParcel(parcel, old_version = None):
+    KindCollectionDirectory.update(parcel, "kind_collections")
 
 class ListCollection(AbstractCollection):
     """
@@ -207,22 +165,27 @@ class ListCollection(AbstractCollection):
         displayName="ListCollection"
     )
 
-    refCollection = schema.Sequence(otherName=Item.collections,initialValue=[])
+    refCollection = schema.Sequence(otherName='collections',initialValue=[])
 
     def __init__(self, *args, **kw):
         super(ListCollection, self).__init__(*args, **kw)
         self.rep = Set((self,'refCollection'))
-        self.refCollection = []
 
     def add(self, item):
         self.refCollection.append(item)
+
+    def clear(self):
+        self.refCollection.clear()
+
+    def first(self):
+        self.refCollection.first()
 
     def remove(self, item):
         self.refCollection.remove(item)
 
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
-        pass
+
 
 class DifferenceCollection(AbstractCollection):
     """
@@ -231,20 +194,19 @@ class DifferenceCollection(AbstractCollection):
         displayName="DifferenceCollection"
     )
 
-    left = schema.One(AbstractCollection, initialValue=None)
-    right = schema.One(AbstractCollection, initialValue=None)
+    sources = schema.Sequence(AbstractCollection, initialValue=[])
 
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[left, right]),
+        copying = schema.Cloud(byCloud=[sources]),
     )
 
     def onValueChanged(self, name):
-        if name == "left" or name == "right":
-            try:
-                if self.left != None and self.right != None:
-                    self.rep = Difference((self.left, "rep"),(self.right, "rep"))
-            except AttributeError:
-                pass
+        if name == "sources":
+            if self.sources != None:
+                assert len(self.sources) <= 2, "DifferenceCollection can only handle 2 sources"
+
+                if len(self.sources) == 2:
+                    self.rep = Difference((self.sources[0], "rep"),(self.sources[1], "rep"))
 
 class UnionCollection(AbstractCollection):
     """
@@ -253,20 +215,20 @@ class UnionCollection(AbstractCollection):
         displayName="UnionCollection"
     )
 
-    left = schema.One(AbstractCollection, initialValue=None)
-    right = schema.One(AbstractCollection, initialValue=None)
+    sources = schema.Sequence(AbstractCollection, initialValue=[])
 
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[left, right]),
+        copying = schema.Cloud(byCloud=[sources]),
     )
 
     def onValueChanged(self, name):
-        if name == "left" or name == "right":
-            try:
-                if self.left != None and self.right != None:
-                    self.rep = Union((self.left, "rep"),(self.right, "rep"))
-            except AttributeError:
-                pass
+        if name == "sources":
+            if self.sources != None and len(self.sources)> 1:
+                if len(self.sources) == 2:
+                    self.rep = Union((self.sources[0],"rep"),(self.sources[1],"rep"))
+                else:
+                    self.rep = MultiUnion(*[(i, "rep") for i in self.sources])
+
 
 class IntersectionCollection(AbstractCollection):
     """
@@ -275,21 +237,16 @@ class IntersectionCollection(AbstractCollection):
         displayName="IntersectionCollection"
     )
 
-    left = schema.One(AbstractCollection, initialValue=None)
-    right = schema.One(AbstractCollection, initialValue=None)
+    sources = schema.Sequence(AbstractCollection, initialValue=[])
 
     schema.addClouds(
-        copying = schema.Cloud(byCloud=[left, right]),
+        copying = schema.Cloud(byCloud=[sources]),
     )
 
     def onValueChanged(self, name):
-        if name == "left" or name == "right":
-            try:
-                if self.left != None and self.right != None:
-                    self.rep = Intersection((self.left, "rep"),(self.right, "rep"))
-            except AttributeError:
-                pass
-
+        if name == "sources":
+            if self.sources != None and len(self.sources) > 1:
+                self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
 
 class FilteredCollection(AbstractCollection):
     """
@@ -300,17 +257,63 @@ class FilteredCollection(AbstractCollection):
 
     source = schema.One(AbstractCollection, initialValue=None)
     filterExpression = schema.One(schema.String, initialValue="")
+    filterAttributes = schema.Sequence(schema.String, initialValue=[])
 
     schema.addClouds(
         copying = schema.Cloud(byCloud=[source]),
     )
 
     def onValueChanged(self, name):
-        if name == "source" or name == "filterExpression":
-            try:
-                if self.source != None and self.filterExpression != "":
-                    s = "lambda item: %s" % self.filterExpression
-                    self.rep = FilteredSet((self.source, "rep"), eval(s))
-            except AttributeError, ae:
-                print ae
-                pass
+        if name == "source" or name == "filterExpression" or name =="filterAttributes":
+            if self.source != None:
+                try:
+                    if self.filterExpression != "" and self.filterAttributes != []:
+
+                        self.rep = FilteredSet((self.source, "rep"), self.filterExpression, self.filterAttributes)
+                except AttributeError, ae:
+                    pass
+
+
+class InclusionExclusionCollection(UnionCollection):
+    """
+      User collections implement inclusions, exclusions and source sets along
+    with methods for add and remove
+    """
+    def getInclusions (self):
+        return self.sources[1]
+
+    inclusions = property (getInclusions)
+
+    def getExclusions (self):
+        return self.sources[0].sources[1]
+
+    exclusions = property (getExclusions)
+
+    def getSource (self):
+        return self.sources[0].sources[0]
+
+    def setSource (self, value):
+        self.sources[0].sources[0] = value
+
+    source = property (getSource, setSource)
+
+    def add (self, item):
+        """
+          Add an item to the inclusions. Optimize changes to inclusions and
+        exclusions.
+        """
+        if item not in self.inclusions:
+            self.inclusions.add (item)
+            if item in self.exclusions:
+                self.exclusions.remove (item)
+
+    def remove (self, item):
+        """
+          Remove an item from the exclusions. Optimize changes to inclusions and
+        exclusions.
+        """
+        if item not in self.exclusions:
+            self.exclusions.add (item)
+            if item in self.inclusions:
+                self.inclusions.remove (item)
+

@@ -55,16 +55,16 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
         
         # Make sure the itemcollection that we monitor includes only the selected item.
-        if item is not None and (len(self.contents.inclusions) != 1 or \
-                                 self.contents.inclusions.first() is not item):
-            self.contents.inclusions.clear()
+        if item is not None and (len(self.contents) != 1 or \
+                                 self.contents.first() is not item):
+            self.contents.clear()
             self.contents.add(item)
 
     def selectedItem(self):
         # return the item being viewed
         try:
-            item = self.contents.inclusions.first()    
-        except:
+            item = self.contents[0]
+        except IndexError:
             item = None
         return item
 
@@ -191,7 +191,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         enabled = False
         label = _("Send")
         if item is not None:            
-            if isinstance(item, pim.ItemCollection):
+            if isinstance(item, pim.AbstractCollection):
                 # It's a collection: label should read "Send", or "Send to new" if it's already shared.
                 enabled = len(item.invitees) > 0
                 try:
@@ -232,7 +232,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
         # preflight the send/share request
         # mail items and collections need their sender and recievers set up
         message = None
-        if isinstance (item, pim.ItemCollection):
+        if isinstance (item, pim.AbstractCollection):
             try:
                 whoTo = item.invitees
             except AttributeError:
@@ -549,10 +549,10 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
         assert not hasattr(self, 'widget')
 
 def ItemCollectionOrMailMessageMixin (item):
-    # if the item is a MailMessageMixin, or an ItemCollection,
+    # if the item is a MailMessageMixin, or a Collection,
     # then return True
     mailKind = Mail.MailMessageMixin.getKind (item.itsView)
-    isCollection = isinstance (item, pim.ItemCollection)
+    isCollection = isinstance (item, pim.AbstractCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
 
@@ -564,7 +564,7 @@ class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """
     def shouldShow (self, item):
         # if the item is a collection, we should not show ourself
-        shouldShow = not isinstance (item, pim.ItemCollection)
+        shouldShow = not isinstance (item, pim.AbstractCollection)
         return shouldShow
 
     def onButtonPressedEvent (self, event):
@@ -812,7 +812,7 @@ class SharingArea (DetailSynchronizedLabeledTextAttributeBlock):
                 
 class ParticipantsTextFieldBlock(EditTextAttribute):
     """
-    'participants' attribute of an ItemCollection, e.g. who it's already been shared with.
+    'participants' attribute of an AbstractCollection, e.g. who it's already been shared with.
     Read only, at least for now.
     """
     def loadAttributeIntoWidget (self, item, widget):
@@ -829,7 +829,7 @@ class ParticipantsTextFieldBlock(EditTextAttribute):
     
 class InviteEditFieldBlock(EditToAddressTextAttribute):
     """
-    'invitees' attribute of an ItemCollection, e.g. who we're inviting to share it.
+    'invitees' attribute of an AbstractCollection, e.g. who we're inviting to share it.
     """
     def whichAttribute(self):
         # define the attribute to be used
@@ -869,7 +869,7 @@ class FromEditField (EditTextAttribute):
             whoFrom = None
 
         if whoFrom is None:
-            # Hack to set up whoFrom for Items with no value... like ItemCollections
+            # Hack to set up whoFrom for Items with no value... like AbstractCollections
             # Can't set the whoFrom at creation time, because many start life at
             # system startup before the user account is setup.
             if item.itsKind.hasAttribute ('whoFrom'):

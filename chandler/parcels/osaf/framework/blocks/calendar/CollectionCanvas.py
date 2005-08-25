@@ -11,7 +11,7 @@ import wx
 
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection
 from osaf.app import Trash
 from application import schema
 from wx.lib import buttons
@@ -279,7 +279,7 @@ class DragState(object):
 
 class wxCollectionCanvas(wx.ScrolledWindow):
 
-    """ Canvas used for displaying an ItemCollection
+    """ Canvas used for displaying an AbstractCollection
 
     This class handles:
     1. Mouse Events: the class sets up methods for selection, move, resize
@@ -690,7 +690,7 @@ class CollectionCanvas(Block.RectangularChild):
           Clear the selection each time we view a new contents
         """
         item = event.arguments ['item']
-        assert isinstance (item, ItemCollection)
+        assert isinstance (item, AbstractCollection)
         self.contents = item
 
         self.selection = None

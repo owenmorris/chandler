@@ -873,7 +873,7 @@ class EmailAddress(items.ContentItem):
         inverse = MailMessageMixin.toAddress,
     )
     inviteeOf = schema.Sequence(
-        'osaf.pim.item_collections.ItemCollection',
+        'osaf.pim.collections.AbstractCollection',
         displayName = 'Invitee Of',
         doc = 'List of collections that the user is about to be invited to share with.',
         inverse = 'invitees',

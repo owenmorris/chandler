@@ -3,7 +3,7 @@ from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
-from osaf.pim.item_collections import ItemCollection
+from osaf.pim.collections import ListCollection
 
 import osaf.pim.notes
 import osaf.pim.calendar
@@ -22,8 +22,8 @@ def make_mainview(parcel):
     demo = schema.ns("osaf.views.demo", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
 
-    untitledItemCollection = \
-        ItemCollection.update(parcel, 'untitledItemCollection',
+    untitledCollection = \
+        ListCollection.update(parcel, 'untitledCollection',
                               displayName=_(u'Untitled'))
 
     # these reference each other... ugh!
@@ -271,7 +271,7 @@ def make_mainview(parcel):
             methodName='onModifyContentsEvent',
             dispatchToBlockName='Sidebar',
             commitAfterDispatch=True,
-            items=[untitledItemCollection], # fix me
+            items=[untitledCollection],
             selectFirstItem=True,
             disambiguateItemNames=True,
             dispatchEnum='SendToBlockByName').install(parcel)

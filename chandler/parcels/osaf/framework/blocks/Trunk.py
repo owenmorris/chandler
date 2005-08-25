@@ -54,8 +54,8 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[trunkDelegate,TPBDetailItem,TPBSelectedItem],
-            byRef = [colorStyle]
+            byCloud=[trunkDelegate],
+            byRef = [colorStyle,TPBDetailItem,TPBSelectedItem]
         )
     )
 

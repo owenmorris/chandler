@@ -44,9 +44,6 @@ def main():
             import dbgp.client
             dbgp.client.brk()
         from application.Application import wxApplication
-
-
-
         """
           redirect stdio and stderr to a dialog if we're running the debug version.
         This is done to catch asserts, which otherwise will never get seen by

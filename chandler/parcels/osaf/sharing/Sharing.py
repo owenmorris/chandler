@@ -7,8 +7,10 @@ __parcel__ = "osaf.sharing"
 import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
 from chandlerdb.util.uuid import UUID
-from osaf.pim import ItemCollection
+from osaf.pim import (AbstractCollection, ListCollection,
+    InclusionExclusionCollection, DifferenceCollection)
 from repository.item.Item import Item
+from repository.item.Sets import Set
 from repository.schema.Types import Type
 from repository.util.Lob import Lob
 import application.dialogs.AccountInfoPrompt as AccountInfoPrompt
@@ -104,7 +106,7 @@ class Share(items.ContentItem):
 
         super(Share, self).__init__(name, parent, kind, view)
 
-        self.contents = contents # ItemCollection
+        self.contents = contents # AbstractCollection
         try:
             self.displayName = contents.displayName
         except:
@@ -403,7 +405,7 @@ class ShareConduit(items.ContentItem):
 
                 # If we're sharing a collection, put the collection's items
                 # individually:
-                if isinstance(sharingSelf.share.contents, ItemCollection):
+                if isinstance(sharingSelf.share.contents, AbstractCollection):
                     for item in sharingSelf.share.contents:
 
                         # Skip private items
@@ -548,11 +550,31 @@ class ShareConduit(items.ContentItem):
 
         # Make sure we have a collection to add items to:
         if sharingSelf.share.contents is None:
-            sharingSelf.share.contents = ItemCollection(view=sharingView)
+            sharingSelf.share.contents = ListCollection(view=sharingView)
 
-        # If share.contents is an ItemCollection, treat other resources as
+        contents = sharingSelf.share.contents
+
+        # If share.contents is an AbstractCollection, treat other resources as
         # items to add to the collection:
-        if isinstance(sharingSelf.share.contents, ItemCollection):
+        if isinstance(contents, AbstractCollection):
+
+            # Make sure the collection item is properly set up:
+
+            if isinstance(contents, ListCollection) and \
+                not hasattr(contents, 'rep'):
+                    contents.rep = Set((contents,'refCollection'))
+
+            if isinstance(contents, InclusionExclusionCollection) and \
+                not hasattr(contents, 'rep'):
+                    # Prepare an empty Set tree:
+                    source = ListCollection(parent=contents)
+                    inclusions = ListCollection(parent=contents)
+                    exclusions = ListCollection(parent=contents)
+                    dc = DifferenceCollection(parent=contents)
+                    dc.left = source
+                    dc.right = exclusions
+                    contents.left = dc
+                    contents.right = inclusions
 
             filterKinds = None
             if len(sharingSelf.share.filterKinds) > 0:
@@ -564,6 +586,9 @@ class ShareConduit(items.ContentItem):
             for itemPath in sharingSelf.resourceList:
                 item = sharingSelf.__conditionalGetItem(itemPath)
                 if item is not None:
+                    # @@@MOR -- Question:  will AbstractCollection.add()
+                    # dirty the item being added if the item is already in
+                    # the collection?  If so, then this 'if' isn't needed:
                     if not item in sharingSelf.share.contents:
                         sharingSelf.share.contents.add(item)
                 sharingSelf.__setSeen(itemPath)
@@ -616,7 +641,7 @@ class ShareConduit(items.ContentItem):
             return value # let the user win
             # return item.getAttributeValue(attribute) # let the server win
 
-            sharingView.refresh(tmpMergeFn)
+        sharingView.refresh(tmpMergeFn)
 
         logger.info("Finished GET of %s" % location)
 
@@ -1773,8 +1798,8 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
-    @param collection: The ItemCollection that will be shared
-    @type collection: ItemCollection
+    @param collection: The AbstractCollection that will be shared
+    @type collection: AbstractCollection
     @param kinds: Which kinds to share
     @type kinds: A list of Kind paths
     @param account: The WebDAV Account item to use
@@ -1904,10 +1929,10 @@ def splitUrl(url):
 
 
 def isShared(collection):
-    """ Return whether an ItemCollection has a Share item associated with it.
+    """ Return whether an AbstractCollection has a Share item associated with it.
 
-    @param collection: an ItemCollection
-    @type collection: ItemCollection
+    @param collection: an AbstractCollection
+    @type collection: AbstractCollection
     @return: True if collection does have a Share associated with it; False
         otherwise.
     """
@@ -1931,10 +1956,10 @@ def isSharedByMe(share):
 
 
 def getShare(collection):
-    """ Return the Share item (if any) associated with an ItemCollection.
+    """ Return the Share item (if any) associated with an AbstractCollection.
 
-    @param collection: an ItemCollection
-    @type collection: ItemCollection
+    @param collection: an AbstractCollection
+    @type collection: AbstractCollection
     @return: A Share item, or None
     """
 

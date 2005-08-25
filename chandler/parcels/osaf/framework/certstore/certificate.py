@@ -33,7 +33,9 @@ TRUST_AUTHENTICITY = 1
 TRUST_SITE         = 2
 
 TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
-ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/Certificate" where True'
+
+# @@@ Not used anymore, replaced by KindCollection
+# ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/Certificate" where True'
 
 
 class typeEnum(schema.Enumeration):
@@ -186,23 +188,27 @@ def _certificateType(x509):
         
     return type
 
-def _allCertificatesQuery(repView):
-    qName = 'allCertificatesQuery'
-    q = repView.findPath('//Queries/%s' %(qName))
-    if q is None:
-        p = repView.findPath('//Queries')
-        k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, ALL_CERTS_QUERY)
-        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
-        q.subscribe(notificationItem, 'handle', True, True)
-
-    return q
+# @@@MOR -- Not used anymore, replaced by KindCollection
+#
+# def _allCertificatesQuery(repView):
+#     qName = 'allCertificatesQuery'
+#     q = repView.findPath('//Queries/%s' %(qName))
+#     if q is None:
+#         p = repView.findPath('//Queries')
+#         k = repView.findPath('//Schema/Core/Query')
+#         q = Query.Query(qName, p, k, ALL_CERTS_QUERY)
+#         notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
+#         q.subscribe(notificationItem, 'handle', True, True)
+# 
+#     return q
 
 def _isInRepository(repView, pem):
     # XXX This could be optimized by querying based on some cheap field,
     # XXX like subjectCommonName, which would typically return just 0 or 1
     # XXX hit. But I don't want to leave query items laying around either.
-    q = _allCertificatesQuery(repView)
+    q = pim.KindCollection(view=repView)
+    q.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
+
     for cert in q:
         if cert.pemAsString() == pem:
             return True
@@ -296,14 +302,20 @@ def ImportCertificate(repView, cpiaView):
 
 
 def CreateSidebarView(repView, cpiaView):
-    sidebar = pim.ItemCollection(view=repView)
+    sidebar = pim.KindCollection(view=repView)
     sidebar.displayName = 'Certificate Store'
-    sidebar._rule = ALL_CERTS_QUERY
+    sidebar.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
 
-    q = _allCertificatesQuery(repView)
-    
-    for item in q:
-        sidebar.add(item)
+    # @@@MOR -- Transitioning to new Collection world.  Does specifying
+    # the kind above automatically populate the collection?  That makes the
+    # following commented-out code unnecessary:
+
+    # sidebar._rule = ALL_CERTS_QUERY
+
+    # q = _allCertificatesQuery(repView)
+
+    # for item in q:
+    #     sidebar.add(item)
 
     cpiaView.postEventByName('AddToSidebarWithoutCopying',
                              {'items': [sidebar]})

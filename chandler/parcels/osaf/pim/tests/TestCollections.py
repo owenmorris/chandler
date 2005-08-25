@@ -2,6 +2,41 @@ import os,unittest
 from osaf.pim.collections import *
 from repository.persistence.DBRepository import DBRepository
 
+class NotifyHandler(schema.Item):
+    """
+    An item that exists only to handle notifications
+    we should change notifications to work on callables -- John is cool with that.
+    """
+    log = schema.Sequence(initialValue=[])
+    collectionEventHandler = schema.One(schema.String, initialValue="onCollectionEvent")
+
+    def checkLog(self, op, item, other):
+        if len(self.log) == 0:
+            return False
+        rec = self.log[-1]
+        return rec[0] == op and rec[1] == item and rec[2] == "rep" and rec[3] == other and rec[4] == ()
+    
+
+    def onCollectionEvent(self, op, item, name, other, *args):
+        self.log.append((op, item, name, other, args))
+
+class SimpleItem(schema.Item):
+    """
+    A dirt simple item -- think content item here, if you like
+    """
+
+    label = schema.One(schema.String, displayName="My Label")
+
+class ChildSimpleItem(SimpleItem):
+    childData = schema.One(schema.String, displayName="Child data")
+
+class OtherSimpleItem(schema.Item):
+    """
+    Another dirt simple item -- think content item here, if you like
+    """
+
+    label = schema.One(schema.String, displayName="My Label")
+
 class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
 
@@ -37,22 +72,21 @@ class CollectionTests(CollectionTestCase):
         self.nh1 = NotifyHandler('nh1', view=self.view)
         self.nh2 = NotifyHandler('nh2', view=self.view)
 
-        self.failUnless(self.i)
-        self.failUnless(self.i1)
-        self.failUnless(self.i2)
-        self.failUnless(self.b1)
-        self.failUnless(self.b2)
-        self.failUnless(self.nh)
-        self.failUnless(self.nh1)
-        self.failUnless(self.nh2)
+        self.failUnless(self.i is not None)
+        self.failUnless(self.i1 is not None)
+        self.failUnless(self.i2 is not None)
+        self.failUnless(self.b1 is not None)
+        self.failUnless(self.b2 is not None)
+        self.failUnless(self.nh is not None) 
+        self.failUnless(self.nh1 is not None)
+        self.failUnless(self.nh2 is not None)
 
     def testUnion(self):
         """
         Test UnionCollection
         """
         u = UnionCollection('u', view=self.view)
-        u.left = self.b1
-        u.right= self.b2
+        u.sources = [ self.b1, self.b2 ]
 
         self.b1.subscribers.append(self.nh)
         u.subscribers.append(self.nh1)
@@ -73,8 +107,7 @@ class CollectionTests(CollectionTestCase):
         Test DifferenceCollection
         """
         d = DifferenceCollection('d', view=self.view)
-        d.left = self.b1
-        d.right = self.b2
+        d.sources = [ self.b1, self.b2 ]
         self.b1.subscribers.append(self.nh)
         d.subscribers.append(self.nh1)
         #
@@ -107,11 +140,9 @@ class CollectionTests(CollectionTestCase):
         rule.kind = self.i.itsKind
         exclusions = ListCollection("exclusions", view=self.view)
         iu = UnionCollection("iu", view=self.view)
-        iu.left = inclusions
-        iu.right = rule
+        iu.sources = [ inclusions, rule ]
         ic = DifferenceCollection("ic", view=self.view)
-        ic.left = iu
-        ic.right = exclusions
+        ic.sources = [ iu, exclusions ]
 
         inclusions.subscribers.append(self.nh)
         rule.subscribers.append(self.nh1)
@@ -162,11 +193,25 @@ class CollectionTests(CollectionTestCase):
         i.delete()
         # note deleting an item Nulls references to it.
         self.failUnless(self.nh.checkLog("remove", k2, None))                        
+    def testRecursiveKindCollection(self):
+        """
+        Test Recursive KindCollections
+        """
+        k = KindCollection(view=self.view)
+        k.kind = self.i.itsKind
+        k.recursive = True
+
+        i = SimpleItem("new i", view=self.view)
+        i1 = ChildSimpleItem("new child", view=self.view)
+
+        flags = [isinstance(i,SimpleItem) for i in k ]
+        self.failUnless(False not in flags)
 
     def testFilteredCollection(self):
         f1 = FilteredCollection(view=self.view)
         f1.source = self.b1
         f1.filterExpression = "len(item.label) > 2"
+        f1.filterAttributes = ["label"]
         self.b1.subscribers.append(self.nh)
         f1.subscribers.append(self.nh1)
 
@@ -192,6 +237,7 @@ class CollectionTests(CollectionTestCase):
         f2 = FilteredCollection(view=self.view)
         f2.source = k1
         f2.filterExpression = "len(item.label) > 2"
+        f2.filterAttributes = ["label"]
         nh3 = NotifyHandler("nh3", view=self.view)
 
         k1.subscribers.append(self.nh2)
@@ -214,6 +260,8 @@ class CollectionTests(CollectionTestCase):
         self.failIf(nh3.checkLog("add", f2, x))
 
 #        print self.nh2.log[-1],len(self.nh2.log)
+#        for i in f2:
+#            print i
 #        print nh3.log[-1], len(nh3.log)
 #        print "setting label"
 #        print x.label
@@ -223,7 +271,13 @@ class CollectionTests(CollectionTestCase):
         # simulate idle loop
         self.view.mapChanges(mapChangesCallable, True)
 
+        #@@@ TODO - the following assert is broken until we have a way of
+        # locating the KindCollection for a specific Kind
+#        print nh3.log[-1], len(nh3.log)
+#        for i in f2:
+#            print i
         self.failUnless(nh3.checkLog("add", f2, x))
+
 #        print self.nh2.log[-1], len(self.nh2.log)
 #        print nh3.log[-1], len(nh3.log)
 
@@ -235,6 +289,7 @@ class CollectionTests(CollectionTestCase):
 
         x.label="zzz"
 
+
     def testFilters(self):
         from application.Parcel import Manager as ParcelManager
         manager = \
@@ -244,32 +299,44 @@ class CollectionTests(CollectionTestCase):
 
         k = KindCollection(view=self.view)
         kind = self.view.findPath('//parcels/osaf/pim/ContentItem')
-        print kind
         
-    def testIndices(self):
+    def testNumericIndex(self):
         k = KindCollection(view=self.view)
         k.kind = self.i.itsKind
-        k.subscribers.append(self.nh)
+
+        for i in ["z", "y", "x", "w", "v"]:
+            it = SimpleItem(i, label=i, view=self.view)
+
+        #@@@ this is a bug in len -- if you compute the length before you
+        #create any indexes, you are out of luck
+#        self.assertEqual(len(list(k)),8)
+        k.indexName = "__adhoc__"
+        k.createIndex()
+
+        self.assertEqual([x.label for x in k],
+                         [k[i].label for i in xrange(0, len(k))])
+
+
+    def testAttributeIndex(self):
+        k = KindCollection(view = self.view)
+        k.kind = self.i.itsKind
 
         for i in ["z", "y", "x", "w", "v"]:
             it = SimpleItem(i, label=i, view=self.view)
 
         self.assertEqual(len(list(k)),8)
-        k.addIndex('n', 'numeric')
-        k.addIndex('a', 'attribute', attribute='label')
 
-        self.assertEqual([x.label for x in k.iterindexvalues('n')],
-                         [k.getByIndex('n',i).label for i in xrange(0, k.size())])
+        k.indexName = "label"
+        k.createIndex()
 
-        self.assertEqual([i.label for i in k.iterindexvalues('a')],['i','i2','i3','v','w','x','y','z'])
+        self.assertEqual([k[i].label for i in xrange(0, len(k))],['i','i2','i3','v','w','x','y','z'])
 
-        k.lastInIndex('a').label = 'u'
-        self.assertEqual([i.label for i in k.iterindexvalues('a')],['i','i2','i3','u','v','w','x','y'])
+        k[len(k)-1].label = 'u'
+        self.assertEqual([k[i].label for i in xrange(0, len(k))],['i','i2','i3','u','v','w','x','y'])
 
     def testDelayedCreation(self):
         uc = UnionCollection('u', view=self.view)
-        uc.left = self.b1
-        uc.right = self.b2
+        uc.sources = [ self.b1, self.b2 ]
         self.failUnless(uc.rep is not None)
 
         kc = KindCollection(view=self.view)
@@ -278,13 +345,19 @@ class CollectionTests(CollectionTestCase):
 
         fc = FilteredCollection(view=self.view)
         fc.filterExpression = "len(item.label) > 2"
+        fc.filterAttributes = [ "label" ]
         fc.source = self.b1
         self.failUnless(fc.rep is not None)
 
+        fc1 = FilteredCollection(view=self.view)
+        fc1.source = self.b1
+        fc1.filterExpression = "len(item.label) > 2"
+        fc1.filterAttributes = [ "label" ]
+        self.failUnless(fc1.rep is not None)
 
-#if __name__ == "__main__":
-##    import hotshot
-##    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
-##    profiler.run('unittest.main()')
-##    profiler.close()
-    #unittest.main()
+if __name__ == "__main__":
+#    import hotshot
+#    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
+#    profiler.run('unittest.main()')
+#    profiler.close()
+    unittest.main()

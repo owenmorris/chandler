@@ -2,7 +2,7 @@ __parcel__ = "osaf.examples.amazon"
 
 import amazon
 import application
-from osaf.pim import ContentItem, ItemCollection
+from osaf.pim import ContentItem, ListCollection
 import wx
 from application import schema
 from i18n import OSAFMessageFactory as _
@@ -33,7 +33,7 @@ def NewCollectionFromKeywords(view, keywords, update = True):
         print "updating new amazon collection"
     return collection
 
-class AmazonCollection(ItemCollection):
+class AmazonCollection(ListCollection):
 
     schema.kindInfo(displayName = "Amazon Collection Kind")
 

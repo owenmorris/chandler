@@ -145,9 +145,6 @@ class wxApplication (wx.App):
         we don't do this, our mapping of _ to gettext can get overwritten.
         This is useful in interactive debugging with PyShell.
         """
-        #XXX: [i18n] Test whether removing this will cause any issues now that
-        #     we explicitly define _
-
         def _displayHook(obj):
             if obj is not None:
                 print repr(obj)
@@ -519,42 +516,21 @@ class wxApplication (wx.App):
           Adding a handler for catching a set focus event doesn't catch
         every change to the focus. It's difficult to preprocess every event
         so we check for focus changes in OnIdle. Also call UpdateUI when
-        focus changes
+        focus changes.
         """
-
-        def updateOnIdle():
-            """
-            This function is used to generate notifications of items that were changed
-            in the current (repository) view since the last time through the idle loop
-            """
-            the_view = self.repository.view  # cache the view for performance
-            the_view.refresh() # pickup changes from other threads
-    
-            changes = []
-            
-            def mapChangesCallable(item, version, status, literals, references):
-                """
-                closure to be passed to mapChanges that will produce a list of
-                changed items in the same format needed by 
-                repository.query.Query.queryCallback
-                """
-                changes.append((item.itsUUID, "changed", {}))
-            
-            # call mapChanges with flag that prevents seeing changes we've seen before
-            the_view.mapChanges(mapChangesCallable, True)
-    
-            # grab the list of subscribed callbacks and notify them.
-            if changes:
-                for i in self.repository._notifications: 
-                    i(the_view, changes, "changeonly")
-
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
             self.needsUpdateUI = True
-
+        """
+          Fire set notifications that require mapChanges
+        """
+        the_view = self.repository.view  # cache the view for performance
+        the_view.refresh() # pickup changes from other threads
         try:
-            updateOnIdle()
+            import osaf.pim.collections as collections
+            # call mapChanges with flag that prevents seeing changes we've seen before
+            the_view.mapChanges(collections.mapChangesCallable, True)
         except MergeError, e:
             if e.getReasonCode() == MergeError.BUG:
                 logger.warning("Changes cancelled due to merge error: %s", e)
@@ -562,6 +538,13 @@ class wxApplication (wx.App):
                 self.needsUpdateUI = True
             else:
                 raise
+        """
+          Redraw all the blocks dirtied by notifications
+        """
+        from osaf.framework.blocks.Block import Block
+        for theUUID in Block.dirtyBlocks.keys():
+            Globals.mainViewRoot.findUUID(theUUID).synchronizeWidget()
+        Block.dirtyBlocks = {}
 
         if self.needsUpdateUI:
             try:

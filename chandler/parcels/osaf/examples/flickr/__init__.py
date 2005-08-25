@@ -144,7 +144,7 @@ class PhotoCollection(pim.ContentItem):
     )
        
     def getCollectionFromFlickr(self,repView):
-        coll = pim.ItemCollection(view = repView)
+        coll = pim.ListCollection(view = repView)
         if self.username:
             flickrUsername = flickr.people_findByUsername(self.username)
             flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)

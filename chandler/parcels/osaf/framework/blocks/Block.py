@@ -9,6 +9,7 @@ from application import schema
 from repository.item.Item import Item
 from chandlerdb.util.uuid import UUID
 from osaf.pim.items import ContentItem
+from osaf.pim import AbstractCollection
 import wx
 import logging
 import hotshot
@@ -70,7 +71,7 @@ class Block(schema.Item):
     )
 
     blockName = schema.One(schema.String)
-    eventsForNamedLookup = schema.Sequence("BlockEvent")
+    eventsForNamedLookup = schema.Sequence("BlockEvent", defaultValue=None)
 
     itemCollectionInclusions = ContentItem.itemCollectionInclusions
     itemCollectionExclusions = ContentItem.itemCollectionExclusions
@@ -84,7 +85,8 @@ class Block(schema.Item):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[contents,childrenBlocks,eventsForNamedLookup]
+            byRef=[contents],
+            byCloud=[childrenBlocks,eventsForNamedLookup]
         )
     )
     
@@ -194,22 +196,18 @@ class Block(schema.Item):
                              blockName=blockName, **attrs)
 
     def render (self):
-        try:
-            instantiateWidgetMethod = getattr (type (self), "instantiateWidget")
-        except AttributeError:
-            pass
-        else:
+        method = getattr (type (self), "instantiateWidget", None)
+        if method:
             oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
             wx.GetApp().ignoreSynchronizeWidget = True
             try:
-                widget = instantiateWidgetMethod (self)
+                widget = method (self)
             finally:
                 wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
               Store a non persistent pointer to the widget in the block. Store a pointer to
             the block in the widget. Undo all this when the widget is destroyed.
             """
-
             if widget:
                 wx.GetApp().needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
@@ -218,35 +216,21 @@ class Block(schema.Item):
                 """
                   After the blocks are wired up, call OnInit if it exists.
                 """
-                try:
-                    method = getattr (type (widget), "OnInit")
-                except AttributeError:
-                    pass
-                else:
+                method = getattr (type (widget), "OnInit", None)
+                if method:
                     method (widget)
                 """
-                  For those blocks with contents, we need to subscribe to notice changes
+                  For those blocks with Collection contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                try:
-                    contents = self.contents
-                except AttributeError:
-                    pass
-                else:
-                    try:
-                        subscribeMethod = getattr (type (contents), "subscribe")
-                    except AttributeError:
-                        pass
-                    else:
-                        subscribeMethod (contents, self, "onCollectionChanged")
+                contents = getattr (self, 'contents', None)
+                if isinstance (contents, AbstractCollection):
+                    contents.subscribers.append (self)
                 """
                   Add events to name lookup dictionary.
                 """
-                try:
-                    eventsForNamedLookup = self.eventsForNamedLookup
-                except AttributeError:
-                    pass
-                else:
+                eventsForNamedLookup = self.eventsForNamedLookup
+                if eventsForNamedLookup is not None:
                     self.addToNameToItemUUIDDictionary (eventsForNamedLookup,
                                                         self.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
@@ -257,12 +241,9 @@ class Block(schema.Item):
                 if self.eventBoundary:
                     self.pushView()
 
-                try:
-                    method = getattr (type (self.widget), 'Freeze')
-                except AttributeError:
-                    pass
-                else:
-                    method (self.widget)
+                method = getattr (type (widget), "Freeze", None)
+                if method:
+                    method (widget)
 
                 for child in self.childrenBlocks:
                     child.render()
@@ -278,12 +259,9 @@ class Block(schema.Item):
                 finally:
                     wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
-                try:
-                    method = getattr (type (self.widget), 'Thaw')
-                except AttributeError:
-                    pass
-                else:
-                    method (self.widget)
+                method = getattr (type (widget), "Thaw", None)
+                if method:
+                    method (widget)
 
     def unRender (self):
         for child in self.childrenBlocks:
@@ -318,14 +296,15 @@ class Block(schema.Item):
             if lastView == self:
                 Globals.views.pop()
 
-    def onCollectionChanged (self, action):
+    def onCollectionEvent (self, op, item, name, other, *args):
         """
           When our item collection has changed, we need to synchronize
         """
-        self.synchronizeWidget()
+        self.dirtyBlocks [self.itsUUID] = True
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
+    dirtyBlocks = {}            # A dictionary of blocks that need to be redrawn in OnIdle
 
     @classmethod
     def wxOnDestroyWidget (theClass, widget):
@@ -337,22 +316,13 @@ class Block(schema.Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        try:
-            contents = self.contents
-        except AttributeError:
-            pass
-        else:
-            try:
-                unsubscribe = getattr (type (contents), "unsubscribe")
-            except AttributeError:
-                pass
-            else:
-                unsubscribe (contents, self)
-        try:
-            eventsForNamedLookup = self.eventsForNamedLookup
-        except AttributeError:
-            pass
-        else:
+        contents = getattr (self, 'contents', None)
+        if isinstance (contents, AbstractCollection):
+            contents.subscribers.remove (self)
+
+
+        eventsForNamedLookup = self.eventsForNamedLookup
+        if eventsForNamedLookup is not None:
             self.removeFromNameToItemUUIDDictionary (eventsForNamedLookup,
                                                      self.eventNameToItemUUID)
         self.removeFromNameToItemUUIDDictionary ([self],

@@ -24,7 +24,7 @@ TO DO:
  """
 
 
-def sendInvitation(repository, url, itemCollection, sendToList):
+def sendInvitation(repository, url, collection, sendToList):
     """Sends a sharing invitation via SMTP to a list of recipients
 
        @param repository: The repository we're using
@@ -33,24 +33,24 @@ def sendInvitation(repository, url, itemCollection, sendToList):
        @param url: The url to share
        @type url: C{str}
 
-       @param itemCollection: An ItemCollection Instance
-       @type itemCollection: C{itemCollection}
+       @param collection: An AbstractCollection Instance
+       @type collection: C{AbstractCollection}
 
        @param sendToList: List of EmailAddress Items
        @type: C{list}
     """
-    SMTPInvitationSender(repository, url, itemCollection, sendToList).sendInvitation()
+    SMTPInvitationSender(repository, url, collection, sendToList).sendInvitation()
 
 
 class SMTPInvitationSender:
     """Sends an invitation via SMTP."""
 
-    def __init__(self, repository, url, itemCollection, sendToList, account=None):
+    def __init__(self, repository, url, collection, sendToList, account=None):
         assert isinstance(url, basestring), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
-        assert isinstance(itemCollection, pim.ItemCollection), \
-                          "itemCollection must be of type osaf.pim.ItemCollection"
+        assert isinstance(collection, pim.AbstractCollection), \
+                          "collection must be of type osaf.pim.AbstractCollection"
 
 
         #XXX: Theses may eventual need i18n decoding
@@ -59,15 +59,15 @@ class SMTPInvitationSender:
         self.sendToList = sendToList
         self.repository = repository
 
-        if isinstance(itemCollection.displayName, unicode):
-            self.collectionName = itemCollection.displayName.encode(constants.DEFAULT_CHARSET)
+        if isinstance(collection.displayName, unicode):
+            self.collectionName = collection.displayName.encode(constants.DEFAULT_CHARSET)
 
         else:
-            self.collectionName = itemCollection.displayName
+            self.collectionName = collection.displayName
 
 
         try:
-            self.collectionBody = utils.textToStr(itemCollection.body)
+            self.collectionBody = utils.textToStr(collection.body)
 
         except ItemError.NoValueForAttributeError:
             self.collectionBody = u""

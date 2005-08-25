@@ -105,8 +105,8 @@ def installParcel(parcel, oldVersion=None):
     )
 
 
-    pim.ItemCollection.update(parcel, 'trash',
-        displayName='Trash',
+    pim.ListCollection.update(parcel, 'TrashCollection',
+        displayName=u'Trash',
         renameable=False
     )
 

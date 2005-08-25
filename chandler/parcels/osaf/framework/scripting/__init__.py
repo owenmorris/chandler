@@ -44,13 +44,24 @@ def installParcel(parcel, oldVersion=None):
     # -----------
 
     # "Scripts" Set
-    scriptsSetRule = "for i inevery '//parcels/osaf/framework/scripting/Script' where True"
-    scriptsSet = pim.ItemCollection.update(parcel, "ScriptsItemCollection",
-                                           displayName = "Scripts",
-                                           renameable = False,
-                                           _rule = scriptsSetRule
+    import osaf.framework.scripting.CPIAScript as CPIAScript
+    scripts = pim.KindCollection.update(parcel, "scriptsSet")
+    scripts.kind = CPIAScript.Script.getKind(parcel.itsView)
+
+    scriptsExclusions = pim.ListCollection.update(parcel, "scriptsExclusions")
+
+    scriptsMinusExclusions = pim.DifferenceCollection.update(parcel, "scriptsMinusExclusions",
+                                                             sources = [scripts, scriptsExclusions],
+                                                             )
+
+    scriptsInclusions = pim.ListCollection.update(parcel, "scriptsInclusion")
+
+    scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
+                                                         sources = [scriptsMinusExclusions, scriptsInclusions],
+                                                         displayName = "Scripts",
+                                                         renameable = False,
                                            )
-    
+
     # Event to put "Scripts" in the Sidebar
     addScriptsEvent = blocks.ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",
                                                         blockName = "AddScriptsCollectionEvent",

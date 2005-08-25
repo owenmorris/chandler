@@ -2,7 +2,7 @@ __parcel__ = "osaf.sharing"
 
 import Sharing
 import application.Parcel
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection, ListCollection
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.TimeZone as TimeZone
 from chandlerdb.util.uuid import UUID
@@ -149,13 +149,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         if self.fileStyle() == self.STYLE_SINGLE:
             if item is None:
-                item = ItemCollection(view=view)
+                item = ListCollection(view=view)
             elif isinstance(item, Sharing.Share):
                 if item.contents is None:
-                    item.contents = ItemCollection(view=view)
+                    item.contents = ListCollection(view=view)
                 item = item.contents
 
-            if not isinstance(item, ItemCollection):
+            if not isinstance(item, AbstractCollection):
                 print "Only a share or an item collection can be passed in"
                 #@@@MOR Raise something
 

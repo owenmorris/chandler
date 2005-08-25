@@ -18,7 +18,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "49" # bkirsch: removed LocalizableString and Text Alias
+SCHEMA_VERSION = "50" # john: branch changes.
 
 logger = None # initialized in initLogging()
 

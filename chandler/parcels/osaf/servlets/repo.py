@@ -6,6 +6,7 @@ import application
 import re
 from osaf.pim.items import ContentItem
 from repository.item.Item import Item
+from repository.item.Sets import AbstractSet
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
@@ -844,6 +845,23 @@ def RenderItem(repoView, item):
             result += "</td></tr>\n"
             count += 1
 
+        elif isinstance(value, AbstractSet):
+
+            result += oddEvenRow(count)
+            result += "<td valign=top>"
+            result += "%s" % name
+            result += "</td><td valign=top>"
+            theType = TypeHandler.typeHandler(repoView, value)
+            typeName = theType.getImplementationType().__name__
+            result += "<b>(%s)</b> " % typeName
+
+            result += "<ul>"
+            for j in value:
+                result +="<li>%s <a href=%s>%s</a><br>\n" % (j.itsName, toLink(j.itsPath), j.itsPath)
+            result += "</ul>"
+            result += "</td></tr>\n"
+            count += 1
+            
         else:
 
             result += oddEvenRow(count)

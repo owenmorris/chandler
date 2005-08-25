@@ -229,10 +229,10 @@ class ShareEditorDialog(wx.Dialog):
         self.choiceAccount.SetSelection(defaultChoice)
 
         if not join:
-            from osaf.pim.ItemCollection import ItemCollection
+            from osaf.pim import AbstractCollection
             self.collections = []
             i = 1
-            for item in ItemCollection.iterItems(self.view):
+            for item in AbstractCollection.iterItems(self.view):
                 self.collections.append(item)
                 self.choiceColl.Append(item.getItemDisplayName())
 

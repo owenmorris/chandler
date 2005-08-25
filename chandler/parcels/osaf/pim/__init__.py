@@ -9,7 +9,9 @@ from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
 from tasks import Task, TaskMixin
-from item_collections import ItemCollection
+from collections import KindCollection, AbstractCollection, \
+     DifferenceCollection, UnionCollection, IntersectionCollection, \
+     FilteredCollection, ListCollection, InclusionExclusionCollection
 
 import tasks, mail, calendar.Calendar
 
@@ -50,6 +52,8 @@ class MailedEventTask(
         description = "A Task stamped as an Event stamped as Mail, in any sequence",
     )
 
+def installParcel(parcel, oldVersion=None):
+    collections.installParcel(parcel, oldVersion)
 
 del schema  # don't leave this lying where others might accidentally import it
 

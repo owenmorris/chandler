@@ -968,12 +968,12 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         
         At the moment, this stamps the current itemcollection as a CalendarData
         """
-        return self.StampedCalendarData(self.contents.source.first())            
+        return self.StampedCalendarData(self.contents.sources[0])            
                             
     calendarData = property(getCalendarData)
 
     def setupNextHue(self):
-        c = self.contents.source.first().calendarColor.backgroundColor
+        c = self.contents.sources[0].calendarColor.backgroundColor
         self.lastHue = CalendarData.getNextHue(self.lastHue)
         (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
         
@@ -986,7 +986,7 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         
         if selected:
             return calData.selectedColors
-        elif calData == self.contents.source.first():
+        elif calData == self.contents.sources[0]:
             return calData.defaultColors
         
         return calData.visibleColors
@@ -1002,8 +1002,8 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         return self.StampedCalendarData(coll)
     
     def getContainingCollection(self, event):
-        collections = self.contents.source
-        selectedCollection = collections.first()
+        collections = self.contents.sources
+        selectedCollection = collections[0]
         firstSpecialCollection = None
         for coll in collections:
 
@@ -1030,11 +1030,6 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
         ec = copy.copy(self.calendarData.eventColor)
         (ec.red, ec.green, ec.blue) = color
         self.calendarData.eventColor = ec
-
-    def AddEventToCollection(self, event):	
-        # ugh, this is a hack to work around the whole ItemCollection stuff	
-        # see bug 2749 for some background	
-        self.contents.source.first().add(event)	
 
 
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
@@ -1073,7 +1068,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
         #coll = self.parent.blockItem.getContainingCollection(item)
-        #if coll and coll != self.parent.blockItem.contents.source.first():
+        #if coll and coll != self.parent.blockItem.contents.sources[0]:
         #    self.parent.blockItem.SelectCollectionInSidebar(coll)
         #self.parent.wxSynchronizeWidget()
 
@@ -1171,8 +1166,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
             pass
 
     def AddItems(self, itemList):
+        source = self.contents.collectionList[0]
         for item in itemList:	
-            self.blockItem.AddEventToCollection(item)
+            source.add (item)
 
 
 class wxInPlaceEditor(wx.TextCtrl):
@@ -1616,7 +1612,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                 
         event.endTime = event.startTime + timedelta(hours=1)
 
-        self.blockItem.AddEventToCollection(event)
+        self.blockItem.contents.collectionList[0].add (event)
         self.OnSelectItem(event)
         self.blockItem.itsView.commit()
         return event
@@ -1735,7 +1731,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.allDay = True
         event.anyTime = False
 
-        self.blockItem.contents.source.first().add(event)
+        self.blockItem.contents.sources[0].add(event)
         self.OnSelectItem(event)
         view.commit()
         return event
@@ -2088,7 +2084,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         event = self.CreateEmptyEvent(newTime, False, False)
         event.duration = duration
 
-        self.blockItem.AddEventToCollection(event)
+        self.blockItem.contents.collectionList[0].add (event)
         
         self.OnSelectItem(event)
 

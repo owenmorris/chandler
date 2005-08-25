@@ -1,6 +1,6 @@
 from Detail import *
 from osaf.framework.blocks import *
-from osaf.pim.item_collections import ItemCollection
+from osaf.pim.collections import ListCollection
 import osaf.pim
 from i18n import OSAFMessageFactory as _
 
@@ -135,18 +135,17 @@ def registerAttributeEditors(parcel, oldVersion):
 def makeRootStuff(parcel, oldVersion):
     # The detail view is notified of changes in the single item we stick
     # into this item collection
-    dvSelectedItemCollection = \
-        ItemCollection.update(parcel, 'DetailViewSelectedItemCollection',
-                              displayName=_(u'DetailViewSelectedItemCollection'),
-                              _rule="")
-        
+    dvSelectedCollection = \
+        ListCollection.update(parcel, 'DetailViewSelectedItemCollection',
+                              displayName=_(u'DetailViewSelectedItemCollection'))
+    
     # The DetailTrunkCache starts each specific DetailTrunk by cloning this stub.
     detailRoot = DetailRootBlock.template('DetailRoot',
                                           orientationEnum='Vertical',
                                           size=SizeType(80, 20),
                                           minimumSize=SizeType(80, 40),
                                           eventBoundary=True,
-                                          contents=dvSelectedItemCollection)
+                                          contents=dvSelectedCollection)
     detailRoot.install(parcel)
     
     # Our Resynchronize event.
@@ -258,7 +257,7 @@ def makeNoteSubtree(parcel, oldVersion):
     # Finally, the subtree
     notesSubtree = \
         DetailTrunkSubtree.update(parcel, 'NoteSubtree',
-            key=osaf.pim.Note.getKind(),
+            key=osaf.pim.Note.getKind(parcel.itsView),
             rootBlocks=[
                 makeSpacer(parcel, height=6, position=0.01).install(parcel),
                 parcel['MarkupBar'],
@@ -460,7 +459,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
 
     calendarEventSubtree = \
         DetailTrunkSubtree.update(parcel, 'CalendarEventSubtree',
-            key=osaf.pim.CalendarEventMixin.getKind(),
+            key=osaf.pim.CalendarEventMixin.getKind(parcel.itsView),
             rootBlocks=[calendarDetails])
  
 def makeMailSubtree(parcel, oldVersion):
@@ -522,7 +521,7 @@ def makeMailSubtree(parcel, oldVersion):
     
     mailSubtree = \
         DetailTrunkSubtree.update(parcel, 'MailSubtree',
-            key=osaf.pim.mail.MailMessageMixin.getKind(),
+            key=osaf.pim.mail.MailMessageMixin.getKind(parcel.itsView),
             rootBlocks=[
                 fromArea, 
                 toMailArea,
@@ -539,5 +538,5 @@ def makeEmptySubtree(parcel, oldVersion):
   # An empty panel, used when there's no item selected in the detail view
   emptyPanel = EmptyPanelBlock.template('EmptyPanel').install(parcel)
   noneSubtree = DetailTrunkSubtree.update(parcel, 'NoDetailView',
-                                          key=DetailTrunkSubtree.getKind(),
+                                          key=DetailTrunkSubtree.getKind(parcel.itsView),
                                           rootBlocks=[emptyPanel])

@@ -431,7 +431,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
   <!-- Attribute Editors Table -->
   <Table itsName="AttributeEditorsSummaryTable">
-    <contents itemref="main:allItemCollection"/>
+    <contents itemref="main:allCollection"/>
 
     <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>

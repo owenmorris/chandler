@@ -44,8 +44,8 @@ DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
 
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
-    collection = pim.ItemCollection(view=view)
-    
+    collection = pim.ListCollection(view=view)
+
     args[0]=args[0]
     if args[0]=='*': # semi-random data
         while True:

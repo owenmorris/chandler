@@ -11,7 +11,7 @@ import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
 import osaf.sharing.Sharing as Sharing
-from osaf.pim import ItemCollection, ContentItem
+from osaf.pim import ContentItem, ListCollection
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.contacts import Contact, ContactName
 
@@ -71,7 +71,7 @@ class SharingTestCase(unittest.TestCase):
     def _createCollection(self, repo):
         sandbox = repo.findPath("//sandbox")
 
-        coll = ItemCollection(name="testcollection",
+        coll = ListCollection(name="testcollection",
          parent=sandbox)
 
 

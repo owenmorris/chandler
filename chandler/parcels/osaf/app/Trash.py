@@ -1,7 +1,7 @@
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection
 
 from i18n import OSAFMessageFactory as _
 
@@ -21,7 +21,7 @@ will be tremendously simplified.
 """
 
 def EmptyTrash(view):
-    trash = FindTrashCollection(view)
+    trash = schema.ns('osaf.app',view).TrashCollection
     for item in trash:
         # actually kill it from the repository!
         # should remove it from all collections, etc
@@ -36,7 +36,7 @@ def MoveItemToTrash(item, trash=None):
     # add to trash first, and skip trash later, in case the item is already
     # in the trash
     if not trash:
-        trash = FindTrashCollection(item.itsView)
+        trash = schema.ns('osaf.app',item.itsView).TrashCollection
         
     trash.add(item)
 
@@ -78,41 +78,3 @@ def RemoveItemFromCollection(item, collection):
     else:
         MoveItemToTrash(item)
 
-def IsTrashCollection(collection):
-    """
-    This is a nasty hack until we stop copying the Trash into the soup
-    Right now its very i18n unfriendly for example, relying on the name being
-    'Trash'
-    """
-    try:
-
-        # i18n alert - I know this is totally wrong, this is just a stub!
-        if collection.displayName != 'Trash' or \
-               getattr(collection,'renameable', True):
-            return False
-
-        # walk up the path to find a sidebar. If any of this path
-        # walking fails, then this isn't the collection and we'll
-        # catch it later
-        sidebar = collection.itemCollectionInclusions.first().contentsOwner.first()
-        
-        # rendered sidebar mean its the current trash. yay.
-        if (sidebar.widget):
-            return True
-    except AttributeError, e:
-        # any errors, it not it.
-        return False
-    return False
-    
-def FindTrashCollection(view):
-    """
-    this is a really ugly hack - basically we have to iterate through
-    all ItemCollections until we find the right one
-    when the special collections stop being copied into the soup, this
-    will just look like:
-    return schema.ns("osaf.app", view).trash
-    """
-    for collection in ItemCollection.iterItems(view):
-        if IsTrashCollection(collection):
-            return collection
-    assert False, "No Trash collection!"

@@ -12,7 +12,7 @@ from Block import (
     ShownSynchronizer, lineStyleEnumType, logger
 )
 from ContainerBlocks import BoxContainer
-from osaf.pim import ItemCollection
+from osaf.pim import AbstractCollection
 import DragAndDrop
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
@@ -979,8 +979,7 @@ class Table (RectangularChild):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byCloud=[selectedItemToView],
-            byRef=[characterStyle,headerCharacterStyle]
+            byRef=[characterStyle,headerCharacterStyle,selectedItemToView]
         )
     )
 
@@ -1008,7 +1007,7 @@ class Table (RectangularChild):
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
-        if isinstance (item, ItemCollection):
+        if isinstance (item, AbstractCollection):
             self.contents = item
 
     def onSelectItemEvent (self, event):
@@ -1037,7 +1036,7 @@ class Table (RectangularChild):
     def onDeleteEvent(self, event):
 
         # precache the trash so we don't have to keep looking it up
-        trash = Trash.FindTrashCollection(self.itsView)
+        trash = schema.ns('osaf.app', self).TrashCollection
         
         def MoveToTrash(item):
             Trash.MoveItemToTrash(item, trash)
@@ -1732,7 +1731,7 @@ class AEBlock(BoxContainer):
         """
         Override to call the editor to do the synchronization
         """
-        if not wx.GetApp().ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget and hasattr(self, 'widget'):
             oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
             wx.GetApp().ignoreSynchronizeWidget = True
             try:

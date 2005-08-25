@@ -10,7 +10,6 @@ import DragAndDrop
 from DynamicContainerBlocks import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
-from osaf.pim import ItemCollection
 from application import schema
 import wx
 import time
@@ -679,19 +678,9 @@ class TabbedView(TabbedContainer):
             self.parentBlock.widget.Thaw()
 
     def onNewEvent (self, event):
-        "Create a new tab"
-        originalItem = self.findPath('parcels/osaf/views/main/untitledItemCollection')
-        userdata = self.findPath('//userdata')
-        newItem = originalItem.copy(parent=userdata, cloudAlias='copying')
-        newItem.contents.displayName = self._getUniqueName("Untitled")
-        
-        self.widget.selectedTab = self.widget.GetPageCount()
-        newItem.parentBlock = self
-        self.parentBlock.widget.Freeze()
-        newItem.render()
-        self.synchronizeWidget()
-        self.parentBlock.widget.Thaw()
-        self.postEventByName ('SelectItemBroadcast', {'item':newItem})
+        "Create a new tab: under construction"
+        pass
+
 
     def onCloseEvent (self, event):
         """
