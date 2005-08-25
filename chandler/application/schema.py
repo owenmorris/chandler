@@ -981,7 +981,16 @@ class ModuleMaker:
         if self.moduleName.startswith('//'):
             # kludge to support putting Parcel + Manager in //Schema/Core
             return view.findPath(self.moduleName)
-        parent = self.getParent(view)
+        if self.parentName:
+            # Don't try to create the parent; if it doesn't exist just
+            # fail the find operation.
+            parent = ModuleMaker(self.parentName)._find_schema_item(view)
+            if parent is None:
+                return None
+        else:
+            # The root is okay to create during a find, since it can't
+            # create a cycle
+            parent = self.getParent(view)
         item = parent.getItemChild(self.name)
         from application.Parcel import Parcel
         if isinstance(item,Parcel):
@@ -1035,6 +1044,7 @@ class ModuleMaker:
     def __repr__(self):
         return "ModuleMaker(%r)" % self.moduleName
 
+
 def parcel_for_module(moduleName, view=None):
     """Return the Parcel for the named module
 
@@ -1053,7 +1063,14 @@ def parcel_for_module(moduleName, view=None):
     if view is None:
         view = _get_nrv()
     try:
-        return view._schema_cache[moduleName]   # fast path
+        ob = view._schema_cache[moduleName]   # fast path
+        if ob is None:
+            # If we're here, it's because we tried to create a parcel while
+            # looking for it.  Bad dog, no biscuit.
+            raise RuntimeError(
+                "Recursive schema item initialization: "+moduleName
+            )
+        return ob
     except (AttributeError, KeyError):
         return itemFor(ModuleMaker(moduleName), view)   # slow path
 
