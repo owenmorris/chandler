@@ -192,6 +192,10 @@ class AbstractSet(ItemValue, Indexed):
             item.collectionChanged(op, item, attribute, other)
             item._collectionChanged(op, change, attribute, other)
 
+    def notify(self, op, other):
+
+        self.sourceChanged(op, 'notification', None, None, False, other)
+
     def removeByIndex(self, indexName, position):
 
         raise TypeError, "%s contents are computed" %(type(self))
@@ -264,10 +268,6 @@ class Set(AbstractSet):
 
         super(Set, self)._setView(view)
         self._setSourceView(self._source, view)
-
-    def notify(self, op, other):
-
-        self.sourceChanged(op, 'notification', None, None, False, other)
 
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       *args):
@@ -643,6 +643,10 @@ class KindSet(AbstractSet):
                     self._collectionChanged(op, 'collection', other)
             else:
                 op = None
+        elif change == 'notification':
+            if not (inner is True or op is None):
+                if other in self:
+                    self._collectionChanged(op, change, other)
         else:
             op = None
 
