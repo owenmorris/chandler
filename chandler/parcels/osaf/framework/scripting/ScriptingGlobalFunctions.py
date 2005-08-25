@@ -191,10 +191,11 @@ def Type(string, ctrlFlag = False, altFlag = False, shiftFlag = False):
             keyPress.m_altDown = altFlag
             charSuccess = keyPressMethod(keyPress)
             stringSuccess = stringSuccess and charSuccess
+            _wx.GetApp().Yield()
     return stringSuccess
 
 def LeftClick(block):
-    """ Simulates a left mouse click on the block or widget """
+    """ Simulates a left mouse click on the block widget """
     mouseEnter = _wx.MouseEvent(_wx.wxEVT_ENTER_WINDOW)
     mouseDown = _wx.MouseEvent(_wx.wxEVT_LEFT_DOWN)
     mouseDown.m_leftDown = True
@@ -212,12 +213,13 @@ def LeftClick(block):
     widget.ProcessEvent(mouseDown)
     widget.ProcessEvent(mouseUp)
     widget.ProcessEvent(mouseLeave)
+
     _wx.GetApp().Yield()
     ev = _wx.IdleEvent()
     _wx.GetApp().ProcessEvent(ev)
 
 def KeyboardReturn(block=None):
-    """ Simulates a return-key event in the givent block """
+    """ Simulates a return-key event in the given block """
     try:
         if block :
             widget = block.widget
@@ -241,13 +243,13 @@ def KeyboardReturn(block=None):
         # Text enter
         ent = _wx.CommandEvent(_wx.wxEVT_COMMAND_TEXT_ENTER)
         ent.SetEventObject(widget)
-        
+
+        #work around for mac bug
+        widget.ProcessEvent(tu) #for start/end time and location field
+        #work around for canvasItem
+        widget.ProcessEvent(ent) #for canvasItem title
         # events processing
-        #widget.ProcessEvent(ret_d)
-        #widget.ProcessEvent(ret_up)
-        # work around for bug on MAC
-        #widget.ProcessEvent(tu)
-        widget.ProcessEvent(kf)
-        widget.ProcessEvent(ent)
+        widget.ProcessEvent(ret_d)
+        widget.ProcessEvent(ret_up)
         
 
