@@ -11,8 +11,8 @@ import vobject
 import logging
 import dateutil.tz
 import datetime
-from datetime import date
-from datetime import time
+from datetime import date, time
+from PyICU import ICUtzinfo
 import itertools
 import repository.query.Query as Query
 from application import schema
@@ -102,6 +102,55 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 pass
 
     return cal
+
+def convertToICUtzinfo(dt):
+    """
+    This method returns a C{datetime} whose C{tzinfo} field
+    (if any) is an instance of the ICUtzinfo class.
+    
+    @param dt: The C{datetime} whose C{tzinfo} field we want
+               to convert to an ICUtzinfo instance.
+    @type dt: C{datetime}
+    """
+    oldTzinfo = dt.tzinfo
+    
+    if oldTzinfo is not None:
+
+        def getICUInstance(name):
+            result = None
+            
+            if name is not None:
+                result = ICUtzinfo.getInstance(name)
+                
+                if result is not None and \
+                    result.timezone.getID() == 'GMT' and \
+                    tzname != 'GMT':
+                    
+                    result = None
+                    
+            return result
+
+    
+        
+        
+        # First, for dateutil.tz._tzicalvtz, we check
+        # _tzid, since that's the displayable timezone
+        # we want to use. This is kind of cheesy, but
+        # works for now. This means that we're preferring
+        # a tz like 'America/Chicago' over 'CST' or 'CDT'.
+        icuTzinfo = getICUInstance(getattr(oldTzinfo, '_tzid', None))
+        
+        # If that didn't work, get the name of the tz
+        # at the value of dt
+        if icuTzinfo is None:
+            icuTzinfo = getICUInstance(oldTzinfo.tzname(dt))
+            
+        # Here, if we have an unknown timezone, we'll turn
+        # it into a floating datetime, which is probably not right
+        dt = dt.replace(tzinfo=icuTzinfo)
+        
+    return dt
+
 
 class ICalendarFormat(Sharing.ImportExportFormat):
 
@@ -261,7 +310,21 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     
             # ignore timezones and recurrence till tzinfo -> PyICU is written
             # give the repository a naive datetime, no timezone
-            dtstart = TimeZone.stripTimeZone(dtstart)
+            dtstart = convertToICUtzinfo(dtstart)
+            # Because of restrictions on dateutil.rrule, we're going
+            # to have to make sure all the datetimes we create have
+            # the same naivete as dtstart
+            tzinfo = dtstart.tzinfo
+            
+            def makeNaiveteMatch(dt):
+                if dt.tzinfo is None:
+                    if tzinfo is not None:
+                        dt = TimeZone.coerceTimeZone(dt, tzinfo)
+                else:
+                    if tzinfo is None:
+                        dt = TimeZone.stripTimeZone(dt)
+                return dt
+ 
             
             # See if we have a corresponding item already
             recurrenceID = None
@@ -271,10 +334,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 try:
                     recurrenceID = event.contents['recurrence-id'][0].value
                     if type(recurrenceID) == date:
-                        recurrenceID = datetime.datetime.combine(recurrenceID,
-                                                                 time(0))
+                        recurrenceID = datetime.datetime.combine(
+                                                    recurrenceID,
+                                                    time(tzinfo=tzinfo))
                     else:
-                        recurrenceID = TimeZone.stripTimeZone(recurrenceID)
+                        recurrenceID = makeNaiveteMatch(
+                                              convertToICUtzinfo(recurrenceID))
                 except:
                     pass
                 if recurrenceID:
@@ -301,9 +366,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             # datetimes until vobject is fixed.
             for i, rdate in enumerate(event.rdate):
                 if type(rdate) == date:
-                    event.rdate[i] = datetime.datetime.combine(rdate, time(0))
+                    event.rdate[i] = datetime.datetime.combine(rdate,
+                                                            time(tzinfo=tzinfo))
                 else:
-                    event.rdate[i] = TimeZone.stripTimeZone(event.rdate[i])
+                    event.rdate[i] = makeNaiveteMatch(convertToICUtzinfo(
+                                                      event.rdate[i]))
                     
                 # get rid of RDATES that match dtstart, created by vobject to
                 # deal with unusual RRULEs correctly

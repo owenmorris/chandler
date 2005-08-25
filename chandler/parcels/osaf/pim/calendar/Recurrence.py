@@ -13,7 +13,7 @@ import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo
-from TimeZone import stripTimeZone, coerceTimeZone
+from TimeZone import coerceTimeZone
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
@@ -209,8 +209,7 @@ class RecurrenceRule(items.ContentItem):
         self.untilIsDate = False
         if rrule._count is not None:
             self.isCount = True
-            # While most dates are naive, strip tzinfo off
-            self.until = stripTimeZone(rrule[-1])
+            self.until = rrule[-1]
         self.wkst = fromDateUtilWeekday(rrule._wkst)
         self.freq = fromDateUtilFrequency(rrule._freq)
 
@@ -231,9 +230,8 @@ class RecurrenceRule(items.ContentItem):
                 for day, n in listOfDayTuples:
                     day = fromDateUtilWeekday(day)
                     self.byweekday.append(WeekdayAndPositionStruct(day, n))
-        # While most dates are naive, strip tzinfo off
         if rrule._until is not None:
-            self.until = stripTimeZone(rrule._until)
+            self.until = rrule._until
         if rrule._interval != 1:
             self.interval = rrule._interval
             
@@ -334,9 +332,8 @@ class RecurrenceRuleSet(items.ContentItem):
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)
         for typ in 'rdate', 'exdate':
-            # While most dates are naive, strip tzinfo off
-            naive = [stripTimeZone(e) for e in getattr(ruleSetOrRule, '_' + typ, [])]
-            setattr(self, typ + 's', naive)
+            datetimes=list(getattr(ruleSetOrRule, '_' + typ, []))
+            setattr(self, typ + 's', datetimes)
 
     def isCustomRule(self):
         """Determine if this is a custom rule.

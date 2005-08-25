@@ -17,6 +17,9 @@ import osaf.pim.calendar.Calendar as Calendar
 import repository.query.Query as Query
 import datetime
 import vobject
+import cStringIO
+from PyICU import ICUtzinfo
+from dateutil import tz
 
 class ICalendarTestCase(unittest.TestCase):
 
@@ -84,7 +87,6 @@ class ICalendarTestCase(unittest.TestCase):
          "SUMMARY of first VEVENT not imported correctly, displayName is %s"
          % event.displayName)
         evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ICalendar.utc)
-        evtime = evtime.astimezone(ICalendar.localtime).replace(tzinfo=None)
         self.assert_(event.startTime == evtime,
          "startTime not set properly, startTime is %s"
          % event.startTime)
@@ -172,6 +174,118 @@ class ICalendarTestCase(unittest.TestCase):
 
          
 # test import/export unicode
+
+class TimeZoneTestCase(unittest.TestCase):
+    
+    def getICalTzinfo(self, lines):
+        fileobj = cStringIO.StringIO("\r\n".join(lines))
+        parsed = tz.tzical(fileobj)
+
+        return parsed.get()
+    
+    def runConversionTest(self, expectedZone, icalZone):
+        dt = datetime.datetime(2004, 10, 11, 13, 22, 21, tzinfo=icalZone)
+        convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
+        self.failUnless(isinstance(convertedZone, ICUtzinfo))
+        self.failUnlessEqual(expectedZone, convertedZone)
+
+        dt = datetime.datetime(2004, 4, 11, 13, 9, 56, tzinfo=icalZone)
+        convertedZone = ICalendar.convertToICUtzinfo(dt).tzinfo
+        self.failUnless(isinstance(convertedZone, ICUtzinfo))
+        self.failUnlessEqual(expectedZone, convertedZone)
+    
+    def testVenezuela(self):
+        zone = self.getICalTzinfo([
+            "BEGIN:VTIMEZONE",
+            "TZID:America/Caracas",
+            "LAST-MODIFIED:20050817T235129Z",
+            "BEGIN:STANDARD",
+            "DTSTART:19321213T204552",
+            "TZOFFSETTO:-0430",
+            "TZOFFSETFROM:+0000",
+            "TZNAME:VET",
+            "END:STANDARD",
+            "BEGIN:STANDARD",
+            "DTSTART:19650101T000000",
+            "TZOFFSETTO:-0400",
+            "TZOFFSETFROM:-0430",
+            "TZNAME:VET",
+            "END:STANDARD",
+            "END:VTIMEZONE"])
+        
+        self.runConversionTest(
+            ICUtzinfo.getInstance("America/Caracas"),
+            zone)
+        
+    def testAustralia(self):
+        
+        zone = self.getICalTzinfo([
+            "BEGIN:VTIMEZONE",
+            "TZID:Australia/Sydney",
+            "LAST-MODIFIED:20050817T235129Z",
+            "BEGIN:STANDARD",
+            "DTSTART:20050326T160000",
+            "TZOFFSETTO:+1000",
+            "TZOFFSETFROM:+0000",
+            "TZNAME:EST",
+            "END:STANDARD",
+            "BEGIN:DAYLIGHT",
+            "DTSTART:20051030T020000",
+            "TZOFFSETTO:+1100",
+            "TZOFFSETFROM:+1000",
+            "TZNAME:EST",
+            "END:DAYLIGHT",
+            "END:VTIMEZONE"])
+        
+        self.runConversionTest(
+            ICUtzinfo.getInstance("Australia/Sydney"),
+            zone)
+        
+    def testFrance(self):
+
+        zone = self.getICalTzinfo([
+            "BEGIN:VTIMEZONE",
+            "TZID:Europe/Paris",
+            "LAST-MODIFIED:20050817T235129Z",
+            "BEGIN:DAYLIGHT",
+            "DTSTART:20050327T010000",
+            "TZOFFSETTO:+0200",
+            "TZOFFSETFROM:+0000",
+            "TZNAME:CEST",
+            "END:DAYLIGHT",
+            "BEGIN:STANDARD",
+            "DTSTART:20051030T030000",
+            "TZOFFSETTO:+0100",
+            "TZOFFSETFROM:+0200",
+            "TZNAME:CET",
+            "END:STANDARD",
+            "END:VTIMEZONE"])
+
+        self.runConversionTest(
+            ICUtzinfo.getInstance("Europe/Paris"),
+            zone)
+        
+    def testUS(self):
+        zone = self.getICalTzinfo([
+            "BEGIN:VTIMEZONE",
+            "TZID:US/Pacific",
+            "LAST-MODIFIED:20050817T235129Z",
+            "BEGIN:DAYLIGHT",
+            "DTSTART:20050403T100000",
+            "TZOFFSETTO:-0700",
+            "TZOFFSETFROM:+0000",
+            "TZNAME:PDT",
+            "END:DAYLIGHT",
+            "BEGIN:STANDARD",
+            "DTSTART:20051030T020000",
+            "TZOFFSETTO:-0800",
+            "TZOFFSETFROM:-0700",
+            "TZNAME:PST",
+            "END:STANDARD",
+            "END:VTIMEZONE"])
+        self.runConversionTest(
+            ICUtzinfo.getInstance("US/Pacific"),
+            zone)
 
 if __name__ == "__main__":
     unittest.main()
