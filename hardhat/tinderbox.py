@@ -362,7 +362,7 @@ def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
     head2 = '</head>\n' +\
             '<body>\n' +\
             '<img src="http://www.osafoundation.org/images/OSAFLogo.gif" ' + 'alt="[OSAF Logo]">\n' +\
-            '<h2>Chandler Build: ' + nowString + ' PDT (machine: ' + buildName + ')</h2>\n'
+            '<h2>' + treeName + ' Build: ' + nowString + ' (machine: ' + buildName + ')</h2>\n'
     cryptoblurb = '<p>This software is subject to the U.S. Export ' +\
                   'Administration Regulations and other U.S. law, and may ' +\
                   'not be exported or re-exported to certain countries ' +\
@@ -434,9 +434,13 @@ def CreateIndex(treeName, outputDir, newDirName, nowString, buildName):
                     (hardhatutil.MD5sum(actualDistro), hardhatutil.SHAsum(devInstall[1]))
 
     if userTarball or devTarball:
-        index += '<h3>Compressed Install Images</h3>\n' +\
-                 '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
-                 'Use these if you cannot or do not want to use the installers.</p>\n'
+        if treeName == 'Cosmo':
+            index += '<h3>Compressed Install Images</h3>\n' +\
+                     '<p>The Developer compressed images contain a snapshot of Cosmo.</p>\n'
+        else:
+            index += '<h3>Compressed Install Images</h3>\n' +\
+                     '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
+                     'Use these if you cannot or do not want to use the installers.</p>\n'
 
         if userTarball:
             index += '<p>End-Users: <a href="%s">%s</a> (%s): %s<br/>\n' % \
