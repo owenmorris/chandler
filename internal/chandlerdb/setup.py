@@ -35,6 +35,9 @@ def main():
     extensions.append(Extension('chandlerdb.item.item',
                                 sources=['chandlerdb/item/item.c']))
 
+    extensions.append(Extension('chandlerdb.persistence.view',
+                                sources=['chandlerdb/persistence/view.c']))
+
     if os.name == 'nt':
         if DEBUG == 0:
             libdb_name = 'libdb43'

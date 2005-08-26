@@ -1,15 +1,28 @@
 
 /*
- * The Item C type
+ * The item C type
+ *
+ * Copyright (c) 2003-2005 Open Source Applications Foundation
+ * License at http://osafoundation.org/Chandler_0.1_license_terms.htm
  */
+
+
+/*
+ * t_item and t_view share the same top fields because
+ * a view is also the parent of root items
+ */
+
+#define Item_HEAD          \
+    unsigned long status;  \
+    unsigned long version; \
+    PyObject *name;
+
 
 typedef struct {
     PyObject_HEAD
+    Item_HEAD
     unsigned long lastAccess;
-    unsigned long status;
-    unsigned long version;
     PyObject *uuid;
-    PyObject *name;
     PyObject *values;
     PyObject *references;
     PyObject *kind;

@@ -2,6 +2,9 @@
 /*
  * Implementation of UUID spec at
  * http://www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt
+ *
+ * Copyright (c) 2003-2005 Open Source Applications Foundation
+ * License at http://osafoundation.org/Chandler_0.1_license_terms.htm
  */
 
 #include "fns.h"

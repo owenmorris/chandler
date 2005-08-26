@@ -1,6 +1,9 @@
 
 /*
- * The Item C type
+ * The item C type
+ *
+ * Copyright (c) 2003-2005 Open Source Applications Foundation
+ * License at http://osafoundation.org/Chandler_0.1_license_terms.htm
  */
 
 #include <Python.h>
@@ -39,6 +42,7 @@ static int t_item__setName(t_item *self, PyObject *view, void *data);
 static PyObject *t_item__getRoot(t_item *self, void *data);
 static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
+static PyObject *t_item__getVersion(t_item *self, void *data);
 
 static PyObject *_setKind_NAME;
 static PyObject *importItem_NAME;
@@ -86,9 +90,9 @@ static PyObject *_getPath_NAME;
 
 
 static PyMemberDef t_item_members[] = {
-    { "_lastAccess", T_UINT, offsetof(t_item, lastAccess), 0, "access stamp" },
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
     { "_version", T_UINT, offsetof(t_item, version), 0, "item version" },
+    { "_lastAccess", T_UINT, offsetof(t_item, lastAccess), 0, "access stamp" },
     { "_uuid", T_OBJECT, offsetof(t_item, uuid), 0, "item uuid" },
     { "_name", T_OBJECT, offsetof(t_item, name), 0, "item name" },
     { "_values", T_OBJECT, offsetof(t_item, values), 0, "literals" },
@@ -137,6 +141,8 @@ static PyGetSetDef t_item_properties[] = {
       "itsUUID property", NULL },
     { "itsPath", (getter) t_item__getPath, NULL,
       "itsPath property", NULL },
+    { "itsVersion", (getter) t_item__getVersion, NULL,
+      "itsVersion property", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -360,7 +366,10 @@ static PyObject *t_item__getKind(t_item *self, void *data)
     if (kind != Py_None && ((t_item *) kind)->status & STALE)
     {
         PyObject *view = ((t_item *) self->root)->parent;
-        self->kind = kind = PyObject_GetItem(view, ((t_item *) kind)->uuid);
+        PyObject *uuid = ((t_item *) kind)->uuid;
+
+        Py_DECREF(kind);
+        self->kind = kind = PyObject_GetItem(view, uuid);
     }
 
     Py_INCREF(kind);
@@ -412,8 +421,10 @@ static PyObject *t_item__getParent(t_item *self, void *data)
     if (parent != Py_None && ((t_item *) parent)->status & STALE)
     {
         PyObject *view = ((t_item *) self->root)->parent;
-        self->parent = parent =
-            PyObject_GetItem(view, ((t_item *) parent)->uuid);
+        PyObject *uuid = ((t_item *) parent)->uuid;
+
+        Py_DECREF(parent);
+        self->parent = parent = PyObject_GetItem(view, uuid);
     }
 
     Py_INCREF(parent);
@@ -457,8 +468,10 @@ static PyObject *t_item__getRoot(t_item *self, void *data)
     if (root != Py_None && ((t_item *) root)->status & STALE)
     {
         PyObject *view = ((t_item *) root)->parent;
-        self->root = root =
-            PyObject_GetItem(view, ((t_item *) root)->uuid);
+        PyObject *uuid = ((t_item *) root)->uuid;
+
+        Py_DECREF(root);
+        self->root = root = PyObject_GetItem(view, uuid);
     }
 
     Py_INCREF(root);
@@ -482,6 +495,14 @@ static PyObject *t_item__getUUID(t_item *self, void *data)
 static PyObject *t_item__getPath(t_item *self, void *data)
 {
     return PyObject_CallMethodObjArgs((PyObject *) self, _getPath_NAME, NULL);
+}
+
+
+/* itsVersion */
+
+static PyObject *t_item__getVersion(t_item *self, void *data)
+{
+    return PyInt_FromLong(self->version);
 }
 
 
