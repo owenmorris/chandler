@@ -79,7 +79,7 @@ class AbstractCollection(items.ContentItem):
     )
 
     rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
-    subscribers = schema.Sequence(initialValue=[], otherName="subscribee")
+    subscribers = schema.Many(initialValue=set())
 
     def collectionChanged(self, op, item, name, other, *args):
 #        print "cC ", op

@@ -88,8 +88,8 @@ class CollectionTests(CollectionTestCase):
         u = UnionCollection('u', view=self.view)
         u.sources = [ self.b1, self.b2 ]
 
-        self.b1.subscribers.append(self.nh)
-        u.subscribers.append(self.nh1)
+        self.b1.subscribers.add(self.nh)
+        u.subscribers.add(self.nh1)
 
         self.b1.add(self.i)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
@@ -108,8 +108,8 @@ class CollectionTests(CollectionTestCase):
         """
         d = DifferenceCollection('d', view=self.view)
         d.sources = [ self.b1, self.b2 ]
-        self.b1.subscribers.append(self.nh)
-        d.subscribers.append(self.nh1)
+        self.b1.subscribers.add(self.nh)
+        d.subscribers.add(self.nh1)
         #
         self.b1.add(self.i)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
@@ -119,7 +119,7 @@ class CollectionTests(CollectionTestCase):
         self.failUnless(self.nh.checkLog("add", self.b1, self.i1))
         self.failUnless(self.nh1.checkLog("add", d, self.i1))
 
-        self.b2.subscribers.append(self.nh2)
+        self.b2.subscribers.add(self.nh2)
         self.b2.add(self.i2)
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i2))
         self.failIf(self.nh1.checkLog("add", d, self.i2))
@@ -144,12 +144,12 @@ class CollectionTests(CollectionTestCase):
         ic = DifferenceCollection("ic", view=self.view)
         ic.sources = [ iu, exclusions ]
 
-        inclusions.subscribers.append(self.nh)
-        rule.subscribers.append(self.nh1)
-        exclusions.subscribers.append(self.nh2)
+        inclusions.subscribers.add(self.nh)
+        rule.subscribers.add(self.nh1)
+        exclusions.subscribers.add(self.nh2)
 
         nh3 = NotifyHandler("nh3", view=self.view)
-        ic.subscribers.append(nh3)
+        ic.subscribers.add(nh3)
 
         inclusions.add(self.i)
         self.failUnless(self.nh.checkLog("add", inclusions, self.i))
@@ -185,7 +185,7 @@ class CollectionTests(CollectionTestCase):
         k1.kind = k
         k2 = KindCollection(view=self.view)
         k2.kind  = self.i.itsKind
-        k2.subscribers.append(self.nh)
+        k2.subscribers.add(self.nh)
 
         i = SimpleItem("new i", view=self.view)
         self.failUnless(self.nh.checkLog("add", k2, i))
@@ -212,8 +212,8 @@ class CollectionTests(CollectionTestCase):
         f1.source = self.b1
         f1.filterExpression = "len(item.label) > 2"
         f1.filterAttributes = ["label"]
-        self.b1.subscribers.append(self.nh)
-        f1.subscribers.append(self.nh1)
+        self.b1.subscribers.add(self.nh)
+        f1.subscribers.add(self.nh1)
 
         self.b1.add(self.i)
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
@@ -240,8 +240,8 @@ class CollectionTests(CollectionTestCase):
         f2.filterAttributes = ["label"]
         nh3 = NotifyHandler("nh3", view=self.view)
 
-        k1.subscribers.append(self.nh2)
-        f2.subscribers.append(nh3)
+        k1.subscribers.add(self.nh2)
+        f2.subscribers.add(nh3)
 
         fred = SimpleItem("fred", label="fred", view=self.view)
         self.failUnless(self.nh2.checkLog("add", k1, fred))
