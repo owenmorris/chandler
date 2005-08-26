@@ -101,7 +101,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         oldView = self.childrenBlocks.first()
 
         if (newView is not oldView) or rerender:
-            logger.debug("changing tree to display %s", TPBSelectedItem)
+            logger.debug("%s: changing tree to display %s", getattr(self, 'blockName', '?'), TPBSelectedItem)
             if oldView is not None:
                 oldView.unRender()
 
@@ -113,7 +113,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
                 self.childrenBlocks.append(newView)
                 newView.render()
         else:
-            logger.debug("NOT changing tree to display %s", TPBSelectedItem)
+            logger.debug("%s: NOT changing tree to display %s", getattr(self, 'blockName', '?'), TPBSelectedItem)
 
 
 class TrunkDelegate(schema.Item):

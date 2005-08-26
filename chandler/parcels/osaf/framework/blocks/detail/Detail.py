@@ -53,12 +53,14 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
     def onSetContentsEvent (self, event):
         item = event.arguments['item']
         logger.debug("DetailRoot.onSetContentsEvent: %s", item)
-        
+
         # Make sure the itemcollection that we monitor includes only the selected item.
-        if item is not None and (len(self.contents) != 1 or \
-                                 self.contents.first() is not item):
+        if item is not None:
+            if (len(self.contents) != 1 or self.contents[0] is not item):
+                self.contents.clear()
+                self.contents.add(item)
+        elif len(self.contents) != 0:
             self.contents.clear()
-            self.contents.add(item)
 
     def selectedItem(self):
         # return the item being viewed
