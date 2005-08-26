@@ -268,6 +268,7 @@ class CollectionTests(CollectionTestCase):
         x.label = "xxxx"
 #        print x.label
 
+        pos = len(nh3.log)
         # simulate idle loop
         self.view.mapChanges(mapChangesCallable, True)
 
@@ -276,7 +277,12 @@ class CollectionTests(CollectionTestCase):
 #        print nh3.log[-1], len(nh3.log)
 #        for i in f2:
 #            print i
-        self.failUnless(nh3.checkLog("changed", f2, x))
+        gotChanged = False
+        for i in nh3.log[pos:]:
+            if i[3]==x:
+                gotChanged=True
+                break
+        self.failUnless(gotChanged)
 
 #        print self.nh2.log[-1], len(self.nh2.log)
 #        print nh3.log[-1], len(nh3.log)

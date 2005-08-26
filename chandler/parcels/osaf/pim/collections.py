@@ -8,15 +8,15 @@ from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Diff
 from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
-import os
+import os, logging
+
+logger = logging.getLogger(__name__)
 
 def mapChangesCallable(item, version, status, literals, references):
     """
     """
-#    print "mapcc ",item
     # handle changes to items in a ListCollection
     if hasattr(item,'collections'):
-#        print "ListCollection notifications"
         for i in item.collections:
             i.contentsUpdated(item)
             break
@@ -27,13 +27,11 @@ def mapChangesCallable(item, version, status, literals, references):
         #@@@ this is not the most efficient way...
         kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
         for i in kc.collections:
-#            print "KindCollection notifications for %s,%s " % (kc,i)
             if item in i and hasattr(i,'contentsUpdated'):
-#                print "doing update"
                 i.contentsUpdated(item)
                 break
     except AttributeError, ae:
-#        print ae
+        logger.debug(ae)
         # @@@ intentionally swallow AttributeErrors from parcel loading
         # due to notification attempts before reps are created.
         pass 
@@ -80,22 +78,26 @@ class AbstractCollection(items.ContentItem):
 
     rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
     subscribers = schema.Many(initialValue=set())
+    collectionEventHandler = schema.One(schema.String, initialValue="collectionChanged")
 
     def collectionChanged(self, op, item, name, other, *args):
-#        print "cC ", op
         if op:
-            # use mapChanges to propagate any updates (not add/removes) that
+            # mapChanges (called in the idle loop)
+            # propagates any updates (not add/removes) that
             # happened since the last
-            self.itsView.mapChanges(mapChangesCallable, True)
             self.notifySubscribers(op, item, name, other, *args)
 
     def notifySubscribers(self, op, item, name, other, *args):
-#        print "nS subscribers ",self.subscribers
         for i in self.subscribers:
-#            print "nS notifying %s of %s" % (item, other)
             method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
-            method = getattr(type(i), method_name)
-            method(i, op, item, name, other, *args)
+            if method_name != None:
+                method = getattr(type(i), method_name, None)
+                if method != None:
+                    method(i, op, item, name, other, *args)
+                else:
+                    logger.debug("Didn't find the specified notification handler named %s" % (method_name))
+            else:
+                logger.debug("notification handler not specfied - no collectionEventHandler attribute")
 
     def contentsUpdated(self, item):
         pass
@@ -148,7 +150,7 @@ class KindCollection(AbstractCollection):
     def __init__(self, *args, **kw):
         super(KindCollection, self).__init__(*args, **kw)
         kc = schema.ns("osaf.pim.collections", self.itsView).kind_collections
-        kc.collections.append(self)
+        kc.collections.add(self)
     
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
@@ -180,7 +182,7 @@ class ListCollection(AbstractCollection):
         self.rep = Set((self,'refCollection'))
 
     def add(self, item):
-        self.refCollection.append(item)
+        self.refCollection.add(item)
 
     def clear(self):
         self.refCollection.clear()
@@ -215,6 +217,9 @@ class DifferenceCollection(AbstractCollection):
 
                 if len(self.sources) == 2:
                     self.rep = Difference((self.sources[0], "rep"),(self.sources[1], "rep"))
+                    self.subscribers.clear()
+                    for i in self.sources:
+                        i.subscribers.add(self)
 
 class UnionCollection(AbstractCollection):
     """
@@ -236,6 +241,10 @@ class UnionCollection(AbstractCollection):
                     self.rep = Union((self.sources[0],"rep"),(self.sources[1],"rep"))
                 else:
                     self.rep = MultiUnion(*[(i, "rep") for i in self.sources])
+                self.subscribers.clear()
+                for i in self.sources:
+                    i.subscribers.add(self)
+
 
 
 class IntersectionCollection(AbstractCollection):
@@ -255,6 +264,10 @@ class IntersectionCollection(AbstractCollection):
         if name == "sources":
             if self.sources != None and len(self.sources) > 1:
                 self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
+            self.subscribers.clear()
+            for i in self.sources:
+                i.subscribers.add(self)
+
 
 class FilteredCollection(AbstractCollection):
     """
@@ -278,6 +291,9 @@ class FilteredCollection(AbstractCollection):
                     if self.filterExpression != "" and self.filterAttributes != []:
 
                         self.rep = FilteredSet((self.source, "rep"), self.filterExpression, self.filterAttributes)
+                    self.subscribers.clear()
+                    for i in self.sources:
+                        i.subscribers.add(self)
                 except AttributeError, ae:
                     pass
 
