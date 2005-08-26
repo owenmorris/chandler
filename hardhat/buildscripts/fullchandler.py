@@ -280,7 +280,7 @@ def doUploadToStaging(buildmode, workingDir, buildVersion, log):
         os.mkdir(uploadDir)
 
     try:
-        upload = ' uploadworld UPLOAD=' + uploadDir
+        upload = ' uploadstaging UPLOAD=' + uploadDir
         print "Doing make " + dbgStr + upload
         log.write("Doing make " + dbgStr + upload + "\n")
 
