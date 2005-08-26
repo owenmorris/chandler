@@ -87,7 +87,7 @@ binaries:
 
 else
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
 		   $(SNAP)/lib/libcrypto.so.0.9.7 \
