@@ -22,7 +22,7 @@ SYSTEMS=persistence/db \
         m2crypto \
         zanshin
 
-.PHONY: systems env snap sources expand install clean $(SYSTEMS)
+.PHONY: systems env binaries sources expand install clean $(SYSTEMS)
 
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
@@ -95,7 +95,7 @@ realclean: $(addprefix realclean-, $(SYSTEMS))
 
 all: env sources $(SYSTEMS)
 
-world: all snap install
+world: all binaries install
 	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 
 cleanworld: $(addprefix clean-, $(SYSTEMS))
