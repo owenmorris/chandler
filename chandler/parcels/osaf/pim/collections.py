@@ -138,8 +138,7 @@ class KindCollection(AbstractCollection):
         kc.collections.append(self)
     
     def contentsUpdated(self, item):
-        if hasattr(self.rep,'notify'):
-            self.rep.notify('changed', item)
+        self.rep.notify('changed', item)
 
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
