@@ -15,11 +15,17 @@ import crypto.errors as errors
 log = logging.getLogger(__name__)
 
 class TrustSiteCertificateDialog(wx.Dialog):
+    """
+    This is the dialog we show to users when the certificate returned by the
+    server is signed by a certificate authority that is unknown to us. The user
+    has the option of adding the server certificate to a list of trusted
+    certificates either permanently or until program exit.
+    """
+    
     def __init__(self, parent, x509, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
-        Ask the user if they would like to trust the certificate presented by
-        the site we are connecting to.
+        Initialize dialog.
 
         @param x509: The certificate the site returned.
         """ 
@@ -71,10 +77,10 @@ class TrustSiteCertificateDialog(wx.Dialog):
                                 wx.DefaultSize, style)
             rbs += [rb]
             radiobox.Add(rb, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+            
             if first:
                 rb.SetValue(True)
-
-            first = False
+                first = False
 
         sizer.Add(radiobox, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -98,6 +104,9 @@ class TrustSiteCertificateDialog(wx.Dialog):
         self.rbs = rbs
 
     def GetSelection(self):
+        """
+        Returns the zero-based index of the selected radio button.
+        """
         sel = 0
         for rb in self.rbs:
             if rb.GetValue():
@@ -106,12 +115,21 @@ class TrustSiteCertificateDialog(wx.Dialog):
             
 
 class IgnoreSSLErrorDialog(wx.Dialog):
+    """
+    This is the dialog we show to users when the there are errors with the
+    SSL connection. There can be zero or more certificate validation errors,
+    and a post connection check failure which indicates the certificate as
+    issued for another server. The user can ignore the specific error with
+    the specific certificate until program exit and connect, or cancle. Note
+    that any of these errors can potentially be active hacking attempts, so
+    unless the user is knowledgeable they can subject themselves to attacks
+    by choosing to ignore errors.
+    """
+
     def __init__(self, parent, x509, err, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
-        Ask the user if they would like to ignore an error with the SSL 
-        connection. Note that this can be dangerous, since the error could
-        be due to an attack.
+        Initialize dialog.
 
         @param x509: The certificate the site returned.
         @param err:  The verification error code
