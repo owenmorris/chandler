@@ -73,12 +73,21 @@ class wxBoxContainer (wxRectangularChild):
                     #
                     #However, CPIA remembers the correct size: splitter.size
                     #and splitPercentage are right. So we'll use that to work
-                    #around. It's odd that MoveSash -> SetSashPosition lets
+                    #around. It's odd that MoveSash / SetSashPosition lets
                     #you put the sash at a position *greater* than
                     #GetSize()[1], but if they play dirty with negative sash
                     #positions, we can play dirty too.
+                    #
+                    #The logic to translate CPIA size/splitPerc -> a number for SetSashPosition
+                    #is copy-pasted out of wxSplitterWindow.OnSize() for now
 
-                    splitter.widget.MoveSash( splitter.size.height * splitter.splitPercentage )
+                    position = int (splitter.size.height * splitter.splitPercentage + 0.5)
+                    splitter.widget.SetSashPosition(position)
+                    splitter.widget.adjustSplit(position)
+                    
+                    #uhoh: this reports 107 and -63 for me, YET the behavior is correct (?!)
+                    #print position
+                    #print splitter.widget.GetSashPosition()
 
 
 class BoxContainer(RectangularChild):
