@@ -48,8 +48,14 @@ class wxBoxContainer (wxRectangularChild):
 
 
             # @@@ this hack is so evil it belongs in a conrad novel
+            #
             # to fix the mysterious negative sash position: bug 3497
-            # The sash goes negative after the MainCalendarContainer's Layout().
+            # The sash goes negative after its *parent*'s Layout(),
+            # but since that happens *after* its own Layout(), the code
+            # for wxSplitterWindow is powerless to prevent this travesty.
+            #
+            # The allday/timed splitter's parent is a generic BoxContainer
+            # so that's why the hack is here.
             
             try:
                 blockName = self.blockItem.blockName
@@ -62,9 +68,17 @@ class wxBoxContainer (wxRectangularChild):
                    splitterBlockName == 'MainCalendarCanvasSplitter' and \
                    splitter.widget.GetSashPosition() < 0:
                     
-                    allDay = Block.findBlockByName('AllDayEventsCanvas')
-                    splitter.widget.MoveSash(allDay.widget.collapsedHeight)
-            
+                    #Fun fact: at this time, splitter.widget.GetSize() is
+                    #wacky, like (20,0) or something.
+                    #
+                    #However, CPIA remembers the correct size: splitter.size
+                    #and splitPercentage are right. So we'll use that to work
+                    #around. It's odd that MoveSash -> SetSashPosition lets
+                    #you put the sash at a position *greater* than
+                    #GetSize()[1], but if they play dirty with negative sash
+                    #positions, we can play dirty too.
+
+                    splitter.widget.MoveSash( splitter.size.height * splitter.splitPercentage )
 
 
 class BoxContainer(RectangularChild):
