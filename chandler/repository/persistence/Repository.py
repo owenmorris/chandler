@@ -536,7 +536,7 @@ class Store(object):
     def getVersion(self):
         raise NotImplementedError, "%s.getVersion" %(type(self))
 
-    def loadItem(self, version, uuid):
+    def loadItem(self, view, version, uuid):
         raise NotImplementedError, "%s.loadItem" %(type(self))
     
     def serveItem(self, version, uuid, cloudAlias):
@@ -545,22 +545,22 @@ class Store(object):
     def serveChild(self, version, uuid, name, cloudAlias):
         raise NotImplementedError, "%s.serveChild" %(type(self))
 
-    def loadRef(self, version, uItem, uuid, key):
+    def loadRef(self, view, version, uItem, uuid, key):
         raise NotImplementedError, "%s.loadRef" %(type(self))
 
-    def loadRefs(self, version, uItem, uuid, firstKey):
+    def loadRefs(self, view, version, uItem, uuid, firstKey):
         raise NotImplementedError, "%s.loadRefs" %(type(self))
 
-    def loadACL(self, version, uuid, name):
+    def loadACL(self, view, version, uuid, name):
         raise NotImplementedError, "%s.loadACL" %(type(self))
 
-    def queryItems(self, version, kind=None, attribute=None):
+    def queryItems(self, view, version, kind=None, attribute=None):
         raise NotImplementedError, "%s.queryItems" %(type(self))
     
-    def searchItems(self, version, query, attribute=None):
+    def searchItems(self, view, version, query, attribute=None):
         raise NotImplementedError, "%s.searchItems" %(type(self))
     
-    def getItemVersion(self, version, uuid):
+    def getItemVersion(self, view, version, uuid):
         raise NotImplementedError, "%s.getItemVersion" %(type(self))
 
     def attachView(self, view):

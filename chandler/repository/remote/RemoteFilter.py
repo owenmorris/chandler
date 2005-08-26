@@ -87,7 +87,7 @@ class RemoteFilter(XMLFilter):
             if self._indexWriter is not None:
                 self._indexWriter.close()
                 self._indexWriter = None
-            self.store.abortTransaction(self._txnStatus)
+            self.store.abortTransaction(None, self._txnStatus)
             self._txnStatus = 0
             if self._lock:
                 self._lock = self.store.releaseLock(self._lock)
@@ -111,7 +111,7 @@ class RemoteFilter(XMLFilter):
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.store.commitTransaction(self._txnStatus)
+        self.store.commitTransaction(None, self._txnStatus)
         self._txnStatus = 0
         if self._lock:
             self._lock = self.store.releaseLock(self._lock)
@@ -130,7 +130,8 @@ class RemoteFilter(XMLFilter):
         self.itemUUID = UUID(attrs['uuid'])
         self.itemVersion = int(attrs['version'])
 
-        version = self.store.getItemVersion(self.itemVersion, self.itemUUID)
+        version = self.store.getItemVersion(None, self.itemVersion,
+                                            self.itemUUID)
         if not self.force and version == self.itemVersion:
             self._isSkipping = True
             self._isOn = False

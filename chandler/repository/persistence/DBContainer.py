@@ -298,7 +298,7 @@ class RefContainer(DBContainer, CRefContainer):
         return pack('>16sl16s',
                     key[16:32], ~unpack('>l', key[48:52])[0], key[32:48])
 
-    def applyHistory(self, fn, uuid, oldVersion, newVersion):
+    def applyHistory(self, view, fn, uuid, oldVersion, newVersion):
 
         store = self.store
         
@@ -307,7 +307,7 @@ class RefContainer(DBContainer, CRefContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor(self._history)
 
                 try:
@@ -345,7 +345,7 @@ class RefContainer(DBContainer, CRefContainer):
 
             finally:
                 self.closeCursor(cursor, self._history)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
     def deleteRef(self, keyBuffer, buffer, version, key):
 
@@ -379,7 +379,7 @@ class RefContainer(DBContainer, CRefContainer):
 
             return (previous, next, alias)
 
-    def loadRef(self, buffer, version, key):
+    def loadRef(self, view, buffer, version, key):
 
         cursorKey = self._packKey(buffer, key)
         store = self.store
@@ -389,7 +389,7 @@ class RefContainer(DBContainer, CRefContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
                 try:
@@ -423,7 +423,7 @@ class RefContainer(DBContainer, CRefContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
     # has to run within the commit transaction or it may deadlock
     def deleteItem(self, item):
@@ -462,7 +462,7 @@ class NamesContainer(DBContainer):
         return self.put(pack('>16sll', key._uuid, _hash(name), ~version),
                         uuid._uuid)
 
-    def readName(self, version, key, name):
+    def readName(self, view, version, key, name):
 
         if name is None:
             raise ValueError, 'name is None'
@@ -478,7 +478,7 @@ class NamesContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
                 try:
@@ -516,9 +516,9 @@ class NamesContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
-    def readNames(self, version, key):
+    def readNames(self, view, version, key):
 
         results = []
         cursorKey = key._uuid
@@ -529,7 +529,7 @@ class NamesContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
                 try:
@@ -568,7 +568,7 @@ class NamesContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
 
 class ACLContainer(DBContainer):
@@ -590,7 +590,7 @@ class ACLContainer(DBContainer):
 
         self.put(key, value)
 
-    def readACL(self, version, key, name):
+    def readACL(self, view, version, key, name):
 
         if name is None:
             cursorKey = pack('>16sl', key._uuid, 0)
@@ -606,7 +606,7 @@ class ACLContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
                 
                 try:
@@ -651,7 +651,7 @@ class ACLContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
 
 class IndexesContainer(DBContainer):
@@ -693,7 +693,7 @@ class IndexesContainer(DBContainer):
         return self.put(self._packKey(keyBuffer, key, version),
                         buffer.getvalue())
 
-    def loadKey(self, index, keyBuffer, version, key):
+    def loadKey(self, view, index, keyBuffer, version, key):
         
         cursorKey = self._packKey(keyBuffer, key)
         store = self.store
@@ -703,7 +703,7 @@ class IndexesContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
                 try:
@@ -762,7 +762,7 @@ class IndexesContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
 
 class ItemContainer(DBContainer):
@@ -866,7 +866,7 @@ class ItemContainer(DBContainer):
         return (itemVer, uKind, status, uParent, name,
                 moduleName, className, values)
 
-    def _findItem(self, version, uuid):
+    def _findItem(self, view, version, uuid):
 
         key = uuid._uuid
         store = self.store
@@ -876,7 +876,7 @@ class ItemContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor()
 
                 try:
@@ -910,7 +910,7 @@ class ItemContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
     def getItemValues(self, version, uuid):
 
@@ -929,17 +929,17 @@ class ItemContainer(DBContainer):
 
         return values
 
-    def loadItem(self, version, uuid):
+    def loadItem(self, view, version, uuid):
 
-        version, item = self._findItem(version, uuid)
+        version, item = self._findItem(view, version, uuid)
         if item is not None:
             return self._readItem(version, item)
 
         return None
 
-    def findValue(self, version, uuid, name):
+    def findValue(self, view, version, uuid, name):
 
-        version, item = self._findItem(version, uuid)
+        version, item = self._findItem(view, version, uuid)
         if item is not None:
 
             if isinstance(name, unicode):
@@ -957,23 +957,23 @@ class ItemContainer(DBContainer):
 
         return None
 
-    def getItemParentId(self, version, uuid):
+    def getItemParentId(self, view, version, uuid):
 
-        version, item = self._findItem(version, uuid)
+        version, item = self._findItem(view, version, uuid)
         if item is not None:
             return UUID(item[20:36])
 
         return None
 
-    def getItemVersion(self, version, uuid):
+    def getItemVersion(self, view, version, uuid):
 
-        version, item = self._findItem(version, uuid)
+        version, item = self._findItem(view, version, uuid)
         if item is not None:
             return version
 
         return None
 
-    def kindQuery(self, version, uuid, fn):
+    def kindQuery(self, view, version, uuid, fn):
 
         store = self.store
         
@@ -982,7 +982,7 @@ class ItemContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor(self._index)
 
                 try:
@@ -1024,9 +1024,9 @@ class ItemContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor, self._index)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
-    def applyHistory(self, fn, oldVersion, newVersion):
+    def applyHistory(self, view, fn, oldVersion, newVersion):
 
         store = self.store
         
@@ -1035,7 +1035,7 @@ class ItemContainer(DBContainer):
             cursor = None
 
             try:
-                txnStatus = store.startTransaction()
+                txnStatus = store.startTransaction(view)
                 cursor = self.openCursor(self._versions)
 
                 try:
@@ -1082,7 +1082,7 @@ class ItemContainer(DBContainer):
 
             finally:
                 self.closeCursor(cursor, self._versions)
-                store.abortTransaction(txnStatus)
+                store.abortTransaction(view, txnStatus)
 
 
 class ValueContainer(DBContainer, CValueContainer):

@@ -26,7 +26,7 @@ class CloudFilter(ItemFilter):
 
         for uuid, endpoints in self.endpoints.iteritems():
             if not uuid in uuids:
-                doc = self.store.loadItem(self.version, uuid)
+                doc = self.store.loadItem(None, self.version, uuid)
                 if doc is None:
                     raise NoSuchItemError, (uuid, self.version)
                 xml = doc.getContent()
@@ -77,7 +77,7 @@ class CloudFilter(ItemFilter):
         if 'first' in attrs:
             first = True
             alias = {}
-            for ref in self.store.loadRefs(self.version, self.uuid, uuid,
+            for ref in self.store.loadRefs(None, self.version, self.uuid, uuid,
                                            UUID(attrs['first'])):
                 if processRef(ref):
                     if first:
@@ -118,7 +118,7 @@ class EndpointFilter(ItemFilter):
         if 'first' in attrs:
             first = True
             alias = {}
-            for ref in self.store.loadRefs(self.version, self.uuid, uuid,
+            for ref in self.store.loadRefs(None, self.version, self.uuid, uuid,
                                            UUID(attrs['first'])):
                 if first:
                     first = False
@@ -185,7 +185,8 @@ class RefHandler(ContentHandler):
             if 'first' in attrs:
                 store = self.repository.repository.store
                 first = UUID(attrs['first'])
-                self.values = [ ref[0] for ref in store.loadRefs(self.version,
+                self.values = [ ref[0] for ref in store.loadRefs(None,
+                                                                 self.version,
                                                                  self.uuid,
                                                                  uuid, first) ]
             else:

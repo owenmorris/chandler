@@ -64,7 +64,7 @@ class KindQuery(Query):
                 if item._kind is kind:
                     yield item
 
-            for item in kind.itsView.queryItems(kind=kind):
+            for item in kind.itsView.queryItems(kind):
                 if item not in changedItems: 
                     yield item
 
@@ -82,7 +82,7 @@ class TextQuery(Query):
 
         self.expression = expression
 
-    def run(self, repository):
+    def run(self, view):
 
-        for pair in repository.searchItems(self.expression):
+        for pair in view.searchItems(self.expression):
             yield pair

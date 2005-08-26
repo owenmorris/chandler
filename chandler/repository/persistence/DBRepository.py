@@ -446,7 +446,7 @@ class DBStore(Store):
         txnStatus = 0
         
         try:
-            txnStatus = self.startTransaction()
+            txnStatus = self.startTransaction(None)
             txn = self.txn
 
             if (not self._ramdb and
@@ -465,13 +465,13 @@ class DBStore(Store):
             self._acls.open("__acls.db", txn, **kwds)
             self._indexes.open("__indexes.db", txn, **kwds)
         except DBNoSuchFileError:
-            self.abortTransaction(txnStatus)
+            self.abortTransaction(None, txnStatus)
             raise
         except RepositoryVersionError:
-            self.abortTransaction(txnStatus)
+            self.abortTransaction(None, txnStatus)
             raise
         else:
-            self.commitTransaction(txnStatus)
+            self.commitTransaction(None, txnStatus)
 
     def close(self):
 
@@ -509,9 +509,9 @@ class DBStore(Store):
         self._acls.detachView(view)
         self._indexes.detachView(view)
 
-    def loadItem(self, version, uuid):
+    def loadItem(self, view, version, uuid):
 
-        args = self._items.loadItem(version, uuid)
+        args = self._items.loadItem(view, version, uuid)
         if args is None:
             return None
 
@@ -521,68 +521,69 @@ class DBStore(Store):
 
         return itemReader
     
-    def loadRef(self, version, uItem, uuid, key):
+    def loadRef(self, view, version, uItem, uuid, key):
 
         buffer = self._refs.prepareKey(uItem, uuid)
         try:
-            return self._refs.loadRef(buffer, version, key)
+            return self._refs.loadRef(view, buffer, version, key)
         finally:
             buffer.close()
 
-    def loadRefs(self, version, uItem, uuid, firstKey):
+    def loadRefs(self, view, version, uItem, uuid, firstKey):
 
         refs = []
 
         buffer = self._refs.prepareKey(uItem, uuid)
         txnStatus = 0
         try:
-            txnStatus = self.startTransaction()
+            txnStatus = self.startTransaction(view)
             key = firstKey
             while key is not None:
-                ref = self._refs.loadRef(buffer, version, key)
+                ref = self._refs.loadRef(view, buffer, version, key)
                 assert ref is not None
 
                 refs.append(ref)
                 key = ref[1]
         finally:
-            self.abortTransaction(txnStatus)
+            self.abortTransaction(view, txnStatus)
             buffer.close()
 
         return refs
 
-    def readName(self, version, key, name):
+    def readName(self, view, version, key, name):
 
-        return self._names.readName(version, key, name)
+        return self._names.readName(view, version, key, name)
 
-    def readNames(self, version, key):
+    def readNames(self, view, version, key):
 
-        return self._names.readNames(version, key)
+        return self._names.readNames(view, version, key)
 
     def writeName(self, version, key, name, uuid):
 
         return self._names.writeName(version, key, name, uuid)
 
-    def loadACL(self, version, uuid, name):
+    def loadACL(self, view, version, uuid, name):
 
-        return self._acls.readACL(version, uuid, name)
+        return self._acls.readACL(view, version, uuid, name)
 
     def saveACL(self, version, uuid, name, acl):
 
         return self._acls.writeACL(version, uuid, name, acl)
 
-    def queryItems(self, version, kind=None, attribute=None):
+    def queryItems(self, view, version, kind=None, attribute=None):
 
         if kind is not None:
             results = []
             
             def fn(*args):
                 itemReader = DBItemReader(self, *args)
-                if (self._items.getItemVersion(version, itemReader.getUUID()) ==
+                if (self._items.getItemVersion(view, version,
+                                               itemReader.getUUID()) ==
                     itemReader.getVersion()):
                     results.append(itemReader)
                 return True
 
-            self._items.kindQuery(version, kind._uuid, fn)
+            self._items.kindQuery(view, version, kind._uuid, fn)
 
             return results
 
@@ -592,13 +593,13 @@ class DBStore(Store):
         else:
             raise ValueError, 'one of kind or value must be set'
 
-    def searchItems(self, version, query, attribute=None):
+    def searchItems(self, view, version, query, attribute=None):
 
         return self._index.searchDocuments(version, query, attribute)
 
-    def getItemVersion(self, version, uuid):
+    def getItemVersion(self, view, version, uuid):
 
-        return self._items.getItemVersion(version, uuid)
+        return self._items.getItemVersion(view, version, uuid)
 
     def getVersion(self):
 
@@ -608,15 +609,13 @@ class DBStore(Store):
 
         return self._values.getVersionInfo(self.repository.itsUUID)
 
-    def startTransaction(self):
+    def startTransaction(self, view):
 
         status = 0
         repository = self.repository
 
-        view = repository.getCurrentView(create=False)
-        if view is not None:
-            if view._exclusive.acquire():
-                status = DBStore.EXCLUSIVE
+        if view is not None and view._exclusive.acquire():
+            status = DBStore.EXCLUSIVE
         
         if not self._ramdb:
             if self.txn is None:
@@ -627,7 +626,7 @@ class DBStore(Store):
 
         return status
 
-    def commitTransaction(self, status):
+    def commitTransaction(self, view, status):
 
         try:
             if status & DBStore.TXNSTARTED:
@@ -637,11 +636,11 @@ class DBStore(Store):
                 self.txn = None
         finally:
             if status & DBStore.EXCLUSIVE:
-                self.repository.view._exclusive.release()
+                view._exclusive.release()
 
         return status
 
-    def abortTransaction(self, status):
+    def abortTransaction(self, view, status):
 
         try:
             if status & DBStore.TXNSTARTED:
@@ -651,7 +650,7 @@ class DBStore(Store):
                 self.txn = None
         finally:
             if status & DBStore.EXCLUSIVE:
-                self.repository.view._exclusive.release()
+                view._exclusive.release()
 
         return status
 
@@ -708,7 +707,7 @@ class DBStore(Store):
         if version == 0:
             version = v
         
-        doc = self.loadItem(version, uuid)
+        doc = self.loadItem(None, version, uuid)
         if doc is None:
             return None
                 
@@ -734,7 +733,7 @@ class DBStore(Store):
         if version == 0:
             version = self._values.getVersion()
         
-        uuid = self.readName(version, uuid, name)
+        uuid = self.readName(None, version, uuid, name)
         if uuid is None:
             return None
 

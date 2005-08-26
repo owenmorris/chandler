@@ -123,12 +123,15 @@ class LinkedMap(dict):
 
     def _get(self, key, load=True):
 
-        try:
-            return super(LinkedMap, self).__getitem__(key)
-        except KeyError:
+        sup = super(LinkedMap, self)
+        link = sup.get(key)
+
+        if link is None:
             if load and self._load(key):
-                return super(LinkedMap, self).__getitem__(key)
-            raise
+                return sup.__getitem__(key)
+            raise KeyError, key
+
+        return link
 
     def _load(self, key):
 

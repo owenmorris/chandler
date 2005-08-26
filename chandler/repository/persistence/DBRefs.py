@@ -60,8 +60,8 @@ class PersistentRefs(object):
             self._key = self._getRefs().prepareKey(item.itsUUID, self.uuid)
             self._value = StringIO()
 
-        ref = self._getRefs().loadRef(self._key, self._item._version,
-                                      self.uuid)
+        ref = self._getRefs().loadRef(self.view, self._key,
+                                      self._item._version, self.uuid)
         if ref is not None:
             self._firstKey, self._lastKey, self._count = ref
 
@@ -114,7 +114,8 @@ class PersistentRefs(object):
         if self._isRemoved(key):
             return None
         
-        return self._getRefs().loadRef(self._key, self._item._version, key)
+        return self._getRefs().loadRef(self.view, self._key,
+                                       self._item._version, key)
 
     def _writeRef(self, key, version, previous, next, alias):
 
@@ -134,7 +135,7 @@ class PersistentRefs(object):
         key = None
         if load:
             view = self.view
-            key = view.repository.store.readName(view._version,
+            key = view.repository.store.readName(view, view.itsVersion,
                                                  self.uuid, alias)
             if key is not None:
                 op, oldAlias = self._changedRefs.get(key, (0, None))
@@ -193,7 +194,8 @@ class PersistentRefs(object):
                     else:
                         moves[previousKey] = item
 
-        self._getRefs().applyHistory(merge, self.uuid, oldVersion, toVersion)
+        self._getRefs().applyHistory(self.view, merge, self.uuid,
+                                     oldVersion, toVersion)
 
         for previousKey, item in moves.iteritems():
             self.place(item, previousKey)
@@ -428,9 +430,10 @@ class DBNumericIndex(NumericIndex):
 
         indexes = self._getIndexes()
         
+        view = self.view
         self._version = version
-        head = indexes.loadKey(self, self._key, version, self._headKey)
-        tail = indexes.loadKey(self, self._key, version, self._tailKey)
+        head = indexes.loadKey(view, self, self._key, version, self._headKey)
+        tail = indexes.loadKey(view, self, self._key, version, self._tailKey)
 
         if head is not None:
             self._head = head
@@ -446,7 +449,8 @@ class DBNumericIndex(NumericIndex):
             if self._changedKeys.get(key, Nil) is None:   # removed key
                 return None
 
-            node = self._getIndexes().loadKey(self, self._key, version, key)
+            node = self._getIndexes().loadKey(self.view, self,
+                                              self._key, version, key)
             if node is not None:
                 self[key] = node
 

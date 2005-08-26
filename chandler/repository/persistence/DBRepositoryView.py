@@ -78,10 +78,11 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def queryItems(self, kind=None, attribute=None, load=True):
 
-        store = self.repository.store
+        store = self.store
         items = []
         
-        for itemReader in store.queryItems(self._version, kind, attribute):
+        for itemReader in store.queryItems(self, self._version,
+                                           kind, attribute):
             uuid = itemReader.getUUID()
             if not uuid in self._deletedRegistry:
                 # load and itemReader, trick to pass reader directly to find
@@ -93,9 +94,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def searchItems(self, query, attribute=None, load=True):
 
-        store = self.repository.store
+        store = self.store
         results = []
-        docs = store.searchItems(self._version, query, attribute)
+        docs = store.searchItems(self, self._version, query, attribute)
         for uuid, (ver, attribute) in docs.iteritems():
             if not uuid in self._deletedRegistry:
                 item = self.find(uuid, load=load)
@@ -138,16 +139,16 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _startTransaction(self):
 
-        return self.repository.store.startTransaction()
+        return self.store.startTransaction(self)
 
     def _commitTransaction(self, status):
 
         if self._indexWriter is not None:
-            self.repository.store._index.optimizeIndex(self._indexWriter)
+            self.store._index.optimizeIndex(self._indexWriter)
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.repository.store.commitTransaction(status)
+        self.store.commitTransaction(self, status)
 
     def _abortTransaction(self, status):
 
@@ -158,12 +159,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self.logger.exception('Exception while closing indexWriter')
             self._indexWriter = None
             
-        self.repository.store.abortTransaction(status)
+        self.store.abortTransaction(self, status)
 
     def _getIndexWriter(self):
 
         if self._indexWriter is None:
-            store = self.repository.store
+            store = self.store
             if not store._ramdb and store.txn is None:
                 raise RepositoryError, "Can't index outside transaction"
             self._indexWriter = store._index.getIndexWriter()
@@ -172,7 +173,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def refresh(self, mergeFn=None, version=None):
 
-        store = self.repository.store
+        store = self.store
         newVersion = version or store.getVersion()
         
         if newVersion > self._version:
@@ -246,7 +247,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self._exclusive.acquire()
                 self._status |= RepositoryView.COMMITTING
                 
-                store = self.repository.store
+                store = self.store
                 before = time()
 
                 size = 0L
@@ -391,7 +392,7 @@ class DBRepositoryView(OnDemandRepositoryView):
     
     def mapHistory(self, callable, fromVersion=0, toVersion=0):
 
-        store = self.repository.store
+        store = self.store
         
         if fromVersion == 0:
             fromVersion = self._version
@@ -414,7 +415,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 values.append(name)
                 callable(item, version, status, values, references)
 
-        store._items.applyHistory(call, fromVersion, toVersion)
+        store._items.applyHistory(self, call, fromVersion, toVersion)
 
     def _mergeItems(self, oldVersion, toVersion, histNotifications,
                     unloads, also, mergeFn):
@@ -443,7 +444,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             else:
                 histNotifications.history(uuid, 'changed', dirties=dirties)
 
-        self.store._items.applyHistory(check, oldVersion, toVersion)
+        self.store._items.applyHistory(self, check, oldVersion, toVersion)
 
         try:
             for uuid, (oldDirty, parent, dirties) in merges.iteritems():
@@ -503,13 +504,13 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         newParentId = item.itsParent.itsUUID
         if parentId != newParentId:
-            p = self.store._items.getItemParentId(oldVersion, item._uuid)
+            p = self.store._items.getItemParentId(self, oldVersion, item._uuid)
             if p != parentId and p != newParentId:
                 self._e_1_rename(item, p, newParentId)
     
         refs = self.store._refs
         key = refs.prepareKey(parentId, parentId)
-        p, n, name = refs.loadRef(key, toVersion, item._uuid)
+        p, n, name = refs.loadRef(self, key, toVersion, item._uuid)
 
         if name != item._name:
             self._e_2_rename(item, name)
@@ -517,16 +518,16 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _mergeRDIRTY(self, item, dirties, oldVersion, toVersion):
 
         dirties = HashTuple(dirties)
-        store = self.repository.store
-        args = store._items.loadItem(toVersion, item._uuid)
+        store = self.store
+        args = store._items.loadItem(self, toVersion, item._uuid)
         DBItemRMergeReader(store, item, dirties,
                            oldVersion, *args).readItem(self, [])
 
     def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
 
         dirties = HashTuple(dirties)
-        store = self.repository.store
-        args = store._items.loadItem(toVersion, item._uuid)
+        store = self.store
+        args = store._items.loadItem(self, toVersion, item._uuid)
         DBItemVMergeReader(store, item, dirties,
                            mergeFn, *args).readItem(self, [])
 

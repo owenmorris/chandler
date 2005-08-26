@@ -206,11 +206,7 @@ class SortedIndex(DelegatingIndex):
         super(SortedIndex, self).__init__(index, **kwds)
 
         if not kwds.get('loading', False):
-            if 'descending' in kwds:
-                self._descending = str(kwds['descending']) == 'True'
-                del kwds['descending']
-            else:
-                self._descending = False
+            self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
     def getInitKeywords(self):
 
@@ -332,8 +328,7 @@ class AttributeIndex(SortedIndex):
         self._valueMap = valueMap
 
         if not kwds.get('loading', False):
-            self._attribute = kwds['attribute']
-            del kwds['attribute']
+            self._attribute = kwds.pop('attribute')
 
     def getIndexType(self):
 
@@ -387,13 +382,8 @@ class StringIndex(AttributeIndex):
         self._locale = None
 
         if not kwds.get('loading', False):
-            if 'strength' in kwds:
-                self._strength = kwds['strength']
-                del kwds['strength']
-            if 'locale' in kwds:
-                self._locale = kwds['locale']
-                del kwds['locale']
-
+            self._strength = kwds.pop('strength', None)
+            self._locale = kwds.pop('locale', None)
             self._init()
 
     def _init(self):
@@ -466,8 +456,7 @@ class CompareIndex(SortedIndex):
         self._valueMap = valueMap
 
         if not kwds.get('loading', False):
-            self._compare = kwds['compare']
-            del kwds['compare']
+            self._compare = kwds.pop('compare')
 
     def getIndexType(self):
 

@@ -50,9 +50,9 @@ class RemoteStore(XMLStore):
         super(RemoteStore, self).close()
         self.transport.close()
 
-    def loadItem(self, version, uuid):
+    def loadItem(self, view, version, uuid):
 
-        doc = super(RemoteStore, self).loadItem(version, uuid)
+        doc = super(RemoteStore, self).loadItem(view, version, uuid)
         if doc is None:
             v, versionId = self._values.getVersionInfo(self.itsUUID)
             remoteVersion = self._values.getVersion(versionId)
@@ -75,15 +75,15 @@ class RemoteStore(XMLStore):
 
             txnStatus = 0
             try:
-                txnStatus = self.startTransaction()
+                txnStatus = self.startTransaction(None)
                 values.setVersion(version)
                 values.setVersion(version, versionId)
                 values.setVersionId(versionId, self.itsUUID)
             except:
-                self.abortTransaction(txnStatus)
+                self.abortTransaction(None, txnStatus)
                 raise
             else:
-                self.commitTransaction(txnStatus)
+                self.commitTransaction(None, txnStatus)
                 
         return version
 

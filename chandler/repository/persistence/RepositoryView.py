@@ -8,6 +8,8 @@ import logging, heapq, sys, gc, threading, os
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import CItem
+from chandlerdb.persistence.view import CView
+
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.util.Lob import Lob
@@ -17,7 +19,7 @@ from repository.item.Indexes import NumericIndex
 from repository.item.RefCollections import TransientRefList
 
 
-class RepositoryView(object):
+class RepositoryView(CView):
     """
     This class implements the cache for loaded items. Changes to items in a
     view are not written into persistent storage until the view is
@@ -43,14 +45,13 @@ class RepositoryView(object):
         implementation for the repository be used.
         """
 
-        super(RepositoryView, self).__init__()
+        if not name:
+            name = threading.currentThread().getName()
 
         if repository is not None and not repository.isOpen():
             raise RepositoryError, "Repository is not open"
 
-        self.repository = repository
-        self.name = name or threading.currentThread().getName()
-
+        super(RepositoryView, self).__init__(repository, name, version)
         self.openView()
         
     def __repr__(self):
@@ -69,18 +70,6 @@ class RepositoryView(object):
         """
 
         return self.repository.setCurrentView(self)
-
-    def _isRepository(self):
-
-        return False
-
-    def _isView(self):
-
-        return True
-
-    def _isItem(self):
-
-        return False
 
     def _isNullView(self):
 
@@ -222,38 +211,6 @@ class RepositoryView(object):
 
         return ((self._status & RepositoryView.OPEN) != 0 and
                 self.repository.isOpen())
-
-    def isNew(self):
-
-        return False
-
-    def isStale(self):
-
-        return False
-
-    def isRefCounted(self):
-
-        return (self._status & RepositoryView.REFCOUNTED) != 0
-        
-    def isLoading(self):
-        """
-        Tell whether this view is in the process of loading items.
-
-        @return: boolean
-        """
-
-        return (self._status & RepositoryView.LOADING) != 0
-
-    def _setLoading(self, loading, runHooks=False):
-
-        status = (self._status & RepositoryView.LOADING != 0)
-
-        if loading:
-            self._status |= RepositoryView.LOADING
-        else:
-            self._status &= ~RepositoryView.LOADING
-
-        return status
 
     def walk(self, path, callable, _index=0, **kwds):
         """
@@ -442,7 +399,7 @@ class RepositoryView(object):
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """
 
-        return self.repository.store.loadACL(self._version, uuid, name)
+        return self.repository.store.loadACL(self, self._version, uuid, name)
 
     def loadPack(self, path, parent=None):
         """
@@ -780,14 +737,6 @@ class RepositoryView(object):
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
 
-    def __getName(self):
-
-        return self.name
-
-    def getLogger(self):
-
-        return self.repository.logger
-
     def isDebug(self):
 
         return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
@@ -958,38 +907,18 @@ class RepositoryView(object):
                     setRoot(root, item)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
-    itsParent = None
-    
-    itsName = property(__getName)
     itsPath = property(_getPath)
-    itsView = property(lambda self: self)
-    itsVersion = property(lambda self: self._version,
-                          lambda self, value: self.refresh(version=value))
-
-    logger = property(getLogger)
-    debug = property(isDebug)
-    store = property(_getStore)
-    views = property(lambda self: self.repository.getOpenViews())
-
-    OPEN       = 0x0001
-    REFCOUNTED = 0x0002
-    LOADING    = 0x0004
-    COMMITTING = 0x0008
-    FDIRTY     = 0x0010
     
-    # flags from CItem
-    # CDIRTY   = 0x0200
-    # merge flags
+    debug = property(isDebug)
+    views = property(lambda self: self.repository.getOpenViews())
 
 
 class OnDemandRepositoryView(RepositoryView):
 
     def __init__(self, repository, name, version):
 
-        if version is not None:
-            self._version = version
-        else:
-            self._version = repository.store.getVersion()
+        if version is None:
+            version = repository.store.getVersion()
 
         self._exclusive = ThreadSemaphore()
         self._hooks = []
@@ -1009,8 +938,8 @@ class OnDemandRepositoryView(RepositoryView):
             finally:
                 self._hooks = []
 
-        return super(OnDemandRepositoryView, self)._setLoading(loading,
-                                                               runHooks)
+        return super(OnDemandRepositoryView, self)._setLoading(loading)
+
     def _readItem(self, itemReader):
 
         try:
@@ -1054,7 +983,8 @@ class OnDemandRepositoryView(RepositoryView):
             raise RecursiveLoadItemError, uuid
 
         if not uuid in self._deletedRegistry:
-            itemReader = self.repository.store.loadItem(self._version, uuid)
+            itemReader = self.repository.store.loadItem(self,
+                                                        self._version, uuid)
 
             if itemReader is not None:
                 try:
@@ -1236,10 +1166,6 @@ class NullRepositoryView(RepositoryView):
     def isDebug(self):
 
         return self._logger.getEffectiveLevel() <= logging.DEBUG
-
-    def __getUUID(self):
-
-        return self.itsUUID
 
     def getItemVersion(self, version, item):
 

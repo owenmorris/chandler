@@ -283,7 +283,7 @@ class Cloud(Item):
 
             uuids[uuid] = uuid
             if xml is None:
-                doc = store.loadItem(version, uuid)
+                doc = store.loadItem(None, version, uuid)
                 if doc is None:
                     raise NoSuchItemError, (uuid, version)
                 
@@ -481,7 +481,7 @@ class Endpoint(Item):
             if handler.values is not None:
                 store = self.itsView.store
                 for uuid in handler.values:
-                    doc = store.loadItem(version, uuid)
+                    doc = store.loadItem(None, version, uuid)
                     if doc is None:
                         raise NoSuchItemError, (uuid, version)
                     xml = doc.getContent()
