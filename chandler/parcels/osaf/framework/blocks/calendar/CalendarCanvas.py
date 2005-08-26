@@ -730,13 +730,41 @@ class CalendarBlock(CollectionCanvas.CollectionCanvas):
     def __init__(self, *arguments, **keywords):
         super(CalendarBlock, self).__init__(*arguments, **keywords)
 
-
         self.rangeIncrement = timedelta(days=7)
         self.dayMode = False
         self.setRange(self.startOfToday())
 
-                 
-             
+
+    #This is interesting. By Bug 3415 we want to reset the cal block's current
+    #date to today at each chandler startup. CPIA has no general mechanism for
+    #this, it assumes you want to persist everything. But we need CPIA
+    #persistence because these blocks get render/unrender()'d all the time. So
+    #we sign up for full repo persistence, but have to break it once per
+    #session.
+
+    #We do this by checking a class variable inside instantiateWidget()
+    #(3-line boilerplate). We know the variable will be initialized only once
+    #at chandler startup (module import time), so we then set it to True
+    #thereafter.
+    
+    #Additional complication: we want each calendar block subclass to keep
+    #track of whether it's been rendered or not -- as opposed to keeping track
+    #of whether and cal block has been rendered. Therefore, in a subclass, ONLY
+    #view and manipulate using the methods!
+    
+    # Envisioned usage is that a class gets instantiated/rendered multiple
+    # times, but only one instance at one time.
+
+    _beenRendered = False
+    @classmethod
+    def setHasBeenRendered(cls):
+        """This says, this class has been rendered during this session"""
+        cls._beenRendered = True
+    @classmethod
+    def getHasBeenRendered(cls):
+        """Has this class been rendered during this session?"""
+        return cls._beenRendered
+    
     @staticmethod
     def startOfToday():
         today = date.today()
@@ -1371,6 +1399,9 @@ class AllDayEventsCanvas(CalendarBlock):
         super(AllDayEventsCanvas, self).__init__(*arguments, **keywords)
 
     def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()
         w = wxAllDayEventsCanvas(self.parentBlock.widget, -1)
         return w
 
@@ -1744,6 +1775,9 @@ class TimedEventsCanvas(CalendarBlock):
     dayMode = schema.One(schema.Boolean)
 
     def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()
         w = wxTimedEventsCanvas(self.parentBlock.widget)
         return w
 
@@ -2261,9 +2295,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         return wx.Point(x, y)
 
 class CalendarControl(CalendarBlock):
-
-    ## TODO: integrate alecf's r5851 widget changes
-
     dayMode = schema.One(schema.Boolean)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     calendarContainer = schema.One(schema.Item)
@@ -2271,17 +2302,12 @@ class CalendarControl(CalendarBlock):
     def __init__(self, *arguments, **keywords):
         super(CalendarControl, self).__init__(*arguments, **keywords)
 
-        
-    def instantiateWidget(self):
-        ## written by KCP in old CalendarContainer code, since we know instantiateWidget()
-        ## is after this has been loaded by parcel.xml.  @@@ is onSetContentsEvent a
-        ## better place to put it?  or better yet, some method that the calcon
-        ## calls once all its children are instantiated (is there such a method
-        ## somewhere?)
-        
 
+    def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()
         w = wxCalendarControl(self.parentBlock.widget, -1)
-        
         return w
 
     def onSelectedDateChangedEvent(self, event):

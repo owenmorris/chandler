@@ -197,6 +197,9 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         pass
     
     def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()        
         return wxPreviewArea(self.parentBlock.widget, Block.Block.getWidgetID(self))
 
 
