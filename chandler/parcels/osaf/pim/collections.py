@@ -13,25 +13,20 @@ import os
 def mapChangesCallable(item, version, status, literals, references):
     """
     """
-    try: # handle changes to items in a ListCollection
-        if item.collections: 
-            for i in item.collections:
-                i.contentsUpdated(item)
-                break
-    except AttributeError:
-        pass
 
-    try: # handle changes to items in an existing KindCollection
-        # is the item in a kind collection?
+    # handle changes to items in a ListCollection
+    if hasattr(item,'collections'): 
+        for i in item.collections:
+            i.contentsUpdated(item)
+            break
 
-        #@@@ this is not the most efficient way...
-        kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
-        for i in kc.collections:
-            if item in i:
-                kc.contentsUpdated(item)
-                break
-    except AttributeError, ae:
-        pass # intentionally swallow AttributeErrors
+    # handle changes to items in an existing KindCollection
+    #@@@ this is not the most efficient way...
+    kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
+    for i in kc.collections:
+        if item in i and hasattr(kc,'contentsUpdated'):
+            kc.contentsUpdated(item)
+            break
 
 class AbstractCollection(items.ContentItem):
     """
@@ -143,7 +138,8 @@ class KindCollection(AbstractCollection):
         kc.collections.append(self)
     
     def contentsUpdated(self, item):
-        self.rep.notify('changed', item)
+        if hasattr(self.rep,'notify'):
+            self.rep.notify('changed', item)
 
     def onValueChanged(self, name):
         if name == "kind" or name == "recursive":
