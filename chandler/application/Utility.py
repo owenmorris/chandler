@@ -4,7 +4,8 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import os, sys, crypto, logging, logging.config, string
+import os, sys, crypto, logging, logging.config, logging.handlers, string
+
 from optparse import OptionParser
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
@@ -97,7 +98,7 @@ def initOptions(**kwds):
     #XXX i18n parcelPath, profileDir could have non-ascii paths
     #    option name,  (value, short cmd, long cmd, type flag, default, environment variable, help text)
     _configItems = {
-        'parcelPath':  ('-p', '--parcelPath','s', None,  'PARCELPATH', 'Parcel search path'),
+        'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
         'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
         'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler Repository'),
         'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
@@ -114,11 +115,11 @@ def initOptions(**kwds):
         'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
         'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
         'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
-        'nosplash':    ('-N', '--nosplash',  'b', False, 'CHANDLERNOSPLASH', ''),
-        'logging':     ('-L', '--logging',   's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
+        'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
+        'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
         'verbose':    ('-v', '--verbose',    'b', False,  None, 'Verbosity option (currently just for run_tests.py)'),
-        'quiet':    ('-q', '--quiet',    'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
+        'quiet':      ('-q', '--quiet',      'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
     }
 
 
@@ -179,13 +180,22 @@ def initLogging(options):
             fileConfig(options.logging)
         else:
             # Log config file doesn't exist
-            logging.basicConfig(level=logging.WARNING,
-                format='%(asctime)s %(name)s %(levelname)s: %(message)s',
-                filename=os.path.join(options.profileDir, 'chandler.log'),
-                filemode='a')
+            #logging.basicConfig(level=logging.WARNING,
+            #    format='%(asctime)s %(name)s %(levelname)s: %(message)s',
+            #    filename=os.path.join(options.profileDir, 'chandler.log'),
+            #    filemode='a')
+
+            logger = logging.getLogger()
+
+            fileHandler   = logging.handlers.RotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'), 'a', 1000000, 2)
+            fileFormatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
+
+            fileHandler.setFormatter(fileFormatter)
+
+            logger.addHandler(fileHandler)
+            logger.setLevel(logging.WARNING)
 
         logger = logging.getLogger(__name__)
-
 
         # If there is a logging FileHandler writing to a chandler.log,
         # then put twisted.log next to it.  Otherwise send twisted output
@@ -195,7 +205,7 @@ def initLogging(options):
         try:
             rootLogger = logging.getLogger()
             for handler in rootLogger.handlers:
-                if isinstance(handler, logging.FileHandler):
+                if isinstance(handler, logging.RotatingFileHandler):
                     if handler.baseFilename.endswith('chandler.log'):
                         # We found the chandler.log handler.  Let's put
                         # twisted.log here next to it
@@ -211,7 +221,7 @@ def initLogging(options):
         twistedlog = twisted.python.logfile.LogFile("twisted.log", twistedLogDir)
 
         twisted.python.log.startLogging(twistedlog, 0)
-        logger.info("Twisted logging output to %s folder" % twistedLogDir)
+        logger.warning("Twisted logging output to %s folder" % twistedLogDir)
 
 
 def locateChandlerDirectory():
