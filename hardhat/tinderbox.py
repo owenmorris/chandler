@@ -120,7 +120,7 @@ def main():
 
         SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None)
 
-        ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log, 
+        ret = mod.Start(hardhatFile, buildDir, buildVersion, 0, log,
                         upload=options.uploadStaging, skipTests=options.skipTests)
 
     except TinderbuildError, e:
@@ -135,7 +135,7 @@ def main():
         log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName,
                  "The build failed", treeName, None)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
          treeName, logContents)
         log = open(logFile, "w")
 
@@ -172,7 +172,7 @@ def main():
             newDir = os.path.join(outputDir, buildVersion)
 
             if os.path.exists(srcDir):
-                print "Renaming " + srcDir + " to " + newDir 
+                print "Renaming " + srcDir + " to " + newDir
                 log.write("Renaming " + srcDir + " to " + newDir + "\n")
                 os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
                 if os.path.exists(outputDir+os.sep+"index.html"):
@@ -187,18 +187,18 @@ def main():
                 RotateDirectories(outputDir)
 
             buildNameNoSpaces = buildName.replace(" ", "")
-            
+
             if skipRsync:
                 print "skipping rsync"
                 log.write("skipping rsync")
             else:
                 print "Rsyncing..."
-                log.write('rsync -e ssh -avzp ' + outputDir + os.sep + ' ' +
+                log.write('rsync -e "ssh -l builder" -avzp ' + outputDir + os.sep + ' ' +
                           options.rsyncServer + ':continuous/' +
                           buildNameNoSpaces)
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", "ssh", "-avzp",
-                 outputDir + os.sep, 
+                 [rsyncProgram, "-e", '"ssh -l builder"', "-avzp",
+                 outputDir + os.sep,
                  options.rsyncServer + ":continuous/" + buildNameNoSpaces])
                 hardhatutil.dumpOutputList(outputList, log)
 
@@ -227,7 +227,7 @@ def main():
                               platform)
                     outputList = hardhatutil.executeCommandReturnOutputRetry(
                      [rsyncProgram, "-e", "ssh", "-avzp",
-                     timestamp, 
+                     timestamp,
                      options.rsyncServer + ":staging/" + platform])
                     hardhatutil.dumpOutputList(outputList, log)
 
@@ -239,7 +239,7 @@ def main():
                               platform + "/" + timestamp)
                     outputList = hardhatutil.executeCommandReturnOutputRetry(
                      [rsyncProgram, "-e", "ssh", "-avzp",
-                     completedFile, 
+                     completedFile,
                      options.rsyncServer + ":staging/" + platform + "/" + timestamp])
                     hardhatutil.dumpOutputList(outputList, log)
 
@@ -250,32 +250,32 @@ def main():
             log.write("The build failed\n")
             status = "build_failed"
             log.close()
-    
+
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
             SendMail(fromAddr, alertAddr, startTime, buildName,
                      "The build failed", treeName, None)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
              treeName, logContents)
             log = open(logFile, "w")
 
-        
+
         elif ret[:11] == "test_failed":
             print "Unit tests failed"
             log.write("Unit tests failed\n")
             status = "test_failed"
             log.close()
-    
+
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
             SendMail(fromAddr, alertAddr, startTime, buildName,
                      "Unit tests failed", treeName, None)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, status,
              treeName, logContents)
             log = open(logFile, "w")
-        
+
         else:
             print "There were no changes"
             log.write("There were no changes in SVN\n")
@@ -291,7 +291,7 @@ def main():
         nowTime = str(int(time.time()))
 
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents)
-        
+
         if sleepMinutes:
             print "Sleeping %d minutes" % sleepMinutes
             time.sleep(sleepMinutes * 60)
