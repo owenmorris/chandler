@@ -36,6 +36,10 @@ class Block(schema.Item):
 
     contents = schema.One(ContentItem, otherName="contentsOwner")
 
+    subscribee = schema.Sequence(
+        "osaf.pim.collections.AbstractCollection", inverse="subscribers"
+    )
+
     viewAttribute = schema.One(schema.String)
 
     parentBlock = schema.One("Block",
@@ -225,7 +229,8 @@ class Block(schema.Item):
                 """
                 contents = getattr (self, 'contents', None)
                 if isinstance (contents, AbstractCollection):
-                    contents.subscribers.append (self)
+                    if not self in contents.subscribers:
+                        contents.subscribers.append (self)
                 """
                   Add events to name lookup dictionary.
                 """
