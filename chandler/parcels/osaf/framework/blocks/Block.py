@@ -37,7 +37,7 @@ class Block(schema.Item):
     contents = schema.One(ContentItem, otherName="contentsOwner")
 
     subscribee = schema.Sequence(
-        "osaf.pim.collections.AbstractCollection", inverse="subscribers"
+        "osaf.pim.collections.AbstractCollection", otherName="subscribers"
     )
 
     viewAttribute = schema.One(schema.String)
