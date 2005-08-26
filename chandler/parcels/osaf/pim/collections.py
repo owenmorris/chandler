@@ -13,20 +13,30 @@ import os
 def mapChangesCallable(item, version, status, literals, references):
     """
     """
-
+#    print "mapcc ",item
     # handle changes to items in a ListCollection
-    if hasattr(item,'collections'): 
+    if hasattr(item,'collections'):
+#        print "ListCollection notifications"
         for i in item.collections:
             i.contentsUpdated(item)
             break
 
     # handle changes to items in an existing KindCollection
-    #@@@ this is not the most efficient way...
-    kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
-    for i in kc.collections:
-        if item in i and hasattr(kc,'contentsUpdated'):
-            kc.contentsUpdated(item)
-            break
+    # is the item in a kind collection?
+    try:
+        #@@@ this is not the most efficient way...
+        kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
+        for i in kc.collections:
+#            print "KindCollection notifications for %s,%s " % (kc,i)
+            if item in i and hasattr(i,'contentsUpdated'):
+#                print "doing update"
+                i.contentsUpdated(item)
+                break
+    except AttributeError, ae:
+#        print ae
+        # @@@ intentionally swallow AttributeErrors from parcel loading
+        # due to notification attempts before reps are created.
+        pass 
 
 class AbstractCollection(items.ContentItem):
     """
@@ -72,6 +82,7 @@ class AbstractCollection(items.ContentItem):
     subscribers = schema.Sequence(initialValue=[], otherName="subscribee")
 
     def collectionChanged(self, op, item, name, other, *args):
+#        print "cC ", op
         if op:
             # use mapChanges to propagate any updates (not add/removes) that
             # happened since the last
@@ -79,7 +90,9 @@ class AbstractCollection(items.ContentItem):
             self.notifySubscribers(op, item, name, other, *args)
 
     def notifySubscribers(self, op, item, name, other, *args):
+#        print "nS subscribers ",self.subscribers
         for i in self.subscribers:
+#            print "nS notifying %s of %s" % (item, other)
             method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
             method = getattr(type(i), method_name)
             method(i, op, item, name, other, *args)

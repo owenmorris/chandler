@@ -276,7 +276,7 @@ class CollectionTests(CollectionTestCase):
 #        print nh3.log[-1], len(nh3.log)
 #        for i in f2:
 #            print i
-        self.failUnless(nh3.checkLog("add", f2, x))
+        self.failUnless(nh3.checkLog("changed", f2, x))
 
 #        print self.nh2.log[-1], len(self.nh2.log)
 #        print nh3.log[-1], len(nh3.log)
