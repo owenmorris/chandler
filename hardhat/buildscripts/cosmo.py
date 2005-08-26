@@ -5,7 +5,7 @@ object, log.  True is returned if a new build was created, False is returned
 if no code has changed, and an exception is raised if there are problems.
 """
 
-import os, sys, re
+import os, sys, re, glob
 import hardhatutil, hardhatlib
 
 path       = os.environ.get('PATH', os.environ.get('path'))
@@ -79,7 +79,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
             outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "-q", "co", svnSource, module])
 
-            hardhatutil.dumpOutputList(outputList, log) 
+            hardhatutil.dumpOutputList(outputList, log)
 
             sourceChanged = True
 
@@ -177,6 +177,12 @@ def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped
 
             hardhatlib.copyFiles(sourceDir, targetDir, fileGlob)
 
+            distributionFiles = glob.glob(os.path.join(targetDir, fileGlob))
+
+            fileOut = file(os.path.join(targetDir, 'developer'), 'w')
+            fileOut.write(os.path.basename(distributionFiles[0]))
+            fileOut.close()
+
         except Exception, e:
             doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
             raise e
@@ -212,7 +218,7 @@ def doCopyLog(msg, workingDir, logPath, log):
     else:
         log.write(logPath + ' does not exist!\n')
     log.write(separator)
-    
+
 
 def CopyLog(file, fd):
     input = open(file, "r")
