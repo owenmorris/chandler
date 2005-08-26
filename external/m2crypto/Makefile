@@ -52,7 +52,7 @@ M2Crypto-$(VERSION)-expanded: M2Crypto-$(VERSION).tar.gz
 
 expand: M2Crypto-$(VERSION)-expanded
 
-snap: 
+binaries:
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/M2Crypto -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/M2Crypto -name "*.pyo" | xargs rm -f; \
@@ -60,7 +60,7 @@ snap:
 		$(SNAP)/$(SITE)/M2Crypto; \
 	$(MD5) $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz > $(BUILD_ROOT)/m2crypto/m2crypto-$(SNAP)-$(RELVER).tar.gz.md5
 
-install: m2crypto-$(SNAP)-$(RELVER).tar.gz
+install: binaries #m2crypto-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
@@ -68,4 +68,7 @@ upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf  $(SRC)/$(BUILD)
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

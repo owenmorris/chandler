@@ -1,6 +1,6 @@
 
-VERSION=2.6.16
-RELVER=$(VERSION)-4
+VERSION=2.6.20
+RELVER=$(VERSION)-1
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -44,7 +44,7 @@ clean:
 	cd $(SRC)/win32; rm -rf $(SNAP)
 	cd $(SRC)/python; rm -rf build_$(SNAP)
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/*libxml2*; \
@@ -80,7 +80,7 @@ py:
 
 build: expand compile py
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/lib/libxml2* \

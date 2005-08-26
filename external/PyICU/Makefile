@@ -71,10 +71,10 @@ endif
 endif
 endif
 
-clean:
+clean: PyICU-$(VERSION)-expanded
 	$(MAKE) -C $(SRC) clean
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
 	$(MD5) $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz > $(PYICU)/pyicu-$(SNAP)-$(RELVER).tar.gz.md5

@@ -45,7 +45,7 @@ apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 # Nothing to do
-snap:
+binaries:
 
 # Nothing to do
 upload:

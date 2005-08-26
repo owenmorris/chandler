@@ -29,7 +29,7 @@ Twisted-$(VERSION)-expanded: Twisted-$(VERSION).tar.gz
 
 expand: Twisted-$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/twisted -name "*.pyo" | xargs rm -f; \
@@ -46,5 +46,4 @@ upload: twisted-$(SNAP)-$(RELVER).tar.gz
 	scp twisted-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf  $(SRC)/$(BUILD)
-
+	rm -rf $(SRC)/$(BUILD)

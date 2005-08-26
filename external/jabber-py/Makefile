@@ -29,7 +29,7 @@ jabberpy$(VERSION)-expanded: jabberpy$(VERSION).tar.gz
 
 expand: jabberpy$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/jabber.py \
@@ -44,4 +44,7 @@ upload: jabberpy-$(SNAP)-$(RELVER).tar.gz
 	scp jabberpy-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

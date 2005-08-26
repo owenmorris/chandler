@@ -33,7 +33,7 @@ clean:
 	cd $(SRC)/icu/source/allinone; MAKEFLAGS=; \
         devenv.com allinone.sln /clean $(Snap)
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/icu*.dll \
@@ -68,7 +68,7 @@ build: expand $(BUILD)/Makefile
 clean:
 	rm -rf $(BUILD)
 
-snap:
+binaries:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(ICU)/icu-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/icu/bin $(SNAP)/icu/lib; \

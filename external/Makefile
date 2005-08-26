@@ -17,37 +17,33 @@ SYSTEMS=persistence/db \
         twisted \
         pychecker \
         yapps \
-	vobject \
-	dateutil \
-	m2crypto \
-	zanshin
+        vobject \
+        dateutil \
+        m2crypto \
+        zanshin
 
-.PHONY: sources expand binaries $(SYSTEMS)
-
-env::
-	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
-
-sources: env
-	for system in $(SYSTEMS); \
-	do \
-	    $(MAKE) -C $$system sources; \
-	done
-
-expand: env
-	for system in $(SYSTEMS); \
-	do \
-	    $(MAKE) -C $$system expand; \
-	done
-
-binaries: env
-	@for system in $(SYSTEMS); \
-	do \
-	    $(MAKE) -C $$system DEBUG=$(DEBUG) snap; \
-	done
+.PHONY: systems env snap sources expand install clean $(SYSTEMS)
 
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG) all
 
+$(addprefix binaries-, $(SYSTEMS)):
+	$(MAKE) -C $(subst binaries-,,$@) binaries
+
+$(addprefix sources-, $(SYSTEMS)):
+	$(MAKE) -C $(subst sources-,,$@) sources
+
+$(addprefix expand-, $(SYSTEMS)):
+	$(MAKE) -C $(subst expand-,,$@) expand
+
+$(addprefix install-, $(SYSTEMS)):
+	$(MAKE) -C $(subst install-,,$@) install
+
+$(addprefix clean-, $(SYSTEMS)):
+	$(MAKE) -C $(subst clean-,,$@) clean
+
+$(addprefix realclean-, $(SYSTEMS)):
+	$(MAKE) -C $(subst realclean-,,$@) _realclean
 
 # to start build from a given system instead of from the beginning
 # for example: make from-PyLucene
@@ -63,9 +59,6 @@ $(addprefix from-, $(SYSTEMS)):
 $(addprefix to-, $(SYSTEMS)):
 	$(MAKE) $(shell echo $(SYSTEMS) | sed "s=\(.*$(subst to-,,$@)\).*=\1=")
 
-
-all: env sources $(SYSTEMS)
-
 ifeq ($(OS),Cygwin)
 strip:
 else
@@ -78,52 +71,45 @@ else
 STRIP_OPTIONS=
 endif
 strip:
-	find release -name "*.so" |xargs strip $(STRIP_OPTIONS)
+	find release -name "*.so" | xargs strip $(STRIP_OPTIONS)
 endif
 endif
 
-world: all binaries install
-	make -C ../internal DEBUG=$(DEBUG) world
+env::
+	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
 
-clean: env
-	@for system in $(SYSTEMS); \
-	do \
-	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) clean; \
-	done
+systems: $(SYSTEMS)
 
-realclean:
+binaries: $(addprefix binaries-, $(SYSTEMS))
+
+sources: $(addprefix sources-, $(SYSTEMS))
+
+expand: $(addprefix expand-, $(SYSTEMS))
+
+install: $(addprefix install-, $(SYSTEMS))
+
+clean: $(addprefix clean-, $(SYSTEMS))
+
+realclean: $(addprefix realclean-, $(SYSTEMS))
 	rm -rf release debug
-	@for system in $(SYSTEMS); \
-	do \
-	    echo making _realclean in $$system; \
-	    $(MAKE) -C $$system -k _realclean; \
-	done
 
-cleanworld: clean
-	make -C ../internal DEBUG=$(DEBUG) clean
-	make -C ../chandler DEBUG=$(DEBUG) clean
+all: env sources $(SYSTEMS)
 
-realcleanworld: realclean
-	make -C ../internal realclean
-	make -C ../chandler realclean
+world: all snap install
+	$(MAKE) -C ../internal DEBUG=$(DEBUG) world
 
-upload:
+cleanworld: $(addprefix clean-, $(SYSTEMS))
+	$(MAKE) -C ../internal DEBUG=$(DEBUG) clean
+	$(MAKE) -C ../chandler DEBUG=$(DEBUG) clean
+
+realcleanworld: $(addprefix realclean-, $(SYSTEMS))
+	$(MAKE) -C ../internal DEBUG=$(DEBUG) realclean
+	$(MAKE) -C ../chandler DEBUG=$(DEBUG) realclean
+
+# this is the only one still using a for loop
+# it should only be called by the full tbox client
+uploadstaging:
 	@for system in $(SYSTEMS); \
 	do \
 		$(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
-
-uploadworld: upload
-	make -C ../internal DEBUG=$(DEBUG) upload
-
-install:
-	@for system in $(SYSTEMS); \
-	do \
-		$(MAKE) -C $$system DEBUG=$(DEBUG) install; \
-	done
-
-checkout:
-	cd ..; \
-	rm -f cvsco.log;\
-	cvs co chandler-all 2>&1 | tee -a cvsco.log; \
-	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'

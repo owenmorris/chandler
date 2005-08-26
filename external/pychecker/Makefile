@@ -36,7 +36,7 @@ pychecker-$(VERSION)-expanded: pychecker-$(VERSION).tar.gz
 
 expand: pychecker-$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/pychecker -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/pychecker -name "*.pyo" | xargs rm -f; \
@@ -53,4 +53,7 @@ upload: pychecker-$(SNAP)-$(RELVER).tar.gz
 	scp pychecker-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

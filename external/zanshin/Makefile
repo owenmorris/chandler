@@ -25,7 +25,7 @@ zanshin-$(VERSION)-expanded: zanshin-$(VERSION).tar.gz
 
 expand: zanshin-$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/zanshin -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/zanshin -name "*.pyo" | xargs rm -f; \
@@ -42,5 +42,7 @@ upload: zanshin-$(SNAP)-$(RELVER).tar.gz
 	scp zanshin-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf  $(SRC)/$(BUILD)
-
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

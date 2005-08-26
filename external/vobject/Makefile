@@ -29,8 +29,7 @@ build: expand
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
-
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f
@@ -46,10 +45,7 @@ install:
         tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 clean:
-	rm -rf $(BUILD)
-	rm -rf $(SRC)
-	rm $(SRC)-expanded
-
-realclean: clean
-	rm -rf build_debug build_release
-	rm -f vobject-debug-*.tar.gz* vobject-release-*.tar.gz*
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

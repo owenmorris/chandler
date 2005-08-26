@@ -32,7 +32,7 @@ epydoc-$(VERSION)-expanded: epydoc-$(VERSION).tar.gz
 
 expand: epydoc-$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/epydoc -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/epydoc -name "*.pyo" | xargs rm -f; \
@@ -49,4 +49,7 @@ upload: epydoc-$(SNAP)-$(RELVER).tar.gz
 	scp epydoc-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

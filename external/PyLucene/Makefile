@@ -128,10 +128,10 @@ build: expand apply
             VERSION=$(VERSION) \
             all install
 
-clean:
+clean: PyLucene-$(VERSION)-expanded
 	$(MAKE) -C $(SRC) clean
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
 	$(MD5) $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz.md5

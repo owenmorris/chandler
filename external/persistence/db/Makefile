@@ -33,7 +33,7 @@ clean:
         devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
 	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/libdb*.dll \
@@ -63,7 +63,7 @@ build: expand $(SRC)/$(BUILD)/Makefile
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
-snap:
+binaries:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/db/bin $(SNAP)/db/lib \

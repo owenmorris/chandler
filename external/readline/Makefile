@@ -33,7 +33,7 @@ else
 apply:
 endif 
 
-snap:
+binaries:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(READLINE)/readline-$(SNAP)-$(RELVER).tar.gz \
         $(SNAP)/lib/libreadline* --exclude '*.a'; \
@@ -68,7 +68,7 @@ readline:
 clean:
 
   # Nothing to do
-snap:
+binaries:
 
   # Nothing to do
 upload:

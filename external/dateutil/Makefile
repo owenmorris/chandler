@@ -22,15 +22,13 @@ expand: $(SRC)-expanded
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-
 build: expand
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
-
-snap: 
+binaries:
 	cd $(BUILD_ROOT); \
 	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	find $(MANIFEST) -name "*.pyo" | xargs rm -f
@@ -46,10 +44,7 @@ install:
         tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 clean:
-	rm -rf $(BUILD)
-	rm -rf $(SRC)
-	rm $(SRC)-expanded
-
-realclean: clean
-	rm -rf build_debug build_release
-	rm -f dateutil-debug-*.tar.gz* dateutil-release-*.tar.gz*
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi

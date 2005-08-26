@@ -25,7 +25,7 @@ yapps$(VERSION)-expanded: yapps$(VERSION).zip
 
 expand: yapps$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/yapps -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/yapps -name "*.pyo" | xargs rm -f; \

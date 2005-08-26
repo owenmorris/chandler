@@ -41,11 +41,11 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
 	cp -f libeay32.lib $(PREFIX)/lib/; \
 	cp -fr  ../inc32/openssl $(PREFIX)/Include
 
-# snap target can be empty on Windows because we will install the OpenSSL
+# binaries target can be empty on Windows because we will install the OpenSSL
 # DLLs during M2Crypto build, as we'll be copying the DLLs into site-packages
 # to make sure Chandler will find our DLLs and not anything in Windows
 # system directories.
-snap: 
+binaries: 
 
 # M2Crypto upload handles this as well
 upload:
@@ -74,7 +74,7 @@ install: openssl-$(SNAP)-$(RELVER).tar.gz
 
 ifeq ($(OS),Darwin)
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
 		   $(SNAP)/lib/libcrypto.0.9.7.dylib \

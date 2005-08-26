@@ -29,7 +29,7 @@ SOAPpy-$(VERSION)-expanded: SOAPpy-$(VERSION).tar.gz
 
 expand: SOAPpy-$(VERSION)-expanded
 
-snap: 
+binaries: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/SOAPpy -name "*.pyc" | xargs rm -f; \
 	find $(SNAP)/$(SITE)/SOAPpy -name "*.pyo" | xargs rm -f; \
@@ -41,7 +41,10 @@ install: soappy-$(SNAP)-$(RELVER).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf soappy-$(SNAP)-$(RELVER).tar.gz
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	@if [ -f $(PYTHON) ]; then \
+            cd $(SRC); \
+            $(PYTHON) setup.py clean --all; \
+        fi
 
 upload: soappy-$(SNAP)-$(RELVER).tar.gz
 	scp soappy-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
