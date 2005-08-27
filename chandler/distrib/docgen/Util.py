@@ -37,10 +37,10 @@ def repository(directory, destroy=False):
     else:
         rep.open(**kwds)
 
-    if rep.findPath("//Schema") is None:
-        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+    if rep.view.findPath("//Schema") is None:
+        rep.view.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'schema.pack'))
-        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+        rep.view.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'chandler.pack'))
 
     return rep

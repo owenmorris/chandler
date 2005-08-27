@@ -7,14 +7,6 @@ info = {
 
 dependencies = ()
 
-def build(buildenv):
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/NewBuildInstructions for how to build")
-
-def clean(buildenv):
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/NewBuildInstructions for how to build")
-
 def run(buildenv):
 
     if buildenv['version'] == 'debug':
@@ -256,17 +248,51 @@ def generateDocs(buildenv):
     # Generate the epydocs
     targetDir = os.path.join("docs","api")
     hardhatlib.mkdirs(targetDir)
+    
+    # XXX Should be cross-platform, this is win only
+    if sys.platform == 'cygwin':
+        chandlerdb = 'release/bin/Lib/site-packages/chandlerdb'
+        queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
+    else:
+        chandlerdb = ''
+        queryparser = ''
+    
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
                           '--inheritance listed',
                           '--no-private',
                           'application',
+                          'crypto',
+                          # not interested in distrib
+                          'i18n',
+                          'parcels/core',
+                          'parcels/feeds',
+                          'parcels/osaf',
+                          # XXX Stuff in osaf dirs below does not show
+                          'parcels/osaf/app',
+                          'parcels/osaf/examples',
+                          'parcels/osaf/framework',
+                          'parcels/osaf/mail',
+                          'parcels/osaf/pim',
+                          'parcels/osaf/servlets',
                           'parcels/osaf/sharing',
-                          'repository/item',
-                          'repository/persistence',
-                          'repository/util',
-                          'repository/query',
-                          'repository/schema',
-                          'crypto')
+                          'parcels/osaf/tests',
+                          'parcels/osaf/views',
+                          'parcels/photos',
+                          'repository',
+                          # no Python in resources
+                          'samples/skeleton',
+                          'tools',
+                          'util',
+                          'Chandler.py',
+                          'profile_tests.py',
+                          'run_tests.py',
+                          'schema_status.py',
+                          'version.py',
+                          chandlerdb, # This comes from internal
+                          queryparser # This comes from external
+                          )
+    else:
+        print 'Skipping API document generation, not supported in this platform'
 

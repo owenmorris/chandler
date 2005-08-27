@@ -37,7 +37,7 @@ def main():
      'css' : '%s/schema.css' % urlRoot,
     }
 
-    for root in repo.iterRoots():
+    for root in repo.view.iterRoots():
         processItem(root, generateSchemaDocument, conf)
 
     generateIndex(repo.view, conf)
