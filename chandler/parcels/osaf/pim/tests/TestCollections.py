@@ -279,7 +279,7 @@ class CollectionTests(CollectionTestCase):
 #            print i
         gotChanged = False
         for i in nh3.log[pos:]:
-            if i[3]==x:
+            if i[0] == 'changed' and i[1] == f2 and i[3] == x:
                 gotChanged=True
                 break
         self.failUnless(gotChanged)
@@ -295,6 +295,33 @@ class CollectionTests(CollectionTestCase):
 
         x.label="zzz"
 
+
+    def testFilteredDelete(self):
+        k1 = KindCollection(view=self.view)
+        k1.kind = self.i.itsKind
+        f2 = FilteredCollection(view=self.view)
+        f2.source = k1
+        f2.filterExpression = "item.hasLocalAttributeValue('label')"
+        f2.filterAttributes = ["label"]
+        nh3 = NotifyHandler("nh3", view=self.view)
+
+        k1.subscribers.add(self.nh2)
+        f2.subscribers.add(nh3)
+
+        self.i.label = "xxx"
+        self.view.mapChanges(mapChangesCallable, True)
+
+        changed = False
+        for i in nh3.log[::-1]:
+            if i[0] == "changed" and i[1] == f2 and i[3] == self.i:
+                changed = True
+                break
+        self.failUnless(changed)
+        self.assertEqual(self.i.label,"xxx")
+
+        delattr(self.i,"label")
+        self.view.mapChanges(mapChangesCallable, True)
+        self.failUnless(nh3.checkLog("remove", f2, self.i))
 
     def testFilters(self):
         from application.Parcel import Manager as ParcelManager

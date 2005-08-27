@@ -63,7 +63,7 @@ class Monitors(Item):
 
     def cacheMonitors(self):
 
-        self.monitoring = { 'set': {}, 'schema': {} }
+        self.monitoring = { 'set': {}, 'remove': {}, 'schema': {} }
         self.needsCaching = False
 
         for monitor in self.monitors:

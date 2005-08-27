@@ -8,7 +8,7 @@ from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Diff
 from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
-import os, logging
+import logging, os, re
 
 logger = logging.getLogger(__name__)
 
@@ -268,6 +268,7 @@ class IntersectionCollection(AbstractCollection):
             for i in self.sources:
                 i.subscribers.add(self)
 
+delPat = re.compile(".*hasLocalAttributeValue\(([^\)]*)\).*")
 
 class FilteredCollection(AbstractCollection):
     """
@@ -284,13 +285,31 @@ class FilteredCollection(AbstractCollection):
         copying = schema.Cloud(byCloud=[source]),
     )
 
+
     def onValueChanged(self, name):
         if name == "source" or name == "filterExpression" or name =="filterAttributes":
             if self.source != None:
                 try:
                     if self.filterExpression != "" and self.filterAttributes != []:
 
-                        self.rep = FilteredSet((self.source, "rep"), self.filterExpression, self.filterAttributes)
+                        m = delPat.match(self.filterExpression)
+                        if m:
+                            delatt = m.group(1)
+                            if delatt is not None:
+                                # strip leading quotes
+                                if delatt.startswith("'") or delatt.startswith('"'):
+                                    delatt = delatt[1:-1] 
+                                delatt = [ delatt.replace("item.","") ]
+                        else:
+                            delatt = []
+                        attrTuples = []
+
+                        for i in self.filterAttributes:
+                            attrTuples.append((i, "set"))
+                            for j in delatt:
+                                attrTuples.append((j, "remove"))
+
+                        self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
                     self.subscribers.clear()
                     for i in self.sources:
                         i.subscribers.add(self)

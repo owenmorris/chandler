@@ -694,14 +694,14 @@ class FilteredSet(Set):
                 attrs = self.attributes
                 if oldItem is not None:
                     if attrs:
-                        for attr in attrs:
+                        for name, op in attrs:
                             Monitors.detach(oldItem, '_filteredItemChanged',
-                                            'set', attr, oldAttribute)
+                                            op, name, oldAttribute)
                 if item is not None:
                     if attrs:
-                        for attr in attrs:
+                        for name, op in attrs:
                             Monitors.attach(item, '_filteredItemChanged',
-                                            'set', attr, attribute)
+                                            op, name, attribute)
 
         return oldItem, oldAttribute
 
