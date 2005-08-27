@@ -85,7 +85,8 @@ class Monitors(Item):
 
         #print op, item.itsPath, attribute, item.getAttributeValue(attribute)
 
-        dispatcher = cls.getInstance(item.itsView)
+        view = item.itsView
+        dispatcher = cls.getInstance(view)
         if dispatcher.needsCaching:
             dispatcher.cacheMonitors()
 
@@ -117,8 +118,8 @@ class Monitors(Item):
             else:
                 _args = args
 
-            getattr(monitorItem, monitor.method)(op, item, attribute,
-                                                 *_args, **monitor.kwds)
+            view._notifyChange(getattr(monitorItem, monitor.method),
+                               op, item, attribute, *_args, **monitor.kwds)
 
     def attach(cls, item, method, op, attribute, *args, **kwds):
 

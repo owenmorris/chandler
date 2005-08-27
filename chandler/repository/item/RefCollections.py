@@ -250,7 +250,9 @@ class RefList(LinkedMap, Indexed):
 
         key = other._uuid
         load = kwds.get('load', True)
-        loading = self._getView().isLoading()
+        item = self._item
+        view = item.itsView
+        loading = view.isLoading()
         
         old = super(RefList, self).get(key, None, load)
         if not (loading or old is None):
@@ -269,11 +271,11 @@ class RefList(LinkedMap, Indexed):
                 self._setDirty(kwds.get('noMonitors', False))
 
         if not load:
-            other._references._getRef(self._otherName, self._item)
+            other._references._getRef(self._otherName, item)
 
         if not loading:
-            self._item._collectionChanged('add', 'collection',
-                                          self._name, other)
+            view._notifyChange(item._collectionChanged,
+                               'add', 'collection', self._name, other)
 
         return other
 
@@ -389,7 +391,11 @@ class RefList(LinkedMap, Indexed):
     def _removeRef(self, other):
 
         self._removeRef_(other)
-        self._item._collectionChanged('remove', 'collection', self._name, other)
+
+        item = self._item
+        view = item.itsView
+        view._notifyChange(item._collectionChanged,
+                           'remove', 'collection', self._name, other)
 
     def _load(self, key):
 

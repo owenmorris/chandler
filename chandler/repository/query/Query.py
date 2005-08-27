@@ -126,7 +126,7 @@ class Query(Item.Item):
                 #@@@ add monitor for items in result set
         if inOtherViews:
             log.debug(u"RepoQuery<>.subscribe(): %s" % (self.queryString))
-            self.itsView.addNotificationCallback(self.queryCallback)        
+            self.itsView.repository.addNotificationCallback(self.queryCallback)
             
         try:
             self._compile()
@@ -166,7 +166,7 @@ class Query(Item.Item):
                 #@@@ remove monitor for items in result set
         
         if inOtherViews:        
-            self.itsView.removeNotificationCallback(self.queryCallback)
+            self.itsView.repository.removeNotificationCallback(self.queryCallback)
         return len (self._otherViewSubscribeCallbacks)
 
     def _ensureQueryIsCurrent(self):

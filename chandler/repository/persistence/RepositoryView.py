@@ -52,7 +52,9 @@ class RepositoryView(CView):
             raise RepositoryError, "Repository is not open"
 
         super(RepositoryView, self).__init__(repository, name, version)
+
         self.openView()
+        self._changeNotifications = None
         
     def __repr__(self):
 
@@ -783,7 +785,28 @@ class RepositoryView(CView):
         """
 
         raise NotImplementedError, "%s.mapHistory" %(type(self))
-        
+
+    def recordChangeNotifications(self):
+
+        if not self._isRecording():
+            self._changeNotifications = []
+            self._status |= RepositoryView.RECORDING
+
+    def playChangeNotifications(self):
+
+        if self._isRecording():
+            self._status &= ~RepositoryView.RECORDING
+            for callable, args, kwds in self._changeNotifications:
+                callable(*args, **kwds)
+            self._changeNotifications = None
+
+    def _notifyChange(self, callable, *args, **kwds):
+
+        if self._isRecording():
+            self._changeNotifications.append((callable, args, kwds))
+        else:
+            callable(*args, **kwds)
+
     def _commitMerge(self):
 
         if self._status & CItem.CMERGED:
@@ -799,14 +822,6 @@ class RepositoryView(CView):
     def getItemVersion(self, version, item):
 
         return self.repository.store.getItemVersion(version, item._uuid)
-
-    def addNotificationCallback(self, fn):
-
-        self.repository.addNotificationCallback(fn)
-
-    def removeNotificationCallback(self, fn):
-
-        return self.repository.removeNotificationCallback(fn)
 
     def importItem(self, item):
 
