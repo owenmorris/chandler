@@ -17,6 +17,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds);
 static PyObject *t_view__isRepository(t_view *self, PyObject *args);
 static PyObject *t_view__isView(t_view *self, PyObject *args);
 static PyObject *t_view__isItem(t_view *self, PyObject *args);
+static PyObject *t_view__isRecording(t_view *self, PyObject *args);
 static PyObject *t_view_isNew(t_view *self, PyObject *args);
 static PyObject *t_view_isStale(t_view *self, PyObject *args);
 static PyObject *t_view_isRefCounted(t_view *self, PyObject *args);
@@ -48,6 +49,7 @@ static PyMethodDef t_view_methods[] = {
     { "_isRepository", (PyCFunction) t_view__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_view__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_view__isItem, METH_NOARGS, "" },
+    { "_isRecording", (PyCFunction) t_view__isRecording, METH_NOARGS, "" },
     { "isView", (PyCFunction) t_view_isNew, METH_NOARGS, "" },
     { "isStale", (PyCFunction) t_view_isStale, METH_NOARGS, "" },
     { "isRefCounted", (PyCFunction) t_view_isRefCounted, METH_NOARGS, "" },
@@ -158,6 +160,14 @@ static PyObject *t_view__isView(t_view *self, PyObject *args)
 static PyObject *t_view__isItem(t_view *self, PyObject *args)
 {
     Py_RETURN_FALSE;
+}
+
+static PyObject *t_view__isRecording(t_view *self, PyObject *args)
+{
+    if (self->status & RECORDING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
 }
 
 static PyObject *t_view_isNew(t_view *self, PyObject *args)
@@ -278,7 +288,7 @@ static PyObject *t_view__getLogger(t_view *self, void *data)
 }
 
 
-void _init_ViewType(PyObject *m)
+void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
     {
@@ -294,6 +304,7 @@ void _init_ViewType(PyObject *m)
             PyDict_SetItemString_Int(dict, "LOADING", LOADING);
             PyDict_SetItemString_Int(dict, "COMMITTING", COMMITTING);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
+            PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
 
             store_NAME = PyString_FromString("store");
             refresh_NAME = PyString_FromString("refresh");

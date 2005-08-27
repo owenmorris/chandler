@@ -30,19 +30,20 @@ enum {
     REFCOUNTED = 0x0002,
     LOADING    = 0x0004,
     COMMITTING = 0x0008,
+    /* FDIRTY  = 0x0010, from CItem */
+    RECORDING  = 0x0020,
 
-    /*
-     * flags from CItem
-     * FDIRTY  = 0x0010
-     * STALE   = 0x0080
-     * CDIRTY  = 0x0200
-     * merge flags
-     */
+    /* STALE   = 0x0080, from CItem */
+    /* CDIRTY  = 0x0200, from CItem */
 
     RAMDB      = 0x4000,
     CLOSED     = 0x8000,
+
+    /*
+     * merge flags from CItem
+     */
 };
 
-void _init_ViewType(PyObject *m);
-void _init_RepositoryType(PyObject *m);
+void _init_view(PyObject *m);
+void _init_repository(PyObject *m);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);

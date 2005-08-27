@@ -159,7 +159,7 @@ static PyObject *t_repository__getRepository(t_repository *self, void *data)
 }
 
 
-void _init_RepositoryType(PyObject *m)
+void _init_repository(PyObject *m)
 {
     if (PyType_Ready(&RepositoryType) >= 0)
     {

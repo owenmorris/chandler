@@ -88,6 +88,51 @@ static PyObject *_getPath_NAME;
 "Return the dirty flags currently set on this item.\n\n\
  @return: an integer"
 
+#define itsName_DOC \
+"Return this item's name.\n\n\
+ The item name is used to lookup an item in its parent\
+ container and construct the item's path in the repository.\
+ An item may be renamed by setting this property.\n\n\
+ The name of an item must be unique among all its siblings."
+
+#define itsUUID_DOC \
+"Return the Universally Unique ID for this item.\n\n\
+ The UUID for an item is generated when the item is\
+ first created and never changes. This UUID is valid\
+ for the life of the item.\n\n\
+ The UUID is a 128 bit number intended to be unique in\
+ the entire universe and is implemented as specified\
+ in the IETF's U{UUID draft\
+ <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>}\
+ spec."
+
+#define itsPath_DOC \
+"Return the path to this item relative to its repository.\n\n\
+ A path is a C{/} separated sequence of item names."
+
+#define itsParent_DOC \
+"Return this item's parent.\n\n\
+ An item may be moved by setting this property."
+
+#define itsRoot_DOC \
+"Return this item's repository root.\n\n\
+ A repository root is a direct child of the repository.\
+ All single-slash rooted paths are expressed relative\
+ to this root when used with this item."
+
+#define itsView_DOC \
+"Return this item's repository view.\n\n\
+ The item's repository view is defined as the item's root's parent."
+
+#define itsKind_DOC \
+"Return or set this item's kind.\n\n\
+ When setting an item's kind, only the values for\
+ attributes common to both current and new kind are\
+ retained. After the new kind is set, its attributes'\
+ optional L{initial values<getAttributeAspect>} are\
+ set for attributes for which there is no value on the\
+ item. Setting an item's kind to C{None} clears all its values."
+
 
 static PyMemberDef t_item_members[] = {
     { "_status", T_UINT, offsetof(t_item, status), 0, "item status flags" },
@@ -128,19 +173,19 @@ static PyMethodDef t_item_methods[] = {
 
 static PyGetSetDef t_item_properties[] = {
     { "itsKind", (getter) t_item__getKind, (setter) t_item__setKind,
-      "itsKind property", NULL },
+      itsKind_DOC, NULL },
     { "itsView", (getter) t_item__getView, (setter) t_item__setView,
-      "itsView property", NULL },
+      itsView_DOC, NULL },
     { "itsParent", (getter) t_item__getParent, (setter) t_item__setParent,
-      "itsParent property", NULL },
+      itsParent_DOC, NULL },
     { "itsName", (getter) t_item__getName, (setter) t_item__setName,
-      "itsName property", NULL },
+      itsName_DOC, NULL },
     { "itsRoot", (getter) t_item__getRoot, NULL,
-      "itsRoot property", NULL },
+      itsRoot_DOC, NULL },
     { "itsUUID", (getter) t_item__getUUID, NULL,
-      "itsUUID property", NULL },
+      itsUUID_DOC, NULL },
     { "itsPath", (getter) t_item__getPath, NULL,
-      "itsPath property", NULL },
+      itsPath_DOC, NULL },
     { "itsVersion", (getter) t_item__getVersion, NULL,
       "itsVersion property", NULL },
     { NULL, NULL, NULL, NULL, NULL }

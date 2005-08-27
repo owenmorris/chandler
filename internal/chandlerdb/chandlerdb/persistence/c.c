@@ -31,6 +31,6 @@ void initc(void)
 {
     PyObject *m = Py_InitModule3("c", c_funcs, "C repository types module");
 
-    _init_ViewType(m);
-    _init_RepositoryType(m);
+    _init_view(m);
+    _init_repository(m);
 }
