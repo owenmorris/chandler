@@ -19,10 +19,11 @@ class TestBinary(RepositoryTestCase):
 
         super(TestBinary, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
     def testBZ2Compressed(self):
         khepburn = self._find('//CineGuide/KHepburn')

@@ -20,14 +20,16 @@ class TestBZ2(RepositoryTestCase):
 
         super(TestBZ2, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
     def appended(self, compression):
 
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -42,7 +44,7 @@ class TestBZ2(RepositoryTestCase):
             if len(data) > 0:
                 writer.write(data)
                 writer.close()
-                self.rep.commit()
+                view.commit()
                 writer = movie.synopsis.getWriter(compression=compression,
                                                   append=True)
             else:
@@ -52,8 +54,9 @@ class TestBZ2(RepositoryTestCase):
         writer.close()
 
         self._reopenRepository()
+        view = self.rep.view
 
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 

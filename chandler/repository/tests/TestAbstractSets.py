@@ -36,10 +36,11 @@ class TestAbstractSets(RepositoryTestCase):
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view = self.rep.view
+        view.loadPack(cineguidePack)
+        view.commit()
 
-        self.cineguide = self.rep.view['CineGuide']
+        self.cineguide = view['CineGuide']
         self.movie = self.cineguide['KHepburn'].movies.first().itsKind
         self.m1 = self.cineguide['KHepburn'].movies.first()
         self.m2 = self.cineguide['m2']

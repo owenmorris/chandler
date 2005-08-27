@@ -196,7 +196,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.assert_(aMessage.isItemOf(mailKind))
 
         # now mixin some arbitrary Kind
-        anotherKind = self.rep.findPath('//parcels/osaf/framework/blocks/Block')
+        anotherKind = view.findPath('//parcels/osaf/framework/blocks/Block')
 
         # stamp an event, mail, task with another kind
         aNote.StampKind(add, anotherKind)

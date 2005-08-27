@@ -20,11 +20,12 @@ class KindAndItemTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         <http://bugzilla.osafoundation.org/show_bug.cgi?id=1144">.
         """
 
+        view = self.rep.view
         self.manager.path.append(os.path.join(self.testdir, 'testparcels'))
         self.loadParcel("parcel:application.tests.testparcels.kindanditem")
-        self.rep.commit()
+        view.commit()
         
-        item = self.rep.findPath("//parcels/application/tests/testparcels/kindanditem/FirstOfItsKind")
+        item = view.findPath("//parcels/application/tests/testparcels/kindanditem/FirstOfItsKind")
         self.assert_(item)
         self.assert_(item.__dict__.has_key('initCalled'))
 

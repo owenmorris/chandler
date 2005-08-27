@@ -27,24 +27,27 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         pass
 
     def testHasRoot(self):
-        self.assert_(self.rep.hasRoot('Schema'))
-        self.assert_(self.rep.hasRoot('Packs'))
+        view = self.rep.view
+        self.assert_(view.hasRoot('Schema'))
+        self.assert_(view.hasRoot('Packs'))
         pass
 
     def testGetRoot(self):
 
-        root = self.rep.getRoot('Packs')
+        view = self.rep.view
+        root = view.getRoot('Packs')
         #TODO these should use UUID's
         self.assert_(root.itsName == 'Packs')
     
-        root = self.rep['Packs']
+        root = view['Packs']
         self.assert_(root.itsName == 'Packs')
     
     def testIterRoots(self):
         """ Make sure the roots of the repository are correct"""
 
         # (The parcel manager sticks the //parcels root in there)
-        for root in self.rep.iterRoots():
+        view = self.rep.view
+        for root in view.iterRoots():
             self.assert_(root.itsName in ['Schema', 'Packs', 'parcels', 'Queries'])
 
     def testWalk(self):
@@ -52,7 +55,8 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
             print path
             print x.itsName
 
-        self.rep.walk(Path('//Schema/Core/Parcel'), callme)
+        view = self.rep.view
+        view.walk(Path('//Schema/Core/Parcel'), callme)
 #TODO what's a resonable test here?
         pass
 
@@ -60,7 +64,8 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         """ Make sure we can run find """
         util.timing.reset()
         util.timing.begin("repository.tests.TestRepository.testFind")
-        kind = self.rep.findPath('//Schema/Core/Kind')
+        view = self.rep.view
+        kind = view.findPath('//Schema/Core/Kind')
         util.timing.end("repository.tests.TestRepository.testFind")
         util.timing.results(verbose=False)
 
@@ -73,11 +78,13 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 #        pass
 
     def testCheck(self):
-        self.assert_(self.rep.check())
+        view = self.rep.view
+        self.assert_(view.check())
 
     def testGetUUID(self):
         #TODO -- can't rely on UUID to be the same
-        self.assert_(self.rep.itsUUID is not None)
+        view = self.rep.view
+        self.assert_(view.itsUUID is not None)
 
 if __name__ == "__main__":
     unittest.main()

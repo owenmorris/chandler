@@ -34,30 +34,30 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         # basic query processing
         queryString = 'for i in "//parcels/osaf/pim/contacts/ContactName" where contains(i.firstName,"i"))'
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
-        k = self.rep.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
+        k = view.findPath('//parcels/notification/NotificationItem')
+        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
         item = notify_client
-        self.rep.commit()
+        view.commit()
 
         q.subscribe(notify_client, 'handle', False, True)
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
         c = q.resultSet.first()
         self.assert_('i' in c.firstName)
-        self.rep.commit()
+        view.commit()
 
         # now make c leave the query
         c.firstName = 'Harry'
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 1)
         self.assert_(c.firstName == 'Harry')
 
         # now make c come back into the query
         c.firstName = 'Michael'
-        self.rep.commit()
+        view.commit()
 
         self.assert_('i' in c.firstName)
         (added, removed) = notify_client.action
@@ -79,22 +79,22 @@ class TestNotification(QueryTestCase.QueryTestCase):
         contact = GenerateItems.GenerateContact(view)
         contact.contactName.firstName = "Alexis"
 
-        self.rep.commit()
+        view.commit()
 
         # basic query processing
         queryString = 'for i in "//parcels/osaf/pim/contacts/ContactName" where contains(i.firstName,"i"))'
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
 
         # create an item to handle monitor notifications
-        k = self.rep.findPath('//parcels/notification/NotificationItem')
-        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', self.rep, k)
+        k = view.findPath('//parcels/notification/NotificationItem')
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view, k)
 
         # create an item to handle reguler commit notifications
-        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep, k)
+        notify_client = NotificationItem.NotificationItem('testNotifier',view, k)
         # save Notification items and query
-        self.rep.commit()
+        view.commit()
 
         # subscribe via commit
         q.subscribe(notify_client, 'handle', False, True)
@@ -106,7 +106,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         # get an item from the query
         c = q.resultSet.first()
         self.assert_('i' in c.firstName)
-        self.rep.commit()
+        view.commit()
 
         #
         # Test monitor notifications
@@ -132,7 +132,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         # Test commit notifications
         #
 
-        self.rep.commit()
+        view.commit()
 
         (added, removed) = notify_client.action
         print "139: added = " + str(len(added)) + " removed = " + str(len(removed))
@@ -141,7 +141,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         # now make c come back into the query
         c.firstName = 'Michael'
-        self.rep.commit()
+        view.commit()
 
         self.assert_('i' in c.firstName)
         (added, removed) = notify_client.action
@@ -174,13 +174,13 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         queryString = 'union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/pim/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i"))'
 
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         union_query = Query.Query('testQuery', p, k, queryString)
-        k = self.rep.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
+        k = view.findPath('//parcels/notification/NotificationItem')
+        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
         item = notify_client
-        self.rep.commit()
+        view.commit()
 
         union_query.subscribe(notify_client, 'handle', False, True)
         union_query.resultSet.first() # force evaluation of some of the query at least
@@ -188,31 +188,31 @@ class TestNotification(QueryTestCase.QueryTestCase):
         #test first query in union
         for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == "Meeting"')        
         one = for1_query.resultSet.first()
-        self.rep.commit()
+        view.commit()
         one.displayName = "Lunch"
 
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 1)
 
         one.displayName = "Meeting"
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
         
         # test second query in union
         for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/pim/Note" where contains(i.displayName,"idea")')
         two = for2_query.resultSet.first()
-        self.rep.commit()
+        view.commit()
 
         origName = two.displayName
         two.displayName = "Foo"
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 1)
 
         two.displayName = origName
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
 
@@ -220,17 +220,17 @@ class TestNotification(QueryTestCase.QueryTestCase):
         for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i")')
         
         three = for3_query.resultSet.first()
-        self.rep.commit()
+        view.commit()
         origName = three.contactName.firstName
         assert 'i' in origName, "origName is %s" % origName
         three.contactName.firstName = "Harry"
 
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
 #        self.assert_(len(added) == 0 and len(removed) == 1)
         three.contactName.firstName = origName
 
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
 
         #The contact and it's name get changed
@@ -240,16 +240,16 @@ class TestNotification(QueryTestCase.QueryTestCase):
         """ Test notification on a query over ref collections """
         #@@@ need repository support - when monitors are used
         import repository.query.Query as Query
-        kind = self.rep.findPath('//Schema/Core/Kind')
+        kind = view.findPath('//Schema/Core/Kind')
 
-        k = self.rep.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
+        k = view.findPath('//parcels/notification/NotificationItem')
+        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
         item = notify_client
-        self.rep.commit()
+        view.commit()
 
         queryString = "for i in $0 where True"
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
         q.args ["$0"] = (kind.itsUUID, "attributes")
         q.subscribe(notify_client, 'handle', False, True)
@@ -258,7 +258,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         for i in q:
             print i
         del kind.attributes[i.itsUUID]
-        self.rep.commit()
+        view.commit()
         for i in q:
             print i
 
@@ -275,23 +275,23 @@ class TestNotification(QueryTestCase.QueryTestCase):
         view.commit()
 
         queryString = "for i inevery '//parcels/osaf/pim/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('bug2288Query', p, k, queryString)
         view.commit()
 
         for i in q.resultSet:
             print i, hasattr(i, 'reminderTime'), i.hasLocalAttributeValue('reminderTime')
 
-        k = self.rep.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier', self.rep, k)
-        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', self.rep, k)
+        k = view.findPath('//parcels/notification/NotificationItem')
+        notify_client = NotificationItem.NotificationItem('testNotifier', view, k)
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view, k)
         item = notify_client
 
         q.subscribe(notify_client, 'handle', False, True)
         q.subscribe(monitor_client, 'handle', True, False)
         ce = q.resultSet.first()
-        self.rep.commit()
+        view.commit()
 
         # add the reminderTime attribute
         from datetime import datetime
@@ -299,7 +299,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         (added, removed) = monitor_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
         print len(q.resultSet)
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
         print len(q.resultSet)
@@ -310,7 +310,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         ev = CalendarEvent("test event", view=self.rep.view)
         (added, removed) = monitor_client.action
         self.assert_(len(added) == 0 and len(removed) == 1)
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 0)
 
@@ -319,7 +319,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         ev.reminderTime = datetime.now()
         (added, removed) = monitor_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
 
@@ -330,7 +330,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         (added, removed) = monitor_client.action
         print "Monitor: ", added, removed
 #        self.assert_(len(added) == 0 and len(removed) == 1)
-        self.rep.commit()
+        view.commit()
         (added, removed) = notify_client.action
         self.assert_(len(added) == 0 and len(removed) == 1)
         

@@ -8,7 +8,7 @@ import logging, heapq, sys, gc, threading, os
 
 from chandlerdb.util.uuid import UUID
 from chandlerdb.item.item import CItem
-from chandlerdb.persistence.view import CView
+from chandlerdb.persistence.c import CView
 
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
@@ -198,19 +198,6 @@ class RepositoryView(CView):
         """
 
         pass
-
-    def isOpen(self):
-        """
-        Tell whether this view is open.
-
-        If the repository owning this view is closed, this view is also
-        considered closed.
-
-        @return: boolean
-        """
-
-        return ((self._status & RepositoryView.OPEN) != 0 and
-                self.repository.isOpen())
 
     def walk(self, path, callable, _index=0, **kwds):
         """

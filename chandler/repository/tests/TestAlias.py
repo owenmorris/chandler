@@ -26,15 +26,16 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(AliasTest, self).setUp()
 
+        view = self.rep.view
         self.kind = self._find(self._KIND_KIND)
         self.itemKind = self._find(self._ITEM_KIND)
         self.attrKind = self.itemKind.itsParent['Attribute']
-        self.newKind = self.kind.newItem('newKind', self.rep)
+        self.newKind = self.kind.newItem('newKind', view)
         self.typeKind = self._find('//Schema/Core/Type')
 
         self.aliasKind = self._find('//Schema/Core/Alias')
 
-        self.alias = self.aliasKind.newItem('alias', self.rep)
+        self.alias = self.aliasKind.newItem('alias', view)
 
         self.dateTimeType = self._find('//Schema/Core/DateTime')
         self.alias.addValue('types',self.dateTimeType)
@@ -77,7 +78,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
         What does this test case actually do ??
         """
 
-#        newKind = self.kind.newItem('newKind', self.rep)
+#        newKind = self.kind.newItem('newKind', view)
 #        print k
 #        for a in self.alias.iterAttributeValues():
 #            print a

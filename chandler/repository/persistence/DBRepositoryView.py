@@ -243,6 +243,7 @@ class DBRepositoryView(OnDemandRepositoryView):
     def commit(self, mergeFn=None):
 
         if self._status & RepositoryView.COMMITTING == 0:
+            notifications = RepositoryNotifications()
             try:
                 self._exclusive.acquire()
                 self._status |= RepositoryView.COMMITTING
@@ -263,8 +264,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                         lock = store.releaseLock(lock)
                     return lock, 0
         
-                notifications = RepositoryNotifications()
-
                 while True:
                     try:
                         while True:
@@ -340,12 +339,12 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                     self.logger.info('%s committed %d items (%d kbytes) in %s, %s (%s)', self, count, size >> 10, timedelta(seconds=duration), iSpeed, dSpeed)
 
-                if len(notifications) > 0:
-                    notifications.dispatchHistory(self)
-
             finally:
                 self._status &= ~RepositoryView.COMMITTING
                 self._exclusive.release()
+
+            if len(notifications) > 0:
+                notifications.dispatchHistory(self)
 
     def _saveItem(self, item, newVersion, itemWriter, notifications):
 

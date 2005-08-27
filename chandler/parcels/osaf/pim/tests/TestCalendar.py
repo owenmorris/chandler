@@ -92,8 +92,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Re-examine items
         self._reopenRepository()
-
-        contentItemParent = self.rep.findPath("//userdata")
+        view = self.rep.view
+        contentItemParent = view.findPath("//userdata")
 
         calendarEventItem = contentItemParent.getItemChild("calendarEventItem")
         calendarItem = contentItemParent.getItemChild("calendarItem")

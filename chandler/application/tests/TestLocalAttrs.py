@@ -17,15 +17,16 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """ Ensure that attributes within kinds are assigned to the kind
         """
 
+        view = self.rep.view
         self.manager.path.append(os.path.join(self.testdir,'testparcels'))
         self.loadParcel("http://testparcels.org/localattrs")
 
-        self.rep.commit()
+        view.commit()
 
         # Ensure the Parcel was created
-        kind = self.rep.findPath("//parcels/application/tests/testparcels/localattrs/TestKind")
+        kind = view.findPath("//parcels/application/tests/testparcels/localattrs/TestKind")
         self.assert_(kind)
-        attr = self.rep.findPath("//parcels/application/tests/testparcels/localattrs/TestKind/TestAttribute")
+        attr = view.findPath("//parcels/application/tests/testparcels/localattrs/TestKind/TestAttribute")
         self.assert_(attr)
         found = False
         for name, attr, k in kind.iterAttributes():
@@ -36,8 +37,8 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         item = kind.newItem("testItem", kind)
         item.TestAttribute = "foo"
-        self.rep.commit()
-        self.assert_(self.rep.check(), "Repository failed to check()")
+        view.commit()
+        self.assert_(view.check(), "Repository failed to check()")
 
 
 if __name__ == "__main__":

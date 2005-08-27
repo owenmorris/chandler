@@ -53,8 +53,9 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         _verifyContactName(contactNameItem)
 
         self._reopenRepository()
+        view = self.rep.view
 
-        contentItemParent = self.rep.findPath("//userdata")
+        contentItemParent = view.findPath("//userdata")
 
         contactNameItem = contentItemParent.getItemChild("contactNameItem")
         _verifyContactName(contactNameItem)

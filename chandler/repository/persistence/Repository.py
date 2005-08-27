@@ -7,18 +7,16 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import logging, threading, PyLucene
 
 from chandlerdb.util.uuid import UUID
+from chandlerdb.persistence.c import CRepository
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.RepositoryError import RepositoryError
 
 
-class Repository(object):
+class Repository(CRepository):
     """
     An abstract repository for items.
-
-    The repository has direct access to its roots by name and to all its
-    items by UUID. It can be used as an iterator over all its roots.
     """
 
     def __init__(self, dbHome):
@@ -33,7 +31,6 @@ class Repository(object):
         super(Repository, self).__init__()
 
         self.dbHome = dbHome
-        self._status = Repository.CLOSED
         self._threaded = threading.local()
         self._notifications = []
         self._openViews = []
@@ -115,18 +112,6 @@ class Repository(object):
         if kwds.get('refcounted', False):
             self._status |= Repository.REFCOUNTED
 
-    def _isRepository(self):
-
-        return True
-
-    def _isView(self):
-
-        return False
-
-    def _isItem(self):
-
-        return False
-    
     def close(self):
         """
         Close the repository.
@@ -135,39 +120,6 @@ class Repository(object):
         """
         
         pass
-
-    def prune(self, size):
-        """
-        Prune the current repository view.
-
-        See L{RepositoryView.prune
-        <repository.persistence.RepositoryView.RepositoryView.prune>}
-        for more details.
-        """
-        
-        self.view.prune(size)
-
-    def closeView(self, purge=False):
-        """
-        Close the current repository view.
-
-        See L{RepositoryView.close
-        <repository.persistence.RepositoryView.RepositoryView.close>}
-        for more details.
-        """
-
-        self.view.closeView()
-
-    def openView(self):
-        """
-        Open the current repository view.
-
-        See L{RepositoryView.open
-        <repository.persistence.RepositoryView.RepositoryView.open>}
-        for more details.
-        """
-
-        self.view.openView()
 
     def createView(self, name=None, version=None):
         """
@@ -184,48 +136,6 @@ class Repository(object):
         """
 
         return RepositoryView(self, name, version)
-
-    def commit(self, mergeFn=None):
-        """
-        Commit changes in the current repository view.
-
-        See L{RepositoryView.commit
-        <repository.persistence.RepositoryView.RepositoryView.commit>}
-        for more details.
-        """
-        
-        if not self.isOpen():
-            raise RepositoryError, "Repository is not open"
-
-        self.view.commit()
-
-    def refresh(self, mergeFn=None):
-        """
-        Refresh the current repository view to the changes made in other views.
-
-        See L{RepositoryView.refresh
-        <repository.persistence.RepositoryView.RepositoryView.refresh>}
-        for more details.
-        """
-        
-        if not self.isOpen():
-            raise RepositoryError, "Repository is not open"
-
-        self.view.refresh()
-
-    def cancel(self):
-        """
-        Cancel changes in the current repository view.
-
-        See L{RepositoryView.cancel
-        <repository.persistence.RepositoryView.RepositoryView.cancel>}
-        for more details.
-        """
-
-        if not self.isOpen():
-            raise RepositoryError, "Repository is not open"
-
-        self.view.cancel()
 
     def getCurrentView(self, create=True):
         """
@@ -272,154 +182,6 @@ class Repository(object):
     def getOpenViews(self):
 
         return self._openViews
-
-    def __iter__(self):
-        """
-        (deprecated) Use L{iterRoots} instead.
-        """
-
-        raise DeprecationWarning, 'Use Repository.iterRoots() instead'
-
-    def iterRoots(self, load=True):
-        """
-        Iterate over the roots of this repository using the current view.
-        """
-
-        return self.view.iterRoots(load)
-
-    def isOpen(self):
-        """
-        Tell whether the repository is open.
-
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Repository.OPEN) != 0
-
-    def isClosed(self):
-        """
-        Tell whether the repository is open.
-
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Repository.CLOSED) != 0
-
-    def isRefCounted(self):
-
-        return (self._status & Repository.REFCOUNTED) != 0
-
-    def hasRoots(self):
-
-        return self.view.hasRoots()
-        
-    def hasRoot(self, name, load=True):
-        """
-        Search the current view for a root.
-
-        See L{RepositoryView.hasRoot
-        <repository.persistence.RepositoryView.RepositoryView.hasRoot>}
-        for more details.
-        """
-
-        return self.view.hasRoot(name, load)
-
-    def getRoot(self, name, load=True):
-        """
-        Get a root by a given name.
-
-        See L{RepositoryView.getRoot
-        <repository.persistence.RepositoryView.RepositoryView.getRoot>}
-        for more details.
-        """
-
-        return self.view.getRoot(name, load)
-
-    def __getitem__(self, key):
-
-        return self.view.__getitem__(key)
-
-    def walk(self, path, callable, _index=0, **kwds):
-        """
-        Walk a path in the current view and invoke a callable along the way.
-
-        See L{Item.walk<repository.item.Item.Item.walk>} for more details.
-        """
-
-        return self.view.walk(path, callable, _index, **kwds)
-
-    def find(self, spec, load=True):
-        """
-        Find an item.
-
-        See L{Item.find<repository.item.Item.Item.find>} for more details.
-        """
-
-        return self.view.find(spec, load)
-
-    def findPath(self, path, load=True):
-        """
-        Find an item by path in the current view.
-
-        See L{Item.findPath<repository.item.Item.Item.findPath>} for more
-        details.
-        """
-
-        return self.view.findPath(path, load)
-
-    def findUUID(self, uuid, load=True):
-        """
-        Find an item by UUID in the current view.
-
-        See L{Item.findUUID<repository.item.Item.Item.findUUID>} for more
-        details.
-        """
-
-        return self.view.findUUID(uuid, load)
-
-    def queryItems(self, kind=None, attribute=None, load=True):
-        """
-        Query items in the current view.
-
-        See L{RepositoryView.queryItems
-        <repository.persistence.RepositoryView.RepositoryView.queryItems>}
-        for more details.
-        """
-
-        return self.view.queryItems(query, load)
-
-    def searchItems(self, query, attribute=None, load=True):
-        """
-        Search items in the current view using a lucene full text query.
-
-        See L{RepositoryView.searchItems
-        <repository.persistence.RepositoryView.RepositoryView.searchItems>}
-        for more details.
-        """
-
-        return self.view.searchItems(query, attribute, load)
-
-    def getACL(self, uuid, name):
-        """
-        Get an ACL from the repository using the current view.
-
-        See L{RepositoryView.getACL
-        <repository.persistence.RepositoryView.RepositoryView.getACL>}
-        for more details.
-        """
-
-        return self.view.getACL(uuid, name)
-
-    def loadPack(self, path, parent=None):
-        """
-        Load a repository pack into the current view.
-
-        See L{RepositoryView.loadPack
-        <repository.persistence.RepositoryView.RepositoryView.loadPack>}
-        for more details.
-        """
-
-        self.view.loadPack(path, parent)
 
     def dir(self, item=None, path=None):
         """
@@ -479,14 +241,6 @@ class Repository(object):
         except ValueError:
             return None
 
-    def mapChanges(self, callable, freshOnly=False):
-
-        self.view.mapChanges(callable, freshOnly)
-
-    def mapHistory(self, callable, fromVersion=0, toVersion=0):
-
-        self.view.mapHistory(callable, fromVersion, toVersion)
-
     def isDebug(self):
 
         return self.logger.getEffectiveLevel() <= logging.DEBUG
@@ -498,15 +252,9 @@ class Repository(object):
         else:
             self.logger.setLevel(logging.INFO)
 
-    OPEN       = 0x0001
-    REFCOUNTED = 0x0002
-    RAMDB      = 0x0004
-    CLOSED     = 0x0008
-
     itsUUID = RepositoryView.itsUUID
     view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)
-    repository = property(lambda self: self)
     debug = property(isDebug, setDebug)
 
 

@@ -60,13 +60,14 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
             return count
 
         self.loadParcels(['parcel:osaf.pim'])
-        self.rep.commit()
+        view = self.rep.view
+        view.commit()
 
         ##TODO SHOULD NOT RUN IN RAMDB
         self._reopenRepository()
         util.timing.reset()
         util.timing.begin("repository.tests.TestLoadAll")
-        count = load(self.rep.view)
+        count = load(view)
         util.timing.end("repository.tests.TestLoadAll")
         util.timing.results(verbose=False)
 

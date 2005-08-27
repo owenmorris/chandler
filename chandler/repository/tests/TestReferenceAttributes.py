@@ -37,6 +37,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
+        view = self.rep.view
         managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assertEquals(employeesAttribute.cardinality, 'list')
@@ -47,12 +48,12 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self.assertEquals(managerAttribute.otherName,'employees')
 
         # add employees to manager
-        manager = managerKind.newItem('boss', self.rep)
+        manager = managerKind.newItem('boss', view)
 
-        emp1 = employeeKind.newItem('employee1', self.rep)
-        emp2 = employeeKind.newItem('employee2', self.rep)
-        emp3 = employeeKind.newItem('employee3', self.rep)
-        emp4 = employeeKind.newItem('employee4', self.rep)
+        emp1 = employeeKind.newItem('employee1', view)
+        emp2 = employeeKind.newItem('employee2', view)
+        emp3 = employeeKind.newItem('employee3', view)
+        emp4 = employeeKind.newItem('employee4', view)
 
         manager.setValue('employees', emp1)
         manager.addValue('employees', emp2)
@@ -62,21 +63,22 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        managerKind = self.rep['manager']
-        employeeKind = self.rep['employee']
+        view = self.rep.view
+        managerKind = view['manager']
+        employeeKind = view['employee']
         (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now do it from the other end add manager to employees
-        manager = managerKind.newItem('bossA', self.rep)
+        manager = managerKind.newItem('bossA', view)
 
-        emp1 = employeeKind.newItem('employeeA1', self.rep)
+        emp1 = employeeKind.newItem('employeeA1', view)
         emp1.manager = manager
-        emp2 = employeeKind.newItem('employeeA2', self.rep)
+        emp2 = employeeKind.newItem('employeeA2', view)
         emp2.manager = manager
-        emp3 = employeeKind.newItem('employeeA3', self.rep)
+        emp3 = employeeKind.newItem('employeeA3', view)
         emp3.manager = manager
-        emp4 = employeeKind.newItem('employeeA4', self.rep)
+        emp4 = employeeKind.newItem('employeeA4', view)
         emp4.manager = manager
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
@@ -106,7 +108,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self.assert_(itemKind is not None)
         attr_name = 'references'
         
-        item = Item('item1', self.rep, itemKind)
+        view = self.rep.view
+        item = Item('item1', view, itemKind)
         attrKind = itemKind.itsParent['Attribute']
 
         # subattributes are created by assigning the "parent" attribute

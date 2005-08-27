@@ -21,29 +21,30 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.manager.path.append(os.path.join(self.testdir,'dependencyparcels'))
         self.loadParcel("http://testparcels.org/parcels/depA")
 
-        self.rep.commit()
+        view = self.rep.view
+        view.commit()
 
         # Ensure depA Parcel was created with the right Kind and attrs
-        depA = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA")
-        self.assertEqual(depA.itsKind, Parcel.getKind(self.rep))
+        depA = view.findPath("//parcels/application/tests/dependencyparcels/depA")
+        self.assertEqual(depA.itsKind, Parcel.getKind(view))
 
         # Ensure testKind was created with the right Kind
-        testKind = self.rep.findPath("//parcels/application/tests/dependencyparcels/depA/TestKind")
+        testKind = view.findPath("//parcels/application/tests/dependencyparcels/depA/TestKind")
         self.assertEqual(testKind.itsKind,
-         self.rep.findPath('//Schema/Core/Kind'))
+         view.findPath('//Schema/Core/Kind'))
 
         # Ensure depB Parcel was created with the right Kind and attrs
-        depB = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB")
-        self.assertEqual(depB.itsKind, Parcel.getKind(self.rep))
+        depB = view.findPath("//parcels/application/tests/dependencyparcels/depB")
+        self.assertEqual(depB.itsKind, Parcel.getKind(view))
 
         # Ensure depC Parcel was created with the right Kind and attrs
-        depC = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC")
-        self.assertEqual(depC.itsKind, Parcel.getKind(self.rep))
+        depC = view.findPath("//parcels/application/tests/dependencyparcels/depB/depC")
+        self.assertEqual(depC.itsKind, Parcel.getKind(view))
 
         # Ensure testAttribute was created with the right Kind
-        testAttribute = self.rep.findPath("//parcels/application/tests/dependencyparcels/depB/depC/TestAttribute")
+        testAttribute = view.findPath("//parcels/application/tests/dependencyparcels/depB/depC/TestAttribute")
         self.assertEqual(testAttribute.itsKind,
-         self.rep.findPath('//Schema/Core/Attribute'))
+         view.findPath('//Schema/Core/Attribute'))
 
         # Ensure testAttribute is an attribute of testKind (and vice-versa)
         self.assert_(testKind.attributes.has_key(testAttribute.itsUUID))

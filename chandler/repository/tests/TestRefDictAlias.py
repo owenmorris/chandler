@@ -21,12 +21,13 @@ class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
     # return True instead of the Item.
 
     def _createBlockKind(self, cardinality):
+        view = self.rep.view
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
         # blockKind has a 'blocks' reference collection, and an inverse 'blockParent'
-        blockKind = kind.newItem('Block', self.rep)
+        blockKind = kind.newItem('Block', view)
         blocksAttribute = Attribute('blocks', blockKind, attrKind)
         blocksAttribute.cardinality = cardinality
         blocksAttribute.otherName = 'blockParent'
@@ -46,20 +47,22 @@ class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
         for item in itemList:
             itemUUIDs.append(item.itsUUID)
 
-        self.rep.commit()
+        self.rep.view.commit()
         self._reopenRepository()
+        view = self.rep.view
         
         # reincarnate the items
         newList = []
         for uuid in itemUUIDs:
-            newList.append(self.rep.find(uuid))
+            newList.append(view.find(uuid))
         return newList
         
     def testRefListAlias(self):
+        view = self.rep.view
         # create some blocks to work with
         blockKind = self._createBlockKind('list')
-        aBlock = blockKind.newItem('aBlock', self.rep)
-        eggsBlock = blockKind.newItem('eggs', self.rep)
+        aBlock = blockKind.newItem('aBlock', view)
+        eggsBlock = blockKind.newItem('eggs', view)
         
         # link them up using alias
         aBlock.blocks = []

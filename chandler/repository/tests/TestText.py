@@ -19,13 +19,15 @@ class TestText(RepositoryTestCase):
 
         super(TestText, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
     def compressed(self, compression, encryption, key):
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -53,8 +55,9 @@ class TestText(RepositoryTestCase):
                              compression, count, len(movie.synopsis._data))
 
         self._reopenRepository()
+        view = self.rep.view
 
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -93,7 +96,8 @@ class TestText(RepositoryTestCase):
 
     def appended(self, compression, encryption, key):
 
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -110,7 +114,7 @@ class TestText(RepositoryTestCase):
             if len(data) > 0:
                 writer.write(data)
                 writer.close()
-                self.rep.commit()
+                view.commit()
                 writer = movie.synopsis.getWriter(compression=compression,
                                                   encryption=encryption,
                                                   key=key, append=True)
@@ -121,8 +125,9 @@ class TestText(RepositoryTestCase):
         writer.close()
 
         self._reopenRepository()
+        view = self.rep.view
 
-        khepburn = self.rep.findPath('//CineGuide/KHepburn')
+        khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 

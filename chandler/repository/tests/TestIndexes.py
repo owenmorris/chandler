@@ -19,24 +19,27 @@ class TestIndexes(RepositoryTestCase):
 
         super(TestIndexes, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.kh = Path('//CineGuide/KHepburn')
-        self.rep.loadPack(cineguidePack)
-        self.rep.find(self.kh).movies.addIndex('n', 'numeric')
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.find(self.kh).movies.addIndex('n', 'numeric')
+        view.commit()
 
     def testNumeric(self):
 
-        movies = self.rep.find(self.kh).movies
+        view = self.rep.view
+        movies = view.find(self.kh).movies
         keys = movies.keys()
         i = random.randint(0, len(keys) - 1)
         print 'random i:', i
         self.assert_(movies.getByIndex('n', i) is movies[keys[i]])
 
         self._reopenRepository()
+        view = self.rep.view
 
-        movies = self.rep.find(self.kh).movies
+        movies = view.find(self.kh).movies
         keys = movies.keys()
         i = random.randint(0, len(keys) - 1)
         print 'random i:', i
@@ -44,7 +47,8 @@ class TestIndexes(RepositoryTestCase):
 
     def testPlace(self):
 
-        movies = self.rep.find(self.kh).movies
+        view = self.rep.view
+        movies = view.find(self.kh).movies
 
         i = random.randint(0, len(movies) - 1)
         print 'random i:', i
@@ -66,8 +70,9 @@ class TestIndexes(RepositoryTestCase):
             self.assert_(movies.getByIndex('n', i) is mj)
 
         self._reopenRepository()
+        view = self.rep.view
 
-        movies = self.rep.find(self.kh).movies
+        movies = view.find(self.kh).movies
         if j > i:
             self.assert_(movies.getByIndex('n', i).itsUUID == mi.itsUUID)
             self.assert_(movies.getByIndex('n', i + 1).itsUUID == mj.itsUUID)
@@ -77,7 +82,8 @@ class TestIndexes(RepositoryTestCase):
         
     def _remove(self):
 
-        movies = self.rep.find(self.kh).movies
+        view = self.rep.view
+        movies = view.find(self.kh).movies
 
         keys = movies.keys()
         values = movies.values()
@@ -97,7 +103,8 @@ class TestIndexes(RepositoryTestCase):
 
     def _add(self):
 
-        movies = self.rep.find(self.kh).movies
+        view = self.rep.view
+        movies = view.find(self.kh).movies
 
         keys = movies.keys()
         values = movies.values()

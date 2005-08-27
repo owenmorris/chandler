@@ -47,12 +47,12 @@ class ICalendarTestCase(unittest.TestCase):
         ]
 
         self.repo = self._initRamDB(packs)
-        self.manager = Parcel.Manager.get(self.repo.view,
-                                          path=parcelpath)
+        view = self.repo.view
+        self.manager = Parcel.Manager.get(view, path=parcelpath)
         self.manager.loadParcels(namespaces)
         # create a sandbox root
-        self.sandbox = Item.Item("sandbox", self.repo, None)
-        self.repo.commit()
+        self.sandbox = Item.Item("sandbox", view, None)
+        view.commit()
 
     def _teardown(self):
         pass
@@ -60,9 +60,10 @@ class ICalendarTestCase(unittest.TestCase):
     def _initRamDB(self, packs):
         repo = DBRepository.DBRepository(None)
         repo.create(ramdb=True, stderr=False, refcounted=True)
+        view = repo.view
         for pack in packs:
-            repo.loadPack(pack)
-        repo.commit()
+            view.loadPack(pack)
+        view.commit()
         return repo
 
     def Import(self, view, filename):
@@ -70,7 +71,7 @@ class ICalendarTestCase(unittest.TestCase):
         path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                             'parcels', 'osaf', 'sharing', 'tests')
 
-        sandbox = self.repo.findPath("//sandbox")
+        sandbox = view.findPath("//sandbox")
 
         conduit = Sharing.FileSystemConduit(parent=sandbox, sharePath=path,
                                             shareName=filename, view=view)

@@ -62,24 +62,25 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
         #
         # - Load the repo (Done in setUp())
         # - Get the repo's default DefaultTimeZone
-        defaultTzItem = DefaultTimeZone.get(view=self.rep.view)
+        view = self.rep.view
+        defaultTzItem = DefaultTimeZone.get(view=view)
         # - Change the default DefaultTimeZone
         defaultTzItem.tzinfo = PyICU.ICUtzinfo.getInstance("GMT")
         self.failUnlessEqual(defaultTzItem.tzinfo,
                 PyICU.ICUtzinfo.getInstance("GMT"))
         # - Save the repo
-        self.rep.commit()
-        self.rep.closeView()
-        
+        view.commit()
+
         # - Change the DefaultTimeZone default timezone
         PyICU.TimeZone.adoptDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
         
         # - Reopen the repo
-        self.rep.openView()
+        self._reopenRepository()
+        view = self.rep.view
         self.manager = None
         
         # - Now check the default timezone
-        defaultTzItem = DefaultTimeZone.get(view=self.rep.view)
+        defaultTzItem = DefaultTimeZone.get(view=view)
         # ... see that it changed to what's in the repo
         self.failIfEqual(PyICU.ICUtzinfo.getInstance("US/Pacific"),
                         defaultTzItem.tzinfo)

@@ -12,8 +12,9 @@ class QueryTestCase(RepositoryTestCase.RepositoryTestCase):
         RepositoryTestCase.RepositoryTestCase._openRepository(self, True)
 
     def _compileQuery(self, name, queryString, args=None):
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        view = self.rep.view
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query(name, p, k, queryString)
         if args is not None:
             q.args = args

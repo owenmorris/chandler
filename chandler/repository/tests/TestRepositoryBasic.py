@@ -43,7 +43,7 @@ class TestRepositoryBasic(unittest.TestCase):
         self.rep.create()
         util.timing.end("repository.TestRepositoryBasic.testCreate")
         util.timing.results(verbose=False)
-        self.assert_(self.rep.check())
+        self.assert_(self.rep.view.check())
         self.assert_(self.rep.isOpen())
 
     def testDestroy(self):
@@ -58,13 +58,13 @@ class TestRepositoryBasic(unittest.TestCase):
 TODO is there more pack testing we need to do?
         """
         self.rep.create()
-        self.assert_(self.rep.check())
+        self.assert_(self.rep.view.check())
         util.timing.reset()
         util.timing.begin("repository.TestRepositoryBasic.testLoadPack")
         self.rep.getCurrentView()
         util.timing.end("repository.TestRepositoryBasic.testLoadPack")
         util.timing.results(verbose=False)
-        self.assert_(self.rep.check())
+        self.assert_(self.rep.view.check())
     
     def tearDown(self):
         self.rep.close()

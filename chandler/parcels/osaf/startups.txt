@@ -473,7 +473,7 @@ First, we'll create an item we want to fork::
 Then, we'll commit the repository, because otherwise our item won't be visible
 in the new view::
 
-    >>> rep.commit()
+    >>> rep.view.commit()
 
 And now we can fork the item::
 

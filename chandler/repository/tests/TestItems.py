@@ -21,6 +21,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
     def testItemParentChild(self):
         """Test basic attribute functionality, focusing on parent-child relationships"""
+        view = self.rep.view
         # Test find()
         kind = self._find('//Schema/Core/Item')
         self.assert_(kind is not None)
@@ -32,7 +33,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assertEquals(str(kind.itsPath), '//Schema/Core/Item')
 
         # Test simple item construction
-        item = Item('test', self.rep, kind)
+        item = Item('test', view, kind)
         self.assert_(item is not None)
         self.assert_(item.isItemOf(kind))
         self.failIf(item.isRemote())
@@ -44,7 +45,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.isDirty())
         self.failIf(item.isDeleted())
         self.failIf(item.isStale())
-        self.assertEquals(self.rep.view, item.itsView)
+        self.assertEquals(view, item.itsView)
 
 #TODO test toXML
         out = StringIO()
@@ -59,8 +60,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.failIf(xml is None)
 
         # Test to see that item became a respository root
-        self.rep.commit()
-        roots = list(self.rep.iterRoots())
+        view.commit()
+        roots = list(view.iterRoots())
         self.assert_(item in roots)
         self.failIf(item.isDirty())
 
@@ -101,6 +102,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
+        view = self.rep.view
         item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
@@ -141,6 +143,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
+        view = self.rep.view
         item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
@@ -151,19 +154,20 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assertIsRoot(child3.itsRoot)
 
         # Test item movement to root
-        child3.itsParent = self.rep
+        child3.itsParent = view
         self.assertIsRoot(child3)
         self.assertItemPathEqual(child3, '//child3')
         self.assertIsRoot(child3.itsRoot)
         
         # now write what we've done and read it back
         self._reopenRepository()
+        view = self.rep.view
         item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
-        child3 = self.rep['child3']
+        child3 = view['child3']
 
-        self.assert_(child3 in list(self.rep.iterRoots()))
+        self.assert_(child3 in list(view.iterRoots()))
         self.assertItemPathEqual(child3, '//child3')
         self.assertIsRoot(child3.itsRoot)
 

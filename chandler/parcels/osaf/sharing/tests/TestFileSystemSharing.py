@@ -51,10 +51,10 @@ class SharingTestCase(unittest.TestCase):
             self.mgrs[i].loadParcels(namespaces)
             # create a sandbox root
             Item.Item("sandbox", self.repos[i], None)
-            self.repos[i].commit()
+            self.repos[i].view.commit()
 
-        self._createCollection(self.repos[0])
-        self._populateCollection(self.repos[0])
+        self._createCollection(self.repos[0].view)
+        self._populateCollection(self.repos[0].view)
 
     def _teardown(self):
         self.share1.destroy()
@@ -63,20 +63,20 @@ class SharingTestCase(unittest.TestCase):
     def _initRamDB(self, packs):
         repo = DBRepository.DBRepository(None)
         repo.create(ramdb=True, stderr=False, refcounted=True)
+        view = repo.view
         for pack in packs:
-            repo.loadPack(pack)
-        repo.commit()
+            view.loadPack(pack)
+        view.commit()
         return repo
 
-    def _createCollection(self, repo):
-        sandbox = repo.findPath("//sandbox")
+    def _createCollection(self, view):
+        sandbox = view.findPath("//sandbox")
 
-        coll = ListCollection(name="testcollection",
-         parent=sandbox)
+        coll = ListCollection(name="testcollection", parent=sandbox)
 
 
-    def _populateCollection(self, repo):
-        sandbox = repo.findPath("//sandbox")
+    def _populateCollection(self, view):
+        sandbox = view.findPath("//sandbox")
 
         coll = sandbox.findPath("testcollection")
 
@@ -119,7 +119,8 @@ class SharingTestCase(unittest.TestCase):
 
         # Export
         repo = self.repos[0]
-        sandbox = repo.findPath("//sandbox")
+        view = repo.view
+        sandbox = view.findPath("//sandbox")
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,
@@ -136,7 +137,8 @@ class SharingTestCase(unittest.TestCase):
 
         # Import
         repo = self.repos[1]
-        sandbox = repo.findPath("//sandbox")
+        view = repo.view
+        sandbox = view.findPath("//sandbox")
         coll = sandbox.findPath("testcollection")
 
         conduit = Sharing.FileSystemConduit(name="conduit", parent=sandbox,

@@ -40,16 +40,17 @@ class TestPerfWithRSS(RepositoryTestCase):
     def setUp(self):
 
         super(TestPerfWithRSS, self).setUp()
+        view = self.rep.view
 
         # sys.path.insert(1, parcelDir)
         self.loadParcel("parcel:osaf.pim")
 
-        self.rep.commit()
+        view.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
 
     def _stressTest(self, commitInsideLoop=False):
         """ grab a bunch of RSS data from disk and insert into the repository """
-        repository = self.rep
+        view = self.rep.view
 
         itemCount = 0
         feedCount = 0
@@ -84,16 +85,16 @@ class TestPerfWithRSS(RepositoryTestCase):
                 if commitInsideLoop:
                     self.rep.logger.info('%0.5d committing %s, %0.6d',
                                          feedCount, feed.url, itemCount)
-                    repository.commit()
+                    view.commit()
             except Exception:
                 self.rep.logger.exception('While processing %s', feed.url)
-                self.rep.cancel()
+                view.cancel()
 
         try:
 #            profiler = hotshot.Profile('/tmp/TestPerfWithRss.stressTest.hotshot')
-#            profiler.runcall(repository.commit)
+#            profiler.runcall(view.commit)
 #            profiler.close()
-            repository.commit()
+            view.commit()
         except Exception:
             self.rep.logger.exception("Final commit:")
             self.fail()
@@ -104,17 +105,17 @@ class TestPerfWithRSS(RepositoryTestCase):
         
     def __getFeeds(self):
         """Return a list of channel items"""
-        repository = self.rep
-        chanKind = repository.find(Path(BASE_PATH, 'FeedChannel'))
+        view = self.rep.view
+        chanKind = view.find(Path(BASE_PATH, 'FeedChannel'))
 
         feeds = []
-        parent = repository.find(BASE_PATH)
+        parent = view.find(BASE_PATH)
 
         for url in _defaultBlogs:
             urlhash = str(hash(url))
-            item = repository.find(Path(BASE_PATH, urlhash))
+            item = view.find(Path(BASE_PATH, urlhash))
             if not item:
-                item = FeedChannel(view = repository.view)
+                item = FeedChannel(view = view)
                 item.url = url
             feeds.append(item.itsUUID)
 

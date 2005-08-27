@@ -129,17 +129,17 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
     factoryType = AbstractDownloadClientFactory
     defaultPort = 0
 
-    def __init__(self, repository, account):
+    def __init__(self, view, account):
         """
-        @param repository: An Instance of C{DBRepository}
-        @type repository: C{DBRepository}
+        @param view: An Instance of C{RepositoryView}
+        @type view: C{RepositoryView}
         @param account: An Instance of C{DownloadAccountBase}
         @type account: C{DownloadAccount}
         @return: C{None}
         """
         assert isinstance(account, self.accountType)
 
-        super(AbstractDownloadClient, self).__init__(repository)
+        super(AbstractDownloadClient, self).__init__(view.repository)
 
         """These values exist for life of client"""
         self.accountUUID = account.itsUUID

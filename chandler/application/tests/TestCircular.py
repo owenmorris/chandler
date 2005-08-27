@@ -21,7 +21,7 @@ class CircularTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.loadParcels(
          ["http://testparcels.org/calendar", "http://testparcels.org/contact"]
         )
-        self.rep.commit()
+        self.rep.view.commit()
 
 if __name__ == "__main__":
     unittest.main()

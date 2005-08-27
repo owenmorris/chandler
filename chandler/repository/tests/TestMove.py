@@ -18,35 +18,37 @@ class TestMove(RepositoryTestCase):
     def setUp(self):
 
         super(TestMove, self).setUp()
+        view = self.rep.view
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
+        view.loadPack(cineguidePack)
         
     def move(self, withCommit):
 
+        view = self.rep.view
         if withCommit:
-            self.rep.commit()
+            view.commit()
             
-        c = self.rep['CineGuide']
+        c = view['CineGuide']
         k = c['KHepburn']
         m = k.movies.first()
 
-        m.move(self.rep)
-        self.assert_(m._parent is self.rep.view)
+        m.move(view)
+        self.assert_(m._parent is view)
         self.assert_(m._root is m)
         self.assert_(c.hasChild(m._name) is False)
 
         if withCommit:
-            self.rep.commit()
+            view.commit()
         
         m.move(c)
         self.assert_(m._parent is c)
         self.assert_(m._root is c)
-        self.assert_(self.rep.hasRoot(m._name) is False)
+        self.assert_(view.hasRoot(m._name) is False)
 
         if withCommit:
-            self.rep.commit()
+            view.commit()
         
     def testMoveCommit(self):
         self.move(True)

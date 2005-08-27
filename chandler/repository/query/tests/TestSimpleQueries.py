@@ -43,13 +43,14 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
                 
     def testVariableKindQuery(self):
         """ Test query where source (kind) is specified in a variable """
-        k = self.rep.findPath('//Schema/Core/Kind')
+        k = self.rep.view.findPath('//Schema/Core/Kind')
         results = self._compileQuery('testVariableKindQuery','for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
 
     def testVariableRefCollectonQuery(self):
         """ Test query where source (ref collection) is specified in a variable """
-        k = self.rep.findPath('//Schema/Core/Kind')
+        view = self.rep.view
+        k = view.findPath('//Schema/Core/Kind')
         results = self._compileQuery('testVariableRefCollectonQuery','for i in $1 where contains(i.itsName,"Kind")', {"$1": (k.itsUUID,'attributes')})
         self._checkQuery(lambda i: not 'Kind' in i.itsName, results)
 
@@ -124,11 +125,12 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
     def testRefCollectionQuery(self):
         """ Test a query over ref collections """
         import repository.query.Query as Query
-        kind = self.rep.findPath('//Schema/Core/Kind')
+        view = self.rep.view
+        kind = view.findPath('//Schema/Core/Kind')
 
         queryString = u"for i in $0 where contains(i.itsName,'ttributes')"
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testRefCollctionQuery', p, k, queryString)
         q.args ["$0"] = (kind.itsUUID, "attributes")
 
@@ -138,8 +140,9 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         """ Test using a variable in the where clause """
         queryString= 'for i in "//Schema/Core/Kind" where contains(i.itsName,$0)'
         import repository.query.Query as Query
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        view = self.rep.view
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testWhereQuery', p, k, queryString)
         pattern = 'arc'
         q.args["$0"] = ( pattern, ) # one item tuple
@@ -186,9 +189,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
             return value in text
 
         #@@@ use cineguide pack until we can do this from parcel.xml
+        view = self.rep.view
         cineguidePack = os.path.join(self.rootdir,'repository', 'tests', 'data', 'packs', 'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
         results = self._compileQuery('testTextQuery1',u"for i in ftcontains('femme AND homme') where True")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
@@ -207,8 +211,9 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
     def testResetQueryString(self):
         """ Make sure we can change the query string and still get an answer"""
         import repository.query.Query as Query
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        view = self.rep.view
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testResetQuery', p, k)
         self.assert_(len([ i for i in q]) == 0)
         q.queryString = 'for i in "//Schema/Core/Kind" where True'
@@ -219,23 +224,26 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
     def testReloadQuery(self):
         """ Test to see that we can reload a query and it's result set from the store without recomputing the query contents """
         import repository.query.Query as Query
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        view = self.rep.view
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testResetQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
         self.assert_(len([ i for i in q ]) == 17)
-        self.rep.check()
-        self.rep.commit()
+        view.check()
+        view.commit()
         uuid = q.itsUUID
 
         self._reopenRepository()
-        q1 = self.rep.findUUID(uuid)
+        view = self.rep.view
+        q1 = view.findUUID(uuid)
         self.assert_(len([ i for i in q1 ]) == 17)
 
     def testCopyQuery(self):
         """ Test to see that we can copy a query """
         import repository.query.Query as Query
-        p = self.rep.findPath('//Queries')
-        k = self.rep.findPath('//Schema/Core/Query')
+        view = self.rep.view
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testCopyQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
         self.assert_(len([ i for i in q ]) == 17)
 

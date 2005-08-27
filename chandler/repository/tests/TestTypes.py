@@ -27,10 +27,11 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(TypesTest, self).setUp()
 
+        view = self.rep.view
         self.kind = self._find(self._KIND_KIND)
         self.itemKind = self._find(self._ITEM_KIND)
         self.attrKind = self.itemKind.itsParent['Attribute']
-        self.newKind = self.kind.newItem('newKind', self.rep)
+        self.newKind = self.kind.newItem('newKind', view)
         self.typeKind = self._find('//Schema/Core/Type')
 
         self.typenames=['String', 'Symbol', 'Integer', 'Long', 'Float',
@@ -43,7 +44,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.atts = {}
         self.types = {}
         for a in self.typenames:
-            tempAtt = Attribute('%sAttribute' % a, self.rep, self.attrKind)
+            tempAtt = Attribute('%sAttribute' % a, view, self.attrKind)
             classobj = eval('repository.schema.Types.%s' % a)
             typeItem = self._find('//Schema/Core/%s' % a)
             self.types[a] = typeItem
@@ -121,6 +122,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         class myStruct(object):
             __slots__ = ('name', 'rank')
             
+        view = self.rep.view
         self.uuid = self.attrKind.itsUUID
         self.uuidString = str(self.uuid)
         self.pathString = '//Schema/Core/Item'
@@ -133,10 +135,10 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.timeDeltaString= '-8+45.000012'
         self.timeDelta = timedelta(-8, 45, 12)
         
-        self.enum = self.types['Enumeration'].newItem('myEnum', self.rep)
+        self.enum = self.types['Enumeration'].newItem('myEnum', view)
         self.enum.values = ['red', 'green', 'blue']
 
-        self.structType = self.types['Struct'].newItem('myStruct', self.rep)
+        self.structType = self.types['Struct'].newItem('myStruct', view)
         self.structType.fields=['name','rank']
         self.structType.implementationTypes = {'python': myStruct }
         self.struct = myStruct()

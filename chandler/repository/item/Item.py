@@ -68,10 +68,7 @@ class Item(CItem):
             kind._setupClass(cls)
 
         if parent is None:
-            if kind is not None:
-                parent = kind.itsView
-            else:
-                raise ValueError, 'parent cannot be None'
+            raise ValueError, 'parent cannot be None, for roots use a view'
 
         if name is None and not parent._isItem():
             raise AnonymousRootError, self

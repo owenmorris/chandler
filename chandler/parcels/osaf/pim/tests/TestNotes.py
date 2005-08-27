@@ -56,8 +56,8 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         _verifyNote(noteItem)
 
         self._reopenRepository()
-
-        contentItemParent = self.rep.findPath("//userdata")
+        view = self.rep.view
+        contentItemParent = view.findPath("//userdata")
         
         noteItem = contentItemParent.getItemChild("noteItem")
         

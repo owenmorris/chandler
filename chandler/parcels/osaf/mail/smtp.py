@@ -76,17 +76,17 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
 class SMTPClient(TwistedRepositoryViewManager.RepositoryViewManager):
     """Sends a Chandler mail message via SMTP"""
 
-    def __init__(self, repository, account):
+    def __init__(self, view, account):
         """
-           @param repository: A C{DBRepository} instance
-           @type repository: C{DBRepository}
+           @param view: A C{RepositoryView} instance
+           @type view: C{RepositoryView}
 
            @param account: An SMTP Account content model object
            @type account: C{Mail.SMTPAccount}
         """
         assert isinstance(account, Mail.SMTPAccount)
 
-        super(SMTPClient, self).__init__(repository)
+        super(SMTPClient, self).__init__(view.repository)
 
         self.accountUUID = account.itsUUID
         self.account = None

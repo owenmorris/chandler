@@ -23,13 +23,14 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
 
         super(RedirectAttributeOrderingTest, self).setUp()
 
+        view = self.rep.view
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
         # noteKind has a 'creator' string, and a 'who' attribute to 
         #   redirectTo 'creator'
-        noteKind = kind.newItem('Note', self.rep)
+        noteKind = kind.newItem('Note', view)
         creatorAttribute = Attribute('creator', noteKind, attrKind)
         creatorAttribute.cardinality = 'single'
         noteKind.addValue('attributes',
@@ -42,7 +43,7 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
 
         # taskMixin has a 'participant' string, and a 'who' attribute to 
         #   redirectTo 'participant'
-        taskMixin = kind.newItem('TaskMixin', self.rep)
+        taskMixin = kind.newItem('TaskMixin', view)
         participantAttribute = Attribute('participant', taskMixin, attrKind)
         participantAttribute.cardinality = 'single'
         taskMixin.addValue('attributes',
@@ -54,7 +55,7 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
                            whoAttribute, alias='who')
 
         # taskKind is a Kind with superkinds noteKind and taskMixin
-        taskKind = kind.newItem('Task', self.rep)
+        taskKind = kind.newItem('Task', view)
         taskKind.addValue('superKinds', noteKind)
         taskKind.addValue('superKinds', taskMixin)
 
@@ -69,24 +70,27 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         for item in itemList:
             itemUUIDs.append(item.itsUUID)
 
-        self.rep.commit()
+        view = self.rep.view
+        view.commit()
         self._reopenRepository()
+        view = self.rep.view
         
         # reincarnate the items
         newList = []
         for uuid in itemUUIDs:
-            newList.append(self.rep.find(uuid))
+            newList.append(view.find(uuid))
         return newList
         
     def testRedirectTo(self):
 
-        noteKind = self.rep.find(self.noteKind)
-        taskMixin = self.rep.find(self.taskMixin)
-        taskKind = self.rep.find(self.taskKind)
+        view = self.rep.view
+        noteKind = view.find(self.noteKind)
+        taskMixin = view.find(self.taskMixin)
+        taskKind = view.find(self.taskKind)
 
-        aNote = noteKind.newItem('aNote', self.rep)
-        aTaskMixin = taskMixin.newItem('aTaskMixin', self.rep)
-        aTask = taskKind.newItem('aTask', self.rep)
+        aNote = noteKind.newItem('aNote', view)
+        aTaskMixin = taskMixin.newItem('aTaskMixin', view)
+        aTask = taskKind.newItem('aTask', view)
 
         noteWho = 'whoWroteTheNote'
         aNote.who = noteWho
@@ -102,7 +106,7 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(aTaskMixin.participant == taskMixinWho)
         self.assert_(aTask.who == taskWho)
         self.assert_(aTask.creator == taskWho)
-        self.rep.commit()
+        view.commit()
         print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
 
         items = (aNote, aTaskMixin, aTask)
@@ -120,11 +124,12 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
         
     def testRearrange(self):
 
-        taskKind = self.rep.find(self.taskKind)
+        view = self.rep.view
+        taskKind = view.find(self.taskKind)
 
         aTask = self._find('//aTask')
         if aTask is None:
-            aTask = taskKind.newItem('aTask', self.rep)
+            aTask = taskKind.newItem('aTask', view)
 
         redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
         print "who points to", aTask.getAttributeAspect('who', 'redirectTo')

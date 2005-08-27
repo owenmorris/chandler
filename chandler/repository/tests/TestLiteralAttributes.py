@@ -17,15 +17,16 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
 
     def testLiteralAttributes(self):
+        view = self.rep.view
         """Test basic features of literal attributes"""
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
-        kind1 = Item('kind1', self.rep, kind)
+        kind1 = Item('kind1', view, kind)
         self.assert_(kind1 is not None)
 
-        item1 = Item('item1', self.rep, itemKind)
+        item1 = Item('item1', view, itemKind)
         self.assert_(item1 is not None)
 
         #Test hasAttributeAspect and getAttributeAspect
@@ -55,6 +56,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
 
     def testListMultis(self):
         """Test list valued literal attributes """
+
+        view = self.rep.view
 
         def verifyItem(i):
             """verify that a list valued literal attribute has the right values"""
@@ -88,7 +91,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         
         kind = self._find('//Schema/Core/Kind')                
         itemKind = self._find('//Schema/Core/Item')            
-        myKind = kind.newItem('listKind', self.rep)
+        myKind = kind.newItem('listKind', view)
                                                                   
         # create an attribute with cardinality list and add to the kind
         attrKind = itemKind.itsParent['Attribute']
@@ -97,7 +100,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         myKind.addValue('attributes', multiAttribute, alias='strings')
                                                                   
         # create an item of the new kind
-        item = myKind.newItem('item', self.rep)                   
+        item = myKind.newItem('item', view)                   
 
         # add to the list attribute
         item.setValue('strings', 'Mickey')                         
@@ -145,6 +148,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     def testDictMultis(self):
         """Test dictionary valued literal attributes"""
 
+        view = self.rep.view
+
         def verifyItem(i):
             """ verify that a dictionayr value literal attribute contains the right data"""
             self.assertEquals(len(i.strings), 4)
@@ -176,7 +181,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         
         kind = self._find('//Schema/Core/Kind')                
         itemKind = self._find('//Schema/Core/Item')            
-        myKind = kind.newItem('dictKind', self.rep)
+        myKind = kind.newItem('dictKind', view)
                                                                   
         # create an attribute with cardinality dict and add to the kind
         attrKind = itemKind.itsParent['Attribute']
@@ -185,7 +190,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         myKind.addValue('attributes', multiAttribute, alias='strings')
                                                                   
         # create an item of the new kind
-        item = myKind.newItem('item', self.rep)
+        item = myKind.newItem('item', view)
         item.setValue('strings', 'Mouse', 'Mickey')
         item.addValue('strings', 'Mouse', 'Minnie')
         item.addValue('strings', 'Duck', 'Donald')
@@ -199,6 +204,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
+        view = self.rep.view
         item = self._find('//item')
         verifyItem(item)
 

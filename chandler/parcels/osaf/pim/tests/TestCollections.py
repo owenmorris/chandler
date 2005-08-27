@@ -48,11 +48,12 @@ class CollectionTestCase(unittest.TestCase):
         rep = DBRepository(self.repoDir)
         kwds = { 'create': True, 'refcounted':True, 'ramdb':True }
         rep.create(**kwds)
+        view = rep.view
 
-        if rep.findPath("//Schema") is None:
-            rep.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
-            rep.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'chandler.pack'))
-        self.view = rep.getCurrentView()
+        if view.findPath("//Schema") is None:
+            view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
+            view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'chandler.pack'))
+        self.view = view
 
     def tearDown(self):
         self.failUnless(schema.reset().check(), "check() failed")

@@ -268,7 +268,7 @@ class Role(ActiveDescriptor,CDescriptor):
         if isinstance(self.inverse,ForwardReference):
             self.inverse = self.inverse.referent()  # force resolution now
 
-        attr = Attribute("tmp_"+self.name, None, itemFor(Attribute, view))
+        attr = Attribute("tmp_"+self.name, view, itemFor(Attribute, view))
         return attr
 
     def _init_schema_item(self, attr, view):
@@ -449,7 +449,7 @@ class ItemClass(Activator):
                 return item
         
     def _create_schema_item(cls, view):
-        return Kind("tmp_"+cls.__name__, None, itemFor(Kind, view))
+        return Kind("tmp_"+cls.__name__, view, itemFor(Kind, view))
 
     def _init_schema_item(cls, kind, view):
         kind.superKinds = [

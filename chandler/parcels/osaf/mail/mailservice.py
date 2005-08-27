@@ -50,9 +50,8 @@ class MailService(object):
       and client pipelining.
     """
 
-    def __init__(self, repository):
-        self.__repository = repository
-        self.__view = repository.view
+    def __init__(self, view):
+        self.__view = view
         self.__started = False
 
     def startup(self):
@@ -125,7 +124,7 @@ class MailService(object):
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = smtp.SMTPClient(self.__repository, account)
+        s = smtp.SMTPClient(self.__view, account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -147,7 +146,7 @@ class MailService(object):
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = imap.IMAPClient(self.__repository, account)
+        i = imap.IMAPClient(self.__view, account)
         imapInstances[account.itsUUID] = i
 
         return i
@@ -169,7 +168,7 @@ class MailService(object):
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = pop.POPClient(self.__repository, account)
+        i = pop.POPClient(self.__view, account)
         popInstances[account.itsUUID] = i
 
         return i

@@ -23,14 +23,16 @@ class TestMixins(RepositoryTestCase):
 
         super(TestMixins, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
     def testMixin(self):
 
-        kh = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        kh = view.findPath('//CineGuide/KHepburn')
         m1 = kh.movies.first()
         actor = kh.itsKind
         movie = m1.itsKind
@@ -61,7 +63,8 @@ class TestMixins(RepositoryTestCase):
 
     def testMonitor(self):
 
-        kh = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        kh = view.findPath('//CineGuide/KHepburn')
         m1 = kh.movies.first()
         actor = kh.itsKind
         movie = m1.itsKind

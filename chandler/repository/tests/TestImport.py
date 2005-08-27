@@ -29,12 +29,13 @@ class TestImport(RepositoryTestCase):
 
     def _loadCG(self):
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.kh = self.rep.findPath('//CineGuide/KHepburn')
+        view.loadPack(cineguidePack)
+        self.kh = view.findPath('//CineGuide/KHepburn')
         self.kh.movies.addIndex('t', 'attribute', attribute='title')
-        self.rep.commit()
+        view.commit()
 
     def _setCopyExport(self, item):
         
@@ -50,32 +51,34 @@ class TestImport(RepositoryTestCase):
 
     def testImport(self):
 
-        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Parcel'))
-        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Manager'))
+        #self._unsetCopyExport(view.findPath('//Schema/Core/Parcel'))
+        #self._unsetCopyExport(view.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
         nv.clear()
+        view = self.rep.view
         nv.importItem(self.kh)
-        nv.importItem(self.rep.view['Packs'])
-        nv.importItem(self.rep.view['parcels'])
+        nv.importItem(view['Packs'])
+        nv.importItem(view['parcels'])
 
         self.assert_(self.kh.itsView is nv)
         self.assert_(self.kh.itsParent.itsView is nv)
         self.assert_(self.kh.itsKind.itsView is nv)
 
-        self.assert_(self.rep.check())
+        self.assert_(view.check())
         self.assert_(nv.check())
 
     def testCreate(self):
 
-        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Parcel'))
-        #self._unsetCopyExport(self.rep.findPath('//Schema/Core/Manager'))
+        #self._unsetCopyExport(view.findPath('//Schema/Core/Parcel'))
+        #self._unsetCopyExport(view.findPath('//Schema/Core/Manager'))
 
         self._loadCG()
         nv.clear()
+        view = self.rep.view
         nv.importItem(self.kh)
-        nv.importItem(self.rep.view['Packs'])
-        nv.importItem(self.rep.view['parcels'])
+        nv.importItem(view['Packs'])
+        nv.importItem(view['parcels'])
 
         m1 = self.kh.movies.first()
         m9 = m1.itsKind.newItem('m9', self.kh.itsParent)
@@ -84,17 +87,17 @@ class TestImport(RepositoryTestCase):
         self.assert_(m9.itsView is self.kh.itsView)
         self.assert_(self.kh.itsView is nv)
 
-        kh = self.rep.findPath('//CineGuide/KHepburn')
-        self.assert_(kh.itsView is self.rep.view)
+        kh = view.findPath('//CineGuide/KHepburn')
+        self.assert_(kh.itsView is view)
         self.assert_(kh.itsView is not nv)
 
         kh.movies.append(m9)
         self.assert_(m9.itsView is kh.itsView)
-        self.assert_(m9.itsView is self.rep.view)
+        self.assert_(m9.itsView is view)
         self.assert_(m9.itsView is not nv)
         self.assert_(kh.movies.lastInIndex('t') is m9)
 
-        self.assert_(self.rep.check())
+        self.assert_(view.check())
         self.assert_(nv.check())
 
     def testImportWithCopy(self):

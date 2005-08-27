@@ -24,12 +24,13 @@ class TestDeepCopyRef(RepositoryTestCase):
     # of the links ends up pointing back at the original.
 
     def _createBlockAndEventKinds(self, cardinality):
+        view = self.rep.view
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
         # blockKind has a 'blocks' reference collection, and an inverse 'blockParent'
-        blockKind = kind.newItem('Block', self.rep)
+        blockKind = kind.newItem('Block', view)
         blocksAttribute = Attribute('blocks', blockKind, attrKind)
         blocksAttribute.cardinality = cardinality
         blocksAttribute.copyPolicy = currentPolicy
@@ -51,7 +52,7 @@ class TestDeepCopyRef(RepositoryTestCase):
                            eventAttribute, alias='event')
 
         # create the event kind, which has a pointer to a Block.
-        eventKind = kind.newItem('Event', self.rep)
+        eventKind = kind.newItem('Event', view)
         notifyBlock = Attribute('notify', eventKind, attrKind)
         notifyBlock.cardinality = 'single'
         notifyBlock.copyPolicy = currentPolicy
@@ -62,9 +63,10 @@ class TestDeepCopyRef(RepositoryTestCase):
 
     def testDeepCopyRef(self):
         # create some blocks to work with
+        view = self.rep.view
         blockKind, eventKind = self._createBlockAndEventKinds('list')
-        aBlock = blockKind.newItem('aBlock', self.rep)
-        eggsBlock = blockKind.newItem('eggs', self.rep)
+        aBlock = blockKind.newItem('aBlock', view)
+        eggsBlock = blockKind.newItem('eggs', view)
         
         # link up aBlock with eggsBlock
         aBlock.blocks = []
@@ -74,7 +76,7 @@ class TestDeepCopyRef(RepositoryTestCase):
 
         # create the spamEvent, which points to aBlock, 
         # and is pointed to by eggsBlock.
-        spamEvent = eventKind.newItem('spamEvent', self.rep)
+        spamEvent = eventKind.newItem('spamEvent', view)
         spamEvent.notify = aBlock
         eggsBlock.event = spamEvent
 
@@ -82,7 +84,7 @@ class TestDeepCopyRef(RepositoryTestCase):
         # Currently using Item.copy():
         # def copy(self, name=None, parent=None, copies=None, copyPolicy=None):
         cloneBlock = aBlock.copy(name = 'cloneBlock', 
-                                 parent = self.rep,
+                                 parent = view,
                                  copyPolicy = currentPolicy)
 
         # check that nothing in the copy points back to the template

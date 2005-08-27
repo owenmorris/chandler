@@ -21,17 +21,19 @@ class TestDelete(RepositoryTestCase):
 
         super(TestDelete, self).setUp()
 
+        view = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
+        view.loadPack(cineguidePack)
+        view.commit()
 
     def testDeleteItemsInCollection(self):
 
         util.timing.reset()
 
         self._reopenRepository()
-        k = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        k = view.findPath('//CineGuide/KHepburn')
         util.timing.reset()
         for m in k.movies:
             util.timing.begin("repository.tests.TestDelete.testDeleteItemsInCollection")
@@ -39,25 +41,25 @@ class TestDelete(RepositoryTestCase):
             util.timing.end("repository.tests.TestDelete.testDeleteItemsInCollection")
 
         self.assert_(len(k.movies) == 0)
-        self.assert_(self.rep.check())
+        self.assert_(view.check())
 
         self._reopenRepository()
-        self.assert_(self.rep.check())
+        self.assert_(view.check())
 
         util.timing.results(verbose=False)
 
     def testCloudDelete(self):
 
         util.timing.reset()
-
-        k = self.rep.findPath('//CineGuide/KHepburn')
+        view = self.rep.view
+        k = view.findPath('//CineGuide/KHepburn')
         util.timing.begin("repository.tests.TestDelete.testCloudDelete")
         k.delete(cloudAlias='remote')
         util.timing.end("repository.tests.TestDelete.testCloudDelete")
-        self.rep.commit()
-        self.rep.check()
+        view.commit()
+        view.check()
         self._reopenRepository()
-        self.rep.check()
+        self.rep.view.check()
 
         util.timing.results(verbose=False)
         

@@ -10,9 +10,9 @@ from i18n import I18nManager
 import wx
 import Globals
 from repository.persistence.DBRepository import DBRepository
-from repository.persistence.RepositoryError \
-     import VersionConflictError, MergeError, RepositoryPasswordError, \
-     RepositoryVersionError
+from repository.persistence.RepositoryError import \
+    VersionConflictError, MergeError, RepositoryPasswordError, \
+    RepositoryVersionError
 import Utility
 import schema
 from i18n import OSAFMessageFactory as _
@@ -308,11 +308,11 @@ class wxApplication (wx.App):
 
 
         """Start the WakeupCaller Service"""
-        Utility.initWakeup(self.UIRepositoryView.repository)
+        Utility.initWakeup(self.UIRepositoryView)
 
         """Start the Chandler Mail Service"""
         from osaf.mail.mailservice import MailService
-        Globals.mailService = MailService(self.UIRepositoryView.repository)
+        Globals.mailService = MailService(self.UIRepositoryView)
         Globals.mailService.startup()
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
@@ -574,7 +574,7 @@ class wxApplication (wx.App):
           Main application termination.
         """
         if __debug__:
-            wx.GetApp().UIRepositoryView.repository.check()
+            wx.GetApp().UIRepositoryView.check()
 
         Globals.mailService.shutdown()
 

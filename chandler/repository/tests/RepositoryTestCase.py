@@ -53,8 +53,8 @@ class RepositoryTestCase(TestCase):
             self.rep.create(ramdb=self.ramdb,
                             refcounted=True)
             self.rep.logger.setLevel(self.logLevel)
-            self.rep.loadPack(self.chandlerPack)
-            self.rep.commit()
+            self.rep.view.loadPack(self.chandlerPack)
+            self.rep.view.commit()
 
         self.manager = \
          ParcelManager.get(self.rep.view, \
@@ -74,11 +74,11 @@ class RepositoryTestCase(TestCase):
             self.rep.delete()
 
     def _reopenRepository(self):
-        self.rep.commit()
+        self.rep.view.commit()
 
         if self.ramdb:
-            self.rep.closeView()
-            self.rep.openView()
+            self.rep.view.closeView()
+            self.rep.view.openView()
         else:
             self.rep.close()
             self.rep = DBRepository(os.path.join(self.testdir,
@@ -90,7 +90,7 @@ class RepositoryTestCase(TestCase):
          path=[os.path.join(self.rootdir, 'parcels')])
 
     def _find(self, path):
-        return self.rep.findPath(path)
+        return self.rep.view.findPath(path)
 
     def loadParcel(self, namespace):
         self.loadParcels([namespace])
@@ -110,7 +110,7 @@ class RepositoryTestCase(TestCase):
 
     # Repository specific assertions
     def assertIsRoot(self, item):
-        self.assert_(item in list(self.rep.iterRoots()))
+        self.assert_(item in list(self.rep.view.iterRoots()))
 
     def assertItemPathEqual(self, item, string):
         self.assertEqual(str(item.itsPath), string)
