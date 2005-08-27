@@ -9,33 +9,7 @@
 #include <Python.h>
 #include "structmember.h"
 
-#include "../item/item.h"
-
-/*
- * t_item and t_view share the same top fields because
- * a view is also the parent of root items
- */
-
-typedef struct {
-    PyObject_HEAD
-    Item_HEAD
-    PyObject *repository;
-} t_view;
-
-enum {
-    OPEN       = 0x0001,
-    REFCOUNTED = 0x0002,
-    LOADING    = 0x0004,
-    COMMITTING = 0x0008,
-
-    /*
-     * flags from CItem
-     * FDIRTY  = 0x0010
-     * STALE   = 0x0080
-     * CDIRTY  = 0x0200
-     * merge flags
-     */
-};
+#include "c.h"
 
 static void t_view_dealloc(t_view *self);
 static PyObject *t_view_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
@@ -48,6 +22,7 @@ static PyObject *t_view_isStale(t_view *self, PyObject *args);
 static PyObject *t_view_isRefCounted(t_view *self, PyObject *args);
 static PyObject *t_view_isLoading(t_view *self, PyObject *args);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
+static PyObject *t_view_isOpen(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
 static PyObject *t_view__getView(t_view *self, void *data);
 static PyObject *t_view__getName(t_view *self, void *data);
@@ -78,6 +53,7 @@ static PyMethodDef t_view_methods[] = {
     { "isRefCounted", (PyCFunction) t_view_isRefCounted, METH_NOARGS, "" },
     { "isLoading", (PyCFunction) t_view_isLoading, METH_NOARGS, "" },
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
+    { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
@@ -98,14 +74,10 @@ static PyGetSetDef t_view_properties[] = {
     { NULL, NULL, NULL, NULL, NULL }
 };
 
-static PyMethodDef view_funcs[] = {
-    { NULL, NULL, 0, NULL }
-};
-
 static PyTypeObject ViewType = {
     PyObject_HEAD_INIT(NULL)
     0,                                                   /* ob_size */
-    "chandlerdb.persistence.view.CView",                 /* tp_name */
+    "chandlerdb.persistence.c.CView",                    /* tp_name */
     sizeof(t_view),                                      /* tp_basicsize */
     0,                                                   /* tp_itemsize */
     (destructor)t_view_dealloc,                          /* tp_dealloc */
@@ -227,6 +199,15 @@ static PyObject *t_view__setLoading(t_view *self, PyObject *loading)
     return wasLoading;
 }
 
+static PyObject *t_view_isOpen(t_view *self, PyObject *args)
+{
+    if (self->status & OPEN &&
+        ((t_repository *) self->repository)->status & OPEN)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 static PyObject *t_view_getLogger(t_view *self, PyObject *args)
 {
     return PyObject_GetAttr(self->repository, logger_NAME);
@@ -297,20 +278,10 @@ static PyObject *t_view__getLogger(t_view *self, void *data)
 }
 
 
-static void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
-{
-    PyObject *pyValue = PyInt_FromLong(value);
-
-    PyDict_SetItemString(dict, key, pyValue);
-    Py_DECREF(pyValue);
-}
-
-void initview(void)
+void _init_ViewType(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
     {
-        PyObject *m = Py_InitModule3("view", view_funcs, "view C type module");
-
         if (m)
         {
             PyObject *dict = ViewType.tp_dict;
