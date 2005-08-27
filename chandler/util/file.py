@@ -7,7 +7,7 @@ File-specific utilities.
 
 import os, shutil
 
-def copyfile(src, dst, flags=os.O_CREAT | os.O_EXCL, mode=0700):
+def copy(src, dst, flags=os.O_CREAT | os.O_EXCL, mode=0700):
     """
     Smarter copy. You can specify flags and mode on the destination file.
 
@@ -17,7 +17,9 @@ def copyfile(src, dst, flags=os.O_CREAT | os.O_EXCL, mode=0700):
     @param mode:  Permissions for dst file. Defaults to user only.
     """
     fdst = os.fdopen(os.open(dst, flags | os.O_WRONLY, mode), 'w')
-    fsrc = os.fdopen(os.open(src, os.O_RDONLY))
-    shutil.copyfileobj(fsrc, fdst)
-    fsrc.close()
-    fdst.close()
+    try:
+        fsrc = os.fdopen(os.open(src, os.O_RDONLY))
+        shutil.copyfileobj(fsrc, fdst)
+    finally:
+        fdst.close()
+        fsrc.close()
