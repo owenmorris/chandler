@@ -18,6 +18,7 @@ typedef struct {
     PyObject_HEAD
     Item_HEAD
     PyObject *repository;
+    PyObject *changeNotifications;
 } t_view;
 
 typedef struct {

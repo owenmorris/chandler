@@ -25,6 +25,8 @@ static PyObject *t_view_isLoading(t_view *self, PyObject *args);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
 static PyObject *t_view_isOpen(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
+static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
+                                      PyObject *kwds);
 static PyObject *t_view__getView(t_view *self, void *data);
 static PyObject *t_view__getName(t_view *self, void *data);
 static PyObject *t_view__getParent(t_view *self, void *data);
@@ -40,8 +42,11 @@ static PyObject *logger_NAME;
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
     { "_version", T_UINT, offsetof(t_view, version), 0, "view version" },
-    { "repository", T_OBJECT, offsetof(t_view, repository), 0, "view repository" },
+    { "repository", T_OBJECT, offsetof(t_view, repository),
+      0, "view repository" },
     { "name", T_OBJECT, offsetof(t_view, name), 0, "view name" },
+    { "_changeNotifications", T_OBJECT, offsetof(t_view, changeNotifications),
+      0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -57,6 +62,7 @@ static PyMethodDef t_view_methods[] = {
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
+    { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_KEYWORDS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -123,6 +129,7 @@ static void t_view_dealloc(t_view *self)
 {
     Py_XDECREF(self->name);
     Py_XDECREF(self->repository);
+    Py_XDECREF(self->changeNotifications);
 
     self->ob_type->tp_free((PyObject *) self);
 }
@@ -142,6 +149,7 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     self->status = 0;
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
+    Py_INCREF(Py_None); self->changeNotifications = Py_None;
 
     return 0;
 }
@@ -221,6 +229,31 @@ static PyObject *t_view_isOpen(t_view *self, PyObject *args)
 static PyObject *t_view_getLogger(t_view *self, PyObject *args)
 {
     return PyObject_GetAttr(self->repository, logger_NAME);
+}
+
+static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
+                                      PyObject *kwds)
+{
+    PyObject *callable = PyTuple_GetItem(args, 0); /* borrowed */
+    PyObject *callArgs = PyTuple_GetSlice(args, 1, PyTuple_GET_SIZE(args));
+    int ok;
+
+    if (self->status & RECORDING)
+    {
+        PyObject *tuple = PyTuple_Pack(3, callable, callArgs, kwds);
+
+        ok = PyList_Append(self->changeNotifications, tuple) == 0;
+        Py_DECREF(tuple);
+    }
+    else
+        ok = PyObject_Call(callable, callArgs, kwds) != NULL;
+
+    Py_DECREF(callArgs);
+
+    if (ok)
+        Py_RETURN_NONE;
+    else
+        return NULL;
 }
 
 
