@@ -164,6 +164,11 @@ public:
         return (long)m_ll;
     }
 
+#if wxABI_VERSION >= 20602
+        // convert to double
+    double ToDouble() const { return m_ll; }
+#endif // ABI >= 2.6.2
+
     // don't provide implicit conversion to wxLongLong_t or we will have an
     // ambiguity for all arithmetic operations
     //operator wxLongLong_t() const { return m_ll; }
@@ -589,6 +594,11 @@ public:
 
         return (long)m_lo;
     }
+
+#if wxABI_VERSION >= 20602
+        // convert to double
+    double ToDouble() const;
+#endif // ABI >= 2.6.2
 
     // operations
         // addition
