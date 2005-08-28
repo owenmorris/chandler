@@ -676,7 +676,7 @@ class Item(CItem):
             _attrDict._removeValue(name, value, otherName)
 
         if hasattr(type(self), 'onValueChanged'):
-            self.onValueChanged(name)
+            self.itsView._notifyChange(self.onValueChanged, name)
         Item._monitorsClass.invoke('remove', self, name)
 
     def hasChild(self, name, load=True):
@@ -1299,20 +1299,19 @@ class Item(CItem):
             return False
 
         if dirty:
-
+            view = self.itsView
+            
             if dirty & Item.VRDIRTY:
                 assert attribute is not None
                 assert attrDict is not None
                 attrDict._setDirty(attribute)
                 if not noMonitors:
                     if hasattr(type(self), 'onValueChanged'):
-                        self.onValueChanged(attribute)
+                        view._notifyChange(self.onValueChanged, attribute)
                     Item._monitorsClass.invoke('set', self, attribute)
                 
             _countAccess(self)
             dirty |= Item.FDIRTY
-
-            view = self.itsView
             view._status |= view.FDIRTY
             
             if not self.isDirty():

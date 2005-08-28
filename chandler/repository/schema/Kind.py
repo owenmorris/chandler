@@ -12,7 +12,7 @@ from chandlerdb.item.item import Nil, Default
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
-from repository.item.Monitors import Monitor
+from repository.item.Monitors import Monitors, Monitor
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
 from repository.item.PersistentCollections import PersistentCollection
@@ -155,7 +155,8 @@ class Kind(Item):
         return cls(name, parent, self, **values)
 
     def instantiateItem(self, name, parent, uuid,
-                        cls=None, version=0, withInitialValues=False):
+                        cls=None, version=0, withInitialValues=False,
+                        _noMonitors=False):
         """
         Instantiate an existing item of this kind.
 
@@ -206,6 +207,9 @@ class Kind(Item):
 
         if hasattr(cls, 'onItemLoad'):
             item.onItemLoad(self.itsView)
+
+        if not _noMonitors:
+            Monitors.invoke('schema', item, 'kind', None)
 
         return item
             

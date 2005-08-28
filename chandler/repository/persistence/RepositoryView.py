@@ -52,9 +52,7 @@ class RepositoryView(CView):
             raise RepositoryError, "Repository is not open"
 
         super(RepositoryView, self).__init__(repository, name, version)
-
         self.openView()
-        self._changeNotifications = None
         
     def __repr__(self):
 
@@ -799,13 +797,6 @@ class RepositoryView(CView):
             for callable, args, kwds in self._changeNotifications:
                 callable(*args, **kwds)
             self._changeNotifications = None
-
-    def _notifyChange(self, callable, *args, **kwds):
-
-        if self._isRecording():
-            self._changeNotifications.append((callable, args, kwds))
-        else:
-            callable(*args, **kwds)
 
     def _commitMerge(self):
 
