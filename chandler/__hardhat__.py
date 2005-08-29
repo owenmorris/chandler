@@ -249,14 +249,15 @@ def generateDocs(buildenv):
     targetDir = os.path.join("docs","api")
     hardhatlib.mkdirs(targetDir)
     
-    # XXX Should be cross-platform, this is win only
     if sys.platform == 'cygwin':
         chandlerdb = 'release/bin/Lib/site-packages/chandlerdb'
         queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
+    elif sys.platform == 'darwin':
+        chandlerdb = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/chandlerdb'
+        queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
     else:
-        chandlerdb = ''
-        queryparser = ''
-    
+        chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
+        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'            
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
