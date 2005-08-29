@@ -389,6 +389,22 @@ class CollectionTests(CollectionTestCase):
         fc1.filterAttributes = [ "label" ]
         self.failUnless(fc1.rep is not None)
 
+    def testBug2755(self):
+        """
+        Test to verify that bug 2755
+        <https://bugzilla.osafoundation.org/show_bug.cgi?id=2755>
+        is fixed.
+        """
+        k1 = KindCollection(view=self.view)
+        k1.kind = self.i.itsKind
+
+        for i in k1:
+            self.failUnless(i != None)
+            break;
+
+        for i in k1:
+            self.failUnless(i != None)
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
