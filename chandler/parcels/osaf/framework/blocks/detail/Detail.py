@@ -163,8 +163,10 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
             print
 
     def synchronizeWidget (self):
-        item= self.selectedItem()
+        item = self.selectedItem()
+        logger.debug("DetailRoot.synchronizeWidget: #1 %s", self.selectedItem())
         super(DetailRootBlock, self).synchronizeWidget ()
+        logger.debug("DetailRoot.synchronizeWidget: #2 %s", self.selectedItem())
         self.synchronizeDetailView(item)
         if __debug__:
             dumpSynchronizeWidget = False
@@ -269,16 +271,6 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
             focusBlock.saveTextValue (validate=True)
         except AttributeError:
             pass
-
-    def onCollectionChanged (self, action):
-        """
-        When our item collection has changed, we need to synchronize ourselves.
-        (We suppress this if we're in the midst of stamping; our item's in an 
-        inconsistent state.)
-        """
-        if not getattr(self, "ignoreCollectionChangedWhileStamping", False):
-            # logger.debug("DetailRoot: onCollectionChanged")
-            self.synchronizeWidget()
     
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
     """ 

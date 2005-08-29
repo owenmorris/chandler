@@ -1574,11 +1574,20 @@ class ReminderTimer(Timer):
     def synchronizeWidget (self):
         # logger.debug("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget()
-        if not wx.GetApp().ignoreSynchronizeWidget:            
+        if not wx.GetApp().ignoreSynchronizeWidget:
             pending = self.getPendingReminders()
-            if len(pending) > 0:
-                self.setFiringTime(pending[0].reminderTime)
-    
+            closeIt = False
+            reminderDialog = self.getReminderDialog(False)
+            if reminderDialog is not None:
+                (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+            elif len(pending) > 0:
+                nextReminderTime = pending[0].reminderTime
+            else:
+                nextReminderTime = None
+            if closeIt:
+                self.closeReminderDialog();
+            self.setFiringTime(nextReminderTime)
+
     def getPendingReminders (self):
         # @@@BJS Eventually, the query should be able to do the sorting for us;
         # for now, that doesn't seem to work so we're doing it here.
@@ -1601,21 +1610,6 @@ class ReminderTimer(Timer):
             timesAndReminders.sort(cmp=compareTimesAndReminders)
             timesAndReminders = [ item[1] for item in timesAndReminders ]
         return timesAndReminders
-    
-    def onCollectionChanged(self, event):
-        # logger.debug("*** Got reminders collection changed!")
-        pending = self.getPendingReminders()
-        closeIt = False
-        reminderDialog = self.getReminderDialog(False)
-        if reminderDialog is not None:
-            (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
-        elif len(pending) > 0:
-            nextReminderTime = pending[0].reminderTime
-        else:
-            nextReminderTime = None
-        if closeIt:
-            self.closeReminderDialog();
-        self.setFiringTime(nextReminderTime)
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
