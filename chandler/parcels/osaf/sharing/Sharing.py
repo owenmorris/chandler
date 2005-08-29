@@ -154,7 +154,7 @@ class Share(items.ContentItem):
         """ Examine sharing clouds and filterAttributes to determine which
             attributes to share for a given item """
 
-        attributes = {}
+        attributes = []
         skip = {}
         if hasattr(self, 'filterAttributes'):
             for attrName in self.filterAttributes:
@@ -170,11 +170,12 @@ class Share(items.ContentItem):
                 if endpoint.includePolicy == 'none':
                     skip[attrName] = 1
 
-                attributes[attrName] = endpoint
+                if attrName not in attributes:
+                    attributes.append(attrName)
 
         for attrName in skip.iterkeys():
             try:
-                del attributes[attrName]
+                attributes.remove(attrName)
             except:
                 pass
 
@@ -247,6 +248,7 @@ class Share(items.ContentItem):
                 else:
                     self.format = CloudXMLFormat(parent=self)
                 self.mode = "both"
+
 
 
 class OneTimeShare(Share):
@@ -412,6 +414,14 @@ class ShareConduit(items.ContentItem):
                         if item.isPrivate:
                             continue
 
+                        # Skip generated items:
+                        if getattr(item, 'isGenerated', False):
+                            continue
+
+                        # Skip modification items:
+                        if getattr(item, 'modificationFor', None) is not None:
+                            continue
+
                         # Skip any items matching the filtered kinds
                         if filterKinds is not None:
                             match = False
@@ -571,10 +581,8 @@ class ShareConduit(items.ContentItem):
                     inclusions = ListCollection(parent=contents)
                     exclusions = ListCollection(parent=contents)
                     dc = DifferenceCollection(parent=contents)
-                    dc.left = source
-                    dc.right = exclusions
-                    contents.left = dc
-                    contents.right = inclusions
+                    dc.sources = [source, exclusions]
+                    contents.sources = [dc, inclusions]
 
             filterKinds = None
             if len(sharingSelf.share.filterKinds) > 0:
@@ -852,6 +860,8 @@ class FileSystemConduit(ShareConduit):
         os.remove(path)
 
     def _getItem(self, itemPath, into=None):
+        view = self.itsView
+
         # logger.info("Getting item: %s" % itemPath)
         path = self.__getItemFullPath(itemPath)
 
@@ -859,8 +869,8 @@ class FileSystemConduit(ShareConduit):
         text = file(path).read()
 
         try:
-            item = self.share.format.importProcess(text, extension=extension,
-             item=into)
+            item = self.share.format.importProcess(text,
+                extension=extension, item=into)
         except Exception, e:
             raise TransformationFailed(message=str(e))
 
@@ -1191,6 +1201,7 @@ class WebDAVConduit(ShareConduit):
                 raise CouldNotConnect(message=message)
 
     def _getItem(self, itemPath, into=None):
+        view = self.itsView
         resource = self.__resourceFromPath(itemPath)
 
         try:
@@ -1520,7 +1531,10 @@ class CloudXMLFormat(ImportExportFormat):
 
         return item
 
-    def exportProcess(self, item, depth=0):
+    def exportProcess(self, item, depth=0, items=None):
+
+        if items is None:
+            items = {}
 
         if depth == 0:
             result = '<?xml version="1.0" encoding="UTF-8"?>\n\n'
@@ -1531,6 +1545,15 @@ class CloudXMLFormat(ImportExportFormat):
         attributes = self.share.getSharedAttributes(item)
 
         indent = "   "
+
+        if items.has_key(item.itsUUID):
+            result += indent * depth
+            result += "<%s uuid='%s' />\n" % (item.itsKind.itsName,
+                item.itsUUID)
+            return result
+
+        items[item.itsUUID] = 1
+
         result += indent * depth
 
         if item.itsKind.isMixin():
@@ -1547,33 +1570,32 @@ class CloudXMLFormat(ImportExportFormat):
 
         depth += 1
 
-        for (attrName, endpoint) in attributes.iteritems():
+        for attrName in attributes:
 
             if not hasattr(item, attrName):
                 continue
 
-            result += indent * depth
+            attrValue = item.getAttributeValue(attrName)
+            if attrValue is None:
+                continue
+
 
             otherName = item.itsKind.getOtherName(attrName, None, item, None)
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
             attrType = item.getAttributeAspect(attrName, 'type')
 
+            result += indent * depth
 
             if otherName: # it's a bidiref
                 result += "<%s>\n" % attrName
 
                 if cardinality == 'single':
-                    value = item.getAttributeValue(attrName)
-
-                    # @@@MOR avoid endless recursion in the case where an item
-                    # has a reference to itself
-                    if value is not item and value is not None:
-                        result += self.exportProcess(value, depth+1)
+                    if attrValue is not None:
+                        result += self.exportProcess(attrValue, depth+1, items)
 
                 elif cardinality == 'list':
-                    for value in item.getAttributeValue(attrName):
-                        if value is not item:
-                            result += self.exportProcess(value, depth+1)
+                    for value in attrValue:
+                        result += self.exportProcess(value, depth+1, items)
 
                 elif cardinality == 'dict':
                     # @@@MOR
@@ -1586,25 +1608,25 @@ class CloudXMLFormat(ImportExportFormat):
                 result += "<%s" % attrName
 
                 if cardinality == 'single':
-                    value = item.getAttributeValue(attrName)
-                    if isinstance(value, Lob):
-                        mimeType = value.mimetype
-                        data = value.getInputStream().read()
-                        value = base64.b64encode(data)
+                    if isinstance(attrValue, Lob):
+                        mimeType = attrValue.mimetype
+                        data = attrValue.getInputStream().read()
+                        attrValue = base64.b64encode(data)
                         result += " mimetype='%s'" % mimeType
 
                     result += ">"
-                    if isinstance(value, Item):
+                    if isinstance(attrValue, Item):
                         result += "\n"
-                        result += self.exportProcess(value, depth+1)
+                        result += self.exportProcess(attrValue, depth+1, items)
                     else:
-                        result += "<![CDATA[" + attrType.makeString(value) + "]]>"
+                        result += "<![CDATA[" + attrType.makeString(attrValue) + "]]>"
 
                 elif cardinality == 'list':
                     result += ">"
                     depth += 1
                     result += "\n"
-                    for value in item.getAttributeValue(attrName):
+
+                    for value in attrValue:
                         result += indent * depth
                         result += "<value>%s</value>\n" % attrType.makeString(value)
                     depth -= 1
@@ -1657,28 +1679,9 @@ class CloudXMLFormat(ImportExportFormat):
 
     def __importNode(self, node, item=None):
 
+        view = self.itsView
         kind = None
         kinds = []
-
-        kindNode = node.hasProp('kind')
-        if kindNode:
-            kindPathList = kindNode.content.split(",")
-            for kindPath in kindPathList:
-                kind = self.itsView.findPath(kindPath)
-                if kind is not None:
-                    kinds.append(kind)
-        else:
-            logger.info("No kinds provided")
-            return None
-
-        if len(kinds) == 0:
-            # we don't have any of the kinds provided
-            logger.info("No kinds found locally for %s" % kindPathList)
-            return None
-        elif len(kinds) == 1:
-            kind = kinds[0]
-        else: # time to mixin
-            kind = kinds[0].mixin(kinds[1:])
 
         if item is None:
 
@@ -1688,9 +1691,31 @@ class CloudXMLFormat(ImportExportFormat):
                     uuid = UUID(uuidNode.content)
                     item = self.itsView.findUUID(uuid)
                 except Exception, e:
-                    print e
+                    logger.exception("Problem processing uuid %s" % uuid)
+                    return item
             else:
                 uuid = None
+
+        kindNode = node.hasProp('kind')
+        if kindNode:
+            kindPathList = kindNode.content.split(",")
+            for kindPath in kindPathList:
+                kind = self.itsView.findPath(kindPath)
+                if kind is not None:
+                    kinds.append(kind)
+        else:
+            # No kind means we're simply looking up an item by uuid and
+            # returning it
+            return item
+
+        if len(kinds) == 0:
+            # we don't have any of the kinds provided
+            logger.info("No kinds found locally for %s" % kindPathList)
+            return None
+        elif len(kinds) == 1:
+            kind = kinds[0]
+        else: # time to mixin
+            kind = kinds[0].mixin(kinds[1:])
 
         if item is None:
             # item search turned up empty, so create an item...
@@ -1707,8 +1732,9 @@ class CloudXMLFormat(ImportExportFormat):
             item.itsKind = kind
 
         # we have an item, now set attributes
+
         attributes = self.share.getSharedAttributes(item)
-        for (attrName, endpoint) in attributes.iteritems():
+        for attrName in attributes:
 
             attrNode = self.__getNode(node, attrName)
             if attrNode is None:
@@ -1720,9 +1746,12 @@ class CloudXMLFormat(ImportExportFormat):
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
             type = item.getAttributeAspect(attrName, 'type')
 
-            # @@@MOR What's the right way to tell if this is a single ref -- checking type for non-type items is a kludge:
+            # This code depends on attributes having their type set, which
+            # might not always be the case.  What should be done is to encode
+            # the value type into the shared xml itself:
 
-            if otherName or (isinstance(type, Item) and not isinstance(type, Type)): # it's a ref
+            if otherName or (isinstance(type, Item) and \
+                not isinstance(type, Type)): # it's a ref
 
                 if cardinality == 'single':
                     valueNode = attrNode.children
@@ -1782,11 +1811,45 @@ class CloudXMLFormat(ImportExportFormat):
                 elif cardinality == 'dict':
                     pass
 
+
         return item
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Sharing helper methods
+
+def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
+
+    """ Publish a collection, automatically determining which conduits/formats
+        to use, and how many """
+
+    view = collection.itsView
+
+    share = Share(view=view)
+    conduit = WebDAVConduit(parent=share, account=account)
+    share.conduit = conduit
+
+    # Interrogate the server associated with the account
+    base_location = account.getLocation()
+    if not location.endswith("/"):
+        location += "/"
+    handle = self.conduit._getServerHandle()
+    resource = handle.getResource(location)
+
+    exists = handle.blockUntil(resource.exists)
+    if not exists:
+        raise NotFound(message="%s does not exist" % location)
+
+    isCalendar = handle.blockUntil(resource.isCalendar)
+    isCollection =  handle.blockUntil(resource.isCollection)
+
+    # Determine how many share objects to create:
+    # - monolithic iCalendar?
+    # - Chandler sharing.xml?  In a subdirectory?
+    # - CalDAV?
+
+    # Determine unique share name(s)
+
 
 def newOutboundShare(view, collection, kinds=None, shareName=None,
                      account=None):

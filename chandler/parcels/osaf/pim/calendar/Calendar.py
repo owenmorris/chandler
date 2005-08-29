@@ -273,9 +273,10 @@ class CalendarEventMixin(ContentItem):
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
-            startTime, endTime, allDay, location, anyTime,
-            reminderTime, transparency,
-            byCloud = [organizer,participants]
+            startTime, endTime, allDay, location, anyTime, modifies,
+            reminderTime, transparency, isGenerated, recurrenceID, icalUID,
+            byCloud = [organizer, participants, modifications, rruleset,
+                occurrenceFor]
         )
     )
 
