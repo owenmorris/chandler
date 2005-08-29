@@ -41,6 +41,10 @@ def MoveItemToTrash(item, trash=None):
         
     trash.add(item)
 
+    # XXX: For now, skip the itemCollectionInclusions stuff until we can do
+    # it with the new collections
+    return
+
     # now remove it from all other collections
     for collection in item.itemCollectionInclusions:
         if collection is not trash:
@@ -68,11 +72,14 @@ def RemoveItemFromCollection(item, collection):
     # the one problem right now is that often the "other" collection is
     # some sort of internal collection - we really want to know,
     # is this the only /sidebar/ collection that it appears in?
-    for otherCollection in item.itemCollectionInclusions:
-        if (otherCollection != collection and 
-            not getattr(otherCollection, 'renameable', True)):
-            isInOtherCollections = True
-            break
+
+    # XXX: itemCollectionInclusions is dead - need a way to mimic this logic
+    if False:
+        for otherCollection in item.itemCollectionInclusions:
+            if (otherCollection != collection and 
+                not getattr(otherCollection, 'renameable', True)):
+                isInOtherCollections = True
+                break
 
     if isInOtherCollections:
         collection.remove(item)
