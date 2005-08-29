@@ -826,18 +826,20 @@ long					deltaV, newExtent1, newExtent2;
 	return true;
 }
 
-void wxColumnHeader::OnMouseEvent( wxMouseEvent &event )
+void wxColumnHeader::OnMouseEvent( wxMouseEvent &WXUNUSED(event) )
 {
 #if 1
 	// under construction
+	// NB: remove WXUNUSED() macro when routine is inplemented
 #else
 #endif
 }
 
-void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &event )
+void wxColumnHeader::ProcessLabelMouseEvent( wxMouseEvent &WXUNUSED(event) )
 {
 #if 1
 	// under construction
+	// NB: remove WXUNUSED() macro when routine is inplemented
 #else
 	int x, y, col;
 	wxPoint pos( event.GetPosition() );
