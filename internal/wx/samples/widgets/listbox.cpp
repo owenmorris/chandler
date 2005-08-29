@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxListbox
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: listbox.cpp,v 1.17 2005/04/13 15:03:50 VZ Exp $
+// Id:          $Id: listbox.cpp,v 1.18 2005/08/28 08:54:54 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ enum
 class ListboxWidgetsPage : public WidgetsPage
 {
 public:
-    ListboxWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    ListboxWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
 
     virtual wxControl *GetWidget() const { return m_lbox; }
 
@@ -194,7 +194,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(ListboxWidgetsPage, _T("Listbox"));
 
-ListboxWidgetsPage::ListboxWidgetsPage(wxBookCtrl *book,
+ListboxWidgetsPage::ListboxWidgetsPage(wxBookCtrlBase *book,
                                        wxImageList *imaglist)
                   : WidgetsPage(book)
 {

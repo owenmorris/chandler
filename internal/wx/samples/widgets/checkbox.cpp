@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxCheckBox
 // Author:      Dimitri Schoolwerth, Vadim Zeitlin
 // Created:     27 Sep 2003
-// Id:          $Id: checkbox.cpp,v 1.9 2004/11/23 11:44:41 ABX Exp $
+// Id:          $Id: checkbox.cpp,v 1.10 2005/08/28 08:54:54 MBN Exp $
 // Copyright:   (c) 2003 wxWindows team
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ enum
 class CheckBoxWidgetsPage : public WidgetsPage
 {
 public:
-    CheckBoxWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    CheckBoxWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~CheckBoxWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_checkbox; }
@@ -149,7 +149,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(CheckBoxWidgetsPage, wxT("CheckBox"));
 
-CheckBoxWidgetsPage::CheckBoxWidgetsPage(wxBookCtrl *book,
+CheckBoxWidgetsPage::CheckBoxWidgetsPage(wxBookCtrlBase *book,
                                          wxImageList *imaglist)
                   : WidgetsPage(book)
 {

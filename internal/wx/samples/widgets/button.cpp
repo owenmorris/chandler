@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxButton
 // Author:      Vadim Zeitlin
 // Created:     10.04.01
-// Id:          $Id: button.cpp,v 1.16 2004/11/23 11:44:40 ABX Exp $
+// Id:          $Id: button.cpp,v 1.17 2005/08/28 08:54:53 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ enum
 class ButtonWidgetsPage : public WidgetsPage
 {
 public:
-    ButtonWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    ButtonWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~ButtonWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_button; }
@@ -139,7 +139,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(ButtonWidgetsPage, _T("Button"));
 
-ButtonWidgetsPage::ButtonWidgetsPage(wxBookCtrl *book,
+ButtonWidgetsPage::ButtonWidgetsPage(wxBookCtrlBase *book,
                                      wxImageList *imaglist)
                   : WidgetsPage(book)
 {

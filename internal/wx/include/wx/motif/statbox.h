@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: statbox.h,v 1.18 2005/02/06 17:38:21 MBN Exp $
+// RCS-ID:      $Id: statbox.h,v 1.19 2005/08/28 08:07:32 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +50,7 @@ public:
     virtual WXWidget GetLabelWidget() const { return m_labelWidget; }
 
     virtual void SetLabel(const wxString& label);
+    virtual void GetBordersForSizer(int *borderTop, int *borderOther) const;
 
 private:
     WXWidget  m_labelWidget;

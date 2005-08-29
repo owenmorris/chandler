@@ -3,7 +3,7 @@
 // Purpose:     Controls wxWidgets sample
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: controls.cpp,v 1.230 2005/06/02 12:03:53 JS Exp $
+// RCS-ID:      $Id: controls.cpp,v 1.233 2005/08/17 13:13:42 VZ Exp $
 // Copyright:   (c) Robert Roebling, Julian Smart
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////

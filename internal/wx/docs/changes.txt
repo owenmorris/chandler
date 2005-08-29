@@ -16,6 +16,8 @@ All:
 - Fixed compilation with IBM xlC compiler.
 - wxABI_VERSION, see 'Backward Compatibility' topic overview in the manual.
 - Added wxLongLong::ToDouble()
+- Added wxDateTime::[Make]FromTimezone(), fixed several TZ-related bugs
+- Fixed bug in wxStreamBuffer::Read(wxStreamBuffer *) (Paul Cornett)
 
 All (GUI):
 
@@ -43,6 +45,7 @@ wxMSW:
 - Fixed asynchronous playback of large sound files in wxSound.
 - Added wxDynamicLibrary::GetSymbolAorW().
 - Fixed default size of wxStaticText controls with border being too small.
+- Fixed bugs with wxStatusBar positioning (with or withour sizers) (Jamie Gadd)
 
 wxGTK:
 
@@ -73,6 +76,12 @@ wxMotif:
 
 - Base library is now binary compatible when built with wxGTK and wxMotif.
 - wxMotif can now display Japanese text under Japanese locale.
+- Fixed button size in common dialogs.
+- Made wxFileDialog translatable.
+- All top level windows should now have a border unless the wxNO_BORDER
+  flag has been specified.
+- Improved wxNotebook support for sizers. It requires the wxNotebook to
+  be created with a "sensible" initial width.
 
 wxMGL:
 - Fixed crash on exit.

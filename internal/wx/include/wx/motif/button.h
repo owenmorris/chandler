@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: button.h,v 1.18 2004/08/30 14:38:56 VS Exp $
+// RCS-ID:      $Id: button.h,v 1.19 2005/08/28 07:51:57 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,9 @@ public:
     // Implementation
 private:
     virtual wxSize DoGetBestSize() const;
+    virtual wxSize GetMinSize() const;
     wxSize OldGetBestSize() const;
+    wxSize OldGetMinSize() const;
     void SetDefaultShadowThicknessAndResize();
 };
 

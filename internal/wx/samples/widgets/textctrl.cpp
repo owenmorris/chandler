@@ -4,7 +4,7 @@
 // Purpose:     part of the widgets sample showing wxTextCtrl
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: textctrl.cpp,v 1.23 2005/04/16 20:47:24 MW Exp $
+// Id:          $Id: textctrl.cpp,v 1.24 2005/08/28 08:54:55 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -132,7 +132,7 @@ class TextWidgetsPage : public WidgetsPage
 {
 public:
     // ctor(s) and dtor
-    TextWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    TextWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~TextWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_text; }
@@ -334,7 +334,7 @@ IMPLEMENT_WIDGETS_PAGE(TextWidgetsPage, _T("Text"));
 // TextWidgetsPage creation
 // ----------------------------------------------------------------------------
 
-TextWidgetsPage::TextWidgetsPage(wxBookCtrl *book, wxImageList *imaglist)
+TextWidgetsPage::TextWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist)
                : WidgetsPage(book)
 {
     imaglist->Add(wxBitmap(text_xpm));

@@ -3,7 +3,7 @@
 // Purpose:     wxDateTime unit test
 // Author:      Vadim Zeitlin
 // Created:     2004-06-23 (extracted from samples/console/console.cpp)
-// RCS-ID:      $Id: datetimetest.cpp,v 1.6 2005/02/28 00:23:05 VZ Exp $
+// RCS-ID:      $Id: datetimetest.cpp,v 1.7 2005/08/28 13:06:36 VZ Exp $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -257,7 +257,9 @@ void DateTimeTestCase::TestTimeJDN()
     {
         const Date& d = testDates[n];
         wxDateTime dt(d.day, d.month, d.year, d.hour, d.min, d.sec);
-        double jdn = dt.GetJulianDayNumber();
+
+        // JDNs must be computed for UTC times
+        double jdn = dt.FromUTC().GetJulianDayNumber();
 
         CPPUNIT_ASSERT( jdn == d.jdn );
 
@@ -662,7 +664,7 @@ void DateTimeTestCase::TestTimeTicks()
         long ticks = (dt.GetValue() / 1000).ToLong();
         CPPUNIT_ASSERT( ticks == d.ticks );
 
-        dt = d.DT().ToTimezone(wxDateTime::GMT0);
+        dt = d.DT().FromTimezone(wxDateTime::GMT0);
         ticks = (dt.GetValue() / 1000).ToLong();
         CPPUNIT_ASSERT( ticks == d.gmticks );
     }
@@ -674,12 +676,25 @@ void DateTimeTestCase::TestTimeParse()
     static const struct ParseTestData
     {
         const wxChar *format;
-        Date date;
+        Date date;              // NB: this should be in UTC
         bool good;
     } parseTestDates[] =
     {
-        { _T("Sat, 18 Dec 1999 00:46:40 +0100"), { 18, wxDateTime::Dec, 1999, 00, 46, 40, 0.0, wxDateTime::Inv_WeekDay, 0, 0 }, true },
-        { _T("Wed, 1 Dec 1999 05:17:20 +0300"),  {  1, wxDateTime::Dec, 1999, 03, 17, 20, 0.0, wxDateTime::Inv_WeekDay, 0, 0 }, true },
+        {
+            _T("Sat, 18 Dec 1999 00:46:40 +0100"),
+            { 17, wxDateTime::Dec, 1999, 23, 46, 40, 0.0, wxDateTime::Inv_WeekDay, 0, 0 },
+            true
+        },
+        {
+            _T("Wed, 1 Dec 1999 05:17:20 +0300"),
+            {  1, wxDateTime::Dec, 1999, 2, 17, 20, 0.0, wxDateTime::Inv_WeekDay, 0, 0 },
+            true
+        },
+        {
+            _T("Sun, 28 Aug 2005 03:31:30 +0200"),
+            {  28, wxDateTime::Aug, 2005, 1, 31, 30, 0.0, wxDateTime::Inv_WeekDay, 0, 0 },
+            true
+        },
     };
 
     for ( size_t n = 0; n < WXSIZEOF(parseTestDates); n++ )
@@ -691,10 +706,7 @@ void DateTimeTestCase::TestTimeParse()
         {
             CPPUNIT_ASSERT( parseTestDates[n].good );
 
-            wxDateTime dtReal = parseTestDates[n].date.DT();
-            //RN:  We need this because the tests are based on 
-            //a non-GMT time zone
-            dtReal.MakeTimezone(wxDateTime::WEST, true);
+            wxDateTime dtReal = parseTestDates[n].date.DT().FromUTC();
             CPPUNIT_ASSERT( dt == dtReal );
         }
         else // failed to parse

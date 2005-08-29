@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxRadioBox
 // Author:      Vadim Zeitlin
 // Created:     15.04.01
-// Id:          $Id: radiobox.cpp,v 1.16 2005/02/23 15:50:48 ABX Exp $
+// Id:          $Id: radiobox.cpp,v 1.17 2005/08/28 08:54:54 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ static const unsigned int DEFAULT_MAJOR_DIM = 3;
 class RadioWidgetsPage : public WidgetsPage
 {
 public:
-    RadioWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    RadioWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~RadioWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_radio; }
@@ -160,7 +160,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(RadioWidgetsPage, _T("Radio"));
 
-RadioWidgetsPage::RadioWidgetsPage(wxBookCtrl *book,
+RadioWidgetsPage::RadioWidgetsPage(wxBookCtrlBase *book,
                                    wxImageList *imaglist)
                   : WidgetsPage(book)
 {

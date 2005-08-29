@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxSlider
 // Author:      Vadim Zeitlin
 // Created:     16.04.01
-// Id:          $Id: slider.cpp,v 1.26 2005/05/31 15:21:52 VZ Exp $
+// Id:          $Id: slider.cpp,v 1.27 2005/08/28 08:54:55 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ enum
 class SliderWidgetsPage : public WidgetsPage
 {
 public:
-    SliderWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    SliderWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~SliderWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_slider; }
@@ -199,7 +199,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(SliderWidgetsPage, _T("Slider"));
 
-SliderWidgetsPage::SliderWidgetsPage(wxBookCtrl *book,
+SliderWidgetsPage::SliderWidgetsPage(wxBookCtrlBase *book,
                                      wxImageList *imaglist)
                   : WidgetsPage(book)
 {

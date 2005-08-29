@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxComboBox
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: combobox.cpp,v 1.18 2004/12/08 22:08:28 RR Exp $
+// Id:          $Id: combobox.cpp,v 1.20 2005/08/28 08:54:54 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ enum
 class ComboboxWidgetsPage : public WidgetsPage
 {
 public:
-    ComboboxWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    ComboboxWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
 
     virtual wxControl *GetWidget() const { return m_combobox; }
 
@@ -190,7 +190,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(ComboboxWidgetsPage, _T("Combobox"));
 
-ComboboxWidgetsPage::ComboboxWidgetsPage(wxBookCtrl *book,
+ComboboxWidgetsPage::ComboboxWidgetsPage(wxBookCtrlBase *book,
                                          wxImageList *imaglist)
                   : WidgetsPage(book)
 {

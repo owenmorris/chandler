@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing various static controls
 // Author:      Vadim Zeitlin
 // Created:     11.04.01
-// Id:          $Id: static.cpp,v 1.15 2004/11/23 11:44:42 ABX Exp $
+// Id:          $Id: static.cpp,v 1.16 2005/08/28 08:54:55 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ END_EVENT_TABLE()
 class StaticWidgetsPage : public WidgetsPage
 {
 public:
-    StaticWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    StaticWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~StaticWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_statText; }
@@ -205,7 +205,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(StaticWidgetsPage, _T("Static"));
 
-StaticWidgetsPage::StaticWidgetsPage(wxBookCtrl *book,
+StaticWidgetsPage::StaticWidgetsPage(wxBookCtrlBase *book,
                                      wxImageList *imaglist)
                   : WidgetsPage(book)
 {

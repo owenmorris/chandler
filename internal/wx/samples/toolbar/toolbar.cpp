@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp,v 1.45 2005/03/27 18:03:57 VZ Exp $
+// RCS-ID:      $Id: toolbar.cpp,v 1.48 2005/08/23 15:54:39 ABX Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

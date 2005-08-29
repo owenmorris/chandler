@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dnd.cpp,v 1.98 2005/05/31 09:19:22 JS Exp $
+// RCS-ID:      $Id: dnd.cpp,v 1.100 2005/08/23 23:10:59 MW Exp $
 // Copyright:
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

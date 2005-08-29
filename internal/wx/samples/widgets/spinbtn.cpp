@@ -4,7 +4,7 @@
 // Purpose:     Part of the widgets sample showing wxSpinButton
 // Author:      Vadim Zeitlin
 // Created:     16.04.01
-// Id:          $Id: spinbtn.cpp,v 1.18 2005/02/28 01:15:46 VZ Exp $
+// Id:          $Id: spinbtn.cpp,v 1.19 2005/08/28 08:54:55 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ enum
 class SpinBtnWidgetsPage : public WidgetsPage
 {
 public:
-    SpinBtnWidgetsPage(wxBookCtrl *book, wxImageList *imaglist);
+    SpinBtnWidgetsPage(wxBookCtrlBase *book, wxImageList *imaglist);
     virtual ~SpinBtnWidgetsPage(){};
 
     virtual wxControl *GetWidget() const { return m_spinbtn; }
@@ -167,7 +167,7 @@ END_EVENT_TABLE()
 
 IMPLEMENT_WIDGETS_PAGE(SpinBtnWidgetsPage, _T("Spin"));
 
-SpinBtnWidgetsPage::SpinBtnWidgetsPage(wxBookCtrl *book,
+SpinBtnWidgetsPage::SpinBtnWidgetsPage(wxBookCtrlBase *book,
                                        wxImageList *imaglist)
                   : WidgetsPage(book)
 {

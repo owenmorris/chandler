@@ -4,7 +4,7 @@
 // Purpose:     Sample showing most of the simple wxWidgets widgets
 // Author:      Vadim Zeitlin
 // Created:     27.03.01
-// Id:          $Id: widgets.cpp,v 1.34 2005/06/14 17:46:54 ABX Exp $
+// Id:          $Id: widgets.cpp,v 1.36 2005/08/28 08:54:55 MBN Exp $
 // Copyright:   (c) 2001 Vadim Zeitlin
 // License:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
@@ -125,7 +125,7 @@ private:
 #endif // USE_LOG
 
     // the book containing the test pages
-    wxBookCtrl *m_book;
+    wxBookCtrlBase *m_book;
 
     // and the image list for it
     wxImageList *m_imaglist;
@@ -290,7 +290,7 @@ WidgetsFrame::WidgetsFrame(const wxString& title)
     m_lboxLog = (wxListBox *)NULL;
     m_logTarget = (wxLog *)NULL;
 #endif // USE_LOG
-    m_book = (wxBookCtrl *)NULL;
+    m_book = (wxBookCtrlBase *)NULL;
     m_imaglist = (wxImageList *)NULL;
 
 #if wxUSE_MENUS
@@ -327,7 +327,12 @@ WidgetsFrame::WidgetsFrame(const wxString& title)
     //style |= wxNB_NOPAGETHEME;
 
     m_book = new wxBookCtrl(m_panel, wxID_ANY, wxDefaultPosition,
-        wxDefaultSize, style);
+#ifdef __WXMOTIF__
+        wxSize(500, -1), // under Motif, height is a function of the width...
+#else
+        wxDefaultSize,
+#endif
+        style);
     InitBook();
 
 #ifndef __SMARTPHONE__
@@ -639,7 +644,7 @@ WidgetsPageInfo::WidgetsPageInfo(Constructor ctor, const wxChar *label)
 // WidgetsPage
 // ----------------------------------------------------------------------------
 
-WidgetsPage::WidgetsPage(wxBookCtrl *book)
+WidgetsPage::WidgetsPage(wxBookCtrlBase *book)
            : wxPanel(book, wxID_ANY,
                      wxDefaultPosition, wxDefaultSize,
                      wxNO_FULL_REPAINT_ON_RESIZE |
