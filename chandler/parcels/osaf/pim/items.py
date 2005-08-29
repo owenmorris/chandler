@@ -20,6 +20,9 @@ import repository.item.Query as Query
 import logging
 from i18n import OSAFMessageFactory as _
 
+logger = logging.getLogger(__name__)
+
+
 class ContentKind(Kind):
     """This kind is a metakind for creating other kinds.  Kinds which are
     an instance of ContentKind will have an attribute 'detailView' of type
@@ -289,8 +292,8 @@ class ContentItem(schema.Item):
         if operation == 'add':
             for stampSuperKind in stampSignature:
                 if stampSuperKind in soughtSignature:
-                    logging.warning("Trying to stamp with a Kind Signature already present.")
-                    logging.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
+                    logger.warning("Trying to stamp with a Kind Signature already present.")
+                    logger.warning("%s has signature %s which overlaps with %s whose signature is %s)" % \
                                     (stampKind.itsName, stampSignature, \
                                      myKind.itsName, soughtSignature))
                     return None # in case this method is overloaded
@@ -299,8 +302,8 @@ class ContentItem(schema.Item):
         else:
             assert operation == 'remove', "invalid Stamp operation in ContentItem.NewStampedKind: "+operation
             if not stampSignature.properSubsetOf(soughtSignature):
-                logging.warning("Trying to unstamp with a Kind Signature not already present.")
-                logging.warning("%s has signature %s which is not present in %s: %s" % \
+                logger.warning("Trying to unstamp with a Kind Signature not already present.")
+                logger.warning("%s has signature %s which is not present in %s: %s" % \
                                     (stampKind.itsName, stampSignature, \
                                      myKind.itsName, soughtSignature))
                 return None # in case this method is overloaded
@@ -356,10 +359,10 @@ class ContentItem(schema.Item):
                 return closeMatches[0]
 
         # Couldn't find a single exact match or a single close match.
-        logging.warning ("Couldn't find suitable candidates for stamping %s with %s." \
+        logger.warning ("Couldn't find suitable candidates for stamping %s with %s." \
                         % (self.itsKind.itsName, stampKind.itsName))
-        logging.warning ("Exact matches: %s" % exactMatches)
-        logging.warning ("Close matches: %s" % closeMatches)
+        logger.warning ("Exact matches: %s" % exactMatches)
+        logger.warning ("Close matches: %s" % closeMatches)
         # ReKind with the Mixin Kind on-the-fly
         return None
 
