@@ -787,7 +787,7 @@ bool wxToolBar::Realize()
         }
     }
 
-    wxASSERT_MSG( err == noErr, _T("HIToolbarRemoveItemAtIndex failed") );
+    // wxASSERT_MSG( err == noErr, _T("HIToolbarRemoveItemAtIndex failed") );
 #endif // wxMAC_USE_NATIVE_TOOLBAR
 
     int x = m_xMargin + kwxMacToolBarLeftMargin;
