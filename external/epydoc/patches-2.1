@@ -9,3 +9,83 @@
              cls = puid.cls()
              str += ('    <i>(Inherited from %s)</i>\n' %
                      self._uid_to_href(cls, cls.shortname()))
+--- epydoc-2.1/epydoc/cli.py	2004-02-09 12:56:07.000000000 -0800
++++ epydoc-2.1-patched/epydoc/cli.py	2005-08-29 16:48:36.492350400 -0700
+@@ -30,6 +30,7 @@
+      -c SHEET, --css SHEET     CSS stylesheet for HTML files.
+      --private-css SHEET       CSS stylesheet for private objects.
+      --inheritance STYLE       The format for showing inherited objects.
++     --exclude PATTERN         Exclude modules that match PATTERN
+      -V, --version             Print the version of epydoc.
+      -h, -?, --help, --usage   Display this usage message.
+      -h TOPIC, --help TOPIC    Display information about TOPIC (docformat,
+@@ -94,7 +95,8 @@
+     options = _parse_args()
+ 
+     # Import all the specified modules.
+-    modules = _import(options['modules'], options['verbosity'])
++    modules = _import(options['modules'], options['verbosity'],
++                      options['exclude'])
+ 
+     # Record the order of the modules in options.
+     from epydoc.uid import make_uid
+@@ -271,10 +273,11 @@
+                'show_imports':0, 'frames':1, 'private':None,
+                'list_classes_separately': 0, 'debug':0,
+                'docformat':None, 'top':None, 'inheritance': None,
+-               'ignore_param_mismatch': 0, 'alphabetical': 1}
++               'ignore_param_mismatch': 0, 'alphabetical': 1,
++               'exclude': None}
+ 
+     # Get the command-line arguments, using getopts.
+-    shortopts = 'c:h:n:o:t:u:Vvq?:'
++    shortopts = 'c:e:h:n:o:t:u:Vvq?:'
+     longopts = ('html latex dvi ps pdf check '+
+                 'output= name= url= top= css= private-css= private_css= '+
+                 'docformat= doc-format= doc_format= private '+
+@@ -288,7 +291,7 @@
+                 'command-line-order command_line_order '+
+                 'inheritance= inheritence= '+
+                 'ignore_param_mismatch ignore-param-mismatch '+
+-                'test= tests= checks=').split()
++                'test= tests= checks= exclude=').split()
+     try:
+         (opts, modules) = getopt.getopt(sys.argv[1:], shortopts, longopts)
+     except getopt.GetoptError, e:
+@@ -313,6 +316,7 @@
+         elif opt in ('--docformat', '--doc-format', '--doc_format'):
+             from epydoc.objdoc import set_default_docformat
+             set_default_docformat(val)
++        elif opt in ('--exclude',): options['exclude'] = val
+         elif opt in ('--help', '-?', '--usage', '-h'): _help(val)
+         elif opt in ('--helpfile', '--help-file', '--help_file'):
+             options['help'] = val
+@@ -406,7 +410,7 @@
+ 
+     return options
+ 
+-def _import(module_names, verbosity):
++def _import(module_names, verbosity, exclude=None):
+     """
+     @return: A list of the modules contained in the given files.
+         Duplicates are removed.  Order is preserved.
+@@ -434,8 +438,18 @@
+         print >>sys.stderr, 'Importing %s modules.' % len(module_names)
+     modules = []
+     progress = _Progress('Importing', verbosity, len(module_names))
+-    
++
++    if exclude is not None:
++        exc = re.compile(exclude)
++    else:
++        exc = None
++        
+     for name in module_names:
++        if exc is not None:
++            if exc.match(name):
++                #print >>sys.stderr, 'HEIKKI: skipping %s' %name
++                continue
++
+         progress.report(name)
+         # Import the module, and add it to the list.
+         try:
