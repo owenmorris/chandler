@@ -104,7 +104,7 @@
 
   <contentModel:FilteredCollection itsName="generatedEvents">
     <source itemref="doc:events"/>
-    <filterExpression>getattr(item, 'isGenerated', True)</filterExpression>
+    <filterExpression>getattr(item, 'isGenerated', False)</filterExpression>
     <filterAttributes>isGenerated</filterAttributes>
   </contentModel:FilteredCollection>
 
