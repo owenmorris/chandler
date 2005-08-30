@@ -7,6 +7,7 @@ import re
 from osaf.pim.items import ContentItem
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
+from repository.item.PersistentCollections import PersistentSet
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
@@ -845,7 +846,7 @@ def RenderItem(repoView, item):
             result += "</td></tr>\n"
             count += 1
 
-        elif isinstance(value, AbstractSet):
+        elif isinstance(value, AbstractSet) or isinstance(value,PersistentSet):
 
             result += oddEvenRow(count)
             result += "<td valign=top>"
