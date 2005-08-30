@@ -1364,16 +1364,6 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         w.SetMinSize((8*45, -1))
 
         return w
-    def render(self):
-        super(CalendarContainer, self).render()
-        #findBlockByName doesn't work yet.
-        #wxAllDay = list(list(self.childrenBlocks)[1].childrenBlocks)[0].widget
-        #canvasSplitter = list(self.childrenBlocks)[1].widget
-        #print canvasSplitter.GetSashPosition()
-        #canvasSplitter.MoveSash(wxAllDay.collapsedHeight)
-        
-        #print 'bla'
-
 
 
 class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
@@ -1386,10 +1376,6 @@ class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
                         lambda event: self.parentBlock.calendarControl.widget.OnSashPositionChange(event))
     
         return wxSplitter
-    def render(self):
-        #print 'start render of cvs splitter, splitperc =', self.splitPercentage
-        super(CanvasSplitterWindow, self).render()
-        #print 'end   render of cvs splitter, splitperc =', self.splitPercentage
 
 class AllDayEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
