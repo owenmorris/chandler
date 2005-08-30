@@ -724,10 +724,6 @@ class RepositoryView(CView):
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
 
-    def isDebug(self):
-
-        return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
-
     def mapChanges(self, callable, freshOnly=False):
         """
         Invoke a callable for every item changed in this view.
@@ -902,7 +898,6 @@ class RepositoryView(CView):
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     itsPath = property(_getPath)
     
-    debug = property(isDebug)
     views = property(lambda self: self.repository.getOpenViews())
 
 

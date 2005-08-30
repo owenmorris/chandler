@@ -36,9 +36,11 @@ class Attribute(Item):
 
     def getAspect(self, name, default=Default):
 
-        if name in self._values:
-            return self._values[name]
-        elif name in self._references:
+        aspect = self._values.get(name, Nil)
+        if aspect is not Nil:
+            return aspect
+
+        if name in self._references:
             return self._references._getRef(name)
 
         if 'superAttribute' in self._references:

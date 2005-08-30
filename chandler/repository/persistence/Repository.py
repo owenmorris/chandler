@@ -241,21 +241,18 @@ class Repository(CRepository):
         except ValueError:
             return None
 
-    def isDebug(self):
-
-        return self.logger.getEffectiveLevel() <= logging.DEBUG
-        
     def setDebug(self, debug):
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
+            self._status |= Repository.DEBUG
         else:
             self.logger.setLevel(logging.INFO)
+            self._status &= ~Repository.DEBUG
 
     itsUUID = RepositoryView.itsUUID
     view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)
-    debug = property(isDebug, setDebug)
 
 
 class OnDemandRepository(Repository):

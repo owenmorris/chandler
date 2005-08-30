@@ -403,7 +403,7 @@ class Kind(Item):
 
         if otherName is None:
             if _attrID is not None:
-                attribute = self.find(_attrID)
+                attribute = self.itsView[_attrID]
             else:
                 attribute = self.getAttribute(name, False, item)
 

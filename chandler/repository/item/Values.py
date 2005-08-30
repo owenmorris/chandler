@@ -108,39 +108,44 @@ class Values(dict):
     def _unload(self):
 
         super(Values, self).clear()
-        try:
-            self._flags.clear()
-        except AttributeError:
-            pass
+
+        _flags = getattr(self, "_flags", None)
+        if _flags:
+            _flags.clear()
 
     def _setFlag(self, key, flag):
 
-        try:
-            self._flags[key] |= flag
-        except AttributeError:
+        _flags = getattr(self, "_flags", None)
+        if _flags:
+            if key in _flags:
+                _flags[key] |= flag
+            else:
+                _flags[key] = flag
+        else:
             self._flags = { key: flag }
-        except KeyError:
-            self._flags[key] = flag
 
     def _clearFlag(self, key, flag):
 
-        if '_flags' in self.__dict__:
-            if key in self._flags:
-                self._flags[key] &= ~flag
+        _flags = getattr(self, "_flags", None)
+        if _flags:
+            if key in _flags:
+                _flags[key] &= ~flag
 
     def _setFlags(self, key, flags):
 
-        try:
-            self._flags[key] = flags
-        except AttributeError:
+        _flags = getattr(self, '_flags', None)
+        if _flags:
+            _flags[key] = flags
+        else:
             self._flags = { key: flags }
 
     def _getFlags(self, key, default=0):
 
-        try:
-            return self._flags.get(key, default)
-        except AttributeError:
-            return default
+        _flags = getattr(self, '_flags', None)
+        if _flags:
+            return _flags.get(key, default)
+
+        return default
 
     def _isReadOnly(self, key):
 
@@ -172,36 +177,34 @@ class Values(dict):
 
     def _clearTransient(self, key):
 
-        try:
-            self._flags[key] &= ~Values.TRANSIENT
-        except AttributeError:
-            pass
+        flags = getattr(self, "_flags", None)
+        if flags:
+            flags[key] &= ~Values.TRANSIENT
 
     def _getDirties(self):
 
-        try:
-            return [ key for key, flags in self._flags.iteritems()
+        _flags = getattr(self, '_flags', None)
+        if _flags:
+            return [ key for key, flags in _flags.iteritems()
                      if flags & Values.DIRTY ]
-        except AttributeError:
-            return []
+
+        return []
 
     def _clearDirties(self):
 
-        try:
-            for key, flags in self._flags.iteritems():
+        _flags = getattr(self, '_flags', None)
+        if _flags:
+            for key, flags in _flags.iteritems():
                 if flags & Values.DIRTY:
-                    self._flags[key] &= ~Values.DIRTY
-        except AttributeError:
-            pass
+                    _flags[key] &= ~Values.DIRTY
 
     def _clearNoinherits(self):
 
-        try:
-            for key, flags in self._flags.iteritems():
+        _flags = getattr(self, '_flags', None)
+        if _flags:
+            for key, flags in _flags.iteritems():
                 if flags & Values.NOINHERIT:
-                    self._flags[key] &= ~Values.NOINHERIT
-        except AttributeError:
-            pass
+                    _flags[key] &= ~Values.NOINHERIT
 
     def _writeValues(self, itemWriter, version, withSchema, all):
 
