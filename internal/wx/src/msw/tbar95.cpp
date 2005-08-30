@@ -1071,8 +1071,8 @@ bool wxToolBar::Realize()
     }
 
     // OSAF: disable this to fix a bug; re-enable when a deeper, better fix is developed...
-//    InvalidateBestSize();
-    SetBestFittingSize();
+    InvalidateBestSize();
+//    SetBestFittingSize();
 
     return true;
 }
