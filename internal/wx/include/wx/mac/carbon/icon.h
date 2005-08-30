@@ -26,7 +26,10 @@ public:
 
     // Copy constructors
     wxIcon(const wxIcon& icon)
-      { Ref(icon); }
+        : wxGDIObject()
+    {
+        Ref(icon);
+    }
 
     wxIcon(const char **data);
     wxIcon(char **data);
