@@ -23,6 +23,7 @@ static PyObject *t_repository__getRepository(t_repository *self, void *data);
 static PyObject *t_repository_isOpen(t_repository *self, PyObject *args);
 static PyObject *t_repository_isClosed(t_repository *self, PyObject *args);
 static PyObject *t_repository_isRefCounted(t_repository *self, PyObject *args);
+static PyObject *t_repository_isDebug(t_repository *self, PyObject *args);
 
 
 static PyMemberDef t_repository_members[] = {
@@ -38,6 +39,7 @@ static PyMethodDef t_repository_methods[] = {
     { "isOpen", (PyCFunction) t_repository_isOpen, METH_NOARGS, "" },
     { "isClosed", (PyCFunction) t_repository_isClosed, METH_NOARGS, "" },
     { "isRefCounted", (PyCFunction) t_repository_isRefCounted, METH_NOARGS, "" },
+    { "isDebug", (PyCFunction) t_repository_isDebug, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -149,6 +151,14 @@ static PyObject *t_repository_isRefCounted(t_repository *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
+static PyObject *t_repository_isDebug(t_repository *self, PyObject *args)
+{
+    if (self->status & DEBUG)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 
 /* repository */
 
@@ -172,6 +182,7 @@ void _init_repository(PyObject *m)
 
             PyDict_SetItemString_Int(dict, "OPEN", OPEN);
             PyDict_SetItemString_Int(dict, "REFCOUNTED", REFCOUNTED);
+            PyDict_SetItemString_Int(dict, "DEBUG", DEBUG);
             PyDict_SetItemString_Int(dict, "RAMDB", RAMDB);
             PyDict_SetItemString_Int(dict, "CLOSED", CLOSED);
         }

@@ -24,6 +24,7 @@ static PyObject *t_view_isRefCounted(t_view *self, PyObject *args);
 static PyObject *t_view_isLoading(t_view *self, PyObject *args);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
 static PyObject *t_view_isOpen(t_view *self, PyObject *args);
+static PyObject *t_view_isDebug(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
 static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
                                       PyObject *kwds);
@@ -61,8 +62,9 @@ static PyMethodDef t_view_methods[] = {
     { "isLoading", (PyCFunction) t_view_isLoading, METH_NOARGS, "" },
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
+    { "isDebug", (PyCFunction) t_view_isDebug, METH_NOARGS, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
-    { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_KEYWORDS, "" },
+    { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_VARARGS|METH_KEYWORDS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -226,6 +228,14 @@ static PyObject *t_view_isOpen(t_view *self, PyObject *args)
         Py_RETURN_FALSE;
 }
 
+static PyObject *t_view_isDebug(t_view *self, PyObject *args)
+{
+    if (((t_repository *) self->repository)->status & DEBUG)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
 static PyObject *t_view_getLogger(t_view *self, PyObject *args)
 {
     return PyObject_GetAttr(self->repository, logger_NAME);
@@ -240,9 +250,17 @@ static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
 
     if (self->status & RECORDING)
     {
-        PyObject *tuple = PyTuple_Pack(3, callable, callArgs, kwds);
+        int noKwds = kwds == NULL;
+        PyObject *tuple;
 
+        if (noKwds)
+            kwds = PyDict_New();
+
+        tuple = PyTuple_Pack(3, callable, callArgs, kwds);
         ok = PyList_Append(self->changeNotifications, tuple) == 0;
+
+        if (noKwds)
+            Py_DECREF(kwds);
         Py_DECREF(tuple);
     }
     else

@@ -37,9 +37,9 @@ enum {
     /* STALE   = 0x0080, from CItem */
     /* CDIRTY  = 0x0200, from CItem */
 
+    DEBUG      = 0x2000,
     RAMDB      = 0x4000,
     CLOSED     = 0x8000,
-
     /*
      * merge flags from CItem
      */
