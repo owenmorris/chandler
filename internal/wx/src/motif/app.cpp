@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: app.cpp,v 1.91 2005/07/30 17:24:32 MBN Exp $
+// RCS-ID:      $Id: app.cpp,v 1.92 2005/08/30 19:20:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -180,10 +180,19 @@ void wxApp::HandlePropertyChange(WXEvent *event)
 }
 
 static char *fallbackResources[] = {
+    // better defaults for CDE under Irix
+    //
+    // TODO: do something similar for the other systems, the hardcoded defaults
+    //       below are ugly
+#ifdef __SGI__
+    "*sgiMode: True",
+    "*useSchemes: all",
+#else // !__SGI__
     "*menuBar.marginHeight: 0",
     "*menuBar.shadowThickness: 1",
     "*background: #c0c0c0",
     "*foreground: black",
+#endif // __SGI__/!__SGI__
     NULL
 };
 
