@@ -22,7 +22,7 @@ expand: $(SRC)-expanded
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-build: expand 
+build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
