@@ -615,7 +615,8 @@ class Block(schema.Item):
             # we want the text to default to the block title
             # this makes sure that if someone modifies Text during UpdateUI
             # that it later can get reset to the default from the block
-            event.arguments['Text'] = event.arguments['sender'].title
+            if hasattr(event.arguments['sender'], 'title'):
+                event.arguments['Text'] = event.arguments['sender'].title
             methodName += 'UpdateUI'
             commitAfterDispatch = False
         else:
