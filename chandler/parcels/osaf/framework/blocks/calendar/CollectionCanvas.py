@@ -15,6 +15,7 @@ from osaf.pim import AbstractCollection
 from osaf.app import Trash
 from application import schema
 from wx.lib import buttons
+from i18n import OSAFMessageFactory as _
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -717,13 +718,12 @@ class CollectionCanvas(Block.RectangularChild):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
 
     def onDeleteEvent(self, event):
-        Trash.RemoveItemFromCollection(self.selection, self.contents)
-        
-    def onRemoveEvent(self, event):
         Trash.MoveItemToTrash(self.selection)
         self.ClearSelection()
-        self.itsView.commit()
-
+        
+    def onRemoveEvent(self, event):
+        Trash.RemoveItemsFromCollection([self.selection], self.contents.collectionList[0])
+        self.ClearSelection()
 
     def ClearSelection(self):
         self.selection = None
@@ -731,8 +731,10 @@ class CollectionCanvas(Block.RectangularChild):
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)
+        event.arguments['Text'] = _("Delete from '%s'" % (self.contents.collectionList[0].displayName))
 
-    onDeleteEventUpdateUI = onRemoveEventUpdateUI
+    def onDeleteEventUpdateUI(self, event):
+        event.arguments['Enable'] = (self.selection is not None)
 
 
 CollectionBlock = CollectionCanvas      # backward compatibility

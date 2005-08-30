@@ -1070,7 +1070,7 @@ class Table (RectangularChild):
     def onRemoveEvent (self, event):
 
         def Delete(item):
-            Trash.RemoveItemFromCollection(item, self.contents)
+            Trash.RemoveItemsFromCollection([item], self.contents)
 
         self.widget.DeleteSelection(Delete)
         

@@ -1,12 +1,8 @@
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from osaf.pim import AbstractCollection
+from osaf.pim import AbstractCollection, ListCollection
 from application import schema
-
-from i18n import OSAFMessageFactory as _
-
-#XXX[i18n] this file needs to have displayName converted to _()
 
 """
 At the moment, this is just a bunch of helper routines to find, fill,
@@ -25,8 +21,21 @@ def EmptyTrash(view):
     trash = schema.ns('osaf.app',view).TrashCollection
     for item in trash:
         # actually kill it from the repository!
-        # should remove it from all collections, etc
+        # this will automatically remove it from all collections, etc
         item.delete()
+
+def isUserCollection(collection):
+    """
+    really simplistic for now - may eventually become mine/ismine
+    detection, etc
+    """
+    return (isinstance(collection, ListCollection) and
+            getattr(collection, 'renameable', True))
+
+def GetUserCollections(view):
+    sidebarCollections = \
+        schema.ns('osaf.views.main', view).sidebarItemCollection
+    return [c for c in sidebarCollections if isUserCollection(c)]
 
 def MoveItemToTrash(item, trash=None):
     """
@@ -41,23 +50,17 @@ def MoveItemToTrash(item, trash=None):
         
     trash.add(item)
 
-    # XXX: For now, skip the itemCollectionInclusions stuff until we can do
-    # it with the new collections
-    return
-
     # now remove it from all other collections
-    for collection in item.itemCollectionInclusions:
-        if collection is not trash:
-            # perhaps we should skip collections that have a 'source'
-            # attribute?
-            try:
-                collection.remove(item)
-            except AttributeError:
-                # not all collections support remove()
-                pass
-
-
-def RemoveItemFromCollection(item, collection):
+    userCollections = GetUserCollections(item.itsView)
+    for collection in userCollections:
+        try:
+            collection.remove(item)
+        except (AttributeError, KeyError):
+            # ignore collections without .remove, and collections that
+            # don't contain item
+            pass
+            
+def RemoveItemsFromCollection(items, collection):
     """
     Smart routine to remove an item from a collection, and optionally
     move it to the trash if this item appears only in this collection,
@@ -66,23 +69,19 @@ def RemoveItemFromCollection(item, collection):
 
     # first check for other collections. This is where we will eventually
     # handle deleting within the same 'sphere' of collections (i.e. mineness)
-    # for now, we just check itemCollectionInclusions
+    # for now, we just check user collections
     isInOtherCollections = False
     
-    # the one problem right now is that often the "other" collection is
-    # some sort of internal collection - we really want to know,
-    # is this the only /sidebar/ collection that it appears in?
+    userCollections = GetUserCollections(collection.itsView)
 
-    # XXX: itemCollectionInclusions is dead - need a way to mimic this logic
-    if False:
-        for otherCollection in item.itemCollectionInclusions:
-            if (otherCollection != collection and 
-                not getattr(otherCollection, 'renameable', True)):
+    for item in items:
+        for userCollection in userCollections:
+            if (userCollection != collection and
+                item in userCollection):
                 isInOtherCollections = True
                 break
 
-    if isInOtherCollections:
-        collection.remove(item)
-    else:
-        MoveItemToTrash(item)
-
+        if isInOtherCollections:
+            collection.remove(item)
+        else:
+            MoveItemToTrash(item)
