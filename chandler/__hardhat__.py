@@ -257,12 +257,14 @@ def generateDocs(buildenv):
         queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
     else:
         chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'            
+        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'    
+                
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
                           '--inheritance listed',
                           '--no-private',
+                          '--exclude=".*tests.*"',
                           'application',
                           'crypto',
                           # not interested in distrib
