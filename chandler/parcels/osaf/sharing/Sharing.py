@@ -1525,8 +1525,10 @@ class CloudXMLFormat(ImportExportFormat):
         doc = libxml2.parseDoc(text)
         node = doc.children
         try:
+            self.itsView.recordChangeNotifications()
             item = self.__importNode(node, item)
         finally:
+            self.itsView.playChangeNotifications()
             doc.freeDoc()
 
         return item
@@ -1761,6 +1763,10 @@ class CloudXMLFormat(ImportExportFormat):
                     if valueNode:
                         valueItem = self.__importNode(valueNode)
                         if valueItem is not None:
+                            logger.debug("for %s setting %s to %s" % \
+                                (item.getItemDisplayName(),
+                                 attrName,
+                                 valueItem.getItemDisplayName()))
                             item.setAttributeValue(attrName, valueItem)
 
                 elif cardinality == 'list':
@@ -1769,7 +1775,12 @@ class CloudXMLFormat(ImportExportFormat):
                         if valueNode.type == "element":
                             valueItem = self.__importNode(valueNode)
                             if valueItem is not None:
+                                logger.debug("for %s setting %s to %s" % \
+                                    (item.getItemDisplayName(),
+                                     attrName,
+                                     valueItem.getItemDisplayName()))
                                 item.addValue(attrName, valueItem)
+
                         valueNode = valueNode.next
 
                 elif cardinality == 'dict':
@@ -1792,10 +1803,12 @@ class CloudXMLFormat(ImportExportFormat):
                     # already
                     if not hasattr(item, attrName) or \
                         (value != item.getAttributeValue(attrName)):
+                        logger.debug( "for %s setting %s to %s" % \
+                            (item.getItemDisplayName(), attrName, value))
                         item.setAttributeValue(attrName, value)
-                        # print "Assigned", attrName, "to", value
                     else:
-                        # print "Skipping assignment of", attrName, "to", value
+                        logger.debug( "for %s skipping %s of %s" % \
+                            (item.getItemDisplayName(), attrName, value))
                         pass
 
                 elif cardinality == 'list':
@@ -1806,6 +1819,8 @@ class CloudXMLFormat(ImportExportFormat):
                             value = type.makeValue(valueNode.content)
                             values.append(value)
                         valueNode = valueNode.next
+                    logger.debug("for %s setting %s to %s" % \
+                        (item.getItemDisplayName(), attrName, values))
                     item.setAttributeValue(attrName, values)
 
                 elif cardinality == 'dict':
