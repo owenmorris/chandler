@@ -19,8 +19,8 @@ $(SRC)-expanded: $(SRC).tar.gz
 
 expand: $(SRC)-expanded
 
-#apply: patches-$(VERSION)
-#	patch -Nup0 < patches-$(VERSION); echo ok
+apply: patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 build: expand 
 	cd $(SRC); \
