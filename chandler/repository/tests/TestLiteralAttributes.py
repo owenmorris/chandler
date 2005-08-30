@@ -12,6 +12,7 @@ import RepositoryTestCase, os, unittest
 
 from repository.item.Item import Item
 from repository.schema.Attribute import Attribute
+from repository.schema.Kind import Kind
 
 class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
@@ -23,7 +24,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
-        kind1 = Item('kind1', view, kind)
+        kind1 = Kind('kind1', view, kind)
         self.assert_(kind1 is not None)
 
         item1 = Item('item1', view, itemKind)
