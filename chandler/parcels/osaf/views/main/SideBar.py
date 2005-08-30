@@ -428,8 +428,11 @@ class SidebarBlock(ControlBlocks.Table):
 
     onDeleteItemEvent = onRemoveItemEvent
 
+    def onRemoveEventUpdateUI(self, event):
+        # so you can't use the delete key to delete a collection
+        event.arguments['Enabled'] = False
+            
     def onDeleteEventUpdateUI(self, event):
-        self.onRemoveEventUpdateUI(event)
         event.arguments['Text'] = _('Delete Collection')
         """
         this is enabled if any user item is selected in the sidebar
@@ -439,10 +442,6 @@ class SidebarBlock(ControlBlocks.Table):
             event.arguments['Enable'] = True
         else:
             event.arguments['Enable'] = False
-            
-    def onRemoveEventUpdateUI(self, event):
-        # doesn't seem to be taking effect?
-        event.arguments['Enabled'] = False
             
     def getButtonState (self, buttonName, item):
         if buttonName == u'Icon':
