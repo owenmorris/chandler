@@ -144,7 +144,7 @@
 
   <contentModel:FilteredCollection itsName="inSource">
     <source itemref="doc:mail"/>
-    <filterExpression>item.isInbound == True</filterExpression>
+    <filterExpression>getattr(item, 'isInbound', False)</filterExpression>
     <filterAttributes>isInbound</filterAttributes>
   </contentModel:FilteredCollection>
 
@@ -169,7 +169,7 @@
 
   <contentModel:FilteredCollection itsName="outSource">
     <source itemref="doc:mail"/>
-    <filterExpression>item.isOutbound == True</filterExpression>
+    <filterExpression>getattr(item, 'isOutbound', False)</filterExpression>
     <filterAttributes>isOutbound</filterAttributes>
   </contentModel:FilteredCollection>
 
