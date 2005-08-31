@@ -377,16 +377,18 @@ class MainView(View):
         Block.profileEvents = False
     # Test Methods
 
-    def getSidebarSelectedCollection (self):
+    def getSidebarSelectedCollection (self, private=False):
         """
           Return the sidebar's selected item collection.
+        Will not return private collections (whose "isPrivate" attribute
+        is True) unless you pass private=True.
         """
         item = Block.findBlockByName ("Sidebar").selectedItemToView
         if not isinstance (item, AbstractCollection):
             item = None
+        elif private == False and item.isPrivate:
+            item = None
         return item
-
-        return Block.findBlockByName ("Sidebar").selectedItemToView
 
     def _logChange(self, item, version, status, values, references):
         logger = item.itsView.logger
@@ -667,7 +669,7 @@ class MainView(View):
         mainViewRoot = Globals.mainViewRoot
         traceData = {}
         mainViewRoot.getItemCloud(cloudAlias="copying", trace=traceData)
-        cloud = mainViewRoot.getKind().getClouds("copying")[0]
+        cloud = mainViewRoot.getKind(mainViewRoot.itsView).getClouds("copying")[0]
         logger.info("MainViewRoot trace information:")
         for item, other, endpoint, policy, indent in cloud.traceItem(traceItem, traceData):
             logger.info( "   "*indent +'\t"'+
@@ -690,7 +692,7 @@ class MainView(View):
 
     def onEditCollectionRuleEvent(self, event):
         # Triggered from "Tests | Edit collection rule..."
-        collection = self.getSidebarSelectedCollection ()
+        collection = self.getSidebarSelectedCollection (private=True)
         if collection is not None:
             #XXX: i18n str cast of rule seems wrong 
             rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _("Edit rule"), _("Enter a rule for this collection"), str(collection.getRule()))
@@ -781,7 +783,6 @@ class MainView(View):
 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            collection = self.getSidebarSelectedCollection()
             sidebar = Block.findBlockByName("Sidebar")
             if sidebar.filterKind is None:
                 filterKindPath = None 
