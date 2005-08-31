@@ -25,7 +25,6 @@ from photos import Photo
 import osaf.pim.tests.GenerateItems as GenerateItems
 import util.GenerateItemsFromFile as GenerateItemsFromFile
 import osaf.sharing.Sharing as Sharing
-import repository.query.Query as Query
 from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
