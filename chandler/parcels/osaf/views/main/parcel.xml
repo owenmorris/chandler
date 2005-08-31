@@ -80,8 +80,8 @@
   -->
   <contentModel:ListCollection itsName="sidebarItemCollection">
     <refCollection itemref="app:allCollection"/>
-    <refCollection itemref="doc:inCollection"/>
-    <refCollection itemref="doc:outCollection"/>
+    <refCollection itemref="app:inCollection"/>
+    <refCollection itemref="app:outCollection"/>
     <refCollection itemref="app:TrashCollection"/>
   </contentModel:ListCollection>
 
@@ -90,54 +90,6 @@
     <recursive>True</recursive>
   </contentModel:KindCollection>
 
-  <contentModel:FilteredCollection itsName="inSource">
-    <source itemref="doc:mail"/>
-    <filterExpression>getattr(item, 'isInbound', False)</filterExpression>
-    <filterAttributes>isInbound</filterAttributes>
-  </contentModel:FilteredCollection>
-
-  <contentModel:ListCollection itsName="inExclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:DifferenceCollection itsName="inSourceMinusInExclusions">
-    <sources itemref="doc:inSource"/>
-    <sources itemref="doc:inExclusions"/>
-  </contentModel:DifferenceCollection>
-
-  <contentModel:ListCollection itsName="inInclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:InclusionExclusionCollection itsName="inCollection">
-    <sources itemref="doc:inSourceMinusInExclusions"/>
-    <sources itemref="doc:inInclusions"/>
-    <displayName>In</displayName>
-    <renameable>False</renameable>
-  </contentModel:InclusionExclusionCollection>
-
-
-  <contentModel:FilteredCollection itsName="outSource">
-    <source itemref="doc:mail"/>
-    <filterExpression>getattr(item, 'isOutbound', False)</filterExpression>
-    <filterAttributes>isOutbound</filterAttributes>
-  </contentModel:FilteredCollection>
-
-  <contentModel:ListCollection itsName="outExclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:DifferenceCollection itsName="outSourceMinusOutExclusions">
-    <sources itemref="doc:outSource"/>
-    <sources itemref="doc:outExclusions"/>
-  </contentModel:DifferenceCollection>
-
-  <contentModel:ListCollection itsName="outInclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:InclusionExclusionCollection itsName="outCollection">
-    <sources itemref="doc:outSourceMinusOutExclusions"/>
-    <sources itemref="doc:outInclusions"/>
-    <displayName>Out</displayName>
-    <renameable>False</renameable>
-  </contentModel:InclusionExclusionCollection>
 
   <!--
     Chandler's main view

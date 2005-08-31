@@ -3,6 +3,8 @@ import application.schema as schema
 from application.Parcel import Reference
 from repository.schema.Types import Lob
 from osaf import pim
+from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
+     DifferenceCollection, InclusionExclusionCollection, KindCollection
 from feeds import FeedChannel
 from i18n import OSAFMessageFactory as _
 
@@ -208,43 +210,80 @@ def MakeCollections(parcel):
         )
     
     notes = \
-        pim.KindCollection.update(parcel, 'notes')
+        KindCollection.update(parcel, 'notes')
     # workaround bug 3892
     notes.kind = pim.Note.getKind(parcel.itsView)
     notes.recursive=True
     
     events = \
-        pim.KindCollection.update(parcel, 'events')
+        KindCollection.update(parcel, 'events')
     # workaround bug 3892
     events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
     events.recursive=True
                                   
     generatedEvents = \
-        pim.FilteredCollection.update(parcel, 'generatedEvents',
+        FilteredCollection.update(parcel, 'generatedEvents',
             source=events,
             filterExpression='getattr(item, \'isGenerated\', True)',
-            filterAttributes='isGenerated')
+            filterAttributes=['isGenerated'])
 
     notesMinusGeneratedEvents = \
-        pim.DifferenceCollection.update(parcel, 'notesMinusGeneratedEvents',
+        DifferenceCollection.update(parcel, 'notesMinusGeneratedEvents',
             sources=[notes, generatedEvents])
     
     allSource = \
-        pim.DifferenceCollection.update(parcel, 'allSource',
+        DifferenceCollection.update(parcel, 'allSource',
             sources=[notesMinusGeneratedEvents, TrashCollection])
 
-    allExclusions = \
-        pim.ListCollection.update(parcel, 'allExclusions')
-
     allSourceMinusAllExclusions = \
-        pim.DifferenceCollection.update(parcel, 'allSourceMinusAllExclusions',
-                                        sources=[allSource, allExclusions])
-    
-    allInclusions = \
-        pim.ListCollection.update(parcel, 'allInclusions')
-    
-    pim.InclusionExclusionCollection.update(parcel, 'allCollection',
+        DifferenceCollection.update(parcel, 'allSourceMinusAllExclusions',
+            sources=[allSource,
+                     ListCollection.update(parcel, 'allExclusions')])
+
+    # the "All" collection
+    InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_('All'),
         renameable=False,
-        sources=[allSourceMinusAllExclusions, allInclusions])
+        sources=[allSourceMinusAllExclusions,
+                 ListCollection.update(parcel, 'allInclusions')])
 
+    mail = \
+         KindCollection.update(parcel, 'mail')
+    # workaround bug 3892
+    mail.kind=pim.mail.MailMessageMixin.getKind(parcel.itsView)
+    mail.recursive=True
+    
+    inSource = \
+        FilteredCollection.update(parcel, 'inSource',
+            source=mail,
+            filterExpression='getattr(item, \'isInbound\', False)',
+            filterAttributes=['isInbound'])
+
+    inSourceMinusInExclusions = \
+        DifferenceCollection.update(parcel, 'inSourceMinusInExclusions',
+            sources=[inSource,
+                     ListCollection.update(parcel, 'inExclusions')])
+
+    # The "In" collection
+    InclusionExclusionCollection.update(parcel, 'inCollection',
+        displayName=_('In'),
+        renameable=False,
+        sources=[inSourceMinusInExclusions,
+                 ListCollection.update(parcel, 'inInclusions')])
+
+    outSource = \
+        FilteredCollection.update(parcel, 'outSource',
+            source=mail,
+            filterExpression='getattr(item, \'isOutbound\', False)',
+            filterAttributes=['isOutbound'])
+
+    outSourceMinusOutExclusions = \
+        DifferenceCollection.update(parcel, 'outSourceMinusOutExclusions',
+            sources=[outSource,
+                     ListCollection.update(parcel, 'outExclusions')])
+                                               
+    InclusionExclusionCollection.update(parcel, 'outCollection',
+        displayName=_('Out'),
+        renameable=False,
+        sources=[outSourceMinusOutExclusions,
+                 ListCollection.update(parcel, 'outInclusions')])
