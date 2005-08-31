@@ -4,7 +4,7 @@
 %% Author:      wxWidgets Team
 %% Modified by:
 %% Created:     
-%% RCS-ID:      $Id: window.tex,v 1.182 2005/04/08 14:33:37 MW Exp $
+%% RCS-ID:      $Id: window.tex,v 1.186 2005/08/31 21:42:03 VZ Exp $
 %% Copyright:   (c) wxWidgets Team
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1498,8 +1498,11 @@ This is just a wrapper for \helpref{ScrollLines}{wxwindowscrolllines}$(-1)$.
 
 \func{void}{Lower}{\void}
 
-Lowers the window to the bottom of the window hierarchy if it is a managed window (dialog
-or frame).
+Lowers the window to the bottom of the window hierarchy.
+
+\wxheading{See also}
+
+\helpref{Raise}{wxwindowraise}
 
 
 \membersection{wxWindow::MakeModal}\label{wxwindowmakemodal}
@@ -2217,8 +2220,13 @@ remove the event handler.
 
 \func{void}{Raise}{\void}
 
-Raises the window to the top of the window hierarchy if it is a managed window (dialog
-or frame).
+Raises the window to the top of the window hierarchy.
+
+In current version of wxWidgets this works both for manage and child windows.
+
+\wxheading{See also}
+
+\helpref{Lower}{wxwindowlower}
 
 
 \membersection{wxWindow::Refresh}\label{wxwindowrefresh}
