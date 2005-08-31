@@ -81,8 +81,6 @@ class Item(CItem):
         self.setDirty(Item.NDIRTY)
 
         for name, value in values.iteritems():
-            if name in ('name', 'parent', 'kind'):
-                raise ValueError, 'What ??'
             self.setAttributeValue(name, value)
 
         if not (_noMonitors or
