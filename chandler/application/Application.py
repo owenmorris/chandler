@@ -556,7 +556,7 @@ class wxApplication (wx.App):
         if not self.StartupScriptDone:
             self.StartupScriptDone = True
             import osaf.framework.scripting as Scripting
-            wx.CallAfter(Scripting.RunStartupScript, self.UIRepositoryView)
+            wx.CallAfter(Scripting.run_startup_script, self.UIRepositoryView)
 
         event.Skip()
 
@@ -564,7 +564,7 @@ class wxApplication (wx.App):
 
     def OnKeyDown(self, event):
         import osaf.framework.scripting as Scripting
-        if Scripting.HotkeyScript(event, self.UIRepositoryView):
+        if Scripting.hotkey_script(event, self.UIRepositoryView):
             pass # consume the keystroke (the script is now running)
         else:
             event.Skip() # pass the key along to another widget
@@ -676,7 +676,7 @@ class wxApplication (wx.App):
 
         def run(scriptText):
             import osaf.framework.scripting as Scripting
-            Scripting.RunScript(scriptText, headless.view)
+            Scripting.run_script(scriptText, headless.view)
 
         # Import helper methods/variables from headless, and also add
         # whatever other methods we want to the mix (such as the run method,

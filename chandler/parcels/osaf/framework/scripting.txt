@@ -11,21 +11,25 @@ scripts within Chandler.  There's a Script Kind that persistently stores
 scripts as a flavor of ContentItem, and a few functions to make it easy
 to run scripts.
 
-First, some setup for our tests.
+You can easily create and run a script through the run_script API::
 
-For our examples, we'll be using a null
+    >>> import osaf.framework.scripting as Scripting
+    >>> result = Scripting.run_script("print 3*4;")
+    12
+
+For debugging purposes you can pass a fileName parameter, so errors can 
+be reported in the correct file::
+
+    >>> result = Scripting.run_script("print 3*4;", fileName="Calculator.py")
+    12
+
+For many of our examples, we'll need a view.  We'll be using a null
 repository view, ``rv``::
 
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
-You can easily create and run a script through the RunScript API::
-
-    >>> import osaf.framework.scripting as Scripting
-    >>> result = Scripting.RunScript("print 3*4;", view = rv)
-    12
-
-Use HotkeyScript to run a script in response to a function key pressed.
+Use hotkey_script to run a script in response to a function key pressed.
 Normally the event would come in to your key event handler.  For testing
 purposes, we'll just create a key event.  Only F-keys can be hot keys.
 If a script is found whose title starts with "Script Fx" where x is the
@@ -35,19 +39,39 @@ call the event's Skip() method to keep looking for a handler::
 
     >>> import wx
     >>> event = wx.KeyEvent() 
-    >>> print Scripting.HotkeyScript(event, view = rv)
+    >>> print Scripting.hotkey_script(event, view=rv)
     False
 
 There is an APIs to run scripts based on options passed in to Chandler
 on the command line.  It checks the global options for a script to run.
-I won't test this function here.
+There's also an option to run the standard test script at Chandler 
+startup.  The standard test script is the same script that's run
+when you hit the "F1" key.
 
+Some day we'll launch Chandler here, so we can test these features.
+
+
+script_file function
+--------------------
+The script_file function makes it easy to read in the text of a script
+from a file.  This doesn't actually do anything script-specific, so
+it can go away once there's an equivalent facility elsewhere in our
+utilities.  It uses an optional sibling parameter to make it easy
+to pass in a complete path, using __file__, and then read the
+sibling from the same directory the sibling is in.  We use this
+to bring scripts in to our application from the "scripts" directory::
+
+    >>> import osaf.app.scripts as Scripts
+    >>> script_text = Scripting.script_file("NewScript.py", Scripts.__file__)
+    >>> "Script" in script_text
+    True
+    
 Script Kind
 -----------
 Most of the API goes through the Script Kind.  You can create scripts
 by passing in a bodyString for the script, and then calling execute()::
 
-    >>> myScript = Scripting.Script(bodyString="t = 'New Task'; print t")
+    >>> myScript = Scripting.Script(view=rv, bodyString="t = 'New Task'; print t")
     >>> myScript.execute()
     New Task
 
@@ -62,7 +86,7 @@ We initialize scripts without any name to Untitled::
 Like any repository Item, you can name the script using the name parameter
 if you want to give it a unique name::
 
-    >>> namedScript = Scripting.Script(name="Empty")
+    >>> namedScript = Scripting.Script(view=rv, name="Empty")
     >>> namedScript.itsName
     'Empty'
 
@@ -73,7 +97,7 @@ This also becomes its displayName::
 
 Or you can just pass in none to get an untitled Script.
 
-    >>> unnamedScript = Scripting.Script()
+    >>> unnamedScript = Scripting.Script(view=rv)
     >>> unnamedScript.displayName
     u'Untitled'
 
@@ -82,11 +106,11 @@ Scripts keep track of the last time they ran.  This is used for date redirection
     >>> myScript.lastRan == myScript.date
     True
 
-The lastRan attribute is pdated when you execute() your script::
+The lastRan attribute is updated when you execute() your script::
 
     >>> from datetime import datetime 
     >>> beforeExecute = datetime.now()
-    >>> myScript.lastRan < beforeExecute
+    >>> myScript.lastRan <= beforeExecute
     True
 
 Updated when you execute() them::
@@ -100,25 +124,89 @@ The lastRan attribute is a datetime value::
     >>> myScript.lastRan
     datetime.datetime(20...)
 
-EventTiming dict Object
------------------------
-There's an EventTiming dict object that keeps track of the times taken
-by CPIA events when they are posted.  Since we can't post events now,
-it's empty::
+WRITING SCRIPTS
+===============
+Sometimes the complications of an implementation show up in the API.  Hopefully
+these complications will be hidden over time, and a simple API will emerge.
+The work done here can be considered a proposal for how that simplification could be done.
+I have built a subset of that simple API using "proxy" objects.  These objects
+present the simple API, and anything beyond that gets passed on to the real
+implementation for that object.  
 
-    >>> Scripting.EventTiming
+The "app namespace" proxy provides access to key application objects.
+You can call app_ns() with no view parameter and it will default to the view
+used by the Chandler UI. We'll use the Null Repository view for these tests.
+
+Use the app_ns() function to get a proxy to the osaf.app namespace.  This object
+has all the major Blocks in Chandler available as attributes.  So if you want to
+get the sidebar you can say::
+
+    >>> app_ns = Scripting.app_ns(rv)
+    >>> app_ns.summary
+    <...scripting.BlockProxy object at ...>
+
+This BlockProxy object can be used in place of the real summary view.  But it has
+the advantage of always pointing you to the actual summary view that is currently
+rendered.
+
+Proxy blocks available include the sidebar, calendar, detail, appbar, markupbar::
+
+    >>> app_ns.sidebar
+    <...scripting.BlockProxy object at ...>
+    >>> app_ns.calendar
+    <...scripting.BlockProxy object at ...>
+    >>> app_ns.detail
+    <...scripting.BlockProxy object at ...>
+    >>> app_ns.appbar
+    <...scripting.BlockProxy object at ...>
+    >>> app_ns.markupbar
+    <...scripting.BlockProxy object at ...>
+
+There's also a root proxy for the Main View Root block.  The proxy for this block 
+also takes on the role of dispatching Chandler events used in Scripting.
+
+    >>> app_ns.root
+    <...scripting.RootProxy object at ...>
+
+If you want pass "commands" to Chandler, you essentially call methods on the
+root proxy to do this.
+
+    >>> app_ns.root.Quit()
+    Traceback (most recent call last):
+    ...
+    AttributeError: ...
+
+When Chandler's running no exception will be raised, the application will Quit.
+This gives an error because Chandler's not running, so there is no rendered
+main view.
+
+Event Timing
+------------
+The root proxy has an attribute named "timing" that keeps track of the times taken
+by CPIA events when they are posted.  It uses a class called EventTiming,
+which is a simple subclass of dict.  
+
+Since we can't post events now, it's empty::
+
+    >>> app_ns.root.timing
     {}
 
 It's organized as a dictionary whose keys are the event names, and whose
 values are the list of times taken for each event in dateTimeDelta format.
-It has a method that will convert the timings into strings for you, so you
-can more easily read them::
+You can get the timings as strings so you can more easily read them::
 
-    >>> Scripting.EventTiming.timingStrings()
+    >>> app_ns.root.timing.strings
     {}
 
 Use the dict method clear() to clear the values::
 
-    >>> Scripting.EventTiming.clear()
+    >>> app_ns.root.timing.clear()
     
+USER EMULATION
+--------------
+There are functions that emulate user actions, for testing purposes.
+They include simulating a mouse click, typing a string of characters,
+and hitting the return key.
+
+
     

@@ -6,6 +6,7 @@ from osaf import pim
 from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
      DifferenceCollection, InclusionExclusionCollection, KindCollection
 from feeds import FeedChannel
+import scripts as Scripts
 from i18n import OSAFMessageFactory as _
 
 #XXX[i18n] this file needs to have displayName converted to _()
@@ -192,13 +193,25 @@ The Chandler Team"""
         ]
     )
 
+    """
+    Scripts.  These files are located in our Scripts parcel.
+    """
+
     # Startup script used to test Chandler startup
-    startupScript = scripting.Script.update(parcel, "Script F1 - Startup Test Script",
-        creator = osafDev,
-        bodyString=scripting.ScriptFile(
-            os.path.join(os.path.dirname(__file__),
-                         "StartupTest.py"))
-    )
+    scripting.Script.update(parcel, _("Script F1 - Startup Test Script"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("StartupTest.py", Scripts.__file__)
+                            )
+
+    scripting.Script.update(parcel, _("Script F12 - Create a New Script"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("NewScript.py", Scripts.__file__)
+                            )
+
+    scripting.Script.update(parcel, _("Event timing example"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("EventTiming.py", Scripts.__file__)
+                            )
 
 
 def MakeCollections(parcel):
