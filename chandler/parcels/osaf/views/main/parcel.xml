@@ -100,8 +100,13 @@
     <selectedItemToView itemref="app:allCollection"/>
   </doc:SidebarBlock>
 
+  <CharacterStyle itsName="PreviewStyle">
+    <fontSize>11</fontSize>
+  </CharacterStyle>
+
   <calendar:PreviewArea itsName="PreviewArea">
     <blockName>PreviewArea</blockName>
+    <characterStyle itemref="doc:PreviewStyle"/>
     <contents itemref="app:allCollection"/>
   </calendar:PreviewArea>
 

@@ -182,8 +182,13 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         pass
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
-    maximumEventsDisplayed = 5 #Not at schema level .. unless user customization?
-    
+    characterStyle = schema.One(Styles.CharacterStyle)
+    maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
+
+    schema.addClouds(
+        copying = schema.Cloud(byRef=[characterStyle])
+    )
+
     def __init__(self, *arguments, **keywords):
         super(PreviewArea, self).__init__(*arguments, **keywords)
         self.rangeIncrement = timedelta(days=1)
@@ -200,21 +205,20 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
             self.setHasBeenRendered()        
-        return wxPreviewArea(self.parentBlock.widget, Block.Block.getWidgetID(self))
+        return wxPreviewArea(self.parentBlock.widget, 
+                             Block.Block.getWidgetID(self),
+                             charStyle = self.characterStyle)
 
 
 class wxPreviewArea(wx.Panel):
     margin = 4 #oh how I wish I had css :)
     
-    def __init__(self, *arguments, **keywords):
-        super(wxPreviewArea, self).__init__(*arguments, **keywords)
+    def __init__(self, parent, id, charStyle, *arguments, **keywords):
+        super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
         self.currentDaysItems = []
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
-        charStyle = Styles.CharacterStyle()
-        
         #see Bug 3625
-        charStyle.fontSize = 11
         self.font = Styles.getFont(charStyle)
         self.fontHeight = Styles.getMeasurements(self.font).height
         
@@ -399,29 +403,3 @@ class wxPreviewArea(wx.Panel):
         return cmp(item1.startTime, item2.startTime)
         
 
-def dimTest():
-    """find out the dimensions of digits in some font"""
-    class TestFrame(wx.Frame):
-        def __init__(self, *args, **kwds):
-            super(TestFrame, self).__init__(*args, **kwds)
-            self.Bind(wx.EVT_PAINT, self.OnPaint)
-        def OnPaint(self, event):
-            dc = wx.PaintDC(self)
-            dc.Clear()
-                    
-            for d in range(10):
-                dstr = str(d)
-                dc.SetFont(Styles.getFont(Styles.CharacterStyle()))
-                width, height = dc.GetTextExtent(dstr)
-                print "%d has dimensions %d,%d" % (d,  width,height)            
-        
-    class TestApp(wx.App):
-        def OnInit(self):
-            frame = TestFrame(None, -1, "Test frame.")
-            frame.Show(True)
-            self.SetTopWindow(frame)
-            return True
-     
-    app = TestApp(0)
-    app.MainLoop()
-    
