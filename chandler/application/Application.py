@@ -219,11 +219,6 @@ class wxApplication (wx.App):
 
         self.UIRepositoryView = view
 
-        # make our view be the default for schema API
-        # so when we say myClass.iterItems() and leave off the view
-        # we get the UI repository view.
-        schema.reset(self.UIRepositoryView)
-
         """
           Load Parcels
         """
