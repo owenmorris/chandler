@@ -11,7 +11,7 @@ from osaf import pim
 from photos import PhotoMixin
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.detail.Detail as Detail
-import repository.query.Query as Query
+from osaf.pim.collections import KindCollection, FilteredCollection
 from repository.util.URL import URL
 from datetime import datetime
 import dateutil
@@ -119,17 +119,10 @@ def getPhotoByFlickrID(view, id):
         return None
 
 def getPhotoByFlickrTitle(view, title):
-    photoQuery = view.findPath('//Queries/photoTitleQuery')
-    if photoQuery is None:
-        queryString = u'for i in "//parcels/osaf/examples/flickr/FlickrPhotoMixin" \
-                                 where i.title == $0'
-        p = view.findPath('//Queries')
-        k = view.findPath('//Schema/Core/Query')
-        photoQuery = Query.Query ('photoTitleQuery', p, k, queryString)
-    photoQuery.args["$0"] = ( title, )
-    for x in photoQuery:
+    photos = KindCollection('FlickrPhotoQuery', FlickrPhotoMixin)
+    filteredPhotos = FilteredCollection('FilteredFlicrkPhotoQuery', photos)
+    for x in filteredPhotos:
         return x
-    return None
 
 class PhotoCollection(pim.ContentItem):
 
@@ -150,7 +143,7 @@ class PhotoCollection(pim.ContentItem):
             flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
             coll.displayName = self.username
         elif self.tag:
-            flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-asc")
+            flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
             coll.displayName = self.tag.displayName
             
         self.sidebarCollection = coll
