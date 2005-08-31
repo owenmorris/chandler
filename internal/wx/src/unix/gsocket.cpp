@@ -114,26 +114,26 @@ int _System soclose(int);
 #endif
 #include <signal.h>
 
-#ifndef SOCKLEN_T
+#ifndef WX_SOCKLEN_T
 
 #ifdef VMS
-#  define SOCKLEN_T unsigned int
+#  define WX_SOCKLEN_T unsigned int
 #else
 #  ifdef __GLIBC__
 #    if __GLIBC__ == 2
-#      define SOCKLEN_T socklen_t
+#      define WX_SOCKLEN_T socklen_t
 #    endif
 #  elif defined(__WXMAC__)
-#    define SOCKLEN_T socklen_t
+#    define WX_SOCKLEN_T socklen_t
 #  else
-#    define SOCKLEN_T int
+#    define WX_SOCKLEN_T int
 #  endif
 #endif
 
 #endif /* SOCKLEN_T */
 
 #ifndef SOCKOPTLEN_T
-#define SOCKOPTLEN_T SOCKLEN_T
+#define SOCKOPTLEN_T WX_SOCKLEN_T
 #endif
 
 /*
@@ -166,7 +166,7 @@ int _System soclose(int);
     #define MASK_SIGNAL()                       \
     {                                           \
         void (*old_handler)(int);               \
-                                            \
+                                                \
         old_handler = signal(SIGPIPE, SIG_IGN);
 
     #define UNMASK_SIGNAL()                     \
@@ -414,7 +414,7 @@ GAddress *GSocket::GetLocal()
 {
   GAddress *address;
   struct sockaddr addr;
-  SOCKLEN_T size = sizeof(addr);
+  WX_SOCKLEN_T size = sizeof(addr);
   GSocketError err;
 
   assert(this);
@@ -430,7 +430,7 @@ GAddress *GSocket::GetLocal()
     return NULL;
   }
 
-  if (getsockname(m_fd, &addr, (SOCKLEN_T *) &size) < 0)
+  if (getsockname(m_fd, &addr, (WX_SOCKLEN_T *) &size) < 0)
   {
     m_error = GSOCK_IOERR;
     return NULL;
@@ -532,7 +532,7 @@ GSocketError GSocket::SetServer()
   if ((bind(m_fd, m_local->m_addr, m_local->m_len) != 0) ||
       (getsockname(m_fd,
                    m_local->m_addr,
-                   (SOCKLEN_T *) &m_local->m_len) != 0) ||
+                   (WX_SOCKLEN_T *) &m_local->m_len) != 0) ||
       (listen(m_fd, 5) != 0))
   {
     Close();
@@ -558,7 +558,7 @@ GSocketError GSocket::SetServer()
 GSocket *GSocket::WaitConnection()
 {
   struct sockaddr from;
-  SOCKLEN_T fromlen = sizeof(from);
+  WX_SOCKLEN_T fromlen = sizeof(from);
   GSocket *connection;
   GSocketError err;
   int arg = 1;
@@ -589,7 +589,7 @@ GSocket *GSocket::WaitConnection()
     return NULL;
   }
 
-  connection->m_fd = accept(m_fd, &from, (SOCKLEN_T *) &fromlen);
+  connection->m_fd = accept(m_fd, &from, (WX_SOCKLEN_T *) &fromlen);
 
   /* Reenable CONNECTION events */
   Enable(GSOCK_CONNECTION);
@@ -838,7 +838,7 @@ GSocketError GSocket::SetNonOriented()
   if ((bind(m_fd, m_local->m_addr, m_local->m_len) != 0) ||
       (getsockname(m_fd,
                    m_local->m_addr,
-                   (SOCKLEN_T *) &m_local->m_len) != 0))
+                   (WX_SOCKLEN_T *) &m_local->m_len) != 0))
   {
     Close();
     m_error = GSOCK_IOERR;
@@ -924,7 +924,7 @@ int GSocket::Write(const char *buffer, int size)
 
   if (ret == -1)
   {
-    if ((errno == EWOULDBLOCK) || (errno == EAGAIN))	  
+    if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
     {
       m_error = GSOCK_WOULDBLOCK;
       GSocket_Debug(( "GSocket_Write error WOULDBLOCK\n" ));
@@ -1321,7 +1321,7 @@ GSocketError GSocket::Output_Timeout()
 int GSocket::Recv_Stream(char *buffer, int size)
 {
   int ret;
-  do 
+  do
   {
     ret = recv(m_fd, buffer, size, GSOCKET_MSG_NOSIGNAL);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
@@ -1331,15 +1331,15 @@ int GSocket::Recv_Stream(char *buffer, int size)
 int GSocket::Recv_Dgram(char *buffer, int size)
 {
   struct sockaddr from;
-  SOCKLEN_T fromlen = sizeof(from);
+  WX_SOCKLEN_T fromlen = sizeof(from);
   int ret;
   GSocketError err;
 
   fromlen = sizeof(from);
 
-  do 
+  do
   {
-    ret = recvfrom(m_fd, buffer, size, 0, &from, (SOCKLEN_T *) &fromlen);
+    ret = recvfrom(m_fd, buffer, size, 0, &from, (WX_SOCKLEN_T *) &fromlen);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
 
   if (ret == -1)
@@ -1371,9 +1371,9 @@ int GSocket::Send_Stream(const char *buffer, int size)
 {
   int ret;
 
-   MASK_SIGNAL();
+  MASK_SIGNAL();
 
-  do 
+  do
   {
     ret = send(m_fd, (char *)buffer, size, GSOCKET_MSG_NOSIGNAL);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
@@ -1404,7 +1404,7 @@ int GSocket::Send_Dgram(const char *buffer, int size)
 
   MASK_SIGNAL();
 
-  do 
+  do
   {
     ret = sendto(m_fd, (char *)buffer, size, 0, addr, len);
   } while (ret == -1 && errno == EINTR); /* Loop until not interrupted */
@@ -1454,15 +1454,15 @@ void GSocket::Detected_Read()
     else
     {
       /* Do not throw a lost event in cases where the socket isn't really lost */
-      if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR)) 
+      if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR))
       {
         CALL_CALLBACK(this, GSOCK_INPUT);
       }
-      else 
+      else
       {
         CALL_CALLBACK(this, GSOCK_LOST);
         Shutdown();
-      } 
+      }
     }
   }
 }
