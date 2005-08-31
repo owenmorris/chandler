@@ -1306,6 +1306,16 @@ class wxInPlaceEditor(wx.TextCtrl):
 class CalendarContainer(ContainerBlocks.BoxContainer):
 
     calendarControl = schema.One(schema.Item, required=True)
+    characterStyle = schema.One(Styles.CharacterStyle, required=True)
+    boldCharacterStyle = schema.One(Styles.CharacterStyle, required=True)
+    bigBoldCharacterStyle = schema.One(Styles.CharacterStyle, required=True)
+
+    schema.addClouds(
+        copying = schema.Cloud(byRef = [characterStyle, 
+                                        boldCharacterStyle, 
+                                        bigBoldCharacterStyle, 
+                                        ])
+    )
 
     def __init__(self, *arguments, **keywords):
         super(CalendarContainer, self).__init__(*arguments, **keywords)
@@ -1314,17 +1324,9 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
 
         #XXX: [i18n] The colors and fonts should be configurable for i18n and accessibility
         #     or at least should come from the host OS
-        defaultStyle = Styles.CharacterStyle()
-        defaultBoldStyle = \
-            Styles.CharacterStyle(fontStyle='bold', fontSize=10.0)
-
-        defaultBigBoldStyle = \
-            Styles.CharacterStyle(fontStyle='bold', fontSize=13.0)
-        
-        defaultFont = Styles.getFont(defaultStyle)
-        defaultBoldFont = Styles.getFont(defaultBoldStyle)
-        defaultBigBoldFont = Styles.getFont(defaultBigBoldStyle)
-        
+        defaultFont = Styles.getFont(self.characterStyle)
+        defaultBoldFont = Styles.getFont(self.boldCharacterStyle)
+        defaultBigBoldFont = Styles.getFont(self.bigBoldCharacterStyle)
 
         self.monthLabelFont = defaultBigBoldFont
         self.monthLabelColor = wx.Colour(64, 64, 64)
@@ -1867,8 +1869,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         else:
             self.dayWidth = drawInfo.dayWidth
     
-    @staticmethod
-    def GetLocaleHourStrings(hourrange):
+    def GetLocaleHourStrings(self, hourrange):
         """
         use PyICU to format the hour, because some locales
         use a 24 hour clock
@@ -1876,7 +1877,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         timeFormatter = DateFormat.createTimeInstance()
         hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
         dummyDate = date.today()
-        defaultTzinfo = DefaultTimeZone.get().tzinfo
+        defaultTzinfo = DefaultTimeZone.get(view=self.blockItem.itsView).tzinfo
         
         for hour in hourrange:
             timedate = time(hour=hour, tzinfo=defaultTzinfo)
@@ -2284,6 +2285,11 @@ class CalendarControl(CalendarBlock):
     dayMode = schema.One(schema.Boolean)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     calendarContainer = schema.One(schema.Item)
+    tzCharacterStyle = schema.One(Styles.CharacterStyle)
+
+    schema.addClouds(
+        copying = schema.Cloud(byRef = [tzCharacterStyle])
+    )
 
     def __init__(self, *arguments, **keywords):
         super(CalendarControl, self).__init__(*arguments, **keywords)
@@ -2293,7 +2299,8 @@ class CalendarControl(CalendarBlock):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
             self.setHasBeenRendered()
-        w = wxCalendarControl(self.parentBlock.widget, -1)
+        w = wxCalendarControl(self.parentBlock.widget, -1, 
+                              tzCharacterStyle=self.tzCharacterStyle)
         return w
 
     def onSelectedDateChangedEvent(self, event):
@@ -2333,8 +2340,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """This is the topmost area with the month name, event color selector,
     week navigation arrows, and the bar of Week/day selector buttons"""
 
-    def __init__(self, *arguments, **keywords):
-        super(wxCalendarControl, self).__init__(*arguments, **keywords)
+    def __init__(self, parent, id, tzCharacterStyle, *arguments, **keywords):
+        super(wxCalendarControl, self).__init__(parent, id, *arguments, **keywords)
     
         self.allDayCloseArrowImage = wx.GetApp().GetImage("AllDayCloseArrow_whitebg.png")
         self.allDayOpenArrowImage = wx.GetApp().GetImage("AllDayOpenArrow_whitebg.png")
@@ -2389,7 +2396,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         navigationCenter.Add((0,0), 1)
         
         # ... + timezone, anchored to the right
-        self.tzChoice = self.MakeTimezoneChoice()
+        self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
         navigationRight.Add((0,0), 1)
         navigationRight.Add(self.tzChoice, 0)
         navigationRight.Add((7,7), 0)
@@ -2430,14 +2437,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.UpdateHeader()
         self._doDrawingCalculations() #hopefully this is early enough
 
-    def MakeTimezoneChoice(self):
+    def MakeTimezoneChoice(self, tzCharacterStyle):
         # [@@@] grant: On Linux, ICUtzinfo.getDefault() returns "PDT",
         # not "US/Pacific". Should we do something to figure out
         # that it's equivalent?
 
         tzChoice = wx.Choice(self)
-        style = Styles.CharacterStyle(fontSize=11.0)
-        font = Styles.getFont(style)
+        font = Styles.getFont(tzCharacterStyle)
         if font is not None:
             tzChoice.SetFont(font)
 
