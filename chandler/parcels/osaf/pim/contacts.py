@@ -168,17 +168,6 @@ class Contact(items.ContentItem):
         @return: A Contact
         """
 
-        """ @@@MOR, convert this section to use Query; I tried briefly but
-        wasn't successful, and it's just using KindQuery right now:
-
-        query = Query.Query(view, parent=view.findPath("//userdata"), queryString="") # @@@MOR Move this to a singleton
-
-        queryString = "for i in '//parcels/osaf/pim/contacts/Contact' where i.emailAddress == $0"
-        query.args = { 0 : address }
-        query.execute()
-        for item in query:
-        """
-
         for item in cls.iterItems(view):
             if item.emailAddress == address:
                 return item # Just return the first match

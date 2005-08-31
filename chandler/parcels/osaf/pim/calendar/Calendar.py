@@ -8,7 +8,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim.calendar"
 
 import application
-import repository.query.Query as Query
 
 from application import schema
 from osaf.pim.contacts import Contact
@@ -1311,15 +1310,6 @@ class Location(ContentItem):
         # get all Location objects whose displayName match the param
         its = Location.iterItems(view, exact=True)
         locQuery = [ i for i in its if i.displayName == locationName ]
-
-##         locQuery = view.findPath('//Queries/calendarLocationQuery')
-##         if locQuery is None:
-##             queryString = u'for i in "//parcels/osaf/pim/calendar/Location" \
-##                       where i.displayName == $0'
-##             p = view.findPath('//Queries')
-##             k = view.findPath('//Schema/Core/Query')
-##             locQuery = Query.Query ('calendarLocationQuery', p, k, queryString)
-##         locQuery.args["$0"] = ( locationName, )
 
         # return the first match found, if any
         for firstSpot in locQuery:

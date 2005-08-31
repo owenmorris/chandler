@@ -21,7 +21,6 @@ from application import schema
 import repository.item.Item as Item
 import items, notes
 import application.Globals as Globals
-import repository.query.Query as Query
 import chandlerdb.util.uuid as UUID
 import email.Utils as Utils
 import re as re
@@ -1006,28 +1005,16 @@ class EmailAddress(items.ContentItem):
         # @@@DLD - switch on the better queries
         # Need to override compare operators to use emailAddressesAreEqual, 
         #  deal with name=='' cases, name case sensitivity, etc
-        useBetterQuery = False
 
-        if useBetterQuery:
-
-            # get all addresses whose emailAddress or fullName match the param
-            queryString = u'for i in "//parcels/osaf/pim/mail/EmailAddress" \
-                          where i.emailAddress =="$0" or i.fullName =="$1"'
-            addrQuery = Query.Query(view.repository, queryString)
-            addrQuery.args = [ address, name ]
-            addresses = addrQuery
-
-        else:
-            # old slow query method
-            addresses = []
-            for candidate in EmailAddress.iterItems(view):
-                if isValidAddress:
-                    if cls.emailAddressesAreEqual(candidate.emailAddress, address):
-                        # found an existing address!
-                        addresses.append(candidate)
-                elif name != '' and name == candidate.fullName:
-                    # full name match
+        addresses = []
+        for candidate in EmailAddress.iterItems(view):
+            if isValidAddress:
+                if cls.emailAddressesAreEqual(candidate.emailAddress, address):
+                    # found an existing address!
                     addresses.append(candidate)
+            elif name != '' and name == candidate.fullName:
+                # full name match
+                addresses.append(candidate)
 
         # process the result(s)
         # Hope for a match of both name and address
