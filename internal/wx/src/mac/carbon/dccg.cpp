@@ -309,16 +309,6 @@ void wxMacCGContext::SetNativeContext( CGContextRef cg )
 
 #pragma mark -
 
-#define WXMACCG_DRAWPATHPENBRUSHSAFE(ctxRef,drawmode) \
-if (ctxRef != NULL) \
-{ \
-    CGContextSaveGState( ctxRef ); \
-    mctx->SetBrush( m_brush ); \
-    mctx->SetPen( m_pen ); \
-    CGContextDrawPath( ctxRef, drawmode ); \
-    CGContextRestoreGState( ctxRef ); \
-}
-
 #define _NEW_GC_DASHES_
 #define _NEW_GC_SUPPORT_
 
@@ -1385,7 +1375,7 @@ void  wxDC::DoDrawArc( wxCoord x1, wxCoord y1,
     CGContextRef ctx = mctx->GetNativeContext() ;
     AddEllipticArcToPath( ctx , CGPointMake( xxc , yyc ) , rad , rad , alpha1 , alpha2 ) ;
 
-    WXMACCG_DRAWPATHPENBRUSHSAFE( ctx , mctx->GetDrawingMode() ) ;
+    CGContextDrawPath( ctx , mctx->GetDrawingMode() ) ;
 }
 
 void  wxDC::DoDrawEllipticArc( wxCoord x, wxCoord y, wxCoord w, wxCoord h,
@@ -1412,7 +1402,7 @@ void  wxDC::DoDrawEllipticArc( wxCoord x, wxCoord y, wxCoord w, wxCoord h,
     CGContextRef ctx = mctx->GetNativeContext() ;
     AddEllipticArcToPath( ctx  , CGPointMake( xx + ww / 2 , yy + hh / 2 ) , ww / 2 , hh / 2 , sa , angle) ;
 
-    WXMACCG_DRAWPATHPENBRUSHSAFE( ctx , mctx->GetDrawingMode() ) ;
+    CGContextDrawPath( ctx , mctx->GetDrawingMode() ) ;
 }
 
 void  wxDC::DoDrawPoint( wxCoord x, wxCoord y )
@@ -1543,7 +1533,7 @@ void  wxDC::DoDrawRoundedRectangle(wxCoord x, wxCoord y,
     CGContextRef ctx = mctx->GetNativeContext() ;
     AddRoundedRectToPath( ctx  , CGRectMake( xx , yy , ww , hh ) , 16 ,16  ) ;
 
-    WXMACCG_DRAWPATHPENBRUSHSAFE( ctx , mctx->GetDrawingMode() ) ;
+    CGContextDrawPath( ctx , mctx->GetDrawingMode() ) ;
 }
 
 void  wxDC::DoDrawEllipse(wxCoord x, wxCoord y, wxCoord width, wxCoord height)
@@ -1591,7 +1581,7 @@ void  wxDC::DoDrawEllipse(wxCoord x, wxCoord y, wxCoord width, wxCoord height)
         AddEllipticArcToPath( ctx , CGPointMake( xx + ww / 2 , yy + hh / 2 ) , ww / 2 , hh / 2 , 0 , 360) ;
     }
 
-    WXMACCG_DRAWPATHPENBRUSHSAFE( ctx , mctx->GetDrawingMode() ) ;
+    CGContextDrawPath( ctx , mctx->GetDrawingMode() ) ;
 }
 
 bool  wxDC::CanDrawBitmap(void) const
