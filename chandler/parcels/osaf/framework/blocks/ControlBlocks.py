@@ -1700,7 +1700,7 @@ class AEBlock(BoxContainer):
         copying = schema.Cloud(byRef=[characterStyle, presentationStyle])
     )
     
-    def getItem(self): return self.contents
+    def getItem(self): return getattr(self, 'contents', None)
     def setItem(self, value): self.contents = value
     item = property(getItem, setItem, 
                     doc="Safely access the selected item (or None)")
