@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewMail.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewMail")
-mail = QAUITestAppLib.UITestItem(__view__, "MailMessage", logger)
+mail = QAUITestAppLib.UITestItem(app_ns().itsView, "MailMessage", logger)
 
 #action
 mail.logger.Start("Setting attributes of message")

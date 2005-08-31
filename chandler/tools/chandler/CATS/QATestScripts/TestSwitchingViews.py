@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestSwitchingViews.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestSwitchingViews")
-testView = QAUITestAppLib.UITestView(__view__, logger)
+testView = QAUITestAppLib.UITestView(app_ns().itsView, logger)
 
 #action
 #switch to calendar view

@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewNote.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewNote")
-note = QAUITestAppLib.UITestItem(__view__, "Note", logger)
+note = QAUITestAppLib.UITestItem(app_ns().itsView, "Note", logger)
 
 #action
 note.logger.Start("Setting the note attributes")

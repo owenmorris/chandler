@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewTask.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewTask")
-task = QAUITestAppLib.UITestItem(__view__, "Task", logger)
+task = QAUITestAppLib.UITestItem(app_ns().itsView, "Task", logger)
 
 #action
 task.logger.Start("Setting Task attributes")

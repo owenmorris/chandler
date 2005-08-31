@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewEvent.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewEvent")
-event = QAUITestAppLib.UITestItem(__view__, "Event", logger)
+event = QAUITestAppLib.UITestItem(app_ns().itsView, "Event", logger)
 
 #action
 event.logger.Start("setting calendar attributes")

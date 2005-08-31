@@ -10,7 +10,7 @@ if not os.path.exists(filePath):
 fileName = "TestCreateAccounts.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestCreateAccounts")
 logger.Start("Account Preferences Dialog")
-ap = QAUITestAppLib.UITestAccounts(__view__, logger)
+ap = QAUITestAppLib.UITestAccounts(app_ns().itsView, logger)
 
 # action
 ap.Open() # first, open the accounts dialog window
