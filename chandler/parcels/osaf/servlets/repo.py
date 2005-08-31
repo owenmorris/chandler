@@ -321,8 +321,6 @@ def _RenderNode(repoView, node, depth=1):
         if key == "":
             continue
         if node[key].has_key(""):
-            # for d in range(depth):
-            #     result += "&nbsp;&nbsp;&nbsp;"
             item = node[key][""]
             output.append("<a href=%s>%s</a>" % (toLink(item.itsPath), 
              item.itsName))
@@ -335,8 +333,6 @@ def _RenderNode(repoView, node, depth=1):
             continue
         if not node[key].has_key(""):
             result += "<ul>" 
-           # for d in range(depth):
-            #     result += "&nbsp;&nbsp;&nbsp;"
             result += "<li>"
             result += "<b>%s</b>" % key
             result += _RenderNode(repoView, node[key], depth+1)
@@ -517,7 +513,7 @@ def RenderKindQuery(repoView, item):
     output = []
     try:
         items = []
-        for i in item.iterItems():
+        for i in item.iterItems(recursive=True):
             items.append(i)
         items.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
         for i in items:
