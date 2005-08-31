@@ -25,6 +25,8 @@ def installParcel(parcel, oldVersion=None):
 
     # Items created in osaf.app (this parcel):
 
+    MakeCollections(parcel)
+
     startup.PeriodicTask.update(parcel, "FeedUpdateTask",
         invoke="feeds.FeedUpdateTaskClass",
         run_at_startup=True,
@@ -102,12 +104,6 @@ def installParcel(parcel, oldVersion=None):
         replyToAddress=testReply,
         defaultSMTPAccount=testSmtp,
         isActive=False
-    )
-
-
-    pim.ListCollection.update(parcel, 'TrashCollection',
-        displayName=u'Trash',
-        renameable=False
     )
 
     osafDev = contacts.Contact.update(parcel, 'OSAFContact',
@@ -201,4 +197,54 @@ The Chandler Team"""
             os.path.join(os.path.dirname(__file__),
                          "StartupTest.py"))
     )
+
+
+def MakeCollections(parcel):
+    
+    TrashCollection = \
+        pim.ListCollection.update(parcel, 'TrashCollection',
+            displayName=_('Trash'),
+            renameable=False
+        )
+    
+    notes = \
+        pim.KindCollection.update(parcel, 'notes')
+    # workaround bug 3892
+    notes.kind = pim.Note.getKind(parcel.itsView)
+    notes.recursive=True
+    
+    events = \
+        pim.KindCollection.update(parcel, 'events')
+    # workaround bug 3892
+    events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
+    events.recursive=True
+                                  
+    generatedEvents = \
+        pim.FilteredCollection.update(parcel, 'generatedEvents',
+            source=events,
+            filterExpression='getattr(item, \'isGenerated\', True)',
+            filterAttributes='isGenerated')
+
+    notesMinusGeneratedEvents = \
+        pim.DifferenceCollection.update(parcel, 'notesMinusGeneratedEvents',
+            sources=[notes, generatedEvents])
+    
+    allSource = \
+        pim.DifferenceCollection.update(parcel, 'allSource',
+            sources=[notesMinusGeneratedEvents, TrashCollection])
+
+    allExclusions = \
+        pim.ListCollection.update(parcel, 'allExclusions')
+
+    allSourceMinusAllExclusions = \
+        pim.DifferenceCollection.update(parcel, 'allSourceMinusAllExclusions',
+                                        sources=[allSource, allExclusions])
+    
+    allInclusions = \
+        pim.ListCollection.update(parcel, 'allInclusions')
+    
+    pim.InclusionExclusionCollection.update(parcel, 'allCollection',
+        displayName=_('All'),
+        renameable=False,
+        sources=[allSourceMinusAllExclusions, allInclusions])
 

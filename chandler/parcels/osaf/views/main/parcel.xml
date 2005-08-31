@@ -57,13 +57,6 @@
   </ContextMenuItem>
 
   <!--
-    ApplicationBar
-  -->
-
-
-
-
-  <!--
     Odds and ends refered to by the user interface
   -->
   <Timer itsName="ReminderTimer"
@@ -77,7 +70,7 @@
   <contentModel:FilteredCollection itsName="ReminderItems">
     <displayName>ReminderItems</displayName>
     <indexName value="reminderTime"/>
-    <source itemref="doc:events"/>
+    <source itemref="app:events"/>
     <filterExpression>item.hasLocalAttributeValue('reminderTime') == True</filterExpression>
     <filterAttributes>reminderTime</filterAttributes>
   </contentModel:FilteredCollection>
@@ -86,56 +79,11 @@
     Collections
   -->
   <contentModel:ListCollection itsName="sidebarItemCollection">
-    <refCollection itemref="doc:allCollection"/>
+    <refCollection itemref="app:allCollection"/>
     <refCollection itemref="doc:inCollection"/>
     <refCollection itemref="doc:outCollection"/>
     <refCollection itemref="app:TrashCollection"/>
   </contentModel:ListCollection>
-
-  <contentModel:KindCollection itsName="notes">
-    <kind itemref="contentModel:Note"/>
-    <recursive>True</recursive>
-  </contentModel:KindCollection>
-
-  <contentModel:KindCollection itsName="events">
-    <kind itemref="calendarModel:CalendarEventMixin"/>
-    <recursive>True</recursive>
-  </contentModel:KindCollection>
-
-  <contentModel:FilteredCollection itsName="generatedEvents">
-    <source itemref="doc:events"/>
-    <filterExpression>getattr(item, 'isGenerated', False)</filterExpression>
-    <filterAttributes>isGenerated</filterAttributes>
-  </contentModel:FilteredCollection>
-
-  <contentModel:DifferenceCollection itsName="notesMinusGeneratedEvents">
-    <sources itemref="doc:notes"/>
-    <sources itemref="doc:generatedEvents"/>
-  </contentModel:DifferenceCollection>
-
-  <contentModel:DifferenceCollection itsName="allSource">
-    <sources itemref="doc:notesMinusGeneratedEvents"/>
-    <sources itemref="app:TrashCollection"/>
-  </contentModel:DifferenceCollection>
-
-  <contentModel:ListCollection itsName="allExclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:DifferenceCollection itsName="allSourceMinusAllExclusions">
-    <sources itemref="doc:allSource"/>
-    <sources itemref="doc:allExclusions"/>
-  </contentModel:DifferenceCollection>
-
-  <contentModel:ListCollection itsName="allInclusions">
-  </contentModel:ListCollection>
-
-  <contentModel:InclusionExclusionCollection itsName="allCollection">
-    <sources itemref="doc:allSourceMinusAllExclusions"/>
-    <sources itemref="doc:allInclusions"/>
-    <displayName>All</displayName>
-    <renameable>False</renameable>
-  </contentModel:InclusionExclusionCollection>
-
 
   <contentModel:KindCollection itsName="mail">
     <kind itemref="mail:MailMessageMixin"/>
@@ -197,23 +145,23 @@
   
   <doc:SidebarBlock itsName="Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
-    <selectedItemToView itemref="doc:allCollection"/>
+    <selectedItemToView itemref="app:allCollection"/>
   </doc:SidebarBlock>
 
   <calendar:PreviewArea itsName="PreviewArea">
     <blockName>PreviewArea</blockName>
-    <contents itemref="doc:allCollection"/>
+    <contents itemref="app:allCollection"/>
   </calendar:PreviewArea>
 
   <calendar:MiniCalendar itsName="MiniCalendar">
     <blockName>MiniCalendar</blockName>
-    <contents itemref="doc:allCollection"/>    
+    <contents itemref="app:allCollection"/>    
   </calendar:MiniCalendar>
 
   <TrunkParentBlock itsName="SidebarTPB">
     <blockName value="SidebarTPB"/>
-    <TPBDetailItem itemref="doc:allCollection"/>
-    <TPBSelectedItem itemref="doc:allCollection"/>
+    <TPBDetailItem itemref="app:allCollection"/>
+    <TPBSelectedItem itemref="app:allCollection"/>
   </TrunkParentBlock>
 
 
@@ -227,7 +175,7 @@
   </SplitterWindow>
 
   <Table itsName="TableSummaryView">
-    <contents itemref="doc:allCollection"/>
+    <contents itemref="app:allCollection"/>
     <blockName>TableSummaryView</blockName>
     <characterStyle itemref="SummaryRowStyle"/>
     <headerCharacterStyle itemref="SummaryHeaderStyle"/>
@@ -324,14 +272,14 @@
         <blockName value="AllDayEventsCanvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/> <!-- splitterwindows, unlike boxcontainers, ignore this -->
-        <contents itemref="doc:allCollection"/>
+        <contents itemref="app:allCollection"/>
       </calendar:AllDayEventsCanvas>
   
       <calendar:TimedEventsCanvas itsName="TimedEvents">
         <blockName value="TimedEventsCanvas"/>
         <calendarContainer itemref="doc:CalendarSummaryView"/>
         <stretchFactor value="0"/> <!-- ignored -->
-        <contents itemref="doc:allCollection"/>
+        <contents itemref="app:allCollection"/>
       </calendar:TimedEventsCanvas>
 <!-- end main calendar area -->
 
@@ -399,8 +347,8 @@
 
   <TrunkParentBlock itsName="CPIATestSidebarDetailView">
     <blockName>CPIATestSidebarDetailView</blockName>
-    <TPBDetailItem itemref="doc:allCollection"/>
-    <TPBSelectedItem itemref="doc:allCollection"/>
+    <TPBDetailItem itemref="app:allCollection"/>
+    <TPBSelectedItem itemref="app:allCollection"/>
     <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegateInstance"/>
   </TrunkParentBlock>
 
