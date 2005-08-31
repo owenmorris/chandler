@@ -75,7 +75,7 @@ class Indexed(object):
         index = self._createIndex(indexType, **kwds)
         self._indexes[indexName] = index
 
-        if not self._getView().isLoading():
+        if not (self._getView().isLoading() or kwds.get('loading', False)):
             self.fillIndex(index)
             self._setDirty(True) # noMonitors=True
 

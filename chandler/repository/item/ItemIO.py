@@ -30,7 +30,10 @@ class ItemWriter(object):
         size += self._name(item._name)
 
         itemClass = type(item)
-        if withSchema or kind is None or kind.getItemClass() is not itemClass:
+        if withSchema or kind is None:
+            size += self._className(itemClass.__module__, itemClass.__name__)
+        elif not (kind.getItemClass() is itemClass or
+                  kind._values._isTransient('classes')): # generated class
             size += self._className(itemClass.__module__, itemClass.__name__)
         else:
             size += self._className(None, None)
