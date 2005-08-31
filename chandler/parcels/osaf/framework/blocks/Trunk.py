@@ -87,7 +87,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
             TPBDetailItem = None
-            newContents = None
+            newContents = False
         else:
             """
               Seems like we should always mark new views with an event boundary
@@ -203,5 +203,7 @@ class TrunkDelegate(schema.Item):
         """ 
         Given a trunk, item and keyItem, return the contents for the trunk.
         """
+        if isinstance (item, Block.Block):
+            return None
         return item
 

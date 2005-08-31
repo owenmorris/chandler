@@ -34,7 +34,7 @@ class Block(schema.Item):
     # @@@BJS: Should we show borders for debugging?
     showBorders = False
 
-    contents = schema.One(ContentItem, otherName="contentsOwner")
+    contents = schema.One(ContentItem, otherName="contentsOwner", defaultValue=None)
 
     viewAttribute = schema.One(schema.String)
 
@@ -223,9 +223,8 @@ class Block(schema.Item):
                   For those blocks with Collection contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                contents = getattr (self, 'contents', None)
-                if isinstance (contents, AbstractCollection):
-                    contents.subscribers.add (self)
+                if isinstance (self.contents, AbstractCollection):
+                    self.contents.subscribers.add (self)
                 """
                   Add events to name lookup dictionary.
                 """
@@ -316,9 +315,8 @@ class Block(schema.Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        contents = getattr (self, 'contents', None)
-        if isinstance (contents, AbstractCollection):
-            contents.subscribers.remove (self)
+        if isinstance (self.contents, AbstractCollection):
+            self.contents.subscribers.remove (self)
 
 
         eventsForNamedLookup = self.eventsForNamedLookup
