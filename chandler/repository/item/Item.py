@@ -635,8 +635,12 @@ class Item(CItem):
         Remove a value for a Chandler attribute.
 
         Calling this method instead of using python's C{del} operator is not
-        necessary as python calls this method, via
-        L{__delattr__}.
+        necessary as python calls this method via the corresponding
+        attribute descriptor.
+
+        This method only deletes a local value. A value inherited via
+        C{defaultValue} or C{inheritFrom} cannot be deleted and causes this
+        method to do nothing.
 
         @param name: the name of the attribute
         @type name: a string
@@ -658,22 +662,29 @@ class Item(CItem):
                         item = item.getAttributeValue(names[i])
 
                     return item.removeAttributeValue(names[-1])
-                
+
+                if hasattr(self, name): # inherited value
+                    return
+
                 raise NoLocalValueForAttributeError, (self, name)
 
         if _attrDict is self._values:
-            try:
+            if name in _attrDict:
                 del _attrDict[name]
-            except KeyError:
+                self.setDirty(Item.VDIRTY, name, _attrDict, True)
+            elif hasattr(self, name):   # inherited value
+                return
+            else:
                 raise NoLocalValueForAttributeError, (self, name)
-            self.setDirty(Item.VDIRTY, name, _attrDict, True)
         else:
-            try:
+            if name in _attrDict:
                 value = _attrDict._getRef(name)
-            except KeyError:
+                otherName = self._kind.getOtherName(name, _attrID, self)
+                _attrDict._removeValue(name, value, otherName)
+            elif hasattr(self, name):   # inherited value
+                return
+            else:
                 raise NoLocalValueForAttributeError, (self, name)
-            otherName = self._kind.getOtherName(name, _attrID, self)
-            _attrDict._removeValue(name, value, otherName)
 
         if hasattr(type(self), 'onValueChanged'):
             self.itsView._notifyChange(self.onValueChanged, name)
