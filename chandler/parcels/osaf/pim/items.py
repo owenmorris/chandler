@@ -149,7 +149,8 @@ class ContentItem(schema.Item):
     # The 'otherName' settings should be removed once the other side of these
     # links exist in the Python schema.
 
-    shares = schema.Sequence(initialValue=(), otherName="contents") # share
+    shares = schema.Sequence(initialValue=[], otherName="contents") # share
+    sharedIn = schema.Sequence(initialValue=[], otherName="items") # share
     viewContainer = schema.Sequence(otherName="views")  # ViewContainer
     TPBDetailItemOwner = schema.Sequence(otherName="TPBDetailItem") # Block
     TPBSelectedItemOwner = schema.Sequence(otherName="TPBSelectedItem") # Block
@@ -517,13 +518,11 @@ class ContentItem(schema.Item):
         """
 
         state = ContentItem.UNSHARED
-        if hasattr(self, 'queries'):
-            for collection in self.queries:
-                if hasattr(collection, 'shares'):
-                    for share in collection.shares:
-                        state = ContentItem.READONLY
-                        if share.mode in ('put', 'both'):
-                            return ContentItem.READWRITE
+        if hasattr(self, 'sharedIn'):
+            for share in self.sharedIn:
+                state = ContentItem.READONLY
+                if share.mode in ('put', 'both'):
+                    return ContentItem.READWRITE
 
         return state
 
@@ -551,15 +550,14 @@ class ContentItem(schema.Item):
         # real attribute.
         if attribute == 'bodyString':
             attribute = 'body'
-            
-        for collection in self.queries:
-            for share in collection.shares:
-                if share.sharer is not me:          # inbound share
-                    if share.mode in ('put', 'both'):   # writable share
-                        return True
-                    else:                               # read-only share
-                        if attribute in share.getSharedAttributes(self):
-                            isSharedInAnyReadOnlyShares = True
+
+        for share in self.sharedIn:
+            if share.sharer is not me:          # inbound share
+                if share.mode in ('put', 'both'):   # writable share
+                    return True
+                else:                               # read-only share
+                    if attribute in share.getSharedAttributes(self):
+                        isSharedInAnyReadOnlyShares = True
 
         if isSharedInAnyReadOnlyShares:
             return False

@@ -70,6 +70,9 @@ class Share(items.ContentItem):
 
     contents = schema.One(items.ContentItem, otherName = 'shares')
 
+    items = schema.Sequence(items.ContentItem, initialValue=[],
+        otherName = 'sharedIn')
+
     conduit = schema.One('ShareConduit', inverse = 'share')
 
     format = schema.One('ImportExportFormat', inverse = 'share')
@@ -349,6 +352,9 @@ class ShareConduit(items.ContentItem):
                 logger.info("...done, data: %s, version: %d" %
                  (data, itemVersion))
 
+            if item not in self.share.items:
+                self.share.items.append(item)
+
         try:
             del self.resourceList[self._getItemPath(item)]
         except:
@@ -442,6 +448,12 @@ class ShareConduit(items.ContentItem):
                 # get removed from the server:
                 for (itemPath, value) in sharingSelf.resourceList.iteritems():
                     sharingSelf._deleteItem(itemPath)
+
+                    uuid = sharingSelf.manifest[itemPath]['uuid']
+                    item = sharingSelf.itsView.findUUID(uuid)
+                    if item and item in sharingSelf.share.items:
+                        sharingSelf.share.items.remove(item)
+
                     sharingSelf.__removeFromManifest(itemPath)
 
 
@@ -491,6 +503,10 @@ class ShareConduit(items.ContentItem):
                 self.__addToManifest(itemPath, item, data)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
                  (itemPath, item.getItemDisplayName(), item, data))
+
+                if item not in self.share.items:
+                    self.share.items.append(item)
+
                 return item
 
             logger.info("...NOT able to import '%s'" % itemPath)
@@ -599,6 +615,7 @@ class ShareConduit(items.ContentItem):
                     # the collection?  If so, then this 'if' isn't needed:
                     if not item in sharingSelf.share.contents:
                         sharingSelf.share.contents.add(item)
+
                 sharingSelf.__setSeen(itemPath)
 
             # When first importing a collection, name it after the share
@@ -633,6 +650,7 @@ class ShareConduit(items.ContentItem):
                     if removeLocally:
                         logger.info("...removing %s from collection" % item)
                         sharingSelf.share.contents.remove(item)
+                        sharingSelf.share.items.remove(item)
 
                     # In either case, remove from manifest
                     toRemove.append(unseenPath)
