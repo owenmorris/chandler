@@ -6,7 +6,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, threading, time, logging, cStringIO
 
 from new import classobj
-from i18n import I18nManager
 import wx
 import Globals
 from repository.persistence.DBRepository import DBRepository
@@ -16,6 +15,7 @@ from repository.persistence.RepositoryError import \
 import Utility
 import schema
 from i18n import OSAFMessageFactory as _
+import i18n
 
 logger = logging.getLogger(__name__)
 
@@ -177,9 +177,9 @@ class wxApplication (wx.App):
             """If a locale is passed in on the command line
                we set it as the root in the localeset."""
 
-            I18nManager.setLocaleSet([Globals.options.locale])
+            i18n.setLocaleSet([Globals.options.locale])
         else:
-            I18nManager.discoverLocaleSet()
+            i18n.discoverLocaleSet()
 
         """
           Crypto initialization
@@ -396,10 +396,10 @@ class wxApplication (wx.App):
 
         root, extension = os.path.splitext (name)
 
-        file = I18nManager.getImage(root + "-" + sys.platform + extension)
+        file = i18n.getImage(root + "-" + sys.platform + extension)
 
         if file is None:
-            file = I18nManager.getImage(name)
+            file = i18n.getImage(name)
 
             if file is None:
                 return None

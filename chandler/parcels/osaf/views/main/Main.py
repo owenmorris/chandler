@@ -36,8 +36,8 @@ import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as Scripting
 from osaf import webserver
 from osaf.app import Trash
-from i18n import I18nManager
 from i18n import OSAFMessageFactory as _
+import i18n
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class MainView(View):
         """
         import version
         html = ''
-        for line in I18nManager.getHTML('welcome.html'):
+        for line in i18n.getHTML('welcome.html'):
             if line.find('@@buildid@@') >= 0:
                 line = "<p>Build identifier: '%s'</p>" % version.build
             html += line
