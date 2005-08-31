@@ -32,6 +32,7 @@ TO DO:
 """
 
 OSAF_DOMAIN = "osaf"
+__all__ = ["I18nManager"]
 
 class I18nManager(object):
 
@@ -41,6 +42,8 @@ class I18nManager(object):
     AUDIO_PATH = u"audio"
     HTML_PATH = u"html"
     #HELP_PATH = u"help"
+
+    __slots__ = ['_localeSet', '_cache']
 
     def __init__(self):
         super(I18nManager, self).__init__()

@@ -3,8 +3,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
-
 """Contains base classes utilized by the Mail Service concrete classes"""
 #twisted imports
 import twisted.internet.reactor as reactor
@@ -13,21 +11,26 @@ import twisted.internet.error as error
 import twisted.protocols.policies as policies
 import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
+from twisted.internet import threads
 
 #python imports
 import logging
 
 #Chandler imports
-import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
+from repository.persistence.RepositoryView import RepositoryView
 import osaf.pim.mail as Mail
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports
 import errors
 import constants
-import utils
+from utils import *
+
+"""Call RepositoryView.prune(1000) after commit when the number of
+   downloaded messages exceeds PRUNE_MIN"""
+PRUNE_MIN = 25
 
 
 class AbstractDownloadClientFactory(protocol.ClientFactory):
@@ -105,8 +108,7 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.connectionLost = True
 
         if self.retries < self.sendFinished <= 0:
-            logging.warn("**Connection Lost** Retrying \
-                          server. Retry: %s" % -self.retries)
+            trace("**Connection Lost** Retrying server. Retry: %s" % -self.retries)
 
             connector.connect()
             self.retries += 1
@@ -118,10 +120,11 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
             self.delegate.catchErrors(err)
 
 
-class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager):
+class AbstractDownloadClient(object):
     """ Base class for Chandler download transports (IMAP, POP, etc.)
         Encapsulates logic for interactions between Twisted protocols (POP, IMAP)
         and Chandler protocol clients"""
+
 
     """Subclasses overide these constants"""
     accountType = Mail.AccountBase
@@ -138,8 +141,9 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         @return: C{None}
         """
         assert isinstance(account, self.accountType)
+        assert isinstance(view, RepositoryView)
 
-        super(AbstractDownloadClient, self).__init__(view.repository)
+        self.view = view
 
         """These values exist for life of client"""
         self.accountUUID = account.itsUUID
@@ -152,6 +156,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.proto = None
         self.lastUID = 0
         self.totalDownloaded = 0
+        self.pruneCounter = 0
         self.pending = []
         self.downloadMax = 0
 
@@ -159,17 +164,14 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.numDownloaded = 0
         self.numToDownload = 0
 
-
     def getMail(self):
         """Retrieves mail from a download protocol (POP, IMAP)"""
         if __debug__:
-            self.printCurrentView("getMail")
+            trace("getMail")
 
         """Move code execution path from current thread
            to Reactor Asynch thread"""
-
-        #XXX: Ask Phillip about how to get rid of boiler plate
-        reactor.callFromThread(self.execInView, self._getMail)
+        reactor.callFromThread(self._getMail)
 
 
     def testAccountSettings(self):
@@ -177,40 +179,23 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
            Raises an error if unable to establish or communicate properly
            with the a server.
         """
-
         if __debug__:
-            self.printCurrentView("testAccountSettings")
+            trace("testAccountSettings")
 
         self.testing = True
 
-        reactor.callFromThread(self.execInView, self._getMail)
-
-    if __debug__:
-        def printCurrentView(self, viewStr = None):
-            """Prints the current view as well the clientType and
-               viewStr to the log.
-
-               @type viewStr: C{str}, C{unicode}, or None
-            """
-
-            if viewStr is None:
-                str = self.clientType
-            else:
-                str = "%s.%s" % (self.clientType, viewStr)
-
-            super(AbstractDownloadClient, self).printCurrentView(str)
+        reactor.callFromThread(self._getMail)
 
     def _getMail(self):
         if __debug__:
-            self.printCurrentView("_getMail")
+            trace("_getMail")
 
         if self.currentlyDownloading:
             if self.testing:
-                self.log.warn("%s currently testing account \
-                               settings" % self.clientType)
+                trace("%s currently testing account \ settings" % self.clientType)
 
             else:
-                self.log.warn("%s currently downloading mail" % self.clientType)
+                trace("%s currently downloading mail" % self.clientType)
 
             return
 
@@ -253,11 +238,12 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         @return: C{None}
         """
-        if __debug__:
-            self.printCurrentView("catchErrors")
-
         if isinstance(err, failure.Failure):
             err = err.value
+
+        if __debug__:
+            trace("catchErrors")
+
 
         errorType   = str(err.__class__)
         errorString = err.__str__()
@@ -278,11 +264,9 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             # certificate. The main thread will then initiate a retry
             # when the new certificate has been added.
             if err.args[0] in ssl.unknown_issuer:
-                utils.displaySSLCertDialog(err.untrustedCertificates[0],
-                                           reconnect)
+                displaySSLCertDialog(err.untrustedCertificates[0], reconnect)
             else:
-                utils.displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
-                                                  err.args[0],
+                displayIgnoreSSLErrorDialog(err.untrustedCertificates[0], err.args[0],
                                                   reconnect)
 
             self._actionCompleted()
@@ -292,20 +276,22 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to continue even though
             # the certificate identifies a different host.
-            utils.displayIgnoreSSLErrorDialog(err.pem,
-                                              errorString,#XXX intl
+            displayIgnoreSSLErrorDialog(err.pem, errorString,#XXX intl
                                               reconnect)
 
             self._actionCompleted()
             return
 
+
         if self.testing:
-            utils.alert(constants.TEST_ERROR, \
-                        self.account.displayName, errorString)
+            alert(constants.TEST_ERROR, self.account.displayName, errorString)
         else:
-            utils.alertMailError(constants.DOWNLOAD_ERROR, self.account, errorString)
+            alertMailError(constants.DOWNLOAD_ERROR, self.account, errorString)
 
         self._actionCompleted()
+
+        if __debug__:
+            trace(err)
 
 
     def loginClient(self):
@@ -315,9 +301,13 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
 
         @return: C{None}
         """
-        self.execInView(self._loginClient)
+        return self._loginClient()
 
     def _loginClient(self):
+        """Overide this method to place any protocol specific
+           logic to be handle logging in to client
+        """
+
         raise NotImplementedError()
 
     def _beforeDisconnect(self):
@@ -338,7 +328,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """
 
         if __debug__:
-            self.printCurrentView("_disconnect")
+            trace("_disconnect")
 
         self.factory.sendFinished = 1
 
@@ -354,14 +344,48 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
            client references
         """
         if __debug__:
-            self.printCurrentView("_commitDownloadedMail")
+            trace("_commitDownloadedMail")
 
-        self.view.commit()
-        self.view.prune(1000)
+            def _tryCommit():
+                try:
+                    self.view.commit()
+
+                    """Prune the view to free up memory if the number downloaded is equal
+                       to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
+                       download maximum before a commit it means that all messages have been downloaded
+                       from the server in which case we prune to free every ounce of memory we can
+                       get :)"""
+
+                    if self.pruneCounter >= PRUNE_MIN or \
+                       self.numDownloaded < self.downloadMax:
+                        self.view.prune(1000)
+                        if __debug__:
+                            trace("Prunning %s messages" % self.pruneCounter)
+
+                        """reset the counter"""
+                        self.pruneCounter = 0
+                except RepositoryError, e:
+                    #Place holder for commit rollback
+                    raise e
+                except VersionConflictError, e1:
+                    #Place holder for commit rollback
+                    raise(e1)
+
+        d = threads.deferToThread(_tryCommit)
+        #XXX: May want to handle the case where the Repository fails
+        #     to commit. For example, role back transaction or display
+        #     Repository error to the user
+        d.addCallbacks(lambda _: self._postCommit(), self.catchErrors)
+
+        return d
+
+    def _postCommit(self):
+        if __debug__:
+            trace("_postCommit")
 
         msg = constants.DOWNLOAD_MESSAGES % self.totalDownloaded
 
-        utils.NotifyUIAsync(msg)
+        NotifyUIAsync(msg)
 
         """We have downloaded the last batch of messages if the
            number downloaded is less than the max.
@@ -393,7 +417,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """
 
         if __debug__:
-            self.printCurrentView("_actionCompleted")
+            trace("_actionCompleted")
 
         d = self._beforeDisconnect()
         d.addBoth(self._disconnect)
@@ -405,7 +429,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         """
 
         if __debug__:
-            self.printCurrentView("_resetClient")
+            trace("_resetClient")
 
         """Release the currentlyDownloading lock"""
         self.currentlyDownloading = False
@@ -418,6 +442,7 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
         self.proto           = None
         self.lastUID         = 0
         self.totalDownloaded = 0
+        self.pruneCounter    = 0
         self.pending         = []
         self.downloadMax     = 0
 
@@ -430,5 +455,4 @@ class AbstractDownloadClient(TwistedRepositoryViewManager.RepositoryViewManager)
            threads so the C{UUID} must be used to fetch the 
            account's data
         """
-
         raise NotImplementedError()

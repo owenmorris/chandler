@@ -211,7 +211,7 @@ class DownloadAccountBase(AccountBase):
         schema.Integer,
         displayName = 'Download Max',
         doc = 'The maximum number of messages to download before forcing a repository commit',
-        initialValue = 50,
+        initialValue = 20,
     )
     replyToAddress = schema.One(
         'EmailAddress',

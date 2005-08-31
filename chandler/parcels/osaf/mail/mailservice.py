@@ -11,15 +11,20 @@ import osaf.pim.mail as Mail
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 
-#Chandler Mail Service imports
-import smtp as smtp
-import imap as imap
-import pop as pop
-import errors as errors
+from repository.persistence.RepositoryView import RepositoryView
+
+#Chandler Mail Service import
+from smtp import SMTPClient
+from imap import IMAPClient
+from pop import  POPClient
+from errors import MailException
+from utils import trace
 
 """
 XXX: Not thread safe code
 """
+
+__all__ = ['MailService']
 
 class MailService(object):
     """Central control point for all mail related code.
@@ -35,7 +40,7 @@ class MailService(object):
 
        Example:
           A user wants to send an SMTP message via an C{SMTPAccount}.
-          When the user hits send the mailservice receives a request:
+          When the user hits send the MailService receives a request:
           mailService.getSMTPInstance(smtpAccount)
 
           The MailService looks in its cache to see if
@@ -51,6 +56,8 @@ class MailService(object):
     """
 
     def __init__(self, view):
+        assert isinstance(view, RepositoryView)
+
         self.__view = view
         self.__started = False
 
@@ -61,7 +68,7 @@ class MailService(object):
         self.__clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
 
         if self.__started:
-            raise errors.MailException("MailService is currently started")
+            raise MailException("MailService is currently started")
 
         self.__started = True
 
@@ -124,7 +131,7 @@ class MailService(object):
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = smtp.SMTPClient(self.__view, account)
+        s = SMTPClient(self.__createView(), account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -146,7 +153,7 @@ class MailService(object):
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = imap.IMAPClient(self.__view, account)
+        i = IMAPClient(self.__createView(), account)
         imapInstances[account.itsUUID] = i
 
         return i
@@ -168,7 +175,7 @@ class MailService(object):
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = pop.POPClient(self.__view, account)
+        i = POPClient(self.__createView(), account)
         popInstances[account.itsUUID] = i
 
         return i
@@ -182,12 +189,11 @@ class MailService(object):
             method = Mail.ACCOUNT_TYPES[type].getActiveAccounts
 
         try:
-            #XXX :hat do you do if refresh fails
             self.__view.refresh()
-        except RepositoryError:
-            return
-        except VersionConflictError:
-            return
+        except RepositoryError, e:
+           return trace(e)
+        except VersionConflictError, e1:
+            return trace(e1)
 
         uuidList = []
         delList  = []
@@ -208,5 +214,8 @@ class MailService(object):
             if s > 0:
                 c = s > 1 and "Clients" or "Client"
                 a = s > 1 and "accountUUID's" or "accountUUID"
-                logging.warn("removed %s%s with %s %s" % (type, c, a, delList))
+                trace("removed %s%s with %s %s" % (type, c, a, delList))
+
+    def __createView(self):
+        return self.__view.repository.createView()
 

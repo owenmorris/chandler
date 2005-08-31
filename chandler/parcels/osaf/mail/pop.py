@@ -15,11 +15,13 @@ import osaf.pim.mail as Mail
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports
-import message as message
-import errors as errors
-import constants as constants
-import utils as utils
-import base as base
+import errors
+import constants
+import base
+from utils import *
+from message import *
+
+__all__ = ['POPClient']
 
 """
 1. Will need to just get the basic headers via a
@@ -60,10 +62,10 @@ class _TwistedPOP3Client(pop3.POP3Client):
         """
 
         d = self.capabilities()
-        d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
+        d.addCallbacks(self._getCapabilities, self.delegate.catchErrors)
 
 
-    def __getCapabilities(self, caps):
+    def _getCapabilities(self, caps):
         if self._timedOut:
             """If we have already timed out then gracefully exit the function"""
             return defer.succeed(True)
@@ -77,7 +79,7 @@ class _TwistedPOP3Client(pop3.POP3Client):
 
         else:
             """Remove the STLS from capabilities"""
-            self._capCache = utils.disableTwistedTLS(caps, "STLS")
+            self._capCache = disableTwistedTLS(caps, "STLS")
             self.delegate.loginClient()
 
     def timeoutConnection(self):
@@ -120,7 +122,7 @@ class POPClient(base.AbstractDownloadClient):
            login"""
 
         if __debug__:
-            self.printCurrentView("_loginClient")
+            trace("_loginClient")
 
         assert self.account is not None
 
@@ -132,39 +134,39 @@ class POPClient(base.AbstractDownloadClient):
         d = self.proto.login(username, password)
         #XXX: Can handle the failed login case here and prompt user to re-enter username 
         #     and password
-        d.addCallbacks(self.__statServer, self.catchErrors)
+        d.addCallbacks(self._statServer, self.catchErrors)
         return d
 
 
-    def __statServer(self, result):
+    def _statServer(self, result):
         if __debug__:
-            self.printCurrentView("__statServer")
+            trace("_statServer")
 
         if self.testing:
-            utils.alert(constants.TEST_SUCCESS, self.account.displayName)
+            alert(constants.TEST_SUCCESS, self.account.displayName)
             return self._actionCompleted()
 
-        utils.NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
+        NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
 
         d = self.proto.stat()
-        d.addCallbacks(self.__serverHasMessages, self.catchErrors)
+        d.addCallbacks(self._serverHasMessages, self.catchErrors)
 
 
-    def __serverHasMessages(self, stat):
+    def _serverHasMessages(self, stat):
         if __debug__:
-            self.printCurrentView("_hasMessages")
+            trace("_serverHasMessages")
 
         if stat[0] == 0:
-            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
         d = self.proto.listUID()
-        d.addCallbacks(self.__checkForNewMessages, self.catchErrors)
+        d.addCallbacks(self._checkForNewMessages, self.catchErrors)
 
 
-    def __checkForNewMessages(self, uidList):
+    def _checkForNewMessages(self, uidList):
         if __debug__:
-            self.printCurrentView("__checkForNewMessages")
+            trace("_checkForNewMessages")
 
         total = len(uidList)
 
@@ -175,10 +177,10 @@ class POPClient(base.AbstractDownloadClient):
                 self.pending.append((i, uid))
 
         if len(self.pending) == 0:
-            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
-        self.execInView(self._getNextMessageSet)
+        self._getNextMessageSet()
 
     def _getNextMessageSet(self):
         """Overides base class to add POP specific logic.
@@ -188,7 +190,7 @@ class POPClient(base.AbstractDownloadClient):
            calls actionCompleted() to clean up client resources.
         """
         if __debug__:
-            self.printCurrentView("_getNextMessageSet")
+            trace("_getNextMessageSet")
 
         self.numToDownload = len(self.pending)
 
@@ -201,20 +203,19 @@ class POPClient(base.AbstractDownloadClient):
         msgNum, uid = self.pending.pop(0)
 
         d = self.proto.retrieve(msgNum)
-        d.addCallback(self.execInViewDeferred, self.__retrieveMessage, msgNum, uid)
+        d.addCallback(self._retrieveMessage, msgNum, uid)
         d.addErrback(self.catchErrors)
 
-    def __retrieveMessage(self, msg, msgNum, uid):
+    def _retrieveMessage(self, msg, msgNum, uid):
         if __debug__:
-            self.printCurrentView("retrieveMessage")
+            trace("_retrieveMessage")
 
         messageText = "\n".join(msg)
 
         #XXX: Need a more perforrmant way to do this
         messageObject = email.message_from_string(messageText)
 
-        repMessage = message.messageObjectToKind(self.view,
-                                                 messageObject, messageText)
+        repMessage = messageObjectToKind(self.view, messageObject, messageText)
 
         """Set the message as incoming"""
         repMessage.incomingMessage(self.account, "POP")
@@ -225,6 +226,7 @@ class POPClient(base.AbstractDownloadClient):
         self.account.downloadedMessageUIDS[uid] = "True"
 
         self.numDownloaded += 1
+        self.pruneCounter  += 1
 
         if not self.account.leaveOnServer:
             d = self.proto.delete(msgNum)
@@ -242,15 +244,15 @@ class POPClient(base.AbstractDownloadClient):
             msgNum, uid = self.pending.pop(0)
 
             d.addCallback(lambda _: self.proto.retrieve(msgNum))
-            d.addCallback(self.execInViewDeferred, self.__retrieveMessage, msgNum, uid)
+            d.addCallback(self._retrieveMessage, msgNum, uid)
 
-        return d
+            return d
 
     def _beforeDisconnect(self):
         """Overides base class to send a POP 'QUIT' command
            before disconnecting from the POP server"""
         if __debug__:
-            self.printCurrentView("_beforeDisconnect")
+            trace("_beforeDisconnect")
 
         if self.factory.connectionLost or self.factory.timedOut:
             return defer.succeed(True)

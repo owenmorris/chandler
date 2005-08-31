@@ -5,9 +5,13 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from i18n import OSAFMessageFactory as _
 
+__all__ = ['MailException', 'IMAPException', 'SMTPException', 'POPException']
+
 STR_SSL_CERTIFICATE_ERROR = _("An SSL Communication Error Occurred:\n%s")
 STR_CONNECTION_ERROR = _("Unable to connect to server please try again later")
 STR_TIMEOUT_ERROR = _("Communication with the Server timed out. Please try again later.")
+
+
 
 class MailException(Exception):
     """Base class for all Chandler mail related exceptions"""

@@ -6,13 +6,14 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """ Contains common utility methods shared across the Mail Domain (SMTP, IMAP4, POP3) and message parsing"""
 
 #python imports
-import email as email
+import email 
 import email.Message as Message
 import email.Utils as Utils
 import os
 import logging
 from time import mktime
 from datetime import datetime
+import sys
 
 #Chandler imports
 import application.Globals as Globals
@@ -20,6 +21,28 @@ from repository.util.Lob import Lob
 
 #Chandler Mail Service imports
 import constants as constants
+
+__all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
+           'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
+           'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2882Date', 'createMessageID',
+           'hasValue', 'isString', 'unicodeToText', 'textToUnicode', 'dataToBinary',
+           'binaryToData']
+
+
+log = logging.getLogger("MailService")
+
+def trace(printString):
+    if printString is not None:
+        frame = sys._getframe(1)
+        """Get the package and class name from the frame stack"""
+        caller = frame.f_locals.get('self')
+
+        if caller is not None:
+            """Strip off the package path and trailing '> on new style classes"""
+            caller = str(caller.__class__).split(".")[-1].rstrip("'>")
+            log.warn("[%s] %s " % (caller, printString))
+        else:
+            log.warn("%s " % printString)
 
 class Counter:
     def __init__(self, val=0):

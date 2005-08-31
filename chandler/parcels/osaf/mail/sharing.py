@@ -13,10 +13,10 @@ import osaf.pim.mail as Mail
 import chandlerdb.item.ItemError as ItemError
 
 #Chandler Mail Service imports
-import smtp as smtp
-import constants as constants
-import message as message
-import utils as utils
+import smtp 
+import constants
+import message
+import utils
 
 """
 TO DO:
@@ -42,7 +42,7 @@ def sendInvitation(repository, url, collection, sendToList):
     SMTPInvitationSender(repository, url, collection, sendToList).sendInvitation()
 
 
-class SMTPInvitationSender:
+class SMTPInvitationSender(object):
     """Sends an invitation via SMTP."""
 
     def __init__(self, repository, url, collection, sendToList, account=None):

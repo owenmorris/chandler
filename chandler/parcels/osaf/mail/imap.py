@@ -8,18 +8,21 @@ import twisted.internet.defer as defer
 import twisted.mail.imap4 as imap4
 
 #python imports
-import email as email
+import email
 
 #Chandler imports
 import osaf.pim.mail as Mail
 import crypto.ssl as ssl
 
 #Chandler Mail Service imports
-import message as message
-import errors as errors
-import constants as constants
-import utils as utils
-import base as base
+import message
+import errors
+import constants
+import base
+from utils import *
+from message import *
+
+__all__ = ['IMAPClient']
 
 """
     TODO:
@@ -68,13 +71,13 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
                the server capabilities """
             d = self.getCapabilities()
 
-            d.addCallbacks(self.__getCapabilities, self.delegate.catchErrors)
+            d.addCallbacks(self._getCapabilities, self.delegate.catchErrors)
 
             return d
 
-        self.__getCapabilities(caps)
+        self._getCapabilities(caps)
 
-    def __getCapabilities(self, caps):
+    def _getCapabilities(self, caps):
         if self.factory.useTLS:
             """The Twisted IMAP4Client will check to make sure the server can STARTTLS
                and raise an error if it can not"""
@@ -90,7 +93,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
 
         else:
             """Remove the STARTTLS from capabilities"""
-            self._capCache = utils.disableTwistedTLS(caps)
+            self._capCache = disableTwistedTLS(caps)
             self.delegate.loginClient()
 
     def timeoutConnection(self):
@@ -133,7 +136,7 @@ class IMAPClient(base.AbstractDownloadClient):
            Plain authentication"""
 
         if __debug__:
-            self.printCurrentView("_loginClient")
+            trace("_loginClient")
 
         assert self.account is not None
 
@@ -145,7 +148,7 @@ class IMAPClient(base.AbstractDownloadClient):
         self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
 
         return self.proto.authenticate(password
-                     ).addCallback(self.__selectInbox
+                     ).addCallback(self._selectInbox
                      ).addErrback(self.loginClientInsecure, username, password)
 
 
@@ -170,7 +173,7 @@ class IMAPClient(base.AbstractDownloadClient):
         """
 
         if __debug__:
-            self.printCurrentView("loginClientInsecure")
+            trace("loginClientInsecure")
 
         """There was an error during login"""
         if not isinstance(error.value, imap4.NoSupportedAuthentication):
@@ -178,52 +181,52 @@ class IMAPClient(base.AbstractDownloadClient):
             return
 
         return self.proto.login(username, password
-                          ).addCallbacks(self.__selectInbox, self.catchErrors)
+                          ).addCallbacks(self._selectInbox, self.catchErrors)
 
 
-    def __selectInbox(self, result):
+    def _selectInbox(self, result):
         if __debug__:
-            self.printCurrentView("__selectInbox")
+            trace("_selectInbox")
 
         if self.testing:
-            utils.alert(constants.TEST_SUCCESS, self.account.displayName)
+            alert(constants.TEST_SUCCESS, self.account.displayName)
             self._actionCompleted()
             return
 
-        utils.NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
+        NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)
 
         d = self.proto.select("INBOX")
-        d.addCallbacks(self.__checkForNewMessages, self.catchErrors)
+        d.addCallbacks(self._checkForNewMessages, self.catchErrors)
         return d
 
-    def __checkForNewMessages(self, msgs):
+    def _checkForNewMessages(self, msgs):
         if __debug__:
-            self.printCurrentView("checkForNewMessages")
+            trace("_checkForNewMessages")
 
             #XXX: Need to store and compare UIDVALIDITY
         #if not msgs['UIDVALIDITY']:
         #    print "server: %s has no UUID Validity:\n%s" % (self.account.host, msgs)
 
         if msgs['EXISTS'] == 0:
-            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
-        if self.__getNextUID() == 0:
+        if self._getNextUID() == 0:
             msgSet = imap4.MessageSet(1, None)
         else:
-            msgSet = imap4.MessageSet(self.__getNextUID(), None)
+            msgSet = imap4.MessageSet(self._getNextUID(), None)
 
         d = self.proto.fetchFlags(msgSet, uid=True)
 
-        d.addCallback(self.__getMessagesFlagsUID).addErrback(self.catchErrors)
+        d.addCallback(self._getMessagesFlagsUID).addErrback(self.catchErrors)
 
         return d
 
-    def __getMessagesFlagsUID(self, msgs):
+    def _getMessagesFlagsUID(self, msgs):
         if __debug__:
-            self.printCurrentView("__getMessagesFlagsUIDS")
+            trace("_getMessagesFlagsUIDS")
 
-        nextUID = self.__getNextUID()
+        nextUID = self._getNextUID()
 
         for message in msgs.itervalues():
             luid = long(message['UID'])
@@ -238,10 +241,10 @@ class IMAPClient(base.AbstractDownloadClient):
                 self.pending.append([luid, message['FLAGS']])
 
         if len(self.pending) == 0:
-            utils.NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
+            NotifyUIAsync(constants.DOWNLOAD_NO_MESSAGES)
             return self._actionCompleted()
 
-        self.execInView(self._getNextMessageSet)
+        self._getNextMessageSet()
 
     def _getNextMessageSet(self):
         """Overides base class to add IMAP specific logic.
@@ -251,7 +254,7 @@ class IMAPClient(base.AbstractDownloadClient):
            calls actionCompleted() to clean up client resources.
         """
         if __debug__:
-            self.printCurrentView("_getNextMessageSet")
+            trace("_getNextMessageSet")
 
         self.numToDownload = len(self.pending)
 
@@ -263,13 +266,13 @@ class IMAPClient(base.AbstractDownloadClient):
 
         m = self.pending.pop(0)
         d = self.proto.fetchMessage(str(m[0]), uid=True)
-        d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
+        d.addCallback(self._fetchMessage, m)
         d.addErrback(self.catchErrors)
 
 
-    def __fetchMessage(self, msgs, curMessage):
+    def _fetchMessage(self, msgs, curMessage):
         if __debug__:
-            self.printCurrentView("fetchMessage")
+            trace("_fetchMessage")
 
         msg = msgs.keys()[0]
 
@@ -278,8 +281,7 @@ class IMAPClient(base.AbstractDownloadClient):
         #XXX: Need a more perforrmant way to do this
         messageObject = email.message_from_string(messageText)
 
-        repMessage = message.messageObjectToKind(self.view,
-                                                 messageObject, messageText)
+        repMessage = messageObjectToKind(self.view, messageObject, messageText)
 
         """Set the message as incoming"""
         repMessage.incomingMessage(self.account)
@@ -290,29 +292,30 @@ class IMAPClient(base.AbstractDownloadClient):
         repMessage.deliveryExtension.flags = curMessage[1]
 
         self.numDownloaded += 1
+        self.pruneCounter  += 1
 
         if self.numDownloaded == self.numToDownload:
-            self.__setNextUID(self.lastUID + 1)
+            self._setNextUID(self.lastUID + 1)
             self.totalDownloaded += self.numDownloaded
             self._commitDownloadedMail()
 
         else:
             m = self.pending.pop(0)
             d = self.proto.fetchMessage(str(m[0]), uid=True)
-            d.addCallback(self.execInViewDeferred, self.__fetchMessage, m)
+            d.addCallback(self._fetchMessage, m)
             d.addErrback(self.catchErrors)
 
 
-    def __expunge(self, result):
+    def _expunge(self, result):
         if __debug__:
-            self.printCurrentView("_expunge")
+            trace("_expunge")
 
         return self.proto.expunge()
 
-    def __getNextUID(self):
+    def _getNextUID(self):
         return self.account.messageDownloadSequence
 
-    def __setNextUID(self, uid):
+    def _setNextUID(self, uid):
         self.account.messageDownloadSequence = uid
 
     def _beforeDisconnect(self):
@@ -320,7 +323,7 @@ class IMAPClient(base.AbstractDownloadClient):
            before disconnecting from the IMAP server"""
 
         if __debug__:
-            self.printCurrentView("_beforeDisconnect")
+            trace("_beforeDisconnect")
 
         if self.factory.connectionLost or self.factory.timedOut:
             return defer.succeed(True)

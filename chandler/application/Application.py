@@ -306,7 +306,7 @@ class wxApplication (wx.App):
         Utility.initWakeup(self.UIRepositoryView)
 
         """Start the Chandler Mail Service"""
-        from osaf.mail.mailservice import MailService
+        from osaf.mail import MailService
         Globals.mailService = MailService(self.UIRepositoryView)
         Globals.mailService.startup()
 

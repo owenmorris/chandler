@@ -5,6 +5,9 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import i18nmanager
 
+__all__ = ["I18nException", "MessageFactory", "OSAFMessageFactory", "I18nManager"]
+
+
 class I18nException(Exception):
     pass
 

@@ -18,12 +18,15 @@ import osaf.pim.mail as Mail
 import chandlerdb.util.uuid as UUID
 
 #Chandler Mail Service imports
-import constants as constants
-import utils as utils
+import constants
+from utils import *
+from utils import Counter
+
 
 """
 Performance:
    1. Reduce checks when downloading mail
+   2. Remove verbose method calls
 
 
 Notes:
@@ -80,6 +83,8 @@ Unrecognized subtypes which also specify an unrecognized charset
 should be treated as "application/octet- stream".
 """
 
+__all__ = ['messageTextToKind', 'messageObjectToKind', 'kindToMessageObject', 'kindToMessageText']
+
 def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
     try:
         decoded    = Header.make_header(Header.decode_header(header))
@@ -99,25 +104,25 @@ def getUnicodeValue(val, charset=constants.DEFAULT_CHARSET):
 
     except(UnicodeError, UnicodeDecodeError, LookupError):
         if __debug__ and charset != constants.DEFAULT_CHARSET:
-            logging.error("Unable to convert charset: %s trying %s" % \
+            trace("Unable to convert charset: %s trying %s" % \
                           (charset, constants.DEFAULT_CHARSET))
 
             return getUnicodeValue(val)
 
         if __debug__: 
-            logging.error("Unable to convert charset: %s" % charset)
+            trace("Unable to convert charset: %s" % charset)
 
         return constants.EMPTY
 
 def createChandlerHeader(postfix):
     """Creates a chandler header with postfix provided"""
-    assert utils.hasValue(postfix), "You must pass a String"
+    assert hasValue(postfix), "You must pass a String"
 
     return constants.CHANDLER_HEADER_PREFIX + postfix
 
 def isChandlerHeader(header):
     """Returns true if the header is Chandler defined header"""
-    assert utils.hasValue(header), "You must pass a String"
+    assert hasValue(header), "You must pass a String"
 
     if header.startswith(constants.CHANDLER_HEADER_PREFIX):
         return True
@@ -143,12 +148,12 @@ def populateStaticHeaders(messageObject):
 
 def populateHeader(messageObject, param, var, type='String'):
     if type == 'String':
-        if utils.hasValue(var):
+        if hasValue(var):
             #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = var
 
     elif(type == 'EmailAddress'):
-        if var is not None and utils.hasValue(var.emailAddress):
+        if var is not None and hasValue(var.emailAddress):
             #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = Mail.EmailAddress.format(var)
 
@@ -179,7 +184,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key):
     addrs = []
 
     for address in emailAddressList:
-        if utils.hasValue(address.emailAddress):
+        if hasValue(address.emailAddress):
             addrs.append(Mail.EmailAddress.format(address))
 
     if len(addrs) > 0:
@@ -226,10 +231,10 @@ def messageObjectToKind(view, messageObject, messageText=None):
     if messageText is None:
         messageText = messageObject.as_string()
 
-    m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", messageText, \
+    m.rfc2822Message = dataToBinary(m, "rfc2822Message", messageText, \
                                           'message/rfc822', 'bz2')
 
-    counter = utils.Counter()
+    counter = Counter()
     bodyBuffer = []
     buf = None
 
@@ -249,12 +254,12 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
 
-    m.body = utils.unicodeToText(m, "body", body, indexText=False)
+    m.body = unicodeToText(m, "body", body, indexText=False)
 
     __parseHeaders(view, messageObject, m)
 
     if verbose():
-        logging.warn("\n\n%s\n\n" % '\n'.join(buf))
+        trace("\n\n%s\n\n" % '\n'.join(buf))
 
     return m
 
@@ -275,13 +280,13 @@ def kindToMessageObject(mailMessage):
     messageObject = Message.Message()
 
     """Create a messageId if none exists"""
-    if not utils.hasValue(mailMessage.messageId):
-        mailMessage.messageId = utils.createMessageID()
+    if not hasValue(mailMessage.messageId):
+        mailMessage.messageId = createMessageID()
 
     """Create a dateSent if none exists"""
-    if not utils.hasValue(mailMessage.dateSentString):
+    if not hasValue(mailMessage.dateSentString):
         mailMessage.dateSent = datetime.now()
-        mailMessage.dateSentString = utils.dateTimeToRFC2882Date(mailMessage.dateSent)
+        mailMessage.dateSentString = dateTimeToRFC2882Date(mailMessage.dateSent)
 
     populateHeader(messageObject, 'Message-ID', mailMessage.messageId)
     populateHeader(messageObject, 'Date', mailMessage.dateSentString)
@@ -299,7 +304,7 @@ def kindToMessageObject(mailMessage):
         if payload.encoding is None:
             payload.encoding = constants.DEFAULT_CHARSET
 
-        payloadUStr = utils.textToUnicode(payload)
+        payloadUStr = textToUnicode(payload)
 
     except AttributeError:
         payloadUStr = u""
@@ -329,8 +334,8 @@ def kindToMessageText(mailMessage, saveMessage=True):
     messageText   = messageObject.as_string()
 
     if saveMessage:
-        mailMessage.rfc2882Message = utils.dataToBinary(mailMessage, "rfc2822Message", \
-                                                        messageText, 'message/rfc822', 'bz2')
+        mailMessage.rfc2882Message = dataToBinary(mailMessage, "rfc2822Message", \
+                                                  messageText, 'message/rfc822', 'bz2')
 
     return messageText
 
@@ -346,7 +351,7 @@ def __parseHeaders(view, messageObject, m):
         """It is a non-rfc date string"""
         if parsed is None:
             if __debug__:
-                logging.warn("Message contains a Non-RFC Compliant Date format")
+                trace("Message contains a Non-RFC Compliant Date format")
 
             """Set the sent date to the current Date"""
             m.dateSent = datetime.now()
@@ -359,7 +364,7 @@ def __parseHeaders(view, messageObject, m):
         del messageObject['Date']
 
     else:
-        m.dateSent = utils.getEmptyDate()
+        m.dateSent = getEmptyDate()
         m.dateSentString = ""
 
     __assignToKind(view, m, messageObject, 'Subject', 'String', 'subject')
@@ -412,7 +417,7 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
             setattr(kindVar, attr, ea)
 
         elif __debug__:
-            logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr))
+            trace("__assignToKind: invalid email address found %s: %s" % (key, addr))
 
     elif type == "EmailAddressList":
         for name, addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
@@ -422,7 +427,7 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
                 kindVar.append(ea)
 
             elif __debug__:
-                logging.error("__assignToKind: invalid email address found %s: %s" % (key, addr))
+                trace("__assignToKind: invalid email address found %s: %s" % (key, addr))
 
     del messageObject[key]
 
@@ -430,7 +435,7 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
 def __getEmailAddress(view, name, addr):
      keyArgs = {}
 
-     if utils.hasValue(name):
+     if hasValue(name):
           keyArgs['fullName'] = name
 
      """ Use any existing EmailAddress, but don't update them
@@ -488,7 +493,7 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
             bodyBuffer.append(constants.LF.join(tmp))
 
         elif __debug__:
-            logging.warn("******WARNING****** message/rfc822 part not Multipart investigate")
+            trace("******WARNING****** message/rfc822 part not Multipart investigate")
 
     elif subtype == "delivery-status":
         """Add the delivery status info to the message body """
@@ -502,17 +507,17 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
 
     elif subtype == "external-body":
         if __debug__:
-            logging.warn("Chandler Mail Service does not support message/external-body at this time")
+            trace("Chandler Mail Service does not support message/external-body at this time")
         return
 
     elif subtype == "http":
         if __debug__:
-            logging.warn("Chandler Mail Service does not support message/http at this time")
+            trace("Chandler Mail Service does not support message/http at this time")
         return
 
     elif subtype == "partial":
         if __debug__:
-            logging.warn("Chandler Mail Service does not support message/partial at this time")
+            trace("Chandler Mail Service does not support message/partial at this time")
         return
 
     if multipart:
@@ -520,7 +525,7 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer, counter, bu
             __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
 
     elif __debug__:
-        logging.warn("******WARNING****** message/%s payload not multipart" % subtype)
+        trace("******WARNING****** message/%s payload not multipart" % subtype)
 
 
 def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
@@ -566,26 +571,26 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, 
                 else:
                     __handleBinary(view, firstPart, parentMIMEContainer, counter, buf, level+1)
         elif __debug__:
-            logging.warn("******WARNING****** multipart/alternative has no payload")
+            trace("******WARNING****** multipart/alternative has no payload")
 
     elif subtype == "byteranges":
         if __debug__:
-            logging.warn("Chandler Mail Service does not support multipart/byteranges at this time")
+            trace("Chandler Mail Service does not support multipart/byteranges at this time")
         return
 
     elif subtype == "form-data":
         if __debug__:
-            logging.warn("Chandler Mail Service does not support multipart/form-data at this time")
+            trace("Chandler Mail Service does not support multipart/form-data at this time")
         return
 
     else:
         if subtype == "signed":
             if __debug__:
-                logging.warn("Chandler Mail Service does not validate multipart/signed at this time")
+                trace("Chandler Mail Service does not validate multipart/signed at this time")
 
         elif subtype == "encrypted":
             if __debug__:
-                logging.warn("Chandler Mail Service does not validate multipart/encrypted at this time")
+                trace("Chandler Mail Service does not validate multipart/encrypted at this time")
 
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
@@ -618,7 +623,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
        if result[0] is not None:
              mimeBinary.mimeType = result[0]
 
-    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body, mimeBinary.mimeType, 'bz2')
+    mimeBinary.body = dataToBinary(mimeBinary, "body", body, mimeBinary.mimeType, 'bz2')
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
 
@@ -652,8 +657,8 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = utils.unicodeToText(mimeText, "body", getUnicodeValue(body, charset), \
-                                        indexText=False)
+        mimeText.body = unicodeToText(mimeText, "body", getUnicodeValue(body, charset), \
+                                      indexText=False)
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True
@@ -696,7 +701,7 @@ def __checkForDefects(mimePart):
 
             strBuffer.append(defectName)
 
-        logging.warn("*****WARNING**** Mail Parsing defect: %s" % ", ".join(strBuffer))
+        trace("*****WARNING**** Mail Parsing defect: %s" % ", ".join(strBuffer))
 
 def __appendHeader(mimePart, buffer, header):
     if mimePart.has_key(header):
