@@ -12,8 +12,6 @@ import osaf.pim.mail as Mail
 from osaf.pim.calendar.TimeZone import DefaultTimeZone
 
 import repository.item.ItemHandler as ItemHandler
-import repository.item.Query as ItemQuery
-import repository.query.Query as Query
 from repository.util.Lob import Lob
 from osaf.framework.blocks import DragAndDrop, DrawingUtilities, Styles
 import logging

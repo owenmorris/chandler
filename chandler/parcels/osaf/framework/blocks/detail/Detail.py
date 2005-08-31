@@ -28,7 +28,6 @@ import osaf.mail.constants as MailConstants
 import osaf.mail.sharing as MailSharing
 import osaf.mail.message as MailMessage
 from repository.item.Item import Item
-import repository.item.Query as Query
 import wx
 import sets
 import logging

@@ -14,7 +14,6 @@ import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
-import repository.query.Query as Query
 import datetime
 import vobject
 import cStringIO
