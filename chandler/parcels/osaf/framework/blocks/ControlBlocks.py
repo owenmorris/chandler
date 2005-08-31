@@ -1034,6 +1034,13 @@ class Table (RectangularChild):
 
     def onSelectItemEvent (self, event):
         item = event.arguments ['item']
+        self.select_item (item)
+
+    def select (self, item):
+        # polymorphic method used by scripts
+        self.select_item (item)
+
+    def select_item (self, item):
         if item != self.selectedItemToView:
             self.selectedItemToView = item
             row = -1

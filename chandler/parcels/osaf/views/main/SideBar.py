@@ -401,8 +401,15 @@ class SidebarBlock(ControlBlocks.Table):
         except KeyError:
             # find the item by name
             itemName = event.arguments['itemName']
+            item = None
+        return self.select(item, itemName)
+
+    def select (self, item=None, name=''):
+        # select the item by reference or name.
+        # (polymorphic method used by scripts)
+        if item is None:
             for item in self.contents:
-                if item.displayName == itemName:
+                if item.displayName == name:
                     break
             else:
                 return
