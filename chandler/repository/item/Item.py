@@ -25,26 +25,26 @@ from repository.util.LinkedMap import LinkedMap
 class Item(CItem):
     'The root class for all items.'
 
-    def __init__(self, name=None, parent=None, kind=None,
+    def __init__(self, itsName=None, itsParent=None, itsKind=None,
                  _uuid=None, _noMonitors=False, **values):
         """
         Construct an Item.
 
-        @param name: The name of the item. It must be unique among the names
-        this item's siblings. C{name} is optional, except for roots and is
+        @param itsName: The name of the item. It must be unique among the names
+        this item's siblings. C{itsName} is optional, except for roots and is
         C{None} by default.
-        @type name: a string or C{None} to create an anonymous item.
-        @param parent: The parent of this item. All items require a parent
+        @type itsName: a string or C{None} to create an anonymous item.
+        @param itsParent: The parent of this item. All items require a parent
         unless they are a repository root in which case the parent argument
         is a repository view.
-        @type parent: an item or the item's repository view.
-        @param kind: The kind for this item. This kind has definitions for
+        @type itsParent: an item or the item's repository view.
+        @param itsKind: The kind for this item. This kind has definitions for
         all the Chandler attributes that are to be used with this item.
         This parameter can be C{None} for Chandler attribute-less operation.
         Items have two sets of attributes: the regular implementation python
         attributes and the Chandler attributes. When an item is persisted
         only the Chandler attributes are saved.
-        @type kind: an item
+        @type itsKind: an item
         @param values: extra keyword arguments to set values on the item
         after being constructed.
         @type values: C{name=value} pairs
@@ -60,30 +60,34 @@ class Item(CItem):
         self._values = Values(self)
         self._references = References(self)
         self._uuid = _uuid or UUID()
-        self._name = name or None
-        self._kind = kind
+        self._name = itsName or None
+        self._kind = itsKind
         self._version = 0
 
-        if kind is not None:
-            kind._setupClass(cls)
+        if itsKind is not None:
+            itsKind._setupClass(cls)
 
-        if parent is None:
+        if itsParent is None:
             raise ValueError, 'parent cannot be None, for roots use a view'
 
-        if name is None and not parent._isItem():
+        if itsName is None and not itsParent._isItem():
             raise AnonymousRootError, self
 
-        self._setParent(parent)
+        self._setParent(itsParent)
 
-        if kind is not None:
-            kind.getInitialValues(self, self._values, self._references)
+        if itsKind is not None:
+            itsKind.getInitialValues(self, self._values, self._references)
 
         self.setDirty(Item.NDIRTY)
 
         for name, value in values.iteritems():
+            if name in ('name', 'parent', 'kind'):
+                raise ValueError, 'What ??'
             self.setAttributeValue(name, value)
 
-        if not (_noMonitors or (kind is None) or (Item._monitorsClass is None)):
+        if not (_noMonitors or
+                (itsKind is None) or
+                (Item._monitorsClass is None)):
             Item._monitorsClass.invoke('schema', self, 'kind', None)
 
     def _fillItem(self, name, parent, kind, **kwds):
