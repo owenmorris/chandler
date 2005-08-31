@@ -792,7 +792,25 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
 
         # draw the bar, and we're done.
         self.Realize()
-        
+    
+    def _item_named (self, toolbarItemName):
+        for toolbarItem in self.toolItemList:
+            if getattr(toolbarItem, 'blockName', None) == toolbarItemName:
+                return toolbarItem
+        return None
+
+    def pressed (self, toolbarItem = None, name=''):
+        # return the state of the toolbarItem, or item located by toolbarName
+        if toolbarItem is None:
+            toolbarItem = self._item_named (name)
+        return self.GetToolState(toolbarItem.toolID)
+
+    def press (self, toolbarItem = None, name=''):
+        # post the event for the toolbarItem, or toolbarItem located by name
+        if toolbarItem is None:
+            toolbarItem = self._item_named (name)
+        block = self.blockItem
+        return block.post(block.event)
 
 class wxToolbarItem (wx.ToolBarToolBase):
     """
@@ -923,7 +941,13 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
             style |= wx.TB_TEXT
         return style
     
+    def pressed (self, toolbarItem=None, name=''):
+        # return the state of the toolbarItem, or toolbarItem located by name
+        return self.widget.pressed (toolbarItem, name)
 
+    def press (self, toolbarItem = None, name=''):
+        # post the event for the toolbarItem, or toolbarItem located by name
+        return self.widget.press (toolbarItem, name)
 
 class toolbarItemKindEnumType(schema.Enumeration):
     values = "Button", "Separator", "Check", "Radio", "Text", "Combo", "Choice"
