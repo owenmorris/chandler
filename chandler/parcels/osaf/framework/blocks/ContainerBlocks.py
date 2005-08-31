@@ -7,7 +7,7 @@ __parcel__ = "osaf.framework.blocks"
 from Block import Block, RectangularChild, wxRectangularChild
 from DocumentTypes import PositionType
 import DragAndDrop
-from DynamicContainerBlocks import Toolbar as Toolbar
+from MenusAndToolbars import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from application import schema

@@ -13,7 +13,7 @@ from osaf.framework.attributeEditors import \
      DateAttributeEditor, TimeAttributeEditor, \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
-     Block, ContainerBlocks, ControlBlocks, DynamicContainerBlocks, \
+     Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
      Trunk, TrunkSubtree
 import osaf.sharing.Sharing as Sharing
 import osaf.pim.mail as Mail
@@ -137,7 +137,7 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
             blocks are currently shown.
             """
             def reNotifyInside(block, item, indent):
-                if not isinstance(block, DynamicContainerBlocks.ToolbarItem):
+                if not isinstance(block, MenusAndToolbars.ToolbarItem):
                     if block.isShown:
                         print indent + '+' + block.blockName
                     else:
@@ -550,7 +550,7 @@ def ItemCollectionOrMailMessageMixin (item):
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
 
-class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
+class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
     """
       Markup Toolbar, for quick control over Items.
     Doesn't need to synchronizeItemDetail, because
@@ -617,7 +617,7 @@ class MarkupBarBlock(DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
         return item.isItemOf(items.ContentItem.getKind(self.itsView))
 
-class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
+class DetailStampButton (DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       Common base class for the stamping buttons in the Markup Bar
     """
@@ -673,7 +673,7 @@ class TaskStampBlock(DetailStampButton):
         return TaskMixin.getKind(self.itsView)
 
 
-class PrivateSwitchButtonBlock(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
+class PrivateSwitchButtonBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem):
     """
       "Never share" button in the Markup Bar
     """

@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
-import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
+import osaf.framework.blocks.MenusAndToolbars as MenusAndToolbars
 
 class DemoTabs(ContainerBlocks.TabbedContainer):
     def onChoiceEventUpdateUI(self, event):
@@ -19,7 +19,7 @@ class DemoTabs(ContainerBlocks.TabbedContainer):
         textBox = self.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.SetValue('')
 
-class DemoToolbarItem (DynamicContainerBlocks.ToolbarItem):
+class DemoToolbarItem (MenusAndToolbars.ToolbarItem):
     """
       Demo for a ToolbarItem that handles its own clicks.
     """

@@ -238,7 +238,7 @@ class UpdateTask:
         return True
 
 from osaf.framework.blocks.Block import BlockEvent
-from osaf.framework.blocks.DynamicContainerBlocks import MenuItem
+from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from osaf.startup import PeriodicTask
 from datetime import timedelta
 

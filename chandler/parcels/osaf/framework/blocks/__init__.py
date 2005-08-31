@@ -22,7 +22,7 @@ from ControlBlocks import (
     ReminderTimer, StaticText, StatusBar, Table, Timer, Tree, PresentationStyle
 )
 
-from DynamicContainerBlocks import (
+from MenusAndToolbars import (
     DynamicBlock, DynamicChild, DynamicContainer, Menu, MenuBar, MenuItem,
     RefCollectionDictionary, Toolbar, ToolbarItem
 )
