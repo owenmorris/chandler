@@ -228,11 +228,7 @@ def RenderViews(repoView):
 def RenderInheritance(repoView):
     result = ""
     kinds = []
-    for item in repository.item.Query.KindQuery().run(
-     [
-      repoView.findPath("//Schema/Core/Kind"),
-     ]
-    ):
+    for item in repoView.findPath("//Schema/Core/Kind").iterItems():
         kinds.append(item)
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
@@ -284,11 +280,7 @@ def RenderKinds(repoView):
     result = ""
     items = {}
     tree = {}
-    for item in repository.item.Query.KindQuery().run(
-     [
-      repoView.findPath("//Schema/Core/Kind"),
-     ]
-    ):
+    for item in repoView.findPath("//Schema/Core/Kind").iterItems():
         items[item.itsPath] = item
         _insertItem(tree, item.itsPath[1:], item)
 
@@ -342,8 +334,8 @@ def _RenderNode(repoView, node, depth=1):
         if key == "":
             continue
         if not node[key].has_key(""):
-            result += "<ul>"
-            # for d in range(depth):
+            result += "<ul>" 
+           # for d in range(depth):
             #     result += "&nbsp;&nbsp;&nbsp;"
             result += "<li>"
             result += "<b>%s</b>" % key
@@ -381,7 +373,7 @@ def RenderAllClouds(repoView):
     result += "<div class='tree'>"
 
     clouds = {}
-    for cloud in repository.item.Query.KindQuery().run([repoView.findPath("//Schema/Core/Cloud")]):
+    for cloud in repoView.findPath("//Schema/Core/Cloud").iterItems():
         clouds[cloud.itsPath] = cloud
     keys = clouds.keys()
     keys.sort()
@@ -525,7 +517,7 @@ def RenderKindQuery(repoView, item):
     output = []
     try:
         items = []
-        for i in repository.item.Query.KindQuery().run([item]):
+        for i in item.iterItems():
             items.append(i)
         items.sort(lambda x, y: cmp(x.getItemDisplayName().lower(), y.getItemDisplayName().lower()))
         for i in items:
