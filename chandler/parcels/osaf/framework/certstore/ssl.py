@@ -25,7 +25,7 @@ def addCertificates(repView, ctx):
     if q is None:
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "root" and i.trust == %d' % (certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE))
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (certificate.TYPE_ROOT, certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE))
         notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
         q.subscribe(notificationItem, 'handle', True, True)
         

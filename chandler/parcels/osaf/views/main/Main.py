@@ -248,8 +248,8 @@ class MainView(View):
                     ssl.trusted_until_shutdown_site_certs += [pem]
                 else:
                     import osaf.framework.certstore.certificate as certificate
-                    fingerprint = certificate._fingerprint(x509)
-                    certificate._importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
+                    fingerprint = certificate.fingerprint(x509)
+                    certificate.importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
 
                 reconnect()
         finally:

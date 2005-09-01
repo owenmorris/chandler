@@ -43,7 +43,7 @@ class ImportCertificateDialog(wx.Dialog):
         # Static text
 
         from osaf.framework.certstore import certificate
-        message = _('Do you want to import this certificate?\nType: %s\nSHA1 fingerprint: %s') % (type, certificate._fingerprint(x509))
+        message = _('Do you want to import this certificate?\nType: %s\nSHA1 fingerprint: %s') % (type, certificate.fingerprint(x509))
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 

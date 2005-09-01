@@ -32,6 +32,9 @@ log = logging.getLogger(__name__)
 TRUST_AUTHENTICITY = 1
 TRUST_SITE         = 2
 
+TYPE_ROOT          = 'root'
+TYPE_SITE          = 'site'
+
 TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
 
 # @@@ Not used anymore, replaced by KindCollection
@@ -40,7 +43,7 @@ TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
 
 class typeEnum(schema.Enumeration):
     schema.kindInfo(displayName = "Type Enumeration")
-    values = "root", "site"
+    values = TYPE_ROOT, TYPE_SITE
 
 
 class CertificateStore(pim.KindCollection):
@@ -66,7 +69,7 @@ class Certificate(pim.ContentItem):
         typeEnum,
         displayName = _('Certificate type'),
         doc = 'Certificate type.',
-        initialValue = 'root',
+        initialValue = TYPE_ROOT,
     )
     trust = schema.One(
         schema.Integer,
@@ -125,25 +128,32 @@ class Certificate(pim.ContentItem):
                        doc='Site bit.')
 
 
-###
-# XXX begin store.py
-
-class CertificateViewController(Block.Block):
-    def onCertificateViewBlockEvent(self, event):
-        CreateSidebarView(self.itsView, Globals.views[0])
-
-
-class CertificateImportController(Block.Block):
-    def onCertificateImportBlockEvent(self, event):
-        ImportCertificate(self.itsView, Globals.views[0])
-
-
-def _fingerprint(x509, md='sha1'):
+def fingerprint(x509, md='sha1'):
+    """
+    Return the fingerprint of the X509 certificate.
+    
+    @param x509: X509 object.
+    @type x509:  M2Crypto.X509.X509
+    @param md:   The message digest algorithm.
+    @type md:    str
+    """
     der = x509.as_der()
     md = EVP.MessageDigest(md)
     md.update(der)
     digest = md.final()
     return hex(util.octx_to_num(digest))
+
+###
+# XXX begin store.py
+
+class CertificateViewController(Block.Block):
+    def onCertificateViewBlockEvent(self, event):
+        createSidebarView(self.itsView, Globals.views[0])
+
+
+class CertificateImportController(Block.Block):
+    def onCertificateImportBlockEvent(self, event):
+        importCertificateDialog(self.itsView)
 
 
 def _isSiteCertificate(x509):
@@ -175,16 +185,16 @@ def _certificateType(x509):
     type = None
     try:
         if x509.get_ext('basicConstraints').get_value() == 'CA:TRUE':
-            type = 'root'
+            type = TYPE_ROOT
         elif _isSiteCertificate(x509):
-            type = 'site'
+            type = TYPE_SITE
     except LookupError:
         subject = x509.get_subject()
         issuer = x509.get_issuer()
         if subject.CN == issuer.CN:
-            type = 'root'
+            type = TYPE_ROOT
         elif _isSiteCertificate(x509):
-            type = 'site'
+            type = TYPE_SITE
                 
     if type is None:
         raise Exception, 'could not determine certificate type'
@@ -216,7 +226,14 @@ def _isInRepository(repView, pem):
         if cert.pemAsString() == pem:
             return True
 
-def _importCertificate(x509, fingerprint, trust, repView):
+def importCertificate(x509, fingerprint, trust, repView):
+    """
+    Import X.509 certificate.
+    
+    @param x509:        The X.509 certificate to import
+    @param fingerprint: The fingerprint of the certificate (in SHA1)
+    @param trust:       The trust value for this certificate
+    """
     pem = x509.as_pem()
     if _isInRepository(repView, pem):
         raise ValueError, 'X.509 certificate is already in the repository'
@@ -225,7 +242,7 @@ def _importCertificate(x509, fingerprint, trust, repView):
     asText = x509.as_text()
     
     type = _certificateType(x509)
-    if type == 'root':
+    if type == TYPE_ROOT:
         if not x509.verify():
             raise ValueError, 'X.509 certificate does not verify'
     
@@ -246,18 +263,20 @@ def _importCertificate(x509, fingerprint, trust, repView):
     if q is None:
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "site" and i.trust == %d' % (TRUST_AUTHENTICITY))
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (TRUST_SITE, TRUST_AUTHENTICITY))
         notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
         q.subscribe(notificationItem, 'handle', True, True)
     
     repView.commit()
 
 
-def ImportCertificate(repView, cpiaView):
+def importCertificateDialog(repView):
     res = ImportExport.showFileDialog(wx.GetApp().mainFrame,
-                                       _("Choose a certificate to import"),
-                                       "", "", _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
-                                        wx.OPEN | wx.HIDE_READONLY)
+                                      _("Choose a certificate to import"),
+                                      "", 
+                                      "", 
+                                      _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
+                                      wx.OPEN | wx.HIDE_READONLY)
 
     (cmd, dir, filename) = res
 
@@ -269,11 +288,11 @@ def ImportCertificate(repView, cpiaView):
     try: 
         x509 = X509.load_cert(path)
 
-        fingerprint = _fingerprint(x509)
+        fprint = fingerprint(x509)
         type = _certificateType(x509)
         # Note: the order of choices must match the selections code below
         choices = [_("Trust the authenticity of this certificate.")]
-        if type == 'root':
+        if type == TYPE_ROOT:
             choices += [_("Trust this certificate to sign site certificates.")]
 
         dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
@@ -294,7 +313,7 @@ def ImportCertificate(repView, cpiaView):
             dlg.Destroy()
             return
 
-        _importCertificate(x509, fingerprint, trust, repView)
+        importCertificate(x509, fprint, trust, repView)
     except Exception, e:
         log.exception(e)
         # XXX Inform the user what went wrong so they can figure out how to
@@ -304,7 +323,7 @@ def ImportCertificate(repView, cpiaView):
         return
 
 
-def CreateSidebarView(repView, cpiaView):
+def createSidebarView(repView, cpiaView):
     """
     Add the certificate store entry into the sidebar.
     """
@@ -312,6 +331,9 @@ def CreateSidebarView(repView, cpiaView):
     # don't add more entries.
     sidebar = schema.ns('osaf.views.main', repView).sidebarItemCollection
     for item in sidebar:
+        # XXX It is kind of heavy-weight to have the CertificateStore class
+        # XXX just so we can see if this collection is certstore. Besides,
+        # XXX isinstance is bad.
         if isinstance(item, CertificateStore):
             return
 

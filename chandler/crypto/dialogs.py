@@ -50,7 +50,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         # XXX depends on parcels
         import osaf.framework.certstore.certificate as certificate
-        message = _('Do you want to trust this certificate?\nSHA1 fingerprint: %s') % certificate._fingerprint(x509)
+        message = _('Do you want to trust this certificate?\nSHA1 fingerprint: %s') % certificate.fingerprint(x509)
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -160,7 +160,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
             errString = err
         except AttributeError:
             errString = errors.getCertificateVerifyErrorString(err)
-        message = _('There was an error with this SSL connection.\nThe error was: %s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %s') % (errString, certificate._fingerprint(x509))
+        message = _('There was an error with this SSL connection.\nThe error was: %s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %s') % (errString, certificate.fingerprint(x509))
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 

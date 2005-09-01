@@ -83,11 +83,10 @@ rZehs7GgIFvKMquNzxPwHynD
 -----END CERTIFICATE-----'''
     pemMultiple = '%s\n%s' % (pemSite, pemRoot)
 
-    def disabled_testPreloadedCertificates(self):
-        # XXX This test does not work right, verify fails in certain situations
+    def testPreloadedCertificates(self):
         self.loadParcel("parcel:osaf.framework.certstore.data")
         
-        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "root"'
+        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s"' % certificate.TYPE_ROOT
         
         qName = 'rootCertsQuery'
         q = self.rep.view.findPath('//Queries/%s' %(qName))
@@ -99,8 +98,10 @@ rZehs7GgIFvKMquNzxPwHynD
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
 
+        assert len(q) > 0
+        
         for cert in q:
-            print cert.subjectCommonName
+            #print cert.subjectCommonName
             x509 = cert.asX509()
             self.assertTrue(x509.verify())
                 
@@ -111,10 +112,10 @@ rZehs7GgIFvKMquNzxPwHynD
                 assert time.strptime(str(before), format) < now, before
                 assert now < time.strptime(str(after), format), after
             except ValueError:
-                raise ValueError, 'bad time value in ' + cert.subjectCommonName
+                raise ValueError('bad time value in ' + cert.subjectCommonName)
         
             self.assertTrue(len(cert.subjectCommonName) > 0)
-            self.assertTrue(cert.type == 'root')
+            self.assertTrue(cert.type == certificate.TYPE_ROOT)
             self.assertTrue(cert.trust == certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE)
             self.assertTrue(cert.fingerprintAlgorithm == 'sha1')
             self.assertTrue(len(cert.fingerprint) > 3)
@@ -122,8 +123,8 @@ rZehs7GgIFvKMquNzxPwHynD
     
     def _importAndFind(self, pem, trust):
         x509 = X509.load_cert_string(pem)
-        fingerprint = certificate._fingerprint(x509)
-        certificate._importCertificate(x509,
+        fingerprint = certificate.fingerprint(x509)
+        certificate.importCertificate(x509,
                                       fingerprint,
                                       trust,
                                       self.rep.view)
@@ -157,7 +158,7 @@ rZehs7GgIFvKMquNzxPwHynD
         
         assert cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L'
         assert cert.trust == trust
-        assert cert.type == 'site'
+        assert cert.type == certificate.TYPE_SITE
         assert cert.subjectCommonName == 'bugzilla.osafoundation.org'
 
     def testImportRootCertificate(self):
@@ -171,7 +172,7 @@ rZehs7GgIFvKMquNzxPwHynD
         
         assert cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L'
         assert cert.trust == trust
-        assert cert.type == 'root'
+        assert cert.type == certificate.TYPE_ROOT
         assert cert.subjectCommonName == 'OSAF CA'
         
     def testImportUnsupportedCertificate(self):
