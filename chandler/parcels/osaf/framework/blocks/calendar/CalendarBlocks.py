@@ -135,8 +135,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         previewHeight = previewWidget.GetSize()[1]
         monthHeight = self.GetMonthSize().height
         
-        newHeight = headerHeight + previewHeight
-        numMonths = 0
+        newHeight = monthHeight + headerHeight + previewHeight
+        numMonths = 1
         while ( ( (newHeight + 0.5 * monthHeight) < height) and numMonths < 3 ):
             newHeight += monthHeight
             numMonths += 1
