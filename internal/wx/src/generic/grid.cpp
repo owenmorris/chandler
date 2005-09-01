@@ -9589,7 +9589,10 @@ wxGrid::GetDefaultRendererForType(const wxString& typeName) const
     int index = m_typeRegistry->FindOrCloneDataType(typeName);
     if ( index == wxNOT_FOUND )
     {
-        wxFAIL_MSG(wxT("Unknown data type name"));
+    wxString	errStr;
+
+        errStr.Printf(wxT("Unknown data type name [%s]"), typeName.c_str());
+        wxFAIL_MSG(errStr.c_str());
 
         return NULL;
     }
