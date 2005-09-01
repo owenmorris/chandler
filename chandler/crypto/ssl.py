@@ -21,31 +21,6 @@ class SSLContextError(Exception):
     pass
 
 
-def postConnectionCheck(peerX509, expectedHost):
-    """
-    Do a post connection check on an SSL connection. This is done just
-    after the SSL connection has been established, but before exchanging
-    any real application data like username and password.
-
-    This implementation checks to make sure that the certificate that the
-    peer presented was issued for the host we tried to connect to, or in
-    other words, make sure that we are talking to the server we think we should
-    be talking to.
-    """
-    check = Checker.Checker()
-    try:
-        return check(peerX509, expectedHost)
-    except Checker.WrongHost, e:
-        e.pem = peerX509.as_pem()
-
-        acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
-        if acceptedErrList is not None and str(e) in acceptedErrList:
-            log.debug('Ignoring post connection error %s' %str(e))
-            return 1
-
-        raise e
-
-
 def getContext(repositoryView, protocol='sslv23', verify=True,
                verifyCallback=None):
     """
@@ -135,14 +110,14 @@ class CertificateVerificationError(Exception):
 
 class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
     def __init__(self, repositoryView, protocol, factory, wrappedProtocol, 
-                 startPassThrough, client, postConnectionCheck):
+                 startPassThrough, client):
         log.debug('TwistedProtocolWrapper.__init__')
         self.contextFactory = ContextFactory(repositoryView, protocol, 
                                             verifyCallback=self.verifyCallback)
         wrapper.TLSProtocolWrapper.__init__(self, factory, wrappedProtocol, 
                                             startPassThrough, client,
                                             self.contextFactory,
-                                            postConnectionCheck)
+                                            self.postConnectionVerify)
         self.repositoryView = repositoryView
         # List for now, even though only first might be needed:
         self.untrustedCertificates = []
@@ -206,12 +181,40 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             raise
 
 
+    def postConnectionVerify(self, peerX509, expectedHost):
+        """
+        Do a post connection check on an SSL connection. This is done just
+        after the SSL connection has been established, but before exchanging
+        any real application data like username and password.
+    
+        This implementation checks to make sure that the certificate that the
+        peer presented was issued for the host we tried to connect to, or in
+        other words, make sure that we are talking to the server we think we should
+        be talking to.
+        """
+        # TODO: We should report ALL errors from this post connection check
+        #       so that users will only get one dialog, even if there are
+        #       several errors. Obviously we need to record all errors in
+        #       verifyCallback first.
+        check = Checker.Checker()
+        try:
+            return check(peerX509, expectedHost)
+        except Checker.WrongHost, e:
+            e.pem = peerX509.as_pem()
+    
+            acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
+            if acceptedErrList is not None and str(e) in acceptedErrList:
+                log.debug('Ignoring post connection error %s' %str(e))
+                return 1
+    
+            raise e
+
+
 def connectSSL(host, port, factory, repositoryView, 
                protocol='sslv23',
                timeout=30,
                bindAddress=None,
-               reactor=twisted.internet.reactor,
-               postConnectionCheck=postConnectionCheck):
+               reactor=twisted.internet.reactor):
     """
     A convenience function to start an SSL/TLS connection using Twisted.
     
@@ -225,8 +228,7 @@ def connectSSL(host, port, factory, repositoryView,
                                factory,
                                wrappedProtocol,
                                startPassThrough=0,
-                               client=1,
-                               postConnectionCheck=postConnectionCheck)
+                               client=1)
     return reactor.connectTCP(host, port, wrappingFactory, timeout,
                               bindAddress)
     
@@ -235,8 +237,7 @@ def connectTCP(host, port, factory, repositoryView,
                protocol='tlsv1',
                timeout=30,
                bindAddress=None,
-               reactor=twisted.internet.reactor,
-               postConnectionCheck=postConnectionCheck):
+               reactor=twisted.internet.reactor):
     """
     A convenience function to start a TCP connection using Twisted.
     
@@ -252,7 +253,6 @@ def connectTCP(host, port, factory, repositoryView,
                                factory,
                                wrappedProtocol,
                                startPassThrough=1,
-                               client=1,
-                               postConnectionCheck=postConnectionCheck)
+                               client=1)
     return reactor.connectTCP(host, port, wrappingFactory, timeout,
                               bindAddress)    

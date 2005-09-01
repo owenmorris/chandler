@@ -10,6 +10,8 @@ import socket, sys, os
 import M2Crypto.SSL as SSL
 import M2Crypto.SSL.Checker as Checker
 import M2Crypto.X509 as X509
+import twisted.internet.protocol as protocol
+import twisted.protocols.policies as policies
 import crypto
 import crypto.ssl as ssl
 
@@ -110,9 +112,22 @@ QUW4hRYWNNbb
 -----END CERTIFICATE-----'''
         x509 = X509.load_cert_string(pemSite)
         
-        assert ssl.postConnectionCheck(x509, 'bugzilla.osafoundation.org')
-        self.assertRaises(Checker.WrongHost, ssl.postConnectionCheck, x509, 'example.com')
-        self.assertRaises(Checker.NoCertificate, ssl.postConnectionCheck, None, 'example.com')
+        self.loadParcel("parcel:osaf.framework.certstore")
+        self.loadParcel("parcel:osaf.framework.certstore.data")
+
+        factory = protocol.ClientFactory()
+        wrapper = ssl.TwistedProtocolWrapper(self.rep.view,
+                                             'tlsv1',
+                                             factory,
+                                             policies.WrappingFactory(factory),
+                                             0,
+                                             1)
+        
+        assert wrapper.postConnectionVerify(x509, 'bugzilla.osafoundation.org')
+        self.assertRaises(Checker.WrongHost, wrapper.postConnectionVerify, 
+                          x509, 'example.com')
+        self.assertRaises(Checker.NoCertificate, wrapper.postConnectionVerify, 
+                          None, 'example.com')
 
     def isOnline(self):
         try:
