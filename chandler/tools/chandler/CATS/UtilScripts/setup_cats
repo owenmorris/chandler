@@ -28,4 +28,4 @@ export CATSHOME
 export CATSREPORTDIR
 
 #make CATS libraries available on Chandler
-cp -f $CATSHOME/QATestLib/*.py $CHANDLERHOME/parcels/osaf/framework/scripting/
+cp -f $CATSHOME/QATestLib/*.py $CHANDLERHOME/parcels/osaf/framework/
