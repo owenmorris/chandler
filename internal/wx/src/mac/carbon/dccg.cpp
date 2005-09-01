@@ -2016,11 +2016,11 @@ void  wxDC::Clear(void)
                 CGContextSetRGBFillColor( cg , col.red / 65536.0 , col.green / 65536.0 , col.blue / 65536.0 , 1.0 ) ;
             }
             break ;
-        }
 
-        default :
-            wxFAIL_MSG( wxT("unknown brush kind") ) ;
-            break ;
+            default :
+                wxFAIL_MSG( wxT("unknown brush kind") ) ;
+                break ;
+        }
     }
 }
 
