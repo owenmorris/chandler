@@ -777,17 +777,18 @@ bool wxToolBar::Realize()
         return false;
 
 #if wxMAC_USE_NATIVE_TOOLBAR
-    // remove all tools, no way to determine how many there are in a toolbar, so just a high number :-(
-    OSStatus err = noErr ;
     if ( m_macHIToolbarRef != NULL )
     {
-        for ( CFIndex i = 0 ; i < 100 ; ++i )
-        {
-            err = HIToolbarRemoveItemAtIndex( (HIToolbarRef) m_macHIToolbarRef , i ) ;
-        }
-    }
+        OSStatus err = noErr;
+        int i = 100;
 
-    // wxASSERT_MSG( err == noErr, _T("HIToolbarRemoveItemAtIndex failed") );
+        // remove all tools: no way to determine how many there are in a toolbar :-(
+        // additionally, HIToolbarRemoveItemAtIndex can fail silently !!!
+        while ((err == noErr) && (i-- >= 0))
+            err = HIToolbarRemoveItemAtIndex( (HIToolbarRef) m_macHIToolbarRef, (CFIndex)i );
+
+        // wxASSERT_MSG( ((err == noErr) || (err == itemNotFoundErr)), _T("HIToolbarRemoveItemAtIndex failed") );
+    }
 #endif // wxMAC_USE_NATIVE_TOOLBAR
 
     int x = m_xMargin + kwxMacToolBarLeftMargin;
