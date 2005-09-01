@@ -27,12 +27,12 @@ jp.po
 
 
 TO DO:
-1. Implement cache withthread lock
+1. Implement cache with thread lock
 2. Create generic localeset fallback interface
 """
 
 OSAF_DOMAIN = "osaf"
-__all__ = ["I18nManager"]
+__all__ = ["I18nManager", "OSAF_DOMAIN"]
 
 class I18nManager(object):
 
@@ -126,7 +126,7 @@ class I18nManager(object):
 
         #XXX: These may throw UnicodeDecodeErrors
         #    which is ok cause the errror will alert the developer 
-        #    to the error. I.e. they did not pass in an ascii string
+        #    to the error. I.e. they did not pass in an ascii or unicode string
         relPath = unicode(relPath)
         resourceName = unicode(resourceName)
 
