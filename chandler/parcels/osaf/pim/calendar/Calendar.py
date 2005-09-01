@@ -981,9 +981,12 @@ class CalendarEventMixin(ContentItem):
                 if self.isGenerated:
                     makeThisAndFutureMod()
                     self._movePreviousRuleEnd()
-                    
-                for modification in master.modifications:
-                    propagateChange(modification)
+                elif self == master:
+                    self._deleteGeneratedOccurrences()
+                
+                if master.modifications:
+                    for modification in master.modifications:
+                        propagateChange(modification)
 
         self._getFirstGeneratedOccurrence()
 

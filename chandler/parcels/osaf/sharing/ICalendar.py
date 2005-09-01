@@ -21,35 +21,84 @@ logger = logging.getLogger(__name__)
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
+    
+def translateToTimezone(dt, tzinfo):
+    if dt.tzinfo == None:
+        return dt.replace(tzinfo=localtime).astimezone(tzinfo)
+    else:
+        return dt.astimezone(tzinfo)
+
+class RecurrenceToVObject:
+    """Temporary home for creating vobject objects that can be serialized.
+    
+    These functions currently force all recurrence into the US-Pacific, and
+    only support a small subset of possible recurrence rules.  Eventually,
+    all this functionality should move (in a more general form) to vobject.
+    
+    """
+    def __init__(self):
+        pacificVTimezoneString = """BEGIN:VTIMEZONE
+TZID:US-Pacific
+LAST-MODIFIED:19870101T000000Z
+BEGIN:STANDARD
+DTSTART:19671029T020000
+RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10
+TZOFFSETFROM:-0700
+TZOFFSETTO:-0800
+TZNAME:PST
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:19870405T020000
+RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4
+TZOFFSETFROM:-0800
+TZOFFSETTO:-0700
+TZNAME:PDT
+END:DAYLIGHT
+END:VTIMEZONE"""
+        buffer = StringIO.StringIO(pacificVTimezoneString)
+        buffer.seek(0)
+        self.pacificTZ = dateutil.tz.tzical(buffer).get()
+        buffer.seek(0)
+        self.pacificVTimezone = vobject.readComponents(buffer).next()
+
+    def addRRule(self, vevent, freq, count=None, until=None):
+        """Adds an RRULE line to a Component.
+        
+        Because native vobject vevents are RecurringComponents, use the
+        transformFromNative method before calling addRRule.
+        
+        """
+        val = "FREQ=" + freq.upper()
+        if count is not None:
+            val += ";COUNT=" + str(count)
+        elif until is not None: # you can't have both a count and until
+            until = translateToTimezone(until, utc) # until must be in UTC
+            val += ";UNTIL=" + vobject.serializing.dateTimeToString(until)
+        vevent.add('RRULE').value = val
+
+RecurrenceHelper = RecurrenceToVObject()
 
 def dateForVObject(dt, asDate = False):
-    """Convert the given datetime into a date or datetime with tzinfo=UTC."""
+    """Convert the given datetime into a date or datetime in Pacific time."""
     if asDate:
         return dt.date()
     else:
-        return dt.replace(tzinfo=localtime).astimezone(utc)
+        return translateToTimezone(dt, RecurrenceHelper.pacificTZ)
+
+def preserveTimezone(dtContentLine):
+    """Timezones in vobject lines are converted to UTC by default."""
+    dtContentLine.params['X-VOBJ-PRESERVE-TZID'] = ['TRUE']
 
 def itemsToVObject(view, items, cal=None, filters=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
 
-    Chandler doesn't do recurrence yet, so for now we don't worry
-    about timezones.
+    Consider only master events (then serialize all modifications).  For now,
+    set all timezones to Pacific.
 
     """
-    taskKind  = view.findPath(ICalendarFormat._taskPath)
-    eventKind  = view.findPath(ICalendarFormat._calendarEventPath)
-    if cal is None:
-        cal = vobject.iCalendar()
-    for item in items:
-        if item.isItemOf(taskKind):
-            taskorevent='TASK'
-            comp = cal.add('vtodo')
-        elif item.isItemOf(eventKind):
-            taskorevent='EVENT'
-            comp = cal.add('vevent')
-        else:
-            continue
-        
+    tzidsUsed = {'US-Pacific' : True }
+    def populate(comp, item):
+        """Populate the given vobject vevent with data from item."""
         if item.getAttributeValue('icalUID', default=None) is None:
             item.icalUID = unicode(item.itsUUID)
         comp.add('uid').value = item.icalUID
@@ -58,29 +107,37 @@ def itemsToVObject(view, items, cal=None, filters=None):
             comp.add('summary').value = item.displayName
         except AttributeError:
             pass
+        
         try:
-            comp.add('dtstart').value = dateForVObject(item.startTime,item.allDay)
+            dtstartLine = comp.add('dtstart')
+            dtstartLine.value = dateForVObject(item.startTime, item.allDay)
+            preserveTimezone(dtstartLine)
+            # placeholder until we deal with different timezones
+            tzidsUsed['US-Pacific'] = True 
         except AttributeError:
             pass
+        
         try:
-            if taskorevent == 'TASK':
-                comp.add('due').value = dateForVObject(item.dueDate,item.allDay)
+            dtendLine = comp.add('dtend')
+            #convert Chandler's notion of allDay duration to iCalendar's
+            if item.allDay:
+                dtendLine.value = dateForVObject(item.endTime,item.allDay) + \
+                                                 datetime.timedelta(days=1)
             else:
-                #convert Chandler's notion of allDay duration to iCalendar's
-                if item.allDay:
-                    comp.add('dtend').value = dateForVObject(item.endTime,item.allDay) + \
-                                              datetime.timedelta(days=1)
-                else:
-                    comp.add('dtend').value = dateForVObject(item.endTime,item.allDay)
+                dtendLine.value = dateForVObject(item.endTime,item.allDay)
+            preserveTimezone(dtendLine)
+            
+            # placeholder until we deal with different timezones
+            tzidsUsed['US-Pacific'] = True 
         except AttributeError:
-            pass
+            comp.dtend = [] # delete the dtend that was added
+            
 
         if not filters or "transparency" not in filters:
             try:
-                if taskorevent == 'EVENT':
-                    status = item.transparency.upper()
-                    if status == 'FYI': status = 'CANCELLED'
-                    comp.add('status').value = status
+                status = item.transparency.upper()
+                if status == 'FYI': status = 'CANCELLED'
+                comp.add('status').value = status
             except AttributeError:
                 pass
 
@@ -88,6 +145,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             comp.add('description').value = item.body.getReader().read()
         except AttributeError:
             pass
+        
         try:
             comp.add('location').value = item.location.displayName
         except AttributeError:
@@ -100,6 +158,48 @@ def itemsToVObject(view, items, cal=None, filters=None):
                   dateForVObject(item.startTime)
             except AttributeError:
                 pass
+        
+        if item.getAttributeValue('modificationFor', default=None) is not None:
+            recurrenceid = comp.add('recurrence-id')
+            recurrenceid.value = dateForVObject(item.recurrenceID,item.allDay)
+            if item.modifies != 'this':
+                recurrenceid.params['RANGE'] = [item.modifies.upper()]
+            preserveTimezone(recurrenceid)
+        
+        # logic for serializing rrules needs to move to vobject
+        try: # hack, create RRULE line last, because it means running transformFromNative
+            if item.modifies == 'thisandfuture' or item.getMaster() == item:
+                rule = item.rruleset.rrules.first() # only dealing with one rrule right now
+                comp = cal.vevent[-1] = comp.transformFromNative()
+                RecurrenceHelper.addRRule(comp, rule.freq, until=rule.calculatedUntil())
+        except AttributeError:
+            pass
+        # end of populate function
+
+    def populateModifications(item, cal):
+        for modification in item.getAttributeValue('modifications', default=[]):
+            populate(cal.add('vevent'), modification)
+            if modification.modifies == 'thisandfuture':
+                populateModifications(modification, cal)
+        #end helper functions
+
+    if cal is None:
+        cal = vobject.iCalendar()
+    for item in items: # main loop
+        try:
+            # ignore any events that aren't masters
+            if item.getMaster() == item:
+                populate(cal.add('vevent'), item)
+            else:
+                continue
+        except:
+            continue
+        
+        populateModifications(item, cal)
+
+    # placeholder until we deal with different timezones
+    if tzidsUsed.get('US-Pacific') == True:
+        cal.vtimezone = [RecurrenceHelper.pacificVTimezone]
 
     return cal
 
@@ -151,7 +251,6 @@ def convertToICUtzinfo(dt):
         
     return dt
 
-
 class ICalendarFormat(Sharing.ImportExportFormat):
 
     schema.kindInfo(displayName="iCalendar Import/Export Format Kind")
@@ -167,26 +266,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return "ics"
 
     def findUID(self, uid):
+        """Return the master event whose icalUID matched uid, or None."""
         uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
-        return uid_map.items.getByAlias(uid)
-
-        # @@@MOR The following can be removed once Jeffrey has verified
-        # my new lookup mechanism meets his needs:
-
-        """
-        view = self.itsView
-        queryString='union(for i in "%s" where i.icalUID == $0, \
-                           for i in "%s" where i.icalUID == $0)' % \
-                           (self._calendarEventPath, self._taskPath)
-        p = view.findPath('//Queries')
-        k = view.findPath('//Schema/Core/Query')
-        q = Query.Query(None, p, k, queryString)
-
-        q.args["$0"] = ( uid, )
-        for match in q:
-            return match.getMaster()
-        return None
-        """
+        matches = uid_map.items.getByAlias(uid)
+        if matches is None:
+            return None
+        else: 
+            return uid_map.items.getByAlias(uid).getMaster()
 
     def importProcess(self, text, extension=None, item=None):
         # the item parameter is so that a share item can be passed in for us

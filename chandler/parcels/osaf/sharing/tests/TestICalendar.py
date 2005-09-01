@@ -19,6 +19,7 @@ import vobject
 import cStringIO
 from PyICU import ICUtzinfo
 from dateutil import tz
+from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 
 class ICalendarTestCase(unittest.TestCase):
 
@@ -30,6 +31,7 @@ class ICalendarTestCase(unittest.TestCase):
         self.writeICalendarUnicodeBug3338()
         self.importRecurrence()
         self.importRecurrenceWithTimezone()
+        self.exportRecurrence()
         self._teardown()
 
     def _setup(self):
@@ -138,8 +140,7 @@ class ICalendarTestCase(unittest.TestCase):
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)
 
-        coll = ListCollection(name="testcollection", 
-                                             parent=self.sandbox)
+        coll = ListCollection(name="testcollection", parent=self.sandbox)
         coll.add(event)
         filename = "unicode_export.ics"
 
@@ -169,8 +170,66 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, 'RecurrenceWithTimezone.ics')
         event = format.findUID('FF14A660-02A3-11DA-AA66-000A95DA3228')
         third = event.modifications.first()
-        print third.serializeMods().getvalue()
         self.assertEqual(third.rruleset.rrules.first().freq, 'daily')
+        
+    def exportRecurrence(self):
+        helper = ICalendar.RecurrenceHelper
+        start = datetime.datetime(2005,2,1)
+        self.assertEqual(helper.pacificTZ.utcoffset(start),
+                         datetime.timedelta(hours=-8))                         
+        vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
+        vevent.behavior = vobject.icalendar.VEvent
+        
+        # dateForVObject should take a naive datetime and assume it's in Pacific
+        vevent.setDtstart(ICalendar.dateForVObject(start))
+        self.assertEqual(vevent.getDtstart().tzinfo, helper.pacificTZ)
+        
+        vevent = vevent.transformFromNative()
+        helper.addRRule(vevent, freq='daily')
+        self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY')
+        
+        vevent.rrule=[]
+        helper.addRRule(vevent, freq='daily', count=3)
+        self.assertEqual(vevent.rrule[0].value, 'FREQ=DAILY;COUNT=3')
+
+        # addRRule should treat until as being in Pacific time if it has no TZ
+        vevent.rrule=[]
+        helper.addRRule(vevent, freq='daily', until=datetime.datetime(2005,3,1))
+        self.assertEqual(vevent.rrule[0].value,
+                         'FREQ=DAILY;UNTIL=20050301T080000Z')
+                         
+        event = Calendar.CalendarEvent(view = self.repo.view)
+        event.displayName = "blah"
+        event.startTime = start
+        event.endTime = datetime.datetime(2005,3,1,1)
+        
+        ruleItem = RecurrenceRule(None, view=self.repo.view)
+        ruleItem.until = datetime.datetime(2005,3,1)
+        ruleSetItem = RecurrenceRuleSet(None, view=self.repo.view)
+        ruleSetItem.addRule(ruleItem)
+        event.rruleset = ruleSetItem
+        
+        vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
+        
+        self.assertEqual(vcalendar.vevent[0].dtstart[0].serialize(),
+                         'DTSTART;TZID=US-Pacific:20050201T000000\r\n')
+        vcalendar.vevent[0] = vcalendar.vevent[0].transformFromNative()
+        self.assertEqual(vcalendar.vevent[0].rrule[0].serialize(),
+                         'RRULE:FREQ=WEEKLY;UNTIL=20050302T075900Z\r\n')
+        
+        # move the second occurrence one day later
+        nextEvent = event.getNextOccurrence()
+        nextEvent.changeThis('startTime', datetime.datetime(2005,2,9))
+
+        vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
+        modified = vcalendar.vevent[1]
+        self.assertEqual(modified.dtstart[0].serialize(),
+                         'DTSTART;TZID=US-Pacific:20050209T000000\r\n')
+        self.assertEqual(modified.contents['recurrence-id'][0].serialize(),
+                         'RECURRENCE-ID;TZID=US-Pacific:20050208T000000\r\n')
+        
+        
+        
 
          
 # test import/export unicode

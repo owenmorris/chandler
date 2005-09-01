@@ -13,8 +13,7 @@ import dateutil.rrule
 
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.tasks import TaskMixin
-from osaf.pim.calendar.Recurrence import RecurrenceRule, \
-                                                  RecurrenceRuleSet
+from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 
 import osaf.pim
 import osaf.pim.tests.TestContentModel as TestContentModel
