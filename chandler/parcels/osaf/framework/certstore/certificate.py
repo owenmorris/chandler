@@ -263,7 +263,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     if q is None:
         p = repView.findPath('//Queries')
         k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (TRUST_SITE, TRUST_AUTHENTICITY))
+        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (TYPE_SITE, TRUST_AUTHENTICITY))
         notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
         q.subscribe(notificationItem, 'handle', True, True)
     
