@@ -43,6 +43,9 @@ class typeEnum(schema.Enumeration):
     values = "root", "site"
 
 
+class CertificateStore(pim.KindCollection):
+    schema.kindInfo(displayName = "Certificate Store")
+
 class Certificate(pim.ContentItem):
 
     schema.kindInfo(displayName = "Certificate")
@@ -302,23 +305,38 @@ def ImportCertificate(repView, cpiaView):
 
 
 def CreateSidebarView(repView, cpiaView):
-    sidebar = pim.KindCollection(view=repView)
-    sidebar.displayName = 'Certificate Store'
-    sidebar.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
+    """
+    Add the certificate store entry into the sidebar.
+    """
+    # First see if the certificate store already is in the sidebar, and if so
+    # don't add more entries.
+    sidebar = schema.ns('osaf.views.main', repView).sidebarItemCollection
+    for item in sidebar:
+        if isinstance(item, CertificateStore):
+            return
+
+    certstore = CertificateStore(view=repView)
+    
+    # XXX Why isn't this picked from the CertificateStore class?
+    certstore.displayName = 'Certificate Store'
+    
+    # XXX It seems like it should be possible to put this in the CertificateStore
+    # XXX class to make this happen automatically?
+    certstore.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
 
     # @@@MOR -- Transitioning to new Collection world.  Does specifying
     # the kind above automatically populate the collection?  That makes the
     # following commented-out code unnecessary:
 
-    # sidebar._rule = ALL_CERTS_QUERY
+    # certstore._rule = ALL_CERTS_QUERY
 
     # q = _allCertificatesQuery(repView)
 
     # for item in q:
-    #     sidebar.add(item)
+    #     certstore.add(item)
 
     cpiaView.postEventByName('AddToSidebarWithoutCopying',
-                             {'items': [sidebar]})
+                             {'items': [certstore]})
 
 # XXX end store.py
 ###############
