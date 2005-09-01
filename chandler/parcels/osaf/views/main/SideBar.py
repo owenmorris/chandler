@@ -273,6 +273,8 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         dc.SetBackgroundMode (wx.TRANSPARENT)
         item, attribute = grid.GetTable().GetValue (row, col)
 
+        sidebar = grid.blockItem
+
         if isinstance (item, AbstractCollection):
             def drawButton (name):
                 imagePrefix = "Sidebar" + name
@@ -296,13 +298,12 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
 
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
             if sidebarTPB is not None:
-                (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item)
+                (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item, False)
                 if len (filteredCollection) == 0:
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
             name = getattr (item, attribute)
             key = name
-            sidebar = grid.blockItem
             if sidebar.filterKind is not None:
                 key += os.path.basename (unicode (sidebar.filterKind.itsPath))
             try:
@@ -320,7 +321,6 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         else:
             name = getattr (item, attribute)
 
-        sidebar = Block.Block.findBlockByName ("Sidebar")
         textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
@@ -492,14 +492,17 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
 
-    def _mapItemToCacheKeyItem(self, item):
+    def _mapItemToCacheKeyItem(self, item, includeCheckedItems=True):
         key = item
         rerender = False
         sidebar = Block.Block.findBlockByName ("Sidebar")
         """
           collectionList should be in the order that the source items are overlayed in the Calendar view
         """
-        collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
+        if includeCheckedItems:
+            collectionList = [theItem for theItem in sidebar.contents if (theItem in sidebar.checkedItems) and (theItem is not item)]
+        else:
+            collectionList = []
         if isinstance (item, AbstractCollection):
             collectionList.insert (0, item)
         if len (collectionList) > 0:
