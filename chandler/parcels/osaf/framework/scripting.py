@@ -438,29 +438,36 @@ class User(object):
         return stringSuccess
     
     @classmethod
-    def emulate_click(self, block):
-        """ Simulates a left mouse click on the block widget """
-        mouseEnter = wx.MouseEvent(wx.wxEVT_ENTER_WINDOW)
-        mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
-        mouseDown.m_leftDown = True
-        mouseUp = wx.MouseEvent(wx.wxEVT_LEFT_UP)
-        mouseLeave = wx.MouseEvent(wx.wxEVT_LEAVE_WINDOW)
+    def emulate_click(self, block, x=None, y=None, double=False):
+        """ Simulates left mouse click on the given block or widget """
         try:
             widget =  block.widget
         except AttributeError:
             widget = block
+        # event settings
+        mouseEnter = wx.MouseEvent(wx.wxEVT_ENTER_WINDOW)
+        if double:
+            mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
+        else:
+            mouseDown = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
+        mouseUp = wx.MouseEvent(wx.wxEVT_LEFT_UP)
+        mouseLeave = wx.MouseEvent(wx.wxEVT_LEAVE_WINDOW)
+        if x:
+            mouseEnter.m_x = mouseDown.m_x = mouseUp.m_x = x
+        if y:
+            mouseEnter.m_y = mouseDown.m_y = mouseUp.m_y = y
         mouseEnter.SetEventObject(widget)
         mouseDown.SetEventObject(widget)
         mouseUp.SetEventObject(widget)
         mouseLeave.SetEventObject(widget)    
+        # events processing
         widget.ProcessEvent(mouseEnter)
         widget.ProcessEvent(mouseDown)
-        widget.ProcessEvent(mouseUp)
+        if not double:
+            widget.ProcessEvent(mouseUp)
         widget.ProcessEvent(mouseLeave)
-    
+        # Give Yield to the App
         wx.GetApp().Yield()
-        ev = wx.IdleEvent()
-        wx.GetApp().ProcessEvent(ev)
     
     @classmethod
     def emulate_return(self, block=None):
@@ -471,7 +478,7 @@ class User(object):
             else :
                 widget = wx.Window_FindFocus()
         except AttributeError:
-            logger.warning(_("Can't get the widget of the block %s") % block)
+            return False
         else:
             # return-key down
             ret_d = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
@@ -488,7 +495,7 @@ class User(object):
             # Text enter
             ent = wx.CommandEvent(wx.wxEVT_COMMAND_TEXT_ENTER)
             ent.SetEventObject(widget)
-    
+
             #work around for mac bug
             widget.ProcessEvent(tu) #for start/end time and location field
             #work around for canvasItem
@@ -496,9 +503,34 @@ class User(object):
             # events processing
             widget.ProcessEvent(ret_d)
             widget.ProcessEvent(ret_up)
+            # Give Yield & Idle to the App
+            wx.GetApp().Yield()
+            ev = wx.IdleEvent()
+            wx.GetApp().ProcessEvent(ev)
+            return True
+            
+    @classmethod
+    def emulate_sidebarClick(self, sidebar, cellName, double=False):
+        ''' Process a left click on the given cell in the given sidebar'''
+        cellRect = None
+        for i in range(sidebar.widget.GetNumberRows()):
+            item = sidebar.widget.GetTable().GetValue(i,0)[0]
+            if item.displayName == cellName:
+                cellRect = sidebar.widget.CalculateCellRect(i)
+                break
+        if cellRect:
+            # events processing
+            gw = sidebar.widget.GetGridWindow()
+            # +3 work around for the sidebar bug
+            self.emulate_click(gw, x=cellRect.GetX()+3, y=cellRect.GetY()+3, double=double)
+            return True
+        else:
+            return False
+       
             
 def app_ns(view=None):
     if view is None:
         view = wx.GetApp().UIRepositoryView
     return AppProxy(view)
+
 
