@@ -810,8 +810,8 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         if toolbarItem is None:
             toolbarItem = self._item_named (name)
         block = self.blockItem
-        return block.post(block.event)
-
+        return block.post(toolbarItem.event, {})
+        
 class wxToolbarItem (wx.ToolBarToolBase):
     """
     Toolbar Tool Widget.
