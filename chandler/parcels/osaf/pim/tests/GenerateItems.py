@@ -179,8 +179,7 @@ LASTNAMES = ['Anderson', 'Baillie', 'Baker', 'Botz', 'Brown', 'Burgess',
              'Sagen', 'Sciabica', 'Sherwood', 'Skinner', 'Stearns', 'Sun', 'Surovell',
              'Tauber', 'Totic', 'Toivonen', 'Toy', 'Tsurutome', 'Vajda', 'Yin']
 
-COLLECTION_ADJECTIVES = ['Critical', 'Eventual', 'Sundry', 'Ignorable', 'Miscellaneous', 'Fascinating']
-COLLECTION_NOUNS = ['Items', 'Scratchings', 'Things', 'Oddments', 'Stuff', 'Dregs', 'Fewmets' ]
+COLLECTION_NAMES = ['Scratchings', 'Home', 'Work', 'OSAF', 'Kids', 'School', 'Book club', 'Wine club', 'Karate', 'Knitting', 'Soccer', 'Chandler', 'Cosmo', 'Scooby', 'Choir', 'Movies', 'Snowball', 'Lassie', 'Humor', 'Odds n Ends', 'BayCHI', 'OSCON', 'IETF', 'Financial', 'Medical', 'Philanthropy']
 
 PHONETYPES = ['cell', 'voice', 'fax', 'pager']
 
@@ -222,7 +221,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
     
     while True:
         # Find a name that isn't already in use
-        potentialName = ' '.join((random.choice(COLLECTION_ADJECTIVES), random.choice(COLLECTION_NOUNS),))
+        potentialName = random.choice(COLLECTION_NAMES)
         if existingNames is None or potentialName not in existingNames:
             collection.displayName = potentialName
             if existingNames is not None:
@@ -248,7 +247,7 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
         newItem = function(view, *args, **dict)
         
         if maxCollCount > 0:
-            for index in range(random.randint(1, maxCollCount)):
+            for index in range(random.randint(0, maxCollCount)):
                 collections[random.randint(0, len(collections)-1)].add(newItem)    
             
         results.append(newItem)
@@ -260,7 +259,7 @@ def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
     
     # Generate some item collections to put them in.
     existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
-    collections = GenerateItems(view, 5, GenerateCollection, [], mainView, existingNames)
+    collections = GenerateItems(view, 6, GenerateCollection, [], mainView, existingNames)
     
     items = []
     defaultTzinfo = ICUtzinfo.getDefault()
