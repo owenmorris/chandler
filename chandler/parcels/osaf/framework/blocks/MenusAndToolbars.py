@@ -1,5 +1,5 @@
-__version__ = "$Revision$"
-__date__ = "$Date$"
+__version__ = "$Revision:6915 $"
+__date__ = "$Date:2005-08-31 13:49:15 -0700 (Wed, 31 Aug 2005) $"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
@@ -794,7 +794,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         self.Realize()
     
     def _item_named (self, toolbarItemName):
-        for toolbarItem in self.toolItemList:
+        for toolbarItem in self.blockItem.dynamicChildren:
             if getattr(toolbarItem, 'blockName', None) == toolbarItemName:
                 return toolbarItem
         return None
