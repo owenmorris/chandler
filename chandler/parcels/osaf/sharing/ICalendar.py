@@ -14,7 +14,6 @@ import datetime
 from datetime import date, time
 from PyICU import ICUtzinfo
 import itertools
-import repository.query.Query as Query
 from application import schema
 
 logger = logging.getLogger(__name__)
