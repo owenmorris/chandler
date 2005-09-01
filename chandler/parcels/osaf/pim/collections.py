@@ -136,6 +136,9 @@ class AbstractCollection(items.ContentItem):
             self.createIndex()
             return self.resultSet.getIndexPosition (self.indexName, item)
 
+    def __nonzero__(self):
+        return True
+
 class KindCollection(AbstractCollection):
     """
     """
