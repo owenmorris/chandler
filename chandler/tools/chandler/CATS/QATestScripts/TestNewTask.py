@@ -1,4 +1,4 @@
-import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.path.expandvars('$CATSREPORTDIR')
@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewTask.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewTask")
-task = QAUITestAppLib.UITestItem(app_ns().itsView, "Task", logger)
+task = QAUITestAppLib.UITestItem("Task", logger)
 
 #action
 task.logger.Start("Setting Task attributes")

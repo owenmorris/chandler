@@ -1,4 +1,4 @@
-import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.path.expandvars('$CATSREPORTDIR')
@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestNewNote.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewNote")
-note = QAUITestAppLib.UITestItem(app_ns().itsView, "Note", logger)
+note = QAUITestAppLib.UITestItem("Note", logger)
 
 #action
 note.logger.Start("Setting the note attributes")

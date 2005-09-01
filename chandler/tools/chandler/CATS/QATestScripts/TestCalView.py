@@ -1,4 +1,4 @@
-import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.path.expandvars('$CATSREPORTDIR')
@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestCalView.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestCalView")
-testView = QAUITestAppLib.UITestView(app_ns().itsView, logger)
+testView = QAUITestAppLib.UITestView(logger)
 
 #action
 #switch to calendar view
@@ -18,8 +18,8 @@ ev = testView.DoubleClickInCalView()
 #double click one more time => edit the title
 testView.DoubleClickInCalView()
 #type a new title and return
-Type("foo")
-KeyboardReturn()
+QAUITestAppLib.scripting.User.emulate_typing("foo")
+QAUITestAppLib.scripting.User.emulate_return()
 
 #check the detail view of the created event
 ev.Check_DetailView({"displayName":"foo"})

@@ -1,4 +1,4 @@
-import osaf.framework.scripting.QAUITestAppLib as QAUITestAppLib
+import osaf.framework.QAUITestAppLib as QAUITestAppLib
 import os
 
 filePath = os.path.expandvars('$CATSREPORTDIR')
@@ -8,7 +8,7 @@ if not os.path.exists(filePath):
 #initialization
 fileName = "TestSwitchingViews.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestSwitchingViews")
-testView = QAUITestAppLib.UITestView(app_ns().itsView, logger)
+testView = QAUITestAppLib.UITestView(logger)
 
 #action
 #switch to calendar view
