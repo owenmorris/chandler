@@ -346,30 +346,31 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("_commitDownloadedMail")
 
-            def _tryCommit():
-                try:
-                    self.view.commit()
+        def _tryCommit():
+            try:
+                self.view.commit()
 
-                    """Prune the view to free up memory if the number downloaded is equal
-                       to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
-                       download maximum before a commit it means that all messages have been downloaded
-                       from the server in which case we prune to free every ounce of memory we can
-                       get :)"""
+                """Prune the view to free up memory if the number downloaded is equal
+                   to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
+                   download maximum before a commit it means that all messages have been downloaded
+                   from the server in which case we prune to free every ounce of memory we can
+                   get :)"""
 
-                    if self.pruneCounter >= PRUNE_MIN or \
-                       self.numDownloaded < self.downloadMax:
-                        self.view.prune(1000)
-                        if __debug__:
-                            trace("Prunning %s messages" % self.pruneCounter)
+                if self.pruneCounter >= PRUNE_MIN or \
+                   self.numDownloaded < self.downloadMax:
+                    self.view.prune(1000)
 
-                        """reset the counter"""
-                        self.pruneCounter = 0
-                except RepositoryError, e:
-                    #Place holder for commit rollback
-                    raise e
-                except VersionConflictError, e1:
-                    #Place holder for commit rollback
-                    raise(e1)
+                    if __debug__:
+                        trace("Prunning %s messages" % self.pruneCounter)
+ 
+                    """reset the counter"""
+                    self.pruneCounter = 0
+            except RepositoryError, e:
+                #Place holder for commit rollback
+                raise e
+            except VersionConflictError, e1:
+                #Place holder for commit rollback
+                raise(e1)
 
         d = threads.deferToThread(_tryCommit)
         #XXX: May want to handle the case where the Repository fails
