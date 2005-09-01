@@ -4,6 +4,7 @@ from twisted.web import resource
 import repository
 import application
 import re
+from osaf import pim
 from osaf.pim.items import ContentItem
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
@@ -887,6 +888,16 @@ def RenderItem(repoView, item):
         result += "<br />\n"
         result += RenderClouds(repoView, item)
 
+    if isinstance(item, pim.AbstractCollection):
+        result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+        result += "<tr class='toprow'>\n"
+        result += "<td><b>Collection Sources:</b></td>\n"
+        result += "</tr>\n"
+        result += "<tr class='oddrow'>\n"
+        result += "<td>%s</td>\n" % _getSourceTree(item)
+        result += "</tr>\n"
+        result += "</table>\n"
+
     if isinstance(item, ContentItem):
         result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
         result += "<tr class='toprow'>\n"
@@ -898,6 +909,33 @@ def RenderItem(repoView, item):
         result += "</table>\n"
 
     return result
+
+def _getSourceTree(coll, depth=0):
+    result = ""
+
+    indent = depth * "&nbsp; &nbsp; &nbsp; |"
+
+    result += indent
+
+    info = ""
+    if isinstance(coll, pim.KindCollection):
+        info = ", kind=%s" % coll.kind.itsName
+    if isinstance(coll, pim.FilteredCollection):
+        info = ", filter='%s'" % coll.filterExpression
+
+    kindInfo = coll.itsKind.itsName
+    if coll.itsKind.isMixin():
+        kindInfo = "Mix of: "
+        for kind in coll.itsKind.superKinds:
+            kindInfo += "%s " % kind.itsName
+
+    result += "- <a href=%s>%s</a> (%s%s)<br>\n" % (toLink(coll.itsPath), coll.getItemDisplayName(), kindInfo, info)
+    if hasattr(coll, 'sources'):
+        for source in coll.sources:
+            result += _getSourceTree(source, depth+1)
+
+    return result
+    
 
 indexRE = re.compile(r"(.*)\[(\d+)\]")
 
