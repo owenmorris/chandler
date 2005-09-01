@@ -1,16 +1,24 @@
 from QALogger import *
 from datetime import datetime, timedelta
-import osaf.framework.scripting as Scripting
 from osaf import pim
 import osaf.pim.mail as Mail
+import osaf.pim.collections as Collection
 import osaf.sharing as Sharing
 import application.Globals as Globals
 import wx
 import string
+import osaf.framework.scripting as scripting
 
-App_ns = Scripting.app_ns()
+#Global AppProxy instance
+App_ns = scripting.app_ns()
 
+                       
 def getTime(date):
+    """
+    Return a string representation in 24h format of the time corresponding to the given date
+    @type date : datetime
+    @return : string
+    """
     hour = date.hour
     minute = date.minute
     if minute == 0:
@@ -24,125 +32,115 @@ def getTime(date):
         minute = minute + "AM"
     return "%s:%s" %(hour, minute)
 
+def SetBlockMenu(menuName, menuChoice):
+    '''
+    Select a choice in a list menu
+    @type menuName : string
+    @param menuName : The name of the menu
+    @type menuChoice : string
+    @param menuChoice : the choice you want to select
+    @return : True if the selection is succesfull
+    '''
+    block = App_ns.__getattr__(menuName)
+    list_of_value = []
+    for k in range(0,block.widget.GetCount()):
+        list_of_value.append(block.widget.GetString(k))
+    if not menuChoice in list_of_value:
+        return False
+    else:
+        # Emulate the mouse click in the menu
+        scripting.User.emulate_click(block)
+        block.widget.SetStringSelection(menuChoice)
+        # Process the event corresponding to the selection
+        selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
+        selectionEvent.SetEventObject(block.widget)
+        block.widget.ProcessEvent(selectionEvent)
+        return True
 
+             
 class UITestItem :       
-    def __init__(self, view, type, logger):
+    def __init__(self, type, logger):
         if not type in ["Event", "Note", "Task", "MailMessage", "Collection"]:
             # "Copy constructor"
             if isinstance(type,pim.calendar.CalendarEvent):
-                self.isNote = self.isTask = self.isMessage = self.isCollection = self.allDay = False
+                self.isNote = self.isTask = self.isMessage = self.isCollection = self.allDay = self.recurring = False
                 self.isEvent = True
-                self.view = view
+                self.view = App_ns.itsView
                 self.logger = logger
                 self.item = type
             else:
                 return
         else:
-            self.isNote = self.isEvent = self.isTask = self.isMessage = self.isCollection = self.allDay = False
+            self.isNote = self.isEvent = self.isTask = self.isMessage = self.isCollection = self.allDay = self.recurring = False
             self.logger = logger
+            self.logger.Start("%s creation" %type)
             if type == "Event": # New Calendar Event
                 # post the corresponding CPIA-event
-                item = App_ns.root.NewCalendar()[0]
+                item = Globals.mainViewRoot.postEventByName('NewCalendar',{})[0]
                 self.isEvent = True
             elif type == "Note": # New Note
                 # post the corresponding CPIA-event
-                item = App_ns.root.NewNote()[0]
+                item = Globals.mainViewRoot.postEventByName('NewNote',{})[0]
                 self.isNote = True
             elif type == "Task": # New Task
                 # post the corresponding CPIA-event
-                item = App_ns.root.NewTask()[0]
+                item = Globals.mainViewRoot.postEventByName('NewTask',{})[0]
                 self.isTask = True
             elif type == "MailMessage": # New Mail Message
                 # post the corresponding CPIA-event
-                item = App_ns.root.NewMailMessage()[0]
+                item = Globals.mainViewRoot.postEventByName('NewMailMessage',{})[0]
                 self.isMessage = True
             elif type == "Collection": # New Collection
                 # post the corresponding CPIA-event
-                item = App_ns.root.NewItemCollection()[0]
+                item = Globals.mainViewRoot.postEventByName('NewItemCollection',{})[0]
                 self.isCollection = True
                 
             self.item = item
-                 
-
+            # Give the Yield
+            wx.GetApp().Yield()
+            self.logger.Stop()
+    
     def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
-                status=None, alarm=None, fromAddress=None, toAddress=None, allDay=None, stampEvent=None, stampMail=None,
-                stampTask=None, dict=None):
-        """ Set the item attributes in a predefined order """
-        if displayName:
-            self.SetDisplayName(displayName)
-        if startDate:
-            self.SetStartDate(startDate)
-        if startTime:
-            self.SetStartTime(startTime)
-        if endDate:
-            self.SetEndDate(endDate)
-        if endTime:
-            self.SetEndTime(endTime)
-        if location:
-            self.SetLocation(location)
-        if body:
-            self.SetBody(body)
-        if status:
-            self.SetStatus(status)
-        if alarm:
-            self.SetAlarm(alarm)
-        if fromAddress:
-            self.SetFromAddress(fromAddress)
-        if toAddress:
-            self.SetToAddress(toAddress)
-        if allDay:
-            self.SetAllDay(allDay)
-        if stampEvent:
-            self.StampAsEvent(stampEvent)
-        if stampMail:
-            self.StampAsMailMessage(stampMail)
-        if stampTask:
-            self.StampAsTask(stampTask)
+                status=None, timeZone=None, recurrence=None, recurrenceEnd=None, alarm=None, fromAddress=None, toAddress=None,
+                allDay=None, stampEvent=None, stampMail=None,stampTask=None, dict=None):
+        """
+        Set the item attributes in a predefined order (see orderList)
+        """
+        methodDict = {displayName:self.SetDisplayName, startDate:self.SetStartDate, startTime:self.SetStartTime, endDate:self.SetEndDate, endTime:self.SetEndTime,
+                      location:self.SetLocation, body:self.SetBody, status:self.SetStatus, alarm:self.SetAlarm, fromAddress:self.SetFromAddress,
+                      toAddress:self.SetToAddress, allDay:self.SetAllDay, stampEvent:self.StampAsCalendarEvent, stampMail:self.StampAsMailMessage,
+                      stampTask:self.StampAsTask, timeZone:self.SetTimeZone, recurrence:self.SetRecurrence, recurrenceEnd:self.SetRecurrenceEnd}
+        orderList = [displayName, startDate, startTime, endDate, endTime, location, body, status, alarm, fromAddress, toAddress, allDay,
+                     stampEvent, stampMail, stampTask, timeZone, recurrence, recurrenceEnd]
+        
+        for param in orderList:
+            if param:
+                methodDict[param](param)
+            
         if dict:
             self.logger.Start("Multiple Attribute Setting")
             self.logger.Stop()
             self.Check_DetailView(dict)
             
-
     def SetAttrInOrder(self, argList, dict=None):
-        """ Set the item attributes in the argList order """
+        """
+        Set the item attributes in the argList order
+        """
+        methodDict = {"displayName":self.SetDisplayName, "startDate":self.SetStartDate, "startTime":self.SetStartTime, "endDate":self.SetEndDate, "endTime":self.SetEndTime,
+                      "location":self.SetLocation, "body":self.SetBody, "status":self.SetStatus, "alarm":self.SetAlarm, "fromAddress":self.SetFromAddress,
+                      "toAddress":self.SetToAddress, "allDay":self.SetAllDay, "stampEvent":self.StampAsCalendarEvent, "stampMail":self.StampAsMailMessage,
+                      "stampTask":self.StampAsTask, "timeZone":self.SetTimeZone, "recurrence":self.SetRecurrence, "recurrenceEnd":self.SetRecurrenceEnd}
         for (key, value) in argList:
-            if key == "displayName":
-                self.SetDisplayName(value)
-            if key == "startDate":
-                self.SetStartDate(value)
-            if key == "startTime":
-                self.SetStartTime(value)
-            if key == "endDate":
-                self.SetEndDate(value)
-            if key == "endTime":
-                self.SetEndTime(value)
-            if key == "location":
-                self.SetLocation(value)
-            if key == "body":
-                self.SetBody(value)
-            if key == "status":
-                self.SetStatus(value)
-            if key == "alarm":
-                self.SetAlarm(value)
-            if key == "fromAddress":
-                self.SetFromAddress(value)
-            if key == "toAddress":
-                self.SetToAddress(value)
-            if key == "allDay":
-                self.SetAllDay(value)
-            if key == "stampEvent":
-                self.StampAsCalendarEvent(value)
-            if key == "stampMail":
-                self.StampAsMailMessage(value)
-            if key == "stampTask":
-                self.StampAsTask(value)
-            if key == "dict":
-                self.logger.Start("Multiple Attribute Setting")
-                self.logger.Stop()
-                self.Check_DetailView(value)
+            methodDict[key](value)
+        if dict:
+            self.logger.Start("Multiple Attribute Setting")
+            self.logger.Stop()
+            self.Check_DetailView(value)
 
     def SelectItem(self):
+        """
+        Select the item in chandler (summary view or calendar view selection)
+        """
         #if not in the Calendar view (select in the summary view)
         #check the button state
         button = App_ns.ApplicationBarEventButton
@@ -151,154 +149,154 @@ class UITestItem :
             App_ns.summary.select(self.item)
         #if in the Calendar view (select by clicking on the TimedCanvasItem)
         else:
+            
             timedCanvas = App_ns.TimedEventsCanvas
+            allDayCanvas = App_ns.AllDayEventsCanvas
+            for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
+                if canvasItem._item == self.item:
+                    allDayCanvas.widget.OnSelectItem(canvasItem)
+                    break
             for canvasItem in reversed(timedCanvas.widget.canvasItemList):
                 if canvasItem._item == self.item:
-                    #process the mouse event at the good coord
-                    pos = canvasItem.GetDragOrigin()
-                    click = wx.MouseEvent(wx.wxEVT_LEFT_DOWN)
-                    click.m_x = pos.x
-                    click.m_y = pos.y
-                    click.SetEventObject(timedCanvas.widget)
-                    wx.GetApp().Yield()
+                    timedCanvas.widget.OnSelectItem(canvasItem)
                     break
-        
-            
+
+    def SetEditableBlock(self, blockName, description, value, dict=None):
+        """
+        Set the value of an editable block
+        @type blockName : string
+        @param blockName : the name of the editable block
+        @type description : string
+        @param description : description of the action used by the logger
+        @type value : string
+        @param value : the new value for the editable block
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
+        if dict:
+            self.logger.Start("Set the %s to : %s" %(description, displayName))
+        #select the item
+        self.SelectItem()
+        block = App_ns.__getattr__(blockName)
+        # Emulate the mouse click in the display name block
+        scripting.User.emulate_click(block)
+        # Select the old text
+        block.widget.SelectAll()
+        # Emulate the keyboard events
+        scripting.User.emulate_typing(value)
+        scripting.User.emulate_return()
+        if dict:
+            self.logger.Stop()
+            self.Check_DetailView(dict)
+         
     def SetDisplayName(self, displayName, dict=None):
-        ''' Set the title '''
+        """
+        Set the title
+        @type displayName : string
+        @param displayName : the new title
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if (self.isNote or self.isEvent or self.isTask or self.isMessage):
-            if dict:
-                self.logger.Start("Set the display name to : %s" %displayName)
-            #select the item
-            self.SelectItem()
-            displayNameBlock = App_ns.detail.title
-            # Emulate the mouse click in the display name block
-            Scripting.User.emulate_click(displayNameBlock)
-            # Select the old text
-            displayNameBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(displayName)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)          
+            self.SetEditableBlock("HeadlineBlock", "display name", displayName, dict)
+        elif(self.isCollection):
+            #select the collection
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
+            #edit the collection displayName (double click)
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+            #Type the new collection displayName
+            scripting.User.emulate_typing(displayName)
+            #work around : KeyboardReturn doesn't work in that kind of editor
+            scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")            
         else:
             self.logger.Print("SetDisplayName is not available for this kind of item")
             return
 
     def SetStartTime(self, startTime, dict=None):
-        ''' Set the start time '''
+        """
+        Set the start time
+        @type startTime : string
+        @param startTime : the new start time (hh:mm PM or AM)
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if (self.isEvent and not self.allDay):
-            if dict:
-                self.logger.Start("Set the start time to : %s" %startTime)
-            self.SelectItem()
-            startTimeBlock = App_ns.detail.start_time
-            # Emulate the mouse click in the start time block
-            Scripting.User.emulate_click(startTimeBlock)
-            # Select the old text
-            startTimeBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(startTime)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)    
+            self.SetEditableBlock("EditCalendarStartTime", "start time", startTime, dict)
         else:
             self.logger.Print("SetStartTime is not available for this kind of item")
             return
 
     def SetStartDate(self, startDate, dict=None):
-        ''' Set the start date '''
+        """
+        Set the start date
+        @type startDate : string
+        @param startDate : the new start date (mm/dd/yyyy)
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
-            if dict:
-                self.logger.Start("Set the start date to : %s" %startDate)
-            self.SelectItem()
-            startDateBlock = App_ns.detail.start_date
-            # Emulate the mouse click in the start date block
-            Scripting.User.emulate_click(startDateBlock)
-            # Select the old text
-            startDateBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(startDate)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("EditCalendarStartDate", "start date", startDate, dict)
         else:
             self.logger.Print("SetStartDate is not available for this kind of item")
             return
 
     def SetEndTime(self, endTime, dict=None):
-        ''' Set the end time '''
+        """
+        Set the end time
+        @type endTime : string
+        @param endTime : the new end time (hh:mm PM or AM)
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if (self.isEvent and not self.allDay):
-            if dict:
-                self.logger.Start("Set the end time to : %s" %endTime)
-            self.SelectItem()
-            endTimeBlock = App_ns.detail.end_time
-            # Emulate the mouse click in the end time block
-            Scripting.User.emulate_click(endTimeBlock)
-            # Select the old text
-            endTimeBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(endTime)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("EditCalendarEndTime", "end time", endTime, dict)
         else:
             self.logger.Print("SetEndTime is not available for this kind of item")
             return
     
     def SetEndDate(self, endDate, dict=None):
-        ''' Set the end date '''
+        """
+        Set the end date
+        @type endDate : string
+        @param endDate : the new end date (mm/dd/yyyy)
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
-            if dict:
-                self.logger.Start("Set the end date to : %s" %endDate)
-            self.SelectItem()
-            endDateBlock = App_ns.detail.end_date
-            # Emulate the mouse click in the end date block
-            Scripting.User.emulate_click(endDateBlock)
-            # Select the old text
-            endDateBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(endDate)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("EditCalendarEndDate", "end date", endDate, dict)
         else:
             self.logger.Print("SetEndDate is not available for this kind of item")
             return
 
     def SetLocation(self, location, dict=None):
-        ''' Set the location '''
+        """
+        Set the location
+        @type location : string
+        @param location : the new location
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
-            if dict:
-                self.logger.Start("Set the location to : %s" %location)
-            self.SelectItem()
-            locationBlock = App_ns.detail.location
-            Scripting.User.emulate_click(locationBlock)
-            # Select the old text
-            locationBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(location)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("CalendarLocation", "location", location, dict)
         else:
             self.logger.Print("SetLocation is not available for this kind of item")
             return
 
     def SetAllDay(self, allDay, dict=None):
-        ''' Set the allday attribute '''
+        """
+        Set the allday attribute
+        @type allDay : boolean
+        @param allDay : the new all-day value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
             if dict:
                 self.logger.Start("Set the all Day to : %s" %allDay)
             self.SelectItem()
-            allDayBlock = App_ns.detail.all_day 
+            allDayBlock = App_ns.detail.all_day  
             # Emulate the mouse click in the all-day block
-            #Scripting.User.emulate_click(allDayBlock)
+            # scripting.User.emulate_click(allDayBlock)
             # work around : (the mouse click has not the good effect)
             # the bug #3336 appear on linux
             allDayBlock.widget.SetValue(allDay)
@@ -310,282 +308,345 @@ class UITestItem :
             self.logger.Print("SetAllDay is not available for this kind of item")
             return
    
-    def SetStatus(self, status, dict=None):
-        ''' Set the status '''
+    def SetStatus(self, status):
+        """
+        Set the status
+        @type status : string
+        @param status : the new status value ("Confirmed" or "Tentative" or "FYI")
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
             self.SelectItem()
-            statusBlock = App_ns.detail.status
-            list_of_value = []
-            for k in range(0,statusBlock.widget.GetCount()):
-                list_of_value.append(statusBlock.widget.GetString(k))
-            if not status in list_of_value:
-                return
-            else:
-                if dict:
-                    self.logger.Start("Set the status to : %s" %status)
-                # Emulate the mouse click in the status block
-                Scripting.User.emulate_click(statusBlock)
-                statusBlock.widget.SetStringSelection(status)
-                # Process the event corresponding to the selection
-                selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
-                selectionEvent.SetEventObject(statusBlock.widget)
-                statusBlock.widget.ProcessEvent(selectionEvent)
-                self.SelectItem()
-                if dict:
-                    self.logger.Stop()
-                    self.Check_DetailView(dict)
+            SetBlockMenu("EditTransparency",status)
+            self.SelectItem()
         else:
             self.logger.Print("SetStatus is not available for this kind of item")
             return
 
-    def SetAlarm(self, alarm, dict=None):
-        ''' Set the alarm '''
+    def SetAlarm(self, alarm):
+        """
+        Set the alarm
+        @type alarm : string
+        @param alarm : the new alarm value ("1","5","10","30","60","90")
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isEvent:
             if alarm == "1":
                 alarm = alarm + " minute"
             else:
                 alarm = alarm + " minutes"
             self.SelectItem()
-            alarmBlock = App_ns.detail.reminder
-            list_of_value = []
-            for k in range(0,alarmBlock.widget.GetCount()):
-                list_of_value.append(alarmBlock.widget.GetString(k))
-            if not alarm in list_of_value:
-                return
-            else:
-                if dict:
-                    self.logger.Start("Set the alarm to : %s" %alarm)
-                # Emulate the mouse click in the reminder block
-                Scripting.User.emulate_click(alarmBlock)
-                alarmBlock.widget.SetStringSelection(alarm)
-                # Process the event corresponding to the selection
-                selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
-                selectionEvent.SetEventObject(alarmBlock.widget)
-                alarmBlock.widget.ProcessEvent(selectionEvent)
-                self.SelectItem()
-                if dict:
-                    self.logger.Stop()
-                    self.Check_DetailView(dict)
+            SetBlockMenu("EditReminder",alarm)
+            self.SelectItem()
         else:
             self.logger.Print("SetAlarm is not available for this kind of item")
             return
     
     def SetBody(self, body, dict=None):
-        ''' Set the body text '''
-        if dict:
-            self.logger.Start("Set the body")
-        self.SelectItem()
-        noteArea = App_ns.detail.notes
-        # Emulate the mouse click in the note area
-        Scripting.User.emulate_click(noteArea)
-        noteArea.widget.SelectAll()
-        # Emulate the keyboard events
-        Scripting.User.emulate_typing(body)
-        Scripting.User.emulate_return()
-        if dict:
-            self.logger.Stop()
-            self.Check_DetailView(dict)
-            
+        """
+        Set the body text
+        @type body : string
+        @param body : the new body text
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
+        self.SetEditableBlock("NotesBlock", "body", body, dict)
 
     def SetToAddress(self, toAdd, dict=None):
-        ''' Set the to address '''
+        """
+        Set the to address
+        @type toAdd : string
+        @param toAdd : the new destination address value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isMessage:
-            if dict:
-                self.logger.Start("Set the to address to : %s" %toAdd)
-            self.SelectItem()
-            toBlock = App_ns.detail.mail_to            
-            # Emulate the mouse click in the to block
-            Scripting.User.emulate_click(toBlock)
-            toBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(toAdd)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("ToMailEditField", "to address", toAdd, dict)
         else:
             self.logger.Print("SetToAddress is not available for this kind of item")
             return
         
     def SetFromAddress(self, fromAdd, dict=None):
-        ''' Set the from address (not available from UI) '''
+        """
+        Set the from address (not available from UI)
+        @type fromAdd : string
+        @param fromAdd : the new from address value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if self.isMessage:
-            if dict:
-                self.logger.Start("Set the from address to : %s" %fromAdd)
-            self.SelectItem()
-            fromBlock = App_ns.detail.mail_to
-            # Emulate the mouse click in the from block
-            Scripting.User.emulate_click(fromBlock)
-            fromBlock.widget.SelectAll()
-            # Emulate the keyboard events
-            Scripting.User.emulate_typing(fromAdd)
-            Scripting.User.emulate_return()
-            if dict:
-                self.logger.Stop()
-                self.Check_DetailView(dict)
+            self.SetEditableBlock("FromEditField", "from address", fromAdd, dict)
         else:
             self.logger.Print("SetFromAddress is not available for this kind of item")
             return
-
-    
+        
     def StampAsMailMessage(self, stampMail, dict=None):
-        ''' Stamp as a mail '''
+        """
+        Stamp as a mail
+        @type stampMail : boolean
+        @param stampMail : the new mail stamp value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if stampMail == self.isMessage:# Nothing to do
             return
         else:
             if dict:
                 self.logger.Start("Change the Mail stamp to : %s" %stampMail)
             self.SelectItem()
-            App_ns.markupbar.press('MailMessageButton')
+            App_ns.markupbar.press(name='MailMessageButton')
             self.isMessage = stampMail
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
                 
-
     def StampAsTask(self, stampTask, dict=None):
-        ''' Stamp as a task '''
+        """
+        Stamp as a task
+        @type stampTask : boolean
+        @param stampTask : the new task stamp value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if stampTask == self.isTask:# Nothing to do
             return
         else:
             if dict:
                 self.logger.Start("Change the Task stamp to : %s" %stampTask)
             self.SelectItem()
-            App_ns.markupbar.press('TaskButton')
+            App_ns.markupbar.press(name='TaskStamp')
             self.isTask = stampTask
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
                 
-
     def StampAsCalendarEvent(self, stampEvent, dict=None):
-        ''' Stamp as an event '''
+        """
+        Stamp as an event
+        @type stampEvent : boolean
+        @param stampEvent : the new event stamp value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
         if stampEvent == self.isEvent:# Nothing to do
             return
         else:
             if dict:
                 self.logger.Start("Change the Calendar Event stamp to : %s" %stampEvent)
             self.SelectItem()
-            App_ns.markupbar.press('CalendarEventButton')
+            App_ns.markupbar.press(name='CalendarStamp')
             self.isEvent = stampEvent
             if dict:
                 self.logger.Stop()
                 self.Check_DetailView(dict)
-                
+
+    def SetTimeZone(self, timeZone):
+        """
+        Set the time zone
+        @type timeZone : string
+        @param timeZone : the new time zone value
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
+        if self.isEvent:
+            self.SelectItem()
+            SetBlockMenu("EditTimeZone",timeZone)
+            self.SelectItem()
+        else:
+            self.logger.Print("SetTimeZone is not available for this kind of item")
+            return
+        
+    def SetRecurrence(self, recurrence):
+        """
+        Set the recurrence
+        @type recurrence : string
+        @param recurrence : the new recurrence value ("None","Daily","Weekly","Monthly","Yearly")
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
+        if self.isEvent:
+            self.SelectItem()
+            SetBlockMenu("EditRecurrence",recurrence)
+            self.SelectItem()
+            if not recurrence == "Once":
+                self.recurring = True
+        else:
+            self.logger.Print("SetRecurrence is not available for this kind of item")
+            return
+
+    def SetRecurrenceEnd(self, endDate):
+        """
+        Set the recurrence end date
+        @type endDate : string
+        @param endDate : the new recurrence end value ("mm/dd/yyyy")
+        @type dict : dictionnary
+        @param dict : optional dictionnary with expected item attributes values for automated checking
+        """
+        if self.isEvent and self.recurring:
+            self.SetEditableBlock("EditRecurrenceEnd", "recurrence end", endDate, dict=None)
+        else:
+            self.logger.Print("SetRecurrenceEnds is not available for this kind of item")
+            return
+
+    def SendMail(self):
+        """
+        Send a mail message
+        """
+        if self.isMessage:
+            #select the item
+            self.SelectItem()
+            #Send button is available only when the body is edited
+            noteArea = App_ns.detail.notes
+            scripting.User.emulate_click(noteArea)
+            #Press the Send button
+            self.logger.Start("Sending the message")
+            App_ns.appbar.press(name="ApplicationBarSendButton")
+            self.logger.Stop()
+            #checking
+            self.logger.SetChecked(True)
+            if self.item.isOutbound:
+                self.logger.ReportPass("(On sending message Checking)")
+            else:
+                self.logger.ReportFailure("(On sending message Checking)")
+            self.logger.Report("Send Mail")
+        else:
+            self.logger.Print("SendMail is not available for this kind of item")
+            return
+
+    def SetCollection(self, collectionName):
+        """
+        Put the item in the given collection
+        @type collectionName : string
+        @param collectionName : the name of a collection
+        """
+        if (self.isNote or self.isEvent or self.isTask or self.isMessage):
+            col = App_ns.item_named(Collection.ListCollection, collectionName)
+            self.logger.Start("Give a collection")
+            col.add(self.item)
+            self.logger.Stop()
+            #checking
+            self.logger.SetChecked(True)
+            if col.__contains__(self.item):
+                self.logger.ReportPass("(On give collection Checking)")
+            else:
+                self.logger.ReportFailure("(On give collection Checking)")
+            self.logger.Report("Collection Setting")
+        else:
+            self.logger.Print("SetCollection is not available for this kind of item")
+            return
+    
+    def CheckEditableBlock(self, blockName, description, value):
+        """
+        Check the value contained in the given editable block
+        @type blockName : string
+        @param blockName : name of the editable block to check
+        @type description : string
+        @param description : description of the action for the logger
+        @type value : string
+        @param value : expected value to compare
+        """
+        #find the block
+        block = App_ns.__getattr__(blockName)
+        #get the editable block value
+        blockValue = block.widget.GetValue()
+        if not blockValue == value :
+            self.logger.ReportFailure("(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, blockValue, value))
+        else:
+            self.logger.ReportPass("(On %s Checking)" %description)
+
+    def CheckMenuBlock(self, blockName, description, value):
+        """
+        Check the current value of the given list-menu
+        @type blockName : string
+        @param blockName : name of the list-menu block to check
+        @type description : string
+        @param description : description of the action for the logger
+        @type value : string
+        @param value : expected value to compare
+        """
+        #find the block
+        block = App_ns.__getattr__(blockName)
+        #get the menu block value
+        menuValue = block.widget.GetStringSelection()
+        if not menuValue == value :
+            self.logger.ReportFailure("(On %s Checking)  || detail view value = %s ; expected value = %s" %(description, menuValue, value))
+        else:
+            self.logger.ReportPass("(On %s Checking)" %description)
+
+    def CheckButton(self, buttonName, description, value):
+        """
+        Check the current state of the given button
+        @type blockName : string
+        @param blockName : name of the button block to check
+        @type description : string
+        @param description : description of the action for the logger
+        @type value : boolean
+        @param value : expected value to compare
+        """
+        #get the button state
+        state = App_ns.markupbar.pressed(name=buttonName)
+        if not state == value :
+            self.logger.ReportFailure("(On %s Checking) || detail view value = %s ; expected value = %s" %(state, value))
+        else:
+            self.logger.ReportPass("(On %s Checking)" %description)
         
     def Check_DetailView(self, dict):
-        ''' Check expected values by comparation to the data diplayed in the detail view '''
+        """
+        Check expected values by comparation to the data diplayed in the detail view
+        @type dict : dictionnary
+        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        """  
         self.logger.SetChecked(True)
-        # check the changing values
+        self.SelectItem()
+        # call the check methods
         for field in dict.keys():
-            self.SelectItem()
             if field == "displayName": # display name checking
-                displayNameBlock = App_ns.detail.title
-                d_name = displayNameBlock.widget.GetValue()
-                if not dict[field] == d_name :
-                    self.logger.ReportFailure("(On display name Checking)  || detail view title = %s ; expected title = %s" %(d_name, dict[field]))
-                else:
-                    self.logger.ReportPass("(On display name Checking)")
+                self.CheckEditableBlock("HeadlineBlock", "display name", dict[field])
             elif field == "startDate": # start date checking
-                startDateBlock = App_ns.detail.start_date
-                s_date = startDateBlock.widget.GetValue()
-                if not dict[field] == s_date :
-                    self.logger.ReportFailure("(On start date Checking) || detail view start date = %s ; expected start date = %s" %(s_date, dict[field]))
-                else:
-                    self.logger.ReportPass("(On start date Checking)")
+                self.CheckEditableBlock("EditCalendarStartDate", "start date", dict[field])
             elif field == "startTime": # start time checking
-                startTimeBlock = App_ns.detail.start_time
-                s_time = startTimeBlock.widget.GetValue()
-                if not dict[field] == s_time :
-                    self.logger.ReportFailure("(On start time Checking) || detail view start time = %s ; expected start time = %s" %(s_time, dict[field]))
-                else:
-                    self.logger.ReportPass("(On start time Checking)")
+                self.CheckEditableBlock("EditCalendarStartTime", "start time", dict[field])
             elif field == "endDate": # end date checking
-                endDateBlock = App_ns.detail.end_date
-                e_date = endDateBlock.widget.GetValue()
-                if not dict[field] == e_date :
-                    self.logger.ReportFailure("(On end date Checking) || detail view end date = %s ; expected end date = %s" %(e_date, dict[field]))
-                else:
-                    self.logger.ReportPass("(On end date Checking)")
+                self.CheckEditableBlock("EditCalendarEndDate", "end date", dict[field])
             elif field == "endTime": # end time checking
-                endTimeBlock = App_ns.detail.end_time
-                e_time = endTimeBlock.widget.GetValue()
-                if not dict[field] == e_time :
-                    self.logger.ReportFailure("(On end time Checking) || detail view end time = %s ; expected end time = %s" %(e_time, dict[field]))
-                else:
-                    self.logger.ReportPass("(On end time Checking)")
+                self.CheckEditableBlock("EditCalendarEndTime", "end time", dict[field])
             elif field == "location": # location checking
-                locationBlock = App_ns.detail.location
-                loc = locationBlock.widget.GetValue()
-                if not dict[field] == loc :
-                    self.logger.ReportFailure("(On location Checking) || detail view location = %s ; expected location = %s" %(loc, dict[field]))
-                else:
-                    self.logger.ReportPass("(On location Checking)")
+                self.CheckEditableBlock("CalendarLocation", "location", dict[field])
             elif field == "body": # body checking
-                noteBlock = App_ns.detail.notes
-                body = noteBlock.widget.GetValue()
-                if not dict[field] == body :
-                    self.logger.ReportFailure("(On body Checking) || detail view body = %s ; expected body = %s" %(body, dict[field]))
-                else:
-                     self.logger.ReportPass("(On body Checking)")
+                self.CheckEditableBlock("NotesBlock", "body", dict[field])
             elif field == "fromAddress": # from address checking
-                fromBlock = App_ns.detail.mail_from
-                f = fromBlock.widget.GetValue()
-                if not dict[field] == f :
-                    self.logger.ReportFailure("(On from address Checking) || detail view from address = %s ; expected from address = %s" %(f, dict[field]))
-                else:
-                    self.logger.ReportPass("(On from address Checking)")
+                self.CheckEditableBlock("FromEditField", "from address", dict[field])
             elif field == "toAddress": # to address checking
-                toBlock = App_ns.detail.mail_to
-                t = toBlock.widget.GetValue()
-                if not dict[field] == t :
-                    self.logger.ReportFailure("(On to address Checking) || detail view to address = %s ; expected to address = %s" %(t, dict[field]))
-                else:
-                    self.logger.ReportPass("(On to address Checking)")
+                self.CheckEditableBlock("ToMailEditField", "to address", dict[field])
             elif field == "status": # status checking
-                statusBlock = App_ns.detail.status
-                status = statusBlock.widget.GetStringSelection()
-                if not dict[field] == status :
-                    self.logger.ReportFailure("(On status Checking) || detail view status = %s ; expected status = %s" %(status, dict[field]))
-                else:
-                    self.logger.ReportPass("(On status Checking)")
+                self.CheckMenuBlock("EditTransparency", "status", dict[field])
+            elif field == "timeZone": # time zone checking
+                self.CheckMenuBlock("EditTimeZone", "time-zone", dict[field])
+            elif field == "recurrence": # recurrence checking
+                self.CheckMenuBlock("EditRecurrence", "recurrence", dict[field])
+            elif field == "recurrenceEnd": # recurrence end date checking
+                self.CheckEditableBlock("EditRecurrenceEnd", "recurrence end", dict[field])
             elif field == "alarm": # status checking
-                alarmBlock = App_ns.detail.reminder
-                alarm = alarmBlock.widget.GetStringSelection()
-                if not dict[field] == alarm :
-                    self.logger.ReportFailure("(On alarm Checking) || detail view alarm = %s ; expected alarm = %s" %(alarm, dict[field]))
-                else:
-                    self.logger.ReportPass("(On alarm Checking)")
+                self.CheckMenuBlock("EditReminder", "alarm", dict[field])
             elif field == "allDay": # status checking
-                allDayBlock = App_ns.detail.all_day
-                allDay = allDayBlock.widget.GetValue()
-                if not dict[field] == allDay :
-                    self.logger.ReportFailure("(On all Day Checking) || detail view all day = %s ; expected all day = %s" %(allDay, dict[field]))
-                else:
-                    self.logger.ReportPass("(On all Day Checking)")
+                self.CheckEditableBlock("EditAllDay", "all-day", dict[field])
             elif field == "stampMail": # Mail stamp checking
-                stampMail = App_ns.markupbar.pressed(name="MailMessageButton")
-                if not dict[field] == stampMail :
-                    self.logger.ReportFailure("(On Mail Stamp Checking) || detail view Mail Stamp = %s ; expected Mail Stamp = %s" %(stampMail, dict[field]))
-                else:
-                    self.logger.ReportPass("(On Mail Stamp Checking)")
+                self.CheckButton("MailMessageButton", "mail stamp", dict[field])
             elif field == "stampTask": # Task stamp checking
-                stampTask = App_ns.markupbar.pressed(name="TaskStamp")
-                if not dict[field] == stampTask :
-                    self.logger.ReportFailure("(On Task Stamp Checking) || detail view Task Stamp = %s ; expected Task Stamp = %s" %(stampTask, dict[field]))
-                else:
-                    self.logger.ReportPass("(On Task Stamp Checking)")
+                self.CheckButton("TaskStamp", "task stamp", dict[field])
             elif field == "stampEvent": # Event stamp checking
-                stampEvent = App_ns.markupbar.pressed(name="CalendarStamp")
-                if not dict[field] == stampEvent :
-                    self.logger.ReportFailure("(On Event Stamp Checking) || detail view Event Stamp = %s ; expected Event Stamp = %s" %(stampEvent, dict[field]))
-                else:
-                    self.logger.ReportPass("(On Event Stamp Checking)")
+                self.CheckButton("CalendarStamp", "calendar stamp", dict[field])
         #report the checkings
         self.logger.Report("Detail View")
     
     def Check_Object(self, dict):
-        ''' Check expected values by comparation to the data contained in the object attributes '''
+        """
+        Check expected value by comparison to the data contained in the object attributes
+        @type dict : dictionnary
+        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        """
         self.logger.SetChecked(True)
         # check the changing values
         for field in dict.keys():
@@ -656,6 +717,12 @@ class UITestItem :
                     self.logger.ReportFailure("(On status Checking) || object status = %s ; expected status = %s" %(status, dict[field]))
                 else:
                     self.logger.ReportPass("(On status Checking)")
+            elif field == "timeZone": # time zone checking
+                timeZone = "%s" %self.item.startTime.tzname()
+                if not dict[field] == timeZone :
+                    self.logger.ReportFailure("(On time zone Checking) || object time zone = %s ; expected time zone = %s" %(timeZone, dict[field]))
+                else:
+                    self.logger.ReportPass("(On time zone Checking)")
             elif field == "alarm": # status checking
                 alarm = self.item.startTime - self.item.reminderTime
                 field = timedelta(minutes = string.atoi(dict[field]))
@@ -701,10 +768,29 @@ class UITestItem :
                     self.logger.ReportPass("(On Event Stamp Checking)")
         #report the checkings
         self.logger.Report("Object state")
+
+    def Check_Sidebar(self, dict):
+        """
+        Check expected values by comparison to the data displayed in the sidebar
+        @type dict : dictionnary
+        @param dict : dictionnary with expected item attributes values for checking {"attributeName":"expected value",...}
+        """
+        if self.isCollection:
+            self.logger.SetChecked(True)
+            # check the changing values
+            for field in dict.keys():
+                if field == "displayName": # display name checking
+                    if not scripting.User.emulate_sidebarClick(App_ns.sidebar, dict[field]):
+                        self.logger.ReportFailure("(On display name Checking)  || expected title = %s" %dict[field])
+                    else:
+                        self.logger.ReportPass("(On display name Checking)")
+        #report the checkings
+        self.logger.Report("Sidebar")
+        
         
 class UITestAccounts:
-    def __init__(self, view = None, logger=None):
-        self.view = view
+    def __init__(self, logger=None):
+        self.view = App_ns.itsView
         self.logger = logger
         self.window = None
         self.accountNames = {'SMTP': 'Outgoing mail (SMTP)', 'IMAP': 'Incoming mail (IMAP)', 'POP': 'Incoming mail (POP)', 'WebDAV': 'Sharing (WebDAV)'}
@@ -715,22 +801,35 @@ class UITestAccounts:
         self.fieldMap = {'SMTP': SMTPfields, 'IMAP': IMAPfields, 'WebDAV': DAVfields, 'POP': POPfields}        
         
     def Open(self):
-        # EditAccountPreferences()
+        """
+        Open the Account preferences dialog window in non-modal mode
+        """
         # Have to do it the hard way since Account Preferences is modal by default
         import application
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, view=self.view, modal=False)
-        self.window =  wx.FindWindowByLabel("Account Preferences")
+        self.window = wx.FindWindowByLabel("Account Preferences")
         wx.GetApp().Yield()
         
     def Ok(self):
+        """
+        Call the OK button click handler
+        """
         self.window.OnOk(None)
         self.window = None
         
     def Cancel(self):
+        """
+        Call the Cancel button click handler
+        """
         self.window.OnCancel(None)
         self.window = None
 
     def CreateAccount(self, type):
+        """
+        Create an account of the given type
+        @type type : string
+        @param type : an account type (IMAP,SMTP,WebDAV,POP)
+        """
         self.window.choiceNewType.SetStringSelection(self.accountNames[type])
         self.window.OnNewAccount(None)
 
@@ -746,14 +845,27 @@ class UITestAccounts:
         return self.window.currentPanel.GetChildren()[child]
         
     def TypeValue(self, field, value):
+        """
+        Emulate keyboard typing in the given field
+        @type field : string
+        @param field : the name of the field in which you want to type
+        @type value : string
+        @param value : the text to type
+        """
         child = self._GetField(field)
         child.SetFocus()
+        child.Clear() #work around : SelectAll() doesn't work on mac
         wx.GetApp().Yield()
-        child.SelectAll()
-        Scripting.User.emulate_typing(value);
-
+        scripting.User.emulate_typing(value)        
 
     def ToggleValue(self, field, value):
+        """
+        Toggle the given field
+        @type field : string
+        @param field : the name of the field in which you want to toggle
+        @type value : boolean
+        @param value : the toggle state value
+        """
         child = self._GetField(field)
         child.SetValue(value)
         event = wx.CommandEvent()
@@ -763,6 +875,13 @@ class UITestAccounts:
         wx.GetApp().Yield()
         
     def SelectValue(self, field, value):
+        """
+        Select a value in a list-menu
+        @type field : string
+        @param field : the name of the list-menu
+        @type value : string
+        @param value : the value you want to select in the menu
+        """
         child = self._GetField(field)
         if isinstance(child, wx.RadioButton):
             offset = {'None': 0, 'No':0, 'TLS': 1, 'SSL': 2}[value]
@@ -777,14 +896,22 @@ class UITestAccounts:
             child.SetStringSelection(value)
         
     def VerifyValues(self, type, name, **keys):
+        """
+        Check the accounts settings
+        @type type : string
+        @param type : the type of account you want to check (IMAP,SMTP,WebDAV,POP)
+        @type name : string
+        @param name : the name of the account to check
+        @pram keys : key:value pairs
+        """
         if type == "SMTP":
-            iter = Mail.SMTPAccount.iterItems()
+            iter = Mail.SMTPAccount.iterItems(App_ns.itsView)
         elif type == "IMAP":
-            iter = Mail.IMAPAccount.iterItems()
+            iter = Mail.IMAPAccount.iterItems(App_ns.itsView)
         elif type == "WebDAV":
-            iter = Sharing.WebDAVAccount.iterItems()
+            iter = Sharing.WebDAVAccount.iterItems(App_ns.itsView)
         elif type == "POP":
-            iter = Mail.POPAccount.iterItems()
+            iter = Mail.POPAccount.iterItems(App_ns.itsView)
         else:
             raise AttributeError
         for account in iter:
@@ -804,101 +931,99 @@ class UITestAccounts:
 
 
 class UITestView:
-    def __init__(self, view, logger):
+    def __init__(self, logger):
         self.logger = logger
-        self.view = view
-        #by default the all view is selected
-        App_ns.appbar.press(name="ApplicationBarAllButton")
-        self.state = "AV"
+        self.view = App_ns.itsView
+        #get the current view state
+        self.state = self.GetCurrentState()
+
+    def GetCurrentState(self):
+        """
+        Get the current state of the view
+        @return : the current view
+        """
+        if App_ns.appbar.pressed(name="ApplicationBarAllButton"):
+            return "AllView"
+        elif App_ns.appbar.pressed(name="ApplicationBarTaskButton"):
+            return "TaskView"
+        elif App_ns.appbar.pressed(name="ApplicationBarMailButton"):
+            return "MailView"
+        elif App_ns.appbar.pressed(name="ApplicationBarEventButton"):
+            return "CalendarView"
+        else:
+            return False
+
+    def SwitchView(self, viewName):
+        """
+        @type viewName : string
+        @param viewName : name of the view to select (CalendarView,TaskView,MailView,AllView)
+        """
+        if self.state == viewName :
+            return False
+        elif viewName == "CalendarView":
+            button = "ApplicationBarEventButton"
+        elif viewName == "TaskView":
+            button = "ApplicationBarTaskButton"
+        elif viewName == "MailView":
+            button = "ApplicationBarMailButton"
+        elif viewName == "AllView":
+            button = "ApplicationBarAllButton"
+        else:
+            return False
+        self.state = viewName
+        self.logger.Start("Switch to %s" %viewName)
+        #process the corresponding event
+        App_ns.appbar.press(name=button)
+        wx.GetApp().Yield()
+        self.logger.Stop()
+        self.CheckView()
 
     def SwitchToCalView(self):
-        if not self.state == "CV":
-            self.state = "CV"
-            button = App_ns.ApplicationBarEventButton
-            toolBar = App_ns.appbar
-
-            self.logger.Start("Switch to calendar view")
-            #process the corresponding event
-            ev = wx.CommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED,button.widget.GetId())
-            toolBar.widget.ProcessEvent(ev)
-            wx.GetApp().Yield()
-            self.logger.Stop()
-            self.CheckView()
-            #get the timedEventsCanvas corresponding to the cal view
-            self.timedCanvas = App_ns.TimedEventsCanvas
+        """
+        Switch to the calendar view
+        """
+        self.SwitchView("CalendarView")
         
     def SwitchToTaskView(self):
-        if not self.state == "TV":
-            self.state = "TV"
-            button = App_ns.ApplicationBarTaskButton
-            toolBar = App_ns.appbar
-            
-            self.logger.Start("Switch to task view")
-            #process the corresponding event
-            ev = wx.CommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED,button.widget.GetId())
-            toolBar.widget.ProcessEvent(ev)
-            wx.GetApp().Yield()
-            self.logger.Stop()
-            self.CheckView()
+        """
+        Switch to the task view
+        """
+        self.SwitchView("TaskView")
 
     def SwitchToMailView(self):
-        if not self.state == "MV":
-            self.state = "MV"
-            button = App_ns.ApplicationBarMailButton
-            toolBar = App_ns.appbar
-
-            self.logger.Start("Switch to email view")
-            #process the corresponding event
-            ev = wx.CommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED,button.widget.GetId())
-            toolBar.widget.ProcessEvent(ev)
-            wx.GetApp().Yield()
-            self.logger.Stop()
-            self.CheckView()
+        """
+        Switch to the email view
+        """
+        self.SwitchView("MailView")
         
     def SwitchToAllView(self):
-        if not self.state == "AV":
-            self.state = "AV"
-            button = App_ns.ApplicationBarAllButton
-            toolBar = App_ns.appbar
-            
-            self.logger.Start("Switch to all view")
-            #process the corresponding event
-            ev = wx.CommandEvent(wx.wxEVT_COMMAND_TOOL_CLICKED,button.widget.GetId())
-            toolBar.widget.ProcessEvent(ev)
-            wx.GetApp().Yield()
-            self.logger.Stop()
-            self.CheckView()
-            
+        """
+        Switch to the all view
+        """
+        self.SwitchView("AllView")
+    
     def CheckView(self):
+        """
+        Check if the current view is the expected one
+        """
         self.logger.SetChecked(True)
-        if self.state == "AV":
-            #the all view button should be toggled
-            button = App_ns.ApplicationBarAllButton
-        elif self.state == "TV":
-            #the task view button should be toggled
-            button = App_ns.ApplicationBarTaskButton
-        elif self.state == "MV":
-            #the mail view button should be toggled
-            button = App_ns.ApplicationBarMailButton
-        elif self.state == "CV":
-            #the calendar view button should be toggled
-            button = App_ns.ApplicationBarEventButton
-        else:
-            print "error"
-            return
-        
-        buttonState = button.widget.IsToggled()
-        if not buttonState:
+        if not self.state == self.GetCurrentState():
             self.logger.ReportFailure("(On wiew checking) || expected current view = %s ; Correspondig button is switch off " %self.state)
         else:
             self.logger.ReportPass("(On view checking)")
-            
         #report the checkings
         self.logger.Report("View")
         
     def DoubleClickInCalView(self, x=300, y=100):
-        if self.state == "CV":
-            self.timedCanvas = App_ns.TimedEventsCanvas
+        """
+        Emulate a double click in the calendar a the given position
+        @type x : int
+        @param x : the x coordinate
+        @type y : int
+        @param y : the y coordinate
+        """
+        if self.state == "CalendarView":
+            self.timedCanvas = App_ns.TimedEventsCanvas 
             canvasItem = None
             #process the corresponding event
             click = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
@@ -914,7 +1039,7 @@ class UITestView:
                     canvasItem = elem
                     break
 
-            #workaround : process a double clik here edit the title (also when the canvasItem is not focused)
+            #work around : process a double clik here edit the title (also when the canvasItem is not focused)
             #behavior in chandler is different just a selection (I guess something linked to the focus)
             #so I just process a simple click before the double click to focus the canvasItem
             if canvasItem:
@@ -929,7 +1054,7 @@ class UITestView:
                 self.timedCanvas.widget.ProcessEvent(click)
                 wx.GetApp().Yield()
                 self.logger.Stop()
-                #workaround
+                #work around : SelectAll() doesn't work
                 wx.Window.FindFocus().Clear()
             else:
                 self.logger.Start("Double click in the calendar view")
@@ -939,8 +1064,6 @@ class UITestView:
             
             #it's a new event
             if not canvasItem :
-                #get the created item (it should be the last one)
-                #canvasItem = self.timedCanvas.widget.canvasItemList[-1]
                 for elem in reversed(self.timedCanvas.widget.canvasItemList):
                     if elem.isHit(pos):
                         canvasItem = elem
@@ -958,9 +1081,8 @@ class UITestView:
                 self.logger.Report()
                 return
                    
-            #print "list after : %s" %self.timedCanvas.widget.canvasItemList
             #create the corresponding UITestItem object
-            TestItem = UITestItem(self.view, canvasItem._item, self.logger)
+            TestItem = UITestItem(canvasItem._item, self.logger)
             return TestItem
         else:
             self.logger.Print("DoubleClickInCalView is not available in the current view : %s" %self.state)
