@@ -120,6 +120,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         return percentage
 
     def setFreeBusy(self, event):
+        # Disabling until performance issues are resolved
+        return
         startDate = self.GetStartDate();
         endDate = startDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
         
