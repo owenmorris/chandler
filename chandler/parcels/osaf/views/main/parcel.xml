@@ -76,51 +76,8 @@
   </contentModel:FilteredCollection>
 
   <!--
-    Collections
-  -->
-  <contentModel:ListCollection itsName="sidebarItemCollection">
-    <refCollection itemref="app:allCollection"/>
-    <refCollection itemref="app:inCollection"/>
-    <refCollection itemref="app:outCollection"/>
-    <refCollection itemref="app:TrashCollection"/>
-  </contentModel:ListCollection>
-
-  <contentModel:KindCollection itsName="mail">
-    <kind itemref="mail:MailMessageMixin"/>
-    <recursive>True</recursive>
-  </contentModel:KindCollection>
-
-
-  <!--
     Chandler's main view
   -->
-  
-  <doc:SidebarBlock itsName="Sidebar">
-    <contents itemref="doc:sidebarItemCollection"/>
-    <selectedItemToView itemref="app:allCollection"/>
-  </doc:SidebarBlock>
-
-  <CharacterStyle itsName="PreviewStyle">
-    <fontSize>11</fontSize>
-  </CharacterStyle>
-
-  <calendar:PreviewArea itsName="PreviewArea">
-    <blockName>PreviewArea</blockName>
-    <characterStyle itemref="doc:PreviewStyle"/>
-    <contents itemref="app:allCollection"/>
-  </calendar:PreviewArea>
-
-  <calendar:MiniCalendar itsName="MiniCalendar">
-    <blockName>MiniCalendar</blockName>
-    <contents itemref="app:allCollection"/>    
-  </calendar:MiniCalendar>
-
-  <TrunkParentBlock itsName="SidebarTPB">
-    <blockName value="SidebarTPB"/>
-    <TPBDetailItem itemref="app:allCollection"/>
-    <TPBSelectedItem itemref="app:allCollection"/>
-  </TrunkParentBlock>
-
 
   <SplitterWindow itsName="TableSummaryViewTemplate">
     <blockName>TableSummaryViewTemplate</blockName>

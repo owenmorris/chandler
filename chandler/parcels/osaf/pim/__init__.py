@@ -9,6 +9,7 @@ from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, CalendarEventMixin
 from calendar.Calendar import Calendar, Location, RecurrencePattern
 from tasks import Task, TaskMixin
+from mail import EmailAddress
 from collections import KindCollection, AbstractCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
      FilteredCollection, ListCollection, InclusionExclusionCollection

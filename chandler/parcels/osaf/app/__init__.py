@@ -2,39 +2,26 @@ import datetime, os
 import application.schema as schema
 from application.Parcel import Reference
 from repository.schema.Types import Lob
-from osaf import pim
-from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
-     DifferenceCollection, InclusionExclusionCollection, KindCollection
-from feeds import FeedChannel
 import scripts as Scripts
 from i18n import OSAFMessageFactory as _
+from osaf import pim
 
 #XXX[i18n] this file needs to have displayName converted to _()
 
 def installParcel(parcel, oldVersion=None):
+
+    from osaf import sharing, startup
+    from osaf.framework import scripting
+    import photos
 
     curDav = Reference.update(parcel, 'currentWebDAVAccount')
     curMail = Reference.update(parcel, 'currentMailAccount')
     curSmtp = Reference.update(parcel, 'currentSMTPAccount')
     curCon = Reference.update(parcel, 'currentContact')
 
-    sharing = schema.ns("osaf.sharing", parcel)
-    pim = schema.ns("osaf.pim", parcel)
-    mail = schema.ns("osaf.pim.mail", parcel)
-    photos = schema.ns("photos", parcel)
-    contacts = schema.ns("osaf.pim.contacts", parcel)
-    startup = schema.ns("osaf.startup", parcel)
-    scripting = schema.ns("osaf.framework.scripting", parcel)
-
     # Items created in osaf.app (this parcel):
 
     MakeCollections(parcel)
-
-    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="feeds.FeedUpdateTaskClass",
-        run_at_startup=True,
-        interval=datetime.timedelta(minutes=30)
-    )
 
     sharing.WebDAVAccount.update(parcel, 'OSAFWebDAVAccount',
         displayName=u'OSAF sharing',
@@ -67,51 +54,51 @@ def installParcel(parcel, oldVersion=None):
         port=80,
     )
 
-    preReply = mail.EmailAddress.update(parcel, 'PredefinedReplyAddress')
+    preReply = pim.EmailAddress.update(parcel, 'PredefinedReplyAddress')
 
-    preSmtp = mail.SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
+    preSmtp = pim.mail.SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
         displayName=u'Outgoing SMTP mail',
         references=[curSmtp]
     )
 
-    mail.IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
+    pim.mail.IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
         displayName=u'Incoming IMAP mail',
         replyToAddress=preReply,
         defaultSMTPAccount=preSmtp,
         references=[curMail]
     )
 
-    mail.POPAccount.update(parcel, 'PredefinedPOPAccount',
+    pim.mail.POPAccount.update(parcel, 'PredefinedPOPAccount',
         displayName=u'Incoming POP mail',
         replyToAddress=preReply,
         defaultSMTPAccount=preSmtp
     )
 
 
-    testReply = mail.EmailAddress.update(parcel, 'TestReplyAddress')
+    testReply = pim.mail.EmailAddress.update(parcel, 'TestReplyAddress')
 
-    testSmtp = mail.SMTPAccount.update(parcel, 'TestSMTPAccount',
+    testSmtp = pim.mail.SMTPAccount.update(parcel, 'TestSMTPAccount',
         displayName=u'Test SMTP Account',
         isActive=False
     )
 
-    mail.IMAPAccount.update(parcel, 'TestIMAPAccount',
+    pim.mail.IMAPAccount.update(parcel, 'TestIMAPAccount',
         displayName=u'Test IMAP mail',
         replyToAddress=testReply,
         defaultSMTPAccount=testSmtp,
         isActive=False
     )
 
-    mail.POPAccount.update(parcel, 'TestPOPAccount',
+    pim.mail.POPAccount.update(parcel, 'TestPOPAccount',
         displayName=u'Test POP mail',
         replyToAddress=testReply,
         defaultSMTPAccount=testSmtp,
         isActive=False
     )
 
-    osafDev = contacts.Contact.update(parcel, 'OSAFContact',
+    osafDev = pim.Contact.update(parcel, 'OSAFContact',
         emailAddress=u'dev@osafoundation.org',
-        contactName=contacts.ContactName.update(parcel, 'OSAFContactName',
+        contactName=pim.ContactName.update(parcel, 'OSAFContactName',
            firstName=u'OSAF',
            lastName=u'Development'
         )
@@ -151,8 +138,7 @@ The Chandler Team"""
 
 
     # Set up the main web server
-    startup = schema.ns("osaf.startup", parcel)
-    webserver = schema.ns("osaf.webserver", parcel)
+    from osaf import webserver
 
     startup.Startup.update(parcel, "startServers",
         invoke = "osaf.webserver.start_servers"
@@ -216,8 +202,11 @@ The Chandler Team"""
 
 def MakeCollections(parcel):
     
+    from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
+         DifferenceCollection, InclusionExclusionCollection, KindCollection
+    
     TrashCollection = \
-        pim.ListCollection.update(parcel, 'TrashCollection',
+        ListCollection.update(parcel, 'TrashCollection',
             displayName=_('Trash'),
             renameable=False
         )
@@ -256,15 +245,15 @@ def MakeCollections(parcel):
         renameable=False
     ).setup(source=mineMinusGeneratedEvents, exclusions=TrashCollection)
 
-    mail = \
+    mailCollection = \
          KindCollection.update(parcel, 'mail')
     # workaround bug 3892
-    mail.kind=pim.mail.MailMessageMixin.getKind(parcel.itsView)
-    mail.recursive=True
+    mailCollection.kind=pim.mail.MailMessageMixin.getKind(parcel.itsView)
+    mailCollection.recursive=True
     
     inSource = \
         FilteredCollection.update(parcel, 'inSource',
-            source=mail,
+            source=mailCollection,
             filterExpression='getattr(item, \'isInbound\', False)',
             filterAttributes=['isInbound'])
 
@@ -276,7 +265,7 @@ def MakeCollections(parcel):
 
     outSource = \
         FilteredCollection.update(parcel, 'outSource',
-            source=mail,
+            source=mailCollection,
             filterExpression='getattr(item, \'isOutbound\', False)',
             filterAttributes=['isOutbound'])
 

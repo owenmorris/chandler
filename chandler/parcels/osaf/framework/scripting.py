@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)
-    main   = schema.ns('osaf.views.main', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
     pim = schema.ns("osaf.pim", parcel)
     scripting = schema.ns("osaf.framework.scripting", parcel)
@@ -31,35 +30,11 @@ def installParcel(parcel, oldVersion=None):
     # UI Elements:
     # -----------
 
-    # "Scripts" Set
-    scripts = pim.KindCollection.update(parcel, "scriptsSet")
-    scripts.kind = scripting.Script.getKind(parcel.itsView)
+    # XXX TEMPORARILY MOVED XXX
+    # the TestMenu stuff wend to osaf.views.main for the moment,
+    # because it caused a circular dependency
 
-    scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
-         displayName = _("Scripts"),
-         renameable = False,
-         isPrivate = True
-         ).setup(source=scripts)
 
-    # Event to put "Scripts" in the Sidebar
-    addScriptsEvent = blocks.ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",
-                                                        blockName = "AddScriptsCollectionEvent",
-                                                        dispatchEnum = "SendToBlockByName",
-                                                        dispatchToBlockName = "Sidebar",
-                                                        methodName = "onModifyContentsEvent",
-                                                        items = [scriptsSet], 
-                                                        selectFirstItem=True,
-                                                        copyItems=True,
-                                                        commitAfterDispatch = True
-                                                        )
-
-    # Menu item to put "Scripts" in the Sidebar
-    blocks.MenuItem.template("AddScriptsCollectionMenu",
-                           title = _("Add Scripts to Sidebar"),
-                           event = addScriptsEvent,
-                           parentBlock = main.TestMenu
-                           ).install(parcel)
-    
     # Block Subtree for the Detail View of a Script
     # ------------
     detail.DetailTrunkSubtree.update(parcel, 'script_detail_view',

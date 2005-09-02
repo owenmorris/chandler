@@ -5,3 +5,18 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from channels import (NewChannelFromURL, FeedChannel, FeedItem,
     FeedUpdateTaskClass)
+from application import schema
+import datetime
+
+
+def installParcel(parcel, oldName=None):
+
+    startup = schema.ns("osaf.startup", parcel)
+    
+    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
+        invoke="feeds.FeedUpdateTaskClass",
+        run_at_startup=True,
+        interval=datetime.timedelta(minutes=30)
+    )
+
+

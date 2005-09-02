@@ -3,7 +3,10 @@ from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
-from osaf.pim.collections import InclusionExclusionCollection
+
+from osaf.framework import scripting
+
+from osaf import pim
 
 import osaf.pim.notes
 import osaf.pim.calendar
@@ -21,6 +24,13 @@ def make_mainview(parcel):
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
     demo = schema.ns("osaf.views.demo", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
+
+    sidebarCollection = \
+        pim.ListCollection.update(parcel, 'sidebarCollection',
+                                  refCollection=[app.allCollection,
+                                                 app.inCollection,
+                                                 app.outCollection,
+                                                 app.TrashCollection])
 
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
@@ -344,25 +354,6 @@ def make_mainview(parcel):
             choice='CPIATestMainView',
             dispatchToBlockName='MainViewRoot').install(parcel)
 
-
-#     allItemCollection = \
-#         ItemCollection.update(parcel, 'allItemCollection',
-#                               displayName=_(u'All'),
-#                               renameable=False,
-#                               _rule =
-#                               'difference(' \
-#                               'for i inevery \'//parcels/osaf/pim/Note\' where True,' \
-#                               'for i inevery \'//parcels/osaf/pim/calendar/CalendarEventMixin\' where' \
-#                               'i.isGenerated == True')
-
-#     sidebarItemCollection = \
-#         ItemCollection.update(parcel, 'sidebarItemCollection'
-#                               inclusions=[allItemCollection,
-#                                           inItemCollection,
-#                                           outItemCollection,
-#                                           app.trash])
-
-    
     RequestSelectSidebarItemEvent = \
         BlockEvent.template('RequestSelectSidebarItem',
                        'SendToBlockByName',
@@ -852,14 +843,21 @@ def make_mainview(parcel):
                                     SidebarBlock.template('Sidebar',
                                         columnReadOnly=[False],
                                         columnHeadings=[u''],
-                                        elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
                                         border=RectType(0, 0, 4, 0),
                                         editRectOffsets=[17, -17, 0],
-                                         buttonOffsets={'Icon': [1,17,16],
-                                                        'SharingIcon': [-17,-1,16]},
-                                         selection=[[0,0]],
-                                        nameAlternatives={u'All': u'My items', u'AllMailMessageMixin': u'My mail', u'AllCalendarEventMixin': u'My calendar', u'AllTaskMixin': u'My tasks'},
-                                        dontShowCalendarForItemsWithName={u'Out filtered by Calendar Event Mixin Kind': True, u'In filtered by Calendar Event Mixin Kind': True},
+                                        buttonOffsets={'Icon': [1,17,16],
+                                                       'SharingIcon': [-17,-1,16]},
+                                        selection=[[0,0]],
+                                        contents=sidebarCollection,
+                                        selectedItemToView=app.allCollection,
+                                        elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
+                                        nameAlternatives={u'All': u'My items',
+                                                          u'AllMailMessageMixin': u'My mail',
+                                                          u'AllCalendarEventMixin': u'My calendar',
+                                                          u'AllTaskMixin': u'My tasks'},
+                                        dontShowCalendarForItemsWithName=
+                                                          {u'Out filtered by Calendar Event Mixin Kind': True,
+                                                           u'In filtered by Calendar Event Mixin Kind': True},
                                         hideColumnHeadings=True,
                                         contextMenu=sidebarContextMenu,
                                         columnWidths=[150],
@@ -869,13 +867,19 @@ def make_mainview(parcel):
                                         orientationEnum='Vertical',
                                         childrenBlocks=[
                                             PreviewArea.template('PreviewArea',
+                                                contents=app.allCollection,
+                                                characterStyle= \
+                                                    CharacterStyle.update(parcel, 'PreviewStyle', fontSize=11),
                                                 stretchFactor=0.0),
                                             MiniCalendar.template('MiniCalendar',
+                                                contents=app.allCollection,
                                                 stretchFactor=0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
                             TrunkParentBlock.template('SidebarTPB',
-                                trunkDelegate=SidebarTrunkDelegateInstance),
+                                trunkDelegate=SidebarTrunkDelegateInstance,
+                                TPBDetailItem=app.allCollection,
+                                TPBSelectedItem=app.allCollection),
                             ]) # BoxContainer SidebarContainerContainer
                     ]), # BoxContainer ToolbarContainer
             ]) # MainView MainView
@@ -896,5 +900,41 @@ def make_mainview(parcel):
                                       size=SizeType(1024,720),
                                       views=[mainview],
                                       childrenBlocks=[MainTPB])
+
+    # XXX TEMPORARY XXX
+    # some scripting things here - moved from osaf.framework.scripting
+    # because it was causing a circular dependency
+
+    # keeping this, even though it refers to this parcel,
+    # because this code will eventuall end up somewhere else
+    main   = schema.ns('osaf.views.main', parcel)
+
+    # "Scripts" Set
+    scripts = pim.KindCollection.update(parcel, "scriptsSet")
+    scripts.kind = scripting.Script.getKind(parcel.itsView)
+
+    scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
+         displayName = _("Scripts"),
+         renameable = False,
+         isPrivate = True
+         ).setup(source=scripts)
+    # Event to put "Scripts" in the Sidebar
+    addScriptsEvent = ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",
+                                                        blockName = "AddScriptsCollectionEvent",
+                                                        dispatchEnum = "SendToBlockByName",
+                                                        dispatchToBlockName = "Sidebar",
+                                                        methodName = "onModifyContentsEvent",
+                                                        items = [scriptsSet], 
+                                                        selectFirstItem=True,
+                                                        copyItems=True,
+                                                        commitAfterDispatch = True
+                                                        )
+    # Menu item to put "Scripts" in the Sidebar
+    MenuItem.template("AddScriptsCollectionMenu",
+                           title = _("Add Scripts to Sidebar"),
+                           event = addScriptsEvent,
+                           parentBlock = main.TestMenu
+                           ).install(parcel)
+    
     
     return mainview
