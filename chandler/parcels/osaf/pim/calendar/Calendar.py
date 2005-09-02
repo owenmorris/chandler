@@ -281,7 +281,6 @@ class CalendarEventMixin(ContentItem):
 
     # Redirections
 
-    who = schema.One(redirectTo="participants")
     whoFrom = schema.One(redirectTo="organizer")
     about = schema.One(redirectTo="displayName")
     date = schema.One(redirectTo="startTime")
@@ -318,18 +317,8 @@ class CalendarEventMixin(ContentItem):
                                        tzinfo=now.tzinfo))
         self.duration = timedelta(hours=1)
 
-        # default the organizer to an existing value, or "me"
-        try:
-            whoFrom = self.getAnyWhoFrom ()
-
-            # I only want a Contact
-            if not isinstance(whoFrom, Contact):
-                whoFrom = self.getCurrentMeContact(self.itsView)
-
-            self.organizer = whoFrom
-
-        except AttributeError:
-            self.organizer = self.getCurrentMeContact(self.itsView)
+        # set the organizer to "me"
+        self.organizer = self.getCurrentMeContact(self.itsView)
 
         # give a starting display name
         try:
@@ -339,56 +328,8 @@ class CalendarEventMixin(ContentItem):
         
         self.occurrenceFor = self
         
-        """ @@@ Commenting out this block
-
-        participants can only accept Contact items.  At some point
-        this code will need inspect the results of getAnyWho() and
-        create Contact items for any EmailAddresses in the list
-
-        # set participants to any existing "who"
-        try:
-            need to shallow copy the list
-            self.participants = self.getAnyWho ()
-        except AttributeError:
-            pass # no participants yet
-
-        @@@ End block comment """
-
-    """
-    These "getAny" methods are used for Mixin attribute initialization.
-    After stamping, we'd like to initialize attributes, like participants,
-    with the "who" value defined by the rest of the classes in the item.
-    But we can't just access the "who" attribute, because we've already
-    stamped the item with our mixin and have applied our "who" attribute
-    definition.  So getAnyXXX gets any significant defined value in any
-    of the "who" attributes so we can initialize our own attribute
-    appropriately. See initMixin above for an example usage.
-
-    It's unclear if we really need this mechanism in the long run, because
-    we may end up with one "to" field instead of separate "participants",
-    "requestees", etc.
-    """
-    def getAnyWho (self):
-        """
-        Get any non-empty definition for the "who" attribute.
-        """
-        try:
-            return self.participants
-        except AttributeError:
-            pass
-        return super (CalendarEventMixin, self).getAnyWho ()
-    
-    def getAnyWhoFrom (self):
-        """
-        Get any non-empty definition for the "whoFrom" attribute.
-        """
-        try:
-            organizer = self.organizer
-        except AttributeError:
-            organizer = None
-        if organizer is not None:
-            return organizer
-        return super (CalendarEventMixin, self).getAnyWhoFrom ()
+        # TBD - set participants to any existing "who"
+        # participants are currently not implemented.
 
     def GetDuration(self):
         """Returns a timedelta, None if no startTime or endTime"""

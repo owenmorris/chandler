@@ -638,24 +638,8 @@ class MailMessageMixin(MIMEContainer):
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
-        # default the fromAddress to any super class "whoFrom" definition
-        try:
-            whoFrom = self.getAnyWhoFrom()
-
-            # I only want an EmailAddress
-            if not isinstance(whoFrom, EmailAddress):
-                whoFrom = EmailAddress.getCurrentMeEmailAddress(self.itsView)
-
-            self.fromAddress = whoFrom
-        except AttributeError:
-            pass # no from address
-
-        # default the toAddress to any super class "who" definition
-        try:
-            # need to shallow copy the list
-            self.toAddress = self.getAnyWho()
-        except AttributeError:
-            pass
+        # default the fromAddress to "me"
+        self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsView)
 
         # default the subject to any super class "about" definition
         try:
@@ -678,29 +662,6 @@ class MailMessageMixin(MIMEContainer):
         except AttributeError:
             pass
         return super(MailMessageMixin, self).getAnyAbout()
-
-    def getAnyWho(self):
-        """
-        Get any non-empty definition for the "who" attribute.
-        """
-        try:
-            return self.toAddress
-        except AttributeError:
-            pass
-
-        return super(MailMessageMixin, self).getAnyWho()
-
-    def getAnyWhoFrom(self):
-        """
-        Get any non-empty definition for the "whoFrom" attribute.
-        """
-        try:
-            return self.fromAddress
-        except AttributeError:
-            pass
-
-        return super(MailMessageMixin, self).getAnyWhoFrom()
-
 
     def outgoingMessage(self, account, type='SMTP'):
         assert type == "SMTP", "Only SMTP currently supported"

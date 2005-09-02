@@ -64,7 +64,6 @@ class TaskMixin(items.ContentItem):
         displayName = 'Task Status',
     )
     dueDate = schema.One(schema.DateTime, displayName = 'Due date')
-    who = schema.One(redirectTo = 'requestee')
     whoFrom = schema.One(redirectTo = 'requestor')
     about = schema.One(redirectTo = 'displayName')
 
@@ -102,66 +101,11 @@ class TaskMixin(items.ContentItem):
         except AttributeError:
             pass
 
-        # default the requestor to any super class "whoFrom" definition
-        try:
-            whoFrom = self.getAnyWhoFrom ()
+        # set the requestor to "me"
+        self.requestor = self.getCurrentMeContact(self.itsView)
 
-            # I only want a Contact
-            if not isinstance(whoFrom, Contact):
-                whoFrom = self.getCurrentMeContact(self.itsView)
-
-            self.requestor = whoFrom
-        except AttributeError:
-            pass
-
-        """ @@@ Commenting out this block
-        requestee can only accept Contact items.  At some point
-        this code will need inspect the results of getAnyWho() and
-        create Contact items for any EmailAddresses in the list
-
-        # default the requestee to any super class "who" definition
-        try:
-            shallow copy the list
-            self.requestee = self.getAnyWho ()
-
-        except AttributeError:
-            pass
-
-        @@@ End block comment """
-
-    def getAnyDate (self):
-        """
-        Get any non-empty definition for the "date" attribute.
-        """
-        
-        # @@@ Don't do this for now, per bug 2654; will be revisited in 0.6.
-        """
-        try:
-            return self.dueDate
-        except AttributeError:
-            pass
-        """
-        return super (TaskMixin, self).getAnyDate ()
-
-    def getAnyWho (self):
-        """
-        Get any non-empty definition for the "who" attribute.
-        """
-        try:
-            return self.requestee
-        except AttributeError:
-            pass
-        return super (TaskMixin, self).getAnyWho ()
-
-    def getAnyWhoFrom (self):
-        """
-        Get any non-empty definition for the "whoFrom" attribute.
-        """
-        try:
-            return self.requestor
-        except AttributeError:
-            pass
-        return super (TaskMixin, self).getAnyWhoFrom ()
+        # TBD - default the requestee to any super class "who" definition
+        # requestee attribute is currently not implemented.
 
 class TaskEventExtraMixin(items.ContentItem):
     """
