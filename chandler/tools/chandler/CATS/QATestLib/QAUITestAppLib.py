@@ -57,6 +57,13 @@ def SetBlockMenu(menuName, menuChoice):
         block.widget.ProcessEvent(selectionEvent)
         return True
 
+def GetCollectionRow(cellName):
+    for i in range(App_ns.sidebar.widget.GetNumberRows()):
+        item = App_ns.sidebar.widget.GetTable().GetValue(i,0)[0]
+        if item.displayName == cellName:
+            return i
+    return False
+
              
 class UITestItem :       
     def __init__(self, type, logger):
@@ -76,28 +83,30 @@ class UITestItem :
             self.logger.Start("%s creation" %type)
             if type == "Event": # New Calendar Event
                 # post the corresponding CPIA-event
-                item = Globals.mainViewRoot.postEventByName('NewCalendar',{})[0]
+                item = App_ns.root.NewCalendar()[0]
                 self.isEvent = True
             elif type == "Note": # New Note
                 # post the corresponding CPIA-event
-                item = Globals.mainViewRoot.postEventByName('NewNote',{})[0]
+                item = App_ns.root.NewNote()[0]
                 self.isNote = True
             elif type == "Task": # New Task
                 # post the corresponding CPIA-event
-                item = Globals.mainViewRoot.postEventByName('NewTask',{})[0]
+                item = App_ns.root.NewTask()[0]
                 self.isTask = True
             elif type == "MailMessage": # New Mail Message
                 # post the corresponding CPIA-event
-                item = Globals.mainViewRoot.postEventByName('NewMailMessage',{})[0]
+                item = App_ns.root.NewMailMessage()[0]
                 self.isMessage = True
             elif type == "Collection": # New Collection
                 # post the corresponding CPIA-event
-                item = Globals.mainViewRoot.postEventByName('NewItemCollection',{})[0]
+                item = App_ns.root.NewCollection()[0]
                 self.isCollection = True
                 
             self.item = item
             # Give the Yield
             wx.GetApp().Yield()
+	    ev = wx.IdleEvent()
+            wx.GetApp().ProcessEvent(ev)
             self.logger.Stop()
     
     def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
@@ -200,14 +209,20 @@ class UITestItem :
         if (self.isNote or self.isEvent or self.isTask or self.isMessage):
             self.SetEditableBlock("HeadlineBlock", "display name", displayName, dict)
         elif(self.isCollection):
-            #select the collection
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
-            #edit the collection displayName (double click)
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
-            #Type the new collection displayName
-            scripting.User.emulate_typing(displayName)
-            #work around : KeyboardReturn doesn't work in that kind of editor
-            scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")            
+            # work around for mac bug (I guess relative to focus)
+            if '__WXMAC__' in wx.PlatformInfo:
+                #row = GetCollectionRow(self.item.displayName)
+                #App_ns.sidebar.widget.SetCellValue(row, 0, displayName)
+		self.item.displayName = displayName
+            else:
+                # select the collection
+                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName)
+                # edit the collection displayName (double click)
+                scripting.User.emulate_sidebarClick(App_ns.sidebar, self.item.displayName, double=True)
+                # Type the new collection displayName
+                scripting.User.emulate_typing(displayName)
+                # work around : KeyboardReturn doesn't work in that kind of editor
+                scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")            
         else:
             self.logger.Print("SetDisplayName is not available for this kind of item")
             return
@@ -522,8 +537,13 @@ class UITestItem :
         @param collectionName : the name of a collection
         """
         if (self.isNote or self.isEvent or self.isTask or self.isMessage):
-            col = App_ns.item_named(Collection.ListCollection, collectionName)
+            col = App_ns.item_named(pim.AbstractCollection, collectionName)
             self.logger.Start("Give a collection")
+            if not col:
+                self.logger.ReportFailure("(On collection search)")
+                self.logger.Stop()
+                self.logger.Report()
+                return
             col.add(self.item)
             self.logger.Stop()
             #checking
@@ -780,12 +800,12 @@ class UITestItem :
             # check the changing values
             for field in dict.keys():
                 if field == "displayName": # display name checking
-                    if not scripting.User.emulate_sidebarClick(App_ns.sidebar, dict[field]):
+                    if not GetCollectionRow(dict[field]):
                         self.logger.ReportFailure("(On display name Checking)  || expected title = %s" %dict[field])
                     else:
                         self.logger.ReportPass("(On display name Checking)")
-        #report the checkings
-        self.logger.Report("Sidebar")
+            #report the checkings
+            self.logger.Report("Sidebar")
         
         
 class UITestAccounts:
@@ -1032,7 +1052,6 @@ class UITestView:
             click.SetEventObject(self.timedCanvas.widget)
             #check if an event already exists at this x,y postion
             #and if yes put it in the canvasItem variable
-            #print "list before : %s" %self.timedCanvas.widget.canvasItemList
             pos = self.timedCanvas.widget.CalcUnscrolledPosition(click.GetPosition())
             for elem in reversed(self.timedCanvas.widget.canvasItemList):
                 if elem.isHit(pos):
