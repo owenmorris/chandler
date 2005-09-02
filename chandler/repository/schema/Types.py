@@ -1110,6 +1110,11 @@ class DateTime(DateStruct):
     nvformat = "%d-%02d-%02d %d:%d:%d.%06d"
     tzformat = "%d-%02d-%02d %d:%d:%d.%06d %s"
 
+    # bypass == optimization as it will return True with different timezones
+    def getFlags(self):
+
+        return CDescriptor.PROCESS
+
     def getImplementationType(self):
 
         return datetime
@@ -1203,6 +1208,11 @@ class Time(DateStruct):
 
     nvformat = "%d:%d:%d.%06d"
     tzformat = "%d:%d:%d.%06d %s"
+
+    # bypass == optimization as it will return True with different timezones
+    def getFlags(self):
+
+        return CDescriptor.PROCESS
 
     def getImplementationType(self):
 
