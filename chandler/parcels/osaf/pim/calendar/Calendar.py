@@ -1108,13 +1108,17 @@ class CalendarEventMixin(ContentItem):
         else: return ''
 
     def serializeMods(self, level=0, buf=None):
+        """Pretty print the list of modifications as a debugging aid."""
         if buf is None:
             buf = StringIO.StringIO()
         pad = "  " * level
-        if level:
-            buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
-                             % (self.modifies, self.modificationFor.startTime))
-        buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
+        try:
+            if level:
+                buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
+                                 % (self.modifies, self.modificationFor.startTime))
+            buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
+        except:
+            pass
         if self.modifies == 'thisandfuture' or self.modificationFor is None:
             try:
                 buf.write(pad + "until: %s\n" % getattr(self.rruleset.rrules.first(), 'until', None))
