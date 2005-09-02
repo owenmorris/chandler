@@ -22,6 +22,7 @@ from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
 from osaf.framework.blocks import Styles
+from osaf.framework.blocks import Sendability
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas
 
@@ -689,7 +690,7 @@ class CalendarEventHandler(object):
                                             {'tzinfo':newTZ})
 
 
-class CalendarBlock(CollectionCanvas.CollectionCanvas):
+class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
     """ Abstract block used as base Kind for Calendar related blocks.
 
     This base class can be used for any block that displays a collection of

@@ -1,6 +1,5 @@
 from Detail import *
 from osaf.framework.blocks import *
-from osaf.pim.collections import ListCollection
 import osaf.pim
 from i18n import OSAFMessageFactory as _
 
@@ -25,17 +24,21 @@ from i18n import OSAFMessageFactory as _
 #   basic pim Kinds' subtrees.
 #
 
-_uniqueNameIndex = 0
+_uniqueNameIndicies = {} 
 def uniqueName(parcel, prefix=''):
     """ 
     Return an item name unique in this parcel. Used when we don't
     need to refer to an item by name. """
+    # @@@ pje pointed out that this may still be perilous.
+    global _uniqueNameIndicies
+    i = _uniqueNameIndicies.get(parcel.namespace, 0)
     while True:
-        global _uniqueNameIndex
-        _uniqueNameIndex += 1
-        name = "%s%s" % (prefix, _uniqueNameIndex)
+        i += 1
+        name = "%s%s" % (prefix, i)
         if not parcel.hasChild(name):
-            return name
+            break
+    _uniqueNameIndicies[parcel.namespace] = i
+    return name
 
 def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None, 
              baseClass=ContentItemDetail, **kwds):
@@ -133,19 +136,12 @@ def registerAttributeEditors(parcel, oldVersion):
                                       __name__ + '.' + className)
     
 def makeRootStuff(parcel, oldVersion):
-    # The detail view is notified of changes in the single item we stick
-    # into this item collection
-    dvSelectedCollection = \
-        ListCollection.update(parcel, 'DetailViewSelectedItemCollection',
-                              displayName=_(u'DetailViewSelectedItemCollection'))
-    
     # The DetailTrunkCache starts each specific DetailTrunk by cloning this stub.
     detailRoot = DetailRootBlock.template('DetailRoot',
                                           orientationEnum='Vertical',
                                           size=SizeType(80, 20),
                                           minimumSize=SizeType(80, 40),
-                                          eventBoundary=True,
-                                          contents=dvSelectedCollection)
+                                          eventBoundary=True)
     detailRoot.install(parcel)
     
     # Our Resynchronize event.

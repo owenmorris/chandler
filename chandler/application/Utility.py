@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "55" # Adding bi-refs between Share and ContentItem
+SCHEMA_VERSION = "56" # stearns: removed recurrence 'until' defaultValue, etc.
 
 logger = None # initialized in initLogging()
 

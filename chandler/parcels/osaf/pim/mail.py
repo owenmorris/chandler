@@ -746,6 +746,30 @@ class MailMessageMixin(MIMEContainer):
         # message the main view to do the work
         Globals.views[0].postEventByName('SendMail', {'item': self})
 
+    def getSendability(self, ignoreAttr=None):
+        """
+        Return whether this item is ready to send: 'sendable', 'sent', 
+        or 'not'. if ignoreAttr is specified, don't verify that value (because
+        it's being edited in the UI and is known to be valid, and will get
+        saved before sending).
+        """
+        # Not outbound? 
+        if not self.isOutbound:
+            return 'not'
+        
+        # Already sent?
+        try:
+            sent = self.deliveryExtension.state == "SENT"
+        except AttributeError:
+            sent = False
+        if sent:
+            return 'sent'
+        
+        # Addressed?
+        # (This test will get more complicated when we add cc, bcc, etc.)
+        sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
+                    (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
+        return sendable and 'sendable' or 'not'
 
 class MailMessage(MailMessageMixin, notes.Note):
     schema.kindInfo(

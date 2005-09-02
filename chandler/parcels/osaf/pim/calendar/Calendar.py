@@ -1094,7 +1094,9 @@ class CalendarEventMixin(ContentItem):
             for mod in first.modifications:
                 if mod.modifies == 'this':
                     # this won't work for complicated rrulesets
-                    if datetimeOp(mod.recurrenceID, '>', first.rruleset.rrules.first().calculatedUntil()) \
+                    until = first.rruleset.rrules.first().calculatedUntil()
+                    if until is not None \
+                       and datetimeOp(mod.recurrenceID, '>', until) \
                        and mod !=  first:
                         mod._ignoreValueChanges = True
                         mod.delete()
@@ -1174,7 +1176,7 @@ class CalendarEventMixin(ContentItem):
         buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
         if self.modifies == 'thisandfuture' or self.modificationFor is None:
             try:
-                buf.write(pad + "until: %s\n" % list(self.rruleset.rrules)[0].until)
+                buf.write(pad + "until: %s\n" % getattr(self.rruleset.rrules.first(), 'until', None))
             except:
                 pass
         buf.write('\n')

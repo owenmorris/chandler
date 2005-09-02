@@ -14,13 +14,14 @@ from osaf.framework.attributeEditors import \
      ChoiceAttributeEditor, StaticStringAttributeEditor
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
-     Trunk, TrunkSubtree
+     Sendability, Trunk, TrunkSubtree
 import osaf.sharing.Sharing as Sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
 from osaf.pim.tasks import TaskMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
+from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
@@ -45,7 +46,7 @@ logger = logging.getLogger(__name__)
 class DetailTrunkSubtree(TrunkSubtree):
     """All our subtrees are of this kind, so we can find 'em."""
 
-class DetailRootBlock (ControlBlocks.ContentItemDetail):
+class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
@@ -172,6 +173,13 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
             if dumpSynchronizeWidget:
                 self.dumpShownHierarchy ('synchronizeWidget')
 
+    def SelectedItems(self):
+        """ 
+        Return a list containing the item we're displaying. (This gets
+        used for Send)
+        """
+        return [ self.selectedItem() ]
+
     def onResynchronizeEvent(self, event):
         logger.debug("onResynchronizeEvent: resynching")
         self.synchronizeWidget()
@@ -188,75 +196,12 @@ class DetailRootBlock (ControlBlocks.ContentItemDetail):
                 showReentrant (child)
         super(DetailRootBlock, self).onDestroyWidget ()
         showReentrant (self)
-
-    def onSendShareItemEventUpdateUI(self, event):    
-        item = self.selectedItem()
-        enabled = False
-        label = _("Send")
-        if item is not None:            
-            if isinstance(item, pim.AbstractCollection):
-                # It's a collection: label should read "Send", or "Send to new" if it's already shared.
-                enabled = len(item.invitees) > 0
-                try:
-                    renotify = Sharing.isShared (item)
-                except AttributeError:
-                    pass
-                else:
-                    if renotify:
-                        label = _("Send to new")
-            elif isinstance(item, Mail.MailMessageMixin) and item.isOutbound:
-                # It's mail. Has it been sent already?
-                sent = False
-                try:
-                    sent = item.deliveryExtension.state == "SENT"
-                except AttributeError:
-                    pass
-                if sent:
-                    label = _("Sent")
-                else:
-                    # Not sent yet - enable it if it's outbound and we have valid addressees?
-                    enabled = len(item.toAddress) > 0
-        
-        event.arguments['Enable'] = enabled
-        event.arguments ['Text'] = label
             
     def onSendShareItemEvent (self, event):
-        """
-          Send or Share the current item.
-        """
-        self.finishSelectionChanges () # finish changes to previous selected item 
-        item = self.selectedItem()
-
-        # Make sure we have all the accounts; returns False if the user cancels
-        # out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
-            return
-
-        # preflight the send/share request
-        # mail items and collections need their sender and recievers set up
-        message = None
-        if isinstance (item, pim.AbstractCollection):
-            try:
-                whoTo = item.invitees
-            except AttributeError:
-                whoTo = []
-            if len (whoTo) == 0:
-                message = _('Please specify who to share this collection with in the "to" field.')
-        elif isinstance (item, Mail.MailMessageMixin):
-            if item.ItemWhoFromString() == '':
-                item.whoFrom = item.getCurrentMeEmailAddress()
-            try:
-                whoTo = item.toAddress
-            except AttributeError:
-                whoTo = []
-            if len (whoTo) == 0:
-                message = _('Please specify who to send this message to in the "to" field.')
-
-        if message:
-            Util.ok(wx.GetApp().mainFrame,
-             _("No Receivers"), message)
-        else:
-            item.shareSend() # tell the ContentItem to share/send itself.
+        """ Send or Share the current item. """
+        # finish changes to previous selected item, then do it.
+        self.finishSelectionChanges()
+        super(DetailRootBlock, self).onSendShareItemEvent(event)
 
     def finishSelectionChanges (self):
         """ 
@@ -328,9 +273,11 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
 
         decoratedSubtreeList.sort()
         
-        # Copy our stub block and move the new kids on(to) the block.
+        # Copy our stub block, move the new kids on(to) the block,
+        # and make a ListCollection that we'll use to watch for changes.
         trunk = self._copyItem(self.trunkStub)
         trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
+        trunk.contents = ListCollection(view=self.itsView)
             
         return trunk    
     
@@ -1336,7 +1283,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 RecurrenceAttributeEditor.menuFrequencies[value])
             rruleset = Recurrence.RecurrenceRuleSet(None, view=item.itsView)
             rruleset.setRuleFromDateUtil(Recurrence.dateutil.rrule.rrule(duFreq))
-            rruleset.rrules.first().until = item.getLastUntil()
+            until = item.getLastUntil()
+            if until is not None:
+                rruleset.rrules.first().until = until
+            elif hasattr(rruleset.rrules.first(), 'until'):
+                del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
         self.AttributeChanged()    
@@ -1388,8 +1339,13 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             except AttributeError:
                 assert False, "Hey - Setting 'ends' on an event without a recurrence rule?"
         
-        super(RecurrenceEndsAttributeEditor, self).\
-             SetAttributeValue(item, attributeName, valueString)
+        # If the user removed the string, remove the attribute.
+        newValueString = valueString.replace('?','').strip()
+        if len(newValueString) == 0 and hasattr(item, 'until'):
+            del item.until
+        else:
+            super(RecurrenceEndsAttributeEditor, self).\
+                 SetAttributeValue(item, attributeName, valueString)
 
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
     def synchronizeItemDetail(self, item):

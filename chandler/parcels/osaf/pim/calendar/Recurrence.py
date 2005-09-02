@@ -88,7 +88,6 @@ class RecurrenceRule(items.ContentItem):
     until = schema.One(
         schema.DateTime,
         displayName="Until",
-        defaultValue=None
     )
     untilIsDate = schema.One(
         schema.Boolean,
@@ -171,14 +170,20 @@ class RecurrenceRule(items.ContentItem):
     interpretedNames = "byhour", "byminute", "bysecond"
 
     def calculatedUntil(self):
-        """Return until or until + 23:59, depending on untilIsDate."""
+        """
+        Return until or until + 23:59, depending on untilIsDate. 
+        Will return None if there's no 'until' (so don't assume you can
+        compare this value with a datetime directly!)
+        """
+        try:
+            until = self.until
+        except AttributeError:
+            return None
+
         if self.untilIsDate:
-            if self.until is None:
-                return None
-            else:
-                return self.until.replace(hour=23, minute=59)
+            return until.replace(hour=23, minute=59)
         else:
-            return self.until
+            return until
             
 
     def createDateUtilFromRule(self, dtstart):
@@ -191,16 +196,16 @@ class RecurrenceRule(items.ContentItem):
                 value = coerceTimeZone(value, tzinfo)
             return value
 
-        kwargs = dict((k, getattr(self, k)) for k in 
+        kwargs = dict((k, getattr(self, k, None)) for k in 
                                             self.listNames + self.normalNames)
         for key in self.specialNames:
             value = coerceIfDatetime(getattr(self, key))
             if value is not None:
                 kwargs[key]=toDateUtil(value)
-        if self.until is not None and self.untilIsDate:
+        if hasattr(self, 'until') and self.untilIsDate:
             kwargs['until'] = coerceIfDatetime(self.calculatedUntil())
         rule = rrule(dtstart=dtstart, **kwargs)
-        if not self.isCount or self.until is None:
+        if not self.isCount or not hasattr(self, 'until'):
             return rule
         else:
             # modifying in place may screw up cache, fix when we turn
@@ -212,9 +217,10 @@ class RecurrenceRule(items.ContentItem):
     def setRuleFromDateUtil(self, rrule):
         """Extract attributes from rrule, set them in self."""
         self.untilIsDate = False
+        until = None # assume no limit
         if rrule._count is not None:
             self.isCount = True
-            self.until = rrule[-1]
+            until = rrule[-1]
         self.wkst = fromDateUtilWeekday(rrule._wkst)
         self.freq = fromDateUtilFrequency(rrule._freq)
 
@@ -236,9 +242,14 @@ class RecurrenceRule(items.ContentItem):
                     day = fromDateUtilWeekday(day)
                     self.byweekday.append(WeekdayAndPositionStruct(day, n))
         if rrule._until is not None:
-            self.until = rrule._until
+            until = rrule._until    
         if rrule._interval != 1:
             self.interval = rrule._interval
+        if until is None:
+            if self.hasLocalAttributeValue('until'):
+                del self.until
+        else:
+            self.until = until
             
         for key in self.listNames:
             if getattr(rrule, '_' + key) is not None and \

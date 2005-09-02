@@ -29,6 +29,8 @@ from MenusAndToolbars import (
 
 from ColumnHeaderBlocks import (ColumnHeader) 
 
+from PimBlocks import (Sendability)
+
 def installParcel(parcel, oldName=None):
 
     # Block Events instances.  Applicaiton specific events should not

@@ -14,6 +14,7 @@ from Block import (
 from ContainerBlocks import BoxContainer
 from osaf.pim import AbstractCollection
 import DragAndDrop
+import PimBlocks
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
@@ -984,7 +985,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         assert False # who needs this?
         return self.delegate.GetControlValue (self.control)
 
-class Table (RectangularChild):
+class Table (PimBlocks.Sendability, RectangularChild):
 
     columnHeadings = schema.Sequence(schema.String, required = True)
     columnHeadingTypes = schema.Sequence(schema.String)
