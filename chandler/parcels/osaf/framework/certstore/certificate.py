@@ -246,17 +246,17 @@ def importCertificate(x509, fingerprint, trust, repView):
         if not x509.verify():
             raise ValueError, 'X.509 certificate does not verify'
     
-    cert = Certificate(view=repView)
+    cert = Certificate(view=repView,
+                       trust=trust,
+                       type=type,
+                       fingerprint=fingerprint,
+                       fingerprintAlgorithm='sha1',
+                       subjectCommonName=subjectCommonName)
     text = cert.getAttributeAspect('pem', 'type').makeValue(pem,
                                                             compression=None)
     cert.pem = text
     text = cert.getAttributeAspect('asText', 'type').makeValue(asText)
     cert.asText = text
-    cert.type = type
-    cert.trust = trust
-    cert.fingerprintAlgorithm = 'sha1'
-    cert.fingerprint = fingerprint
-    cert.subjectCommonName = subjectCommonName
 
     qName = TRUSTED_SITE_CERTS_QUERY_NAME
     q = repView.findPath('//Queries/%s' %(qName))
