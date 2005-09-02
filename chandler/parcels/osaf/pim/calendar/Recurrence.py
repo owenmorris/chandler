@@ -202,7 +202,7 @@ class RecurrenceRule(items.ContentItem):
             value = coerceIfDatetime(getattr(self, key))
             if value is not None:
                 kwargs[key]=toDateUtil(value)
-        if hasattr(self, 'until') and self.untilIsDate:
+        if hasattr(self, 'until'):
             kwargs['until'] = coerceIfDatetime(self.calculatedUntil())
         rule = rrule(dtstart=dtstart, **kwargs)
         if not self.isCount or not hasattr(self, 'until'):
