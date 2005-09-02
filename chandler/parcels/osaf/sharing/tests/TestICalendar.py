@@ -212,7 +212,7 @@ class ICalendarTestCase(unittest.TestCase):
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
         
         self.assertEqual(vcalendar.vevent[0].dtstart[0].serialize(),
-                         'DTSTART;TZID=US-Pacific:20050201T000000\r\n')
+                         'DTSTART;TZID=US/Pacific:20050201T000000\r\n')
         vcalendar.vevent[0] = vcalendar.vevent[0].transformFromNative()
         self.assertEqual(vcalendar.vevent[0].rrule[0].serialize(),
                          'RRULE:FREQ=WEEKLY;UNTIL=20050302T075900Z\r\n')
@@ -224,9 +224,9 @@ class ICalendarTestCase(unittest.TestCase):
         vcalendar = ICalendar.itemsToVObject(self.repo.view, [event])
         modified = vcalendar.vevent[1]
         self.assertEqual(modified.dtstart[0].serialize(),
-                         'DTSTART;TZID=US-Pacific:20050209T000000\r\n')
+                         'DTSTART;TZID=US/Pacific:20050209T000000\r\n')
         self.assertEqual(modified.contents['recurrence-id'][0].serialize(),
-                         'RECURRENCE-ID;TZID=US-Pacific:20050208T000000\r\n')
+                         'RECURRENCE-ID;TZID=US/Pacific:20050208T000000\r\n')
         
         
         

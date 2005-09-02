@@ -249,7 +249,10 @@ class RecurrenceRule(items.ContentItem):
             if self.hasLocalAttributeValue('until'):
                 del self.until
         else:
-            self.until = until
+            if until.tzinfo is None:
+                self.until = until
+            else:
+                self.until = coerceTimeZone(until, ICUtzinfo.getDefault())
             
         for key in self.listNames:
             if getattr(rrule, '_' + key) is not None and \

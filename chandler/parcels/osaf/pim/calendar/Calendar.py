@@ -1220,6 +1220,16 @@ class OccurrenceProxy(object):
     
     def __eq__(self, other):
         return self.proxiedItem == other
+    
+    def __repr__(self):
+        return "Proxy for %s" % self.proxiedItem.__repr__()
+
+    def _repr_(self):
+        """Temporarily overriding the special repository for representation."""
+        return "Proxy for %s" % self.proxiedItem._repr_()
+
+    def __str__(self):
+        return "Proxy for %s" % self.proxiedItem.__str__()
         
     def __getattr__(self, name):
         return getattr(self.proxiedItem, name)

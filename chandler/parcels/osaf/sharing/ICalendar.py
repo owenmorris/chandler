@@ -13,7 +13,6 @@ import dateutil.tz
 import datetime
 from datetime import date, time
 from PyICU import ICUtzinfo
-import itertools
 from application import schema
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class RecurrenceToVObject:
     """
     def __init__(self):
         pacificVTimezoneString = """BEGIN:VTIMEZONE
-TZID:US-Pacific
+TZID:US/Pacific
 LAST-MODIFIED:19870101T000000Z
 BEGIN:STANDARD
 DTSTART:19671029T020000
@@ -223,7 +222,7 @@ def convertToICUtzinfo(dt):
                 
                 if result is not None and \
                     result.timezone.getID() == 'GMT' and \
-                    tzname != 'GMT':
+                    name != 'GMT':
                     
                     result = None
                     
@@ -313,20 +312,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         countNew = 0
         countUpdated = 0
-        
-        eventlist = getattr(calendar, 'vevent', [])
-        todolist  = getattr(calendar, 'vtodo', [])
-        
+               
         # this is just a quick hack to get VTODO working, FIXME write
         # more readable table driven code to process VEVENTs and VTODOs
-        for event in itertools.chain(eventlist, todolist):
-            vtype = event.name
-            if vtype == u'VEVENT':
-                logger.debug("got VEVENT")
-                pickKind = eventKind
-            elif vtype == u'VTODO':
-                logger.debug("got VTODO")
-                pickKind = taskKind
+        for event in getattr(calendar, 'vevent', []):
+            logger.debug("got VEVENT")
+            pickKind = eventKind
 
             try:
                 displayName = event.summary[0].value
@@ -382,10 +373,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     try:
                         duration = event.due[0].value - dtstart
                     except AttributeError:
-                        if vtype == u'VEVENT':
-                            duration = datetime.timedelta(hours=1)
-                        elif vtype == u'VTODO':
-                            duration = None
+                        duration = datetime.timedelta(hours=1)
                             
             isDate = type(dtstart) == date
             if isDate:
@@ -471,11 +459,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             if isDate:
                 eventItem.allDay = True
             eventItem.startTime   = dtstart
-            if vtype == u'VEVENT':
-                eventItem.endTime = dtstart + duration
-            elif vtype == u'VTODO':
-                if duration is not None:
-                    eventItem.dueDate = dtstart + duration
+            eventItem.endTime = dtstart + duration
             
             if not filters or "transparency" not in filters:
                 eventItem.transparency = status
@@ -494,6 +478,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem.reminderTime = dtstart + reminderDelta
 
             if len(event.rdate) > 0 or len(event.rrule) > 0:
+                # make until to have no timezone if the event is all day, since
+                # dtstart for all day events has no timezone
+                if isDate:
+                    for rule in event.rrule:
+                        if rule._until and rule._until.tzinfo is not None:
+                            rule._until = rule._until.astimezone(localtime).replace(tzinfo=None)
                 eventItem.setRuleFromDateUtil(event.rruleset)
             elif recurrenceID is None: # delete any existing rule
                 eventItem.removeRecurrence()
