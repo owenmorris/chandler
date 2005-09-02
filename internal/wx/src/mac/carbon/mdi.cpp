@@ -135,8 +135,11 @@ void wxMDIParentFrame::AddChild(wxWindowBase *child)
     {
         m_currentChild = wxDynamicCast(child, wxMDIChildFrame);
 
-        if ( m_currentChild && IsShown() && ShouldBeVisible() )
+        if ( m_currentChild && IsShown() && !ShouldBeVisible() )
         {
+            // we shouldn't remain visible any more
+            wxFrame::Show(false);
+            m_shouldBeShown = true;
         }
     }
 
@@ -287,11 +290,14 @@ bool wxMDIParentFrame::ShouldBeVisible() const
           node;
           node = node->GetNext() )
     {
-        if ( !wxDynamicCast(node->GetData(), wxMDIChildFrame)
+        wxWindow *win = node->GetData();
+
+        if ( win->IsShown()
+                && !wxDynamicCast(win, wxMDIChildFrame)
 #if wxUSE_STATUSBAR
-                && node->GetData() != GetStatusBar()
+                    && win != GetStatusBar()
 #endif // wxUSE_STATUSBAR
-                    && node->GetData() != GetClientWindow() )
+                        && win != GetClientWindow() )
         {
             // if we have a non-MDI child, do remain visible so that it could
             // be used
