@@ -293,9 +293,9 @@ void wxClipboard::Close()
     wxCHECK_RET( m_open, wxT("clipboard not open") );
 
     m_open = false ;
-    
- 	// Get rid of cached object.  If this is not done copying from another application will
- 	// only work once
+
+    // Get rid of cached object.  If this is not done copying from another application will
+    // only work once
     if (m_data)
     {
         delete m_data;
