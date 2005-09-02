@@ -931,7 +931,6 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
                 // text control
                 eat_key = true;
             }
-
             break;
 
         case WXK_TAB:
@@ -951,7 +950,9 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
                 // be inserted.
                 WriteText(wxT("\t"));
             }
+            break;
 
+        default:
             break;
     }
 
