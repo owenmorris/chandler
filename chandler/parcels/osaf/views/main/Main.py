@@ -158,9 +158,8 @@ class MainView(View):
         coll = pim.InclusionExclusionCollection(view=self.itsView)
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
         coll.displayName = _(u'Untitled')
-        self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst",
-            {'items':[coll]}
-        )
+        self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[coll]})
+        return [coll]
 
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
