@@ -4157,7 +4157,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DYLIB_COMPATIBILITY_VERSION = 2.6;
-				DYLIB_CURRENT_VERSION = 2.6.0;
+				DYLIB_CURRENT_VERSION = 2.6.2;
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_PFE_FILE_C_DIALECTS = "c++";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -4215,7 +4215,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DYLIB_COMPATIBILITY_VERSION = 2.6;
-				DYLIB_CURRENT_VERSION = 2.6.0;
+				DYLIB_CURRENT_VERSION = 2.6.2;
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_PFE_FILE_C_DIALECTS = "c++";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

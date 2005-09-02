@@ -865,6 +865,8 @@ bool wxToolBar::Realize()
                     OSStatus err = noErr ;
                     if ( !insertAll )
                     {
+                        insertAll = true ;
+
                         // if this is the first tool that gets newly inserted or repositioned
                         // first remove all 'old' tools from here to the right, because of this
                         // all following tools will have to be reinserted (insertAll). i = 100 because there's
@@ -873,13 +875,19 @@ bool wxToolBar::Realize()
                         {
                             err = HIToolbarRemoveItemAtIndex( (HIToolbarRef) m_macHIToolbarRef , i ) ;
                         }
-                        //wxASSERT_MSG( err == noErr, _T("HIToolbarRemoveItemAtIndex failed") );
-                        insertAll = true ;
+
+                        if (err != noErr)
+                        {
+                        	wxString errMsg = wxString::Format( _T("HIToolbarRemoveItemAtIndex failed [%ld]"), (long)err );
+                        	wxASSERT_MSG( 0, errMsg.c_str() );
+                        }
                     }
+
+                    tool->SetIndex( currentPosition ) ;
                     err = HIToolbarInsertItemAtIndex( (HIToolbarRef) m_macHIToolbarRef, hiItemRef , currentPosition ) ;
                     wxASSERT_MSG( err == noErr, _T("HIToolbarInsertItemAtIndex failed") );
-                    tool->SetIndex( currentPosition ) ;
                 }
+
                 currentPosition++ ;
             }
         }
