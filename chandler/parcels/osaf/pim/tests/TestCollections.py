@@ -1,5 +1,6 @@
 import os,unittest
 from osaf.pim.collections import *
+from osaf import pim
 from repository.persistence.DBRepository import DBRepository
 
 class NotifyHandler(schema.Item):
@@ -404,6 +405,41 @@ class CollectionTests(CollectionTestCase):
 
         for i in k1:
             self.failUnless(i != None)
+
+    def testInclusionExclusionCollection(self):
+        trash = ListCollection(view=self.view)
+        coll1 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        coll2 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        coll3 = InclusionExclusionCollection(view=self.view).setup(trash=trash)
+        note = pim.Note(view=self.view)
+
+        # Ensure that removing an item from its last collection puts it into
+        # the trash
+        coll1.add(note)
+        self.assert_(note in coll1)
+        self.assert_(note not in trash)
+        coll1.remove(note)
+        self.assert_(note not in coll1)
+        self.assert_(note in trash)
+
+        # Ensure that adding an item to the trash removes it from all
+        # collections
+        coll1.add(note)
+        coll2.add(note)
+        self.assert_(note in coll1)
+        self.assert_(note in coll2)
+        trash.add(note)
+        self.assert_(note not in coll1)
+        self.assert_(note not in coll2)
+
+        # Ensure that then removing it from the trash puts it back in those
+        # collections (only if it was there before)
+        trash.remove(note)
+        self.assert_(note in coll1)
+        self.assert_(note in coll2)
+        self.assert_(note not in coll3)
+
+        
 
 if __name__ == "__main__":
 #    import hotshot
