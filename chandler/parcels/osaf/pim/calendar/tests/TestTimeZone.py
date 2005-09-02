@@ -72,7 +72,7 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
         view.commit()
 
         # - Change the DefaultTimeZone default timezone
-        PyICU.TimeZone.adoptDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
+        PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
         
         # - Reopen the repo
         self._reopenRepository()
@@ -98,14 +98,14 @@ class AbstractTimeZoneTestCase(unittest.TestCase):
         if self.oldLocale is not None:
             PyICU.Locale.setDefault(self.oldLocale)
         if self.oldTzinfo is not None:
-            PyICU.TimeZone.adoptDefault(self.oldTzinfo.timezone)
+            PyICU.TimeZone.setDefault(self.oldTzinfo.timezone)
 
 class DatetimeFormatTestCase(AbstractTimeZoneTestCase):
 
     def setUp(self):
         super(DatetimeFormatTestCase, self).setUp()
         PyICU.Locale.setDefault(PyICU.Locale.getUS())
-        PyICU.TimeZone.adoptDefault(
+        PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("US/Pacific").timezone)
 
     def testNoTimeZone(self):
@@ -136,7 +136,7 @@ class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
     def setUp(self):
         super(DatetimeFrenchFormatTestCase, self).setUp()
         PyICU.Locale.setDefault(PyICU.Locale.getFrance())
-        PyICU.TimeZone.adoptDefault(
+        PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("Europe/Paris").timezone)
     
 
@@ -165,7 +165,7 @@ class DatetimeFrenchFormatTestCase(AbstractTimeZoneTestCase):
 class StripTimeZoneTestCase(AbstractTimeZoneTestCase):
     def setUp(self):
         super(StripTimeZoneTestCase, self).setUp()
-        PyICU.TimeZone.adoptDefault(
+        PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("US/Pacific").timezone)
             
     def testStripNaiveDatetime(self):
@@ -202,7 +202,7 @@ class StripTimeZoneTestCase(AbstractTimeZoneTestCase):
 class CoerceTimeZoneTestCase(AbstractTimeZoneTestCase):
     def setUp(self):
         super(CoerceTimeZoneTestCase, self).setUp()
-        PyICU.TimeZone.adoptDefault(
+        PyICU.TimeZone.setDefault(
             PyICU.ICUtzinfo.getInstance("US/Pacific").timezone)
 
     def testCoerceNaiveToNaive(self):

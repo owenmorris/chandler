@@ -69,14 +69,14 @@ class DefaultTimeZone(schema.Item):
         # settings.
         tz = self.tzinfo
         if tz is not None and view is not None:
-            PyICU.TimeZone.adoptDefault(tz.timezone)
+            PyICU.TimeZone.setDefault(tz.timezone)
 
     def onValueChanged(self, name):
         # Repository hook for attribute changes.
         if name == 'tzinfo':
             tzinfo = self.tzinfo
             if tzinfo is not None:
-                PyICU.TimeZone.adoptDefault(tzinfo.timezone)
+                PyICU.TimeZone.setDefault(tzinfo.timezone)
 
 def stripTimeZone(dt):
     """This method returns a naive C{datetime} (i.e. one with a C{tzinfo}
