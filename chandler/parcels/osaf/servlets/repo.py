@@ -847,7 +847,7 @@ def RenderItem(repoView, item):
 
             result += "<ul>"
             for j in value:
-                result +="<li>%s <a href=%s>%s</a><br>\n" % (j.itsName, toLink(j.itsPath), j.itsPath)
+                result +="<li>%s <a href=%s>%s</a><br>\n" % (j.getItemDisplayName(), toLink(j.itsPath), j.itsPath)
             result += "</ul>"
             result += "</td></tr>\n"
             count += 1
@@ -930,9 +930,14 @@ def _getSourceTree(coll, depth=0):
             kindInfo += "%s " % kind.itsName
 
     result += "- <a href=%s>%s</a> (%s%s)<br>\n" % (toLink(coll.itsPath), coll.getItemDisplayName(), kindInfo, info)
+
+    sources = []
     if hasattr(coll, 'sources'):
-        for source in coll.sources:
-            result += _getSourceTree(source, depth+1)
+        sources = coll.sources
+    elif hasattr(coll, 'source'):
+        sources = [coll.source]
+    for source in sources:
+        result += _getSourceTree(source, depth+1)
 
     return result
     
