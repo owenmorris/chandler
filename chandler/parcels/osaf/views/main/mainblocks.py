@@ -3,7 +3,7 @@ from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
-from osaf.pim.collections import ListCollection
+from osaf.pim.collections import InclusionExclusionCollection
 
 import osaf.pim.notes
 import osaf.pim.calendar
@@ -21,10 +21,6 @@ def make_mainview(parcel):
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
     demo = schema.ns("osaf.views.demo", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
-
-    untitledCollection = \
-        ListCollection.update(parcel, 'untitledCollection',
-                              displayName=_(u'Untitled'))
 
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
@@ -266,14 +262,9 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
-    NewItemCollectionEvent = \
-        ModifyContentsEvent.template('NewItemCollection',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
-            commitAfterDispatch=True,
-            items=[untitledCollection],
-            selectFirstItem=True,
-            disambiguateItemNames=True,
+    NewCollectionEvent = \
+        ModifyContentsEvent.template('NewCollection',
+            dispatchToBlockName='MainView',
             dispatchEnum='SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
     ImportImageEvent = \
@@ -471,8 +462,8 @@ def make_mainview(parcel):
                                     ]), # Menu NewItemMenu
                             MenuItem.template('FileSeparator1',
                                 menuItemKind='Separator'),
-                            MenuItem.template('NewItemCollectionItem',
-                                event=NewItemCollectionEvent,
+                            MenuItem.template('NewCollectionItem',
+                                event=NewCollectionEvent,
                                 title=_(u'New Collection'),
                                 helpString=_(u'Create a new Collection')),
                             MenuItem.template('FileSeparator2',

@@ -46,7 +46,7 @@ class PersistentCollection(ItemValue):
         oldItem, oldAttribute = super(PersistentCollection, self)._setOwner(item, attribute)
 
         if oldItem is not item or oldAttribute is not attribute:
-            for value in self.itervalues():
+            for value in self._itervalues():
                 if isinstance(value, ItemValue):
                     value._setOwner(item, attribute)
 

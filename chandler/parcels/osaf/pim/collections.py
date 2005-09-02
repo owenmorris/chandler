@@ -180,6 +180,8 @@ class ListCollection(AbstractCollection):
 
     refCollection = schema.Sequence(otherName='collections',initialValue=[])
 
+    trashFor = schema.Many('InclusionExclusionCollection', otherName='trash', initialValue=[])
+
     def __init__(self, *args, **kw):
         super(ListCollection, self).__init__(*args, **kw)
         self.rep = Set((self,'refCollection'))
@@ -199,6 +201,9 @@ class ListCollection(AbstractCollection):
     def contentsUpdated(self, item):
         self.rep.notify('changed', item)
 
+    def empty(self):
+        for item in self:
+            item.delete(True)
 
 class DifferenceCollection(AbstractCollection):
     """
@@ -320,46 +325,125 @@ class FilteredCollection(AbstractCollection):
                     pass
 
 
-class InclusionExclusionCollection(UnionCollection):
+class InclusionExclusionCollection(DifferenceCollection):
     """
-      User collections implement inclusions, exclusions and source sets along
-    with methods for add and remove
+    InclusionExclusionCollections implement inclusions, exclusions, source,
+    and trash along with methods for add and remove
     """
-    def getInclusions (self):
-        return self.sources[1]
 
-    inclusions = property (getInclusions)
-
-    def getExclusions (self):
-        return self.sources[0].sources[1]
-
-    exclusions = property (getExclusions)
-
-    def getSource (self):
-        return self.sources[0].sources[0]
-
-    def setSource (self, value):
-        self.sources[0].sources[0] = value
-
-    source = property (getSource, setSource)
+    inclusions = schema.One(AbstractCollection)
+    exclusions = schema.One(AbstractCollection)
+    trash = schema.One(ListCollection, otherName='trashFor', initialValue=None)
 
     def add (self, item):
         """
-          Add an item to the inclusions. Optimize changes to inclusions and
-        exclusions.
+          Add an item to the collection
         """
+
+        logger.debug("Adding %s to %s...",
+            item.getItemDisplayName(), self.getItemDisplayName())
+
         if item not in self.inclusions:
+            logger.debug("...adding to inclusions (%s)",
+                self.inclusions.getItemDisplayName())
             self.inclusions.add (item)
-            if item in self.exclusions:
-                self.exclusions.remove (item)
+
+        if item in self.exclusions:
+            logger.debug("...removing from exclusions (%s)",
+                self.exclusions.getItemDisplayName())
+            self.exclusions.remove (item)
+
+        # If a trash is associated with this collection, remove the item
+        # from the trash.  This has the additional benefit of having the item
+        # reappear in any collection which has the item in its inclusions
+
+        if self.trash is not None and item in self.trash:
+            logger.debug("...removing from trash (%s)",
+                self.trash.getItemDisplayName())
+            self.trash.remove (item)
+
+        logger.debug("...done adding %s to %s",
+            item.getItemDisplayName(), self.getItemDisplayName())
 
     def remove (self, item):
         """
-          Remove an item from the exclusions. Optimize changes to inclusions and
-        exclusions.
+          Remove an item from the collection
         """
-        if item not in self.exclusions:
-            self.exclusions.add (item)
-            if item in self.inclusions:
-                self.inclusions.remove (item)
 
+        logger.debug("Removing %s from %s...",
+            item.getItemDisplayName(), self.getItemDisplayName())
+
+        if item not in self.exclusions:
+            logger.debug("...adding to exclusions (%s)",
+                self.exclusions.getItemDisplayName())
+            self.exclusions.add (item)
+
+        if item in self.inclusions:
+            logger.debug("...removing from inclusions (%s)",
+                self.inclusions.getItemDisplayName())
+            self.inclusions.remove (item)
+
+        # If this item is not in any of the collections that share our trash,
+        # add the item to the trash
+        if self.trash is not None:
+            found = False
+            for collection in self.trash.trashFor:
+                if item in collection:
+                    found = True
+                    break
+            if not found:
+                logger.debug("...adding to trash (%s)",
+                    self.trash.getItemDisplayName())
+                self.trash.add(item)
+
+        logger.debug("...done removing %s from %s",
+            item.getItemDisplayName(), self.getItemDisplayName())
+
+
+    def setup(self, source=None, exclusions=None, trash=None):
+        """
+            Auto-configure the source tree depending on the arguments provided.
+        """
+
+        # An inclusions ListCollection is always created.  if source is
+        # provided, then an additional UnionCollection is created to combine
+        # source and inclusions
+
+        if source is None:
+            innerSource = ListCollection(parent=self)
+            self.inclusions = innerSource
+        else:
+            innerSource = UnionCollection(parent=self)
+            innerSource.sources = [source, ListCollection(parent=self)]
+            self.inclusions = innerSource.sources[1]
+
+
+        # Typically we will create an exclusions ListCollection; however,
+        # a collection like 'All' will instead want to use the Trash collection
+        # for exclusions
+
+        if exclusions is None:
+            exclusions = ListCollection(parent=self)
+        self.exclusions = exclusions
+
+        # You can designate a certain ListCollection to be used for this
+        # collection's trash; in this case, an additional DifferenceCollection
+        # will be created to remove any trash items from this collection. Any
+        # collections which share a trash get the following benefits:
+        # - Adding an item to the trash will make the item disappear from
+        #   collections sharing that trash collection
+        # - When an item is removed from a collection, it will automatically
+        #   be moved to the trash if it doesn't appear in any collection which
+        #   shares that trash
+
+        if trash is not None:
+            outerSource = DifferenceCollection(parent=self)
+            outerSource.sources = [innerSource, trash]
+        else:
+            outerSource = innerSource
+            trash = exclusions
+        self.trash = trash
+
+        self.sources = [outerSource, exclusions]
+
+        return self

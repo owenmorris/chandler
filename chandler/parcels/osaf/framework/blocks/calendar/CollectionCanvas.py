@@ -12,7 +12,6 @@ import wx
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.pim import AbstractCollection
-from osaf.app import Trash
 from application import schema
 from wx.lib import buttons
 from i18n import OSAFMessageFactory as _
@@ -718,11 +717,12 @@ class CollectionCanvas(Block.RectangularChild):
         self.postEventByName('RequestSelectSidebarItem', {'item':collection})
 
     def onDeleteEvent(self, event):
-        Trash.MoveItemToTrash(self.selection)
+        trash = schema.ns('osaf.app', self).TrashCollection
+        trash.add(self.selection)
         self.ClearSelection()
         
     def onRemoveEvent(self, event):
-        Trash.RemoveItemsFromCollection([self.selection], self.contents.collectionList[0])
+        self.contents.collectionList[0].remove(self.selection)
         self.ClearSelection()
 
     def ClearSelection(self):

@@ -23,7 +23,6 @@ import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
-from osaf.app import Trash
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
@@ -1069,7 +1068,7 @@ class Table (PimBlocks.Sendability, RectangularChild):
         trash = schema.ns('osaf.app', self).TrashCollection
         
         def MoveToTrash(item):
-            Trash.MoveItemToTrash(item, trash)
+            trash.add(item)
 
         # this is broken, we shouldn't be going through the widget
         # see additional comments in DeleteSelection itself
@@ -1078,7 +1077,7 @@ class Table (PimBlocks.Sendability, RectangularChild):
     def onRemoveEvent (self, event):
 
         def Delete(item):
-            Trash.RemoveItemsFromCollection([item], self.contents)
+            self.contents.remove(item)
 
         self.widget.DeleteSelection(Delete)
         

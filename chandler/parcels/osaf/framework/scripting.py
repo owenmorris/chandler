@@ -35,20 +35,11 @@ def installParcel(parcel, oldVersion=None):
     scripts = pim.KindCollection.update(parcel, "scriptsSet")
     scripts.kind = scripting.Script.getKind(parcel.itsView)
 
-    scriptsExclusions = pim.ListCollection.update(parcel, "scriptsExclusions")
-
-    scriptsMinusExclusions = pim.DifferenceCollection.update(parcel, "scriptsMinusExclusions",
-                                                             sources = [scripts, scriptsExclusions],
-                                                             )
-
-    scriptsInclusions = pim.ListCollection.update(parcel, "scriptsInclusion")
-
     scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
-                                                         sources = [scriptsMinusExclusions, scriptsInclusions],
-                                                         displayName = _("Scripts"),
-                                                         renameable = False,
-                                                         isPrivate = True
-                                                         )
+         displayName = _("Scripts"),
+         renameable = False,
+         isPrivate = True
+         ).setup(source=scripts)
 
     # Event to put "Scripts" in the Sidebar
     addScriptsEvent = blocks.ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",

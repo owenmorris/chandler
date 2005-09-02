@@ -114,6 +114,8 @@ class ContentItem(schema.Item):
 
     lastModified = schema.One(schema.String)
 
+    isMine = schema.One(schema.Boolean, initialValue=True)
+
     isPrivate = schema.One(schema.Boolean, initialValue=False)
 
     isRead = schema.One(

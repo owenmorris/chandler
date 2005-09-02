@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "56" # stearns: removed recurrence 'until' defaultValue, etc.
+SCHEMA_VERSION = "57" # morgen: added ContentItem.isMine, changed InclusionExclusionCollection
 
 logger = None # initialized in initLogging()
 

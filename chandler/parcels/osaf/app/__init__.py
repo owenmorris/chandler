@@ -240,25 +240,21 @@ def MakeCollections(parcel):
             filterExpression='getattr(item, \'isGenerated\', True)',
             filterAttributes=['isGenerated'])
 
-    notesMinusGeneratedEvents = \
-        DifferenceCollection.update(parcel, 'notesMinusGeneratedEvents',
-            sources=[notes, generatedEvents])
-    
-    allSource = \
-        DifferenceCollection.update(parcel, 'allSource',
-            sources=[notesMinusGeneratedEvents, TrashCollection])
+    mineItems = \
+        FilteredCollection.update(parcel, 'mineItems',
+            source=notes,
+            filterExpression='getattr(item, \'isMine\', True)',
+            filterAttributes=['isMine'])
 
-    allSourceMinusAllExclusions = \
-        DifferenceCollection.update(parcel, 'allSourceMinusAllExclusions',
-            sources=[allSource,
-                     ListCollection.update(parcel, 'allExclusions')])
+    mineMinusGeneratedEvents = \
+        DifferenceCollection.update(parcel, 'mineMinusGeneratedEvents',
+            sources=[mineItems, generatedEvents])
 
     # the "All" collection
     InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_('All'),
-        renameable=False,
-        sources=[allSourceMinusAllExclusions,
-                 ListCollection.update(parcel, 'allInclusions')])
+        renameable=False
+    ).setup(source=mineMinusGeneratedEvents, exclusions=TrashCollection)
 
     mail = \
          KindCollection.update(parcel, 'mail')
@@ -272,17 +268,11 @@ def MakeCollections(parcel):
             filterExpression='getattr(item, \'isInbound\', False)',
             filterAttributes=['isInbound'])
 
-    inSourceMinusInExclusions = \
-        DifferenceCollection.update(parcel, 'inSourceMinusInExclusions',
-            sources=[inSource,
-                     ListCollection.update(parcel, 'inExclusions')])
-
     # The "In" collection
     InclusionExclusionCollection.update(parcel, 'inCollection',
         displayName=_('In'),
-        renameable=False,
-        sources=[inSourceMinusInExclusions,
-                 ListCollection.update(parcel, 'inInclusions')])
+        renameable=False
+    ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
         FilteredCollection.update(parcel, 'outSource',
@@ -290,13 +280,7 @@ def MakeCollections(parcel):
             filterExpression='getattr(item, \'isOutbound\', False)',
             filterAttributes=['isOutbound'])
 
-    outSourceMinusOutExclusions = \
-        DifferenceCollection.update(parcel, 'outSourceMinusOutExclusions',
-            sources=[outSource,
-                     ListCollection.update(parcel, 'outExclusions')])
-                                               
     InclusionExclusionCollection.update(parcel, 'outCollection',
         displayName=_('Out'),
-        renameable=False,
-        sources=[outSourceMinusOutExclusions,
-                 ListCollection.update(parcel, 'outInclusions')])
+        renameable=False
+    ).setup(source=outSource, trash=TrashCollection)

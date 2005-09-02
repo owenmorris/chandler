@@ -592,13 +592,8 @@ class ShareConduit(items.ContentItem):
 
             if isinstance(contents, InclusionExclusionCollection) and \
                 not hasattr(contents, 'rep'):
-                    # Prepare an empty Set tree:
-                    source = ListCollection(parent=contents)
-                    inclusions = ListCollection(parent=contents)
-                    exclusions = ListCollection(parent=contents)
-                    dc = DifferenceCollection(parent=contents)
-                    dc.sources = [source, exclusions]
-                    contents.sources = [dc, inclusions]
+                    trash = schema.ns('osaf.app', sharingView).TrashCollection
+                    contents.setup(trash=trash)
 
             filterKinds = None
             if len(sharingSelf.share.filterKinds) > 0:

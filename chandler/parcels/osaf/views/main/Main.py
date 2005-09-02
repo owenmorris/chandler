@@ -35,7 +35,6 @@ from osaf.pim import AbstractCollection, ListCollection
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.scripting as Scripting
 from osaf import webserver
-from osaf.app import Trash
 from i18n import OSAFMessageFactory as _
 import i18n
 
@@ -116,7 +115,8 @@ class MainView(View):
         event.arguments ['Enable'] = False
 
     def onEmptyTrashEvent(self, event):
-        Trash.EmptyTrash(self.itsView)
+        trash = schema.ns("osaf.app", self).TrashCollection
+        trash.empty()
 
     def onEmptyTrashEventUpdateUI(self, event):
         trash = schema.ns("osaf.app", self).TrashCollection
@@ -152,6 +152,15 @@ class MainView(View):
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
         return [newItem]
+
+    def onNewCollectionEvent(self, event):
+        # Create a new collection, triggered from File | New Collection
+        coll = pim.InclusionExclusionCollection(view=self.itsView)
+        coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
+        coll.displayName = _(u'Untitled')
+        self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst",
+            {'items':[coll]}
+        )
 
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
