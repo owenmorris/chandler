@@ -1536,16 +1536,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
             # Something changed.                
             value = oldValue.replace(tzinfo=tzinfo)
             setattr(item, attributeName, value)
-            
-            # [@@@] grant
-            # A disgusting hack till we switch to start+duration
-            # instead of start+end
-            if attributeName == 'startTime':
-                oldValue = getattr(item, 'endTime', None)
-                if oldValue is not None:
-                    value = oldValue.replace(tzinfo=tzinfo)
-                    setattr(item, 'endTime', value)
-            
+                        
             self.AttributeChanged()
             
     def GetAttributeValue(self, item, attributeName):

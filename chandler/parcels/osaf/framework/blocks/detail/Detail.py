@@ -1071,20 +1071,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             value = datetime.combine(dateTimeValue.date(), oldValue.timetz())
             
             if oldValue != value:
-                if attributeName == 'startTime':
-                    # Changing the start date or time such that the start 
-                    # date+time are later than the existing end date+time 
-                    # will change the end date & time to preserve the 
-                    # existing duration. (This is true even for anytime 
-                    # events: increasing the start date by three days 
-                    # will increase the end date the same amount.)
-                    if value > item.endTime:
-                        endTime = value + (item.endTime - item.startTime)
-                    else:
-                        endTime = item.endTime
-                    item.ChangeStart(value)
-                    item.endTime = endTime
-                else:
+                if attributeName == 'endTime':
                     # Changing the end date or time such that it becomes 
                     # earlier than the existing start date+time will 
                     # change the start date+time to be the same as the 
@@ -1092,8 +1079,14 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                     # single-day anytime event if the event had already 
                     # been an anytime event).
                     if value < item.startTime:
-                        item.ChangeStart(value)
-                    setattr (item, attributeName, value)
+                        item.startTime = value
+                    item.endTime = value
+                elif attributeName == 'startTime':
+                    item.startTime = value
+                else:
+                    assert False, "this attribute editor is really just for " \
+                                  "start or endtime"
+
                 self.AttributeChanged()
                 
             # Refresh the value in place
@@ -1113,8 +1106,8 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
     def SetAttributeValue(self, item, attributeName, valueString):
         newValueString = valueString.replace('?','').strip()
         if len(newValueString) == 0:
-            # Clearing an event's start time (removing the value in it, causing 
-            # it to show "HH:MM") will remove the end time value (making it an 
+            # Clearing an event's start or end time (removing the value in it, causing 
+            # it to show "HH:MM") will remove both time values (making it an 
             # anytime event).
             if not item.anyTime:
                 item.anyTime = True
@@ -1146,26 +1139,12 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                 # field to effect a one-hour event on the corresponding date. 
                 item.anyTime = False
                 if iAmStart:
-                    item.ChangeStart(value)
-                    item.endTime = value + timedelta(hours=1)
+                    item.startTime = value
                 else:
-                    item.ChangeStart(value - timedelta(hours=1))
-                    item.endTime = value
+                    item.startTime = value - timedelta(hours=1)
+                item.duration = timedelta(hours=1)
             else:
-                if iAmStart:
-                    # Changing the start date or time such that the start 
-                    # date+time are later than the existing end date+time 
-                    # will change the end date & time to preserve the 
-                    # existing duration. (This is true even for anytime 
-                    # events: increasing the start date by three days will 
-                    # increase the end date the same amount.)
-                    if value > item.endTime:
-                        endTime = value + (item.endTime - item.startTime)
-                    else:
-                        endTime = item.endTime
-                    item.ChangeStart(value)
-                    item.endTime = endTime
-                else:
+                if not iAmStart:
                     # Changing the end date or time such that it becomes 
                     # earlier than the existing start date+time will change 
                     # the start date+time to be the same as the end 
@@ -1173,8 +1152,8 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     # anytime event if the event had already been an 
                     # anytime event).
                     if value < item.startTime:
-                        item.ChangeStart(value)
-                    setattr (item, attributeName, value)
+                        item.startTime = value
+                setattr (item, attributeName, value)
                 item.anyTime = False
             
             self.AttributeChanged()

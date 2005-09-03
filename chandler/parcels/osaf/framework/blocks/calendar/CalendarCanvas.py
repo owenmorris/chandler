@@ -306,7 +306,9 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
         item = self._item	
-       
+        if item.isDeleted():
+            return
+        
         time = item.startTime	
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
@@ -951,8 +953,8 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
             daynessTest =  dayItem == dayItems  or  (not dayItem == timedItems)
             
 
-            if (item.hasLocalAttributeValue('startTime') and
-                item.hasLocalAttributeValue('endTime') and
+            if (hasattr(item, 'startTime') and
+                hasattr(item, 'duration') and
                 daynessTest and
                 self.itemIsInRange(item, date, nextDate)):
                 # For the moment, master events can be overridden.  Until
@@ -1696,8 +1698,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # [@@@] grant .toordinal() & tzinfo?
         
         if (newTime.date() != oldStartTime.date()):
-            item.ChangeStart(datetime(newTime.year, newTime.month, newTime.day,
-                                      item.startTime.hour, item.startTime.minute, tzinfo=tzinfo))
+            item.startTime = datetime(newTime.year, newTime.month, newTime.day,
+                                      item.startTime.hour, item.startTime.minute, tzinfo=tzinfo)
             self.Refresh()
 
     def getDateTimeFromPosition(self, position, mustBeInBounds=True):
@@ -1746,8 +1748,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         startTimetz = time(hour=event.startTime.hour,
                         minute=event.startTime.minute,
                         tzinfo=ICUtzinfo.getDefault())
-        event.ChangeStart(datetime.combine(newTime, startTimetz))
-        event.endTime = event.startTime + timedelta(hours=1)
+        event.startTime = datetime.combine(newTime, startTimetz)
+        event.duration = timedelta(hours=1)
         event.allDay = True
         event.anyTime = False
 
@@ -2221,7 +2223,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         if ((newTime.date() != item.startTime.date()) or
             (newTime.hour != item.startTime.hour) or
             (newTime.minute != item.startTime.minute)):
-            item.ChangeStart(newTime)
+            item.startTime = newTime
             self.RebuildCanvasItems()
             
             # this extra paint is actually unnecessary because ContainerBlock is

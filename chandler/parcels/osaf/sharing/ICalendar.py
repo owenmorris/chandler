@@ -355,6 +355,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             # what that would mean, so we won't catch an exception if there's no
             # dtstart.
             dtstart  = event.dtstart[0].value 
+            isDate = type(dtstart) == date
             
             try:
                 duration = event.duration[0].value
@@ -368,18 +369,22 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 # like events with no duration, so for now we'll set a dummy
                 # duration of 1 hour
                 except AttributeError:
-                    # FIXME Nesting try/excepts is ugly.  Also, we're assuming
-                    # DATE-TIMEs, not DATEs.
+                    # FIXME Nesting try/excepts is ugly.
                     try:
                         duration = event.due[0].value - dtstart
                     except AttributeError:
-                        duration = datetime.timedelta(hours=1)
+                        if isDate: 
+                            # make it two days long, our conversion from 
+                            # iCalendar to sane changes it to 2 days long later
+                            duration = datetime.timedelta(days=2)
+                        else:
+                            duration = datetime.timedelta(0)
                             
-            isDate = type(dtstart) == date
+
             if isDate:
                 dtstart = datetime.datetime.combine(dtstart, time(0))
-                if duration: # convert to Chandler's notion of all day duration
-                    duration -= datetime.timedelta(days=1)
+                # convert to Chandler's notion of all day duration
+                duration -= datetime.timedelta(days=1)
                     
             # ignore timezones and recurrence till tzinfo -> PyICU is written
             # give the repository a naive datetime, no timezone

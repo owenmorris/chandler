@@ -109,7 +109,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("parcel:osaf.pim.calendar")
 
-        # Test getDuration
+        # Test getting duration, setting endTime
         view = self.rep.view
         firstItem = Calendar.CalendarEvent(view=view)
         firstItem.anyTime = False
@@ -117,7 +117,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         firstItem.endTime = datetime(2003, 2, 1, 11, 30)
         self.assertEqual(firstItem.duration, timedelta(hours=1.5))
 
-        # Test setDuration
+        # Test setting duration and getting endTime
         secondItem = Calendar.CalendarEvent(view=view)
         secondItem.anyTime = False
         secondItem.startTime = datetime(2003, 3, 5, 9)
@@ -125,8 +125,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(secondItem.endTime,
                          datetime(2003, 3, 5, 10, 30))
 
-        # Test changeStartTime
-        firstItem.ChangeStart(datetime(2003, 3, 4, 12, 45))
+        # Test changing startTime (shouldn't change duration)
+        firstItem.startTime = datetime(2003, 3, 4, 12, 45)
         self.assertEqual(firstItem.duration, timedelta(hours=1.5))
         self.assertEqual(firstItem.startTime, datetime(2003, 3, 4, 12, 45))
 

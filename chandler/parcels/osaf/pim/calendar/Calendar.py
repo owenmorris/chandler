@@ -139,17 +139,17 @@ class CalendarEventMixin(ContentItem):
             "- Brian"
     )
 
+    duration = schema.One(
+        schema.TimeDelta, 
+        displayName="Duration",
+        doc="Duration.")
+
     recurrenceID = schema.One(
         schema.DateTime,
         displayName="Recurrence ID",
         defaultValue=None,
         doc="Date time this occurrence was originally scheduled. startTime and "
             "recurrenceID for everything but modifications"
-    )
-
-    endTime = schema.One(
-        schema.DateTime,
-        displayName="End-Time"
     )
 
     allDay = schema.One(
@@ -272,7 +272,7 @@ class CalendarEventMixin(ContentItem):
     schema.addClouds(
         copying = schema.Cloud(organizer,location,rruleset,participants),
         sharing = schema.Cloud(
-            startTime, endTime, allDay, location, anyTime, modifies,
+            startTime, duration, allDay, location, anyTime, modifies,
             reminderTime, transparency, isGenerated, recurrenceID, icalUID,
             byCloud = [organizer, participants, modifications, rruleset,
                 occurrenceFor]
@@ -331,28 +331,27 @@ class CalendarEventMixin(ContentItem):
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
 
-    def GetDuration(self):
-        """Returns a timedelta, None if no startTime or endTime"""
-        
-        if (self.hasLocalAttributeValue("startTime") and
-            self.hasLocalAttributeValue("endTime")):
-            return datetimeOp(self.getEffectiveEndTime(), '-',
-                 self.getEffectiveStartTime())
+    def getEndTime(self):
+        if (self.hasLocalAttributeValue("startTime") and 
+            self.hasLocalAttributeValue("duration")):
+            return self.startTime + self.duration
         else:
             return None
+    
+    def setEndTime(self, dateTime):
+        if self.hasLocalAttributeValue("startTime"):
+            duration = dateTime - self.startTime
+            if duration < timedelta(0):
+                raise ValueError, "End time must not be earlier than start time"
+            self.duration = duration
 
-    def SetDuration(self, timeDelta):
-        """Set duration of event, expects value to be a timedelta
-        
-        endTime is updated based on the new duration, startTime remains fixed
-        """
-        if (self.startTime is not None):
-            self.endTime = self.getEffectiveStartTime() + timeDelta
-
-    duration = Calculated(schema.TimeDelta, displayName="duration",
-                          fget=GetDuration, fset=SetDuration,
-                          doc="Duration, computed from effective start & "
-                              "end times. Observes all-day & any-time.")
+    endTime = Calculated(
+        schema.DateTime,
+        displayName="End-Time",
+        fget=getEndTime,
+        fset=setEndTime,
+        doc="End time, computed from startTime + duration."
+    )
 
     def getEffectiveStartTime(self):
         """ 
@@ -407,24 +406,6 @@ class CalendarEventMixin(ContentItem):
                                doc="reminderDelta: the amount of time before " \
                                    "the event that we want a reminder")
     
-    def ChangeStart(self, dateTime):
-        """Change the start time without changing the duration.
-
-        Setting startTime directly will effectively change the duration,
-        because the endTime is not affected. This method changes the endTime, 
-        as well as the reminderTime if we have one."""
-
-        # Adjust the reminder first, while we still have the old time.
-        try:
-            self.reminderTime = self.reminderTime - datetimeOp(
-                                                self.startTime, '-', dateTime)
-        except AttributeError:
-                pass
-
-        duration = self.duration
-        self.startTime = dateTime
-        self.endTime = self.startTime + duration
-
     # begin recurrence related methods
 
     def getFirstInRule(self):
@@ -540,8 +521,7 @@ class CalendarEventMixin(ContentItem):
         new._ignoreValueChanges = True
         
         new.isGenerated = True
-        new.ChangeStart(recurrenceID)
-        new.recurrenceID = new.startTime
+        new.startTime = new.recurrenceID = recurrenceID
         new.occurrenceFor = first        
         new.modificationFor = None
         new.modifies = 'this' # it doesn't work with the rep to make this None
