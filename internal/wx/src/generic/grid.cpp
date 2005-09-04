@@ -3649,17 +3649,20 @@ void wxGridColLabelWindow::OnMouseWheel( wxMouseEvent& event )
 //
 void wxGridColLabelWindow::OnKeyDown( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 void wxGridColLabelWindow::OnKeyUp( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 void wxGridColLabelWindow::OnChar( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 
@@ -3818,17 +3821,20 @@ void wxGridWindow::OnMouseWheel( wxMouseEvent& event )
 //
 void wxGridWindow::OnKeyDown( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 void wxGridWindow::OnKeyUp( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 void wxGridWindow::OnChar( wxKeyEvent& event )
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) ) event.Skip();
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+        event.Skip();
 }
 
 void wxGridWindow::OnEraseBackground( wxEraseEvent& WXUNUSED(event) )
@@ -3837,7 +3843,13 @@ void wxGridWindow::OnEraseBackground( wxEraseEvent& WXUNUSED(event) )
 
 void wxGridWindow::OnFocus(wxFocusEvent& event)
 {
-    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
+bool bIsHandled = false;
+
+    bIsHandled = ! IsBeingDeleted();
+    if ( bIsHandled )
+        bIsHandled = m_owner->GetEventHandler()->ProcessEvent( event );
+
+    if ( !bIsHandled )
         event.Skip();
 }
 
