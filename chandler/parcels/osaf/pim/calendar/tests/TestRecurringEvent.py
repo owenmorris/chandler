@@ -350,7 +350,19 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         
         self.assertEqual(self.event.startTime, self.start + timedelta(hours=6))
 
-
+    def testNeverEndingEvents(self):
+        ruleItem = RecurrenceRule(None, view=self.rep.view)
+        ruleItem.freq = 'daily'
+        ruleSetItem = RecurrenceRuleSet(None, view=self.rep.view)
+        ruleSetItem.addRule(ruleItem)
+        self.event.rruleset = ruleSetItem
+        
+        # make a THISANDFUTURE modification
+        
+        second = self.event.getNextOccurrence()
+        second.changeThisAndFuture('startTime',
+                                   self.start + timedelta(minutes=30))
+        self.failIf(second.rruleset.rrules.first().hasLocalAttributeValue('until'))
 
 #tests to write:
 """

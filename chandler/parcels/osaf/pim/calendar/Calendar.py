@@ -499,9 +499,9 @@ class CalendarEventMixin(ContentItem):
         
         #now get all reference attributes whose inverse has multiple cardinality 
         for attr, val in self.iterAttributeValues(referencesOnly=True):
-            # exclude itemCollectionInclusions so generated occurrences don't
+            # exclude collections so generated occurrences don't
             # appear in the collection
-            if attr == 'itemCollectionInclusions':
+            if attr == 'collections':
                 continue
             inversekind = self.getAttributeAspect(attr, 'type')
             inverse = self.getAttributeAspect(attr, 'otherName')
@@ -787,10 +787,10 @@ class CalendarEventMixin(ContentItem):
         """Do everything that should happen for any change call."""
         if master is None:
             master = self.getMaster()
-        if master.hasLocalAttributeValue('itemCollectionInclusions'):
+        if master.hasLocalAttributeValue('collections'):
             # [Bug 3767] We want self to be in all master's
-            # itemCollectionInclusions.
-            for coll in master.itemCollectionInclusions:
+            # collections.
+            for coll in master.collections:
                 coll.add(self)
         self.isGenerated = False
                            
