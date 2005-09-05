@@ -258,6 +258,10 @@ void wxHtmlHelpFrame::Init(wxHtmlHelpData* data)
         m_DataCreated = true;
     }
 
+    m_ContentsPage = 0;
+    m_IndexPage = 0;
+    m_SearchPage = 0;
+
     m_ContentsBox = NULL;
     m_IndexList = NULL;
     m_IndexButton = NULL;
@@ -281,7 +285,7 @@ void wxHtmlHelpFrame::Init(wxHtmlHelpData* data)
     m_Config = NULL;
     m_ConfigRoot = wxEmptyString;
 
-    m_Cfg.x = m_Cfg.y = -1;
+    m_Cfg.x = m_Cfg.y = wxDefaultCoord;
     m_Cfg.w = 700;
     m_Cfg.h = 480;
     m_Cfg.sashpos = 240;
@@ -530,7 +534,7 @@ bool wxHtmlHelpFrame::Create(wxWindow* parent, wxWindowID id,
                                       wxDefaultPosition, wxDefaultSize,
                                       wxTE_PROCESS_ENTER);
         m_SearchChoice = new wxChoice(dummy, wxID_HTML_SEARCHCHOICE,
-                                      wxDefaultPosition, wxSize(125,-1));
+                                      wxDefaultPosition, wxSize(125,wxDefaultCoord));
         m_SearchCaseSensitive = new wxCheckBox(dummy, wxID_ANY, _("Case sensitive"));
         m_SearchWholeWords = new wxCheckBox(dummy, wxID_ANY, _("Whole words only"));
         m_SearchButton = new wxButton(dummy, wxID_HTML_SEARCHBUTTON, _("Search"));
@@ -736,7 +740,7 @@ bool wxHtmlHelpFrame::DisplayContents()
         m_Cfg.navig_on = true;
     }
 
-    m_NavigNotebook->SetSelection(0);
+    m_NavigNotebook->SetSelection(m_ContentsPage);
 
     if (m_Data->GetBookRecArray().GetCount() > 0)
     {
@@ -762,7 +766,7 @@ bool wxHtmlHelpFrame::DisplayIndex()
         m_Splitter->SplitVertically(m_NavigPan, m_HtmlWin, m_Cfg.sashpos);
     }
 
-    m_NavigNotebook->SetSelection(1);
+    m_NavigNotebook->SetSelection(m_IndexPage);
 
     if (m_Data->GetBookRecArray().GetCount() > 0)
     {
@@ -965,10 +969,10 @@ void wxHtmlHelpFrame::CreateContents()
     const int MAX_ROOTS = 64;
     wxTreeItemId roots[MAX_ROOTS];
     // VS: this array holds information about whether we've set item icon at
-    //     given level. This is neccessary because m_Data has flat structure
+    //     given level. This is necessary because m_Data has a flat structure
     //     and there's no way of recognizing if some item has subitems or not.
     //     We set the icon later: when we find an item with level=n, we know
-    //     that the last item with level=n-1 was folder with subitems, so we
+    //     that the last item with level=n-1 was afolder with subitems, so we
     //     set its icon accordingly
     bool imaged[MAX_ROOTS];
     m_ContentsBox->DeleteAllItems();
@@ -984,9 +988,9 @@ void wxHtmlHelpFrame::CreateContents()
         {
             if (m_hfStyle & wxHF_MERGE_BOOKS)
                 // VS: we don't want book nodes, books' content should
-                //    appear under tree's root. This line will create "fake"
+                //    appear under tree's root. This line will create a "fake"
                 //    record about book node so that the rest of this look
-                //    will believe there really _is_ book node and will
+                //    will believe there really _is_ a book node and will
                 //    behave correctly.
                 roots[1] = roots[0];
             else
@@ -1010,7 +1014,7 @@ void wxHtmlHelpFrame::CreateContents()
         m_PagesHash->Put(it->GetFullPath(),
                          new wxHtmlHelpHashData(i, roots[it->level + 1]));
 
-        // Set the icon for the node one level up in the hiearachy,
+        // Set the icon for the node one level up in the hierarchy,
         // unless already done (see comment above imaged[] declaration)
         if (!imaged[it->level])
         {
@@ -1830,4 +1834,3 @@ BEGIN_EVENT_TABLE(wxHtmlHelpFrame, wxFrame)
 END_EVENT_TABLE()
 
 #endif // wxUSE_WXHTML_HELP
-
