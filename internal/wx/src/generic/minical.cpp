@@ -807,16 +807,12 @@ void wxMiniCalendar::DrawMonth(wxPaintDC& dc, wxDateTime startDate, wxCoord *y, 
                     dc.SetTextBackground(busyColour);
                     dc.SetBrush(wxBrush(busyColour, wxSOLID));
                     dc.SetPen(wxPen(busyColour, 1, wxSOLID));
-                    int startX = (wd == 0) ? SEPARATOR_MARGIN : wd * m_widthCol;
-                    int endX = m_widthCol;
-                    if ( wd == ( DAYS_PER_WEEK - 1 ) )
-                        endX -= (SEPARATOR_MARGIN);
 #if defined(__WXMAC__)
-                        dc.DrawRectangle(startX, *y + m_heightRow - height + 1, endX+1, height); 
+                    dc.DrawRectangle(x-3, *y + m_heightRow - height + 1, 2, height);
 #else
-                        dc.DrawRectangle(startX, *y + m_heightRow - height, endX, height);
+                    dc.DrawRectangle(x-3, *y + m_heightRow - height, 2, height);
 #endif
-                        changedColours = true;
+                    changedColours = true;
                 }
 
                 if ( date.GetMonth() != startDate.GetMonth() || !IsDateInRange(date) )
