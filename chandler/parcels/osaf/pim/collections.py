@@ -19,20 +19,20 @@ def mapChangesCallable(item, version, status, literals, references):
     if hasattr(item,'collections'):
         for i in item.collections:
             i.contentsUpdated(item)
-    else:
-        # handle changes to items in an existing KindCollection
-        # is the item in a kind collection?
-        try:
-            #@@@ this is not the most efficient way...
-            kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
-            for i in kc.collections:
-                if item in i and hasattr(i,'contentsUpdated'):
-                    i.contentsUpdated(item)
-        except AttributeError, ae:
-            logger.debug(ae)
-            # @@@ intentionally swallow AttributeErrors from parcel loading
-            # due to notification attempts before reps are created.
-            pass 
+
+    # handle changes to items in an existing KindCollection
+    # is the item in a kind collection?
+    try:
+        #@@@ this is not the most efficient way...
+        kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
+        for i in kc.collections:
+            if item in i:
+                i.contentsUpdated (item)
+    except AttributeError, ae:
+        #logger.debug(ae)
+        # @@@ intentionally swallow AttributeErrors from parcel loading
+        # due to notification attempts before reps are created.
+        pass 
 
 class AbstractCollection(items.ContentItem):
     """
