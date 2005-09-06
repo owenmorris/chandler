@@ -151,7 +151,7 @@ def isMainCalendarVisible():
 
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
-    enableBusyBars = schema.One(schema.Boolean, initialValue = True)
+    enableBusyBars = schema.One(schema.Boolean, initialValue = False)
     
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
