@@ -184,7 +184,9 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
     def onEnableBusyBars(self, event):
         self.enableBusyBars = not self.enableBusyBars
         if ( not self.enableBusyBars ):
-            self.widget.ClearAllAttr()
+            # Disabling this until relver gets bumped
+            #self.widget.ClearAllAttr()
+            pass
         self.widget.wxSynchronizeWidget()
         self.widget.Refresh()
 
