@@ -548,13 +548,13 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
                     key.displayName = displayName
 
+                    key.collectionList = collectionList
                     self.itemTupleKeyToCacheKey [tupleKey] = key
                 else:
                     """
-                      Check to see if we need to reorder the source list of the UnionCollection.
-                    The list is kept sorted by the order of the collections as they overlay one
-                    another in the Calendar.
-                      We don't bother to sort when we're looking up a collection that isn't
+                      Check to see if we need to reorder collectionList. The list is kept sorted
+                    by the order of the collections as they overlay one another in the Calendar.
+                      We don't bother to reorder when we're looking up a collection that isn't
                     displayed in the summary view, both because it's not necessary and because
                     it causes the source attribute to change which causes a notification to
                     update the sidebar, which causes the order to change, causing a
