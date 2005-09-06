@@ -119,7 +119,7 @@ class ColorInfo(object):
         """
         cls.lastHueIndex += 1
         cls.lastHueIndex %= len(cls.hueList)
-        return cls.hueList[lastHueIndex]
+        return cls.hueList[cls.lastHueIndex]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
     # takes HSV 'S' and 'V' and returns an color based tuple property
