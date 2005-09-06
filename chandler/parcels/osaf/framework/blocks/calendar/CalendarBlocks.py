@@ -43,10 +43,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         if isMainCalendarVisible() and self.blockItem.doSelectWeek:
             style |= wx.minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        # Turning off free busy until set changes come in for performance reasons
-        # There is a bug with notifications that each item is getting wxSynchronizeWidget
-        # called 25 times as often as intended.
-        #self.setFreeBusy(None)
+        self.setFreeBusy(None)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -120,8 +117,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         return percentage
 
     def setFreeBusy(self, event):
-        # Disabling until performance issues are resolved
-        return
+        if (not self.blockItem.enableBusyBars):
+            return
         startDate = self.GetStartDate();
         endDate = startDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
         
@@ -154,6 +151,7 @@ def isMainCalendarVisible():
 
 class MiniCalendar(CalendarCanvas.CalendarBlock):
     doSelectWeek = schema.One(schema.Boolean, initialValue = True)
+    enableBusyBars = schema.One(schema.Boolean, initialValue = True)
     
     def __init__(self, *arguments, **keywords):
         super (MiniCalendar, self).__init__(*arguments, **keywords)
@@ -182,6 +180,19 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         #We want to ignore, because view changes could come in here, and we
         #never want to change our collection
         pass
+    
+    def onEnableBusyBars(self, event):
+        self.enableBusyBars = not self.enableBusyBars
+        if ( not self.enableBusyBars ):
+            self.widget.ClearAllAttr()
+        self.widget.wxSynchronizeWidget()
+        self.widget.Refresh()
+
+    def onEnableBusyBarsUpdateUI(self, event):
+        if ( self.enableBusyBars ):
+            event.arguments['Text'] = "Disable busy bars"
+        else:
+            event.arguments['Text'] = "Enable busy bars"
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
     characterStyle = schema.One(Styles.CharacterStyle)
