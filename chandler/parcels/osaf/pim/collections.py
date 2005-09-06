@@ -43,6 +43,7 @@ class AbstractCollection(items.ContentItem):
 
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
     renameable  = schema.One(schema.Boolean)
+    color       = schema.One(schema.Anything)
 
     collectionList = schema.Sequence(
         'AbstractCollection',

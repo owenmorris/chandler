@@ -24,3 +24,7 @@ class ColorType(schema.Struct):
         # Make a wx color
         return wx.Color(self.red, self.green, self.blue)
 
+    def toTuple(self):
+        # is there a more pythonic way of doing this?
+        return (self.red, self.green, self.blue)
+

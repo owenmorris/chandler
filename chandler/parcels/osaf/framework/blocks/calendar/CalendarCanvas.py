@@ -21,7 +21,7 @@ import osaf.pim.items as items
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
-from osaf.framework.blocks import Styles
+from osaf.framework.blocks import Styles, ColorType
 from osaf.framework.blocks import Sendability
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas
@@ -85,55 +85,47 @@ class CachedAttribute(object):
         setattr(inst, self.name, result)
         return result
 
-class CalendarData(items.ContentItem):
-
-    calendarColor = schema.One(Styles.ColorStyle)
+class ColorInfo(object):
 
     # need to convert hues from 0..360 to 0..1.0 range
     # removed 60, 180, 90 for now because they looked too light
     hueList = [k/360.0 for k in [210, 120, 0, 30, 270, 240, 330]]
-    
+    lastHueIndex = -1
+
+    def __init__(self, collection):
+        if hasattr(collection, 'color'):
+            color = collection.color.toTuple()
+            hsv = rgb_to_hsv(*DrawingUtilities.color2rgb(*color))
+            self.hue = hsv[0]
+        else:
+            self.hue = ColorInfo.getNextHue()
+            try:
+                dn = collection.displayName
+            except:
+                dn = str(collection)
+
+            # the actual saturation and value are not important here,
+            # its never used.
+            hsv = (self.hue, 0.5, 1.0)
+            collection.color = ColorType(*DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv)))
+            collection.color.alpha = 255
+                                         
     @classmethod
-    def getNextHue(cls, oldhue):
+    def getNextHue(cls):
         """
         returns the next hue following the one passed in
         For example,
         f.hue = nextHue(f.hue)
         """
-        found = False
-        for hue in cls.hueList:
-            if found: return hue
-            if hue == oldhue:
-                found = True
-        return cls.hueList[0]
-    
-    def _setEventColor(self, color):
-        self.calendarColor.backgroundColor = color
-
-        # clear cached values
-        try:
-            del self.eventHue
-        except AttributeError:
-            pass
-        
-    def _getEventColor(self):
-        return self.calendarColor.backgroundColor
-        
-    # this is the actual RGB value for eventColor
-    eventColor = property(_getEventColor, _setEventColor)
-    
-    @CachedAttribute
-    def eventHue(self):
-        c = self.eventColor
-        rgbvalues = (c.red, c.green, c.blue)
-        hsv = rgb_to_hsv(*DrawingUtilities.color2rgb(*rgbvalues))
-        return hsv[0]
+        cls.lastHueIndex += 1
+        cls.lastHueIndex %= len(cls.hueList)
+        return cls.hueList[lastHueIndex]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
     # takes HSV 'S' and 'V' and returns an color based tuple property
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
-            hsv = (self.eventHue, saturation, value)
+            hsv = (self.hue, saturation, value)
             return DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv))
         return property(getSaturatedColor)
             
@@ -972,69 +964,36 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
-    def StampedCalendarData(self, collection):
-        if not isinstance(collection, CalendarData):
-            collection.StampKind('add', CalendarData.getKind(view=collection.itsView))
-        
-        if not hasattr(collection, 'calendarColor'):
-            # XXX really, the object should be lazily creating this.
-            colorstyle = Styles.ColorStyle(view=self.itsView)
-            # make copies, because initialValue ends up being shared, because
-            # it is isn't immutable
-            colorstyle.foregroundColor = copy.copy(colorstyle.foregroundColor)
-            colorstyle.backgroundColor = copy.copy(colorstyle.backgroundColor)
-            
-            collection.calendarColor = colorstyle
-
-            self.setupNextHue()
-        return collection
-            
     #
     # Color stuff
     #
-    def getCalendarData(self):
-        """
-        Returns a CalendarData object that can be used to persistently store
-        calendar color data, and associate it with the collection.
-        
-        At the moment, this stamps the current itemcollection as a CalendarData
-        """
-        return self.StampedCalendarData(self.contents.sources[0])            
-                            
-    calendarData = property(getCalendarData)
-
-    def setupNextHue(self):
-        c = self.contents.sources[0].calendarColor.backgroundColor
-        self.lastHue = CalendarData.getNextHue(self.lastHue)
-        (c.red, c.green, c.blue) = DrawingUtilities.rgb2color(*hsv_to_rgb(self.lastHue, 1.0, 1.0))
-        
-        
     def getEventColors(self, event, selected):
         """
         returns the appropriate tuple of selected, normal, and visible colors
         """
-        calData = self.getEventCalendarData(event)
+        collection = self.getContainingCollection(event)
+        colorInfo = ColorInfo(collection)
         
         if selected:
-            return calData.selectedColors
-        elif calData == self.contents.sources[0]:
-            return calData.defaultColors
+            return colorInfo.selectedColors
+        # collectionList[0] is the currently selected collection
+        elif collection == self.contents.collectionList[0]:
+            return colorInfo.defaultColors
         
-        return calData.visibleColors
+        return colorInfo.visibleColors
 
-
-    def getEventCalendarData(self, event):
+    def getContainingCollection(self, event):
         """
         Get the eventColors object which contains all the right color tints
         for the given event. If the given event doesn't have color data,
         then we return the default one associated with the view
         """
-        coll = self.getContainingCollection(event)
-        return self.StampedCalendarData(coll)
-    
-    def getContainingCollection(self, event):
-        collections = self.contents.sources
-        selectedCollection = collections[0]
+
+        # generated events need to defer to their parent event
+        if event.isGenerated:
+            event = event.occurrenceFor
+            
+        collections = self.contents.collectionList
         firstSpecialCollection = None
         for coll in collections:
 
@@ -1050,17 +1009,12 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
         if firstSpecialCollection:
             return firstSpecialCollection
 
-        # this seems unlikely.. should we assert? do we even need calendarData?
-        return self.calendarData
+        assert False, "Don't have color info"
+        
+    def setCurrentCalendarColor(self, color):
 
-    def setCalendarColor(self, color):
-        """
-        Set the base color from which all tints are determined. Note that
-        this will lazily stamp the selected collection
-        """
-        ec = copy.copy(self.calendarData.eventColor)
-        (ec.red, ec.green, ec.blue) = color
-        self.calendarData.eventColor = ec
+        # collectionList[0] is the currently selected collection
+        self.contents.collectionList[0].color = ColorType(*color)
 
 
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
@@ -1099,7 +1053,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
         #coll = self.parent.blockItem.getContainingCollection(item)
-        #if coll and coll != self.parent.blockItem.contents.sources[0]:
+        #if coll and coll != self.parent.blockItem.contents.collectionList[0]:
         #    self.parent.blockItem.SelectCollectionInSidebar(coll)
         #self.parent.wxSynchronizeWidget()
 
@@ -1634,6 +1588,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                 
         event.endTime = event.startTime + timedelta(hours=1)
 
+        # collectionList[0] is the currently selected collection
         self.blockItem.contents.collectionList[0].add (event)
         self.OnSelectItem(event)
         self.blockItem.itsView.commit()
@@ -1753,7 +1708,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.allDay = True
         event.anyTime = False
 
-        self.blockItem.contents.sources[0].add(event)
+        # collectionList[0] is the currently selected collection
+        self.blockItem.contents.collectionList[0].add(event)
         self.OnSelectItem(event)
         view.commit()
         return event
@@ -2108,6 +2064,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         event = self.CreateEmptyEvent(newTime, False, False)
         event.duration = duration
 
+        # collectionList[0] is the currently selected collection
         self.blockItem.contents.collectionList[0].add (event)
         
         self.OnSelectItem(event)
@@ -2475,10 +2432,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         return tzChoice
         
+    def SetColorSelect(self, colorInfo):
+        self.colorSelect.SetColour(colorInfo.outlineColor)
+    
     def OnSelectColor(self, event):
         c = event.GetValue().Get()
 
-        self.blockItem.setCalendarColor(c)
+        self.blockItem.setCurrentCalendarColor(c)
         
         #refresh on CalendarContainer's widget.
         #this seems to cascade down to make all children windows Refresh()
@@ -2513,7 +2473,14 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             return
 
         # update the calendar with the calender's color
-        self.colorSelect.SetColour(self.blockItem.calendarData.eventColor.wxColor())
+        collection = self.blockItem.contents.collectionList[0]
+        
+        # force the creation of the .color attribute
+        # XXX temporary - really this should somehow generate automatically
+        colorInfo = ColorInfo(collection)
+
+        self.SetColorSelect(colorInfo)
+        self.colorSelect.SetColour(collection.color.wxColor())
 
         # Update the month button given the selected date
         lastDate = startDate + timedelta(days=6)
