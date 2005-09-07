@@ -364,7 +364,9 @@ class Values(dict):
 
     def _checkCardinality(self, logger, name, value, cardType, attrCard):
 
-        if not (value is None or isinstance(value, cardType)):
+        if not (value is None or
+                (cardType is None and isitem(value)) or
+                (cardType is not None and isinstance(value, cardType))):
             logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self._item.itsPath, cardType, attrCard)
             return False
 
@@ -372,42 +374,51 @@ class Values(dict):
 
     def check(self):
         
-        item = self._item
-        logger = item.itsView.logger
+        logger = self._item.itsView.logger
         result = True
 
         for key, value in self.iteritems():
-            try:
-                attribute = item._kind.getAttribute(key, False, item)
-            except AttributeError:
-                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item.itsPath, key, item._kind.itsPath)
-                result = False
-                continue
-
-            attrType = attribute.getAspect('type', None)
-            if attrType is not None:
-                attrCard = attribute.getAspect('cardinality', 'single')
-                if attrCard == 'single':
-                    check = self._checkValue(logger, key, value, attrType)
-                    result = result and check
-                elif attrCard == 'list':
-                    check = self._checkCardinality(logger, key, value,
-                                                   list, 'list')
-                    result = result and check
-                    if check:
-                        for v in value:
-                            check = self._checkValue(logger, key, v, attrType)
-                            result = result and check
-                elif attrCard == 'dict':
-                    check = self._checkCardinality(logger, key, value,
-                                                   dict, 'dict')
-                    result = result and check
-                    if check:
-                        for v in value.itervalues():
-                            check = self._checkValue(logger, key, v, attrType)
-                            result = result and check
+            r = self._verifyAssignment(key, value, logger)
+            result = result and r
 
         return result
+
+    def _verifyAssignment(self, key, value, logger):
+
+        item = self._item
+
+        try:
+            attribute = item._kind.getAttribute(key, False, item)
+        except AttributeError:
+            logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item.itsPath, key, item._kind.itsPath)
+            return False
+
+        attrType = attribute.getAspect('type', None)
+        if attrType is not None:
+            attrCard = attribute.getAspect('cardinality', 'single')
+
+            if attrCard == 'single':
+                return self._checkValue(logger, key, value, attrType)
+
+            elif attrCard == 'list':
+                if self._checkCardinality(logger, key, value, list, 'list'):
+                    result = True
+                    for v in value:
+                        check = self._checkValue(logger, key, v, attrType)
+                        result = result and check
+                    return result
+                return False
+
+            elif attrCard == 'dict':
+                if self._checkCardinality(logger, key, value, dict, 'dict'):
+                    result = True
+                    for v in value.itervalues():
+                        check = self._checkValue(logger, key, v, attrType)
+                        result = result and check
+                    return result
+                return False
+
+        return True
 
     def _import(self, view):
 
@@ -914,8 +925,6 @@ class References(Values):
 
     def check(self):
 
-        from repository.item.Item import Item
-
         item = self._item
         logger = item.itsView.logger
         result = True
@@ -928,7 +937,7 @@ class References(Values):
                                                False, None, 'single')
             if attrCard == 'single':
                 check = self._checkCardinality(logger, key, value,
-                                               Item, 'single')
+                                               None, 'single')
                 if check:
                     check = self._checkRef(logger, key, value)
             elif attrCard == 'list':
@@ -944,6 +953,10 @@ class References(Values):
             result = result and check
 
         return result
+
+    def _verifyAssignment(self, key, value, logger):
+
+        return True
 
     def _import(self, view, items, replace):
 

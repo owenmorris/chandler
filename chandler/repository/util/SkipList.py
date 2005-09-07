@@ -85,6 +85,10 @@ class SkipList(object):
         self._head = self._createNode(1)
         self._tail = self._createNode(1)
 
+    def _clear_(self):
+
+        self.__init()
+
     def _createNode(self, level):
 
         return SkipList.node(level, self)

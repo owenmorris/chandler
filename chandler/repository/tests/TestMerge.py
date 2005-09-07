@@ -613,9 +613,6 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapV(self):
 
-        def mergeFn(code, item, attribute, value):
-            return item.getAttributeValue(attribute)
-
         main = self.rep.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
@@ -634,7 +631,7 @@ class TestMerge(RepositoryTestCase):
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title in main'
-        main.commit(mergeFn)
+        main.commit()
 
         self.assertEquals(m.title, 'changed title in main')
 

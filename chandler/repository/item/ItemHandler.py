@@ -6,12 +6,13 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.schema.TypeHandler import TypeHandler
 from repository.schema.Kind import Kind
-from repository.item.PersistentCollections import PersistentCollection, \
+from repository.item.PersistentCollections import \
+    PersistentCollection, \
     PersistentList, PersistentDict, PersistentSet, PersistentTuple
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
-from chandlerdb.item.item import Nil
+from chandlerdb.item.item import Nil, isitem
 from chandlerdb.item.ItemError import *
 
 from chandlerdb.util.uuid import UUID
@@ -342,7 +343,7 @@ class ValueHandler(ContentHandler, TypeHandler):
                  attrs, generator, withSchema):
 
         if name is not None:
-            if not isinstance(name, str) and not isinstance(name, unicode):
+            if not isinstance(name, (str, unicode)):
                 attrs['nameType'] = cls.typeHandler(repository,
                                                     value).handlerName()
                 attrs['name'] = cls.makeString(repository, name)
@@ -373,7 +374,7 @@ class ValueHandler(ContentHandler, TypeHandler):
 
             from repository.item.Item import Item
             
-            if isinstance(value, Item):
+            if isitem(value):
                 raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
 
             if value is Nil:

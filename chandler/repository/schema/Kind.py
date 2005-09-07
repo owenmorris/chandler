@@ -8,7 +8,7 @@ from new import classobj
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import CDescriptor
-from chandlerdb.item.item import Nil, Default
+from chandlerdb.item.item import Nil, Default, isitem
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 
 from repository.item.Item import Item
@@ -738,7 +738,7 @@ class Kind(Item):
                 return item.isItemOf(self)
             return True
 
-        if isinstance(value, Item):
+        if isitem(value):
             return value.isItemOf(self)
     
         return False

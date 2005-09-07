@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
 
-from chandlerdb.item.item import Nil
+from chandlerdb.item.item import Nil, isitem
 from chandlerdb.item.ItemError import RecursiveDeleteError
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
@@ -492,7 +492,7 @@ class Endpoint(Item):
 
         def append(values, value):
             if value is not None:
-                if isinstance(value, (Item, RefList)):
+                if isitem(value) or isinstance(value, RefList):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
                     values.append(value._iterItems())
@@ -521,7 +521,7 @@ class Endpoint(Item):
             elif isinstance(value, list):
                 values = []
                 for v in value:
-                    if isinstance(v, Item):
+                    if isitem(v):
                         append(values, v.getAttributeValue(name, None, None, None))
                     else:
                         for i in v:
@@ -531,15 +531,16 @@ class Endpoint(Item):
                 value = value.getAttributeValue(name, None, None, None)
                 if value is None:
                     break
-                if not isinstance(value, (Item, PersistentCollection,
-                                          RefList, AbstractSet)):
+                if not (isitem(value) or
+                        isinstance(value, (PersistentCollection,
+                                           RefList, AbstractSet))):
                     value = None
                     break
 
         if value is None:
             return []
 
-        if isinstance(value, Item):
+        if isitem(value):
             return [value]
 
         if isinstance(value, PersistentCollection):

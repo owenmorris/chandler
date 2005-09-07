@@ -17,7 +17,7 @@ from PyICU import ICUtzinfo
 
 from chandlerdb.schema.descriptor import CDescriptor
 from chandlerdb.util.uuid import _hash, _combine
-from chandlerdb.item.item import Nil
+from chandlerdb.item.item import Nil, isitem
 from repository.item.Item import Item
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet
@@ -583,7 +583,7 @@ class SingleRef(Type):
 
         return (value is None or
                 type(value) is repository.util.SingleRef.SingleRef or
-                isinstance(value, Item))
+                isitem(value))
 
     def eval(self, value):
 
@@ -1726,6 +1726,7 @@ class AbstractSet(Type):
 
     def writeValue(self, itemWriter, buffer, item, version, value, withSchema):
 
+        value._validateIndexes()
         string = Sets.AbstractSet.makeString(value)
         size = itemWriter.writeString(buffer, string)
         size += itemWriter.writeIndexes(buffer, item, version, value)

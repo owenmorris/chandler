@@ -120,6 +120,8 @@ def initOptions(**kwds):
         'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
         'verbose':    ('-v', '--verbose',    'b', False,  None, 'Verbosity option (currently just for run_tests.py)'),
         'quiet':      ('-q', '--quiet',      'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
+        'verify':     ('-V', '--verify-assignments', 
+                                             'b', False,  None, 'Verify attribute assignments against schema'),
     }
 
 
@@ -250,7 +252,8 @@ def initRepository(directory, options):
              'recover': options.recover,
              'exclusive': True,
              'refcounted': True,
-             'logged': not not options.logging }
+             'logged': not not options.logging,
+             'verify': options.verify }
 
     if options.restore:
         kwds['restore'] = options.restore

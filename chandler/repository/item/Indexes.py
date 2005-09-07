@@ -166,6 +166,11 @@ class NumericIndex(Index, SkipList):
         self.remove(self, key)
         super(NumericIndex, self).removeKey(key)
 
+    def _clear_(self):
+
+        super(NumericIndex, self).clear()
+        super(NumericIndex, self)._clear_()
+
     def clear(self):
 
         key = self.getFirstKey()
@@ -197,6 +202,9 @@ class DelegatingIndex(object):
 
     def _readValue(self, itemReader, offset, data):
         return self._index._readValue(itemReader, offset, data)
+
+    def _clear_(self):
+        return self._index._clear_()
 
 
 class SortedIndex(DelegatingIndex):

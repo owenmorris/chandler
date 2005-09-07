@@ -527,7 +527,7 @@ class RepositoryView(CView):
                 return root
             raise KeyError, key
 
-        raise TypeError, key
+        raise TypeError, (type(key), key)
 
     def __iter__(self):
         """

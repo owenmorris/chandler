@@ -112,6 +112,9 @@ class Repository(CRepository):
         if kwds.get('refcounted', False):
             self._status |= Repository.REFCOUNTED
 
+        if kwds.get('verify', False):
+            self._status |= Repository.VERIFY
+
     def close(self):
         """
         Close the repository.

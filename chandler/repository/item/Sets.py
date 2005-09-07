@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from itertools import izip
 
 from chandlerdb.util.uuid import UUID
-from chandlerdb.item.item import Nil
+from chandlerdb.item.item import Nil, Default
 from repository.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Query import KindQuery
@@ -19,9 +19,9 @@ class AbstractSet(ItemValue, Indexed):
     def __init__(self, view):
 
         super(AbstractSet, self).__init__()
+        self._init_indexed()
 
         self._view = view
-        self._indexes = None
 
     def __contains__(self, item):
         raise NotImplementedError, "%s.__contains__" %(type(self))
@@ -225,6 +225,16 @@ class AbstractSet(ItemValue, Indexed):
         copy._setView(item.itsView)
 
         return copy
+
+    def _merge(self, value):
+
+        if (type(value) is type(self) and
+            list(value.iterSources()) == list(self.iterSources())):
+            if self._indexes:
+                self._invalidateIndexes()
+            return self
+            
+        return Default
 
     @classmethod
     def makeValue(cls, string):

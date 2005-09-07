@@ -14,6 +14,29 @@ from chandlerdb.item.ItemError import *
 
 class Indexed(object):
 
+    # a real constructor cannot be used here because super won't get to it
+    def _init_indexed(self):
+
+        self._indexes = None
+        self._valid = True
+
+    def _isValid(self):
+
+        return self._valid
+
+    def _invalidateIndexes(self):
+
+        self._valid = False
+
+    def _validateIndexes(self):
+
+        if not self._valid:
+            if self._indexes:
+                for index in self._indexes.itervalues():
+                    index._clear_()
+                    self.fillIndex(index)
+            self._valid = True
+
     def _index(self, indexName):
 
         if self._indexes is None:

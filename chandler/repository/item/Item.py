@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from chandlerdb.util.uuid import UUID, _hash, _combine
 from chandlerdb.schema.descriptor import _countAccess
-from chandlerdb.item.item import CItem, Nil, Default
+from chandlerdb.item.item import CItem, Nil, Default, isitem
 from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList
@@ -340,7 +340,8 @@ class Item(CItem):
                     else:
                         _attrDict = _values
 
-        isItem = value is not None and isinstance(value, Item)
+        isItem = value is not None and isitem(value)
+        wasRefList = False
         old = None
 
         if _attrDict is _references:
@@ -349,15 +350,10 @@ class Item(CItem):
                 if old is value:
                     return value
                 if isinstance(old, RefList):
+                    wasRefList = True
                     old.clear()
 
         if isItem or value is None:
-            card = self.getAttributeAspect(name, 'cardinality',
-                                           False, _attrID, 'single')
-
-            if card != 'single':
-                raise CardinalityError, (self, name, 'single-valued')
-
             if _attrDict is _values:
                 if isItem:
                     _values[name] = value = SingleRef(value.itsUUID)
@@ -375,7 +371,8 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefList)
+                    if not wasRefList:
+                        raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
                 refList.extend(value)
@@ -391,7 +388,8 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefList)
+                    if not wasRefList:
+                        raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
                 refList.update(value, setAliases)
@@ -407,7 +405,8 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefList)
+                    if not wasRefList:
+                        raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
                 refList.update(value, setAliases)
@@ -423,7 +422,8 @@ class Item(CItem):
                 if old is None:
                     _references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefList)
+                    if not wasRefList:
+                        raise CardinalityError, (self, name, 'multi-valued')
                     refList = old
 
                 refList.update(value, setAliases)
@@ -433,7 +433,10 @@ class Item(CItem):
                 attrValue = PersistentSet(self, name, value, False)
                 _values[name] = attrValue
                 dirty = Item.VDIRTY
-            
+
+        elif _attrDict is not _values:
+            raise TypeError, ('Expecting an item or a ref collection', value)
+
         elif isinstance(value, ItemValue):
             value._setOwner(self, name)
             _values[name] = value
@@ -974,7 +977,7 @@ class Item(CItem):
                 else:
                     _attrDict = self._values
 
-        isItem = isinstance(value, Item)
+        isItem = isitem(value)
         attrValue = _attrDict.get(attribute, Nil)
             
         if attrValue is Nil:
@@ -1087,7 +1090,7 @@ class Item(CItem):
             return self.setValue(attribute, value, key, alias, _attrDict)
 
         elif isinstance(attrValue, RefList):
-            if isinstance(value, Item):
+            if isitem(value):
                 attrValue.append(value, alias)
             else:
                 raise TypeError, type(value)
@@ -1317,6 +1320,14 @@ class Item(CItem):
             if dirty & Item.VRDIRTY:
                 assert attribute is not None
                 assert attrDict is not None
+
+                if view._isVerify() and dirty & Item.VDIRTY:
+                    value = attrDict.get(attribute, Nil)
+                    if not (value is Nil or 
+                            attrDict._verifyAssignment(attribute, value,
+                                                       view.logger)):
+                        raise ValueError, ("attribute assignment didn't match schema, see log for details", self._repr_(), attribute, value)
+                    
                 attrDict._setDirty(attribute)
                 if not noMonitors:
                     if hasattr(type(self), 'onValueChanged'):
@@ -2425,7 +2436,7 @@ class Item(CItem):
                 for v in value:
                     print indent4, "<%s>" %(type(v).__name__), repr(v)
 
-            elif isinstance(value, Item):
+            elif isitem(value):
                 print indent2, "%s:" %(name), value._repr_()
 
             else:

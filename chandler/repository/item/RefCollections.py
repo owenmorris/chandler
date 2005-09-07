@@ -30,11 +30,11 @@ class RefList(LinkedMap, Indexed):
         """
         
         super(RefList, self).__init__(new)
+        self._init_indexed()
 
         self._item = None
         self._name = name
         self._otherName = otherName
-        self._indexes = None
 
         if item is not None:
             self._setItem(item)

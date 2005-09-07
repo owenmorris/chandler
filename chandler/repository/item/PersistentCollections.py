@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from repository.util.SingleRef import SingleRef
-from chandlerdb.item.item import CItem, Nil
+from chandlerdb.item.item import Nil, isitem
 from chandlerdb.item.ItemError import ReadOnlyAttributeError, OwnedValueError
 from repository.item.ItemValue import ItemValue
 
@@ -27,7 +27,7 @@ class PersistentCollection(ItemValue):
     def _refCount(self):
 
         count = 1
-        for value in self.itervalues():
+        for value in self._itervalues():
             if isinstance(value, ItemValue):
                 count += value._refCount()
 
@@ -75,7 +75,7 @@ class PersistentCollection(ItemValue):
             value = PersistentTuple(item, attribute, value, setDirty)
         elif isinstance(value, set):
             value = PersistentSet(item, attribute, value, setDirty)
-        elif isinstance(value, CItem):
+        elif isitem(value):
             value = SingleRef(value._uuid)
 
         return value
@@ -94,7 +94,7 @@ class PersistentCollection(ItemValue):
         if isinstance(value, PersistentCollection):
             return value
 
-        if isinstance(value, CItem):
+        if isitem(value):
             return SingleRef(value._uuid)
         elif isinstance(value, list):
             return [self._useValue(v) for v in value]
@@ -179,7 +179,7 @@ class PersistentList(list, PersistentCollection):
                                                        False, None, 'copy')
 
         for value in self:
-            if isinstance(value, CItem):
+            if isitem(value):
                 if copyFn is not None:
                     value = copyFn(item, value, policy)
                 if value is not Nil:
@@ -374,7 +374,7 @@ class PersistentDict(dict, PersistentCollection):
                                                        False, None, 'copy')
         
         for key, value in self.iteritems():
-            if isinstance(value, CItem):
+            if isitem(value):
                 if copyFn is not None:
                     value = copyFn(item, value, policy)
                 if value is not Nil:
@@ -523,7 +523,7 @@ class PersistentTuple(tuple, PersistentCollection):
                                                        False, None, 'copy')
 
         for value in self:
-            if isinstance(value, CItem):
+            if isitem(value):
                 if copyFn is not None:
                     value = copyFn(item, value, policy)
                 if value is not Nil:
@@ -601,7 +601,7 @@ class PersistentSet(set, PersistentCollection):
                                                        False, None, 'copy')
         
         for value in self:
-            if isinstance(value, CItem):
+            if isitem(value):
                 if copyFn is not None:
                     value = copyFn(item, value, policy)
                 if value is not Nil:

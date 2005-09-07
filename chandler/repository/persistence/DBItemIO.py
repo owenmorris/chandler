@@ -8,7 +8,7 @@ from struct import pack, unpack
 from cStringIO import StringIO
 
 from chandlerdb.util.uuid import UUID, _hash
-from chandlerdb.item.item import Nil
+from chandlerdb.item.item import Nil, Default
 from repository.item.Item import Item
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
@@ -265,7 +265,7 @@ class DBItemWriter(ItemWriter):
                 self.writeDict(buffer, item, version,
                                value, withSchema, attrType)
         except Exception, e:
-            raise SaveValueError, (item, name, e)
+            raise #SaveValueError, (item, name, e)
 
         if indexed:
 
@@ -778,16 +778,37 @@ class DBItemVMergeReader(DBItemMergeReader):
         value = Nil
         if name in self.dirties:
             offset, value = super(DBItemVMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-            originalValues = self.item._values
+            item = self.item
+            reason = MergeError.VALUE
+            originalValues = item._values
             if originalValues._isDirty(name):
                 originalValue = originalValues.get(name, Nil)
                 if value == originalValue:
                     value = Nil
+
                 elif self.mergeFn is not None:
-                    value = self.mergeFn(MergeError.VALUE,
-                                         self.item, name, value)
+                    mergedValue = self.mergeFn(reason, item, name, value)
+                    if mergedValue is Default:
+                        if hasattr(type(item), 'onItemMerge'):
+                            mergedValue = item.onItemMerge(reason, name, value)
+                            if mergedValue is Default:
+                                self._e_4_overlap(reason, item, name)
+                            else:
+                                value = mergedValue
+                        else:
+                            self._e_3_overlap(reason, item, name)
+                    else:
+                        value = mergedValue
+                            
+                elif hasattr(type(item), 'onItemMerge'):
+                    mergedValue = item.onItemMerge(reason, name, value)
+                    if mergedValue is Default:
+                        self._e_4_overlap(reason, item, name)
+                    else:
+                        value = mergedValue
+                    
                 else:
-                    self._e_1_overlap(MergeError.VALUE, self.item, name)
+                    self._e_1_overlap(reason, item, name)
 
         return offset, value
     
@@ -841,12 +862,20 @@ class DBItemVMergeReader(DBItemMergeReader):
 
     def _e_1_overlap(self, code, item, name):
         
-        raise MergeError, ('values', item, 'merging values failed because no mergeFn callback was passed to refresh(), overlapping attribute: %s' %(name), code)
+        raise MergeError, ('values', item, 'merging values failed because no onItemMerge callback method was defined on %s and no mergeFn callback was passed to refresh(), overlapping attribute: %s' %(type(item), name), code)
 
     def _e_2_overlap(self, code, item, name):
 
         raise MergeError, ('values', item, 'merging refs is not yet implement\
 ed, overlapping attribute: %s' %(name), MergeError.BUG)
+
+    def _e_3_overlap(self, code, item, name):
+        
+        raise MergeError, ('values', item, 'merging values failed because no onItemMerge callback method was defined on %s and the mergeFn callback passed to refresh punted the merge, overlapping attribute: %s' %(type(item), name), code)
+
+    def _e_4_overlap(self, code, item, name):
+        
+        raise MergeError, ('values', item, 'merging values failed because the onItemMerge callback defined on %s the merge, overlapping attribute: %s' %(type(item), name), code)
 
 
 class DBItemRMergeReader(DBItemMergeReader):

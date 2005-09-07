@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.item.item import isitem
 from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.SingleRef import SingleRef
@@ -22,7 +23,7 @@ class TypeHandler(object):
             pass
 
         from repository.item.Item import Item
-        if isinstance(value, Item):
+        if isitem(value):
             return cls.typeHandlers[view][SingleRef][0]
 
         try:

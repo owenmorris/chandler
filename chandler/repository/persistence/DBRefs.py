@@ -380,7 +380,7 @@ class DBNumericIndex(NumericIndex):
         self._key = self._getIndexes().prepareKey(self._uuid)
         self._value = StringIO()
         self._version = 0
-        
+
     def _keyChanged(self, key):
 
         self._changedKeys[key] = self[key]
@@ -497,6 +497,15 @@ class DBNumericIndex(NumericIndex):
         self._version = version
 
         return size
+
+    def _clear_(self):
+
+        super(DBNumericIndex, self)._clear_()
+
+        self._clearDirties()
+        self._headKey = None
+        self._tailKey = None
+        self._count = 0
 
     def _clearDirties(self):
 
