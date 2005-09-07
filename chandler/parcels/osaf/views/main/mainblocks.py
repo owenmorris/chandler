@@ -32,6 +32,14 @@ def make_mainview(parcel):
                                                  app.outCollection,
                                                  app.TrashCollection])
 
+    ReminderItems = \
+        pim.FilteredCollection.update(parcel, 'ReminderItems',
+                                      displayName=_('Reminder Items'),
+                                      indexName='reminderTime',
+                                      source=app.events,
+                                      filterExpression='item.hasLocalAttributeValue(\'reminderTime\') == True',
+                                      filterAttributes='reminderTime')
+
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
     
@@ -40,6 +48,9 @@ def make_mainview(parcel):
                             'SendToBlockByReference',
                             destinationBlockReference=RTimer).install(parcel)
     
+    ReminderTimer.update(parcel, 'ReminderTimer',
+                         event=ReminderTimerEvent,
+                         contents=ReminderItems)
 
     # from //parcels/osaf/views/main
     NewNoteEvent = \
@@ -113,9 +124,6 @@ def make_mainview(parcel):
             commitAfterDispatch=True,
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
-    # from //parcels/osaf/views/main
-    sidebarContextMenu = \
-        ContextMenu.update(parcel, 'sidebarContextMenu',)
     # from //parcels/osaf/views/main
     ManageSidebarCollectionEvent = \
         BlockEvent.template('ManageSidebarCollection',
@@ -868,7 +876,6 @@ def make_mainview(parcel):
                                                           {u'Out filtered by Calendar Event Mixin Kind': True,
                                                            u'In filtered by Calendar Event Mixin Kind': True},
                                         hideColumnHeadings=True,
-                                        contextMenu=sidebarContextMenu,
                                         columnWidths=[150],
                                         columnData=[u'displayName'],
                                         filterKind=osaf.pim.calendar.Calendar.CalendarEventMixin.getKind(parcel.itsView)),

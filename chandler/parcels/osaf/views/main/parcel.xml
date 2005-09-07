@@ -9,15 +9,9 @@
              xmlns:core="parcel:core"
              xmlns="parcel:osaf.framework.blocks"
              xmlns:doc="parcel:osaf.views.main"
-             xmlns:repository="parcel:osaf.views.repositoryviewer"
-             xmlns:demo="parcel:osaf.views.demo"
              xmlns:contentModel="parcel:osaf.pim"
-             xmlns:mail="parcel:osaf.pim.mail"
-             xmlns:tasks="parcel:osaf.pim.tasks"
              xmlns:app="parcel:osaf.app"
              xmlns:calendar="parcel:osaf.framework.blocks.calendar"
-             xmlns:calendarModel="parcel:osaf.pim.calendar"
-             xmlns:contacts="parcel:osaf.pim.contacts"
              xmlns:detail="parcel:osaf.framework.blocks.detail"
              >
 
@@ -32,66 +26,6 @@
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
   
-  <!-- This is BroadcastEverywhere because several different
-       parts of the app need to redisplay in the event (sic) of
-       the user changing timezone; e.g. the minical, preview,
-       calendar and detail views. -->
-  <ContextMenu itsName="sidebarContextMenu">
-    <childrenBlocks itemref="doc:OpenTabContextItem"/>
-    <childrenBlocks itemref="doc:CloseTabContextItem"/>
-  </ContextMenu>
-  
-  <ContextMenuItem itsName="OpenTabContextItem">
-    <title>Open in New Tab</title>
-    <event itemref="Open"/>
-  </ContextMenuItem>
-
-  <ContextMenuItem itsName="CloseTabContextItem">
-    <title>Close Tab</title>
-    <event itemref="Close"/>
-  </ContextMenuItem>
-
-  <!--
-    Odds and ends refered to by the user interface
-  -->
-  <Timer itsName="ReminderTimer"
-         itemClass="osaf.framework.blocks.ControlBlocks.ReminderTimer">
-    <blockName>ReminderTimer</blockName>
-    <event itemref="doc:ReminderTime"/>
-    <eventsForNamedLookup itemref="doc:ReminderTime"/>
-    <contents itemref="doc:ReminderItems"/>
-  </Timer> 
-  
-  <contentModel:FilteredCollection itsName="ReminderItems">
-    <displayName>ReminderItems</displayName>
-    <indexName value="reminderTime"/>
-    <source itemref="app:events"/>
-    <filterExpression>item.hasLocalAttributeValue('reminderTime') == True</filterExpression>
-    <filterAttributes>reminderTime</filterAttributes>
-  </contentModel:FilteredCollection>
-
-  <!--
-    Chandler's main view
-  -->
-
-
-
-  <SplitterWindow itsName="CalendarSummaryViewTemplate">
-    <blockName>CalendarSummaryViewTemplate</blockName>
-
-    <childrenBlocks itemref="doc:CalendarSummaryView"/>
-
-    <childrenBlocks itemref="doc:CalendarDetailTPB"/>
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.65</splitPercentage>
-  </SplitterWindow>
-
-
-<!-- main calendar area -->
-
-
-
   <!--
     CPIA test view: like a unit test/testing ground for CPIA
   -->
@@ -254,6 +188,5 @@
   <detail:DetailTrunkDelegate itsName="CPIATestSummaryTrunkDelegate">
     <trunkStub itemref="detail:DetailRoot"/>
   </detail:DetailTrunkDelegate>
-
 
 </core:Parcel>
