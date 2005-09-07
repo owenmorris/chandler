@@ -43,19 +43,21 @@ win = SubscribeCollection.SubscribeDialog(wx.GetApp().mainFrame, _("Subscribe to
 win.CenterOnScreen()
 win.Show()
 wx.GetApp().Yield()
-window = GetWindow("Subscribe to Shared Collection")
+window = wx.FindWindowByLabel("Subscribe to Shared Collection")
 url = window.toolPanel.GetChildren()[1]
 url.SetFocus()
 url.Clear()
 wx.GetApp().Yield()
-QAUITestAppLib.scripting.User.emulate_typing("webcal://qacosmo.osafoundation.org:8080/home/demo1/TestCal.ics")
+QAUITestAppLib.scripting.User.emulate_typing("webcal://qacosmo.osafoundation.org:8080/home/demo1/importTest.ics")
 window.OnSubscribe(None)
 win.Destroy()
 wx.GetApp().Yield()
+ev = wx.IdleEvent()
+wx.GetApp().ProcessEvent(ev)
 logger.Stop()
 #verification
 logger.SetChecked(True)
-if QAUITestAppLib.scripting.User.emulate_sidebarClick("TestCal"):
+if QAUITestAppLib.scripting.User.emulate_sidebarClick(App_ns.sidebar, "importTest"):
     logger.ReportPass("(On Subscribe collection)")
 else:
     logger.ReportFailure("(On Subscribe collection)")

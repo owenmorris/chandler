@@ -5,7 +5,7 @@ import application.Globals as Globals
 import wx
 from i18n import OSAFMessageFactory as _
 
-App_ns = QAUITestAppLib.App_ns()
+App_ns = QAUITestAppLib.App_ns
 
 filePath = os.path.expandvars('$CATSREPORTDIR')
 if not os.path.exists(filePath):
@@ -36,14 +36,14 @@ ap.VerifyValues("WebDAV", "Sharing Test WebDAV", displayName = "Sharing Test Web
                 password="ad3leib5", port=8080)
 
 
+sidebar = App_ns.sidebar
 #Collection selection
-SidebarLeftClick("All")
+QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, "All")
 
 #Sharing dialog
 logger.Start("Sharing dialog")
 collection = Globals.views[0].getSidebarSelectedCollection()
 if collection is not None:
-    sidebar = FindNamedBlock("Sidebar")
     if sidebar.filterKind is None:
         filterKindPath = None 
     else:

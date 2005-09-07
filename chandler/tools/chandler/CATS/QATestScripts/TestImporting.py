@@ -2,6 +2,7 @@ import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
 import osaf.framework.QAUITestAppLib as QAUITestAppLib
 import os, wx
+import osaf.pim as pim
 
 App_ns = QAUITestAppLib.App_ns
 
@@ -25,18 +26,21 @@ except:
 	logger.Stop()
 	logger.ReportFailure("Importing calendar: exception raised")
 else:
-        App_ns.root.post_script_event('SidebarAdd', 'AddToSidebarWithoutCopying', {'items' : [collection]} )
+	App_ns.root.AddToSidebarWithoutCopying({'items' : [collection]})	
 	wx.GetApp().Yield()
 	logger.Stop()
 	logger.ReportPass("Importing calendar")
 
 def TestEventCreation(title):
     global logger
+    global App_ns
+    global pim
     testEvent = App_ns.item_named(pim.CalendarEvent, title)
     if testEvent is not None:
         logger.ReportPass("Testing event creation: '%s'" % title)
     else:
         logger.ReportFailure("Testing event creation: '%s' not created" % title)
+
 TestEventCreation("Go to the beach")
 TestEventCreation("Basketball game")
 TestEventCreation("Visit friend")
