@@ -158,16 +158,15 @@ class UITestItem :
             App_ns.summary.select(self.item)
         #if in the Calendar view (select by clicking on the TimedCanvasItem)
         else:
-            
             timedCanvas = App_ns.TimedEventsCanvas
             allDayCanvas = App_ns.AllDayEventsCanvas
             for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
                 if canvasItem._item == self.item:
-                    allDayCanvas.widget.OnSelectItem(canvasItem)
+		    allDayCanvas.widget.OnSelectItem(canvasItem.GetItem())
                     break
             for canvasItem in reversed(timedCanvas.widget.canvasItemList):
                 if canvasItem._item == self.item:
-                    timedCanvas.widget.OnSelectItem(canvasItem)
+                    timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
                     break
 
     def SetEditableBlock(self, blockName, description, value, dict=None):
@@ -412,6 +411,7 @@ class UITestItem :
                 self.logger.Start("Change the Mail stamp to : %s" %stampMail)
             self.SelectItem()
             App_ns.markupbar.press(name='MailMessageButton')
+	    wx.GetApp().Yield()
             self.isMessage = stampMail
             if dict:
                 self.logger.Stop()
@@ -432,6 +432,7 @@ class UITestItem :
                 self.logger.Start("Change the Task stamp to : %s" %stampTask)
             self.SelectItem()
             App_ns.markupbar.press(name='TaskStamp')
+	    wx.GetApp().Yield()
             self.isTask = stampTask
             if dict:
                 self.logger.Stop()
@@ -452,6 +453,7 @@ class UITestItem :
                 self.logger.Start("Change the Calendar Event stamp to : %s" %stampEvent)
             self.SelectItem()
             App_ns.markupbar.press(name='CalendarStamp')
+	    wx.GetApp().Yield()
             self.isEvent = stampEvent
             if dict:
                 self.logger.Stop()
@@ -518,6 +520,7 @@ class UITestItem :
             #Press the Send button
             self.logger.Start("Sending the message")
             App_ns.appbar.press(name="ApplicationBarSendButton")
+	    wx.GetApp().Yield()
             self.logger.Stop()
             #checking
             self.logger.SetChecked(True)
