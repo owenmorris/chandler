@@ -87,15 +87,17 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
         newView = self.trunkDelegate.getTrunkForKeyItem(keyItem)
         if keyItem is None:
             TPBDetailItem = None
-            newContents = None
+            contentsChanged = False
         else:
             """
               Seems like we should always mark new views with an event boundary
             """
             assert newView.eventBoundary
-            TPBDetailItem = self.trunkDelegate._getContentsForTrunk (newView, TPBSelectedItem, keyItem)
-            newContents = TPBDetailItem is not self.TPBDetailItem
-            rerender = rerender or newContents or not hasattr (newView, "widget")
+            TPBDetailItem = self.trunkDelegate._getContentsForTrunk(
+                                newView, TPBSelectedItem, keyItem)
+            contentsChanged = not hasattr(self, 'TPBDetailItem') \
+                              or TPBDetailItem is not self.TPBDetailItem
+            rerender = rerender or contentsChanged or not hasattr (newView, "widget")
 
         self.TPBDetailItem = TPBDetailItem
         oldView = self.childrenBlocks.first()
@@ -108,7 +110,7 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.childrenBlocks = []
 
             if newView is not None:
-                if (newView is not oldView) or newContents:
+                if (newView is not oldView) or contentsChanged:
                     newView.postEventByName ("SetContents", {'item':TPBDetailItem})
                 self.childrenBlocks.append(newView)
                 newView.render()

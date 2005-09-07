@@ -166,14 +166,22 @@ class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
 
     def synchronizeWidget (self):
         item = self.selectedItem()
-        logger.debug("DetailRoot.synchronizeWidget: #1 %s", self.selectedItem())
-        super(DetailRootBlock, self).synchronizeWidget ()
-        logger.debug("DetailRoot.synchronizeWidget: #2 %s", self.selectedItem())
-        self.synchronizeDetailView(item)
-        if __debug__:
-            dumpSynchronizeWidget = False
-            if dumpSynchronizeWidget:
-                self.dumpShownHierarchy ('synchronizeWidget')
+        logger.debug("DetailRoot.synchronizeWidget: %s", item)
+        # If we're being synchronized on "None", it might be because we're really
+        # displaying the None view, or because our selected item got 
+        # deleted. Discern by looking at our TrunkParentBlock.
+        if item is not None or hasattr(self.parentBlock, 'TPBSelectedItem'):
+            super(DetailRootBlock, self).synchronizeWidget ()
+            self.synchronizeDetailView(item)
+            if __debug__:
+                dumpSynchronizeWidget = False
+                if dumpSynchronizeWidget:
+                    self.dumpShownHierarchy ('synchronizeWidget')
+        else:
+            # Yep, our item went away. Cheat and tell our parent to 
+            # pick a different tree of blocks
+            self.parentBlock.postEventByName('SelectItemBroadcast', 
+                                             {'item': None})
 
     def SelectedItems(self):
         """ 
@@ -1258,6 +1266,9 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
     def SetAttributeValue (self, item, attributeName, value):
         """ Set the value of the attribute given by the value. """
         assert value != RecurrenceAttributeEditor.customIndex
+        # Changing the recurrence period on a non-master item could delete 
+        # this very 'item'; if it does, we'll bypass the attribute-changed 
+        # notification below...
         if value == RecurrenceAttributeEditor.onceIndex:
             item.removeRecurrence()
         else:
@@ -1272,7 +1283,10 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
-        self.AttributeChanged()    
+
+        # We shouldn't notify about the change if this item's gone...
+        if not item.isDeleted():
+            self.AttributeChanged()    
     
     def GetControlValue (self, control):
         """ Get the value for the current selection """ 

@@ -1707,8 +1707,15 @@ class AEBlock(BoxContainer):
         copying = schema.Cloud(byRef=[characterStyle, presentationStyle])
     )
     
-    def getItem(self): return getattr(self, 'viewItem', None)
-    def setItem(self, value): self.viewItem = value
+    def getItem(self): 
+        item = getattr(self, 'viewItem', None)
+        if item.isDeleted():
+            logger.debug("AEBlock.getItem: item is deleted!")
+            item = None
+        return item
+    def setItem(self, value): 
+        assert not value.isDeleted()
+        self.viewItem = value
     item = property(getItem, setItem, 
                     doc="Safely access the selected item (or None)")
     
@@ -1735,6 +1742,9 @@ class AEBlock(BoxContainer):
         font = Styles.getFont(charStyle)
 
         editor = self.lookupEditor()
+        if editor is None:
+            assert False
+            return None
         widget = editor.CreateControl(forEditing, editor.readOnly, 
                                       self.parentBlock.widget, 
                                       Block.getWidgetID(self), self, font)
@@ -1759,7 +1769,8 @@ class AEBlock(BoxContainer):
             wx.GetApp().ignoreSynchronizeWidget = True
             try:
                 editor = self.lookupEditor()
-                editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
+                if editor is not None:
+                    editor.BeginControlEdit(editor.item, editor.attributeName, self.widget)
             finally:
                 wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
@@ -1781,6 +1792,8 @@ class AEBlock(BoxContainer):
         """
         Make sure we've got the right attribute editor for this type
         """
+        if self.item is None or self.item.isDeleted():
+            return None
         # Get the parameters we'll use to pick an editor
         typeName = self.getItemAttributeTypeName()
         readOnly = self.isReadOnly(self.item, self.attributeName)
@@ -1925,7 +1938,8 @@ class AEBlock(BoxContainer):
         widget = getattr(self, 'widget', None)
         if widget is not None:
             editor = self.lookupEditor()
-            editor.EndControlEdit(self.item, self.attributeName, widget)
+            if editor is not None:
+                editor.EndControlEdit(self.item, self.attributeName, widget)
 
     def unRender(self):
         # Last-chance write-back.
