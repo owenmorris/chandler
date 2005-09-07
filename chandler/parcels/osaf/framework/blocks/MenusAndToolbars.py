@@ -809,8 +809,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # post the event for the toolbarItem, or toolbarItem located by name
         if toolbarItem is None:
             toolbarItem = self._item_named (name)
-        block = self.blockItem
-        return block.post(toolbarItem.event, {})
+        return toolbarItem.post(toolbarItem.event, {})
         
 class wxToolbarItem (wx.ToolBarToolBase):
     """
