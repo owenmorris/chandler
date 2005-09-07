@@ -363,10 +363,10 @@ class ContentItem(schema.Item):
                 return closeMatches[0]
 
         # Couldn't find a single exact match or a single close match.
-        logger.warning ("Couldn't find suitable candidates for stamping %s with %s." \
+        logger.debug ("Couldn't find suitable candidates for stamping %s with %s." \
                         % (self.itsKind.itsName, stampKind.itsName))
-        logger.warning ("Exact matches: %s" % exactMatches)
-        logger.warning ("Close matches: %s" % closeMatches)
+        logger.debug ("Exact matches: %s" % exactMatches)
+        logger.debug ("Close matches: %s" % closeMatches)
         # ReKind with the Mixin Kind on-the-fly
         return None
 
