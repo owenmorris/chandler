@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.item.item import isitem
 
 class ItemError(Exception):
 
@@ -11,8 +12,7 @@ class ItemError(Exception):
         return self.args[0]
 
     def str(self, arg):
-        from repository.item.Item import Item
-        if isinstance(arg, Item):
+        if isitem(arg):
             return arg._repr_()
         else:
             return str(arg)

@@ -44,6 +44,8 @@ static PyObject *t_item__getUUID(t_item *self, void *data);
 static PyObject *t_item__getPath(t_item *self, void *data);
 static PyObject *t_item__getVersion(t_item *self, void *data);
 
+static PyObject *isitem(PyObject *self, PyObject *obj);
+
 static PyObject *_setKind_NAME;
 static PyObject *importItem_NAME;
 static PyObject *move_NAME;
@@ -192,6 +194,8 @@ static PyGetSetDef t_item_properties[] = {
 };
 
 static PyMethodDef item_funcs[] = {
+    { "isitem", (PyCFunction) isitem, METH_O,
+      "isinstance(), but not as easily fooled" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -380,7 +384,10 @@ static PyObject *t_item__isView(t_item *self, PyObject *args)
 
 static PyObject *t_item__isItem(t_item *self, PyObject *args)
 {
-    Py_RETURN_TRUE;
+    if (PyObject_TypeCheck(self, &ItemType))
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
 }
 
 static PyObject *t_item__isRefList(t_item *self, PyObject *args)
@@ -548,6 +555,15 @@ static PyObject *t_item__getPath(t_item *self, void *data)
 static PyObject *t_item__getVersion(t_item *self, void *data)
 {
     return PyInt_FromLong(self->version);
+}
+
+
+static PyObject *isitem(PyObject *self, PyObject *obj)
+{
+    if (PyObject_TypeCheck(obj, &ItemType))
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
 }
 
 

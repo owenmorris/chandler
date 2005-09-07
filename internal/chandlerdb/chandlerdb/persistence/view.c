@@ -25,6 +25,7 @@ static PyObject *t_view_isLoading(t_view *self, PyObject *args);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
 static PyObject *t_view_isOpen(t_view *self, PyObject *args);
 static PyObject *t_view_isDebug(t_view *self, PyObject *args);
+static PyObject *t_view__isVerify(t_view *self, PyObject *args);
 static PyObject *t_view_getLogger(t_view *self, PyObject *args);
 static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
                                       PyObject *kwds);
@@ -63,6 +64,7 @@ static PyMethodDef t_view_methods[] = {
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
     { "isOpen", (PyCFunction) t_view_isOpen, METH_NOARGS, "" },
     { "isDebug", (PyCFunction) t_view_isDebug, METH_NOARGS, "" },
+    { "_isVerify", (PyCFunction) t_view__isVerify, METH_NOARGS, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
     { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_VARARGS|METH_KEYWORDS, "" },
     { NULL, NULL, 0, NULL }
@@ -231,6 +233,14 @@ static PyObject *t_view_isOpen(t_view *self, PyObject *args)
 static PyObject *t_view_isDebug(t_view *self, PyObject *args)
 {
     if (((t_repository *) self->repository)->status & DEBUG)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
+}
+
+static PyObject *t_view__isVerify(t_view *self, PyObject *args)
+{
+    if (((t_repository *) self->repository)->status & VERIFY)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
