@@ -25,6 +25,8 @@ import osaf.mail.utils as utils
 import twisted.web.http
 import wx
 import zanshin.webdav
+from i18n import OSAFMessageFactory as _
+
 
 logger = logging.getLogger(__name__)
 
@@ -2232,18 +2234,18 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
     if len(filterKinds) > 0:
         path = filterKinds[0] # Only look at the first filterKind
         if path == "//parcels/osaf/pim/tasks/TaskMixin":
-           ext = " tasks"
+           ext = _(u" tasks")
         if path == "//parcels/osaf/pim/mail/MailMessageMixin":
-           ext = " mail"
+           ext = _(u" mail")
         if path == "//parcels/osaf/pim/calendar/CalendarEventMixin":
-           ext = " calendar"
+           ext = _(u" calendar")
 
     name = collection.displayName
 
-    if name == "All":
-        name = "My"
+    if collection.itsPath == schema.ns('osaf.app').allCollection.itsPath:
+        name = _(u"My")
         if ext == "":
-            ext = " items"
+            ext = _(u" items")
 
     name += ext
 

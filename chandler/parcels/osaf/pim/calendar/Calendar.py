@@ -213,8 +213,7 @@ class CalendarEventMixin(ContentItem):
     )
 
     icalUIDMap = schema.One(
-        "osaf.sharing.UIDMap",
-        inverse = "items",
+        otherName = "items",
         doc = "For performance we maintain a ref collection mapping iCalendar "
               "UIDs to events, making lookup by UID quick."
     )

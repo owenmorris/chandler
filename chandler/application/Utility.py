@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "59" # jed: added ability to toggle busy bars
+SCHEMA_VERSION = "60" # morgen: changed icalUIDMap attribute
 
 logger = None # initialized in initLogging()
 
@@ -347,13 +347,16 @@ def initParcelEnv(chandlerDirectory, path):
     return parcelPath
 
 
-def initParcels(view, path):
+def initParcels(view, path, namespaces=None):
     import Parcel # Delayed so as not to trigger an extra logging addHandler().
                   # Importing Parcel has the side effect of importing schema
                   # which has the side effect of creating a NullRepositoryView
                   # which calls addHandler( ).
 
-    Parcel.Manager.get(view, path=path).loadParcels()
+    if not namespaces:
+        Parcel.Manager.get(view, path=path).loadParcels()
+    else:
+        Parcel.Manager.get(view, path=path).loadParcels(namespaces)
 
     # Record the current schema version into the repository
     parcelRoot = view.getRoot("parcels")

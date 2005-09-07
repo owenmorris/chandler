@@ -266,11 +266,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     def findUID(self, uid):
         """Return the master event whose icalUID matched uid, or None."""
         uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
-        matches = uid_map.items.getByAlias(uid)
-        if matches is None:
+        match = uid_map.items.getByAlias(uid)
+        if match is None:
             return None
-        else: 
-            return uid_map.items.getByAlias(uid).getMaster()
+        else:
+            return match.getMaster()
 
     def importProcess(self, text, extension=None, item=None):
         # the item parameter is so that a share item can be passed in for us
@@ -432,10 +432,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 eventItem = pickKind.newItem(None, newItemParent)
                 countNew += 1
                 eventItem.icalUID = event.uid[0].value
-
-                # Add this event to our UID map:
-                uid_map = schema.ns('osaf.sharing', view).uid_map
-                uid_map.items.append(eventItem, eventItem.icalUID)
 
 
             # vobject isn't meshing well with dateutil when dtstart isDate;
