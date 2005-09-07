@@ -518,11 +518,12 @@ class wxMenu(wx.Menu):
                     break
         else:
             menuBar = self.GetMenuBar()
-            for index in xrange (menuBar.GetMenuCount()):
-                if menuBar.GetMenu (index) == self:
-                    menuBar.Remove (index)
-                    del self
-                    break
+            if menuBar:
+                for index in xrange (menuBar.GetMenuCount()):
+                    if menuBar.GetMenu (index) == self:
+                        menuBar.Remove (index)
+                        del self
+                        break
 
     def __del__(self):
         for child in self.blockItem.childrenBlocks:
