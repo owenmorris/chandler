@@ -409,7 +409,7 @@ def make_mainview(parcel):
         size=SizeType(1024, 720),
         orientationEnum='Vertical',
         eventBoundary=True,
-        displayName=_(u'AlecsMainView'),
+        displayName=_(u'Chandler\'s MainView'),
         eventsForNamedLookup=[
             RequestSelectSidebarItemEvent,
             SendMailEvent,
