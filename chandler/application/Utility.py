@@ -253,7 +253,7 @@ def initRepository(directory, options):
              'exclusive': True,
              'refcounted': True,
              'logged': not not options.logging,
-             'verify': options.verify }
+             'verify': options.verify or __debug__ }
 
     if options.restore:
         kwds['restore'] = options.restore
