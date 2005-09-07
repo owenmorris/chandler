@@ -109,7 +109,8 @@ class RepoResource(resource.Resource):
                         
                     if item is None:
                         result += "<h3>Item not found: %s</h3>" % clean(path)
-                        return unicode(result)
+                        result = result.encode('utf-8', 'replace')
+                        return result
 
                     if len(fields) == 0:
                         # No fields - just go render the item.
@@ -134,7 +135,8 @@ class RepoResource(resource.Resource):
                     item = repoView.findPath(path)
                     if item is None:
                         result += "<h3>Item not found: %s</h3>" % path
-                        return unicode(result)
+                        result = result.encode('utf-8', 'replace')
+                        return result
 
                     result += "<div>"
                     result += RenderItem(repoView, item)
@@ -614,6 +616,7 @@ def RenderItem(repoView, item):
     except:
         pass
 
+    result += "<div class='subheader'><b>itsUUID:</b> %s<br> " % item.itsUUID
     result += "<div class='children'><b>Child items:</b><br> "
     children = {}
     for child in item.iterChildren():
@@ -737,14 +740,19 @@ def RenderItem(repoView, item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            result += "<b>(ref coll)</b> "
+            result += "<b>(ref collection)</b><br>\n<ul>"
             output = []
             for j in value:
-                output.append("<a href=%s>%s</a>" % \
-                 (toLink(j.itsPath), getattr(j, "blockName", j.getItemDisplayName())))
-            result += (", ".join(output))
+                alias = value.getAlias(j)
+                if alias:
+                    alias = "(alias = '%s')" % alias
+                else:
+                    alias = ""
+                output.append("<li><a href=%s>%s</a> %s" % \
+                 (toLink(j.itsPath), getattr(j, "blockName", j.getItemDisplayName()), alias))
+            result += ("".join(output))
 
-            result += "</td></tr>\n"
+            result += "</ul></td></tr>\n"
             count += 1
 
         elif isinstance(value, list):
