@@ -669,6 +669,13 @@ class wxCollectionCanvas(wx.ScrolledWindow):
     def OnEndDragNone(self):
         pass
 
+    """
+    Methods for Drag and Drop and Cut and Paste
+    """
+    def DeleteSelection(self):
+        self.blockItem.DeleteSelection()
+        
+
 class CollectionCanvas(Block.RectangularChild):
     """
     @ivar selection: selected item (persistent)
@@ -722,6 +729,9 @@ class CollectionCanvas(Block.RectangularChild):
         self.ClearSelection()
         
     def onRemoveEvent(self, event):
+        self.DeleteSelection()
+
+    def DeleteSelection(self):
         self.contents.collectionList[0].remove(self.selection)
         self.ClearSelection()
 

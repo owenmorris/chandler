@@ -180,6 +180,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         # the rating of conflicts - i.e. how far to indent this.  Just
         # a simple zero-based ordering - not a pixel count!
         self._conflictDepth = 0
+
+        # this is supposed to be set in Draw(), but sometimes this
+        # object seems to exist before Draw() is called
+        self.textOffset = 0
                         
     def GetEditorPosition(self):
         """
@@ -1143,12 +1147,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         if selection is None:
             return []
         return [selection]
-
-    def DeleteSelection(self):
-        try:
-            self.blockItem.DeleteSelection()
-        except AttributeError:
-            pass
 
     def AddItems(self, itemList):
         source = self.contents.collectionList[0]
