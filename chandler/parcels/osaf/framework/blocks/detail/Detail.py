@@ -488,7 +488,7 @@ class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.
     def onSetContentsEvent(self, event):
         logger.debug("DSAEBlock: onSetContentsEvent")
 
-        self.contents = Calendar.getProxy(u'ui', event.arguments['item'])
+        self.item = Calendar.getProxy(u'ui', event.arguments['item'])
         assert not hasattr(self, 'widget')
 
 def ItemCollectionOrMailMessageMixin (item):
