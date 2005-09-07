@@ -1,37 +1,38 @@
 """
-    flickr.py
-    Copyright 2004-5 James Clarke <james@jamesclarke.info>
+flickr.py
+Copyright 2004-5 James Clarke <james@jamesclarke.info>
 
 THIS SOFTWARE IS SUPPLIED WITHOUT WARRANTY OF ANY KIND, AND MAY BE
 COPIED, MODIFIED OR DISTRIBUTED IN ANY WAY, AS LONG AS THIS NOTICE
 AND ACKNOWLEDGEMENT OF AUTHORSHIP REMAIN.
 
 This TODO list may not include recent API changes.
+
 TODO (see TODO comments too):
-* flickr.blogs.*
-* flickr.contacts.getList
-* flickr.groups.browse
-* flickr.groups.getActiveList
-* flickr.people.getOnlineList
-* flickr.photos.getContactsPhotos
-* flickr.photos.getContactsPublicPhotos
-* flickr.photos.getContext
-* flickr.photos.getCounts
-* flickr.photos.getExif
-* flickr.photos.getNotInSet
-* flickr.photos.getPerms
-* flickr.photos.getRecent
-* flickr.photos.getUntagged
-* flickr.photos.setDates
-* flickr.photos.setPerms
-* flickr.photos.licenses.*
-* flickr.photos.notes.*
-* flickr.photos.transform.*
-* flickr.photosets.getContext
-* flickr.photosets.orderSets
-* flickr.reflection.* (not important)
-* flickr.tags.getListPhoto
-* flickr.urls.*
+ - flickr.blogs.*
+ - flickr.contacts.getList
+ - flickr.groups.browse
+ - flickr.groups.getActiveList
+ - flickr.people.getOnlineList
+ - flickr.photos.getContactsPhotos
+ - flickr.photos.getContactsPublicPhotos
+ - flickr.photos.getContext
+ - flickr.photos.getCounts
+ - flickr.photos.getExif
+ - flickr.photos.getNotInSet
+ - flickr.photos.getPerms
+ - flickr.photos.getRecent
+ - flickr.photos.getUntagged
+ - flickr.photos.setDates
+ - flickr.photos.setPerms
+ - flickr.photos.licenses.*
+ - flickr.photos.notes.*
+ - flickr.photos.transform.*
+ - flickr.photosets.getContext
+ - flickr.photosets.orderSets
+ - flickr.reflection.* (not important)
+ - flickr.tags.getListPhoto
+ - flickr.urls.*
 """
 
 __author__ = "James Clarke <james@jamesclarke.info>"

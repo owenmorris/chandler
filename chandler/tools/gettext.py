@@ -1,4 +1,5 @@
-"""Internationalization and localization support.
+"""
+Internationalization and localization support.
 
 This module provides internationalization (I18N) and localization (L10N)
 support for your Python programs by providing an interface to the GNU gettext
@@ -8,8 +9,8 @@ I18N refers to the operation by which a program is made aware of multiple
 languages.  L10N refers to the adaptation of your program, once
 internationalized, to the local language and cultural habits.
 
-@@@ This version updated by bkirsch@osafoundation.org to better  handle unicode
-    _() definitions
+@@@ This version updated by bkirsch@osafoundation.org to better handle unicode
+_() definitions
 """
 
 # This module represents the integration of work, contributions, feedback, and
@@ -63,7 +64,7 @@ _default_localedir = os.path.join(sys.prefix, 'share', 'locale')
 
 def test(condition, true, false):
     """
-    Implements the C expression:
+    Implements the C expression::
 
       condition ? true : false
 
@@ -76,7 +77,8 @@ def test(condition, true, false):
 
 
 def c2py(plural):
-    """Gets a C expression as used in PO files for plural forms and returns a
+    """
+    Gets a C expression as used in PO files for plural forms and returns a
     Python lambda function that implements an equivalent expression.
     """
     # Security check, allow only the "n" identifier

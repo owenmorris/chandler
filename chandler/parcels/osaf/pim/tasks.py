@@ -21,9 +21,10 @@ class TaskStatusEnum(schema.Enumeration):
 
 
 class TaskMixin(items.ContentItem):
-    """This is the set of Task-specific attributes.
+    """
+    This is the set of Task-specific attributes.
 
-      Task Mixin is the bag of Task-specific attributes.
+    Task Mixin is the bag of Task-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
@@ -162,13 +163,14 @@ class TaskEventExtraMixin(items.ContentItem):
 
 
 class Task(TaskMixin, notes.Note):
-    """Task type
+    """
+    Task type
     
     Issues:
-        * Do we want to support the idea of tasks having sub-tasks? If so, 
-          then we need to add attributes for 'superTask' and 'subTasks'.
-          
-        * Task should maybe have a 'Timezone' attribute.
+      - Do we want to support the idea of tasks having sub-tasks? If so, 
+        then we need to add attributes for 'superTask' and 'subTasks'.
+
+      - Task should maybe have a 'Timezone' attribute.
     """
     schema.kindInfo( displayName = "Task" )
 

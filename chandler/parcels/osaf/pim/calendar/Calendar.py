@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 TIMECHANGES = ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset')
 
 class TimeTransparencyEnum(schema.Enumeration):
-    """Time Transparency Enum
+    """
+    Time Transparency Enum
 
     The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.
 
@@ -73,31 +74,31 @@ __opFunctions = {
 }
 
 def datetimeOp(dt1, operator, dt2):
-    """This function is a workaround for some issues with
+    """
+    This function is a workaround for some issues with
     comparisons of naive and non-naive C{datetimes}. Its usage
     is slightly goofy (but makes diffs easier to read):
     
-    If you had in code:
+    If you had in code::
     
         dt1 < dt2
         
     and you weren't sure whether dt1 and dt2 had timezones, you could
-    convert this to:
+    convert this to::
     
        datetimeOp(dt1, '<', dt2)
        
-   and not have to deal with the TypeError you'd get in the original code. 
+    and not have to deal with the TypeError you'd get in the original code. 
    
-   Similar conversions hold for other comparisons, '-', '>', '<=', '>=',
-   '==', '!='. Also, there are functions with implied comparison; you can do
+    Similar conversions hold for other comparisons, '-', '>', '<=', '>=',
+    '==', '!='. Also, there are functions with implied comparison; you can do::
    
-      max(dt1, dt2) --> datetimeOp(dt1, 'max', dt2)
+       max(dt1, dt2) --> datetimeOp(dt1, 'max', dt2)
       
     and similarly for min, cmp.
     
-    For more details (and why this is a kludge), see:
-    
-    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>)
+    For more details (and why this is a kludge), see
+    <http://wiki.osafoundation.org/bin/view/Journal/GrantBaillie20050809>
     """
     
     f = __opFunctions.get(operator, None)
@@ -120,7 +121,7 @@ class CalendarEventMixin(ContentItem):
     This is the set of CalendarEvent-specific attributes. This Kind is 'mixed
     in' to others kinds to create Kinds that can be instantiated.
 
-      Calendar Event Mixin is the bag of Event-specific attributes.
+    Calendar Event Mixin is the bag of Event-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
@@ -1234,12 +1235,14 @@ class Location(ContentItem):
 
     def getLocation (cls, view, locationName):
         """
-          Factory Method for getting a Location.
+        Factory Method for getting a Location.
 
-          Lookup or create a Location based on the supplied name string.
+        Lookup or create a Location based on the supplied name string.
+
         If a matching Location object is found in the repository, it
         is returned.  If there is no match, then a new item is created
         and returned.  
+
         @param locationName: name of the Location
         @type locationName: C{String}
         @return: C{Location} created or found

@@ -27,17 +27,18 @@ logger = logging.getLogger(__name__)
 import util.timing
 
 """
-  Event used to post callbacks on the UI thread
+Event used to post callbacks on the UI thread
 """
 wxEVT_MAIN_THREAD_CALLBACK = wx.NewEventType()
 EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
 def mixinAClass (self, myMixinClassImportPath):
     """
-      Given an object, self, and the path as a string to a mixin class,
+    Given an object, self, and the path as a string to a mixin class,
     myMixinClassImportPath, create a new subclass derived from base class
     of self and the mixin class and makes self's class this new class.
-      This is useful to dynamicly (at runtime) mixin new behavior.
+
+    This is useful to dynamicly (at runtime) mixin new behavior.
     """
     if not self.__class__.__dict__.get ("_alreadyMixedIn"):
         try:
@@ -86,13 +87,13 @@ class MainFrame(wx.Frame):
 
     def OnClose(self, event):
         """
-          For some strange reason when there's an idle handler on the
+        For some strange reason when there's an idle handler on the
         application the mainFrame windows doesn't get destroyed, so
         we'll remove the handler
         """
         wx.GetApp().Bind(wx.EVT_IDLE, None)
         """
-          When we quit, as each wxWidget window is torn down our handlers that
+        When we quit, as each wxWidget window is torn down our handlers that
         track changes to the selection are called, and we don't want to count
         these changes, since they weren't caused by user actions.
         """
@@ -104,7 +105,7 @@ class MainFrame(wx.Frame):
     def OnSize(self, event):
         from osaf.framework.blocks.DocumentTypes import SizeType
         """
-          Calling Skip causes wxWindows to continue processing the event, 
+        Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
         if not wx.GetApp().ignoreSynchronizeWidget:
@@ -114,7 +115,7 @@ class MainFrame(wx.Frame):
     def OnMove(self, event):
         from osaf.framework.blocks.DocumentTypes import PositionType
         """
-          Calling Skip causes wxWindows to continue processing the event, 
+        Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
         if not wx.GetApp().ignoreSynchronizeWidget:
@@ -127,7 +128,7 @@ class wxApplication (wx.App):
     def OnInit(self):
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
         """
-          Main application initialization.
+        Main application initialization.
         """
         self.needsUpdateUI = True
         self.ignoreSynchronizeWidget = True
@@ -135,12 +136,12 @@ class wxApplication (wx.App):
 
         wx.InitAllImageHandlers()
         """
-          Disable automatic calling of UpdateUIEvents. We will call them
+        Disable automatic calling of UpdateUIEvents. We will call them
         manually when blocks get rendered, change visibility, etc.
         """
         wx.UpdateUIEvent.SetUpdateInterval (-1)
         """
-          Install a custom displayhook to keep Python from setting the global
+        Install a custom displayhook to keep Python from setting the global
         _ (underscore) to the value of the last evaluated expression.  If 
         we don't do this, our mapping of _ to gettext can get overwritten.
         This is useful in interactive debugging with PyShell.
@@ -159,9 +160,9 @@ class wxApplication (wx.App):
                                            Globals.options.parcelPath)
 
         """
-          Splash Screen.
+        Splash Screen.
 
-          We don't show the splash screen when nosplash is set
+        We don't show the splash screen when nosplash is set
         """
         splash = None
         if not Globals.options.nosplash:
@@ -174,15 +175,17 @@ class wxApplication (wx.App):
         localeSet = None
 
         if Globals.options.locale is not None:
-            """If a locale is passed in on the command line
-               we set it as the root in the localeset."""
+            """
+            If a locale is passed in on the command line
+            we set it as the root in the localeset.
+            """
 
             i18n.setLocaleSet([Globals.options.locale])
         else:
             i18n.discoverLocaleSet()
 
         """
-          Crypto initialization
+        Crypto initialization
         """
         if splash: splash.updateGauge('crypto')
         Utility.initCrypto(Globals.options.profileDir)
@@ -205,7 +208,7 @@ class wxApplication (wx.App):
         self.repository = view.repository
 
         """
-          Verify Schema Version
+        Verify Schema Version
         """
         if not Utility.verifySchema(view):
             if self.ShowSchemaMismatchWindow():
@@ -220,7 +223,7 @@ class wxApplication (wx.App):
         self.UIRepositoryView = view
 
         """
-          Load Parcels
+        Load Parcels
         """
         if splash: splash.updateGauge('parcels')
         wx.Yield()
@@ -230,8 +233,8 @@ class wxApplication (wx.App):
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
         """
-          The Twisted Reactor should be started before other Managers
-          and stopped last.
+        The Twisted Reactor should be started before other Managers
+        and stopped last.
         """
         if splash: splash.updateGauge('twisted')
         Utility.initTwisted()
@@ -261,7 +264,7 @@ class wxApplication (wx.App):
  
         mainViewRoot.frame = self.mainFrame
         """
-          Register to some global events for name lookup.
+        Register to some global events for name lookup.
         """
         if splash: splash.updateGauge('globalevents')
         globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/GlobalEvents')
@@ -302,10 +305,14 @@ class wxApplication (wx.App):
         self.mainFrame.Show()
 
 
-        """Start the WakeupCaller Service"""
+        """
+        Start the WakeupCaller Service
+        """
         Utility.initWakeup(self.UIRepositoryView)
 
-        """Start the Chandler Mail Service"""
+        """
+        Start the Chandler Mail Service
+        """
         from osaf.mail import MailService
         Globals.mailService = MailService(self.UIRepositoryView)
         Globals.mailService.startup()
@@ -324,9 +331,9 @@ class wxApplication (wx.App):
 
     def LoadMainViewRoot (self, delete=False):
         """
-          The main view's root is the only item in the soup (e.g. //userdata) with a name
-          that isn't it's UUID. We need the name to look it up. If the main view's root
-          isn't found then make a copy into the soup with the right name.
+        The main view's root is the only item in the soup (e.g. //userdata) with a name
+        that isn't it's UUID. We need the name to look it up. If the main view's root
+        isn't found then make a copy into the soup with the right name.
         """
 
         mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
@@ -357,7 +364,7 @@ class wxApplication (wx.App):
         assert len (Globals.views) == 0
         mainViewRoot.render()
         """
-          We have to wire up the block mainViewRoot, it's widget and sizer to a new
+        We have to wire up the block mainViewRoot, it's widget and sizer to a new
         sizer that we add to the mainFrame.
         """
         sizer = wx.BoxSizer (wx.HORIZONTAL)
@@ -420,7 +427,7 @@ class wxApplication (wx.App):
 
     def OnCommand(self, event):
         """
-          Catch commands and pass them along to the blocks.
+        Catch commands and pass them along to the blocks.
         Our events have ids greater than wx.ID_HIGHEST
         Delay imports to avoid circular references.
         """
@@ -435,7 +442,7 @@ class wxApplication (wx.App):
                 blockEvent = block.event
             except AttributeError:
                 """
-                  Ignore blocks that don't have events.
+                Ignore blocks that don't have events.
                 """
                 assert updateUIEvent
             else:
@@ -470,7 +477,7 @@ class wxApplication (wx.App):
                         event.SetText (text)
                         widget = block.widget
                         """
-                          Some widgets, e.g. wxToolbarItems don't properly handle
+                        Some widgets, e.g. wxToolbarItems don't properly handle
                         setting the text of buttons, so we'll handle it here by
                         looking for the method OnSetTextEvent to handle it
                         """
@@ -490,7 +497,7 @@ class wxApplication (wx.App):
 
     def OnShow(self, event):
         """
-          Giant hack. Calling event.GetEventObject while the object is being created cause the
+        Giant hack. Calling event.GetEventObject while the object is being created cause the
         object to get the wrong type because of a "feature" of SWIG. So we need to avoid
         OnShows in this case by using ignoreSynchronizeWidget as a flag.
         """
@@ -508,7 +515,7 @@ class wxApplication (wx.App):
 
     def OnIdle(self, event):
         """
-          Adding a handler for catching a set focus event doesn't catch
+        Adding a handler for catching a set focus event doesn't catch
         every change to the focus. It's difficult to preprocess every event
         so we check for focus changes in OnIdle. Also call UpdateUI when
         focus changes.
@@ -518,7 +525,7 @@ class wxApplication (wx.App):
             self.focus = focus
             self.needsUpdateUI = True
         """
-          Fire set notifications that require mapChanges
+        Fire set notifications that require mapChanges
         """
         the_view = self.repository.view  # cache the view for performance
         the_view.refresh() # pickup changes from other threads
@@ -534,7 +541,7 @@ class wxApplication (wx.App):
             else:
                 raise
         """
-          Redraw all the blocks dirtied by notifications
+        Redraw all the blocks dirtied by notifications
         """
         from osaf.framework.blocks.Block import Block
         for theUUID in Block.dirtyBlocks.keys():
@@ -566,7 +573,7 @@ class wxApplication (wx.App):
 
     def OnExit(self):
         """
-          Main application termination.
+        Main application termination.
         """
         if __debug__:
             wx.GetApp().UIRepositoryView.check()
@@ -578,7 +585,7 @@ class wxApplication (wx.App):
         Utility.stopTwisted()
 
         """
-          Since Chandler doesn't have a save command and commits typically happen
+        Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
         need to add a final commit when the application quits to save data the
         state of the user's world, e.g. window location and size.
@@ -590,7 +597,7 @@ class wxApplication (wx.App):
 
     def OnMainThreadCallbackEvent(self, event):
         """
-          Fire off a custom event handler
+        Fire off a custom event handler
         """
         event.target(*event.args)
         event.lock.release()
@@ -598,7 +605,7 @@ class wxApplication (wx.App):
 
     def PostAsyncEvent(self, callback, *args):
         """
-          Post an asynchronous event that will call 'callback' with 'data'
+        Post an asynchronous event that will call 'callback' with 'data'
         """
         evt = MainThreadCallbackEvent(callback, *args)
         evt.lock.acquire()
@@ -607,8 +614,10 @@ class wxApplication (wx.App):
 
     def _DispatchItemMethod (self, transportItem, methodName, transportArgs, keyArgs):
         """
-          Private dispatcher for a method call on an item done between threads.
+        Private dispatcher for a method call on an item done between threads.
+        
         See CallItemMethodAsync() below for calling details.
+        
         Does a repository refresh to get the changes across from the other thread.
         """
         wx.GetApp().UIRepositoryView.refresh () # bring changes across from the other thread/view
@@ -635,20 +644,24 @@ class wxApplication (wx.App):
 
     def CallItemMethodAsync (self, item, methodName, *args, **keyArgs):
         """
-          Post an asynchronous event that will call a method by name in an item.
+        Post an asynchronous event that will call a method by name in an item.
+        
         Communication between threads is tricky.  This method will convert
         all parameters into UUIDs for transport during the event posting,
         and they will be converted back to items when the event is received.
         However you will have to do a commits in the non-UI thread for the data
         to pass across smoothly.  The UI thread will do a commit to get
         the changes on its side.  
+        
         Also, items that are not simple arguments or keyword arguments will 
         not be converted to/from UUID.
+
+        All other args are passed across to the other thread.
+        
         @param item: an C{Item} whose method we wish to call
         @type item: C{Item}
         @param methodName: the name of the method to call
         @type methodName: C{String}
-        All other args are passed across to the other thread.
         """
         # convert the item whose method we're calling
         transportItem = TransportWrapper (item)
@@ -664,7 +677,9 @@ class wxApplication (wx.App):
 
 
     def ShowPyShell(self, withFilling=False):
-        """ A window with a python interpreter """
+        """
+        A window with a python interpreter
+        """
         import wx.py
         import tools.headless as headless
         headless.view = self.UIRepositoryView
@@ -732,8 +747,9 @@ Would you like to remove all data from your repository?
 
 class TransportWrapper (object):
     """
-      Wrapper class for items sent between threads by
+    Wrapper class for items sent between threads by
     CallItemMethodAsync() in wxApplication.
+    
     Simply wraps any object with this class.  If the 
     object was an Item, we remember its UUID and
     use that to get back the right item on in the
@@ -741,7 +757,7 @@ class TransportWrapper (object):
     """
     def __init__ (self, possibleItem):
         """
-          Construct a TrasportWrapper from an object.
+        Construct a TrasportWrapper from an object.
         """
         try:
             self.itemUUID = possibleItem.itsUUID
@@ -750,7 +766,7 @@ class TransportWrapper (object):
 
     def unwrap (self):
         """
-          Unwrap the original object, using the UUID
+        Unwrap the original object, using the UUID
         if the original was an Item.
         """
         try:

@@ -7,7 +7,7 @@ from i18n import OSAFMessageFactory as _
 class DefaultTimeZone(schema.Item):
     """
     Item that stores for a schema.TimeZone attribute that synchronizes
-       itself with PyICU's default settings.
+    itself with PyICU's default settings.
     """
     
     schema.kindInfo(
@@ -79,7 +79,8 @@ class DefaultTimeZone(schema.Item):
                 PyICU.TimeZone.setDefault(tzinfo.timezone)
 
 def stripTimeZone(dt):
-    """This method returns a naive C{datetime} (i.e. one with a C{tzinfo}
+    """
+    This method returns a naive C{datetime} (i.e. one with a C{tzinfo}
     of C{None}.
     
     @param dt: The input.

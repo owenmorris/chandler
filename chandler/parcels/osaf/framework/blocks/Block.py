@@ -344,12 +344,13 @@ class Block(schema.Item):
     @classmethod
     def getWidgetID (theClass, object):
         """
-          wxWindows needs a integer for a id. Commands between
+        wxWindows needs a integer for a id. Commands between
         wx.ID_LOWEST and wx.ID_HIGHEST are reserved for wxWidgets.
         Calling wxNewId allocates incremental ids starting at 100.
         Passing -1 for new IDs starting with -1 and decrementing.
         Some rouge dialogs use IDs outside wx.ID_LOWEST and wx.ID_HIGHEST.
-          Use IdToUUID to lookup the Id for a event's UUID. Use UUIDtoIds to
+        
+        Use IdToUUID to lookup the Id for a event's UUID. Use UUIDtoIds to
         lookup the UUID of a block that corresponds to an event id -- DJA
         """
         UUID = object.itsUUID
@@ -465,14 +466,14 @@ class Block(schema.Item):
     def pushView (self):
         """ 
         Pushes a new view on to our list of views.
-        
+
+        Currently, we're limited to a depth of four nested views
+
         @param self: the new view
         @type block: C{Block}
         @param Globals.mainViewRoot.lastDynamicBlock: the last block synched
         @type lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
                     or C{True} for forced resync.
-
-          Currently, we're limited to a depth of four nested views
         """
         assert len (Globals.views) <= 4
         Globals.views.append (self)

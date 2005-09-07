@@ -48,7 +48,7 @@ class Calculated(property):
     A property with type information, in the style of our schema.* objects. 
     - This could become a schema class when it grows up :-)
     - I'm open to a different name: I think it oughta be schema.Property, but pje
-      thought Calculated was better...
+    thought Calculated was better...
     """
     def __new__(cls, schema_type, displayName, fget, fset=None, fdel=None, doc=None):
         return property.__new__(cls, fget, fset, fdel, doc)
@@ -60,16 +60,17 @@ class Calculated(property):
 
 
 class ContentItem(schema.Item):
-    """Content Item
+    """
+    Content Item
 
     Content Item is the abstract super-kind for things like Contacts, Calendar
     Events, Tasks, Mail Messages, and Notes.  Content Items are user-level
     items, which a user might file, categorize, share, and delete.
     
     Examples:
-        a Calendar Event -- 'Lunch with Tug'
-        a Contact -- 'Terry Smith'
-        a Task -- 'mail 1040 to IRS'
+     - a Calendar Event -- 'Lunch with Tug'
+     - a Contact -- 'Terry Smith'
+     - a Task -- 'mail 1040 to IRS'
     """
     schema.kindInfo( displayName = "Content Item" )
 
@@ -578,15 +579,17 @@ class _SuperKindSignature(list):
     The signature is the list of twig node superkinds of the Kind.
     Using a tree analogy, a twig is the part farthest from the leaf
     that has no braching.
+
     Specifically, a twig node in the SuperKind hierarchy is a node 
     that has at most one superkind, and whose superkind has at
     most one superkind, all they way up.
+
     The twig superkinds list makes the best signature for two reasons:
-       1) it bypasses all the branching, allowing (A, (B,C)) to match 
-            ((A, B), C)
-       2) it uses the most specialized form when there is no branching,
-            thus if D has superKind B, and B has no superKinds,
-            D is more specialized, so we want to use it.
+      1. it bypasses all the branching, allowing (A, (B,C)) to match 
+         ((A, B), C)
+      2. it uses the most specialized form when there is no branching,
+         thus if D has superKind B, and B has no superKinds,
+         D is more specialized, so we want to use it.
     """
     def __init__(self, aKind, *args, **kwds):
         """

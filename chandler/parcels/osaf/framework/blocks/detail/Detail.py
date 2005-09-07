@@ -89,16 +89,18 @@ class DetailRootBlock (Sendability, ControlBlocks.ContentItemDetail):
 
     def synchronizeDetailView(self, item):
         """
-          We have an event boundary inside us, which keeps all
+        We have an event boundary inside us, which keeps all
         the events sent between blocks of the Detail View to
         ourselves.
-          When we get a SelectItem event, we jump across
+
+        When we get a SelectItem event, we jump across
         the event boundary and call synchronizeItemDetail on each
         block to give it a chance to update the widget with data
         from the Item.
-          Notify container blocks before their children.
-          
-          @@@DLD - find a better way to broadcast inside my boundary.
+
+        Notify container blocks before their children.
+
+        @@@DLD - find a better way to broadcast inside my boundary.
         """
         def reNotifyInside(block, item):
             notifySelf = len(block.childrenBlocks) == 0 # True if no children
@@ -449,8 +451,9 @@ class StaticRedirectAttributeLabel (StaticTextLabel):
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     """
       basic class for a block in the detail view typically containing:
-        * a label (e.g. a StaticText with "Title:")
-        * an attribute value (e.g. in an EditText with the value of item.title)
+       - a label (e.g. a StaticText with "Title:")
+       - an attribute value (e.g. in an EditText with the value of item.title)
+      
       it also handles visibility of the block, depending on if the attribute
       exists on the item or not
     """ 

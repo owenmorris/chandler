@@ -44,11 +44,11 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
 
     def __init__(self, delegate):
         """
-            @param delegate: A Chandler protocol class containing:
-                  1. An account object inherited from c{Mail.AccountBase}
-                  2. A loginClient method implementation callback
-                  3. A catchErrors method implementation errback
-            @type delegate: c{object}
+        @param delegate: A Chandler protocol class containing:
+          1. An account object inherited from c{Mail.AccountBase}
+          2. A loginClient method implementation callback
+          3. A catchErrors method implementation errback
+        @type delegate: c{object}
 
         @return: C{None}
         """
@@ -66,12 +66,13 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         self.retries = -retries
 
     def buildProtocol(self, addr):
-        """Builds a Twisted Protocol instance assigning factory
-           and delegate as variables on the protocol instance
+        """
+        Builds a Twisted Protocol instance assigning factory
+        and delegate as variables on the protocol instance
 
-          @param addr: an object implementing L{twisted.internet.interfaces.IAddress}
+        @param addr: an object implementing L{twisted.internet.interfaces.IAddress}
 
-          @return: an object extending  L{twisted.internet.protocol.Protocol}
+        @return: an object extending  L{twisted.internet.protocol.Protocol}
         """
         p = protocol.ClientFactory.buildProtocol(self, addr)
 

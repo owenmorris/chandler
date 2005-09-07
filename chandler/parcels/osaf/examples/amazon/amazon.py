@@ -6,20 +6,21 @@ for Amazon web APIs
 This module allows you to access Amazon's web APIs,
 to do things like search Amazon and get the results programmatically.
 Described here:
-  http://www.amazon.com/webservices
+
+http://www.amazon.com/webservices
 
 You need a Amazon-provided license key to use these services.
 Follow the link above to get one.  These functions will look in
 several places (in this order) for the license key:
-- the "license_key" argument of each function
-- the module-level LICENSE_KEY variable (call setLicense once to set it)
-- an environment variable called AMAZON_LICENSE_KEY
-- a file called ".amazonkey" in the current directory
-- a file called "amazonkey.txt" in the current directory
-- a file called ".amazonkey" in your home directory
-- a file called "amazonkey.txt" in your home directory
-- a file called ".amazonkey" in the same directory as amazon.py
-- a file called "amazonkey.txt" in the same directory as amazon.py
+ - the "license_key" argument of each function
+ - the module-level LICENSE_KEY variable (call setLicense once to set it)
+ - an environment variable called AMAZON_LICENSE_KEY
+ - a file called ".amazonkey" in the current directory
+ - a file called "amazonkey.txt" in the current directory
+ - a file called ".amazonkey" in your home directory
+ - a file called "amazonkey.txt" in your home directory
+ - a file called ".amazonkey" in the same directory as amazon.py
+ - a file called "amazonkey.txt" in the same directory as amazon.py
 
 Sample usage:
 >>> import amazon
@@ -33,24 +34,24 @@ u'Learning Python (Help for Programmers)'
 ...
 
 Other available functions:
-- browseBestSellers
-- searchByASIN
-- searchByUPC
-- searchByAuthor
-- searchByArtist
-- searchByActor
-- searchByDirector
-- searchByManufacturer
-- searchByListMania
-- searchSimilar
-- searchByWishlist
+ - browseBestSellers
+ - searchByASIN
+ - searchByUPC
+ - searchByAuthor
+ - searchByArtist
+ - searchByActor
+ - searchByDirector
+ - searchByManufacturer
+ - searchByListMania
+ - searchSimilar
+ - searchByWishlist
 
 Other usage notes:
-- Most functions can take product_line as well, see source for possible values
-- All functions can take type="lite" to get less detail in results
-- All functions can take page=N to get second, third, fourth page of results
-- All functions can take license_key="XYZ", instead of setting it globally
-- All functions can take http_proxy="http://x/y/z" which overrides your system setting
+ - Most functions can take product_line as well, see source for possible values
+ - All functions can take type="lite" to get less detail in results
+ - All functions can take page=N to get second, third, fourth page of results
+ - All functions can take license_key="XYZ", instead of setting it globally
+ - All functions can take http_proxy="http://x/y/z" which overrides your system setting
 """
 
 __author__ = "Mark Pilgrim (f8dy@diveintomark.org)"
@@ -261,46 +262,48 @@ def search(search_type, keyword, product_line, type = "heavy", page = None,
     """search Amazon
 
     You need a license key to call this function; see
+    
     http://www.amazon.com/webservices
-    to get one.  Then you can either pass it to
-    this function every time, or set it globally; see the module docs for details.
+    
+    to get one.  Then you can either pass it to this function every time,
+    or set it globally; see the module docs for details.
 
     Parameters:
-    keyword - keyword to search
-    search_type - in (KeywordSearch, BrowseNodeSearch, AsinSearch, UpcSearch, AuthorSearch, ArtistSearch, ActorSearch, DirectorSearch, ManufacturerSearch, ListManiaSearch, SimilaritySearch)
-    product_line - type of product to search for.  restrictions based on search_type
-        UpcSearch - in (music, classical)
-        AuthorSearch - must be "books"
-        ArtistSearch - in (music, classical)
-        ActorSearch - in (dvd, vhs, video)
-        DirectorSearch - in (dvd, vhs, video)
-        ManufacturerSearch - in (electronics, kitchen, videogames, software, photo, pc-hardware)
-    http_proxy (optional) - address of HTTP proxy to use for sending and receiving SOAP messages
+     - keyword - keyword to search
+     - search_type - in (KeywordSearch, BrowseNodeSearch, AsinSearch, UpcSearch, AuthorSearch, ArtistSearch, ActorSearch, DirectorSearch, ManufacturerSearch, ListManiaSearch, SimilaritySearch)
+     - product_line - type of product to search for.  restrictions based on search_type
+        - UpcSearch - in (music, classical)
+        - AuthorSearch - must be "books"
+        - ArtistSearch - in (music, classical)
+        - ActorSearch - in (dvd, vhs, video)
+        - DirectorSearch - in (dvd, vhs, video)
+        - ManufacturerSearch - in (electronics, kitchen, videogames, software, photo, pc-hardware)
+     - http_proxy (optional) - address of HTTP proxy to use for sending and receiving SOAP messages
 
     Returns: list of Bags, each Bag may contain the following attributes:
-      Asin - Amazon ID ("ASIN" number) of this item
-      Authors - list of authors
-      Availability - "available", etc.
-      BrowseList - list of related categories
-      Catalog - catalog type ("Book", etc)
-      CollectiblePrice - ?, format "$34.95"
-      ImageUrlLarge - URL of large image of this item
-      ImageUrlMedium - URL of medium image of this item
-      ImageUrlSmall - URL of small image of this item
-      Isbn - ISBN number
-      ListPrice - list price, format "$34.95"
-      Lists - list of ListMania lists that include this item
-      Manufacturer - manufacturer
-      Media - media ("Paperback", "Audio CD", etc)
-      NumMedia - number of different media types in which this item is available
-      OurPrice - Amazon price, format "$24.47"
-      ProductName - name of this item
-      ReleaseDate - release date, format "09 April, 1999"
-      Reviews - reviews (AvgCustomerRating, plus list of CustomerReview with Rating, Summary, Content)
-      SalesRank - sales rank (integer)
-      SimilarProducts - list of Product, which is ASIN number
-      ThirdPartyNewPrice - ?, format "$34.95"
-      URL - URL of this item
+     - Asin - Amazon ID ("ASIN" number) of this item
+     - Authors - list of authors
+     - Availability - "available", etc.
+     - BrowseList - list of related categories
+     - Catalog - catalog type ("Book", etc)
+     - CollectiblePrice - ?, format "$34.95"
+     - ImageUrlLarge - URL of large image of this item
+     - ImageUrlMedium - URL of medium image of this item
+     - ImageUrlSmall - URL of small image of this item
+     - Isbn - ISBN number
+     - ListPrice - list price, format "$34.95"
+     - Lists - list of ListMania lists that include this item
+     - Manufacturer - manufacturer
+     - Media - media ("Paperback", "Audio CD", etc)
+     - NumMedia - number of different media types in which this item is available
+     - OurPrice - Amazon price, format "$24.47"
+     - ProductName - name of this item
+     - ReleaseDate - release date, format "09 April, 1999"
+     - Reviews - reviews (AvgCustomerRating, plus list of CustomerReview with Rating, Summary, Content)
+     - SalesRank - sales rank (integer)
+     - SimilarProducts - list of Product, which is ASIN number
+     - ThirdPartyNewPrice - ?, format "$34.95"
+     - URL - URL of this item
     """
     license_key = getLicense(license_key)
     locale = getLocale(locale)

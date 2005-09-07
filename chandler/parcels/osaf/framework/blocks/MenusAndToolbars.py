@@ -301,7 +301,7 @@ class DynamicBlock(schema.Item):
 
     def synchronizeDynamicBlocks (self):
         """
-           synchronizeDynamicBlocks rebuilds the dynamic
+        synchronizeDynamicBlocks rebuilds the dynamic
         container hierarchy based on the blocks it finds in
         a root section of the static block hierarchy and then
         calls synchronizeWidget on each container.  Dynamic
@@ -311,14 +311,14 @@ class DynamicBlock(schema.Item):
         found, and those blocks will have an inverse reference
         to their dynamicParent.
 
-          The rebuild is done starting at the specified block,
+        The rebuild is done starting at the specified block,
         moving up to the parentBlock, repeating this process
         until reaching the root of the hierarchy.  If we find
         any dynamic block at any point in the traversal we 
         scan down through all of its children recursively
         as long as dynamic blocks are found.
         
-          DynamicContainers and their dynamicChildren are 
+        DynamicContainers and their dynamicChildren are 
         identified by their itemName rather than their UUIDs,
         to make it easy for third party parcels to add menus. 
         This requires all container names to be unique

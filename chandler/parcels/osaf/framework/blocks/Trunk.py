@@ -126,8 +126,8 @@ class TrunkDelegate(schema.Item):
     in the read-only part of the repository).
 
     Issues:
-        We'd like to use itemrefs as keys, so reference tracking & cleanup
-        would work.
+     - We'd like to use itemrefs as keys, so reference tracking & cleanup
+       would work.
     """
 
     trunkParentBlock = schema.One(
@@ -162,10 +162,11 @@ class TrunkDelegate(schema.Item):
 
     def _mapItemToCacheKeyItem(self, item):
         """ 
-          Given an item, determine the item to be used as the cache key, and a boolean,
+        Given an item, determine the item to be used as the cache key, and a boolean,
         which if True forces the view to be rerendered, otherwise it will only
         be rerendered if the view or it's contents change.
-          Can be overridden; defaults to using the item itself.
+
+        Can be overridden; defaults to using the item itself.
         """
         return item, False
 

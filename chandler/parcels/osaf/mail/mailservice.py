@@ -27,32 +27,33 @@ XXX: Not thread safe code
 __all__ = ['MailService']
 
 class MailService(object):
-    """Central control point for all mail related code.
-       For each IMAP, POP, and SMTP account it creates
-       a client instance to handle requests and stores
-       the client in its queue.
+    """
+    Central control point for all mail related code.
+    For each IMAP, POP, and SMTP account it creates
+    a client instance to handle requests and stores
+    the client in its queue.
 
-       The MailService is started with Chandler in the
-       application codes and shutdown with Chandler.
+    The MailService is started with Chandler in the
+    application codes and shutdown with Chandler.
 
-       It employees the lazy loading model where
-       no clients are created until one is requested.
+    It employees the lazy loading model where
+    no clients are created until one is requested.
 
-       Example:
-          A user wants to send an SMTP message via an C{SMTPAccount}.
-          When the user hits send the MailService receives a request:
-          mailService.getSMTPInstance(smtpAccount)
+    Example:
+    
+    A user wants to send an SMTP message via an C{SMTPAccount}.
+    When the user hits send the MailService receives a request:
+    mailService.getSMTPInstance(smtpAccount)
 
-          The MailService looks in its cache to see if
-          it has a C{SMTPClient} instance for the given account.
-          If none is found it creates the instance and passes
-          back to the requestor.
+    The MailService looks in its cache to see if
+    it has a C{SMTPClient} instance for the given account.
+    If none is found it creates the instance and passes
+    back to the requestor.
 
-          If one exists in the cache it returns that instance.
-
-
-      Caching instances allows finite control of C{RepositoryView} creation
-      and client pipelining.
+    If one exists in the cache it returns that instance.
+    
+    Caching instances allows finite control of C{RepositoryView} creation
+    and client pipelining.
     """
 
     def __init__(self, view):
@@ -115,13 +116,14 @@ class MailService(object):
         self.__refreshClientCache("POP")
 
     def getSMTPInstance(self, account):
-        """Returns a C{SMTPClient} instance
-           for the given account
+        """
+        Returns a C{SMTPClient} instance
+        for the given account
 
-           @param account: A SMTPAccount
-           @type account: C{SMTPAccount}
+        @param account: A SMTPAccount
+        @type account: C{SMTPAccount}
 
-           @return: C{SMTPClient}
+        @return: C{SMTPClient}
         """
 
         assert isinstance(account, Mail.SMTPAccount)

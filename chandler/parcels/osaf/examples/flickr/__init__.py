@@ -84,12 +84,14 @@ class Tag(pim.ContentItem):
 
     def getTag (cls, view, tagName):
         """
-          Factory Method for getting a Tag.
+        Factory Method for getting a Tag.
 
-          Lookup or create a Tag based on the supplied name string.
+        Lookup or create a Tag based on the supplied name string.
+
         If a matching Tag object is found in the repository, it
         is returned.  If there is no match, then a new item is created
         and returned.  
+
         @param tagName: name of the Tag
         @type tagName: C{String}
         @return: C{Tag} created or found

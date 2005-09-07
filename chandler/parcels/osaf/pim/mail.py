@@ -541,15 +541,15 @@ class MIMEContainer(MIMEBase):
 
 
 class MailMessageMixin(MIMEContainer):
-    """MailMessageMixin is the bag of Message-specific attributes.
+    """
+    MailMessageMixin is the bag of Message-specific attributes.
 
     Used to mixin mail message attributes into a content item.
 
     Issues:
-        Once we have attributes and a cloud defined for Attachment, 
+      - Once we have attributes and a cloud defined for Attachment, 
         we need to include attachments by cloud, and not by value.
-
-        Really not sure what to do with the 'downloadAccount' attribute 
+      - Really not sure what to do with the 'downloadAccount' attribute 
         and how it should be included in the cloud.  For now it's byValue.
     """
     schema.kindInfo(
@@ -924,28 +924,35 @@ class EmailAddress(items.ContentItem):
     @classmethod
     def getEmailAddress(cls, view, nameOrAddressString, fullName=''):
         """
-          Lookup or create an EmailAddress based on the supplied string.
+        Lookup or create an EmailAddress based on the supplied string.
+
         If a matching EmailAddress object is found in the repository, it
         is returned.  If there is no match, then a new item is created
         and returned.
+
         There are two ways to call this method:
-            1) with something the user typed in nameOrAddressString, which
-                 will be parsed, and no fullName is needed
-            2) with an plain email address in the nameOrAddressString, and a
-                 full name in the fullName field
+          1. with something the user typed in nameOrAddressString, which
+             will be parsed, and no fullName is needed
+          2. with an plain email address in the nameOrAddressString, and a
+             full name in the fullName field
+             
         If a match is found for both name and address then it will be used.
+        
         If there is no name specified, a match on address will be returned.
+        
         If there is no address specified, a match on name will be returned.
+        
         If both name and address are specified, but there's no entry that
-          matches both, then a new entry is created.
+        matches both, then a new entry is created.
+        
         @param nameOrAddressString: emailAddress string, or fullName for lookup,
-           or both in the form "name <address>"
+        or both in the form "name <address>"
         @type nameOrAddressString: C{String}
         @param fullName: optional explict fullName when not using the
-           "name <address>" form of the nameOrAddressString parameter
+        "name <address>" form of the nameOrAddressString parameter
         @type fullName: C{String}
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
-               not a valid email address.
+        not a valid email address.
         """
         # @@@DLD remove when we better sort out creation of "me" address w/o an account setup
         if nameOrAddressString is None:

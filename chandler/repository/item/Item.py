@@ -1657,7 +1657,7 @@ class Item(CItem):
         The number returned depends on:
 
             - C{counted}: if C{True}, return the number of references in
-              attributes whose C{countPolicy} is C{count).
+              attributes whose C{countPolicy} is C{count}.
 
             - C{loaded}: if C{True}, return the number of loaded references.
 

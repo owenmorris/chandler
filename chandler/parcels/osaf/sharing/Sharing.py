@@ -2064,8 +2064,9 @@ def getShare(collection):
 
 
 def isInboundMailSetUp(view):
-    """ See if the IMAP/POP account has at least the minimum setup needed for
-        sharing (IMAP/POP needs email address).
+    """
+    See if the IMAP/POP account has at least the minimum setup needed for
+    sharing (IMAP/POP needs email address).
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2080,8 +2081,9 @@ def isInboundMailSetUp(view):
 
 
 def isSMTPSetUp(view):
-    """ See if SMTP account has at least the minimum setup needed for
-        sharing (SMTP needs host).
+    """
+    See if SMTP account has at least the minimum setup needed for
+    sharing (SMTP needs host).
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2096,8 +2098,9 @@ def isSMTPSetUp(view):
 
 
 def isMailSetUp(view):
-    """ See if the email accounts have at least the minimum setup needed for
-        sharing.
+    """
+    See if the email accounts have at least the minimum setup needed for
+    sharing.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2109,7 +2112,8 @@ def isMailSetUp(view):
 
 
 def isWebDAVSetUp(view):
-    """ See if WebDAV is set up.
+    """
+    See if WebDAV is set up.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2120,7 +2124,8 @@ def isWebDAVSetUp(view):
     return account is not None
 
 def ensureAccountSetUp(view):
-    """ A helper method to make sure the user gets the account info filled out.
+    """
+    A helper method to make sure the user gets the account info filled out.
 
     This method will examine all the account info and if anything is missing,
     a dialog will explain to the user what is missing; if they want to proceed
@@ -2189,7 +2194,8 @@ def syncShare(share):
 
 
 def syncAll(view):
-    """ Synchronize all active shares.
+    """
+    Synchronize all active shares.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2200,7 +2206,8 @@ def syncAll(view):
 
 
 def checkForActiveShares(view):
-    """ See if there are any non-hidden, active shares.
+    """
+    See if there are any non-hidden, active shares.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -2215,8 +2222,9 @@ def checkForActiveShares(view):
 
 
 def getFilteredCollectionDisplayName(collection, filterKinds):
-    """ Return a displayName for a collection, taking into account what the
-        current sidebar filter is, and whether this is the All collection.
+    """
+    Return a displayName for a collection, taking into account what the
+    current sidebar filter is, and whether this is the All collection.
     """
 
     ext = ""

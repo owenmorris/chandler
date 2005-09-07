@@ -13,15 +13,15 @@ Originally inspired from the python cookbook:
 http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/198078
 
 Currently you can
- * tag functions or individual methods to be autologged
- * tag an entire class's methods to be autologged
- * tag an entire module's classes and functions to be autologged
+ - tag functions or individual methods to be autologged
+ - tag an entire class's methods to be autologged
+ - tag an entire module's classes and functions to be autologged
 
 TODO:
- * allow tagging of ALL modules in the program on startup?
+ - allow tagging of ALL modules in the program on startup?
 
 CAVEATS:
- * certain classes barf when you logclass() them -- most notably,
+ - certain classes barf when you logclass() them -- most notably,
    SWIG-generated wrappers, and perhaps others.
 
 USAGE: see examples on the bottom of this file.
@@ -40,10 +40,12 @@ Also, you can  "less -R log"  afterward and get the colors correct.
 If you have long lines, less -RS kills wrapping, enhancing readability. Also
 can chop at formatAllArgs().
 
-If you want long lines to be chopped realtime, try piping through less:
+If you want long lines to be chopped realtime, try piping through less::
+
    RunChandler | less -RS
- but then you have to hit 'space' lots to prevent chandler from freezing.
- less's 'F' command is supposed to do this correctly but doesn't work for me.
+
+but then you have to hit 'space' lots to prevent chandler from freezing.
+less's 'F' command is supposed to do this correctly but doesn't work for me.
 """
 
 
@@ -203,11 +205,11 @@ def logclass(cls, methodsAsFunctions=False,
              logMatch=".*", logNotMatch="asdfnomatch"):
     """ 
     A class "decorator". But python doesn't support decorator syntax for
-    classes, so do it manually:
+    classes, so do it manually::
     
-    class C(object):
-       ...
-    C = logclass(C)
+        class C(object):
+           ...
+        C = logclass(C)
     
     @param methodsAsFunctions: set to True if you always want methodname first
     in the display.  Probably breaks if you're using class/staticmethods?

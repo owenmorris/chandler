@@ -25,13 +25,14 @@ class ContactName(items.ContentItem):
 
 
 class Contact(items.ContentItem):
-    """An entry in an address book.
+    """
+    An entry in an address book.
 
     Typically represents either a person or a company.
 
-    * issue: We might want to keep track of lots of sharing information like
-      'Permissions I've given them', 'Items of mine they've subscribed to',
-      'Items of theirs I've subscribed to', etc.
+    Issues: We might want to keep track of lots of sharing information like
+    'Permissions I've given them', 'Items of mine they've subscribed to',
+    'Items of theirs I've subscribed to', etc.
     """
     schema.kindInfo(displayName="Contact", displayAttribute="emailAddress")
     

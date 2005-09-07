@@ -262,6 +262,7 @@ def generateDocs(buildenv):
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
+                          '--debug',
                           '--inheritance listed',
                           '--no-private',
                           '--exclude=".*tests.*"',

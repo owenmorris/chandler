@@ -1689,9 +1689,9 @@ class AEBlock(BoxContainer):
     Attribute Editor Block: instantiates an Attribute Editor appropriate for
     the value of the specified attribute; the Attribute Editor then creates
     the widget. Issues:
-    - Finalization.  We're relying on EVT_KILL_FOCUS to know when to end 
-      editing.  We know the Detail View doesn't always operate in ways that 
-      cause this to be reliable, but I think these problems can be fixed there.
+     - Finalization.  We're relying on EVT_KILL_FOCUS to know when to end 
+       editing.  We know the Detail View doesn't always operate in ways that 
+       cause this to be reliable, but I think these problems can be fixed there.
     """
     schema.kindInfo(
         displayName="Attribute Editor Block Kind",

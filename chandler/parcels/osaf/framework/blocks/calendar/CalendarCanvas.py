@@ -806,8 +806,9 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
     # Managing the date range
 
     def setRange(self, date):
-        """REFACTOR: what this was supposed to do is
-                    "Sets the range to include the given date"
+        """
+        REFACTOR: what this was supposed to do is
+        "Sets the range to include the given date"
         but the old code didn't do that, and that's somewhat nontrivial: for a
         big rangeIncrement, what's rangeStart supposed to be? 
 

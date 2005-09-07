@@ -114,14 +114,19 @@ IGNORE       = 3
 
 def checkAccess(host, port=80, useSSL=False, username=None, password=None,
                 path=None, repositoryView=None):
-    """ Check the permissions for a webdav account by reading and writing
-        to that server.
+    """
+    Check the permissions for a webdav account by reading and writing
+    to that server.
 
     Returns a tuple (result code, reason), where result code indicates the
-    level of permissions:  CANT_CONNECT, NO_ACCESS, READ_ONLY, READ_WRITE.
+    level of permissions: CANT_CONNECT, NO_ACCESS, READ_ONLY, READ_WRITE.
+
     CANT_CONNECT will be accompanied by a "reason" string that was provided
-    from the socket layer.  NO_ACCESS and READ_ONLY will be accompanied by
-    an HTTP status code.  READ_WRITE will have a "reason" of None.
+    from the socket layer.
+    
+    NO_ACCESS and READ_ONLY will be accompanied by an HTTP status code.
+
+    READ_WRITE will have a "reason" of None.
     """
 
     handle = ChandlerServerHandle(host=host, port=port, username=username,
