@@ -38,7 +38,7 @@ def make_mainview(parcel):
                                       indexName='reminderTime',
                                       source=app.events,
                                       filterExpression='item.hasLocalAttributeValue(\'reminderTime\') == True',
-                                      filterAttributes='reminderTime')
+                                      filterAttributes=['reminderTime'])
 
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
