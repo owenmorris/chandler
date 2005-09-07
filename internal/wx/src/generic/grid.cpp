@@ -3843,13 +3843,7 @@ void wxGridWindow::OnEraseBackground( wxEraseEvent& WXUNUSED(event) )
 
 void wxGridWindow::OnFocus(wxFocusEvent& event)
 {
-bool bIsHandled = false;
-
-    bIsHandled = ! IsBeingDeleted();
-    if ( bIsHandled )
-        bIsHandled = m_owner->GetEventHandler()->ProcessEvent( event );
-
-    if ( !bIsHandled )
+    if ( !m_owner->GetEventHandler()->ProcessEvent( event ) )
         event.Skip();
 }
 
@@ -5504,7 +5498,7 @@ void wxGrid::ProcessGridCellMouseEvent( wxMouseEvent& event )
         if ( m_cursorMode == WXGRID_CURSOR_SELECT_CELL )
         {
             // Hide the edit control, so it
-            // won't interfer with drag-shrinking.
+            // won't interfere with drag-shrinking.
             if ( IsCellEditControlShown() )
             {
                 HideCellEditControl();
@@ -7065,9 +7059,15 @@ void wxGrid::DrawCell( wxDC& dc, const wxGridCellCoords& coords )
     // Note: However, only if it is really _shown_, i.e. not hidden!
     if ( isCurrent && IsCellEditControlShown() )
     {
+        // NB: this "#if..." is temporary and fixes a problem where the
+        // edit control is erased by this code after being rendered.
+        // On wxMac (QD build only), the cell editor is a wxTextCntl and is rendered
+        // implicitly, causing this out-of order render.
+#if !defined(__WXMAC__) || wxMAC_USE_CORE_GRAPHICS
         wxGridCellEditor *editor = attr->GetEditor(this, row, col);
         editor->PaintBackground(rect, attr);
         editor->DecRef();
+#endif
     }
     else
     {
@@ -10047,7 +10047,7 @@ void wxGrid::AutoSizeRowLabelSize( int row )
     long w, h;
 
     // Hide the edit control, so it
-    // won't interfer with drag-shrinking.
+    // won't interfere with drag-shrinking.
     if( IsCellEditControlShown() )
     {
         HideCellEditControl();
