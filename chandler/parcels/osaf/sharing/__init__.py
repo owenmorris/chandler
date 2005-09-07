@@ -29,13 +29,6 @@ class UIDMap(schema.Item):
             uid = getattr(item, 'icalUID', '')
             if uid:
 
-                # @@@MOR These two lines are a workaround for not being able
-                # to simply set a new alias -- Andi will have this fixed 
-                # soon and I can get rid of these:
-                if item in self.items:
-                    self.items.remove(item)
-                #
-
                 self.items.append(item, uid)
                 # logger.debug("uid_map -- added item %s, %s",
                 #     item.getItemDisplayName(), uid)

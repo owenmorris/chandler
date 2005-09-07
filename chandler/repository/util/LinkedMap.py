@@ -334,26 +334,29 @@ class LinkedMap(dict):
         The alias must not be set for another key already.
         """
 
-        aliasedKey = self.resolveAlias(alias)
-
-        if aliasedKey != key:
-            if aliasedKey is not None:
+        if alias is not None:
+            aliasedKey = self.resolveAlias(alias)
+            if not (aliasedKey is None or aliasedKey == key):
                 raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
 
-            link = self._get(key)
+        link = self._get(key)
+        oldAlias = link._alias
+
+        if oldAlias != alias:
+            aliases = self._aliases
             self.linkChanged(link, key)
 
-            if link._alias is not None:
-                try:
-                    del self._aliases[link._alias]
-                except KeyError:
-                    pass
+            if aliases:
+                if oldAlias is not None and oldAlias in aliases:
+                    del aliases[oldAlias]
 
             link._alias = alias
-            if self._aliases is None:
-                self._aliases = {alias: key}
-            else:
-                self._aliases[alias] = key
+
+            if alias is not None:
+                if aliases is None:
+                    self._aliases = {alias: key}
+                else:
+                    aliases[alias] = key
 
     def firstKey(self):
         "Return the first key of this mapping."

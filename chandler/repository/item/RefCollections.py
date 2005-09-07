@@ -205,13 +205,20 @@ class RefList(LinkedMap, Indexed):
         """
         Append an item to this ref collection.
 
+        An item may occur only once in any given ref collection. If the item
+        already occurs in this collection then only the alias is changed if
+        passed in and not C{None}.
+
         @param alias: if this optional argument is specified it becomes an
         alias with which the item can be looked up using the L{getByAlias}
         or L{resolveAlias} methods.
         @type alias: a string
         """
 
-        if not item in self:
+        if item in self:
+            if alias is not None:
+                self.setAlias(item, alias)
+        else:
             self._item._references._addValue(self._name, item, self._otherName,
                                              alias=alias)
 
