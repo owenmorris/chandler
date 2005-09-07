@@ -36,11 +36,6 @@
        parts of the app need to redisplay in the event (sic) of
        the user changing timezone; e.g. the minical, preview,
        calendar and detail views. -->
-  <BlockEvent itsName="TimeZoneChange">
-    <blockName>TimeZoneChange</blockName>
-    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
-  </BlockEvent>
-  
   <ContextMenu itsName="sidebarContextMenu">
     <childrenBlocks itemref="doc:OpenTabContextItem"/>
     <childrenBlocks itemref="doc:CloseTabContextItem"/>
@@ -79,56 +74,6 @@
     Chandler's main view
   -->
 
-  <SplitterWindow itsName="TableSummaryViewTemplate">
-    <blockName>TableSummaryViewTemplate</blockName>
-    <childrenBlocks itemref="doc:TableSummaryView"/>
-    <childrenBlocks itemref="doc:TableSummaryDetailTPB"/>
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.65</splitPercentage>
-  </SplitterWindow>
-
-  <Table itsName="TableSummaryView">
-    <contents itemref="app:allCollection"/>
-    <blockName>TableSummaryView</blockName>
-    <characterStyle itemref="SummaryRowStyle"/>
-    <headerCharacterStyle itemref="SummaryHeaderStyle"/>
-    <hasGridLines>True</hasGridLines>
-
-    <columnHeadings></columnHeadings>
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnData>itsKind</columnData>
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
-    
-    <columnWidths>20</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-
-    <columnReadOnly>True</columnReadOnly>
-    <columnReadOnly>True</columnReadOnly>
-    <columnReadOnly>False</columnReadOnly>
-    <columnReadOnly>True</columnReadOnly>
-
-    <selection>
-      <core:Integer value="0"/>
-      <core:Integer value="0"/>
-    </selection>
-  </Table>
-
-  <TrunkParentBlock itsName="TableSummaryDetailTPB">
-    <blockName>TableSummaryDetailTPB</blockName>
-    <trunkDelegate itemref="doc:TableSummaryDetailTrunkDelegate"/>
-  </TrunkParentBlock>
-
-  <detail:DetailTrunkDelegate itsName="TableSummaryDetailTrunkDelegate">
-    <trunkStub itemref="detail:DetailRoot"/>
-  </detail:DetailTrunkDelegate>
 
 
   <SplitterWindow itsName="CalendarSummaryViewTemplate">
@@ -145,90 +90,7 @@
 
 <!-- main calendar area -->
 
-  <CharacterStyle itsName="DefaultCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-  </CharacterStyle>
 
-  <CharacterStyle itsName="DefaultBoldCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontStyle>bold</fontStyle>
-  </CharacterStyle>
-
-  <CharacterStyle itsName="DefaultBigBoldCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>13</fontSize>
-    <fontStyle>bold</fontStyle>
-  </CharacterStyle>
-
-  <CharacterStyle itsName="TimeZoneCharacterStyle">
-    <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>11</fontSize>
-  </CharacterStyle>
-
-  <calendar:CalendarContainer itsName="CalendarSummaryView">
-    <blockName>CalendarSummaryView</blockName>
-    <childrenBlocks itemref="doc:MainCalendarControl"/>
-    <calendarControl itemref="doc:MainCalendarControl"/>
-    <characterStyle itemref="doc:DefaultCharacterStyle"/>
-    <boldCharacterStyle itemref="doc:DefaultBoldCharacterStyle"/>
-    <bigBoldCharacterStyle itemref="doc:DefaultBigBoldCharacterStyle"/>
-    <!-- <childrenBlocks itemref="doc:WeekColumnHeader"/> -->
-    <childrenBlocks itemref="doc:MainCalendarCanvasSplitter"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <eventsForNamedLookup itemref="doc:TimeZoneChange"/>
-  </calendar:CalendarContainer>
-
-
-    <calendar:CalendarControl itsName="MainCalendarControl">
-      <blockName value="MainCalendarControl"/>
-      <calendarContainer itemref="doc:CalendarSummaryView"/>
-      <tzCharacterStyle itemref="doc:TimeZoneCharacterStyle"/>
-      <stretchFactor value="0"/>
-      <!-- set contents to an empty collection somehow... -->
-    </calendar:CalendarControl>
-  
-    <!--<StaticText itsName="WeekColumnHeader">-->
-      <!--<blockName value="arel's newfangled week ColumnHeader"/>-->
-      <!--<title value="arel's newfangled week ColumnHeader goes here"/>-->
-      <!--<stretchFactor value="0"/>-->
-    <!--</StaticText>-->
-  
-  
-    <calendar:CanvasSplitterWindow itsName="MainCalendarCanvasSplitter">
-      <blockName value="MainCalendarCanvasSplitter"/>
-      
-      <childrenBlocks itemref="doc:AllDayEvents"/>
-      <childrenBlocks itemref="doc:TimedEvents"/>
-      
-      <!-- as small as possible; AllDayEvents's SetMinSize() should override? -->
-      <splitPercentage value="0.01"/>
-      <orientationEnum>Horizontal</orientationEnum>      
-      <stretchFactor value="1"/>
-    </calendar:CanvasSplitterWindow>
-  
-      <calendar:AllDayEventsCanvas itsName="AllDayEvents">
-        <blockName value="AllDayEventsCanvas"/>
-        <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="0"/> <!-- splitterwindows, unlike boxcontainers, ignore this -->
-        <contents itemref="app:allCollection"/>
-      </calendar:AllDayEventsCanvas>
-  
-      <calendar:TimedEventsCanvas itsName="TimedEvents">
-        <blockName value="TimedEventsCanvas"/>
-        <calendarContainer itemref="doc:CalendarSummaryView"/>
-        <stretchFactor value="0"/> <!-- ignored -->
-        <contents itemref="app:allCollection"/>
-      </calendar:TimedEventsCanvas>
-<!-- end main calendar area -->
-
-  <TrunkParentBlock itsName="CalendarDetailTPB">
-    <blockName>CalendarDetailTPB</blockName>
-    <trunkDelegate itemref="doc:CalendarDetailTrunkDelegate"/>
-  </TrunkParentBlock>
-
-  <detail:DetailTrunkDelegate itsName="CalendarDetailTrunkDelegate">
-    <trunkStub itemref="detail:DetailRoot"/>
-  </detail:DetailTrunkDelegate>
 
   <!--
     CPIA test view: like a unit test/testing ground for CPIA
