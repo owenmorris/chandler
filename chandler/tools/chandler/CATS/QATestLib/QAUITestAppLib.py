@@ -158,8 +158,8 @@ class UITestItem :
             App_ns.summary.select(self.item)
         #if in the Calendar view (select by clicking on the TimedCanvasItem)
         else:
-            timedCanvas = App_ns.TimedEventsCanvas
-            allDayCanvas = App_ns.AllDayEventsCanvas
+            timedCanvas = App_ns.TimedEvents
+            allDayCanvas = App_ns.AllDayEvents
             for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
                 if canvasItem._item == self.item:
 		    allDayCanvas.widget.OnSelectItem(canvasItem.GetItem())
@@ -1046,7 +1046,7 @@ class UITestView:
         @param y : the y coordinate
         """
         if self.state == "CalendarView":
-            self.timedCanvas = App_ns.TimedEventsCanvas 
+            self.timedCanvas = App_ns.TimedEvents
             canvasItem = None
             #process the corresponding event
             click = wx.MouseEvent(wx.wxEVT_LEFT_DCLICK)
