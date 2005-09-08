@@ -185,6 +185,7 @@ class wxSidebar(ControlBlocks.wxTable):
                     self.RefreshRect (imageRect)
 
     def OnRequestDrop (self, x, y):
+        self.hoverRow = wx.NOT_FOUND
         x, y = self.CalcUnscrolledPosition(x, y)
         self.whereToDropItem = self.YToRow(y)
         if self.whereToDropItem == wx.NOT_FOUND:
@@ -224,17 +225,17 @@ class wxSidebar(ControlBlocks.wxTable):
         except AttributeError:
             # If it's our first time hovering then set previous state to be NOT_FOUND
             self.hoverRow = wx.NOT_FOUND
-        else:
-            # Clear the selection colour if necessary
-            if self.hoverRow != wx.NOT_FOUND and self.hoverRow != hoverRow:
-                self.SetRowHighlight(self.hoverRow, False)
-                
-            # Colour the item if it exists and isn't already coloured
-            if hoverRow != wx.NOT_FOUND and hoverRow != self.hoverRow:
-                self.SetRowHighlight(hoverRow, True)
+
+        # Clear the selection colour if necessary
+        if self.hoverRow != wx.NOT_FOUND and self.hoverRow != hoverRow:
+            self.SetRowHighlight(self.hoverRow, False)
             
-            # Store current state
-            self.hoverRow = hoverRow
+        # Colour the item if it exists and isn't already coloured
+        if hoverRow != wx.NOT_FOUND and hoverRow != self.hoverRow:
+            self.SetRowHighlight(hoverRow, True)
+        
+        # Store current state
+        self.hoverRow = hoverRow
             
     def OnHoverLeave (self):
         # check if we had a hover row
@@ -245,6 +246,7 @@ class wxSidebar(ControlBlocks.wxTable):
         else:
             # Clear the selection colour if necessary
             self.SetRowHighlight(self.hoverRow, False)
+            self.hoverRow = wx.NOT_FOUND
             
     def SetRowHighlight (self, row, highlightOn):
         if highlightOn:
