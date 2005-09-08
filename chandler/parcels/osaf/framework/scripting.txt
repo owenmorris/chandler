@@ -44,10 +44,8 @@ call the event's Skip() method to keep looking for a handler::
 
 There is an APIs to run scripts based on options passed in to Chandler
 on the command line.  It checks the global options for a script to run.
-There's also an option to run the standard test script at Chandler 
-startup.  The standard test script is the same script that's run
-when you hit the "F1" key.
-
+There's also an option to run the test scripts at Chandler 
+startup.  The test scripts any script that starts with the title "test".
 Some day we'll launch Chandler here, so we can test these features.
 
 

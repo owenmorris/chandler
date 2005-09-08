@@ -100,11 +100,13 @@ class Script(pim.ContentItem):
         self.lastRan = datetime.now()
         if bodyString is not None:
             self.bodyString = bodyString # property for the body LOB
-        self.isPrivate = True # can't share scripts
+        self.isPrivate = False # can share scripts
 
+    """
     def isAttributeModifiable(self, attribute):
-        # allow attributes to be modified if Script created by "me".
+        # To allow attributes to be modified only if Script was created by "me":
         return self.creator is self.getCurrentMeContact(self.itsView)
+    """
 
     def execute(self, fileName=""):
         self.lastRan = datetime.now()
@@ -155,9 +157,15 @@ def _startsWithScriptNumber(candidateString, numberedStringToMatch):
 
 def run_startup_script(view):
     script = None
-    fileName = ""
-    if Globals.options.testScript:
-        script = _findScriptStartingWith(_("Script F1"), view)
+    fileName = "" # assume no source file
+    if Globals.options.testScripts:
+        try:
+            for aScript in Script.iterItems(view):
+                if aScript.displayName.lower().startswith(_("test")):
+                    aScript.execute(fileName=fileName)
+        finally:
+            # run the cleanup script
+            schema.ns('osaf.app', view).CleanupAfterTests.execute()
     if Globals.options.scriptFile:
         scriptFileText = script_file(Globals.options.scriptFile)
         if scriptFileText:

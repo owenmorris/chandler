@@ -192,6 +192,9 @@ class MainView(View):
 
     def onQuitEvent (self, event):
         wx.GetApp().mainFrame.Close ()
+        windows = wx.GetTopLevelWindows()
+        for window in windows:
+            window.Close()
 
     def onCloseEvent (self, event):
         curWindow = self.widget.FindFocus() #start with the focus
@@ -707,7 +710,7 @@ class MainView(View):
                 collection.setRule(rule)
 
     def _SelectedItemScript(self):
-        """ Return the poosible script item:
+        """ Return the possible script item:
         the item shown in the Detail View, unless
         its body is empty.  
         Otherwise return None.

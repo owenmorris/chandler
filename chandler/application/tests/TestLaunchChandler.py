@@ -26,7 +26,7 @@ class LaunchChandlerTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             chandlerArgs = ['Chandler.py', '--nocatch', '--create']
     
             # Set up the script argument
-            chandlerArgs.append('--testScript')
+            chandlerArgs.append('--testScripts')
     
             # User's can specify the profile directory to use for the launch test
             profileDir = os.environ.get('CHANDLER_LAUNCH_TEST_PROFILEDIR')

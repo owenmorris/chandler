@@ -182,21 +182,39 @@ The Chandler Team"""
     """
     Scripts.  These files are located in our Scripts parcel.
     """
-
-    # Startup script used to test Chandler startup
-    scripting.Script.update(parcel, _("Script F1 - Startup Test Script"),
-                            creator = osafDev,
-                            bodyString=scripting.script_file("StartupTest.py", Scripts.__file__)
-                            )
-
-    scripting.Script.update(parcel, _("Script F12 - Create a New Script"),
+    # Script to create a new user script item
+    scripting.Script.update(parcel, _("Script F1 - Create a New Script"),
                             creator = osafDev,
                             bodyString=scripting.script_file("NewScript.py", Scripts.__file__)
                             )
 
-    scripting.Script.update(parcel, _("Event timing example"),
+    # Block Inspector
+    scripting.Script.update(parcel, _("Script F2 - Block under cursor"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("BlockInspector.py", Scripts.__file__)
+                            )
+
+    # Item Inspector
+    scripting.Script.update(parcel, _("Script F3 - Item selected"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("ItemInspector.py", Scripts.__file__)
+                            )
+
+    # Scripts whose name starts with "test" can all be run through a command-line option
+    scripting.Script.update(parcel, _("Test - Reload Parcels"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("ReloadParcels.py", Scripts.__file__)
+                            )
+
+    scripting.Script.update(parcel, _("Test - Event timing example"),
                             creator = osafDev,
                             bodyString=scripting.script_file("EventTiming.py", Scripts.__file__)
+                            )
+
+    # The cleanup script, run after all the test scripts
+    scripting.Script.update(parcel, _("CleanupAfterTests"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("CleanupAfterTests.py", Scripts.__file__)
                             )
 
 

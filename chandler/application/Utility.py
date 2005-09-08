@@ -102,7 +102,7 @@ def initOptions(**kwds):
         'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
         'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR', 'location of the Chandler Repository'),
         'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
-        'testScript': ('-t', '--testScript', 'b', False, None, 'run the built-in startup test script'),
+        'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
         'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
         'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
         'create':     ('-c', '--create',     'b', False, "CREATE", 'Force creation of a new repository'),
