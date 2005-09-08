@@ -4,7 +4,11 @@
 <!-- $Date$ -->
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+<!--
+ this is an old parcel file that was not converted to python
+ if someone is feeling adventurous, it would be nice to have a decent block demo again
 
+-->
 <core:Parcel itsName="demo"
              xmlns:core="parcel:core"
              xmlns="parcel:osaf.framework.blocks"
