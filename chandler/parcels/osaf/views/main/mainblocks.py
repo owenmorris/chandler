@@ -22,7 +22,6 @@ def make_mainview(parcel):
     # these specific events to their own place
     globalevents = schema.ns("osaf.framework.blocks", parcel.itsView)
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
-    demo = schema.ns("osaf.views.demo", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
 
     sidebarCollection = \
@@ -295,7 +294,7 @@ def make_mainview(parcel):
             methodName='onModifyContentsEvent',
             dispatchToBlockName='Sidebar',
             commitAfterDispatch=True,
-            items=[demo.BlockDemoView, repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
+            items=[repositoryViewer.RepositoryView, repositoryViewer.CPIAView],
             dispatchEnum='SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
     GenerateContentItemsFromFileEvent = \
@@ -310,14 +309,6 @@ def make_mainview(parcel):
             kindParameter=osaf.pim.tasks.TaskMixin.getKind(parcel.itsView),
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='Sidebar').install(parcel)
-    # from //parcels/osaf/views/main
-    AddDemoViewEvent = \
-        ModifyContentsEvent.template('AddDemoView',
-            methodName='onModifyContentsEvent',
-            dispatchToBlockName='Sidebar',
-            commitAfterDispatch=True,
-            items=[demo.BlockDemoView],
-            dispatchEnum='SendToBlockByName').install(parcel)
     # from //parcels/osaf/views/main
     EmptyTrashEvent = \
         BlockEvent.template('EmptyTrash',
@@ -756,10 +747,6 @@ def make_mainview(parcel):
                                         helpString=_(u'Adds all of the extra views to the sidebar')),
                                     MenuItem.template('TestSeparator1',
                                         menuItemKind='Separator'),
-                                    MenuItem.template('AddDemoViewItem',
-                                        event=AddDemoViewEvent,
-                                        title=_(u'Add Block Demo View (Unstable)'),
-                                        helpString=_(u'Adds the block demo view to the sidebar (Known to be unstable on some systems)')),
                                     MenuItem.template('AddRepositoryViewItem',
                                         event=AddRepositoryViewEvent,
                                         title=_(u'Add Repository Viewer'),
