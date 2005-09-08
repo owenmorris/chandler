@@ -5,7 +5,7 @@ from i18n import OSAFMessageFactory as _
 def installParcel(parcel, oldName=None):
 
     SplitterWindow.template('RepositoryView',
-                            displayName=_(u'RepositoryViewer'),
+                            displayName=_(u'Repository Viewer'),
                             eventBoundary=True,
                             splitPercentage=0.40,
                             childrenBlocks=[
@@ -29,7 +29,7 @@ def installParcel(parcel, oldName=None):
         ]).install(parcel)
         
     SplitterWindow.template('CPIAView',
-                            displayName=_(u'Repository Viewer'),
+                            displayName=_(u'CPIA Viewer'),
                             eventBoundary=True,
                             splitPercentage=0.4,
                             childrenBlocks=[
