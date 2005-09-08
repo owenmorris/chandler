@@ -29,9 +29,10 @@ class DefaultTimeZone(schema.Item):
     # XXX: [i18n] Are these names translated in ICU or do we need to do this manually?
     knownTimeZones = map(
         PyICU.ICUtzinfo.getInstance,
-        [_("US/Pacific"), _("US/Mountain"), _("US/Central"), _("US/Eastern"),
-         _("Europe/Paris"),
-         _("Africa/Johannesburg") # A long name to show how wide the popup can become
+        [_(u'US/Eastern'), _(u'US/Central'), _(u'US/Mountain'),
+         _(u'US/Pacific'), _(u'US/Hawaii'), _(u'Europe/London'),
+         _(u'Europe/Paris'), _(u'Asia/Shanghai'), _(u'Asia/Calcutta'),
+         _(u'Australia/Sydney'),
         ])
     
     
