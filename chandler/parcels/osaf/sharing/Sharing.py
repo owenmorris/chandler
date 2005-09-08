@@ -1855,6 +1855,14 @@ class CloudXMLFormat(ImportExportFormat):
                     elif cardinality == 'dict':
                         pass
 
+            # @@@MOR Hack to add imported modification items to the shared
+            # collection as well.  This is a temporary fix for bugs 3790 and
+            # 3954 (modification events need to get added to their master's
+            # collection currently, although this may change)
+            if hasattr(item, 'modificationFor'):
+                if not item in self.share.contents:
+                    self.share.contents.add(item)
+
         finally:
             del item._share_importing
 
