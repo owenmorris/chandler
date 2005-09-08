@@ -183,7 +183,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # this is supposed to be set in Draw(), but sometimes this
         # object seems to exist before Draw() is called
-        self.textOffset = 0
+        self.textOffset = wx.Point(self.textMargin, self.textMargin)
                         
     def GetEditorPosition(self):
         """
@@ -688,7 +688,7 @@ class CalendarEventHandler(object):
                                             {'tzinfo':newTZ})
 
 
-class CalendarBlock(Sendability, CollectionCanvas.CollectionCanvas):
+class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
     """ Abstract block used as base Kind for Calendar related blocks.
 
     This base class can be used for any block that displays a collection of

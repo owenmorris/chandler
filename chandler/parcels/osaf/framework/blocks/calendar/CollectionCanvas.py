@@ -676,7 +676,7 @@ class wxCollectionCanvas(wx.ScrolledWindow):
         self.blockItem.DeleteSelection()
         
 
-class CollectionCanvas(Block.RectangularChild):
+class CollectionBlock(Block.RectangularChild):
     """
     @ivar selection: selected item (persistent)
     @type selection: Item
@@ -747,4 +747,3 @@ class CollectionCanvas(Block.RectangularChild):
         event.arguments['Enable'] = (self.selection is not None)
 
 
-CollectionBlock = CollectionCanvas      # backward compatibility

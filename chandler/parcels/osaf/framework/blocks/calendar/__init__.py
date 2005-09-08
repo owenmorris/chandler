@@ -6,7 +6,7 @@ from CalendarCanvas import (
     CanvasSplitterWindow, AllDayEventsCanvas, TimedEventsCanvas
 )
 
-from CollectionCanvas import CollectionCanvas as __CollectionCanvas
+from CollectionCanvas import CollectionBlock as __CollectionBlock
 from CalendarBlocks import MiniCalendar, PreviewArea
 
 
