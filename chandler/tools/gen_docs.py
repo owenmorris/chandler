@@ -178,11 +178,11 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()
 
-    if not args:
-        outputDir = os.path.join(os.getenv('CHANDLERHOME'), 'docs', 'api')
-
-        print "Output directory not specified - defaulting to %s" % outputDir
-    else:
+    if args:
         outputDir = args[0]
 
-    generateDocs(outputDir, options.verbose)
+    if os.path.isdir(outputDir):
+        generateDocs(outputDir, options.verbose)
+    else:
+        print "Error: Output directory does not exist - exiting"
+
