@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "60" # morgen: changed icalUIDMap attribute
+SCHEMA_VERSION = "61" # grant: changed osaf.pim.calendar.TimeZone to store "recent" tz names
 
 logger = None # initialized in initLogging()
 

@@ -2,46 +2,41 @@ import application.schema as schema
 
 import PyICU
 import datetime
-from i18n import OSAFMessageFactory as _
+from i18n import OSAFMessageFactory
 
-class DefaultTimeZone(schema.Item):
+class TimeZoneInfo(schema.Item):
     """
-    Item that stores for a schema.TimeZone attribute that synchronizes
-    itself with PyICU's default settings.
+    Item that persists:
+    
+    - A schema.TimeZone attribute that synchronizes
+      itself with PyICU's default settings.
+    
+    - A list of "well-known" timezone names.
     """
     
     schema.kindInfo(
         displayName="TimeZone info"
     )
 
-    tzinfo = schema.One(
+    default = schema.One(
         schema.TimeZone,
-        displayName = 'Time Zone',
+        displayName = 'User Default Time Zone',
     )
 
-    # List of known time zones (for populating drop-downs).
-    # Future expansions:
-    #
-    #  (1) List will become larger (not quite 400 or so)
-    #  (2) Elements in the list will be Text
-    #  (3) List will probably become a schema.Sequence()
-    #
-    # XXX: [i18n] Are these names translated in ICU or do we need to do this manually?
-    knownTimeZones = map(
-        PyICU.ICUtzinfo.getInstance,
-        [_(u'US/Eastern'), _(u'US/Central'), _(u'US/Mountain'),
-         _(u'US/Pacific'), _(u'US/Hawaii'), _(u'Europe/London'),
-         _(u'Europe/Paris'), _(u'Asia/Shanghai'), _(u'Asia/Calcutta'),
-         _(u'Australia/Sydney'),
-        ])
-    
+    # List of well-known time zones (for populating drop-downs).
+    # [i18n] Since ICU doesn't suitably localize strings like 'US/Pacific',
+    # we'll have to provide our own translations.
+    wellKnownIDs = schema.Sequence(
+        schema.Text,
+        displayName = 'List of "well-known" time zones names',
+    )
     
     @classmethod
     def get(cls, view = None):
-        """Return the default C{DefaultTimeZoneItem} instance, which
+        """Return the default C{TimeZoneInfo} instance, which
            automatically syncs with PyICU's default; i.e.
            if you assign an ICUtzinfo to
-           C{DefaultTimeZoneItem.get().tzinfo},
+           C{TimeZoneInfo.get().default},
            this will be stored as ICU's default time zone.
        """
        
@@ -52,30 +47,98 @@ class DefaultTimeZone(schema.Item):
         # we could make the.update() call below inside installParcel()
         # in __init__.py).
         try:
-            result = namespace.default
+            result = namespace.defaultInfo
         except AttributeError:
-            cls.update(namespace.parcel, 'default')
-            result = namespace.default
+            # This is a little cheesy...
+            
+            # We define _() here so that the wellKnownIDs
+            # strings below are picked up for translation by
+            # pygettext.py.
+            #
+            # By having _ return the original string, we store
+            # (untranslated) TZIDs in the repository. This is
+            # actually what we want, since ICU would have no idea
+            # how to look up timezones based on the translated
+            # names.
+            _ = lambda x: x
+                
+            wellKnownIDs = [
+                _(u'US/Eastern'),
+                _(u'US/Central'),
+                _(u'US/Mountain'),
+                _(u'US/Pacific'),
+                _(u'US/Hawaii'),
+                _(u'Europe/London'),
+                _(u'Europe/Paris'),
+                _(u'Asia/Shanghai'),
+                _(u'Asia/Calcutta'),
+                _(u'Australia/Sydney'),
+            ]
+            result = cls.update(namespace.parcel, 'defaultInfo',
+                                wellKnownIDs=wellKnownIDs)
+                                
     
         return result
         
     def __init__(self, *args, **keywds):
-        super(DefaultTimeZone, self).__init__(*args, **keywds)
         
-        self.tzinfo = PyICU.ICUtzinfo.getDefault()
+        super(TimeZoneInfo, self).__init__(*args, **keywds)
+        
+        self.default = PyICU.ICUtzinfo.getDefault()
+        
+    def canonicalTimeZone(self, tzinfo):
+        """
+        This returns an ICUtzinfo that's equivalent to the passed-in
+        tzinfo, to prevent duplicates (like 'PST' and 'US/Pacific'
+        from appearing in timezone pickers).
+        
+        A side-effect is that if a previously unseen tzinfo is
+        passed in, it will be added to the receiver's wellKnownIDs
+        """
+        result = None
+        
+        if tzinfo is not None:
+        
+            if tzinfo.tzid in self.wellKnownIDs:
+                result = tzinfo
+            else:
+                numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
+                
+                for index in xrange(numEquivalents):
+                    equivName = PyICU.TimeZone.getEquivalentID(tzinfo.tzid, index)
+                    
+                    if equivName in self.wellKnownIDs:
+                        result = PyICU.ICUtzinfo.getInstance(equivName)
+                        break
+                        
+            if result is None and tzinfo is not None:
+                self.wellKnownIDs.append(unicode(tzinfo.tzid))
+                result = tzinfo
+            
+        return result
+        
+    def iterTimeZones(self):
+        """
+        A generator for all the well-known ICUtzinfo objects. Each
+        generated value is a tuple of the form (display name, ICUtzinfo),
+        where 'display name' is a suitably localized unicode string.
+        """
+        
+        for name in self.wellKnownIDs:
+            yield (OSAFMessageFactory(name), PyICU.ICUtzinfo.getInstance(name))
         
     def onItemLoad(self, view):
         # This is overridden to ensure that storing the
         # default timezone in the repository overrides ICU's
         # settings.
-        tz = self.tzinfo
+        tz = self.default
         if tz is not None and view is not None:
             PyICU.TimeZone.setDefault(tz.timezone)
 
     def onValueChanged(self, name):
         # Repository hook for attribute changes.
-        if name == 'tzinfo':
-            tzinfo = self.tzinfo
+        if name == 'default':
+            tzinfo = self.canonicalTimeZone(self.default)
             if tzinfo is not None:
                 PyICU.TimeZone.setDefault(tzinfo.timezone)
 

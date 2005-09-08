@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat, ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.calendar.TimeZone import DefaultTimeZone, formatTime
+from osaf.pim.calendar.TimeZone import TimeZoneInfo, formatTime
 import osaf.pim.items as items
 
 from osaf.framework.blocks import DragAndDrop
@@ -681,7 +681,7 @@ class CalendarEventHandler(object):
             newTZ = control.GetClientData(choiceIndex)
 
             view = self.blockItem.itsView
-            DefaultTimeZone.get(view=view).tzinfo = newTZ
+            TimeZoneInfo.get(view=view).default = newTZ
             view.commit()
             
             self.blockItem.postEventByName("TimeZoneChange",
@@ -1835,7 +1835,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         timeFormatter = DateFormat.createTimeInstance()
         hourFP = FieldPosition(DateFormat.HOUR1_FIELD)
         dummyDate = date.today()
-        defaultTzinfo = DefaultTimeZone.get(view=self.blockItem.itsView).tzinfo
+        defaultTzinfo = TimeZoneInfo.get(view=self.blockItem.itsView).default
         
         for hour in hourrange:
             timedate = time(hour=hour, tzinfo=defaultTzinfo)
@@ -2410,12 +2410,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
         view = self.GetParent().blockItem.itsView
-        defaultTzinfo = DefaultTimeZone.get(view=view).tzinfo
+        info = TimeZoneInfo.get(view=view)
+        defaultTzinfo = info.canonicalTimeZone(info.default)
         
-        # Now, populate the wxChoice with DefaultTimeZone.knownTimeZones
+        # Now, populate the wxChoice with TimeZoneInfo.knownTimeZones
         selectIndex = -1
-        for zone in DefaultTimeZone.knownTimeZones:
-            index = tzChoice.Append(unicode(zone), clientData=zone)
+        for name, zone in info.iterTimeZones():
+            index = tzChoice.Append(name, clientData=zone)
             
             if defaultTzinfo.timezone == zone.timezone:
                 # [@@@] grant: Should be defaultTzinfo == zone; PyICU bug?

@@ -6,40 +6,62 @@ from datetime import datetime
 
 class TimeZoneTestCase(unittest.TestCase):
     def setUp(self):
-        self.defaultTzItem = DefaultTimeZone.get()
+        self.tzInfoItem = TimeZoneInfo.get()
 
     def testGetTimeZone(self):
-        self.failIfEqual(self.defaultTzItem.tzinfo, None)
+        self.failIfEqual(self.tzInfoItem.default, None)
         
     def testSetTimeZone(self):
-        self.defaultTzItem.tzinfo = PyICU.ICUtzinfo.getInstance("US/Pacific")
-        self.failUnlessEqual(self.defaultTzItem.tzinfo.timezone.getID(), "US/Pacific")
+        self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Pacific")
+        self.failUnlessEqual(self.tzInfoItem.default.timezone.getID(), "US/Pacific")
 
-        self.defaultTzItem.tzinfo = PyICU.ICUtzinfo.getInstance("US/Eastern")
-        self.failUnlessEqual(self.defaultTzItem.tzinfo.timezone.getID(), "US/Eastern")
+        self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
+        self.failUnlessEqual(self.tzInfoItem.default.timezone.getID(), "US/Eastern")
         
 class DefaultTimeZoneTestCase(TimeZoneTestCase):
     def setUp(self):
-        self.defaultTzItem = DefaultTimeZone.get()
+        self.tzInfoItem = TimeZoneInfo.get()
         
     def testGetTimeZone(self):
         super(DefaultTimeZoneTestCase, self).testGetTimeZone()
-        self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.defaultTzItem.tzinfo)
+        self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.tzInfoItem.default)
 
     def testSetTimeZone(self):
-        self.defaultTzItem.tzinfo = PyICU.ICUtzinfo.getInstance("US/Eastern")
-        self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.defaultTzItem.tzinfo)
+        self.tzInfoItem.default = PyICU.ICUtzinfo.getInstance("US/Eastern")
+        self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.tzInfoItem.default)
+        
+class CanonicalTimeZoneTestCase(unittest.TestCase):
+    def testEquivalent(self):
+        tz = PyICU.ICUtzinfo.getInstance("PST")
+        canonicalTz = TimeZoneInfo.get().canonicalTimeZone(tz)
+        
+        self.failUnlessEqual(canonicalTz.tzid, "US/Pacific")
 
+    def testNew(self):
+        tz = PyICU.ICUtzinfo.getInstance("America/Caracas")
+        info = TimeZoneInfo.get()
+        canonicalTz = info.canonicalTimeZone(tz)
+        
+        self.failUnless(canonicalTz is tz)
+        self.failUnless(tz.tzid in info.wellKnownIDs)
+        
+    def testNone(self):
+        info = TimeZoneInfo.get()
+        canonicalTz = info.canonicalTimeZone(None)
+        
+        self.failUnless(canonicalTz is None)
+        
 class KnownTimeZonesTestCase(unittest.TestCase):
     def setUp(self):
-        self.knownTimeZones = DefaultTimeZone.knownTimeZones
+        self.info = TimeZoneInfo.get()
         
     def testKnownTimeZones(self):
-        self.failUnless(isinstance(self.knownTimeZones, list))
-        self.failIf(len(self.knownTimeZones) <= 0)
-        
-        for tzinfo in self.knownTimeZones:
-            self.failUnless(isinstance(tzinfo, PyICU.ICUtzinfo))
+        numZones = 0
+        for name, tz in self.info.iterTimeZones():
+            self.failUnless(isinstance(name, unicode))
+            self.failUnless(isinstance(tz, PyICU.ICUtzinfo))
+            numZones += 1
+        self.failIf(numZones <= 0)
 
 class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
@@ -47,13 +69,14 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
         super(PersistenceTestCase, self).setUp()
 
     def testGetTimeZone(self):
-        defaultTzItem = DefaultTimeZone.get(view=self.rep.view)
+        defaultTzItem = TimeZoneInfo.get(view=self.rep.view)
         
-        self.failUnlessEqual(defaultTzItem.tzinfo, PyICU.ICUtzinfo.getDefault())
+        self.failUnlessEqual(defaultTzItem.default,
+                             PyICU.ICUtzinfo.getDefault())
 
     def testPerView(self):
-        defaultTzItemOne = DefaultTimeZone.get(view=self.rep.view)
-        defaultTzItemTwo = DefaultTimeZone.get()
+        defaultTzItemOne = TimeZoneInfo.get(view=self.rep.view)
+        defaultTzItemTwo = TimeZoneInfo.get()
         
         self.failIf(defaultTzItemOne is defaultTzItemTwo)
 
@@ -63,10 +86,10 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
         # - Load the repo (Done in setUp())
         # - Get the repo's default DefaultTimeZone
         view = self.rep.view
-        defaultTzItem = DefaultTimeZone.get(view=view)
+        defaultTzItem = TimeZoneInfo.get(view=view)
         # - Change the default DefaultTimeZone
-        defaultTzItem.tzinfo = PyICU.ICUtzinfo.getInstance("GMT")
-        self.failUnlessEqual(defaultTzItem.tzinfo,
+        defaultTzItem.default = PyICU.ICUtzinfo.getInstance("GMT")
+        self.failUnlessEqual(defaultTzItem.default,
                 PyICU.ICUtzinfo.getInstance("GMT"))
         # - Save the repo
         view.commit()
@@ -80,12 +103,13 @@ class PersistenceTestCase(RepositoryTestCase.RepositoryTestCase):
         self.manager = None
         
         # - Now check the default timezone
-        defaultTzItem = DefaultTimeZone.get(view=view)
+        defaultTzItem = TimeZoneInfo.get(view=view)
         # ... see that it changed to what's in the repo
         self.failIfEqual(PyICU.ICUtzinfo.getInstance("US/Pacific"),
-                        defaultTzItem.tzinfo)
+                        defaultTzItem.default)
         # ... and make sure it is still the default!
-        self.failUnlessEqual(defaultTzItem.tzinfo, PyICU.ICUtzinfo.getDefault())
+        self.failUnlessEqual(defaultTzItem.default,
+                             PyICU.ICUtzinfo.getDefault())
 
 class AbstractTimeZoneTestCase(unittest.TestCase):
     def setUp(self):

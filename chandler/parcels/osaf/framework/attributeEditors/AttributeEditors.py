@@ -9,7 +9,7 @@ from wx.lib.scrolledpanel import ScrolledPanel
 from osaf.pim.tasks import TaskMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
-from osaf.pim.calendar.TimeZone import DefaultTimeZone
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 import repository.item.ItemHandler as ItemHandler
 from repository.util.Lob import Lob
@@ -1559,23 +1559,27 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         
         # We also take this opportunity to populate the menu
         existingValue = self.GetControlValue(control)
-        if existingValue is None or existingValue != value:            
+        if existingValue is None or existingValue != value:
             control.Clear()
 
             selectIndex = -1
+            info = TimeZoneInfo.get(view=self.item.itsView)
             
             # Map "floating" timezones to the user's default for now
             if value is None:
-                value = ICUtzinfo.getDefault()
+                value = info.default
                 
+            canonicalTimeZone = info.canonicalTimeZone(value)
+
             # rebuild the list of choices
-            for zone in DefaultTimeZone.knownTimeZones:
-                # [@@@] Localization
-                index = control.Append(unicode(zone), clientData=zone)
+            for name, zone in info.iterTimeZones():
             
-                # [@@@] grant: Should be value == zone; PyICU bug?
-                if value is not None and zone.timezone == value.timezone:
-                    selectIndex = index
+                # [@@@] grant: Should be canonicalTimeZone == zone; PyICU bug?
+                if canonicalTimeZone is not None and \
+                   canonicalTimeZone.timezone == zone.timezone:
+                    selectIndex = control.Append(name, clientData=value)
+                else:
+                    control.Append(name, clientData=zone)
 
             # [@@@] grant: Experimental
             #index = control.Append(_(u"Floating"), clientData=None)
