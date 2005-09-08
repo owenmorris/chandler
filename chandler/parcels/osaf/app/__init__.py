@@ -200,6 +200,12 @@ The Chandler Team"""
                             bodyString=scripting.script_file("ItemInspector.py", Scripts.__file__)
                             )
 
+    # Browse selected item
+    scripting.Script.update(parcel, _("Script F4 - Browse selected item"),
+                            creator = osafDev,
+                            bodyString=scripting.script_file("BrowseSelected.py", Scripts.__file__)
+                            )
+
     # Scripts whose name starts with "test" can all be run through a command-line option
     scripting.Script.update(parcel, _("Test - Reload Parcels"),
                             creator = osafDev,
