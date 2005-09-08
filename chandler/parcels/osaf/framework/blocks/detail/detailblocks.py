@@ -463,7 +463,7 @@ def makeMailSubtree(parcel, oldVersion):
     fromArea = \
         makeArea(parcel, 'FromArea',
             childrenBlocks=[
-                makeLabel(parcel, u'from'),
+                makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'FromEditField',
                     #presentationStyle={'format': 'outgoing'},
@@ -473,7 +473,7 @@ def makeMailSubtree(parcel, oldVersion):
     toMailArea = \
         makeArea(parcel, 'ToArea',
             childrenBlocks=[
-                makeLabel(parcel, u'to'),
+                makeLabel(parcel, _(u'to')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'ToMailEditField',
                     viewAttribute=u'toAddress')],
@@ -504,7 +504,7 @@ def makeMailSubtree(parcel, oldVersion):
         makeArea(parcel, 'AttachmentArea',
             baseClass=AttachmentAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, 'attachments'),
+                makeLabel(parcel, _(u'attachments')),
                 makeSpacer(parcel, width=8),
                 AttachmentTextFieldBlock.template('AttachmentTextField',
                     characterStyle=blocks.TextStyle,

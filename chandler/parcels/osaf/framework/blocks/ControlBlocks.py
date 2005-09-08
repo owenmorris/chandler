@@ -1708,14 +1708,18 @@ class AEBlock(BoxContainer):
     )
     
     def getItem(self): 
-        item = getattr(self, 'viewItem', None)
-        if item.isDeleted():
-            logger.debug("AEBlock.getItem: item is deleted!")
-            item = None
+        item = getattr(self, 'contents', None)
+        if item is not None:
+            if item.isDeleted():
+                logger.debug("AEBlock.getItem: item is deleted!")
+                item = None
+            else:
+                # We have an item - return a proxy for it if necessary
+                item = Calendar.getProxy(u'ui', item)
         return item
     def setItem(self, value): 
         assert not value.isDeleted()
-        self.viewItem = value
+        self.contents = value
     item = property(getItem, setItem, 
                     doc="Safely access the selected item (or None)")
     
@@ -1744,7 +1748,9 @@ class AEBlock(BoxContainer):
         editor = self.lookupEditor()
         if editor is None:
             assert False
-            return None
+            widget = wx.Panel(self.parentBlock.widget, Block.getWidgetID(self))
+            return widget
+        
         widget = editor.CreateControl(forEditing, editor.readOnly, 
                                       self.parentBlock.widget, 
                                       Block.getWidgetID(self), self, font)
