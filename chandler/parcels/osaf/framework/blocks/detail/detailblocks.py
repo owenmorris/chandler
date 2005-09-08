@@ -90,11 +90,21 @@ def makeEditor(parcel, name, viewAttribute, border=None,
                                     uniqueName(parcel, 'PresentationStyle'),
                                     **presentationStyle) \
        or None
-    border = border or RectType(2, 2, 2, 2)       
+    border = border or RectType(2, 2, 2, 2)
+    
+    # We need to find the Resynchronize event... it's in the given parcel if 
+    # we're building the detail view, or we'll get the detail view's namespace
+    # if we're building an editor for another parcel. (We do it this way 'cuz
+    # it'd be bad to schema.ns the detail view while building the detail view.)
+    try:
+        resyncEvent = parcel['Resynchronize']
+    except KeyError:
+        resyncEvent = schema.ns(__name__, parcel.itsView).Resynchronize
+        
     ae = baseClass.template(name, viewAttribute=viewAttribute,
                             characterStyle=characterStyle or blocks.TextStyle,
                             presentationStyle=ps, border=border,
-                            event=parcel['Resynchronize'], **kwds)
+                            event=resyncEvent, **kwds)
     return ae
           
 #
