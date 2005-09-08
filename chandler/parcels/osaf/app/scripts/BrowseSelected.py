@@ -1,6 +1,7 @@
 # prints the item that's currently selected.
 
 import osaf.framework.blocks.Block as Block
+from osaf import webserver
 import webbrowser
 
 f = Block.Block.getFocusBlock()
@@ -10,6 +11,10 @@ except AttributeError:
   i = f.selection
 
 if i:
+    for server in webserver.Server.iterItems(view=i.itsView):
+        if not server.isActivated():
+            server.startup()
+
     path = str(i.itsPath)[1:]
     url = 'http://localhost:1888/repo%s' % path
     webbrowser.open(url)
