@@ -32,8 +32,9 @@ class RepositoryView(CView):
     # 0.5.2: renamed 'persist' aspect to 'persisted', added 'indexed' aspect
     # 0.5.3: new monitor implementation
     # 0.5.4: BString and UString types renamed to Bytes and Text
+    # 0.5.5: added //Schema/Core/Type.types to get rid of type kind query
     
-    CORE_SCHEMA_VERSION = 0x00050400
+    CORE_SCHEMA_VERSION = 0x00050500
 
     def __init__(self, repository, name, version):
         """

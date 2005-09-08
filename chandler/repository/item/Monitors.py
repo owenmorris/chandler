@@ -83,10 +83,12 @@ class Monitors(Item):
 
     def invoke(cls, op, item, attribute, *args):
 
-        #print op, item.itsPath, attribute, item.getAttributeValue(attribute)
-
         view = item.itsView
+
         dispatcher = cls.getInstance(view)
+        if dispatcher is None:  # during core schema loading
+            return
+
         if dispatcher.needsCaching:
             dispatcher.cacheMonitors()
 

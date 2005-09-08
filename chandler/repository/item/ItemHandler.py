@@ -593,6 +593,10 @@ class ItemHandler(ValueHandler):
                 refArgs._setValue(self.repository)
 
         self.afterLoadHooks.append(self.setupClass)
+
+        method = attrs.get('afterLoadHook')
+        if method is not None:
+            self.afterLoadHooks.append(getattr(item, method))
         if hasattr(cls, 'onItemLoad'):
             self.afterLoadHooks.append(item.onItemLoad)
         if self.delete:

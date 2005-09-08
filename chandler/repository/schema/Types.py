@@ -37,6 +37,13 @@ class TypeKind(Kind):
         except KeyError:
             TypeHandler.typeHandlers[view] = { None: self }
 
+        super(TypeKind, self).onItemLoad(view)
+
+    def _collectTypes(self, view):  # run when loading core schema pack
+
+        self.types = [item for item in view._unsavedItems()
+                      if item.isItemOf(self)]
+
     def onItemCopy(self, view, orig):
 
         try:
@@ -62,13 +69,15 @@ class TypeKind(Kind):
         TypeHandler.clear(view)
 
     def findTypes(self, value):
-        """Return a list of types recognizing value.
+        """
+        Return a list of types recognizing value.
 
         The list is sorted by order of 'relevance', a very subjective concept
         that is specific to the category of matching types.
-        For example, Integer < Long < Float or String < Symbol."""
+        For example, Integer < Long < Float or String < Symbol.
+        """
 
-        matches = [i for i in KindQuery().run([self]) if i.recognizes(value)]
+        matches = [type for type in self.types if type.recognizes(value)]
         if matches:
             matches.sort(lambda x, y: x._compareTypes(y))
 
@@ -80,7 +89,9 @@ class Type(Item):
     def __init__(self, name, parent, kind):
 
         super(Type, self).__init__(name, parent, kind)
+
         self._status |= Item.SCHEMA | Item.PINNED
+        TypeHandler.typeHandlers[self.itsView][None].types.append(self)
         
     def _fillItem(self, name, parent, kind, **kwds):
 

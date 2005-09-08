@@ -549,6 +549,7 @@ class DBItemReader(ItemReader):
                                   "kind not found: %s" %(uuid))
             else:
                 self.item._kind = kind
+                kind._setupClass(type(self.item))
 
     def _parent(self, uuid, withSchema, view, afterLoadHooks):
 

@@ -22,7 +22,6 @@ class TypeHandler(object):
         except KeyError:
             pass
 
-        from repository.item.Item import Item
         if isitem(value):
             return cls.typeHandlers[view][SingleRef][0]
 
