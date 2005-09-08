@@ -1,2 +1,2 @@
-build = "Milestone 0.5.04"
-release = "0.5-4"
+build = "Milestone 0.5.05"
+release = "0.5-5"
