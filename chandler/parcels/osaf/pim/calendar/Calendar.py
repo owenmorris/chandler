@@ -971,7 +971,7 @@ class CalendarEventMixin(ContentItem):
 
     def onValueChanged(self, name):
         # allow initialization code to avoid triggering onValueChanged
-        if getattr(self, '_ignoreValueChanges', False) or self.rruleset is None:
+        if getattr(self, '_share_importing', False) or getattr(self, '_ignoreValueChanges', False) or self.rruleset is None:
             return
         # avoid infinite loops
         if name == "rruleset": 

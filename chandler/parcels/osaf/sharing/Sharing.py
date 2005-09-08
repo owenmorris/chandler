@@ -1540,10 +1540,19 @@ class CloudXMLFormat(ImportExportFormat):
         doc = libxml2.parseDoc(text)
         node = doc.children
         try:
-            self.itsView.recordChangeNotifications()
+
+            # @@@MOR Disabling the use of queued notifications, as it is
+            # not needed at the moment.  Leaving it in (commented out) in
+            # case the need arises.
+
+            # self.itsView.recordChangeNotifications()
+
             item = self.__importNode(node, item)
+
         finally:
-            self.itsView.playChangeNotifications()
+
+            # self.itsView.playChangeNotifications()
+
             doc.freeDoc()
 
         return item
@@ -1750,97 +1759,104 @@ class CloudXMLFormat(ImportExportFormat):
 
         # we have an item, now set attributes
 
-        attributes = self.share.getSharedAttributes(item)
-        for attrName in attributes:
+        # Set a temporary attribute that items can check to see if they're in
+        # the middle of being imported:
+        item._share_importing = True
 
-            attrNode = self.__getNode(node, attrName)
-            if attrNode is None:
-                if item.hasLocalAttributeValue(attrName):
-                    item.removeAttributeValue(attrName)
-                continue
+        try:
+            attributes = self.share.getSharedAttributes(item)
+            for attrName in attributes:
 
-            otherName = item.itsKind.getOtherName(attrName, None, item, None)
-            cardinality = item.getAttributeAspect(attrName, 'cardinality')
-            type = item.getAttributeAspect(attrName, 'type')
+                attrNode = self.__getNode(node, attrName)
+                if attrNode is None:
+                    if item.hasLocalAttributeValue(attrName):
+                        item.removeAttributeValue(attrName)
+                    continue
 
-            # This code depends on attributes having their type set, which
-            # might not always be the case.  What should be done is to encode
-            # the value type into the shared xml itself:
+                otherName = item.itsKind.getOtherName(attrName, None, item, None)
+                cardinality = item.getAttributeAspect(attrName, 'cardinality')
+                type = item.getAttributeAspect(attrName, 'type')
 
-            if otherName or (isinstance(type, Item) and \
-                not isinstance(type, Type)): # it's a ref
+                # This code depends on attributes having their type set, which
+                # might not always be the case.  What should be done is to encode
+                # the value type into the shared xml itself:
 
-                if cardinality == 'single':
-                    valueNode = attrNode.children
-                    while valueNode and valueNode.type != "element":
-                        # skip over non-elements
-                        valueNode = valueNode.next
-                    if valueNode:
-                        valueItem = self.__importNode(valueNode)
-                        if valueItem is not None:
-                            logger.debug("for %s setting %s to %s" % \
-                                (item.getItemDisplayName(),
-                                 attrName,
-                                 valueItem.getItemDisplayName()))
-                            item.setAttributeValue(attrName, valueItem)
+                if otherName or (isinstance(type, Item) and \
+                    not isinstance(type, Type)): # it's a ref
 
-                elif cardinality == 'list':
-                    valueNode = attrNode.children
-                    while valueNode:
-                        if valueNode.type == "element":
+                    if cardinality == 'single':
+                        valueNode = attrNode.children
+                        while valueNode and valueNode.type != "element":
+                            # skip over non-elements
+                            valueNode = valueNode.next
+                        if valueNode:
                             valueItem = self.__importNode(valueNode)
                             if valueItem is not None:
                                 logger.debug("for %s setting %s to %s" % \
                                     (item.getItemDisplayName(),
                                      attrName,
                                      valueItem.getItemDisplayName()))
-                                item.addValue(attrName, valueItem)
+                                item.setAttributeValue(attrName, valueItem)
 
-                        valueNode = valueNode.next
+                    elif cardinality == 'list':
+                        valueNode = attrNode.children
+                        while valueNode:
+                            if valueNode.type == "element":
+                                valueItem = self.__importNode(valueNode)
+                                if valueItem is not None:
+                                    logger.debug("for %s setting %s to %s" % \
+                                        (item.getItemDisplayName(),
+                                         attrName,
+                                         valueItem.getItemDisplayName()))
+                                    item.addValue(attrName, valueItem)
 
-                elif cardinality == 'dict':
-                    pass
+                            valueNode = valueNode.next
 
-            else: # it's a literal
-
-                if cardinality == 'single':
-
-                    mimeTypeNode = attrNode.hasProp('mimetype')
-                    if mimeTypeNode: # Lob
-                        mimeType = mimeTypeNode.content
-                        value = base64.b64decode(attrNode.content)
-                        value = utils.dataToBinary(item, attrName, value,
-                                                   mimeType=mimeType)
-                    else:
-                        value = type.makeValue(attrNode.content)
-
-                    # Don't modify an attribute if it's got the same value
-                    # already
-                    if not hasattr(item, attrName) or \
-                        (value != item.getAttributeValue(attrName)):
-                        logger.debug( "for %s setting %s to %s" % \
-                            (item.getItemDisplayName(), attrName, value))
-                        item.setAttributeValue(attrName, value)
-                    else:
-                        logger.debug( "for %s skipping %s of %s" % \
-                            (item.getItemDisplayName(), attrName, value))
+                    elif cardinality == 'dict':
                         pass
 
-                elif cardinality == 'list':
-                    values = []
-                    valueNode = attrNode.children
-                    while valueNode:
-                        if valueNode.type == "element":
-                            value = type.makeValue(valueNode.content)
-                            values.append(value)
-                        valueNode = valueNode.next
-                    logger.debug("for %s setting %s to %s" % \
-                        (item.getItemDisplayName(), attrName, values))
-                    item.setAttributeValue(attrName, values)
+                else: # it's a literal
 
-                elif cardinality == 'dict':
-                    pass
+                    if cardinality == 'single':
 
+                        mimeTypeNode = attrNode.hasProp('mimetype')
+                        if mimeTypeNode: # Lob
+                            mimeType = mimeTypeNode.content
+                            value = base64.b64decode(attrNode.content)
+                            value = utils.dataToBinary(item, attrName, value,
+                                                       mimeType=mimeType)
+                        else:
+                            value = type.makeValue(attrNode.content)
+
+                        # Don't modify an attribute if it's got the same value
+                        # already
+                        if not hasattr(item, attrName) or \
+                            (value != item.getAttributeValue(attrName)):
+                            logger.debug( "for %s setting %s to %s" % \
+                                (item.getItemDisplayName(), attrName, value))
+                            item.setAttributeValue(attrName, value)
+                        else:
+                            logger.debug( "for %s skipping %s of %s" % \
+                                (item.getItemDisplayName(), attrName, value))
+                            pass
+
+                    elif cardinality == 'list':
+                        values = []
+                        valueNode = attrNode.children
+                        while valueNode:
+                            if valueNode.type == "element":
+                                value = type.makeValue(valueNode.content)
+                                values.append(value)
+                            valueNode = valueNode.next
+                        logger.debug("for %s setting %s to %s" % \
+                            (item.getItemDisplayName(), attrName, values))
+                        item.setAttributeValue(attrName, values)
+
+                    elif cardinality == 'dict':
+                        pass
+
+        finally:
+            del item._share_importing
 
         return item
 
