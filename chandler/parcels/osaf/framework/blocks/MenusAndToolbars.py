@@ -172,13 +172,6 @@ class RefCollectionDictionary(schema.Item):
         itemIndex, coll = self._index(key)
         coll.remove(itemIndex)
 
-    def __str__ (self):
-        barList = []
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
-        for entry in coll:
-            barList.append (entry.itsName or entry.itsUUID.str64())
-        return str (barList)
-
 class DynamicBlock(schema.Item):
     """
       Mixin class for any Dynamic Block, both DynamicContainers
