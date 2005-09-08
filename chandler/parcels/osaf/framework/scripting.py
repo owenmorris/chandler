@@ -22,10 +22,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
-    blocks = schema.ns('osaf.framework.blocks', parcel)
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
-    pim = schema.ns("osaf.pim", parcel)
-    scripting = schema.ns("osaf.framework.scripting", parcel)
     
     # UI Elements:
     # -----------
@@ -38,7 +35,7 @@ def installParcel(parcel, oldVersion=None):
     # Block Subtree for the Detail View of a Script
     # ------------
     detail.DetailTrunkSubtree.update(parcel, 'script_detail_view',
-                                     key=scripting.Script.getKind(parcel.itsView),
+                                     key=Script.getKind(parcel.itsView),
                                      rootBlocks=[
                                          detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
                                          detail.HeadlineArea,
