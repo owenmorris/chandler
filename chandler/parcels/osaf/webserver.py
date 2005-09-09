@@ -38,8 +38,8 @@ class Server(schema.Item):
         schema.String,
         displayName="Path",
         doc="The filesystem path pointing to the server's doc root.  This "
-            "path is relative to the directory of the parcel.xml that "
-            "defines the server item"
+            "path is relative to the current working directory, or it can "
+            "be absolute"
     )
 
     resources = schema.Sequence(
@@ -58,9 +58,7 @@ class Server(schema.Item):
     )
 
     def startup(self):
-        parcel = application.Parcel.Manager.getParentParcel(self)
-        parcelDir = os.path.dirname(parcel.file)
-        docRoot = os.path.join(parcelDir, self.path)
+        docRoot = self.path
         root = static.File(docRoot)
 
         # .rpy files are twisted's version of a cgi

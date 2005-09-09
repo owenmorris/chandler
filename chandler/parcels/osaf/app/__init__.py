@@ -152,7 +152,7 @@ The Chandler Team"""
         # relative to webserver/servers, but you may also put in an
         # absolute path if you wish.
         #
-        path="webhome",
+        path=os.path.join("parcels", "osaf", "app", "webhome"),
 
         resources = [
             webserver.Resource.update(parcel, "lobsterResource",
