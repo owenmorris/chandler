@@ -9,7 +9,6 @@ __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
 import wx.colheader
-import wx.lib.colourselect as colourselect
 
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat, ICUtzinfo
@@ -2318,25 +2317,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # ugly! We have to add left/right/center so that
         # the month text remains centered
         navigationRow = wx.BoxSizer(wx.HORIZONTAL)
-        navigationLeft = wx.BoxSizer(wx.HORIZONTAL)
-        navigationRight = wx.BoxSizer(wx.HORIZONTAL)
-        navigationCenter = wx.BoxSizer(wx.HORIZONTAL)
-        navigationRow.Add(navigationLeft, 1)
-        navigationRow.Add(navigationCenter, 1)
-        navigationRow.Add(navigationRight, 1)
         
         
         sizer.Add((7,7), 0, wx.EXPAND)
         sizer.Add(navigationRow, 0, wx.EXPAND)
         sizer.Add((5,5), 0, wx.EXPAND)
-
-        # beginnings of color in the calendar
-        self.colorSelect = colourselect.ColourSelect(self, -1, size=wx.Size(30,15))
-        self.Bind(colourselect.EVT_COLOURSELECT, self.OnSelectColor)
-        navigationLeft.Add((7,7), 0, wx.EXPAND)
-        navigationLeft.Add(self.colorSelect, 0, wx.ALIGN_CENTER)
-        # keep color selector flush left
-        navigationLeft.Add((0,0), 1)
 
         self.monthText = wx.StaticText(self, -1)
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "backarrow.png")
@@ -2344,21 +2329,18 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
 
-
-        # center the month text
-        navigationCenter.Add((0,0), 1)
-        navigationCenter.Add(self.prevButton, 0, wx.ALIGN_CENTER)
-        navigationCenter.Add((5,5), 0)
-        navigationCenter.Add(self.monthText, 0, wx.ALIGN_CENTER)
-        navigationCenter.Add((5,5), 0)
-        navigationCenter.Add(self.nextButton, 0, wx.ALIGN_CENTER)
-        navigationCenter.Add((0,0), 1)
-        
-        # ... + timezone, anchored to the right
         self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
-        navigationRight.Add((0,0), 1)
-        navigationRight.Add(self.tzChoice, 0)
-        navigationRight.Add((7,7), 0)
+
+        navigationRow.Add((5,5), 0)
+        navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
+        navigationRow.Add((5,5), 0)
+        navigationRow.Add(self.nextButton, 0, wx.ALIGN_CENTER)
+        navigationRow.Add((5,5), 0)
+        navigationRow.Add(self.monthText, 0, wx.ALIGN_CENTER)
+        navigationRow.Add((0,0), 1)
+        
+        navigationRow.Add(self.tzChoice, 0)
+        navigationRow.Add((1,1), 0)
 
         
         # finally the last row, with the header
@@ -2432,19 +2414,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         return tzChoice
         
-    def SetColorSelect(self, colorInfo):
-        self.colorSelect.SetColour(colorInfo.outlineColor)
-    
-    def OnSelectColor(self, event):
-        c = event.GetValue().Get()
-
-        self.blockItem.setCurrentCalendarColor(c)
-        
-        #refresh on CalendarContainer's widget.
-        #this seems to cascade down to make all children windows Refresh()
-        self.blockItem.parentBlock.widget.Refresh()
-        
-
     def UpdateHeader(self):
         if self.blockItem.dayMode:
             # ugly back-calculation of the previously selected day
@@ -2478,9 +2447,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # force the creation of the .color attribute
         # XXX temporary - really this should somehow generate automatically
         colorInfo = ColorInfo(collection)
-
-        self.SetColorSelect(colorInfo)
-        self.colorSelect.SetColour(collection.color.wxColor())
 
         # Update the month button given the selected date
         lastDate = startDate + timedelta(days=6)
