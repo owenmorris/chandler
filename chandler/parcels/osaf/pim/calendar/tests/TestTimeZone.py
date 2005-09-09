@@ -6,6 +6,7 @@ from datetime import datetime
 
 class TimeZoneTestCase(unittest.TestCase):
     def setUp(self):
+        PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
         self.tzInfoItem = TimeZoneInfo.get()
 
     def testGetTimeZone(self):
@@ -19,9 +20,6 @@ class TimeZoneTestCase(unittest.TestCase):
         self.failUnlessEqual(self.tzInfoItem.default.timezone.getID(), "US/Eastern")
         
 class DefaultTimeZoneTestCase(TimeZoneTestCase):
-    def setUp(self):
-        self.tzInfoItem = TimeZoneInfo.get()
-        
     def testGetTimeZone(self):
         super(DefaultTimeZoneTestCase, self).testGetTimeZone()
         self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.tzInfoItem.default)
@@ -31,6 +29,9 @@ class DefaultTimeZoneTestCase(TimeZoneTestCase):
         self.failUnlessEqual(PyICU.ICUtzinfo.getDefault(), self.tzInfoItem.default)
         
 class CanonicalTimeZoneTestCase(unittest.TestCase):
+    def setUp(self):
+        PyICU.TimeZone.setDefault(PyICU.TimeZone.createTimeZone("US/Pacific"))
+
     def testEquivalent(self):
         tz = PyICU.ICUtzinfo.getInstance("PST")
         canonicalTz = TimeZoneInfo.get().canonicalTimeZone(tz)
