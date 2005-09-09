@@ -45,6 +45,9 @@ from unittest import main
 from hotshot import Profile
 from hotshot.stats import load
 
+class ProfilingMain(main):
+    def runTests(self):
+        Profile(stats_file).runcall(main.runTests, self)
 
 if __name__ == '__main__':
     if len(sys.argv)<2 or sys.argv[1] in ('-h','--help'):   # XXX
@@ -54,9 +57,7 @@ if __name__ == '__main__':
     stats_file = "profile.dat"
     
     try:
-        Profile(stats_file).run(
-            "main(module=None, testLoader=ScanningLoader())"
-        )
+        ProfilingMain(module=None, testLoader=ScanningLoader())
     except SystemExit:
         # prevent unittest.main() from forcing an early exit
         pass

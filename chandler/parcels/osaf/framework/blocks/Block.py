@@ -539,33 +539,26 @@ class Block(schema.Item):
     @classmethod
     def dispatchEvent (theClass, event):
         
-        def callMethod(block, methodName, event):
+        def callProfiledMethod(block, methodName, event):
             """
-            wrapper for callNamedMethod that optionally invokes the profiler
+            Wrap callNamedMethod with a profiler runcall()
             """
-
-            # allow the compiler to optimize for non-debug cases
-            if not __debug__:
-                return callNamedMethod(block, methodName, event)
+            if not Block.__profilerActive:                        
+                # create profiler lazily
+                if not Block.__profiler:
+                    Block.__profiler = hotshot.Profile('Events.prof')
+                    
+                Block.__profilerActive = True
+                try:
+                    #
+                    # run the call inside the profiler
+                    #
+                    return Block.__profiler.runcall(callNamedMethod, block, methodName, event)
+                finally:
+                    # make sure that we turn off reentrancy check no matter what
+                    Block.__profilerActive = False
             else:
-                if Block.profileEvents and not Block.__profilerActive:                        
-                    # create profiler lazily
-                    if not Block.__profiler:
-                        Block.__profiler = hotshot.Profile('Events.prof')
-                        
-                    Block.__profilerActive = True
-                    try:
-                        #
-                        # run the call inside the profiler
-                        #
-                        Block.__profiler.runcall(callNamedMethod, block, methodName, event)
-                        Block.__profilerActive = False
-                    except:
-                        # make sure that we turn off reentrancy check no matter what
-                        Block.__profilerActive = False
-                        raise
-                else:
-                    return callNamedMethod(block, methodName, event)
+                return callNamedMethod(block, methodName, event)
                             
         def callNamedMethod (block, methodName, event):
             """
@@ -585,7 +578,14 @@ class Block(schema.Item):
 
                 event.arguments ['results'] = member (block, event)
                 return True
-        
+
+        if Block.profileEvents:
+            # We're profiling, use the wrapper
+            callMethod = callProfiledMethod
+        else:
+            # Not profiling, use the straight-up call
+            callMethod = callNamedMethod
+
         def bubbleUpCallMethod (block, methodName, event):
             """
               Call a method on a block or if it doesn't handle it try it's parents
