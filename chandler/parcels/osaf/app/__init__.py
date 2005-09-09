@@ -12,7 +12,6 @@ def installParcel(parcel, oldVersion=None):
 
     from osaf import sharing, startup
     from osaf.framework import scripting
-    import photos
 
     curDav = Reference.update(parcel, 'currentWebDAVAccount')
     curMail = Reference.update(parcel, 'currentMailAccount')
@@ -104,14 +103,17 @@ def installParcel(parcel, oldVersion=None):
         )
     )
 
-    welcome = photos.Photo.update(parcel, 'WelcomePhoto',
+    welcome = pim.CalendarEvent.update(parcel, 'WelcomeEvent',
         displayName=u'Welcome to Chandler 0.5',
-        dateTaken=datetime.datetime.now(),
-        creator=osafDev
+        startTime=datetime.datetime.combine(datetime.date.today(),
+                                            datetime.time(12)),
+        duration=datetime.timedelta(minutes=120),
+        anyTime=False,
+        creator=osafDev,
+        location=pim.Location.update(parcel, "OSAFLocation",
+            displayName="Open Source Applications Foundation"
+        )
     )
-
-    welcome.importFromFile(os.path.join(os.path.dirname(__file__),
-        "TeamOSAF.jpg"))
 
     body = u"""Welcome to the Chandler 0.5 Release!
 
