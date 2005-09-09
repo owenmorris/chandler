@@ -18,7 +18,7 @@ endif
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-3.tar.gz \
+ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-4.tar.gz \
          $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.5-17.tar.gz \
          $(CHANDLERARCHIVES)/db-$(SNAP)-4.3.28-1.tar.gz \
          $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-4.tar.gz \
