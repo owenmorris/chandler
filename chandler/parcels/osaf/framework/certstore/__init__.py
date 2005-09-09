@@ -1,2 +1,1 @@
-from certificate import Certificate
-from notification import NotificationItem
+from certificate import Certificate, CertificateStore

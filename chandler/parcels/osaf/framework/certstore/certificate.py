@@ -15,7 +15,6 @@ import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
 from osaf import pim
 import osaf.framework.blocks.detail.Detail as Detail
-from osaf.framework.certstore import notification
 from osaf.framework.certstore import dialogs
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
@@ -24,8 +23,7 @@ from application.dialogs import ImportExport
 from i18n import OSAFMessageFactory as _
 import os
 
-# XXX Should be done using ref collections instead?
-import repository.query.Query as Query
+from osaf.pim.collections import FilteredCollection
 
 log = logging.getLogger(__name__)
 
@@ -37,9 +35,6 @@ TYPE_SITE          = 'site'
 
 TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
 
-# @@@ Not used anymore, replaced by KindCollection
-# ALL_CERTS_QUERY = u'for i in "//parcels/osaf/framework/certstore/Certificate" where True'
-
 
 class typeEnum(schema.Enumeration):
     schema.kindInfo(displayName = "Type Enumeration")
@@ -47,7 +42,8 @@ class typeEnum(schema.Enumeration):
 
 
 class CertificateStore(pim.KindCollection):
-    schema.kindInfo(displayName = "Certificate Store")
+    schema.kindInfo(displayName = _("Certificate Store"))
+    
 
 class Certificate(pim.ContentItem):
 
@@ -74,6 +70,7 @@ class Certificate(pim.ContentItem):
     trust = schema.One(
         schema.Integer,
         displayName = _('Trust'),
+        defaultValue = 0,
         doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
     )
     pem = schema.One(
@@ -105,6 +102,18 @@ class Certificate(pim.ContentItem):
 
     def asX509(self):
         return X509.load_cert_string(self.pemAsString())
+
+    @classmethod
+    def getExtent(cls, view=None, exact=False):
+        kind = schema.itemFor(cls, view)
+        # XXX Should get the names from some shared source because they are used
+        # XXX in data.py as well.
+        if exact:
+            name = '%sCollection' % kind.itsName
+        else:
+            name = 'Recursive%sCollection' % kind.itsName
+
+        return kind.findPath("//userdata/%s" % name)
 
     # XXX These don't work?
     def getAuthenticityBit(self):
@@ -201,30 +210,17 @@ def _certificateType(x509):
         
     return type
 
-# @@@MOR -- Not used anymore, replaced by KindCollection
-#
-# def _allCertificatesQuery(repView):
-#     qName = 'allCertificatesQuery'
-#     q = repView.findPath('//Queries/%s' %(qName))
-#     if q is None:
-#         p = repView.findPath('//Queries')
-#         k = repView.findPath('//Schema/Core/Query')
-#         q = Query.Query(qName, p, k, ALL_CERTS_QUERY)
-#         notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
-#         q.subscribe(notificationItem, 'handle', True, True)
-# 
-#     return q
-
 def _isInRepository(repView, pem):
     # XXX This could be optimized by querying based on some cheap field,
     # XXX like subjectCommonName, which would typically return just 0 or 1
     # XXX hit. But I don't want to leave query items laying around either.
-    q = pim.KindCollection(view=repView)
-    q.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
+    q = Certificate.getExtent(view=repView)
 
     for cert in q:
         if cert.pemAsString() == pem:
             return True
+    
+    return False
 
 def importCertificate(x509, fingerprint, trust, repView):
     """
@@ -236,7 +232,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     """
     pem = x509.as_pem()
     if _isInRepository(repView, pem):
-        raise ValueError, 'X.509 certificate is already in the repository'
+        raise ValueError('X.509 certificate is already in the repository')
         
     subjectCommonName = x509.get_subject().CN
     asText = x509.as_text()
@@ -244,28 +240,28 @@ def importCertificate(x509, fingerprint, trust, repView):
     type = _certificateType(x509)
     if type == TYPE_ROOT:
         if not x509.verify():
-            raise ValueError, 'X.509 certificate does not verify'
+            raise ValueError('X.509 certificate does not verify')
+    
+    lobType = schema.itemFor(schema.Lob, repView)
+    pem = lobType.makeValue(pem, compression=None)
+    text = lobType.makeValue(asText)
     
     cert = Certificate(view=repView,
                        trust=trust,
                        type=type,
                        fingerprint=fingerprint,
                        fingerprintAlgorithm='sha1',
-                       subjectCommonName=subjectCommonName)
-    text = cert.getAttributeAspect('pem', 'type').makeValue(pem,
-                                                            compression=None)
-    cert.pem = text
-    text = cert.getAttributeAspect('asText', 'type').makeValue(asText)
-    cert.asText = text
+                       subjectCommonName=subjectCommonName,
+                       pem=pem,
+                       asText=text)
 
-    qName = TRUSTED_SITE_CERTS_QUERY_NAME
-    q = repView.findPath('//Queries/%s' %(qName))
+    # XXX Why is this collection created here, as it is not used here?
+    q = repView.findPath('//userdata/%s' %(TRUSTED_SITE_CERTS_QUERY_NAME))
     if q is None:
-        p = repView.findPath('//Queries')
-        k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (TYPE_SITE, TRUST_AUTHENTICITY))
-        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
-        q.subscribe(notificationItem, 'handle', True, True)
+        q = FilteredCollection(TRUSTED_SITE_CERTS_QUERY_NAME, view=repView)
+        q.source = Certificate.getExtent(repView)
+        q.filterExpression = 'item.type == "%s" and item.trust == %d' % (TYPE_SITE, TRUST_AUTHENTICITY)
+        q.filterAttributes = ['type', 'trust']
     
     repView.commit()
 
@@ -329,7 +325,7 @@ def createSidebarView(repView, cpiaView):
     """
     # First see if the certificate store already is in the sidebar, and if so
     # don't add more entries.
-    sidebar = schema.ns('osaf.views.main', repView).sidebarItemCollection
+    sidebar = schema.ns('osaf.views.main', repView).sidebarCollection
     for item in sidebar:
         # XXX It is kind of heavy-weight to have the CertificateStore class
         # XXX just so we can see if this collection is certstore. Besides,
@@ -340,22 +336,11 @@ def createSidebarView(repView, cpiaView):
     certstore = CertificateStore(view=repView)
     
     # XXX Why isn't this picked from the CertificateStore class?
-    certstore.displayName = 'Certificate Store'
+    certstore.displayName = _('Certificate Store')
     
     # XXX It seems like it should be possible to put this in the CertificateStore
     # XXX class to make this happen automatically?
     certstore.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
-
-    # @@@MOR -- Transitioning to new Collection world.  Does specifying
-    # the kind above automatically populate the collection?  That makes the
-    # following commented-out code unnecessary:
-
-    # certstore._rule = ALL_CERTS_QUERY
-
-    # q = _allCertificatesQuery(repView)
-
-    # for item in q:
-    #     certstore.add(item)
 
     cpiaView.postEventByName('AddToSidebarWithoutCopying',
                              {'items': [certstore]})

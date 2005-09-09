@@ -8,9 +8,9 @@ Certificate import on startup
 def installParcel(parcel, oldVersion=None):
     # Load cacert.pem into the repository
 
-    from M2Crypto import X509, BIO, util
+    from M2Crypto import X509, util
     from M2Crypto.EVP import MessageDigest
-    import os, sys, time
+    import os
     import logging
     
     log = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def installParcel(parcel, oldVersion=None):
         md.update(der)
         digest = md.final()
         return hex(util.octx_to_num(digest))
-
+        
     lastLine = ''
     pem = []
 
@@ -70,3 +70,25 @@ def installParcel(parcel, oldVersion=None):
         lastLine = line
 
     log.info('Imported %d certificates' % certificates)
+
+    
+    # Create extents
+    
+    from osaf.pim.collections import KindCollection
+
+    kind = schema.itemFor(cert.Certificate, parcel.itsView)
+ 
+    def createExtent(name, exact):
+        collection = kind.findPath("//userdata/%s" % name)
+        if collection is not None:
+            raise Exception('Found unexpected collection')
+    
+        collection = KindCollection(name, view = parcel.itsView)
+        collection.kind = kind
+        collection.recursive = exact
+ 
+    # XXX Should get the names from some shared source because they are used
+    # XXX in certificate.py as well.
+    createExtent('%sCollection' % kind.itsName, True)
+    createExtent('Recursive%sCollection' % kind.itsName, False)
+

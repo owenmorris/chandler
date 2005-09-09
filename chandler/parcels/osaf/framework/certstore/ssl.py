@@ -1,33 +1,29 @@
 """
-SSL
+Things to tie certificates into SSL/TLS connections.
 
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
 import osaf.framework.certstore.certificate as certificate
-import osaf.framework.certstore.notification as notification
 
-# XXX Should be done using ref collections instead?
-import repository.query.Query as Query
+from osaf.pim.collections import FilteredCollection
 
 
-def addCertificates(repView, ctx):
+def loadCertificatesToContext(repView, ctx):
     """
     Add certificates to SSL Context.
     
     @param repView: repository view
-    @param ctx: SSL.Context
+    @param ctx: M2Crypto.SSL.Context
     """
-    
     qName = 'sslCertificateQuery'
-    q = repView.findPath('//Queries/%s' %(qName))
+    q = repView.findPath('//userdata/%s' %(qName))
     if q is None:
-        p = repView.findPath('//Queries')
-        k = repView.findPath('//Schema/Core/Query')
-        q = Query.Query(qName, p, k, u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s" and i.trust == %d' % (certificate.TYPE_ROOT, certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE))
-        notificationItem = repView.findPath('//parcels/osaf/framework/certstore/dummyCertNotification')
-        q.subscribe(notificationItem, 'handle', True, True)
+        q = FilteredCollection(qName, view=repView)
+        q.source = certificate.Certificate.getExtent(repView)
+        q.filterExpression = u'item.type == "%s" and item.trust == %d' % (certificate.TYPE_ROOT, certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE)
+        q.filterAttributes = ['type', 'trust']
         
     store = ctx.get_cert_store()
     for cert in q:

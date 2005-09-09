@@ -680,7 +680,7 @@ class FilteredSet(Set):
     
     def _repr_(self, replace=None):
 
-        return "%s(%s, \"%s\", %s)" %(type(self).__name__,
+        return "%s(%s, \"\"\"%s\"\"\", %s)" %(type(self).__name__,
                                       self._reprSource(self._source, replace),
                                       self.filterExpression, self.attributes)
 

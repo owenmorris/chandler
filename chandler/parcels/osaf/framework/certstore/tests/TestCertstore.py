@@ -9,7 +9,7 @@ import unittest
 import time
 import M2Crypto.X509 as X509
 import repository.tests.RepositoryTestCase as RepositoryTestCase
-import repository.query.Query as Query
+from osaf.pim.collections import FilteredCollection
 import osaf.framework.certstore.certificate as certificate
 
 class CertificateStoreTestCase(RepositoryTestCase.RepositoryTestCase):
@@ -86,21 +86,18 @@ rZehs7GgIFvKMquNzxPwHynD
     def testPreloadedCertificates(self):
         self.loadParcel("parcel:osaf.framework.certstore.data")
         
-        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.type == "%s"' % certificate.TYPE_ROOT
-        
-        qName = 'rootCertsQuery'
-        q = self.rep.view.findPath('//Queries/%s' %(qName))
-        if q is None:
-            p = self.rep.view.findPath('//Queries')
-            k = self.rep.view.findPath('//Schema/Core/Query')
-            q = Query.Query(qName, p, k, qString)
+        view = self.rep.view
+        rootCerts = FilteredCollection('rootCertsQuery', view=view)
+        rootCerts.source = certificate.Certificate.getExtent(view, exact=True)
+        rootCerts.filterExpression = 'item.type == "%s"' % certificate.TYPE_ROOT
+        rootCerts.filterAttributes = ['type']
             
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
 
-        assert len(q) > 0
-        
-        for cert in q:
+        assert len(rootCerts) > 0
+
+        for cert in rootCerts:
             #print cert.subjectCommonName
             x509 = cert.asX509()
             self.assertTrue(x509.verify())
@@ -129,18 +126,16 @@ rZehs7GgIFvKMquNzxPwHynD
                                       trust,
                                       self.rep.view)
         
-        qString = u'for i in "//parcels/osaf/framework/certstore/Certificate" where i.fingerprint == "%s"' % fingerprint
-        
-        qName = 'fpCertQuery' + fingerprint
-        q = self.rep.view.findPath('//Queries/%s' %(qName))
-        if q is None:
-            p = self.rep.view.findPath('//Queries')
-            k = self.rep.view.findPath('//Schema/Core/Query')
-            q = Query.Query(qName, p, k, qString)
+        view = self.rep.view
+
+        matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, view=view)
+        matchingCerts.source = certificate.Certificate.getExtent(view, exact=True)
+        matchingCerts.filterExpression = 'item.fingerprint == "%s"' % fingerprint
+        matchingCerts.filterAttributes = ['fingerprint']
             
-        assert len(q) == 1
+        assert len(matchingCerts) == 1
         
-        for cert in q: #q[0] does not seem to work
+        for cert in matchingCerts: #q[0] does not seem to work
             return cert
     
     def testImportSiteCertificate(self):

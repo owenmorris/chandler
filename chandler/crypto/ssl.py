@@ -52,7 +52,7 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
         import osaf.framework.certstore.ssl as ssl
 
         repositoryView.refresh()
-        ssl.addCertificates(repositoryView, ctx) # XXX loadCertificatesToContext?
+        ssl.loadCertificatesToContext(repositoryView, ctx)
         
         # XXX TODO In some cases, for example when connecting directly
         #          to P2P partner, we want to authenticate mutually using
@@ -158,7 +158,7 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             # XXX Now we depend on parcels
             import osaf.framework.certstore.certificate as certificate
         
-            q = self.repositoryView.findPath('//Queries/%s' %(certificate.TRUSTED_SITE_CERTS_QUERY_NAME))
+            q = self.repositoryView.findPath('//userdata/%s' %(certificate.TRUSTED_SITE_CERTS_QUERY_NAME))
             if q is not None:
                 for cert in q:
                     if cert.pemAsString() == pem:

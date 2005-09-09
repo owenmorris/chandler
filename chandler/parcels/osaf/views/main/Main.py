@@ -246,10 +246,10 @@ class MainView(View):
 
     def askTrustSiteCertificate(self, pem, reconnect):
         import M2Crypto.X509 as X509
-        import crypto.dialogs        
+        import crypto.dialogs as dialogs
         x509 = X509.load_cert_string(pem)
-        dlg = crypto.dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
-                                                        x509)
+        dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
+                                                 x509)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selection = dlg.GetSelection()
@@ -260,7 +260,9 @@ class MainView(View):
                 else:
                     import osaf.framework.certstore.certificate as certificate
                     fingerprint = certificate.fingerprint(x509)
-                    certificate.importCertificate(x509, fingerprint, certificate.TRUST_AUTHENTICITY, self.itsView)
+                    certificate.importCertificate(x509, fingerprint, 
+                                                  certificate.TRUST_AUTHENTICITY,
+                                                  self.itsView)
 
                 reconnect()
         finally:
@@ -268,11 +270,11 @@ class MainView(View):
 
     def askIgnoreSSLError(self, pem, err, reconnect):
         import M2Crypto.X509 as X509
-        import crypto.dialogs        
+        import crypto.dialogs as dialogs
         x509 = X509.load_cert_string(pem)
-        dlg = crypto.dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
-                                                  x509,
-                                                  err)
+        dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
+                                           x509,
+                                           err)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 import crypto.ssl as ssl
