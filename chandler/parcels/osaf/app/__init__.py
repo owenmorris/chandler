@@ -234,7 +234,8 @@ def MakeCollections(parcel):
     TrashCollection = \
         ListCollection.update(parcel, 'TrashCollection',
             displayName=_('Trash'),
-            renameable=False
+            renameable=False,
+            iconName="Trash"
         )
     
     notes = \
@@ -268,7 +269,13 @@ def MakeCollections(parcel):
     # the "All" collection
     InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=_('All'),
-        renameable=False
+        renameable=False,
+        iconName="All",
+        iconNameHasKindVariant=True,
+        displayNameAlternatives={'None': u'My items',
+                                 'MailMessageMixin': u'My mail',
+                                 'CalendarEventMixin': u'My calendar',
+                                 'TaskMixin': u'My tasks'}
     ).setup(source=mineMinusGeneratedEvents, exclusions=TrashCollection)
 
     mailCollection = \
@@ -286,7 +293,9 @@ def MakeCollections(parcel):
     # The "In" collection
     InclusionExclusionCollection.update(parcel, 'inCollection',
         displayName=_('In'),
-        renameable=False
+        renameable=False,
+        iconName="In",
+        dontDisplayAsCalendar=True
     ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
@@ -295,7 +304,10 @@ def MakeCollections(parcel):
             filterExpression='getattr(item, \'isOutbound\', False)',
             filterAttributes=['isOutbound'])
 
+    # The "Out" collection
     InclusionExclusionCollection.update(parcel, 'outCollection',
         displayName=_('Out'),
-        renameable=False
+        renameable=False,
+        iconName="Out",
+        dontDisplayAsCalendar=True
     ).setup(source=outSource, trash=TrashCollection)

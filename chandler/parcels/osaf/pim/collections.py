@@ -42,8 +42,20 @@ class AbstractCollection(items.ContentItem):
     )
 
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
-    renameable  = schema.One(schema.Boolean)
-    color       = schema.One(schema.Anything)
+
+    """
+      The following collection attributes may be moved once the dust
+    settles on pje's external attribute mechanism
+    """
+    renameable              = schema.One(schema.Boolean)
+    color                   = schema.One(schema.Anything)
+    iconName                = schema.One(schema.String)
+    iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
+    dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
+    """
+      A dictionary mapping a KindName string to a new displayName.
+    """
+    displayNameAlternatives = schema.Mapping (schema.String)
 
     collectionList = schema.Sequence(
         'AbstractCollection',

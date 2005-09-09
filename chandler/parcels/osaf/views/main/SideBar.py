@@ -306,15 +306,16 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
             name = getattr (item, attribute)
-            key = name
-            if sidebar.filterKind is not None:
-                key += os.path.basename (unicode (sidebar.filterKind.itsPath))
-            try:
-                name = sidebar.nameAlternatives [key]
-            except KeyError:
-                imageName = name
-            else:
-                imageName = key
+            if hasattr (item, "displayNameAlternatives"):
+                if sidebar.filterKind is None:
+                    key = "None"
+                else:
+                    key = os.path.basename (str (sidebar.filterKind.itsPath))
+                name = item.displayNameAlternatives [key]
+
+            imageName = getattr(item, "iconName", "")
+            if item.iconNameHasKindVariant and sidebar.filterKind is not None:
+                imageName += os.path.basename (str (sidebar.filterKind.itsPath))
             """
               Draw the icons simulating a button
             """
@@ -347,14 +348,6 @@ class SidebarBlock(ControlBlocks.Table):
     filterKind = schema.One(
         schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
     )
-
-    # A dictionary of display names of items that don't show as Calendar Views
-    dontShowCalendarForItemsWithName = schema.Mapping (schema.Boolean)
-
-    # A dictionary mapping a name,kindpathComponent string to a new name.
-    # It would be much nicer if the key could be a (name, kindItem) tuple, but
-    # that's not possible with current parcel XML
-    nameAlternatives = schema.Mapping (schema.String)
 
     # A list of the items in the sidebar that are checked
     checkedItems = schema.Sequence (schema.Item, initialValue = [])
@@ -565,6 +558,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                             self.kindToKindCollectionCache [filterKind] = kindCollection
 
                         newKey.sources = [key, kindCollection]
+                        newKey.dontDisplayAsCalendar = key.dontDisplayAsCalendar
                         displayName += u" filtered by " + filterKind.displayName
                         key = newKey
 
@@ -593,10 +587,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, AbstractCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
-            filterKind = sidebar.filterKind
-            if (filterKind is not None and
-                unicode (filterKind.itsPath) == "//parcels/osaf/pim/calendar/CalendarEventMixin" and
-                keyItem.displayName not in sidebar.dontShowCalendarForItemsWithName):
+            if (not keyItem.dontDisplayAsCalendar and
+                sidebar.filterKind is schema.ns('osaf.pim.calendar.Calendar', self).CalendarEventMixin.getKind (self)):
                     trunk = self.findPath (self.calendarTemplatePath)
                     keyUUID = trunk.itsUUID
                     try:
