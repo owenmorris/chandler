@@ -1779,7 +1779,8 @@ class Lob(Type):
 
     def makeValue(self, data,
                   encoding=None, mimetype='text/plain', compression='bz2',
-                  encryption=None, key=None, indexed=None, replace=False):
+                  encryption=None, key=None, iv=None,
+                  indexed=None, replace=False):
 
         if data and not encoding and type(data) is unicode:
             encoding = 'utf-8'
@@ -1789,10 +1790,10 @@ class Lob(Type):
 
         if data:
             if encoding:
-                out = lob.getWriter(compression, encryption, key,
+                out = lob.getWriter(compression, encryption, key, iv,
                                     False, replace)
             else:
-                out = lob.getOutputStream(compression, encryption, key)
+                out = lob.getOutputStream(compression, encryption, key, iv)
             out.write(data)
             out.close()
 

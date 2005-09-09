@@ -23,11 +23,13 @@ class Lob(object):
         self._compression = None
         self._encryption = None
         self._key = None                  # not saved in repository
+        self._iv = None                   # saved in repository
         self._data = ''
         self._append = False
         self._indexed = indexed
 
-    def getOutputStream(self, compression=None, encryption=None, key=None,
+    def getOutputStream(self, compression=None,
+                        encryption=None, key=None, iv=None,
                         append=False):
 
         if compression is None:
@@ -36,15 +38,20 @@ class Lob(object):
             encryption = self._encryption
         if key is None:
             key = self._key
+        if iv is None:
+            iv = self._iv
 
         outputStream = self._getOutputStream(append)
 
         if encryption:
             if encryption == 'rijndael':
-                outputStream = RijndaelOutputStream(outputStream, key)
+                outputStream = RijndaelOutputStream(outputStream, key, iv)
                 self._key = key
+                self._iv = outputStream.getIV()
             else:
                 raise ValueError, '%s encryption not supported' %(encryption)
+        else:
+            self._iv = None
 
         if compression:
             if compression == 'bz2':
@@ -59,7 +66,7 @@ class Lob(object):
 
         return outputStream
 
-    def getInputStream(self, key=None):
+    def getInputStream(self, key=None, iv=None):
 
         inputStream = self._getInputStream()
         compression = self._compression
@@ -67,7 +74,9 @@ class Lob(object):
 
         if encryption:
             if encryption == 'rijndael':
-                inputStream = RijndaelInputStream(inputStream, key or self._key)
+                inputStream = RijndaelInputStream(inputStream,
+                                                  key or self._key,
+                                                  iv or self._iv)
             else:
                 raise ValueError, '%s encryption not supported' %(encryption)
 
@@ -106,6 +115,7 @@ class Lob(object):
 
         self._compression = attrs.get('compression', None)
         self._encryption = attrs.get('encryption', None)
+        self._iv = attrs.get('iv', '').decode('hex') or None
         self._version = long(attrs.get('version', '0'))
 
         indexed = attrs.get('indexed', None)
@@ -119,14 +129,14 @@ class Lob(object):
             writer.write(data)
             writer.close()
 
-    def copy(self, view, key=None):
+    def copy(self, view, key=None, iv=None):
 
         copy = view._getLobType()(view, self.encoding,
                                   self.mimetype, self._indexed)
 
         inputStream = self.getInputStream(key)
         outputStream = copy.getOutputStream(self._compression, self._encryption,
-                                            key)
+                                            key, iv)
 
         outputStream.write(inputStream.read())
         outputStream.close()
@@ -134,29 +144,28 @@ class Lob(object):
 
         return copy
 
-    def getWriter(self, compression='bz2', encryption=None, key=None,
+    def getWriter(self, compression='bz2', encryption=None, key=None, iv=None,
                   append=False, replace=False):
 
         return OutputStreamWriter(self.getOutputStream(compression, encryption,
-                                                       key, append),
+                                                       key, iv, append),
                                   self.encoding, replace)
 
-    def getReader(self, key=None, replace=False):
+    def getReader(self, key=None, iv=None, replace=False):
 
-        return InputStreamReader(self.getInputStream(key),
+        return InputStreamReader(self.getInputStream(key, iv),
                                  self.encoding, replace)
 
-    def getPlainTextReader(self, key=None, replace=False):
+    def getPlainTextReader(self, key=None, iv=None, replace=False):
 
         if self.mimetype in Lob._readers:
-            return Lob._readers[self.mimetype](self, key, replace)
+            return Lob._readers[self.mimetype](self, key, iv, replace)
 
         return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
 
     _readers = {
-        'text/html': lambda self, key, replace: HTMLReader(self.getInputStream(key), self.encoding, replace), 
-        'text/xhtml': lambda self, key, replace: HTMLReader(self.getInputStream(key), self.encoding, replace),
-        'text/plain': lambda self, key, replace: self.getReader(key, replace),
-
-        'text/vnd.osaf-stream64': lambda self, key, replace: InputStreamReader(Base64InputStream(self.getInputStream(key)), self.encoding, replace)
+        'text/html': lambda self, key, iv, replace: HTMLReader(self.getInputStream(key, iv), self.encoding, replace), 
+        'text/xhtml': lambda self, key, iv, replace: HTMLReader(self.getInputStream(key, iv), self.encoding, replace),
+        'text/plain': lambda self, key, iv, replace: self.getReader(key, iv, replace),
+        'text/vnd.osaf-stream64': lambda self, key, iv, replace: InputStreamReader(Base64InputStream(self.getInputStream(key, iv)), self.encoding, replace)
     }

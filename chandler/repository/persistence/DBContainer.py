@@ -1093,8 +1093,9 @@ class ValueContainer(DBContainer, CValueContainer):
     # 0.5.3: added core schema version to version info
     # 0.5.4: endianness on index dbs set to 4321
     # 0.5.5: lob 'indexed' attribute now saved as -1, 0, 1
+    # 0.5.6: lob encryption reworked to include IV
 
-    FORMAT_VERSION = 0x00050500
+    FORMAT_VERSION = 0x00050600
 
     def __init__(self, store):
 

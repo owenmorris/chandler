@@ -96,6 +96,11 @@ class DBLob(Lob, ItemValue):
         else:
             itemWriter.writeSymbol(buffer, '')
 
+        if self._iv:
+            itemWriter.writeString(buffer, self._iv)
+        else:
+            itemWriter.writeString(buffer, '')
+
         return size
 
     def _readValue(self, itemReader, offset, data, withSchema):
@@ -111,6 +116,8 @@ class DBLob(Lob, ItemValue):
         self._compression = _compression or None
         offset, _encryption = itemReader.readSymbol(offset, data)
         self._encryption = _encryption or None
+        offset, _iv = itemReader.readString(offset, data)
+        self._iv = _iv or None
 
         return offset, self
 
@@ -126,6 +133,8 @@ class DBLob(Lob, ItemValue):
             attrs['compression'] = self._compression
         if self._encryption:
             attrs['encryption'] = self._encryption
+        if self._iv:
+            attrs['iv'] = self._iv.encode('hex')
         if self._indexed is not None:
             attrs['indexed'] = str(self._indexed)
         
@@ -145,14 +154,15 @@ class DBLob(Lob, ItemValue):
         super(DBLob, self)._setData(data)
         self._setDirty()
 
-    def getOutputStream(self, compression=None, encryption=None, key=None,
+    def getOutputStream(self, compression=None,
+                        encryption=None, key=None, iv=None,
                         append=False):
 
         if self._isReadOnly():
             raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
 
         return super(DBLob, self).getOutputStream(compression, encryption,
-                                                  key, append)
+                                                  key, iv, append)
 
     def _getInputStream(self):
 

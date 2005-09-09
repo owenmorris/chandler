@@ -4,14 +4,15 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from os import urandom
+from chandlerdb.util.rijndael import Key, Cipher
+
 from bz2 import BZ2Compressor, BZ2Decompressor
 from zlib import compressobj, decompressobj
 from cStringIO import StringIO
 from HTMLParser import HTMLParser
 from struct import pack, unpack
 from PyICU import UnicodeString
-
-from chandlerdb.util.rijndael import Rijndael
 
 
 class BZ2OutputStream(BZ2Compressor):
@@ -137,37 +138,36 @@ class BlockOutputStream(object):
 
 class RijndaelOutputStream(BlockOutputStream):
 
-    def __init__(self, outputStream, key):
+    def __init__(self, outputStream, key, iv=None):
 
         super(RijndaelOutputStream, self).__init__(outputStream, 16)
-        self.r = Rijndael()
 
         if key is None:
             raise ValueError, 'key is None'
 
-        if len(key) == 16:
-            keyLen = Rijndael.Key16Bytes
-        elif len(key) == 24:
-            keyLen = Rijndael.Key24Bytes
-        elif len(key) == 32:
-            keyLen = Rijndael.Key32Bytes
-        else:
-            raise ValueError, 'key is not 16, 24 or 32 bytes long'
-
-        self.r.init(Rijndael.ECB, Rijndael.Encrypt, key, keyLen)
+        self._key = Key(Key.ENCRYPT, key)
+        self._iv = iv or urandom(16)
+        self._cipher = Cipher(Cipher.CBC, self._iv)
 
     def writeBlocks(self, data):
 
-        super(RijndaelOutputStream, self).writeBlocks(self.r.blockEncrypt(data))
+        data = self._cipher.blockEncrypt(self._key, data)
+        super(RijndaelOutputStream, self).writeBlocks(data)
 
     def writePadded(self, data):
 
-        super(RijndaelOutputStream, self).writePadded(self.r.padEncrypt(data))
+        data = self._cipher.padEncrypt(self._key, data)
+        super(RijndaelOutputStream, self).writePadded(data)
 
     def close(self):
 
         super(RijndaelOutputStream, self).close()
-        del self.r
+        self._key = None
+        self._cipher = None
+
+    def getIV(self):
+
+        return self._iv
         
 
 class Base64OutputStream(BlockOutputStream):
@@ -410,39 +410,33 @@ class BlockInputStream(object):
 
 class RijndaelInputStream(BlockInputStream):
 
-    def __init__(self, inputStream, key):
+    def __init__(self, inputStream, key, iv):
 
         super(RijndaelInputStream, self).__init__(inputStream, 16)
-        self.r = Rijndael()
 
         if key is None:
             raise ValueError, 'key is None'
+        if iv is None:
+            raise ValueError, 'iv is None'
 
-        if len(key) == 16:
-            keyLen = Rijndael.Key16Bytes
-        elif len(key) == 24:
-            keyLen = Rijndael.Key24Bytes
-        elif len(key) == 32:
-            keyLen = Rijndael.Key32Bytes
-        else:
-            raise ValueError, 'key is not 16, 24 or 32 bytes long'
-
-        self.r.init(Rijndael.ECB, Rijndael.Decrypt, key, keyLen)
+        self._key = Key(Key.DECRYPT, key)
+        self._cipher = Cipher(Cipher.CBC, iv)
 
     def readBlocks(self, len):
 
         data = super(RijndaelInputStream, self).readBlocks(len)
-        return self.r.blockDecrypt(data)
+        return self._cipher.blockDecrypt(self._key, data)
         
     def readPadded(self, len):
 
         data = super(RijndaelInputStream, self).readPadded(len)
-        return self.r.padDecrypt(data)
+        return self._cipher.padDecrypt(self._key, data)
 
     def close(self):
 
         super(RijndaelInputStream, self).close()
-        self.r = None
+        self._key = None
+        self._cipher = None
 
 
 class Base64InputStream(BlockInputStream):
