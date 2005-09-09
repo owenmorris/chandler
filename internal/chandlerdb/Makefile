@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.5-17
+RELVER=0.5-18
 CHANDLERDB=$(INTERNAL)/chandlerdb
 
 BUILD=build_$(SNAP)
@@ -21,8 +21,6 @@ build:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
         PREFIX=$(_prefix) \
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           build_ext --swig-opts="-c++ -modern" \
-                                     --swig=$(_swig) \
                            install --force
 
 clean:

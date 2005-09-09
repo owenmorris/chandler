@@ -269,8 +269,9 @@ static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
         tuple = PyTuple_Pack(3, callable, callArgs, kwds);
         ok = PyList_Append(self->changeNotifications, tuple) == 0;
 
-        if (noKwds)
+        if (noKwds) {
             Py_DECREF(kwds);
+        }
         Py_DECREF(tuple);
     }
     else

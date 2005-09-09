@@ -24,10 +24,11 @@ def main():
                                 sources=['chandlerdb/util/uuid.c',
                                          'chandlerdb/util/pyuuid.c']))
 
-    extensions.append(Extension('chandlerdb.util._rijndael',
-                                sources=['rijndael-2.4/rijndael.cpp',
-                                         'chandlerdb/util/rijndael.i'],
-                                include_dirs=['rijndael-2.4']))
+    extensions.append(Extension('chandlerdb.util.rijndael',
+                                sources=['rijndael-3.0/rijndael-api-fst.c',
+                                         'rijndael-3.0/rijndael-alg-fst.c',
+                                         'chandlerdb/util/rijndael.c'],
+                                include_dirs=['rijndael-3.0']))
 
     extensions.append(Extension('chandlerdb.schema.descriptor',
                                 sources=['chandlerdb/schema/descriptor.c']))
@@ -66,10 +67,6 @@ def main():
     setup(name='chandlerdb', version='0.5',
           ext_modules=extensions,
           py_modules=modules)
-    if os.name == 'nt' and os.path.exists('rijndael.py'):
-        shutil.move('rijndael.py', 'chandlerdb/util/rijndael.py')
-    setup(name='chandlerdb', version='0.5',
-          py_modules=['chandlerdb.util.rijndael'])
 
 if __name__ == "__main__":
     main()
