@@ -428,6 +428,12 @@ class wxMenuItem (wx.MenuItem):
         arguments = style + arguments
         super (wxMenuItem, self).__init__ (*arguments, **keywords)
 
+    def OnInit(self):
+        if hasattr(self.blockItem, 'icon'):
+            menubitmap = wx.GetApp().GetImage(self.blockItem.icon)
+            if menubitmap:
+                self.SetBitmap(menubitmap)
+
     def __cmp__ (self, other):
         """
           Shouldn't be needed, but wxWidgets will return it's internal
@@ -450,7 +456,8 @@ class wxMenuItem (wx.MenuItem):
     def wxSynchronizeWidget(self):
         # placeholder in case Menu Items change
         pass
-    
+
+    @classmethod
     def CalculateWXStyle(cls, block):
         parentWidget = block.dynamicParent.widget
         if block.menuItemKind == "Separator":
@@ -483,7 +490,6 @@ class wxMenuItem (wx.MenuItem):
                 assert submenu
                 style = (None, id, title, block.helpString, kind, submenu)
         return style
-    CalculateWXStyle = classmethod(CalculateWXStyle)
     
     def setMenuItem (self, newItem, oldItem, index):
         subMenu = self.GetSubMenu()
@@ -656,6 +662,7 @@ class MenuItem (Block.Block, DynamicChild):
     schema.addClouds(
         copying = schema.Cloud(byCloud = [event])
     )
+    icon = schema.One(schema.String)
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
