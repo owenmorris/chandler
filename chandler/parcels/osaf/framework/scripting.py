@@ -91,9 +91,11 @@ class Script(pim.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  bodyString=None, *args, **keys):
-        super(Script, self).__init__(name, parent, kind, view, displayName=name, *args, **keys)
         if name is None:
-            self.displayName = _('Untitled')
+            displayName = _('Untitled')
+        else:
+            displayName = name
+        super(Script, self).__init__(name, parent, kind, view, displayName=displayName, *args, **keys)
         self.lastRan = datetime.now()
         if bodyString is not None:
             self.bodyString = bodyString # property for the body LOB

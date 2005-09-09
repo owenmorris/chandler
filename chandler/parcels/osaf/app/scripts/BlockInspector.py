@@ -4,6 +4,6 @@ import wx
 w = wx.FindWindowAtPoint(wx.GetMousePosition())
 while not hasattr(w, 'blockItem'):
     w = w.GetParent()
-print w.blockItem
+print w.blockItem.blockName, w.blockItem
 
 
