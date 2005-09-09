@@ -159,6 +159,19 @@ def stripTimeZone(dt):
     else:
         return dt.astimezone(PyICU.ICUtzinfo.getDefault()).replace(tzinfo=None)
 
+def forceToDateTime(dt):
+    """If dt is a datetime, return dt, if a date, add time(0) and return.
+
+    @param dt: The input.
+    @type dt: C{datetime} or C{date}
+    
+    @return: A C{datetime}
+    
+    """
+    if type(dt) == datetime.datetime:
+        return dt
+    elif type(dt) == datetime.date:
+        return datetime.datetime.combine(dt, datetime.time(0))
 
 def coerceTimeZone(dt, tzinfo):
     """This method returns a C{datetime} with a specified C{tzinfo}.

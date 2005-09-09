@@ -316,187 +316,199 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # this is just a quick hack to get VTODO working, FIXME write
         # more readable table driven code to process VEVENTs and VTODOs
         for event in getattr(calendar, 'vevent', []):
-            logger.debug("got VEVENT")
-            pickKind = eventKind
-
             try:
-                displayName = event.summary[0].value
-            except AttributeError:
-                displayName = ""
-
-            try:
-                description = event.description[0].value
-            except AttributeError:
-                description = None
-                
-            try:
-                location = event.location[0].value
-            except AttributeError:
-                location = None            
-
-            try:
-                status = event.status[0].value.lower()
-                if status in ('confirmed', 'tentative'):
-                    pass
-                elif status == 'cancelled': #Chandler doesn't have CANCELLED
-                    status = 'fyi'
-                else:
-                    status = 'confirmed'
-            except AttributeError:
-                status = 'confirmed'
-
-            try:
-                # FIXME assumes DURATION, not DATE-TIME
-                reminderDelta = event.valarm[0].trigger[0].value
-            except AttributeError:
-                reminderDelta = None
-
-            # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
-            # what that would mean, so we won't catch an exception if there's no
-            # dtstart.
-            dtstart  = event.dtstart[0].value 
-            isDate = type(dtstart) == date
-            
-            try:
-                duration = event.duration[0].value
-            except AttributeError:
-                # note that duration = dtend - dtstart isn't strictly correct
-                # throughout a recurrence set, 1 hour differences might happen
-                # around DST, but we'll ignore that corner case for now
+                logger.debug("got VEVENT")
+                pickKind = eventKind
+    
                 try:
-                    duration = event.dtend[0].value - dtstart
-                # FIXME no end time or duration, Calendar UI doesn't seem to
-                # like events with no duration, so for now we'll set a dummy
-                # duration of 1 hour
+                    displayName = event.summary[0].value
                 except AttributeError:
-                    # FIXME Nesting try/excepts is ugly.
-                    try:
-                        duration = event.due[0].value - dtstart
-                    except AttributeError:
-                        if isDate: 
-                            # make it two days long, our conversion from 
-                            # iCalendar to sane changes it to 2 days long later
-                            duration = datetime.timedelta(days=2)
-                        else:
-                            duration = datetime.timedelta(0)
-                            
-
-            if isDate:
-                dtstart = datetime.datetime.combine(dtstart, time(0))
-                # convert to Chandler's notion of all day duration
-                duration -= datetime.timedelta(days=1)
-                    
-            # ignore timezones and recurrence till tzinfo -> PyICU is written
-            # give the repository a naive datetime, no timezone
-            dtstart = convertToICUtzinfo(dtstart)
-            # Because of restrictions on dateutil.rrule, we're going
-            # to have to make sure all the datetimes we create have
-            # the same naivete as dtstart
-            tzinfo = dtstart.tzinfo
-            
-            def makeNaiveteMatch(dt):
-                if dt.tzinfo is None:
-                    if tzinfo is not None:
-                        dt = TimeZone.coerceTimeZone(dt, tzinfo)
-                else:
-                    if tzinfo is None:
-                        dt = TimeZone.stripTimeZone(dt)
-                return dt
- 
-            
-            # See if we have a corresponding item already
-            recurrenceID = None
-            uidMatchItem = self.findUID(event.uid[0].value)
-            if uidMatchItem is not None:
-                logger.debug("matched UID")
+                    displayName = ""
+    
                 try:
-                    recurrenceID = event.contents['recurrence-id'][0].value
-                    if type(recurrenceID) == date:
-                        recurrenceID = datetime.datetime.combine(
-                                                    recurrenceID,
-                                                    time(tzinfo=tzinfo))
-                    else:
-                        recurrenceID = makeNaiveteMatch(
-                                              convertToICUtzinfo(recurrenceID))
-                except:
-                    pass
-                if recurrenceID:
-                    eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
-                    if eventItem == None:
-                        raise Exception, "RECURRENCE-ID didn't match rule. " + \
-                                         "RECURRENCE-ID = %s" % recurrenceID
-                else:
-                    eventItem = uidMatchItem
-                    countUpdated += 1
-            else:
-                eventItem = pickKind.newItem(None, newItemParent)
-                countNew += 1
-                eventItem.icalUID = event.uid[0].value
-
-
-            # vobject isn't meshing well with dateutil when dtstart isDate;
-            # dtstart is converted to a datetime for dateutil, but rdate
-            # isn't.  To make dateutil happy, convert rdates which are dates to
-            # datetimes until vobject is fixed.
-            for i, rdate in enumerate(event.rdate):
-                if type(rdate) == date:
-                    event.rdate[i] = datetime.datetime.combine(rdate,
-                                                            time(tzinfo=tzinfo))
-                else:
-                    event.rdate[i] = makeNaiveteMatch(convertToICUtzinfo(
-                                                      event.rdate[i]))
+                    description = event.description[0].value
+                except AttributeError:
+                    description = None
                     
-                # get rid of RDATES that match dtstart, created by vobject to
-                # deal with unusual RRULEs correctly
-                if event.rdate[i] == dtstart:
-                    del event.rdate[i]
+                try:
+                    location = event.location[0].value
+                except AttributeError:
+                    location = None            
+    
+                try:
+                    status = event.status[0].value.lower()
+                    if status in ('confirmed', 'tentative'):
+                        pass
+                    elif status == 'cancelled': #Chandler doesn't have CANCELLED
+                        status = 'fyi'
+                    else:
+                        status = 'confirmed'
+                except AttributeError:
+                    status = 'confirmed'
+    
+                try:
+                    # FIXME assumes DURATION, not DATE-TIME
+                    reminderDelta = event.valarm[0].trigger[0].value
+                except AttributeError:
+                    reminderDelta = None
+    
+                # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
+                # what that would mean, so we won't catch an exception if there's no
+                # dtstart.
+                dtstart  = event.dtstart[0].value 
+                isDate = type(dtstart) == date
                 
-            logger.debug("eventItem is %s" % str(eventItem))
-            
-            #Default to NOT any time
-            eventItem.anyTime = False
-            
-            eventItem.displayName = displayName
-            if isDate:
-                eventItem.allDay = True
-            eventItem.startTime   = dtstart
-            eventItem.endTime = dtstart + duration
-            
-            if not filters or "transparency" not in filters:
-                eventItem.transparency = status
-            
-            # I think Item.description describes a Kind, not userdata, so
-            # I'm using DESCRIPTION <-> body  
-            if description is not None:
-                eventItem.body = textKind.makeValue(description)
-            
-            if location:
-                eventItem.location = Calendar.Location.getLocation(view,
-                                                                   location)
-            
-            if not filters or "reminderTime" not in filters:
-                if reminderDelta is not None:
-                    eventItem.reminderTime = dtstart + reminderDelta
-
-            if len(event.rdate) > 0 or len(event.rrule) > 0:
-                # make until to have no timezone if the event is all day, since
-                # dtstart for all day events has no timezone
+                try:
+                    duration = event.duration[0].value
+                except AttributeError:
+                    # note that duration = dtend - dtstart isn't strictly correct
+                    # throughout a recurrence set, 1 hour differences might happen
+                    # around DST, but we'll ignore that corner case for now
+                    try:
+                        duration = event.dtend[0].value - dtstart
+                    # FIXME no end time or duration, Calendar UI doesn't seem to
+                    # like events with no duration, so for now we'll set a dummy
+                    # duration of 1 hour
+                    except AttributeError:
+                        # FIXME Nesting try/excepts is ugly.
+                        try:
+                            duration = event.due[0].value - dtstart
+                        except AttributeError:
+                            if isDate: 
+                                # make it two days long, our conversion from 
+                                # iCalendar to sane changes it to 2 days long later
+                                duration = datetime.timedelta(days=2)
+                            else:
+                                duration = datetime.timedelta(0)
+                                
+    
                 if isDate:
-                    for rule in event.rrule:
-                        if rule._until and rule._until.tzinfo is not None:
-                            rule._until = rule._until.astimezone(localtime).replace(tzinfo=None)
-                eventItem.setRuleFromDateUtil(event.rruleset)
-            elif recurrenceID is None: # delete any existing rule
-                eventItem.removeRecurrence()
-
-            logger.debug("Imported %s %s" % (eventItem.displayName,
-             eventItem.startTime))
-
-            if self.fileStyle() == self.STYLE_SINGLE:
-                item.add(eventItem)
-            else:
-                return eventItem
-                 
+                    dtstart = TimeZone.forceToDateTime(dtstart)
+                    # convert to Chandler's notion of all day duration
+                    duration -= datetime.timedelta(days=1)
+                        
+                # ignore timezones and recurrence till tzinfo -> PyICU is written
+                # give the repository a naive datetime, no timezone
+                dtstart = convertToICUtzinfo(dtstart)
+                # Because of restrictions on dateutil.rrule, we're going
+                # to have to make sure all the datetimes we create have
+                # the same naivete as dtstart
+                tzinfo = dtstart.tzinfo
+                
+                def makeNaiveteMatch(dt):
+                    if dt.tzinfo is None:
+                        if tzinfo is not None:
+                            dt = TimeZone.coerceTimeZone(dt, tzinfo)
+                    else:
+                        if tzinfo is None:
+                            dt = TimeZone.stripTimeZone(dt)
+                    return dt
+     
+                
+                # See if we have a corresponding item already
+                recurrenceID = None
+                uidMatchItem = self.findUID(event.uid[0].value)
+                if uidMatchItem is not None:
+                    logger.debug("matched UID")
+                    try:
+                        recurrenceID = event.contents['recurrence-id'][0].value
+                        if type(recurrenceID) == date:
+                            recurrenceID = datetime.datetime.combine(
+                                                        recurrenceID,
+                                                        time(tzinfo=tzinfo))
+                        else:
+                            recurrenceID = makeNaiveteMatch(
+                                                  convertToICUtzinfo(recurrenceID))
+                    except:
+                        pass
+                    if recurrenceID:
+                        eventItem = uidMatchItem.getRecurrenceID(recurrenceID)
+                        if eventItem == None:
+                            # our recurrenceID didn't match an item we know
+                            # about.  This may be because the item is created
+                            # by a later modification, a case we're not dealing
+                            # with.  For now, just skip it.
+                            logger.info("RECURRENCE-ID didn't match rule. " \
+                                        "RECURRENCE-ID = %s" % recurrenceID)
+                            continue
+                    else:
+                        eventItem = uidMatchItem
+                        countUpdated += 1
+                else:
+                    eventItem = pickKind.newItem(None, newItemParent)
+                    countNew += 1
+                    eventItem.icalUID = event.uid[0].value
+    
+    
+                # vobject isn't meshing well with dateutil when dtstart isDate;
+                # dtstart is converted to a datetime for dateutil, but rdate
+                # isn't.  To make dateutil happy, convert rdates which are dates to
+                # datetimes until vobject is fixed.
+                for i, rdate in enumerate(event.rdate):
+                    if type(rdate) == date:
+                        event.rdate[i] = datetime.datetime.combine(rdate,
+                                                                time(tzinfo=tzinfo))
+                    else:
+                        event.rdate[i] = makeNaiveteMatch(convertToICUtzinfo(
+                                                          event.rdate[i]))
+                        
+                    # get rid of RDATES that match dtstart, created by vobject to
+                    # deal with unusual RRULEs correctly
+                    if event.rdate[i] == dtstart:
+                        del event.rdate[i]
+                    
+                logger.debug("eventItem is %s" % str(eventItem))
+                
+                #Default to NOT any time
+                eventItem.anyTime = False
+                
+                eventItem.displayName = displayName
+                if isDate:
+                    eventItem.allDay = True
+                eventItem.startTime   = dtstart
+                eventItem.endTime = dtstart + duration
+                
+                if not filters or "transparency" not in filters:
+                    eventItem.transparency = status
+                
+                # I think Item.description describes a Kind, not userdata, so
+                # I'm using DESCRIPTION <-> body  
+                if description is not None:
+                    eventItem.body = textKind.makeValue(description)
+                
+                if location:
+                    eventItem.location = Calendar.Location.getLocation(view,
+                                                                       location)
+                
+                if not filters or "reminderTime" not in filters:
+                    if reminderDelta is not None:
+                        eventItem.reminderTime = dtstart + reminderDelta
+    
+                if len(event.rdate) > 0 or len(event.rrule) > 0:
+                    # make until to have no timezone if the event is all day, since
+                    # dtstart for all day events has no timezone
+                    if isDate:
+                        for rule in event.rrule:
+                            if rule._until and rule._until.tzinfo is not None:
+                                rule._until = rule._until.astimezone(localtime).replace(tzinfo=None)
+                    eventItem.setRuleFromDateUtil(event.rruleset)
+                elif recurrenceID is None: # delete any existing rule
+                    eventItem.removeRecurrence()
+    
+                logger.debug("Imported %s %s" % (eventItem.displayName,
+                 eventItem.startTime))
+    
+                if self.fileStyle() == self.STYLE_SINGLE:
+                    item.add(eventItem)
+                else:
+                    return eventItem
+            except Exception, e:
+                if __debug__:
+                    raise e
+                else:
+                    logger.info("import failed to import one event with \
+                                 exception: %s" % str(e))
+                     
         logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))
 

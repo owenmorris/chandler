@@ -13,7 +13,7 @@ import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo
-from TimeZone import coerceTimeZone
+from TimeZone import coerceTimeZone, forceToDateTime
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
@@ -354,7 +354,7 @@ class RecurrenceRuleSet(items.ContentItem):
                 itemlist.append(ruleItem)
             setattr(self, rtype + 's', itemlist)
         for typ in 'rdate', 'exdate':
-            datetimes=list(getattr(ruleSetOrRule, '_' + typ, []))
+            datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
             setattr(self, typ + 's', datetimes)
 
     def isCustomRule(self):
