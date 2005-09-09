@@ -905,39 +905,20 @@ class LobImageAttributeEditor (BaseAttributeEditor):
     def ReadOnly (self, (item, attribute)):
         return True
 
-    def CreateControl(self, forEditing, readOnly, parentWidget, id, parentBlock, font):
-        panel = ScrolledPanel(parentWidget, id,
-                              style=wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
-        box = wx.BoxSizer(wx.VERTICAL)
-        bitmap = wx.StaticBitmap(panel, id, wx.NullBitmap, (0, 0))
-        box.Add(bitmap)
-        panel.SetSizer(box)
-        panel.SetAutoLayout(1)
-        panel.SetupScrolling()
-        panel.myBitmapControl = bitmap
-        return panel
+    def CreateControl(self, forEditing, readOnly, parentWidget, id,
+                      parentBlock, font):
+        return wx.StaticBitmap(parentWidget, id, wx.NullBitmap, (0, 0))
 
     def __getBitmapFromLob(self, attributeValue):
         input = attributeValue.getInputStream()
         data = input.read()
         input.close()
         stream = cStringIO.StringIO(data)
-        return wx.BitmapFromImage(wx.ImageFromStream(stream))
+        image = wx.ImageFromStream(stream)
+        # image = image.Scale(width, height)
+        return wx.BitmapFromImage(image)
 
     def BeginControlEdit(self, item, attributeName, control):
-
-        # @@@MOR This is a hack to work around BeginControlEdit getting
-        # called too often -- it's getting called even if the attribute hasn't
-        # been modified.  But the real problem is that clicking the 'new item'
-        # button does a commit which starts a chain of events that leads to a
-        # CallAfter( ) method getting called after this control has been
-        # destroyed.  The downside of this hack is that if the attribute value
-        # really does change (as the result of an importFromFile( ) for
-        # example), the new image won't be displayed until switching to a
-        # different item and back again.
-        if hasattr(self, "iAmInitialized"):
-            return
-        self.iAmInitialized = True
 
         try:
             bmp = self.__getBitmapFromLob(getattr(item, attributeName))
@@ -945,8 +926,7 @@ class LobImageAttributeEditor (BaseAttributeEditor):
             logger.debug("Couldn't render image (%s)" % str(e))
             bmp = wx.NullBitmap
 
-        control.myBitmapControl.SetBitmap(bmp)
-        control.SetupScrolling()
+        control.SetBitmap(bmp)
 
 
 class DatetimeFormatter(object):
