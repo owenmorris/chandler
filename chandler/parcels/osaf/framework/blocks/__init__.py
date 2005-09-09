@@ -4,7 +4,7 @@ from Styles import CharacterStyle, ColorStyle, Style
 from Block import Block as __Block
 
 from Block import (
-    RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent,
+    RectangularChild, TrunkSubtree, BlockEvent, ChoiceEvent, ColorEvent,
     KindParameterizedEvent, ModifyContentsEvent, EventList
 )
 

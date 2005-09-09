@@ -20,10 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 class TrunkSubtree(schema.Item):
-    """A mapping between an Item and the "root blocks" that should appear when
-    an Item inheriting from that Kind is displayed. (A "root block" should
-    have a "position" attribute to enable it to be sorted with other root
-    blocks.)
+    """
+    A mapping between an Item and the 'root blocks' that should appear
+    when an Item inheriting from that Kind is displayed. (A 'root
+    block' should have a 'position' attribute to enable it to be
+    sorted with other root blocks.)
     """
 
     key = schema.One(schema.Item, required = True)
@@ -958,6 +959,9 @@ class BlockEvent(schema.Item):
                              **attrs)
 class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
+
+class ColorEvent(BlockEvent):
+    color = schema.One(ColorType, required = True)
 
 class KindParameterizedEvent(BlockEvent):
     kindParameter = schema.One(
