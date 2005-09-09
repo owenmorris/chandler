@@ -40,8 +40,8 @@ def make_color_blocks(parcel, cls, hues):
 
         menuitem = cls.template(shortname + 'ColorItem',
                                 title=title,
-                                icon=shortname + ".png",
-                                menuItemKind="Radio",
+                                icon=shortname + "MenuIcon",
+                                menuItemKind="Check",
                                 event=colorevent)
         menuitems.append(menuitem)
     return menuitems

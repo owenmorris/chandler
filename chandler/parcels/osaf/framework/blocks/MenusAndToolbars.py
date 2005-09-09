@@ -430,9 +430,14 @@ class wxMenuItem (wx.MenuItem):
 
     def OnInit(self):
         if hasattr(self.blockItem, 'icon'):
-            menubitmap = wx.GetApp().GetImage(self.blockItem.icon)
-            if menubitmap:
-                self.SetBitmap(menubitmap)
+            uncheckedbitmap = \
+                wx.GetApp().GetImage(self.blockItem.icon + ".png")
+            if uncheckedbitmap:
+                checkedbitmap = \
+                    wx.GetApp().GetImage(self.blockItem.icon + "Checked.png")
+                if not checkedbitmap:
+                    checkedbitmap = uncheckedbitmap
+                self.SetBitmaps(checkedbitmap, uncheckedbitmap)
 
     def __cmp__ (self, other):
         """

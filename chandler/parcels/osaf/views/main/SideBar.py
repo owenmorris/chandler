@@ -469,6 +469,8 @@ class SidebarBlock(ControlBlocks.Table):
         # ColorType's to tuples
         if color and color.toTuple() == event.color.toTuple():
             event.arguments['Check'] = True
+        else:
+            event.arguments['Check'] = False
         
     def getButtonState (self, buttonName, item):
         if buttonName == 'Icon':
