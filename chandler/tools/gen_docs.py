@@ -16,6 +16,10 @@ def generateDocs(outputDir=None, verbose=False):
         chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
         queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
 
+    chandlerHome = os.getenv('CHANDLERHOME')
+    chandlerdb   = os.path.join(chandlerHome, chandlerdb)
+    queryparser  = os.path.join(chandlerHome, queryparser)
+
       # This is the options dictionary
       # It is used by most of the epydoc routines and
       # the contents were determined by examining epydoc/gui.py
@@ -181,8 +185,10 @@ if __name__ == '__main__':
     if args:
         outputDir = args[0]
 
-    if os.path.isdir(outputDir):
-        generateDocs(outputDir, options.verbose)
+    if os.path.isfile('Chandler.py'):
+        if os.path.isdir(outputDir):
+            generateDocs(outputDir, options.verbose)
+        else:
+            print "Error: Output directory does not exist - exiting"
     else:
-        print "Error: Output directory does not exist - exiting"
-
+        print "Error: Currently gen_docs.py assumes it is running in the chandler/ directory"
