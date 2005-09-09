@@ -1,4 +1,4 @@
-from SideBar import SidebarBlock as __SidebarBlock
+from SideBar import SidebarBlock
 from SideBar import CPIATestSidebarTrunkDelegate, SidebarTrunkDelegate
 
 from mainblocks import make_mainview

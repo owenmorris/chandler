@@ -15,6 +15,16 @@ import osaf.sharing.Sharing as Sharing
 from application import schema
 from i18n import OSAFMessageFactory as _
 
+# in the form 'Color', _('LocalizableColorString'), 360-degree based hue
+sidebar_hues = [('Blue', _('Blue'), 210),
+                ('Green', ('Green'), 120),
+                ('Red', _('Red'), 0),
+                ('Orange', _('Orange'), 30),
+                ('Purple', _('Purple'), 270),
+                ('Navy', _('Navy'), 240),
+                ('Pink', _('Pink'), 330)]
+
+
 def GetRectFromOffsets (rect, offsets):
     def GetEdge (rect, offset):
         if offset >= 0:
@@ -452,6 +462,23 @@ class SidebarBlock(ControlBlocks.Table):
         else:
             event.arguments['Enable'] = False
             
+    def onCollectionColorEvent(self, event):
+        self.selectedItemToView.color = event.color
+        
+    def onCollectionColorEventUpdateUI(self, event):
+        # color of the selected collection
+        if not self.selectedItemToView:
+            event.arguments['Enable'] = False
+            return
+        
+        color = getattr(self.selectedItemToView, 'color', None)
+
+        # the event contains the color, so we need to look at that
+        # the only way to test for equality is by converting both
+        # ColorType's to tuples
+        if color and color.toTuple() == event.color.toTuple():
+            event.arguments['Check'] = True
+        
     def getButtonState (self, buttonName, item):
         if buttonName == u'Icon':
             if item in self.checkedItems:

@@ -5,7 +5,10 @@ from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
 
 from osaf.framework import scripting
+from SideBar import sidebar_hues
 
+from osaf.framework.blocks.DrawingUtilities import rgb2color
+from colorsys import hsv_to_rgb
 from osaf import pim
 
 import osaf.pim.notes
@@ -16,6 +19,36 @@ import osaf.pim.tasks
 from application import schema
 from i18n import OSAFMessageFactory as _
 
+def make_color_from_hue(hue):
+    c = ColorType(*rgb2color(*hsv_to_rgb((hue/360.0), 0.5, 1.0)))
+    c.alpha = 255
+    return c
+
+def make_color_blocks(parcel, cls, hues):
+    """
+    dynamically creates an array of type 'cls' based on a list of colors
+    """
+    menuitems = []
+    
+    for shortname, title, hue in hues:
+        color = make_color_from_hue(hue)
+        colorevent = \
+            ColorEvent.template(shortname + 'CollectionColor',
+                                'SendToBlockByName',
+                                dispatchToBlockName='Sidebar',
+                                color=color,
+                                methodName='onCollectionColorEvent').install(parcel)
+
+        menuitem = cls.template(shortname + 'ColorItem',
+                                title=title,
+                                icon=shortname + ".png",
+                                menuItemKind="Radio",
+                                event=colorevent)
+        menuitems.append(menuitem)
+    return menuitems
+                                     
+
+    
 def make_mainview(parcel):
 
     # calling this 'events' for now because we might move
@@ -633,6 +666,9 @@ def make_mainview(parcel):
                             MenuItem.template('RenameItem',
                                 title=_(u'Rename'),
                                 helpString=_(u'Rename the selected collection')),
+                            Menu.template('CollectionColorMenu',
+                                title=_(u'&Collection Color'),
+                                childrenBlocks=make_color_blocks(parcel, MenuItem, sidebar_hues)),
                             ]), # Menu CollectionMenu
                     Menu.template('TestMenu',
                         title=_(u'&Test'),
