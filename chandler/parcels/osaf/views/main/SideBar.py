@@ -15,15 +15,6 @@ import osaf.sharing.Sharing as Sharing
 from application import schema
 from i18n import OSAFMessageFactory as _
 
-# in the form 'Color', _('LocalizableColorString'), 360-degree based hue
-sidebar_hues = [('Blue', _('Blue'), 210),
-                ('Green', ('Green'), 120),
-                ('Red', _('Red'), 0),
-                ('Orange', _('Orange'), 30),
-                ('Purple', _('Purple'), 270),
-                ('Navy', _('Navy'), 240),
-                ('Pink', _('Pink'), 330)]
-
 
 def GetRectFromOffsets (rect, offsets):
     def GetEdge (rect, offset):
@@ -480,10 +471,10 @@ class SidebarBlock(ControlBlocks.Table):
             event.arguments['Check'] = True
         
     def getButtonState (self, buttonName, item):
-        if buttonName == u'Icon':
+        if buttonName == 'Icon':
             if item in self.checkedItems:
                 return 'Checked'
-        elif buttonName == u'SharingIcon':
+        elif buttonName == 'SharingIcon':
             share = Sharing.getShare(item)
             if share is not None:
                 if (share.sharer is not None and
@@ -494,14 +485,14 @@ class SidebarBlock(ControlBlocks.Table):
         return ""
 
     def setButtonState (self, buttonName, item, value):
-        if buttonName == u'Icon':
+        if buttonName == 'Icon':
             if item in self.checkedItems:
                 if not value:
                     self.checkedItems.remove (item)
             else:
                 if value:
                     self.checkedItems.append (item)
-        elif buttonName == u'SharingIcon':
+        elif buttonName == 'SharingIcon':
             """
               $$$ We need to hook up sharing here -- DJA
             """

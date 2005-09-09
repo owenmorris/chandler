@@ -5,7 +5,6 @@ from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *
 
 from osaf.framework import scripting
-from SideBar import sidebar_hues
 
 from osaf.framework.blocks.DrawingUtilities import rgb2color
 from colorsys import hsv_to_rgb
@@ -668,7 +667,16 @@ def make_mainview(parcel):
                                 helpString=_(u'Rename the selected collection')),
                             Menu.template('CollectionColorMenu',
                                 title=_(u'&Collection Color'),
-                                childrenBlocks=make_color_blocks(parcel, MenuItem, sidebar_hues)),
+                                childrenBlocks=make_color_blocks(parcel,
+                                                                 MenuItem,
+                                                                 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
+                                                                 [('Blue', _('Blue'), 210),
+                                                                  ('Green', ('Green'), 120),
+                                                                  ('Red', _('Red'), 0),
+                                                                  ('Orange', _('Orange'), 30),
+                                                                  ('Purple', _('Purple'), 270),
+                                                                  ('Navy', _('Navy'), 240),
+                                                                  ('Pink', _('Pink'), 330)])),
                             ]), # Menu CollectionMenu
                     Menu.template('TestMenu',
                         title=_(u'&Test'),
