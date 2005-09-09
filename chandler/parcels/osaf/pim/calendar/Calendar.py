@@ -947,7 +947,7 @@ class CalendarEventMixin(ContentItem):
                     # Unnecessary when we switch endTime->duration
                     newfirst.duration = backup.duration
                     self.occurrenceFor = self.modificationFor = newfirst
-                    self._makeGeneralChange()
+                    newfirst._makeGeneralChange()
                     self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
                     if self.hasLocalAttributeValue('modificationRecurrenceID'):
