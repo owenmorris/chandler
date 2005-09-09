@@ -212,6 +212,9 @@ class BaseAttributeEditor (object):
     def AttributeChanged(self):
         """ Called by the attribute editor when it changes the underlying
             value. """
+        # We shouldn't notify about the change if this item's gone...
+        if self.item.isDeleted():
+            return
         try:
             callback = self.changeCallBack
         except AttributeError:
@@ -220,13 +223,13 @@ class BaseAttributeEditor (object):
             if callback is not None:
                 callback()
 
-class AETextCtrl(ShownSynchronizer,
+class DragAndDropTextCtrl(ShownSynchronizer,
                  DragAndDrop.DraggableWidget,
                  DragAndDrop.DropReceiveWidget,
                  DragAndDrop.TextClipboardHandler,
                  wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
-        super (AETextCtrl, self).__init__ (*arguments, **keywords)
+        super (DragAndDropTextCtrl, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
         self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
@@ -295,7 +298,7 @@ class AETextCtrl(ShownSynchronizer,
             wx.ID_SELECTALL: 'SelectAll'
             }
         def OnMenuChoice(self, event):
-            handlerName = AETextCtrl.popupHandlers.get(event.GetId(), None)
+            handlerName = DragAndDropTextCtrl.popupHandlers.get(event.GetId(), None)
             if handlerName is None:
                 event.Skip()
                 return
@@ -303,7 +306,7 @@ class AETextCtrl(ShownSynchronizer,
             return h()
     
         def OnMenuUpdateUI(self, event):
-            evtName = AETextCtrl.popupHandlers.get(event.GetId(), None)
+            evtName = DragAndDropTextCtrl.popupHandlers.get(event.GetId(), None)
             if evtName is None:
                 event.Skip()
                 return
@@ -329,12 +332,12 @@ class AETextCtrl(ShownSynchronizer,
 
     def Cut(self):
         result = self.GetStringSelection()
-        super(AETextCtrl, self).Cut()
+        super(DragAndDropTextCtrl, self).Cut()
         return result
 
     def Copy(self):
         result = self.GetStringSelection()
-        super(AETextCtrl, self).Copy()
+        super(DragAndDropTextCtrl, self).Copy()
         return result
     
     def CanSelectAll(self):
@@ -343,7 +346,7 @@ class AETextCtrl(ShownSynchronizer,
     def SelectAll(self):
         self.SetSelection(-1, -1)
     
-class wxEditText(AETextCtrl):
+class wxEditText(DragAndDropTextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
@@ -364,6 +367,28 @@ class AEStaticText(ShownSynchronizer,
     GetValue = wx.StaticText.GetLabel
     SetValue = wx.StaticText.SetLabel
     
+def NotifyBlockToSaveValue(widget):
+    """ Notify this widget's block to save its value when we lose focus """
+    # We wish there were a cleaner way to do this notification!
+    try:
+        # if we have a block, and it has a save method, get it
+        saveMethod = widget.blockItem.saveValue
+    except AttributeError:
+        pass
+    else:
+        logger.debug("%s: saving value", getattr(widget.blockItem, 'blockName',
+                                                 widget.blockItem.itsName))
+        saveMethod()
+
+class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
+    def __init__(self, *args, **keys):
+        super(AENonTypeOverTextCtrl, self).__init__(*args, **keys)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
+
+    def OnEditLoseFocus(self, event):
+        NotifyBlockToSaveValue(self)
+        event.Skip()
+
 class AETypeOverTextCtrl(wxRectangularChild):
     def __init__(self, parent, id, title='', position=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0, *args, **keys):
@@ -372,8 +397,8 @@ class AETypeOverTextCtrl(wxRectangularChild):
         del keys['staticSize']
         self.hideLoc = (-100,-100)
         self.showLoc = (0,0)
-        editControl = AETextCtrl(self, -1, pos=position, size=size, 
-                                                  style=style, *args, **keys)
+        editControl = DragAndDropTextCtrl(self, -1, pos=position, size=size, 
+                                          style=style, *args, **keys)
         self.editControl = editControl
         editControl.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
         editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
@@ -425,30 +450,16 @@ class AETypeOverTextCtrl(wxRectangularChild):
         event.Skip()
 
     def OnEditLoseFocus(self, event):
-        # when we lose focus, check if we have a block and tell it
-        #  to save the value.
-        self.NotifyBlockToSaveValue()
+        NotifyBlockToSaveValue(self)
         self._swapControls(self.staticControl)
         event.Skip()
 
     def OnEditKeyUp(self, event):
         if event.m_keyCode == wx.WXK_RETURN:
-            self.NotifyBlockToSaveValue()
+            # not needed: Navigating will make us lose focus
+            # NotifyBlockToSaveValue(self)
             self.Navigate()
         event.Skip()
-
-    def NotifyBlockToSaveValue(self):
-        """
-        Tell the block associated with us to save our value now.
-        I wish there were a cleaner way to do this notification.
-        """
-        try:
-            # if we have a block, call its save method
-            saveMethod = self.blockItem.saveValue
-        except AttributeError:
-            pass
-        else:
-            saveMethod()
 
     def _swapControls(self, controlToShow):
         if controlToShow is self.otherControl:
@@ -600,7 +611,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                        id, parentBlock, font):
         # logger.debug("StringAE.CreateControl")
         
-        # We'll use an AETextCtrl, unless we're an edit-in-place 
+        # We'll use a DragAndDropTextCtrl, unless we're an edit-in-place 
         # control in 'edit' mode.
         useStaticText = self.EditInPlace() and not forEditing
                 
@@ -667,8 +678,8 @@ class StringAttributeEditor (BaseAttributeEditor):
             else:
                 style |= wx.TE_PROCESS_ENTER
                 
-            control = AETextCtrl(parentWidget, id, '', wx.DefaultPosition, 
-                                 size, style)
+            control = AENonTypeOverTextCtrl(parentWidget, id, '', wx.DefaultPosition, 
+                                            size, style)
             control.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
             control.Bind(wx.EVT_TEXT, self.onTextChanged)      
             control.Bind(wx.EVT_LEFT_DOWN, self.onClick)
@@ -1083,8 +1094,9 @@ class DateAttributeEditor (StringAttributeEditor):
             self.AttributeChanged()
             
         # Refresh the value in place
-        self.SetControlValue(self.control, 
-                             self.GetAttributeValue(item, attributeName))
+        if not item.isDeleted():
+            self.SetControlValue(self.control, 
+                                 self.GetAttributeValue(item, attributeName))
     
     def GetSampleText(self, item, attributeName):
         # We want to build a hint like "mm/dd/yy", but we don't know the locale-
@@ -1522,7 +1534,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         value = getattr(item, attributeName, None)
         if value is not None:
-            return value.tzinfo
+            return value.tzinfo or ICUtzinfo.getDefault()
         else:
             return None
 

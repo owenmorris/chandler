@@ -191,7 +191,9 @@ class MainView(View):
         application.dialogs.Util.ok(None, message, title)
 
     def onQuitEvent (self, event):
-        wx.GetApp().mainFrame.Close ()
+        mainFrame = wx.GetApp().mainFrame
+        mainFrame.SetFocus() # Force any in-progress edit to save its value.
+        mainFrame.Close()
         windows = wx.GetTopLevelWindows()
         for window in windows:
             window.Close()

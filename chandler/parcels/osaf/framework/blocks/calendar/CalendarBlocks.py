@@ -19,6 +19,7 @@ from osaf.framework.blocks import Styles
 from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
+import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime
 from i18n import OSAFMessageFactory as _
 
@@ -408,11 +409,7 @@ class wxPreviewArea(wx.Panel):
             return -1
         if item2.anyTime or item2.allDay:
             return 1
-        if item1.startTime == item2.startTime:
-            if item1.endTime == item2.endTime:
-                return cmp(item1.displayName, item2.displayName)
-            #duration
-            return cmp(item1.endTime, item2.endTime)
-        return cmp(item1.startTime, item2.startTime)
-        
+        return Calendar.datetimeOp(item1.startTime, 'cmp', item2.startTime) \
+               or cmp(item1.duration, item2.duration) \
+               or cmp(item1.displayName, item2.displayName)
 

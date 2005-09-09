@@ -1278,9 +1278,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             rruleset.rrules.first().untilIsDate = True
             item.changeThisAndFuture('rruleset', rruleset)
 
-        # We shouldn't notify about the change if this item's gone...
-        if not item.isDeleted():
-            self.AttributeChanged()    
+        self.AttributeChanged()    
     
     def GetControlValue (self, control):
         """ Get the value for the current selection """ 
