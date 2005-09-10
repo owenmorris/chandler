@@ -65,7 +65,7 @@ def run_script(scriptText, fileName=""):
 
     # now run that script in our predefined scope
     try:
-        exec scriptCode in builtIns, {}
+        exec scriptCode in builtIns
     except Exception:
         exception_message(_('Error in script:'))
         raise
@@ -391,25 +391,55 @@ class User(object):
     """
     @classmethod
     def emulate_typing(cls, string, ctrlFlag = False, altFlag = False, shiftFlag = False):
-        """ emulate_typings the string into the current focused widget, returns True if successful """
-        stringSuccess = True
+        """ emulate_typing the string into the current focused widget """
+        success = True
+        def set_event_info(event):
+            # setup event info for a keypress event
+            event.m_keyCode = keyCode
+            event.m_rawCode = keyCode
+            event.m_shiftDown = shiftFlag
+            event.m_controlDown = event.m_metaDown = ctrlFlag
+            event.m_altDown = altFlag
+            event.SetEventObject(widget)
+        # for each key, check for specials, then try several approaches
         for char in string:
-            try:
-                keyPressMethod = wx.Window_FindFocus().EmulateKeyPress
-            except AttributeError:
-                return False
+            keyCode = ord(char)
+            if keyCode == wx.WXK_RETURN:
+                cls.emulate_return()
+            elif keyCode == wx.WXK_TAB:
+                cls.emulate_tab(shiftFlag=shiftFlag)
             else:
-                keyCode = ord(char)  # returns ASCII value of char
+                # in case the focus has changed, get the new focused widget
+                widget = wx.Window_FindFocus()
+                # try calling any bound key handler
                 keyPress = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
-                keyPress.m_keyCode = keyCode
-                keyPress.m_shiftDown = char.isupper() or shiftFlag
-                keyPress.m_controlDown = keyPress.m_metaDown = ctrlFlag
-                keyPress.m_altDown = altFlag
-                charSuccess = keyPressMethod(keyPress)
-                stringSuccess = stringSuccess and charSuccess
-                wx.GetApp().Yield()
-        return stringSuccess
-    
+                set_event_info(keyPress)
+                downWorked = widget.ProcessEvent(keyPress)
+                keyUp = wx.KeyEvent(wx.wxEVT_KEY_UP)
+                set_event_info(keyUp)
+                upWorked = widget.ProcessEvent(keyUp)
+                if not (downWorked or upWorked): # key handler worked?
+                    # try calling EmulateKeyPress
+                    emulateMethod = getattr(widget, 'EmulateKeyPress', lambda k: False)
+                    if '__WXMSW__' in wx.PlatformInfo:
+                        emulateMethod = lambda k: False
+                    if not emulateMethod(keyPress): # emulate worked?
+                        # try calling WriteText
+                        writeMethod = getattr(widget, 'WriteText', None)
+                        if writeMethod:
+                            writeMethod(char)
+                        else:
+                            success = False # remember we had a failure
+        return success
+
+    @classmethod 
+    def emulate_tab(cls, shiftFlag=False):
+        if shiftFlag:
+            flags = wx.NavigationKeyEvent.IsBackward
+        else:
+            flags = wx.NavigationKeyEvent.IsForward
+        wx.Window_FindFocus().Navigate(flags)
+
     @classmethod
     def emulate_click(self, block, x=None, y=None, double=False):
         """ Simulates left mouse click on the given block or widget """
