@@ -13,18 +13,18 @@ if not os.path.exists(filePath):
 
 
 #initialization
-fileName = "FunctionalTestList1.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"FunctionalTestList1")
+fileName = "FunctionalTestSuite.log"
+logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"FunctionalTestSuite")
 
 #actions
-execfile(os.path.join(cats_home,"QATestScripts/TestCreateAccounts.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestNewCollection.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestNewEvent.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestNewMail.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestNewTask.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestNewNote.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestCalView.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestSwitchingViews.py"))
-execfile(os.path.join(cats_home,"QATestScripts/TestExporting.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestCreateAccounts.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewCollection.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewEvent.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewMail.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewTask.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewNote.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestCalView.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestSwitchingViews.py"))
+execfile(os.path.join(cats_home,"QATestScripts/Functional/TestExporting.py"))
 #cleaning
 logger.Close()
