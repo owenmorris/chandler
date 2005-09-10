@@ -16,9 +16,9 @@ def generateDocs(outputDir=None, verbose=False):
         chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
         queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
 
-    chandlerHome = os.getenv('CHANDLERHOME')
-    chandlerdb   = os.path.join(chandlerHome, chandlerdb)
-    queryparser  = os.path.join(chandlerHome, queryparser)
+    chandlerBin = os.getenv('CHANDLERBIN')
+    chandlerdb  = os.path.join(chandlerBin, chandlerdb)
+    queryparser = os.path.join(chandlerBin, queryparser)
 
       # This is the options dictionary
       # It is used by most of the epydoc routines and
