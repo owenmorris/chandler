@@ -3,7 +3,7 @@ import traceback
 import logging
 import wx
 import wx.xrc
-from osaf.sharing import Sharing, ICalendar
+from osaf import sharing
 import application.Globals as Globals
 import application.dialogs.Util
 import application.Parcel
@@ -43,7 +43,7 @@ class SubscribeDialog(wx.Dialog):
         if url is not None:
             self.textUrl.SetValue(url)
         else:
-            account = Sharing.getWebDAVAccount(self.view)
+            account = sharing.getWebDAVAccount(self.view)
             if account:
                 url = account.getLocation()
                 self.textUrl.SetValue(url)
@@ -71,13 +71,13 @@ class SubscribeDialog(wx.Dialog):
         url = self.textUrl.GetValue()
         if url.startswith('webcal:'):
             url = 'http:' + url[7:]
-        share = Sharing.findMatchingShare(view, url)
+        share = sharing.findMatchingShare(view, url)
         if share is not None:
             self.__showStatus(_("You are already subscribed"))
             return
 
         try:
-            share = Sharing.Share(view=view)
+            share = sharing.Share(view=view)
             share.configureInbound(url)
 
             if share is None:
@@ -108,13 +108,13 @@ class SubscribeDialog(wx.Dialog):
 
             self.EndModal(True)
 
-        except Sharing.NotAllowed, err:
+        except sharing.NotAllowed, err:
             self.__showAccountInfo(share.conduit.account)
             share.delete(True)
-        except Sharing.NotFound, err:
+        except sharing.NotFound, err:
             self.__showStatus(_("That collection was not found"))
             share.delete(True)
-        except Sharing.SharingError, err:
+        except sharing.SharingError, err:
             self.__showStatus(_("Sharing Error:\n%s") % err.message)
             logger.exception("Error during subscribe for %s" % url)
             share.delete(True)

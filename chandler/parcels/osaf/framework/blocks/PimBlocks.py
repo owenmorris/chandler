@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import wx
 import application.Globals as Globals
 import time
-import osaf.sharing.Sharing as Sharing
+from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
 from i18n import OSAFMessageFactory as _
@@ -92,7 +92,7 @@ class Sendability(Item):
 
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView):
             return
 
         sendableItems = [ item for item in selectedItems 

@@ -20,11 +20,10 @@ import application.Parcel
 import osaf.pim.mail as Mail
 from osaf.pim import Contact
 import osaf.pim.calendar.Calendar as Calendar
-from osaf import pim
+from osaf import pim, sharing
 from photos import Photo
 import osaf.pim.tests.GenerateItems as GenerateItems
 import util.GenerateItemsFromFile as GenerateItemsFromFile
-import osaf.sharing.Sharing as Sharing
 from repository.item.Item import Item
 import application.Printing as Printing
 import osaf.framework.blocks.calendar.CollectionCanvas as CollectionCanvas
@@ -82,7 +81,7 @@ class MainView(View):
         except KeyError:
             pass
         else:
-            share = Sharing.findMatchingShare(self.itsView, url)
+            share = sharing.findMatchingShare(self.itsView, url)
             itemCollection = share.contents
 
             for addresseeContact in mailMessage.toAddress:
@@ -317,9 +316,9 @@ class MainView(View):
 
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView):
             return
-        webdavAccount = Sharing.getWebDAVAccount(self.itsView)
+        webdavAccount = sharing.getWebDAVAccount(self.itsView)
 
         # commit changes, since we'll be switching to Twisted thread
         # @@@DLD bug 1998 - update comment above and use refresh instead?
@@ -329,10 +328,10 @@ class MainView(View):
         self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
 
         # Get or make a share for this item collection
-        share = Sharing.getShare(itemCollection)
+        share = sharing.getShare(itemCollection)
         isNewShare = share is None
         if isNewShare:
-            share = Sharing.newOutboundShare(self.itsView,
+            share = sharing.newOutboundShare(self.itsView,
                                              itemCollection,
                                              account=webdavAccount)
 
@@ -359,7 +358,7 @@ class MainView(View):
                 share.create()
             share.put()
 
-        except Sharing.SharingError, err:
+        except sharing.SharingError, err:
             self.setStatusMessage (_("Sharing failed."))
 
             msg = _("Couldn't share collection:\n%s") % err.message
@@ -453,7 +452,7 @@ class MainView(View):
 
         self.setStatusMessage (_("Importing from %s") % filename)
         try:
-            share = Sharing.OneTimeFileSystemShare(dir, filename,
+            share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
@@ -477,7 +476,7 @@ class MainView(View):
 
         self.setStatusMessage (_("Exporting to %s") % filename)
         try:
-            share = Sharing.OneTimeFileSystemShare(dir, filename,
+            share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = ListCollection(view=self.itsView)
             for event in Calendar.CalendarEvent.iterItems(self.itsView):
@@ -590,7 +589,7 @@ class MainView(View):
     def onGetNewMailEvent (self, event):
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
-        if not Sharing.ensureAccountSetUp(self.itsView):
+        if not sharing.ensureAccountSetUp(self.itsView):
             return
 
         view = self.itsView
@@ -820,7 +819,7 @@ class MainView(View):
                 filterKindPath = []
             else:
                 filterKindPath = [str(sidebar.filterKind.itsPath)]
-            collName = Sharing.getFilteredCollectionDisplayName(collection,
+            collName = sharing.getFilteredCollectionDisplayName(collection,
                                                                 filterKindPath)
 
             menuTitle = _('Share "%s"...') % collName
@@ -828,35 +827,35 @@ class MainView(View):
             menuTitle = _('Share a collection...')
 
         event.arguments ['Text'] = menuTitle
-        event.arguments['Enable'] = collection is not None and (not Sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and (not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and (Sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and (sharing.isShared(collection))
 
     def onUnsubscribeSidebarCollectionEvent(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            Sharing.unsubscribe(collection)
+            sharing.unsubscribe(collection)
 
     def onUnsubscribeSidebarCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            share = Sharing.getShare(collection)
-            sharedByMe = Sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and Sharing.isShared(collection) and not sharedByMe
+            share = sharing.getShare(collection)
+            sharedByMe = sharing.isSharedByMe(share)
+        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and not sharedByMe
 
     def onUnpublishSidebarCollectionEvent(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            Sharing.unpublish(collection)
+            sharing.unpublish(collection)
 
     def onUnpublishSidebarCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            share = Sharing.getShare(collection)
-            sharedByMe = Sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and Sharing.isShared(collection) and sharedByMe
+            share = sharing.getShare(collection)
+            sharedByMe = sharing.isSharedByMe(share)
+        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
 
     def onShareToolEvent(self, event):
         # Triggered from "Test | Share tool..."
@@ -870,7 +869,7 @@ class MainView(View):
         if collection is not None:
             for share in collection.shares:
                 if share.active:
-                    Sharing.syncShare(share)
+                    sharing.syncShare(share)
 
     def onSyncCollectionEventUpdateUI (self, event):
         """
@@ -884,11 +883,11 @@ class MainView(View):
                 filterKindPath = []
             else:
                 filterKindPath = [str(sidebar.filterKind.itsPath)]
-            collName = Sharing.getFilteredCollectionDisplayName(collection,
+            collName = sharing.getFilteredCollectionDisplayName(collection,
                                                                 filterKindPath)
 
             menuTitle = _('Sync "%s"') % collName
-            if Sharing.isShared(collection):
+            if sharing.isShared(collection):
                 event.arguments['Enable'] = True
             else:
                 event.arguments['Enable'] = False
@@ -900,7 +899,7 @@ class MainView(View):
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            share = Sharing.getShare(collection)
+            share = sharing.getShare(collection)
             if share is not None:
                 url = str(share.getLocation())
                 gotClipboard = wx.TheClipboard.Open()
@@ -912,7 +911,7 @@ class MainView(View):
         enable = False
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            share = Sharing.getShare(collection)
+            share = sharing.getShare(collection)
             if share is not None:
                 enable = True
         event.arguments['Enable'] = enable
@@ -928,17 +927,17 @@ class MainView(View):
 
         # find all the shared collections and sync them.
         self.setStatusMessage (_("Checking shared collections..."))
-        if Sharing.checkForActiveShares(self.itsView):
+        if sharing.checkForActiveShares(self.itsView):
             self.setStatusMessage (_("Synchronizing shared collections..."))
-            Sharing.syncAll(self.itsView)
+            sharing.syncAll(self.itsView)
         else:
             self.setStatusMessage (_("No shared collections found"))
             return
         self.setStatusMessage (_("Shared collections synchronized"))
 
     def onSyncWebDAVEventUpdateUI (self, event):
-        accountOK = Sharing.isWebDAVSetUp(self.itsView)
-        haveActiveShares = Sharing.checkForActiveShares(self.itsView)
+        accountOK = sharing.isWebDAVSetUp(self.itsView)
+        haveActiveShares = sharing.checkForActiveShares(self.itsView)
         event.arguments ['Enable'] = accountOK and haveActiveShares
         # @@@DLD set up the help string to let the user know why it's disabled
 
@@ -951,6 +950,6 @@ class MainView(View):
         self.onSyncWebDAVEvent (event)
 
         # If mail is set up, fetch it:
-        if Sharing.isInboundMailSetUp(self.itsView):
+        if sharing.isInboundMailSetUp(self.itsView):
             self.setStatusMessage (_("Getting new Mail"))
             self.onGetNewMailEvent (event)

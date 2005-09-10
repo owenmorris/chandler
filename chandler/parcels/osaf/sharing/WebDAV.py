@@ -3,6 +3,16 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+__all__ = [
+    'ChandlerServerHandle',
+    'checkAccess',
+    'CANT_CONNECT',
+    'NO_ACCESS',
+    'READ_ONLY',
+    'READ_WRITE',
+    'IGNORE',
+]
+
 import zanshin.webdav
 import zanshin.util
 

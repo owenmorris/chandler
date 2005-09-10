@@ -7,7 +7,7 @@ import crypto.ssl as ssl
 import traceback, logging
 import os, urlparse, urllib
 import application.Globals as Globals
-from osaf.sharing import Sharing, ICalendar, WebDAV
+from osaf import sharing
 import zanshin.webdav
 import zanshin.util
 from i18n import OSAFMessageFactory as _
@@ -36,7 +36,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
         # Is this collection already shared?
-        self.shareXML = Sharing.getShare(self.collection)
+        self.shareXML = sharing.getShare(self.collection)
 
         if self.shareXML is None:       # Not yet shared, show "Publish"
             self.mainPanel = self.resources.LoadPanel(self,
@@ -74,12 +74,12 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnPublish, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
-        collName = Sharing.getFilteredCollectionDisplayName(self.collection,
+        collName = sharing.getFilteredCollectionDisplayName(self.collection,
                                                             self.filterKinds)
         wx.xrc.XRCCTRL(self,
                        "TEXT_COLLNAME").SetLabel(collName)
 
-        self.currentAccount = Sharing.getWebDAVAccount(self.view)
+        self.currentAccount = sharing.getWebDAVAccount(self.view)
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
@@ -125,8 +125,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
 
-        share = Sharing.getShare(self.collection)
-        if Sharing.isSharedByMe(share):
+        share = sharing.getShare(self.collection)
+        if sharing.isSharedByMe(share):
             self.UnPubSub.SetLabel("Unpublish")
         else:
             self.UnPubSub.SetLabel("Unsubscribe")
@@ -323,7 +323,7 @@ class PublishCollectionDialog(wx.Dialog):
             account = self.accountsControl.GetClientData(accountIndex)
 
             # Create the main share object
-            shareXML = Sharing.newOutboundShare(self.view,
+            shareXML = sharing.newOutboundShare(self.view,
                                                 self.collection,
                                                 kinds=self.filterKinds,
                                                 shareName=shareNameSafe,
@@ -334,7 +334,7 @@ class PublishCollectionDialog(wx.Dialog):
 
             # Create the secondary (.ics) share object
             iCalName = "%s.ics" % shareNameSafe
-            shareICal = Sharing.newOutboundShare(self.view,
+            shareICal = sharing.newOutboundShare(self.view,
                                                  self.collection,
                                                  kinds=self.filterKinds,
                                                  shareName=iCalName,
@@ -344,7 +344,7 @@ class PublishCollectionDialog(wx.Dialog):
             self._saveAttributeFilterState(shareICal)
 
             # For the .ics share, use ICalendarFormat instead
-            format = ICalendar.ICalendarFormat(view=self.view)
+            format = sharing.ICalendarFormat(view=self.view)
             shareICal.mode = "put"
             shareICal.format = format
             shareICal.hidden = True
@@ -352,7 +352,7 @@ class PublishCollectionDialog(wx.Dialog):
             self._showStatus(_("Wait for Sharing URLs...\n"))
             if shareXML.exists():
                 #XXX: [i18n] does this need to be translated?
-                raise Sharing.SharingError(_("Share already exists"))
+                raise sharing.SharingError(_("Share already exists"))
             else:
                 self._showStatus(_("Creating collection on server..."))
                 shareXML.create()
@@ -366,7 +366,7 @@ class PublishCollectionDialog(wx.Dialog):
             shareICal.put()
             self._showStatus(_(" done.\n"))
 
-        except (Sharing.SharingError, zanshin.error.Error, 
+        except (sharing.SharingError, zanshin.error.Error, 
                 M2Crypto.SSL.Checker.WrongHost, 
                 ssl.CertificateVerificationError), e:
 
@@ -420,11 +420,11 @@ class PublishCollectionDialog(wx.Dialog):
         self.EndModal(True)
 
     def OnUnPubSub(self, evt):
-        share = Sharing.getShare(self.collection)
-        if Sharing.isSharedByMe(share):
-            Sharing.unpublish(self.collection)
+        share = sharing.getShare(self.collection)
+        if sharing.isSharedByMe(share):
+            sharing.unpublish(self.collection)
         else:
-            Sharing.unsubscribe(self.collection)
+            sharing.unsubscribe(self.collection)
         self.EndModal(True)
 
 
@@ -462,7 +462,7 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _getSharingAccounts(self):
         return sorted(
-            Sharing.WebDAVAccount.iterItems(self.view),
+            sharing.WebDAVAccount.iterItems(self.view),
             key = lambda x: str(x.displayName).lower()
         )
 
@@ -475,7 +475,7 @@ class PublishCollectionDialog(wx.Dialog):
         useSSL = account.useSSL
         sharePath = account.path.strip("/")
 
-        handle = WebDAV.ChandlerServerHandle(host, port=port, username=username,
+        handle = sharing.ChandlerServerHandle(host, port=port, username=username,
                    password=password, useSSL=useSSL, repositoryView=self.view)
 
         if len(sharePath) > 0:

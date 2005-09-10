@@ -1,7 +1,7 @@
 import os
 import wx
 import wx.xrc
-from osaf.sharing import Sharing, ICalendar
+from osaf import sharing
 import application.Globals as Globals
 import application.dialogs.Util
 from i18n import OSAFMessageFactory as _
@@ -72,7 +72,7 @@ class ShareToolDialog(wx.Dialog):
         # get all share items
         self.sharesList.Clear()
         self.shares = []
-        for item in Sharing.Share.iterItems(self.view):
+        for item in sharing.Share.iterItems(self.view):
             self.shares.append(item)
             display = "'%s' -- %s" % (item.getItemDisplayName(),
              item.conduit.account.getItemDisplayName())
@@ -214,13 +214,13 @@ class ShareEditorDialog(wx.Dialog):
 
         else: # creating the share
 
-            account = Sharing.getWebDAVAccount(self.view)
+            account = sharing.getWebDAVAccount(self.view)
             self.textTitle.SetValue(_("Enter a descriptive title"))
             self.textShareName.SetValue(_("Enter directory name to use"))
 
         self.accounts = []
         i = 0
-        for item in Sharing.WebDAVAccount.iterItems(self.view):
+        for item in sharing.WebDAVAccount.iterItems(self.view):
             self.accounts.append(item)
             self.choiceAccount.Append(item.getItemDisplayName())
             if account is item:
@@ -271,20 +271,20 @@ class ShareEditorDialog(wx.Dialog):
             collection = self.collections[collIndex]
 
         if self.share is None:
-            conduit = Sharing.WebDAVConduit(
+            conduit = sharing.WebDAVConduit(
              account=account,
              shareName=shareName,
              view=self.view
             )
             if shareName.endswith('.ics'):
-                format = ICalendar.ICalendarFormat(view=self.view)
+                format = sharing.ICalendarFormat(view=self.view)
             else:
-                format = Sharing.CloudXMLFormat(view=self.view)
+                format = sharing.CloudXMLFormat(view=self.view)
             if self.join:
-                self.share = Sharing.Share(conduit=conduit, format=format,
+                self.share = sharing.Share(conduit=conduit, format=format,
                                            view=self.view)
             else:
-                self.share = Sharing.Share(contents=collection, conduit=conduit,
+                self.share = sharing.Share(contents=collection, conduit=conduit,
                                            format=format, view=self.view)
             self.share.displayName = title
         else:

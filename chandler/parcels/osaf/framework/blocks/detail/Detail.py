@@ -15,7 +15,7 @@ from osaf.framework.attributeEditors import \
 from osaf.framework.blocks import \
      Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
      Sendability, Trunk, TrunkSubtree
-import osaf.sharing.Sharing as Sharing
+from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
 from osaf.pim.tasks import TaskMixin
@@ -753,7 +753,7 @@ class ToMailEditField (EditToAddressTextAttribute):
 class SharingArea (DetailSynchronizedLabeledTextAttributeBlock):
     """ an area visible only when the item (a collection) is shared """
     def shouldShow (self, item):
-        return item is not None and Sharing.isShared(item)
+        return item is not None and sharing.isShared(item)
                 
 class ParticipantsTextFieldBlock(EditTextAttribute):
     """
@@ -761,7 +761,7 @@ class ParticipantsTextFieldBlock(EditTextAttribute):
     Read only, at least for now.
     """
     def loadAttributeIntoWidget (self, item, widget):
-        share = Sharing.getShare(item)
+        share = sharing.getShare(item)
         if share is not None:
             sharees = sets.Set(share.sharees)
             sharees.add(share.sharer)
@@ -787,7 +787,7 @@ class EditSharingActiveBlock(DetailSynchronizer, ControlBlocks.CheckBox):
     def synchronizeItemDetail (self, item):
         hasChanged = super(EditSharingActiveBlock, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:
-            share = Sharing.getShare(item)
+            share = sharing.getShare(item)
             if share is not None:
                 self.widget.SetValue(share.active)
         return hasChanged
@@ -795,7 +795,7 @@ class EditSharingActiveBlock(DetailSynchronizer, ControlBlocks.CheckBox):
     def onToggleSharingActiveEvent (self, event):
         item = self.selectedItem()
         if item is not None:
-            share = Sharing.getShare(item)
+            share = sharing.getShare(item)
             if share is not None:
                 share.active = self.widget.GetValue() == wx.CHK_CHECKED
 
@@ -939,7 +939,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
         statusBlock.setStatusMessage( _('Subscribing to collection...') )
         wx.Yield()
-        share = Sharing.Share(view=self.itsView)
+        share = sharing.Share(view=self.itsView)
         share.configureInbound(url)
         share.get()
         statusBlock.setStatusMessage( _('Subscribed to collection') )
@@ -955,7 +955,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         item = self.selectedItem()
         try:
             url, collectionName = MailSharing.getSharingHeaderInfo(item)
-            existingSharedCollection = Sharing.findMatchingShare(self.itsView, url)
+            existingSharedCollection = sharing.findMatchingShare(self.itsView, url)
         except:
             enabled = True
         else:

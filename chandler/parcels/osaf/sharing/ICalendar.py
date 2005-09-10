@@ -1,5 +1,10 @@
 __parcel__ = "osaf.sharing"
 
+__all__ = [
+    'ICalendarFormat',
+    'CalDAVFormat',
+]
+
 import Sharing
 import application.Parcel
 from osaf.pim import AbstractCollection, ListCollection

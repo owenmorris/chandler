@@ -10,8 +10,7 @@ import application.Globals
 import application.Parcel
 import application.dialogs.Util
 import osaf.pim.mail as Mail
-import osaf.sharing.WebDAV as WebDAV
-import osaf.sharing.Sharing as Sharing
+from osaf import sharing
 from i18n import OSAFMessageFactory as _
 
 """
@@ -456,7 +455,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 if item.isActive and hasattr(item, 'displayName'):
                     accounts.append(item)
 
-        for item in Sharing.WebDAVAccount.iterItems(self.view):
+        for item in sharing.WebDAVAccount.iterItems(self.view):
             if hasattr(item, 'displayName'):
                 accounts.append(item)
 
@@ -557,7 +556,7 @@ class AccountPreferencesDialog(wx.Dialog):
                             mailAccount.defaultSMTPAccount = item
 
                 elif account['type'] == "WebDAV":
-                    item = Sharing.WebDAVAccount(view=self.view)
+                    item = sharing.WebDAVAccount(view=self.view)
 
             values = account['values']
             panel = PANELS[account['type']]
@@ -936,7 +935,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif accountType == "SMTP":
             item = Mail.SMTPAccount(view=self.view)
         elif accountType == "WebDAV":
-            item = Sharing.WebDAVAccount(view=self.view)
+            item = sharing.WebDAVAccount(view=self.view)
 
         accountName = (_("New %s account") % accountType)
         item.displayName = accountName
@@ -1058,22 +1057,22 @@ class AccountPreferencesDialog(wx.Dialog):
         username = data['WEBDAV_USERNAME']
         password = data['WEBDAV_PASSWORD']
         path = data['WEBDAV_PATH']
-        access = WebDAV.checkAccess(host, port=port, useSSL=useSSL,
+        access = sharing.checkAccess(host, port=port, useSSL=useSSL,
                                     username=username, password=password,
                                     path=path, repositoryView=self.view)
         result = access[0]
         reason = access[1]
 
-        if result == WebDAV.CANT_CONNECT:
+        if result == sharing.CANT_CONNECT:
             msg = CANT_CONNECT % (host, reason)
 
-        elif result == WebDAV.NO_ACCESS:
+        elif result == sharing.NO_ACCESS:
             msg = NO_ACCESS % host
-        elif result == WebDAV.READ_ONLY:
+        elif result == sharing.READ_ONLY:
             msg = READ_ONLY 
-        elif result == WebDAV.READ_WRITE:
+        elif result == sharing.READ_WRITE:
             msg = READ_WRITE
-        elif result == WebDAV.IGNORE:
+        elif result == sharing.IGNORE:
             # Leave msg as None to ignore it
             msg = None
         else:

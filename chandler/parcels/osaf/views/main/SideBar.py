@@ -11,7 +11,7 @@ from osaf.pim import AbstractCollection, FilteredCollection, IntersectionCollect
 import wx
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 import os
-import osaf.sharing.Sharing as Sharing
+from osaf import sharing
 from application import schema
 from i18n import OSAFMessageFactory as _
 
@@ -470,7 +470,7 @@ class SidebarBlock(ControlBlocks.Table):
             if item in self.checkedItems:
                 return 'Checked'
         elif buttonName == 'SharingIcon':
-            share = Sharing.getShare(item)
+            share = sharing.getShare(item)
             if share is not None:
                 if (share.sharer is not None and
                     str(share.sharer.itsPath) == "//userdata/me"):
