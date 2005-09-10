@@ -56,6 +56,7 @@ class TestLogger:
         self.nbFail = 0
         self.nbUnchecked = 0
         self.nbAction = 0
+        self.nbVerif = 0
         self.failureList = []
         self.passedList = []
             
@@ -86,6 +87,7 @@ class TestLogger:
         self.failureList = []
         self.passedList = []
         self.checked = False
+        self.nbAction = self.nbAction + 1
         self.actionDescription = string
         self.actionStartDate = self.actionEndDate = datetime.now()
         #some init printing
@@ -110,7 +112,7 @@ class TestLogger:
         
     def Report(self,description="Unknown"):
         ''' Report the current action states'''
-        self.nbAction = self.nbAction + 1
+        self.nbVerif = self.nbVerif + 1
         self.Print("")
         self.Print("%s checking report : " %description)
         for failure in self.failureList:
@@ -126,7 +128,7 @@ class TestLogger:
         else:
             status = "Fail"
             self.nbFail = self.nbFail + 1
-        self.Print("Action status = %s" % status)
+        self.Print("Verification = %s" % status)
         self.Print("")
 
         #reset
@@ -185,16 +187,12 @@ class TestLogger:
                 self.Print("Status : %s test suite %s" %(self.mainDescription, status))
             # compute the status of the main testcase if is composed by actions
             else:
-                if self.nbUnchecked == self.nbAction:
+                if self.nbUnchecked == self.nbVerif:
                     status = "UNCHECKED"
-                elif self.nbPass == self.nbAction:
+                elif self.nbPass == self.nbVerif:
                     status = "PASSED"
                 else:
                     status = "FAILED"
-                
-                self.Print("Total number of test actions executed : %s" %self.nbAction)
-                self.Print("Total number of test actions PASSED : %s" %self.nbPass)
-                self.Print("Total number of test actions FAILED : %s" %self.nbFail)
                 self.Print("")
                 #Test case status
                 self.Print("Status : %s testcase %s" %(self.mainDescription, status))
@@ -217,9 +215,9 @@ class TestLogger:
                 self.File.close()
         else: # Just the end of a testcase
             if self.subTestcaseDesc:
-                if self.nbUnchecked == self.nbAction:
+                if self.nbUnchecked == self.nbVerif:
                     status = "UNCHECKED"
-                elif self.nbPass == self.nbAction:
+                elif self.nbPass == self.nbVerif:
                     status = "PASS"
                 else:
                     status = "FAIL"
