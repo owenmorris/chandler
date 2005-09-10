@@ -1,10 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<Parcel itsName="feeds" xmlns="parcel:core"/>
 
-<Parcel itsName="feeds"
-      xmlns="parcel:core"
-      xmlns:feedblocks="parcel:feeds.blocks">
-
-  <displayName value="Feed View Items"/>
-  <description value="Events and menu items and such"/>
-
-</Parcel>

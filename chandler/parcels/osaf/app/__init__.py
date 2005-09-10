@@ -311,3 +311,8 @@ def MakeCollections(parcel):
         iconName="Out",
         dontDisplayAsCalendar=True
     ).setup(source=outSource, trash=TrashCollection)
+
+
+    # Ensure child parcels are loaded
+    schema.synchronize(parcel.itsView, "osaf.framework.certstore")
+

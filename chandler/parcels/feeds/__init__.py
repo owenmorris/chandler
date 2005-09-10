@@ -19,4 +19,6 @@ def installParcel(parcel, oldName=None):
         interval=datetime.timedelta(minutes=30)
     )
 
+    # load our blocks parcel, too
+    schema.synchronize(parcel.itsView, "feeds.blocks")
 

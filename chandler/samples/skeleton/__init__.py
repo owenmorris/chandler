@@ -20,3 +20,11 @@ class MyKind1(pim.ContentItem):
     schema.addClouds(
         sharing = schema.Cloud(attr1, attr2)
     )
+
+def installParcel(parcel, oldVersion=None):
+    # create an instance of MyKind, named 'anItem', in the parcel
+    MyKind1.update(
+        parcel, "anItem",
+        attr1 = "Setting custom attributes is simple",
+    )
+
