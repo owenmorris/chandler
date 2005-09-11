@@ -3,7 +3,7 @@
 // Purpose:     wxMBConv unit test
 // Author:      Vadim Zeitlin, Mike Wetherell, Vince Harron
 // Created:     14.02.04
-// RCS-ID:      $Id: mbconvtest.cpp,v 1.4 2005/04/03 21:15:52 MW Exp $
+// RCS-ID:      $Id: mbconvtest.cpp,v 1.8 2005/09/10 21:21:27 MW Exp $
 // Copyright:   (c) 2003 TT-Solutions, (c) 2005 Mike Wetherell, Vince Harron
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -971,14 +971,16 @@ void MBConvTestCase::TestEncoder(
     // make sure the characters generated are correct
     CPPUNIT_ASSERT( 0 == memcmp( outputBuffer, multiBuffer, multiBytes ) );
 
+    size_t i;
+
     // the output buffer should be null terminated
-    for ( size_t i = multiBytes; i < multiBytes + sizeofNull; i++ )
+    for ( i = multiBytes; i < multiBytes + sizeofNull; i++ )
     {
         CPPUNIT_ASSERT( ((unsigned char*)outputBuffer.data())[i] == 0 );
     }
 
     // make sure the rest of the output buffer is untouched
-    for ( size_t i = multiBytes + sizeofNull; i < outputBufferSize; i++ )
+    for ( i = multiBytes + sizeofNull; i < outputBufferSize; i++ )
     {
         CPPUNIT_ASSERT( ((unsigned char*)outputBuffer.data())[i] == UNINITIALIZED );
     }

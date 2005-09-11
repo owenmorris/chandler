@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/07/15
-// RCS-ID:      $Id: gauge.mm,v 1.10 2005/05/28 02:17:04 DE Exp $
+// RCS-ID:      $Id: gauge.mm,v 1.11 2005/09/11 18:34:58 JS Exp $
 // Copyright:   (c) 2003 David Elliott
 // Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ bool wxGauge::Create(wxWindow *parent, wxWindowID winid, int range,
     // this actually makes the widgets sample work so it's better than nothing.
     if(style & wxGA_VERTICAL)
     {
-        wxLogDebug("wxGA_VERTICAL may not work correctly.  See src/cocoa/gauge.mm");
+        wxLogDebug(wxT("wxGA_VERTICAL may not work correctly.  See src/cocoa/gauge.mm"));
         [m_cocoaNSView setBoundsRotation:-90.0];
     }
 

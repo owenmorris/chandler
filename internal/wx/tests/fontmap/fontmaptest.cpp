@@ -3,7 +3,7 @@
 // Purpose:     wxFontMapper unit test
 // Author:      Vadim Zeitlin
 // Created:     14.02.04
-// RCS-ID:      $Id: fontmaptest.cpp,v 1.3 2005/03/29 17:21:59 ABX Exp $
+// RCS-ID:      $Id: fontmaptest.cpp,v 1.4 2005/08/08 22:05:05 MW Exp $
 // Copyright:   (c) 2003 TT-Solutions
 ///////////////////////////////////////////////////////////////////////////////
 

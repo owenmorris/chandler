@@ -18,6 +18,7 @@ All:
 - Added wxLongLong::ToDouble()
 - Added wxDateTime::[Make]FromTimezone(), fixed several TZ-related bugs
 - Fixed bug in wxStreamBuffer::Read(wxStreamBuffer *) (Paul Cornett)
+- Fixed wxListbook and wxChoicebook internal layout.
 
 All (GUI):
 
@@ -32,6 +33,7 @@ All (GUI):
 - Cygwin compilation of wxX11, wxGTK and wxMotif now supported.
 - Now reads "help" parameter for all windows (context help text).
 - wxWizard adapts to PDA-sized screens.
+- Unicode fixes for IPC and a new IPC sample (Jurgen Doornik).
 
 wxMSW:
 

@@ -1,3 +1,8 @@
+0.1.6-5
+-------
+
+Fixed testing for any element inside object tree.
+
 0.1.6-4
 -------
 

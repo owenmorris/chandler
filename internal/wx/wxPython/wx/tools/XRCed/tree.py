@@ -489,6 +489,8 @@ class XML_Tree(wxTreeCtrl):
         self.root = self.AddRoot('XML tree', self.rootImage,
                                  data=wxTreeItemData(self.rootObj))
         self.SetItemHasChildren(self.root)
+        self.testElem = self.dom.createElement('dummy')
+        self.mainNode.appendChild(self.testElem)
         self.Expand(self.root)
 
     # Clear old data and set new
@@ -513,6 +515,12 @@ class XML_Tree(wxTreeCtrl):
             else:
                 self.mainNode.removeChild(node)
                 node.unlink()
+        if self.mainNode.firstChild:
+            self.testElem = self.dom.createElement('dummy')
+            self.mainNode.insertBefore(self.testElem, self.mainNode.firstChild)
+        else:
+            self.testElem = self.dom.createElement('dummy')
+            self.mainNode.appendChild(self.testElem)
         self.Expand(self.root)
 
     # Add tree item for given parent item if node is DOM element node with
@@ -622,8 +630,11 @@ class XML_Tree(wxTreeCtrl):
         # Top-level sizer? return window's sizer
         if xxx.isSizer and isinstance(parentWin, wxWindow):
             return parentWin.GetSizer()
+        elif isinstance(xxx, xxxToolBar):
+            # If it's the main toolbar, we can't really select it
+            if xxx.parent.__class__ == xxxFrame:  return None
         elif isinstance(xxx.parent, xxxToolBar):
-            # How to get tool from toolbar?
+            # Select complete toolbar
             return parentWin
         elif isinstance(xxx.parent, xxxStdDialogButtonSizer):
             # This sizer returns non-existing children
@@ -793,33 +804,30 @@ class XML_Tree(wxTreeCtrl):
         # Save in memory FS
         memFile = MemoryFile('xxx.xrc')
         # Create memory XML file
-        elem = xxx.element
-        # Change window id to _XRCED_T_W. This gives some name for
-        # unnamed windows, and for named gives the possibility to
-        # write sawfish scripts.
+        elem = xxx.element.cloneNode(True)
         if not xxx.name:
             name = 'noname'
         else:
             name = xxx.name
         elem.setAttribute('name', STD_NAME)
+        oldTestNode = self.testElem
+        self.testElem = elem
+        self.mainNode.replaceChild(elem, oldTestNode)
+        oldTestNode.unlink()
         # Replace wizard page class temporarily
         if xxx.__class__ in [xxxWizardPage, xxxWizardPageSimple]:
             oldCl = elem.getAttribute('class')
             elem.setAttribute('class', 'wxPanel')
         parent = elem.parentNode
-        next = elem.nextSibling
         encd = self.rootObj.params['encoding'].value()
         if not encd: encd = None
-        self.dom.writexml(open('ttt.xrc','w'), encoding=encd)
-        self.dom.writexml(memFile, encoding=encd)
-        # Put back in place
-        # Remove temporary name or restore changed
-        if not xxx.name:
-            elem.removeAttribute('name')
-        else:
-            elem.setAttribute('name', xxx.name)
-        if xxx.__class__ in [xxxWizardPage, xxxWizardPageSimple]:
-            elem.setAttribute('class', oldCl)            
+        try:
+            self.dom.writexml(memFile, encoding=encd)
+        except:
+            inf = sys.exc_info()
+            wxLogError(traceback.format_exception(inf[0], inf[1], None)[-1])
+            wxLogError('Error writing temporary file')
+            if debug: raise            
         memFile.close()                 # write to wxMemoryFS
         xmlFlags = wxXRC_NO_SUBCLASSING
         # Use translations if encoding is not specified
