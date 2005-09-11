@@ -11,9 +11,6 @@
 
 #include "rijndael-api-fst.h"
 
-#ifdef _MSC_VER
-#include <malloc.h>
-#endif
 
 static PyObject *reportError(int code)
 {
@@ -67,6 +64,8 @@ typedef struct {
 static void t_key_dealloc(t_key *self);
 static PyObject *t_key_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_key_init(t_key *self, PyObject *args, PyObject *kwds);
+static PyObject *t_key_repr(t_key *self);
+static PyObject *t_key__getDirection(t_key *self, void *data);
 
 
 static PyMemberDef t_key_members[] = {
@@ -78,6 +77,7 @@ static PyMethodDef t_key_methods[] = {
 };
 
 static PyGetSetDef t_key_properties[] = {
+    { "direction", (getter) t_key__getDirection, NULL, "", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -92,7 +92,7 @@ static PyTypeObject KeyType = {
     0,                                                   /* tp_getattr */
     0,                                                   /* tp_setattr */
     0,                                                   /* tp_compare */
-    0,                                                   /* tp_repr */
+    (reprfunc)t_key_repr,                                /* tp_repr */
     0,                                                   /* tp_as_number */
     0,                                                   /* tp_as_sequence */
     0,                                                   /* tp_as_mapping */
@@ -141,20 +141,34 @@ static PyObject *t_key_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static int t_key_init(t_key *self, PyObject *args, PyObject *kwds)
 {
-    int direction, keyLen, result;
+    int direction, keyLen, code;
     char *keyMaterial;
 
     if (!PyArg_ParseTuple(args, "is#", &direction, &keyMaterial, &keyLen))
         return -1;
 
-    result = makeKey(&self->key, direction, keyLen * 8, keyMaterial);
-    if (result != TRUE)
+    code = makeKey(&self->key, direction, keyLen * 8, keyMaterial);
+    if (code != TRUE)
     {
-        reportError(result);
+        reportError(code);
         return -1;
     }
 
     return 0;
+}
+
+static PyObject *t_key_repr(t_key *self)
+{
+    return PyString_FromFormat("<AES %s key (%d bit)>",
+                               (self->key.direction == DIR_ENCRYPT
+                                ? "encryption"
+                                : "decryption"),
+                               self->key.keyLen);
+}
+
+static PyObject *t_key__getDirection(t_key *self, void *data)
+{
+    return PyInt_FromLong(self->key.direction);
 }
 
 
@@ -168,6 +182,7 @@ static void t_cipher_dealloc(t_cipher *self);
 static PyObject *t_cipher_new(PyTypeObject *type,
                               PyObject *args, PyObject *kwds);
 static int t_cipher_init(t_cipher *self, PyObject *args, PyObject *kwds);
+static PyObject *t_cipher_repr(t_cipher *self);
 
 static PyObject *t_cipher_blockEncrypt(t_cipher *self,
                                        PyObject *args, PyObject *kwds);
@@ -177,6 +192,8 @@ static PyObject *t_cipher_padEncrypt(t_cipher *self,
                                      PyObject *args, PyObject *kwds);
 static PyObject *t_cipher_padDecrypt(t_cipher *self,
                                      PyObject *args, PyObject *kwds);
+static PyObject *t_cipher__getMode(t_cipher *self, void *data);
+static PyObject *t_cipher__getIV(t_cipher *self, void *data);
 
 
 static PyMemberDef t_cipher_members[] = {
@@ -196,6 +213,8 @@ static PyMethodDef t_cipher_methods[] = {
 };
 
 static PyGetSetDef t_cipher_properties[] = {
+    { "mode", (getter) t_cipher__getMode, NULL, "", NULL },
+    { "IV", (getter) t_cipher__getIV, NULL, "", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -210,7 +229,7 @@ static PyTypeObject CipherType = {
     0,                                                   /* tp_getattr */
     0,                                                   /* tp_setattr */
     0,                                                   /* tp_compare */
-    0,                                                   /* tp_repr */
+    (reprfunc)t_cipher_repr,                             /* tp_repr */
     0,                                                   /* tp_as_number */
     0,                                                   /* tp_as_sequence */
     0,                                                   /* tp_as_mapping */
@@ -261,27 +280,56 @@ static PyObject *t_cipher_new(PyTypeObject *type,
 static int t_cipher_init(t_cipher *self, PyObject *args, PyObject *kwds)
 {
     char *IV = NULL;
-    int mode, result;
+    int mode, code;
 
-    if (!PyArg_ParseTuple(args, "i|z#", &mode, &IV, &result))
+    if (!PyArg_ParseTuple(args, "i|z#", &mode, &IV, &code))
         return -1;
 
-    result = cipherInit(&self->cipher, mode, IV);
-    if (result != TRUE)
+    code = cipherInit(&self->cipher, mode, IV);
+    if (code != TRUE)
     {
-        reportError(result);
+        reportError(code);
         return -1;
     }
 
     return 0;
 }
 
+static PyObject *t_cipher_repr(t_cipher *self)
+{
+    u8 *iv = self->cipher.IV;
+    int hasIV = 0, i = 0;
+    char *mode;
+    
+    while (i < MAX_IV_SIZE && !hasIV)
+        hasIV = iv[i++];
+
+    switch (self->cipher.mode) {
+      case MODE_ECB:
+        mode = "ECB";
+        break;
+      case MODE_CBC:
+        mode = "CBC";
+        break;
+      case MODE_CFB1:
+        mode = "CFB1";
+        break;
+      default:
+        mode = "invalid";
+        break;
+    }
+
+    return PyString_FromFormat("<AES %s cipher (%s IV)>",
+                               mode, hasIV ? "with" : "without");
+}
+
 static PyObject *t_cipher_blockEncrypt(t_cipher *self,
                                        PyObject *args, PyObject *kwds)
 {
-    t_key *key;
+    PyObject *result = NULL;
     u8 *input, *output;
-    int inputLen, result;
+    int inputLen;
+    t_key *key;
 
     if (!PyArg_ParseTuple(args, "Os#", &key, &input, &inputLen))
         return NULL;
@@ -292,23 +340,32 @@ static PyObject *t_cipher_blockEncrypt(t_cipher *self,
         return NULL;
     }
 
-    output = alloca(inputLen);
-    result = blockEncrypt(&self->cipher, &key->key,
-                          input, inputLen * 8, output);
+    output = malloc(inputLen);
+    if (!output)
+        PyErr_SetString(PyExc_MemoryError, "malloc failed");
+    else
+    {
+        int len = blockEncrypt(&self->cipher, &key->key,
+                               input, inputLen * 8, output);
 
-    if (result < 0)
-        return reportError(result);
+        if (len < 0)
+            result = reportError(len);
+        else
+            result = PyString_FromStringAndSize((char *) output, len / 8);
 
-    return PyString_FromStringAndSize((char *) output, result / 8);
+        free(output);
+    }
+
+    return result;
 }
-
 
 static PyObject *t_cipher_blockDecrypt(t_cipher *self,
                                        PyObject *args, PyObject *kwds)
 {
-    t_key *key;
+    PyObject *result = NULL;
     u8 *input, *output;
-    int inputLen, result;
+    int inputLen;
+    t_key *key;
 
     if (!PyArg_ParseTuple(args, "Os#", &key, &input, &inputLen))
         return NULL;
@@ -319,23 +376,32 @@ static PyObject *t_cipher_blockDecrypt(t_cipher *self,
         return NULL;
     }
 
-    output = alloca(inputLen);
-    result = blockDecrypt(&self->cipher, &key->key,
-                          input, inputLen * 8, output);
+    output = malloc(inputLen);
+    if (!output)
+        PyErr_SetString(PyExc_MemoryError, "malloc failed");
+    else
+    {
+        int len  = blockDecrypt(&self->cipher, &key->key,
+                                input, inputLen * 8, output);
 
-    if (result < 0)
-        return reportError(result);
+        if (len < 0)
+            result = reportError(len);
+        else
+            result = PyString_FromStringAndSize((char *) output, len / 8);
 
-    return PyString_FromStringAndSize((char *) output, result / 8);
+        free(output);
+    }
+
+    return result;
 }
-
 
 static PyObject *t_cipher_padEncrypt(t_cipher *self,
                                      PyObject *args, PyObject *kwds)
 {
-    t_key *key;
+    PyObject *result = NULL;
     u8 *input, *output;
-    int inputLen, result;
+    int inputLen;
+    t_key *key;
 
     if (!PyArg_ParseTuple(args, "Os#", &key, &input, &inputLen))
         return NULL;
@@ -346,22 +412,31 @@ static PyObject *t_cipher_padEncrypt(t_cipher *self,
         return NULL;
     }
 
-    output = alloca(inputLen + 16);
-    result = padEncrypt(&self->cipher, &key->key, input, inputLen, output);
+    output = malloc(inputLen + 16);
+    if (!output)
+        PyErr_SetString(PyExc_MemoryError, "malloc failed");
+    else
+    {
+        int len = padEncrypt(&self->cipher, &key->key, input, inputLen, output);
 
-    if (result < 0)
-        return reportError(result);
+        if (len < 0)
+            result = reportError(len);
+        else
+            result = PyString_FromStringAndSize((char *) output, len);
 
-    return PyString_FromStringAndSize((char *) output, result);
+        free(output);
+    }
+
+    return result;
 }
-
 
 static PyObject *t_cipher_padDecrypt(t_cipher *self,
                                      PyObject *args, PyObject *kwds)
 {
-    t_key *key;
+    PyObject *result = NULL;
     u8 *input, *output;
-    int inputLen, result;
+    int inputLen;
+    t_key *key;
 
     if (!PyArg_ParseTuple(args, "Os#", &key, &input, &inputLen))
         return NULL;
@@ -372,13 +447,32 @@ static PyObject *t_cipher_padDecrypt(t_cipher *self,
         return NULL;
     }
 
-    output = alloca(inputLen);
-    result = padDecrypt(&self->cipher, &key->key, input, inputLen, output);
+    output = malloc(inputLen);
+    if (!output)
+        PyErr_SetString(PyExc_MemoryError, "malloc failed");
+    else
+    {
+        int len = padDecrypt(&self->cipher, &key->key, input, inputLen, output);
 
-    if (result < 0)
-        return reportError(result);
+        if (len < 0)
+            result = reportError(len);
+        else
+            result = PyString_FromStringAndSize((char *) output, len);
+        
+        free(output);
+    }
 
-    return PyString_FromStringAndSize((char *) output, result);
+    return result;
+}
+
+static PyObject *t_cipher__getMode(t_cipher *self, void *data)
+{
+    return PyInt_FromLong(self->cipher.mode);
+}
+
+static PyObject *t_cipher__getIV(t_cipher *self, void *data)
+{
+    return PyString_FromStringAndSize((char *) self->cipher.IV, MAX_IV_SIZE);
 }
 
 
