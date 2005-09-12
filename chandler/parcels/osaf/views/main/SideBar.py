@@ -357,17 +357,17 @@ class SSSidebarButton (schema.Item):
 
     def getButtonImage (self, item, mouseOverFlag):
         """
-          The rules for naming icons are complicated, which is a reflection of complexity
+        The rules for naming icons are complicated, which is a reflection of complexity
         of our sidebar design, so here is a summary of the new rules:
 
-	  Names are made up of the following pieces:
+        Names are made up of the following pieces:
 
         "Sidebar", ButtonName, IconName, "Checked", "MouseOver", ".png"
 
-          They all begin with "Sidebar", followed by ButtonName. Today, we only have two
+        They all begin with "Sidebar", followed by ButtonName. Today, we only have two
         buttons named: "Icon", and "SharingIcon".
 
-          The  ButtonName is followed by IconName. IconName is a property of the collection,
+        The  ButtonName is followed by IconName. IconName is a property of the collection,
         e.g. the AllCollection has an IconName of "All". The In, Out, and Trash collections
         have names "In", "Out" and "Trash" respectively. Currently, new collections have no
         icon name, so the IconName can be empty. Another property of the collection is
@@ -377,28 +377,28 @@ class SSSidebarButton (schema.Item):
         AllCollection are "All", "AllCalendarEventMixin", "AllMailMessageMixin" and
         "AllTaskMixin".
 
-          A property of a button in the siebar is whether or not it is checkable. Today
+        A property of a button in the siebar is whether or not it is checkable. Today
         the Icon button is checkable and the SharingIcon isn't. For checkable buttons, the
         IconName is followed by "Checked", for the checked image.
 
-          Next comes "MouseOver" if a different image is necessary for the state when the
+        Next comes "MouseOver" if a different image is necessary for the state when the
         mouse is over the item.
 
-          Here are the new rules for defaults:
+        Here are the new rules for defaults:
 
-          First we lookup the fully qualified name, e.g. "Sidebar", ButtonName, IconName,
+        First we lookup the fully qualified name, e.g. "Sidebar", ButtonName, IconName,
         "Checked", "MouseOver", ".png"
 
-          If we don't find an image by that name we next lookup the name without the
+        If we don't find an image by that name we next lookup the name without the
         IconName, e.g. "Sidebar", ButtonName, "Checked", "MouseOver", ".png". This allows
         us to specify a default icon for Checked and MouseOver that is applied by default
         if you don't have a special one for a particular icon.
 
-          If we still don't find an image, we next lookup the full image name without
+        If we still don't find an image, we next lookup the full image name without
         MouseOver, e.g. "Sidebar", ButtonName, IconName, "Checked", ".png". So if you don't
         have MouseOver icons they don't get displayed.
 
-          Finally if we still don't have an image, we try to lookup the name without an
+        Finally if we still don't have an image, we try to lookup the name without an
         IconName or MouseOver, e.g "Sidebar", ButtonName, "Checked", ".png". This allows
         us to have a default for checkable buttons without MouseOver.
         """
