@@ -922,6 +922,8 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         """
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         item, attributeName = grid.GetElementValue (row, column)
+        assert not item.isDeleted()
+        item = Calendar.getProxy(u'grid', item)
         self.delegate.Draw (dc, rect, item, attributeName, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
@@ -949,6 +951,9 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         self.editingCell = (row, column)
         
         item, attributeName = grid.GetElementValue (row, column)
+        assert not item.isDeleted()
+        item = Calendar.getProxy(u'grid', item)
+        
         self.initialValue = self.delegate.GetAttributeValue (item, attributeName)
         self.delegate.BeginControlEdit (item, attributeName, self.control)
         self.control.SetFocus()
@@ -959,6 +964,9 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
+        assert not item.isDeleted()
+        item = Calendar.getProxy(u'grid', item)
+
         if value == self.initialValue:
             changed = False
         # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
