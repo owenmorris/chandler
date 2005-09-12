@@ -1,8 +1,6 @@
 """ Canvas for calendaring blocks
 """
 
-__version__ = "$Revision$"
-__date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
@@ -720,6 +718,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
     rangeIncrement = schema.One(schema.TimeDelta)
     selectedDate = schema.One(schema.DateTime)
     lastHue = schema.One(schema.Float, initialValue = -1.0)
+    dayMode = schema.One(schema.Boolean)
 
     def getRangeEnd(self):	
         return self.rangeStart + self.rangeIncrement	
@@ -1116,6 +1115,29 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
 
         return brushOffset
 
+    def ShadeToday(self, dc):
+        """
+        shade the background of today, if today is in view
+        """
+
+        # first make sure today is in view
+        today = datetime.today()
+        startDay, endDay = self.blockItem.GetCurrentDateRange()
+        if (today < startDay or endDay < today):
+            return
+
+        styles = self.blockItem.calendarContainer
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+
+        # rectangle goes from top to bottom, but the 
+        dayNum = Calendar.datetimeOp(today, '-', startDay).days
+        x = drawInfo.dividerPositions[dayNum]
+        y = 0
+        (width, height) = (drawInfo.dividerPositions[dayNum+1]-x,
+                           self.size.height)
+        dc.SetBrush(styles.todayBrush)
+        dc.DrawRectangle(x,y,width, height)
+
     def DrawDayLines(self, dc):
         """
         Draw lines between days
@@ -1326,6 +1348,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         self.minorLinePen = wx.Pen(self.minorLineColor)
         self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
         self.selectionPen = wx.Pen(wx.Colour(102,102,102))
+        self.todayBrush = wx.Brush(wx.Colour(242,242,242))
 
         #self.Bind(wx.EVT_SIZE, self.OnSize) ## REFACTOR: from the old wx one.
         #hmm. probably dont need because old code did drawing calculations
@@ -1358,7 +1381,6 @@ class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
 
 class AllDayEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
-    dayMode = schema.One(schema.Boolean, initialValue=False)
 
     def __init__(self, *arguments, **keywords):
         super(AllDayEventsCanvas, self).__init__(*arguments, **keywords)
@@ -1430,6 +1452,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height)
 
+        self.ShadeToday(dc)
         self.DrawDayLines(dc)
 
         # Draw one extra line after the last day of the week,
@@ -1739,7 +1762,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
 class TimedEventsCanvas(CalendarBlock):
     calendarContainer = schema.One(schema.Item, required=True)
-    dayMode = schema.One(schema.Boolean)
 
     def instantiateWidget(self):
         if not self.getHasBeenRendered():
@@ -1876,6 +1898,8 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
+
+        self.ShadeToday(dc)
 
         # Set text properties for legend
         dc.SetTextForeground(styles.legendColor)
