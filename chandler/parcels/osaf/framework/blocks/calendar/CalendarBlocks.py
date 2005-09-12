@@ -21,6 +21,7 @@ from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
 from datetime import datetime
+from osaf.framework.attributeEditors import DateTimeAttributeEditor
 from i18n import OSAFMessageFactory as _
 
 
@@ -196,11 +197,12 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
             event.arguments['Text'] = "Enable busy bars"
 
 class PreviewArea(CalendarCanvas.CalendarBlock):
-    characterStyle = schema.One(Styles.CharacterStyle)
+    timeCharacterStyle = schema.One(Styles.CharacterStyle)
+    eventCharacterStyle = schema.One(Styles.CharacterStyle)
     maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[characterStyle])
+        copying = schema.Cloud(byRef=[timeCharacterStyle, eventCharacterStyle])
     )
 
     def __init__(self, *arguments, **keywords):
@@ -221,106 +223,25 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
             self.setHasBeenRendered()        
         return wxPreviewArea(self.parentBlock.widget, 
                              Block.Block.getWidgetID(self),
-                             charStyle = self.characterStyle)
+                             timeCharStyle = self.timeCharacterStyle,
+                             eventCharStyle = self.eventCharacterStyle)
 
 
 class wxPreviewArea(wx.Panel):
-    margin = 4 #oh how I wish I had css :)
+    vMargin = 4 # space above & below text
+    hMargin = 6 # space on sides
+    midMargin = 6 # space between time & date
     
-    def __init__(self, parent, id, charStyle, *arguments, **keywords):
+    def __init__(self, parent, id, timeCharStyle, eventCharStyle,
+                 *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
         self.currentDaysItems = []
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
-        #see Bug 3625
-        self.font = Styles.getFont(charStyle)
-        self.fontHeight = Styles.getMeasurements(self.font).height
-        
-        charStyle.fontStyle = 'fakesuperscript'
-        self.superscriptFont = Styles.getFont(charStyle)
-
-        self.bigDigitWidth   = Styles.getMeasurements(self.font).digitWidth
-        self.smallDigitWidth = Styles.getMeasurements(self.superscriptFont).digitWidth
-
-        self.dashMargin = self.bigDigitWidth // 2
-        self.eventTitleLeftMargin = int(self.bigDigitWidth * 1.5)
-        self.text = ""
-        
-    def DrawEventLine(self, dc, y, item):
-        #  A B  C  D  D E  F G
-        #  | |  |  |  | |  | |
-        #                    my allday or anytime event
-        #  12 15   -  14 45  doctor's appointment
-        #      9   -  11 10  happy hour
-        #  @ 10 45           my at-time event
-        
-        # len(C->D) = len(D->E)  =  self.dashMargin
-        # len(F->G) = self.eventTitleLeftMargin
-        # A is at self.margin
-        # there is no space between the hour and minute blocks.
-
-        #should cache more of these calculations
-        dc.SetFont(self.font)
-        dashWidth, _ = dc.GetTextExtent('-')
-        eventTitleOffset = 4*self.bigDigitWidth + 4*self.smallDigitWidth + \
-                         dashWidth + 2*self.dashMargin + self.eventTitleLeftMargin
-            
-        if item.allDay or item.anyTime:
-            dc.DrawText(item.displayName, self.margin, y)
-
-        elif item.startTime == item.endTime:
-            # at-time event
-            start = "  @ "
-            dc.DrawText(start, self.margin, y)
-            startWidth, _ = dc.GetTextExtent(start)
-            self.DrawTime(item.startTime.time(), dc, self.margin + startWidth, y, leftpad=False)
-            dc.DrawText(item.displayName, eventTitleOffset, y)
-            
-        else:
-            self.DrawTime(item.startTime.time(), dc, self.margin, y, rightalign=True)
-            dashOffset = self.margin + 2*self.bigDigitWidth + 2*self.smallDigitWidth + self.dashMargin
-            dc.DrawText('-', dashOffset, y)
-            self.DrawTime(item.endTime.time(), dc, dashOffset + self.dashMargin + dashWidth, y, leftpad=False)
-            dc.DrawText(item.displayName, eventTitleOffset, y)
-        
-    def DrawTime(self, time, dc, x, y, leftpad=True, rightalign=False):
-        """
-        @param time: a datetime.time object, its hour and minute get drawn with superscripts for the minutes
-        does NOT change dc's font as a side effect.
-        """
-        oldFont = dc.GetFont()
-
-        #tricky: we want to right-align the hour digit(s)
-        #assumption: digits are monospaced (true of many but not all proportional fonts)
-        # times new roman, arial, verdana, yes.  comic sans ms, no.
-        hour = time.hour
-        ##if hour == 0:  hour = 24
-        hourstr = str(time.hour)
-        if   len(hourstr) == 1 and leftpad:
-            offset = self.bigDigitWidth
-            hoursWidth = 2 * self.bigDigitWidth
-        elif len(hourstr) == 1 and not leftpad:
-            offset = 0
-            hoursWidth = self.bigDigitWidth
-        else:
-            offset = 0
-            hoursWidth = 2 * self.bigDigitWidth
-        
-        # and right align over the small digit space on the hour
-        if time.minute == 0 and rightalign:
-            offset += 2 * self.smallDigitWidth
-            
-        dc.SetFont(self.font)        
-        dc.DrawText(str(time.hour), x+offset, y)
-        
-        
-        if time.minute != 0: 
-            minutestr = "%.2d" %time.minute  # zero pad <10
-            dc.SetFont(self.superscriptFont)
-            dc.DrawText(minutestr, x+hoursWidth, y)
-        
-        dc.SetFont(oldFont)
-        
+        self.timeFont = Styles.getFont(timeCharStyle)
+        self.eventFont = Styles.getFont(eventCharStyle)
+        self.labelPosition = -1 # Note that we haven't measured things yet.
+                
     def OnPaint(self, event):
         dc = wx.PaintDC(self)
         self.Draw(dc)
@@ -329,38 +250,82 @@ class wxPreviewArea(wx.Panel):
         """
         Draw all the items, based on what's in self.currentDaysItems
         @return the height of all the text drawn
-        """
+        """        
+        # Set up drawing & clipping
         dc.Clear()
-
-        #White background
         dc.SetBackground(wx.WHITE_BRUSH)
-        
         dc.SetBrush(wx.WHITE_BRUSH)
         dc.SetPen(wx.WHITE_PEN)
         dc.DrawRectangle(*iter(self.GetRect()))
-        
         dc.SetTextBackground( (255,255,255) )
         dc.SetTextForeground( (0,0,0) )
-        dc.SetFont(self.font)
-        
-        m, r = self.margin, self.GetRect()
-        dc.SetClippingRegion(m, m,  r.width - 2*m, r.height - 2*m)
+        r = self.GetRect()
+        dc.SetClippingRegion(self.hMargin, self.vMargin,
+                             r.width - (2 * self.hMargin),
+                             r.height - (2 * self.vMargin))
 
-        y = self.margin
+        if self.labelPosition == -1:
+            # First time - do a little measuring
+            # Each line is going to be:
+            # (hMargin)(12:00 AM)(midMargin)(Event name)
+            # and we'll draw the time aligned with the colon.
+            # If the locale doesn't use AM/PM, it won't show; so, format a
+            # generic time and see how it looks:
+            timeFormat = DateTimeAttributeEditor.shortTimeFormat
+            genericTime = timeFormat.format(datetime(2005,1,1,12,00))
+            self.timeSeparator = ':'
+            for c in genericTime: # @@@ This might need work
+                if c in (_(':.')): # Which time separator actually got used?
+                    self.timeSeparator = c
+                    break
+            dc.SetFont(self.timeFont)
+            preSep = genericTime[:genericTime.find(self.timeSeparator)]
+            self.colonPosition = dc.GetTextExtent(preSep)[0] + self.hMargin
+            self.labelPosition = dc.GetTextExtent(genericTime)[0] \
+                                 + self.hMargin + self.midMargin
+            
+            self.timeFontHeight = Styles.getMeasurements(self.timeFont).height 
+            self.eventFontHeight = Styles.getMeasurements(self.eventFont).height 
+            self.lineHeight = max(self.timeFontHeight, self.eventFontHeight)
+            self.timeFontOffset = (self.lineHeight - self.timeFontHeight)
+            self.eventFontOffset = (self.lineHeight - self.eventFontHeight)
+            
+        # Draw each event            
+        y = self.vMargin
         for i, item in enumerate(self.currentDaysItems):
             if i == self.blockItem.maximumEventsDisplayed:
                 #XXX: [i18n] what is this text for?
                 #     It will be hard for a translator to work with
                 #     since it is vague
+                dc.SetFont(self.eventFont)
                 dc.DrawText(_("%d more confirmed...") % (len(self.currentDaysItems) - i),  
-                            self.margin, y)
-                y += self.fontHeight  #For end calculation
+                            self.hMargin, y + self.eventFontOffset)
+                y += self.lineHeight  #For end calculation
                 break
-            self.DrawEventLine(dc, y, item)
-            y += self.fontHeight
+
+            if not (item.allDay or item.anyTime):
+                # Draw the time
+                dc.SetFont(self.timeFont)
+                formattedTime = DateTimeAttributeEditor.shortTimeFormat.\
+                                format(item.startTime)
+                preSep = formattedTime[:formattedTime.find(self.timeSeparator)]
+                prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
+                dc.DrawText(formattedTime, prePos, y + self.timeFontOffset)
+                # Draw the event text to the right of the time.
+                x = self.labelPosition 
+            else:
+                # Draw allDay/anyTime events at the left margin
+                x = self.hMargin
+            
+            # Draw the event text. It'll be clipped automatically because we
+            # set a clipregion above.
+            dc.SetFont(self.eventFont)
+            dc.DrawText(item.displayName, x, y + self.eventFontOffset)
+
+            y += self.lineHeight
         
         dc.DestroyClippingRegion()
-        return y - self.margin
+        return y - self.vMargin
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
         # @@@ hack until block-to-block attributes are safer to define: climb the tree
@@ -398,7 +363,7 @@ class wxPreviewArea(wx.Panel):
         dc = wx.ClientDC(self)
         drawnHeight = self.Draw(dc)
         
-        self.ChangeHeightAndAdjustContainers(drawnHeight + 2*self.margin)
+        self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
 
 
     @staticmethod

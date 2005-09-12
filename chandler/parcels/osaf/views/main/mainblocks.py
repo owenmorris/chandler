@@ -908,8 +908,15 @@ def make_mainview(parcel):
                                         childrenBlocks=[
                                             PreviewArea.template('PreviewArea',
                                                 contents=app.allCollection,
-                                                characterStyle= \
-                                                    CharacterStyle.update(parcel, 'PreviewStyle', fontSize=11),
+                                                timeCharacterStyle = \
+                                                    CharacterStyle.update(parcel, 
+                                                                          'PreviewTimeStyle', 
+                                                                          fontSize=10,
+                                                                          fontStyle = 'bold'),
+                                                eventCharacterStyle = \
+                                                    CharacterStyle.update(parcel, 
+                                                                          'PreviewEventStyle', 
+                                                                          fontSize=11),
                                                 stretchFactor=0.0),
                                             MiniCalendar.template('MiniCalendar',
                                                 contents=app.allCollection,

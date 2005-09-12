@@ -1,15 +1,13 @@
 from application import schema
 from i18n import OSAFMessageFactory as _
+from osaf.framework.blocks.calendar import (
+    CalendarContainer, CalendarControl, CanvasSplitterWindow,
+    AllDayEventsCanvas, TimedEventsCanvas
+    )
+
+from osaf.framework.blocks import *
 
 def make_summaryblocks(parcel):
-    
-    from osaf.framework.blocks.calendar import (
-        CalendarContainer, CalendarControl, CanvasSplitterWindow,
-        AllDayEventsCanvas, TimedEventsCanvas
-        )
-    
-    from osaf.framework.blocks import *
-    
     view = parcel.itsView
     detailblocks = schema.ns('osaf.framework.blocks.detail', view)
     app = schema.ns('osaf.app', view)
