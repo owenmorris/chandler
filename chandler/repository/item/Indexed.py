@@ -26,6 +26,10 @@ class Indexed(object):
 
     def _invalidateIndexes(self):
 
+        if self._valid:
+            if self._indexes:
+                for index in self._indexes.itervalues():
+                    index.invalidate()
         self._valid = False
 
     def _validateIndexes(self):
@@ -35,6 +39,7 @@ class Indexed(object):
                 for index in self._indexes.itervalues():
                     index._clear_()
                     self.fillIndex(index)
+                    index.validate()
             self._valid = True
 
     def _index(self, indexName):

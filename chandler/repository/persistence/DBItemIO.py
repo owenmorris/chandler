@@ -10,6 +10,7 @@ from cStringIO import StringIO
 from chandlerdb.util.uuid import UUID, _hash
 from chandlerdb.item.item import Nil, Default
 from repository.item.Item import Item
+from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
 from repository.item.ItemValue import ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
@@ -374,6 +375,7 @@ class DBItemWriter(ItemWriter):
                 self.writeSymbol(buffer,
                                  item._kind.getOtherName(name, attribute._uuid))
             size += value._saveValues(version)
+            value._validateIndexes()
             size += self.writeIndexes(buffer, item, version, value)
 
         size += self.store._values.saveValue(self.store.txn, item._uuid,
@@ -786,6 +788,10 @@ class DBItemVMergeReader(DBItemMergeReader):
                 originalValue = originalValues.get(name, Nil)
                 if value == originalValue:
                     value = Nil
+
+                elif (isinstance(originalValue, AbstractSet) and
+                    originalValue._merge(value)):
+                    value = originalValue
 
                 elif self.mergeFn is not None:
                     mergedValue = self.mergeFn(reason, item, name, value)

@@ -686,35 +686,37 @@ class TestMerge(RepositoryTestCase):
         self.assertEquals(m1.director, m2.director)
         self.assert_(main.check(), 'main view did not check out')
 
-#    def testMergeOverlapR(self):
-#
-#        def mergeFn(code, item, attribute, value):
-#            return item.getAttributeValue(attribute)
-#
-#        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
-#                                     'cineguide.pack')
-#        self.rep.loadPack(cineguidePack)
-#        self.rep.commit()
-#
-#        view = self.rep.createView('view')
-#        main = self.rep.setCurrentView(view)
-#
-#        k = view.findPath('//CineGuide/KHepburn')
-#        m1 = k.movies.first()
-#        m2 = k.movies.next(m1)
-#        m1.director = m2.director
-#        view.commit()
-#        
-#        view = self.rep.setCurrentView(main)
-#        k = main.findPath('//CineGuide/KHepburn')
-#        m1 = k.movies.first()
-#        m2 = k.movies.next(m1)
-#        m3 = k.movies.next(m2)
-#        m4 = k.movies.next(m3)
-#        m1.director = m4.director
-#        main.commit(mergeFn)
-#
-#        self.assertEquals(m1.director, m2.director)
+    def testMergeOverlapIndexes(self):
+
+        main = self.rep.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('n', 'numeric')
+        k.movies.addIndex('t', 'attribute', attribute='title')
+        main.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m1.title = 'Foo'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m4 = k.movies.next(m3)
+        m4.title = 'Bar'
+        main.commit()
+
+        self.assert_(k.movies.getByIndex('t', 7) is m1)
+        self.assert_(k.movies.getByIndex('t', 3) is m4)
 
     def makeC0(self):
 

@@ -14,7 +14,9 @@ class Index(dict):
     def __init__(self, **kwds):
 
         super(Index, self).__init__()
+
         self._count = 0
+        self._valid = True
 
     def clear(self):
 
@@ -178,6 +180,14 @@ class NumericIndex(Index, SkipList):
             next = self.getNextKey(key)
             self.removeKey(key)
             key = next
+
+    def invalidate(self):
+
+        self._valid = False
+
+    def validate(self):
+
+        self._valid = True
 
 
 class DelegatingIndex(object):

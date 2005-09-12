@@ -334,16 +334,15 @@ class DBRefList(RefList, PersistentRefs):
 
     def _mergeChanges(self, oldVersion, toVersion):
 
-        if self._indexes is not None:
-            raise MergeError, ('ref collections', self._item, 'merging ref collections with indexes is not yet implemented, overlapping attribute: %s' %(self._name), MergeError.BUG)
-
         target = self.view._createRefList(self._item, self._name,
                                           self._otherName, True, False, False,
                                           self.uuid)
 
         target._original = self
-
         target._copy_(self)
+        target._indexes = self._indexes
+        target._invalidateIndexes()
+
         self._item._references[self._name] = target
 
         try:
@@ -442,6 +441,9 @@ class DBNumericIndex(NumericIndex):
 
     def _loadKey(self, key):
 
+        if not self._valid:
+            return None
+
         node = None
         version = self._version
 
@@ -501,11 +503,7 @@ class DBNumericIndex(NumericIndex):
     def _clear_(self):
 
         super(DBNumericIndex, self)._clear_()
-
         self._clearDirties()
-        self._headKey = None
-        self._tailKey = None
-        self._count = 0
 
     def _clearDirties(self):
 
