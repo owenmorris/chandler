@@ -899,7 +899,10 @@ public:
         return total;
     }
 
+#if defined(_BROKEN_ACTIVEX_BINDING_)
     wxActiveXContainer* m_pAX;
+#endif
+
     IActiveMovie* m_pAM;
     IMediaPlayer* m_pMP;
     wxTimer* m_pTimer;
@@ -1614,6 +1617,7 @@ wxAMMediaBackend::~wxAMMediaBackend()
 {
     Clear(); //Free memory from Load()
 
+#if defined(_BROKEN_ACTIVEX_BINDING_)
     if(m_pAX)
     {
         m_pAX->DissociateHandle();
@@ -1623,6 +1627,7 @@ wxAMMediaBackend::~wxAMMediaBackend()
         if(m_pMP)
             m_pMP->Release();
     }
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1691,10 +1696,12 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     // interface and query them
     //
     m_ctrl = wxStaticCast(ctrl, wxMediaCtrl);
+
+#if defined(_BROKEN_ACTIVEX_BINDING_)
     m_pAX = new wxActiveXContainer(ctrl,
                 m_pMP ? IID_IMediaPlayer : IID_IActiveMovie,
                 m_pAM);
-
+#endif
 
     //
     //  Here we set up wx-specific stuff for the default
