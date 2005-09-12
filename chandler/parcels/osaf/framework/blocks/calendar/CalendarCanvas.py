@@ -104,7 +104,7 @@ class ColorInfo(object):
 
             # the actual saturation and value are not important here,
             # its never used.
-            rgb = wx.Image.HSVtoRGB (wx.Image_RGBValue (self.hue, 0.5, 1.0))
+            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (self.hue, 0.5, 1.0))
             collection.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
                                          
     @classmethod
