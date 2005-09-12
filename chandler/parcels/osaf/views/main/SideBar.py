@@ -355,32 +355,47 @@ class SSSidebarButton (schema.Item):
     def getChecked (self, item):
         return False
 
-    def getButtonImage (self, item, mouseOver):
+    def getButtonImage (self, item, mouseOverFlag):
         colorizeIcon = True
         imagePrefix = "Sidebar" + self.buttonName
+        mouseOver = ""
+        checked = ""
         imageSuffix = ".png"
-        if mouseOver:
-            imagePrefix += "MouseOver"
+
+        if mouseOverFlag:
+            mouseOver = "MouseOver"
             if self.buttonState['screenChecked']:
-                imageSuffix = "Checked" + imageSuffix
+                checked = "Checked"
         else:
             if self.getChecked (item):
-                imageSuffix = "Checked" + imageSuffix
+                checked = "Checked"
             else:
                 colorizeIcon = item.colorizeIcon
 
         iconName = self.getIconName (item)
+        if iconName == "Trash" and mouseOver == "MouseOver":
+            pass
 
-        image = wx.GetApp().GetRawImage (imagePrefix + iconName + imageSuffix)
-
-        if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + imageSuffix)
+        # First lookup full image name
+        image = wx.GetApp().GetRawImage (imagePrefix + iconName + checked + mouseOver + imageSuffix)
         
+        # If that fails try the default image wihtout the name of the icon
+        if image is None:
+            image = wx.GetApp().GetRawImage (imagePrefix + checked + mouseOver + imageSuffix)
+                
+        # If that fails try the full icon name wihtout mouseOver
+        if image is None:
+            image = wx.GetApp().GetRawImage (imagePrefix + iconName + checked + imageSuffix)
+
+        # If that fails try the default image name wihtout mouseOver
+        if image is None:
+            image = wx.GetApp().GetRawImage (imagePrefix + checked + imageSuffix)
+
+
         if image is not None and colorizeIcon:
             color = getattr (item, 'color', None)
             if color is not None:
-                colorValue = wx.Image_RGBValue (color.red, color.green, color.blue)
-                hsvValue = wx.Image.RGBtoHSV (colorValue)
+                hsvValue = wx.Image.RGBtoHSV (wx.Image_RGBValue (color.red, color.green, color.blue))
                 image.RotateHue (hsvValue.hue)
 
         if image is not None:
