@@ -1,4 +1,3 @@
-
 from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
@@ -978,5 +977,9 @@ def make_mainview(parcel):
                            parentBlock = main.TestMenu
                            ).install(parcel)
     
-    
+
+    # Add certstore UI
+    schema.synchronize(parcel.itsView, "osaf.framework.certstore.blocks")
+
     return mainview
+

@@ -337,6 +337,8 @@ class Manager(schema.Item):
 
                 for root, dirs, files in os.walk(directory):
 
+                    dirs.sort()     # ensure stable loading order
+
                     # Allows you to skip specific parcels
                     if 'noload' in files:
                         continue
