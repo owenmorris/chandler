@@ -1603,7 +1603,9 @@ protected:
 // wxAMMediaBackend Constructor
 //---------------------------------------------------------------------------
 wxAMMediaBackend::wxAMMediaBackend()
+#if defined(_BROKEN_ACTIVEX_BINDING_)
                  :m_pAX(NULL),
+#endif
                   m_pAM(NULL),
                   m_pMP(NULL),
                   m_pTimer(NULL)
