@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: window.cpp,v 1.132 2005/07/31 09:42:14 MBN Exp $
+// RCS-ID:      $Id: window.cpp,v 1.133 2005/09/12 20:04:56 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1807,16 +1807,11 @@ bool wxWindow::AttachWidget (wxWindow* WXUNUSED(parent), WXWidget mainWidget,
         XtFree ((char *) ptr);
     }
 
-    SetInitialBestSize(wxSize(width, height));
-
-    if (x != -1 || y != -1)
-    {
-        if (x == -1)
-            x = 0;
-        if (y == -1)
-            y = 0;
-        Move(x, y);
-    }
+    if (x == -1)
+        x = 0;
+    if (y == -1)
+        y = 0;
+    DoSetSize (x, y, width, height, wxSIZE_USE_EXISTING);
 
     return true;
 }
@@ -2466,6 +2461,8 @@ void wxWindow::ChangeBackgroundColour()
     WXWidget mainWidget = GetMainWidget();
     if ( mainWidget )
         wxDoChangeBackgroundColour(mainWidget, m_backgroundColour);
+    if ( m_scrolledWindow && mainWidget != m_scrolledWindow )
+        wxDoChangeForegroundColour(m_scrolledWindow, m_backgroundColour);
 }
 
 void wxWindow::ChangeForegroundColour()
