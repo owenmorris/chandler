@@ -1343,11 +1343,10 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
 
         self.majorLineColor = wx.Colour(204, 204, 204)
         self.minorLineColor = wx.Colour(229, 229, 229)
-        
+ 
         self.majorLinePen = wx.Pen(self.majorLineColor)
         self.minorLinePen = wx.Pen(self.minorLineColor)
-        self.selectionBrush = wx.Brush(wx.Colour(217, 217, 217)) # or 229?
-        self.selectionPen = wx.Pen(wx.Colour(102,102,102))
+        self.selectionBrush = wx.Brush(wx.Colour(229, 229, 229))
         self.todayBrush = wx.Brush(wx.Colour(242,242,242))
 
         #self.Bind(wx.EVT_SIZE, self.OnSize) ## REFACTOR: from the old wx one.
@@ -1900,6 +1899,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
 
         self.ShadeToday(dc)
+        self.DrawBackgroundSelection(dc)
 
         # Set text properties for legend
         dc.SetTextForeground(styles.legendColor)
@@ -1945,18 +1945,13 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
         dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
                     legendBorderX, workdayHourEnd * self.hourHeight + 1)
+        
 
-        """
-        # draw lines between columns \
-        dc.SetPen(styles.minorLinePen)
-        for day in xrange(1, drawInfo.columns):
-            dc.DrawLine(self.xOffset + (self.dayWidth * day), 0,
-                        self.xOffset + (self.dayWidth * day), self.size.height)
-        """
-
+    def DrawBackgroundSelection(self, dc):
+        styles = self.blockItem.calendarContainer
         # draw selection stuff (highlighting)
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
-            dc.SetPen(styles.majorLinePen)
+            dc.SetPen(wx.TRANSPARENT_PEN)
             dc.SetBrush(styles.selectionBrush)
             
             rects = \
