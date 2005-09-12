@@ -1605,6 +1605,8 @@ protected:
 wxAMMediaBackend::wxAMMediaBackend()
 #if defined(_BROKEN_ACTIVEX_BINDING_)
                  :m_pAX(NULL),
+#else
+                 :
 #endif
                   m_pAM(NULL),
                   m_pMP(NULL),
