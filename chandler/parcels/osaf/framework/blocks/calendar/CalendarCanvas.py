@@ -28,7 +28,6 @@ from osaf.framework.blocks.calendar import CollectionCanvas
 import osaf.framework.blocks.DrawingUtilities as DrawingUtilities
 
 from application import schema
-from colorsys import rgb_to_hsv, hsv_to_rgb
 import itertools
 import copy
 import logging
@@ -92,10 +91,10 @@ class ColorInfo(object):
     lastHueIndex = -1
 
     def __init__(self, collection):
-        if hasattr(collection, 'color'):
-            color = collection.color.toTuple()
-            hsv = rgb_to_hsv(*DrawingUtilities.color2rgb(*color))
-            self.hue = hsv[0]
+        color = getattr (collection, 'color', None)
+        if color is not None:
+            rgb = wx.Image_RGBValue (color.red, color.green, color.blue)
+            self.hue = wx.Image.RGBtoHSV (rgb).hue
         else:
             self.hue = ColorInfo.getNextHue()
             try:
@@ -105,9 +104,8 @@ class ColorInfo(object):
 
             # the actual saturation and value are not important here,
             # its never used.
-            hsv = (self.hue, 0.5, 1.0)
-            collection.color = ColorType(*DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv)))
-            collection.color.alpha = 255
+            rgb = wx.Image.HSVtoRGB (wx.Image_RGBValue (self.hue, 0.5, 1.0))
+            collection.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
                                          
     @classmethod
     def getNextHue(cls):
@@ -124,8 +122,8 @@ class ColorInfo(object):
     # takes HSV 'S' and 'V' and returns an color based tuple property
     def tintedColor(saturation, value = 1.0):
         def getSaturatedColor(self):
-            hsv = (self.hue, saturation, value)
-            return DrawingUtilities.rgb2color(*hsv_to_rgb(*hsv))
+            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (self.hue, saturation, value))
+            return rgb.red, rgb.green, rgb.blue
         return property(getSaturatedColor)
             
     def tupleProperty(*args):

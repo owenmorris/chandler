@@ -16,27 +16,6 @@ from application import schema
 from i18n import OSAFMessageFactory as _
 
 
-def GetRectFromOffsets (rect, offsets):
-    def GetEdge (rect, offset):
-        if offset >= 0:
-            edge = rect.GetLeft()
-        else:
-            edge = rect.GetRight()
-        return edge + offset
-    
-    top = rect.GetTop()
-    height = offsets [2]
-    if height == 0:
-        height = rect.GetHeight()
-    else:
-        top = top + (rect.GetHeight() - height) / 2.0
-    left = GetEdge (rect, offsets [0])
-    return wx.Rect (left,
-                    top,
-                    GetEdge (rect, offsets [1]) - left,
-                    height)
-
-
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def ReadOnly (self, row, column):
         """
@@ -86,6 +65,27 @@ class wxSidebar(ControlBlocks.wxTable):
                 sidebar.checkedItems.remove (checkedItem)
         super (wxSidebar, self).wxSynchronizeWidget()
 
+    @classmethod
+    def GetRectFromOffsets (theClass, rect, offsets):
+        def GetEdge (rect, offset):
+            if offset >= 0:
+                edge = rect.GetLeft()
+            else:
+                edge = rect.GetRight()
+            return edge + offset
+        
+        top = rect.GetTop()
+        height = offsets [2]
+        if height == 0:
+            height = rect.GetHeight()
+        else:
+            top = top + (rect.GetHeight() - height) / 2.0
+        left = GetEdge (rect, offsets [0])
+        return wx.Rect (left,
+                        top,
+                        GetEdge (rect, offsets [1]) - left,
+                        height)
+
     def OnMouseEvents (self, event):
         """
           This code is tricky, tread with care -- DJA
@@ -114,40 +114,41 @@ class wxSidebar(ControlBlocks.wxTable):
 
                 self.hoverImageRow = row
                 self.cellRect = cellRect
-                self.buttonPressed = False
-                self.buttonState = {}
+                self.pressedButton = None
 
-                for (buttonName, offset) in blockItem.buttonOffsets.iteritems():
-                    checked = blockItem.getButtonState (buttonName, item)
-                    imageRect = GetRectFromOffsets (cellRect, offset)
-                    self.buttonState[buttonName] = {'imageRect': imageRect,
-                                                    'screenChecked': checked,
-                                                    'blockChecked': checked}
+                # Initialize the buttons state and store in temporary attributes that don't persist
+                for button in blockItem.buttons:
+                    checked = button.getChecked (item)
+                    imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
+                    button.buttonState = {'imageRect': imageRect,
+                                          'screenChecked': checked,
+                                          'blockChecked': checked}
                     self.RefreshRect (imageRect)
 
         if hasattr (self, 'hoverImageRow'):
             if event.LeftDown():
-                for (buttonName, button) in self.buttonState.iteritems():
-                    if (button['imageRect'].InsideXY (x, y)
-                        and isinstance (item, AbstractCollection)):
+                for button in blockItem.buttons:
+                    buttonState = button.buttonState
+                    if (buttonState['imageRect'].InsideXY (x, y) and
+                        button.isCheckable and
+                        isinstance (item, AbstractCollection)):
+                        
                         event.Skip (False) #Gobble the event
                         self.SetFocus()
         
-                        checked = blockItem.getButtonState (buttonName, item)
-                        button = self.buttonState[buttonName]
-                        button['blockChecked'] = checked
-                        button['screenChecked'] = not checked
-                        self.buttonPressed = buttonName
-                        self.RefreshRect (button['imageRect'])
+                        checked = button.getChecked (item)
+                        buttonState['blockChecked'] = checked
+                        buttonState['screenChecked'] = not checked
+                        self.pressedButton = button
+                        self.RefreshRect (buttonState['imageRect'])
                         break
-    
+
             elif event.LeftUp():
-                if self.buttonPressed:
-                    imageRect = self.buttonState[self.buttonPressed]['imageRect']
+                if self.pressedButton is not None:
+                    imageRect = self.pressedButton.buttonState['imageRect']
                     if (imageRect.InsideXY (x, y)):
-                        blockItem.setButtonState (self.buttonPressed,
-                                                  item,
-                                                  not blockItem.getButtonState (self.buttonPressed, item))
+                        self.pressedButton.setChecked (item,
+                                                       not self.pressedButton.getChecked (item))
                         blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
                         wx.GetApp().UIRepositoryView.commit()
                     elif not self.cellRect.InsideXY (x, y):
@@ -162,7 +163,7 @@ class wxSidebar(ControlBlocks.wxTable):
                         """
                         if (gridWindow.HasCapture()):
                             gridWindow.ReleaseMouse()
-                    self.buttonPressed = False
+                    self.pressedButton = None
 
             elif event.LeftDClick():
                 if (gridWindow.HasCapture()):
@@ -170,19 +171,19 @@ class wxSidebar(ControlBlocks.wxTable):
                 del self.hoverImageRow
 
             elif not (event.LeftIsDown() or self.cellRect.InsideXY (x, y)):
-                for button in self.buttonState.itervalues():
-                    self.RefreshRect (button['imageRect'])
-                self.buttonPressed = False
+                for button in blockItem.buttons:
+                    self.RefreshRect (button.buttonState['imageRect'])
+                self.pressedButton = None
                 del self.hoverImageRow
                 if (gridWindow.HasCapture()):
                     gridWindow.ReleaseMouse()
 
-            elif (self.buttonPressed):
-                button = self.buttonState[self.buttonPressed]
-                imageRect = button['imageRect']
-                screenChecked = button['screenChecked']
-                if (imageRect.InsideXY (x, y) == (bool (screenChecked) == bool (button['blockChecked']))):
-                    button['screenChecked'] = not screenChecked
+            elif (self.pressedButton is not None):
+                buttonState = self.pressedButton.buttonState
+                imageRect = buttonState['imageRect']
+                screenChecked = buttonState['screenChecked']
+                if imageRect.InsideXY (x, y) == (screenChecked == buttonState['blockChecked']):
+                    buttonState['screenChecked'] = not screenChecked
                     self.RefreshRect (imageRect)
 
     def OnRequestDrop (self, x, y):
@@ -262,8 +263,8 @@ class wxSidebar(ControlBlocks.wxTable):
 
 class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     """
-      Super specialized Sidebar Renderer, is so specialized that it works in
-    only one context -- Mimi's Sidebar.
+      The sidebar design doesn't use any off the shelf parts, so we'll go roll a bunch
+    of special purpose interface that can't be use anywhere else in CPIA.
     """
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isSelected)
@@ -277,34 +278,18 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
         item, attribute = grid.GetTable().GetValue (row, col)
 
         sidebar = grid.blockItem
-
         if isinstance (item, AbstractCollection):
-            def drawButton (name):
-                imagePrefix = "Sidebar" + name
-                imageSuffix = ".png"
-                if (row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND) and
-                    name != "SharingIcon"):
-                    imagePrefix += "MouseOver"
-                    if grid.buttonState[name]['screenChecked']:
-                        imageSuffix = "Checked" + imageSuffix
-                else:
-                    imageSuffix = sidebar.getButtonState (name, item) + imageSuffix
- 
-                image = wx.GetApp().GetImage (imagePrefix + imageName + imageSuffix)
-
-                if image is None:
-                    image = wx.GetApp().GetImage (imagePrefix + imageSuffix)
-
-                if image is not None:
-                    imageRect = GetRectFromOffsets (rect, sidebar.buttonOffsets [name])
-                    dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
-
+            """
+              Gray text forground color if the collection is empty
+            """
             sidebarTPB = Block.Block.findBlockByName ("SidebarTPB")
             if sidebarTPB is not None:
                 (filteredCollection, rerender) = sidebarTPB.trunkDelegate._mapItemToCacheKeyItem(item, False)
                 if len (filteredCollection) == 0:
                     dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
-
+            """
+              Confuse user by changing the name to something they won't understand
+            """
             name = getattr (item, attribute)
             if hasattr (item, "displayNameAlternatives"):
                 if sidebar.filterKind is None:
@@ -312,20 +297,20 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
                 else:
                     key = os.path.basename (str (sidebar.filterKind.itsPath))
                 name = item.displayNameAlternatives [key]
-
-            imageName = getattr(item, "iconName", "")
-            if item.iconNameHasKindVariant and sidebar.filterKind is not None:
-                imageName += os.path.basename (str (sidebar.filterKind.itsPath))
             """
-              Draw the icons simulating a button
+              Draw the buttons
             """
-            for buttonName in sidebar.buttonOffsets.iterkeys():
-                drawButton (buttonName)
+            for button in sidebar.buttons:
+                mouseOver = row == getattr (grid, 'hoverImageRow', wx.NOT_FOUND)
+                image = button.getButtonImage (item, mouseOver)
+                if image is not None:
+                    imageRect = wxSidebar.GetRectFromOffsets (rect, button.buttonOffsets)
+                    dc.DrawBitmap (image, imageRect.GetLeft(), imageRect.GetTop(), True)
 
         else:
             name = getattr (item, attribute)
 
-        textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
+        textRect = wxSidebar.GetRectFromOffsets (rect, sidebar.editRectOffsets)
         textRect.Inflate (-1, -1)
         dc.SetClippingRect (textRect)
         DrawingUtilities.DrawClippedTextWithDots (dc, name, textRect)
@@ -334,36 +319,129 @@ class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
 
 class SSSidebarEditor (ControlBlocks.GridCellAttributeEditor):
     """
-      Super specialized Sidebar Editor, is so specialized that it works in
-    only one context -- Mimi's Sidebar.
+      The sidebar design doesn't use any off the shelf parts, so we'll go roll a bunch
+    of special purpose interface that can't be use anywhere else in CPIA.
     """
 
     def SetSize(self, rect):
         sidebar = Block.Block.findBlockByName ("Sidebar")
-        textRect = GetRectFromOffsets (rect, sidebar.editRectOffsets)
+        textRect = wxSidebar.GetRectFromOffsets (rect, sidebar.editRectOffsets)
         self.control.SetRect (textRect);
 
+
+class SSSidebarButton (schema.Item):
+    """
+      Super specialized Sidebar button -- The sidebar design doesn't use
+    any off the shelf parts, so we'll go roll a bunch of special purpose
+    interface that can't be use anywhere else in CPIA.
+    """
+    # buttonName is 8 bit chars for programmers only.
+    buttonName = schema.One(schema.String)
+
+    # buttonOffsets is a list of left offset, right offset and height.
+    # Left offset is the offset in pixels of the left edge of the button
+    # where positive values are from the left edge of the cell rect and
+    # negative values are from the left edge of the cell rect. Height
+    # is the height of the button which is centered vertically in the
+    # cell. A height of zero uses the height of the cell
+    buttonOffsets = schema.Sequence (schema.Integer, required = True)
+
+    isCheckable = schema.One (schema.Boolean, defaultValue=False)
+
+    buttonOwner = schema.One("SidebarBlock",
+                             inverse="buttons",
+                             initialValue = None)
+
+    def getChecked (self, item):
+        return False
+
+    def getButtonImage (self, item, mouseOver):
+        colorizeIcon = True
+        imagePrefix = "Sidebar" + self.buttonName
+        imageSuffix = ".png"
+        if mouseOver:
+            imagePrefix += "MouseOver"
+            if self.buttonState['screenChecked']:
+                imageSuffix = "Checked" + imageSuffix
+        else:
+            if self.getChecked (item):
+                imageSuffix = "Checked" + imageSuffix
+            else:
+                colorizeIcon = item.colorizeIcon
+
+        iconName = self.getIconName (item)
+
+        image = wx.GetApp().GetRawImage (imagePrefix + iconName + imageSuffix)
+
+        if image is None:
+            image = wx.GetApp().GetRawImage (imagePrefix + imageSuffix)
+        
+        if image is not None and colorizeIcon:
+            color = getattr (item, 'color', None)
+            if color is not None:
+                colorValue = wx.Image_RGBValue (color.red, color.green, color.blue)
+                hsvValue = wx.Image.RGBtoHSV (colorValue)
+                image.RotateHue (hsvValue.hue)
+
+        if image is not None:
+            image = wx.BitmapFromImage (image)
+
+        return image
+
+
+class SSSidebarIconButton (SSSidebarButton):
+    def getChecked (self, item):
+        return item in self.buttonOwner.checkedItems
+
+    def setChecked (self, item, checked):
+        checkedItems = self.buttonOwner.checkedItems
+        if checked:
+            checkedItems.add (item)
+        else:
+            checkedItems.remove (item)
+
+
+    def getIconName (self, item):
+        iconName = getattr(item, "iconName", "")
+        sidebar = self.buttonOwner
+        if item.iconNameHasKindVariant and sidebar.filterKind is not None:
+            iconName += os.path.basename (str (sidebar.filterKind.itsPath))
+        return iconName
+
+class SSSidebarSharingButton (SSSidebarButton):
+    def getIconName (self, item):
+        share = sharing.getShare(item)
+        iconName = ""
+        if share is not None:
+            if (share.sharer is not None and
+                str(share.sharer.itsPath) == "//userdata/me"):
+                iconName = "Upload"
+            else:
+                iconName = "Download"
+        return iconName
 
 class SidebarBlock(ControlBlocks.Table):
     filterKind = schema.One(
         schema.TypeReference('//Schema/Core/Kind'), initialValue = None,
     )
 
-    # A list of the items in the sidebar that are checked
-    checkedItems = schema.Sequence (schema.Item, initialValue = [])
+    # A set of the items in the sidebar that are checked
+    checkedItems = schema.Many(initialValue=set())
 
-    # For each button, a list of left offset, right offset and height.
+    buttons = schema.Sequence (SSSidebarButton,
+                               inverse = "buttonOwner",
+                               initialValue = [])
+    
+    # For the edit rect, a list of left offset, right offset and height.
     # Left offset is the offset in pixels of the left edge of the button
     # where positive values are from the left edge of the cell rect and
     # negative values are from the left edge of the cell rect. Height
     # is the height of the button which is centered vertically in the
     # cell. A height of zero uses the height of the cell
-    buttonOffsets = schema.Mapping (schema.List, initialValue = {})
-    
     editRectOffsets = schema.Sequence (schema.Integer, required = True)
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[filterKind])
+        copying = schema.Cloud(byRef=[filterKind, buttons])
     )
 
     def instantiateWidget (self):
@@ -440,61 +518,22 @@ class SidebarBlock(ControlBlocks.Table):
         """
         this is enabled if any user item is selected in the sidebar
         """
-        if (self.selectedItemToView and
-            getattr(self.selectedItemToView, 'renameable', True)):
-            event.arguments['Enable'] = True
-        else:
-            event.arguments['Enable'] = False
+        event.arguments['Enable'] = (self.selectedItemToView and
+                                     getattr(self.selectedItemToView, 'renameable', True))
             
     def onCollectionColorEvent(self, event):
         self.selectedItemToView.color = event.color
         
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
-        if not self.selectedItemToView:
-            event.arguments['Enable'] = False
-            return
+        event.arguments['Enable'] = self.selectedItemToView is not None
         
         color = getattr(self.selectedItemToView, 'color', None)
 
         # the event contains the color, so we need to look at that
         # the only way to test for equality is by converting both
         # ColorType's to tuples
-        if color and color.toTuple() == event.color.toTuple():
-            event.arguments['Check'] = True
-        else:
-            event.arguments['Check'] = False
-        
-    def getButtonState (self, buttonName, item):
-        if buttonName == 'Icon':
-            if item in self.checkedItems:
-                return 'Checked'
-        elif buttonName == 'SharingIcon':
-            share = sharing.getShare(item)
-            if share is not None:
-                if (share.sharer is not None and
-                    str(share.sharer.itsPath) == "//userdata/me"):
-                    return "Upload"
-                else:
-                    return "Download"
-        return ""
-
-    def setButtonState (self, buttonName, item, value):
-        if buttonName == 'Icon':
-            if item in self.checkedItems:
-                if not value:
-                    self.checkedItems.remove (item)
-            else:
-                if value:
-                    self.checkedItems.append (item)
-        elif buttonName == 'SharingIcon':
-            """
-              $$$ We need to hook up sharing here -- DJA
-            """
-            pass
-        else:
-            assert (False)
-
+        event.arguments['Check'] = color is not None and color.toTuple() == event.color.toTuple()
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 

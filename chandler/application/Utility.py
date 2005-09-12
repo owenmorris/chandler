@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "62" # john: changed AbstractCollection and Sidebar schema
+SCHEMA_VERSION = "63" # john: changed Sidebar schema
 
 logger = None # initialized in initLogging()
 

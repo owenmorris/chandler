@@ -411,7 +411,15 @@ def make_mainview(parcel):
         SidebarTrunkDelegate.update(parcel, 'SidebarTrunkDelegateInstance',
                                     tableTemplatePath='//parcels/osaf/views/main/TableSummaryViewTemplate',
                                     calendarTemplatePath='//parcels/osaf/views/main/CalendarSummaryViewTemplate')
-        
+
+    IconButton = SSSidebarIconButton.update(parcel, 'IconButton',
+                                            buttonName='Icon',
+                                            buttonOffsets=[1,17,16],
+                                            isCheckable=True)
+    
+    SharingButton = SSSidebarSharingButton.update(parcel, 'SharingIcon',
+                                            buttonName='SharingIcon',
+                                            buttonOffsets=[-17,-1,16])
     mainview = \
     MainView.template('MainView',
         size=SizeType(1024, 720),
@@ -862,19 +870,11 @@ def make_mainview(parcel):
                                         columnHeadings=[u''],
                                         border=RectType(0, 0, 4, 0),
                                         editRectOffsets=[17, -17, 0],
-                                        buttonOffsets={'Icon': [1,17,16],
-                                                       'SharingIcon': [-17,-1,16]},
+                                        buttons=[IconButton, SharingButton],
                                         selection=[[0,0]],
                                         contents=sidebarCollection,
                                         selectedItemToView=app.allCollection,
                                         elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
-                                        nameAlternatives={u'All': u'My items',
-                                                          u'AllMailMessageMixin': u'My mail',
-                                                          u'AllCalendarEventMixin': u'My calendar',
-                                                          u'AllTaskMixin': u'My tasks'},
-                                        dontShowCalendarForItemsWithName=
-                                                          {u'Out filtered by Calendar Event Mixin Kind': True,
-                                                           u'In filtered by Calendar Event Mixin Kind': True},
                                         hideColumnHeadings=True,
                                         columnWidths=[150],
                                         columnData=[u'displayName'],

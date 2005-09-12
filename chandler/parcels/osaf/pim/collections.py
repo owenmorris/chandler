@@ -51,6 +51,7 @@ class AbstractCollection(items.ContentItem):
     color                   = schema.One(schema.Anything)
     iconName                = schema.One(schema.String)
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
+    colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
     dontDisplayAsCalendar   = schema.One(schema.Boolean, defaultValue = False)
     """
       A dictionary mapping a KindName string to a new displayName.

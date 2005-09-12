@@ -268,15 +268,16 @@ def MakeCollections(parcel):
 
     # the "All" collection
     InclusionExclusionCollection.update(parcel, 'allCollection',
-        displayName=_('All'),
-        renameable=False,
-        iconName="All",
-        iconNameHasKindVariant=True,
-        displayNameAlternatives={'None': u'My items',
-                                 'MailMessageMixin': u'My mail',
-                                 'CalendarEventMixin': u'My calendar',
-                                 'TaskMixin': u'My tasks'}
-    ).setup(source=mineMinusGeneratedEvents, exclusions=TrashCollection)
+        displayName = _('All'),
+        renameable = False,
+        iconName = "All",
+        colorizeIcon = False,
+        iconNameHasKindVariant = True,
+        displayNameAlternatives = {'None': u'My items',
+                                   'MailMessageMixin': u'My mail',
+                                   'CalendarEventMixin': u'My calendar',
+                                   'TaskMixin': u'My tasks'}
+    ).setup (source = mineMinusGeneratedEvents, exclusions = TrashCollection)
 
     mailCollection = \
          KindCollection.update(parcel, 'mail')
