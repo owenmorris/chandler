@@ -5,6 +5,7 @@ from repository.schema.Types import Lob
 import scripts as Scripts
 from i18n import OSAFMessageFactory as _
 from osaf import pim
+from osaf.framework.blocks import ColorType
 
 #XXX[i18n] this file needs to have displayName converted to _()
 
@@ -235,7 +236,8 @@ def MakeCollections(parcel):
         ListCollection.update(parcel, 'TrashCollection',
             displayName=_('Trash'),
             renameable=False,
-            iconName="Trash"
+            iconName="Trash",
+            color = ColorType(255, 0, 0, 255) #Red
         )
     
     notes = \
@@ -273,6 +275,7 @@ def MakeCollections(parcel):
         iconName = "All",
         colorizeIcon = False,
         iconNameHasKindVariant = True,
+        color = ColorType(255, 191, 127, 255), #Orange
         displayNameAlternatives = {'None': u'My items',
                                    'MailMessageMixin': u'My mail',
                                    'CalendarEventMixin': u'My calendar',
@@ -296,7 +299,8 @@ def MakeCollections(parcel):
         displayName=_('In'),
         renameable=False,
         iconName="In",
-        dontDisplayAsCalendar=True
+        dontDisplayAsCalendar=True,
+        color = ColorType(191, 127, 255, 255) #Purple
     ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
@@ -310,6 +314,7 @@ def MakeCollections(parcel):
         displayName=_('Out'),
         renameable=False,
         iconName="Out",
-        dontDisplayAsCalendar=True
+        dontDisplayAsCalendar=True,
+        color = ColorType(127, 127, 255, 255) #Navy
     ).setup(source=outSource, trash=TrashCollection)
 
