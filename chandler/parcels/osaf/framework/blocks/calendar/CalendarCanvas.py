@@ -10,6 +10,8 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 import wx.colheader
 
+from repository.item.Monitors import Monitors
+
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateFormat, ICUtzinfo
 
@@ -730,7 +732,17 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         self.dayMode = False
         self.setRange(self.startOfToday())
 
+        # watch for all color changes
+        Monitors.attach(self, 'onColorChanged', 'set', 'color')
 
+    def render(self, *args, **kwds):
+        super(CalendarBlock, self).render(*args, **kwds)
+        Monitors.attach(self, 'onColorChanged', 'set', 'color')
+
+    def unRender(self, *args, **kwds):
+        Monitors.detach(self, 'onColorChanged', 'set', 'color')
+        super(CalendarBlock, self).unRender(*args, **kwds)
+        
     #This is interesting. By Bug 3415 we want to reset the cal block's current
     #date to today at each chandler startup. CPIA has no general mechanism for
     #this, it assumes you want to persist everything. But we need CPIA
@@ -769,6 +781,18 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         
         
     # Event handling
+
+    def onColorChanged(self, op, item, attribute):
+        try:
+            collections = self.contents.collectionList
+            widget = self.widget
+        except AttributeError, e:
+            # sometimes self.contents hasn't been set yet,
+            # or the widget hasn't been rendered yet
+            return
+
+        if item in collections:
+            widget.Refresh()
     
     def onSelectedDateChangedEvent(self, event):
         """
@@ -2450,10 +2474,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         lastDate = startDate + timedelta(days=6)
         months = dateFormatSymbols.getMonths()
         if (startDate.month == lastDate.month):
-            monthText = u"%s %d" %(months[selectedDate.month - 1],
+            monthText = _("%s %d") %(months[selectedDate.month - 1],
                                    selectedDate.year)
         else:
-            monthText = u"%s - %s %d" %(months[startDate.month - 1],
+            monthText = _("%s - %s %d") %(months[startDate.month - 1],
                                         months[lastDate.month - 1],
                                         lastDate.year)
      
