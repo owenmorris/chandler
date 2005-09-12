@@ -518,7 +518,7 @@ class SidebarBlock(ControlBlocks.Table):
         """
         this is enabled if any user item is selected in the sidebar
         """
-        event.arguments['Enable'] = (self.selectedItemToView and
+        event.arguments['Enable'] = (self.selectedItemToView is not None and
                                      getattr(self.selectedItemToView, 'renameable', True))
             
     def onCollectionColorEvent(self, event):
