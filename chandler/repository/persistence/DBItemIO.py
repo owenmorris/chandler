@@ -790,7 +790,7 @@ class DBItemVMergeReader(DBItemMergeReader):
                     value = Nil
 
                 elif (isinstance(originalValue, AbstractSet) and
-                    originalValue._merge(value)):
+                      originalValue._merge(value)):
                     value = originalValue
 
                 elif self.mergeFn is not None:

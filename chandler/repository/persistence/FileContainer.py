@@ -122,9 +122,6 @@ class File(object):
         self.setName(name)
 
         if not self.exists():
-            if not create:
-                raise RepositoryError, "File does not exist: %s" %(name)
-
             self._uuid = UUID()
             self.length = 0
             
