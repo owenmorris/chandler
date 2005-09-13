@@ -4,20 +4,21 @@ Certificate import on startup
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
+from application import schema
 
-def installParcel(parcel, oldVersion=None):
+
+def loadCerts(parcel, moduleName, filename='cacert.pem'):
     # Load cacert.pem into the repository
 
     from M2Crypto import X509, util
     from M2Crypto.EVP import MessageDigest
-    import os
+    import os, sys
     import logging
     
     log = logging.getLogger(__name__)
     
     chop = -1
 
-    from application import schema
     cert = schema.ns('osaf.framework.certstore', parcel)
     lobType = schema.itemFor(schema.Lob, parcel.itsView)
 
@@ -34,7 +35,11 @@ def installParcel(parcel, oldVersion=None):
 
     certificates = 0
     
-    for line in open(os.path.join(os.path.dirname(__file__),'cacert.pem'),'rU'):
+    for line in open(
+        os.path.join(
+            os.path.dirname(sys.modules[moduleName].__file__),filename
+        ), 'rU'
+    ):
         if line[:3] == '===':
             itsName = lastLine
             itsName = itsName[:chop]
@@ -69,13 +74,19 @@ def installParcel(parcel, oldVersion=None):
 
         lastLine = line
 
-    log.info('Imported %d certificates' % certificates)
+    log.info(
+        'Imported %d certificates from %s in %s',
+        certificates, filename, moduleName
+    )
 
+def installParcel(parcel, oldVersion=None):
+
+    loadCerts(parcel, __name__)
     
-    # Create extents
-    
+    # Create extents   
     from osaf.pim.collections import KindCollection
 
+    cert = schema.ns('osaf.framework.certstore', parcel)
     kind = schema.itemFor(cert.Certificate, parcel.itsView)
  
     def createExtent(name, exact):
