@@ -504,7 +504,7 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
 
     name = collection.displayName
 
-    if collection.itsPath == schema.ns('osaf.app').allCollection.itsPath:
+    if collection is schema.ns('osaf.app', collection.itsView).allCollection:
         name = _(u"My")
         if ext == "":
             ext = _(u" items")
