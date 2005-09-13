@@ -2,7 +2,6 @@
 Generate sample items from a file
 """
 
-
 import string
 import random
 import urllib
@@ -13,12 +12,16 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 from osaf.pim.tasks import Task, TaskMixin
 import osaf.pim.mail as Mail
+from PyICU import ICUtzinfo
+from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 
 logger = logging.getLogger(__name__)
 
 collectionsDict={}
 
-IMPORTANCE = ["important", "normal", "fyi"]
+STATUS = ["confirmed", "tentative", "fyi"]
+RECURRENCES = ["daily", "weekly", "monthly", "yearly"]
+TIMEZONES = ["US/Pacific", "US/Central", "Europe/Paris"]
 LOCATIONS  = ["Home", "Office", "School"]
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 DURATIONS = [60, 90, 120, 150, 180]
@@ -46,7 +49,6 @@ def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
     collection = pim.ListCollection(view=view)
 
-    args[0]=args[0]
     if args[0]=='*': # semi-random data
         while True:
              # Find a name that isn't already in use
@@ -113,8 +115,8 @@ def GenerateCalendarEvent(view, mainView, args):
     else:
         event.displayName = 'untitled'
         
-    #startTime (startDate + startTime)
-    event.startTime = ReturnCompleteDatetime(args[2],args[3])
+    #startTime (startDate + startTime) + TimeZone
+    event.startTime = ReturnCompleteDatetime(args[2],args[3],tz=args[12])
    
     #anyTime
     if args[4]=='*': # semi-random data
@@ -161,18 +163,33 @@ def GenerateCalendarEvent(view, mainView, args):
         event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
     elif not args[8]=='':
         event.location = Calendar.Location.getLocation(view,args[8])    
-
-    #importance (only 3 values allowed : 'normal','important','fdy')
+        
+    #status (only 3 values allowed : 'Confirmed','Tentative','fyi')
     if args[9]=='*': # semi-random data
-        event.importance = random.choice(IMPORTANCE)
-    elif args[9]=='normal' or args[9]=='important' or args[9]=='fdy':    
-        event.importance = args[9]
+        event.transparency = random.choice(STATUS)
+    elif string.lower(args[9]) in STATUS:    
+        event.transparency = string.lower(args[9])
     else: # default value (normal)
-        event.importance = 'normal'
+        event.transparency = 'confirmed'
+    
+    #recurrence ('daily','weekly','monthly','yearly') + recurrence end date
+    ruleItem = RecurrenceRule(None, view=view)
+    ruleSetItem = RecurrenceRuleSet(None, view=view)
+    if not args[11] == '':
+        ruleItem.until = ReturnCompleteDatetime(args[11])    
+    if args[10]=='*': # semi-random data
+        ruleItem.freq = random.choice(RECURRENCES)
+        ruleSetItem.addRule(ruleItem)
+        event.rruleset = ruleSetItem
+    elif string.lower(args[10]) in RECURRENCES:
+        ruleItem.freq = string.lower(args[10])
+        ruleSetItem.addRule(ruleItem)
+        event.rruleset = ruleSetItem
 
     #collection
     if args[1]=='*': # semi-random data
-        collectionsDict.values()[random.randint(0,len(collectionsDict)-1)].add(event)
+        if not len(collectionsDict) == 0:
+            collectionsDict.values()[random.randint(0,len(collectionsDict)-1)].add(event)
     elif not args[1]=='':
         collectionNames = string.split(args[1], ';')
         for name in collectionNames:
@@ -215,7 +232,7 @@ def GenerateTask(view, mainView, args):
     return task
 
 
-def ReturnCompleteDatetime(date, time):
+def ReturnCompleteDatetime(date, time='', tz=None):
     """ Return a datetime corresponding to the parameters """
     now = datetime.now()
     # date
@@ -253,6 +270,15 @@ def ReturnCompleteDatetime(date, time):
     else:
         result = datetime(year=tmp.year,month=tmp.month,day=tmp.day,hour=now.hour,minute=now.minute)
 
+    # time zone
+    if tz=='*': # semi-random data
+        tzinfo = ICUtzinfo.getInstance(random.choice(TIMEZONES))
+    elif tz in TIMEZONES:
+        tzinfo = ICUtzinfo.getInstance(tz)
+    else: # default value
+        tzinfo = ICUtzinfo.getDefault()
+        
+    result = datetime(year=result.year,month=result.month,day=result.day,hour=result.hour,minute=result.minute,tzinfo=tzinfo)
     return result
 
 
@@ -354,7 +380,8 @@ def GenerateMailMessage(view, mainView, args):
         
     #collection
     if args[1]=='*': # semi-random data
-        collectionsDict.values()[random.randint(0,len(collectionsDict)-1)].add(message)
+        if not len(collectionsDict) == 0:
+            collectionsDict.values()[random.randint(0,len(collectionsDict)-1)].add(message)
     elif not args[1]=='':
         collectionNames = string.split(args[1], ';') 
         for name in collectionNames:
@@ -448,7 +475,7 @@ def GenerateItems(view, mainView, filepath):
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateCalendarEvent(view, mainView, args[1:11])
+                GenerateCalendarEvent(view, mainView, args[1:14])
         elif(string.upper(args[0])=='TASK'):
             try:
                 test = args[4]
@@ -462,7 +489,7 @@ def GenerateItems(view, mainView, filepath):
             except IndexError:
                 logger.info("(Line skipped): Line %d of %s don't respect the chandler data format." % (lineNum, filepath))
             else:
-                GenerateEventTask(view, mainView, args[1:11])
+                GenerateEventTask(view, mainView, args[1:14])
         elif(string.upper(args[0])=='MAILMESSAGE'):
             try:
                 test = args[10]
