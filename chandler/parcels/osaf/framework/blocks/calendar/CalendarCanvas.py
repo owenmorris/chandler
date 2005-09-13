@@ -71,6 +71,13 @@ its children subblocks are as follows:
 -------------------------------------------------------------
 """
 
+def roundTo(v, r):
+    """
+    round down v to the nearest r
+    """
+    return (v/r)*r
+    
+
 # from ASPN/Python Cookbook
 class CachedAttribute(object):
     def __init__(self, method):
@@ -89,7 +96,7 @@ class ColorInfo(object):
     # need to convert hues from 0..360 to 0..1.0 range
     # removed 60, 180, 90 for now because they looked too light
     hueList = [k/360.0 for k in [210, 120, 0, 30, 270, 240, 330]]
-    lastHueIndex = -1
+    lastHueIndex = 3 # hack for now, because the first 4 collections are already assigned
 
     def __init__(self, collection):
         color = getattr (collection, 'color', None)
@@ -1184,6 +1191,49 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         return event	
         
 
+    def getBoundedPosition(self, position, drawInfo, mustBeInBounds=True):
+        # first make sure we're within the top left boundaries
+        yPosition = max(position.y, 0)
+        if mustBeInBounds:
+            xPosition = max(position.x, drawInfo.xOffset)
+        else:       
+            xPosition = position.x
+
+        # next make sure we're within the bottom right boundaries
+        height = self.size.height - 1# was GetMinSize().GetWidth()???
+            
+        yPosition = min(yPosition, height)
+        if mustBeInBounds:
+            xPosition = min(xPosition, 
+                            drawInfo.xOffset + drawInfo.dayWidth * drawInfo.columns - 1)
+        return wx.Point(xPosition, yPosition)
+        
+    def getDateTimeFromPosition(self, position, mustBeInBounds=True):
+        """
+        calculate the date based on the x,y coordinates on the canvas
+        
+        @param mustBeInBounds: if true, restrict to dates the user
+        currently can see/scroll to.
+        """
+
+        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        position = \
+            self.getBoundedPosition(position, drawInfo, mustBeInBounds)
+
+        # @@@ fixes Bug#1831, but doesn't really address the root cause
+        # (the window is drawn with (0,0) virtual size on mac)
+        if drawInfo.dayWidth > 0:
+            deltaDays = (position.x - drawInfo.xOffset) / drawInfo.dayWidth
+        else:
+            deltaDays = 0
+            
+        startDay = self.blockItem.rangeStart
+        deltaDays = timedelta(days=deltaDays)
+        deltaTime = self.getRelativeTimeFromPosition(drawInfo, position)
+        newTime = startDay + deltaDays + deltaTime
+
+        return newTime.replace(tzinfo=ICUtzinfo.getDefault())
+
     """
     Methods for Drag and Drop and Cut and Paste
     """
@@ -1658,6 +1708,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         # but if the event starts before the current week, make boxX negative:
         # where the event would start on the screen, if it was drawn
+        
+        # hack alert! We shouldn't need to adjust this
         ost = dragState.originalDragBox.originalStartTime
         if Calendar.datetimeOp(ost, '<', self.blockItem.rangeStart):
             earlier = Calendar.datetimeOp(self.blockItem.rangeStart, '-', ost)
@@ -1665,8 +1717,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         
         dy = dragState.originalPosition.y - boxY
-        dx = dragState.originalPosition.x - boxX
-        dx = int(dx/drawInfo.dayWidth) * drawInfo.dayWidth #round to nearest dayWidth
+        dx = roundTo(dragState.originalPosition.x - boxX, drawInfo.dayWidth)
+
+        # hack alert?
         adjustedPosition = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
   
         item = dragState.currentDragBox.GetItem()
@@ -1702,43 +1755,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                                       item.startTime.hour, item.startTime.minute, tzinfo=tzinfo)
             self.Refresh()
 
-    def getDateTimeFromPosition(self, position, mustBeInBounds=True):
+    def getRelativeTimeFromPosition(self, drawInfo, position):
         """
-        @param mustBeInBounds: if true, restrict to dates the user
-        currently can see/scroll to.
+        on the all-day canvas, there is no notion of hour/minutes
         """
-
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-        
-        yPosition = max(position.y, 0)
-        if mustBeInBounds:
-            xPosition = max(position.x, drawInfo.xOffset)
-        else:       
-            xPosition = position.x
-                
-        ## weird old code, what?
-        if True:  ## self.fixed:
-            height = self.GetMinSize().GetWidth()
-        else:
-            height = self.fullHeight ##now is self.expandedHeight, i THINK thats a semantic approx...
-            
-        yPosition = min(yPosition, height)
-        if mustBeInBounds:
-            xPosition = min(xPosition, 
-                            drawInfo.xOffset + drawInfo.dayWidth * drawInfo.columns - 1)
-        
-        if self.blockItem.dayMode:
-            newDay = self.blockItem.selectedDate
-        elif drawInfo.dayWidth > 0:
-            deltaDays = (xPosition - drawInfo.xOffset) / drawInfo.dayWidth
-            startDay = self.blockItem.rangeStart
-            newDay = startDay + timedelta(days=deltaDays)
-        else:
-            #when does this happen?
-            newDay = self.blockItem.rangeStart
-        return newDay
-
-
+        return timedelta()
+    
     def OnCreateItem(self, unscrolledPosition):
         view = self.blockItem.itsView
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
@@ -2237,35 +2259,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         dragBox = dragState.originalDragBox
         return dragBox.getResizeMode(dragState.originalPosition)
 
-    def getDateTimeFromPosition(self, position):
-        #that is, the drawing info not already within this object
-        drawInfo = self.blockItem.calendarContainer.calendarControl.widget
-
-        # bound the position by the available space that the user 
-        # can see/scroll to
-        yPosition = max(position.y, 0)
-        xPosition = max(position.x, self.xOffset)
+    def getRelativeTimeFromPosition(self, drawInfo, position):
+        """
+        Get just the hours/minutes from the canvas
+        """
+        deltaHours = position.y / self.hourHeight
+        deltaMinutes = ((position.y % self.hourHeight) * 60) / self.hourHeight
+        deltaMinutes = roundTo(deltaMinutes, 15)
+        return timedelta(hours=deltaHours, minutes=deltaMinutes)
         
-        yPosition = min(yPosition, self.hourHeight * 24 - 1)
-        xPosition = min(xPosition, self.xOffset + self.dayWidth * drawInfo.columns - 1)
-        
-        (startDay, endDay) = self.GetCurrentDateRange()
-
-        # @@@ fixes Bug#1831, but doesn't really address the root cause
-        # (the window is drawn with (0,0) virtual size on mac)
-        if self.dayWidth > 0:
-            deltaDays = (xPosition - self.xOffset) / self.dayWidth
-        else:
-            deltaDays = 0
-        
-        deltaHours = yPosition / self.hourHeight
-        deltaMinutes = ((yPosition % self.hourHeight) * 60) / self.hourHeight
-        deltaMinutes = int(deltaMinutes/15) * 15
-        newTime = startDay + timedelta(days=deltaDays,
-                                       hours=deltaHours,
-                                       minutes=deltaMinutes)
-        return newTime.replace(tzinfo=ICUtzinfo.getDefault())
-
     def getPositionFromDateTime(self, datetime):
         (startDay, endDay) = self.GetCurrentDateRange()
         
