@@ -15,6 +15,15 @@ import osaf.pim.tasks
 from application import schema
 from i18n import OSAFMessageFactory as _
 
+# in the form 'Color', _('LocalizableColorString'), 360-degree based hue
+collection_hues = [('Blue', _('Blue'), 210),
+                   ('Green', ('Green'), 120),
+                   ('Red', _('Red'), 0),
+                   ('Orange', _('Orange'), 30),
+                   ('Purple', _('Purple'), 270),
+                   ('Navy', _('Navy'), 240),
+                   ('Pink', _('Pink'), 330)]
+
 def make_color_blocks(parcel, cls, hues):
     """
     dynamically creates an array of type 'cls' based on a list of colors
@@ -670,14 +679,7 @@ def make_mainview(parcel):
                                 title=_(u'&Collection Color'),
                                 childrenBlocks=make_color_blocks(parcel,
                                                                  MenuItem,
-                                                                 # in the form 'Color', _('LocalizableColorString'), 360-degree based hue
-                                                                 [('Blue', _('Blue'), 210),
-                                                                  ('Green', ('Green'), 120),
-                                                                  ('Red', _('Red'), 0),
-                                                                  ('Orange', _('Orange'), 30),
-                                                                  ('Purple', _('Purple'), 270),
-                                                                  ('Navy', _('Navy'), 240),
-                                                                  ('Pink', _('Pink'), 330)])),
+                                                                 collection_hues)),
                             ]), # Menu CollectionMenu
                     Menu.template('TestMenu',
                         title=_(u'&Test'),

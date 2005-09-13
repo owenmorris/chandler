@@ -238,7 +238,7 @@ def MakeCollections(parcel):
             displayName=_('Trash'),
             renameable=False,
             iconName="Trash",
-            color = ColorType(255, 0, 0, 255) #Red
+            color = ColorType(255, 192, 128, 255) #Orange
         )
     
     notes = \
@@ -276,7 +276,7 @@ def MakeCollections(parcel):
         iconName = "All",
         colorizeIcon = False,
         iconNameHasKindVariant = True,
-        color = ColorType(255, 191, 127, 255), #Orange
+        color = ColorType(128, 192, 255, 255), #Blue
         displayNameAlternatives = {'None': u'My items',
                                    'MailMessageMixin': u'My mail',
                                    'CalendarEventMixin': u'My calendar',
@@ -301,7 +301,7 @@ def MakeCollections(parcel):
         renameable=False,
         iconName="In",
         dontDisplayAsCalendar=True,
-        color = ColorType(191, 127, 255, 255) #Purple
+        color = ColorType(128, 255, 128, 255) # Green
     ).setup(source=inSource, trash=TrashCollection)
 
     outSource = \
@@ -316,6 +316,6 @@ def MakeCollections(parcel):
         renameable=False,
         iconName="Out",
         dontDisplayAsCalendar=True,
-        color = ColorType(127, 127, 255, 255) #Navy
+        color = ColorType(255, 128, 128, 255) #Red
     ).setup(source=outSource, trash=TrashCollection)
 
