@@ -37,7 +37,12 @@ class Block(schema.Item):
 
     contents = schema.One(ContentItem, otherName="contentsOwner")
 
-    viewAttribute = schema.One(schema.String)
+    viewAttribute = schema.One(
+        schema.String,
+        doc = 'Specifies which attribute of the selected Item should be '
+              'associated with this block.',
+        initialValue = ''
+    )
 
     parentBlock = schema.One("Block",
         inverse="childrenBlocks",

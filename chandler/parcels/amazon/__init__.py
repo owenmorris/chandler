@@ -44,7 +44,7 @@ def installParcel(parcel, version=None):
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "ProductArea",
                 position = 1,
-                selectedItemsAttribute = "ProductName",
+                viewAttribute = "ProductName",
                 stretchFactor = 0,
                 childrenBlocks = [
                     detail.StaticRedirectAttributeLabel.update(

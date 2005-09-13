@@ -1522,12 +1522,6 @@ class ContentItemDetail(BoxContainer):
     Supports Color Style
     """
     colorStyle = schema.One(Styles.ColorStyle)
-    selectedItemsAttribute = schema.One(
-        schema.String,
-        doc = 'Specifies which attribute of the selected Item should be '
-              'associated with this block.',
-        initialValue = '',
-    )
     
 class wxPyTimer(wx.PyTimer):
     """ 

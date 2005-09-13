@@ -171,7 +171,7 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # URL
-            pair("LinkArea", selectedItemsAttribute="link", position=0.3,
+            pair("LinkArea", viewAttribute="link", position=0.3,
                 childrenBlocks = [
                     label("LinkLabel", title="link"),
                     LinkDetail.update(parcel, "LinkAttribute",
@@ -195,7 +195,7 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # Author area
-            pair("AuthorArea", selectedItemsAttribute="author", position=0.19,
+            pair("AuthorArea", viewAttribute="author", position=0.19,
                 childrenBlocks = [
                     label("AuthorLabel", title="author"),
                     field("AuthorAttribute", title="author"),
@@ -203,7 +203,7 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # Date area
-            pair("DateArea", selectedItemsAttribute="date", position=0.4,
+            pair("DateArea", viewAttribute="date", position=0.4,
                 childrenBlocks = [
                     label("DateLabel", title="date"),
                     DateDetail.update(parcel, "DateAttribute",
@@ -216,7 +216,7 @@ def installParcel(parcel, oldVersion=None):
             ),
 
             # Category
-            pair("CategoryArea", selectedItemsAttribute="category",
+            pair("CategoryArea", viewAttribute="category",
                 position=0.2,
                 childrenBlocks = [
                     label("CategoryLabel", title="category"),

@@ -65,7 +65,7 @@ def installParcel(parcel, oldVersion=None):
             detail.MarkupBar,
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "TypeArea",
-                position = 0.1, selectedItemsAttribute="type",
+                position = 0.1, viewAttribute="type",
                 stretchFactor = 0,
                 childrenBlocks = [
                     blocks.StaticText.update(
@@ -89,7 +89,7 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "TrustArea",
-                position = 0.2, selectedItemsAttribute="trust",
+                position = 0.2, viewAttribute="trust",
                 stretchFactor = 0,
                 childrenBlocks = [
                     blocks.StaticText.update(
@@ -115,13 +115,13 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "FingerprintArea",
-                position = 0.3, selectedItemsAttribute="fingerprint",
+                position = 0.3, viewAttribute="fingerprint",
                 stretchFactor = 0,
                 childrenBlocks = [
                     detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                         parcel, "FingerprintLabel",
                         position = 0.3,
-                        selectedItemsAttribute="fingerprintAlgorithm",
+                        viewAttribute="fingerprintAlgorithm",
                         stretchFactor = 0,
                         childrenBlocks = [
                             detail.StaticRedirectAttribute.update(
@@ -147,7 +147,7 @@ def installParcel(parcel, oldVersion=None):
 
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "AsTextArea",
-                position = 0.9, selectedItemsAttribute="asText",
+                position = 0.9, viewAttribute="asText",
                 stretchFactor = 1,
                 childrenBlocks = [
                     AsTextAttribute.update(

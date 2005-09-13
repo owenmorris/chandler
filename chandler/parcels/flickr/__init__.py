@@ -283,7 +283,7 @@ def installParcel(parcel, oldVersion=None):
             detail.DetailSynchronizedLabeledTextAttributeBlock.update(
                 parcel, "AuthorArea",
                 position = 0.6,
-                selectedItemsAttribute="owner",
+                viewAttribute="owner",
                 stretchFactor = 0,
                 childrenBlocks = [
                     detail.StaticRedirectAttributeLabel.update(

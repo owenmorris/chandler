@@ -363,7 +363,7 @@ class DetailSynchronizer(Item):
 
     def whichAttribute(self):
         # define the attribute to be used
-        return self.parentBlock.selectedItemsAttribute
+        return self.parentBlock.viewAttribute
 
     def parseEmailAddresses(self, item, addressesString):
         """
@@ -466,7 +466,7 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
       exists on the item or not
     """ 
     def synchronizeItemDetail(self, item):
-        whichAttr = self.selectedItemsAttribute
+        whichAttr = self.viewAttribute
         self.isShown = item is not None and item.itsKind.hasAttribute(whichAttr)
         self.synchronizeWidget()
 
