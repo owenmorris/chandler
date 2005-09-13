@@ -16,7 +16,6 @@ from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
-import repository.item.Query as Query
 import logging
 from i18n import OSAFMessageFactory as _
 
@@ -272,7 +271,7 @@ class ContentItem(schema.Item):
         right now, we consider only ContentItems.
         """
         kindKind = self.findPath('//Schema/Core/Kind')
-        allKinds = Query.KindQuery().run([kindKind])
+        allKinds = kindKind.iterItems()
         contentItemKind = ContentItem.getKind (self.itsView)
         contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]
         return contentItemKinds
