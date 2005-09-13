@@ -89,7 +89,7 @@ def make_summaryblocks(parcel):
                     CanvasSplitterWindow.template('MainCalendarCanvasSplitter',
                         # as small as possible; AllDayEvents's
                         # SetMinSize() should override?
-                        splitPercentage=0.01,
+                        splitPercentage=0.06,
                         orientationEnum='Horizontal',
                         stretchFactor=1,
                         childrenBlocks=[
