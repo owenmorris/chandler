@@ -397,7 +397,7 @@ class User(object):
             # setup event info for a keypress event
             event.m_keyCode = keyCode
             event.m_rawCode = keyCode
-            event.m_shiftDown = shiftFlag
+            event.m_shiftDown = char.isupper() or shiftFlag
             event.m_controlDown = event.m_metaDown = ctrlFlag
             event.m_altDown = altFlag
             event.SetEventObject(widget)
@@ -430,6 +430,7 @@ class User(object):
                             writeMethod(char)
                         else:
                             success = False # remember we had a failure
+                wx.GetApp().Yield()
         return success
 
     @classmethod 
