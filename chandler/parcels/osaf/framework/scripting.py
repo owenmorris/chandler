@@ -170,7 +170,7 @@ def run_startup_script(view):
         if scriptFileText:
             scriptParcel = schema.ns('osaf.framework.scripting', view).parcel
             script = Script.update(scriptParcel, 
-                                   name=Globals.options.scriptFile, 
+                                   Globals.options.scriptFile, 
                                    bodyString=scriptFileText)
             fileName=Globals.options.scriptFile
     if script:
