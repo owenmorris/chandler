@@ -243,7 +243,10 @@ class Share(items.ContentItem):
                 account.port = port
 
         if account is not None:
-            shareName = path.strip("/").split("/")[-1]
+            # compute shareName relative to the account path:
+            accountPathLen = len(account.path.strip("/"))
+            shareName = path.strip("/")[accountPathLen:]
+
             self.hidden = False
 
             if url.endswith(".ics"):
@@ -350,6 +353,10 @@ class ShareConduit(items.ContentItem):
 
     def __conditionalPutItem(self, item):
         """ Put an item if it's not on the server or is out of date """
+
+        if self._getItemPath(item) is None:
+            # According to the Format, we don't export this item
+            return
 
         # Assumes that self.resourceList has been populated:
         externalItemExists = self.__externalItemExists(item)
@@ -534,9 +541,10 @@ class ShareConduit(items.ContentItem):
 
                 return item
 
-            logger.info("...NOT able to import '%s'" % itemPath)
+            logger.error("...NOT able to import '%s'" % itemPath)
             msg = "Not able to import '%s'" % itemPath
-            raise SharingError(message=msg)
+            # @@@MOR Shall we just skip bogus imported items?
+            # raise SharingError(message=msg)
 
         return None
 
@@ -577,6 +585,7 @@ class ShareConduit(items.ContentItem):
            raise NotFound(message="%s does not exist" % location)
 
         sharingSelf.resourceList = sharingSelf._getResourceList(location)
+        logger.debug("Resources on server: %s", sharingSelf.resourceList)
 
         # We need to keep track of which items we've seen on the server so
         # we can tell when one has disappeared.
@@ -1005,6 +1014,7 @@ class WebDAVConduit(ShareConduit):
     port = schema.One(schema.Integer)
     username = schema.One(schema.String)
     password = schema.One(schema.String)
+    calDAVMode = schema.One(schema.Boolean, initialValue=False)
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  shareName=None, account=None, host=None, port=80,
@@ -1059,7 +1069,7 @@ class WebDAVConduit(ShareConduit):
     def __releaseServerHandle(self):
         self.serverHandle = None
 
-    def getLocation(self):
+    def getLocation(self, includeShare=True):
         """ Return the url of the share """
 
         (host, port, sharePath, username, password, useSSL) = \
@@ -1076,7 +1086,8 @@ class WebDAVConduit(ShareConduit):
         else:
             url = "%s://%s:%d" % (scheme, host, port)
         url = urlparse.urljoin(url, sharePath + "/")
-        url = urlparse.urljoin(url, self.shareName)
+        if includeShare:
+            url = urlparse.urljoin(url, self.shareName)
         return url
 
     def __getSharePath(self):
@@ -1122,39 +1133,60 @@ class WebDAVConduit(ShareConduit):
             handle = self._getServerHandle()
             try:
                 if url[-1] != '/': url += '/'
-                response = handle.blockUntil(handle.mkcol, url)
+
+                # need to get resource representing the parent of the
+                # collection we want to create
+
+                # Get the parent directory of the given path:
+                # '/dev1/foo/bar' becomes ['dev1', 'foo', 'bar']
+                path = url.strip('/').split('/')
+                parentPath = path[:-1]
+                childName = path[-1]
+                # ['dev1', 'foo'] becomes "dev1/foo"
+                url = "/".join(parentPath)
+                resource = handle.getResource(url)
+
+                if self.calDAVMode:
+                    child = handle.blockUntil(resource.createCalendar,
+                                              childName)
+                else:
+                    child = handle.blockUntil(resource.createCollection,
+                                              childName)
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
             except M2Crypto.BIO.BIOError, err:
                 message = "%s" % (err)
                 raise CouldNotConnect(message=message)
+            except zanshin.http.HTTPError, err:
+                logger.error('Received status %d attempting to create %s',
+                             err.status, self.getLocation())
 
-            if response.status == twisted.web.http.NOT_ALLOWED:
-                # already exists
-                message = "Collection at %s already exists" % url
-                raise AlreadyExists(message=message)
+                if err.status == twisted.web.http.NOT_ALLOWED:
+                    # already exists
+                    message = "Collection at %s already exists" % url
+                    raise AlreadyExists(message=message)
 
-            if response.status == twisted.web.http.UNAUTHORIZED:
-                # not authorized
-                message = "Not authorized to create collection %s" % url
-                raise NotAllowed(message=message)
+                if err.status == twisted.web.http.UNAUTHORIZED:
+                    # not authorized
+                    message = "Not authorized to create collection %s" % url
+                    raise NotAllowed(message=message)
 
-            if response.status == twisted.web.http.CONFLICT:
-                # this happens if you try to create a collection within a
-                # nonexistent collection
-                (host, port, sharePath, username, password, useSSL) = \
-                    self.__getSettings()
-                message = "The directory '%s' could not be found on %s.\nPlease verify the Path setting in your WebDAV account" % (sharePath, host)
-                raise NotFound(message=message)
+                if err.status == twisted.web.http.CONFLICT:
+                    # this happens if you try to create a collection within a
+                    # nonexistent collection
+                    (host, port, sharePath, username, password, useSSL) = \
+                        self.__getSettings()
+                    message = "The directory '%s' could not be found on %s.\nPlease verify the Path setting in your WebDAV account" % (sharePath, host)
+                    raise NotFound(message=message)
 
-            if response.status == twisted.web.http.FORBIDDEN:
-                # the server doesn't allow the creation of a collection here
-                message = "Server doesn't allow the creation of collections at %s" % url
-                raise IllegalOperation(message=message)
+                if err.status == twisted.web.http.FORBIDDEN:
+                    # the server doesn't allow the creation of a collection here
+                    message = "Server doesn't allow the creation of collections at %s" % url
+                    raise IllegalOperation(message=message)
 
-            if response.status != twisted.web.http.CREATED:
-                 message = "WebDAV error, status = %d" % err.status
-                 raise IllegalOperation(message=message)
+                if err.status != twisted.web.http.CREATED:
+                     message = "WebDAV error, status = %d" % err.status
+                     raise IllegalOperation(message=message)
 
     def destroy(self):
         if self.exists():
@@ -1198,6 +1230,13 @@ class WebDAVConduit(ShareConduit):
         container = self.__getContainerResource()
 
         try:
+            # @@@MOR For some reason, when doing a PUT on the rpi server, I
+            # can see it's returning 400 Bad Request, but zanshin doesn't
+            # seem to be raising an exception.  Putting in a check for
+            # newResource == None as another indicator that it failed to
+            # create the resource
+            newResource = None
+
             newResource = self._getServerHandle().blockUntil(
                                     container.createFile, itemName, body=text)
         except zanshin.webdav.ConnectionError, err:
@@ -1219,6 +1258,9 @@ class WebDAVConduit(ShareConduit):
                 message = "Parent collection for %s is not found" % itemName
                 raise NotFound(message=message)
 
+        if newResource is None:
+            message = "Not authorized to PUT %s" % itemName
+            raise NotAllowed(message=message)
 
         etag = newResource.etag
 
@@ -1307,7 +1349,10 @@ class WebDAVConduit(ShareConduit):
                 if child != shareCollection:
                     path = child.path.split("/")[-1]
                     etag = child.etag
-                    resourceList[path] = { 'data' : etag }
+                    if path:
+                        resourceList[path] = { 'data' : etag }
+                    else:
+                        logger.info("Child has no path")
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             resource = self._getServerHandle().getResource(location)
@@ -1544,7 +1589,7 @@ class WebDAVAccount(items.ContentItem):
         has been set up to operate on the parent directory of this collection.
         For example, if the url is http://pilikia.osafoundation.org/dev1/foo/
         we need to find an account whose schema+host+port match and whose path
-        is /dev1
+        starts with /dev1
 
         Note: this logic assumes only one account will match; you aren't
         currently allowed to have to multiple webdav accounts pointing to the
@@ -1569,7 +1614,7 @@ class WebDAVAccount(items.ContentItem):
             # Does this account's url info match?
             accountPath = account.path.strip('/')
             if account.useSSL == useSSL and account.host == host and \
-               account.port == port and accountPath == path:
+               account.port == port and path.startswith(accountPath):
                 return account
 
         return None

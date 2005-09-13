@@ -36,9 +36,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
         # Is this collection already shared?
-        self.shareXML = sharing.getShare(self.collection)
 
-        if self.shareXML is None:       # Not yet shared, show "Publish"
+        isShared = sharing.isShared(collection)
+
+        if not isShared:       # Not yet shared, show "Publish"
             self.mainPanel = self.resources.LoadPanel(self,
                                                       "PublishCollection")
             self.buttonPanel = self.resources.LoadPanel(self,
@@ -62,7 +63,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
 
-        if self.shareXML is None:       # Not yet shared, show "Publish"
+        if not isShared:       # Not yet shared, show "Publish"
             self.ShowPublishPanel()
         else:                           # Already shared, show "Manage"
             self.ShowManagePanel()
@@ -117,10 +118,11 @@ class PublishCollectionDialog(wx.Dialog):
         name = self.collection.displayName
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
 
-        name = self.shareXML.conduit.account.displayName
+        share = sharing.getShare(self.collection)
+        name = share.conduit.account.displayName
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
-        url = self.shareXML.conduit.getLocation()
+        url = share.conduit.getLocation()
         wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
@@ -160,10 +162,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
         self.CheckboxShareStatus.Enable(False)
 
-        self.filterKinds = self.shareXML.filterKinds
+        self.filterKinds = share.filterKinds
 
         self._loadKindFilterState()
-        self._loadAttributeFilterState(self.shareXML)
+        self._loadAttributeFilterState(share)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -201,6 +203,15 @@ class PublishCollectionDialog(wx.Dialog):
                                           share.filterAttributes)
         self.CheckboxShareStatus.SetValue("transparency" not in \
                                           share.filterAttributes)
+
+
+    def _getAttributeFilterState(self):
+        attrs = []
+        if not self.CheckboxShareAlarms.GetValue():
+            attrs.append('reminderTime')
+        if not self.CheckboxShareStatus.GetValue():
+            attrs.append('transparency')
+        return attrs
 
 
     def _saveAttributeFilterState(self, share):
@@ -275,7 +286,8 @@ class PublishCollectionDialog(wx.Dialog):
                 path = "//parcels/osaf/pim/calendar/CalendarEventMixin"
                 self.filterKinds.append(path)
 
-        self.shareXML.filterKinds = self.filterKinds
+        for share in self.collection.shares:
+            share.filterKinds = self.filterKinds
 
 
 
@@ -314,60 +326,20 @@ class PublishCollectionDialog(wx.Dialog):
 
         try:
 
-            # Populate the list of existing shares on the selected webdav server
-            self.existing = self._getExistingFiles()
-            suggestedName = self._suggestName()
-            shareName = suggestedName
-            shareNameSafe = urllib.quote_plus(shareName.encode('utf-8'))
+
+            attrs_to_exclude = self._getAttributeFilterState()
+            kinds_to_include = self.filterKinds
             accountIndex = self.accountsControl.GetSelection()
             account = self.accountsControl.GetClientData(accountIndex)
 
-            # Create the main share object
-            shareXML = sharing.newOutboundShare(self.view,
-                                                self.collection,
-                                                kinds=self.filterKinds,
-                                                shareName=shareNameSafe,
-                                                account=account)
-            self.shareXML = shareXML
-            shareXML.displayName = shareName
-            self._saveAttributeFilterState(shareXML)
-
-            # Create the secondary (.ics) share object
-            iCalName = "%s.ics" % shareNameSafe
-            shareICal = sharing.newOutboundShare(self.view,
-                                                 self.collection,
-                                                 kinds=self.filterKinds,
-                                                 shareName=iCalName,
-                                                 account=account)
-            self.shareICal = shareICal
-            shareICal.displayName = "%s.ics" % shareName
-            self._saveAttributeFilterState(shareICal)
-
-            # For the .ics share, use ICalendarFormat instead
-            format = sharing.ICalendarFormat(view=self.view)
-            shareICal.mode = "put"
-            shareICal.format = format
-            shareICal.hidden = True
-
             self._showStatus(_("Wait for Sharing URLs...\n"))
-            if shareXML.exists():
-                #XXX: [i18n] does this need to be translated?
-                raise sharing.SharingError(_("Share already exists"))
-            else:
-                self._showStatus(_("Creating collection on server..."))
-                shareXML.create()
-                self._showStatus(_(" done.\n"))
-
             self._showStatus(_("Publishing collection to server..."))
-            shareXML.put()
+            shares = sharing.publish(self.collection, account,
+                                     kinds_to_include, attrs_to_exclude)
             self._showStatus(_(" done.\n"))
 
-            self._showStatus(_("Publishing calendar file to server..."))
-            shareICal.put()
-            self._showStatus(_(" done.\n"))
-
-        except (sharing.SharingError, zanshin.error.Error, 
-                M2Crypto.SSL.Checker.WrongHost, 
+        except (sharing.SharingError, zanshin.error.Error,
+                M2Crypto.SSL.Checker.WrongHost,
                 ssl.CertificateVerificationError), e:
 
             # Display the error
@@ -378,13 +350,6 @@ class PublishCollectionDialog(wx.Dialog):
                 pass
             logger.exception("Failed to publish collection")
             # self._showStatus("Exception:\n%s" % traceback.format_exc(10))
-
-            # Clean up all share objects we created
-            try:
-                shareXML.delete(True)
-                shareICal.delete(True)
-            except:
-                pass
 
             # Re-enable the main panel and switch back to the "Share" button
             self.mainPanel.Enable(True)
@@ -399,8 +364,8 @@ class PublishCollectionDialog(wx.Dialog):
 
             return
 
-        self._showStatus(u"%s\n" % shareXML.getLocation())
-        self._showStatus(u"%s\n" % shareICal.getLocation())
+        for share in shares:
+            self._showStatus(u"%s\n" % share.getLocation())
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -431,7 +396,8 @@ class PublishCollectionDialog(wx.Dialog):
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
-            wx.TheClipboard.SetData(wx.TextDataObject(str(self.shareXML.getLocation())))
+            share = sharing.getShare(self.collection)
+            wx.TheClipboard.SetData(wx.TextDataObject(str(share.getLocation())))
             wx.TheClipboard.Close()
 
     def _clearStatus(self):

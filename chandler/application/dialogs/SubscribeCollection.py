@@ -77,20 +77,23 @@ class SubscribeDialog(wx.Dialog):
             return
 
         try:
-            share = sharing.Share(view=view)
-            share.configureInbound(url)
-
-            if share is None:
-                return
-
-            if self.accountPanel.IsShown():
-                share.conduit.account.username = self.textUsername.GetValue()
-                share.conduit.account.password = self.textPassword.GetValue()
 
             self.__showStatus(_("In progress..."))
             wx.Yield()
-            share.sync()
-            collection = share.contents
+
+            if self.accountPanel.IsShown():
+                username = self.textUsername.GetValue()
+                password = self.textPassword.GetValue()
+                collection = sharing.subscribe(view, url, username, password)
+            else:
+                collection = sharing.subscribe(view, url)
+
+            if collection is None:
+                # user cancelled out of account dialog
+                return
+
+            share = sharing.getShare(collection)
+
             mainView = Globals.views[0]
             mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
 
@@ -109,26 +112,22 @@ class SubscribeDialog(wx.Dialog):
             self.EndModal(True)
 
         except sharing.NotAllowed, err:
-            self.__showAccountInfo(share.conduit.account)
-            share.delete(True)
+            self.__showAccountInfo()
         except sharing.NotFound, err:
             self.__showStatus(_("That collection was not found"))
-            share.delete(True)
         except sharing.SharingError, err:
             self.__showStatus(_("Sharing Error:\n%s") % err.message)
             logger.exception("Error during subscribe for %s" % url)
-            share.delete(True)
         except Exception, e:
             self.__showStatus(_(u"Sharing Error:\n%s") % e)
             logger.exception("Error during subscribe for %s" % url)
-            share.delete(True)
 
     def OnTyping(self, evt):
         self.__hideStatus()
         self.__hideAccountInfo()
 
 
-    def __showAccountInfo(self, account):
+    def __showAccountInfo(self):
         self.__hideStatus()
 
         if not self.accountPanel.IsShown():

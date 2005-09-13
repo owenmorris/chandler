@@ -326,6 +326,10 @@ class CalendarEventMixin(ContentItem):
             pass
         
         self.occurrenceFor = self
+
+        if not hasattr(self, 'icalUID'):
+            self.icalUID = str(self.itsUUID)
+            
         
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
