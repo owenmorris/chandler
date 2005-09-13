@@ -35,6 +35,9 @@ typedef struct {
 
 
 static void t_descriptor_dealloc(t_descriptor *self);
+static int t_descriptor_traverse(t_descriptor *self,
+                                 visitproc visit, void *arg);
+static int t_descriptor_clear(t_descriptor *self);
 static PyObject *t_descriptor_new(PyTypeObject *type,
                                   PyObject *args, PyObject *kwds);
 static int t_descriptor_init(t_descriptor *self,
@@ -118,10 +121,12 @@ static PyTypeObject DescriptorType = {
     0,                                          /* tp_getattro */
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                       /* tp_flags */
     "attribute descriptor",                     /* tp_doc */
-    0,                                          /* tp_traverse */
-    0,                                          /* tp_clear */
+    (traverseproc)t_descriptor_traverse,        /* tp_traverse */
+    (inquiry)t_descriptor_clear,                /* tp_clear */
     0,                                          /* tp_richcompare */
     0,                                          /* tp_weaklistoffset */
     0,                                          /* tp_iter */
@@ -142,10 +147,27 @@ static PyTypeObject DescriptorType = {
 
 static void t_descriptor_dealloc(t_descriptor *self)
 {
-    Py_XDECREF(self->name);
-    Py_XDECREF(self->attrs);
+    t_descriptor_clear(self);
     self->ob_type->tp_free((PyObject *) self);
 }
+
+static int t_descriptor_traverse(t_descriptor *self,
+                                 visitproc visit, void *arg)
+{
+    Py_VISIT(self->name);
+    Py_VISIT(self->attrs);
+
+    return 0;
+}
+
+static int t_descriptor_clear(t_descriptor *self)
+{
+    Py_CLEAR(self->name);
+    Py_CLEAR(self->attrs);
+
+    return 0;
+}
+
 
 static PyObject *t_descriptor_new(PyTypeObject *type,
                                   PyObject *args, PyObject *kwds)

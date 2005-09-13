@@ -12,6 +12,8 @@
 #include "item.h"
 
 static void t_item_dealloc(t_item *self);
+static int t_item_traverse(t_item *self, visitproc visit, void *arg);
+static int t_item_clear(t_item *self);
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds);
 static PyObject *t_item_isNew(t_item *self, PyObject *args);
@@ -220,10 +222,12 @@ static PyTypeObject ItemType = {
     0,                                         /* tp_getattro */
     0,                                         /* tp_setattro */
     0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                      /* tp_flags */
     "C Item type",                             /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
+    (traverseproc)t_item_traverse,             /* tp_traverse */
+    (inquiry)t_item_clear,                     /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
@@ -244,17 +248,38 @@ static PyTypeObject ItemType = {
 
 static void t_item_dealloc(t_item *self)
 {
-    Py_XDECREF(self->uuid);
-    Py_XDECREF(self->name);
-    Py_XDECREF(self->values);
-    Py_XDECREF(self->references);
-    Py_XDECREF(self->kind);
-    Py_XDECREF(self->parent);
-    Py_XDECREF(self->children);
-    Py_XDECREF(self->root);
-    Py_XDECREF(self->acls);
-
+    t_item_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+}
+
+static int t_item_traverse(t_item *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->uuid);
+    Py_VISIT(self->name);
+    Py_VISIT(self->values);
+    Py_VISIT(self->references);
+    Py_VISIT(self->kind);
+    Py_VISIT(self->parent);
+    Py_VISIT(self->children);
+    Py_VISIT(self->root);
+    Py_VISIT(self->acls);
+
+    return 0;
+}
+
+static int t_item_clear(t_item *self)
+{
+    Py_CLEAR(self->uuid);
+    Py_CLEAR(self->name);
+    Py_CLEAR(self->values);
+    Py_CLEAR(self->references);
+    Py_CLEAR(self->kind);
+    Py_CLEAR(self->parent);
+    Py_CLEAR(self->children);
+    Py_CLEAR(self->root);
+    Py_CLEAR(self->acls);
+
+    return 0;
 }
 
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
