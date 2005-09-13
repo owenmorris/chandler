@@ -1,4 +1,4 @@
-__parcel__ = "osaf.examples.amazon"
+__parcel__ = "amazon"
 
 import osaf.framework.blocks.Block as Block
 import AmazonKinds

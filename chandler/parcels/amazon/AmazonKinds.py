@@ -1,4 +1,4 @@
-__parcel__ = "osaf.examples.amazon"
+__parcel__ = "amazon"
 
 import amazon
 import application
