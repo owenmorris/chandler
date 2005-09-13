@@ -15,7 +15,6 @@ from osaf.pim.items import Calculated, ContentItem
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 
-import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import wx
 
 from osaf.pim.calendar.TimeZone import coerceTimeZone
@@ -1114,79 +1113,6 @@ class CalendarEventMixin(ContentItem):
         """Is this a proxy of an event?"""
         return False
 
-_proxies = {}
-
-def getProxy(context, obj):
-    """Return a proxy for obj, reusing cached proxies in the same context.
-    
-    Return obj if obj doesn't support the changeThis and changeThisAndFuture
-    interface.
-    
-    """
-    if hasattr(obj, 'changeThis') and hasattr(obj, 'changeThisAndFuture'):      
-        if not _proxies.has_key(context) or _proxies[context][0] != obj.itsUUID:
-            logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
-            _proxies[context] = (obj.itsUUID, OccurrenceProxy(obj))
-        return _proxies[context][1]
-    else:
-        return obj
-
-class OccurrenceProxy(object):
-    __class__ = 'temp'
-    proxyAttributes = 'proxiedItem', 'currentlyModifying', '__class__', \
-                      'dialogUp', 'changeBuffer'
-    
-    def __init__(self, item):
-        self.proxiedItem = item
-        self.currentlyModifying = None
-        self.__class__ = self.proxiedItem.__class__
-        self.dialogUp = False
-        self.changeBuffer = []
-    
-    def __eq__(self, other):
-        return self.proxiedItem == other
-    
-    def __repr__(self):
-        return "Proxy for %s" % self.proxiedItem.__repr__()
-
-    def _repr_(self):
-        """Temporarily overriding the special repository for representation."""
-        return "Proxy for %s" % self.proxiedItem._repr_()
-
-    def __str__(self):
-        return "Proxy for %s" % self.proxiedItem.__str__()
-        
-    def __getattr__(self, name):
-        return getattr(self.proxiedItem, name)
-        
-    def __setattr__(self, name, value):
-        if name in self.proxyAttributes:
-            object.__setattr__(self, name, value)
-        elif self.proxiedItem.rruleset is None:
-            setattr(self.proxiedItem, name, value)
-        else:
-            if self.currentlyModifying is None:
-                self.changeBuffer.append(('change', name, value))
-                if not self.dialogUp:
-                    self.dialogUp = True
-                    RecurrenceDialog.RecurrenceDialog(wx.GetApp().mainFrame, self)
-            else:
-                self.propagateChange(name, value)
-    
-    def propagateBufferChanges(self):
-        while len(self.changeBuffer) > 0:
-            self.propagateChange(*self.changeBuffer.pop(0)[1:])
-    
-    def propagateChange(self, name, value):
-        table = {'this'          : self.changeThis,
-                 'thisandfuture' : self.changeThisAndFuture}
-        table[self.currentlyModifying](name, value)
-    
-    def cancelBuffer(self):
-        self.changeBuffer = []
-    
-    def isProxy(self):
-        return True
 
 class CalendarEvent(CalendarEventMixin, Note):
     """

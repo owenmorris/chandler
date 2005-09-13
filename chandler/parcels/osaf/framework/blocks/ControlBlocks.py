@@ -23,6 +23,7 @@ import wx.grid
 import webbrowser # for opening external links
 import osaf.framework.attributeEditors as AttributeEditors
 from osaf.framework.blocks import DrawingUtilities
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
@@ -923,7 +924,7 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
-        item = Calendar.getProxy(u'grid', item)
+        item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
         self.delegate.Draw (dc, rect, item, attributeName, isInSelection)
 
 class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
@@ -952,7 +953,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
-        item = Calendar.getProxy(u'grid', item)
+        item = RecurrenceDialog.getProxy(u'ui', item)
         
         self.initialValue = self.delegate.GetAttributeValue (item, attributeName)
         self.delegate.BeginControlEdit (item, attributeName, self.control)
@@ -965,7 +966,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         value = self.delegate.GetControlValue (self.control)
         item, attributeName = grid.GetElementValue (row, column)
         assert not item.isDeleted()
-        item = Calendar.getProxy(u'grid', item)
+        item = RecurrenceDialog.getProxy(u'ui', item)
 
         if value == self.initialValue:
             changed = False
@@ -1723,7 +1724,7 @@ class AEBlock(BoxContainer):
                 item = None
             else:
                 # We have an item - return a proxy for it if necessary
-                item = Calendar.getProxy(u'ui', item)
+                item = RecurrenceDialog.getProxy(u'ui', item)
         return item
     def setItem(self, value): 
         assert not value.isDeleted()

@@ -15,6 +15,7 @@ from PyICU import GregorianCalendar, DateFormatSymbols, FieldPosition, DateForma
 
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, formatTime
+import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import osaf.pim.items as items
 
 from osaf.framework.blocks import DragAndDrop
@@ -1250,7 +1251,9 @@ class wxInPlaceEditor(wx.TextCtrl):
 
     def SaveItem(self):
         if ((self.item != None) and (not self.IsBeingDeleted())):
-            self.item.displayName = self.GetValue()
+            if self.item.displayName != self.GetValue():
+                proxy = RecurrenceDialog.getProxy(u'ui', self.item)
+                proxy.displayName = self.GetValue()
         
     def OnTextEnter(self, event):
         self.SaveItem()

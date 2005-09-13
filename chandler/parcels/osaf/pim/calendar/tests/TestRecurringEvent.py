@@ -15,6 +15,8 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.tasks import TaskMixin
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 
+from application.dialogs.RecurrenceDialog import getProxy
+
 import osaf.pim
 import osaf.pim.tests.TestContentModel as TestContentModel
 from chandlerdb.item.ItemError import NoSuchAttributeError
@@ -206,12 +208,12 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
     def testProxy(self):
         self.failIf(self.event.isProxy())
         
-        proxy = Calendar.getProxy('test', self.event)
+        proxy = getProxy('test', self.event)
         proxy.dialogUp = True # don't try to create a dialog in a test
         self.assert_(proxy.isProxy())
         self.assertEqual(proxy, self.event)
         self.assertEqual(proxy.currentlyModifying, None)
-        self.assert_(proxy is Calendar.getProxy('test', proxy))
+        self.assert_(proxy is getProxy('test', proxy))
 
         proxy.rruleset = self._createRuleSetItem('weekly')
         self.assert_(self.event in proxy.rruleset.events)
@@ -219,7 +221,9 @@ class RecurringEventTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(len(list(proxy._generateRule())), self.weekly['count'])
         
         proxy.startTime = self.start + timedelta(days=1)
-        self.assertEqual(proxy.startTime, self.start)
+        self.assertEqual(self.event.startTime, self.start)
+        self.assertEqual(proxy.startTime, self.start + timedelta(days=1))
+
 
     def testThisAndFutureModification(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
