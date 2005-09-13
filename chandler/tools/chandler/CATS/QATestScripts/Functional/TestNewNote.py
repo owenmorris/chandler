@@ -11,9 +11,7 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewNote")
 note = QAUITestAppLib.UITestItem("Note", logger)
 
 #action
-note.logger.Start("Setting the note attributes")
 note.SetAttr(displayName="A note to myself about filing taxes", body="FILE TAXES!")
-note.logger.Stop()
 
 #verification
 note.Check_DetailView({"displayName":"A note to myself about filing taxes","body":"FILE TAXES!"})

@@ -11,9 +11,7 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewCollec
 col = QAUITestAppLib.UITestItem("Collection", logger)
 
 #action
-col.logger.Start("Setting the collection title")
 col.SetDisplayName("Meeting")
-col.logger.Stop()
 
 col.Check_Sidebar({"displayName":"Meeting"})
 

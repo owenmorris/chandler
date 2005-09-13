@@ -11,10 +11,9 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestNewMail")
 mail = QAUITestAppLib.UITestItem("MailMessage", logger)
 
 #action
-mail.logger.Start("Setting attributes of message")
 mail.SetAttr(displayName="Invitation Mail", toAddress="olivier@osafoundation.org", body="This is an email to invite you")
-mail.logger.Stop()
 mail.SendMail()
+
 #verification
 mail.Check_DetailView({"displayName":"Invitation Mail","toAddress":"olivier@osafoundation.org","body":"This is an email to invite you"})
 

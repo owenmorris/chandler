@@ -11,9 +11,7 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Perf Stamp as
 
 #action
 note = QAUITestAppLib.UITestItem("Note", logger)
-note.logger.Start("Stamp as an event")
 note.StampAsCalendarEvent(True)
-note.logger.Stop()
 
 #verification
 note.Check_DetailView({"stampEvent":True})
