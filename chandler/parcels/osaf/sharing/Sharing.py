@@ -1014,6 +1014,7 @@ class WebDAVConduit(ShareConduit):
     port = schema.One(schema.Integer)
     username = schema.One(schema.String)
     password = schema.One(schema.String)
+    useSSL = schema.One(schema.Boolean)
     calDAVMode = schema.One(schema.Boolean, initialValue=False)
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
@@ -1226,6 +1227,7 @@ class WebDAVConduit(ShareConduit):
         if text is None:
             return None
 
+        contentType = self.share.format.contentType(item)
         itemName = self._getItemPath(item)
         container = self.__getContainerResource()
 
@@ -1238,7 +1240,8 @@ class WebDAVConduit(ShareConduit):
             newResource = None
 
             newResource = self._getServerHandle().blockUntil(
-                                    container.createFile, itemName, body=text)
+                                    container.createFile, itemName, body=text,
+                                    type=contentType)
         except zanshin.webdav.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
         except M2Crypto.BIO.BIOError, err:
@@ -1641,6 +1644,8 @@ class ImportExportFormat(items.ContentItem):
         return None # None indicates there is no file representing the Share
                     # item
 
+    def contentType(self, item):
+        return "text/plain"
 
 class CloudXMLFormat(ImportExportFormat):
 

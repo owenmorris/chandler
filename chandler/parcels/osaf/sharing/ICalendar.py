@@ -268,6 +268,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     def extension(self, item):
         return "ics"
 
+    def contentType(self, item):
+        return "text/calendar"
+
     def findUID(self, uid):
         """Return the master event whose icalUID matched uid, or None."""
         uid_map = schema.ns('osaf.sharing', self.itsView).uid_map
