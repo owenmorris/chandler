@@ -32,32 +32,13 @@ def getTime(date):
         minute = minute + "AM"
     return "%s:%s" %(hour, minute)
 
-def SetBlockMenu(menuName, menuChoice):
-    '''
-    Select a choice in a list menu
-    @type menuName : string
-    @param menuName : The name of the menu
-    @type menuChoice : string
-    @param menuChoice : the choice you want to select
-    @return : True if the selection is succesfull
-    '''
-    block = App_ns.__getattr__(menuName)
-    list_of_value = []
-    for k in range(0,block.widget.GetCount()):
-        list_of_value.append(block.widget.GetString(k))
-    if not menuChoice in list_of_value:
-        return False
-    else:
-        # Emulate the mouse click in the menu
-        scripting.User.emulate_click(block)
-        block.widget.SetStringSelection(menuChoice)
-        # Process the event corresponding to the selection
-        selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
-        selectionEvent.SetEventObject(block.widget)
-        block.widget.ProcessEvent(selectionEvent)
-        return True
-
 def GetCollectionRow(cellName):
+    """
+    Return the row number in the sidebar corresponding to the given cell. (False if cell doesn't exist)
+    @type cellName : string
+    @param cellName : a cell name
+    @return : int
+    """
     for i in range(App_ns.sidebar.widget.GetNumberRows()):
         item = App_ns.sidebar.widget.GetTable().GetValue(i,0)[0]
         if item.displayName == cellName:
@@ -111,7 +92,7 @@ class UITestItem :
     
     def SetAttr(self, displayName=None, startDate=None, startTime=None, endDate=None, endTime=None, location=None, body=None,
                 status=None, timeZone=None, recurrence=None, recurrenceEnd=None, alarm=None, fromAddress=None, toAddress=None,
-                allDay=None, stampEvent=None, stampMail=None,stampTask=None, dict=None):
+                allDay=None, stampEvent=None, stampMail=None,stampTask=None):
         """
         Set the item attributes in a predefined order (see orderList)
         """
@@ -121,17 +102,14 @@ class UITestItem :
                       stampTask:self.StampAsTask, timeZone:self.SetTimeZone, recurrence:self.SetRecurrence, recurrenceEnd:self.SetRecurrenceEnd}
         orderList = [displayName, startDate, startTime, endDate, endTime, location, body, status, alarm, fromAddress, toAddress, allDay,
                      stampEvent, stampMail, stampTask, timeZone, recurrence, recurrenceEnd]
-        
+
+        self.logger.Start("Multiple Attribute Setting")
         for param in orderList:
             if param:
-                methodDict[param](param)
+                methodDict[param](param, timeInfo=False)
+        self.logger.Stop()
             
-        if dict:
-            self.logger.Start("Multiple Attribute Setting")
-            self.logger.Stop()
-            self.Check_DetailView(dict)
-            
-    def SetAttrInOrder(self, argList, dict=None):
+    def SetAttrInOrder(self, argList):
         """
         Set the item attributes in the argList order
         """
@@ -139,12 +117,11 @@ class UITestItem :
                       "location":self.SetLocation, "body":self.SetBody, "status":self.SetStatus, "alarm":self.SetAlarm, "fromAddress":self.SetFromAddress,
                       "toAddress":self.SetToAddress, "allDay":self.SetAllDay, "stampEvent":self.StampAsCalendarEvent, "stampMail":self.StampAsMailMessage,
                       "stampTask":self.StampAsTask, "timeZone":self.SetTimeZone, "recurrence":self.SetRecurrence, "recurrenceEnd":self.SetRecurrenceEnd}
+
+        self.logger.Start("Multiple Attribute Setting")
         for (key, value) in argList:
-            methodDict[key](value)
-        if dict:
-            self.logger.Start("Multiple Attribute Setting")
-            self.logger.Stop()
-            self.Check_DetailView(value)
+            methodDict[key](value, timeInfo=False)
+        self.logger.Stop()
 
     def SelectItem(self):
         """
@@ -169,7 +146,7 @@ class UITestItem :
                     timedCanvas.widget.OnSelectItem(canvasItem.GetItem())
                     break
 
-    def SetEditableBlock(self, blockName, description, value, dict=None):
+    def SetEditableBlock(self, blockName, description, value, timeInfo):
         """
         Set the value of an editable block
         @type blockName : string
@@ -178,11 +155,10 @@ class UITestItem :
         @param description : description of the action used by the logger
         @type value : string
         @param value : the new value for the editable block
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
-        if dict:
-            self.logger.Start("Set the %s to : %s" %(description, displayName))
+        if timeInfo:
+            self.logger.Start("%s setting" %description)
         #select the item
         self.SelectItem()
         block = App_ns.__getattr__(blockName)
@@ -193,21 +169,53 @@ class UITestItem :
         # Emulate the keyboard events
         scripting.User.emulate_typing(value)
         scripting.User.emulate_return()
-        if dict:
+        if timeInfo:
             self.logger.Stop()
-            self.Check_DetailView(dict)
-         
-    def SetDisplayName(self, displayName, dict=None):
+
+    def SetBlockMenu(self, menuName, menuChoice, timeInfo):
+        """
+        Select a choice in a list menu
+        @type menuName : string
+        @param menuName : The name of the menu
+        @type menuChoice : string
+        @param menuChoice : the choice you want to select
+        @type timeInfo: boolean
+        @return : True if the selection is succesfull
+        """
+        self.SelectItem()
+        block = App_ns.__getattr__(menuName)
+        list_of_value = []
+        for k in range(0,block.widget.GetCount()):
+            list_of_value.append(block.widget.GetString(k))
+        if not menuChoice in list_of_value:
+            return False
+        else:
+            if timeInfo:
+                self.logger.Start("%s setting" %menuName)
+            # Emulate the mouse click in the menu
+            scripting.User.emulate_click(block)
+            block.widget.SetStringSelection(menuChoice)
+            # Process the event corresponding to the selection
+            selectionEvent = wx.CommandEvent(wx.wxEVT_COMMAND_CHOICE_SELECTED)
+            selectionEvent.SetEventObject(block.widget)
+            block.widget.ProcessEvent(selectionEvent)
+            self.SelectItem()
+            if timeInfo:
+                self.logger.Stop()
+            return True
+    
+    def SetDisplayName(self, displayName, timeInfo=True):
         """
         Set the title
         @type displayName : string
         @param displayName : the new title
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if (self.isNote or self.isEvent or self.isTask or self.isMessage):
-            self.SetEditableBlock("HeadlineBlock", "display name", displayName, dict)
+            self.SetEditableBlock("HeadlineBlock", "display name", displayName, timeInfo=timeInfo)
         elif(self.isCollection):
+            if timeInfo:
+                self.logger.Start("Collection title setting")
             # work around for mac bug (I guess relative to focus)
             if '__WXMAC__' in wx.PlatformInfo:
                 #row = GetCollectionRow(self.item.displayName)
@@ -221,92 +229,88 @@ class UITestItem :
                 # Type the new collection displayName
                 scripting.User.emulate_typing(displayName)
                 # work around : KeyboardReturn doesn't work in that kind of editor
-                scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")            
+                scripting.User.emulate_sidebarClick(App_ns.sidebar, "All")
+            if timeInfo:
+                self.logger.Stop()
         else:
             self.logger.Print("SetDisplayName is not available for this kind of item")
             return
 
-    def SetStartTime(self, startTime, dict=None):
+    def SetStartTime(self, startTime, timeInfo=True):
         """
         Set the start time
         @type startTime : string
         @param startTime : the new start time (hh:mm PM or AM)
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if (self.isEvent and not self.allDay):
-            self.SetEditableBlock("EditCalendarStartTime", "start time", startTime, dict)
+            self.SetEditableBlock("EditCalendarStartTime", "start time", startTime, timeInfo=timeInfo)
         else:
             self.logger.Print("SetStartTime is not available for this kind of item")
             return
 
-    def SetStartDate(self, startDate, dict=None):
+    def SetStartDate(self, startDate, timeInfo=True):
         """
         Set the start date
         @type startDate : string
         @param startDate : the new start date (mm/dd/yyyy)
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SetEditableBlock("EditCalendarStartDate", "start date", startDate, dict)
+            self.SetEditableBlock("EditCalendarStartDate", "start date", startDate, timeInfo=timeInfo)
         else:
             self.logger.Print("SetStartDate is not available for this kind of item")
             return
 
-    def SetEndTime(self, endTime, dict=None):
+    def SetEndTime(self, endTime, timeInfo=True):
         """
         Set the end time
         @type endTime : string
         @param endTime : the new end time (hh:mm PM or AM)
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if (self.isEvent and not self.allDay):
-            self.SetEditableBlock("EditCalendarEndTime", "end time", endTime, dict)
+            self.SetEditableBlock("EditCalendarEndTime", "end time", endTime, timeInfo=timeInfo)
         else:
             self.logger.Print("SetEndTime is not available for this kind of item")
             return
     
-    def SetEndDate(self, endDate, dict=None):
+    def SetEndDate(self, endDate, timeInfo=True):
         """
         Set the end date
         @type endDate : string
         @param endDate : the new end date (mm/dd/yyyy)
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SetEditableBlock("EditCalendarEndDate", "end date", endDate, dict)
+            self.SetEditableBlock("EditCalendarEndDate", "end date", endDate, timeInfo=timeInfo)
         else:
             self.logger.Print("SetEndDate is not available for this kind of item")
             return
 
-    def SetLocation(self, location, dict=None):
+    def SetLocation(self, location, timeInfo=True):
         """
         Set the location
         @type location : string
         @param location : the new location
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SetEditableBlock("CalendarLocation", "location", location, dict)
+            self.SetEditableBlock("CalendarLocation", "location", location, timeInfo=timeInfo)
         else:
             self.logger.Print("SetLocation is not available for this kind of item")
             return
 
-    def SetAllDay(self, allDay, dict=None):
+    def SetAllDay(self, allDay, timeInfo=True):
         """
         Set the allday attribute
         @type allDay : boolean
         @param allDay : the new all-day value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            if dict:
-                self.logger.Start("Set the all Day to : %s" %allDay)
+            if timeInfo:
+                self.logger.Start("All-day setting")
             self.SelectItem()
             allDayBlock = App_ns.detail.all_day  
             # Emulate the mouse click in the all-day block
@@ -314,202 +318,180 @@ class UITestItem :
             # work around : (the mouse click has not the good effect)
             # the bug #3336 appear on linux
             allDayBlock.widget.SetValue(allDay)
-            if dict:
+            if timeInfo:
                 self.logger.Stop()
-                self.Check_DetailView(dict)
             self.allDay = allDay
         else:
             self.logger.Print("SetAllDay is not available for this kind of item")
             return
    
-    def SetStatus(self, status):
+    def SetStatus(self, status, timeInfo=True):
         """
         Set the status
         @type status : string
         @param status : the new status value ("Confirmed" or "Tentative" or "FYI")
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SelectItem()
-            SetBlockMenu("EditTransparency",status)
-            self.SelectItem()
+            self.SetBlockMenu("EditTransparency", status, timeInfo=timeInfo)
         else:
             self.logger.Print("SetStatus is not available for this kind of item")
             return
 
-    def SetAlarm(self, alarm):
+    def SetAlarm(self, alarm, timeInfo=True):
         """
         Set the alarm
         @type alarm : string
         @param alarm : the new alarm value ("1","5","10","30","60","90")
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
             if alarm == "1":
                 alarm = alarm + " minute"
             else:
                 alarm = alarm + " minutes"
-            self.SelectItem()
-            SetBlockMenu("EditReminder",alarm)
-            self.SelectItem()
+            self.SetBlockMenu("EditReminder", alarm, timeInfo=timeInfo )
         else:
             self.logger.Print("SetAlarm is not available for this kind of item")
             return
     
-    def SetBody(self, body, dict=None):
+    def SetBody(self, body, timeInfo=True):
         """
         Set the body text
         @type body : string
         @param body : the new body text
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
-        self.SetEditableBlock("NotesBlock", "body", body, dict)
+        self.SetEditableBlock("NotesBlock", "body", body, timeInfo=timeInfo)
 
-    def SetToAddress(self, toAdd, dict=None):
+    def SetToAddress(self, toAdd, timeInfo=True):
         """
         Set the to address
         @type toAdd : string
         @param toAdd : the new destination address value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isMessage:
-            self.SetEditableBlock("ToMailEditField", "to address", toAdd, dict)
+            self.SetEditableBlock("ToMailEditField", "to address", toAdd, timeInfo=timeInfo)
         else:
             self.logger.Print("SetToAddress is not available for this kind of item")
             return
         
-    def SetFromAddress(self, fromAdd, dict=None):
+    def SetFromAddress(self, fromAdd, timeInfo=True):
         """
         Set the from address (not available from UI)
         @type fromAdd : string
         @param fromAdd : the new from address value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isMessage:
-            self.SetEditableBlock("FromEditField", "from address", fromAdd, dict)
+            self.SetEditableBlock("FromEditField", "from address", fromAdd, timeInfo=timeInfo)
         else:
             self.logger.Print("SetFromAddress is not available for this kind of item")
             return
         
-    def StampAsMailMessage(self, stampMail, dict=None):
+    def StampAsMailMessage(self, stampMail, timeInfo=True):
         """
         Stamp as a mail
         @type stampMail : boolean
         @param stampMail : the new mail stamp value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if stampMail == self.isMessage:# Nothing to do
             return
         else:
-            if dict:
-                self.logger.Start("Change the Mail stamp to : %s" %stampMail)
+            if timeInfo :
+                self.logger.Start("Change the Mail stamp to")
             self.SelectItem()
             App_ns.markupbar.press(name='MailMessageButton')
 	    wx.GetApp().Yield()
             self.isMessage = stampMail
-            if dict:
+            if timeInfo:
                 self.logger.Stop()
-                self.Check_DetailView(dict)
                 
-    def StampAsTask(self, stampTask, dict=None):
+    def StampAsTask(self, stampTask, timeInfo=True):
         """
         Stamp as a task
         @type stampTask : boolean
         @param stampTask : the new task stamp value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if stampTask == self.isTask:# Nothing to do
             return
         else:
-            if dict:
-                self.logger.Start("Change the Task stamp to : %s" %stampTask)
+            if timeInfo:
+                self.logger.Start("Change the Task stamp")
             self.SelectItem()
             App_ns.markupbar.press(name='TaskStamp')
 	    wx.GetApp().Yield()
             self.isTask = stampTask
-            if dict:
+            if timeInfo:
                 self.logger.Stop()
-                self.Check_DetailView(dict)
                 
-    def StampAsCalendarEvent(self, stampEvent, dict=None):
+    def StampAsCalendarEvent(self, stampEvent, timeInfo=True):
         """
         Stamp as an event
         @type stampEvent : boolean
         @param stampEvent : the new event stamp value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if stampEvent == self.isEvent:# Nothing to do
             return
         else:
-            if dict:
-                self.logger.Start("Change the Calendar Event stamp to : %s" %stampEvent)
+            if timeInfo:
+                self.logger.Start("Change the Calendar Event stamp")
             self.SelectItem()
             App_ns.markupbar.press(name='CalendarStamp')
 	    wx.GetApp().Yield()
             self.isEvent = stampEvent
-            if dict:
+            if timeInfo:
                 self.logger.Stop()
-                self.Check_DetailView(dict)
 
-    def SetTimeZone(self, timeZone):
+    def SetTimeZone(self, timeZone, timeInfo=True):
         """
         Set the time zone
         @type timeZone : string
         @param timeZone : the new time zone value
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SelectItem()
-            SetBlockMenu("EditTimeZone",timeZone)
-            self.SelectItem()
+            self.SetBlockMenu("EditTimeZone", timeZone, timeInfo=timeInfo)
         else:
             self.logger.Print("SetTimeZone is not available for this kind of item")
             return
         
-    def SetRecurrence(self, recurrence):
+    def SetRecurrence(self, recurrence, timeInfo=True):
         """
         Set the recurrence
         @type recurrence : string
         @param recurrence : the new recurrence value ("None","Daily","Weekly","Monthly","Yearly")
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent:
-            self.SelectItem()
-            SetBlockMenu("EditRecurrence",recurrence)
-            self.SelectItem()
+            self.SetBlockMenu("EditRecurrence", recurrence, timeInfo=timeInfo)
             if not recurrence == "Once":
                 self.recurring = True
         else:
             self.logger.Print("SetRecurrence is not available for this kind of item")
             return
 
-    def SetRecurrenceEnd(self, endDate):
+    def SetRecurrenceEnd(self, endDate, timeInfo=True):
         """
         Set the recurrence end date
         @type endDate : string
         @param endDate : the new recurrence end value ("mm/dd/yyyy")
-        @type dict : dictionnary
-        @param dict : optional dictionnary with expected item attributes values for automated checking
+        @type timeInfo: boolean
         """
         if self.isEvent and self.recurring:
-            self.SetEditableBlock("EditRecurrenceEnd", "recurrence end", endDate, dict=None)
+            self.SetEditableBlock("EditRecurrenceEnd", "recurrence end", endDate, timeInfo=timeInfo)
         else:
             self.logger.Print("SetRecurrenceEnds is not available for this kind of item")
             return
 
-    def SendMail(self):
+    def SendMail(self, timeInfo=True):
         """
         Send a mail message
+        @type timeInfo: boolean
         """
         if self.isMessage:
             #select the item
@@ -518,10 +500,12 @@ class UITestItem :
             noteArea = App_ns.detail.notes
             scripting.User.emulate_click(noteArea)
             #Press the Send button
-            self.logger.Start("Sending the message")
+            if timeInfo:
+                self.logger.Start("Sending the message")
             App_ns.appbar.press(name="ApplicationBarSendButton")
 	    wx.GetApp().Yield()
-            self.logger.Stop()
+            if timeInfo:
+                self.logger.Stop()
             #checking
             self.logger.SetChecked(True)
             if self.item.isOutbound:
@@ -533,22 +517,26 @@ class UITestItem :
             self.logger.Print("SendMail is not available for this kind of item")
             return
 
-    def SetCollection(self, collectionName):
+    def SetCollection(self, collectionName, timeInfo=True):
         """
         Put the item in the given collection
         @type collectionName : string
         @param collectionName : the name of a collection
+        @type timeInfo: boolean
         """
         if (self.isNote or self.isEvent or self.isTask or self.isMessage):
             col = App_ns.item_named(pim.AbstractCollection, collectionName)
-            self.logger.Start("Give a collection")
+            if timeInfo:
+                self.logger.Start("Give a collection")
             if not col:
                 self.logger.ReportFailure("(On collection search)")
-                self.logger.Stop()
+                if timeInfo:
+                    self.logger.Stop()
                 self.logger.Report()
                 return
             col.add(self.item)
-            self.logger.Stop()
+            if timeInfo:
+                self.logger.Stop()
             #checking
             self.logger.SetChecked(True)
             if col.__contains__(self.item):

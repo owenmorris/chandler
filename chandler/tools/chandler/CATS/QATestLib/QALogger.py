@@ -200,14 +200,15 @@ class TestLogger:
             # Tindebox printing
             # convert the elapsed time in minutes
             elapsed_min = (elapsed.seconds / 60.0) + (elapsed.microseconds / 60000000.0)
+            description = string.join(string.split(self.mainDescription, " "), "_")
             self.Print("")
-            self.Print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+            self.Print("#TINDERBOX# Testname = %s" %description)    
             self.Print("#TINDERBOX# Status = %s" %status)
             self.Print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
             self.PrintTBOX(elapsed)
             self.Print("")
             self.Print("*******               End of Report               *******")
-            print("#TINDERBOX# Testname = %s" %self.mainDescription)    
+            print("#TINDERBOX# Testname = %s" %description)    
             print("#TINDERBOX# Status = %s" %status)
             print("#TINDERBOX# Time elapsed = %s (minutes)" %elapsed_min)
             if not self.inTerminal:
