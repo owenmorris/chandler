@@ -130,7 +130,7 @@ class wxSidebar(ControlBlocks.wxTable):
                 for button in blockItem.buttons:
                     buttonState = button.buttonState
                     if (buttonState['imageRect'].InsideXY (x, y) and
-                        button.isCheckable and
+                        button.checkableButton and
                         isinstance (item, AbstractCollection)):
                         
                         event.Skip (False) #Gobble the event
@@ -346,7 +346,8 @@ class SSSidebarButton (schema.Item):
     # cell. A height of zero uses the height of the cell
     buttonOffsets = schema.Sequence (schema.Integer, required = True)
 
-    isCheckable = schema.One (schema.Boolean, defaultValue=False)
+    checkableButton = schema.One (schema.Boolean, defaultValue=False)
+    clickableButton = schema.One (schema.Boolean, defaultValue=False)
 
     buttonOwner = schema.One("SidebarBlock",
                              inverse="buttons",

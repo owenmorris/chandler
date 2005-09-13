@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "65" # john: added colors to out of the box collections
+SCHEMA_VERSION = "66" # john: sidebar buttons schema change
 
 logger = None # initialized in initLogging()
 
