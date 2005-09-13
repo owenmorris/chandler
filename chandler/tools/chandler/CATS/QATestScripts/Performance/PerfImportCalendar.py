@@ -15,7 +15,7 @@ fileName = "PerfImporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"Importing 3000 event calendar")
 
 
-path = os.path.join(os.path.expandvars('$CATSHOME'),"QATestScripts")
+path = os.path.join(os.path.expandvars('$CATSHOME'),"QATestScripts/DataFiles")
 print path
 share = Sharing.OneTimeFileSystemShare(path, 'Generated3000.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 
