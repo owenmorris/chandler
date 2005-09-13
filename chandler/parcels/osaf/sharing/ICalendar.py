@@ -63,6 +63,7 @@ END:VTIMEZONE"""
         self.pacificTZ = dateutil.tz.tzical(buffer).get()
         buffer.seek(0)
         self.pacificVTimezone = vobject.readComponents(buffer).next()
+        self.pacificVTimezone.behavior = vobject.icalendar.VTimezone
 
     def addRRule(self, vevent, freq, count=None, until=None):
         """Adds an RRULE line to a Component.
