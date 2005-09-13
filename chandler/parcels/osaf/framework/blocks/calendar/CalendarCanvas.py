@@ -77,20 +77,6 @@ def roundTo(v, r):
     """
     return (v/r)*r
     
-
-# from ASPN/Python Cookbook
-class CachedAttribute(object):
-    def __init__(self, method):
-        self.method = method
-        self.name = method.__name__
-        
-    def __get__(self, inst, cls):
-        if inst is None:
-            return self
-        result = self.method(inst)
-        setattr(inst, self.name, result)
-        return result
-
 class ColorInfo(object):
 
     # need to convert hues from 0..360 to 0..1.0 range

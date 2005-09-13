@@ -124,6 +124,12 @@ class CanvasItem(object):
         """
         return self._bounds.GetPosition()
 
+    def StartDrag(self, position):
+        """
+        notify the canvasitem that is now part of a drag
+        """
+        pass
+
 class DragState(object):
     """
     Encapsulates all information necessary to manage a drag
@@ -142,17 +148,30 @@ class DragState(object):
         self.dragHandler = dragHandler
         self.dragEndHandler = dragEndHandler
 
-        self.window = window
-        
+        # used ONLY for capture/release of the mouse
+        self._window = window
+
+        # current position of the dragbox
+        # (Why can't we use currentDragBox._bounds or something?)
         self.currentPosition = \
             self.originalPosition = initialPosition
+
+        # the current canvasItem being dragged
+        # note that currentDragBox gets constantly reset as the drag happens
         self.originalDragBox = \
             self.currentDragBox = canvasItem
+
+        # the offset of the mouse from the upper left corner of
+        # the canvasItem
+        if canvasItem:
+            self.dragOffset = initialPosition - canvasItem.GetDragOrigin()
+            # allow the originalDragBox to store state from the initial drag
+            canvasItem.StartDrag(initialPosition)
         
         self._dragStarted = False
 
     def HandleDragStart(self):
-        self.window.CaptureMouse()
+        self._window.CaptureMouse()
         self.dragStartHandler()
         self._dragStarted = True
     
@@ -165,7 +184,7 @@ class DragState(object):
     def HandleDragEnd(self):
         if self._dragStarted:
             self.dragEndHandler()
-            self.window.ReleaseMouse()
+            self._window.ReleaseMouse()
 
 class wxCollectionCanvas(wx.ScrolledWindow):
 

@@ -26,10 +26,6 @@ class AllDayEventsCanvas(CalendarBlock):
         return w
 
     def onSelectWeekEvent(self, event):
-## attempted optimization
-##         newDayMode = not event.arguments['doSelectWeek']
-##         areSame = bool(self.dayMode) == bool(newDayMode)
-##         if areSame: return
         self.dayMode = not event.arguments['doSelectWeek']
         if self.dayMode:
             self.rangeIncrement = timedelta(days=1)
@@ -103,10 +99,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         brushOffset = self.GetPlatformBrushOffset()
 
         
-        def draw(itemToDraw, selected):	
-            pastEnd = Calendar.datetimeOp(itemToDraw.GetItem().endTime, '>',
-                         self.blockItem.rangeEnd)
-            itemToDraw.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
+        def draw(canvasItem, selected):	
+            pastEnd = Calendar.datetimeOp(canvasItem.GetItem().endTime, '>',
+                                          self.blockItem.rangeEnd)
+            canvasItem.Draw(dc, styles, brushOffset, selected, rightSideCutOff=pastEnd)
 
         selection = self.blockItem.selection
         for canvasItem in self.canvasItemList:
@@ -283,27 +279,29 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # we have to deduce the offset, so you can begin a drag in any cell of
         # a multi-day event. Code borrowed from wxTimedEventsCanvas.OnDraggingItem()
         dragState = self.dragState
-        (boxX,boxY) = self.dragState.originalDragBox.GetDragOrigin()
+        (boxX,boxY) = dragState.originalDragBox.GetDragOrigin()
         
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+
+        dx, dy = dragState.dragOffset
         
-        # but if the event starts before the current week, make boxX negative:
-        # where the event would start on the screen, if it was drawn
+        # but if the event starts before the current week adjust dx,
+        # make it negative: where the event would start on the screen,
+        # if it was drawn
         
         # hack alert! We shouldn't need to adjust this
         ost = dragState.originalDragBox.originalStartTime
         if Calendar.datetimeOp(ost, '<', self.blockItem.rangeStart):
             earlier = Calendar.datetimeOp(self.blockItem.rangeStart, '-', ost)
-            boxX -= (earlier.days + 1) * drawInfo.dayWidth
+            dx += (earlier.days + 1) * drawInfo.dayWidth
         
-        
-        dy = dragState.originalPosition.y - boxY
-        dx = roundTo(dragState.originalPosition.x - boxX, drawInfo.dayWidth)
+        dx = roundTo(dx, drawInfo.dayWidth)
 
-        adjustedPosition = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
+        position = wx.Point(unscrolledPosition.x - dx,
+                            unscrolledPosition.y - dy)
   
         item = dragState.currentDragBox.GetItem()
-        newTime = self.getDateTimeFromPosition(adjustedPosition, mustBeInBounds=False)
+        newTime = self.getDateTimeFromPosition(position, mustBeInBounds=False)
         
         oldStartTime = item.startTime
         tzinfo = oldStartTime.tzinfo

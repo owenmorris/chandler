@@ -448,16 +448,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         # so the mouse stays in the same position relative to
         # the origin of the item
         dragState = self.dragState
-        (boxX,boxY) = dragState.originalDragBox.GetDragOrigin()
-        dy = dragState.originalPosition.y - boxY
-        dx = dragState.originalPosition.x - boxX
+        dx, dy = dragState.dragOffset
         
         # dx is tricky: we want the user to be able to drag left/right within
         # the confines of the current day, but if they cross a day threshold,
         # then we want to shift the whole event over one day
         # to do this, we need to round dx to the nearest dayWidth
-        dx = int(dx/self.dayWidth) * self.dayWidth
-        position = wx.Point(unscrolledPosition.x - dx, unscrolledPosition.y - dy)
+        dx = roundTo(dx,self.dayWidth)
+        position = wx.Point(unscrolledPosition.x - dx,
+                            unscrolledPosition.y - dy)
         
         newTime = self.getDateTimeFromPosition(position)
         item = dragState.currentDragBox.GetItem()
@@ -482,9 +481,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         Helper method for drags
         """
-        dragState = self.dragState
-        dragBox = dragState.originalDragBox
-        return dragBox.getResizeMode(dragState.originalPosition)
+        return self.dragState.originalDragBox.resizeMode
 
     def getRelativeTimeFromPosition(self, drawInfo, position):
         """
@@ -612,6 +609,9 @@ class TimedCanvasItem(CalendarCanvasItem):
     def ResetResizeMode(self):
         if hasattr(self, '_forceResizeMode'):
             del self._forceResizeMode
+
+    def StartDrag(self, position):
+        self.resizeMode = self.getResizeMode(position)
     
     @staticmethod
     def GenerateBoundsRects(calendarCanvas, startTime, endTime, width, indent=0):
