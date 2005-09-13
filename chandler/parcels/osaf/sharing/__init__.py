@@ -226,21 +226,21 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.create()
                 share.put()
 
-            ics_name = "%s.ics" % safe_name
-            share = newOutboundShare(view, collection,
-                                     kinds=kinds_to_include,
-                                     shareName=ics_name,
-                                     account=account)
-            shares.append(share)
-            share.displayName = "%s.ics" % name
-            share.format = ICalendarFormat(parent=share)
-            share.mode = "put"
+                ics_name = "%s.ics" % safe_name
+                share = newOutboundShare(view, collection,
+                                         kinds=kinds_to_include,
+                                         shareName=ics_name,
+                                         account=account)
+                shares.append(share)
+                share.displayName = "%s.ics" % name
+                share.format = ICalendarFormat(parent=share)
+                share.mode = "put"
 
-            if share.exists():
-                raise SharingError(_("Share already exists"))
+                if share.exists():
+                    raise SharingError(_("Share already exists"))
 
-            share.create()
-            share.put()
+                share.create()
+                share.put()
 
     except (SharingError,
             zanshin.error.Error,
