@@ -1,10 +1,10 @@
-__date__ = "$Date: 2005-07-08 00:29:48Z $"
+_date__ = "$Date: 2005-07-08 00:29:48Z $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
 
 from application import schema
-from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Difference, KindSet, FilteredSet
+from repository.item.Sets import Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, KindSet, FilteredSet
 from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
@@ -14,6 +14,16 @@ logger = logging.getLogger(__name__)
 
 def mapChangesCallable(item, version, status, literals, references):
     """
+    Pick up changes to items in C{ListCollections} and C{KindCollections}. 
+
+    These changes are then passed along to the contentsUpdated method
+    of any collection containing the modified items. 
+
+    This is a callback for
+    C{repository.persistence.DBRepositoryView.mapChanges}
+    
+    c{mapChangesCallable} is called from the application's idle loop:
+    C{application.Application.wxApplication.OnIdle}
     """
     # handle changes to items in a ListCollection
     if hasattr(item,'collections'):
@@ -24,6 +34,7 @@ def mapChangesCallable(item, version, status, literals, references):
     # is the item in a kind collection?
     try:
         #@@@ this is not the most efficient way...
+        # Find the global directory of kind collections
         kc = schema.ns("osaf.pim.collections", item.itsView).kind_collections
         for i in kc.collections:
             if item in i:
@@ -34,14 +45,32 @@ def mapChangesCallable(item, version, status, literals, references):
         # due to notification attempts before reps are created.
         pass 
 
+
 class AbstractCollection(items.ContentItem):
     """
+    The base class for all Collection types.
+
+    Collections are items and provide an API for client to subscribe
+    to their notifications.
+
+    The general usage paradigm for collections is to instantiate a collection
+    and then set the values of attributes as necessary (instead of during
+    construction)
     """
     schema.kindInfo(
         displayName="AbstractCollection"
     )
 
+    # the repository set underlying the Collection
+    rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
+    # the set of subscribers 
+    subscribers = schema.Many(initialValue=set())
+    # collectionEventHandler is used when a collection subscribes to
+    # the results of another collection.
+    collectionEventHandler = schema.One(schema.String, initialValue="collectionChanged")
+    # the name of the default index
     indexName   = schema.One(schema.String, initialValue="__adhoc__")
+
 
     """
       The following collection attributes may be moved once the dust
@@ -88,18 +117,27 @@ class AbstractCollection(items.ContentItem):
         sharing = schema.Cloud( none = ["displayName"] ),
     )
 
-    rep = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
-    subscribers = schema.Many(initialValue=set())
-    collectionEventHandler = schema.One(schema.String, initialValue="collectionChanged")
-
     def collectionChanged(self, op, item, name, other, *args):
-        if op:
-            # mapChanges (called in the idle loop)
-            # propagates any updates (not add/removes) that
-            # happened since the last
-            self.notifySubscribers(op, item, name, other, *args)
+        """
+        The method called by the repository level set that backs a collection.
+
+        C{collectionChanged} dispatches to C{notifySubscribers} which does the
+        work of delivering notifications to all subscribers.
+        """
+        # mapChanges (called in the idle loop)
+        # propagates any updates (not add/removes) that
+        # happened since the last
+        self.notifySubscribers(op, item, name, other, *args)
 
     def notifySubscribers(self, op, item, name, other, *args):
+        """
+        Deliver notifications to all subscribers
+
+        Calls the method named in each subscribers' C{collectionEventHandler}
+        to deliver the notification.  If the item has no
+        C{collectionEventEventHandler}, C{onCollectionEvent} will be called
+        if it exists.
+        """
         for i in self.subscribers:
             method_name = getattr(i, "collectionEventHandler", "onCollectionEvent")
             if method_name != None:
@@ -112,6 +150,9 @@ class AbstractCollection(items.ContentItem):
                 logger.debug("notification handler not specfied - no collectionEventHandler attribute")
 
     def contentsUpdated(self, item):
+        """
+        Callback for handling changes found by C{mapChangesCallable}
+        """
         pass
 
     def __contains__(self, item):
@@ -129,12 +170,24 @@ class AbstractCollection(items.ContentItem):
             return len(self.rep)
 
     def createIndex (self):
+        """
+        Create an index on this collection
+
+        If the C{{indexName} attribute of this collection is set to
+        "__adhoc__" then a numeric index will be created.  Otherwise
+        the C{indexName} attribute should contain the name of the
+        attribute (of an item) to be indexed.
+        """
         if self.indexName == "__adhoc__":
             self.rep.addIndex (self.indexName, 'numeric')
         else:
             self.rep.addIndex (self.indexName, 'attribute', attribute=self.indexName)
 
     def __getitem__ (self, index):
+        """
+        Support indexing using []
+        """
+
         try:
             return self.rep.getByIndex (self.indexName, index)
         except NoSuchIndexError:
@@ -142,6 +195,9 @@ class AbstractCollection(items.ContentItem):
             return self.rep.getByIndex (self.indexName, index)
 
     def index (self, item):
+        """
+        Return the position of item in the index.
+        """
         try:
             return self.rep.getIndexPosition (self.indexName, item)
         except NoSuchIndexError:
@@ -153,6 +209,13 @@ class AbstractCollection(items.ContentItem):
 
 class KindCollection(AbstractCollection):
     """
+    A Collection of all of the items of a particular kind
+
+    The C{kind} attribute to the C{Kind} determines the C{Kind} of the items
+    in the C{KindCollection}
+
+    The C{recursive} attribute determines whether items of subkinds are
+    included (C{True}) in the C{KindCollection}
     """
     schema.kindInfo(
         displayName="KindCollection"
@@ -160,10 +223,13 @@ class KindCollection(AbstractCollection):
 
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'), initialValue=None)
     recursive = schema.One(schema.Boolean, initialValue=False)
+    # the KindCollectionDirectory is a data structure the records all
+    # the KindCollections in the system, for use by mapChangesCallable
     directory = schema.One("KindCollectionDirectory", initialValue=None)
 
     def __init__(self, *args, **kw):
         super(KindCollection, self).__init__(*args, **kw)
+        # find the global KindCollectionDirectory item.
         kc = schema.ns("osaf.pim.collections", self.itsView).kind_collections
         kc.collections.add(self)
     
@@ -175,16 +241,27 @@ class KindCollection(AbstractCollection):
             self.rep = KindSet(self.kind, self.recursive)
 
 class KindCollectionDirectory(schema.Item):
+    """
+    Directory of all KindCollections in Chandler
+    """
+    # just a ref collection, really
     collections = schema.Sequence(
         "KindCollection",
         inverse = KindCollection.directory,
         doc="all KindCollections - intended to be a singleton.  Use to propagate change notifications", initialValue=[])
 
 def installParcel(parcel, old_version = None):
+    """
+    Parcel install time hook
+    """
+    # create the global KindCollectionDirectory item.
     KindCollectionDirectory.update(parcel, "kind_collections")
 
 class ListCollection(AbstractCollection):
     """
+    A collection that contains only those items that are explicitly added to it.
+
+    Backed by a ref-collection
     """
     schema.kindInfo(
         displayName="ListCollection"
@@ -219,6 +296,10 @@ class ListCollection(AbstractCollection):
 
 class DifferenceCollection(AbstractCollection):
     """
+    A collection containing the set theoretic difference of two collections
+
+    Assign the C{sources} attribute (a list) with the collections to be
+    differenced
     """
     schema.kindInfo(
         displayName="DifferenceCollection"
@@ -243,6 +324,10 @@ class DifferenceCollection(AbstractCollection):
 
 class UnionCollection(AbstractCollection):
     """
+    A collection containing the set theoretic union of at least 2 collections
+
+    Assign the C{sources} attribute (a list) with the collections to be
+    unioned
     """
     schema.kindInfo(
         displayName="UnionCollection"
@@ -257,6 +342,7 @@ class UnionCollection(AbstractCollection):
     def onValueChanged(self, name):
         if name == "sources":
             if self.sources != None and len(self.sources)> 1:
+                # optimize for the binary case
                 if len(self.sources) == 2:
                     self.rep = Union((self.sources[0],"rep"),(self.sources[1],"rep"))
                 else:
@@ -269,6 +355,10 @@ class UnionCollection(AbstractCollection):
 
 class IntersectionCollection(AbstractCollection):
     """
+    A collection containing the set theoretic intersection of at least 2 collections
+
+    Assign the C{sources} attribute (a list) with the collections to be
+    intersected
     """
     schema.kindInfo(
         displayName="IntersectionCollection"
@@ -283,15 +373,33 @@ class IntersectionCollection(AbstractCollection):
     def onValueChanged(self, name):
         if name == "sources":
             if self.sources != None and len(self.sources) > 1:
-                self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
+                # optimize for the binary case
+                if len(self.sources) == 2:
+                    self.rep = Intersection((self.sources[0],"rep"),(self.sources[1],"rep"))
+                else:
+                    self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
             self.subscribers.clear()
             for i in self.sources:
                 i.subscribers.add(self)
 
+# regular expression for finding the attribute name used by
+# hasLocalAttributeValue
 delPat = re.compile(".*hasLocalAttributeValue\(([^\)]*)\).*")
 
 class FilteredCollection(AbstractCollection):
     """
+    A collection which is the result of applying a boolean predicate
+    to every item of another collection
+    
+    Assign the C{source} attribute to specify the collection to be filtered
+
+    Assign the C{filterExpression} attribute with a string containing
+    a Python expression.  If the expression returns C{True} for an
+    item in the C{source} it will be in the FilteredCollection.
+
+    Assign the C{filterAttributes} attribute with a list of attribute
+    names (Strings), which are accessed by the C{filterExpression}.
+    Failure to provide this list will result in missing notifications
     """
     schema.kindInfo(
         displayName="FilteredCollection"
@@ -312,6 +420,7 @@ class FilteredCollection(AbstractCollection):
                 try:
                     if self.filterExpression != "" and self.filterAttributes != []:
 
+                        # see if the expression contains hasLocalAttributeValue
                         m = delPat.match(self.filterExpression)
                         if m:
                             delatt = m.group(1)
@@ -324,6 +433,7 @@ class FilteredCollection(AbstractCollection):
                             delatt = []
                         attrTuples = []
 
+                        # build a list of (item, monitor-operation) tuples
                         for i in self.filterAttributes:
                             attrTuples.append((i, "set"))
                             for j in delatt:
