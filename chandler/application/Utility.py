@@ -122,6 +122,7 @@ def initOptions(**kwds):
         'quiet':      ('-q', '--quiet',      'b', False,  None, 'Quiet option (currently just for run_tests.py)'),
         'verify':     ('-V', '--verify-assignments', 
                                              'b', False,  None, 'Verify attribute assignments against schema'),
+        'appParcel':  ('-a', '--app-parcel', 's', "osaf.app",  None, 'Parcel that defines the core application'),
     }
 
 

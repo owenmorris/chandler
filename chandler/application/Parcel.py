@@ -659,8 +659,16 @@ class Manager(schema.Item):
             self.__parcelsWithData = []
             self.__delayedOperations = []
 
-            if not namespaces and self.__parcelsToLoad:
-                namespaces = self.__parcelsToLoad
+            if not namespaces:
+                if self.__parcelsToLoad:
+                    namespaces = self.__parcelsToLoad
+                else:
+                    namespaces = []
+                appParcel = "parcel:" + getattr(
+                    getattr(Globals,'options',None), "appParcel", "osaf.app"
+                )
+                # always load the app parcel first
+                namespaces.insert(0, appParcel)
 
             self.resetState()
             if namespaces:

@@ -5,7 +5,6 @@ from repository.schema.Types import Lob
 import scripts as Scripts
 from i18n import OSAFMessageFactory as _
 from osaf import pim
-from osaf.framework.blocks import ColorType
 
 #XXX[i18n] this file needs to have displayName converted to _()
 
@@ -232,6 +231,8 @@ def MakeCollections(parcel):
     from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
          DifferenceCollection, InclusionExclusionCollection, KindCollection
     
+    from osaf.framework.blocks import ColorType
+
     TrashCollection = \
         ListCollection.update(parcel, 'TrashCollection',
             displayName=_('Trash'),

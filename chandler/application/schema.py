@@ -472,7 +472,7 @@ class ItemClass(Activator):
         kind.itsParent = parcel_for_module(cls.__module__, view)
         kind.itsName = cls.__name__
 
-    def update(cls, parent, name, **attrs):
+    def update(cls, parcel, itsName, **attrs):
         """Ensure that there is a `name` child of `parent` with `attrs`
 
         If `parent` already has a child of name `name`, it is updated with
@@ -483,12 +483,12 @@ class ItemClass(Activator):
         This classmethod is typically used in ``installParcel()`` functions to
         create and/or update parcel items.
         """
-        item = parent.getItemChild(name)
+        item = parcel.getItemChild(itsName)
         if item is None:
-            return cls(name, parent, **attrs)
+            return cls(itsName, parcel, **attrs)
         else:
-            resolveRef(parent,name)
-            item.itsKind = cls.getKind(parent.itsView)
+            resolveRef(parcel,itsName)
+            item.itsKind = cls.getKind(parcel.itsView)
             for k,v in attrs.iteritems():
                 setattr(item,k,v)
         return item
