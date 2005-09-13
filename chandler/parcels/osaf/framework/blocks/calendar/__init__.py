@@ -3,8 +3,12 @@
 from CalendarCanvas import (
     CalendarContainer,
     CalendarControl, 
-    CanvasSplitterWindow, AllDayEventsCanvas, TimedEventsCanvas
+    CanvasSplitterWindow
+    
 )
+
+from AllDayCanvas import AllDayEventsCanvas
+from TimedCanvas import TimedEventsCanvas
 
 from CollectionCanvas import CollectionBlock
 from CalendarBlocks import MiniCalendar, PreviewArea
