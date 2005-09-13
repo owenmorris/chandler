@@ -630,6 +630,13 @@ class Manager(schema.Item):
         print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
 
 
+    def findPlugins(self):
+        """Yield top-level parcels"""
+        from glob import glob
+        for directory in self.path:
+            for initfile in glob(os.path.join(directory,'*','__init__.py')):
+                yield 'parcel:'+os.path.basename(os.path.dirname(initfile))
+
 
     def loadParcels(self, namespaces=None):
         """
@@ -664,9 +671,11 @@ class Manager(schema.Item):
                     namespaces = self.__parcelsToLoad
                 else:
                     namespaces = []
+
+                namespaces[0:0] = sorted(self.findPlugins())
                 appParcel = "parcel:" + getattr(
                     getattr(Globals,'options',None), "appParcel", "osaf.app"
-                )
+                )                
                 # always load the app parcel first
                 namespaces.insert(0, appParcel)
 
