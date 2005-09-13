@@ -1395,7 +1395,7 @@ class CalendarContainer(ContainerBlocks.BoxContainer):
         self.bgColor = wx.WHITE
 
         self.majorLineColor = wx.Colour(204, 204, 204)
-        self.minorLineColor = wx.Colour(229, 229, 229)
+        self.minorLineColor = wx.Colour(217, 217, 217)
  
         self.majorLinePen = wx.Pen(self.majorLineColor)
         self.minorLinePen = wx.Pen(self.minorLineColor)
