@@ -13,29 +13,10 @@ import osaf.pim.calendar.Calendar as Calendar
 
 
 class AllDayEventsCanvas(CalendarBlock):
-    calendarContainer = schema.One(schema.Item, required=True)
-
-    def __init__(self, *arguments, **keywords):
-        super(AllDayEventsCanvas, self).__init__(*arguments, **keywords)
 
     def instantiateWidget(self):
-        if not self.getHasBeenRendered():
-            self.setRange( datetime.now().date() )
-            self.setHasBeenRendered()
-        w = wxAllDayEventsCanvas(self.parentBlock.widget, -1)
-        return w
-
-    def onSelectWeekEvent(self, event):
-        self.dayMode = not event.arguments['doSelectWeek']
-        if self.dayMode:
-            self.rangeIncrement = timedelta(days=1)
-        else:
-            self.rangeIncrement = timedelta(days=7)
-        self.widget.wxSynchronizeWidget()
-
-    def onSelectedDateChangedEvent(self, event):
-        self.setRange(event.arguments['start'])
-        self.widget.wxSynchronizeWidget()
+        super(AllDayEventsCanvas, self).instantiateWidget()
+        return wxAllDayEventsCanvas(self.parentBlock.widget)
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     legendBorderWidth = 1

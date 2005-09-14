@@ -12,33 +12,10 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
 class TimedEventsCanvas(CalendarBlock):
-    calendarContainer = schema.One(schema.Item, required=True)
 
     def instantiateWidget(self):
-        if not self.getHasBeenRendered():
-            self.setRange( datetime.now().date() )
-            self.setHasBeenRendered()
-        w = wxTimedEventsCanvas(self.parentBlock.widget)
-        return w
-
-    def onSelectWeekEvent(self, event):
-## attempted optimization
-##         newDayMode = not event.arguments['doSelectWeek']
-##         areSame = bool(self.dayMode) == bool(newDayMode)
-##         if areSame: return
-        self.dayMode = not event.arguments['doSelectWeek']
-        if self.dayMode:
-            self.rangeIncrement = timedelta(days=1)
-        else:
-            self.rangeIncrement = timedelta(days=7)
-        self.widget.wxSynchronizeWidget()
-
-    def onSelectedDateChangedEvent(self, event):
-        self.setRange(event.arguments['start'])
-        self.widget.wxSynchronizeWidget()
-        
-    def onTimeZoneChangeEvent(self, event):
-        self.widget.wxSynchronizeWidget()
+        super(TimedEventsCanvas, self).instantiateWidget()
+        return wxTimedEventsCanvas(self.parentBlock.widget)
 
 
 class wxTimedEventsCanvas(wxCalendarCanvas):

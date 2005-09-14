@@ -532,6 +532,7 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
     selectedDate = schema.One(schema.DateTime)
     lastHue = schema.One(schema.Float, initialValue = -1.0)
     dayMode = schema.One(schema.Boolean)
+    calendarContainer = schema.One(schema.Item, required=True)
 
     def getRangeEnd(self):	
         return self.rangeStart + self.rangeIncrement	
@@ -592,7 +593,15 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         return datetime.combine(today, start)
         
         
+    def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()
+
     # Event handling
+
+    def onTimeZoneChangeEvent(self, event):
+        self.widget.wxSynchronizeWidget()
 
     def onColorChanged(self, op, item, attribute):
         try:
@@ -606,6 +615,15 @@ class CalendarBlock(Sendability, CollectionCanvas.CollectionBlock):
         if item in collections:
             widget.Refresh()
     
+    def onSelectWeekEvent(self, event):
+        self.dayMode = not event.arguments['doSelectWeek']
+        if self.dayMode:
+            self.rangeIncrement = timedelta(days=1)
+        else:
+            self.rangeIncrement = timedelta(days=7)
+        self.widget.wxSynchronizeWidget()
+
+
     def onSelectedDateChangedEvent(self, event):
         """
         Sets the selected date range and synchronizes the widget.
@@ -1240,7 +1258,6 @@ class CanvasSplitterWindow(ContainerBlocks.SplitterWindow):
 class CalendarControl(CalendarBlock):
     dayMode = schema.One(schema.Boolean)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
-    calendarContainer = schema.One(schema.Item)
     tzCharacterStyle = schema.One(Styles.CharacterStyle)
 
     schema.addClouds(
@@ -1471,7 +1488,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             if currentDate.date() == today:
                 dayName = _("Today")
             else:
-                dayName = u"%s %02d" %(shortWeekdays[actualDay + 1],
+                dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
                                        currentDate.day)
             self.weekColumnHeader.SetLabelText(day+1, dayName)
             
@@ -1658,5 +1675,3 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     dividerPositions = property(_getDividerPositions)
 
-##from util.autolog import *
-##logmodule(__name__, "wx.*")
