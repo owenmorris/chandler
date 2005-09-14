@@ -130,7 +130,7 @@ class Query(Item.Item):
             
         try:
             self._compile()
-        except AttributeError:
+        except AttributeError, ae:
             print "compile failed", ae
         
     def unsubscribe(self, callbackItem=None, inSameView = True, inOtherViews = True):
@@ -326,6 +326,10 @@ class Query(Item.Item):
             raise ValueError, "Unrecognized operator %s" % op
 
         return plan
+
+    def kindCallback(self, op, kind, other):
+
+        self.monitorCallback('schema', other, 'kind')
 
     def monitorCallback(self, op, item, attribute, *args, **kwds):
         #@@@ the following try block is an attempt to generate useful output to help track down 2535 - it will be removed when we fix the bug
@@ -563,10 +567,11 @@ class ForPlan(LogicalPlan):
         log.debug(u"analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
             
         self.plan = (self.collection, compile(self.closure,'<string>','eval'))
-        if len(self.__item._sameViewSubscribeCallbacks) > 0:
-            Monitors.Monitors.attach(self.__item, 'monitorCallback', 'schema', 'kind')
+        item = self.__item
+        if len(item._sameViewSubscribeCallbacks) > 0:
+            item.watchKind(item.itsKind.getItemKind(), 'kindCallback')
             for a in self.affectedAttributes:
-                Monitors.Monitors.attach(self.__item, 'monitorCallback', 'set', a)
+                Monitors.Monitors.attach(item, 'monitorCallback', 'set', a)
 
     def execute(self):
         """

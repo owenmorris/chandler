@@ -217,18 +217,18 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         q = Query.Query('testResetQuery', p, k)
         self.assert_(len([ i for i in q]) == 0)
         q.queryString = 'for i in "//Schema/Core/Kind" where True'
-        self.assert_(len([ i for i in q ]) == 17)
+        self.assert_(len([ i for i in q ]) == 18)
         q.queryString = 'for i in "//Schema/Core/Kind" where contains(i.itsName,"o")'
         self.assert_(len([ i for i in q ]) == 6)
 
     def testReloadQuery(self):
-        """ Test to see that we can reload a query and it's result set from the store without recomputing the query contents """
+        """ Test to see that we can reload a query and its result set from the store without recomputing the query contents """
         import repository.query.Query as Query
         view = self.rep.view
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testResetQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
-        self.assert_(len([ i for i in q ]) == 17)
+        self.assert_(len([ i for i in q ]) == 18)
         view.check()
         view.commit()
         uuid = q.itsUUID
@@ -236,7 +236,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         self._reopenRepository()
         view = self.rep.view
         q1 = view.findUUID(uuid)
-        self.assert_(len([ i for i in q1 ]) == 17)
+        self.assert_(len([ i for i in q1 ]) == 18)
 
     def testCopyQuery(self):
         """ Test to see that we can copy a query """
@@ -245,10 +245,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testCopyQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
-        self.assert_(len([ i for i in q ]) == 17)
+        self.assert_(len([ i for i in q ]) == 18)
 
         c = q.copy('testCopyQuery1')
-        self.assert_(len([ i for i in c ]) == 17)
+        self.assert_(len([ i for i in c ]) == 18)
         self.assert_(c is not q)
         for i in q:
             if i not in c:

@@ -29,8 +29,7 @@ class AbstractSet(ItemValue, Indexed):
     def __iter__(self):
         raise NotImplementedError, "%s.__iter__" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
         raise NotImplementedError, "%s.sourceChanged" %(type(self))
 
     def __repr__(self):
@@ -144,12 +143,12 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             source._setView(view)
 
-    def _sourceChanged(self, source, op, change, sourceOwner, sourceName, other,
-                       *args):
+    def _sourceChanged(self, source, op, change,
+                       sourceOwner, sourceName, other):
 
         if isinstance(source, AbstractSet):
             return source.sourceChanged(op, change, sourceOwner, sourceName,
-                                        True, other, *args)
+                                        True, other)
 
         if (change == 'collection' and
             sourceOwner is self._view[source[0]] and sourceName == source[1]):
@@ -279,11 +278,10 @@ class Set(AbstractSet):
         super(Set, self)._setView(view)
         self._setSourceView(self._source, view)
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
         op = self._sourceChanged(self._source, op, change,
-                                 sourceOwner, sourceName, other, *args)
+                                 sourceOwner, sourceName, other)
 
         if not (inner is True or op is None):
             self._collectionChanged(op, change, other)
@@ -329,13 +327,12 @@ class BiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
         leftOp = self._sourceChanged(self._left, op, change,
-                                     sourceOwner, sourceName, other, *args)
+                                     sourceOwner, sourceName, other)
         rightOp = self._sourceChanged(self._right, op, change,
-                                      sourceOwner, sourceName, other, *args)
+                                      sourceOwner, sourceName, other)
         op = self._op(leftOp, rightOp, other)
 
         if not (inner is True or op is None):
@@ -481,11 +478,10 @@ class MultiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
         ops = [self._sourceChanged(source, op, change,
-                                   sourceOwner, sourceName, other, *args)
+                                   sourceOwner, sourceName, other)
                for source in self._sources]
         op = self._op(ops, other)
 
@@ -588,17 +584,20 @@ class MultiIntersection(MultiSet):
         return None
 
 
-class KindSet(AbstractSet):
+class KindSet(Set):
 
     def __init__(self, kind, recursive=False):
 
+        # kind is either a Kind item or an Extent UUID
+
         if isinstance(kind, UUID):
-            view, self._kind = None, kind
+            self._extent = kind
         else:
-            view, self._kind = kind.itsView, kind.itsUUID
+            kind = kind.extent
+            self._extent = kind.itsUUID
 
         self._recursive = recursive
-        super(KindSet, self).__init__(view)
+        super(KindSet, self).__init__((kind, 'extent'))
 
     def __contains__(self, item):
 
@@ -606,59 +605,30 @@ class KindSet(AbstractSet):
             return False
 
         if self._recursive:
-            return item.isItemOf(self._view[self._kind])
+            return item.isItemOf(self._view[self._extent].kind)
         else:
-            return item.itsKind is self._view[self._kind]
+            return item.itsKind is self._view[self._extent].kind
 
     def __iter__(self):
 
-        for item in KindQuery(self._recursive).run([self._view[self._kind]]):
+        for item in self._view[self._extent].iterItems(self._recursive):
             yield item
 
     def _repr_(self, replace=None):
 
         return "%s(UUID('%s'), %s)" %(type(self).__name__,
-                                      self._kind.str64(), self._recursive)
+                                      self._extent.str64(), self._recursive)
         
-    def _setOwner(self, item, attribute):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
-        oldItem, oldAttribute = super(KindSet, self)._setOwner(item, attribute)
-        
-        if item is not oldItem:
-            if not self._view.isLoading():
-                if oldItem is not None:
-                    Monitors.detach(oldItem, '_kindChanged',
-                                    'schema', 'kind', oldAttribute)
-                if item is not None:
-                    Monitors.attach(item, '_kindChanged',
-                                    'schema', 'kind', attribute)
-
-        return oldItem, oldAttribute
-
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
-
-        if change == 'kind':
-            if self._item is sourceOwner and self._attribute == sourceName:
-                kind = args[0]
-
-                if self._recursive:
-                    if not kind.isKindOf(self._view[self._kind]):
-                        op = None
-                else:
-                    if kind is not self._view[self._kind]:
-                        op = None
-
-                if not (inner is True or op is None):
-                    self._collectionChanged(op, 'collection', other)
-            else:
-                op = None
-        elif change == 'notification':
-            if not (inner is True or op is None):
-                if other in self:
-                    self._collectionChanged(op, change, other)
-        else:
+        if (change == 'collection' and sourceName != 'extent'):
             op = None
+
+        if not (op is None or other in self):
+            op = None
+
+        if not (inner is True or op is None):
+            self._collectionChanged(op, change, other)
 
         return op
 
@@ -715,11 +685,10 @@ class FilteredSet(Set):
 
         return oldItem, oldAttribute
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      *args):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other):
 
         op = self._sourceChanged(self._source, op, change,
-                                 sourceOwner, sourceName, other, *args)
+                                 sourceOwner, sourceName, other)
 
         if op is not None:
             if change == 'collection':

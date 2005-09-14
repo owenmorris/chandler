@@ -24,7 +24,7 @@ class RepositoryView(CView):
     This class implements the cache for loaded items. Changes to items in a
     view are not written into persistent storage until the view is
     committed. A view will not see changes in the repository made by other
-    views until the view is refreshed during a L{commit}.
+    views until the view is refreshed, for example before a L{commit}.
     """
     
     # 0.5.0: first tracked core schema version
@@ -33,8 +33,9 @@ class RepositoryView(CView):
     # 0.5.3: new monitor implementation
     # 0.5.4: BString and UString types renamed to Bytes and Text
     # 0.5.5: added //Schema/Core/Type.types to get rid of type kind query
+    # 0.5.6: added support for Kind extents
     
-    CORE_SCHEMA_VERSION = 0x00050500
+    CORE_SCHEMA_VERSION = 0x00050600
 
     def __init__(self, repository, name, version):
         """

@@ -71,7 +71,7 @@ class TestMixins(RepositoryTestCase):
         attribute = actor.getAttribute('movies').itsKind
         self.assert_(kh.isItemOf(actor))
 
-        Monitors.attach(m1, 'kindChanged', 'schema', 'kind')
+        m1.watchKind(m1.itsKind, 'kindChanged')
         m1.monitorAttribute = None
         mixin = kh.mixinKinds(('add', movie), ('add', attribute))
 

@@ -21,9 +21,9 @@ class Movie(Item):
 
         return self.getAttributeValue(attribute)
 
-    def kindChanged(self, op, item, attribute, prevKind):
+    def kindChanged(self, op, kind, item):
 
-        self.monitorAttribute = attribute
+        self.monitorAttribute = 'kind'
 
     def collectionChanged(self, op, item, name, other, *args):
 

@@ -12,7 +12,6 @@ class Monitors(Item):
     def _fillItem(self, *args, **kwds):
 
         super(Monitors, self)._fillItem(*args, **kwds)
-        self.monitoring = { 'set': {}, 'schema': {} }
         self.needsCaching = True
 
     def onItemLoad(self, view):
@@ -52,6 +51,7 @@ class Monitors(Item):
 
         super(Monitors, self)._collectionChanged(op, change, name, other)
                             
+    @classmethod
     def getInstance(cls, view):
 
         try:
@@ -63,10 +63,10 @@ class Monitors(Item):
 
     def cacheMonitors(self):
 
-        self.monitoring = { 'set': {}, 'remove': {}, 'schema': {} }
+        self.monitoring = { 'set': {}, 'remove': {} }
         self.needsCaching = False
 
-        for monitor in self.monitors:
+        for monitor in getattr(self, 'monitors', []):
             if not monitor.isDeleting():
                 self._cacheMonitor(monitor)
 
@@ -81,6 +81,7 @@ class Monitors(Item):
         else:
             opDict[attribute] = [monitor]
 
+    @classmethod
     def invoke(cls, op, item, attribute, *args):
 
         view = item.itsView
@@ -95,10 +96,6 @@ class Monitors(Item):
         try:
             monitors = dispatcher.monitoring[op][attribute]
         except KeyError:
-            return
-        except AttributeError:
-            raise
-            print 'no monitor singleton', op, item, attribute
             return
 
         for monitor in monitors:
@@ -123,6 +120,7 @@ class Monitors(Item):
             view._notifyChange(getattr(monitorItem, monitor.method),
                                op, item, attribute, *_args, **monitor.kwds)
 
+    @classmethod
     def attach(cls, item, method, op, attribute, *args, **kwds):
 
         dispatcher = cls.getInstance(item.itsView)
@@ -143,6 +141,7 @@ class Monitors(Item):
         else:
             dispatcher._cacheMonitor(monitor)
 
+    @classmethod
     def detach(cls, item, method, op, attribute, *args, **kwds):
 
         for monitor in item.monitors:
@@ -152,11 +151,6 @@ class Monitors(Item):
                 monitor.delete()
                 break
 
-
-    invoke = classmethod(invoke)
-    attach = classmethod(attach)
-    detach = classmethod(detach)
-    getInstance = classmethod(getInstance)
 
     instances = {}
 

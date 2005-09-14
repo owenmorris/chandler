@@ -83,10 +83,9 @@ class Item(CItem):
         for name, value in values.iteritems():
             self.setAttributeValue(name, value)
 
-        if not (_noMonitors or
-                (itsKind is None) or
-                (Item._monitorsClass is None)):
-            Item._monitorsClass.invoke('schema', self, 'kind', None)
+        if not (_noMonitors or (itsKind is None)):
+            self.itsView._notifyChange(itsKind.extent._collectionChanged,
+                                       'add', 'collection', 'extent', self)
 
     def _fillItem(self, name, parent, kind, **kwds):
 
@@ -437,13 +436,10 @@ class Item(CItem):
         elif _attrDict is not _values:
             raise TypeError, ('Expecting an item or a ref collection', value)
 
-        elif isinstance(value, ItemValue):
-            value._setOwner(self, name)
-            _values[name] = value
-            dirty = Item.VDIRTY
-            
         else:
             _values[name] = value
+            if isinstance(value, ItemValue):
+                value._setOwner(self, name)
             dirty = Item.VDIRTY
 
         if setDirty:
@@ -457,22 +453,6 @@ class Item(CItem):
             collection = getattr(self, collectionName, None)
             if collection is not None and item in collection:
                 collection.placeInIndex(item, None, indexName)
-
-    def _kindChanged(self, op, item, attribute, prevKind, name):
-
-        if self._status & Item.NODIRTY:
-            return
-
-        if op == 'schema' and attribute == 'kind':
-            kind = item._kind
-            set = getattr(self, name)
-
-            if prevKind is not None:
-                set.sourceChanged('remove', 'kind',
-                                  self, name, False, item, prevKind)
-            if kind is not None:
-                set.sourceChanged('add', 'kind',
-                                  self, name, False, item, kind)
 
     def _filteredItemChanged(self, op, item, attribute, name):
 
@@ -497,16 +477,22 @@ class Item(CItem):
             watchers = dispatch.get(name, None)
             if watchers:
                 for (watcher, args) in watchers:
-                    if len(args) == 2 and args[0] == 'set':
-                        set = getattr(watcher, args[1])
-                        set.sourceChanged(op, change, self, name, False, other)
-                    else:
-                        watcher.collectionChanged(op, self, name, other, *args)
+                    if len(args) == 2:
+                        if args[0] == 'set':
+                            set = getattr(watcher, args[1])
+                            set.sourceChanged(op, change,
+                                              self, name, False, other)
+                            continue
+                        elif args[0] == 'kind':
+                            getattr(watcher, args[1])(op, self.kind, other)
+                            continue
+                    watcher.collectionChanged(op, self, name, other, *args)
 
-    def _registerCollectionWatch(self, watcher, name, args):
+    def _registerCollectionWatch(self, watcher, name, *args):
 
         dispatch = self._values.get('watcherDispatch', None)
         watcher = (watcher, tuple(args))
+
         if dispatch is None:
             self.watcherDispatch = { name: set([watcher]) }
         else:
@@ -516,25 +502,29 @@ class Item(CItem):
             else:
                 watchers.add(watcher)
 
-    def _unregisterCollectionWatch(self, watcher, name, args):
+    def _unregisterCollectionWatch(self, watcher, name, *args):
 
         dispatch = self._values.get('watcherDispatch', None)
         if dispatch:
             watcher = (watcher, tuple(args))
-            try:
-                watchers = dispatch[name]
+            watchers = dispatch.get(name, None)
+            if watchers:
                 watchers.remove(watcher)
-            except KeyError:
-                pass
 
     def collectionChanged(self, op, item, name, other, *args):
         pass
 
     def watchCollection(self, owner, name, *args):
-        owner._registerCollectionWatch(self, name, args)
+        owner._registerCollectionWatch(self, name, *args)
 
     def unwatchCollection(self, owner, name, *args):
-        owner._unregisterCollectionWatch(self, name, args)
+        owner._unregisterCollectionWatch(self, name, *args)
+
+    def watchKind(self, kind, methodName):
+        kind.extent._registerCollectionWatch(self, 'extent', 'kind', methodName)
+
+    def unwatchKind(self, kind, methodName):
+        kind.extent._unregisterCollectionWatch(self, 'extent', 'kind', methodName)
 
     def getAttributeValue(self, name, _attrDict=None, _attrID=None,
                           default=Default):
@@ -1479,8 +1469,10 @@ class Item(CItem):
 
         if parent is None:
             parent = self.itsParent
+        hooks = []
         item._fillItem(name, parent, kind, uuid = UUID(), version = 0,
-                       values = Values(item), references = References(item))
+                       values = Values(item), references = References(item),
+                       afterLoadHooks = hooks)
         item._status |= Item.NEW
         copies[self._uuid] = item
 
@@ -1512,8 +1504,11 @@ class Item(CItem):
             
         item.setDirty(Item.NDIRTY)
 
+        view = item.itsView
+        for hook in hooks:
+            hook(view)
         if hasattr(cls, 'onItemCopy'):
-            item.onItemCopy(item.itsView, self)
+            item.onItemCopy(view, self)
 
         return item
 
@@ -1746,8 +1741,13 @@ class Item(CItem):
 
         if kind is not self._kind:
             self.setDirty(Item.NDIRTY)
+            view = self.itsView
 
-            if self._kind is not None:
+            prevKind = self._kind
+            if prevKind is not None:
+                view._notifyChange(prevKind.extent._collectionChanged,
+                                   'remove', 'collection', 'extent', self)
+
                 if kind is None:
                     self._values.clear()
                     self._references.clear()
@@ -1765,19 +1765,16 @@ class Item(CItem):
                     removeOrphans(self._values)
                     removeOrphans(self._references)
 
-            prevKind = self._kind
             self._kind = kind
 
             if kind is None:
                 self.__class__ = Item
             else:
+                view._notifyChange(kind.extent._collectionChanged,
+                                   'add', 'collection', 'extent', self)
                 self.__class__ = kind.getItemClass()
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
-
-            if not _noMonitors:
-                if kind is not None or prevKind is not None:
-                    Item._monitorsClass.invoke('schema', self, 'kind', prevKind)
 
     def mixinKinds(self, *kinds):
         """

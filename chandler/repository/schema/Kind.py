@@ -22,13 +22,16 @@ from repository.util.SingleRef import SingleRef
 from repository.schema.TypeHandler import TypeHandler
 from repository.item.Query import KindQuery
 
+CORE=Path('//Schema/Core')
 
 class Kind(Item):
 
     def __init__(self, name, parent, kind):
 
         super(Kind, self).__init__(name, parent, kind)
+
         self.__init()
+        self._createExtent(self.itsView)
         
     def __init(self):
 
@@ -38,20 +41,33 @@ class Kind(Item):
         self._initialValues = None
         self._initialReferences = None
 
+        references = self._references
+
         # recursion avoidance
         refList = self._refList('inheritedAttributes', 'inheritingKinds', False)
-        self._references['inheritedAttributes'] = refList
+        references['inheritedAttributes'] = refList
 
-        ofKind = self._refList('ofKind', 'kindOf', False)
-        self._references['ofKind'] = ofKind
+        refList = self._refList('ofKind', 'kindOf', False)
+        references['ofKind'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
+
         if not kwds.get('update'):
             self.__init()
+            if self._references.get('extent') is None:
+                kwds['afterLoadHooks'].append(self._createExtent)
+
+    def _createExtent(self, view):
+
+        core = view.find(CORE)
+        extent = Extent(None, core['extents'], core['Extent'], _noMonitors=True)
+        self._references._setValue('extent', extent, 'kind')
+
+        return extent
 
     def onItemLoad(self, view):
 
@@ -209,7 +225,8 @@ class Kind(Item):
             item.onItemLoad(self.itsView)
 
         if not _noMonitors:
-            Monitors.invoke('schema', item, 'kind', None)
+            self.itsView._notifyChange(self.extent._collectionChanged,
+                                       'add', 'collection', 'extent', item)
 
         return item
             
@@ -501,12 +518,12 @@ class Kind(Item):
 
     def iterItems(self, recursive=False):
 
-        for item in KindQuery(recursive).run((self,)):
+        for item in self.extent.iterItems():
             yield item
 
     def getItemKind(self):
 
-        return self._kind.itsParent['Item']
+        return self.find(CORE)['Item']
 
     def mixin(self, superKinds):
         """
@@ -865,3 +882,32 @@ class SchemaMonitor(Monitor):
 
         if isinstance(kind, Kind) and kind.monitorSchema:
             kind.flushCaches(attrName)
+
+
+class Extent(Item):
+
+    def iterItems(self, recursive=False):
+
+        if self.withCache:   # not implemented
+
+            for item in self.instances:
+                yield item
+
+            if recursive:
+                subKinds = kind._references.get('subKinds', None)
+                if subKinds:
+                    for subKind in subKinds:
+                        for item in subKind.extent.iterItems(True):
+                            yield item
+
+        else:
+            for item in KindQuery(recursive).run((self.kind,)):
+                yield item
+
+    def _collectionChanged(self, op, change, name, other):
+
+        super(Extent, self)._collectionChanged(op, change, name, other)
+
+        if name == 'extent':
+            for superKind in self.kind.superKinds:
+                superKind.extent._collectionChanged(op, change, name, other)
