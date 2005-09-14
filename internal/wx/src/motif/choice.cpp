@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: choice.cpp,v 1.45 2005/08/18 00:35:02 MBN Exp $
+// RCS-ID:      $Id: choice.cpp,v 1.46 2005/09/13 16:49:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,8 @@ bool wxChoice::Create(wxWindow *parent, wxWindowID id,
     * Create the popup menu
     */
     m_menuWidget = (WXWidget) XmCreatePulldownMenu ((Widget) m_formWidget,
-                                                    "choiceMenu", NULL, 0);
+                                                    wxMOTIF_STR("choiceMenu"),
+                                                    NULL, 0);
 
     if (n > 0)
     {
@@ -113,7 +114,7 @@ bool wxChoice::Create(wxWindow *parent, wxWindowID id,
     XtSetArg (args[argcnt], XmNmarginHeight, 0); ++argcnt;
     XtSetArg (args[argcnt], XmNpacking, XmPACK_TIGHT); ++argcnt;
     m_buttonWidget = (WXWidget) XmCreateOptionMenu ((Widget) m_formWidget,
-                                                    "choiceButton",
+                                                    wxMOTIF_STR("choiceButton"),
                                                     args, argcnt);
 
     m_mainWidget = m_buttonWidget;

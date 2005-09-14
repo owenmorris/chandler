@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: menu.cpp,v 1.51 2005/06/19 19:11:20 MBN Exp $
+// RCS-ID:      $Id: menu.cpp,v 1.54 2005/09/13 16:49:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -369,7 +369,8 @@ bool wxMenuBar::CreateMenuBar(wxFrame* parent)
         return true;
     }
 
-    Widget menuBarW = XmCreateMenuBar ((Widget) parent->GetMainWidget(), "MenuBar", NULL, 0);
+    Widget menuBarW = XmCreateMenuBar ((Widget) parent->GetMainWidget(),
+                                       wxMOTIF_STR("MenuBar"), NULL, 0);
     m_mainWidget = (WXWidget) menuBarW;
 
     size_t menuCount = GetMenuCount();
@@ -483,7 +484,7 @@ WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar, WXWidget parent, wxMenu * topM
 
     if (!pullDown)
     {
-        menu = XmCreatePopupMenu ((Widget) parent, "popup", args, 2);
+        menu = XmCreatePopupMenu ((Widget) parent, wxMOTIF_STR("popup"), args, 2);
 #if 0
         XtAddCallback(menu,
             XmNunmapCallback,
@@ -494,7 +495,7 @@ WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar, WXWidget parent, wxMenu * topM
     else
     {
         char mnem = wxFindMnemonic (title);
-        menu = XmCreatePulldownMenu ((Widget) parent, "pulldown", args, 2);
+        menu = XmCreatePulldownMenu ((Widget) parent, wxMOTIF_STR("pulldown"), args, 2);
 
         wxString title2(wxStripMenuCodes(title));
         wxXmString label_str(title2);

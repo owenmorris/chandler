@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: statbox.cpp,v 1.27 2005/06/19 19:11:20 MBN Exp $
+// RCS-ID:      $Id: statbox.cpp,v 1.28 2005/08/28 08:07:34 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

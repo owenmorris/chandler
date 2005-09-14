@@ -3,7 +3,7 @@
 // Purpose:     declaration of standard wxDataObjectSimple-derived classes
 // Author:      Mattia Barbon
 // Created:     27.04.03
-// RCS-ID:      $Id: dataobj2.h,v 1.5 2005/08/03 00:53:08 MW Exp $
+// RCS-ID:      $Id: dataobj2.h,v 1.6 2005/09/13 16:37:11 VZ Exp $
 // Copyright:   (c) 2003 Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,6 +33,16 @@ public:
     virtual size_t GetDataSize() const;
     virtual bool GetDataHere(void *buf) const;
     virtual bool SetData(size_t len, const void *buf);
+
+    // unhide base class virtual functions
+    virtual size_t GetDataSize(const wxDataFormat& WXUNUSED(format)) const
+        { return GetDataSize(); }
+    virtual bool GetDataHere(const wxDataFormat& WXUNUSED(format),
+                             void *buf) const
+        { return GetDataHere(buf); }
+    virtual bool SetData(const wxDataFormat& WXUNUSED(format),
+                         size_t len, const void *buf)
+        { return SetData(len, buf); }
 };
 
 #endif // _WX_MOTIF_DATAOBJ2_H_

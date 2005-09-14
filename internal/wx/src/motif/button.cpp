@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: button.cpp,v 1.34 2005/06/19 19:11:19 MBN Exp $
+// RCS-ID:      $Id: button.cpp,v 1.35 2005/08/28 07:51:59 MBN Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: frame.cpp,v 1.68 2005/06/13 12:19:27 ABX Exp $
+// RCS-ID:      $Id: frame.cpp,v 1.70 2005/09/14 14:36:00 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -196,12 +196,13 @@ bool wxFrame::Create(wxWindow *parent,
     return true;
 }
 
-bool wxFrame::DoCreate( wxWindow* parent, wxWindowID id,
-                        const wxString& title,
-                        const wxPoint& pos,
-                        const wxSize& size,
-                        long style,
-                        const wxString& name )
+bool wxFrame::XmDoCreateTLW(wxWindow* parent,
+                            wxWindowID id,
+                            const wxString& title,
+                            const wxPoint& pos,
+                            const wxSize& size,
+                            long style,
+                            const wxString& name)
 {
     Widget frameShell;
 
@@ -292,11 +293,7 @@ wxFrame::~wxFrame()
     }
 
     PreDestroy();
-    DoDestroy();
-}
 
-void wxFrame::DoDestroy()
-{
     Widget frameShell = (Widget)GetShellWidget();
 
     if( frameShell )

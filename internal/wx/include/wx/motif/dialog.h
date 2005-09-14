@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: dialog.h,v 1.24 2005/02/06 17:38:20 MBN Exp $
+// RCS-ID:      $Id: dialog.h,v 1.25 2005/09/14 14:35:57 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,13 +79,14 @@ public:
     void OnCloseWindow(wxCloseEvent& event);
 
 private:
-    virtual bool DoCreate( wxWindow* parent, wxWindowID id,
-                           const wxString& title,
-                           const wxPoint& pos,
-                           const wxSize& size,
-                           long style,
-                           const wxString& name );
-    virtual void DoDestroy();
+    virtual bool XmDoCreateTLW(wxWindow* parent,
+                               wxWindowID id,
+                               const wxString& title,
+                               const wxPoint& pos,
+                               const wxSize& size,
+                               long style,
+                               const wxString& name);
+
 
     //// Motif-specific
     bool          m_modalShowing;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: private.h,v 1.30 2005/07/31 09:42:09 MBN Exp $
+// RCS-ID:      $Id: private.h,v 1.31 2005/09/13 16:49:04 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,12 @@ class WXDLLEXPORT wxColour;
   ( LesstifVersion >= (major) * 1000 + (minor) )
 
 #define wxCHECK_LESSTIF() ( __WXLESSTIF__ )
+
+// some compilers (e.g. Sun CC) give warnings when treating string literals as
+// (non const) "char *" but many Motif functions take "char *" parameters which
+// are really "const char *" so use this macro to suppress the warnings when we
+// know it's ok
+#define wxMOTIF_STR(x) wx_const_cast(char *, x)
 
 // ----------------------------------------------------------------------------
 // Miscellaneous functions

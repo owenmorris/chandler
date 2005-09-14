@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: textctrl.cpp,v 1.49 2005/07/31 09:42:13 MBN Exp $
+// RCS-ID:      $Id: textctrl.cpp,v 1.50 2005/09/14 14:21:16 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -407,7 +407,7 @@ void wxTextCtrl::AppendText(const wxString& text)
 
 void wxTextCtrl::Clear()
 {
-    XmTextSetString ((Widget) m_mainWidget, "");
+    XmTextSetString ((Widget) m_mainWidget, wxMOTIF_STR(""));
     m_modified = false;
 }
 
@@ -661,12 +661,13 @@ wxSize wxDoGetSingleTextCtrlBestSize( Widget textWidget,
                    NULL );
 
     if( !value )
-        value = "|";
+        value = wxMOTIF_STR("|");
 
     int x, y;
     window->GetTextExtent( value, &x, &y );
 
-    if( x < 100 ) x = 100;
+    if( x < 100 )
+        x = 100;
 
     return wxSize( x + 2 * xmargin + 2 * highlight + 2 * shadow,
                    // MBN: +2 necessary: Lesstif bug or mine?

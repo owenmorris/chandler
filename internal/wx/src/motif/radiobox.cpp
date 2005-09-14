@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobox.cpp,v 1.45 2005/06/19 19:11:20 MBN Exp $
+// RCS-ID:      $Id: radiobox.cpp,v 1.46 2005/09/14 14:21:16 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +119,7 @@ bool wxRadioBox::Create(wxWindow *parent, wxWindowID id, const wxString& title,
     XtSetArg (args[2], XmNadjustLast, False);
 
     Widget radioBoxWidget =
-        XmCreateRadioBox ((Widget)m_mainWidget, "radioBoxWidget", args, 3);
+        XmCreateRadioBox ((Widget)m_mainWidget, wxMOTIF_STR("radioBoxWidget"), args, 3);
 
     m_radioButtons.reserve(n);
     m_radioButtonLabels.reserve(n);

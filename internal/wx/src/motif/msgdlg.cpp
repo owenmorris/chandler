@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.cpp,v 1.20 2005/08/22 17:44:43 MBN Exp $
+// RCS-ID:      $Id: msgdlg.cpp,v 1.22 2005/09/14 14:24:31 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,11 +113,16 @@ wxMessageDialog::wxMessageDialog(wxWindow *parent,
     SetMessageDialogStyle(style);
 }
 
+extern "C"
+{
+    typedef Widget (*DialogCreateFunction)(Widget, String, ArgList, Cardinal);
+}
+
 int wxMessageDialog::ShowModal()
 {
-    Widget (*dialogCreateFunction)(Widget, String, ArgList, Cardinal) = NULL;
     const long style = GetMessageDialogStyle();
 
+    DialogCreateFunction dialogCreateFunction;
     if ( style & wxYES_NO )
     {
         // if we have [Yes], it must be a question
@@ -185,7 +190,7 @@ int wxMessageDialog::ShowModal()
 
     // do create message box
 
-    Widget wMsgBox = (*dialogCreateFunction)(wParent, "", args, ac);
+    Widget wMsgBox = (*dialogCreateFunction)(wParent, wxMOTIF_STR(""), args, ac);
 
     wxCHECK_MSG( wMsgBox, wxID_CANCEL, "msg box creation failed" );
 

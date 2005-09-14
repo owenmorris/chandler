@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     12/10/2002
-// RCS-ID:      $Id: toplevel.h,v 1.11 2005/08/03 00:53:09 MW Exp $
+// RCS-ID:      $Id: toplevel.h,v 1.12 2005/09/14 14:35:57 VZ Exp $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -70,19 +70,17 @@ protected:
     void PreDestroy();
 
     virtual void DoGetPosition(int* x, int* y) const;
-private:
-    // both these functions should be pure virtual
-    virtual bool DoCreate( wxWindow* parent, wxWindowID id,
-                           const wxString& title,
-                           const wxPoint& pos,
-                           const wxSize& size,
-                           long style,
-                           const wxString& name )
-    {
-        return false;
-    }
 
-    virtual void DoDestroy() { }
+private:
+    // really create the Motif widget for TLW
+    virtual bool XmDoCreateTLW(wxWindow* parent,
+                               wxWindowID id,
+                               const wxString& title,
+                               const wxPoint& pos,
+                               const wxSize& size,
+                               long style,
+                               const wxString& name) = 0;
+
 
     wxString m_title;
 };

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: filedlg.cpp,v 1.33 2005/08/22 17:44:43 MBN Exp $
+// RCS-ID:      $Id: filedlg.cpp,v 1.34 2005/09/13 16:49:06 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,8 @@ int wxFileDialog::ShowModal()
 #endif
 
     Widget fileSel = XmCreateFileSelectionDialog(parentWidget,
-                                                 "file_selector", args, ac);
+                                                 wxMOTIF_STR("file_selector"),
+                                                 args, ac);
 #define wxFSChild( name ) \
     XmFileSelectionBoxGetChild(fileSel, name)
 
