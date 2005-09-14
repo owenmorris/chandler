@@ -6,39 +6,31 @@ Certificate
 """
 __parcel__ = "osaf.framework.certstore"
 
-import logging
+__all__ = ['Certificate', 'CertificateStore',
+           'importCertificate', 'importCertificateDialog', 'createSidebarView']
+
+import os, logging
 
 import wx
-import application
-from application import schema
-import osaf.framework.blocks.Block as Block
-import application.Globals as Globals
-from osaf import pim
-import osaf.framework.blocks.detail.Detail as Detail
-from osaf.framework.certstore import dialogs
 import M2Crypto.X509 as X509
 import M2Crypto.util as util
 import M2Crypto.EVP as EVP
+
+import application
+from application import schema
+import application.Globals as Globals
+from osaf import pim
 from application.dialogs import ImportExport
 from i18n import OSAFMessageFactory as _
-import os
-
 from osaf.pim.collections import FilteredCollection
+from osaf.framework.certstore import utils, dialogs, constants
 
 log = logging.getLogger(__name__)
-
-TRUST_AUTHENTICITY = 1
-TRUST_SITE         = 2
-
-TYPE_ROOT          = 'root'
-TYPE_SITE          = 'site'
-
-TRUSTED_SITE_CERTS_QUERY_NAME = 'sslTrustedSiteCertificatesQuery'
 
 
 class typeEnum(schema.Enumeration):
     schema.kindInfo(displayName = "Type Enumeration")
-    values = TYPE_ROOT, TYPE_SITE
+    values = constants.TYPE_ROOT, constants.TYPE_SITE
 
 
 class CertificateStore(pim.KindCollection):
@@ -65,7 +57,7 @@ class Certificate(pim.ContentItem):
         typeEnum,
         displayName = _('Certificate type'),
         doc = 'Certificate type.',
-        initialValue = TYPE_ROOT,
+        initialValue = constants.TYPE_ROOT,
     )
     trust = schema.One(
         schema.Integer,
@@ -103,67 +95,30 @@ class Certificate(pim.ContentItem):
     def asX509(self):
         return X509.load_cert_string(self.pemAsString())
 
-    @classmethod
-    def getExtent(cls, view=None, exact=False):
-        kind = schema.itemFor(cls, view)
-        # XXX Should get the names from some shared source because they are used
-        # XXX in data.py as well.
-        if exact:
-            name = '%sCollection' % kind.itsName
-        else:
-            name = 'Recursive%sCollection' % kind.itsName
-
-        return kind.findPath("//userdata/%s" % name)
-
     # XXX These don't work?
     def getAuthenticityBit(self):
-        return bool(self.trust & TRUST_AUTHENTICITY)
+        return bool(self.trust & constants.TRUST_AUTHENTICITY)
     def setAuthenticityBit(self, authBit):
         if authBit:
-            self.trust |= TRUST_AUTHENTICITY
+            self.trust |= constants.TRUST_AUTHENTICITY
         else:
-            self.trust &= ~TRUST_AUTHENTICITY
+            self.trust &= ~constants.TRUST_AUTHENTICITY
     authenticityBit = property(getAuthenticityBit, setAuthenticityBit,
                                doc='Authenticity bit.')
 
     def getSiteBit(self):
-        return bool(self.trust & TRUST_SITE)
+        return bool(self.trust & constants.TRUST_SITE)
     def setSiteBit(self, siteBit):
         if siteBit:
-            self.trust |= TRUST_SITE
+            self.trust |= constants.TRUST_SITE
         else:
-            self.trust &= ~TRUST_SITE
+            self.trust &= ~constants.TRUST_SITE
     siteBit = property(getSiteBit, setSiteBit,
                        doc='Site bit.')
 
 
-def fingerprint(x509, md='sha1'):
-    """
-    Return the fingerprint of the X509 certificate.
-    
-    @param x509: X509 object.
-    @type x509:  M2Crypto.X509.X509
-    @param md:   The message digest algorithm.
-    @type md:    str
-    """
-    der = x509.as_der()
-    md = EVP.MessageDigest(md)
-    md.update(der)
-    digest = md.final()
-    return hex(util.octx_to_num(digest))
-
 ###
 # XXX begin store.py
-
-class CertificateViewController(Block.Block):
-    def onCertificateViewBlockEvent(self, event):
-        createSidebarView(self.itsView, Globals.views[0])
-
-
-class CertificateImportController(Block.Block):
-    def onCertificateImportBlockEvent(self, event):
-        importCertificateDialog(self.itsView)
-
 
 def _isSiteCertificate(x509):
     # XXX This will need tweaks
@@ -194,16 +149,16 @@ def _certificateType(x509):
     type = None
     try:
         if x509.get_ext('basicConstraints').get_value() == 'CA:TRUE':
-            type = TYPE_ROOT
+            type = constants.TYPE_ROOT
         elif _isSiteCertificate(x509):
-            type = TYPE_SITE
+            type = constants.TYPE_SITE
     except LookupError:
         subject = x509.get_subject()
         issuer = x509.get_issuer()
         if subject.CN == issuer.CN:
-            type = TYPE_ROOT
+            type = constants.TYPE_ROOT
         elif _isSiteCertificate(x509):
-            type = TYPE_SITE
+            type = constants.TYPE_SITE
                 
     if type is None:
         raise Exception, 'could not determine certificate type'
@@ -214,7 +169,7 @@ def _isInRepository(repView, pem):
     # XXX This could be optimized by querying based on some cheap field,
     # XXX like subjectCommonName, which would typically return just 0 or 1
     # XXX hit. But I don't want to leave query items laying around either.
-    q = Certificate.getExtent(view=repView)
+    q = utils.getExtent(Certificate, view=repView)
 
     for cert in q:
         if cert.pemAsString() == pem:
@@ -238,7 +193,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     asText = x509.as_text()
     
     type = _certificateType(x509)
-    if type == TYPE_ROOT:
+    if type == constants.TYPE_ROOT:
         if not x509.verify():
             raise ValueError('X.509 certificate does not verify')
     
@@ -256,11 +211,11 @@ def importCertificate(x509, fingerprint, trust, repView):
                        asText=text)
 
     # XXX Why is this collection created here, as it is not used here?
-    q = repView.findPath('//userdata/%s' %(TRUSTED_SITE_CERTS_QUERY_NAME))
+    q = repView.findPath('//userdata/%s' %(constants.TRUSTED_SITE_CERTS_QUERY_NAME))
     if q is None:
-        q = FilteredCollection(TRUSTED_SITE_CERTS_QUERY_NAME, view=repView)
-        q.source = Certificate.getExtent(repView)
-        q.filterExpression = 'item.type == "%s" and item.trust == %d' % (TYPE_SITE, TRUST_AUTHENTICITY)
+        q = FilteredCollection(constants.TRUSTED_SITE_CERTS_QUERY_NAME, view=repView)
+        q.source = utils.getExtent(Certificate, repView)
+        q.filterExpression = 'item.type == "%s" and item.trust == %d' % (constants.TYPE_SITE, constants.TRUST_AUTHENTICITY)
         q.filterAttributes = ['type', 'trust']
     
     repView.commit()
@@ -284,11 +239,11 @@ def importCertificateDialog(repView):
     try: 
         x509 = X509.load_cert(path)
 
-        fprint = fingerprint(x509)
+        fprint = utils.fingerprint(x509)
         type = _certificateType(x509)
         # Note: the order of choices must match the selections code below
         choices = [_("Trust the authenticity of this certificate.")]
-        if type == TYPE_ROOT:
+        if type == constants.TYPE_ROOT:
             choices += [_("Trust this certificate to sign site certificates.")]
 
         dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
@@ -302,9 +257,9 @@ def importCertificateDialog(repView):
             # Note: this code must match the choices above
             for sel in selections:
                 if sel == 0:
-                    trust |= TRUST_AUTHENTICITY
+                    trust |= constants.TRUST_AUTHENTICITY
                 if sel == 1:
-                    trust |= TRUST_SITE
+                    trust |= constants.TRUST_SITE
         else:
             dlg.Destroy()
             return
@@ -347,29 +302,3 @@ def createSidebarView(repView, cpiaView):
 
 # XXX end store.py
 ###############
-
-class EditIntegerAttribute (Detail.EditTextAttribute):
-    #XXX Get rid of this as soon as boolean editors work with properties
-    def saveAttributeFromWidget(self, item, widget, validate):
-        if validate:
-            item.setAttributeValue(self.whichAttribute(), int(widget.GetValue()))
-
-    def loadAttributeIntoWidget(self, item, widget):
-        try:
-            value = item.getAttributeValue(self.whichAttribute())
-        except AttributeError:
-            value = 0
-        wiVal = widget.GetValue()
-        if not wiVal or int(wiVal) != value:
-            widget.SetValue(str(value))
-
-
-class AsTextAttribute (Detail.EditTextAttribute):
-    #XXX Get rid of this, asText should be normal (readonly) value
-    def saveAttributeFromWidget(self, item, widget, validate):
-        pass
-
-    def loadAttributeIntoWidget(self, item, widget):
-        value = item.asTextAsString()
-        if widget.GetValue() != value:
-            widget.SetValue(value)

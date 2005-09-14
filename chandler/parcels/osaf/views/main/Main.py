@@ -247,7 +247,7 @@ class MainView(View):
 
     def askTrustSiteCertificate(self, pem, reconnect):
         import M2Crypto.X509 as X509
-        import crypto.dialogs as dialogs
+        from osaf.framework.certstore import dialogs
         x509 = X509.load_cert_string(pem)
         dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
                                                  x509)
@@ -256,13 +256,13 @@ class MainView(View):
                 selection = dlg.GetSelection()
 
                 if selection == 0:
-                    import crypto.ssl as ssl
+                    from osaf.framework.certstore import ssl
                     ssl.trusted_until_shutdown_site_certs += [pem]
                 else:
-                    import osaf.framework.certstore.certificate as certificate
-                    fingerprint = certificate.fingerprint(x509)
+                    from osaf.framework.certstore import utils, certificate, constants
+                    fingerprint = utils.fingerprint(x509)
                     certificate.importCertificate(x509, fingerprint, 
-                                                  certificate.TRUST_AUTHENTICITY,
+                                                  constants.TRUST_AUTHENTICITY,
                                                   self.itsView)
 
                 reconnect()
@@ -271,14 +271,14 @@ class MainView(View):
 
     def askIgnoreSSLError(self, pem, err, reconnect):
         import M2Crypto.X509 as X509
-        import crypto.dialogs as dialogs
+        from osaf.framework.certstore import dialogs
         x509 = X509.load_cert_string(pem)
         dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
                                            x509,
                                            err)
         try:
             if dlg.ShowModal() == wx.ID_OK:
-                import crypto.ssl as ssl
+                from osaf.framework.certstore import ssl
                 acceptedErrList = ssl.trusted_until_shutdown_invalid_site_certs.get(pem)
                 if acceptedErrList is None:
                     ssl.trusted_until_shutdown_invalid_site_certs[pem] = [err]

@@ -21,7 +21,8 @@ from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
 import osaf.pim.mail as Mail
-import crypto.ssl as ssl
+from osaf.framework.certstore import ssl
+import application.Utility as Utility
 
 #Chandler Mail Service imports
 import errors
@@ -249,7 +250,7 @@ class AbstractDownloadClient(object):
         errorType   = str(err.__class__)
         errorString = err.__str__()
 
-        if errorType == 'crypto.ssl.CertificateVerificationError':
+        if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
 
             # Reason why verification failed is stored in err.args[0], see

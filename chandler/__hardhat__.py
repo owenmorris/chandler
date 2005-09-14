@@ -341,7 +341,6 @@ def generateDocs(buildenv):
                           '--no-private',
                           '--exclude=".*tests.*"',
                           'application',
-                          'crypto',
                           # not interested in distrib
                           'i18n',
                           'parcels/core',

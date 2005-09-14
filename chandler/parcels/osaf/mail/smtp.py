@@ -17,8 +17,9 @@ from datetime import datetime
 
 #Chandler imports
 import osaf.pim.mail as Mail
-import crypto.ssl as ssl
+from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
+import application.Utility as Utility
 
 #Chandler Mail Service imports
 import constants
@@ -450,7 +451,7 @@ class SMTPClient(object):
         else:
             reconnect = lambda: self.sendMail(mailMessage)
 
-        if str(err.__class__) == 'crypto.ssl.CertificateVerificationError':
+        if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS

@@ -3,10 +3,10 @@
 
 import wx
 import M2Crypto
-import crypto.ssl as ssl
 import traceback, logging
 import os, urlparse, urllib
 import application.Globals as Globals
+import application.Utility as Utility
 from osaf import sharing
 import zanshin.webdav
 import zanshin.util
@@ -340,7 +340,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         except (sharing.SharingError, zanshin.error.Error,
                 M2Crypto.SSL.Checker.WrongHost,
-                ssl.CertificateVerificationError), e:
+                Utility.CertificateVerificationError), e:
 
             # Display the error
             # self._clearStatus()

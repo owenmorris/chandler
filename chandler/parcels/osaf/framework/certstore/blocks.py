@@ -1,19 +1,59 @@
-from application import schema
-from osaf.framework.certstore.certificate import (
-    CertificateViewController, CertificateImportController,
-    EditIntegerAttribute, AsTextAttribute
-)
+"""
+Certificate store blocks
+
+@copyright: Copyright (c) 2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+"""
 
 def installParcel(parcel, oldVersion=None):
+    from application import schema
+
     blocks    = schema.ns("osaf.framework.blocks", parcel)
     main      = schema.ns("osaf.views.main", parcel)
     certstore = schema.ns("osaf.framework.certstore", parcel)
     detail    = schema.ns("osaf.framework.blocks.detail", parcel)
 
+    class _CertificateViewController(blocks.Block.Block):
+        def onCertificateViewBlockEvent(self, event):
+            from osaf.framework.certstore import certificate
+            import application.Globals as Globals
+            certificate.createSidebarView(self.itsView, Globals.views[0])
+    
+    class _CertificateImportController(blocks.Block.Block):
+        def onCertificateImportBlockEvent(self, event):
+            from osaf.framework.certstore import certificate
+            certificate.importCertificateDialog(self.itsView)
+
+    class _EditIntegerAttribute (detail.Detail.EditTextAttribute):
+        #XXX Get rid of this as soon as boolean editors work with properties
+        def saveAttributeFromWidget(self, item, widget, validate):
+            if validate:
+                item.setAttributeValue(self.whichAttribute(),
+                                       int(widget.GetValue()))
+    
+        def loadAttributeIntoWidget(self, item, widget):
+            try:
+                value = item.getAttributeValue(self.whichAttribute())
+            except AttributeError:
+                value = 0
+            wiVal = widget.GetValue()
+            if not wiVal or int(wiVal) != value:
+                widget.SetValue(str(value))
+    
+    
+    class _AsTextAttribute (detail.Detail.EditTextAttribute):
+        #XXX Get rid of this, asText should be normal (readonly) value
+        def saveAttributeFromWidget(self, item, widget, validate):
+            pass
+    
+        def loadAttributeIntoWidget(self, item, widget):
+            value = item.asTextAsString()
+            if widget.GetValue() != value:
+                widget.SetValue(value)
 
     # View
 
-    view_controller = CertificateViewController.update(
+    view_controller = _CertificateViewController.update(
         parcel, "view_controller"
     )
 
@@ -37,7 +77,7 @@ def installParcel(parcel, oldVersion=None):
 
     # Import
   
-    import_controller = CertificateImportController.update(
+    import_controller = _CertificateImportController.update(
         parcel, "CertificateImportController"
     )
 
@@ -101,7 +141,7 @@ def installParcel(parcel, oldVersion=None):
                         minimumSize = blocks.SizeType(70, 24),
                         border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
                     ),
-                    EditIntegerAttribute.update(
+                    _EditIntegerAttribute.update(
                         parcel, "TrustAttribute",
                         lineStyleEnum = "SingleLine",
                         textStyleEnum = "PlainText",
@@ -150,7 +190,7 @@ def installParcel(parcel, oldVersion=None):
                 position = 0.9, viewAttribute="asText",
                 stretchFactor = 1,
                 childrenBlocks = [
-                    AsTextAttribute.update(
+                    _AsTextAttribute.update(
                         parcel, "AsTextAttribute",
                         characterStyle = blocks.TextStyle,
                         lineStyleEnum = "MultiLine",

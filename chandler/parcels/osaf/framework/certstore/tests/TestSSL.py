@@ -7,34 +7,31 @@ Unit test for SSL context, connection and related security checks.
 
 import unittest
 import socket, sys, os
+
 import M2Crypto.SSL as SSL
 import M2Crypto.SSL.Checker as Checker
 import M2Crypto.X509 as X509
 import twisted.internet.protocol as protocol
 import twisted.protocols.policies as policies
-import crypto
-import crypto.ssl as ssl
 
 import repository.tests.RepositoryTestCase as RepositoryTestCase
+import application.Utility as Utility
+from osaf.framework.certstore import ssl
 
 class TestSSL(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        #XXX Same as TestCryptoStartupShutdown.InitShutdown.setUp
-        pathComponents = sys.modules['crypto'].__file__.split(os.sep)
-        assert len(pathComponents) > 3
-        chandlerDir = os.sep.join(pathComponents[0:-2])
-        self.profileDir = os.path.join(chandlerDir, 'crypto')
-        crypto.startup(self.profileDir)        
+        self.profileDir = os.path.dirname(__file__)
+        Utility.initCrypto(self.profileDir)        
 
         super(TestSSL, self)._setup()
-        self.testdir = os.path.join(chandlerDir, 'crypto', 'tests')
+        self.testdir = self.profileDir
         super(TestSSL, self)._openRepository()
+
+        self.loadParcel("parcel:osaf.app")
 
     def tearDown(self):
         super(TestSSL, self).tearDown()
-        
-        #XXX Same as TestCryptoStartupShutdown.InitShutdown.tearDown
-        crypto.shutdown(self.profileDir)
+        Utility.stopCrypto(self.profileDir)
     
     def testCertificateVerification(self):
         self.loadParcel("parcel:osaf.framework.certstore")

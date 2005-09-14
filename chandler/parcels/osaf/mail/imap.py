@@ -12,7 +12,7 @@ import email
 
 #Chandler imports
 import osaf.pim.mail as Mail
-import crypto.ssl as ssl
+from osaf.framework.certstore import ssl
 
 #Chandler Mail Service imports
 import message

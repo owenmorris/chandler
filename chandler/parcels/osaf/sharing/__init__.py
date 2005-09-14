@@ -1,9 +1,9 @@
 import logging, urllib, urlparse
-from application import schema
+from application import schema, Utility
 from osaf import pim
 from repository.item.Monitors import Monitors
 from i18n import OSAFMessageFactory as _
-import zanshin, M2Crypto, crypto
+import zanshin, M2Crypto
 
 import wx          # For the dialogs, but perhaps this is better accomplished
 import application # via callbacks
@@ -245,7 +245,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
     except (SharingError,
             zanshin.error.Error,
             M2Crypto.SSL.Checker.WrongHost,
-            crypto.ssl.CertificateVerificationError), e:
+            Utility.CertificateVerificationError), e:
 
         # Clean up share objects
         try:

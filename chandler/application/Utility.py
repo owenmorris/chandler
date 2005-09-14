@@ -1,11 +1,15 @@
+"""
+Application utilities.
+
+@date:      $Date: 2005-07-09 11:49:30 -0700 (Sat, 09 Jul 2005) $
+@copyright: Copyright (c) 2003-2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+"""
 __version__ = "$Revision: 5915 $"
-__date__ = "$Date: 2005-07-09 11:49:30 -0700 (Sat, 09 Jul 2005) $"
-__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
-import os, sys, crypto, logging, logging.config, logging.handlers, string
-
+import os, sys, logging, logging.config, logging.handlers, string
+import M2Crypto.Rand as Rand
+import M2Crypto.threading as m2threading
 from optparse import OptionParser
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError \
@@ -367,21 +371,58 @@ def initParcels(view, path, namespaces=None):
     parcelRoot.version = SCHEMA_VERSION
 
 
+def _randpoolPath(profileDir):
+    # Return the absolute path for the file that we use to load
+    # initial entropy from in startup/store entropy into in
+    # shutdown.
+    return os.path.join(profileDir, 'randpool.dat').encode('utf8')
+
+
 def initCrypto(profileDir):
-    #XXX: [i18n] M2Xrypto can not handle unicode
-
-    if profileDir:
-        profileDir = profileDir.encode("utf8")
-
-    crypto.startup(profileDir)
+    """
+    Initialize the cryptographic services before doing any other
+    cryptographic operations.
+    
+    @param profileDir: The profile directory. Additional entropy will be loaded
+                       from a file in this directory. It is not a fatal error
+                       if the file does not exist.
+    @warning: XXX [i18n] M2Crypto can not handle unicode
+    """
+    m2threading.init()
+    Rand.load_file(_randpoolPath(profileDir), -1)
 
 
 def stopCrypto(profileDir):
-    #XXX: [i18n] M2Xrypto can not handle unicode
-    if profileDir:
-        profileDir = profileDir.encode("utf8")
+    """
+    Shut down the cryptographic services. You must call startup()
+    before doing cryptographic operations again.
+    
+    @param profileDir: The profile directory. A snapshot of current entropy
+                       state will be saved into a file in this directory. 
+                       It is not a fatal error if the file cannot be created.
+    @warning: XXX [i18n] M2Crypto can not handle unicode
+    """
+    Rand.save_file(_randpoolPath(profileDir))
+    m2threading.cleanup()
 
-    crypto.shutdown(profileDir)
+
+class CertificateVerificationError(Exception):
+    """
+    An error that will be raised when, as part of an SSL/TLS connection attempt,
+    the X.509 certificate returned by the peer does not verify.
+    """
+    def __init__(self, code, message, untrustedCertificates):
+        """
+        Inialize.
+        
+        @param code:                 The error code.
+        @param message:              The error string. 
+        @param untrustedCertificate: List of untrusted certificates in PEM
+                                     format.
+        """
+        Exception.__init__(self, code, message)
+        self.untrustedCertificates = untrustedCertificates
+        
 
 def initTwisted():
     from osaf.startup import run_reactor

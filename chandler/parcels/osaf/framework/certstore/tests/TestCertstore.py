@@ -7,10 +7,12 @@ Test Certstore
 
 import unittest
 import time
+
 import M2Crypto.X509 as X509
+
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 from osaf.pim.collections import FilteredCollection
-import osaf.framework.certstore.certificate as certificate
+from osaf.framework.certstore import certificate, utils, constants
 
 class CertificateStoreTestCase(RepositoryTestCase.RepositoryTestCase):
     pemSite = '''-----BEGIN CERTIFICATE-----
@@ -88,8 +90,8 @@ rZehs7GgIFvKMquNzxPwHynD
         
         view = self.rep.view
         rootCerts = FilteredCollection('rootCertsQuery', view=view)
-        rootCerts.source = certificate.Certificate.getExtent(view, exact=True)
-        rootCerts.filterExpression = 'item.type == "%s"' % certificate.TYPE_ROOT
+        rootCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
+        rootCerts.filterExpression = 'item.type == "%s"' % constants.TYPE_ROOT
         rootCerts.filterAttributes = ['type']
             
         now = time.gmtime()
@@ -112,15 +114,15 @@ rZehs7GgIFvKMquNzxPwHynD
                 raise ValueError('bad time value in ' + cert.subjectCommonName)
         
             self.assertTrue(len(cert.subjectCommonName) > 0)
-            self.assertTrue(cert.type == certificate.TYPE_ROOT)
-            self.assertTrue(cert.trust == certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE)
+            self.assertTrue(cert.type == constants.TYPE_ROOT)
+            self.assertTrue(cert.trust == constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
             self.assertTrue(cert.fingerprintAlgorithm == 'sha1')
             self.assertTrue(len(cert.fingerprint) > 3)
             self.assertTrue(cert.asTextAsString()[:12] == 'Certificate:')            
     
     def _importAndFind(self, pem, trust):
         x509 = X509.load_cert_string(pem)
-        fingerprint = certificate.fingerprint(x509)
+        fingerprint = utils.fingerprint(x509)
         certificate.importCertificate(x509,
                                       fingerprint,
                                       trust,
@@ -129,7 +131,7 @@ rZehs7GgIFvKMquNzxPwHynD
         view = self.rep.view
 
         matchingCerts = FilteredCollection('fpCertQuery' + fingerprint, view=view)
-        matchingCerts.source = certificate.Certificate.getExtent(view, exact=True)
+        matchingCerts.source = utils.getExtent(certificate.Certificate, view, exact=True)
         matchingCerts.filterExpression = 'item.fingerprint == "%s"' % fingerprint
         matchingCerts.filterAttributes = ['fingerprint']
             
@@ -139,7 +141,7 @@ rZehs7GgIFvKMquNzxPwHynD
             return cert
     
     def testImportSiteCertificate(self):
-        trust = certificate.TRUST_AUTHENTICITY
+        trust = constants.TRUST_AUTHENTICITY
         cert = self._importAndFind(self.pemSite, trust)
 
         x509 = cert.asX509()
@@ -153,11 +155,11 @@ rZehs7GgIFvKMquNzxPwHynD
         
         assert cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L'
         assert cert.trust == trust
-        assert cert.type == certificate.TYPE_SITE
+        assert cert.type == constants.TYPE_SITE
         assert cert.subjectCommonName == 'bugzilla.osafoundation.org'
 
     def testImportRootCertificate(self):
-        trust = certificate.TRUST_AUTHENTICITY | certificate.TRUST_SITE
+        trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
         cert = self._importAndFind(self.pemRoot, trust)
 
         x509 = cert.asX509()
@@ -167,11 +169,11 @@ rZehs7GgIFvKMquNzxPwHynD
         
         assert cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L'
         assert cert.trust == trust
-        assert cert.type == certificate.TYPE_ROOT
+        assert cert.type == constants.TYPE_ROOT
         assert cert.subjectCommonName == 'OSAF CA'
         
     def testImportUnsupportedCertificate(self):
-        trust = certificate.TRUST_AUTHENTICITY
+        trust = constants.TRUST_AUTHENTICITY
         self.assertRaises(Exception, self._importAndFind, self.pemUnsupported, trust)
         
     def testImportMultipleCertificate(self):
@@ -180,13 +182,15 @@ rZehs7GgIFvKMquNzxPwHynD
         # XXX the system seems to load the first certificate in such a case.
         # XXX Need to investigate more what OpenSSL does and if there is any
         # XXX way to change this.
-        #trust = certificate.TRUST_AUTHENTICITY
+        #trust = constants.TRUST_AUTHENTICITY
         #cert = self._importAndFind(self.pemMultiple, trust)
         pass
 
     def setUp(self):
         super(CertificateStoreTestCase, self).setUp()
+        self.loadParcel("parcel:osaf.app")
         self.loadParcel("parcel:osaf.framework.certstore")
+        
         
 if __name__ == "__main__":
     unittest.main()

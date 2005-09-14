@@ -10,10 +10,11 @@ from application import schema
 def loadCerts(parcel, moduleName, filename='cacert.pem'):
     # Load cacert.pem into the repository
 
-    from M2Crypto import X509, util
-    from M2Crypto.EVP import MessageDigest
     import os, sys
     import logging
+
+    from M2Crypto import X509, util
+    from M2Crypto.EVP import MessageDigest
     
     log = logging.getLogger(__name__)
     
@@ -22,13 +23,7 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
     cert = schema.ns('osaf.framework.certstore', parcel)
     lobType = schema.itemFor(schema.Lob, parcel.itsView)
 
-    def fingerprint(x509):
-        # XXX there is one in certificate.py
-        der = x509.as_der()
-        md = MessageDigest('sha1')
-        md.update(der)
-        digest = md.final()
-        return hex(util.octx_to_num(digest))
+    from osaf.framework.certstore import utils
         
     lastLine = ''
     pem = []
@@ -61,8 +56,10 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
 
             cert.Certificate.update(parcel, itsName,
                 subjectCommonName = commonName,
-                type='root', trust=3, fingerprintAlgorithm='sha1',
-                fingerprint=fingerprint(x509),
+                type='root',#cert.TYPE_ROOT, 
+                trust=3,#cert.TRUST_AUTHENTICITY | cert.TRUST_SITE, 
+                fingerprintAlgorithm='sha1',
+                fingerprint=utils.fingerprint(x509),
                 pem=lobType.makeValue(''.join(pem)),
                 asText=lobType.makeValue(x509.as_text()),
             )
@@ -78,6 +75,7 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
         'Imported %d certificates from %s in %s',
         certificates, filename, moduleName
     )
+
 
 def installParcel(parcel, oldVersion=None):
 

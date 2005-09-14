@@ -1,4 +1,4 @@
-from certificate import Certificate, CertificateStore
+from certificate import *
 
 def installParcel(parcel, oldVersion=None):
     # load our subparcels

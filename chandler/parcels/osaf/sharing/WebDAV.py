@@ -16,7 +16,6 @@ __all__ = [
 import zanshin.webdav
 import zanshin.util
 
-import crypto.ssl as ssl
 import M2Crypto.BIO
 import M2Crypto.SSL.Checker
 import chandlerdb.util.uuid
@@ -24,6 +23,9 @@ import twisted.internet.error as error
 from twisted.internet import reactor
 
 import application.Globals as Globals
+import application.Utility as Utility
+from osaf.framework.certstore import ssl
+                
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
@@ -52,7 +54,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         while True:
             try:
                 return zanshin.util.blockUntil(callable, *args, **keywds)
-            except ssl.CertificateVerificationError, err:
+            except Utility.CertificateVerificationError, err:
                 assert err.args[1] == 'certificate verify failed'
     
                 # Reason why verification failed is stored in err.args[0], see
@@ -168,7 +170,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (CANT_CONNECT, err) # Unhandled SSL error
     except M2Crypto.SSL.Checker.WrongHost:
         return (IGNORE, None) # The user cancelled SSL error dialog
-    except ssl.CertificateVerificationError:
+    except Utility.CertificateVerificationError:
         return (IGNORE, None) # The user cancelled trust cert/SSL error dialog
     except error.ConnectionDone, err:
         return (CANT_CONNECT, err)
