@@ -507,9 +507,8 @@ class SSSidebarSharingButton (SSSidebarButton):
                     iconName = "Download"
                     
                 filterKind = self.buttonOwner.filterKind
-                if filterKind is not None:
-                    if str (filterKind.itsPath) not in share.filterKinds:
-                        iconName += "Partial"
+                if filterKind is None and len (share.filterKinds):
+                    iconName += "Partial"
         
         # We need an indication of NotMine
         if False:
