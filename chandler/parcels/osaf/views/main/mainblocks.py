@@ -439,8 +439,7 @@ def make_mainview(parcel):
     
     IconButton = SSSidebarIconButton.update(parcel, 'IconButton',
                                             buttonName='Icon',
-                                            buttonOffsets=[1,17,16],
-                                            checkableButton=True)
+                                            buttonOffsets=[1,17,16])
     
     SharingButton = SSSidebarSharingButton.update(parcel, 'SharingIcon',
                                             buttonName='SharingIcon',

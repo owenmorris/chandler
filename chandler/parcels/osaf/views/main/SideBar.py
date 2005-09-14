@@ -118,10 +118,11 @@ class wxSidebar(ControlBlocks.wxTable):
 
                 # Initialize the buttons state and store in temporary attributes that don't persist
                 for button in blockItem.buttons:
-                    checked = button.getChecked (item)
+                    method = getattr (type (button), "getChecked", False)
+                    checked = method and method (button, item)
                     imageRect = self.GetRectFromOffsets (cellRect, button.buttonOffsets)
                     button.buttonState = {'imageRect': imageRect,
-                                          'screenChecked': checked,
+                                          'screenMouseDown': checked,
                                           'blockChecked': checked}
                     self.RefreshRect (imageRect)
 
@@ -130,15 +131,16 @@ class wxSidebar(ControlBlocks.wxTable):
                 for button in blockItem.buttons:
                     buttonState = button.buttonState
                     if (buttonState['imageRect'].InsideXY (x, y) and
-                        button.checkableButton and
                         isinstance (item, AbstractCollection)):
                         
                         event.Skip (False) #Gobble the event
                         self.SetFocus()
-        
-                        checked = button.getChecked (item)
+
+                        method = getattr (type (button), "getChecked", False)
+                        checked = method and method (button, item)
+
                         buttonState['blockChecked'] = checked
-                        buttonState['screenChecked'] = not checked
+                        buttonState['screenMouseDown'] = not checked
                         self.pressedButton = button
                         self.RefreshRect (buttonState['imageRect'])
                         break
@@ -147,10 +149,18 @@ class wxSidebar(ControlBlocks.wxTable):
                 if self.pressedButton is not None:
                     imageRect = self.pressedButton.buttonState['imageRect']
                     if (imageRect.InsideXY (x, y)):
-                        self.pressedButton.setChecked (item,
-                                                       not self.pressedButton.getChecked (item))
-                        blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
-                        wx.GetApp().UIRepositoryView.commit()
+                        pressedButton = self.pressedButton
+
+                        method = getattr (type (pressedButton), "getChecked", False)
+                        if method:
+                            checked = not method (pressedButton, item)
+                            pressedButton.setChecked (item, checked)
+                            pressedButton.buttonState['screenMouseDown'] = checked
+                            blockItem.postEventByName ("SelectItemBroadcast", {'item':blockItem.selectedItemToView})
+                            wx.GetApp().UIRepositoryView.commit()
+                        else:
+                            pressedButton.buttonState['screenMouseDown'] = False
+                            self.RefreshRect (pressedButton.buttonState['imageRect'])
                     elif not self.cellRect.InsideXY (x, y):
                         self.RefreshRect (imageRect)
                         del self.hoverImageRow
@@ -181,9 +191,9 @@ class wxSidebar(ControlBlocks.wxTable):
             elif (self.pressedButton is not None):
                 buttonState = self.pressedButton.buttonState
                 imageRect = buttonState['imageRect']
-                screenChecked = buttonState['screenChecked']
-                if imageRect.InsideXY (x, y) == (screenChecked == buttonState['blockChecked']):
-                    buttonState['screenChecked'] = not screenChecked
+                screenMouseDown = buttonState['screenMouseDown']
+                if imageRect.InsideXY (x, y) == (screenMouseDown == buttonState['blockChecked']):
+                    buttonState['screenMouseDown'] = not screenMouseDown
                     self.RefreshRect (imageRect)
 
     def OnRequestDrop (self, x, y):
@@ -346,15 +356,20 @@ class SSSidebarButton (schema.Item):
     # cell. A height of zero uses the height of the cell
     buttonOffsets = schema.Sequence (schema.Integer, required = True)
 
-    checkableButton = schema.One (schema.Boolean, defaultValue=False)
-    clickableButton = schema.One (schema.Boolean, defaultValue=False)
-
     buttonOwner = schema.One("SidebarBlock",
                              inverse="buttons",
                              initialValue = None)
 
+class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
-        return False
+        return item in self.buttonOwner.checkedItems
+
+    def setChecked (self, item, checked):
+        checkedItems = self.buttonOwner.checkedItems
+        if checked:
+            checkedItems.add (item)
+        else:
+            checkedItems.remove (item)
 
     def getButtonImage (self, item, mouseOverFlag):
         """
@@ -406,37 +421,38 @@ class SSSidebarButton (schema.Item):
         colorizeIcon = True
         imagePrefix = "Sidebar" + self.buttonName
         mouseOver = ""
-        checked = ""
+        mouseDown = ""
         imageSuffix = ".png"
 
         if mouseOverFlag:
             mouseOver = "MouseOver"
-            if self.buttonState['screenChecked']:
-                checked = "Checked"
+            if self.buttonState['screenMouseDown']:
+                mouseDown = "MouseDown"
         else:
             if self.getChecked (item):
-                checked = "Checked"
+                mouseDown = "MouseDown"
             else:
                 colorizeIcon = item.colorizeIcon
 
-        iconName = self.getIconName (item)
-        if iconName == "Trash" and mouseOver == "MouseOver":
-            pass
+        iconName = getattr(item, "iconName", "")
+        sidebar = self.buttonOwner
+        if item.iconNameHasKindVariant and sidebar.filterKind is not None:
+            iconName += os.path.basename (str (sidebar.filterKind.itsPath))
 
         # First lookup full image name
-        image = wx.GetApp().GetRawImage (imagePrefix + iconName + checked + mouseOver + imageSuffix)
+        image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
         
         # If that fails try the default image wihtout the name of the icon
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + checked + mouseOver + imageSuffix)
+            image = wx.GetApp().GetRawImage (imagePrefix + mouseDown + mouseOver + imageSuffix)
                 
         # If that fails try the full icon name wihtout mouseOver
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + iconName + checked + imageSuffix)
+            image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseDown + imageSuffix)
 
         # If that fails try the default image name wihtout mouseOver
         if image is None:
-            image = wx.GetApp().GetRawImage (imagePrefix + checked + imageSuffix)
+            image = wx.GetApp().GetRawImage (imagePrefix + mouseDown + imageSuffix)
 
 
         if image is not None and colorizeIcon:
@@ -451,36 +467,67 @@ class SSSidebarButton (schema.Item):
         return image
 
 
-class SSSidebarIconButton (SSSidebarButton):
-    def getChecked (self, item):
-        return item in self.buttonOwner.checkedItems
-
-    def setChecked (self, item, checked):
-        checkedItems = self.buttonOwner.checkedItems
-        if checked:
-            checkedItems.add (item)
-        else:
-            checkedItems.remove (item)
-
-
-    def getIconName (self, item):
-        iconName = getattr(item, "iconName", "")
-        sidebar = self.buttonOwner
-        if item.iconNameHasKindVariant and sidebar.filterKind is not None:
-            iconName += os.path.basename (str (sidebar.filterKind.itsPath))
-        return iconName
-
 class SSSidebarSharingButton (SSSidebarButton):
-    def getIconName (self, item):
+    def getButtonImage (self, item, mouseOverFlag):
+        """
+        """
+        imagePrefix = "Sidebar" + self.buttonName
+        notMine = ""
+        mouseOver = ""
+        mouseDown = ""
+        imageSuffix = ".png"
+
+        if mouseOverFlag:
+            mouseOver = "MouseOver"
+            if self.buttonState['screenMouseDown']:
+                mouseDown = "MouseDown"
+
         share = sharing.getShare(item)
         iconName = ""
         if share is not None:
-            if (share.sharer is not None and
-                str(share.sharer.itsPath) == "//userdata/me"):
-                iconName = "Upload"
+            # First check to see if we're offline
+            for theShare in item.shares:
+                if not theShare.hidden and theShare.active:
+                    break
             else:
-                iconName = "Download"
-        return iconName
+                iconName = "Offline"
+
+            # If we're not Offline, check to see if we have an error
+            # Don't have an error indicator yet
+            if not iconName:
+                if getattr (share, "error", False):
+                    iconName = "Error"
+            
+            # Otherwise we're either Upload or Download
+            if not iconName:
+                if (share.sharer is not None and
+                    str(share.sharer.itsPath) == "//userdata/me"):
+                    iconName = "Upload"
+                else:
+                    iconName = "Download"
+                    
+                filterKind = self.buttonOwner.filterKind
+                if filterKind is not None:
+                    if str (filterKind.itsPath) not in share.filterKinds:
+                        iconName += "Partial"
+        
+        # We need an indication of NotMine
+        if False:
+            iconName += "NotMine"
+
+        # First lookup full image name
+        image = wx.GetApp().GetImage (imagePrefix + iconName + mouseDown + mouseOver + imageSuffix)
+        
+        # If that fails try the default image wihtout mouseOver
+        if image is None:
+            image = wx.GetApp().GetImage (imagePrefix + iconName + mouseDown + imageSuffix)
+                
+        # If that fails try the full icon name wihtout mouseDown and mouseOver
+        if image is None:
+            image = wx.GetApp().GetImage (imagePrefix + iconName + imageSuffix)
+
+        return image
+
 
 class SidebarBlock(ControlBlocks.Table):
     filterKind = schema.One(
