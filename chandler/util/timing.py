@@ -1,5 +1,5 @@
 """
-@copyright: Copyright (c) 2004 Open Source Applications Foundation
+@copyright: Copyright (c) 2004-2005 Open Source Applications Foundation
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
@@ -50,6 +50,7 @@ on the same label without an intervening end())
 """
 
 import time
+import version
 
 trackers = {}
 
@@ -99,20 +100,26 @@ def reset():
 def results(verbose=True):
     keys = trackers.keys()
     keys.sort()
+
+    if  'buildRevision' in version.__dict__.keys():
+        revision = version.buildRevision
+    else:
+        revision = '0'
+
     totalCounts = 0
     totalTime = 0.0
-    bannerFormat = "         %-30s   %6s   %8s   %8s"
+    bannerFormat = "         %-30s   %6s   %6s   %8s   %8s"
     lines = bannerFormat % \
-     ("-----------------------------", "------", "--------", "--------")
-    dataFormat = "OSAF_QA: %-30s | %6d | %6.5f | %6.5f"
+     ("-----------------------------", "------", "------", "--------", "--------")
+    dataFormat = "OSAF_QA: %-30s | %s | %6d | %6.5f | %6.5f"
     if verbose:
-        print bannerFormat % ("Operation", "Count", "Total", "Avg")
+        print bannerFormat % ("Operation", "Rev #", "Count", "Total", "Avg")
         print lines
     for key in keys:
         (name, count, time, avg) = trackers[key].results()
         totalCounts += count
         totalTime += time
-        print dataFormat % (name, count, time, avg)
+        print dataFormat % (name, revision, count, time, avg)
     if verbose:
         print lines
-        print dataFormat % ("Totals:", totalCounts, totalTime, totalTime/totalCounts)
+        print dataFormat % ("Totals:", revision, totalCounts, totalTime, totalTime/totalCounts)
