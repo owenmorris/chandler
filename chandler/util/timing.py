@@ -101,13 +101,9 @@ def results(verbose=True):
     keys = trackers.keys()
     keys.sort()
 
-    if  'buildRevision' in version.__dict__.keys():
-        revision = version.buildRevision
-    else:
-        revision = '0'
-
     totalCounts = 0
     totalTime = 0.0
+    revision = getattr(version, 'buildRevision', '0')
     bannerFormat = "         %-30s   %6s   %6s   %8s   %8s"
     lines = bannerFormat % \
      ("-----------------------------", "------", "------", "--------", "--------")
