@@ -19,7 +19,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "68" # morgen: isXXX attributes renamed XXX
+SCHEMA_VERSION = "69" # john: out of the box collections aren't colorized
 
 logger = None # initialized in initLogging()
 
