@@ -38,15 +38,15 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         buildenv['root'] = workingDir
         buildenv['hardhatroot'] = whereAmI
         hardhatlib.init(buildenv)
-    
+
     except hardhatlib.HardHatMissingCompilerError:
         print "Could not locate compiler.  Exiting."
         sys.exit(1)
-    
+
     except hardhatlib.HardHatUnknownPlatformError:
         print "Unsupported platform, '" + os.name + "'.  Exiting."
         sys.exit(1)
-    
+
     except hardhatlib.HardHatRegistryError:
         print
         print "Sorry, I am not able to read the windows registry to find" 
@@ -56,21 +56,21 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         print "http://www.python.org/download/"
         print
         sys.exit(1)
-    
+
     except Exception, e:
         print "Could not initialize hardhat environment.  Exiting."
         print "Exception:", e
         import traceback
         traceback.print_exc()
         sys.exit(1)
-      
+
     # if tagID is present then we have to modify reposBase as a tag has
     # been requested instead of the trunk
     if tagID:
         reposBase='branches/%s' % tagID
     else:
         reposBase='trunk'
-      
+
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, mainModule)
@@ -78,7 +78,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     if clobber == 1:
         if os.path.exists(chanDir):
             hardhatutil.rmdirRecursive(chanDir)
-            
+
     os.chdir(workingDir)
 
     # remove outputDir and create it
@@ -86,10 +86,10 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
     os.mkdir(outputDir)
-    
+
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-    
+
     if not os.path.exists(chanDir):
         # Initialize sources
         print "Setup source tree..."
@@ -97,13 +97,13 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         for module in reposModules:
             svnSource = os.path.join(reposRoot, reposBase, module)
-    
+
             log.write("[tbox] Retrieving source tree [%s]\n" % svnSource)
-                     
+
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [svnProgram, "-q", "co", svnSource, module])
 
-            hardhatutil.dumpOutputList(outputList, log) 
+            hardhatutil.dumpOutputList(outputList, log)
 
         os.chdir(chanDir)
 
@@ -123,23 +123,23 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         changes = "-first-run"
     else:
         os.chdir(chanDir)
-    
+
         print "Checking SVN for updates"
         log.write("Checking SVN for updates\n")
         svnChanges = changesInSVN(chanDir, workingDir, log)
-        
+
         if svnChanges:
             log.write("Changes in SVN require install\n")
             changes = "-changes"
-            for releaseMode in releaseModes:        
+            for releaseMode in releaseModes:
                 doInstall(releaseMode, workingDir, log)
-                
+
         if svnChanges:
             log.write("Changes in SVN require making distributions\n")
             changes = "-changes"
             for releaseMode in releaseModes:
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-                    
+
         if not svnChanges:
             log.write("No changes\n")
             changes = "-nochanges"
@@ -148,13 +148,13 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         if skipTests:
             ret = 'success'
         else:
-            for releaseMode in releaseModes:   
+            for releaseMode in releaseModes:
                 ret = doTests(hardhatScript, releaseMode, workingDir,
                               outputDir, buildVersion, log)
                 if ret != 'success':
                     break
 
-    return ret + changes 
+    return ret + changes
 
 
 def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
@@ -166,7 +166,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         dashT = '-dvt'
     else:
         dashT = '-vrt'
-    
+
     try: # test
         print "Testing " + mode
         log.write(separator)
@@ -222,14 +222,14 @@ def doCopyLog(msg, workingDir, logPath, log):
     else:
         log.write(logPath + ' does not exist!\n')
     log.write(separator)
-    
+
 
 def changesInSVN(moduleDir, workingDir, log):
     changesAtAll = False
 
     for module in reposModules:
         log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
-                                              
+
         moduleDir = os.path.join(workingDir, module)
 
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
@@ -266,12 +266,21 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr + clean + "install strip\n"
-    log.write("Doing make " + dbgStr + clean + "install strip\n")
+
+    if os.getenv('CHANDLER_PERFORMANCE_TEST').lower() == 'yes':
+        targets = ['install', 'strip', 'cats']
+    else:
+        targets = ['install', 'strip']
+
+    print "Doing make " + dbgStr + clean + " ".join(targets) + "\n"
+    log.write("Doing make " + dbgStr + clean + " ".join(targets) + "\n")
 
     try:
-        outputList = hardhatutil.executeCommandReturnOutput(
-          [buildenv['make'], dbgStr, clean, "install", "strip" ])
+        cmd = [buildenv['make'], dbgStr, clean]
+        cmd += targets
+
+        outputList = hardhatutil.executeCommandReturnOutput(cmd)
+
         hardhatutil.dumpOutputList(outputList, log)
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
@@ -285,7 +294,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     except Exception, e:
         print "build error"
         log.write("***Error during build***\n")
-        log.write(separator)        
+        log.write(separator)
         log.write("No build log!\n")
         log.write(separator)
         forceBuildNextCycle(log, workingDir)
@@ -302,7 +311,7 @@ def forceBuildNextCycle(log, workingDir):
     chandlerMakefile = os.path.join(workingDir, mainModule, 'Makefile')
     if os.path.exists(chandlerMakefile):
         os.remove(chandlerMakefile)
-    
+
 
 def doRealclean(log, workingDir):
     try:
