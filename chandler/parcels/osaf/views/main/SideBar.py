@@ -482,32 +482,43 @@ class SSSidebarSharingButton (SSSidebarButton):
         mouseOver = ""
         mouseDown = ""
         imageSuffix = ".png"
+        shared = ""
+        partial = ""
+
+        share = sharing.getShare(item)
+        if share is not None:
+            filterKind = self.buttonOwner.filterKind
+            
+            if ((filterKind is None) or
+                str (filterKind.itsPath) in share.filterKinds):
+
+                if (share.sharer is not None and
+                    str(share.sharer.itsPath) == "//userdata/me"):
+                    shared = "Upload"
+                shared = "Download"
+
+                if filterKind is None and  len (share.filterKinds) != 0:
+                    partial = "Partial"
 
         if mouseOverFlag:
             mouseOver = "MouseOver"
             if self.buttonState['screenMouseDown']:
                 mouseDown = "MouseDown"
 
-        share = sharing.getShare(item)
         iconName = ""
-        if share is not None:
+        if shared:
             # First check to see if we're offline
             if not sharing.isOnline (item):
-                iconName = UpDownLoad() + "Offline"
+                iconName = shared + "Offline"
 
             # If we're not Offline, check to see if we have an error
             # Don't have an error indicator yet
-            if not iconName:
-                if getattr (share, "error", False):
-                    iconName = "Error"
+            elif getattr (share, "error", False):
+                iconName = "Error"
             
             # Otherwise we're either Upload or Download
-            if not iconName:
-                iconName = UpDownLoad()
-                    
-                filterKind = self.buttonOwner.filterKind
-                if filterKind is None and len (share.filterKinds):
-                    iconName += "Partial"
+            else:
+                iconName = shared + partial
         
         # We need an indication of NotMine
         if False:
