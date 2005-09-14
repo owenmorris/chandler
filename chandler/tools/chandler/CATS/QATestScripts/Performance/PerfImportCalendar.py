@@ -51,3 +51,5 @@ logger.SetChecked(True)
 logger.Report("Import")
 logger.Close()
 
+# quit chandler
+App_ns.root.Quit()
