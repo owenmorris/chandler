@@ -748,8 +748,8 @@ def RenderItem(repoView, item):
                     alias = "(alias = '%s')" % alias
                 else:
                     alias = ""
-                output.append("<li><a href=%s>%s</a> %s" % \
-                 (toLink(j.itsPath), getattr(j, "blockName", j.getItemDisplayName()), alias))
+                output.append("<li>%s <a href=%s>%s</a> %s" % \
+                 ( getattr(j, "blockName", j.getItemDisplayName()), toLink(j.itsPath), j.itsPath, alias))
             result += ("".join(output))
 
             result += "</ul></td></tr>\n"
@@ -825,8 +825,8 @@ def RenderItem(repoView, item):
             result += "%s" % name
             result += "</td><td valign=top>"
             result += "<b>(itemref)</b> "
-            result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
-              value.getItemDisplayName())
+            result += "%s <a href=%s>%s</a><br>" % (value.getItemDisplayName(),
+                toLink(value.itsPath), value.itsPath)
             result += "</td></tr>\n"
             count += 1
 
