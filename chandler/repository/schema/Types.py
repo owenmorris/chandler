@@ -1124,7 +1124,7 @@ class DateTime(DateStruct):
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
 
-        return CDescriptor.PROCESS
+        return CDescriptor.PROCESS_SET
 
     def getImplementationType(self):
 
@@ -1223,7 +1223,7 @@ class Time(DateStruct):
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
 
-        return CDescriptor.PROCESS
+        return CDescriptor.PROCESS_SET
 
     def getImplementationType(self):
 
