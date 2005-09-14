@@ -471,6 +471,12 @@ class SSSidebarSharingButton (SSSidebarButton):
     def getButtonImage (self, item, mouseOverFlag):
         """
         """
+        def UpDownLoad ():
+            if (share.sharer is not None and
+                str(share.sharer.itsPath) == "//userdata/me"):
+                return "Upload"
+            return "Download"
+
         imagePrefix = "Sidebar" + self.buttonName
         notMine = ""
         mouseOver = ""
@@ -486,11 +492,8 @@ class SSSidebarSharingButton (SSSidebarButton):
         iconName = ""
         if share is not None:
             # First check to see if we're offline
-            for theShare in item.shares:
-                if not theShare.hidden and theShare.active:
-                    break
-            else:
-                iconName = "Offline"
+            if not sharing.isOnline (item):
+                iconName = UpDownLoad() + "Offline"
 
             # If we're not Offline, check to see if we have an error
             # Don't have an error indicator yet
@@ -500,11 +503,7 @@ class SSSidebarSharingButton (SSSidebarButton):
             
             # Otherwise we're either Upload or Download
             if not iconName:
-                if (share.sharer is not None and
-                    str(share.sharer.itsPath) == "//userdata/me"):
-                    iconName = "Upload"
-                else:
-                    iconName = "Download"
+                iconName = UpDownLoad()
                     
                 filterKind = self.buttonOwner.filterKind
                 if filterKind is None and len (share.filterKinds):
