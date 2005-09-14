@@ -1,6 +1,6 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-import osaf.framework.QAUITestAppLib as QAUITestAppLib
+import util.QAUITestAppLib as QAUITestAppLib
 import os, wx
 from osaf.pim import ListCollection
 import osaf.pim.calendar.Calendar as Calendar
@@ -8,8 +8,8 @@ import osaf.pim.calendar.Calendar as Calendar
 App_ns = QAUITestAppLib.App_ns
 
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
-if not os.path.exists(filePath):
+filePath = os.getenv('CATSREPORTDIR')
+if not filePath:
     filePath = os.getcwd()
 
 # initialization
@@ -17,7 +17,7 @@ fileName = "TestExporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestExporting")
 
 
-path = os.path.join(os.path.expandvars('$CATSHOME'),"QATestScripts")
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/CATS/QATestScripts/DataFiles")
 filename = 'exportTest.ics'
 fullpath = os.path.join(path, filename)
 if os.path.exists(fullpath):

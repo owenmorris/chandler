@@ -1,8 +1,8 @@
-import osaf.framework.QAUITestAppLib as QAUITestAppLib
+import util.QAUITestAppLib as QAUITestAppLib
 import os
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
-if not os.path.exists(filePath):
+filePath = os.getenv('CATSREPORTDIR')
+if not filePath:
     filePath = os.getcwd()
 
 

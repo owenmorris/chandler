@@ -1,4 +1,4 @@
-import osaf.framework.QAUITestAppLib as QAUITestAppLib
+import util.QAUITestAppLib as QAUITestAppLib
 import os
 import application.dialogs.PublishCollection as PublishCollection
 import application.Globals as Globals
@@ -7,8 +7,8 @@ from i18n import OSAFMessageFactory as _
 
 App_ns = QAUITestAppLib.App_ns
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
-if not os.path.exists(filePath):
+filePath = os.getenv('CATSREPORTDIR')
+if not filePath:
     filePath = os.getcwd()
 
 #initialization

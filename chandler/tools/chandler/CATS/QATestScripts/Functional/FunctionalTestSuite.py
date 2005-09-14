@@ -2,13 +2,12 @@
 ## Author : Olivier Giroussens
 ## Description: This test suite runs the 4 basic testcases of generating event, mail, task and note items in chandler
  
-
-import osaf.framework.QAUITestAppLib as QAUITestAppLib
+import util.QAUITestAppLib as QAUITestAppLib
 import os
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
-cats_home = os.path.expandvars('$CATSHOME')
-if not os.path.exists(filePath):
+filePath = os.getenv('CATSREPORTDIR')
+functional_dir = os.path.join(os.getenv('CHANDLERHOME'),"util/CATS/QATestScripts/Functional")
+if not filePath:
     filePath = os.getcwd()
 
 
@@ -17,14 +16,15 @@ fileName = "FunctionalTestSuite.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"FunctionalTestSuite")
 
 #actions
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestCreateAccounts.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewCollection.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewEvent.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewMail.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewTask.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestNewNote.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestCalView.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestSwitchingViews.py"))
-execfile(os.path.join(cats_home,"QATestScripts/Functional/TestExporting.py"))
+execfile(os.path.join(functional_dir,"TestCreateAccounts.py"))
+execfile(os.path.join(functional_dir,"TestNewCollection.py"))
+execfile(os.path.join(functional_dir,"TestNewEvent.py"))
+execfile(os.path.join(functional_dir,"TestNewMail.py"))
+execfile(os.path.join(functional_dir,"TestNewTask.py"))
+execfile(os.path.join(functional_dir,"TestNewNote.py"))
+execfile(os.path.join(functional_dir,"TestCalView.py"))
+execfile(os.path.join(functional_dir,"TestSwitchingViews.py"))
+execfile(os.path.join(functional_dir,"TestExporting.py"))
+
 #cleaning
 logger.Close()

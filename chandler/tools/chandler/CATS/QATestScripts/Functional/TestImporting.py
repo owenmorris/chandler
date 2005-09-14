@@ -1,13 +1,13 @@
 import osaf.sharing.Sharing as Sharing
 import osaf.sharing.ICalendar as ICalendar
-import osaf.framework.QAUITestAppLib as QAUITestAppLib
+import util.QAUITestAppLib as QAUITestAppLib
 import os, wx
 import osaf.pim as pim
 
 App_ns = QAUITestAppLib.App_ns
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
-if not os.path.exists(filePath):
+filePath = os.getenv('CATSREPORTDIR')
+if not filePath:
     filePath = os.getcwd()
 
 # initialization
@@ -15,7 +15,7 @@ fileName = "TestImporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestImporting")
 
 
-path = os.path.join(os.path.expandvars('$CATSHOME'),"QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/CATS/QATestScripts/DataFiles")
 print path
 share = Sharing.OneTimeFileSystemShare(path, 'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 
