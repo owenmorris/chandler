@@ -24,7 +24,7 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-    majorVersion, minorVersion, releaseVersion = _createVersionFile(buildenv)
+    majorVersion, minorVersion, releaseVersion = _getVersionInfo(buildenv)
 
     buildVersionShort = \
      hardhatutil.RemovePunctuation(buildenv['buildVersion'])
@@ -82,9 +82,9 @@ def distribute(buildenv):
 
             manifestFile = "distrib/linux/manifest.debug.linux"
             hardhatlib.handleManifest(buildenv, manifestFile)
-            
+
             os.chdir(buildenv['root'])
-            
+
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
             installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
@@ -92,19 +92,19 @@ def distribute(buildenv):
 
             distName = 'Chandler_win_debug_' + buildVersionShort
             distDir  = buildenv['root'] + os.sep + distName
-            
+
             buildenv['distdir'] = distDir
-            
+
             if os.access(distDir, os.F_OK):
                 hardhatlib.rmdir_recursive(distDir)
-                
+
             os.mkdir(distDir)
 
             manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.debug.win"
             hardhatlib.handleManifest(buildenv, manifestFile)
-            
+
             os.chdir(buildenv['root'])
-            
+
             hardhatlib.convertLineEndings(buildenv['distdir'])
 
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
@@ -123,9 +123,9 @@ def distribute(buildenv):
 
             manifestFile = "distrib/linux/manifest.linux"
             hardhatlib.handleManifest(buildenv, manifestFile)
-            
+
             os.chdir(buildenv['root'])
-            
+
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
             installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
@@ -208,7 +208,7 @@ def distribute(buildenv):
 
             if os.path.exists(installSource):
                 os.rename(installSource, installTarget)
-            
+
                 _outputLine(outputFlagFile, installTargetFile)
 
         # write out the compressed image
@@ -223,19 +223,93 @@ def _outputLine(path, text):
     output.write(text + "\n")
     output.close()
 
-def _createVersionFile(buildenv):
-    majorVersion   = '0'
-    minorVersion   = '5'
-    releaseVersion = '5'
-    versionFile    = 'version.py'
-    if os.path.exists(versionFile):
-        os.remove(versionFile)
-    versionFileHandle = open(versionFile, 'w', 0)
-    versionFileHandle.write('build = "%s"\n' % buildenv['buildVersion'])
-    versionFileHandle.write('release = "%s.%s-%s"\n' % (majorVersion, minorVersion, releaseVersion))
-    versionFileHandle.close()
-    
+
+def _getSVNRevisionInfo(buildenv):
+    revision   = ''
+
+    command = [buildenv["svn"], 'info']
+
+    outputList = hardhatutil.executeCommandReturnOutput(command)
+
+    for line in outputList:
+        if line.lower().startswith('revision:'):
+            revision = line[10:-1]
+            break
+
+    return revision
+
+
+def _getVersionInfo(buildenv):
+    majorVersion    = ''
+    minorVersion    = ''
+    releaseVersion  = ''
+    versionFilename = 'version.py'
+
+    versionFile = open(versionFilename, 'r')
+    lines = versionFile.readlines()
+    versionFile.close()
+
+    data = {}
+
+    for line in lines:
+        line = line.lstrip()
+
+        if not line.startswith('#'):
+            linedata = line.split('=')
+
+            if len(linedata) == 2:
+                id    = linedata[0].strip().lower()
+                value = linedata[1].lstrip()
+                value = value[:-1] #strip off newline
+
+                if value.startswith('"'):
+                    value = value[1:-1]  #remove ""'s hack
+
+                data[id] = value
+
+    data['build']         = buildenv['buildVersion']
+    data['buildRevision'] = _getSVNRevisionInfo(buildenv)
+
+    version = data['release']
+
+    versionData = version.split('.')
+
+    if len(versionData) == 2:
+        majorVersion = versionData[0]
+
+        versionData = versionData[1].split('-')
+
+        if len(versionData) == 2:
+            minorVersion = versionData[0]
+            releaseVersion = versionData[1]
+    else:
+        majorVersion = version
+
+    versionFile = open(versionFilename, 'w')
+
+    headerData = ' # Note:\n \
+#\n \
+# This file is read and parsed by the distribution\n \
+# scripts to determine what the major, minor and\n \
+# release version number is.  It does this in a\n \
+# very brute-force manner: it looks for the line\n \
+# that starts with "release ="\n \
+#\n \
+# The same script also appends to the file the\n \
+# svn revision # in the following format:\n \
+#\n \
+#    buildRevision = "1234"\n \
+#\n\n'
+
+    versionFile.write(headerData)
+
+    for key in data.keys():
+        versionFile.write('%s = "%s"\n' % (key, data[key]))
+
+    versionFile.close()
+
     return (majorVersion, minorVersion, releaseVersion)
+
 
 def generateDocs(buildenv):
 
@@ -248,7 +322,7 @@ def generateDocs(buildenv):
     # Generate the epydocs
     targetDir = os.path.join("docs","api")
     hardhatlib.mkdirs(targetDir)
-    
+
     if sys.platform == 'cygwin':
         chandlerdb = 'release/bin/Lib/site-packages/chandlerdb'
         queryparser = 'release/bin/Lib/site-packages/QueryParser.py'
@@ -257,8 +331,8 @@ def generateDocs(buildenv):
         queryparser = 'release/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/site-packages/QueryParser.py'
     else:
         chandlerdb = 'release/lib/python2.4/site-packages/chandlerdb'
-        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'    
-                
+        queryparser = 'release/lib/python2.4/site-packages/QueryParser.py'
+
     if buildenv['os'] != 'win' or sys.platform == 'cygwin':
         hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
                           '-o %s -v -n Chandler' % targetDir,
