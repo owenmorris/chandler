@@ -1180,12 +1180,9 @@ class Location(ContentItem):
         assert locationName, "Invalid locationName passed to getLocation factory"
 
         # get all Location objects whose displayName match the param
-        its = Location.iterItems(view, exact=True)
-        locQuery = [ i for i in its if i.displayName == locationName ]
-
-        # return the first match found, if any
-        for firstSpot in locQuery:
-            return firstSpot
+        for item in Location.iterItems(view, exact=True):
+            if item.displayName == locationName:
+                return item
 
         # make a new Location
         newLocation = Location(view=view)
