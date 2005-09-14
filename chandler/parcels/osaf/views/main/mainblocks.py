@@ -918,6 +918,7 @@ def make_mainview(parcel):
                                         childrenBlocks=[
                                             PreviewArea.template('PreviewArea',
                                                 contents=app.allCollection,
+                                                calendarContainer=None,
                                                 timeCharacterStyle = \
                                                     CharacterStyle.update(parcel, 
                                                                           'PreviewTimeStyle', 
@@ -930,6 +931,7 @@ def make_mainview(parcel):
                                                 stretchFactor=0.0),
                                             MiniCalendar.template('MiniCalendar',
                                                 contents=app.allCollection,
+                                                calendarContainer = None,
                                                 stretchFactor=0.0),
                                             ]) # BoxContainer PreviewAndMiniCalendar
                                     ]), # SplitterWindow SidebarContainer
