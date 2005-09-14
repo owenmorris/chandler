@@ -165,6 +165,13 @@ endif
 purge:
 	python $(CHANDLERHOME)/tools/purge.py $(CHANDLERHOME)
 
+cats:
+	rm -f $(CHANDLERHOME)/util/QALogger.py
+	rm -f $(CHANDLERHOME)/util/QAUITestAppLib.py
+	rm -rf $(CHANDLERHOME)/util/QATestScripts
+	svn export http://svn.osafoundation.org/qa/chandler/CATS/QATestLib $(CHANDLERHOME)/util/ --force
+	svn export http://svn.osafoundation.org/qa/chandler/CATS/QATestScripts $(CHANDLERHOME)/util/QATestScripts
+
 clean: purge
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
 	rm -f chandler.log randpool.dat
