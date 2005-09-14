@@ -931,7 +931,7 @@ def make_mainview(parcel):
     scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
          displayName = _("Scripts"),
          renameable = False,
-         isPrivate = False
+         private = False
          ).setup(source=scripts)
 
     # Event to put "Scripts" in the Sidebar

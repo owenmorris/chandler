@@ -114,11 +114,11 @@ class ContentItem(schema.Item):
 
     lastModified = schema.One(schema.String)
 
-    isMine = schema.One(schema.Boolean, initialValue=True)
+    mine = schema.One(schema.Boolean, initialValue=True)
 
-    isPrivate = schema.One(schema.Boolean, initialValue=False)
+    private = schema.One(schema.Boolean, initialValue=False)
 
-    isRead = schema.One(
+    read = schema.One(
         schema.Boolean,
         initialValue=False,
         doc="A flag indicating whether the this item has "

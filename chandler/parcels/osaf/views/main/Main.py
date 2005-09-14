@@ -393,13 +393,13 @@ class MainView(View):
     def getSidebarSelectedCollection (self, private=False):
         """
           Return the sidebar's selected item collection.
-        Will not return private collections (whose "isPrivate" attribute
+        Will not return private collections (whose "private" attribute
         is True) unless you pass private=True.
         """
         item = Block.findBlockByName ("Sidebar").selectedItemToView
         if not isinstance (item, AbstractCollection):
             item = None
-        elif private == False and item.isPrivate:
+        elif private == False and item.private:
             item = None
         return item
 
@@ -915,7 +915,31 @@ class MainView(View):
             if share is not None:
                 enable = True
         event.arguments['Enable'] = enable
-        
+
+    def onTakeOnlineOfflineEvent(self, event):
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            if sharing.isOnline(collection):
+                sharing.takeOffline(collection)
+            else:
+                sharing.takeOnline(collection)
+
+    def onTakeOnlineOfflineEventUpdateUI(self, event):
+        enable = False
+        menuTitle = "Toggle online/offline"
+
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None:
+            if sharing.isShared(collection):
+                enable = True
+                if sharing.isOnline(collection):
+                    menuTitle = "Take offline"
+                else:
+                    menuTitle = "Take online"
+
+        event.arguments['Enable'] = enable
+        event.arguments ['Text'] = menuTitle
+
     def onSyncWebDAVEvent (self, event):
         """
           Synchronize WebDAV sharing.

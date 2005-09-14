@@ -152,7 +152,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
             shares.append(share)
             share.displayName = collection.displayName
 
-            share.put()
+            share.sync()
 
         else:
 
@@ -556,6 +556,21 @@ def getShare(collection):
         if share.hidden == False:
             return share
     return None
+
+
+def isOnline(collection):
+    """ Return the active state of the first share, if any """
+    for share in collection.shares:
+        return share.active
+    return False
+
+def takeOnline(collection):
+    for share in collection.shares:
+        share.active = True
+
+def takeOffline(collection):
+    for share in collection.shares:
+        share.active = False
 
 
 def isInboundMailSetUp(view):

@@ -262,8 +262,8 @@ def MakeCollections(parcel):
     mineItems = \
         FilteredCollection.update(parcel, 'mineItems',
             source=notes,
-            filterExpression='getattr(item, \'isMine\', True)',
-            filterAttributes=['isMine'])
+            filterExpression='getattr(item, \'mine\', True)',
+            filterAttributes=['mine'])
 
     mineMinusGeneratedEvents = \
         DifferenceCollection.update(parcel, 'mineMinusGeneratedEvents',

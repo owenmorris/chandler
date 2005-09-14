@@ -380,6 +380,11 @@ def make_mainview(parcel):
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
+    TakeOnlineOfflineEvent = \
+        BlockEvent.template('TakeOnlineOffline',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
+    # from //parcels/osaf/views/main
     ChooseCPIATestMainViewEvent = \
         ChoiceEvent.template('ChooseCPIATestMainView',
             dispatchEnum='SendToBlockByName',
@@ -667,6 +672,10 @@ def make_mainview(parcel):
                                 event=CopyCollectionURLEvent,
                                 title=_(u'Copy URL to clipboard'),
                                 helpString=_(u"Copy the selected collection's URL to the clipboard")),
+                            MenuItem.template('TakeOnlineOfflineItem',
+                                event=TakeOnlineOfflineEvent,
+                                title=_(u'Online/Offline status'),
+                                helpString=_(u"Toggle the collection's online status")),
                             MenuItem.template('SyncCollectionItem',
                                 event=SyncCollectionEvent,
                                 title=_(u'Sync collection'),
@@ -964,7 +973,7 @@ def make_mainview(parcel):
     scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
          displayName = _("Scripts"),
          renameable = False,
-         isPrivate = False
+         private = False
          ).setup(source=scripts)
 
     # Event to put "Scripts" in the Sidebar

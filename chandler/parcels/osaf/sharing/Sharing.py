@@ -449,7 +449,7 @@ class ShareConduit(items.ContentItem):
                     for item in sharingSelf.share.contents:
 
                         # Skip private items
-                        if item.isPrivate:
+                        if item.private:
                             continue
 
                         # Skip generated items:
@@ -1258,7 +1258,7 @@ class WebDAVConduit(ShareConduit):
             if err.status == twisted.web.http.FORBIDDEN or \
                err.status == twisted.web.http.CONFLICT:
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
-                message = "Parent collection for %s is not found" % itemName
+                message = "Publishing %s failed; server rejected our request with status %d" % (itemName, err.status)
                 raise NotFound(message=message)
 
         if newResource is None:

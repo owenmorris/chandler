@@ -244,7 +244,7 @@ class FeedChannel(pim.ListCollection):
 
     def markAllItemsRead(self):
         for item in self:
-            item.isRead = True
+            item.read = True
 
 ##
 # FeedItem

@@ -99,7 +99,7 @@ class Script(pim.ContentItem):
         self.lastRan = datetime.now()
         if bodyString is not None:
             self.bodyString = bodyString # property for the body LOB
-        self.isPrivate = False # can share scripts
+        self.private = False # can share scripts
 
     """
     def isAttributeModifiable(self, attribute):

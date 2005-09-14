@@ -546,7 +546,7 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
         item = self.selectedItem()
         if item is not None:
             tool = event.arguments['sender']
-            if not item.isPrivate and \
+            if not item.private and \
                item.getSharedState() != ContentItem.UNSHARED:
                 # Marking a shared item as "private" could act weird...
                 # Are you sure?
@@ -557,11 +557,11 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
                     # No: Put the not-private state back in the toolbarItem
                     self.widget.ToggleTool(tool.toolID, False)
                     return
-            item.isPrivate = self.widget.GetToolState(tool.toolID)
+            item.private = self.widget.GetToolState(tool.toolID)
             
     def onTogglePrivateEventUpdateUI(self, event):
         item = self.selectedItem()            
-        enable = item is not None and item.isAttributeModifiable('isPrivate')
+        enable = item is not None and item.isAttributeModifiable('private')
         event.arguments ['Enable'] = enable
 
     def _isStampable(self, item):
@@ -631,9 +631,9 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, MenusAndToolbars.ToolbarItem)
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the privateness of the selected item        
         # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
-        if item.isPrivate:
+        if item.private:
             self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
-        self.dynamicParent.widget.ToggleTool(self.toolID, item.isPrivate)
+        self.dynamicParent.widget.ToggleTool(self.toolID, item.private)
         return False
         
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
