@@ -15,16 +15,19 @@ enum {
     REF          = 0x0002,
     REDIRECT     = 0x0004,
     REQUIRED     = 0x0008,
-    PROCESS      = 0x0010,
-    SINGLE       = 0x0020,
-    LIST         = 0x0040,
-    DICT         = 0x0080,
-    SET          = 0x0100,
-    ALIAS        = 0x0200,
-    KIND         = 0x0400,
+    PROCESS_GET  = 0x0010,
+    PROCESS_SET  = 0x0020,
+    SINGLE       = 0x0040,
+    LIST         = 0x0080,
+    DICT         = 0x0100,
+    SET          = 0x0200,
+    ALIAS        = 0x0400,
+    KIND         = 0x0800,
+
     ATTRDICT     = VALUE | REF | REDIRECT,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
     COLLECTION   = LIST | DICT | SET,
+    PROCESS      = PROCESS_GET | PROCESS_SET,
 };
 
 typedef struct {
@@ -244,7 +247,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
 
                 if (attrDict != Py_None)
                 {
-                    if (!(flags & PROCESS))
+                    if (!(flags & PROCESS_GET))
                     {
                         value = PyDict_GetItem(attrDict, self->name);
                         if (value != NULL)
@@ -323,7 +326,8 @@ static int t_descriptor___set__(t_descriptor *self,
                     if (value == oldValue)
                         return 0;
 
-                    if (flags & SINGLE && !(flags & (PROCESS | COLLECTION)) &&
+                    if (flags & SINGLE &&
+                        !(flags & (PROCESS_SET | COLLECTION)) &&
                         oldValue && !PyObject_Compare(value, oldValue))
                         return 0;
                 }
@@ -576,13 +580,15 @@ void initdescriptor(void)
             PyDict_SetItemString_Int(dict, "REF", REF);
             PyDict_SetItemString_Int(dict, "REDIRECT", REDIRECT);
             PyDict_SetItemString_Int(dict, "REQUIRED", REQUIRED);
-            PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
+            PyDict_SetItemString_Int(dict, "PROCESS_GET", PROCESS_GET);
+            PyDict_SetItemString_Int(dict, "PROCESS_SET", PROCESS_SET);
             PyDict_SetItemString_Int(dict, "SINGLE", SINGLE);
             PyDict_SetItemString_Int(dict, "LIST", LIST);
             PyDict_SetItemString_Int(dict, "DICT", DICT);
             PyDict_SetItemString_Int(dict, "SET", SET);
             PyDict_SetItemString_Int(dict, "ALIAS", ALIAS);
             PyDict_SetItemString_Int(dict, "KIND", KIND);
+            PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
 
             m = PyImport_ImportModule("chandlerdb.item.ItemError");
             PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");
