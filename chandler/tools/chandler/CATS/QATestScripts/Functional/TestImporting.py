@@ -15,7 +15,7 @@ fileName = "TestImporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestImporting")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/CATS/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
 print path
 share = Sharing.OneTimeFileSystemShare(path, 'importTest.ics', ICalendar.ICalendarFormat, view=App_ns.itsView)
 

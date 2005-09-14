@@ -17,7 +17,7 @@ fileName = "TestExporting.log"
 logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestExporting")
 
 
-path = os.path.join(os.getenv('CHANDLERHOME'),"util/CATS/QATestScripts/DataFiles")
+path = os.path.join(os.getenv('CHANDLERHOME'),"util/QATestScripts/DataFiles")
 filename = 'exportTest.ics'
 fullpath = os.path.join(path, filename)
 if os.path.exists(fullpath):
