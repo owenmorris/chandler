@@ -267,7 +267,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
 
-    if os.getenv('CHANDLER_PERFORMANCE_TEST').lower() == 'yes':
+    if os.getenv('CHANDLER_PERFORMANCE_TEST', 'no').lower() == 'yes':
         targets = ['install', 'strip', 'cats']
     else:
         targets = ['install', 'strip']
