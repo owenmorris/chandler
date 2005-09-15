@@ -79,7 +79,6 @@ Section "MainSection" SEC01
     ;       to the uninstall section below
     
   File /r "..\..\..\${DISTRIB_DIR}\application"
-  File /r "..\..\..\${DISTRIB_DIR}\crypto"
   File /r "..\..\..\${DISTRIB_DIR}\${SNAP}"
   File /r "..\..\..\${DISTRIB_DIR}\resources"
   File /r "..\..\..\${DISTRIB_DIR}\i18n"
