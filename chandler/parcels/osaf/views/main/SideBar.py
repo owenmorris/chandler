@@ -598,6 +598,7 @@ class SidebarBlock(ControlBlocks.Table):
         # Item specified is usually by name
         try:
             item = event.arguments['item']
+            itemName = ''
         except KeyError:
             # find the item by name
             itemName = event.arguments['itemName']

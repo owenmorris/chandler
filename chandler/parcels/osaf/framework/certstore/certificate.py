@@ -286,6 +286,8 @@ def createSidebarView(repView, cpiaView):
         # XXX just so we can see if this collection is certstore. Besides,
         # XXX isinstance is bad.
         if isinstance(item, CertificateStore):
+            cpiaView.postEventByName('RequestSelectSidebarItem',
+                                     {'item': item})
             return
 
     certstore = CertificateStore(view=repView)
@@ -297,7 +299,7 @@ def createSidebarView(repView, cpiaView):
     # XXX class to make this happen automatically?
     certstore.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
 
-    cpiaView.postEventByName('AddToSidebarWithoutCopying',
+    cpiaView.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
                              {'items': [certstore]})
 
 # XXX end store.py
