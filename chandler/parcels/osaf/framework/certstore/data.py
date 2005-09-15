@@ -29,6 +29,7 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
     pem = []
 
     certificates = 0
+    itsName = None
     
     for line in open(
         os.path.join(
@@ -44,13 +45,15 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
             pem.append(line[:chop])
             x509 = X509.load_cert_string(''.join(pem))
 
-            commonName = itsName
-            itsName = itsName.replace('/', '_')
+            if itsName is not None:
+                commonName = itsName
+                itsName = itsName.replace('/', '_')
+            else:
+                commonName = x509.get_subject().commonName or ''
 
             if not x509.verify():
-                subject = x509.get_subject()
                 log.warn('Skipping certificate, does not verify: %s' % \
-                         (subject.CN))
+                         (commonName))
                 #print x509.as_text()
                 continue
 
@@ -65,6 +68,7 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
             )
             pem = []
             certificates += 1
+            itsName = None
 
         elif pem:
             pem.append(line)
@@ -81,7 +85,7 @@ def installParcel(parcel, oldVersion=None):
 
     loadCerts(parcel, __name__)
     
-    # Create extents   
+    # XXX Create extents - this should go away since repository now has extents
     from osaf.pim.collections import KindCollection
 
     cert = schema.ns('osaf.framework.certstore', parcel)
