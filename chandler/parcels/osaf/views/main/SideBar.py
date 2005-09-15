@@ -598,12 +598,10 @@ class SidebarBlock(ControlBlocks.Table):
         # Item specified is usually by name
         try:
             item = event.arguments['item']
-            itemName = ''
         except KeyError:
-            # find the item by name
-            itemName = event.arguments['itemName']
-            item = None
-        return self.select(item, itemName)
+            return self.select(None, event.arguments['itemName'])
+        else:
+            return self.select(item)
 
     def select (self, item=None, name=''):
         # select the item by reference or name.

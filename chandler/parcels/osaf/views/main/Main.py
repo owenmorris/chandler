@@ -139,9 +139,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
 
         # Tell the sidebar we want to go to the All collection
-        #XXX: [i18n] the displayName is probally not the best identifier to 
-        #     use to look up collections since it is translatable
-        self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
+        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
 
         # If the event cannot be displayed in this viewer, we need to switch to the all view
         viewFilter = Block.findBlockByName ("Sidebar").filterKind
@@ -513,9 +511,7 @@ class MainView(View):
         # self.addItemToAllCollection(photo)
 
         # Tell the sidebar we want to go to the All collection
-        #XXX [i18n] The collection name probally should not be tied
-        #    to the translatable displayName
-        self.postEventByName ('RequestSelectSidebarItem', {'itemName': u"All"})
+        self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
         self.postEventByName ('ApplicationBarAll', { })
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView',
