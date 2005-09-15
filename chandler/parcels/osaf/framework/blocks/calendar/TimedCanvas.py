@@ -377,17 +377,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self._lastUnscrolledPosition = \
             self.dragState.originalPosition
         self.StartDragTimer()
-        pass
         
     def OnEndResizeItem(self):
-        self.StopDragTimer()
-        self.dragState.originalDragBox.ResetResizeMode()
-        pass
-        
-    def OnResizingItem(self, unscrolledPosition):
-        newTime = self.getDateTimeFromPosition(unscrolledPosition)
+        dragState = self.dragState
+        newTime = self.getDateTimeFromPosition(dragState.currentPosition)
         item = self.dragState.currentDragBox.GetItem()
-        resizeMode = self.dragState.originalDragBox.resizeMode
+        resizeMode = dragState.originalDragBox.resizeMode
         delta = timedelta(minutes=15)
 
         tzinfo = item.startTime.tzinfo
@@ -404,6 +399,12 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         elif (resizeMode == TimedCanvasItem.RESIZE_MODE_START and 
               Calendar.datetimeOp(newTime, '<', (item.endTime - delta))):
             item.startTime = newTime
+
+        self.StopDragTimer()
+        self.dragState.originalDragBox.ResetResizeMode()
+        
+    def OnResizingItem(self, unscrolledPosition):
+        self.RebuildCanvasItems()
         self.Refresh()
     
     def OnDragTimer(self):
