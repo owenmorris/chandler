@@ -174,15 +174,24 @@ class DragState(object):
         self._window.CaptureMouse()
         self.dragStartHandler()
         self._dragStarted = True
-    
+        self._dragTimer = wx.PyTimer(self.OnDragTimer)
+        self._dragTimer.Start(100, wx.TIMER_CONTINUOUS)
+
+    def OnDragTimer(self):
+        if self._dragDirty:
+            self.dragHandler(self.currentPosition)
+            self._dragDirty = False
+            
     def HandleDrag(self, unscrolledPosition):
         if not self._dragStarted:
             self.HandleDragStart()
         self.currentPosition = unscrolledPosition
-        self.dragHandler(unscrolledPosition)
+        self._dragDirty = True
 
     def HandleDragEnd(self):
         if self._dragStarted:
+            self._dragTimer.Stop()
+            del self._dragTimer
             self.dragEndHandler()
             self._window.ReleaseMouse()
 
