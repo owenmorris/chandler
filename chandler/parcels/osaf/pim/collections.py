@@ -1,4 +1,5 @@
-_date__ = "$Date: 2005-07-08 00:29:48Z $"
+__revision__ = "$Revision: $"
+__date__ = "$Date: 2005-07-08 00:29:48Z $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.pim"
@@ -22,7 +23,7 @@ def mapChangesCallable(item, version, status, literals, references):
     This is a callback for
     C{repository.persistence.DBRepositoryView.mapChanges}
     
-    c{mapChangesCallable} is called from the application's idle loop:
+    C{mapChangesCallable} is called from the application's idle loop:
     C{application.Application.wxApplication.OnIdle}
     """
     # handle changes to items in a ListCollection
@@ -169,6 +170,9 @@ class AbstractCollection(items.ContentItem):
             self.createIndex()
             return len(self.rep)
 
+    def __nonzero__(self):
+        return True
+
     def createIndex (self):
         """
         Create an index on this collection
@@ -203,9 +207,6 @@ class AbstractCollection(items.ContentItem):
         except NoSuchIndexError:
             self.createIndex()
             return self.resultSet.getIndexPosition (self.indexName, item)
-
-    def __nonzero__(self):
-        return True
 
 class KindCollection(AbstractCollection):
     """
