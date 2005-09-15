@@ -931,6 +931,7 @@ class CalendarEventMixin(ContentItem):
             pass
         elif self.rruleset is not None:
             first = self.getFirstInRule()
+            master = self.getMaster()
             if first == self:
                 # self may have already been changed, find a backup to copy
                 backup = self._getFirstGeneratedOccurrence()
@@ -951,7 +952,7 @@ class CalendarEventMixin(ContentItem):
                     # Unnecessary when we switch endTime->duration
                     newfirst.duration = backup.duration
                     self.occurrenceFor = self.modificationFor = newfirst
-                    newfirst._makeGeneralChange()
+                    newfirst._makeGeneralChange(master)
                     self.modifies = 'this'
                     self.recurrenceID = newfirst.startTime
                     if self.hasLocalAttributeValue('modificationRecurrenceID'):
