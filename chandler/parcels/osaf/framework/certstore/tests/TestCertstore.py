@@ -155,7 +155,7 @@ rZehs7GgIFvKMquNzxPwHynD
         assert cert.fingerprint == '0xFF8013055AAE612AD79C347F06D1B83F93DEB664L'
         assert cert.trust == trust
         assert cert.type == constants.TYPE_SITE
-        assert cert.subjectCommonName == 'bugzilla.osafoundation.org'
+        assert cert.displayName == 'bugzilla.osafoundation.org'
 
     def testImportRootCertificate(self):
         trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
@@ -169,7 +169,7 @@ rZehs7GgIFvKMquNzxPwHynD
         assert cert.fingerprint == '0xADACC622C85DF4C2AE471A81EDA1BD28379A6FA9L'
         assert cert.trust == trust
         assert cert.type == constants.TYPE_ROOT
-        assert cert.subjectCommonName == 'OSAF CA'
+        assert cert.displayName == 'OSAF CA'
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY
