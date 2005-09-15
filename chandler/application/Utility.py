@@ -23,7 +23,7 @@ from repository.item.RefCollections import RefList
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "69" # john: out of the box collections aren't colorized
+SCHEMA_VERSION = "70" # john: AddToSidebar Events now disambiguate displayNames
 
 logger = None # initialized in initLogging()
 

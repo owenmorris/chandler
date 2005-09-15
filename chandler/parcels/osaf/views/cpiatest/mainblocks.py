@@ -388,6 +388,7 @@ def make_mainview(parcel):
                                      methodName='onModifyContentsEvent',
                                      dispatchToBlockName='Sidebar',
                                      copyItems=False,
+                                     disambiguateDisplayName=True,
                                      commitAfterDispatch=True).install(parcel)
                   
     AddToSidebarWithoutCopyingOrCommitingEvent = \
@@ -395,6 +396,7 @@ def make_mainview(parcel):
                                      'SendToBlockByName',
                                      methodName='onModifyContentsEvent',
                                      dispatchToBlockName='Sidebar',
+                                     disambiguateDisplayName=True,
                                      copyItems=False).install(parcel)
                   
     AddToSidebarWithoutCopyingAndSelectFirstEvent = \
@@ -404,6 +406,7 @@ def make_mainview(parcel):
                                      dispatchToBlockName='Sidebar',
                                      copyItems=False,
                                      selectFirstItem=True,
+                                     disambiguateDisplayName=True,
                                      commitAfterDispatch=True).install(parcel)
                   
     

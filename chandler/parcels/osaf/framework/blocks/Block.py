@@ -402,7 +402,7 @@ class Block(schema.Item):
                 else:
                     operation = 'remove'
             if operation == 'add':
-                if event.disambiguateItemNames:
+                if event.disambiguateDisplayName:
                     displayName = item.displayName
                     newDisplayName = displayName
                     suffix = 1;
@@ -425,8 +425,6 @@ class Block(schema.Item):
         assert not event.arguments.has_key ('item')
         if event.copyItems:
             userdata = self.findPath('//userdata')
-
-        assert (event.copyItems or not event.disambiguateItemNames), "Can't disabiguate names unless items are copied"
 
         resultItems = []
         for item in event.items:
@@ -987,7 +985,7 @@ class ModifyContentsEvent(BlockEvent):
     operation = schema.One(operationType, initialValue = 'add')
     copyItems = schema.One(schema.Boolean, initialValue = True)
     selectFirstItem = schema.One(schema.Boolean, initialValue = False)
-    disambiguateItemNames = schema.One(schema.Boolean, initialValue = False)
+    disambiguateDisplayName = schema.One(schema.Boolean, initialValue = False)
     schema.addClouds(
         copying = schema.Cloud(byRef=[items])
     )
