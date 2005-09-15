@@ -22,7 +22,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.loadParcels(
          ['parcel:osaf.pim.contacts',
           'parcel:osaf.pim',
-          'parcel:repository.query.tests.parcels.notification']
+          'parcel:repository.query.tests.NotificationItem']
         )
 
         view = self.rep.view
@@ -37,8 +37,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
-        k = view.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
+        notify_client = NotificationItem.NotificationItem('testNotifier',view)
         item = notify_client
         view.commit()
 
@@ -88,11 +87,10 @@ class TestNotification(QueryTestCase.QueryTestCase):
         q = Query.Query('testQuery', p, k, queryString)
 
         # create an item to handle monitor notifications
-        k = view.findPath('//parcels/notification/NotificationItem')
-        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view, k)
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view)
 
         # create an item to handle reguler commit notifications
-        notify_client = NotificationItem.NotificationItem('testNotifier',view, k)
+        notify_client = NotificationItem.NotificationItem('testNotifier', view)
         # save Notification items and query
         view.commit()
 
@@ -177,8 +175,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         union_query = Query.Query('testQuery', p, k, queryString)
-        k = view.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
+        notify_client = NotificationItem.NotificationItem('testNotifier',view)
         item = notify_client
         view.commit()
 
@@ -242,8 +239,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         import repository.query.Query as Query
         kind = view.findPath('//Schema/Core/Kind')
 
-        k = view.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',view,k)
+        notify_client = NotificationItem.NotificationItem('testNotifier',view)
         item = notify_client
         view.commit()
 
@@ -283,9 +279,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         for i in q.resultSet:
             print i, hasattr(i, 'reminderTime'), i.hasLocalAttributeValue('reminderTime')
 
-        k = view.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier', view, k)
-        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view, k)
+        notify_client = NotificationItem.NotificationItem('testNotifier', view)
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', view)
         item = notify_client
 
         q.subscribe(notify_client, 'handle', False, True)
