@@ -438,7 +438,6 @@ wxSize		actualSize;
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
-	// FIXME: should be - invalidate( newBoundsR )
 	// RecalculateItemExtents();
 	SetViewDirty();
 }
@@ -1686,8 +1685,8 @@ long		resultV, i;
 				resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 
 				// NB: for MSW, existing clips must be destroyed before changing the clipping geometry;
-				// on Mac (and perhaps other platforms) this limitation doesn't apply, but it's used
-				// by a tenuous argument of "balance" with the generic version
+				// on Mac (and perhaps other platforms) this limitation doesn't apply, but it's used here
+				// with the tenuous justification of "balance" with the generic version
 				dc.DestroyClippingRegion();
 			}
 	}
@@ -1698,7 +1697,7 @@ long		resultV, i;
 
 void wxColumnHeader::SetViewDirty( void )
 {
-	Refresh( true, NULL );
+	Refresh( false, NULL );
 }
 
 void wxColumnHeader::RefreshItem(
@@ -1708,10 +1707,19 @@ void wxColumnHeader::RefreshItem(
 #if defined(__WXMSW__)
 	// NB: need to update native item
 	MSWItemRefresh( itemIndex, false );
+#else
+wxRect	wxClientR;
+wxSize	itemExtent;
+
+	wxClientR = GetClientRect();
+	itemExtent = GetUIExtent( itemIndex );
+	wxClientR.x = itemExtent.x;
+	wxClientR.width = itemExtent.y;
+	Refresh( false, &wxClientR );
 #endif
 
-	if (bForceRedraw)
-		SetViewDirty();
+//	if (bForceRedraw)
+//		SetViewDirty();
 }
 
 void wxColumnHeader::RecalculateItemExtents( void )
@@ -1847,7 +1855,7 @@ long		resultV;
 	itemData.cxy = (int)nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
-	itemData.fmt = wxColumnHeaderItem::ConvertJustification( textJust, TRUE ) | HDF_STRING;
+	itemData.fmt = wxColumnHeaderItem::ConvertJustification( textJust, true ) | HDF_STRING;
 	if (bSelected && bSortEnabled)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
@@ -1923,7 +1931,7 @@ BOOL					bHasButtonArrow;
 	bHasButtonArrow = (itemRef->m_ButtonArrowStyle != CH_ARROWBUTTONSTYLE_None);
 
 	// NB: should sort arrows and bitmaps be MutEx?
-	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, TRUE );
+	newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_BitmapJust, true );
 	if (! bHasButtonArrow)
 	{
 		if (itemRef->ValidBitmapRef( itemRef->m_BitmapRef ))
@@ -1935,7 +1943,7 @@ BOOL					bHasButtonArrow;
 		}
 		else
 		{
-			newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, TRUE );
+			newFmt = wxColumnHeaderItem::ConvertJustification( itemRef->m_TextJust, true );
 
 			// add string reference
 			newFmt |= HDF_STRING;
@@ -2384,7 +2392,7 @@ OSStatus				errStatus;
 	wxString		targetStr;
 	long			startX, originX, maxExtentX;
 
-		nativeTextJust = ConvertJustification( m_TextJust, TRUE );
+		nativeTextJust = ConvertJustification( m_TextJust, true );
 
 		// calculate and cache text extent
 		CalculateTextExtent( dc, false );
@@ -2430,6 +2438,11 @@ OSStatus				errStatus;
 				CFRelease( cfLabelText );
 			}
 		}
+
+//		if (errStatus != 0)
+//			wxLogDebug(
+//				wxT("wxColumnHeaderItem::MacDraw(%s: %s) failure [%ld]"),
+//				bUseUnicode ? wxT("unicode") : wxT("ascii"), targetStr.c_str(), (long)errStatus );
 	}
 
 	return (long)errStatus;
