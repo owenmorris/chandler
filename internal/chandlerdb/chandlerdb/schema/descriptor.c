@@ -23,6 +23,7 @@ enum {
     SET          = 0x0200,
     ALIAS        = 0x0400,
     KIND         = 0x0800,
+    NOINHERIT    = 0x1000,
 
     ATTRDICT     = VALUE | REF | REDIRECT,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
@@ -70,6 +71,8 @@ static PyObject *getFlags_NAME;
 static PyObject *otherName_NAME;
 static PyObject *cardinality_NAME;
 static PyObject *redirectTo_NAME;
+static PyObject *inheritFrom_NAME;
+static PyObject *defaultValue_NAME;
 static PyObject *type_NAME;
 static PyObject *required_NAME;
 static PyObject *single_NAME;
@@ -255,17 +258,28 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                             Py_INCREF(value);
                             found = 1;
                         }
+                        else
+                            found = -1;
                     }
-                    else if (flags & REF &&
-                             PyDict_Contains(attrDict, self->name))
+                    else if (flags & REF)
                     {
-                        value = PyObject_CallMethodObjArgs(attrDict, _getRef_NAME, self->name, Py_None, attrID, NULL);
-                        found = 1;
+                        if (PyDict_Contains(attrDict, self->name))
+                        {
+                            value = PyObject_CallMethodObjArgs(attrDict, _getRef_NAME, self->name, Py_None, attrID, NULL);
+                            found = 1;
+                        }
+                        else
+                            found = -1;
                     }
                 }
 
-                if (found)
+                if (found > 0)
                     ((t_item *) obj)->lastAccess = ++_lastAccess;
+                else if (found < 0 && flags & NOINHERIT)
+                {
+                    PyErr_SetObject(PyExc_AttributeError, self->name);
+                    return NULL;
+                }                    
                 else
                     value = PyObject_CallMethodObjArgs(obj, getAttributeValue_NAME, self->name, attrDict, attrID, NULL);
 
@@ -434,7 +448,7 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
     {
         PyObject *values = ((t_item *) attribute)->values;
         PyObject *cardinality = PyDict_GetItem(values, cardinality_NAME);
-        int flags = 0;
+        int flags = NOINHERIT;
 
         if (!cardinality)
             flags |= SINGLE;
@@ -450,18 +464,24 @@ static PyObject *t_descriptor_registerAttribute(t_descriptor *self,
         if (PyDict_GetItem(values, required_NAME) == Py_True)
             flags |= REQUIRED;
 
-        if (PyDict_Contains(values, otherName_NAME))
+        if (PyDict_Contains(values, inheritFrom_NAME) ||
+            PyDict_Contains(values, defaultValue_NAME))
+        {
+            flags &= ~NOINHERIT;
+        }
+
+        if (PyDict_Contains(values, redirectTo_NAME))
+        {
+            flags |= REDIRECT | PROCESS;
+            flags &= ~(CARDINALITY | NOINHERIT);
+        }
+        else if (PyDict_Contains(values, otherName_NAME))
         {
             if (flags & SINGLE)
                 flags |= PROCESS;
 
             flags |= REF;
         }            
-        else if (PyDict_Contains(values, redirectTo_NAME))
-        {
-            flags |= REDIRECT | PROCESS;
-            flags &= ~CARDINALITY;
-        }
         else
         {
             PyObject *references = ((t_item *) attribute)->references;
@@ -588,6 +608,7 @@ void initdescriptor(void)
             PyDict_SetItemString_Int(dict, "SET", SET);
             PyDict_SetItemString_Int(dict, "ALIAS", ALIAS);
             PyDict_SetItemString_Int(dict, "KIND", KIND);
+            PyDict_SetItemString_Int(dict, "NOINHERIT", NOINHERIT);
             PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
 
             m = PyImport_ImportModule("chandlerdb.item.ItemError");
@@ -602,6 +623,8 @@ void initdescriptor(void)
             otherName_NAME = PyString_FromString("otherName");
             cardinality_NAME = PyString_FromString("cardinality");
             redirectTo_NAME = PyString_FromString("redirectTo");
+            inheritFrom_NAME = PyString_FromString("inheritFrom");
+            defaultValue_NAME = PyString_FromString("defaultValue");
             type_NAME = PyString_FromString("type");
             required_NAME = PyString_FromString("required");
             single_NAME = PyString_FromString("single");
