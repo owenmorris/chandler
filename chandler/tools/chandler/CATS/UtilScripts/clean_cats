@@ -1,4 +1,0 @@
-#!/bin/sh
-
-rm $CHANDLERHOME/parcels/osaf/framework/QAUITestAppLib.*
-rm $CHANDLERHOME/parcels/osaf/framework/QALogger.*
