@@ -507,8 +507,6 @@ class MainView(View):
         photo.displayName = filename
         photo.importFromFile(path)
         self.setStatusMessage("")
-        # No longer needed since Photo is a Note
-        # self.addItemToAllCollection(photo)
 
         # Tell the sidebar we want to go to the All collection
         self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
@@ -516,13 +514,6 @@ class MainView(View):
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView',
                               {'item':photo})
-
-    def addItemToAllCollection(self, item):
-        for coll in Block.findBlockByName("Sidebar").contents:
-            #XXX: This wrong will fail with i18n
-            if coll.displayName == "All":
-                coll.add(item)
-                return
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item
