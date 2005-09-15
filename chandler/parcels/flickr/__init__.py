@@ -269,7 +269,7 @@ def installParcel(parcel, oldVersion=None):
 
 
     PeriodicTask.update(parcel, 'FlickrUpdateTask',
-                        invoke = 'osaf.examples.flickr.UpdateTask',
+                        invoke = 'flickr.UpdateTask',
                         run_at_startup = True,
                         interval = timedelta(minutes=2))
 
