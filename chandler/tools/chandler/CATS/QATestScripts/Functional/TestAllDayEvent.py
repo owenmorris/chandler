@@ -1,7 +1,7 @@
 import util.QAUITestAppLib as QAUITestAppLib
 import os
 
-filePath = os.path.expandvars('$CATSREPORTDIR')
+filePath = os.getenv('CATSREPORTDIR')
 if not filePath:
     filePath = os.getcwd()
 
@@ -11,9 +11,7 @@ logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName),"TestAllDayEve
 event = QAUITestAppLib.UITestItem("Event", logger)
 
 #action
-event.logger.Start("set the event to all-day")
 event.SetAllDay(True)
-event.logger.Stop()
 
 #verification
 event.Check_DetailView({"AllDay":True})
