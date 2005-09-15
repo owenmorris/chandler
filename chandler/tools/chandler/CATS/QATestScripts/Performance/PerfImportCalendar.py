@@ -21,17 +21,17 @@ share = Sharing.OneTimeFileSystemShare(path, 'Generated3000.ics', ICalendar.ICal
 
 logger.Start("Import Large Calendar")
 try:
-	collection = share.get()
+    collection = share.get()
 except:
-	logger.Stop()
-	logger.ReportFailure("Importing calendar: exception raised")
+    logger.Stop()
+    logger.ReportFailure("Importing calendar: exception raised")
 else:
-	App_ns.root.AddToSidebarWithoutCopying({'items' : [collection]})	
-	wx.GetApp().Yield()
+    App_ns.root.AddToSidebarWithoutCopying({'items' : [collection]})	
+    wx.GetApp().Yield()
     ev = wx.IdleEvent()
     wx.GetApp().ProcessEvent(ev)
-	logger.Stop()
-	logger.ReportPass("Importing calendar")
+    logger.Stop()
+    logger.ReportPass("Importing calendar")
 
 def TestEventCreation(title):
     global logger
