@@ -1,11 +1,11 @@
 #!/bin/sh
 
 #change here your personnal path to Chandler
-CHANDLERHOME=/Users/olivier/chandler
+CHANDLERHOME=/Users/aparna/trunk/chandler
 #change here your personnal path to CATS
-CATSHOME=/Users/olivier/qa/chandler/CATS
+CATSHOME=/Users/aparna/trunk/qa/chandler/CATS
 #change here your personnal report directory
-CATSREPORTDIR=/Users/olivier
+CATSREPORTDIR=/Users/aparna/cats_logs
 
 
 if [ "$CHANDLERHOME" = "" ]
