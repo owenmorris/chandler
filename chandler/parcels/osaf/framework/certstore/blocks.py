@@ -5,6 +5,48 @@ Certificate store blocks
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
+from osaf.framework.blocks import Block
+from osaf.framework.blocks.detail import Detail
+
+class _CertificateViewController(Block.Block):
+    def onCertificateViewBlockEvent(self, event):
+        from osaf.framework.certstore import certificate
+        import application.Globals as Globals
+        certificate.createSidebarView(self.itsView, Globals.views[0])
+
+class _CertificateImportController(Block.Block):
+    def onCertificateImportBlockEvent(self, event):
+        from osaf.framework.certstore import certificate
+        certificate.importCertificateDialog(self.itsView)
+
+class _EditIntegerAttribute (Detail.EditTextAttribute):
+    #XXX Get rid of this as soon as boolean editors work with properties
+    def saveAttributeFromWidget(self, item, widget, validate):
+        if validate:
+            item.setAttributeValue(self.whichAttribute(),
+                                   int(widget.GetValue()))
+
+    def loadAttributeIntoWidget(self, item, widget):
+        try:
+            value = item.getAttributeValue(self.whichAttribute())
+        except AttributeError:
+            value = 0
+        wiVal = widget.GetValue()
+        if not wiVal or int(wiVal) != value:
+            widget.SetValue(str(value))
+
+
+class _AsTextAttribute (Detail.EditTextAttribute):
+    #XXX Get rid of this, asText should be normal (readonly) value
+    def saveAttributeFromWidget(self, item, widget, validate):
+        pass
+
+    def loadAttributeIntoWidget(self, item, widget):
+        value = item.asTextAsString()
+        if widget.GetValue() != value:
+            widget.SetValue(value)
+
+
 def installParcel(parcel, oldVersion=None):
     from application import schema
 
@@ -12,44 +54,6 @@ def installParcel(parcel, oldVersion=None):
     main      = schema.ns("osaf.views.main", parcel)
     certstore = schema.ns("osaf.framework.certstore", parcel)
     detail    = schema.ns("osaf.framework.blocks.detail", parcel)
-
-    class _CertificateViewController(blocks.Block.Block):
-        def onCertificateViewBlockEvent(self, event):
-            from osaf.framework.certstore import certificate
-            import application.Globals as Globals
-            certificate.createSidebarView(self.itsView, Globals.views[0])
-    
-    class _CertificateImportController(blocks.Block.Block):
-        def onCertificateImportBlockEvent(self, event):
-            from osaf.framework.certstore import certificate
-            certificate.importCertificateDialog(self.itsView)
-
-    class _EditIntegerAttribute (detail.Detail.EditTextAttribute):
-        #XXX Get rid of this as soon as boolean editors work with properties
-        def saveAttributeFromWidget(self, item, widget, validate):
-            if validate:
-                item.setAttributeValue(self.whichAttribute(),
-                                       int(widget.GetValue()))
-    
-        def loadAttributeIntoWidget(self, item, widget):
-            try:
-                value = item.getAttributeValue(self.whichAttribute())
-            except AttributeError:
-                value = 0
-            wiVal = widget.GetValue()
-            if not wiVal or int(wiVal) != value:
-                widget.SetValue(str(value))
-    
-    
-    class _AsTextAttribute (detail.Detail.EditTextAttribute):
-        #XXX Get rid of this, asText should be normal (readonly) value
-        def saveAttributeFromWidget(self, item, widget, validate):
-            pass
-    
-        def loadAttributeIntoWidget(self, item, widget):
-            value = item.asTextAsString()
-            if widget.GetValue() != value:
-                widget.SetValue(value)
 
     # View
 
