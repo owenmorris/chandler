@@ -86,7 +86,7 @@ class UITestItem :
             self.item = item
             # Give the Yield
             wx.GetApp().Yield()
-	    ev = wx.IdleEvent()
+            ev = wx.IdleEvent()
             wx.GetApp().ProcessEvent(ev)
             self.logger.Stop()
     

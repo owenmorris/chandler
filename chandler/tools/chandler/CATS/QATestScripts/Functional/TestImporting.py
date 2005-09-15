@@ -28,6 +28,8 @@ except:
 else:
 	App_ns.root.AddToSidebarWithoutCopying({'items' : [collection]})	
 	wx.GetApp().Yield()
+    ev = wx.IdleEvent()
+    wx.GetApp().ProcessEvent(ev)
 	logger.Stop()
 	logger.ReportPass("Importing calendar")
 
