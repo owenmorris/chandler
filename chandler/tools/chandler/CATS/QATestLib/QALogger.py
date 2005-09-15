@@ -22,8 +22,13 @@ def QALogger(filepath=None,description="No description"):
 
 class TestLogger:        
     def __init__(self,filepath=None,description="No description"):
+        self.startDate = datetime.now()
         if filepath:
             self.inTerminal = False
+            time_stamp = "%s%s%s%s%s%s" %(self.startDate.year, self.startDate.month, self.startDate.day,
+                                          self.startDate.hour, self.startDate.minute, self.startDate.second)
+            # add a time stamp at the end of the filename
+            filepath = filepath+'.'+time_stamp
             try:
                 self.File = open(filepath, 'a')
             except IOError:
@@ -35,7 +40,6 @@ class TestLogger:
         # new testcase inits
         self.Reset()
         # logger inits
-        self.startDate = datetime.now()
         self.testcaseList = []
         self.checked = False
         self.mainDescription = description
