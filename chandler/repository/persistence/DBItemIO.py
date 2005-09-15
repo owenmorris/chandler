@@ -8,7 +8,7 @@ from struct import pack, unpack
 from cStringIO import StringIO
 
 from chandlerdb.util.uuid import UUID, _hash
-from chandlerdb.item.item import Nil, Default
+from chandlerdb.item.item import Nil, Default, isitem
 from repository.item.Item import Item
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
@@ -361,7 +361,7 @@ class DBItemWriter(ItemWriter):
             buffer.write(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
             buffer.write(value._uuid)
 
-        elif value._isItem():
+        elif isitem(value):
             buffer.write(chr(DBItemWriter.SINGLE | DBItemWriter.REF))
             buffer.write(value._uuid._uuid)
 
@@ -377,6 +377,9 @@ class DBItemWriter(ItemWriter):
             size += value._saveValues(version)
             value._validateIndexes()
             size += self.writeIndexes(buffer, item, version, value)
+        
+        else:
+            raise TypeError, value
 
         size += self.store._values.saveValue(self.store.txn, item._uuid,
                                              version, attribute._uuid, uValue,
@@ -858,7 +861,7 @@ class DBItemVMergeReader(DBItemMergeReader):
                 return offset, Nil
 
         if origRef is not None:
-            if not (origRef._isItem() and origRef._uuid == itemRef or
+            if not (isitem(origRef) and origRef._uuid == itemRef or
                     origRef._isUUID() and origRef == itemRef):
                 if origRef._isUUID():
                     origRef = origItem._references._getRef(name, origRef)
@@ -927,7 +930,7 @@ class DBItemRMergeReader(DBItemMergeReader):
 
                 else:
                     offset, value = super(DBItemRMergeReader, self)._ref(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
-                    value._setItem(self.item)
+                    value._setItem(self.item, False)
     
                     return offset, value
 

@@ -440,11 +440,27 @@ class Values(dict):
 
 class References(Values):
 
+    def __setitem__(self, key, value):
+
+        if self._getFlags(key) & Values.READONLY:
+            raise ReadOnlyAttributeError, (self._item, key)
+
+        # bypass Values
+        return super(Values, self).__setitem__(key, value)
+
+    def __delitem__(self, key):
+
+        if self._getFlags(key) & Values.READONLY:
+            raise ReadOnlyAttributeError, (self._item, key)
+
+        # bypass Values
+        return super(Values, self).__delitem__(key)
+
     def _setValue(self, name, other, otherName, **kwds):
 
         if name in self:
             value = self._getRef(name)
-            if value is not None and value._isItem():
+            if value is not None and isitem(value):
                 value._references._removeRef(otherName, self._item)
 
         if other is not None:
@@ -460,7 +476,7 @@ class References(Values):
                     
             if otherName in other._references:
                 value = other._references._getRef(otherName)
-                if value is not None and value._isItem():
+                if value is not None and isitem(value):
                     value._references._removeRef(name, other)
 
         self._setRef(name, other, otherName, **kwds)
@@ -504,7 +520,7 @@ class References(Values):
         if other is None:
             if value is self:
                 raise KeyError, name
-            if value is None or value._isItem() or value._isRefList():
+            if value is None or isitem(value) or value._isRefList():
                 return value
             if value._isUUID():
                 other = item.find(value)
@@ -566,7 +582,7 @@ class References(Values):
             else:
                 self._item.setDirty(self._item.VDIRTY, name, self, True)
             del self[name]
-        elif value._isUUID() and other._isItem() and value == other._uuid:
+        elif value._isUUID() and isitem(other) and value == other._uuid:
             self._item.setDirty(self._item.VDIRTY, name, self, True)
             del self[name]
         elif value._isRefList():
@@ -578,7 +594,7 @@ class References(Values):
 
         if other is not None:
             self._unloadRef(name, other, otherName)
-            if other._isItem():
+            if isitem(other):
                 other._references._unloadRef(otherName, self._item, name)
 
     def _unloadRef(self, name, other, otherName):
@@ -609,7 +625,7 @@ class References(Values):
 
         for value in self.itervalues():
             if value is not None and value._isRefList():
-                value._setItem(item)
+                value._setItem(item, False)
 
     def refCount(self, loaded):
 
@@ -617,7 +633,7 @@ class References(Values):
 
         for value in self.itervalues():
             if value is not None:
-                if value._isItem():
+                if isitem(value):
                     count += 1
                 elif value._isRefList():
                     count += value.refCount(loaded)
@@ -632,7 +648,7 @@ class References(Values):
 
         for value in self.itervalues():
             if value is not None:
-                if value._isItem():
+                if isitem(value):
                     count += 1
                 elif value._isRefList():
                     count += value._refCount()
@@ -667,7 +683,7 @@ class References(Values):
             if value is not None:
                 if value._isRefList():
                     value._unload()
-                elif value._isItem():
+                elif isitem(value):
                     otherName = self._item.itsKind.getOtherName(name)
                     self._unloadValue(name, value, otherName)
 
@@ -811,10 +827,12 @@ class References(Values):
                     hash = _combine(hash, 0)
                 elif value._isUUID():
                     hash = _combine(hash, value._hash)
-                elif value._isItem():
+                elif isitem(value):
                     hash = _combine(hash, value._uuid._hash)
                 elif value._isRefList():
                     hash = _combine(hash, value._hashValues())
+                else:
+                    raise TypeError, value
 
         return hash
 
@@ -874,7 +892,7 @@ class References(Values):
     def _checkRef(self, logger, name, other):
 
         if other is not None:
-            if not other._isItem():
+            if not isitem(other):
                 other = self._item.find(other)
                 if other is None:
                     logger.error('DanglingRefError: %s.%s',

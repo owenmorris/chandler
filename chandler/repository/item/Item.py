@@ -70,7 +70,7 @@ class Item(CItem):
         if itsParent is None:
             raise ValueError, 'parent cannot be None, for roots use a view'
 
-        if itsName is None and not itsParent._isItem():
+        if itsName is None and not isitem(itsParent):
             raise AnonymousRootError, self
 
         self._setParent(itsParent)
@@ -1355,7 +1355,7 @@ class Item(CItem):
 
         def collectItems(item):
             parent = item.itsParent
-            if parent._isItem() and not parent in items:
+            if isitem(parent) and not parent in items:
                 if filter is None or filter(parent) is True:
                     return collectItems(parent)
 
@@ -1924,7 +1924,7 @@ class Item(CItem):
         if name != self._name:
             parent = self.itsParent
 
-            if parent._isItem():
+            if isitem(parent):
                 children = parent._children
             else:
                 children = parent._roots

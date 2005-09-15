@@ -37,7 +37,7 @@ class RefList(LinkedMap, Indexed):
         self._otherName = otherName
 
         if item is not None:
-            self._setItem(item)
+            self._setItem(item, new)
 
         if readOnly:
             self._flags |= RefList.READONLY
@@ -107,7 +107,7 @@ class RefList(LinkedMap, Indexed):
 
         return refList
 
-    def _setItem(self, item):
+    def _setItem(self, item, new):
 
         if self._item is not None and self._item is not item:
             raise AssertionError, 'Item is already set'
@@ -148,7 +148,7 @@ class RefList(LinkedMap, Indexed):
         if key is None:
             return False
 
-        if key._isItem():
+        if isitem(key):
             key = key._uuid
         
         return super(RefList, self).__contains__(key)

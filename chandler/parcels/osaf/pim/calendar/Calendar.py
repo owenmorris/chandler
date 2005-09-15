@@ -25,6 +25,7 @@ import StringIO
 import logging
 
 logger = logging.getLogger(__name__)
+DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 TIMECHANGES = ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset')
 
@@ -972,19 +973,28 @@ class CalendarEventMixin(ContentItem):
             setattr(self, attr, value)
 
 
+    changeNames = ('displayName', 'startTime', 'endTime', 'location', 'body',
+                   'lastModified', 'allDay')
+
     def onValueChanged(self, name):
         # allow initialization code to avoid triggering onValueChanged
-        if getattr(self, '_share_importing', False) or getattr(self, '_ignoreValueChanges', False) or self.rruleset is None:
+        rruleset = name == 'rruleset'
+        changeName = not rruleset and name in CalendarEventMixin.changeNames
+
+        if (not (rruleset or changeName) or
+            self.rruleset is None or
+            getattr(self, '_share_importing', False) or
+            getattr(self, '_ignoreValueChanges', False)):
             return
         # avoid infinite loops
-        if name == "rruleset": 
+        if rruleset:
             logger.debug("just set rruleset")
             gen = self._getFirstGeneratedOccurrence(True)
-            if gen:
-                logger.debug("got first generated occurrence, %s" % gen.serializeMods().getvalue())
+            if DEBUG and gen:
+                logger.debug("got first generated occurrence, %s", gen.serializeMods().getvalue())
 
             # make sure masters get modificationRecurrenceID set
-            if self == self.getFirstInRule():
+            if self is self.getFirstInRule():
                 self.modificationRecurrenceID = self.startTime
                 self.recurrenceID = self.startTime
                 
@@ -996,10 +1006,10 @@ class CalendarEventMixin(ContentItem):
 ##                          itemCollectionInclusions
 ##                          """.split():
         # this won't work with stamping, temporary solution to allow testing
-        if name in """displayName startTime endTime location body lastModified
-                      allDay""".split():
-            logger.debug("about to changeThis in onValueChanged(name=%s) for %s" % (name, str(self)))
-            logger.debug("value is: %s" % getattr(self, name))
+        elif changeName:
+            if DEBUG:
+                logger.debug("about to changeThis in onValueChanged(name=%s) for %s", name, str(self))
+                logger.debug("value is: %s", getattr(self, name))
             self.changeThis()
 
     def _deleteGeneratedOccurrences(self):

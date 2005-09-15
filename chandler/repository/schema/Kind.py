@@ -518,7 +518,7 @@ class Kind(Item):
 
     def iterItems(self, recursive=False):
 
-        for item in self.extent.iterItems():
+        for item in self.extent.iterItems(recursive):
             yield item
 
     def getItemKind(self):
