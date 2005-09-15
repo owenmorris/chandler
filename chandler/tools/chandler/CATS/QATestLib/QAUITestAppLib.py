@@ -503,12 +503,27 @@ class UITestItem :
             if timeInfo:
                 self.logger.Start("Sending the message")
             App_ns.appbar.press(name="ApplicationBarSendButton")
-	    wx.GetApp().Yield()
+            wx.GetApp().Yield()
+            #checkings
+            self.logger.SetChecked(True)
+            sent = None
+            #check if an SMTP account is defined
+            account = Mail.getCurrentSMTPAccount(App_ns.itsView)[0]
+            if account._values['host']=='':
+                self.logger.ReportFailure("(On SMTP account) - Host not defined")
+            else:
+                self.logger.ReportPass("(On SMTP account)")
+                # wait for mail delivery    
+                while not sent:
+                    wx.GetApp().Yield()
+                    try:
+                        sent = self.item.deliveryExtension.state
+                    except AttributeError:
+                        sent = None
             if timeInfo:
                 self.logger.Stop()
-            #checking
-            self.logger.SetChecked(True)
-            if self.item.isOutbound:
+            #check mail delivery
+            if sent == "SENT":
                 self.logger.ReportPass("(On sending message Checking)")
             else:
                 self.logger.ReportFailure("(On sending message Checking)")
