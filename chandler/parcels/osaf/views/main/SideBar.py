@@ -40,6 +40,7 @@ class wxSidebar(ControlBlocks.wxTable):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+        gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
 
     def onKeyDown(self, event):
@@ -85,6 +86,13 @@ class wxSidebar(ControlBlocks.wxTable):
                         top,
                         GetEdge (rect, offsets [1]) - left,
                         height)
+
+    def OnDoubleClick (self, event):
+        unscrolledX, unscrolledY = self.CalcUnscrolledPosition (event.GetX(), event.GetY())
+        if self.YToRow (unscrolledY) == wx.NOT_FOUND:
+            self.blockItem.postEventByName ('NewCollection', {})
+        else:
+            event.Skip() #Let the grid handle the event
 
     def OnMouseEvents (self, event):
         """
