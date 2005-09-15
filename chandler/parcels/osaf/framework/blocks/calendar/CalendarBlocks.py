@@ -11,7 +11,6 @@ import wx
 import wx.calendar
 import wx.minical
 
-from datetime import datetime, timedelta
 from application import schema
 
 from osaf.framework.blocks import Block
@@ -20,12 +19,17 @@ from osaf.framework.blocks import DrawingUtilities
 from osaf.framework.blocks import ContainerBlocks
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
+from PyICU import ICUtzinfo
 from osaf.framework.attributeEditors import DateTimeAttributeEditor
 from i18n import OSAFMessageFactory as _
 
 
 class wxMiniCalendar(wx.minical.MiniCalendar):
+
+    # Used to limit the frequency with which we repaint the minicalendar
+    _redrawCount = 1
+
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_SEL_CHANGED,
@@ -34,6 +38,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                   self.OnWXDoubleClick)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
                   self.setFreeBusy)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def wxSynchronizeWidget(self):
         style = wx.minical.CAL_SUNDAY_FIRST | wx.minical.CAL_SHOW_SURROUNDING_WEEKS | wx.minical.CAL_SHOW_BUSY
@@ -91,43 +96,78 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
 
         self.Refresh()
 
-    def GetBusy(self, busyDate):
-        """
-          The exact algorithm for the busy state is yet to be determined.  For now, just 
-        get the number of confirmed items on the given day.  Each item on that day adds 1/4
-        bar to the busy state of the day.
-        """
-        startDate = datetime(busyDate.GetYear(), busyDate.GetMonth() + 1, busyDate.GetDay())
-        endDate = startDate + timedelta(days=1)
-
-        inRange = list(self.blockItem.getItemsInRange(startDate, endDate, True, True))
-        itemList = [item for item in inRange if item.transparency == "confirmed"]
-        
-        totalHours = 0
-        percentage = 0
-        if len(itemList) > 0:
-            percentage = 0.25
-        for item in inRange:
-            if item.transparency == "confirmed":
-                if item.allDay:
-                    totalHours = 12
-                else:
-                    totalHours += (item.duration.seconds / (60 * 60) )
-        percentage += (totalHours / 12.0)
-        if percentage > 1.0:
-            percentage = 1.0
-        return percentage
-
     def setFreeBusy(self, event):
-        if (not self.blockItem.enableBusyBars):
-            return
-        startDate = self.GetStartDate();
-        endDate = startDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
-        
-        while (startDate != endDate):
-            startDate += wx.DateSpan.Day()
-            self.SetBusy(startDate, self.GetBusy(startDate))
+        if self.blockItem.enableBusyBars:
+            self._redrawCount += 1
+            self.Refresh()
 
+    def OnPaint(self, event):
+        self._checkRedraw()
+        event.Skip(True)
+        
+    def _checkRedraw(self):
+        if self._redrawCount > 0:
+            self._redrawCount = 0
+
+            startWxDate = self.GetStartDate();
+            endWxDate = startWxDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
+            
+            startDate = date(startWxDate.GetYear(),
+                            startWxDate.GetMonth() + 1,
+                            startWxDate.GetDay())
+    
+            month = startDate.month + 3
+            if month > 12:
+                endDate = startDate.replace(year=startDate.year+1,
+                                            month=month - 12)
+            else:
+                endDate = startDate.replace(month=month)
+    
+            numDays = (endDate - startDate).days
+            busyFractions = {}
+            defaultTzinfo = ICUtzinfo.getDefault()
+            
+            """
+              The exact algorithm for the busy state is yet to be determined.  For now, just 
+            get the confirmed items on a given day and calculate their total duration.  As long
+            as there is at least one event the busy bar should be at least 1/4 height (so that it
+            is visible).  A 100% full day is assumed to be 12 hours worth of appointments.
+            """
+            for item in self.blockItem.getItemsInRange(
+                            datetime.combine(startDate, time(0)),
+                            datetime.combine(endDate, time(0)),
+                            True,
+                            True):
+    
+                if item.transparency == "confirmed":
+                    # @@@ Multiday events -- Grant???
+                    if item.startTime.tzinfo is not None:
+                        startTime = item.startTime.astimezone(defaultTzinfo)
+                    else:
+                        startTime = item.startTime
+                    offset = (startTime.date() - startDate).days
+                    
+                    # We set a minimum "Busy" value of 0.25 for any
+                    # day with a confirmed event.
+                    fraction = busyFractions.get(offset, 0.25)
+            
+                    if item.allDay:
+                        hours = 12.0
+                    else:
+                        # Seems wrong for events > 1 day in duration
+                        hours = (item.duration.seconds / (60 * 60) )
+                        
+                    fraction += (hours / 12.0)
+                    
+                    busyFractions[offset] = min(fraction, 1.0)
+    
+            offset = 0
+            while (startDate < endDate):
+                self.SetBusy(startWxDate, busyFractions.get(offset, 0.0))
+                startWxDate += wx.DateSpan.Day()
+                startDate += timedelta(days=1)
+                offset += 1
+    
     def AdjustSplit(self, splitter, height):
         headerHeight = self.GetHeaderSize().height
         previewWidget = Block.Block.findBlockByName("PreviewArea").widget
@@ -228,6 +268,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
 
 
 class wxPreviewArea(wx.Panel):
+    _redrawCount = 1
     vMargin = 4 # space above & below text
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
@@ -243,6 +284,7 @@ class wxPreviewArea(wx.Panel):
         self.labelPosition = -1 # Note that we haven't measured things yet.
                 
     def OnPaint(self, event):
+        self._checkRedraw()
         dc = wx.PaintDC(self)
         self.Draw(dc)
 
@@ -351,19 +393,25 @@ class wxPreviewArea(wx.Panel):
         self.GetParent().GetParent().Thaw()
         
     def wxSynchronizeWidget(self):
-        if isMainCalendarVisible():
-            # disappear!
-            self.ChangeHeightAndAdjustContainers(0)
-            return
+        self._redrawCount += 1
+        
+    def _checkRedraw(self):
+        if self._redrawCount > 0:
+            self._redrawCount = 0
 
-        inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
-        self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
+            if isMainCalendarVisible():
+                # disappear!
+                self.ChangeHeightAndAdjustContainers(0)
+                return
+
+            inRange = list(self.blockItem.getItemsInCurrentRange(True, True))
+            self.currentDaysItems = [item for item in inRange if item.transparency == "confirmed"]
         
-        self.currentDaysItems.sort(cmp = self.SortForPreview)
-        dc = wx.ClientDC(self)
-        drawnHeight = self.Draw(dc)
+            self.currentDaysItems.sort(cmp = self.SortForPreview)
+            dc = wx.ClientDC(self)
+            drawnHeight = self.Draw(dc)
         
-        self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
+            self.ChangeHeightAndAdjustContainers(drawnHeight + (2 * self.vMargin))
 
 
     @staticmethod
