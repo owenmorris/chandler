@@ -100,7 +100,6 @@ rZehs7GgIFvKMquNzxPwHynD
         assert len(rootCerts) > 0
 
         for cert in rootCerts:
-            #print cert.subjectCommonName
             x509 = cert.asX509()
             self.assertTrue(x509.verify())
                 
@@ -111,9 +110,9 @@ rZehs7GgIFvKMquNzxPwHynD
                 assert time.strptime(str(before), format) < now, before
                 assert now < time.strptime(str(after), format), after
             except ValueError:
-                raise ValueError('bad time value in ' + cert.subjectCommonName)
+                raise ValueError('bad time value in ' + cert.displayName)
         
-            self.assertTrue(len(cert.subjectCommonName) > 0)
+            self.assertTrue(len(cert.displayName) > 0)
             self.assertTrue(cert.type == constants.TYPE_ROOT)
             self.assertTrue(cert.trust == constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
             self.assertTrue(cert.fingerprintAlgorithm == 'sha1')

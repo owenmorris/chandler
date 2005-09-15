@@ -36,23 +36,29 @@ class typeEnum(schema.Enumeration):
 class CertificateStore(pim.KindCollection):
     schema.kindInfo(displayName = _("Certificate Store"))
     
+    def __init__(self, *args, **kw):
+        super(CertificateStore, self).__init__(*args, **kw)
+        # XXX Why isn't this picked from the kindInfo above?
+        self.displayName = _('Certificate Store')
+
+        self.kind = self.itsView.findPath('//parcels/osaf/framework/certstore/Certificate')
+
 
 class Certificate(pim.ContentItem):
 
     schema.kindInfo(displayName = "Certificate")
 
-    who = schema.One(redirectTo = 'subjectCommonName')
-    displayName = schema.One(redirectTo = 'subjectCommonName')
+    who = schema.One(redirectTo = 'displayName')
+    displayName = schema.One(
+        schema.String,
+        displayName = _('Display Name'),
+        doc = 'Display Name.',
+    )
     about = schema.One(
         doc = "Issues: type would make more sense, but it isn't supported for summary view.",
         redirectTo = 'trust',
     )
     date = schema.One(redirectTo = 'createdOn')
-    subjectCommonName = schema.One(
-        schema.String,
-        displayName = _('Subject commonName'),
-        doc = 'Subject commonName.',
-    )
     type = schema.One(
         typeEnum,
         displayName = _('Certificate type'),
@@ -167,7 +173,7 @@ def _certificateType(x509):
 
 def _isInRepository(repView, pem):
     # XXX This could be optimized by querying based on some cheap field,
-    # XXX like subjectCommonName, which would typically return just 0 or 1
+    # XXX which would typically return just 0 or 1
     # XXX hit. But I don't want to leave query items laying around either.
     q = utils.getExtent(Certificate, view=repView)
 
@@ -189,7 +195,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     if _isInRepository(repView, pem):
         raise ValueError('X.509 certificate is already in the repository')
         
-    subjectCommonName = x509.get_subject().CN
+    commonName = x509.get_subject().CN
     asText = x509.as_text()
     
     type = _certificateType(x509)
@@ -206,7 +212,7 @@ def importCertificate(x509, fingerprint, trust, repView):
                        type=type,
                        fingerprint=fingerprint,
                        fingerprintAlgorithm='sha1',
-                       subjectCommonName=subjectCommonName,
+                       displayName=commonName,
                        pem=pem,
                        asText=text)
 
@@ -292,13 +298,6 @@ def createSidebarView(repView, cpiaView):
 
     certstore = CertificateStore(view=repView)
     
-    # XXX Why isn't this picked from the CertificateStore class?
-    certstore.displayName = _('Certificate Store')
-    
-    # XXX It seems like it should be possible to put this in the CertificateStore
-    # XXX class to make this happen automatically?
-    certstore.kind = repView.findPath('//parcels/osaf/framework/certstore/Certificate')
-
     cpiaView.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
                              {'items': [certstore]})
 

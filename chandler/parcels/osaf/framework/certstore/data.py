@@ -58,7 +58,7 @@ def loadCerts(parcel, moduleName, filename='cacert.pem'):
                 continue
 
             cert.Certificate.update(parcel, itsName,
-                subjectCommonName = commonName,
+                displayName = commonName,
                 type='root',#cert.TYPE_ROOT, 
                 trust=3,#cert.TRUST_AUTHENTICITY | cert.TRUST_SITE, 
                 fingerprintAlgorithm='sha1',
