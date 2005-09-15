@@ -37,6 +37,7 @@ class Kind(Item):
 
         self.monitorSchema = False
         self.attributesCached = False
+        self.superKindsCached = False
         self.notFoundAttributes = []
         self._initialValues = None
         self._initialReferences = None
@@ -44,8 +45,13 @@ class Kind(Item):
         references = self._references
 
         # recursion avoidance
-        refList = self._refList('inheritedAttributes', 'inheritingKinds', False)
+        refList = self._refList('inheritedAttributes',
+                                'inheritingKinds', False)
         references['inheritedAttributes'] = refList
+
+        refList = self._refList('inheritedSuperKinds',
+                                'inheritingSubKinds', False)
+        references['inheritedSuperKinds'] = refList
 
         refList = self._refList('ofKind', 'kindOf', False)
         references['ofKind'] = refList
@@ -432,8 +438,7 @@ class Kind(Item):
 
         return otherName
 
-    def iterAttributes(self, inherited=True,
-                       localOnly=False, globalOnly=False):
+    def iterAttributes(self, inherited=True, localOnly=False, globalOnly=False):
         """
         Return a generator of C{(name, attribute, kind)} tuples for
         iterating over the Chandler attributes defined for and inherited by
@@ -494,6 +499,19 @@ class Kind(Item):
                         if self.isKindOf(kind):
                             break
                     yield (name, attribute, kind)
+
+    def iterSuperKinds(self):
+
+        inherited = self.inheritedSuperKinds
+
+        if not self.superKindsCached:
+            for superKind in self.getAttributeValue('superKinds',
+                                                    self._references):
+                inherited.append(superKind)
+                inherited.extend(superKind.iterSuperKinds())
+            self.superKindsCached = True
+
+        return iter(inherited)
 
     def _inheritAttribute(self, name):
 
@@ -583,10 +601,8 @@ class Kind(Item):
 
     def _kindOf(self):
 
-        try:
-            return self._references['kindOf']
-
-        except KeyError:
+        kindOf = self._references.get('kindOf', Nil)
+        if kindOf is Nil:
             kindOf = self._refList('kindOf', 'ofKind', False)
             self._references['kindOf'] = kindOf
             for superKind in self.getAttributeValue('superKinds',
@@ -594,7 +610,7 @@ class Kind(Item):
                 kindOf.append(superKind)
                 kindOf.update(superKind._kindOf())
 
-            return kindOf
+        return kindOf
 
     def getInitialValues(self, item, values, references):
 
@@ -653,6 +669,9 @@ class Kind(Item):
         
         self.inheritedAttributes.clear()
         self.attributesCached = False
+
+        self.inheritedSuperKinds.clear()
+        self.superKindsCached = False
 
         del self.notFoundAttributes[:]
         self._initialValues = None
@@ -906,8 +925,9 @@ class Extent(Item):
 
     def _collectionChanged(self, op, change, name, other):
 
-        super(Extent, self)._collectionChanged(op, change, name, other)
+        callable = Item._collectionChanged
 
+        callable(self, op, change, name, other)
         if name == 'extent':
-            for superKind in self.kind.superKinds:
-                superKind.extent._collectionChanged(op, change, name, other)
+            for superKind in self.kind.iterSuperKinds():
+                callable(superKind.extent, op, change, name, other)

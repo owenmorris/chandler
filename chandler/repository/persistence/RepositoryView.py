@@ -34,8 +34,9 @@ class RepositoryView(CView):
     # 0.5.4: BString and UString types renamed to Bytes and Text
     # 0.5.5: added //Schema/Core/Type.types to get rid of type kind query
     # 0.5.6: added support for Kind extents
+    # 0.5.7: added support for Kind inheritedSuperKinds cache
     
-    CORE_SCHEMA_VERSION = 0x00050600
+    CORE_SCHEMA_VERSION = 0x00050700
 
     def __init__(self, repository, name, version):
         """
