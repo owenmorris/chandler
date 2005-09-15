@@ -292,11 +292,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         
     def Draw(self, dc, styles, brushOffset, selected, rightSideCutOff=False):
         # @@@ add a general cutoff parameter?
-        item = self._item	
+        item = self._item
         if item.isDeleted():
             return
-        
-        time = item.startTime	
+
+        # the canvasItem may override the actual item
+        startTime = getattr(self, 'startTime', item.startTime)
+
         isAnyTimeOrAllDay = self.GetAnyTimeOrAllDay()	
         # Draw one event - an event consists of one or more bounds	
        
@@ -368,7 +370,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if drawEventText:
                 # only draw time on timed events
                 if not isAnyTimeOrAllDay:
-                    timeString = formatTime(time)
+                    timeString = formatTime(startTime)
                     te = dc.GetFullTextExtent(timeString, styles.eventTimeFont)	
                     timeHeight = te[1]	
        

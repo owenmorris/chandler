@@ -216,6 +216,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         visibleItems.sort(self.sortByStartTime)
                 
         
+        dragState = self.dragState
+        if (dragState and
+            dragState.currentDragBox):
+            currentDragItem = dragState.currentDragBox.GetItem()
+        else:
+            currentDragItem = None
+            
+        currentDragBox = None
+
         # First generate a sorted list of TimedCanvasItems
         for item in visibleItems:
                                                
@@ -224,17 +233,28 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
             # if we're dragging, update the drag state to reflect the
             # newly rebuild canvasItem
-            if (self.dragState and
-                self.dragState.currentDragBox and 
-                self.dragState.currentDragBox.GetItem() == item):
-                self.dragState.currentDragBox = canvasItem
+            # (should probably happen in CollectionCanvas?)
+            if currentDragItem is item:
+                currentDragBox = dragState.currentDragBox = canvasItem
 
         # now generate conflict info
         self.CheckConflicts()
 
+        # next, generate bounds rectangles for each canvasitem
         for canvasItem in self.canvasItemList:
             # drawing rects should be updated to reflect conflicts
-            canvasItem.UpdateDrawingRects()
+            if currentDragBox is canvasItem:
+
+                # calculate the new time for the dragged canvas item
+                newStartTime = self.GetDragAdjustedTime()
+                newEndTime = newStartTime + canvasItem.GetItem().duration
+
+                # override the item's start time for display purposes
+                canvasItem.startTime = newStartTime
+                
+                canvasItem.UpdateDrawingRects(newStartTime, newEndTime)
+            else:
+                canvasItem.UpdateDrawingRects()
             
         # canvasItemList has to be sorted by depth
         # should be relatively quick because the canvasItemList is already
@@ -396,7 +416,15 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.StartDragTimer()
         
     def OnEndDragItem(self):
+        newStartTime = self.GetDragAdjustedTime()
+        currentItem = self.dragState.currentDragBox.GetItem()
+
+        # finally, write the value back to the item
+        currentItem.startTime = newStartTime
+        
         self.StopDragTimer()
+        self.RebuildCanvasItems()
+        self.Refresh()
         
     def OnDraggingNone(self, unscrolledPosition):
         dragDateTime = self.getDateTimeFromPosition(unscrolledPosition)
@@ -415,44 +443,27 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             
         
     def OnDraggingItem(self, unscrolledPosition):
-        # at the start of the drag, the mouse was somewhere inside the
-        # dragbox, but not necessarily exactly at x,y
-        #
-        # so account for the original offset within the ORIGINAL dragbox so the 
-        # mouse cursor stays in the same place relative to the original box
-        
-        # We need to figure out where the original drag started,
-        # so the mouse stays in the same position relative to
-        # the origin of the item
-        dragState = self.dragState
-        dx, dy = dragState.dragOffset
-        
-        # dx is tricky: we want the user to be able to drag left/right within
-        # the confines of the current day, but if they cross a day threshold,
-        # then we want to shift the whole event over one day
-        # to do this, we need to round dx to the nearest dayWidth
-        dx = roundTo(dx,self.dayWidth)
-        position = wx.Point(unscrolledPosition.x - dx,
-                            unscrolledPosition.y - dy)
-        
-        newTime = self.getDateTimeFromPosition(position)
-        item = dragState.currentDragBox.GetItem()
-        tzinfo = item.startTime.tzinfo
-        
-        if tzinfo is None or newTime.tzinfo is None:
-            newTime = newTime.replace(tzinfo=tzinfo)
-        else:
-            newTime = newTime.astimezone(tzinfo)
-        
-        if ((newTime.date() != item.startTime.date()) or
-            (newTime.hour != item.startTime.hour) or
-            (newTime.minute != item.startTime.minute)):
-            item.startTime = newTime
-            self.RebuildCanvasItems()
-            
-            # this extra paint is actually unnecessary because ContainerBlock is
-            # giving us too many paints on a drag anyway. Why? hmm.
-            #self.Refresh()
+        self.RebuildCanvasItems()
+        self.Refresh()
+
+    def GetDragAdjustedTime(self, position=None):
+        """
+        When a drag is originated within a canvasItem, the drag originates
+        from a point within the canvasItem, represented by dragOffset
+
+        During a drag, you need to put a canvasItem at currentPosition,
+        but you also want to make sure to round it to the nearest dayWidth,
+        so that the event will sort of stick to the current column until
+        it absolutely must move
+        """
+        dx,dy = self.dragState.dragOffset
+        dx = roundTo(dx, self.dayWidth)
+        if position is None:
+            position = self.dragState.currentPosition
+
+        # careful to assign to a new object, not change the existing
+        position = position - (dx, dy)
+        return self.getDateTimeFromPosition(position)
 
     def GetResizeMode(self):
         """
@@ -501,8 +512,16 @@ class TimedCanvasItem(CalendarCanvasItem):
         # need it for drawing hints.. is there a better way?
         self._calendarCanvas = calendarCanvas
 
-    def UpdateDrawingRects(self):
+    def UpdateDrawingRects(self, startTime=None, endTime=None):
+
+        # allow caller to override start/end time
         item = self.GetItem()
+        
+        if not startTime:
+            startTime = item.startTime
+            
+        if not endTime:
+            endTime = item.endTime
        
         dayWidth = self._calendarCanvas.dayWidth
         if self._calendarCanvas.blockItem.dayMode:
@@ -516,8 +535,8 @@ class TimedCanvasItem(CalendarCanvasItem):
             width = dayWidth - self.GetMaxDepth() * 5
 
         self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas,
-                                                          item.startTime,
-                                                          item.endTime, width, indent))
+                                                          startTime, endTime,
+                                                          width, indent))
         self._bounds = self._boundsRects[0]
 
         r = self._boundsRects[-1]
