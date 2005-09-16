@@ -295,10 +295,7 @@ def main():
                 file.close()
 
             exec script in globals()
-        except Exception, e:
-            shutdown()
-            raise
-        else:
+        finally:
             shutdown()
 
     else:
