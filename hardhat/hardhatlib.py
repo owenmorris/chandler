@@ -578,6 +578,9 @@ def distribute(buildenv, module_name, buildVersion):
         module_path = os.path.join(CHANDLERHOME, "__hardhat__.py")
     else:
         module_path = os.path.join(CHANDLERHOME, module_name, "__hardhat__.py")
+    print buildenv['root']
+    print module_name
+    print module_path
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
 
@@ -593,12 +596,14 @@ def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
+        pythonOpts = ''
         pythonPath = buildenv['pythonlibdir_d'] + os.sep + '..' + os.sep + '..'
     elif buildenv['version'] == 'release':
         python = buildenv['python']
+        pythonOpts = '-O'
         pythonPath = buildenv['pythonlibdir'] + os.sep + '..' + os.sep + '..'
 
-    exit_code = executeCommand(buildenv, testFile, [ python, testFile, '-v' ],
+    exit_code = executeCommand(buildenv, testFile, [ python, pythonOpts, testFile, '-v' ],
                                "Testing %s" %(fullPath),
                                HARDHAT_NO_RAISE_ON_ERROR)
     if exit_code != 0:
@@ -617,16 +622,18 @@ def recursiveTest(buildenv, path):
         fullTestFilePath = os.path.join(path, testFile)
         runTest(buildenv, testFile, fullTestFilePath)
 
-    chandler_debug = os.path.join(CHANDLERBIN, 'debug')
+    chandler_debug   = os.path.join(CHANDLERBIN, 'debug')
     chandler_release = os.path.join(CHANDLERBIN, 'release')
+    chandler_tools   = os.path.join(CHANDLERHOME, 'tools')
 
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
         if os.path.isdir(full_name):
-            # Do not recurse into debug or release dirs since they
+            # Do not recurse into debug, release or tools dirs since they
             # should not contain any of our tests.
             if (full_name.rfind(chandler_debug) < 0) and \
-               (full_name.rfind(chandler_release) < 0):
+               (full_name.rfind(chandler_release) < 0) and \
+               (full_name.rfind(chandler_tools) < 0):
                 recursiveTest(buildenv, full_name)
 
 def test(buildenv, dir, *modules):
