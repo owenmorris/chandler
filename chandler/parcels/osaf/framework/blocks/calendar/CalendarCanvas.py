@@ -1022,7 +1022,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
                             drawInfo.xOffset + drawInfo.dayWidth * drawInfo.columns - 1)
         return wx.Point(xPosition, yPosition)
         
-    def getDateTimeFromPosition(self, position, mustBeInBounds=True):
+    def getDateTimeFromPosition(self, position, tzinfo=None, mustBeInBounds=True):
         """
         calculate the date based on the x,y coordinates on the canvas
         
@@ -1046,7 +1046,10 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas,
         deltaTime = self.getRelativeTimeFromPosition(drawInfo, position)
         newTime = startDay + deltaDays + deltaTime
 
-        return newTime.replace(tzinfo=ICUtzinfo.getDefault())
+        newTime = newTime.replace(tzinfo=ICUtzinfo.getDefault())
+        if tzinfo:
+            newTime = newTime.astimezone(tzinfo)
+        return newTime
 
     """
     Methods for Drag and Drop and Cut and Paste

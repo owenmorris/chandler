@@ -245,16 +245,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             # drawing rects should be updated to reflect conflicts
             if currentDragBox is canvasItem:
 
-                resizeMode = self.dragState.originalDragBox.resizeMode
-                if (resizeMode is None or
-                    resizeMode == canvasItem.RESIZE_MODE_START):
-                    # calculate the new time for the dragged canvas item
-                    newStartTime = self.GetDragAdjustedTime()
-                    newEndTime = newStartTime + canvasItem.GetItem().duration
-                elif resizeMode == canvasItem.RESIZE_MODE_END:
-                    newEndTime = \
-                        self.getDateTimeFromPosition(self.dragState.currentPosition)
-                    newStartTime = canvasItem.GetItem().startTime
+                (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
 
                 # override the item's start time for when the time string
                 # is actually displayed in the time
@@ -379,27 +370,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.StartDragTimer()
         
     def OnEndResizeItem(self):
-        dragState = self.dragState
-        newTime = self.getDateTimeFromPosition(dragState.currentPosition)
-        item = self.dragState.currentDragBox.GetItem()
-        resizeMode = dragState.originalDragBox.resizeMode
-        delta = timedelta(minutes=15)
-
-        tzinfo = item.startTime.tzinfo
-        if tzinfo is None or newTime.tzinfo is None:
-            newTime = newTime.replace(tzinfo=tzinfo)
-        else:
-            newTime = newTime.astimezone(tzinfo)
-        
-        # make sure we're changing by at least delta 
-        if (resizeMode == TimedCanvasItem.RESIZE_MODE_END and 
-            Calendar.datetimeOp(newTime, '>', (item.startTime + delta))):
-            item.endTime = newTime
-            
-        elif (resizeMode == TimedCanvasItem.RESIZE_MODE_START and 
-              Calendar.datetimeOp(newTime, '<', (item.endTime - delta))):
-            item.startTime = newTime
-
+        self.FinishDrag()
         self.StopDragTimer()
         self.dragState.originalDragBox.ResetResizeMode()
         
@@ -424,14 +395,16 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         
     def OnBeginDragItem(self):
         self.StartDragTimer()
-        
-    def OnEndDragItem(self):
-        newStartTime = self.GetDragAdjustedTime()
+
+    def FinishDrag(self):
+        (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
         currentItem = self.dragState.currentDragBox.GetItem()
 
-        # finally, write the value back to the item
         currentItem.startTime = newStartTime
+        currentItem.endTime = newEndTime
         
+    def OnEndDragItem(self):
+        self.FinishDrag()
         self.StopDragTimer()
         self.RebuildCanvasItems()
         self.Refresh()
@@ -456,10 +429,11 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         self.RebuildCanvasItems()
         self.Refresh()
 
-    def GetDragAdjustedTime(self, position=None):
+    def GetDragAdjustedStartTime(self, tzinfo):
         """
-        When a drag is originated within a canvasItem, the drag originates
-        from a point within the canvasItem, represented by dragOffset
+        When a moving drag is originated within a canvasItem, the drag
+        originates from a point within the canvasItem, represented by
+        dragOffset
 
         During a drag, you need to put a canvasItem at currentPosition,
         but you also want to make sure to round it to the nearest dayWidth,
@@ -468,13 +442,47 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         """
         dx,dy = self.dragState.dragOffset
         dx = roundTo(dx, self.dayWidth)
-        if position is None:
-            position = self.dragState.currentPosition
+        
+        position = self.dragState.currentPosition - (dx, dy)
 
-        # careful to assign to a new object, not change the existing
-        position = position - (dx, dy)
-        return self.getDateTimeFromPosition(position)
+        return self.getDateTimeFromPosition(position, tzinfo=tzinfo)
 
+    def GetDragAdjustedTimes(self):
+        """
+        return a new start/end time for the currently selected event, based
+        on the current position and drag state. Handles both move and
+        resize drags
+        """
+        item = self.dragState.originalDragBox.GetItem()
+        resizeMode = self.dragState.originalDragBox.resizeMode
+        if resizeMode is None:
+            # moving an item, need to adjust just the start time
+            # for the relative position of the mouse in the item
+            newStartTime = self.GetDragAdjustedStartTime(item.startTime.tzinfo)
+            newEndTime = newStartTime + item.duration
+
+        # top/bottom resizes: just set the appropriate start/end
+        # to where the mouse is
+        elif resizeMode == TimedCanvasItem.RESIZE_MODE_START:
+            newStartTime = \
+                self.getDateTimeFromPosition(self.dragState.currentPosition,
+                                             tzinfo=item.startTime.tzinfo)
+            newEndTime = item.endTime
+
+            if newEndTime - newStartTime <= timedelta(0):
+                newStartTime = newEndTime - timedelta(minutes=15)
+            
+        elif resizeMode == TimedCanvasItem.RESIZE_MODE_END:
+            newEndTime = \
+                self.getDateTimeFromPosition(self.dragState.currentPosition,
+                                             tzinfo=item.endTime.tzinfo)
+            newStartTime = item.startTime
+            if newEndTime - newStartTime <= timedelta(0):
+                newEndTime = newStartTime + timedelta(minutes=15)
+
+
+        return (newStartTime, newEndTime)
+                    
     def getRelativeTimeFromPosition(self, drawInfo, position):
         """
         Get just the hours/minutes from the canvas
