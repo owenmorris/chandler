@@ -67,7 +67,7 @@ def addSurrogatePairToText(text):
 
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
-    collection = pim.ListCollection(view=view)
+    collection = pim.ListCollection(view=view, chooseColor=True)
 
     if args[0]=='*': # semi-random data
         while True:

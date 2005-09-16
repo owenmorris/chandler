@@ -153,7 +153,7 @@ class MainView(View):
 
     def onNewCollectionEvent(self, event):
         # Create a new collection, triggered from File | New Collection
-        coll = pim.InclusionExclusionCollection(view=self.itsView)
+        coll = pim.InclusionExclusionCollection(view=self.itsView, chooseColor=True)
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
         coll.displayName = messages.UNTITLED
         self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[coll]})

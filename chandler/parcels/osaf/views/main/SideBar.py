@@ -14,8 +14,6 @@ import os
 from osaf import sharing
 from application import schema
 from i18n import OSAFMessageFactory as _
-import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
-from osaf.framework.blocks import ColorType
 
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def ReadOnly (self, row, column):
@@ -660,14 +658,6 @@ class SidebarBlock(ControlBlocks.Table):
         # the only way to test for equality is by converting both
         # ColorType's to tuples
         event.arguments['Check'] = color is not None and color.toTuple() == event.color.toTuple()
-
-    def onModifyContentsEvent(self, event):
-        items = super (SidebarBlock, self).onModifyContentsEvent(event)
-        for item in items:
-            if isinstance (item, AbstractCollection) and not hasattr (self, 'color'):
-                rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (CalendarCanvas.ColorInfo.getNextHue(), 0.5, 1.0))
-                item.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
-
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
 
