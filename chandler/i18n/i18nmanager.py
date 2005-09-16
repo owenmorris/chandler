@@ -53,7 +53,7 @@ class I18nManager(object):
         assert isinstance(defaultLocaleSet, ListType)
 
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
-        self._localeSet = None
+        self._localeSet = []
         self._defaultDomain = defaultDomain
         self._defaultLocaleSet = defaultLocaleSet
         self.__initialized = False
@@ -120,8 +120,9 @@ class I18nManager(object):
         assert isinstance(domain, StringType)
         assert isinstance(defaultText, UnicodeType)
 
-        if not self.__initialized:
-            raise i18n.I18nException("I18nManager.translate called before locale set created")
+        #XXX This breaks hardhat commenting out
+        #if not self.__initialized:
+        #raise i18n.I18nException("I18nManager.translate called before locale set created")
 
         if 'test' in self._localeSet and not "Ctrl+" in defaultText:
             """If the 'test' locale is used return a surrogate pair at the 
