@@ -96,16 +96,8 @@ if __name__ == '__main__':
         sys.exit(2)
 
     options = Utility.initOptions()
+    Utility.initI18n(options)
     Utility.initLogging(options)
-
-    import i18n
-    if options.locale:
-        #If a developer is specifically trying to run the tests
-        #in a locale let them
-        i18n.setLocaleSet([options.locale])
-    else:
-        #Otherwise set the locale to English for testing
-        i18n.setLocaleSet(i18n.DEFAULT_LOCALE_SET)
 
     # Rebuild the command line for unittest.main
     args = [sys.argv[0]]
