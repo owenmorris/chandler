@@ -272,7 +272,7 @@ def MakeCollections(parcel):
             sources=[mineItems, generatedEvents])
 
     # the "All" collection
-    InclusionExclusionCollection.update(parcel, 'allCollection',
+    allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
         displayName=messages.ALL,
         renameable = False,
         iconName = "All",
@@ -299,7 +299,7 @@ def MakeCollections(parcel):
             filterAttributes=['isInbound'])
 
     # The "In" collection
-    InclusionExclusionCollection.update(parcel, 'inCollection',
+    inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
         displayName=messages.IN,
         renameable=False,
         iconName="In",
@@ -315,7 +315,7 @@ def MakeCollections(parcel):
             filterAttributes=['isOutbound'])
 
     # The "Out" collection
-    InclusionExclusionCollection.update(parcel, 'outCollection',
+    outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
         displayName=messages.IN,
         renameable=False,
         iconName="Out",
@@ -323,4 +323,11 @@ def MakeCollections(parcel):
         color = ColorType(255, 128, 128, 255), #Red
         colorizeIcon = False
     ).setup(source=outSource, trash=TrashCollection)
+
+    # The Sidebar collection
+    ListCollection.update(parcel, 'sidebarCollection',
+                          refCollection=[allCollection,
+                                         inCollection,
+                                         outCollection,
+                                         TrashCollection])
 

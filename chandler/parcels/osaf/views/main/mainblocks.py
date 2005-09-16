@@ -59,13 +59,6 @@ def make_mainview(parcel):
     repositoryViewer = schema.ns("osaf.views.repositoryviewer", parcel.itsView)
     app  = schema.ns("osaf.app", parcel.itsView)
 
-    sidebarCollection = \
-        pim.ListCollection.update(parcel, 'sidebarCollection',
-                                  refCollection=[app.allCollection,
-                                                 app.inCollection,
-                                                 app.outCollection,
-                                                 app.TrashCollection])
-
     ReminderItems = \
         pim.FilteredCollection.update(parcel, 'ReminderItems',
                                       displayName=_(u'Reminder Items'),
@@ -912,7 +905,7 @@ def make_mainview(parcel):
                                         editRectOffsets=[17, -17, 0],
                                         buttons=[IconButton, SharingButton],
                                         selection=[[0,0]],
-                                        contents=sidebarCollection,
+                                        contents=app.sidebarCollection,
                                         selectedItemToView=app.allCollection,
                                         elementDelegate=u'osaf.views.main.SideBar.SidebarElementDelegate',
                                         hideColumnHeadings=True,
