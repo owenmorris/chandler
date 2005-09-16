@@ -2,10 +2,6 @@ from i18n import OSAFMessageFactory as _
 
 UNTITLED = _(u"Untitled")
 ME = _(u"me")
-ALL = _(u"All")
-IN = _(u"In")
-OUT = _(u"Out")
-TRASH = _(u"Trash")
 SEND = _(u"Send")
 
 

@@ -236,7 +236,7 @@ def MakeCollections(parcel):
 
     TrashCollection = \
         ListCollection.update(parcel, 'TrashCollection',
-            displayName=messages.TRASH,
+            displayName=_(u"Trash"),
             renameable=False,
             iconName="Trash",
             color = ColorType(255, 192, 128, 255), #Orange
@@ -273,7 +273,7 @@ def MakeCollections(parcel):
 
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
-        displayName=messages.ALL,
+        displayName=_(u"All My Items"),
         renameable = False,
         iconName = "All",
         colorizeIcon = False,
@@ -300,7 +300,7 @@ def MakeCollections(parcel):
 
     # The "In" collection
     inCollection = InclusionExclusionCollection.update(parcel, 'inCollection',
-        displayName=messages.IN,
+        displayName=_(u"In"),
         renameable=False,
         iconName="In",
         dontDisplayAsCalendar=True,
@@ -316,7 +316,7 @@ def MakeCollections(parcel):
 
     # The "Out" collection
     outCollection = InclusionExclusionCollection.update(parcel, 'outCollection',
-        displayName=messages.IN,
+        displayName=_(u"Out"),
         renameable=False,
         iconName="Out",
         dontDisplayAsCalendar=True,
