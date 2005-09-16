@@ -21,7 +21,7 @@ import wx.html
 import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
-import osaf.framework.attributeEditors as AttributeEditors
+
 from osaf.framework.blocks import DrawingUtilities
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import application.dialogs.ReminderDialog as ReminderDialog
@@ -1983,3 +1983,9 @@ class AEBlock(BoxContainer):
         else:
             self.post(event, {'item': self.item, 
                               'attribute': self.attributeName })
+
+
+# Ewww, yuk.  Blocks and attribute editors are mutually interdependent
+import osaf.framework.attributeEditors
+AttributeEditors = sys.modules['osaf.framework.attributeEditors']
+
