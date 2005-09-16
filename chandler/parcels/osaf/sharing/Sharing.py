@@ -49,6 +49,8 @@ import twisted.web.http
 import wx
 import zanshin.webdav
 from i18n import OSAFMessageFactory as _
+from osaf import messages
+from osaf import ChandlerException
 
 
 logger = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ logger = logging.getLogger(__name__)
 
 
 class modeEnum(schema.Enumeration):
-    schema.kindInfo(displayName="Mode Enumeration")
+    schema.kindInfo(displayName=u"Mode Enumeration")
     values = "put", "get", "both"
 
 
@@ -66,7 +68,7 @@ class Share(items.ContentItem):
         access method, data format, sharer and sharees. """
 
     schema.kindInfo(
-        displayName="Share Kind",
+        displayName=u"Share Kind",
         description="Represents a shared collection",
     )
 
@@ -138,7 +140,7 @@ class Share(items.ContentItem):
         try:
             self.displayName = contents.displayName
         except:
-            self.displayName = ""
+            self.displayName = u""
 
         self.conduit = conduit
         self.format = format
@@ -222,9 +224,9 @@ class Share(items.ContentItem):
 
             # Get the parent directory of the given path:
             # '/dev1/foo/bar' becomes ['dev1', 'foo']
-            parentPath = path.strip('/').split('/')[:-1]
+            parentPath = path.strip(u'/').split(u'/')[:-1]
             # ['dev1', 'foo'] becomes "dev1/foo"
-            parentPath = "/".join(parentPath)
+            parentPath = u"/".join(parentPath)
 
             # Examine the URL for scheme, host, port, path
             frame = wx.GetApp().mainFrame
@@ -244,12 +246,12 @@ class Share(items.ContentItem):
 
         if account is not None:
             # compute shareName relative to the account path:
-            accountPathLen = len(account.path.strip("/"))
-            shareName = path.strip("/")[accountPathLen:]
+            accountPathLen = len(account.path.strip(u"/"))
+            shareName = path.strip(u"/")[accountPathLen:]
 
             self.hidden = False
 
-            if url.endswith(".ics"):
+            if url.endswith(u".ics"):
                 import ICalendar
                 self.format = ICalendar.ICalendarFormat(parent=self)
                 self.conduit = SimpleHTTPConduit(parent=self,
@@ -262,14 +264,14 @@ class Share(items.ContentItem):
                                              shareName=shareName,
                                              account=account)
                 location = self.getLocation()
-                if not location.endswith("/"):
-                    location += "/"
+                if not location.endswith(u"/"):
+                    location += u"/"
                 handle = self.conduit._getServerHandle()
                 resource = handle.getResource(location)
 
                 exists = handle.blockUntil(resource.exists)
                 if not exists:
-                    raise NotFound(message="%s does not exist" % location)
+                    raise NotFound(_(u"%(location)s does not exist") % {'location': location})
 
                 isCalendar = handle.blockUntil(resource.isCalendar)
                 isCollection =  handle.blockUntil(resource.isCollection)
@@ -307,7 +309,7 @@ class OneTimeShare(Share):
 class ShareConduit(items.ContentItem):
     """ Transfers items in and out. """
 
-    schema.kindInfo(displayName = "Share Conduit Kind")
+    schema.kindInfo(displayName = u"Share Conduit Kind")
 
     share = schema.One(Share, inverse = Share.conduit)
 
@@ -374,7 +376,7 @@ class ShareConduit(items.ContentItem):
         if highVersion > prevVersion or not externalItemExists:
 
             logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-             (item.getItemDisplayName(), item.itsUUID, itemVersion,
+             (item.getItemDisplayName().encode('utf8'), item.itsUUID, itemVersion,
              prevVersion, externalItemExists))
 
             data = self._putItem(item)
@@ -534,7 +536,7 @@ class ShareConduit(items.ContentItem):
             if item is not None:
                 self.__addToManifest(itemPath, item, data)
                 logger.info("...imported '%s' '%s' %s, data: %s" % \
-                 (itemPath, item.getItemDisplayName(), item, data))
+                 (itemPath, item.getItemDisplayName().encode('utf8'), item, data))
 
                 if item not in self.share.items:
                     self.share.items.append(item)
@@ -542,7 +544,8 @@ class ShareConduit(items.ContentItem):
                 return item
 
             logger.error("...NOT able to import '%s'" % itemPath)
-            msg = "Not able to import '%s'" % itemPath
+
+            msg = _(u"Not able to import '%(itemPath)s'") % {'itemPath': itemPath}
             # @@@MOR Shall we just skip bogus imported items?
             # raise SharingError(message=msg)
 
@@ -582,7 +585,7 @@ class ShareConduit(items.ContentItem):
         logger.info("Starting GET of %s" % (location))
 
         if not sharingSelf.exists():
-           raise NotFound(message="%s does not exist" % location)
+           raise NotFound(_(u"%(location)s does not exist") % {'location': location})
 
         sharingSelf.resourceList = sharingSelf._getResourceList(location)
         logger.debug("Resources on server: %s", sharingSelf.resourceList)
@@ -692,7 +695,7 @@ class ShareConduit(items.ContentItem):
 
         def tmpMergeFn(code, item, attribute, value):
             # print "Conflict:", code, item, attribute, value
-            logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName, attribute, str(item.getAttributeValue(attribute)), str(value)))
+            logger.info("Sharing conflict: Item=%s, Attribute=%s, Local=%s, Remote=%s" % (item.displayName.encode('utf8'), attribute, str(item.getAttributeValue(attribute)), str(value)))
             return value # let the user win
             # return item.getAttributeValue(attribute) # let the server win
 
@@ -859,7 +862,7 @@ class ShareConduit(items.ContentItem):
 
 class FileSystemConduit(ShareConduit):
 
-    schema.kindInfo(displayName="File System Share Conduit Kind")
+    schema.kindInfo(displayName=u"File System Share Conduit Kind")
 
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
@@ -882,7 +885,7 @@ class FileSystemConduit(ShareConduit):
         if self.hasLocalAttributeValue("sharePath") and \
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
-        raise Misconfigured()
+        raise Misconfigured(_(u"A misconfiguration error was encountered"))
 
     def _putItem(self, item):
         path = self.__getItemFullPath(self._getItemPath(item))
@@ -890,7 +893,8 @@ class FileSystemConduit(ShareConduit):
         try:
             text = self.share.format.exportProcess(item)
         except Exception, e:
-            raise TransformationFailed(message=str(e))
+            logging.exception(e)
+            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         if text is None:
             return None
@@ -919,7 +923,8 @@ class FileSystemConduit(ShareConduit):
             item = self.share.format.importProcess(text,
                 extension=extension, item=into)
         except Exception, e:
-            raise TransformationFailed(message=str(e))
+            logging.exception(e)
+            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         stat = os.stat(path)
         return (item, stat.st_mtime)
@@ -967,10 +972,10 @@ class FileSystemConduit(ShareConduit):
         super(FileSystemConduit, self).create()
 
         if self.exists():
-            raise AlreadyExists()
+            raise AlreadyExists(_(u"Share path already exists"))
 
         if self.sharePath is None or not os.path.isdir(self.sharePath):
-            raise Misconfigured(message="Share path is not set, or path doesn't exist")
+            raise Misconfigured(_(u"Share path is not set, or path doesn't exist"))
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -984,7 +989,7 @@ class FileSystemConduit(ShareConduit):
         path = self.getLocation()
 
         if not self.exists():
-            raise NotFound(message="%s does not exist" % path)
+            raise NotFound(_(u"%(path)s does not exist") % {'path': path})
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -1001,13 +1006,13 @@ class FileSystemConduit(ShareConduit):
         path = self.getLocation()
 
         if not self.exists():
-            raise NotFound(message="%s does not exist" % path)
+            raise NotFound(_(u"%(path)s does not exist") % {'path': path})
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class WebDAVConduit(ShareConduit):
 
-    schema.kindInfo(displayName="WebDAV Share Conduit Kind")
+    schema.kindInfo(displayName=u"WebDAV Share Conduit Kind")
 
     account = schema.One('WebDAVAccount', inverse = 'conduits')
     host = schema.One(schema.String)
@@ -1114,13 +1119,14 @@ class WebDAVConduit(ShareConduit):
         try:
             result = self._getServerHandle().blockUntil(resource.exists)
         except zanshin.error.ConnectionError, err:
-            raise CouldNotConnect(message=err.args[0])
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err.args[0]})
         except M2Crypto.BIO.BIOError, err:
-            message = "%s" % (err)
-            raise CouldNotConnect(message=message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except zanshin.webdav.PermissionsError, err:
-            message = "Not authorized to PUT %s" % self.getLocation()
-            raise NotAllowed(message=err.message)
+            message = _(u"Not authorized to PUT %(info)s") % {'info': self.getLocation()}
+            logging.exception(err)
+            raise NotAllowed(message)
+
 
         return result
 
@@ -1154,40 +1160,40 @@ class WebDAVConduit(ShareConduit):
                     child = handle.blockUntil(resource.createCollection,
                                               childName)
             except zanshin.webdav.ConnectionError, err:
-                raise CouldNotConnect(message=err.message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                message = "%s" % (err)
-                raise CouldNotConnect(message=message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except zanshin.http.HTTPError, err:
                 logger.error('Received status %d attempting to create %s',
                              err.status, self.getLocation())
 
                 if err.status == twisted.web.http.NOT_ALLOWED:
                     # already exists
-                    message = "Collection at %s already exists" % url
-                    raise AlreadyExists(message=message)
+                    message = _(u"Collection at %(url)s already exists") % {'url': url}
+                    raise AlreadyExists(message)
 
                 if err.status == twisted.web.http.UNAUTHORIZED:
                     # not authorized
-                    message = "Not authorized to create collection %s" % url
-                    raise NotAllowed(message=message)
+                    message = _(u"Not authorized to create collection %(url)s") % {'url': url}
+                    raise NotAllowed(message)
 
                 if err.status == twisted.web.http.CONFLICT:
                     # this happens if you try to create a collection within a
                     # nonexistent collection
                     (host, port, sharePath, username, password, useSSL) = \
                         self.__getSettings()
-                    message = "The directory '%s' could not be found on %s.\nPlease verify the Path setting in your WebDAV account" % (sharePath, host)
-                    raise NotFound(message=message)
+                    message = _(u"The directory '%(directoryName)s' could not be found on %(server)s.\nPlease verify the Path setting in your %(accountType)s account") % {'directoryName': sharePath, 'server': host,
+                                                        'accountType': 'WebDAV'}
+                    raise NotFound(message)
 
                 if err.status == twisted.web.http.FORBIDDEN:
                     # the server doesn't allow the creation of a collection here
-                    message = "Server doesn't allow the creation of collections at %s" % url
-                    raise IllegalOperation(message=message)
+                    message = _(u"Server doesn't allow the creation of collections at %(url)s") % {'url': url}
+                    raise IllegalOperation(message)
 
                 if err.status != twisted.web.http.CREATED:
-                     message = "WebDAV error, status = %d" % err.status
-                     raise IllegalOperation(message=message)
+                     message = _(u"WebDAV error, status = %(statusCode)d") % {'statusCode': err.status}
+                     raise IllegalOperation(message)
 
     def destroy(self):
         if self.exists():
@@ -1221,8 +1227,9 @@ class WebDAVConduit(ShareConduit):
         try:
             text = self.share.format.exportProcess(item)
         except Exception, e:
-            logger.exception("Transformation failed for %s" % item)
-            raise TransformationFailed(message=str(e))
+            logging.exception(e)
+            msg = _(u"Transformation failed for %(item)s") % {'item': item}
+            raise TransformationFailed(msg)
 
         if text is None:
             return None
@@ -1243,27 +1250,26 @@ class WebDAVConduit(ShareConduit):
                                     container.createFile, itemName, body=text,
                                     type=contentType)
         except zanshin.webdav.ConnectionError, err:
-            raise CouldNotConnect(message=err.message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            message = "%s" % (err)
-            raise CouldNotConnect(message=message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         # 201 = new, 204 = overwrite
 
         except zanshin.webdav.PermissionsError:
-            message = "Not authorized to PUT %s" % itemName
-            raise NotAllowed(message=message)
+            message = _(u"Not authorized to PUT %(info)s") % {'info': itemName}
+            raise NotAllowed(message)
 
         except zanshin.webdav.WebDAVError, err:
 
             if err.status == twisted.web.http.FORBIDDEN or \
                err.status == twisted.web.http.CONFLICT:
                 # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
-                message = "Publishing %s failed; server rejected our request with status %d" % (itemName, err.status)
-                raise NotFound(message=message)
+                message = _(u"Publishing %(itemName)s failed; server rejected our request with status %(status)d") % {'itemName': itemName, 'status': err.status}
+                raise NotFound(message)
 
         if newResource is None:
-            message = "Not authorized to PUT %s" % itemName
-            raise NotAllowed(message=message)
+            message = _(u"Not authorized to PUT %(itemName)s") % {'itemName': itemName}
+            raise NotAllowed(message)
 
         etag = newResource.etag
 
@@ -1278,10 +1284,9 @@ class WebDAVConduit(ShareConduit):
             try:
                 deleteResp = self._getServerHandle().blockUntil(resource.delete)
             except zanshin.webdav.ConnectionError, err:
-                raise CouldNotConnect(message=err.message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                message = "%s" % (err)
-                raise CouldNotConnect(message=message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
     def _getItem(self, itemPath, into=None):
         view = self.itsView
@@ -1291,18 +1296,17 @@ class WebDAVConduit(ShareConduit):
             resp = self._getServerHandle().blockUntil(resource.get)
 
         except zanshin.webdav.ConnectionError, err:
-            raise CouldNotConnect(message=err.message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            message = "%s" % (err)
-            raise CouldNotConnect(message=message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
-            message = "Not found: %s" % resource.path
-            raise NotFound(message=message)
+            message = _(u"Path %(path)s not found") % {'path': resource.path}
+            raise NotFound(message)
 
         if resp.status == twisted.web.http.UNAUTHORIZED:
-            message = "Not authorized to get %s" % resource.path
-            raise NotAllowed(message=message)
+            message = _(u"Not authorized to GET %(path)s") % {'path': resource.path}
+            raise NotAllowed(message)
 
         text = resp.body
 
@@ -1313,7 +1317,8 @@ class WebDAVConduit(ShareConduit):
         except Exception, e:
             logger.exception("Failed to parse XML for item %s: '%s'" % (itemPath,
                                                                     text))
-            raise TransformationFailed(message="%s %s (See chandler.log for text)" % (itemPath, str(e)))
+            raise TransformationFailed(_(u"%(itemPath)s %(error)s (See chandler.log for text)") % \
+                                       {'itemPath': itemPath, 'error': e})
 
         return (item, etag)
 
@@ -1334,19 +1339,19 @@ class WebDAVConduit(ShareConduit):
                                 shareCollection.getAllChildren)
 
             except zanshin.webdav.ConnectionError, err:
-                raise CouldNotConnect(message=err.message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                message = "%s" % (err)
-                raise CouldNotConnect(message=message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except zanshin.webdav.WebDAVError, e:
 
                 if e.status == twisted.web.http.NOT_FOUND:
-                    raise NotFound(message="Not found: %s" % shareCollection.path)
+                    raise NotFound(_(u"Path %(path)s not found") % {'path': shareCollection.path})
 
                 if e.status == twisted.web.http.UNAUTHORIZED:
-                    raise NotAllowed(message="Not allowed: %s" % shareCollection.path)
+                    raise NotAllowed(_(u"Not authorized to get %(path)s") % {'path': shareCollection.path})
 
-                raise
+                raise SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
+
 
             for child in children:
                 if child != shareCollection:
@@ -1364,13 +1369,12 @@ class WebDAVConduit(ShareConduit):
             try:
                 self._getServerHandle().blockUntil(resource.propfind, depth=0)
             except zanshin.webdav.ConnectionError, err:
-                raise CouldNotConnect(message=err.message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
-                message = "%s" % (err)
-                raise CouldNotConnect(message=message)
+                raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except zanshin.webdav.PermissionsError, err:
-                message = "Not authorized to get %s" % location
-                raise NotAllowed(message=message)
+                message = _(u"Not authorized to GET %(path)s") % {'path': location}
+                raise NotAllowed(message)
 #            except NotFoundError:
 #                message = "Not found: %s" % url
 #                raise NotFound(message=message)
@@ -1395,7 +1399,7 @@ class WebDAVConduit(ShareConduit):
 class SimpleHTTPConduit(WebDAVConduit):
     """ Useful for get-only subscriptions of remote .ics files """
 
-    schema.kindInfo(displayName="Simple HTTP Share Conduit Kind")
+    schema.kindInfo(displayName=u"Simple HTTP Share Conduit Kind")
 
     lastModified = schema.One(schema.String, initialValue = '')
 
@@ -1420,18 +1424,16 @@ class SimpleHTTPConduit(WebDAVConduit):
                 return
 
         except zanshin.webdav.ConnectionError, err:
-            raise CouldNotConnect(message=err.message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
-            message = "%s" % (err)
-            raise CouldNotConnect(message=message)
+            raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
         if resp.status == twisted.web.http.NOT_FOUND:
-            message = "Not found: %s" % location
-            raise NotFound(message=message)
+            raise NotFound(_(u"%(location)s does not exist") % {'location': location})
 
         if resp.status == twisted.web.http.UNAUTHORIZED:
-            message = "Not authorized to get %s" % location
-            raise NotAllowed(message=message)
+            message = _(u"Not authorized to GET %(path)s") % {'path': location}
+            raise NotAllowed(message)
 
         logger.info("...received; processing...")
 
@@ -1439,7 +1441,8 @@ class SimpleHTTPConduit(WebDAVConduit):
             text = resp.body
             self.share.format.importProcess(text, item=self.share)
         except Exception, e:
-            raise TransformationFailed(message=str(e))
+            logging.exception(e)
+            raise TransformationFailed(_(u"Transformation error: see chandler.log for more information"))
 
         lastModified = resp.headers.getHeader('Last-Modified')
         self.lastModified = lastModified[-1]
@@ -1479,16 +1482,9 @@ def splitUrl(url):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class SharingError(Exception):
-    """ Generic Sharing exception. """
-    def __init__(self, message=None):
-        self.message = message
+class SharingError(ChandlerException):
+    pass
 
-    def __str__(self):
-        try:
-            return "Sharing error '%s'" % self.message
-        except:
-            return "Sharing error"
 
 class AlreadyExists(SharingError):
     """ Exception raised if a share already exists. """
@@ -1517,7 +1513,7 @@ class TransformationFailed(SharingError):
 
 class WebDAVAccount(items.ContentItem):
     schema.kindInfo(
-        displayName="WebDAV Account",
+        displayName=messages.ACCOUNT % {'accountName': 'WebDAV Account'},
         description="A WebDAV 'Account'\n\n"
             "Issues:\n"
             "   Long term we're probably not going to treat WebDAV as an "
@@ -1525,11 +1521,11 @@ class WebDAVAccount(items.ContentItem):
             "mappings.\n",
     )
     username = schema.One(
-        schema.String, displayName = 'Username', initialValue = '',
+        schema.String, displayName = messages.USERNAME, initialValue = '',
     )
     password = schema.One(
         schema.String,
-        displayName = 'Password',
+        displayName = messages.PASSWORD,
         description = 
             'Issues: This should not be a simple string. We need some solution for '
             'encrypting it.\n',
@@ -1537,30 +1533,30 @@ class WebDAVAccount(items.ContentItem):
     )
     host = schema.One(
         schema.String,
-        displayName = 'Host',
+        displayName = messages.HOST,
         doc = 'The hostname of the account',
         initialValue = '',
     )
     path = schema.One(
         schema.String,
-        displayName = 'Path',
+        displayName = messages.PATH,
         doc = 'Base path on the host to use for publishing',
         initialValue = '',
     )
     port = schema.One(
         schema.Integer,
-        displayName = 'Port',
+        displayName = messages.PORT,
         doc = 'The non-SSL port number to use',
         initialValue = 80,
     )
     useSSL = schema.One(
         schema.Boolean,
-        displayName = 'Use secure connection (SSL/TLS)',
+        displayName = _(u'Use secure connection (SSL/TLS)'),
         doc = 'Whether or not to use SSL/TLS',
         initialValue = False,
     )
     accountType = schema.One(
-        displayName = 'Account Type', initialValue = 'WebDAV',
+        displayName = _(u'Account Type'), initialValue = 'WebDAV',
     )
     conduits = schema.Sequence(WebDAVConduit, inverse = WebDAVConduit.account)
 
@@ -1627,7 +1623,7 @@ class WebDAVAccount(items.ContentItem):
 
 class ImportExportFormat(items.ContentItem):
 
-    schema.kindInfo(displayName="Import/Export Format Kind")
+    schema.kindInfo(displayName=u"Import/Export Format Kind")
 
     share = schema.One(Share, inverse = Share.format)
 
@@ -1649,7 +1645,7 @@ class ImportExportFormat(items.ContentItem):
 
 class CloudXMLFormat(ImportExportFormat):
 
-    schema.kindInfo(displayName="Cloud XML Import/Export Format Kind")
+    schema.kindInfo(displayName=u"Cloud XML Import/Export Format Kind")
 
     cloudAlias = schema.One(schema.String)
 
@@ -1924,9 +1920,9 @@ class CloudXMLFormat(ImportExportFormat):
                             valueItem = self.__importNode(valueNode)
                             if valueItem is not None:
                                 logger.debug("for %s setting %s to %s" % \
-                                    (item.getItemDisplayName(),
+                                    (item.getItemDisplayName().encode('utf8'),
                                      attrName,
-                                     valueItem.getItemDisplayName()))
+                                     valueItem.getItemDisplayName().encode('utf8')))
                                 item.setAttributeValue(attrName, valueItem)
 
                     elif cardinality == 'list':
@@ -1936,9 +1932,9 @@ class CloudXMLFormat(ImportExportFormat):
                                 valueItem = self.__importNode(valueNode)
                                 if valueItem is not None:
                                     logger.debug("for %s setting %s to %s" % \
-                                        (item.getItemDisplayName(),
+                                        (item.getItemDisplayName().encode("utf8"),
                                          attrName,
-                                         valueItem.getItemDisplayName()))
+                                         valueItem.getItemDisplayName().encode('utf8')))
                                     item.addValue(attrName, valueItem)
 
                             valueNode = valueNode.next
@@ -1964,11 +1960,11 @@ class CloudXMLFormat(ImportExportFormat):
                         if not hasattr(item, attrName) or \
                             (value != item.getAttributeValue(attrName)):
                             logger.debug( "for %s setting %s to %s" % \
-                                (item.getItemDisplayName(), attrName, value))
+                                (item.getItemDisplayName().encode('utf8'), attrName, value))
                             item.setAttributeValue(attrName, value)
                         else:
                             logger.debug( "for %s skipping %s of %s" % \
-                                (item.getItemDisplayName(), attrName, value))
+                                (item.getItemDisplayName().encode('utf8'), attrName, value))
                             pass
 
                     elif cardinality == 'list':
@@ -1980,7 +1976,7 @@ class CloudXMLFormat(ImportExportFormat):
                                 values.append(value)
                             valueNode = valueNode.next
                         logger.debug("for %s setting %s to %s" % \
-                            (item.getItemDisplayName(), attrName, values))
+                            (item.getItemDisplayName().encode('utf8'), attrName, values))
                         item.setAttributeValue(attrName, values)
 
                     elif cardinality == 'dict':

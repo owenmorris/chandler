@@ -6,8 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 """ Contains common utility methods shared across the Mail Domain (SMTP, IMAP4, POP3) and message parsing"""
 
 #python imports
-import email 
-import email.Message as Message
 import email.Utils as Utils
 import os
 import logging
@@ -32,7 +30,11 @@ __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
 log = logging.getLogger("MailService")
 
 def trace(printString):
+
     if printString is not None:
+        if isinstance(printString, Exception):
+            return log.exception(printString)
+
         frame = sys._getframe(1)
         """Get the package and class name from the frame stack"""
         caller = frame.f_locals.get('self')
@@ -53,28 +55,28 @@ class Counter:
         return self.counter
 
 
-def loadMailTests(view, dir):
+def loadMailTests(view, dr):
     import osaf.mail.message as message
 
     mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
-                           'tests', dir)
+                           'tests', dr)
 
     files = os.listdir(mimeDir)
 
-    for file in files:
-        if not file.startswith('test_'):
+    for f in files:
+        if not f.startswith('test_'):
             continue
 
         if message.verbose():
-            logging.warn("Opening File: %s" % file)
+            logging.warn("Opening File: %s" % f)
 
-        filename = os.path.join(mimeDir, file)
+        filename = os.path.join(mimeDir, f)
 
         fp = open(filename)
         messageText = fp.read()
         fp.close()
 
-        mailMessage = message.messageTextToKind(view, messageText)
+        message.messageTextToKind(view, messageText)
 
     view.commit()
 
@@ -113,17 +115,16 @@ def disableTwistedTLS(items, TLSKEY='STARTTLS'):
     if items != None and TLSKEY != None:
         try:
             del items[TLSKEY]
-
         except KeyError:
             pass
 
     return items
 
-def alert(message, *args):
+def alert(message, args):
     """Displays a generic alert dialog"""
     NotifyUIAsync(message % args, alert=True)
 
-def alertMailError(message, account, *args):
+def alertMailError(message, account, args):
     """Displays a mail specific alert dialog with a Edit Account Settings 
        button which takes the user to the Account Dialog"""
     NotifyUIAsync(message % args, None, 'displayMailError', account)
@@ -137,7 +138,7 @@ def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
     NotifyUIAsync(cert, None, 'askIgnoreSSLError', err, 
                   reconnectMethod)
 
-def NotifyUIAsync(message, logger=None, callable='setStatusMessage', *args, **keys):
+def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
     """Temp method for posting a event to the CPIA layer. This
        method will be refactored when notifcations come in to play"""
 
@@ -147,7 +148,7 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', *args, **ke
     wxApplication = Globals.wxApplication
 
     if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync(Globals.views[0], callable,
+        wxApplication.CallItemMethodAsync(Globals.views[0], cl,
                                           message, *args, **keys)
 
 
@@ -237,8 +238,8 @@ def binaryToData(binary):
     assert isinstance(binary, Lob), "Must pass a Lob instance"
     assert binary.encoding is None, "Encoding must be None for inputstreamr API"
 
-    input = binary.getInputStream()
-    data = input.read()
-    input.close()
+    inp = binary.getInputStream()
+    data = inp.read()
+    inp.close()
 
     return data

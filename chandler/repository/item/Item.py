@@ -1623,7 +1623,7 @@ class Item(CItem):
                     cloud.exportItems(self, view, cloudAlias, matches)
 
         return matches[uuid]
-            
+
     def getItemDisplayName(self):
         """
         Return this item's display name.
@@ -1635,7 +1635,7 @@ class Item(CItem):
             - the item's intrinsic name
             - the item's base64 encoded UUID surrounded by {}
 
-        @return: a string
+        @return: a unicode
         """
 
         if 'displayName' in self._values:
@@ -1645,9 +1645,9 @@ class Item(CItem):
             if 'displayAttribute' in self._kind._values:
                 displayAttribute = self._kind.displayAttribute
                 if self.hasLocalAttributeValue(displayAttribute):
-                    return self.getAttributeValue(displayAttribute)
-                
-        return self._name or '{%s}' %(self._uuid.str64())
+                    return unicode(self.getAttributeValue(displayAttribute))
+
+        return unicode(self._name) or unicode('{%s}' % (self._uuid.str64()))
 
     def getItemDisplayString(self):
         """

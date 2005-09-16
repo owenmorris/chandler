@@ -145,13 +145,13 @@ class PeriodicTask(TwistedTask):
 
     interval = schema.One(
         schema.TimeDelta,
-        displayName = 'Interval between run() calls',
+        displayName = u'Interval between run() calls',
         initialValue = datetime.timedelta(0),
     )
 
     run_at_startup = schema.One(
         schema.Boolean,
-        displayName = "Also run at startup",
+        displayName = u"Also run at startup",
         initialValue = False
     )
 

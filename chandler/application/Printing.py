@@ -33,7 +33,7 @@ class Printing(object):
         if not self.preview.Ok():
             return
         
-        frame = wx.PreviewFrame(self.preview, self.frame, _("Print preview"))
+        frame = wx.PreviewFrame(self.preview, self.frame, _(u"Print preview"))
         
         frame.Initialize()
         frame.SetPosition(self.frame.GetPosition())
@@ -50,7 +50,7 @@ class Printing(object):
         if not printSuccess:
             printError = printer.GetLastError()
             if ((printError != wx.PRINTER_CANCELLED) and (printError != 0)):
-                wx.MessageBox(_("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _("Printing"), wx.OK)
+                wx.MessageBox(_(u"There was a problem printing.\nPerhaps your current printer is not set correctly?"), _(u"Printing"), wx.OK)
         else:
             self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
         printout.Destroy()

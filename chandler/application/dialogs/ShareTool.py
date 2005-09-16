@@ -74,7 +74,7 @@ class ShareToolDialog(wx.Dialog):
         self.shares = []
         for item in sharing.Share.iterItems(self.view):
             self.shares.append(item)
-            display = "'%s' -- %s" % (item.getItemDisplayName(),
+            display = u"'%s' -- %s" % (item.getItemDisplayName(),
              item.conduit.account.getItemDisplayName())
             self.sharesList.Append(display)
 
@@ -215,8 +215,8 @@ class ShareEditorDialog(wx.Dialog):
         else: # creating the share
 
             account = sharing.getWebDAVAccount(self.view)
-            self.textTitle.SetValue(_("Enter a descriptive title"))
-            self.textShareName.SetValue(_("Enter directory name to use"))
+            self.textTitle.SetValue(_(u"Enter a descriptive title"))
+            self.textShareName.SetValue(_(u"Enter directory name to use"))
 
         self.accounts = []
         i = 0
@@ -303,7 +303,7 @@ class ShareEditorDialog(wx.Dialog):
 
 def ShowShareEditorDialog(parent, share=None, join=False, resources=None,
  view=None):
-        win = ShareEditorDialog(parent, _("Share Editor"), share=share, join=join,
+        win = ShareEditorDialog(parent, _(u"Share Editor"), share=share, join=join,
          resources=resources, view=view)
         win.CenterOnScreen()
         val = win.ShowModal()
@@ -373,7 +373,7 @@ class CollectionEditorDialog(wx.Dialog):
 
 def ShowCollectionEditorDialog(parent, collection=None, resources=None,
  view=None):
-        win = CollectionEditorDialog(parent, _("Collection Editor"),
+        win = CollectionEditorDialog(parent, _(u"Collection Editor"),
          collection=collection, resources=resources, view=view)
         win.CenterOnScreen()
         win.ShowModal()

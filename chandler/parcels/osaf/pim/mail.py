@@ -28,6 +28,7 @@ import chandlerdb.item.ItemError as ItemError
 
 from repository.util.Path import Path
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 """
 Design Issues:
@@ -106,33 +107,33 @@ def getCurrentMailAccount(view, uuid=None):
 
 
 class connectionSecurityEnum(schema.Enumeration):
-    schema.kindInfo(displayName="Connection Security Enumeration")
+    schema.kindInfo(displayName=u"Connection Security Enumeration")
     values = "NONE", "TLS", "SSL"
 
 
 class AccountBase(items.ContentItem):
 
     schema.kindInfo(
-        displayName="Account base kind",
+        displayName=u"Account base kind",
         description="The base kind for various account kinds, such as "
                     "IMAP, SMTP, WebDav"
     )
 
     numRetries = schema.One(
         schema.Integer,
-        displayName = _('Number of Retries'),
+        displayName = _(u'Number of Retries'),
         doc = 'How many times to retry before giving up',
         initialValue = 1,
     )
     username = schema.One(
         schema.String,
-        displayName = _('Username'),
+        displayName = messages.USERNAME,
         doc = 'The account login name',
         initialValue = '',
     )
     password = schema.One(
         schema.String,
-        displayName = _('Password'),
+        displayName = _(u'Password'),
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
               'for this account type.\n\n'
@@ -143,41 +144,41 @@ class AccountBase(items.ContentItem):
     )
     host = schema.One(
         schema.String,
-        displayName = _('Host'),
+        displayName = _(u'Host'),
         doc = 'The hostname of the account',
         initialValue = '',
     )
     port = schema.One(
-        schema.Integer, displayName = _('Port'), doc = 'The port number to use',
+        schema.Integer, displayName = _(u'Port'), doc = 'The port number to use',
     )
     connectionSecurity = schema.One(
         connectionSecurityEnum,
-        displayName = _('Connection Security'),
+        displayName = _(u'Connection Security'),
         doc = 'The security mechanism to leverage for a network connection',
         initialValue = 'NONE',
     )
     pollingFrequency = schema.One(
         schema.Integer,
-        displayName = 'Polling frequency',
+        displayName = u'Polling frequency',
         doc = 'Frequency in seconds',
         initialValue = 300,
     )
     mailMessages = schema.Sequence(
         'MailMessageMixin',
-        displayName = 'Mail Messages',
+        displayName = u'Mail Messages',
         doc = 'Mail Messages sent or retrieved with this account ',
         initialValue = [],
         inverse = 'parentAccount',
     )
     timeout = schema.One(
         schema.Integer,
-        displayName = _('Timeout'),
+        displayName = _(u'Timeout'),
         doc = 'The number of seconds before timing out a stalled connection',
         initialValue = 60,
     )
     isActive = schema.One(
         schema.Boolean,
-        displayName = 'Is active',
+        displayName = u'Is active',
         doc = 'Whether or not an account should be used for sending or '
               'fetching email',
         initialValue = True,
@@ -195,35 +196,35 @@ class AccountBase(items.ContentItem):
 class DownloadAccountBase(AccountBase):
 
     schema.kindInfo(
-        displayName="Download Account Base",
+        displayName=u"Download Account Base",
         description="Base Account for protocols that download mail",
     )
 
     defaultSMTPAccount = schema.One(
         'SMTPAccount',
-        displayName = _('Default SMTP Account'),
+        displayName = _(u'Default SMTP Account'),
         doc = 'Which SMTP account to use for sending mail from this account',
         initialValue = None,
         inverse = 'accounts',
     )
     downloadMax = schema.One(
         schema.Integer,
-        displayName = 'Download Max',
+        displayName = u'Download Max',
         doc = 'The maximum number of messages to download before forcing a repository commit',
         initialValue = 20,
     )
     replyToAddress = schema.One(
         'EmailAddress',
-        displayName = _('Reply-To Address'),
+        displayName = _(u'Reply-To Address'),
         initialValue = None,
         inverse = 'accounts',
     )
     emailAddress = schema.One(
-        displayName = 'Reply-To Address (Redirect)',
+        displayName = u'Reply-To Address (Redirect)',
         redirectTo = 'replyToAddress.emailAddress',
     )
     fullName = schema.One(
-        displayName = 'Full Name (Redirect)',
+        displayName = u'Full Name (Redirect)',
         redirectTo = 'replyToAddress.fullName',
     )
 
@@ -233,13 +234,13 @@ class SMTPAccount(AccountBase):
     accountType = "SMTP"
 
     schema.kindInfo(
-        displayName=_("SMTP Account"),
+        displayName=_(u"SMTP Account"),
         description="An SMTP Account",
     )
 
     port = schema.One(
         schema.Integer,
-        displayName = _('Port'),
+        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for an "
@@ -249,13 +250,13 @@ class SMTPAccount(AccountBase):
     )
     useAuth = schema.One(
         schema.Boolean,
-        displayName = _('Use Authentication'),
+        displayName = _(u'Use Authentication'),
         doc = 'Whether or not to use authentication when sending mail',
         initialValue = False,
     )
     accounts = schema.Sequence(
         DownloadAccountBase,
-        displayName = 'Accounts',
+        displayName = u'Accounts',
         doc = 'Which accounts use this SMTP account as their default',
         initialValue = [],
         inverse = DownloadAccountBase.defaultSMTPAccount,
@@ -274,13 +275,13 @@ class IMAPAccount(DownloadAccountBase):
     accountType = "IMAP"
 
     schema.kindInfo(
-        displayName = _("IMAP Account"),
+        displayName = _(u"IMAP Account"),
         description = "An IMAP Account",
     )
 
     port = schema.One(
         schema.Integer,
-        displayName = _('Port'),
+        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "
@@ -290,7 +291,7 @@ class IMAPAccount(DownloadAccountBase):
     )
     messageDownloadSequence = schema.One(
         schema.Long,
-        displayName = 'Message Download Sequence',
+        displayName = u'Message Download Sequence',
         initialValue = 0L,
     )
 
@@ -300,12 +301,12 @@ class POPAccount(DownloadAccountBase):
     accountType = "POP"
 
     schema.kindInfo(
-        displayName = _("POP Account"),
+        displayName = _(u"POP Account"),
         description = "An POP Account",
     )
     port = schema.One(
         schema.Integer,
-        displayName = _('Port'),
+        displayName = _(u'Port'),
         doc = 'The non-SSL port number to use\n\n'
             "Issues:\n"
             "   In order to get a custom initialValue for this attribute for "
@@ -315,13 +316,13 @@ class POPAccount(DownloadAccountBase):
     )
     downloadedMessageUIDS = schema.Mapping(
         schema.String,
-        displayName = 'Downloaded Message UID',
+        displayName = u'Downloaded Message UID',
         doc = 'Used for quick look up to discover if a message has already been downloaded',
         initialValue = {},
     )
     leaveOnServer = schema.One(
         schema.Boolean,
-        displayName = 'Leave Mail On Server',
+        displayName = u'Leave Mail On Server',
         doc = 'Whether or not to leave messages on the server after downloading',
         initialValue = True,
     )
@@ -330,14 +331,14 @@ class POPAccount(DownloadAccountBase):
 class MailDeliveryError(items.ContentItem):
 
     schema.kindInfo(
-        displayName="Mail Delivery Error kind",
+        displayName=u"Mail Delivery Error kind",
         description=
             "Contains the error data associated with a MailDelivery Type"
     )
 
     errorCode = schema.One(
         schema.Integer,
-        displayName = 'The Error Code',
+        displayName = u'The Error Code',
         doc = 'The Error Code returned by the Delivery Transport',
         initialValue = 0,
     )
@@ -345,7 +346,7 @@ class MailDeliveryError(items.ContentItem):
     errorDate = schema.One(schema.DateTime)
     mailDelivery = schema.One(
         'MailDeliveryBase',
-        displayName = 'Mail Delivery',
+        displayName = u'Mail Delivery',
         doc = 'The Mail Delivery that cause this error',
         initialValue = None,
         inverse = 'deliveryErrors',
@@ -364,21 +365,21 @@ class MailDeliveryError(items.ContentItem):
 class MailDeliveryBase(items.ContentItem):
 
     schema.kindInfo(
-        displayName = "Mail Delivery base kind",
+        displayName = u"Mail Delivery base kind",
         description =
             "Parent kind for delivery-specific attributes of a MailMessage"
     )
 
     mailMessage = schema.One(
         'MailMessageMixin',
-        displayName = 'Message',
+        displayName = u'Message',
         doc = 'Message which this delivery item refers to',
         initialValue = None,
         inverse = 'deliveryExtension',
     )
     deliveryErrors = schema.Sequence(
         MailDeliveryError,
-        displayName = 'Mail Delivery Errors',
+        displayName = u'Mail Delivery Errors',
         doc = 'Mail Delivery Errors associated with this transport',
         initialValue = [],
         inverse = MailDeliveryError.mailDelivery,
@@ -397,7 +398,7 @@ class stateEnum(schema.Enumeration):
 class SMTPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = "SMTP Delivery",
+        displayName = u"SMTP Delivery",
         description = "Tracks the status of an outgoing message\n\n"
             "Issues:\n\n"
             "   Currently the parcel loader can't set a default value for the "
@@ -406,18 +407,18 @@ class SMTPDelivery(MailDeliveryBase):
 
     history = schema.Sequence(
         historyEnum,
-        displayName = 'History',
+        displayName = u'History',
         initialValue = [],
     )
     tries = schema.One(
         schema.Integer,
-        displayName = 'Number of tries',
+        displayName = u'Number of tries',
         doc = 'How many times we have tried to send it',
         initialValue = 0,
     )
     state = schema.One(
         stateEnum,
-        displayName = 'State',
+        displayName = u'State',
         doc = 'The current state of the message\n\n'
         "Issues:\n"
         "   We don't appear to be able to set an initialValue for an "
@@ -450,40 +451,40 @@ class SMTPDelivery(MailDeliveryBase):
 class IMAPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = "IMAP Delivery",
+        displayName = u"IMAP Delivery",
         description = "Tracks the state of an inbound message",
     )
 
     folder = schema.One(
-        schema.String, displayName = 'Folder', initialValue = '',
+        schema.String, displayName = u'Folder', initialValue = '',
     )
     uid = schema.One(
         schema.Long,
-        displayName = 'IMAP UID',
+        displayName = u'IMAP UID',
         doc = 'The unique IMAP ID for the message',
         initialValue = 0,
     )
     namespace = schema.One(
         schema.String,
-        displayName = 'Namespace',
+        displayName = u'Namespace',
         doc = 'The namespace of the message',
         initialValue = '',
     )
     flags = schema.Sequence(
-        schema.String, displayName = 'Flags', initialValue = [],
+        schema.String, displayName = u'Flags', initialValue = [],
     )
 
 
 class POPDelivery(MailDeliveryBase):
 
     schema.kindInfo(
-        displayName = "POP Delivery",
+        displayName = u"POP Delivery",
         description = "Tracks the state of an inbound message",
     )
 
     uid = schema.One(
         schema.String,
-        displayName = 'POP UID',
+        displayName = u'POP UID',
         doc = 'The unique POP ID for the message',
         initialValue = '',
     )
@@ -491,7 +492,7 @@ class POPDelivery(MailDeliveryBase):
 
 class MIMEBase(items.ContentItem):
     schema.kindInfo(
-        displayName="MIME Base Kind",
+        displayName=u"MIME Base Kind",
         description="Super kind for MailMessage and the various MIME kinds",
     )
 
@@ -512,14 +513,14 @@ class MIMENote(MIMEBase):
     # was removed from MIMENote's superKinds list
 
     schema.kindInfo(
-        displayName="MIME Note",
+        displayName=u"MIME Note",
         description="MIMEBase and Note, rolled into one",
     )
 
     filename = schema.One(
-        schema.String, displayName = _('File name'), initialValue = '',
+        schema.String, displayName = _(u'File name'), initialValue = '',
     )
-    filesize = schema.One(schema.Long, displayName = _('File Size'))
+    filesize = schema.One(schema.Long, displayName = _(u'File Size'))
 
     schema.addClouds(
         sharing = schema.Cloud(filename, filesize),
@@ -528,12 +529,12 @@ class MIMENote(MIMEBase):
 
 class MIMEContainer(MIMEBase):
 
-    schema.kindInfo(displayName="MIME Container Kind")
+    schema.kindInfo(displayName=u"MIME Container Kind")
 
     hasMimeParts = schema.One(schema.Boolean, initialValue = False)
     mimeParts = schema.Sequence(
         MIMEBase,
-        displayName = 'MIME Parts',
+        displayName = u'MIME Parts',
         initialValue = [],
         inverse = MIMEBase.mimeContainer,
     )
@@ -553,8 +554,7 @@ class MailMessageMixin(MIMEContainer):
         and how it should be included in the cloud.  For now it's byValue.
     """
     schema.kindInfo(
-        displayName="Mail Message Mixin",
-        displayAttribute="subject",
+        displayName=u"Mail Message Mixin"
     )
     deliveryExtension = schema.One(
         MailDeliveryBase,
@@ -569,17 +569,17 @@ class MailMessageMixin(MIMEContainer):
     spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob)
     dateSentString = schema.One(schema.String, initialValue = '')
-    dateSent = schema.One(schema.DateTime)
+    dateSent = schema.One(schema.DateTime, displayName=_(u"date sent"))
     messageId = schema.One(schema.String, initialValue = '')
     toAddress = schema.Sequence(
         'EmailAddress',
-        displayName = 'to',
+        displayName = _(u'To'),
         initialValue = [],
         inverse = 'messagesTo',
     )
     fromAddress = schema.One(
         'EmailAddress',
-        displayName = 'from',
+        displayName = _(u'From'),
         initialValue = None,
         inverse = 'messagesFrom',
     )
@@ -592,7 +592,7 @@ class MailMessageMixin(MIMEContainer):
     ccAddress = schema.Sequence(
         'EmailAddress', initialValue = [], inverse = 'messagesCc',
     )
-    subject = schema.One(schema.String, initialValue = '')
+    subject = schema.One(schema.String, displayName=_(u"subject"))
     headers = schema.Mapping(
         schema.String, doc = 'Catch-all for headers', initialValue = {},
     )
@@ -734,7 +734,7 @@ class MailMessageMixin(MIMEContainer):
 
 class MailMessage(MailMessageMixin, notes.Note):
     schema.kindInfo(
-        displayName = _("Mail Message"),
+        displayName = _(u"Mail Message"),
         displayAttribute = "subject",
         description = "MailMessageMixin, and Note, all rolled up into one",
     )
@@ -742,34 +742,34 @@ class MailMessage(MailMessageMixin, notes.Note):
 
 class MIMEBinary(MIMENote):
 
-    schema.kindInfo(displayName = "MIME Binary Kind")
+    schema.kindInfo(displayName = u"MIME Binary Kind")
 
 
 class MIMEText(MIMENote):
 
-    schema.kindInfo(displayName = "MIME Text Kind")
+    schema.kindInfo(displayName = u"MIME Text Kind")
 
     charset = schema.One(
         schema.String,
-        displayName = 'Character set encoding',
+        displayName = u'Character set encoding',
         initialValue = 'utf-8',
     )
     lang = schema.One(
         schema.String,
-        displayName = 'Character set Language',
+        displayName = u'Character set Language',
         initialValue = 'en',
     )
 
 
 class MIMESecurity(MIMEContainer):
 
-    schema.kindInfo(displayName="MIME Security Kind")
+    schema.kindInfo(displayName=u"MIME Security Kind")
 
 
 class EmailAddress(items.ContentItem):
-    
+
     schema.kindInfo(
-        displayName = "Email Address Kind",
+        displayName = u"Email Address Kind",
         displayAttribute = "emailAddress",
         description = "An item that represents a simple email address, plus "
                       "all the info we might want to associate with it, like "
@@ -791,7 +791,7 @@ class EmailAddress(items.ContentItem):
 
     emailAddress = schema.One(
         schema.String,
-        displayName = _('Email Address'),
+        displayName = _(u'Email Address'),
         doc = 'An RFC 822 email address.\n\n'
             "Examples:\n"
             '   "abe@osafoundation.org"\n'
@@ -801,13 +801,13 @@ class EmailAddress(items.ContentItem):
     )
     fullName = schema.One(
         schema.String,
-        displayName = _('Full Name'),
+        displayName = _(u'Full Name'),
         doc = 'A first and last name associated with this email address',
         initialValue = '',
     )
     vcardType = schema.One(
         schema.String,
-        displayName = 'vCard type',
+        displayName = u'vCard type',
         doc = "Typical vCard types are values like 'internet', 'x400', and "
               "'pref'. Chandler will use this attribute when doing "
               "import/export of Contact records in vCard format.",
@@ -815,7 +815,7 @@ class EmailAddress(items.ContentItem):
     )
     accounts = schema.Sequence(
         DownloadAccountBase,
-        displayName = 'Used as Return Address by Email Account',
+        displayName = u'Used as Return Address by Email Account',
         doc = 'A list of Email Accounts that use this Email Address as the '
               'reply address for mail sent from the account.',
         initialValue = [],
@@ -823,42 +823,42 @@ class EmailAddress(items.ContentItem):
     )
     messagesBcc = schema.Sequence(
         MailMessageMixin,
-        displayName = 'Messages Bcc',
+        displayName = u'Messages Bcc',
         doc = 'A list of messages with their Bcc: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.bccAddress,
     )
     messagesCc = schema.Sequence(
         MailMessageMixin,
-        displayName = 'Messages cc',
+        displayName = u'Messages cc',
         doc = 'A list of messages with their cc: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.ccAddress,
     )
     messagesFrom = schema.Sequence(
         MailMessageMixin,
-        displayName = 'Messages From',
+        displayName = u'Messages From',
         doc = 'A list of messages with their From: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.fromAddress,
     )
     messagesReplyTo = schema.Sequence(
         MailMessageMixin,
-        displayName = 'Messages Reply To',
+        displayName = u'Messages Reply To',
         doc = 'A list of messages with their Reply-To: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.replyToAddress,
     )
     messagesTo = schema.Sequence(
         MailMessageMixin,
-        displayName = 'Messages To',
+        displayName = u'Messages To',
         doc = 'A list of messages with their To: header referring to this address',
         initialValue = [],
         inverse = MailMessageMixin.toAddress,
     )
     inviteeOf = schema.Sequence(
         'osaf.pim.collections.AbstractCollection',
-        displayName = 'Invitee Of',
+        displayName = u'Invitee Of',
         doc = 'List of collections that the user is about to be invited to share with.',
         inverse = 'invitees',
     )
@@ -886,24 +886,30 @@ class EmailAddress(items.ContentItem):
                 pass
 
     def __str__(self):
+        if self.isStale():
+            return super(EmailAddress, self).__str__()
+
+        return self.__unicode__().encode('utf8')
+
+    def __unicode__(self):
         """
           User readable string version of this address
         """
         if self.isStale():
-            return super(EmailAddress, self).__str__()
+            return super(EmailAddress, self).__unicode__()
             # Stale items shouldn't go through the code below
 
         try:
             if self is self.getCurrentMeEmailAddress(self.itsView):
-                fullName = 'me'
+                fullName = messages.ME
             else:
                 fullName = self.fullName
         except AttributeError:
-            fullName = ''
+            fullName = u''
 
         if fullName is not None and len(fullName) > 0:
             if self.emailAddress:
-                return fullName + ' <' + self.emailAddress + '>'
+                return fullName + u' <' + self.emailAddress + u'>'
             else:
                 return fullName
         else:
@@ -956,30 +962,30 @@ class EmailAddress(items.ContentItem):
         """
         # @@@DLD remove when we better sort out creation of "me" address w/o an account setup
         if nameOrAddressString is None:
-            nameOrAddressString = ''
+            nameOrAddressString = u''
 
         # strip the address string of whitespace and question marks
-        address = nameOrAddressString.strip ().strip('?')
+        address = nameOrAddressString.strip ().strip(u'?')
 
         # check for "me"
-        if address == 'me':
+        if address == messages.ME:
             return cls.getCurrentMeEmailAddress(view)
 
         # if no fullName specified, parse apart the name and address if we can
-        if fullName != '':
+        if fullName != u'':
             name = fullName
         else:
             try:
-                address.index('<')
+                address.index(u'<')
             except ValueError:
                 name = address
             else:
-                name, address = address.split('<')
-                address = address.strip('>').strip()
+                name, address = address.split(u'<')
+                address = address.strip(u'>').strip()
                 name = name.strip()
                 # ignore a name of "me"
-                if name == 'me':
-                    name = ''
+                if name == messages.ME:
+                    name = u''
 
         # check if the address looks like a valid emailAddress
         isValidAddress = cls.isValidEmailAddress(address)
@@ -1004,7 +1010,7 @@ class EmailAddress(items.ContentItem):
                 if cls.emailAddressesAreEqual(candidate.emailAddress, address):
                     # found an existing address!
                     addresses.append(candidate)
-            elif name != '' and name == candidate.fullName:
+            elif name != u'' and name == candidate.fullName:
                 # full name match
                 addresses.append(candidate)
 
@@ -1018,7 +1024,7 @@ class EmailAddress(items.ContentItem):
                 if cls.emailAddressesAreEqual(candidate.emailAddress, address):
                     # found an existing address match
                     addressMatch = candidate
-            if name != '' and name == candidate.fullName:
+            if name != u'' and name == candidate.fullName:
                 # full name match
                 nameMatch = candidate
                 if addressMatch is not None:
@@ -1027,8 +1033,8 @@ class EmailAddress(items.ContentItem):
         else:
             # no double-matches found
             if name == address:
-                name = ''
-            if addressMatch is not None and name == '':
+                name = u''
+            if addressMatch is not None and name == u'':
                 return addressMatch
             if nameMatch is not None and address is None:
                 return nameMatch
@@ -1046,7 +1052,7 @@ class EmailAddress(items.ContentItem):
         assert isinstance(emailAddress, EmailAddress), "You must pass an EmailAddress Object"
 
         if emailAddress.fullName is not None and len(emailAddress.fullName.strip()) > 0:
-            return emailAddress.fullName + " <" + emailAddress.emailAddress + ">"
+            return emailAddress.fullName + u" <" + emailAddress.emailAddress + u">"
 
         return emailAddress.emailAddress
 

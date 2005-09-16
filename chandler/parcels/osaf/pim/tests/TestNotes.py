@@ -24,7 +24,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("parcel:osaf.pim")
 
         def _verifyNote(note):
-            self.assertEqual(note.displayName, "sample note")
+            self.assertEqual(note.displayName, u"sample note")
 
             reader = note.body.getReader()
             self.assertEqual(reader.read(),
@@ -45,7 +45,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(noteItem.itsKind, pim.Note.getKind(view))
 
         # Literal properties
-        noteItem.displayName = "sample note"
+        noteItem.displayName = u"sample note"
 
         # Lob property
         lobType = noteItem.getAttributeAspect('body', 'type')

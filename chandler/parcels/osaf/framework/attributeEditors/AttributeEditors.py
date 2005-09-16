@@ -22,6 +22,7 @@ from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
 from osaf.pim.items import ContentItem
 from application import schema
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,8 @@ def installParcel(parcel, oldVersion=None):
         'SharingStatusEnum': 'EnumAttributeEditor',
         'String': 'StringAttributeEditor',
         'String+static': 'StaticStringAttributeEditor',
+        'Text': 'StringAttributeEditor',
+        'Text+static': 'StaticStringAttributeEditor',
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
     }
@@ -263,24 +266,24 @@ class DragAndDropTextCtrl(ShownSynchronizer,
         # @@@ In the future, it might be nice to base this menu
         # on CPIA mechanisms, but we don't need that for now.
         menu = wx.Menu()
-        menu.Append(wx.ID_UNDO, _("Undo"))
-        menu.Append(wx.ID_REDO, _("Redo"))
+        menu.Append(wx.ID_UNDO, messages.UNDO)
+        menu.Append(wx.ID_REDO, messages.REDO)
         menu.AppendSeparator()
-        menu.Append(wx.ID_CUT, _("Cut"))
-        menu.Append(wx.ID_COPY, _("Copy"))
-        menu.Append(wx.ID_PASTE, _("Paste"))
-        menu.Append(wx.ID_CLEAR, _("Clear"))
+        menu.Append(wx.ID_CUT, messages.CUT)
+        menu.Append(wx.ID_COPY, messages.COPY)
+        menu.Append(wx.ID_PASTE, messages.PASTE)
+        menu.Append(wx.ID_CLEAR, messages.CLEAR)
         menu.AppendSeparator()
-        menu.Append(wx.ID_SELECTALL, _("Select All"))
+        menu.Append(wx.ID_SELECTALL, messages.SELECT_ALL)
 
         if '__WXGTK__' in wx.PlatformInfo:
             # (see note below re: GTK)
             menu.Bind(wx.EVT_MENU, self.OnMenuChoice)
             menu.Bind(wx.EVT_UPDATE_UI, self.OnMenuUpdateUI)
-    
+
         self.PopupMenu(menu)
         menu.Destroy()
-        
+
         # event.Skip() intentionally not called: we don't want
         # the menu built into wx to appear!
 
@@ -390,7 +393,7 @@ class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
         event.Skip()
 
 class AETypeOverTextCtrl(wxRectangularChild):
-    def __init__(self, parent, id, title='', position=wx.DefaultPosition,
+    def __init__(self, parent, id, title=u'', position=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0, *args, **keys):
         super(AETypeOverTextCtrl, self).__init__(parent, id)
         staticSize = keys['staticSize']
@@ -851,16 +854,17 @@ class StringAttributeEditor (BaseAttributeEditor):
             if item.hasAttributeAspect (sampleText, 'displayName'):
                 sampleText = item.getAttributeAspect (sampleText, 'displayName')                  
         return sampleText
-    
+
     def HasValue(self, item, attributeName):
-        """ 
+        """
         Return True if a non-default value has been set for this attribute, 
         or False if this value is the default and deserves the sample text 
         (if any) instead. (Can be overridden.) """
         try:
             v = getattr(item, attributeName)
         except AttributeError:
-            return False        
+            return False
+
         return len(unicode(v)) > 0
 
     def GetAttributeValue(self, item, attributeName):
@@ -877,9 +881,10 @@ class StringAttributeEditor (BaseAttributeEditor):
             else:
                 if cardinality == "list":
                     valueString = u", ".join([part.getItemDisplayName() for part in value])
+
         return valueString
 
-    def SetAttributeValue(self, item, attributeName, valueString):            
+    def SetAttributeValue(self, item, attributeName, valueString):
         try:
             cardinality = item.getAttributeAspect (attributeName, "cardinality")
         except AttributeError:
@@ -890,7 +895,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                 # logger.debug("StringAE.SetAttributeValue: changed to '%s' ", valueString)
                 setattr (item, attributeName, valueString)
                 self.AttributeChanged()
-    
+
     def getShowingSample(self):
         return getattr(self, '_showingSample', False)
     def setShowingSample(self, value):
@@ -1043,7 +1048,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             value = DateTimeAttributeEditor.shortTimeFormat.format(itemDateTime)
         elif itemDate == (today + timedelta(days=-1)).date(): 
             # Yesterday? say so.
-            value = _('Yesterday')
+            value = _(u'Yesterday')
         else:
             # Do day names for days in the last week. We'll need to convert 
             # python's weekday (Mon=0 .. Sun=6) to PyICU's (Sun=1 .. Sat=7).

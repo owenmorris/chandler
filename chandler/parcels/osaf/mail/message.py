@@ -143,16 +143,16 @@ def populateStaticHeaders(messageObject):
 
     #XXX: Will need to detect the encoding when sending i18n messages
     if not messageObject.has_key('Content-Transfer-Encoding'):
-       messageObject['Content-Transfer-Encoding'] = "7bit"
+        messageObject['Content-Transfer-Encoding'] = "7bit"
 
 
-def populateHeader(messageObject, param, var, type='String'):
-    if type == 'String':
+def populateHeader(messageObject, param, var, hType='String'):
+    if hType == 'String':
         if hasValue(var):
             #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = var
 
-    elif(type == 'EmailAddress'):
+    elif(hType == 'EmailAddress'):
         if var is not None and hasValue(var.emailAddress):
             #XXX: Willl need to detect i18n charset and encoded if needed
             messageObject[param] = Mail.EmailAddress.format(var)
@@ -392,7 +392,7 @@ def __parseHeaders(view, messageObject, m):
 
         del messageObject[key]
 
-def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=True):
+def __assignToKind(view, kindVar, messageObject, key, hType, attr=None, decode=True):
     header = messageObject.get(key)
 
     if header is None:
@@ -401,14 +401,14 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
     if decode:
         header = decodeHeader(header)
 
-    if type == "String":
+    if hType == "String":
         setattr(kindVar, attr, header)
 
     # XXX: This logic will need to be expanded
-    elif type == "StringList":
+    elif hType == "StringList":
         kindVar.append(header)
 
-    elif type == "EmailAddress":
+    elif hType == "EmailAddress":
         name, addr = emailUtils.parseaddr(messageObject.get(key))
 
         ea = __getEmailAddress(view, decodeHeader(name), addr)
@@ -419,7 +419,7 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
         elif __debug__:
             trace("__assignToKind: invalid email address found %s: %s" % (key, addr))
 
-    elif type == "EmailAddressList":
+    elif hType == "EmailAddressList":
         for name, addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
             ea = __getEmailAddress(view, decodeHeader(name), addr)
 
@@ -433,19 +433,26 @@ def __assignToKind(view, kindVar, messageObject, key, type, attr=None, decode=Tr
 
 
 def __getEmailAddress(view, name, addr):
-     keyArgs = {}
+    keyArgs = {}
 
-     if hasValue(name):
-          keyArgs['fullName'] = name
+    if hasValue(name):
+         keyArgs['fullName'] = name
 
-     """ Use any existing EmailAddress, but don't update them
-         because that will cause the item to go stale in the UI thread."""
+    """ Use any existing EmailAddress, but don't update them
+        because that will cause the item to go stale in the UI thread."""
     #XXX: This method needs much better performance
-     return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
+    return Mail.EmailAddress.getEmailAddress(view, addr, **keyArgs)
 
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
     __checkForDefects(mimePart)
+
+    if isinstance(mimePart, str):
+        #XXX: The mimePart value on bad messages will be individual characters of a message body.
+        #     This is coming from the Python email package but I believe it is a bug.
+        #     need to investigate further!
+        bodyBuffer.append(getUnicodeValue(mimePart))
+        return
 
     maintype  = mimePart.get_content_maintype()
 
@@ -618,10 +625,11 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
 
     """Try to figure out what the real mimetype is"""
     if contype == "application/octet-stream" and \
-       not mimeBinary.filename.endswith(".bin"):
-       result = mimetypes.guess_type(mimeBinary.filename, strict=False)
-       if result[0] is not None:
-             mimeBinary.mimeType = result[0]
+        not mimeBinary.filename.endswith(".bin"):
+        result = mimetypes.guess_type(mimeBinary.filename, strict=False)
+
+        if result[0] is not None:
+            mimeBinary.mimeType = result[0]
 
     mimeBinary.body = dataToBinary(mimeBinary, "body", body, mimeBinary.mimeType, 'bz2')
 
@@ -664,16 +672,19 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
         parentMIMEContainer.hasMimeParts = True
 
 def __getFileName(mimePart, counter):
+    #This can return none, a str, or unicode :(
     filename = mimePart.get_filename()
 
     if filename:
+        if isinstance(filename, str):
+            return getUnicodeValue(filename)
         return filename
 
     """No Filename need to create an arbitrary name"""
     ext = mimetypes.guess_extension(mimePart.get_content_type())
 
     if not ext:
-       ext = '.bin'
+        ext = '.bin'
 
     return getUnicodeValue('Attachment-%s%s' % (counter.nextValue(), ext))
 
@@ -703,9 +714,9 @@ def __checkForDefects(mimePart):
 
         trace("*****WARNING**** Mail Parsing defect: %s" % ", ".join(strBuffer))
 
-def __appendHeader(mimePart, buffer, header):
+def __appendHeader(mimePart, buf, header):
     if mimePart.has_key(header):
-        buffer.append(u"%s: %s" % (getUnicodeValue(header), decodeHeader(mimePart[header])))
+        buf.append(u"%s: %s" % (getUnicodeValue(header), decodeHeader(mimePart[header])))
 
 def verbose():
     return __debug__ and constants.VERBOSE

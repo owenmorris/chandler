@@ -1,6 +1,7 @@
+from i18n import OSAFMessageFactory as _
+
 """
 Certificate store blocks
-
 @copyright: Copyright (c) 2005 Open Source Applications Foundation
 @license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
@@ -114,7 +115,7 @@ def installParcel(parcel, oldVersion=None):
                 childrenBlocks = [
                     blocks.StaticText.update(
                         parcel, "TypeLabel",
-                        title = "Type",
+                        title = _(u"Type"),
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
@@ -138,7 +139,7 @@ def installParcel(parcel, oldVersion=None):
                 childrenBlocks = [
                     blocks.StaticText.update(
                         parcel, "TrustLabel",
-                        title = "Trust",
+                        title = _(u"Trust"),
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",

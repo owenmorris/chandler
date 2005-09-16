@@ -7,6 +7,7 @@
 import wx
 from wx.lib.anchors import LayoutAnchors
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ class RecurrenceDialog(wx.Dialog):
               name=u'RecurrenceDialog', parent=prnt, pos=wx.Point(533, 294),
               size=wx.Size(443, 121),
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
-              title=_('Recurring event change'))
+              title=_(u'Recurring event change'))
         self.SetMinSize(wx.Size(400, 100))
         self.SetClientSize(wx.Size(435, 87))
         self.Bind(wx.EVT_CLOSE, self.onCancel)
@@ -87,10 +88,10 @@ class RecurrenceDialog(wx.Dialog):
     def __init__(self, parent, proxy):
         self.proxy = proxy
         self._init_ctrls(parent)
-        labels = {self.cancelButton : _('Cancel'),
-                  self.allButton    : _('All events'),
-                  self.futureButton : _('All future events'),
-                  self.thisButton   : _('Just this event')}
+        labels = {self.cancelButton : messages.CANCEL,
+                  self.allButton    : _(u'All events'),
+                  self.futureButton : _(u'All future events'),
+                  self.thisButton   : _(u'Just this event')}
 
         for item, label in labels.iteritems():
             item.SetLabel(label)
@@ -98,8 +99,10 @@ class RecurrenceDialog(wx.Dialog):
         # XXX [i18n] Fixme, how should this be localized?
         verb = proxy.changeBuffer[0][0]
 
-        txt = _('"%s" is a recurring event. Do you want to %s:' ) % (proxy.displayName, verb)
-        title = _('Recurring event change')
+        txt = _(u'"%(displayName)s" is a recurring event. Do you want to %(needsLocalization)s:' ) % \
+                                  {'displayName': proxy.displayName, 'needsLocalization': verb}
+
+        title = _(u'Recurring event change')
 
         self.questionText.SetLabel(txt)
 
@@ -224,3 +227,4 @@ class OccurrenceProxy(object):
     
     def isProxy(self):
         return True
+

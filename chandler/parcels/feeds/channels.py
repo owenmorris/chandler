@@ -16,8 +16,8 @@ from osaf import pim
 from i18n import OSAFMessageFactory as _
 
 
-#XXX[i18n] this file needs to have displayName converted to _()
-
+#XXX [i18n] need to review this file to determine what is translated and what is not
+#    need to test against RSS feed to ensure unicode conversions handled properly
 logger = logging.getLogger(__name__)
 
 
@@ -64,56 +64,56 @@ def NewChannelFromURL(view, url, update = True):
 
 class FeedChannel(pim.ListCollection):
 
-    schema.kindInfo(displayName="Feed Channel")
+    schema.kindInfo(displayName=u"Feed Channel")
 
     link = schema.One(
         schema.URL,
-        displayName="link"
+        displayName=_(u"link")
     )
 
     category = schema.One(
-        schema.String,
-        displayName="Category"
+        schema.Text,
+        displayName=_(u"Category")
     )
 
     author = schema.One(
-        schema.String,
-        displayName="Author"
+        schema.Text,
+        displayName=_(u"Author")
     )
 
     date = schema.One(
         schema.DateTime,
-        displayName="Date"
+        displayName=_(u"Date")
     )
 
     url = schema.One(
         schema.URL,
-        displayName="URL"
+        displayName=u"URL"
     )
 
     etag = schema.One(
-        schema.String,
-        displayName="eTag"
+        schema.Text,
+        displayName=u"eTag"
     )
 
     lastModified = schema.One(
         schema.DateTime,
-        displayName="Last Modified"
+        displayName=u"Last Modified"
     )
 
     copyright = schema.One(
-        schema.String,
-        displayName="Copyright"
+        schema.Text,
+        displayName=u"Copyright"
     )
 
     language = schema.One(
-        schema.String,
-        displayName="Language"
+        schema.Text,
+        displayName=u"Language"
     )
 
     isUnread = schema.One(
         schema.Boolean,
-        displayName="Is Unread"
+        displayName=u"Is Unread"
     )
 
     schema.addClouds(
@@ -124,8 +124,10 @@ class FeedChannel(pim.ListCollection):
     about = schema.Role(redirectTo="about")
 
     def Update(self, data=None):
+        #getattr returns a unicode object which needs to be converted to bytes for
+        #logging
         logger.info("Updating channel: %s" % getattr(self, 'displayName',
-                    self.url))
+                    str(self.url)).encode("utf8"))
 
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)
@@ -134,7 +136,8 @@ class FeedChannel(pim.ListCollection):
 
         if not data:
             # fetch the data
-            data = feedparser.parse(str(self.url), etag, lastModified)
+            et = etag is not None and etag.encode('utf8') or etag
+            data = feedparser.parse(str(self.url), et, lastModified)
 
         # set etag
         SetAttribute(self, data, 'etag')
@@ -251,36 +254,36 @@ class FeedChannel(pim.ListCollection):
 ##
 class FeedItem(pim.ContentItem):
 
-    schema.kindInfo(displayName="Feed Item")
+    schema.kindInfo(displayName=u"Feed Item")
 
     link = schema.One(
         schema.URL,
-        displayName="link"
+        displayName=_(u"link")
     )
 
     category = schema.One(
-        schema.String,
-        displayName="Category"
+        schema.Text,
+        displayName=_(u"Category")
     )
 
     author = schema.One(
-        schema.String,
-        displayName="Author"
+        schema.Text,
+        displayName=_(u"Author")
     )
 
     date = schema.One(
         schema.DateTime,
-        displayName="Date"
+        displayName=_(u"Date")
     )
 
     channel = schema.One(
         FeedChannel,
-        displayName="Channel"
+        displayName=u"Channel"
     )
 
     content = schema.One(
         schema.Lob,
-        displayName="Content"
+        displayName=u"Content"
     )
 
     about = schema.Role(redirectTo="displayName")
@@ -293,7 +296,7 @@ class FeedItem(pim.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(FeedItem, self).__init__(name, parent, kind, view)
-        self.displayName = "No Title"
+        self.displayName = _(u"No Title")
 
     def Update(self, data):
         # fill in the item

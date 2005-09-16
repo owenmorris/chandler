@@ -17,13 +17,14 @@ from repository.persistence.RepositoryError \
      RepositoryOpenDeniedError, ExclusiveOpenDeniedError,\
      RepositoryVersionError
 from repository.item.RefCollections import RefList
+import i18n
 
 
 # Increment this value whenever the schema changes and edit its comment 
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "71" # heikki: Certificate no longer has subjectCommonName
+SCHEMA_VERSION = "72" # bkirsch: migrated displayName to schema.Text
 
 logger = None # initialized in initLogging()
 
@@ -171,6 +172,17 @@ def initOptions(**kwds):
     options.args = args
 
     return options
+
+def initI18n(options):
+    if options.locale is not None:
+        """
+        If a locale is passed in on the command line
+        we set it as the root in the localeset.
+        """
+
+        i18n.setLocaleSet([options.locale])
+    else:
+        i18n.discoverLocaleSet()
 
 
 def initLogging(options):

@@ -69,14 +69,14 @@ class ContentItemTest(ContentModelTestCase):
                          '//userdata/genericGroup')
 
         # Set and test simple attributes
-        genericContentItem.displayName = "Test Content Item"
+        genericContentItem.displayName = u"Test Content Item"
         genericContentItem.context = "work"
         genericContentItem.body = "Notes appear in the body"
 
-        self.assertEqual(genericContentItem.displayName, "Test Content Item")
+        self.assertEqual(genericContentItem.displayName, u"Test Content Item")
         self.assertEqual(genericContentItem.context, "work")
         self.assertEqual(genericContentItem.body, "Notes appear in the body")
-        self.assertEqual(genericContentItem.getItemDisplayName(), "Test Content Item")
+        self.assertEqual(genericContentItem.getItemDisplayName(), u"Test Content Item")
 
         genericProject.name = "Test Project"
         genericGroup.name = "Test Group"

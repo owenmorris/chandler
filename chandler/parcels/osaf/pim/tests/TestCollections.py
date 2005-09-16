@@ -26,17 +26,17 @@ class SimpleItem(schema.Item):
     A dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.String, displayName="My Label")
+    label = schema.One(schema.String, displayName=u"My Label")
 
 class ChildSimpleItem(SimpleItem):
-    childData = schema.One(schema.String, displayName="Child data")
+    childData = schema.One(schema.String, displayName=u"Child data")
 
 class OtherSimpleItem(schema.Item):
     """
     Another dirt simple item -- think content item here, if you like
     """
 
-    label = schema.One(schema.String, displayName="My Label")
+    label = schema.One(schema.String, displayName=u"My Label")
 
 class CollectionTestCase(unittest.TestCase):
     """Reset the schema API between unit tests"""
@@ -44,7 +44,7 @@ class CollectionTestCase(unittest.TestCase):
     def setUp(self):
         schema.reset()  # clear schema state before starting
         self.chandlerDir = os.environ['CHANDLERHOME']
-        self.repoDir = os.path.join(self.chandlerDir,'__repository__')
+        self.repoDir = os.path.join(self.chandlerDir, u'__repository__')
 
         rep = DBRepository(self.repoDir)
         kwds = { 'create': True, 'refcounted':True, 'ramdb':True }

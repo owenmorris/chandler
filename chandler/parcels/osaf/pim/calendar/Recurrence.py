@@ -14,11 +14,12 @@ from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
 from PyICU import ICUtzinfo
 from TimeZone import coerceTimeZone, forceToDateTime
+from i18n import OSAFMessageFactory as _
 
 class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
     schema.kindInfo(
-        displayName="Frequency"
+        displayName=u"Frequency"
     )
     values="yearly","monthly","weekly","daily","hourly","minutely","secondly"
 
@@ -26,8 +27,9 @@ class FrequencyEnum(schema.Enumeration):
 class WeekdayEnum(schema.Enumeration):
     """The names of weekdays."""
     schema.kindInfo(
-        displayName="Weekdays"
+        displayName=u"Weekdays"
     )
+    #XXX[i18n] These values shoud come from PyICU
     values="monday","tuesday","wednesday","thursday","friday", \
            "saturday","sunday"
 
@@ -39,7 +41,7 @@ class WeekdayAndPositionStruct(schema.Struct):
     """
     __slots__ = "weekday", "selector"
     # schema.kindInfo(
-#         displayName="Weekday and position"
+#         displayName=u"Weekday and position"
 #     )
 
 def toDateUtilWeekday(enum):
@@ -76,79 +78,79 @@ class RecurrenceRule(items.ContentItem):
     """One rule defining recurrence for an item."""
     freq = schema.One(
         FrequencyEnum,
-        displayName="Frequency possibilities",
+        displayName=u"Frequency possibilities",
         defaultValue="weekly"
     )
     isCount = schema.One(
         schema.Boolean,
-        displayName = "isCount",
+        displayName = u"isCount",
         doc = "If True, calculate and export count instead of until",
         defaultValue = False
     )
     until = schema.One(
         schema.DateTime,
-        displayName="Until",
+        displayName=u"Until",
     )
     untilIsDate = schema.One(
         schema.Boolean,
-        displayName = "untilIsDate",
+        displayName = u"untilIsDate",
         doc = "If True, treat until as an inclusive date, use until + 23:59 "
               "for until",
         defaultValue = True
     )
     interval = schema.One(
         schema.Integer,
-        displayName="Interval",
+        displayName=u"Interval",
         defaultValue=1
     )
     wkst = schema.One(
         WeekdayEnum,
-        displayName="Week Start Day",
+        displayName=u"Week Start Day",
         defaultValue=None
     )
     bysetpos = schema.Sequence(
         schema.Integer,
-        displayName="Position selector",
+        displayName=u"Position selector",
         defaultValue=None
     )
     bymonth = schema.Sequence(
         schema.Integer,
-        displayName="Month selector",
+        displayName=u"Month selector",
         defaultValue=None
     )
     bymonthday = schema.Sequence(
         schema.Integer,
-        displayName="Ordinal day of month selector",
+        displayName=u"Ordinal day of month selector",
         defaultValue=None
     )
     byyearday = schema.Sequence(
         schema.Integer,
-        displayName="Ordinal day of year selector",
+        displayName=u"Ordinal day of year selector",
         defaultValue=None
     )
     byweekno = schema.Sequence(
         schema.Integer,
-        displayName="Week number selector",
+        displayName=u"Week number selector",
         defaultValue=None
     )
     byweekday = schema.Sequence(
          WeekdayAndPositionStruct,
-         displayName="Weekday selector",
+         displayName=u"Weekday selector",
         defaultValue=None
     )
     byhour = schema.Sequence(
         schema.Integer,
-        displayName="Hour selector",
+        displayName=u"Hour selector",
         defaultValue=None
     )
     byminute = schema.Sequence(
         schema.Integer,
-        displayName="Minute selector",
+        displayName=u"Minute selector",
         defaultValue=None
     )
     bysecond = schema.Sequence(
         schema.Integer,
-        displayName="Second selector",
+        displayName=u"Second selector",
         defaultValue=None
     )
     rruleFor = schema.One('RecurrenceRuleSet', inverse='rrules')
@@ -284,35 +286,35 @@ class RecurrenceRule(items.ContentItem):
 class RecurrenceRuleSet(items.ContentItem):
     rrules = schema.Sequence(
         RecurrenceRule,
-        displayName="Recurrence rules",
+        displayName=u"Recurrence rules",
         inverse = RecurrenceRule.rruleFor,
         deletePolicy = 'cascade'
     )
     exrules = schema.Sequence(
         RecurrenceRule,
-        displayName="Exclusion rules",
+        displayName=u"Exclusion rules",
         inverse = RecurrenceRule.exruleFor,
         deletePolicy = 'cascade'
     )
     rdates = schema.Sequence(
         schema.DateTime,
-        displayName="Recurrence Dates"
+        displayName=u"Recurrence Dates"
     )
     exdates = schema.Sequence(
         schema.DateTime,
-        displayName="Exclusion Dates"
+        displayName=u"Exclusion Dates"
     )
     events = schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName="Events",
+        displayName=u"Events",
         inverse="rruleset"
     )
-    
+ 
     schema.addClouds(
         copying = schema.Cloud(rrules, exrules, rdates, exdates),
         sharing = schema.Cloud(exdates, rdates, byCloud = [exrules, rrules])
     )
-    
+
     def addRule(self, rule, rruleorexrule='rrule'):
         """Add an rrule or exrule, defaults to rrule."""
         rulelist = getattr(self, rruleorexrule + 's', [])

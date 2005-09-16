@@ -189,7 +189,7 @@ class IMAPClient(base.AbstractDownloadClient):
             trace("_selectInbox")
 
         if self.testing:
-            alert(constants.TEST_SUCCESS, self.account.displayName)
+            alert(constants.TEST_SUCCESS, {u'accountName': self.account.displayName})
             self._actionCompleted()
             return
 

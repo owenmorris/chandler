@@ -143,7 +143,7 @@ class POPClient(base.AbstractDownloadClient):
             trace("_statServer")
 
         if self.testing:
-            alert(constants.TEST_SUCCESS, self.account.displayName)
+            alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
             return self._actionCompleted()
 
         NotifyUIAsync(constants.DOWNLOAD_CHECK_MESSAGES)

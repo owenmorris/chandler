@@ -305,7 +305,6 @@ class PersistentList(list, PersistentCollection):
             self._setDirty()
 
     def __getitem__(self, key):
-
         value = super(PersistentList, self).__getitem__(key)
         value = self._restoreValue(value)
         

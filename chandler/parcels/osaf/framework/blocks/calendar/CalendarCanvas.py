@@ -1461,13 +1461,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         lastDate = startDate + timedelta(days=6)
         months = dateFormatSymbols.getMonths()
         if (startDate.month == lastDate.month):
-            monthText = _("%s %d") %(months[selectedDate.month - 1],
+            monthText = u"%s %d" %(months[selectedDate.month - 1],
                                    selectedDate.year)
         else:
-            monthText = _("%s - %s %d") %(months[startDate.month - 1],
+            monthText = u"%s - %s %d" %(months[startDate.month - 1],
                                         months[lastDate.month - 1],
                                         lastDate.year)
-     
+
         self.monthText.SetLabel(monthText)
 
         today = date.today()
@@ -1480,7 +1480,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             actualDay = ((day + firstDay - 1) % 7)
             currentDate = startDate + timedelta(days=day)
             if currentDate.date() == today:
-                dayName = _("Today")
+                dayName = _(u"Today")
             else:
                 dayName = u"%s %d" %(shortWeekdays[actualDay + 1],
                                        currentDate.day)

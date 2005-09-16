@@ -16,7 +16,7 @@ from application import schema
 
 
 class TaskStatusEnum(schema.Enumeration):
-    schema.kindInfo(displayName="Task Status")
+    schema.kindInfo(displayName=u"Task Status")
     values = "todo", "blocked", "done", "deferred"
 
 
@@ -30,7 +30,7 @@ class TaskMixin(items.ContentItem):
     """
     
     schema.kindInfo(
-        displayName = "Task Mixin Kind",
+        displayName = u"Task Mixin Kind",
         description = 
             "This Kind is 'mixed in' to others kinds to create Kinds that "
             "can be instantiated"
@@ -38,12 +38,12 @@ class TaskMixin(items.ContentItem):
 
     reminderTime = schema.One(
         schema.DateTime,
-        displayName = 'ReminderTime',
+        displayName = u'ReminderTime',
         doc = 'This may not be general enough',
     )
     requestor = schema.One(
         Contact,
-        displayName = 'Requestor',
+        displayName = u'Requestor',
         description =
             "Issues:\n"
             '   Type could be Contact, EmailAddress or String\n'
@@ -52,7 +52,7 @@ class TaskMixin(items.ContentItem):
     )
     requestee = schema.Sequence(
         items.ContentItem,
-        displayName = 'Requestee',
+        displayName = u'Requestee',
         description =
             "Issues:\n"
             '   Type could be Contact, EmailAddress or String\n'
@@ -62,9 +62,9 @@ class TaskMixin(items.ContentItem):
 
     taskStatus = schema.One(
         TaskStatusEnum,
-        displayName = 'Task Status',
+        displayName = u'Task Status',
     )
-    dueDate = schema.One(schema.DateTime, displayName = 'Due date')
+    dueDate = schema.One(schema.DateTime, displayName = u'Due date')
     whoFrom = schema.One(redirectTo = 'requestor')
     about = schema.One(redirectTo = 'displayName')
 
@@ -118,7 +118,7 @@ class TaskEventExtraMixin(items.ContentItem):
     """
 
     schema.kindInfo(
-        displayName = "Task Event Extra Mixin Kind",
+        displayName = u"Task Event Extra Mixin Kind",
         description =
             "The attributes specific to an item that is both a task and an "
             "event.  This is additional 'due by' information. "
@@ -126,17 +126,17 @@ class TaskEventExtraMixin(items.ContentItem):
 
     dueByDate = schema.One(
         schema.DateTime,
-        displayName = 'Due by Date',
+        displayName = u'Due by Date',
         doc = 'The date when a Task Event is due.',
     )
     dueByRecurrence = schema.Sequence(
         'osaf.pim.calendar.Calendar.RecurrencePattern',
-        displayName = 'Due by Recurrence',
+        displayName = u'Due by Recurrence',
         doc = 'Recurrence information for a Task Event.',
     )
     dueByTickler = schema.One(
         schema.DateTime,
-        displayName = 'Due by Tickler',
+        displayName = u'Due by Tickler',
         doc = 'The reminder information for a Task Event.',
     )
 
@@ -172,5 +172,5 @@ class Task(TaskMixin, notes.Note):
 
       - Task should maybe have a 'Timezone' attribute.
     """
-    schema.kindInfo( displayName = "Task" )
+    schema.kindInfo( displayName = u"Task" )
 

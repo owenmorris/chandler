@@ -17,7 +17,7 @@ class ReminderDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, _("Reminders"), pos, size, style)
+        pre.Create(parent, ID, _(u"Reminders"), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -32,8 +32,8 @@ class ReminderDialog(wx.Dialog):
         # contents: a list, then a row of buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
         listCtrl = wx.ListCtrl(self, -1, size=(400,80), style=wx.LC_REPORT|wx.LC_NO_HEADER)
-        listCtrl.InsertColumn(0, _("title"))
-        listCtrl.InsertColumn(1, _("event time"))
+        listCtrl.InsertColumn(0, _(u"title"))
+        listCtrl.InsertColumn(1, _(u"event time"))
         listCtrl.SetColumnWidth(0, 250)
         listCtrl.SetColumnWidth(1, 140)
         listCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectionChanged)
@@ -42,15 +42,15 @@ class ReminderDialog(wx.Dialog):
         sizer.Add(listCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        snoozeButton = wx.Button(self, -1, _("Snooze 5 minutes"))
+        snoozeButton = wx.Button(self, -1, _(u"Snooze 5 minutes"))
         snoozeButton.Enable(False)
         snoozeButton.Bind(wx.EVT_BUTTON, self.onSnooze)
         box.Add(snoozeButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        dismissButton = wx.Button(self, wx.ID_OK, _("Dismiss"))
+        dismissButton = wx.Button(self, wx.ID_OK, _(u"Dismiss"))
         dismissButton.Enable(False)
         dismissButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissButton, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-        dismissAllButton = wx.Button(self, wx.ID_OK, _("Dismiss All"))
+        dismissAllButton = wx.Button(self, wx.ID_OK, _(u"Dismiss All"))
         dismissAllButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissAllButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -155,7 +155,7 @@ class ReminderDialog(wx.Dialog):
         #XXX: [i18n] This function might need restrategizing for l10n:
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 1 > deltaMinutes >= 0:
-            return _("Now")
+            return _(u"Now")
 
         # We're going to produce a string containing a number and a singular or
         # plural "units" word, possibly also including a phrase indicating
@@ -163,35 +163,35 @@ class ReminderDialog(wx.Dialog):
         # Examples: "12 minutes from now", "1 day ago", "3 hours from now".
         absDeltaMinutes = abs(deltaMinutes)
         if (absDeltaMinutes >= 2880): # Use "days" only if it's more than two
-            singular = _("day")
-            plural = _("days")
+            singular = _(u"day")
+            plural = _(u"days")
             scale = 1440
         elif (absDeltaMinutes >= 120): # Use "hours" only if it's more than two
-            singular = _("hour")
-            plural = _("hours")
+            singular = _(u"hour")
+            plural = _(u"hours")
             scale = 60
         else:
-            singular = _("minute")
-            plural = _("minutes")
+            singular = _(u"minute")
+            plural = _(u"minutes")
             scale = 1
 
         # Now that we've picked units, scale the value to the units.
         value = round((absDeltaMinutes / scale) + 0.49999)
-        
+
         # Build a little dictionary that we'll format with:
         words = {
             # The value itself:
             'value': value,
-            
+
             # The units, singular or plural:
             'units': value != 1 and plural or singular,
-            
+
             # The "sign": "ago" if negative, "from now" if positive.
-            'sign': absDeltaMinutes == deltaMinutes and _("ago") or _("from now")
+            'sign': absDeltaMinutes == deltaMinutes and _(u"ago") or _(u"from now")
         }
 
         # Format & return it.
-        format = _("%(value)d %(units)s %(sign)s")
+        format = _(u"%(value)d %(units)s %(sign)s")
         return format % words
 
     def onDismiss(self, event):

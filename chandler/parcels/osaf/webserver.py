@@ -8,6 +8,7 @@ from repository.item.Item import Item
 from repository.util.ClassLoader import ClassLoader
 import os, sys
 import logging
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,13 @@ class Server(schema.Item):
 
     port = schema.One(
         schema.Integer,
-        displayName="Port",
+        displayName=_(u"Port"),
         doc="The port to listen on"
     )
 
     path = schema.One(
         schema.String,
-        displayName="Path",
+        displayName=_(u"Path"),
         doc="The filesystem path pointing to the server's doc root.  This "
             "path is relative to the current working directory, or it can "
             "be absolute"
@@ -44,14 +45,14 @@ class Server(schema.Item):
 
     resources = schema.Sequence(
         initialValue=(),
-        displayName="Resources",
+        displayName=_(u"Resources"),
         doc = "You may define custom twisted resources and associate them "
               "with this server"
     )
 
     directories = schema.Sequence(
         initialValue=(),
-        displayName="Directories",
+        displayName=_(u"Directories"),
         doc = "You may specify other file system directories which will be "
               "used to server specific URL locations.  (See the Directory "
               "Kind)"
@@ -65,13 +66,13 @@ class Server(schema.Item):
         root.ignoreExt(".rpy")
         root.processors = {".rpy" : script.ResourceScript}
 
-        logger.info("Activating web server on port %s with docroot %s" % \
-         (str(self.port), str(docRoot)))
+        logger.info(u"Activating web server on port %s with docroot %s" % \
+         (self.port, docRoot))
 
         # Hook up all associated resources to a location under the docroot
         for res in self.resources:
-            logger.info("   Hooking up /%s to resource '%s'" % \
-             (str(res.location), str(res.displayName)))
+            logger.info(u"   Hooking up /%s to resource '%s'" % \
+             (res.location, res.displayName))
             resourceInstance = res.getResource()
             # Give the main thread repository view to the resource instance
             resourceInstance.repositoryView = self.itsView
@@ -84,8 +85,8 @@ class Server(schema.Item):
             parcel = application.Parcel.Manager.getParentParcel(directory)
             parcelDir = os.path.dirname(parcel.file)
             docRoot = os.path.join(parcelDir, directory.path)
-            logger.info("   Hooking up /%s to directory %s" % \
-             (str(directory.location), str(docRoot)))
+            logger.info(u"   Hooking up /%s to directory %s" % \
+             (directory.location, docRoot))
             root.putChild(directory.location, static.File(docRoot))
 
         site = server.Site(root)
@@ -113,18 +114,18 @@ class Resource(schema.Item):
          server.
     """
 
-    location = schema.One(schema.String, displayName="Location")
+    location = schema.One(schema.String, displayName=_(u"Location"))
 
     server = schema.One(
         Server,
-        displayName="Server",
+        displayName=_(u"Server"),
         initialValue=None,
         inverse=Server.resources
     )
 
     resourceClass = schema.One(
         schema.Class,
-        displayName="Resource Class",
+        displayName=u"Resource Class",
         initialValue=None)
 
     def getResource(self):
@@ -143,13 +144,13 @@ class Directory(schema.Item):
          attribute to a web server item.
     """
 
-    location = schema.One(schema.String, displayName="Location")
+    location = schema.One(schema.String, displayName=_(u"Location"))
 
-    path = schema.One(schema.String, displayName="Path")
+    path = schema.One(schema.String, displayName=_(u"Path"))
 
     server = schema.One(
         Server,
-        displayName="Server",
+        displayName=_(u"Server"),
         initialValue=None,
         inverse=Server.directories
     )

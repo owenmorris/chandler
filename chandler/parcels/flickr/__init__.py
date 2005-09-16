@@ -18,22 +18,22 @@ import dateutil
 import wx
 import os, logging
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
-#XXX[i18n] this file needs to have displayName converted to _()
 
 logger = logging.getLogger(__name__)
 
 
 class FlickrPhotoMixin(PhotoMixin):
 
-    schema.kindInfo(displayName="Flickr Photo Mixin",
+    schema.kindInfo(displayName=u"Flickr Photo Mixin",
                     displayAttribute="displayName")
 
-    flickrID = schema.One(schema.String, displayName=_("Flickr ID"))
-    imageURL = schema.One(schema.URL, displayName=_("imageURL"))
-    datePosted = schema.One(schema.DateTime, displayName=_("Upload Date"))
-    tags = schema.Sequence(displayName=_("Tag"))
-    owner = schema.One(schema.String, displayName=_("owner"))
+    flickrID = schema.One(schema.Text, displayName=u"Flickr ID")
+    imageURL = schema.One(schema.URL, displayName=u"imageURL")
+    datePosted = schema.One(schema.DateTime, displayName=u"Upload Date")
+    tags = schema.Sequence(displayName=u"Tag")
+    owner = schema.One(schema.Text, displayName=_(u"owner"))
 
     # about = schema.Role(redirectTo="title")
     who = schema.One(redirectTo="owner")
@@ -47,10 +47,10 @@ class FlickrPhotoMixin(PhotoMixin):
 
     def populate(self, photo):
         #XXX: [i18n] why are these encoding in ascii why not utf-8?
-        self.flickrID = photo.id.encode('ascii', 'replace')
-        self.displayName = photo.title.encode('ascii', 'replace')
-        self.description = photo.description.encode('ascii', 'replace')
-        self.owner = photo.owner.realname.encode('ascii', 'replace')
+        self.flickrID = photo.id
+        self.displayName = photo.title
+        self.description = photo.description.encode('utf8')
+        self.owner = photo.owner.realname
         self.imageURL = URL(photo.getURL(urlType="source"))
         self.datePosted = datetime.utcfromtimestamp(int(photo.dateposted))
         self.dateTaken = dateutil.parser.parse(photo.datetaken)
@@ -58,29 +58,19 @@ class FlickrPhotoMixin(PhotoMixin):
             if photo.tags:
                 self.tags = [Tag.getTag(self.itsView, tag.text) for tag in photo.tags]
         except Exception, e:
-            print "tags failed", e
+            logging.debug("tags failed", e)
+
         self.importFromURL(self.imageURL)
 
 class FlickrPhoto(FlickrPhotoMixin, pim.Note):
-    schema.kindInfo(displayName = _("Flickr Photo"))
+    schema.kindInfo(displayName = u"Flickr Photo")
 
 #copied from Location class
 class Tag(pim.ContentItem):
 
-    schema.kindInfo(displayName=_("Flickr Tag"))
+    schema.kindInfo(displayName=u"Flickr Tag")
 
-    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName=_("Tag"))
-
-    def __str__ (self):
-        """
-          User readable string version of this Tag
-        """
-        #XXX: [i18n] displayName will be unicode. Should need __unicode__ method
-        #     and will need to encode displayName to str but is this the correct behavior?
-        if self.isStale():
-            return super(Tag, self).__str__()
-            # Stale items can't access their attributes
-        return self.getItemDisplayName ()
+    itemsWithTag = schema.Sequence(FlickrPhotoMixin, inverse=FlickrPhotoMixin.tags, displayName=u"Tag")
 
     def getTag (cls, view, tagName):
         """
@@ -128,26 +118,31 @@ def getPhotoByFlickrTitle(view, title):
 
 class PhotoCollection(pim.ContentItem):
 
-    schema.kindInfo(displayName=_("Collection of Flickr Photos"))
+    schema.kindInfo(displayName=u"Collection of Flickr Photos")
 
-    photos = schema.Sequence(FlickrPhotoMixin, displayName=_("Flickr Photos"))
+    photos = schema.Sequence(FlickrPhotoMixin, displayName=u"Flickr Photos")
     username = schema.One(
-        schema.String, displayName=_("Username"), initialValue=''
+        schema.Text, displayName=messages.USERNAME, initialValue=u''
     )
     tag = schema.One(
-        Tag, otherName="itemsWithTag", displayName="Tag", initialValue=None
+        Tag, otherName="itemsWithTag", displayName=u"Tag", initialValue=None
     )
        
     def getCollectionFromFlickr(self,repView):
         coll = pim.ListCollection(view = repView)
         if self.username:
-            flickrUsername = flickr.people_findByUsername(self.username)
-            flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
+            flickrUsername = flickr.people_findByUsername(self.username.encode('utf8'))
+            try:
+                flickrPhotos = flickr.people_getPublicPhotos(flickrUsername.id,10)
+            except AttributeError:
+                #This is raised if the user has no photos
+                flickrPhotos = []
+
             coll.displayName = self.username
         elif self.tag:
             flickrPhotos = flickr.photos_search(tags=self.tag,per_page=10,sort="date-posted-desc")
             coll.displayName = self.tag.displayName
-            
+
         self.sidebarCollection = coll
 
         for i in flickrPhotos:
@@ -173,9 +168,9 @@ class FlickrCollectionController(Block.Block):
 
 def CreateCollectionFromUsername(repView, cpiaView):
     username = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   _("Username"),
-                                                   _("Enter a Flickr Username"),
-                                                   "")
+                                                   messages.USERNAME,
+                                                   _(u"Enter a Flickr Username"),
+                                                   u"")
     if username:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.username = username
@@ -188,14 +183,14 @@ def CreateCollectionFromUsername(repView, cpiaView):
         except flickr.FlickrError, fe: 
             #XXX: [i18n] will need to capture exception and localize error text
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _("Flickr Error"),
+                                        _(u"Flickr Error: "),
                                         str(fe))
 
 def CreateCollectionFromTag(repView, cpiaView):
     tagstring = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-                                                   _("Tag"),
-                                                   _("Enter a Flickr Tag"),
-                                                   "")
+                                                   _(u"Tag"),
+                                                   _(u"Enter a Flickr Tag"),
+                                                   u"")
     if tagstring:
         myPhotoCollection = PhotoCollection(view = repView)
         myPhotoCollection.tag = Tag.getTag(repView, tagstring)
@@ -206,8 +201,9 @@ def CreateCollectionFromTag(repView, cpiaView):
             return cpiaView.postEventByName('AddToSidebarWithoutCopying',
                                      {'items': [myPhotoCollection.sidebarCollection]})
         except flickr.FlickrError, fe:
+            #XXX: [i18n] will need to capture exception and localize error text
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _("Flickr Error"),
+                                        _(u"Flickr Error: "),
                                         str(fe))
 
 #
@@ -257,13 +253,13 @@ def installParcel(parcel, oldVersion=None):
 
     MenuItem.update(parcel, 'NewFlickrCollectionByOwner',
                     blockName = 'NewFlickrCollectionByOwnerItem',
-                    title = 'New Flickr Collection by Owner',
+                    title = _(u'New Flickr Collection by Owner'),
                     event = ownerEvent,
                     parentBlock = newItemMenu)
  
     MenuItem.update(parcel, 'NewFlickrCollectionByTag',
                     blockName = 'NewFlickrCollectionByTagItem',
-                    title = 'New Flickr Collection by Tag',
+                    title = _(u'New Flickr Collection by Tag'),
                     event = tagEvent,
                     parentBlock = newItemMenu)
 
@@ -288,7 +284,7 @@ def installParcel(parcel, oldVersion=None):
                 childrenBlocks = [
                     detail.StaticRedirectAttributeLabel.update(
                         parcel, "AuthorLabel",
-                        title = "author",
+                        title = u"author",
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
@@ -297,7 +293,7 @@ def installParcel(parcel, oldVersion=None):
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel  , "AuthorAttribute",
-                        title = "author",
+                        title = u"author",
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",

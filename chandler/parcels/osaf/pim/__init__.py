@@ -22,13 +22,13 @@ from application import schema
 
 class MailedTask(tasks.TaskMixin,mail.MailMessage):
     schema.kindInfo(
-        displayName = "Mailed Task",
+        displayName = u"Mailed Task",
         description = "A Task stamped as a Mail, or vica versa",
     )
 
 class MailedEvent(calendar.Calendar.CalendarEventMixin,mail.MailMessage):
     schema.kindInfo(
-        displayName = "Mailed Event",
+        displayName = u"Mailed Event",
         description = "An Event stamped as a Mail, or vica versa",
     )
 
@@ -38,7 +38,7 @@ class EventTask(
     calendar.Calendar.CalendarEvent
 ):
     schema.kindInfo(
-        displayName = "Event Task",
+        displayName = u"Event Task",
         description = "A Task stamped as an Event, or vica versa",
     )
 
@@ -49,7 +49,7 @@ class MailedEventTask(
     mail.MailMessage
 ):
     schema.kindInfo(
-        displayName = "Mailed Event Task",
+        displayName = u"Mailed Event Task",
         description = "A Task stamped as an Event stamped as Mail, in any sequence",
     )
 

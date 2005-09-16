@@ -158,7 +158,6 @@ class wxApplication (wx.App):
         """ Initialize PARCELPATH and sys.path """
         parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
                                            Globals.options.parcelPath)
-
         """
         Splash Screen.
 
@@ -171,18 +170,6 @@ class wxApplication (wx.App):
             splash.Show()
             wx.Yield() #let the splash screen render itself
 
-
-        localeSet = None
-
-        if Globals.options.locale is not None:
-            """
-            If a locale is passed in on the command line
-            we set it as the root in the localeset.
-            """
-
-            i18n.setLocaleSet([Globals.options.locale])
-        else:
-            i18n.discoverLocaleSet()
 
         """
         Crypto initialization
@@ -713,14 +700,14 @@ class wxApplication (wx.App):
         self.pyFrame.Show(True)
 
     def ChooseLogConfig(self):
-        wildcard = "Config files|*.conf|All files (*.*)|*.*"
+        wildcard = u"Config files|*.conf|All files (*.*)|*.*"
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
                             "Choose logging configuration file",
                             "", "", wildcard, wx.OPEN)
 
         path = None
         if dlg.ShowModal() == wx.ID_OK:
-            path = str(dlg.GetPath())
+            path = dlg.GetPath()
         dlg.Destroy()
         if path:
             logger.warning("Loading logging configuration: %s" % path)
@@ -731,14 +718,14 @@ class wxApplication (wx.App):
         logger.info("Schema version of repository doesn't match app")
 
         message = \
-"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
+_(u"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
 
 Would you like to remove all data from your repository?
-"""
+""")
 
         dialog = wx.MessageDialog(None,
                                   message,
-                                  "Cannot open repository",
+                                  _(u"Cannot open repository"),
                                   wx.YES_NO | wx.ICON_INFORMATION)
         response = dialog.ShowModal()
         dialog.Destroy()
@@ -792,17 +779,17 @@ class StartupSplash(wx.Frame):
         self.SetBackgroundColour(wx.WHITE)
         
         #                    name            weight      text
-        self.statusTable = {'crypto'      : ( 5,  _("Initializing crypto services")),
-                            'repository'  : ( 10, _( "Opening the repository")),
-                            'parcels'     : ( 15, _("Loading parcels")),
-                            'twisted'     : ( 10, _( "Starting Twisted")),
-                            'globalevents': ( 15, _( "Registering global events")),
-                            'mainview'    : ( 10, _("Rendering the main view"))}
+        self.statusTable = {'crypto'      : ( 5,  _(u"Initializing crypto services")),
+                            'repository'  : ( 10, _(u"Opening the repository")),
+                            'parcels'     : ( 15, _(u"Loading parcels")),
+                            'twisted'     : ( 10, _(u"Starting Twisted")),
+                            'globalevents': ( 15, _(u"Registering global events")),
+                            'mainview'    : ( 10, _(u"Rendering the main view"))}
         
         self.gaugeTicks = reduce(lambda x, y: x + y[0], self.statusTable.values(), 0)
         
         wx.StaticBitmap(self, -1, bmp, wx.Point(0, 0), wx.Size(width, height))
-        self.progressText = wx.StaticText(self, -1, "", wx.Point(0, height + padding), 
+        self.progressText = wx.StaticText(self, -1, u"", wx.Point(0, height + padding), 
                                 wx.Size(width, msgHeight),
                                 wx.ALIGN_CENTRE | wx.ST_NO_AUTORESIZE)
         self.progressText.SetBackgroundColour(wx.WHITE)

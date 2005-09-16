@@ -106,7 +106,7 @@ class ICalendarTestCase(unittest.TestCase):
     def ItemsToVobject(self):
         """Tests itemsToVObject, which converts Chandler items to vobject."""
         event = Calendar.CalendarEvent(view = self.repo.view)
-        event.displayName = "test"
+        event.displayName = u"test"
         event.startTime = datetime.datetime(2010, 1, 1, 10)
         event.endTime = datetime.datetime(2010, 1, 1, 11)        
 
@@ -123,7 +123,7 @@ class ICalendarTestCase(unittest.TestCase):
          % cal.vevent[0].summary[0].value)
 
         event = Calendar.CalendarEvent(view = self.repo.view)
-        event.displayName = "test2"
+        event.displayName = u"test2"
         event.startTime = datetime.datetime(2010, 1, 1)
         event.allDay = True        
 
@@ -161,7 +161,7 @@ class ICalendarTestCase(unittest.TestCase):
         format = self.Import(self.repo.view, 'Recurrence.ics')
         event = format.findUID('5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getNextOccurrence().getNextOccurrence()
-        self.assertEqual(third.displayName, 'Changed title')
+        self.assertEqual(third.displayName, u'Changed title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10))
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
@@ -199,7 +199,7 @@ class ICalendarTestCase(unittest.TestCase):
                          'FREQ=DAILY;UNTIL=20050301T080000Z')
                          
         event = Calendar.CalendarEvent(view = self.repo.view)
-        event.displayName = "blah"
+        event.displayName = u"blah"
         event.startTime = start
         event.endTime = datetime.datetime(2005,3,1,1)
         

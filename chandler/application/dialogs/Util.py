@@ -8,7 +8,7 @@ import application.Globals
 import AccountPreferences
 import wx
 from i18n import OSAFMessageFactory as _
-import messages
+from osaf import messages
 
 # A helper method and class for allowing the user to modify an item's attributes
 """
@@ -92,11 +92,11 @@ class ItemValuesDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
+        btn = wx.Button(self, wx.ID_OK, u" " + messages.OK + u" ")
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
+        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -186,11 +186,11 @@ class mailErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.OK_BUTTON)
+        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.OK + u" ")
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_OK, _(" Edit Account Settings "))
+        btn = wx.Button(self, wx.ID_OK, _(u" Edit Account Settings "))
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -240,11 +240,11 @@ class promptUserDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
+        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
+        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -326,8 +326,6 @@ def ok(parent, caption, message):
         @param message:  A message
         @type item:  String
     """
-
-
     dlg = wx.MessageDialog(parent, message, caption,
      wx.OK | wx.ICON_INFORMATION)
     dlg.ShowModal()

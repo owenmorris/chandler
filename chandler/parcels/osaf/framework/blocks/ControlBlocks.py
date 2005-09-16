@@ -28,6 +28,7 @@ import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
+from i18n import OSAFMessageFactory as _
 
 
 class textAlignmentEnumType(schema.Enumeration):
@@ -330,7 +331,7 @@ class AttributeDelegate (ListDelegate):
                     for name in names [:-1]:
                         item = item.getAttributeValue (name)
                     actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
-                    heading = "%s (%s)" % (heading, actual)
+                    heading = u"%s (%s)" % (heading, actual)
                 self.blockItem.columnHeadings [column] = heading
         else:
             heading = self.blockItem.columnHeadings [column]
@@ -1503,7 +1504,7 @@ class ItemDetail(RectangularChild):
                               self.minimumSize.height))
 
     def getHTMLText(self, item):
-        return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
+        return u'<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
 
     def onSelectItemEvent (self, event):
         """
@@ -1659,7 +1660,7 @@ class ReminderTimer(Timer):
 
 class PresentationStyle(schema.Item):
     schema.kindInfo(
-        displayName = "Presentation Style"
+        displayName = _(u"Presentation Style")
     )
     sampleText = schema.One(
         schema.String,
@@ -1697,7 +1698,7 @@ class AEBlock(BoxContainer):
        cause this to be reliable, but I think these problems can be fixed there.
     """
     schema.kindInfo(
-        displayName="Attribute Editor Block Kind",
+        displayName=u"Attribute Editor Block Kind",
         description="Block that instantiates an appropriate Attribute Editor."
     )
 

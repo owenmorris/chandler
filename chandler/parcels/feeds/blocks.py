@@ -12,6 +12,7 @@ from PyICU import ICUtzinfo, DateFormat
 import datetime
 import channels
 from i18n import OSAFMessageFactory as _
+from osaf import messages 
 from application import schema
 
 logger = logging.getLogger(__name__)
@@ -22,17 +23,17 @@ class FeedItemDetail(Detail.HTMLDetailArea):
             return
         if item is not None:
             displayName = item.getAttributeValue('displayName',
-                                                 default=_('<Untitled>'))
+                                                 default=u'<' + messages.UNTITLED + u'>')
 
             # make the html
-            HTMLText = '<html><body>\n\n'
+            HTMLText = u'<html><body>\n\n'
 
             link = item.getAttributeValue('link', default=None)
             if link:
-                HTMLText = HTMLText + '<a href="%s">' % (link)
-            HTMLText = HTMLText + '<h5>%s</h5>' % (displayName)
+                HTMLText = HTMLText + u'<a href="%s">' % (link)
+            HTMLText = HTMLText + u'<h5>%s</h5>' % (displayName)
             if link:
-                HTMLText = HTMLText + '</a>\n'
+                HTMLText = HTMLText + u'</a>\n'
 
             content = item.getAttributeValue('content', default=None)
             if content:
@@ -40,10 +41,10 @@ class FeedItemDetail(Detail.HTMLDetailArea):
             else:
                 content = displayName
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
-            HTMLText = HTMLText + '<p>' + content + '</p>\n\n'
+            HTMLText = HTMLText + u'<p>' + content + u'</p>\n\n'
             #should find a good way to localize "more..."
-            HTMLText = HTMLText + '<br><a href="' + str(item.link) + \
-                '">more...</a>'
+            HTMLText = HTMLText + u'<br><a href="' + unicode(item.link) + \
+                u'">more...</a>'
 
             HTMLText = HTMLText + '</body></html>\n'
 
@@ -62,7 +63,7 @@ class DateDetail(Detail.StaticRedirectAttribute):
             value = item.getAttributeValue(Detail.GetRedirectAttribute(item,
                 self.whichAttribute()))
         except AttributeError:
-            return ""
+            return u""
 
         # [@@@] grant: Refactor to use code in AttributeEditors?
         aujourdhui = datetime.date.today() # naive
@@ -84,7 +85,7 @@ class FeedController(Block.Block):
     def onNewFeedChannelEvent(self, event):
         import wx
         url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
-            _("New Channel"), _("Enter a URL for the RSS Channel"), "http://")
+            _(u"New Channel"), _(u"Enter a URL for the RSS Channel"), "http://")
         if url and url != "":
             try:
                 # create the feed channel
@@ -98,8 +99,8 @@ class FeedController(Block.Block):
                 return [channel]
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                    _("New Channel Error"),
-                    _("Could not create channel for %s\nCheck the URL and try again.") % url)
+                    _(u"New Channel Error"),
+                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {'url': url})
                 raise
 
 
@@ -123,7 +124,7 @@ def installParcel(parcel, oldVersion=None):
 
     blocks.MenuItem.update(parcel, "NewFeedChannel",
         blockName = "NewFeedChannelItem",
-        title = "New Feed Channel",
+        title = _(u"New Feed Channel"),
         event = NewFeedChannelEvent,
         eventsForNamedLookup = [NewFeedChannelEvent],
         parentBlock = main.NewItemMenu,

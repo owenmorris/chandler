@@ -94,18 +94,18 @@ class SharingTestCase(unittest.TestCase):
             c.contactName.firstName = name[0]
             c.contactName.lastName = name[1]
             c.emailAddress = name[2]
-            c.displayName = "%s %s" % (name[0], name[1])
+            c.displayName = u"%s %s" % (name[0], name[1])
             contacts.append(c)
 
-        coll.displayName = "test collection"
+        coll.displayName = u"test collection"
 
         events = [
-            "breakfast",
-            "lunch",
-            "dinner",
-            "meeting",
-            "movie",
-            "game",
+            u"breakfast",
+            u"lunch",
+            u"dinner",
+            u"meeting",
+            u"movie",
+            u"game",
         ]
         for i in xrange(6):
             c = Calendar.CalendarEvent(parent=sandbox)
@@ -167,7 +167,7 @@ class SharingTestCase(unittest.TestCase):
         # Export
         repo = self.repos[0]
         theItem = ContentItem(view=repo.view)
-        theItem.displayName = "I'm an item"
+        theItem.displayName = u"I'm an item"
 
         conduit = Sharing.FileSystemConduit(sharePath=".",
                                             shareName="exporteditem",
@@ -192,7 +192,7 @@ class SharingTestCase(unittest.TestCase):
         self.share4.get()
 
         alsoTheItem = self.share4.contents
-        self.assert_(alsoTheItem.displayName == "I'm an item",
+        self.assert_(alsoTheItem.displayName == u"I'm an item",
                      "Single-item import/export failed")
 
 
@@ -202,27 +202,27 @@ class SharingTestCase(unittest.TestCase):
 
         # change one of the items in share2
         for item in self.share2.contents:
-            if item.displayName == "meeting":
-                item.displayName = "meeting rescheduled"
+            if item.displayName == u"meeting":
+                item.displayName = u"meeting rescheduled"
 
         # find the corresponding item in share1 and we'll see if it changes
         changedItem = None
         for item in self.share1.contents:
-            if item.displayName == "meeting":
+            if item.displayName == u"meeting":
                 changedItem = item
 
         self.share2.put()
 
         self.share1.get()
 
-        self.assert_(changedItem.displayName == "meeting rescheduled",
-         "displayName is %s" % (changedItem.displayName))
+        self.assert_(changedItem.displayName == u"meeting rescheduled",
+         u"displayName is %s" % (changedItem.displayName))
 
     def Remove(self):
 
         # Remove an item from share1...
         for item in self.share1.contents:
-            if item.displayName == "lunch":
+            if item.displayName == u"lunch":
                 toRemove = item
         self.share1.contents.remove(toRemove)
         # ...publish...
@@ -232,7 +232,7 @@ class SharingTestCase(unittest.TestCase):
         self.share2.get()
         # ...and make sure it's gone from share2
         for item in self.share2.contents:
-            self.assert_(item.displayName != "lunch")
+            self.assert_(item.displayName != u"lunch")
 
 if __name__ == "__main__":
     unittest.main()

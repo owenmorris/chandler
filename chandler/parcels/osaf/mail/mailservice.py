@@ -3,8 +3,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-#python imports
-import logging as logging
 
 #Chandler imports
 import osaf.pim.mail as Mail
@@ -61,6 +59,7 @@ class MailService(object):
 
         self.__view = view
         self.__started = False
+        self.__clientInstances = None
 
     def startup(self):
         """Initializes the MailService and creates the cache for
@@ -182,20 +181,22 @@ class MailService(object):
 
         return i
 
-    def __refreshClientCache(self, type):
+    def __refreshClientCache(self, protocol):
         instances = None
         method = None
 
-        if type in Mail.ACCOUNT_TYPES:
-            instances = self.__clientInstances.get(type)
-            method = Mail.ACCOUNT_TYPES[type].getActiveAccounts
+        if protocol in Mail.ACCOUNT_TYPES:
+            instances = self.__clientInstances.get(protocol)
+            method = Mail.ACCOUNT_TYPES[protocol].getActiveAccounts
 
         try:
             self.__view.refresh()
         except RepositoryError, e:
-           return trace(e)
+            trace(e)
+            raise
         except VersionConflictError, e1:
-            return trace(e1)
+            trace(e1)
+            raise
 
         uuidList = []
         delList  = []
@@ -216,7 +217,7 @@ class MailService(object):
             if s > 0:
                 c = s > 1 and "Clients" or "Client"
                 a = s > 1 and "accountUUID's" or "accountUUID"
-                trace("removed %s%s with %s %s" % (type, c, a, delList))
+                trace("removed %s%s with %s %s" % (protocol, c, a, delList))
 
     def __createView(self):
         return self.__view.repository.createView()

@@ -77,21 +77,21 @@ Without the application around we can't actually make our scripts do very much.
 
 Lets check that the script object we created has attributes like we'd expect.
 We initialize scripts without any name to Untitled::
-   
+
     >>> myScript.displayName
     u'Untitled'
 
 Like any repository Item, you can name the script using the name parameter
 if you want to give it a unique name::
 
-    >>> namedScript = Scripting.Script(view=rv, name="Empty")
+    >>> namedScript = Scripting.Script(view=rv, name=u"Empty")
     >>> namedScript.itsName
-    'Empty'
+    u'Empty'
 
 This also becomes its displayName::
 
     >>> namedScript.displayName
-    'Empty'
+    u'Empty'
 
 Or you can just pass in none to get an untitled Script.
 
@@ -207,4 +207,3 @@ They include simulating a mouse click, typing a string of characters,
 and hitting the return key.
 
 
-    

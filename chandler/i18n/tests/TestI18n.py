@@ -1,8 +1,5 @@
 import unittest
-this_module = "application.tests.TestSchemaAPI"     # change this if it moves
-
-from application import schema
-from repository.persistence.RepositoryView import NullRepositoryView
+this_module = "i18n.tests.TestI18n"     # change this if it moves
 
 
 """Very basic tests to make sure message catalogs working will be 
@@ -12,12 +9,16 @@ class I18nTestCase(unittest.TestCase):
 
     def testOSAFMessageFactory(self):
         from i18n import OSAFMessageFactory as _
-        test = _("test is good %s %s") % ("one", "two")
+        import i18n
+        i18n.setLocaleSet(['en'])
+
+        test = _(u"test is good %s %s") % ("one", "two")
         self.assertEqual(test, u"test is good one two")
 
     def testMessageFactory(self):
         from i18n import MessageFactory
+        import i18n
         _ = MessageFactory("testDomain")
 
-        test = _("test is good %s %s") % ("one", "two")
+        test = _u("test is good %s %s") % ("one", "two")
         self.assertEqual(test, u"test is good one two")

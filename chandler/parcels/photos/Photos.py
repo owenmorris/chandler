@@ -11,13 +11,14 @@ from repository.util.URL import URL
 from repository.util.Streams import BlockInputStream
 from application import schema
 import EXIF
+from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
 class PhotoMixin(pim.ContentItem):
-    schema.kindInfo(displayName="Photo Mixin Kind",
+    schema.kindInfo(displayName=u"Photo Mixin Kind",
                     displayAttribute="displayName")
-    dateTaken = schema.One(schema.DateTime, displayName="taken")
+    dateTaken = schema.One(schema.DateTime, displayName=_(u"taken"))
     file = schema.One(schema.String)
     exif = schema.Mapping(schema.String, initialValue={})
     photoBody = schema.One(schema.Lob)
@@ -76,4 +77,4 @@ class PhotoMixin(pim.ContentItem):
 
 
 class Photo(PhotoMixin, pim.Note):
-    schema.kindInfo(displayName = "Photo")
+    schema.kindInfo(displayName = u"Photo")

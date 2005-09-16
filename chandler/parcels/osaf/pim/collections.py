@@ -59,7 +59,7 @@ class AbstractCollection(items.ContentItem):
     construction)
     """
     schema.kindInfo(
-        displayName="AbstractCollection"
+        displayName=u"AbstractCollection"
     )
 
     # the repository set underlying the Collection
@@ -219,7 +219,7 @@ class KindCollection(AbstractCollection):
     included (C{True}) in the C{KindCollection}
     """
     schema.kindInfo(
-        displayName="KindCollection"
+        displayName=u"KindCollection"
     )
 
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'), initialValue=None)
@@ -265,7 +265,7 @@ class ListCollection(AbstractCollection):
     Backed by a ref-collection
     """
     schema.kindInfo(
-        displayName="ListCollection"
+        displayName=u"ListCollection"
     )
 
     refCollection = schema.Sequence(otherName='collections',initialValue=[])
@@ -303,7 +303,7 @@ class DifferenceCollection(AbstractCollection):
     differenced
     """
     schema.kindInfo(
-        displayName="DifferenceCollection"
+        displayName=u"DifferenceCollection"
     )
 
     sources = schema.Sequence(AbstractCollection, initialValue=[])
@@ -331,7 +331,7 @@ class UnionCollection(AbstractCollection):
     unioned
     """
     schema.kindInfo(
-        displayName="UnionCollection"
+        displayName=u"UnionCollection"
     )
 
     sources = schema.Sequence(AbstractCollection, initialValue=[])
@@ -362,7 +362,7 @@ class IntersectionCollection(AbstractCollection):
     intersected
     """
     schema.kindInfo(
-        displayName="IntersectionCollection"
+        displayName=u"IntersectionCollection"
     )
 
     sources = schema.Sequence(AbstractCollection, initialValue=[])
@@ -403,7 +403,7 @@ class FilteredCollection(AbstractCollection):
     Failure to provide this list will result in missing notifications
     """
     schema.kindInfo(
-        displayName="FilteredCollection"
+        displayName=u"FilteredCollection"
     )
 
     source = schema.One(AbstractCollection, initialValue=None)
@@ -464,16 +464,16 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Adding %s to %s...",
-            item.getItemDisplayName(), self.getItemDisplayName())
+            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
 
         if item not in self.inclusions:
             logger.debug("...adding to inclusions (%s)",
-                self.inclusions.getItemDisplayName())
+                self.inclusions.getItemDisplayName().encode('utf8'))
             self.inclusions.add (item)
 
         if item in self.exclusions:
             logger.debug("...removing from exclusions (%s)",
-                self.exclusions.getItemDisplayName())
+                self.exclusions.getItemDisplayName().encode('utf8'))
             self.exclusions.remove (item)
 
         # If a trash is associated with this collection, remove the item
@@ -482,11 +482,11 @@ class InclusionExclusionCollection(DifferenceCollection):
 
         if self.trash is not None and item in self.trash:
             logger.debug("...removing from trash (%s)",
-                self.trash.getItemDisplayName())
+                self.trash.getItemDisplayName().encode('utf8'))
             self.trash.remove (item)
 
         logger.debug("...done adding %s to %s",
-            item.getItemDisplayName(), self.getItemDisplayName())
+            item.getItemDisplayName().encode('utf8'),  self.getItemDisplayName().encode('utf8'))
 
     def remove (self, item):
         """
@@ -494,16 +494,16 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Removing %s from %s...",
-            item.getItemDisplayName(), self.getItemDisplayName())
+            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
 
         if item not in self.exclusions:
             logger.debug("...adding to exclusions (%s)",
-                self.exclusions.getItemDisplayName())
+                self.exclusions.getItemDisplayName().encode('utf8'))
             self.exclusions.add (item)
 
         if item in self.inclusions:
             logger.debug("...removing from inclusions (%s)",
-                self.inclusions.getItemDisplayName())
+                self.inclusions.getItemDisplayName().encode('utf8'))
             self.inclusions.remove (item)
 
         # If this item is not in any of the collections that share our trash,
@@ -516,11 +516,11 @@ class InclusionExclusionCollection(DifferenceCollection):
                     break
             if not found:
                 logger.debug("...adding to trash (%s)",
-                    self.trash.getItemDisplayName())
+                    self.trash.getItemDisplayName().encode('utf8'))
                 self.trash.add(item)
 
         logger.debug("...done removing %s from %s",
-            item.getItemDisplayName(), self.getItemDisplayName())
+            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
 
 
     def setup(self, source=None, exclusions=None, trash=None):

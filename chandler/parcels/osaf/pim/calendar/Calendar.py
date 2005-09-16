@@ -24,8 +24,12 @@ import itertools
 import StringIO
 import logging
 
+from i18n import OSAFMessageFactory as _
+
 logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
+
+#XXX [i18n] this file may require further localization of displayName attributes
 
 TIMECHANGES = ('duration', 'startTime', 'anyTime', 'allDay', 'rruleset')
 
@@ -38,12 +42,12 @@ class TimeTransparencyEnum(schema.Enumeration):
     It'd be nice to not maintain the transparency choices separately from the enum values"""
     
     schema.kindInfo(
-        displayName="Time Transparency"
+        displayName=u"Time Transparency"
     )
     values="confirmed", "tentative", "fyi"
 
 class ModificationEnum(schema.Enumeration):
-    schema.kindInfo(displayName="Modification")
+    schema.kindInfo(displayName=u"Modification")
     values="this", "thisandfuture"
 
 
@@ -126,12 +130,12 @@ class CalendarEventMixin(ContentItem):
     Item, to save the attributes for later "restamping".
     """
     schema.kindInfo(
-        displayName="Calendar Event Mixin Kind"
+        displayName=u"Calendar Event Mixin Kind"
     )
 
     startTime = schema.One(
         schema.DateTime,
-        displayName="Start-Time/Do-on",
+        displayName=_(u"Start-Time/Do-on"),
         doc="For items that represent *only* Tasks, this attribute serves as "
             "the 'Do-on' attribute. For items that represent only Calendar "
             "Events, this attribute serves as the 'Start-time' attribute. "
@@ -142,12 +146,12 @@ class CalendarEventMixin(ContentItem):
 
     duration = schema.One(
         schema.TimeDelta, 
-        displayName="Duration",
+        displayName=u"Duration",
         doc="Duration.")
 
     recurrenceID = schema.One(
         schema.DateTime,
-        displayName="Recurrence ID",
+        displayName=u"Recurrence ID",
         defaultValue=None,
         doc="Date time this occurrence was originally scheduled. startTime and "
             "recurrenceID for everything but modifications"
@@ -155,38 +159,38 @@ class CalendarEventMixin(ContentItem):
 
     allDay = schema.One(
         schema.Boolean,
-        displayName="All-Day",
+        displayName=u"All-Day",
         initialValue=False
     )
 
     anyTime = schema.One(
         schema.Boolean,
-        displayName="Any-Time",
+        displayName=u"Any-Time",
         initialValue=True
     )
 
     transparency = schema.One(
         TimeTransparencyEnum,
-        displayName="Time Transparency",
+        displayName=u"Time Transparency",
         initialValue="confirmed"
     )
 
     location = schema.One(
         "Location",
-        displayName="location",
+        displayName=_(u"location"),
         doc="We might want to think about having Location be just a 'String', "
             "rather than a reference to a 'Location' item."
      )
 
     reminderTime = schema.One(
         schema.DateTime,
-        displayName="ReminderTime",
+        displayName=u"ReminderTime",
         doc="This may not be general enough"
     )
 
     rruleset = schema.One(
         Recurrence.RecurrenceRuleSet,
-        displayName="Recurrence Rule Set",
+        displayName=u"Recurrence Rule Set",
         doc="Rule or rules for when future occurrences take place",
         inverse=Recurrence.RecurrenceRuleSet.events,
         defaultValue=None
@@ -194,19 +198,19 @@ class CalendarEventMixin(ContentItem):
 
     organizer = schema.One(
         Contact,
-        displayName="Meeting Organizer",
+        displayName=_(u"Meeting Organizer"),
         inverse=Contact.organizedEvents
     )
 
     participants = schema.Sequence(
         Contact,
-        displayName="Participants",
+        displayName=u"Participants",
         inverse=Contact.participatingEvents
     )
 
     icalUID = schema.One(
         schema.String,
-        displayName="UID",
+        displayName=u"UID",
         doc="iCalendar uses arbitrary strings for UIDs, not UUIDs.  We can "
             "set UID to a string representation of UUID, but we need to be "
             "able to import iCalendar events with arbitrary UIDs."
@@ -220,7 +224,7 @@ class CalendarEventMixin(ContentItem):
 
     modifies = schema.One(
         ModificationEnum,
-        displayName="Modifies how",
+        displayName=u"Modifies how",
         defaultValue=None,
         doc = "Describes whether a modification applies to future events, or "
               "just one event"
@@ -228,21 +232,21 @@ class CalendarEventMixin(ContentItem):
     
     modifications = schema.Sequence(
         "CalendarEventMixin",
-        displayName="Events modifying recurrence",
+        displayName=u"Events modifying recurrence",
         defaultValue=None,
         inverse="modificationFor"
     )
     
     modificationFor = schema.One(
         "CalendarEventMixin",
-        displayName="Modification for",
+        displayName=u"Modification for",
         defaultValue=None,
         inverse="modifications"
     )
 
     modificationRecurrenceID = schema.One(
         schema.DateTime,
-        displayName="Start-Time backup",
+        displayName=u"Start-Time backup",
         defaultValue=None,
         doc="If a modification's startTime is changed, none of its generated"
             "occurrences will backup startTime, so modifications must persist"
@@ -251,21 +255,21 @@ class CalendarEventMixin(ContentItem):
 
     occurrences = schema.Sequence(
         "CalendarEventMixin",
-        displayName="Occurrences",
+        displayName=u"Occurrences",
         defaultValue=None,
         inverse="occurrenceFor"
     )
     
     occurrenceFor = schema.One(
         "CalendarEventMixin",
-        displayName="Occurrence for",
+        displayName=u"Occurrence for",
         defaultValue=None,
         inverse="occurrences"
     )
 
     isGenerated = schema.One(
         schema.Boolean,
-        displayName="Generated",
+        displayName=u"Generated",
         defaultValue=False
     )
 
@@ -302,7 +306,7 @@ class CalendarEventMixin(ContentItem):
         CalendarEventMixin._initMixin (self) # call our init, not the method of a subclass
 
         # New item initialization
-        self.displayName = "New Event"
+        self.displayName = u"New Event"
 
     def _initMixin (self):
         """ 
@@ -351,7 +355,7 @@ class CalendarEventMixin(ContentItem):
 
     endTime = Calculated(
         schema.DateTime,
-        displayName="End-Time",
+        displayName=u"End-Time",
         fget=getEndTime,
         fset=setEndTime,
         doc="End time, computed from startTime + duration."
@@ -405,7 +409,7 @@ class CalendarEventMixin(ContentItem):
                     pass
 
     reminderDelta = Calculated(schema.TimeDelta,
-                               displayName="reminderDelta",
+                               displayName=u"reminderDelta",
                                fget=GetReminderDelta, fset=SetReminderDelta,
                                doc="reminderDelta: the amount of time before " \
                                    "the event that we want a reminder")
@@ -1110,7 +1114,7 @@ class CalendarEventMixin(ContentItem):
             if level:
                 buf.write(pad + "modification.  modifies: %s modificationFor: %s\n"\
                                  % (self.modifies, self.modificationFor.startTime))
-            buf.write(pad + "event is: %s %s\n" % (self.displayName, self.startTime))
+            buf.write(pad + "event is: %s %s\n" % (self.displayName.encode("utf8"),  self.startTime))
         except:
             pass
         if self.modifies == 'thisandfuture' or self.modificationFor is None:
@@ -1135,7 +1139,7 @@ class CalendarEvent(CalendarEventMixin, Note):
     @note: Do we want to have 'Duration' as a derived attribute on Calendar Event?
     @note: Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?
     """
-    schema.kindInfo(displayName="Calendar Event")
+    schema.kindInfo(displayName=u"Calendar Event")
 
     def __init__(self, name=None, parent=None, kind=None, view=None, **kw):
         kw.setdefault('participants',[])
@@ -1148,7 +1152,7 @@ class Calendar(ContentItem):
     @note: Calendar should maybe have a 'Timezone' attribute.
     """
     
-    schema.kindInfo(displayName="Calendar", displayAttribute="displayName")
+    schema.kindInfo(displayName=u"Calendar", displayAttribute="displayName")
 
 
 class Location(ContentItem):
@@ -1156,22 +1160,14 @@ class Location(ContentItem):
        @note: Location may not be calendar specific.
     """
     
-    schema.kindInfo(displayName="Location", displayAttribute="displayName")
+    schema.kindInfo(displayName=u"Location", displayAttribute="displayName")
 
     eventsAtLocation = schema.Sequence(
         CalendarEventMixin,
-        displayName="Calendar Events",
+        displayName=u"Calendar Events",
         inverse=CalendarEventMixin.location
     )
 
-    def __str__ (self):
-        """
-          User readable string version of this Location
-        """
-        if self.isStale():
-            return super(Location, self).__str__()
-            # Stale items can't access their attributes
-        return self.getItemDisplayName ()
 
     def getLocation (cls, view, locationName):
         """
@@ -1207,5 +1203,5 @@ class RecurrencePattern(ContentItem):
     @note: RecurrencePattern is still a placeholder, and might be general enough to live with PimSchema. RecurrencePattern should have an attribute that points to a CalendarEvent.
     """
     
-    schema.kindInfo(displayName="Recurrence Pattern")
+    schema.kindInfo(displayName=u"Recurrence Pattern")
 

@@ -10,6 +10,7 @@ from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 """
 Chandler-specific Blocks
@@ -59,7 +60,7 @@ class Sendability(Item):
     def onSendShareItemEventUpdateUI(self, event):
         """ Generically enable Send-ing. """
         enabled = False
-        label = _("Send")
+        label = messages.SEND
         selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
             # Collect the states of all the items, so that we can change the
@@ -73,13 +74,13 @@ class Sendability(Item):
                 ## view; it can't happen now.
                 #elif 'sharable' in sendStates:
                     #enabled = True
-                    #label = _("Share")
+                    #label = _(u"Share")
                 #elif 'resharable' in sendStates:
                     #enabled = True
-                    #label = _("Send to new")                   
+                    #label = _(u"Send to new")                   
                 elif 'sent' in sendStates:
                     # All the items we considered have already been sent.
-                    label = _("Sent")
+                    label = _(u"Sent")
         
         event.arguments['Enable'] = enabled
         event.arguments['Text'] = label

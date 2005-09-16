@@ -4,19 +4,23 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from i18nmanager import *
+import sys
 
 __all__ = ["I18nException", "MessageFactory", "OSAFMessageFactory",
            "discoverLocaleSet", "setLocaleSet", "getLocaleSet",
-           "getImage", "getHTML", "getAudio", "getResource"]
+           "getImage", "getHTML", "getAudio", "getResource", "OSAF_DOMAIN",
+           "DEFAULT_LOCALE_SET"]
 
 
-class I18nException(Exception):
-    pass
+OSAF_DOMAIN = "osaf"
+DEFAULT_LOCALE_SET = ["en_US", "en"]
+
 
 """I18nManager instance used by the internationalization API.
    It is not exposed to external developers but can be referenced
    for advanced operations"""
-_I18nManager = i18nmanager.I18nManager()
+_I18nManager = i18nmanager.I18nManager(OSAF_DOMAIN, DEFAULT_LOCALE_SET)
+
 
 """Expose the I18nManager instance methods"""
 #XXX: May not want to expose this. Only Chandler core code should
@@ -32,18 +36,20 @@ getAudio = _I18nManager.getAudio
 getResource = _I18nManager.getResource
 
 
-
 def MessageFactory(domain):
     def getTranslation(defaultText):
         #XXX This will raise UnicodeDecodeError on failure
         #    which is ok cause the errror will alert the developer 
         #    to the error. I.e. they did not pass in an ascii or unicode string
-        defaultText = unicode(defaultText)
 
+        defaultText = unicode(defaultText)
         return _I18nManager.translate(domain, defaultText)
+
     return getTranslation
 
 def OSAFMessageFactory(defaultText):
     return MessageFactory(OSAF_DOMAIN)(defaultText)
 
 
+class I18nException(Exception):
+    pass

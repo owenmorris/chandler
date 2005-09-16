@@ -19,6 +19,8 @@ from datetime import datetime
 import osaf.pim.mail as Mail
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
+from repository.persistence.RepositoryError \
+    import RepositoryError, VersionConflictError
 import application.Utility as Utility
 
 #Chandler Mail Service imports
@@ -132,10 +134,12 @@ class SMTPClient(object):
                 self.view.commit()
             except RepositoryError, e:
                 #Place holder for commit rollback
-                raise e
+                trace(e)
+                raise 
             except VersionConflictError, e1:
                 #Place holder for commit rollback
-                raise e1
+                trace(e1)
+                raise 
 
         d = threads.deferToThread(_tryCommit)
         #XXX: May want to handle the case where the Repository fails
@@ -302,7 +306,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        alert(constants.TEST_SUCCESS, self.account.displayName)
+        alert(constants.TEST_SUCCESS, {'accountName': self.account.displayName})
 
         self.testing = False
 
@@ -316,7 +320,7 @@ class SMTPClient(object):
         if not self.displayedRecoverableSSLErrorDialog(exc):
             """Just get the error string do not need the error code"""
             err = self._getError(exc)[1]
-            alert(constants.TEST_ERROR, self.account.displayName, err)
+            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, 'error': err})
 
         self.testing = False
 
@@ -371,12 +375,12 @@ class SMTPClient(object):
         errorDate = datetime.now()
 
         for recipient in result[1]:
-            email, code, str = recipient
+            email, code, st = recipient
 
             if recipient[1] != constants.SMTP_SUCCESS:
                 deliveryError = Mail.MailDeliveryError(view=self.view)
                 deliveryError.errorCode = code
-                deliveryError.errorString = "%s: %s" % (email, str)
+                deliveryError.errorString = "%s: %s" % (email, st)
                 deliveryError.errorDate = errorDate
                 self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
 
@@ -552,14 +556,14 @@ class SMTPClient(object):
         return (errorCode, errorString)
 
 
-    def _fatalError(self, str):
+    def _fatalError(self, st):
         """If a fatal error occurred before sending the message i.e. no To Address
            then record the error, log it, and commit the mailMessage containing the
            error info"""
         if __debug__:
             trace("_fatalError")
 
-        e = errors.SMTPException(str)
+        e = errors.SMTPException(st)
         self._recordError(e)
 
         if __debug__:
@@ -601,8 +605,8 @@ class SMTPClient(object):
 
         """Make sure the sender's Email Address is valid"""
         if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
-            self._fatalError(constants.UPLOAD_BAD_FROM_ADDRESS % \
-                              Mail.EmailAddress.format(sender))
+            self._fatalError(constants.INVALID_EMAIL_ADDRESS % \
+                              {'emailAddress': Mail.EmailAddress.format(sender)})
             return True
 
         """Make sure there is at least one Email Address to send the message to"""
@@ -616,15 +620,15 @@ class SMTPClient(object):
         """Make sure that each Recipients Email Address is valid"""
         for toAddress in self.mailMessage.toAddress:
             if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
-                errs.append(errStr % ("To", Mail.EmailAddress.format(toAddress)))
+                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(toAddress)})
 
         for ccAddress in self.mailMessage.ccAddress:
             if not Mail.EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
-                errs.append(errStr % ("Cc", Mail.EmailAddress.format(ccAddress)))
+                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(ccAddress)})
 
         for bccAddress in self.mailMessage.bccAddress:
             if not Mail.EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
-                errs.append(errStr % ("Bcc", Mail.EmailAddress.format(bccAddress)))
+                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(bccAddress)})
 
         if len(errs) > 0:
             self._fatalError("\n".join(errs))

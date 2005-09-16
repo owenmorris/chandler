@@ -73,12 +73,12 @@ class SubscribeDialog(wx.Dialog):
             url = 'http:' + url[7:]
         share = sharing.findMatchingShare(view, url)
         if share is not None:
-            self.__showStatus(_("You are already subscribed"))
+            self.__showStatus(_(u"You are already subscribed"))
             return
 
         try:
 
-            self.__showStatus(_("In progress..."))
+            self.__showStatus(_(u"In progress..."))
             wx.Yield()
 
             if self.accountPanel.IsShown():
@@ -114,12 +114,12 @@ class SubscribeDialog(wx.Dialog):
         except sharing.NotAllowed, err:
             self.__showAccountInfo()
         except sharing.NotFound, err:
-            self.__showStatus(_("That collection was not found"))
+            self.__showStatus(_(u"That collection was not found"))
         except sharing.SharingError, err:
-            self.__showStatus(_("Sharing Error:\n%s") % err.message)
+            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
             logger.exception("Error during subscribe for %s" % url)
         except Exception, e:
-            self.__showStatus(_(u"Sharing Error:\n%s") % e)
+            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
             logger.exception("Error during subscribe for %s" % url)
 
     def OnTyping(self, evt):
@@ -173,7 +173,7 @@ def Show(parent, view=None, url=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
-    win = SubscribeDialog(parent, _("Subscribe to Shared Collection"),
+    win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
      resources=resources, view=view, url=url)
     win.CenterOnScreen()
     win.ShowModal()

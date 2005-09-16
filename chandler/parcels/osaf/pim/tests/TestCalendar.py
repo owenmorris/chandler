@@ -29,8 +29,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("parcel:osaf.pim.calendar")
 
         def _verifyCalendarEvent(event):
-            self.assertEqual(event.displayName, "simple headline")
-            self.assertEqual(event.getItemDisplayName(), "simple headline")
+            self.assertEqual(event.displayName, u"simple headline")
+            self.assertEqual(event.getItemDisplayName(), u"simple headline")
 
             self.assertEqual(event.importance, 'fyi')
             self.assertEqual(event.getAttributeValue('importance'), 'fyi')
@@ -45,13 +45,13 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(event.getAttributeValue('anyTime'), True)
 
         def _verifyCalendarItems(calendar, location, recurrence):
-            self.assertEqual(calendar.displayName, "simple calendar")
+            self.assertEqual(calendar.displayName, u"simple calendar")
             self.assertEqual(calendar.getAttributeValue('displayName'),
-                              "simple calendar")
+                              u"simple calendar")
 
-            self.assertEqual(location.displayName, "simple location")
+            self.assertEqual(location.displayName, u"simple location")
             self.assertEqual(location.getAttributeValue('displayName'),
-                              "simple location")
+                              u"simple location")
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/pim/calendar')
@@ -74,14 +74,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         recurrenceItem = Calendar.RecurrencePattern("recurrenceItem", view=view)
 
         # CalendarEvent properties
-        calendarEventItem.displayName = "simple headline"
+        calendarEventItem.displayName = u"simple headline"
         calendarEventItem.importance = "fyi"
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 
         # Calendar properties
-        calendarItem.displayName = "simple calendar"
-        locationItem.displayName = "simple location"
+        calendarItem.displayName = u"simple calendar"
+        locationItem.displayName = u"simple location"
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem)
 

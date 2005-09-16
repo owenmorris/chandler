@@ -49,4 +49,4 @@ def installParcel(parcel, oldName=None):
                                       size=SizeType(100,50),
                                       minimumSize=SizeType(100,50))
         ]).install(parcel)
-            
+

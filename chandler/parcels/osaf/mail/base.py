@@ -241,6 +241,7 @@ class AbstractDownloadClient(object):
         @return: C{None}
         """
         if isinstance(err, failure.Failure):
+            err.printBriefTraceback()
             err = err.value
 
         if __debug__:
@@ -286,9 +287,9 @@ class AbstractDownloadClient(object):
 
 
         if self.testing:
-            alert(constants.TEST_ERROR, self.account.displayName, errorString)
+            alert(constants.TEST_ERROR, {'accountName': self.account.displayName, 'error': errorString})
         else:
-            alertMailError(constants.DOWNLOAD_ERROR, self.account, errorString)
+            alertMailError(constants.DOWNLOAD_ERROR, self.account, {'error': errorString})
 
         self._actionCompleted()
 
@@ -319,7 +320,7 @@ class AbstractDownloadClient(object):
         """
 
         if __debug__:
-            self.printCurrentView("_beforeDisconnect")
+            trace("_beforeDisconnect")
 
         return defer.succeed(True)
 
@@ -369,10 +370,10 @@ class AbstractDownloadClient(object):
                     self.pruneCounter = 0
             except RepositoryError, e:
                 #Place holder for commit rollback
-                raise e
+                raise
             except VersionConflictError, e1:
                 #Place holder for commit rollback
-                raise(e1)
+                raise
 
         d = threads.deferToThread(_tryCommit)
         #XXX: May want to handle the case where the Repository fails
@@ -386,7 +387,7 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("_postCommit")
 
-        msg = constants.DOWNLOAD_MESSAGES % self.totalDownloaded
+        msg = constants.DOWNLOAD_MESSAGES % {'numberOfMessages': self.totalDownloaded}
 
         NotifyUIAsync(msg)
 

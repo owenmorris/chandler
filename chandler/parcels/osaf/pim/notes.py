@@ -11,6 +11,7 @@ import application
 import repository.item.Item as Item
 from osaf.pim import items
 from application import schema
+from i18n import OSAFMessageFactory as _
 
 class Note(items.ContentItem):
 
@@ -19,7 +20,7 @@ class Note(items.ContentItem):
     ##
 
     # ensure that the displayName carries over
-    schema.kindInfo(displayName="Note")
+    schema.kindInfo(displayName=_(u"Note"))
 
     # temporarily make this a real attribute instead of a redirection,
     # because we don't want to redirect this anywhere

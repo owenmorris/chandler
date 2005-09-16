@@ -13,6 +13,7 @@ import logging
 import wx
 import os
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 __all__ = [
     'app_ns', 'hotkey_script', 'run_script', 'run_startup_script', 'Script', 'script_file',
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def installParcel(parcel, oldVersion=None):
     detail = schema.ns('osaf.framework.blocks.detail', parcel)
-    
+
     # UI Elements:
     # -----------
 
@@ -41,18 +42,18 @@ def installParcel(parcel, oldVersion=None):
                                          detail.HeadlineArea,
                                          detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
                                          detail.NotesBlock
-                                         ])      
+                                         ])
 
 """
 Handle running a Script.
 """
-def run_script(scriptText, fileName=""):
+def run_script(scriptText, fileName=u""):
     """
-    exec the supplied script, in an environment equivalent to 
+    exec the supplied script, in an environment equivalent to
     what you get when you say:
     from scripting.Helpers import *
     """
-    assert len(scriptText) > 0, _("Empty script")
+    assert len(scriptText) > 0, "Empty script"
 
     # compile the code
     scriptCode = compile(scriptText, fileName, 'exec')
@@ -67,21 +68,21 @@ def run_script(scriptText, fileName=""):
     try:
         exec scriptCode in builtIns
     except Exception:
-        exception_message(_('Error in script:'))
+        exception_message('Error in script:')
         raise
 
 def exception_message(message):
     import sys, traceback
     type, value, stack = sys.exc_info()
     formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
-    message += _("\nHere are the bottom 5 frames of the stack:\n%s") % formattedBacktrace
+    message += "\nHere are the bottom 5 frames of the stack:\n%s" % formattedBacktrace
     logger.exception( message )
     return message
 
 class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
-    schema.kindInfo(displayName=_("Script"), displayAttribute="displayName")
-    lastRan = schema.One(schema.DateTime, displayName = _("last ran"))
+    schema.kindInfo(displayName=_(u"Script"), displayAttribute="displayName")
+    lastRan = schema.One(schema.DateTime, displayName = _(u"last ran"))
 
     # redirections
 
@@ -92,10 +93,11 @@ class Script(pim.ContentItem):
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  bodyString=None, *args, **keys):
         if name is None:
-            displayName = _('Untitled')
+            displayName = messages.UNTITLED
         else:
-            displayName = name
+            displayName = unicode(name)
         super(Script, self).__init__(name, parent, kind, view, displayName=displayName, *args, **keys)
+
         self.lastRan = datetime.now()
         if bodyString is not None:
             self.bodyString = bodyString # property for the body LOB
@@ -120,11 +122,12 @@ def hotkey_script(event, view):
     # for now, we just allow function keys to be hot keys.
     if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
         # try to find the corresponding Script
-        targetScriptNameStart = _("Script F%s") % str(keycode-wx.WXK_F1+1)
+        #XXX: [i18n] Does this value need to be localized?
+        targetScriptNameStart = "Script F%s" % str(keycode-wx.WXK_F1+1)
 
         # maybe we have an existing script?
         script = _findScriptStartingWith(targetScriptNameStart, view)
-        if script:          
+        if script:
             wx.CallAfter(script.execute)
             return True
 
@@ -134,7 +137,7 @@ def hotkey_script(event, view):
 def _findScriptStartingWith(targetScriptNameStart, view):
     # find a script that starts with the given name
     for aScript in Script.iterItems(view):
-        if _startsWithScriptNumber(aScript.displayName, targetScriptNameStart):          
+        if _startsWithScriptNumber(aScript.displayName, targetScriptNameStart):
             return aScript
     return None
 
@@ -160,11 +163,13 @@ def run_startup_script(view):
     if Globals.options.testScripts:
         try:
             for aScript in Script.iterItems(view):
-                if aScript.displayName.lower().startswith(_("test")):
+                #XXX: [i18n] If this value is localized then the lookup will fail
+                if aScript.displayName.lower().startswith(u"test"):
                     aScript.execute(fileName=fileName)
         finally:
             # run the cleanup script
             schema.ns('osaf.app', view).CleanupAfterTests.execute()
+
     if Globals.options.scriptFile:
         scriptFileText = script_file(Globals.options.scriptFile)
         if scriptFileText:
@@ -189,7 +194,7 @@ def script_file(fileName, siblingPath=None):
         finally:
             scriptFile.close()
     except IOError:
-        logger.warning(_("Unable to open script file '%s'") % fileName)
+        logger.warning("Unable to open script file '%s'" % fileName)
         raise
     return scriptText
 
@@ -204,7 +209,7 @@ class EventTiming(dict):
 
     def end_timer(self, startTime, eventName):
         self.setdefault(eventName, []).append(datetime.now()-startTime)
-    
+
     def get_strings(self):
         strTimings = {}
         for eName, timingList in self.iteritems():
@@ -245,7 +250,7 @@ class BlockProxy(object):
         if block and block.widget:
             block.widget.SetFocus()
         else:
-            logger.warning(_("Can't focus on block"), getattr(block, 'blockName', ''), block)
+            logger.warning("Can't focus on block", getattr(block, 'blockName', ''), block)
 
 class RootProxy(BlockProxy):
     """ 
@@ -272,7 +277,7 @@ class RootProxy(BlockProxy):
             argDict.update(keys)
         except AttributeError:
             # make sure the first parameter was a dictionary, or give a friendly error
-            message = _("BlockEvents may only have one positional parameter - a dict")
+            message = "BlockEvents may only have one positional parameter - a dict"
             raise AttributeError, message
         # remember timing information
         if timing is not None:
@@ -355,6 +360,8 @@ class AppProxy(object):
         return None
 
     def _name_of(self, item):
+        #XXX [i18n] Some of these values are unicode. Block name probally 
+        #    does not need to be unicode nor does itsName
         try:
             return item.about
         except AttributeError:
@@ -463,7 +470,7 @@ class User(object):
         mouseEnter.SetEventObject(widget)
         mouseDown.SetEventObject(widget)
         mouseUp.SetEventObject(widget)
-        mouseLeave.SetEventObject(widget)    
+        mouseLeave.SetEventObject(widget)
         # events processing
         widget.ProcessEvent(mouseEnter)
         widget.ProcessEvent(mouseDown)
@@ -472,7 +479,7 @@ class User(object):
         widget.ProcessEvent(mouseLeave)
         # Give Yield to the App
         wx.GetApp().Yield()
-    
+
     @classmethod
     def emulate_return(self, block=None):
         """ Simulates a return-key event in the given block """
@@ -512,7 +519,7 @@ class User(object):
             ev = wx.IdleEvent()
             wx.GetApp().ProcessEvent(ev)
             return True
-            
+
     @classmethod
     def emulate_sidebarClick(self, sidebar, cellName, double=False):
         ''' Process a left click on the given cell in the given sidebar'''
@@ -538,8 +545,8 @@ class User(object):
             return True
         else:
             return False
-       
-            
+
+
 def app_ns(view=None):
     if view is None:
         view = wx.GetApp().UIRepositoryView

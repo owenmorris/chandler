@@ -106,7 +106,7 @@ All role objects have at least the following attributes and methods:
         >>> Kind.subkinds.doc = "Sub-kinds of this kind"
         >>> Kind.superkinds.doc = "Super-kinds of this kind"
         >>> Kind.name.doc = "This kind's name"
-        >>> Kind.name.displayName = "Kind Name"
+        >>> Kind.name.displayName = u"Kind Name"
 
         >>> help(Kind)  # doctest: +NORMALIZE_WHITESPACE
         Help on class Kind ...
@@ -405,11 +405,11 @@ You can set additional attributes on your class' Kind by using
     >>> class CalendarItem(schema.Item):
     ...     """This is just a demo"""
     ...     schema.kindInfo(
-    ...         displayName = "Calendar Item",
+    ...         displayName = u"Calendar Item",
     ...         displayAttribute = "XYZ"
     ...     )
     >>> schema.itemFor(CalendarItem).displayName
-    'Calendar Item'
+    u'Calendar Item'
     >>> schema.itemFor(CalendarItem).displayAttribute
     'XYZ'
     >>> schema.itemFor(CalendarItem).description
@@ -425,18 +425,18 @@ These additional attributes are not normally inherited by subkinds::
 You can make multiple calls to ``kindInfo()`` in the same class::
 
     >>> class MultipleMetadata(schema.Item):
-    ...     schema.kindInfo(displayName="Foo")
+    ...     schema.kindInfo(displayName=u"Foo")
     ...     schema.kindInfo(displayAttribute="Bar")
     >>> schema.itemFor(MultipleMetadata).displayName
-    'Foo'
+    u'Foo'
     >>> schema.itemFor(MultipleMetadata).displayAttribute
     'Bar'
 
 As long as you don't change anything you declared in a previous definition::
 
     >>> class ConflictingMetadata(schema.Item):
-    ...     schema.kindInfo(displayName="Foo")
-    ...     schema.kindInfo(displayName="Bar")
+    ...     schema.kindInfo(displayName=u"Foo")
+    ...     schema.kindInfo(displayName=u"Bar")
     Traceback (most recent call last):
       ...
     ValueError: 'displayName' defined multiple times for this class
@@ -452,7 +452,7 @@ attributes::
 
 And calling ``kindInfo()`` is meaningless outside a class statement::
 
-    >>> schema.kindInfo(displayName="x")
+    >>> schema.kindInfo(displayName=u"x")
     Traceback (most recent call last):
       ...
     SyntaxError: kindInfo() must be called in the body of a class statement
@@ -463,7 +463,7 @@ Enumerations
 
     >>> class Importance(schema.Enumeration):
     ...     """Description goes here"""
-    ...     schema.kindInfo(displayName="Importance Enum")
+    ...     schema.kindInfo(displayName=u"Importance Enum")
     ...     values = 'high', 'medium', 'low'
 
     >>> imp = schema.itemFor(Importance)
@@ -471,7 +471,7 @@ Enumerations
     <Enumeration ... Importance ...>
 
     >>> imp.displayName
-    'Importance Enum'
+    u'Importance Enum'
 
     >>> imp.description
     'Description goes here'

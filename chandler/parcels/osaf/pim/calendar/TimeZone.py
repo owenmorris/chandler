@@ -15,12 +15,12 @@ class TimeZoneInfo(schema.Item):
     """
     
     schema.kindInfo(
-        displayName="TimeZone info"
+        displayName=u"TimeZone info"
     )
 
     default = schema.One(
         schema.TimeZone,
-        displayName = 'User Default Time Zone',
+        displayName = u'User Default Time Zone',
     )
 
     # List of well-known time zones (for populating drop-downs).
@@ -28,9 +28,9 @@ class TimeZoneInfo(schema.Item):
     # we'll have to provide our own translations.
     wellKnownIDs = schema.Sequence(
         schema.Text,
-        displayName = 'List of "well-known" time zones names',
+        displayName = u'List of "well-known" time zones names',
     )
-    
+
     @classmethod
     def get(cls, view = None):
         """Return the default C{TimeZoneInfo} instance, which
@@ -39,10 +39,10 @@ class TimeZoneInfo(schema.Item):
            C{TimeZoneInfo.get().default},
            this will be stored as ICU's default time zone.
        """
-       
+
         # Get our parcel's namespace
         namespace = schema.ns(__name__, view)
-        
+
         # Make sure it has a 'default' attribute (alternatively
         # we could make the.update() call below inside installParcel()
         # in __init__.py).
@@ -50,7 +50,7 @@ class TimeZoneInfo(schema.Item):
             result = namespace.defaultInfo
         except AttributeError:
             # This is a little cheesy...
-            
+
             # We define _() here so that the wellKnownIDs
             # strings below are picked up for translation by
             # pygettext.py.
@@ -61,7 +61,7 @@ class TimeZoneInfo(schema.Item):
             # how to look up timezones based on the translated
             # names.
             _ = lambda x: x
-                
+
             wellKnownIDs = [
                 _(u'US/Eastern'),
                 _(u'US/Central'),
@@ -76,10 +76,10 @@ class TimeZoneInfo(schema.Item):
             ]
             result = cls.update(namespace.parcel, 'defaultInfo',
                                 wellKnownIDs=wellKnownIDs)
-                                
-    
+
+
         return result
-        
+
     def __init__(self, *args, **keywds):
         
         super(TimeZoneInfo, self).__init__(*args, **keywds)

@@ -672,7 +672,7 @@ class TabbedContainer(RectangularChild):
         try:
             return item.displayName
         except AttributeError:
-            return ""
+            return u""
 
 
 class TabbedView(TabbedContainer):

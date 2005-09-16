@@ -253,13 +253,13 @@ def makeNoteSubtree(parcel, oldVersion):
                 headlineAEBlock],
             position=0.5,
             border=RectType(0,6,0,6)).install(parcel)
-    
+
     # Then, the Note AEBlock
     notesBlock = makeEditor(parcel, 'NotesBlock',
                             viewAttribute=u'bodyString',
                             presentationStyle={'lineStyleEnum': 'MultiLine'},
                             position=0.9).install(parcel)
-    
+
     # Finally, the subtree
     notesSubtree = \
         DetailTrunkSubtree.update(parcel, 'NoteSubtree',
@@ -269,7 +269,7 @@ def makeNoteSubtree(parcel, oldVersion):
                 parcel['MarkupBar'],
                 headlineArea, 
                 makeSpacer(parcel, height=7, position=0.8999).install(parcel),
-                notesBlock])      
+                notesBlock])
 
 def makeCalendarEventSubtree(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
@@ -279,8 +279,8 @@ def makeCalendarEventSubtree(parcel, oldVersion):
             childrenBlocks=[
                 makeSpacer(parcel, SizeType(0, 22)),
                 makeEditor(parcel, 'CalendarLocation',
-                           viewAttribute=u'location',
-                           presentationStyle={'sampleText': u'', 
+                           viewAttribute='location',
+                           presentationStyle={'sampleText': u'',
                                               'editInPlace': True})],
             stretchFactor=0.0,
             minimumSize=SizeType(300,10),
@@ -290,7 +290,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
         allDaySpacerWidth = 8
     else:
         allDaySpacerWidth = 6
-        
+
     allDayArea = \
         makeArea(parcel, 'CalendarAllDayArea',
             baseClass=CalendarAllDayAreaBlock,
@@ -301,7 +301,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                     viewAttribute=u'allDay',
                     stretchFactor=0.0,
                     minimumSize=SizeType(16,-1))])
-    
+
     startTimeArea = \
         makeArea(parcel, 'CalendarStartTimeArea',
             childrenBlocks=[
@@ -390,8 +390,8 @@ def makeCalendarEventSubtree(parcel, oldVersion):
                         'format': 'occurs',
                         # These choices must match the enumerated indexes in the
                         # RecurrenceAttributeEditor python code
-                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'), 
-                                    _(u'Monthly'), _(u'Yearly'), 
+                        'choices': [_(u'Once'), _(u'Daily'), _(u'Weekly'),
+                                    _(u'Monthly'), _(u'Yearly'),
                                     _(u'Custom...')]},
                     stretchFactor=0.0,
                     minimumSize=SizeType(100, -1))])
@@ -400,7 +400,7 @@ def makeCalendarEventSubtree(parcel, oldVersion):
         makeArea(parcel, 'CalendarRecurrenceCustomArea',
             baseClass=CalendarRecurrenceCustomAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u''), borderTop=2), # leave label blank.
+                makeLabel(parcel, u'', borderTop=2), # leave label blank.
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'CalCustomValue',
                     viewAttribute=u'rruleset',
@@ -479,7 +479,7 @@ def makeMailSubtree(parcel, oldVersion):
                     #presentationStyle={'format': 'outgoing'},
                     viewAttribute=u'fromAddress')],
             position=0.1).install(parcel)
-    
+
     toMailArea = \
         makeArea(parcel, 'ToArea',
             childrenBlocks=[
@@ -489,7 +489,7 @@ def makeMailSubtree(parcel, oldVersion):
                     viewAttribute=u'toAddress')],
             position=0.11,
             border=RectType(0, 0, 6, 6)).install(parcel)
-    
+
     acceptShareButton = \
         AcceptShareButtonBlock.template('AcceptShareButton').install(parcel)
         # (We'll flesh out this definition below; we predeclare it for the event.)        

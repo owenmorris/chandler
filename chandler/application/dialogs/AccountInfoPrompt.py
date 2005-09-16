@@ -3,6 +3,7 @@ import wx
 import wx.xrc
 import application.Globals as Globals
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 class AccountInfoPromptDialog(wx.Dialog):
 
@@ -75,7 +76,7 @@ def PromptForNewAccountInfo(parent, host=None, path=None):
 
     resources = wx.xrc.XmlResource(xrcFile)
 
-    win = AccountInfoPromptDialog(parent, _("New Account"),
+    win = AccountInfoPromptDialog(parent, messages.NEW_ACCOUNT % {'accountType': u''},
                                   resources=resources, host=host, path=path)
 
     win.CenterOnScreen()

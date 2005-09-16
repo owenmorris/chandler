@@ -13,7 +13,6 @@ import application.Utility as Utility
 import application.Globals as Globals
 from repository.item.Item import Item
 from repository.persistence.DBRefs import DBRefList
-import i18n
 
 view = None
 app = None
@@ -28,8 +27,8 @@ def startup(**kwds):
     Globals.options = Utility.initOptions(**kwds)
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(Globals.chandlerDirectory)
+    Utility.initI18n(Globals.options)
 
-    i18n.discoverLocaleSet()
     profileDir = Globals.options.profileDir
 
     Utility.initLogging(Globals.options)

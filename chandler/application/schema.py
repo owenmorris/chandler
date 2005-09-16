@@ -244,7 +244,7 @@ class Role(ActiveDescriptor,CDescriptor):
         if not name:
             name = self.docInfo()
         else:
-            name = "%s -- %s" % (name,self.docInfo())
+            name = "%s -- %s" % (name.encode('utf8'),self.docInfo())
         if not doc:
             doc = name
         else:
@@ -281,7 +281,7 @@ class Role(ActiveDescriptor,CDescriptor):
             if hasattr(self,aspect):
                 val = getattr(self,aspect)
                 if aspect=='displayName':
-                    val = val or self.name  # default displayName=name
+                    val = val or unicode(self.name)  # default displayName=name
                 elif aspect=='type':
                     if val is None:
                         continue    # don't set type to None
@@ -731,7 +731,7 @@ def kindInfo(**attrs):
 
         class SomeItem(schema.Item):
             schema.kindInfo(
-                displayName = "Example Item",
+                displayName = u"Example Item",
                 displayAttribute = "someAttr",
             )
 

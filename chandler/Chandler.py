@@ -8,6 +8,7 @@ import application.Globals
 import application.Utility as Utility
 from repository.persistence.RepositoryError \
     import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+import i18n
 
 
 def main():
@@ -22,6 +23,7 @@ def main():
 
     application.Globals.chandlerDirectory = Utility.locateChandlerDirectory()
     os.chdir(application.Globals.chandlerDirectory)
+    Utility.initI18n(application.Globals.options)
 
     Utility.initLogging(application.Globals.options)
 

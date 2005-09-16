@@ -18,8 +18,11 @@ from repository.schema.Kind import Kind
 import repository.item.Item as Item
 import logging
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 logger = logging.getLogger(__name__)
+
+#XXX: [i18n] need to go through this file and determine which fields require translation 
 
 
 class ContentKind(Kind):
@@ -29,7 +32,7 @@ class ContentKind(Kind):
 
     __metaclass__ = schema.ItemClass
 
-    schema.kindInfo(displayName="Metakind 'Content Kind'")
+    schema.kindInfo(displayName=u"Metakind 'Content Kind'")
 
     detailView = schema.One()   # Block
 
@@ -37,7 +40,7 @@ class ContentKind(Kind):
 class ImportanceEnum(schema.Enumeration):
     """Importance Enum"""
     schema.kindInfo(
-        displayName="Importance Enum"
+        displayName=u"Importance Enum"
     )
     values = "important", "normal", "fyi"
 
@@ -65,17 +68,17 @@ class ContentItem(schema.Item):
     Content Item is the abstract super-kind for things like Contacts, Calendar
     Events, Tasks, Mail Messages, and Notes.  Content Items are user-level
     items, which a user might file, categorize, share, and delete.
-    
+
     Examples:
      - a Calendar Event -- 'Lunch with Tug'
      - a Contact -- 'Terry Smith'
      - a Task -- 'mail 1040 to IRS'
     """
-    schema.kindInfo( displayName = "Content Item" )
+    schema.kindInfo( displayName = u"Content Item" )
 
     body = schema.One(
         schema.Lob,
-        displayName="Body",
+        displayName=_(u"Body"),
         doc="All Content Items may have a body to contain notes.  It's "
             "not decided yet whether this body would instead contain the "
             "payload for resource items such as presentations or "
@@ -86,24 +89,24 @@ class ContentItem(schema.Item):
 
     creator = schema.One(
         # Contact
-        displayName="creator",
+        displayName=_(u"creator"),
         doc="Link to the contact who created the item."
     )
 
     modifiedOn = schema.One(
         schema.DateTime,
-        displayName="Last Modified On",
+        displayName=_(u"Last Modified On"),
         doc="DateTime this item was last modified"
     )
 
     lastModifiedBy = schema.One(
         # Contact
-        displayName="Last Modified By",
+        displayName=_(u"Last Modified By"),
         doc="Link to the contact who last modified the item.",
     )
 
     importance = schema.One(ImportanceEnum,
-        displayName="Importance",
+        displayName=u"Importance",
         doc="Most items are of normal importance (no value need be show), "
             "however some things may be flagged either highly important or "
             "merely 'fyi'. This attribute is also used in the mail schema, so "
@@ -133,7 +136,7 @@ class ContentItem(schema.Item):
 
     createdOn = schema.One(
         schema.DateTime,
-        displayName="created",
+        displayName=_(u"created"),
         doc="DateTime this item was created"
     )
 
@@ -175,6 +178,19 @@ class ContentItem(schema.Item):
         if not hasattr(self, 'creator'):
             self.creator = self.getCurrentMeContact(view)
 
+    def __str__ (self):
+        if self.isStale():
+            return super(ContentItem, self).__str__()
+            # Stale items can't access their attributes
+
+        return self.__unicode__().encode('utf8')
+
+    def __unicode__(self):
+        if self.isStale():
+            return super(ContentItem, self).__unicode__()
+
+        return self.getItemDisplayName()
+
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -184,8 +200,8 @@ class ContentItem(schema.Item):
         except AttributeError:
             pass
 
-        # default the displayName to 'untitled'
-        self.displayName = _('untitled')
+        # default the displayName
+        self.displayName = messages.UNTITLED
 
     def ExportItemData(self, clipboardHandler):
         # Create data for this kind of item in the clipboard handler
@@ -643,7 +659,7 @@ class _SuperKindSignature(list):
 class Project(ContentItem):
 
     schema.kindInfo(
-        displayName = "Project",
+        displayName = u"Project",
         description =
             "Users can create projects to help organize their work. Users can "
             "take content items (like tasks and mail messages) and assign "
@@ -656,13 +672,13 @@ class Project(ContentItem):
 
     parentProject = schema.One(
         'Project',
-        displayName = 'Parent Project',
+        displayName = u'Parent Project',
         doc = 'Projects can be organized into hierarchies. Each project can have one parent.',
         inverse = 'subProjects',
     )
     subProjects = schema.Sequence(
         'Project',
-        displayName = 'Sub Projects',
+        displayName = u'Sub Projects',
         doc = 'Projects can be organized into hierarchies. Each project can have many sub-projects.',
         inverse = 'parentProject',
     )
@@ -671,7 +687,7 @@ class Project(ContentItem):
 class Group(ContentItem):
 
     schema.kindInfo(
-        displayName = '"Playlist"/"Item Collection"',
+        displayName = u'"Playlist"/"Item Collection"',
         description =
             "See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject\n\n"
             "Issues:\n"

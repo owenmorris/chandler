@@ -53,7 +53,7 @@ def installParcel(parcel, old_version=None):
 
 def getExistingResources(account):
 
-    path = account.path.strip("/")
+    path = account.path.strip(u"/")
     handle = ChandlerServerHandle(account.host,
                                   port=account.port,
                                   username=account.username,
@@ -62,16 +62,16 @@ def getExistingResources(account):
                                   repositoryView=account.itsView)
 
     if len(path) > 0:
-        path = "/%s/" % path
+        path = u"/%s/" % path
     else:
-        path = "/"
+        path = u"/"
 
     existing = []
     parent = handle.getResource(path)
     skipLen = len(path)
     for resource in handle.blockUntil(parent.getAllChildren):
         path = resource.path[skipLen:]
-        path = path.strip("/")
+        path = path.strip(u"/")
         if path:
             path = urllib.unquote_plus(path).decode('utf-8')
             existing.append(path)
@@ -85,7 +85,7 @@ def _uniqueName(basename, existing):
     name = basename
     counter = 1
     while name in existing:
-        name = "%s-%d" % (basename, counter)
+        name = u"%s-%d" % (basename, counter)
         counter += 1
     return name
 
@@ -98,13 +98,13 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
     view = collection.itsView
 
     conduit = WebDAVConduit(view=view, account=account)
-    path = account.path.strip("/")
+    path = account.path.strip(u"/")
 
     # Interrogate the server associated with the account
 
     location = account.getLocation()
-    if not location.endswith("/"):
-        location += "/"
+    if not location.endswith(u"/"):
+        location += u"/"
     handle = conduit._getServerHandle()
     resource = handle.getResource(location)
 
@@ -112,7 +112,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
     exists = handle.blockUntil(resource.exists)
     if not exists:
         logger.debug("...doesn't exist")
-        raise NotFound(message="%s does not exist" % location)
+        raise NotFound(_(u"%(location)s does not exist") % {'location': location})
 
     isCalendar = handle.blockUntil(resource.isCalendar)
     logger.debug('...Calendar?  %s', isCalendar)
@@ -138,7 +138,6 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
             # We've been handed a calendar directly.  I think we need to just
             # publish directly into this calendar collection rather than making
             # a new one
-
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
             share = newOutboundShare(view, collection,
@@ -180,7 +179,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.displayName = name
 
                 if share.exists():
-                    raise SharingError(_("Share already exists"))
+                    raise SharingError(_(u"Share already exists"))
 
                 share.create()
                 share.put()
@@ -199,7 +198,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.displayName = name
 
                 if share.exists():
-                    raise SharingError(_("Share already exists"))
+                    raise SharingError(_(u"Share already exists"))
 
                 share.create()
                 share.put()
@@ -221,7 +220,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.displayName = name
 
                 if share.exists():
-                    raise SharingError(_("Share already exists"))
+                    raise SharingError(_(u"Share already exists"))
 
                 share.create()
                 share.put()
@@ -237,7 +236,7 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.mode = "put"
 
                 if share.exists():
-                    raise SharingError(_("Share already exists"))
+                    raise SharingError(_(u"Share already exists"))
 
                 share.create()
                 share.put()
@@ -503,7 +502,7 @@ def findMatchingShare(view, url):
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     # '/dev1/foo/bar' becomes 'bar'
-    shareName = path.strip("/").split("/")[-1]
+    shareName = path.strip(u"/").split(u"/")[-1]
 
     if hasattr(account, 'conduits'):
         for conduit in account.conduits:
@@ -656,17 +655,17 @@ def ensureAccountSetUp(view):
         if DAVReady and InboundMailReady and SMTPReady:
             return True
 
-        msg = "The following account(s) need to be set up:\n\n"
+        msg = _(u"The following account(s) need to be set up:\n\n")
         if not DAVReady:
-            msg += " - WebDAV (collection publishing)\n"
+            msg += _(u" - WebDAV (collection publishing)\n")
         if not InboundMailReady:
-            msg += " - IMAP/POP (inbound email)\n"
+            msg += _(u" - IMAP/POP (inbound email)\n")
         if not SMTPReady:
-            msg += " - SMTP (outound email)\n"
-        msg += "\nWould you like to enter account information now?"
+            msg += _(u" - SMTP (outbound email)\n")
+        msg += _(u"\nWould you like to enter account information now?")
 
         response = application.dialogs.Util.yesNo(wx.GetApp().mainFrame,
-                                                  "Account set up",
+                                                  _(u"Account set up"),
                                                   msg)
         if response == False:
             return False
@@ -693,14 +692,17 @@ def syncShare(share):
         share.sync()
     except SharingError, err:
         try:
-            msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
-            msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
-            msg += err.message
+            msgVars = {'collectionName': share.contents.getItemDisplayName(),
+                       'accountName': share.conduit.acdcount.getItemDisplayName()}
+
+            msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
+            emsg = err.message
         except:
-            msg = "Error during sync"
-        logger.exception("Sharing Error: %s" % msg)
+            emsg = "Error during sync"
+
+        logger.exception("Sharing Error: %s" % emsg)
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    "Synchronization Error", msg)
+                                    _(u"Synchronization Error"), msg)
 
 
 def syncAll(view):
@@ -736,6 +738,9 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
     Return a displayName for a collection, taking into account what the
     current sidebar filter is, and whether this is the All collection.
     """
+
+    #XXX: [i18n] logic needs to be refactored. It is impossible for a translator to 
+    #     determine context from these sentence fragments.
 
     ext = ""
 

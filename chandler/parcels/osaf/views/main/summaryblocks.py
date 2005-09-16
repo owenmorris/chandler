@@ -24,9 +24,9 @@ def make_summaryblocks(parcel):
                 headerCharacterStyle=blocks.SummaryHeaderStyle,
                 hasGridLines=True,
                 columnHeadings=
-                    [_(''), _('who'), _('about'), _('date')],
+                    [u'', _(u'who'), _(u'about'), _(u'date')],
                 columnData=
-                    ['itsKind', 'who', 'about', 'date'],
+                    ['itsKind', u'who', u'about', u'date'],
                 columnWidths=
                     [20, 130, 130, 130],
                 columnReadOnly=

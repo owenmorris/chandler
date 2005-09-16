@@ -43,8 +43,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         # up to here displayName is an unset Chandler attribute
         self.failUnlessRaises(AttributeError, lambda: item1.displayName)
         # now set the attribute
-        item1.setAttributeValue('displayName', 'myName')
-        self.assertEquals(item1.displayName, 'myName')
+        item1.setAttributeValue('displayName', u'myName')
+        self.assertEquals(item1.displayName, u'myName')
         #test __getattr__ and getAttributeValue() access
         self.assertEquals(item1.displayName, item1.getAttributeValue('displayName'))
         # now remove attribute value

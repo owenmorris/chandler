@@ -10,11 +10,12 @@ __all__ = ['ContactName', 'Contact']
 
 from osaf.pim import items
 from application import schema
+from i18n import OSAFMessageFactory as _
 
 
 class ContactName(items.ContentItem):
     "A very simple (and incomplete) representation of a person's name"
-    
+
     firstName = schema.One(schema.String, initialValue="")
     lastName  = schema.One(schema.String, initialValue="")
     contact = schema.One("Contact", inverse="contactName")
@@ -34,10 +35,10 @@ class Contact(items.ContentItem):
     'Permissions I've given them', 'Items of mine they've subscribed to',
     'Items of theirs I've subscribed to', etc.
     """
-    schema.kindInfo(displayName="Contact", displayAttribute="emailAddress")
-    
+    schema.kindInfo(displayName=_(u"Contact"), displayAttribute="emailAddress")
+
     itemsCreated = schema.Sequence(
-        displayName="Items Created",
+        displayName=u"Items Created",
         doc = "List of content items created by this user.",
         inverse=items.ContentItem.creator,
     )
@@ -47,53 +48,53 @@ class Contact(items.ContentItem):
     )
 
     emailAddress = schema.One(schema.String, 
-        displayName = "Email Address",
-        initialValue = ""
+        displayName = _(u"Email Address"),
+        initialValue = u""
     )
 
     itemsLastModified = schema.Sequence(
         items.ContentItem,
-        displayName="Items Last Modified",
+        displayName=u"Items Last Modified",
         doc="List of content items last modified by this user.",
         inverse=items.ContentItem.lastModifiedBy
     )
 
     requestedTasks = schema.Sequence(
         "osaf.pim.tasks.TaskMixin",
-        displayName="Requested Tasks",
+        displayName=u"Requested Tasks",
         doc="List of tasks requested by this user.",
         inverse="requestor"
     )
 
     taskRequests= schema.Sequence(
         "osaf.pim.tasks.TaskMixin",
-        displayName="Task Requests",
+        displayName=u"Task Requests",
         doc="List of tasks requested for this user.",
         otherName="requestee"   # XXX other end points to ContentItem???
     )
 
     organizedEvents= schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName="Organized Events",
+        displayName=u"Organized Events",
         doc="List of events this user has organized.",
         inverse="organizer"
     )
 
     participatingEvents= schema.Sequence(
         "osaf.pim.calendar.Calendar.CalendarEventMixin",
-        displayName="Participating Events",
+        displayName=u"Participating Events",
         doc="List of events this user is a participant.",
         inverse="participants"
     )
 
     sharerOf= schema.Sequence(  # Share
-        displayName="Sharer Of",
+        displayName=u"Sharer Of",
         doc="List of shares shared by this user.",
         otherName="sharer"
     )
 
     shareeOf= schema.Sequence(  # Share
-        displayName="Sharee Of",
+        displayName=u"Sharee Of",
         doc="List of shares for which this user is a sharee.",
         otherName="sharees"
     )
@@ -150,9 +151,9 @@ class Contact(items.ContentItem):
         parent = cls.getDefaultParent(view)
         me = parent.getItemChild("me")
         if me is None:
-            me = Contact(name="me", parent=parent, displayName="Me")
+            me = Contact(name="me", parent=parent, displayName=_(u"Me"))
             me.contactName = ContactName(
-                parent=parent, firstName="Chandler", lastName = "User"
+                parent=parent, firstName=_(u"Chandler"), lastName = _(u"User")
             )
 
         cls.meContactID = me.itsUUID
@@ -180,16 +181,3 @@ class Contact(items.ContentItem):
         return contact
 
     getContactForEmailAddress = classmethod(getContactForEmailAddress)
-
-    def __str__(self):
-        """ User readable string version of this address. """
-
-        if self.isStale():
-            return super(Contact, self).__str__()
-            # Stale items shouldn't go through the code below
-
-        value = self.getItemDisplayName()
-
-        return value
-
-

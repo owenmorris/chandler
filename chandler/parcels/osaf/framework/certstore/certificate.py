@@ -22,6 +22,8 @@ import application.Globals as Globals
 from osaf import pim
 from application.dialogs import ImportExport
 from i18n import OSAFMessageFactory as _
+from osaf import messages
+import os
 from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import utils, dialogs, constants
 
@@ -29,29 +31,28 @@ log = logging.getLogger(__name__)
 
 
 class typeEnum(schema.Enumeration):
-    schema.kindInfo(displayName = "Type Enumeration")
+    schema.kindInfo(displayName = u"Type Enumeration")
     values = constants.TYPE_ROOT, constants.TYPE_SITE
 
 
 class CertificateStore(pim.KindCollection):
-    schema.kindInfo(displayName = _("Certificate Store"))
-    
+    schema.kindInfo(displayName = _(u"Certificate Store"))
     def __init__(self, *args, **kw):
         super(CertificateStore, self).__init__(*args, **kw)
         # XXX Why isn't this picked from the kindInfo above?
-        self.displayName = _('Certificate Store')
+        self.displayName = _(u'Certificate Store')
 
         self.kind = self.itsView.findPath('//parcels/osaf/framework/certstore/Certificate')
 
 
 class Certificate(pim.ContentItem):
 
-    schema.kindInfo(displayName = "Certificate")
+    schema.kindInfo(displayName = _(u"Certificate"))
 
     who = schema.One(redirectTo = 'displayName')
     displayName = schema.One(
         schema.String,
-        displayName = _('Display Name'),
+        displayName = _(u'Display Name'),
         doc = 'Display Name.',
     )
     about = schema.One(
@@ -61,29 +62,29 @@ class Certificate(pim.ContentItem):
     date = schema.One(redirectTo = 'createdOn')
     type = schema.One(
         typeEnum,
-        displayName = _('Certificate type'),
+        displayName = _(u'Certificate type'),
         doc = 'Certificate type.',
         initialValue = constants.TYPE_ROOT,
     )
     trust = schema.One(
         schema.Integer,
-        displayName = _('Trust'),
+        displayName = _(u'Trust'),
         defaultValue = 0,
         doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
     )
     pem = schema.One(
         schema.Lob,
-        displayName = _('PEM'),
+        displayName = _(u'PEM'),
         doc = 'An X.509 certificate in PEM format.',
     )
     asText = schema.One(
         schema.Lob,
-        displayName = _('Human readable certificate value'),
+        displayName = _(u'Human readable certificate value'),
         doc = 'An X.509 certificate in human readable format.',
     )
     fingerprintAlgorithm = schema.One(
         schema.String,
-        displayName = _('fingerprint algorithm'),
+        displayName = _(u'fingerprint algorithm'),
         doc = 'A name of a hash algorithm that was used to compute fingerprint.',
     )
     fingerprint = schema.One(
@@ -229,10 +230,10 @@ def importCertificate(x509, fingerprint, trust, repView):
 
 def importCertificateDialog(repView):
     res = ImportExport.showFileDialog(wx.GetApp().mainFrame,
-                                      _("Choose a certificate to import"),
-                                      "", 
-                                      "", 
-                                      _("PEM files|*.pem;*.crt|All files (*.*)|*.*"),
+                                      _(u"Choose a certificate to import"),
+                                      u"", 
+                                      u"", 
+                                      _(u"PEM files|*.pem;*.crt|All files (*.*)|*.*"),
                                       wx.OPEN | wx.HIDE_READONLY)
 
     (cmd, dir, filename) = res
@@ -248,9 +249,9 @@ def importCertificateDialog(repView):
         fprint = utils.fingerprint(x509)
         type = _certificateType(x509)
         # Note: the order of choices must match the selections code below
-        choices = [_("Trust the authenticity of this certificate.")]
+        choices = [_(u"Trust the authenticity of this certificate.")]
         if type == constants.TYPE_ROOT:
-            choices += [_("Trust this certificate to sign site certificates.")]
+            choices += [_(u"Trust this certificate to sign site certificates.")]
 
         dlg = dialogs.ImportCertificateDialog(wx.GetApp().mainFrame,
                                    type,
@@ -275,8 +276,8 @@ def importCertificateDialog(repView):
         log.exception(e)
         # XXX Inform the user what went wrong so they can figure out how to
         # XXX fix this.
-        application.dialogs.Util.ok(wx.GetApp().mainFrame, _("Error"), 
-            _("Could not add certificate from: %s\nCheck the path and try again.") % path)
+        application.dialogs.Util.ok(wx.GetApp().mainFrame, messages.ERROR,
+            _(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path})
         return
 
 

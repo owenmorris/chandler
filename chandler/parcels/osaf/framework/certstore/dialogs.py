@@ -11,7 +11,7 @@ import logging
 import wx
 
 from i18n import OSAFMessageFactory as _
-from application.dialogs import messages
+from osaf import messages
 from osaf.framework.certstore import utils, errors
 
 log = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class ImportCertificateDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _('Import certificate?'), pos, size, style)
+        pre.Create(parent, -1, _(u'Import certificate?'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -45,7 +45,7 @@ class ImportCertificateDialog(wx.Dialog):
 
         # Static text
 
-        message = _('Do you want to import this certificate?\nType: %s\nSHA1 fingerprint: %s') % (type, utils.fingerprint(x509))
+        message = _(u'Do you want to import this certificate?\nType: %(certType)s\nSHA1 fingerprint: %(fingerprint)s') % {'certType': type, 'fingerprint': certificate.fingerprint(x509)}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -72,10 +72,10 @@ class ImportCertificateDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, messages.OK_BUTTON)
+        btn = wx.Button(self, wx.ID_OK, u" " +  messages.OK + u" ")
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, messages.CANCEL_BUTTON)
+        btn = wx.Button(self, wx.ID_CANCEL, u" " + messages.CANCEL + u" ")
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -119,7 +119,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _('Trust site certificate?'), pos, size, style)
+        pre.Create(parent, -1, _(u'Trust site certificate?'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -132,7 +132,7 @@ class TrustSiteCertificateDialog(wx.Dialog):
 
         # Static text
 
-        message = _('Do you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
+        message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -148,8 +148,8 @@ class TrustSiteCertificateDialog(wx.Dialog):
         
         first = True
         rbs = []
-        choices=[_('Trust the authenticity of this certificate until program exit.'),
-                 _('Trust the authenticity of this certificate permanently.')]
+        choices=[_(u'Trust the authenticity of this certificate until program exit.'),
+                 _(u'Trust the authenticity of this certificate permanently.')]
         for choice in choices:
             if first:
                 style = wx.ALIGN_LEFT|wx.RB_GROUP
@@ -222,7 +222,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _('Ignore SSL error?'), pos, size, style)
+        pre.Create(parent, -1, _(u'Ignore SSL error?'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -240,7 +240,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
             errString = err
         except AttributeError:
             errString = errors.getCertificateVerifyErrorString(err)
-        message = _('There was an error with this SSL connection.\nThe error was: %s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %s') % (errString, utils.fingerprint(x509))
+        message = _(u'There was an error with this SSL connection.\nThe error was: %s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %s') % (errString, utils.fingerprint(x509))
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -254,10 +254,10 @@ class IgnoreSSLErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, _('Ignore this error'))
+        btn = wx.Button(self, wx.ID_OK, _(u'Ignore this error'))
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL, _('Disconnect'))
+        btn = wx.Button(self, wx.ID_CANCEL, _(u'Disconnect'))
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 

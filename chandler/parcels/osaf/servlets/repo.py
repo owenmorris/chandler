@@ -24,13 +24,13 @@ class RepoResource(resource.Resource):
     def render_GET(self, request):
 
         cookies = request.received_cookies
-        
+
         try: # Outer try to render any exceptions
 
             try: # Inner try/finally to handle restoration of current view
 
                 mode = request.args.get('mode', [None])[0]
-                
+
                 # First check args, then check cookie for view to use:
                 viewName = request.args.get('view', [cookies.get('view', None)])[0]
 
@@ -38,29 +38,29 @@ class RepoResource(resource.Resource):
                 # startup.  Set it to be the current view and restore the
                 # previous view when we're done.
                 repoView = self.repositoryView
-                
+
                 # See if we need to override, using a different view
                 if viewName:
                     for view in repoView.views:
                         if view.name == viewName:
                             repoView = view
                             break
-                        
+
                 request.addCookie("view", repoView.name, path="/repo")
-                
+
                 prevView = repoView.setCurrentView()
 
                 if not request.postpath or not request.postpath[0]:
                     path = "//"
                 else:
                     path = "//%s" % ("/".join(request.postpath))
-                    
+
                 result = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
                 result += "<body>"
 
-                
+
                 result += "<p class=footer>Repository view: <b>%s</b> | <a href=/repo/?mode=views>switch</a></p>" % repoView.name
-                
+
                 if mode == "kindquery":
                     item = repoView.findPath(path)
                     result += "<div>"
@@ -69,7 +69,7 @@ class RepoResource(resource.Resource):
 
                 elif mode == "views":
                     result = RenderViews(repoView)
-                    
+
                 elif mode == "search":
                     text = request.args.get('text', [None])[0]
                     result += RenderSearchResults(repoView, text)
@@ -106,7 +106,7 @@ class RepoResource(resource.Resource):
                             itemPath = itemPath[:lastSlash]
                         else:
                             break
-                        
+
                     if item is None:
                         result += "<h3>Item not found: %s</h3>" % clean(path)
                         result = result.encode('utf-8', 'replace')
@@ -115,7 +115,7 @@ class RepoResource(resource.Resource):
                     if len(fields) == 0:
                         # No fields - just go render the item.
                         return RenderItem(repoView, item)
-                    
+
                     # Drill down to the field we want
                     theValue = item
                     for f in fields:
@@ -123,7 +123,7 @@ class RepoResource(resource.Resource):
                             theValue = _getObjectValue(theValue, f)
                         except:
                             result += "<h3>Unable to get %s on %s</h3>" % (clean(f), clean(theValue))
-                            return unicode(result)
+                            return result.encode('utf-8', 'replace')
                     result += "<div>"
                     result += RenderObject(repoView, theValue, path)
                     result += "</div>"
@@ -157,10 +157,7 @@ class RepoResource(resource.Resource):
         except Exception, e: # outer try
             result = "<html>Caught a %s exception: %s<br> %s</html>" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
-        if isinstance(result, unicode):
-            result = result.encode('utf-8', 'replace')
-            
-        return result
+        return result.encode('utf-8', 'replace')
 
 
 def RenderSearchForm(repoView):
@@ -187,6 +184,7 @@ def RenderSearchResults(repoView, text):
     count = 0
     for (item, attribute) in repoView.searchItems(text):
         result += oddEvenRow(count)
+        #This will upcast to unicode since getItemDisplayName will return unicode
         result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
         result += "</tr>"
         count += 1
@@ -246,6 +244,7 @@ def RenderInheritance(repoView):
     count = 0
     for item in kinds:
         result += oddEvenRow(count)
+        #This will upcast to unicode since getItemDisplayName will return unicode
         result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
         result += "<td>"
         klass = None
@@ -494,7 +493,7 @@ def RenderCloudItems(repoView, rootItem):
 
 def RenderKindQuery(repoView, item):
 
-    result = ""
+    result = u""
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
@@ -580,7 +579,7 @@ def RenderBlock(repoView, block):
 
 def RenderItem(repoView, item):
 
-    result = ""
+    result = u""
 
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes):
@@ -612,6 +611,7 @@ def RenderItem(repoView, item):
 
     try:
         displayName = item.displayName
+        #This will upcast the string to unicode since displayName is unicode
         result += "<div class='subheader'><b>Display Name:</b> %s</div>\n" % displayName
     except:
         pass
@@ -859,7 +859,7 @@ def RenderItem(repoView, item):
             result += "</ul>"
             result += "</td></tr>\n"
             count += 1
-            
+
         else:
 
             result += oddEvenRow(count)
@@ -889,7 +889,7 @@ def RenderItem(repoView, item):
             pass
         else:
             result += RenderObject(repoView, widget, "%s/%s" % (item.itsPath, "widget"), "Widget")
-            
+
     if isKind:
 
         # Cloud info
@@ -948,7 +948,6 @@ def _getSourceTree(coll, depth=0):
         result += _getSourceTree(source, depth+1)
 
     return result
-    
 
 indexRE = re.compile(r"(.*)\[(\d+)\]")
 
@@ -992,7 +991,7 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
     result += "<td valign=top><b>Value</b></td>\n"
     result += "</tr>\n"
     count = 0
-    
+
     displayedAttrs = { }
     for name in dir(theObject):
         if name is None:
@@ -1010,7 +1009,7 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
         else:
             displayName = name
         value = _getObjectValue(theObject, name)
-        
+
         displayedAttrs[displayName] = (name, value)
 
     keys = displayedAttrs.keys()
@@ -1040,11 +1039,11 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
                     # if isinstance(v, object): # str(v).find("; proxy of C++ ") != -1:
 
             result += ", ".join(results) + "<br>"
-        else:            
+        else:
             if isinstance(value, object):
                 result += "<a href=%s?mode=object>%s</a><br>" % (toLink("%s/%s" % (objectPath[1:], name)), clean(value))
             else:
-                result += "%s<br>" % (clean(value))    
+                result += "%s<br>" % (clean(value))
         result += "</td></tr>\n"
         count += 1
 
@@ -1056,8 +1055,6 @@ def getItemName(item):
         name = item.getItemDisplayName()
     except:
         name = item.itsName
-    if name is None:
-        name = unicode(item.itsUUID)
     return name
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

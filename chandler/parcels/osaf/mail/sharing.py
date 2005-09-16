@@ -59,11 +59,7 @@ class SMTPInvitationSender(object):
         self.sendToList = sendToList
         self.repository = repository
 
-        if isinstance(collection.displayName, unicode):
-            self.collectionName = collection.displayName.encode(constants.DEFAULT_CHARSET)
-
-        else:
-            self.collectionName = collection.displayName
+        self.collectionName = collection.displayName.encode(constants.DEFAULT_CHARSET)
 
 
         try:

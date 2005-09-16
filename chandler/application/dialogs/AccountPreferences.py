@@ -12,16 +12,17 @@ import application.dialogs.Util
 import osaf.pim.mail as Mail
 from osaf import sharing
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 """
 Notes: still more i18n work to do on this file. This is just a first pass.
 """
 
-CANT_CONNECT = _("Couldn't connect to server '%s'.\nPlease double-check the server name and port settings.\nError was: '%s'.")
-NO_ACCESS    = _("Permission denied by server '%s'.")
-READ_ONLY    = _("You have read access but not write access.")
-READ_WRITE   = _("Test was successful.\nThis account has read/write access.")
-UNKNOWN      = _("Test failed with an unknown response.")
+CANT_CONNECT = _(u"Couldn't connect to server '%(host)s'.\nPlease double-check the server name and port settings.\nError was: '%(reason)s'.")
+NO_ACCESS    = _(u"Permission denied by server '%(host)s'.")
+READ_ONLY    = _(u"You have read access but not write access.")
+READ_WRITE   = _(u"Test was successful.\nThis account has read/write access.")
+UNKNOWN      = _(u"Test failed with an unknown response.")
 
 # Special handlers referenced in the PANELS dictionary below:
 
@@ -34,7 +35,7 @@ def IMAPValidationHandler(item, fields, values):
         Mail.EmailAddress.isValidEmailAddress(newAddressString):
         return None
     else:
-        return (_("'%s' is not a valid email address") % newAddressString)
+        return (_(u"'%(emailAddress)s' is not a valid email address") % {'emailAddress': newAddressString})
 
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
@@ -118,7 +119,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _("New IMAP account")
+                "default": messages.NEW_ACCOUNT % {'accountType': 'IMAP'}
             },
             "IMAP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -173,8 +174,8 @@ PANELS = {
         "saveHandler" : IMAPSaveHandler,
         "validationHandler" : IMAPValidationHandler,
         "deleteHandler" : IMAPDeleteHandler,
-        "displayName" : "IMAP_DESCRIPTION",
-        "description" : _("Incoming mail (IMAP)"),
+        "displayName" : u"IMAP_DESCRIPTION",
+        "description" : _(u"Incoming %(accountType)s mail") % {'accountType': 'IMAP'},
         "callbacks" : (
             ("IMAP_TEST", "OnTestIMAP"),
         )
@@ -185,7 +186,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _("New POP account")
+                "default": messages.NEW_ACCOUNT % {'accountType': 'POP'}
             },
             "POP_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -243,8 +244,8 @@ PANELS = {
         "id" : "POPPanel",
         "saveHandler" : POPSaveHandler,
         "deleteHandler" : POPDeleteHandler,
-        "displayName" : "POP_DESCRIPTION",
-        "description" : _("Incoming mail (POP)"),
+        "displayName" : u"POP_DESCRIPTION",
+        "description" : _(u"Incoming %(accountType)s mail") % {'accountType': 'POP'},
         "callbacks" : (
             ("POP_TEST", "OnTestPOP"),
         )
@@ -255,7 +256,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : _("New SMTP account")
+                "default": messages.NEW_ACCOUNT % {'accountType': 'SMTP'}
             },
             "SMTP_SERVER" : {
                 "attr" : "host",
@@ -294,8 +295,8 @@ PANELS = {
         },
         "id" : "SMTPPanel",
         "deleteHandler" : SMTPDeleteHandler,
-        "displayName" : "SMTP_DESCRIPTION",
-        "description" : _("Outgoing mail (SMTP)"),
+        "displayName" : u"SMTP_DESCRIPTION",
+        "description" : _(u"Outgoing %(accountType)s mail") % {'accountType': 'SMTP'},
         "callbacks" : (
             ("SMTP_TEST", "OnTestSMTP"),
         )
@@ -306,7 +307,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default" : _("New WebDAV account")
+                "default": messages.NEW_ACCOUNT % {'accountType': 'webDAV'}
             },
             "WEBDAV_SERVER" : {
                 "attr" : "host",
@@ -344,7 +345,7 @@ PANELS = {
         "id" : "WebDAVPanel",
         "deleteHandler" : WebDAVDeleteHandler,
         "displayName" : "WEBDAV_DESCRIPTION",
-        "description" : _("Sharing (WebDAV)"),
+        "description" : _(u"Sharing %(accountType)s") % {'accountType': 'WebDAV'},
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
         )
@@ -937,7 +938,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif accountType == "WebDAV":
             item = sharing.WebDAVAccount(view=self.view)
 
-        accountName = (_("New %s account") % accountType)
+        accountName = (messages.NEW_ACCOUNT % {'accountType': accountType})
         item.displayName = accountName
 
         values = { }
@@ -988,8 +989,8 @@ class AccountPreferencesDialog(wx.Dialog):
             self.accountsList.SetSelection(0)
             self.__SwapDetailPanel(0)
         else:
-            msg =_("This account currently may not be deleted because it has been marked as a 'default' account")
-            application.dialogs.Util.ok(self, _("Cannot delete default account"),
+            msg =_(u"This account currently may not be deleted because it has been marked as a 'default' account")
+            application.dialogs.Util.ok(self, _(u"Cannot delete default account"),
                                         msg)
 
 
@@ -1064,10 +1065,10 @@ class AccountPreferencesDialog(wx.Dialog):
         reason = access[1]
 
         if result == sharing.CANT_CONNECT:
-            msg = CANT_CONNECT % (host, reason)
+            msg = CANT_CONNECT % {'host': host, 'reason': reason}
 
         elif result == sharing.NO_ACCESS:
-            msg = NO_ACCESS % host
+            msg = NO_ACCESS % {'host': host}
         elif result == sharing.READ_ONLY:
             msg = READ_ONLY 
         elif result == sharing.READ_WRITE:
@@ -1080,7 +1081,7 @@ class AccountPreferencesDialog(wx.Dialog):
             msg = UNKNOWN
 
         if msg is not None:
-            application.dialogs.Util.ok(self, _("WebDAV Test Results"), msg)
+            application.dialogs.Util.ok(self, _(u"%(accountType)s Test Results") % {'accountType': 'WebDAV'}, msg)
 
 
     def OnAccountSel(self, evt):
@@ -1181,7 +1182,7 @@ def ShowAccountPreferencesDialog(parent, account=None, view=None, modal=True):
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:
-    win = AccountPreferencesDialog(parent, _("Account Preferences"),
+    win = AccountPreferencesDialog(parent, messages.ACCOUNT_PREFERENCES,
      resources=resources, account=account, view=view)
     win.CenterOnScreen()
     if modal:

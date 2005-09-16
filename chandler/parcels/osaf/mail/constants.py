@@ -13,38 +13,33 @@ import version
 from i18n import OSAFMessageFactory as _
 
 DEFAULT_CHARSET = "utf-8"
-LF    = unicode("\n", DEFAULT_CHARSET)
-CR    = unicode("\r", DEFAULT_CHARSET)
-EMPTY = unicode("",   DEFAULT_CHARSET)
+LF    = u"\n"
+CR    = u"\r"
+EMPTY = u""
 
 CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
 
-INVALID_EMAIL_ADDRESS = _("%s Address %s is not a valid Email Address")
+INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
 
-UNKNOWN_ERROR = _("An unknown error has occurred")
+UNKNOWN_ERROR = _(u"An unknown error has occurred")
 
 """Translatable message strings for downloads (POP, IMAP)"""
-DOWNLOAD_ERROR = _("An error occurred while downloading:\n%s")
-DOWNLOAD_NO_MESSAGES = _("No new messages found")
-DOWNLOAD_MESSAGES = _("%s messages downloaded to Chandler")
-DOWNLOAD_CHECK_MESSAGES = _("Checking for new mail messages")
-DOWNLOAD_REQUIRES_TLS = _("The Server only allows secure login. Please enable TLS or SSL.")
+DOWNLOAD_ERROR = _(u"An error occurred while downloading:\n%(error)s")
+DOWNLOAD_NO_MESSAGES = _(u"No new messages found")
+DOWNLOAD_MESSAGES = _(u"%(numberOfMessages)s messages downloaded to Chandler")
+DOWNLOAD_CHECK_MESSAGES = _(u"Checking for new mail messages")
+DOWNLOAD_REQUIRES_TLS = _(u"The Server only allows secure login. Please enable TLS or SSL.")
 
 """Translatable message strings for uploads(SMTP)"""
-UPLOAD_FAILED = _("Unable to send: %s")
-UPLOAD_FAILED_FOR_RECIPIENTS = _("Send failed for the following recipients:")
-UPLOAD_SUCCESS = _("Message sent to [%s]")
-UPLOAD_BAD_REPLY_ADDRESS = _("The Reply-To Address %s is not valid")
-UPLOAD_FROM_REQUIRED = _("A From Address is required to send a Mail Message")
-UPLOAD_BAD_FROM_ADDRESS = _("%s is not a valid From Address")
-UPLOAD_TO_REQUIRED = _("A To Address is required to send an SMTP Mail Message")
-UPLOAD_ERROR = _("An error occurred while sending:\n%s")
+UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")
+UPLOAD_FROM_REQUIRED = _(u"A From Address is required to send a Mail Message")
+UPLOAD_TO_REQUIRED = _(u"A To Address is required to send an SMTP Mail Message")
 
 
 """Translatable message strings for account testing"""
-TEST_ERROR = _("%s Results\n\nPlease correct the following configuration error:\n\n%s")
-TEST_SUCCESS = _("%s Results\n\nTest was successful.")
+TEST_ERROR = _(u"%(accountName)s Results\n\nPlease correct the following configuration error:\n\n%(error)s")
+TEST_SUCCESS = _(u"%(accountName)s Results\n\nTest was successful.")
 
 SHARING_HEADER  = "Sharing-URL"
 SHARING_DIVIDER = ";"
@@ -59,5 +54,3 @@ TESTING_TIMEOUT = 10
    i.e. __debug__ == True
 """
 VERBOSE = False
-
-

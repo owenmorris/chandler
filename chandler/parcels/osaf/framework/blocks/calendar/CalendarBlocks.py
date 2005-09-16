@@ -104,25 +104,25 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
     def OnPaint(self, event):
         self._checkRedraw()
         event.Skip(True)
-        
+
     def _checkRedraw(self):
         if self._redrawCount > 0:
             self._redrawCount = 0
 
             startWxDate = self.GetStartDate();
             endWxDate = startWxDate + wx.DateSpan.Month() + wx.DateSpan.Month() + wx.DateSpan.Month()
-            
+
             startDate = date(startWxDate.GetYear(),
                             startWxDate.GetMonth() + 1,
                             startWxDate.GetDay())
-    
+
             month = startDate.month + 3
             if month > 12:
                 endDate = startDate.replace(year=startDate.year+1,
                                             month=month - 12)
             else:
                 endDate = startDate.replace(month=month)
-    
+
             numDays = (endDate - startDate).days
             busyFractions = {}
             defaultTzinfo = ICUtzinfo.getDefault()
@@ -316,8 +316,10 @@ class wxPreviewArea(wx.Panel):
             timeFormat = DateTimeAttributeEditor.shortTimeFormat
             genericTime = timeFormat.format(datetime(2005,1,1,12,00))
             self.timeSeparator = ':'
+            #XXX [18n] Localizing the time separator is an issue
+            # it forces the localizer to understand these programming semantics
             for c in genericTime: # @@@ This might need work
-                if c in (_(':.')): # Which time separator actually got used?
+                if c in (_(u':.')): # Which time separator actually got used?
                     self.timeSeparator = c
                     break
             dc.SetFont(self.timeFont)
@@ -340,7 +342,7 @@ class wxPreviewArea(wx.Panel):
                 #     It will be hard for a translator to work with
                 #     since it is vague
                 dc.SetFont(self.eventFont)
-                dc.DrawText(_("%d more confirmed...") % (len(self.currentDaysItems) - i),  
+                dc.DrawText(_(u"%(unknownValue)d more confirmed...") % {'unknownValue': (len(self.currentDaysItems) - i)},
                             self.hMargin, y + self.eventFontOffset)
                 y += self.lineHeight  #For end calculation
                 break

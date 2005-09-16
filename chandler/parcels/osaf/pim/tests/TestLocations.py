@@ -47,7 +47,7 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(aRoom.itsKind, Calendar.Location.getKind(view))
 
         # Literal properties
-        aRoom.displayName = "A Nice Place" # change the Location name
+        aRoom.displayName = u"A Nice Place" # change the Location name
         # make sure we can get the name, and find it by that name
         sameLocation = Calendar.Location.getLocation (view, aRoom.displayName)
         self.assert_ (aRoom is sameLocation, "Location factory failed to return an identical location!")

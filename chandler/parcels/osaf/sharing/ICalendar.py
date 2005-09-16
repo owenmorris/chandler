@@ -257,7 +257,7 @@ def convertToICUtzinfo(dt):
 
 class ICalendarFormat(Sharing.ImportExportFormat):
 
-    schema.kindInfo(displayName="iCalendar Import/Export Format Kind")
+    schema.kindInfo(displayName=u"iCalendar Import/Export Format Kind")
 
     _calendarEventPath = "//parcels/osaf/pim/calendar/CalendarEvent"
     _taskPath = "//parcels/osaf/pim/EventTask"
@@ -316,8 +316,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             try:
                 calName = calendar.contents[u'x-wr-calname'][0].value
             except:
-                calName = "Imported Calendar"
-            item.displayName = calName
+                calName = u"Imported Calendar"
+            item.displayName = unicode(calName)
 
         countNew = 0
         countUpdated = 0
@@ -328,22 +328,22 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             try:
                 logger.debug("got VEVENT")
                 pickKind = eventKind
-    
+
                 try:
                     displayName = event.summary[0].value
                 except AttributeError:
-                    displayName = ""
-    
+                    displayName = u""
+
                 try:
                     description = event.description[0].value
                 except AttributeError:
                     description = None
-                    
+
                 try:
                     location = event.location[0].value
                 except AttributeError:
-                    location = None            
-    
+                    location = None
+
                 try:
                     status = event.status[0].value.lower()
                     if status in ('confirmed', 'tentative'):
@@ -354,19 +354,19 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         status = 'confirmed'
                 except AttributeError:
                     status = 'confirmed'
-    
+
                 try:
                     # FIXME assumes DURATION, not DATE-TIME
                     reminderDelta = event.valarm[0].trigger[0].value
                 except AttributeError:
                     reminderDelta = None
-    
+
                 # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
                 # what that would mean, so we won't catch an exception if there's no
                 # dtstart.
                 dtstart  = event.dtstart[0].value 
                 isDate = type(dtstart) == date
-                
+
                 try:
                     duration = event.duration[0].value
                 except AttributeError:
@@ -504,7 +504,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 elif recurrenceID is None: # delete any existing rule
                     eventItem.removeRecurrence()
     
-                logger.debug("Imported %s %s" % (eventItem.displayName,
+                logger.debug(u"Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
     
                 if self.fileStyle() == self.STYLE_SINGLE:

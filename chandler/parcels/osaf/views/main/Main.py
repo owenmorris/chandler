@@ -36,6 +36,7 @@ import osaf.framework.scripting as Scripting
 from osaf import webserver
 from i18n import OSAFMessageFactory as _
 import i18n
+from osaf import messages
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class MainView(View):
           Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusMessage (_('Mail "%s" sent.') % mailMessage.about)
+            self.setStatusMessage (_(u'Mail "%(subject)s" sent.') % {'subject': mailMessage.about})
 
         # If this was a sharing invitation, find its collection and remove the
         # successfully-notified addressees from the invites list.
@@ -99,7 +100,7 @@ class MainView(View):
             if line.find('@@buildid@@') >= 0:
                 line = "<p>Build identifier: '%s'</p>" % version.build
             html += line
-        splash = SplashScreen(None, _("About Chandler"),
+        splash = SplashScreen(None, _(u"About Chandler"),
                                    None, html, True, False)
         splash.Show(True)
         return splash
@@ -154,7 +155,7 @@ class MainView(View):
         # Create a new collection, triggered from File | New Collection
         coll = pim.InclusionExclusionCollection(view=self.itsView)
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
-        coll.displayName = _(u'Untitled')
+        coll.displayName = messages.UNTITLED
         self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[coll]})
         return [coll]
 
@@ -181,10 +182,10 @@ class MainView(View):
                     else:
                         printObject.OnPrint()
                     return
-        message = _("Printing is currently only supported when viewing week or \
+        message = _(u"Printing is currently only supported when viewing week or \
                     day view of the calendar.")
 
-        title = _("chandler")
+        title = _(u"chandler")
         application.dialogs.Util.ok(None, message, title)
 
     def onQuitEvent (self, event):
@@ -207,7 +208,7 @@ class MainView(View):
     def onUndoEventUpdateUI (self, event):
         # BJS: commented out - see rant in Block.py, 
         # RectangularChild.onUndoEventUpdateUI
-        #event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+        #event.arguments ['Text'] = _(u"Can't Undo\tCtrl+Z")
         event.arguments ['Enable'] = False
 
     def onNewEventUpdateUI (self, event):
@@ -217,7 +218,7 @@ class MainView(View):
         """
           Do a repository commit with notice posted in the Status bar.
         """
-        self.setStatusMessage (_("committing changes to the repository..."))
+        self.setStatusMessage (_(u"committing changes to the repository..."))
 
         # If we have a detail view, let it write pending edits back first.
         detailView = self.findBlockByName("DetailRoot")
@@ -290,7 +291,7 @@ class MainView(View):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
-        event.arguments ['Text'] = _("Send")
+        event.arguments ['Text'] = messages.SEND
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
@@ -301,7 +302,7 @@ class MainView(View):
         account = Mail.getCurrentSMTPAccount(self.itsView)[0]
 
         # put a sending message into the status bar
-        self.setStatusMessage (_('Sending mail...'))
+        self.setStatusMessage (_(u'Sending mail...'))
 
         # Now send the mail
         Globals.mailService.getSMTPInstance(account).sendMail(item)
@@ -323,7 +324,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
         # show status
-        self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
+        self.setStatusMessage (_(u"Sharing collection %(collectionName)s") % {'collectionName': itemCollection.displayName})
 
         # Get or make a share for this item collection
         share = sharing.getShare(itemCollection)
@@ -336,7 +337,7 @@ class MainView(View):
         # Copy the invitee list into the share's list. As we go, collect the 
         # addresses we'll notify.
         if len (itemCollection.invitees) == 0:
-            self.setStatusMessage (_("No invitees!"))
+            self.setStatusMessage (_(u"No invitees!"))
             return
         inviteeList = []
         inviteeStringsList = []
@@ -350,19 +351,19 @@ class MainView(View):
                 share.sharees.append(inviteeContact)
 
         # Sync the collection with WebDAV
-        self.setStatusMessage (_("accessing WebDAV server"))
+        self.setStatusMessage (_(u"accessing WebDAV server"))
         try:
             if not share.exists():
                 share.create()
             share.put()
 
         except sharing.SharingError, err:
-            self.setStatusMessage (_("Sharing failed."))
+            self.setStatusMessage (_(u"Sharing failed."))
 
-            msg = _("Couldn't share collection:\n%s") % err.message
+            msg = _(u"Couldn't share collection:\n%(errorMessage)s") % {'errorMessage': err.message}
 
             application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _("Error"), msg)
+                                        _(u"Error"), msg)
 
             if isNewShare:
                 share.conduit.delete()
@@ -372,13 +373,13 @@ class MainView(View):
             return
 
         # Send out sharing invites
-        self.setStatusMessage (_("inviting %s") % ", ".join(inviteeStringsList))
+        self.setStatusMessage (_(u"inviting %(inviteList)s") % {'inviteList': ", ".join(inviteeStringsList)})
         MailSharing.sendInvitation(itemCollection.itsView.repository,
                                    share.conduit.getLocation(), itemCollection,
                                    inviteeList)
 
         # Done
-        self.setStatusMessage (_("Sharing initiated."))
+        self.setStatusMessage (_(u"Sharing initiated."))
 
     def onStartProfilerEvent(self, event):
         Block.profileEvents = True
@@ -409,28 +410,28 @@ class MainView(View):
     def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
         repository = self.itsView.repository
-        progressMessage = _('Checking repository...')
+        progressMessage = _(u'Checking repository...')
         repository.logger.info("Checking repository ...")
         self.setStatusMessage(progressMessage)
         before = time()
         if repository.check():
             after = time()
-            successMessage = _('Check completed successfully in %s') % (timedelta(seconds=after-before))
+            successMessage = _(u'Check completed successfully in %(numSeconds)s') % {'numSeconds': timedelta(seconds=after-before)}
             repository.logger.info('Check completed successfully in %s' % (timedelta(seconds=after-before)))
             self.setStatusMessage(successMessage)
         else:
-            errorMessage = _('Check completed with errors')
+            errorMessage = _(u'Check completed with errors')
             repository.logger.info('Check completed with errors')
             self.setStatusMessage(errorMessage)
 
     def onBackupRepositoryEvent(self, event):
         # triggered from "Test | Backup Repository" Menu
         repository = self.itsView.repository
-        progressMessage = _('Backing up repository...')
+        progressMessage = _(u'Backing up repository...')
         repository.logger.info('Backing up repository...')
         self.setStatusMessage(progressMessage)
         dbHome = repository.backup()
-        successMessage = _('Repository was backed up into %s') % (dbHome)
+        successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome)}
         repository.logger.info('Repository was backed up into %s' % (dbHome))
         self.setStatusMessage(successMessage)
 
@@ -438,41 +439,41 @@ class MainView(View):
         # triggered from "File | Import/Export" menu
         #XXX: need to migrate this to application dialogs utilsA
 
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a file to import"), "",
-                                          "import.ics", _("iCalendar files|*.ics|All files (*.*)|*.*"),
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
+                                          "import.ics", _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
                                           wx.OPEN | wx.HIDE_READONLY)
 
         (cmd, dir, filename) = res
 
         if cmd  != wx.ID_OK:
-            self.setStatusMessage(_("Import aborted"))
+            self.setStatusMessage(_(u"Import aborted"))
             return
 
-        self.setStatusMessage (_("Importing from %s") % filename)
+        self.setStatusMessage (_(u"Importing from %(filename)s") % {'filename': filename})
         try:
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
-            self.setStatusMessage (_("Import completed"))
+            self.setStatusMessage (_(u"Import completed"))
         except:
             logger.exception("Failed importFile %s" % \
                 os.path.join(dir, filename))
-            self.setStatusMessage(_("Import failed"))
+            self.setStatusMessage(_(u"Import failed"))
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a filename to export to"), "",
-                                          "export.ics", _("iCalendar files|*.ics|All files (*.*)|*.*"),
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a filename to export to"), "",
+                                          "export.ics", _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
                                           wx.SAVE | wx.OVERWRITE_PROMPT)
 
         (cmd, dir, filename) = res
 
         if cmd != wx.ID_OK:
-            self.setStatusMessage(_("Export aborted"))
+            self.setStatusMessage(_(u"Export aborted"))
             return
 
-        self.setStatusMessage (_("Exporting to %s") % filename)
+        self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
         try:
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
@@ -481,17 +482,17 @@ class MainView(View):
                 collection.add(event)
             share.contents = collection
             share.put()
-            self.setStatusMessage(_("Export completed"))
+            self.setStatusMessage(_(u"Export completed"))
         except:
             trace = "".join(traceback.format_exception (*sys.exc_info()))
             logger.info("Failed exportFile:\n%s" % trace)
-            self.setStatusMessage(_("Export failed"))
+            self.setStatusMessage(_(u"Export failed"))
 
 
     def onImportImageEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose an image to import"), "",
-                                          "", _("Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose an image to import"), "",
+                                          "", _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
                                           wx.OPEN)
 
         (cmd, dir, filename) = res
@@ -502,11 +503,11 @@ class MainView(View):
 
         path = os.path.join(dir, filename)
 
-        self.setStatusMessage (_("Importing %s") % path)
+        self.setStatusMessage (_(u"Importing %(filePath)s") % {'filePath': path})
         photo = Photo(view=self.itsView)
         photo.displayName = filename
         photo.importFromFile(path)
-        self.setStatusMessage("")
+        self.setStatusMessage(u"")
 
         # Tell the sidebar we want to go to the All collection
         self.postEventByName ('RequestSelectSidebarItem', {'item':schema.ns('osaf.app', self).allCollection})
@@ -518,7 +519,7 @@ class MainView(View):
     def onCommitRepositoryEvent(self, event):
         # Test menu item
         self.RepositoryCommitWithStatus ()
-        
+
     def onWxTestHarnessEvent(self, event):
         """
            This method is for testing and 
@@ -548,17 +549,17 @@ class MainView(View):
 
     def onGenerateContentItemsFromFileEvent(self, event):
         # triggered from "File | Import/Export" menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _("Choose a file to import"), "",
-                                          "import.csv", _("CSV files|*.csv"),
+        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
+                                          "import.csv", _(u"CSV files|*.csv"),
                                           wx.OPEN | wx.HIDE_READONLY)
 
         (cmd, dir, filename) = res
 
         if cmd != wx.ID_OK:
-            self.setStatusMessage(_("Import aborted"))
+            self.setStatusMessage(_(u"Import aborted"))
             return
 
-        self.setStatusMessage (_("Importing from %s")  % filename)
+        self.setStatusMessage (_(u"Importing from %(filename)s")  % {'filename': filename})
         mainView = Globals.views[0]
         return GenerateItemsFromFile.GenerateItems(self.itsView, mainView, os.path.join(dir, filename))
 
@@ -695,7 +696,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection (private=True)
         if collection is not None:
             #XXX: i18n str cast of rule seems wrong 
-            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _("Edit rule"), _("Enter a rule for this collection"), str(collection.getRule()))
+            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, _(u"Edit rule"), _(u"Enter a rule for this collection"), str(collection.getRule()))
             if rule:
                 collection.setRule(rule)
 
@@ -736,9 +737,9 @@ class MainView(View):
         enable = item is not None and isinstance(item, Scripting.Script)
         event.arguments ['Enable'] = enable
         if enable:
-            menuTitle = _('Run "%s"\tCtrl+S') % item.about
+            menuTitle = u'Run "%s"\tCtrl+S' % item.about
         else:
-            menuTitle = _('Run a Script\tCtrl+S')
+            menuTitle = u'Run a Script\tCtrl+S'
         event.arguments ['Text'] = menuTitle
 
     def onShowPyShellEvent(self, event):
@@ -809,9 +810,9 @@ class MainView(View):
             collName = sharing.getFilteredCollectionDisplayName(collection,
                                                                 filterKindPath)
 
-            menuTitle = _('Share "%s"...') % collName
+            menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collName}
         else:
-            menuTitle = _('Share a collection...')
+            menuTitle = _(u'Share a collection...')
 
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = collection is not None and (not sharing.isShared(collection))
@@ -873,14 +874,14 @@ class MainView(View):
             collName = sharing.getFilteredCollectionDisplayName(collection,
                                                                 filterKindPath)
 
-            menuTitle = _('Sync "%s"') % collName
+            menuTitle = _(u'Sync "%(collectionName)s"') % {'collectionName': collName}
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
             else:
                 event.arguments['Enable'] = False
         else:
             event.arguments['Enable'] = False
-            menuTitle = _('Sync a collection')
+            menuTitle = _(u'Sync a collection')
         event.arguments ['Text'] = menuTitle
 
     def onCopyCollectionURLEvent(self, event):
@@ -937,14 +938,14 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
         # find all the shared collections and sync them.
-        self.setStatusMessage (_("Checking shared collections..."))
+        self.setStatusMessage (_(u"Checking shared collections..."))
         if sharing.checkForActiveShares(self.itsView):
-            self.setStatusMessage (_("Synchronizing shared collections..."))
+            self.setStatusMessage (_(u"Synchronizing shared collections..."))
             sharing.syncAll(self.itsView)
         else:
-            self.setStatusMessage (_("No shared collections found"))
+            self.setStatusMessage (_(u"No shared collections found"))
             return
-        self.setStatusMessage (_("Shared collections synchronized"))
+        self.setStatusMessage (_(u"Shared collections synchronized"))
 
     def onSyncWebDAVEventUpdateUI (self, event):
         accountOK = sharing.isWebDAVSetUp(self.itsView)
@@ -962,5 +963,5 @@ class MainView(View):
 
         # If mail is set up, fetch it:
         if sharing.isInboundMailSetUp(self.itsView):
-            self.setStatusMessage (_("Getting new Mail"))
+            self.setStatusMessage (_(u"Getting new Mail"))
             self.onGetNewMailEvent (event)

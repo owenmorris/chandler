@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 Generate sample items: calendar, contacts, etc.
 """
+
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
@@ -10,17 +12,30 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import random
 
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
+from PyICU import ICUtzinfo, UnicodeString
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
+import i18n
 
+TEST_I18N = 'test' in i18n.getLocaleSet()
+I18N_SEED = UnicodeString(u"йδ")
 
-HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
+HEADLINES = [u"Dinner", u"Lunch", u"Meeting", u"Movie", u"Games"]
 
 DURATIONS = [60, 90, 120, 150, 180]
 
 REMINDERS = [None, None, None, None, 1, 10] # The "None"s make only a 30% chance an event will have a reminder...
+
+def addSurrogatePairToText(text):
+    #One in two chance. If the rand int return equals 1
+    #then add a surrogate pair at the start and end of the text
+    if random.randrange(2) == 1:
+        start = random.randrange(I18N_SEED.length())
+        end   = random.randrange(I18N_SEED.length())
+        return  u"%s%s%s" % (I18N_SEED.charAt(start), text, I18N_SEED.charAt(end))
+    return text
+
 
 def GenerateCalendarParticipant(view):
     email = Mail.EmailAddress(view=view)
@@ -29,15 +44,18 @@ def GenerateCalendarParticipant(view):
     email.emailAddress = "%s@%s" % (handle, domainName)
     return email
 
-IMPORTANCE = ["important", "normal", "fyi"]
-LOCATIONS  = ["Home", "Office", "School"]
+IMPORTANCE = [u"important", u"normal", u"fyi"]
+LOCATIONS  = [u"Home", u"Office", u"School"]
 
 
 
 def GenerateCalendarEvent(view, days=30, tzinfo=None):
     event = Calendar.CalendarEvent(view=view)
     event.displayName = random.choice(HEADLINES)
-    
+
+    if TEST_I18N:
+        event.displayName = addSurrogatePairToText(event.displayName)
+
     # Choose random days, hours
     startDelta = timedelta(days=random.randint(0, days),
                            hours=random.randint(0, 24))
@@ -65,24 +83,30 @@ def GenerateCalendarEvent(view, days=30, tzinfo=None):
         
     # Add a location to 2/3 of the events
     if random.randrange(3) > 0:
-        event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
+        if TEST_I18N:
+            event.location = Calendar.Location.getLocation(view, addSurrogatePairToText(random.choice(LOCATIONS)))
+        else:
+            event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
+
+
 
     event.importance = random.choice(IMPORTANCE)
     return event
 
 
-TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
-          "grocery list", "gift ideas", "life goals", "fantastic recipe",
-          "garden plans", "funny joke", "story idea", "poem"]
+TITLES = [u"reading list", u"restaurant recommendation", u"vacation ideas",
+          u"grocery list", u"gift ideas", u"life goals", u"fantastic recipe",
+          u"garden plans", u"funny joke", u"story idea", u"poem"]
 
 EVENT, TASK, BOTH = range(2, 5)
-M_TEXT  = "This is a test email message"
-M_EVENT = " that has been stamped as a Calendar Event"
-M_TASK  = " that has been stamped as a Task"
-M_BOTH  = " that has been stamped as a Task and a Calendar Event"
+M_TEXT  = u"This is a test email message"
+M_EVENT = u" that has been stamped as a Calendar Event"
+M_TASK  = u" that has been stamped as a Task"
+M_BOTH  = u" that has been stamped as a Task and a Calendar Event"
 M_FROM  = None
 
 def GenerateMailMessage(view, tzinfo=None):
+    #XXX [i18n] need to add i18n tests for to and from address
     global M_FROM
     message  = Mail.MailMessage(view=view)
     body     = M_TEXT
@@ -100,6 +124,10 @@ def GenerateMailMessage(view, tzinfo=None):
         message.toAddress.append(GenerateCalendarParticipant(view))
 
     message.subject  = random.choice(TITLES)
+
+    if TEST_I18N:
+        message.subject = addSurrogatePairToText(message.subject)
+
     message.dateSent = datetime.now()
 
 
@@ -128,6 +156,9 @@ def GenerateMailMessage(view, tzinfo=None):
         message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
         body += M_BOTH
 
+    if TEST_I18N:
+        body = addSurrogatePairToText(body)
+
     message.body = message.getAttributeAspect('body', 'type').makeValue(body)
 
     return message
@@ -136,6 +167,10 @@ def GenerateNote(view, tzinfo=None):
     """ Generate one Note item """
     note = pim.Note(view=view)
     note.displayName = random.choice(TITLES)
+
+    if TEST_I18N:
+        note.displayName = addSurrogatePairToText(note.displayName)
+
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     note.createdOn = datetime.now(tzinfo) + delta
@@ -148,6 +183,10 @@ def GenerateTask(view, tzinfo=None):
                       hours=random.randint(0, 24))
     task.dueDate = datetime.today() + delta
     task.displayName = random.choice(TITLES)
+
+    if TEST_I18N:
+        task.displayName = addSurrogatePairToText(task.displayName)
+
     return task
 
 def GenerateEventTask(view, days=30, tzinfo=None):
@@ -156,32 +195,32 @@ def GenerateEventTask(view, days=30, tzinfo=None):
     event.StampKind('add', pim.TaskMixin.getKind(event.itsView))
     return event
 
-DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
-               'electricbagpipes.com', 'facelessentity.com', 'example.com',
-               'example.org', 'example.net', 'hangarhonchos.org', 'ludditesonline.net']
+DOMAIN_LIST = [u'flossrecycling.com', u'flossresearch.org', u'rosegardens.org',
+               u'electricbagpipes.com', u'facelessentity.com', u'example.com',
+               u'example.org', u'example.net', u'hangarhonchos.org', u'ludditesonline.net']
 
-FIRSTNAMES = ['Alec', 'Aleks', 'Alexis', 'Amy', 'Andi', 'Andy', 'Aparna',
-              'Bart', 'Blue', 'Brian', 'Bryan', 'Caroline', 'Cedric', 'Chao', 'Chris',
-              'David', 'Donn', 'Ducky', 'Dulcy', 'Erin', 'Esther',
-              'Freada', 'Grant', 'Greg', 'Heikki', 'Hilda',
-              'Jed', 'John', 'Jolyn', 'Jurgen', 'Jae Hee',
-              'Katie', 'Kevin', 'Lisa', 'Lou',
-              'Michael', 'Mimi', 'Mitch', 'Mitchell', 'Morgen',
-              'Pieter', 'Robin', 'Stefanie', 'Stuart', 'Suzette',
-              'Ted', 'Trudy', 'William']
+FIRSTNAMES = [u'Alec', u'Aleks', u'Alexis', u'Amy', u'Andi', u'Andy', u'Aparna',
+              u'Bart', u'Blue', u'Brian', u'Bryan', u'Caroline', u'Cedric', u'Chao', u'Chris',
+              u'David', u'Donn', u'Ducky', u'Dulcy', u'Erin', u'Esther',
+              u'Freada', u'Grant', u'Greg', u'Heikki', u'Hilda',
+              u'Jed', u'John', u'Jolyn', u'Jurgen', u'Jae Hee',
+              u'Katie', u'Kevin', u'Lisa', u'Lou',
+              u'Michael', u'Mimi', u'Mitch', u'Mitchell', u'Morgen',
+              u'Pieter', u'Robin', u'Stefanie', u'Stuart', u'Suzette',
+              u'Ted', u'Trudy', u'William']
 
-LASTNAMES = ['Anderson', 'Baillie', 'Baker', 'Botz', 'Brown', 'Burgess',
-             'Capps', 'Cerneka', 'Chang', 'Decker', 'Decrem', 'Denman', 'Desai', 'Dunn', 'Dusseault',
-             'Figueroa', 'Flett', 'Gamble', 'Gravelle',
-             'Hartsook', 'Haurnesser', 'Hernandez', 'Hertzfeld', 'Humpa',
-             'Kapor', 'Klein', 'Kim', 'Lam', 'Leung', 'McDevitt', 'Montulli', 'Moseley',
-             'Okimoto', 'Parlante', 'Parmenter', 'Rosa',
-             'Sagen', 'Sciabica', 'Sherwood', 'Skinner', 'Stearns', 'Sun', 'Surovell',
-             'Tauber', 'Totic', 'Toivonen', 'Toy', 'Tsurutome', 'Vajda', 'Yin']
+LASTNAMES = [u'Anderson', u'Baillie', u'Baker', u'Botz', u'Brown', u'Burgess',
+             u'Capps', u'Cerneka', u'Chang', u'Decker', u'Decrem', u'Denman', u'Desai', u'Dunn', u'Dusseault',
+             u'Figueroa', u'Flett', u'Gamble', u'Gravelle',
+             u'Hartsook', u'Haurnesser', u'Hernandez', u'Hertzfeld', u'Humpa',
+             u'Kapor', u'Klein', 'Kim', u'Lam', u'Leung', u'McDevitt', u'Montulli', u'Moseley',
+             u'Okimoto', u'Parlante', u'Parmenter', u'Rosa',
+             u'Sagen', u'Sciabica', u'Sherwood', u'Skinner', u'Stearns', u'Sun', u'Surovell',
+             u'Tauber', u'Totic', u'Toivonen', u'Toy', u'Tsurutome', u'Vajda', u'Yin']
 
-COLLECTION_NAMES = ['Scratchings', 'Home', 'Work', 'OSAF', 'Kids', 'School', 'Book club', 'Wine club', 'Karate', 'Knitting', 'Soccer', 'Chandler', 'Cosmo', 'Scooby', 'Choir', 'Movies', 'Snowball', 'Lassie', 'Humor', 'Odds n Ends', 'BayCHI', 'OSCON', 'IETF', 'Financial', 'Medical', 'Philanthropy']
+COLLECTION_NAMES = [u'Scratchings', u'Home', u'Work', u'OSAF', u'Kids', u'School', u'Book club', u'Wine club', u'Karate', u'Knitting', u'Soccer', u'Chandler', u'Cosmo', u'Scooby', u'Choir', u'Movies', u'Snowball', u'Lassie', u'Humor', u'Odds n Ends', u'BayCHI', u'OSCON', u'IETF', u'Financial', u'Medical', u'Philanthropy']
 
-PHONETYPES = ['cell', 'voice', 'fax', 'pager']
+PHONETYPES = [u'cell', u'voice', u'fax', u'pager']
 
 #area codes not listed as valid at http://www.cs.ucsd.edu/users/bsy/area.html
 AREACODES = [311,411,555,611,811,324,335]
@@ -190,12 +229,12 @@ def GeneratePhoneNumber():
     areaCode = random.choice(AREACODES)
     exchange = random.randint(220, 999)
     number = random.randint(1000, 9999)
-    return "(%3d) %3d-%4d" % (areaCode, exchange, number)
+    return u"(%3d) %3d-%4d" % (areaCode, exchange, number)
 
 def GenerateEmailAddress(name):
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice([name.firstName, name.lastName])
-    return "%s@%s" % (handle.lower(), domainName)
+    return u"%s@%s" % (handle.lower(), domainName)
 
 def GenerateEmailAddresses(view, name):
     list = []
@@ -209,6 +248,11 @@ def GenerateContactName(view):
     name = pim.ContactName(view=view)
     name.firstName = random.choice(FIRSTNAMES)
     name.lastName = random.choice(LASTNAMES)
+
+    if TEST_I18N:
+        name.firstName = addSurrogatePairToText(name.firstName)
+        name.lastName = addSurrogatePairToText(name.lastName)
+
     return name
 
 def GenerateContact(view):
@@ -222,6 +266,10 @@ def GenerateCollection(view, postToView=None, existingNames=None):
     while True:
         # Find a name that isn't already in use
         potentialName = random.choice(COLLECTION_NAMES)
+
+        if TEST_I18N:
+            potentialName = addSurrogatePairToText(potentialName)
+
         if existingNames is None or potentialName not in existingNames:
             collection.displayName = potentialName
             if existingNames is not None:

@@ -35,6 +35,7 @@ import logging
 from PyICU import DateFormat, SimpleDateFormat, ICUError, ParsePosition
 from datetime import datetime, time, timedelta
 from i18n import OSAFMessageFactory as _
+from osaf import messages
 
 """
 Detail.py
@@ -551,8 +552,8 @@ class MarkupBarBlock(DetailSynchronizer, MenusAndToolbars.Toolbar):
                item.getSharedState() != ContentItem.UNSHARED:
                 # Marking a shared item as "private" could act weird...
                 # Are you sure?
-                caption = _("Change the privacy of a shared item?")
-                msg = _("Other people may be subscribed to share this item; " \
+                caption = _(u"Change the privacy of a shared item?")
+                msg = _(u"Other people may be subscribed to share this item; " \
                         "are you sure you want to mark it as private?")
                 if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
                     # No: Put the not-private state back in the toolbarItem
@@ -853,7 +854,7 @@ class EditRedirectAttribute (EditTextAttribute):
         try:
             value = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
-            value = _('untitled')
+            value = messages.UNTITLED
         if widget.GetValue() != value:
             widget.SetValue(value)
 
@@ -938,12 +939,12 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
     def onAcceptShareEvent(self, event):
         url, collectionName = MailSharing.getSharingHeaderInfo(self.selectedItem())
         statusBlock = wx.GetApp().mainFrame.GetStatusBar().blockItem
-        statusBlock.setStatusMessage( _('Subscribing to collection...') )
+        statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
         wx.Yield()
         share = sharing.Share(view=self.itsView)
         share.configureInbound(url)
         share.get()
-        statusBlock.setStatusMessage( _('Subscribed to collection') )
+        statusBlock.setStatusMessage( _(u'Subscribed to collection') )
     
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
@@ -961,7 +962,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
             enabled = True
         else:
             if existingSharedCollection is not None:
-                self.widget.SetLabel(_("(Already sharing this collection)"))
+                self.widget.SetLabel(_("u(Already sharing this collection)"))
                 enabled = False
         event.arguments['Enable'] = enabled
 
@@ -1198,7 +1199,7 @@ class ReminderDeltaAttributeEditor(ChoiceAttributeEditor):
                 choiceIndex = 0 # the "None" choice
             else:
                 minutes = ((value.days * 1440) + (value.seconds / 60))
-                reminderChoice = (minutes == -1) and _("1 minute") or (_("%i minutes") % -minutes)
+                reminderChoice = (minutes == -1) and _(u"1 minute") or (_(u"%(numberOf)i minutes") % {'numberOf': -minutes})
                 choiceIndex = control.FindString(reminderChoice)
                 # If we can't find the choice, just show "None" - this'll happen if this event's reminder has been "snoozed"
                 if choiceIndex == -1:
@@ -1242,8 +1243,8 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             # If the old choice was Custom, make sure the user really wants to
             # lose the custom setting
             if oldChoice == RecurrenceAttributeEditor.customIndex:
-                caption = _("Discard custom recurrence?")
-                msg = _("The custom recurrence rule on this event will be lost "
+                caption = _(u"Discard custom recurrence?")
+                msg = _(u"The custom recurrence rule on this event will be lost "
                         "if you change it, and you won't be able to restore it."
                         "\n\nAre you sure you want to do this?")
                 if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):

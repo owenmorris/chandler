@@ -877,9 +877,9 @@ class RectangularChild (Block):
             #return
         #event.arguments ['Enable'] = canUndo
         #if canUndo:
-            #event.arguments ['Text'] = _("Undo Command\tCtrl+Z")
+            #event.arguments ['Text'] = _(u"Undo Command\tCtrl+Z")
         #else:
-            #event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+            #event.arguments ['Text'] = _(u"Can't Undo\tCtrl+Z")
 
     def onUndoEvent (self, event):
         return self._GenericEditEvent ('Undo')

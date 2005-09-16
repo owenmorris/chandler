@@ -659,7 +659,7 @@ class CollectionBlock(Block.RectangularChild):
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)
-        event.arguments['Text'] = _("Delete from '%s'" % (self.contents.collectionList[0].displayName))
+        event.arguments['Text'] = _(u"Delete from '%(collectionName)s'") % {'collectionName': self.contents.collectionList[0].displayName}
 
     def onDeleteEventUpdateUI(self, event):
         event.arguments['Enable'] = (self.selection is not None)

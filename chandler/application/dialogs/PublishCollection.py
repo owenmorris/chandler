@@ -332,11 +332,11 @@ class PublishCollectionDialog(wx.Dialog):
             accountIndex = self.accountsControl.GetSelection()
             account = self.accountsControl.GetClientData(accountIndex)
 
-            self._showStatus(_("Wait for Sharing URLs...\n"))
-            self._showStatus(_("Publishing collection to server..."))
+            self._showStatus(_(u"Wait for Sharing URLs...\n"))
+            self._showStatus(_(u"Publishing collection to server..."))
             shares = sharing.publish(self.collection, account,
                                      kinds_to_include, attrs_to_exclude)
-            self._showStatus(_(" done.\n"))
+            self._showStatus(_(u" done.\n"))
 
         except (sharing.SharingError, zanshin.error.Error,
                 M2Crypto.SSL.Checker.WrongHost,
@@ -345,7 +345,8 @@ class PublishCollectionDialog(wx.Dialog):
             # Display the error
             # self._clearStatus()
             try:
-                self._showStatus(_("\nSharing error:\n%s\n") % e.message)
+                #XXX: [i18n] Will need to capture and translate m2crypto and zanshin errors
+                self._showStatus(_(u"\nSharing error:\n%(error)s\n") % {'error': e})
             except AttributeError:
                 pass
             logger.exception("Failed to publish collection")
@@ -397,11 +398,11 @@ class PublishCollectionDialog(wx.Dialog):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             share = sharing.getShare(self.collection)
-            wx.TheClipboard.SetData(wx.TextDataObject(str(share.getLocation())))
+            wx.TheClipboard.SetData(wx.TextDataObject(unicode(share.getLocation())))
             wx.TheClipboard.Close()
 
     def _clearStatus(self):
-            self.textStatus.SetLabel("")
+            self.textStatus.SetLabel(u"")
 
     def _showStatus(self, msg):
         if not self.statusPanel.IsShown():
@@ -427,9 +428,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.Fit(self)
 
     def _getSharingAccounts(self):
+        #XXX [i18n] Should this be a localized PyICU sort?
         return sorted(
             sharing.WebDAVAccount.iterItems(self.view),
-            key = lambda x: str(x.displayName).lower()
+            key = lambda x: x.displayName.lower()
         )
 
     def _getExistingFiles(self):
@@ -439,15 +441,15 @@ class PublishCollectionDialog(wx.Dialog):
         username = account.username
         password = account.password
         useSSL = account.useSSL
-        sharePath = account.path.strip("/")
+        sharePath = account.path.strip(u"/")
 
         handle = sharing.ChandlerServerHandle(host, port=port, username=username,
                    password=password, useSSL=useSSL, repositoryView=self.view)
 
         if len(sharePath) > 0:
-            sharePath = "/%s/" % (sharePath)
+            sharePath = u"/%s/" % (sharePath)
         else:
-            sharePath = "/"
+            sharePath = u"/"
 
         existing = []
 
@@ -455,7 +457,7 @@ class PublishCollectionDialog(wx.Dialog):
         skipLen = len(sharePath)
         for resource in handle.blockUntil(parent.getAllChildren):
             path = resource.path[skipLen:]
-            path = path.strip("/")
+            path = path.strip(u"/")
             if path:
                 path = urllib.unquote_plus(path).decode('utf-8')
                 existing.append(path)
@@ -468,7 +470,7 @@ def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
-    win = PublishCollectionDialog(parent, _("Collection Sharing"),
+    win = PublishCollectionDialog(parent, _(u"Collection Sharing"),
      resources=resources, view=view, collection=collection,
      filterKindPath=filterKindPath)
     win.CenterOnScreen()

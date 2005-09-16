@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __revision__  = "$Revision: 5970 $"
 __date__      = "$Date: 2005-07-12 16:27:25 -0700 (Tue, 12 Jul 2005) $"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
@@ -8,6 +10,7 @@ from PyICU import Locale
 import os, locale, logging, gettext
 from application import  Globals
 import i18n
+
 
 """
 Notes:
@@ -31,45 +34,60 @@ TO DO:
 2. Create generic localeset fallback interface
 """
 
-OSAF_DOMAIN = "osaf"
-__all__ = ["I18nManager", "OSAF_DOMAIN"]
+__all__ = ["I18nManager"]
+
 
 class I18nManager(object):
 
-    DEFAULT_LOCALE_SET = ["en_US", "en"]
     RESOURCE_ROOT = u"resources"
     IMAGE_PATH = u"images"
     AUDIO_PATH = u"audio"
     HTML_PATH = u"html"
     #HELP_PATH = u"help"
 
-    __slots__ = ['_localeSet', '_cache']
+    __slots__ = ['_localeSet', '_cache', "_defaultDomain", "_defaultLocaleSet", "__initialized"]
 
-    def __init__(self):
+    def __init__(self, defaultDomain, defaultLocaleSet):
         super(I18nManager, self).__init__()
-        self._localeSet = None
+        assert isinstance(defaultDomain, StringType)
+        assert isinstance(defaultLocaleSet, ListType)
+
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
         self._localeSet = None
+        self._defaultDomain = defaultDomain
+        self._defaultLocaleSet = defaultLocaleSet
+        self.__initialized = False
 
     def __repr__(self):
-        return "I18nManager()"
+        return "I18nManager(%s, %s)" % (self._defaultDomain, self._defaultLocaleSet)
 
     def flushCache(self):
         del self._cache
         self._cache = {"RESOURCES": {}, "TRANSLATIONS": {}}
+        self.__initialized = False
 
-    def discoverLocaleSet(self, domain=OSAF_DOMAIN):
+    def discoverLocaleSet(self):
         #XXX: TO DO GET LocaleSet from OS
-        self.setLocaleSet(self.DEFAULT_LOCALE_SET)
+        self.setLocaleSet(self._defaultLocaleSet)
 
 
-    def setLocaleSet(self, localeSet=None, domain=OSAF_DOMAIN):
+    def setLocaleSet(self, localeSet=None, domain=None):
         self.flushCache()
+
+        if domain is None:
+            domain = self._defaultDomain
 
         assert isinstance(localeSet, ListType)
         assert len(localeSet) > 0
 
-        self._localeSet = localeSet
+        #The 'test' locale is used in .6 for testing non-ascii translations
+        #The defaultLocale set is still used so that ICU can be leveraged
+        #since 'test' is a made up locale and ICU does not know how to display its dates.
+        if localeSet[0] == 'test':
+            self._localeSet = self._defaultLocaleSet
+            self._localeSet.extend(localeSet)
+        else:
+            self._localeSet = localeSet
 
         #XXX: Need to translate the locale i.e. "en_US'" to a
         #     wx.LANGUAGE key
@@ -90,33 +108,54 @@ class I18nManager(object):
         os.environ['LANG'] = self._localeSet[0]
         os.environ['LC_MESSAGES'] = self._localeSet[0]
 
+        self.__initialized = True
 
-    def getLocaleSet(self, domain=OSAF_DOMAIN):
+    def getLocaleSet(self, domain=None):
+        if domain is None:
+            domain = self._defaultDomain
+
         return self._localeSet
 
     def translate(self, domain, defaultText):
         assert isinstance(domain, StringType)
         assert isinstance(defaultText, UnicodeType)
 
+        if not self.__initialized:
+            raise i18n.I18nException("I18nManager.translate called before locale set created")
+
+        if 'test' in self._localeSet and not "Ctrl+" in defaultText:
+            """If the 'test' locale is used return a surrogate pair at the 
+               start of the defaultText block. However, if the text contains
+               accelerator key info return the default as changing it will
+               break keyboard shortcuts"""
+            return u"(ü): %s"% defaultText
+
         return defaultText
 
-    def getImage(self, fileName, domain=OSAF_DOMAIN):
+    def getImage(self, fileName, domain=None):
+        if domain is None:
+            domain = self._defaultDomain
+
         return self.__getResource(self.RESOURCE_ROOT, self.IMAGE_PATH, fileName, domain)
 
-    def getHTML(self, fileName, domain=OSAF_DOMAIN):
+    def getHTML(self, fileName, domain=None):
+        if domain is None:
+            domain = self._defaultDomain
         return self.__getResource(self.RESOURCE_ROOT, self.HTML_PATH, fileName, domain)
 
-    def getAudio(self, fileName, domain=OSAF_DOMAIN):
+    def getAudio(self, fileName, domain=None):
+        if domain is None:
+            domain = self._defaultDomain
         return self.__getResource(self.RESOURCE_ROOT, self.AUDIO_PATH, fileName, domain)
 
-    def getResource(self, relPath, fileName, domain=OSAF_DOMAIN):
+    def getResource(self, relPath, fileName, domain=None):
         return self.__getResource(self.RESOURCE_ROOT, relPath, fileName, domain)
 
     #Reserved for future use. We will need a help lookup system
-    #def getHelpFile(self, fileName, domain=OSAF_DOMAIN):
+    #def getHelpFile(self, fileName, domain=None):
     #    return self.__getResource(None, self.HELP_PATH, fileName, domain)
 
-    def __getResource(self, rootPath, relPath, resourceName, domain=OSAF_DOMAIN):
+    def __getResource(self, rootPath, relPath, resourceName, domain=None):
         """Will cache the path of the found resource
            for the given locale set.
 
@@ -130,7 +169,7 @@ class I18nManager(object):
         relPath = unicode(relPath)
         resourceName = unicode(resourceName)
 
-        if domain != OSAF_DOMAIN:
+        if domain != self._defaultDomain:
             raise i18n.I18nException("Only OSAF domain supported in .6")
 
         """For .6 we just get the default resource. In .7 the LocaleSet will determine

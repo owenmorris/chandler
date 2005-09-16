@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Generate sample items from a file
 """
@@ -12,37 +14,55 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 from osaf.pim.tasks import Task, TaskMixin
 import osaf.pim.mail as Mail
-from PyICU import ICUtzinfo
+from PyICU import UnicodeString, ICUtzinfo
+import i18n
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
+
 
 logger = logging.getLogger(__name__)
 
 collectionsDict={}
+"""For .6 the locale 'test' is used to generate translation strings with surrogate pairs as well as trigger the creation of items with surrogate pair text fields in this file"""
+TEST_I18N = 'test' in i18n.getLocaleSet()
+I18N_SEED = UnicodeString(u"йδüήός")
 
+#XXX [i18n] Since this is a test script it will not require translation however
+#    surrogate pair values should be used to test the apps unicode handling
 STATUS = ["confirmed", "tentative", "fyi"]
 RECURRENCES = ["daily", "weekly", "monthly", "yearly"]
-TIMEZONES = ["US/Pacific", "US/Central", "Europe/Paris"]
-LOCATIONS  = ["Home", "Office", "School"]
-HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
+TIMEZONES = [u"US/Pacific", u"US/Central", u"Europe/Paris"]
+IMPORTANCE = [u"important", u"normal", u"fyi"]
+LOCATIONS  = [u"Home", u"Office", u"School"]
+HEADLINES = [u"Dinner", u"Lunch", u"Meeting", u"Movie", u"Games"]
 DURATIONS = [60, 90, 120, 150, 180]
 REMINDERS = [1, 10, 20, 30, 40]
-TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
-          "grocery list", "gift ideas", "life goals", "fantastic recipe",
-          "garden plans", "funny joke", "story idea", "poem"]
-COLLECTION_ADJECTIVES = ['Critical', 'Eventual', 'Sundry', 'Ignorable', 'Miscellaneous', 'Fascinating']
-COLLECTION_NOUNS = ['Items', 'Scratchings', 'Things', 'Oddments', 'Stuff', 'Dregs', 'Fewmets' ]
-M_TEXT  = "This is a test email message"
-LASTNAMES = ['Anderson', 'Baillie', 'Baker', 'Botz', 'Brown', 'Burgess',
-             'Capps', 'Cerneka', 'Chang', 'Decker', 'Decrem', 'Denman', 'Desai', 'Dunn', 'Dusseault',
-             'Figueroa', 'Flett', 'Gamble', 'Gravelle',
-             'Hartsook', 'Haurnesser', 'Hernandez', 'Hertzfeld', 'Humpa',
-             'Kapor', 'Klein', 'Kim', 'Lam', 'Leung', 'McDevitt', 'Montulli', 'Moseley',
-             'Okimoto', 'Parlante', 'Parmenter', 'Rosa',
-             'Sagen', 'Sciabica', 'Sherwood', 'Skinner', 'Stearns', 'Sun', 'Surovell',
-             'Tauber', 'Totic', 'Toivonen', 'Toy', 'Tsurutome', 'Vajda', 'Yin']
-DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
-               'electricbagpipes.com', 'facelessentity.com', 'example.com',
-               'example.org', 'example.net', 'hangarhonchos.org', 'ludditesonline.net']
+TITLES = [u"reading list", u"restaurant recommendation", u"vacation ideas",
+          u"grocery list", u"gift ideas", u"life goals", u"fantastic recipe",
+          u"garden plans", u"funny joke", u"story idea", u"poem"]
+COLLECTION_ADJECTIVES = [u'Critical', u'Eventual', u'Sundry', u'Ignorable', u'Miscellaneous', u'Fascinating']
+COLLECTION_NOUNS = [u'Items', u'Scratchings', u'Things', u'Oddments', u'Stuff', u'Dregs', u'Fewmets' ]
+M_TEXT  = u"This is a test email message"
+LASTNAMES = [u'Anderson', u'Baillie', u'Baker', u'Botz', u'Brown', u'Burgess',
+             u'Capps', u'Cerneka', u'Chang', u'Decker', u'Decrem', u'Denman', u'Desai', u'Dunn', u'Dusseault',
+             u'Figueroa', u'Flett', u'Gamble', u'Gravelle',
+             u'Hartsook', u'Haurnesser', u'Hernandez', u'Hertzfeld', u'Humpa',
+             u'Kapor', u'Klein', u'Kim', u'Lam', u'Leung', u'McDevitt', u'Montulli', u'Moseley',
+             u'Okimoto', u'Parlante', u'Parmenter', u'Rosa',
+             u'Sagen', u'Sciabica', u'Sherwood', u'Skinner', u'Stearns', u'Sun', u'Surovell',
+             u'Tauber', u'Totic', u'Toivonen', u'Toy', u'Tsurutome', u'Vajda', u'Yin']
+DOMAIN_LIST = [u'flossrecycling.com', u'flossresearch.org', u'rosegardens.org',
+               u'electricbagpipes.com', u'facelessentity.com', u'example.com',
+               u'example.org', u'example.net', u'hangarhonchos.org', u'ludditesonline.net']
+
+
+def addSurrogatePairToText(text):
+    #One in three chance. If the rand int return eq 1
+    #then add a surrogate pair at the start and end of the text
+    if random.randrange(3) == 1:
+        start = random.randrange(I18N_SEED.length())
+        end   = random.randrange(I18N_SEED.length())
+        return  u"%s%s%s" % (I18N_SEED.charAt(start), text, I18N_SEED.charAt(end))
+    return text
 
 
 def GenerateCollection(view, mainView, args):
@@ -67,11 +87,11 @@ def GenerateCollection(view, mainView, args):
             collectionsDict[args[0]]=collection
     else:
         #default value
-        collection.displayName = 'Untitled'
-        if not collectionsDict.has_key('Untitled'):
+        collection.displayName = u'Untitled'
+        if not collectionsDict.has_key(u'Untitled'):
             if mainView:
                 mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
-            collectionsDict['Untitled']=collection
+            collectionsDict[u'Untitled']=collection
         
     return collection
 
@@ -81,11 +101,17 @@ def GenerateNote(view, mainView, args):
     note = pim.Note(view=view)
     #displayName
     if args[0]=='*': # semi-random data
+
         note.displayName = random.choice(TITLES)
+
     elif not args[0]=='':
          note.displayName = args[0]
     else:
-        note.displayName = 'untitled' #default value
+        note.displayName = u'untitled' #default value which does not require localization since this is a util
+
+    if TEST_I18N:
+        note.displayName = addSurrogatePairToText(note.displayName)
+
     #createdOn
     note.createdOn = ReturnCompleteDatetime(args[2],args[3])
     #collection
@@ -99,10 +125,10 @@ def GenerateNote(view, mainView, args):
             else:
                 GenerateCollection(view, mainView, [name])
                 collectionsDict[name].add(note)
-            
+
     return note
 
-    
+
 def GenerateCalendarEvent(view, mainView, args):
     """ Generate one calendarEvent item """
     event = Calendar.CalendarEvent(view=view)
@@ -110,11 +136,15 @@ def GenerateCalendarEvent(view, mainView, args):
     # displayName
     if args[0]=='*': # semi-random data
         event.displayName = random.choice(HEADLINES)
+
     elif not args[0]=='':
         event.displayName = args[0]
     else:
-        event.displayName = 'untitled'
-        
+        event.displayName = u'untitled'
+
+    if TEST_I18N:
+        event.displayName = addSurrogatePairToText(event.displayName)
+
     #startTime (startDate + startTime) + TimeZone
     event.startTime = ReturnCompleteDatetime(args[2],args[3],tz=args[12])
    
@@ -149,7 +179,7 @@ def GenerateCalendarEvent(view, mainView, args):
         event.duration = timedelta(minutes=string.atoi(args[6]))
     else:
         event.duration = timedelta(minutes=60) #default value 1h
-        
+
     #reminderTime
     if args[7]=='*': # semi-random data
         reminderInterval = random.choice(REMINDERS)
@@ -157,13 +187,17 @@ def GenerateCalendarEvent(view, mainView, args):
     elif not args[7]=='':
         reminderInterval = string.atoi(args[7])
         event.reminderTime = event.startTime - timedelta(minutes=reminderInterval)
-        
+
     #location
     if args[8]=='*': # semi-random data
         event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
+
     elif not args[8]=='':
         event.location = Calendar.Location.getLocation(view,args[8])    
-        
+
+    if TEST_I18N:
+        event.location = addSurrogatePairToText(event.location)
+
     #status (only 3 values allowed : 'Confirmed','Tentative','fyi')
     if args[9]=='*': # semi-random data
         event.transparency = random.choice(STATUS)
@@ -209,14 +243,19 @@ def GenerateTask(view, mainView, args):
     # displayName
     if args[0]=='*': # semi-random data
         task.displayName = random.choice(TITLES)
+
+
     elif not args[0]=='':
         task.displayName = args[0]
     else:
-        task.displayName = 'untitled'
-        
+        task.displayName = u'untitled'
+
+    if TEST_I18N:
+        task.displayName = addSurrogatePairToText(task.displayName)
+
     #dueDate
     task.dueDate = ReturnCompleteDatetime(args[2],args[3])
-    
+
     #collection
     if args[1]=='*': # semi-random data
         collectionsDict.values()[random.randint(0,len(collectionsDict)-1)].add(task)
@@ -307,20 +346,24 @@ def GenerateCalendarParticipant(view, emailAddress):
 
 def GenerateMailMessage(view, mainView, args):
     """ Generate one Mail message item """
-    
+
     message  = Mail.MailMessage(view=view)
 
     # subject
     if args[0]=='*': # semi-random data
         message.subject = random.choice(TITLES)
+
     elif not args[0]=='':
         message.subject = args[0]
     else: #default value
-        message.subject = 'untitled' 
+        message.subject = u'untitled'
+
+    if TEST_I18N:
+        message.subject = addSurrogatePairToText(message.subject)
 
     # dateSent (date + time)
     message.dateSent = ReturnCompleteDatetime(args[2],args[3])
-    
+
     # fromAdress
     message.fromAddress = GenerateCalendarParticipant(view, args[4])
     

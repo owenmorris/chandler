@@ -7,11 +7,9 @@ import osaf.framework.blocks.detail.Detail as Detail
 
 class AmazonController(Block.Block):
     def onNewAmazonCollectionEvent(self, event):
-        print "Creating a new amazon collection"
         return AmazonKinds.CreateCollection(self.itsView, Globals.views[0])
-        
+
     def onNewAmazonWishListEvent(self, event):
-        print "Creating a new amazon wish list"
         return AmazonKinds.CreateWishListCollection(self.itsView, Globals.views[0])
 
 class ImageBlock(Detail.HTMLDetailArea):
@@ -19,9 +17,10 @@ class ImageBlock(Detail.HTMLDetailArea):
         if item == item.itsView:
             return
         if item is not None:
-            
+
             # make the html
             HTMLText = '<html><body>\n\n'
             HTMLText = HTMLText + '<img src = "' + str(item.imageURL) + '">\n\n</html></body>'
+            return unicode(HTMLText)
 
-            return HTMLText
+ 

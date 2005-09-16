@@ -2,6 +2,7 @@ from AmazonKinds import AmazonCollection, AmazonItem
 from AmazonBlocks import AmazonController, ImageBlock
 
 from application import schema
+from i18n import OSAFMessageFactory as _
 
 def installParcel(parcel, version=None):
 
@@ -13,7 +14,7 @@ def installParcel(parcel, version=None):
     
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
-        title = "New Amazon Collection",
+        title = _(u"New Amazon Collection"),
         event = blocks.BlockEvent.update(parcel, "NewAmazonCollectionEvent",
             blockName = "NewAmazonCollection",
             dispatchEnum = "SendToBlockByReference",
@@ -26,7 +27,7 @@ def installParcel(parcel, version=None):
     
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
         blockName = "NewAmazonWishListMenu",
-        title = "New Amazon Wish List",
+        title = _(u"New Amazon Wish List"),
         event = blocks.BlockEvent.update(parcel, "NewAmazonWishListEvent",
             blockName = "NewAmazonWishList",
             dispatchEnum = "SendToBlockByReference",
@@ -49,7 +50,7 @@ def installParcel(parcel, version=None):
                 childrenBlocks = [
                     detail.StaticRedirectAttributeLabel.update(
                         parcel, "AuthorLabel",
-                        title = "author",
+                        title = u"author",
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
@@ -58,7 +59,7 @@ def installParcel(parcel, version=None):
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel, "AuthorAttribute",
-                        title = "about",
+                        title = u"about",
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",
