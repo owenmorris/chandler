@@ -20,5 +20,5 @@ class I18nTestCase(unittest.TestCase):
         import i18n
         _ = MessageFactory("testDomain")
 
-        test = _u("test is good %s %s") % ("one", "two")
+        test = _(u"test is good %s %s") % ("one", "two")
         self.assertEqual(test, u"test is good one two")
