@@ -523,7 +523,6 @@ class User(object):
                                 "Trash":schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
         if cellName in chandler_collections.keys():
             cellName = chandler_collections[cellName]
-            print "ici"
             
         cellRect = None
         for i in range(sidebar.widget.GetNumberRows()):
