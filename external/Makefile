@@ -20,7 +20,8 @@ SYSTEMS=persistence/db \
         vobject \
         dateutil \
         m2crypto \
-        zanshin
+        zanshin \
+        pylint
 
 .PHONY: systems env binaries sources expand install clean $(SYSTEMS)
 
