@@ -261,7 +261,7 @@ def GenerateContact(view):
     return contact
 
 def GenerateCollection(view, postToView=None, existingNames=None):
-    collection = pim.ListCollection(view=view, chooseColor=True)
+    collection = pim.ListCollection(view=view)
     
     while True:
         # Find a name that isn't already in use
@@ -277,6 +277,7 @@ def GenerateCollection(view, postToView=None, existingNames=None):
             break
         
     if postToView is not None:
+        collection.setColorIfAbsent()
         postToView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
     return collection
 

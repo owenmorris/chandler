@@ -48,15 +48,7 @@ def mapChangesCallable(item, version, status, literals, references):
 
 
 class AbstractCollection(items.ContentItem):
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 chooseColor=False, *arguments, **keywords):
-        super (AbstractCollection, self).__init__(name, parent, kind, view, *arguments, **keywords)
-        if chooseColor:
-            from osaf.framework.blocks import ColorType
-            import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
-            import wx
-            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (CalendarCanvas.ColorInfo.getNextHue(), 0.5, 1.0))
-            self.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
+
     """
     The base class for all Collection types.
 
@@ -126,6 +118,14 @@ class AbstractCollection(items.ContentItem):
         ),
         sharing = schema.Cloud( none = ["displayName"] ),
     )
+
+    def setColorIfAbsent (self):
+        if not hasattr (self, 'color'):
+            from osaf.framework.blocks import ColorType
+            import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
+            import wx
+            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (CalendarCanvas.ColorInfo.getNextHue(), 0.5, 1.0))
+            self.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
 
     def collectionChanged(self, op, item, name, other, *args):
         """

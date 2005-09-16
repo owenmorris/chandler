@@ -67,7 +67,7 @@ def addSurrogatePairToText(text):
 
 def GenerateCollection(view, mainView, args):
     """ Generate one Collection Item """
-    collection = pim.ListCollection(view=view, chooseColor=True)
+    collection = pim.ListCollection(view=view)
 
     if args[0]=='*': # semi-random data
         while True:
@@ -77,12 +77,14 @@ def GenerateCollection(view, mainView, args):
                  collection.displayName = potentialName
                  collectionsDict[potentialName] = collection
                  if mainView:
+                     collection.setColorIfAbsent()
                      mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
              break
     elif not args[0]=='':
         collection.displayName = args[0]
         if not collectionsDict.has_key(args[0]):
             if mainView:
+                collection.setColorIfAbsent()
                 mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
             collectionsDict[args[0]]=collection
     else:
@@ -90,6 +92,7 @@ def GenerateCollection(view, mainView, args):
         collection.displayName = u'Untitled'
         if not collectionsDict.has_key(u'Untitled'):
             if mainView:
+                collection.setColorIfAbsent()
                 mainView.postEventByName ('AddToSidebarWithoutCopyingOrCommiting', {'items': [ collection ] })
             collectionsDict[u'Untitled']=collection
         

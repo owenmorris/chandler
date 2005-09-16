@@ -949,6 +949,7 @@ class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
         # @@@ Remove this when the sidebar autodetects new collections
         collection = share.contents
         mainView = application.Globals.views[0]
+        collection.SetColorIfAbsent()
         mainView.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
 
     def onAcceptShareEventUpdateUI(self, event):

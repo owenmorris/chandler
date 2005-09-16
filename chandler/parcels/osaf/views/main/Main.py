@@ -153,7 +153,8 @@ class MainView(View):
 
     def onNewCollectionEvent(self, event):
         # Create a new collection, triggered from File | New Collection
-        coll = pim.InclusionExclusionCollection(view=self.itsView, chooseColor=True)
+        coll = pim.InclusionExclusionCollection(view=self.itsView)
+        coll.setColorIfAbsent()
         coll.setup(trash=schema.ns('osaf.app', self.itsView).TrashCollection)
         coll.displayName = messages.UNTITLED
         self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[coll]})
@@ -454,6 +455,7 @@ class MainView(View):
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
+            collection.SetColorIfAbsent()
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
             self.setStatusMessage (_(u"Import completed"))
         except:
