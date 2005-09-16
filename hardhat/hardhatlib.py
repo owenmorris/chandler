@@ -595,17 +595,16 @@ def distribute(buildenv, module_name, buildVersion):
 def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
-        python = buildenv['python_d']
-        pythonOpts = ''
+        python     = buildenv['python_d']
         pythonPath = buildenv['pythonlibdir_d'] + os.sep + '..' + os.sep + '..'
+        cmd        = [ python, testFile, '-v' ]
     elif buildenv['version'] == 'release':
-        python = buildenv['python']
-        pythonOpts = '-O'
+        python     = buildenv['python']
+        cmd        = [ python, '-O', testFile, '-v' ]
         pythonPath = buildenv['pythonlibdir'] + os.sep + '..' + os.sep + '..'
 
-    exit_code = executeCommand(buildenv, testFile, [ python, pythonOpts, testFile, '-v' ],
-                               "Testing %s" %(fullPath),
-                               HARDHAT_NO_RAISE_ON_ERROR)
+    exit_code = executeCommand(buildenv, testFile, cmd, "Testing %s" %(fullPath), HARDHAT_NO_RAISE_ON_ERROR)
+
     if exit_code != 0:
         buildenv['failed_tests'].append(fullPath)
         log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" %(fullPath))
