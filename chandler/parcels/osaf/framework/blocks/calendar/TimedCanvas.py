@@ -11,6 +11,8 @@ from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
+from application.dialogs import RecurrenceDialog
+
 class TimedEventsCanvas(CalendarBlock):
 
     def instantiateWidget(self):
@@ -400,8 +402,9 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         (newStartTime, newEndTime) = self.GetDragAdjustedTimes()
         currentItem = self.dragState.currentDragBox.GetItem()
 
-        currentItem.startTime = newStartTime
-        currentItem.endTime = newEndTime
+        proxy = RecurrenceDialog.getProxy(u'ui', currentItem)
+        proxy.startTime = newStartTime
+        proxy.endTime = newEndTime
         
     def OnEndDragItem(self):
         self.FinishDrag()
