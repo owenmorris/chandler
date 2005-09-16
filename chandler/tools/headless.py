@@ -297,7 +297,7 @@ def main():
             exec script in globals()
         except Exception, e:
             shutdown()
-            raise e
+            raise
         else:
             shutdown()
 

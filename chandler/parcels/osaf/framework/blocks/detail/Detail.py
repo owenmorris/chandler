@@ -287,7 +287,8 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         # and make a ListCollection that we'll use to watch for changes.
         trunk = self._copyItem(self.trunkStub)
         trunk.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
-        trunk.contents = ListCollection(view=self.itsView)
+        trunk.contents = ListCollection(view=self.itsView,
+                                        displayName=u'DetailView Contents')
             
         return trunk    
     

@@ -533,11 +533,14 @@ class InclusionExclusionCollection(DifferenceCollection):
         # source and inclusions
 
         if source is None:
-            innerSource = ListCollection(parent=self)
+            innerSource = ListCollection(parent=self,
+                                         displayName=u"(Inclusions)")
             self.inclusions = innerSource
         else:
-            innerSource = UnionCollection(parent=self)
-            innerSource.sources = [source, ListCollection(parent=self)]
+            innerSource = UnionCollection(parent=self,
+                displayName=u"(Union of source and inclusions)")
+            innerSource.sources = [source, ListCollection(parent=self,
+                displayName=u"(Inclusions)")]
             self.inclusions = innerSource.sources[1]
 
 
@@ -546,7 +549,8 @@ class InclusionExclusionCollection(DifferenceCollection):
         # for exclusions
 
         if exclusions is None:
-            exclusions = ListCollection(parent=self)
+            exclusions = ListCollection(parent=self,
+                                        displayName=u"(Exclusions)")
         self.exclusions = exclusions
 
         # You can designate a certain ListCollection to be used for this
@@ -560,7 +564,8 @@ class InclusionExclusionCollection(DifferenceCollection):
         #   shares that trash
 
         if trash is not None:
-            outerSource = DifferenceCollection(parent=self)
+            outerSource = DifferenceCollection(parent=self,
+                displayName=u"(Difference between source and trash)")
             outerSource.sources = [innerSource, trash]
         else:
             outerSource = innerSource
