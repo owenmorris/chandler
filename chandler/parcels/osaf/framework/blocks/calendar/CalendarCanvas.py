@@ -13,9 +13,9 @@ from repository.item.Monitors import Monitors
 from datetime import datetime, timedelta, date, time
 from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
-import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar import Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, formatTime
-import application.dialogs.RecurrenceDialog as RecurrenceDialog
+from application.dialogs import RecurrenceDialog
 # import osaf.pim.items as items
 
 from osaf.framework.blocks import DragAndDrop
@@ -1460,13 +1460,16 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # Update the month button given the selected date
         lastDate = startDate + timedelta(days=6)
         months = dateFormatSymbols.getMonths()
+        year = lastDate.year
         if (startDate.month == lastDate.month):
-            monthText = u"%s %d" %(months[selectedDate.month - 1],
-                                   selectedDate.year)
+            monthText = _(u'%(currentMonth)s %(currentYear)d') % \
+                        { currentMonth: months[selectedDate.month - 1],
+                          currentYear:  year }
         else:
-            monthText = u"%s - %s %d" %(months[startDate.month - 1],
-                                        months[lastDate.month - 1],
-                                        lastDate.year)
+            monthText = _(u'%(currentMonth1)s - %(currentMonth2)s %(currentYear)d') % \
+                        (currentMonth1: months[startDate.month - 1],
+                         currentMonth2: months[lastDate.month - 1],
+                         currentYear:   year )
 
         self.monthText.SetLabel(monthText)
 
