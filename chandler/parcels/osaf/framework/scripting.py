@@ -516,10 +516,19 @@ class User(object):
     @classmethod
     def emulate_sidebarClick(self, sidebar, cellName, double=False):
         ''' Process a left click on the given cell in the given sidebar'''
+        # for All, In, Out, Trash collection find by item rather than itemName
+        chandler_collections = {"All":schema.ns('osaf.app', Globals.mainViewRoot).allCollection,
+                                "Out":schema.ns('osaf.app', Globals.mainViewRoot).outCollection,
+                                "In":schema.ns('osaf.app', Globals.mainViewRoot).inCollection,
+                                "Trash":schema.ns('osaf.app', Globals.mainViewRoot).TrashCollection}
+        if cellName in chandler_collections.keys():
+            cellName = chandler_collections[cellName]
+            print "ici"
+            
         cellRect = None
         for i in range(sidebar.widget.GetNumberRows()):
             item = sidebar.widget.GetTable().GetValue(i,0)[0]
-            if item.displayName == cellName:
+            if item.displayName == cellName or item == cellName:
                 cellRect = sidebar.widget.CalculateCellRect(i)
                 break
         if cellRect:
