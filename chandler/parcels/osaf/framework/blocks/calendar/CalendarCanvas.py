@@ -1463,13 +1463,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         year = lastDate.year
         if (startDate.month == lastDate.month):
             monthText = _(u'%(currentMonth)s %(currentYear)d') % \
-                        { currentMonth: months[selectedDate.month - 1],
-                          currentYear:  year }
+                        dict( currentMonth= months[selectedDate.month - 1],
+                              currentYear = year )
         else:
             monthText = _(u'%(currentMonth1)s - %(currentMonth2)s %(currentYear)d') % \
-                        (currentMonth1: months[startDate.month - 1],
-                         currentMonth2: months[lastDate.month - 1],
-                         currentYear:   year )
+                        dict(currentMonth1= months[startDate.month - 1],
+                         currentMonth2= months[lastDate.month - 1],
+                         currentYear=   year )
 
         self.monthText.SetLabel(monthText)
 
