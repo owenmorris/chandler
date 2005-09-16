@@ -85,21 +85,10 @@ class ColorInfo(object):
     lastHueIndex = 3 # hack for now, because the first 4 collections are already assigned
 
     def __init__(self, collection):
-        color = getattr (collection, 'color', None)
-        if color is not None:
-            rgb = wx.Image_RGBValue (color.red, color.green, color.blue)
-            self.hue = wx.Image.RGBtoHSV (rgb).hue
-        else:
-            self.hue = ColorInfo.getNextHue()
-            try:
-                dn = collection.displayName
-            except:
-                dn = str(collection)
-
-            # the actual saturation and value are not important here,
-            # its never used.
-            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (self.hue, 0.5, 1.0))
-            collection.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
+        assert hasattr (collection, 'color')
+        color = collection.color
+        rgb = wx.Image_RGBValue (color.red, color.green, color.blue)
+        self.hue = wx.Image.RGBtoHSV (rgb).hue
                                          
     @classmethod
     def getNextHue(cls):
