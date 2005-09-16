@@ -465,9 +465,15 @@ class MainView(View):
 
     def onExportIcalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
-        res = ImportExport.showFileDialog(wx.GetApp().mainFrame, _(u"Choose a filename to export to"), "",
-                                          "export.ics", _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
-                                          wx.SAVE | wx.OVERWRITE_PROMPT)
+        collection = Block.findBlockByName("Sidebar").selectedItemToView
+
+        res = ImportExport.showFileDialog(
+                wx.GetApp().mainFrame,
+                _("Choose a filename to export to"),
+                "",
+                u"%s.ics" % (collection.displayName),
+                _("iCalendar files|*.ics|All files (*.*)|*.*"),
+                wx.SAVE | wx.OVERWRITE_PROMPT)
 
         (cmd, dir, filename) = res
 
@@ -479,9 +485,6 @@ class MainView(View):
         try:
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
-            collection = ListCollection(view=self.itsView)
-            for event in Calendar.CalendarEvent.iterItems(self.itsView):
-                collection.add(event)
             share.contents = collection
             share.put()
             self.setStatusMessage(_(u"Export completed"))
