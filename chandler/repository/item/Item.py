@@ -1507,6 +1507,9 @@ class Item(CItem):
         view = item.itsView
         for hook in hooks:
             hook(view)
+        if kind is not None:
+            view._notifyChange(kind.extent._collectionChanged,
+                               'add', 'collection', 'extent', item)
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(view, self)
 

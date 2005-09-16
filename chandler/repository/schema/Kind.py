@@ -534,7 +534,7 @@ class Kind(Item):
 
         return None
 
-    def iterItems(self, recursive=False):
+    def iterItems(self, recursive=True):
 
         for item in self.extent.iterItems(recursive):
             yield item
@@ -905,7 +905,7 @@ class SchemaMonitor(Monitor):
 
 class Extent(Item):
 
-    def iterItems(self, recursive=False):
+    def iterItems(self, recursive=True):
 
         if self.withCache:   # not implemented
 
