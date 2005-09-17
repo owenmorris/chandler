@@ -4,7 +4,6 @@ this_module = "application.tests.TestSchemaAPI"     # change this if it moves
 from application import schema
 from repository.schema import Types
 from repository.persistence.RepositoryView import NullRepositoryView
-from repository.query.Query import Query
 
 class Dummy(schema.Item):
     """Just a test fixture"""
@@ -14,7 +13,7 @@ class Dummy(schema.Item):
 class Other(schema.Item):
     thing = schema.One(Dummy, inverse="other")
 
-class Mixed(Dummy, Query):
+class Mixed(Dummy, Types.Type):
     pass
 
 class AnEnum(schema.Enumeration):
@@ -34,7 +33,7 @@ class SchemaTests(SchemaTestCase):
     def testDeriveFromCore(self):
         self.assertEqual(
             list(schema.itemFor(Mixed).superKinds),
-            [schema.itemFor(Dummy), schema.itemFor(Query)]
+            [schema.itemFor(Dummy), schema.itemFor(Types.Type)]
         )
 
     def testResetCache(self):
