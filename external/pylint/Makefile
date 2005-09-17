@@ -89,3 +89,9 @@ upload-optik:
 upload: upload-common upload-optik pylint-$(SNAP)-$(RELVER).tar.gz
 	scp pylint-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp pylint-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+_realclean::
+	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded
+	rm -rf $(SRC)*
+	$(MAKE) -C common DEBUG=$(DEBUG) _realclean
+	$(MAKE) -C optik DEBUG=$(DEBUG) _realclean

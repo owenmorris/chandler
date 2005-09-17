@@ -43,6 +43,10 @@ clean:
             $(PYTHON) setup.py clean --all; \
         fi
 
+_realclean::
+	rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC)/../*-expanded
+	rm -rf $(SRC)*
+
 upload: optik-$(SNAP)-$(RELVER).tar.gz
 	scp optik-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp optik-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
