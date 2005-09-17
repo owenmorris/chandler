@@ -20,9 +20,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['parcel:osaf.pim.contacts',
-          'parcel:osaf.pim',
-          'parcel:repository.query.tests.NotificationItem']
+         ['osaf.pim.contacts',
+          'osaf.pim',
+          'repository.query.tests.NotificationItem']
         )
 
         view = self.rep.view
@@ -68,9 +68,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
-         ['parcel:osaf.pim.contacts',
-          'parcel:osaf.pim',
-          'parcel:repository.query.tests.parcels.notification']
+         ['osaf.pim.contacts',
+          'osaf.pim',
+          'repository.query.tests.parcels.notification']
         )
 
         view = self.rep.view
@@ -150,7 +150,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
     #    import osaf.pim.tests.GenerateItems as GenerateItems
 
     #    self.loadParcels(
-    #     ['parcel:osaf.pim']
+    #     ['osaf.pim']
     #    )
 
         #create test data
@@ -263,7 +263,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-            ['parcel:osaf.pim.calendar']
+            ['osaf.pim.calendar']
         )
 
         view = self.rep.view

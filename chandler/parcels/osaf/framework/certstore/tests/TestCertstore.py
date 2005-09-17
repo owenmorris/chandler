@@ -86,7 +86,7 @@ rZehs7GgIFvKMquNzxPwHynD
     pemMultiple = '%s\n%s' % (pemSite, pemRoot)
 
     def testPreloadedCertificates(self):
-        self.loadParcel("parcel:osaf.framework.certstore.data")
+        self.loadParcel("osaf.framework.certstore.data")
         
         view = self.rep.view
         rootCerts = FilteredCollection('rootCertsQuery', view=view)
@@ -187,8 +187,8 @@ rZehs7GgIFvKMquNzxPwHynD
 
     def setUp(self):
         super(CertificateStoreTestCase, self).setUp()
-        self.loadParcel("parcel:osaf.app")
-        self.loadParcel("parcel:osaf.framework.certstore")
+        self.loadParcel("osaf.app")
+        self.loadParcel("osaf.framework.certstore")
         
         
 if __name__ == "__main__":

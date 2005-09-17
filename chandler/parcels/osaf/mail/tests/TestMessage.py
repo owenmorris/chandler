@@ -226,7 +226,7 @@ This is the body"""
 
     def setUp(self):
         super(MessageTest, self).setUp()
-        self.loadParcel("parcel:osaf.pim.mail")
+        self.loadParcel("osaf.pim.mail")
         self.__messageObject = None
         self.__mailMessage = None
 

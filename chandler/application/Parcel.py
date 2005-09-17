@@ -66,22 +66,6 @@ class Manager(schema.Item):
         return manager
 
 
-    def lookup(self, namespace, name=None):
-        """
-        Lookup a name in a namespace. (DEPRECATED)
-
-        Use schema.ns(parcelName, view).name instead.
-        """
-        if namespace.startswith('parcel:'):
-            namespace = namespace[7:]
-
-        parcel = schema.parcel_for_module(namespace)
-        if name is None:
-            return parcel
-
-        return getattr(parcel,name,None)
-
-
     def __syncParcel(self, pkg):
         """Synchronize the specified parcel's Python schema with self.repo
 
@@ -141,8 +125,6 @@ class Manager(schema.Item):
 
         logger.info("Loading parcels...")
         for namespace in namespaces:
-            if namespace.startswith('parcel:'):
-                namespace = namespace[7:]
             self.__syncParcel(namespace)
         logger.info("...done")               
 

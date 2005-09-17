@@ -21,7 +21,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
     def testNotes(self):
         """ Simple test for creating instances of note related kinds """
 
-        self.loadParcel("parcel:osaf.pim")
+        self.loadParcel("osaf.pim")
 
         def _verifyNote(note):
             self.assertEqual(note.displayName, u"sample note")

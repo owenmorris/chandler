@@ -12,7 +12,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testOutBoxQueryWithMail(self):
         self.loadParcels(
-         ['parcel:osaf.pim.mail']
+         ['osaf.pim.mail']
         )
 
         import osaf.pim.mail as Mail
@@ -95,7 +95,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.pim.contacts']
+         ['osaf.pim.contacts']
         )
 
         view = self.rep.view
@@ -111,7 +111,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.pim.calendar']
+         ['osaf.pim.calendar']
         )
 
         view = self.rep.view
@@ -153,7 +153,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.pim.calendar']
+         ['osaf.pim.calendar']
         )
 
         view = self.rep.view

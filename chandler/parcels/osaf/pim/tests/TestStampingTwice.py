@@ -26,7 +26,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     """ Test Stamping in the Content Model """
     def testStamping(self):
         # Make sure the contentModel is loaded.
-        self.loadParcel("parcel:osaf.pim")
+        self.loadParcel("osaf.pim")
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
         view = self.rep.view

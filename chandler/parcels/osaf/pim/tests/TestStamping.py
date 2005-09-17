@@ -90,10 +90,10 @@ class StampingTest(TestContentModel.ContentModelTestCase):
 
     def testStamping(self):
         # Make sure the contentModel is loaded.
-        self.loadParcel("parcel:osaf.pim")
+        self.loadParcel("osaf.pim")
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
-        self.loadParcel("parcel:osaf.mail")
+        self.loadParcel("osaf.mail")
         view = self.rep.view
         
         # Get the stamp kinds

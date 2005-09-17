@@ -26,7 +26,7 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         import osaf.pim.tests.GenerateItems as GenerateItems
 
         self.loadParcels(
-         ['parcel:osaf.pim']
+         ['osaf.pim']
         )
 
         #create test data

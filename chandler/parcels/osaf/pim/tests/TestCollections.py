@@ -332,7 +332,7 @@ class CollectionTests(CollectionTestCase):
         manager = \
                 ParcelManager.get(self.view, \
                                   path=[os.path.join(self.repoDir, 'parcels')])
-        manager.loadParcels(['parcel:osaf.pim'])
+        manager.loadParcels(['osaf.pim'])
 
         k = KindCollection(view=self.view)
         kind = self.view.findPath('//parcels/osaf/pim/ContentItem')

@@ -43,7 +43,7 @@ class TestPerfWithRSS(RepositoryTestCase):
         view = self.rep.view
 
         # sys.path.insert(1, parcelDir)
-        self.loadParcel("parcel:osaf.pim")
+        self.loadParcel("osaf.pim")
 
         view.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")

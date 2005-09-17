@@ -38,8 +38,8 @@ class SharingTestCase(unittest.TestCase):
         parcelpath = [os.path.join(rootdir, 'parcels')]
 
         namespaces = [
-         'parcel:osaf.sharing',
-         'parcel:osaf.pim.calendar',
+         'osaf.sharing',
+         'osaf.pim.calendar',
         ]
 
         self.repos = []

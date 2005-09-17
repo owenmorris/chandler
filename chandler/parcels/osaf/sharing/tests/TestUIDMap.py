@@ -6,7 +6,7 @@ from util import testcase
 
 class TestUIDMap(testcase.ChandlerTestCase):
 
-    parcels = ['parcel:osaf.sharing']
+    parcels = ['osaf.sharing']
 
     def testMap(self):
         uid_map = schema.ns('osaf.sharing', self.view).uid_map

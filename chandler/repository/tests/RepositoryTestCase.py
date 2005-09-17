@@ -96,14 +96,7 @@ class RepositoryTestCase(TestCase):
         self.loadParcels([namespace])
 
     def loadParcels(self, namespaces=None):
-
         self.manager.loadParcels(namespaces)
-        if namespaces:
-            for namespace in namespaces:
-                parcelItem = self.manager.lookup(namespace)
-                self.assert_(parcelItem)
-                # print "Loaded namespace %s as item %s" % \
-                # (namespace, parcelItem.itsPath)
 
     _KIND_KIND = Path("//Schema/Core/Kind")
     _ITEM_KIND = Path("//Schema/Core/Item")

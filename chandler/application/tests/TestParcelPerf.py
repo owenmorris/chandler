@@ -14,9 +14,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         """ Test loading, generating, and commiting contacts """
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testContacts-load")
-        self.loadParcels(
-         ['parcel:osaf.pim.contacts']
-        )
+        self.loadParcels( ['osaf.pim.contacts'] )
         util.timing.end("application.tests.testParcelPerf.testContacts-load")
 
         view = self.rep.view
@@ -34,9 +32,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         """ Test loading, generating, and commiting calendar event """
         util.timing.reset()
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-load")
-        self.loadParcels(
-         ['parcel:osaf.pim.calendar']
-        )
+        self.loadParcels( ['osaf.pim.calendar'] )
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-load")
 
         view = self.rep.view
@@ -59,7 +55,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
                 count += 1 + load(child)
             return count
 
-        self.loadParcels(['parcel:osaf.pim'])
+        self.loadParcels(['osaf.pim'])
         view = self.rep.view
         view.commit()
 

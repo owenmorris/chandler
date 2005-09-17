@@ -11,8 +11,8 @@ from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-SHARING = "parcel:osaf.sharing"
-CONTENTMODEL = "parcel:osaf.pim"
+SHARING = "osaf.sharing"
+CONTENTMODEL = "osaf.pim"
 
 class SubscribeDialog(wx.Dialog):
 

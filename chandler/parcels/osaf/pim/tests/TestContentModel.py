@@ -34,7 +34,7 @@ class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
 
-        self.loadParcel("parcel:osaf.pim")
+        self.loadParcel("osaf.pim")
         view = self.rep.view
         
         # Check that the globals got created by the parcel

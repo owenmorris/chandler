@@ -27,15 +27,15 @@ class TestSSL(RepositoryTestCase.RepositoryTestCase):
         self.testdir = self.profileDir
         super(TestSSL, self)._openRepository()
 
-        self.loadParcel("parcel:osaf.app")
+        self.loadParcel("osaf.app")
 
     def tearDown(self):
         super(TestSSL, self).tearDown()
         Utility.stopCrypto(self.profileDir)
     
     def testCertificateVerification(self):
-        self.loadParcel("parcel:osaf.framework.certstore")
-        self.loadParcel("parcel:osaf.framework.certstore.data")
+        self.loadParcel("osaf.framework.certstore")
+        self.loadParcel("osaf.framework.certstore.data")
 
         ctx = ssl.getContext(self.rep.view)
         conn1 = SSL.Connection(ctx)
@@ -109,8 +109,8 @@ QUW4hRYWNNbb
 -----END CERTIFICATE-----'''
         x509 = X509.load_cert_string(pemSite)
         
-        self.loadParcel("parcel:osaf.framework.certstore")
-        self.loadParcel("parcel:osaf.framework.certstore.data")
+        self.loadParcel("osaf.framework.certstore")
+        self.loadParcel("osaf.framework.certstore.data")
 
         factory = protocol.ClientFactory()
         wrapper = ssl.TwistedProtocolWrapper(self.rep.view,

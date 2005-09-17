@@ -26,7 +26,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         """ Simple test for creating instances of calendar related kinds """
 
-        self.loadParcel("parcel:osaf.pim.calendar")
+        self.loadParcel("osaf.pim.calendar")
 
         def _verifyCalendarEvent(event):
             self.assertEqual(event.displayName, u"simple headline")
@@ -107,7 +107,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testTimeFields(self):
         """ Test time related fields and methods """
 
-        self.loadParcel("parcel:osaf.pim.calendar")
+        self.loadParcel("osaf.pim.calendar")
 
         # Test getting duration, setting endTime
         view = self.rep.view
@@ -152,7 +152,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         """ Test calendar event deletion """
 
-        self.loadParcel("parcel:osaf.pim.calendar")
+        self.loadParcel("osaf.pim.calendar")
 
         view = self.rep.view
         item = Calendar.CalendarEvent(view=view)
@@ -165,7 +165,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
     def testGeneratedEvents(self):
 
-        self.loadParcel("parcel:osaf.pim.calendar")
+        self.loadParcel("osaf.pim.calendar")
 
         view = self.rep.view
         GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent, days=100)
