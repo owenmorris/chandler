@@ -1,8 +1,6 @@
 """ Canvas block for displaying item collections
 """
 
-__version__ = "$Revision$"
-__date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks.calendar"
@@ -170,6 +168,10 @@ class DragState(object):
         
         self._dragStarted = False
 
+    def ResetDrag(self):
+        # do we need to have a handler for this?
+        self.HandleDrag(self.originalPosition)
+        
     def HandleDragStart(self):
         self._window.CaptureMouse()
         self.dragStartHandler()
@@ -380,7 +382,10 @@ class wxCollectionCanvas(wx.ScrolledWindow):
         
         # checks if the event iself is from dragging the mouse
         elif self.dragState and event.Dragging():
-            self.dragState.HandleDrag(unscrolledPosition)
+            if self.IsValidDragPosition(unscrolledPosition):
+                self.dragState.HandleDrag(unscrolledPosition)
+            else:
+                self.dragState.ResetDrag()
 
         elif event.LeftDClick():
             # cancel/stop any drag in progress
@@ -413,7 +418,11 @@ class wxCollectionCanvas(wx.ScrolledWindow):
             # rectangle goes off the bottom - scroll down
             dy = unscrolledPosition.y - clientSize.y
             self.ScaledScroll(0, dy)
-                        
+
+    def IsValidDragPosition(self, unscrolledPosition):
+        # by default, any position is valid, even if it goes off the canvas
+        return True
+        
     def GrabFocusHack(self):
         pass
 
