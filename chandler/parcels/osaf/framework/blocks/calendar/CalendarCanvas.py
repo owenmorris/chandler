@@ -1388,9 +1388,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
-        # [@@@] grant: On Linux, ICUtzinfo.getDefault() returns "PDT",
-        # not "US/Pacific". Should we do something to figure out
-        # that it's equivalent?
 
         tzChoice = wx.Choice(self)
         font = Styles.getFont(tzCharacterStyle)
