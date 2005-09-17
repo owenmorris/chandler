@@ -229,8 +229,11 @@ The Chandler Team""")
 
 def MakeCollections(parcel):
 
-    from osaf.pim import KindCollection, ListCollection, FilteredCollection, \
-         DifferenceCollection, InclusionExclusionCollection, KindCollection
+    from osaf.pim import (
+        KindCollection, ListCollection, FilteredCollection,
+        DifferenceCollection, InclusionExclusionCollection, KindCollection,
+        UnionCollection
+    )
 
     from osaf.framework.blocks import ColorType
 
@@ -243,33 +246,24 @@ def MakeCollections(parcel):
             colorizeIcon = False
         )
 
-    notes = \
-        KindCollection.update(parcel, 'notes')
+    notes = KindCollection.update(parcel, 'notes')
     # workaround bug 3892
     notes.kind = pim.Note.getKind(parcel.itsView)
     notes.recursive=True
 
-    events = \
-        KindCollection.update(parcel, 'events')
-    # workaround bug 3892
-    events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
-    events.recursive=True
+    nonGeneratedNotes = FilteredCollection.update(parcel, 'nonGeneratedNotes',
+        source=notes,
+        filterExpression='not getattr(item, \'isGenerated\', False)',
+        filterAttributes=['isGenerated']
+    )
 
-    generatedEvents = \
-        FilteredCollection.update(parcel, 'generatedEvents',
-            source=events,
-            filterExpression='getattr(item, \'isGenerated\', True)',
-            filterAttributes=['isGenerated'])
+    notMine = UnionCollection.update(parcel, 'notMine')
+    # @@@MOR Hmm, I need to somehow make rep's initialValue be a MultiUnion()
+    notMine._sourcesChanged()
 
-    mineItems = \
-        FilteredCollection.update(parcel, 'mineItems',
-            source=notes,
-            filterExpression='getattr(item, \'mine\', True)',
-            filterAttributes=['mine'])
-
-    mineMinusGeneratedEvents = \
-        DifferenceCollection.update(parcel, 'mineMinusGeneratedEvents',
-            sources=[mineItems, generatedEvents])
+    mine = DifferenceCollection.update(parcel, 'mine',
+        sources=[nonGeneratedNotes, notMine]
+    )
 
     # the "All" collection
     allCollection = InclusionExclusionCollection.update(parcel, 'allCollection',
@@ -284,7 +278,15 @@ def MakeCollections(parcel):
                                    'MailMessageMixin': _(u'My mail'),
                                    'CalendarEventMixin': _(u'My calendar'),
                                    'TaskMixin': _(u'My tasks')}
-    ).setup (source = mineMinusGeneratedEvents, exclusions = TrashCollection)
+    ).setup(source=mine, exclusions=TrashCollection)
+
+
+    events = \
+        KindCollection.update(parcel, 'events')
+    # workaround bug 3892
+    events.kind=pim.CalendarEventMixin.getKind(parcel.itsView)
+    events.recursive=True
+
 
     mailCollection = \
          KindCollection.update(parcel, 'mail')

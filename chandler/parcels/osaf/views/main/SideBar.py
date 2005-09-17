@@ -706,7 +706,7 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     else:
                         key = UnionCollection (view=self.itsView)
                         for col in collectionList:
-                            key.sources.append(col)
+                            key.addSource(col)
 
                     displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
 

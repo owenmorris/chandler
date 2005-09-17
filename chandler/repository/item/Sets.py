@@ -448,6 +448,7 @@ class MultiSet(AbstractSet):
     def __init__(self, *sources):
 
         self._sources = []
+        view = None
         for source in sources:
             view, source = self._prepareSource(source)
             self._sources.append(source)

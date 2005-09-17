@@ -166,18 +166,26 @@ class AbstractCollection(items.ContentItem):
         pass
 
     def __contains__(self, item):
-        return self.rep.__contains__(item)
+        if hasattr(self, 'rep'):
+            return self.rep.__contains__(item)
+        else:
+            return False
+
 
     def __iter__(self):
-        for i in self.rep:
-            yield i
+        if hasattr(self, 'rep'):
+            for i in self.rep:
+                yield i
 
     def __len__(self):
-        try:
-            return len(self.rep)
-        except ValueError:
-            self.createIndex()
-            return len(self.rep)
+        if hasattr(self, 'rep'):
+            try:
+                return len(self.rep)
+            except ValueError:
+                self.createIndex()
+                return len(self.rep)
+        else:
+            return 0
 
     def __nonzero__(self):
         return True
@@ -328,7 +336,6 @@ class DifferenceCollection(AbstractCollection):
 
                 if len(self.sources) == 2:
                     self.rep = Difference((self.sources[0], "rep"),(self.sources[1], "rep"))
-                    self.subscribers.clear()
                     for i in self.sources:
                         i.subscribers.add(self)
 
@@ -349,18 +356,67 @@ class UnionCollection(AbstractCollection):
         copying = schema.Cloud(byCloud=[sources]),
     )
 
-    def onValueChanged(self, name):
-        if name == "sources":
-            if self.sources != None and len(self.sources)> 1:
-                # optimize for the binary case
-                if len(self.sources) == 2:
-                    self.rep = Union((self.sources[0],"rep"),(self.sources[1],"rep"))
-                else:
-                    self.rep = MultiUnion(*[(i, "rep") for i in self.sources])
-                self.subscribers.clear()
-                for i in self.sources:
-                    i.subscribers.add(self)
+    def _sourcesChanged(self):
+        num_sources = len(self.sources)
 
+        if num_sources == 0:
+            self.rep = MultiUnion()
+        elif num_sources == 2:
+            self.rep = Union((self.sources[0],"rep"),(self.sources[1],"rep"))
+        else:
+            self.rep = MultiUnion(*[(i, "rep") for i in self.sources])
+
+    def addSource(self, source):
+        if source not in self.sources:
+
+            # Originally I was trying to send notifications for the
+            # differences:
+            #
+            # if item not in self:
+            #     print "It wasn't, so notify subscribers"
+            #     self.notifySubscribers('add', self, 'rep', item)
+            #
+            # Andi suggested instead using view._notifyChange( ) as below.
+            # However, we seem to getting erroneous notifications.
+
+            source.subscribers.add(self)
+            self.sources.append(source)
+            self._sourcesChanged()
+
+            view = self.itsView
+            for item in source:
+                view._notifyChange(self._collectionChanged,
+                                   'add', 'collection', 'rep', item)
+
+    def removeSource(self, source):
+        if source in self.sources:
+
+            source.subscribers.remove(self)
+            self.sources.remove(source)
+            self._sourcesChanged()
+
+            view = self.itsView
+            for item in source:
+                view._notifyChange(self._collectionChanged,
+                                   'remove', 'collection', 'rep', item)
+
+                # At first I tried the code below, but the UI wasn't updating.
+                # Andi suggested using view._notifyChange( ), but now we get
+                # erroneous notifications.  For example, say the notMine
+                # UnionCollection contains two ListCollection sources L1 and
+                # L2.  L1 contains Note N1, while L2 contains Notes N1 and N2.
+                # The all collection doesn't contain N1 nor N2 since the notMine
+                # collection is filtered out.  However, if I removeSource(L2),
+                # notifications indicating that N1 and N2 have been removed
+                # from notMine fire.  The problem is, N1 hasn't really been
+                # removed from this Union because it's still in L1.
+                # I think we're really close, and since nobody yets adds or
+                # removes 'notMine' collections, this won't affect Chandler
+                # right now, and I want to check this in so others can help
+                # debug.
+                #
+                # if item not in self:
+                #     self.notifySubscribers('remove', self, 'rep', item)
 
 
 class IntersectionCollection(AbstractCollection):
@@ -388,7 +444,6 @@ class IntersectionCollection(AbstractCollection):
                     self.rep = Intersection((self.sources[0],"rep"),(self.sources[1],"rep"))
                 else:
                     self.rep = MultiIntersection(*[(i, "rep") for i in self.sources])
-            self.subscribers.clear()
             for i in self.sources:
                 i.subscribers.add(self)
 
@@ -450,7 +505,6 @@ class FilteredCollection(AbstractCollection):
                                 attrTuples.append((j, "remove"))
 
                         self.rep = FilteredSet((self.source, "rep"), self.filterExpression, attrTuples)
-                    self.subscribers.clear()
                     for i in self.sources:
                         i.subscribers.add(self)
                 except AttributeError, ae:
@@ -473,12 +527,9 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Adding %s to %s...",
-            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
-
-        if item not in self.inclusions:
-            logger.debug("...adding to inclusions (%s)",
-                self.inclusions.getItemDisplayName().encode('utf8'))
-            self.inclusions.add (item)
+            item.getItemDisplayName().encode('utf8'),
+            self.getItemDisplayName().encode('utf8'))
+        self.inclusions.add (item)
 
         if item in self.exclusions:
             logger.debug("...removing from exclusions (%s)",
@@ -503,12 +554,12 @@ class InclusionExclusionCollection(DifferenceCollection):
         """
 
         logger.debug("Removing %s from %s...",
-            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
+            item.getItemDisplayName().encode('utf8'),
+            self.getItemDisplayName().encode('utf8'))
 
-        if item not in self.exclusions:
-            logger.debug("...adding to exclusions (%s)",
-                self.exclusions.getItemDisplayName().encode('utf8'))
-            self.exclusions.add (item)
+        logger.debug("...adding to exclusions (%s)",
+            self.exclusions.getItemDisplayName().encode('utf8'))
+        self.exclusions.add (item)
 
         if item in self.inclusions:
             logger.debug("...removing from inclusions (%s)",
@@ -529,8 +580,8 @@ class InclusionExclusionCollection(DifferenceCollection):
                 self.trash.add(item)
 
         logger.debug("...done removing %s from %s",
-            item.getItemDisplayName().encode('utf8'), self.getItemDisplayName().encode('utf8'))
-
+            item.getItemDisplayName().encode('utf8'),
+            self.getItemDisplayName().encode('utf8'))
 
     def setup(self, source=None, exclusions=None, trash=None):
         """
@@ -548,9 +599,11 @@ class InclusionExclusionCollection(DifferenceCollection):
         else:
             innerSource = UnionCollection(parent=self,
                 displayName=u"(Union of source and inclusions)")
-            innerSource.sources = [source, ListCollection(parent=self,
-                displayName=u"(Inclusions)")]
-            self.inclusions = innerSource.sources[1]
+            innerSource.addSource(source)
+            inclusions = ListCollection(parent=self,
+                                        displayName=u"(Inclusions)")
+            innerSource.addSource(inclusions)
+            self.inclusions = inclusions
 
 
         # Typically we will create an exclusions ListCollection; however,

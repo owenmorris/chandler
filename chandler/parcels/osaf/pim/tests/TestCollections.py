@@ -88,7 +88,8 @@ class CollectionTests(CollectionTestCase):
         Test UnionCollection
         """
         u = UnionCollection('u', view=self.view)
-        u.sources = [ self.b1, self.b2 ]
+        u.addSource(self.b1)
+        u.addSource(self.b2)
 
         self.b1.subscribers.add(self.nh)
         u.subscribers.add(self.nh1)
@@ -142,7 +143,8 @@ class CollectionTests(CollectionTestCase):
         rule.kind = self.i.itsKind
         exclusions = ListCollection("exclusions", view=self.view)
         iu = UnionCollection("iu", view=self.view)
-        iu.sources = [ inclusions, rule ]
+        iu.addSource(inclusions)
+        iu.addSource(rule)
         ic = DifferenceCollection("ic", view=self.view)
         ic.sources = [ iu, exclusions ]
 
@@ -371,7 +373,8 @@ class CollectionTests(CollectionTestCase):
 
     def testDelayedCreation(self):
         uc = UnionCollection('u', view=self.view)
-        uc.sources = [ self.b1, self.b2 ]
+        uc.addSource(self.b1)
+        uc.addSource(self.b2)
         self.failUnless(uc.rep is not None)
 
         kc = KindCollection(view=self.view)
