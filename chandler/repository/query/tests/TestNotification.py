@@ -145,90 +145,90 @@ class TestNotification(QueryTestCase.QueryTestCase):
         (added, removed) = notify_client.action
         self.assert_(len(added) == 1 and len(removed) == 0)
 
-    def testNotifyUnion(self):
-        """ Test notification of union query """
-        import osaf.pim.tests.GenerateItems as GenerateItems
+    #def testNotifyUnion(self):
+    #    """ Test notification of union query """
+    #    import osaf.pim.tests.GenerateItems as GenerateItems
 
-        self.loadParcels(
-         ['parcel:osaf.pim']
-        )
+    #    self.loadParcels(
+    #     ['parcel:osaf.pim']
+    #    )
 
         #create test data
-        view = self.rep.view
-        GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateNote)
-        GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateCalendarEvent, days=5)
-        GenerateItems.GenerateItems(view, 10, GenerateItems.GenerateContact)
+    #    view = self.rep.view
+    #    GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateNote)
+    #    GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateCalendarEvent, days=5)
+    #    GenerateItems.GenerateItems(view, 10, GenerateItems.GenerateContact)
 
         # make sure there's at least one good data item
-        import osaf.pim.calendar.Calendar as Calendar
-        import osaf.pim.contacts as Contacts
-        event = GenerateItems.GenerateCalendarEvent(view, 1)
-        event.displayName = u"Meeting"
-        note = GenerateItems.GenerateNote(view)
-        note.displayName = u"story idea"
-        contact = GenerateItems.GenerateContact(view)
-        contact.contactName.firstName = "Alexis"
-        view.commit()
+    #    import osaf.pim.calendar.Calendar as Calendar
+    #    import osaf.pim.contacts as Contacts
+    #    event = GenerateItems.GenerateCalendarEvent(view, 1)
+    #    event.displayName = u"Meeting"
+    #    note = GenerateItems.GenerateNote(view)
+    #    note.displayName = u"story idea"
+    #    contact = GenerateItems.GenerateContact(view)
+    #    contact.contactName.firstName = "Alexis"
+    #    view.commit()
 
-        queryString = 'union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == u"Meeting", for i in "//parcels/osaf/pim/Note" where contains(i.displayName, u"idea"), for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i"))'
+    #    queryString = 'union(for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == u"Meeting", for i in "//parcels/osaf/pim/Note" where contains(i.displayName, u"idea"), for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i"))'
 
-        p = view.findPath('//Queries')
-        k = view.findPath('//Schema/Core/Query')
-        union_query = Query.Query('testQuery', p, k, queryString)
-        notify_client = NotificationItem.NotificationItem('testNotifier',view)
-        item = notify_client
-        view.commit()
+    #    p = view.findPath('//Queries')
+    #    k = view.findPath('//Schema/Core/Query')
+    #    union_query = Query.Query('testQuery', p, k, queryString)
+    #    notify_client = NotificationItem.NotificationItem('testNotifier',view)
+    #    item = notify_client
+    #    view.commit()
 
-        union_query.subscribe(notify_client, 'handle', False, True)
-        union_query.resultSet.first() # force evaluation of some of the query at least
+    #    union_query.subscribe(notify_client, 'handle', False, True)
+    #    union_query.resultSet.first() # force evaluation of some of the query at least
 
         #test first query in union
-        for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == u"Meeting"')        
-        one = for1_query.resultSet.first()
-        view.commit()
-        one.displayName = u"Lunch"
+    #    for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/pim/calendar/CalendarEvent" where i.displayName == u"Meeting"')        
+    #    one = for1_query.resultSet.first()
+    #    view.commit()
+    #    one.displayName = u"Lunch"
 
-        view.commit()
-        (added, removed) = notify_client.action
-        self.assert_(len(added) == 0 and len(removed) == 1)
+    #    view.commit()
+    #    (added, removed) = notify_client.action
+    #    self.assert_(len(added) == 0 and len(removed) == 1)
 
-        one.displayName = u"Meeting"
-        view.commit()
-        (added, removed) = notify_client.action
-        self.assert_(len(added) == 1 and len(removed) == 0)
+    #    one.displayName = u"Meeting"
+    #    view.commit()
+    #    (added, removed) = notify_client.action
+    #    self.assert_(len(added) == 1 and len(removed) == 0)
         
         # test second query in union
-        for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/pim/Note" where contains(i.displayName,u"idea")')
-        two = for2_query.resultSet.first()
-        view.commit()
+    #    for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/pim/Note" where contains(i.displayName,u"idea")')
+    #    two = for2_query.resultSet.first()
+    #    view.commit()
 
-        origName = two.displayName
-        two.displayName = u"Foo"
-        view.commit()
-        (added, removed) = notify_client.action
-        self.assert_(len(added) == 0 and len(removed) == 1)
+    #    origName = two.displayName
+    #    two.displayName = u"Foo"
+    #    view.commit()
+    #    (added, removed) = notify_client.action
+    #    self.assert_(len(added) == 0 and len(removed) == 1)
 
-        two.displayName = origName
-        view.commit()
-        (added, removed) = notify_client.action
-        self.assert_(len(added) == 1 and len(removed) == 0)
+    #    two.displayName = origName
+    #    view.commit()
+    #    (added, removed) = notify_client.action
+    #    self.assert_(len(added) == 1 and len(removed) == 0)
 
         # test third query in Union -- has an item traversal
-        for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i")')
+    #    for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/pim/contacts/Contact" where contains(i.contactName.firstName,"i")')
         
-        three = for3_query.resultSet.first()
-        view.commit()
-        origName = three.contactName.firstName
-        assert 'i' in origName, "origName is %s" % origName
-        three.contactName.firstName = "Harry"
+    #    three = for3_query.resultSet.first()
+    #    view.commit()
+    #    origName = three.contactName.firstName
+    #    assert 'i' in origName, "origName is %s" % origName
+    #    three.contactName.firstName = "Harry"
 
-        view.commit()
-        (added, removed) = notify_client.action
+    #    view.commit()
+    #    (added, removed) = notify_client.action
 #        self.assert_(len(added) == 0 and len(removed) == 1)
-        three.contactName.firstName = origName
+    #    three.contactName.firstName = origName
 
-        view.commit()
-        (added, removed) = notify_client.action
+    #    view.commit()
+    #    (added, removed) = notify_client.action
 
         #The contact and it's name get changed
 #        self.assert_(len(added) == 2 and len(removed) == 0)
