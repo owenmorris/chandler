@@ -38,7 +38,11 @@ ARCHIVES=$(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.5-4.tar.gz \
          $(CHANDLERARCHIVES)/dateutil-$(SNAP)-0.9-1.tar.gz \
          $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.1.3-4.tar.gz \
          $(CHANDLERARCHIVES)/zanshin-$(SNAP)-105-1.tar.gz \
-         $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz
+         $(CHANDLERARCHIVES)/QueryParser-$(SNAP)-0.4-4.tar.gz \
+         $(CHANDLERARCHIVES)/optik-$(SNAP)-1.5-1.tar.gz \
+         $(CHANDLERARCHIVES)/common-$(SNAP)-0.12.0-1.tar.gz \
+         $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.7.0-1.tar.gz
+         
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
