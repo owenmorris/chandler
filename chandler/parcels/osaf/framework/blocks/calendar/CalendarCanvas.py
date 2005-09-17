@@ -78,28 +78,12 @@ def roundTo(v, r):
     return (v/r)*r
     
 class ColorInfo(object):
-
-    # need to convert hues from 0..360 to 0..1.0 range
-    # removed 60, 180, 90 for now because they looked too light
-    hueList = [k/360.0 for k in [210, 120, 0, 30, 270, 240, 330]]
-    lastHueIndex = 3 # hack for now, because the first 4 collections are already assigned
-
     def __init__(self, collection):
         assert hasattr (collection, 'color')
         color = collection.color
         rgb = wx.Image_RGBValue (color.red, color.green, color.blue)
         self.hue = wx.Image.RGBtoHSV (rgb).hue
                                          
-    @classmethod
-    def getNextHue(cls):
-        """
-        returns the next hue following the one passed in
-        For example,
-        f.hue = nextHue(f.hue)
-        """
-        cls.lastHueIndex += 1
-        cls.lastHueIndex %= len(cls.hueList)
-        return cls.hueList[cls.lastHueIndex]
     
     # to be used like a property, i.e. prop = tintedColor(0.5, 1.0)
     # takes HSV 'S' and 'V' and returns an color based tuple property

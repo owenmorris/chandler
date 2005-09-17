@@ -12,7 +12,8 @@ from tasks import Task, TaskMixin
 from mail import EmailAddress
 from collections import KindCollection, AbstractCollection, \
      DifferenceCollection, UnionCollection, IntersectionCollection, \
-     FilteredCollection, ListCollection, InclusionExclusionCollection
+     FilteredCollection, ListCollection, InclusionExclusionCollection, \
+     CollectionColors
 
 import tasks, mail, calendar.Calendar
 

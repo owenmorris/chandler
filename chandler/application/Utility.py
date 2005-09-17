@@ -24,7 +24,7 @@ import i18n
 #    to let others know what changed.  
 # Your comment also helps Subversion detect a conflict, in case 
 #    someone else changes it at about the same time.
-SCHEMA_VERSION = "73" # john: expose sidebarCollection
+SCHEMA_VERSION = "74" # john: collection color lives in repository
 
 logger = None # initialized in initLogging()
 

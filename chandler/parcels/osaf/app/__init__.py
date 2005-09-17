@@ -7,6 +7,7 @@ from i18n import OSAFMessageFactory as _
 from osaf import pim
 from osaf import messages
 from osaf.framework.types.DocumentTypes import ColorType
+import wx
 
 
 def installParcel(parcel, oldVersion=None):
@@ -233,15 +234,30 @@ def MakeCollections(parcel):
     from osaf.pim import (
         KindCollection, ListCollection, FilteredCollection,
         DifferenceCollection, InclusionExclusionCollection, KindCollection,
-        UnionCollection
+        UnionCollection, CollectionColors
     )
+    
+    def GetColorForHue (hue):
+        rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))
+        return ColorType (rgb.red, rgb.green, rgb.blue, 255)
 
+
+    collectionColors = CollectionColors.update(parcel, 'collectionColors',
+                                               colors = [GetColorForHue (210),
+                                                         GetColorForHue (120),
+                                                         GetColorForHue (0),
+                                                         GetColorForHue (30),
+                                                         GetColorForHue (270),
+                                                         GetColorForHue (240),
+                                                         GetColorForHue (330)],
+                                               colorIndex = 0
+                       )
+    
     TrashCollection = \
         ListCollection.update(parcel, 'TrashCollection',
             displayName=_(u"Trash"),
             renameable=False,
             iconName="Trash",
-            color = ColorType(255, 192, 128, 255), #Orange
             colorizeIcon = False
         )
 
@@ -271,7 +287,7 @@ def MakeCollections(parcel):
         iconName = "All",
         colorizeIcon = False,
         iconNameHasKindVariant = True,
-        color = ColorType(128, 192, 255, 255), #Blue
+        color = collectionColors.nextColor(),
 
         displayNameAlternatives = {'None': _(u'My items'),
                                    'MailMessageMixin': _(u'My mail'),
@@ -305,7 +321,7 @@ def MakeCollections(parcel):
         renameable=False,
         iconName="In",
         dontDisplayAsCalendar=True,
-        color = ColorType(128, 255, 128, 255), # Green
+        color = collectionColors.nextColor(),
         colorizeIcon = False
     ).setup(source=inSource, trash=TrashCollection)
 
@@ -321,7 +337,7 @@ def MakeCollections(parcel):
         renameable=False,
         iconName="Out",
         dontDisplayAsCalendar=True,
-        color = ColorType(255, 128, 128, 255), #Red
+        color = collectionColors.nextColor(),
         colorizeIcon = False
     ).setup(source=outSource, trash=TrashCollection)
 
@@ -332,3 +348,4 @@ def MakeCollections(parcel):
                                          outCollection,
                                          TrashCollection])
 
+    TrashCollection.color = collectionColors.nextColor()

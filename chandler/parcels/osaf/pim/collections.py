@@ -47,6 +47,21 @@ def mapChangesCallable(item, version, status, literals, references):
         # due to notification attempts before reps are created.
         pass 
 
+class CollectionColors(schema.Item):
+    """
+    Temporarily put the CollectionColors here until we refactor collection
+    to remove display information
+    """
+    colors           = schema.Many(ColorType)
+    colorIndex       = schema.One(schema.Integer)
+
+    def nextColor (self):
+        color = self.colors [self.colorIndex]
+        self.colorIndex += 1
+        if self.colorIndex == len (self.colors):
+            self.colorIndex = 0
+        return color
+
 
 class AbstractCollection(items.ContentItem):
 
@@ -122,10 +137,7 @@ class AbstractCollection(items.ContentItem):
 
     def setColorIfAbsent (self):
         if not hasattr (self, 'color'):
-            import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
-            import wx
-            rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (CalendarCanvas.ColorInfo.getNextHue(), 0.5, 1.0))
-            self.color = ColorType (rgb.red, rgb.green, rgb.blue, 255)
+            self.color = schema.ns('osaf.app', self).collectionColors.nextColor()
 
     def collectionChanged(self, op, item, name, other, *args):
         """
