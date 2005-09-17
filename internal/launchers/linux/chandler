@@ -16,4 +16,4 @@ export PYTHONHOME=$CHANDLERBIN/release
 
 cd $CHANDLERHOME
 
-$CHANDLERBIN/release/bin/python -O Chandler.py $*
+$CHANDLERBIN/release/bin/python -O Chandler.py "$@"
