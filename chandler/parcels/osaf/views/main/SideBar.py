@@ -495,16 +495,30 @@ class SSSidebarSharingButton (SSSidebarButton):
         share = sharing.getShare(item)
         if share is not None:
             filterKind = self.buttonOwner.filterKind
-            
-            if ((filterKind is None) or
-                str (filterKind.itsPath) in share.filterKinds):
+
+            # @@@MOR  John, I just changed share.filterKinds into
+            # share.filterClasses, which is a list of dotted names
+            # referring to classes, such as 'osaf.pim.CalendarEventMixin'
+            # so I had to tweak the code below that determines if the
+            # current button filterKind matches the share's filterClasses.
+            # Let's figure out if there's a better way.
+
+            filterMatches = False
+            if filterKind is not None:
+                klass = filterKind.classes['python']
+                for className in share.filterClasses:
+                    if klass is schema.importString(className):
+                        filterMatches = True
+                        break
+
+            if ((filterKind is None) or filterMatches):
 
                 if (share.sharer is not None and
                     str(share.sharer.itsPath) == "//userdata/me"):
                     shared = "Upload"
                 shared = "Download"
 
-                if filterKind is None and  len (share.filterKinds) != 0:
+                if filterKind is None and  len (share.filterClasses) != 0:
                     partial = "Partial"
 
         if mouseOverFlag:

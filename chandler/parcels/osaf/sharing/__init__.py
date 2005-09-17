@@ -90,7 +90,7 @@ def _uniqueName(basename, existing):
     return name
 
 
-def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
+def publish(collection, account, classes_to_include=None, attrs_to_exclude=None):
 
     """ Publish a collection, automatically determining which conduits/formats
         to use, and how many """
@@ -124,6 +124,8 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
     logger.debug('...DAV:  %s', dav)
     allowed = response.headers.getHeader('Allow')
     logger.debug('...Allow:  %s', allowed)
+    supportsTickets = handle.blockUntil(resource.supportsTickets)
+    logger.debug('...Tickets?:  %s', supportsTickets)
 
     conduit.delete(True) # Clean up the temporary conduit
 
@@ -141,12 +143,12 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
             share = newOutboundShare(view, collection,
-                                     kinds=kinds_to_include,
+                                     classes=classes_to_include,
                                      shareName="",
-                                     account=account)
+                                     account=account,
+                                     useCalDAV=True)
 
-            # Use a CalDAVFormat instead
-            share.format = CalDAVFormat(parent=share)
+            collection.shares.append(share, 'main')
 
             shares.append(share)
             share.displayName = collection.displayName
@@ -168,12 +170,13 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 # Potentially create a cloudxml subcollection
 
                 share = newOutboundShare(view, collection,
-                                         kinds=kinds_to_include,
+                                         classes=classes_to_include,
                                          shareName=safe_name,
-                                         account=account)
-                # Use a CalDAVFormat instead
-                share.format = CalDAVFormat(parent=share)
-                share.conduit.calDAVMode = True
+                                         account=account,
+                                         useCalDAV=True)
+
+
+                collection.shares.append(share, 'main')
 
                 shares.append(share)
                 share.displayName = name
@@ -184,13 +187,16 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
                 share.create()
                 share.put()
 
+                if supportsTickets:
+                    share.conduit.createTickets()
+
                 # Create a subcollection to contain the cloudXML versions of
                 # the shared items
 
                 safe_sub_name = u"%s/%s" % (safe_name, SUBCOLLECTION)
 
                 share = newOutboundShare(view, collection,
-                                         kinds=kinds_to_include,
+                                         classes=classes_to_include,
                                          shareName=safe_sub_name,
                                          account=account)
 
@@ -213,9 +219,12 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
 
                 # Create a WebDAV conduit / cloudxml format
                 share = newOutboundShare(view, collection,
-                                         kinds=kinds_to_include,
+                                         classes=classes_to_include,
                                          shareName=safe_name,
                                          account=account)
+
+                collection.shares.append(share, 'main')
+
                 shares.append(share)
                 share.displayName = name
 
@@ -224,10 +233,12 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
 
                 share.create()
                 share.put()
+                if supportsTickets:
+                    share.conduit.createTickets()
 
                 ics_name = "%s.ics" % safe_name
                 share = newOutboundShare(view, collection,
-                                         kinds=kinds_to_include,
+                                         classes=classes_to_include,
                                          shareName=ics_name,
                                          account=account)
                 shares.append(share)
@@ -240,6 +251,8 @@ def publish(collection, account, kinds_to_include=None, attrs_to_exclude=None):
 
                 share.create()
                 share.put()
+                if supportsTickets:
+                    share.conduit.createTickets()
 
     except (SharingError,
             zanshin.error.Error,
@@ -263,49 +276,69 @@ def subscribe(view, url, username=None, password=None):
 
     (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
-    account = WebDAVAccount.findMatch(view, url)
+    ticket = ""
+    if query:
+        for part in query.split('&'):
+            (arg, value) = part.split('=')
+            if arg == 'ticket':
+                ticket = value
+                break
 
-    # Allow the caller to override (and set) new username/password; helpful
-    # from a 'subscribe' dialog:
-    if username is not None:
-        account.username = username
-    if password is not None:
-        account.password = password
-
-
-    if account is None:
-        # Prompt user for account information then create an account
+    if ticket:
+        account = None
 
         # Get the parent directory of the given path:
         # '/dev1/foo/bar' becomes ['dev1', 'foo']
-        parentPath = path.strip('/').split('/')[:-1]
+        pathList = path.strip('/').split('/')
+        parentPath = pathList[:-1]
         # ['dev1', 'foo'] becomes "dev1/foo"
         parentPath = "/".join(parentPath)
+        shareName = pathList[-1]
 
-        # @@@MOR -- Having a UI dependency in this code is bad.
+    else:
+        account = WebDAVAccount.findMatch(view, url)
 
-        # Examine the URL for scheme, host, port, path
-        frame = wx.GetApp().mainFrame
-        info = application.dialogs.AccountInfoPrompt.PromptForNewAccountInfo(\
-            frame, host=host, path=parentPath)
-        if info is not None:
-            (description, username, password) = info
-            account = WebDAVAccount(view=view)
-            account.displayName = description
-            account.host = host
-            account.path = parentPath
+        # Allow the caller to override (and set) new username/password; helpful
+        # from a 'subscribe' dialog:
+        if username is not None:
             account.username = username
+        if password is not None:
             account.password = password
-            account.useSSL = useSSL
-            account.port = port
 
-    # The user cancelled out of the dialog
-    if account is None:
-        return None
 
-    # compute shareName relative to the account path:
-    accountPathLen = len(account.path.strip("/"))
-    shareName = path.strip("/")[accountPathLen:]
+        if account is None:
+            # Prompt user for account information then create an account
+
+            # Get the parent directory of the given path:
+            # '/dev1/foo/bar' becomes ['dev1', 'foo']
+            parentPath = path.strip('/').split('/')[:-1]
+            # ['dev1', 'foo'] becomes "dev1/foo"
+            parentPath = "/".join(parentPath)
+
+            # @@@MOR -- Having a UI dependency in this code is bad.
+
+            # Examine the URL for scheme, host, port, path
+            frame = wx.GetApp().mainFrame
+            info = application.dialogs.AccountInfoPrompt.PromptForNewAccountInfo(\
+                frame, host=host, path=parentPath)
+            if info is not None:
+                (description, username, password) = info
+                account = WebDAVAccount(view=view)
+                account.displayName = description
+                account.host = host
+                account.path = parentPath
+                account.username = username
+                account.password = password
+                account.useSSL = useSSL
+                account.port = port
+
+        # The user cancelled out of the dialog
+        if account is None:
+            return None
+
+        # compute shareName relative to the account path:
+        accountPathLen = len(account.path.strip("/"))
+        shareName = path.strip("/")[accountPathLen:]
 
     if url.endswith(".ics"):
         share = Share(view=view)
@@ -316,6 +349,7 @@ def subscribe(view, url, username=None, password=None):
         share.mode = "get"
         try:
             share.sync()
+            share.contents.shares.append(share, 'main')
             return share.contents
 
         except Exception, err:
@@ -324,15 +358,23 @@ def subscribe(view, url, username=None, password=None):
             raise
 
 
-    conduit = WebDAVConduit(view=view, account=account)
+    if account:
+        conduit = WebDAVConduit(view=view, account=account,
+            shareName=shareName)
+    else:
+        conduit = WebDAVConduit(view=view, host=host, port=port,
+            sharePath=parentPath, shareName=shareName, useSSL=useSSL,
+            ticket=ticket)
 
-    # Interrogate the server associated with the account
+    # Interrogate the server
 
-    location = url
+    location = conduit.getLocation()
     if not location.endswith("/"):
         location += "/"
     handle = conduit._getServerHandle()
     resource = handle.getResource(location)
+    if ticket:
+        resource.ticketId = ticket
 
     logger.debug('Examining %s ...', location)
     exists = handle.blockUntil(resource.exists)
@@ -347,6 +389,8 @@ def subscribe(view, url, username=None, password=None):
         if not subLocation.endswith("/"):
             subLocation += "/"
         subResource = handle.getResource(subLocation)
+        if ticket:
+            subResource.ticketId = ticket
         try:
             hasSubCollection = handle.blockUntil(subResource.exists) and \
                 handle.blockUntil(subResource.isCollection)
@@ -370,11 +414,18 @@ def subscribe(view, url, username=None, password=None):
         share = Share(view=view)
         share.mode = "both"
         share.format = CloudXMLFormat(parent=share)
-        share.conduit = WebDAVConduit(parent=share,
-                                      shareName=shareName,
-                                      account=account)
+        if account:
+            share.conduit = WebDAVConduit(parent=share,
+                                          shareName=shareName,
+                                          account=account)
+        else:
+            share.conduit = WebDAVConduit(parent=share, host=host, port=port,
+                sharePath=parentPath, shareName=shareName, useSSL=useSSL,
+                ticket=ticket)
+
         try:
             share.sync()
+            share.contents.shares.append(share, 'main')
             return share.contents
 
         except Exception, err:
@@ -390,9 +441,14 @@ def subscribe(view, url, username=None, password=None):
             share.mode = "both"
             subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
 
-            share.conduit = WebDAVConduit(parent=share,
-                                         shareName=subShareName,
-                                         account=account)
+            if account:
+                share.conduit = WebDAVConduit(parent=share,
+                                             shareName=subShareName,
+                                             account=account)
+            else:
+                share.conduit = WebDAVConduit(parent=share, host=host,
+                    port=port, sharePath=parentPath, shareName=subShareName,
+                    useSSL=useSSL, ticket=ticket)
 
             share.format = CloudXMLFormat(parent=share)
             try:
@@ -410,13 +466,18 @@ def subscribe(view, url, username=None, password=None):
         share = Share(view=view, contents=contents)
         share.mode = "both"
         share.format = CalDAVFormat(parent=share)
-        share.conduit = WebDAVConduit(parent=share,
-                                      shareName=shareName,
-                                      account=account)
-        share.conduit.calDAVMode = True
+        if account:
+            share.conduit = CalDAVConduit(parent=share,
+                                          shareName=shareName,
+                                          account=account)
+        else:
+            share.conduit = CalDAVConduit(parent=share, host=host,
+                port=port, sharePath=parentPath, shareName=shareName,
+                useSSL=useSSL, ticket=ticket)
 
         try:
             share.sync()
+            share.contents.shares.append(share, 'main')
             return share.contents
 
         except Exception, err:
@@ -429,8 +490,8 @@ def subscribe(view, url, username=None, password=None):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 
-def newOutboundShare(view, collection, kinds=None, shareName=None,
-                     account=None):
+def newOutboundShare(view, collection, classes=None, shareName=None,
+                     account=None, useCalDAV=False):
     """ Create a new Share item for a collection this client is publishing.
 
     If account is provided, it will be used; otherwise, the default WebDAV
@@ -441,8 +502,8 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
     @type view: L{repository.persistence.RepositoryView}
     @param collection: The AbstractCollection that will be shared
     @type collection: AbstractCollection
-    @param kinds: Which kinds to share
-    @type kinds: A list of Kind paths
+    @param classes: Which classes to share
+    @type classes: A list of dotted class names
     @param account: The WebDAV Account item to use
     @type account: An item of kind WebDAVAccount
     @return: A Share item, or None if no WebDAV account could be found.
@@ -454,15 +515,25 @@ def newOutboundShare(view, collection, kinds=None, shareName=None,
         if account is None:
             return None
 
-    conduit = WebDAVConduit(view=view, account=account, shareName=shareName)
-    format = CloudXMLFormat(view=view)
-    share = Share(view=view, conduit=conduit, format=format,
-                  contents=collection)
+    share = Share(view=view, contents=collection)
 
-    if kinds is None:
-        share.filterKinds = []
+    if useCalDAV:
+        conduit = CalDAVConduit(parent=share, account=account,
+                                shareName=shareName)
+        format = CalDAVFormat(parent=share)
     else:
-        share.filterKinds = kinds
+        conduit = WebDAVConduit(parent=share, account=account,
+                                shareName=shareName)
+        format = CloudXMLFormat(parent=share)
+
+    share.conduit = conduit
+    share.format = format
+
+
+    if classes is None:
+        share.filterClasses = []
+    else:
+        share.filterClasses = classes
 
     share.displayName = collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
@@ -548,12 +619,20 @@ def getShare(collection):
     @return: A Share item, or None
     """
 
-    # Return the first "non-hidden" share for this collection -- see isShared()
+    # First, see if there is a 'main' share for this collection.  If not,
+    # return the first "non-hidden" share for this collection -- see isShared()
     # method for further details.
 
-    for share in collection.shares:
-        if share.hidden == False:
+    if collection.shares:
+
+        share = collection.shares.getByAlias('main')
+        if share is not None:
             return share
+
+        for share in collection.shares:
+            if share.hidden == False:
+                return share
+
     return None
 
 
@@ -692,15 +771,17 @@ def syncShare(share):
         share.sync()
     except SharingError, err:
         try:
-            msgVars = {'collectionName': share.contents.getItemDisplayName(),
-                       'accountName': share.conduit.acdcount.getItemDisplayName()}
+            msgVars = {
+                'collectionName': share.contents.getItemDisplayName(),
+                'accountName': share.conduit.account.getItemDisplayName()
+            }
 
             msg = _(u"Error syncing the '%(collectionName)s' collection\nusing the '%(accountName)s' account\n\n") % msgVars
-            emsg = err.message
+            msg += err.message
         except:
-            emsg = "Error during sync"
+            msg = _(u"Error during sync")
 
-        logger.exception("Sharing Error: %s" % emsg)
+        logger.exception("Sharing Error: %s" % msg)
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     _(u"Synchronization Error"), msg)
 
@@ -733,7 +814,7 @@ def checkForActiveShares(view):
 
 
 
-def getFilteredCollectionDisplayName(collection, filterKinds):
+def getFilteredCollectionDisplayName(collection, filterClasses):
     """
     Return a displayName for a collection, taking into account what the
     current sidebar filter is, and whether this is the All collection.
@@ -744,13 +825,13 @@ def getFilteredCollectionDisplayName(collection, filterKinds):
 
     ext = ""
 
-    if len(filterKinds) > 0:
-        path = filterKinds[0] # Only look at the first filterKind
-        if path == "//parcels/osaf/pim/tasks/TaskMixin":
+    if len(filterClasses) > 0:
+        classString = filterClasses[0] # Only look at the first class
+        if classString == "osaf.pim.TaskMixin":
            ext = _(u" tasks")
-        if path == "//parcels/osaf/pim/mail/MailMessageMixin":
+        if classString == "osaf.pim.mail.MailMessageMixin":
            ext = _(u" mail")
-        if path == "//parcels/osaf/pim/calendar/CalendarEventMixin":
+        if classString == "osaf.pim.CalendarEventMixin":
            ext = _(u" calendar")
 
     name = collection.displayName

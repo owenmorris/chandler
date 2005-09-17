@@ -11,6 +11,7 @@ __all__ = [
     'ShareConduit',
     'FileSystemConduit',
     'WebDAVConduit',
+    'CalDAVConduit',
     'SimpleHTTPConduit',
     'OneTimeFileSystemShare',
     'SharingError',
@@ -31,7 +32,7 @@ import time, StringIO, urlparse, libxml2, os, base64, logging
 from application import schema
 from chandlerdb.util.uuid import UUID
 from osaf.pim import (AbstractCollection, ListCollection,
-    InclusionExclusionCollection, DifferenceCollection)
+    InclusionExclusionCollection, DifferenceCollection, CalendarEventMixin)
 from repository.item.Item import Item
 from repository.item.Sets import Set
 from repository.schema.Types import Type
@@ -118,16 +119,16 @@ class Share(items.ContentItem):
         otherName = 'shareeOf',
     )
 
-    filterKinds = schema.Sequence(
+    filterClasses = schema.Sequence(
         schema.String,
-        doc = 'The list of kinds to import/export',
+        doc = 'The list of classes to import/export',
         initialValue = [],
     )
 
     filterAttributes = schema.Sequence(schema.String, initialValue=[])
 
     schema.addClouds(
-        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterKinds,
+        sharing = schema.Cloud(byCloud=[contents,sharer,sharees,filterClasses,
                                         filterAttributes])
     )
 
@@ -177,8 +178,8 @@ class Share(items.ContentItem):
     def exists(self):
         return self.conduit.exists()
 
-    def getLocation(self):
-        return self.conduit.getLocation()
+    def getLocation(self, privilege=None):
+        return self.conduit.getLocation(privilege=privilege)
 
     def getSharedAttributes(self, item, cloudAlias='sharing'):
         """ Examine sharing clouds and filterAttributes to determine which
@@ -268,6 +269,8 @@ class Share(items.ContentItem):
                     location += u"/"
                 handle = self.conduit._getServerHandle()
                 resource = handle.getResource(location)
+                if getattr(self.conduit, 'ticket', False):
+                    resource.ticketId = self.conduit.ticket
 
                 exists = handle.blockUntil(resource.exists)
                 if not exists:
@@ -431,13 +434,11 @@ class ShareConduit(items.ContentItem):
             location = sharingSelf.getLocation()
             logger.info("Starting PUT of %s" % (location))
 
-            # share.filterKinds includes paths so that they can be shared.
-            # Find the Kinds from those paths so we can call isItemOf( )
-            filterKinds = None
-            if len(sharingSelf.share.filterKinds) > 0:
-                filterKinds = []
-                for path in sharingSelf.share.filterKinds:
-                    filterKinds.append(sharingSelf.itsView.findPath(path))
+            logger.debug("Manifest: %s" % self.manifest)
+
+            # share.filterClasses includes the dotted names of classes so
+            # they can be shared.
+            filterClasses = sharingSelf._getFilterClasses()
 
             style = sharingSelf.share.format.fileStyle()
             if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -462,11 +463,11 @@ class ShareConduit(items.ContentItem):
                         if getattr(item, 'modificationFor', None) is not None:
                             continue
 
-                        # Skip any items matching the filtered kinds
-                        if filterKinds is not None:
+                        # Skip any items matching the filtered classes
+                        if filterClasses is not None:
                             match = False
-                            for kind in filterKinds:
-                                if item.isItemOf(kind):
+                            for klass in filterClasses:
+                                if isinstance(item, klass):
                                     match = True
                                     break
                             if not match:
@@ -478,16 +479,13 @@ class ShareConduit(items.ContentItem):
                 # Put the Share item itself
                 sharingSelf.__conditionalPutItem(sharingSelf.share)
 
+                logger.debug("Manifest: %s" % self.manifest)
                 # Any items on the server that weren't in our collection now
                 # get removed from the server:
                 for (itemPath, value) in sharingSelf.resourceList.iteritems():
-                    sharingSelf._deleteItem(itemPath)
-
                     uuid = sharingSelf.manifest[itemPath]['uuid']
-                    item = sharingSelf.itsView.findUUID(uuid)
-                    if item and item in sharingSelf.share.items:
-                        sharingSelf.share.items.remove(item)
-
+                    if uuid is not None:
+                        sharingSelf._deleteItem(itemPath)
                     sharingSelf.__removeFromManifest(itemPath)
 
 
@@ -544,6 +542,8 @@ class ShareConduit(items.ContentItem):
                 return item
 
             logger.error("...NOT able to import '%s'" % itemPath)
+            # Record with no item, indicating an error
+            self.__addToManifest(itemPath)
 
             msg = _(u"Not able to import '%(itemPath)s'") % {'itemPath': itemPath}
             # @@@MOR Shall we just skip bogus imported items?
@@ -613,7 +613,10 @@ class ShareConduit(items.ContentItem):
 
         # Make sure we have a collection to add items to:
         if sharingSelf.share.contents is None:
-            sharingSelf.share.contents = ListCollection(view=sharingView)
+            sharingSelf.share.contents = InclusionExclusionCollection( \
+                view=sharingView)
+            trash = schema.ns('osaf.app', sharingView).TrashCollection
+            sharingSelf.share.contents.setup(trash=trash)
 
         contents = sharingSelf.share.contents
 
@@ -632,21 +635,13 @@ class ShareConduit(items.ContentItem):
                     trash = schema.ns('osaf.app', sharingView).TrashCollection
                     contents.setup(trash=trash)
 
-            filterKinds = None
-            if len(sharingSelf.share.filterKinds) > 0:
-                filterKinds = []
-                for path in sharingSelf.share.filterKinds:
-                    filterKinds.append(sharingView.findPath(path))
+            filterClasses = sharingSelf._getFilterClasses()
 
             # Conditionally fetch items, and add them to collection
             for itemPath in sharingSelf.resourceList:
                 item = sharingSelf.__conditionalGetItem(itemPath)
                 if item is not None:
-                    # @@@MOR -- Question:  will AbstractCollection.add()
-                    # dirty the item being added if the item is already in
-                    # the collection?  If so, then this 'if' isn't needed:
-                    if not item in sharingSelf.share.contents:
-                        sharingSelf.share.contents.add(item)
+                    sharingSelf.share.contents.add(item)
 
                 sharingSelf.__setSeen(itemPath)
 
@@ -661,31 +656,35 @@ class ShareConduit(items.ContentItem):
             toRemove = []
             for unseenPath in sharingSelf.__iterUnseen():
                 uuid = sharingSelf.manifest[unseenPath]['uuid']
-                item = sharingView.findUUID(uuid)
-                if item is not None:
+                if uuid:
+                    item = sharingView.findUUID(uuid)
+                    if item is not None:
 
-                    # If an item has disappeared from the server, only
-                    # remove it locally if it matches the current share
-                    # filter.
+                        # If an item has disappeared from the server, only
+                        # remove it locally if it matches the current share
+                        # filter.
 
-                    removeLocally = True
+                        removeLocally = True
 
-                    if filterKinds is not None:
-                        match = False
-                        for kind in filterKinds:
-                            if item.isItemOf(kind):
-                                match = True
-                                break
-                        if match is False:
-                            removeLocally = False
+                        if filterClasses is not None:
+                            match = False
+                            for klass in filterClasses:
+                                if isinstance(item, klass):
+                                    match = True
+                                    break
+                            if match is False:
+                                removeLocally = False
 
-                    if removeLocally:
-                        logger.info("...removing %s from collection" % item)
-                        sharingSelf.share.contents.remove(item)
-                        sharingSelf.share.items.remove(item)
+                        if removeLocally:
+                            logger.info("...removing %s from collection" % item)
+                            sharingSelf.share.contents.remove(item)
+                            sharingSelf.share.items.remove(item)
+                else:
+                    logger.info("Just removed a phantom manifest entry for %s",
+                                unseenPath)
 
-                    # In either case, remove from manifest
-                    toRemove.append(unseenPath)
+                # In any case, remove from manifest
+                toRemove.append(unseenPath)
 
             for removePath in toRemove:
                 sharingSelf.__removeFromManifest(removePath)
@@ -706,6 +705,16 @@ class ShareConduit(items.ContentItem):
         self.disconnect()
 
         return sharingView
+
+
+
+    def _getFilterClasses(self):
+        filterClasses = None
+        if len(self.share.filterClasses) > 0:
+            filterClasses = []
+            for classString in self.share.filterClasses:
+                filterClasses.append(schema.importString(classString))
+        return filterClasses
 
 
 
@@ -742,14 +751,23 @@ class ShareConduit(items.ContentItem):
     # the item's internal UUID, external UUID, either a last-modified date
     # (if filesystem) or ETAG (if webdav), and the item's version (as in
     # what item.getVersion() returns)
+    # 
+    # If we tried to get an item but the transform failed, we add that resource
+    # to the manifest with "" as the uuid
 
     def __clearManifest(self):
         self.manifest = {}
 
-    def __addToManifest(self, path, item, data):
+    def __addToManifest(self, path, item=None, data=None):
         # data is an ETAG, or last modified date
+
+        if item is None:
+            uuid = None
+        else:
+            uuid = item.itsUUID
+
         self.manifest[path] = {
-         'uuid' : item.itsUUID,
+         'uuid' : uuid,
          'data' : data,
         }
 
@@ -1020,11 +1038,18 @@ class WebDAVConduit(ShareConduit):
     username = schema.One(schema.String)
     password = schema.One(schema.String)
     useSSL = schema.One(schema.Boolean)
-    calDAVMode = schema.One(schema.Boolean, initialValue=False)
+
+    # The ticket this conduit will use (we're a sharee and we're using this)
+    ticket = schema.One(schema.String, initialValue="")
+
+    # The tickets we generated if we're a sharer
+    ticketReadOnly = schema.One(schema.String, initialValue="")
+    ticketReadWrite = schema.One(schema.String, initialValue="")
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  shareName=None, account=None, host=None, port=80,
-                 sharePath=None, username="", password="", useSSL=False):
+                 sharePath=None, username="", password="", useSSL=False,
+                 ticket=""):
         super(WebDAVConduit, self).__init__(name, parent, kind, view)
 
         # Use account, if provided.  Otherwise use host, port, username,
@@ -1037,6 +1062,7 @@ class WebDAVConduit(ShareConduit):
             self.username = username
             self.password = password
             self.useSSL = useSSL
+            self.ticket = ticket
 
         if shareName is None:
             self.shareName = str(UUID())
@@ -1075,7 +1101,7 @@ class WebDAVConduit(ShareConduit):
     def __releaseServerHandle(self):
         self.serverHandle = None
 
-    def getLocation(self, includeShare=True):
+    def getLocation(self, privilege=None, includeShare=True):
         """ Return the url of the share """
 
         (host, port, sharePath, username, password, useSSL) = \
@@ -1094,6 +1120,14 @@ class WebDAVConduit(ShareConduit):
         url = urlparse.urljoin(url, sharePath + "/")
         if includeShare:
             url = urlparse.urljoin(url, self.shareName)
+
+        if privilege == 'readonly':
+            if self.ticketReadOnly:
+                url = url + "?ticket=%s" % self.ticketReadOnly
+        elif privilege == 'readwrite':
+            if self.ticketReadWrite:
+                url = url + "?ticket=%s" % self.ticketReadWrite
+
         return url
 
     def __getSharePath(self):
@@ -1109,7 +1143,10 @@ class WebDAVConduit(ShareConduit):
         if self.share.format.fileStyle() == ImportExportFormat.STYLE_DIRECTORY:
             resourcePath += "/" + path
 
-        return serverHandle.getResource(resourcePath)
+        resource = serverHandle.getResource(resourcePath)
+        if getattr(self, 'ticket', False):
+            resource.ticketId = self.ticket
+        return resource
 
     def exists(self):
         result = super(WebDAVConduit, self).exists()
@@ -1129,6 +1166,9 @@ class WebDAVConduit(ShareConduit):
 
 
         return result
+
+    def _createCollectionResource(self, handle, resource, childName):
+        return handle.blockUntil(resource.createCollection, childName)
 
     def create(self):
         super(WebDAVConduit, self).create()
@@ -1152,13 +1192,12 @@ class WebDAVConduit(ShareConduit):
                 # ['dev1', 'foo'] becomes "dev1/foo"
                 url = "/".join(parentPath)
                 resource = handle.getResource(url)
+                if getattr(self, 'ticket', False):
+                    resource.ticketId = self.ticket
 
-                if self.calDAVMode:
-                    child = handle.blockUntil(resource.createCalendar,
-                                              childName)
-                else:
-                    child = handle.blockUntil(resource.createCollection,
-                                              childName)
+                child = self._createCollectionResource(handle, resource,
+                    childName)
+
             except zanshin.webdav.ConnectionError, err:
                 raise CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
             except M2Crypto.BIO.BIOError, err:
@@ -1217,7 +1256,10 @@ class WebDAVConduit(ShareConduit):
         if path and path[-1] != '/':
             path += '/'
 
-        return serverHandle.getResource(path)
+        resource = serverHandle.getResource(path)
+        if getattr(self, 'ticket', False):
+            resource.ticketId = self.ticket
+        return resource
 
 
     def _putItem(self, item):
@@ -1364,6 +1406,8 @@ class WebDAVConduit(ShareConduit):
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             resource = self._getServerHandle().getResource(location)
+            if getattr(self, 'ticket', False):
+                resource.ticketId = self.ticket
             # @@@ [grant] Error handling and reporting here
             # are crapski
             try:
@@ -1394,6 +1438,36 @@ class WebDAVConduit(ShareConduit):
 
     def disconnect(self):
         self.__releaseServerHandle()
+
+    def createTickets(self):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+
+        ticket = handle.blockUntil(resource.createTicket)
+        logger.debug("Read Only ticket: %s %s",
+            ticket.ticketId, ticket.ownerUri)
+        self.ticketReadOnly = ticket.ticketId
+
+        ticket = handle.blockUntil(resource.createTicket, readonly=False)
+        logger.debug("Read Write ticket: %s %s",
+            ticket.ticketId, ticket.ownerUri)
+        self.ticketReadWrite = ticket.ticketId
+
+        return (self.ticketReadOnly, self.ticketReadWrite)
+
+
+
+class CalDAVConduit(WebDAVConduit):
+
+    def _createCollectionResource(self, handle, resource, childName):
+        return handle.blockUntil(resource.createCalendar, childName)
+
+    def _getFilterClasses(self):
+        return [CalendarEventMixin]
+
 
 
 class SimpleHTTPConduit(WebDAVConduit):
@@ -1710,15 +1784,17 @@ class CloudXMLFormat(ImportExportFormat):
         result += indent * depth
 
         if item.itsKind.isMixin():
-            kindsList = []
+            classNames = []
             for kind in item.itsKind.superKinds:
-                kindsList.append(str(kind.itsPath))
-            kinds = ",".join(kindsList)
+                # Strip off "<class '" and "'>"
+                className = str(kind.classes['python'])[8:-2]
+                classNames.append(className)
+            classes = ",".join(classNames)
         else:
-            kinds = str(item.itsKind.itsPath)
+            classes = str(item.itsKind.classes['python'])[8:-2]
 
-        result += "<%s kind='%s' uuid='%s'>\n" % (item.itsKind.itsName,
-                                                  kinds,
+        result += "<%s class='%s' uuid='%s'>\n" % (item.itsKind.itsName,
+                                                  classes,
                                                   item.itsUUID)
 
         depth += 1
@@ -1849,13 +1925,17 @@ class CloudXMLFormat(ImportExportFormat):
             else:
                 uuid = None
 
-        kindNode = node.hasProp('kind')
-        if kindNode:
-            kindPathList = kindNode.content.split(",")
-            for kindPath in kindPathList:
-                kind = self.itsView.findPath(kindPath)
-                if kind is not None:
-                    kinds.append(kind)
+        classNode = node.hasProp('class')
+        if classNode:
+            classNameList = classNode.content.split(",")
+            for classPath in classNameList:
+                try:
+                    klass = schema.importString(classPath)
+                    kind = klass.getKind(view)
+                    if kind is not None:
+                        kinds.append(kind)
+                except ImportError:
+                    pass
         else:
             # No kind means we're simply looking up an item by uuid and
             # returning it
@@ -1863,7 +1943,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         if len(kinds) == 0:
             # we don't have any of the kinds provided
-            logger.info("No kinds found locally for %s" % kindPathList)
+            logger.info("No kinds found locally for %s" % classNameList)
             return None
         elif len(kinds) == 1:
             kind = kinds[0]

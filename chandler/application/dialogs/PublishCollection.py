@@ -19,7 +19,7 @@ class PublishCollectionDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
-                 filterKindPath=None):
+                 filterClassName=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
         self.resources = resources
@@ -27,11 +27,11 @@ class PublishCollectionDialog(wx.Dialog):
         self.parent = parent
         self.collection = collection    # The collection to share
 
-        # List of kinds (paths) to share
-        if filterKindPath is None:
-            self.filterKinds = []
+        # List of classes to share
+        if filterClassName is None:
+            self.filterClasses = []
         else:
-            self.filterKinds = [filterKindPath]
+            self.filterClasses = [filterClassName]
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -76,7 +76,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
         collName = sharing.getFilteredCollectionDisplayName(self.collection,
-                                                            self.filterKinds)
+                                                            self.filterClasses)
         wx.xrc.XRCCTRL(self,
                        "TEXT_COLLNAME").SetLabel(collName)
 
@@ -122,7 +122,8 @@ class PublishCollectionDialog(wx.Dialog):
         name = share.conduit.account.displayName
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
-        url = share.conduit.getLocation()
+        url = share.conduit.getLocation(privilege='readwrite')
+
         wx.xrc.XRCCTRL(self, "TEXT_URL").SetLabel(url)
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
@@ -162,9 +163,9 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
         self.CheckboxShareStatus.Enable(False)
 
-        self.filterKinds = share.filterKinds
+        self.filterClasses = share.filterClasses
 
-        self._loadKindFilterState()
+        self._loadClassFilterState()
         self._loadAttributeFilterState(share)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
@@ -193,7 +194,7 @@ class PublishCollectionDialog(wx.Dialog):
 
 
     def OnManageDone(self, evt):
-        self._saveKindFilterState()
+        self._saveClassFilterState()
         for share in self.collection.shares:
             self._saveAttributeFilterState(share)
         self.EndModal(False)
@@ -230,10 +231,10 @@ class PublishCollectionDialog(wx.Dialog):
                 share.filterAttributes.remove("transparency")
 
 
-    def _loadKindFilterState(self):
-        # Based on which kinds are listed in filterKinds, update the UI
+    def _loadClassFilterState(self):
+        # Based on which classes are listed in filterClasses, update the UI
 
-        if len(self.filterKinds) == 0:      # No filtering
+        if len(self.filterClasses) == 0:      # No filtering
 
             self.RadioItems.SetValue(True)
             self.CheckboxMail.SetValue(False)
@@ -245,62 +246,56 @@ class PublishCollectionDialog(wx.Dialog):
             # Unset the "My items" radio button
             self.RadioItemsHidden.SetValue(True)
 
-            # Conditionally set the individual kind checkboxes:
+            # Conditionally set the individual class checkboxes:
 
-            path = "//parcels/osaf/pim/mail/MailMessageMixin"
-            if path in self.filterKinds:
+            if 'osaf.pim.mail.MailMessageMixin' in self.filterClasses:
                 self.CheckboxMail.SetValue(True)
             else:
                 self.CheckboxMail.SetValue(False)
 
-            path = "//parcels/osaf/pim/tasks/TaskMixin"
-            if path in self.filterKinds:
+            if 'osaf.pim.TaskMixin' in self.filterClasses:
                 self.CheckboxTasks.SetValue(True)
             else:
                 self.CheckboxTasks.SetValue(False)
 
-            path = "//parcels/osaf//calendar/CalendarEventMixin"
-            if path in self.filterKinds:
+            if 'osaf.pim.CalendarEventMixin' in self.filterClasses:
                 self.CheckboxEvents.SetValue(True)
             else:
                 self.CheckboxEvents.SetValue(False)
 
 
-    def _saveKindFilterState(self):
+    def _saveClassFilterState(self):
         # Examine the values in the UI and make the appropriate changes to the
         # Share's filter
 
-        self.filterKinds = []
+        self.filterClasses = []
 
         if not self.RadioItems.GetValue():  # Filtering
 
             if self.CheckboxMail.GetValue():
-                path = "//parcels/osaf/pim/mail/MailMessageMixin"
-                self.filterKinds.append(path)
+                self.filterClasses.append('osaf.pim.mail.MailMessageMixin')
 
             if self.CheckboxTasks.GetValue():
-                path = "//parcels/osaf/pim/tasks/TaskMixin"
-                self.filterKinds.append(path)
+                self.filterClasses.append('osaf.pim.TaskMixin')
 
             if self.CheckboxEvents.GetValue():
-                path = "//parcels/osaf/pim/calendar/CalendarEventMixin"
-                self.filterKinds.append(path)
+                self.filterClasses.append('osaf.pim.CalendarEventMixin')
 
         for share in self.collection.shares:
-            share.filterKinds = self.filterKinds
+            share.filterClasses = self.filterClasses
 
 
 
 
     def OnAllItemsClicked(self, evt):
-        # Clear the filter kinds list
+        # Clear the filter classes list
 
-        self.filterKinds = []
-        self._loadKindFilterState()
+        self.filterClasses = []
+        self._loadClassFilterState()
 
 
     def OnFilterClicked(self, evt):
-        # If any individual kind checkbox is clicked, unset "My items"
+        # If any individual class checkbox is clicked, unset "My items"
 
         self.RadioItems.SetValue(False)
 
@@ -328,14 +323,14 @@ class PublishCollectionDialog(wx.Dialog):
 
 
             attrs_to_exclude = self._getAttributeFilterState()
-            kinds_to_include = self.filterKinds
+            classes_to_include = self.filterClasses
             accountIndex = self.accountsControl.GetSelection()
             account = self.accountsControl.GetClientData(accountIndex)
 
             self._showStatus(_(u"Wait for Sharing URLs...\n"))
             self._showStatus(_(u"Publishing collection to server..."))
             shares = sharing.publish(self.collection, account,
-                                     kinds_to_include, attrs_to_exclude)
+                                     classes_to_include, attrs_to_exclude)
             self._showStatus(_(u" done.\n"))
 
         except (sharing.SharingError, zanshin.error.Error,
@@ -365,8 +360,8 @@ class PublishCollectionDialog(wx.Dialog):
 
             return
 
-        for share in shares:
-            self._showStatus(u"%s\n" % share.getLocation())
+        share = sharing.getShare(self.collection)
+        self._showStatus(u"%s\n" % share.getLocation(privilege='readwrite'))
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -398,7 +393,7 @@ class PublishCollectionDialog(wx.Dialog):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             share = sharing.getShare(self.collection)
-            wx.TheClipboard.SetData(wx.TextDataObject(unicode(share.getLocation())))
+            wx.TheClipboard.SetData(wx.TextDataObject(unicode(share.getLocation(privilege='readwrite'))))
             wx.TheClipboard.Close()
 
     def _clearStatus(self):
@@ -434,13 +429,13 @@ class PublishCollectionDialog(wx.Dialog):
             key = lambda x: x.displayName.lower()
         )
 
-def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
+def ShowPublishDialog(parent, view=None, collection=None, filterClassName=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
     resources = wx.xrc.XmlResource(xrcFile)
     win = PublishCollectionDialog(parent, _(u"Collection Sharing"),
      resources=resources, view=view, collection=collection,
-     filterKindPath=filterKindPath)
+     filterClassName=filterClassName)
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()

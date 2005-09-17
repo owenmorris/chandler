@@ -7,7 +7,7 @@ __all__ = [
 
 import Sharing
 import application.Parcel
-from osaf.pim import AbstractCollection, ListCollection
+from osaf.pim import AbstractCollection, ListCollection, CalendarEventMixin
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.TimeZone as TimeZone
 from chandlerdb.util.uuid import UUID
@@ -541,7 +541,7 @@ class CalDAVFormat(ICalendarFormat):
 
     def exportProcess(self, item, depth=0):
         """Item may be a Share or an individual Item, return None if Share."""
-        if isinstance(item, Sharing.Share):
+        if not isinstance(item, CalendarEventMixin):
             return None
         cal = itemsToVObject(self.itsView, [item],
                              filters=self.share.filterAttributes)

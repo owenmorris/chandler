@@ -17,6 +17,7 @@ from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
 import i18n
+from application import schema
 
 TEST_I18N = 'test' in i18n.getLocaleSet()
 I18N_SEED = UnicodeString(u"йδ")
@@ -261,7 +262,9 @@ def GenerateContact(view):
     return contact
 
 def GenerateCollection(view, postToView=None, existingNames=None):
-    collection = pim.ListCollection(view=view)
+    collection = pim.InclusionExclusionCollection(view=view)
+    app = schema.ns('osaf.app', view)
+    collection.setup(trash=app.TrashCollection)
     
     while True:
         # Find a name that isn't already in use

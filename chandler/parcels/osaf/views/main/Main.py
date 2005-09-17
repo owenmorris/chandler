@@ -455,7 +455,7 @@ class MainView(View):
             share = sharing.OneTimeFileSystemShare(dir, filename,
                             ICalendar.ICalendarFormat, view=self.itsView)
             collection = share.get()
-            collection.SetColorIfAbsent()
+            collection.setColorIfAbsent()
             self.postEventByName ("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
             self.setStatusMessage (_(u"Import completed"))
         except:
@@ -791,13 +791,24 @@ class MainView(View):
         if collection is not None:
             sidebar = Block.findBlockByName("Sidebar")
             if sidebar.filterKind is None:
-                filterKindPath = None 
+                filterClassName = None
             else:
-                filterKindPath = str(sidebar.filterKind.itsPath)
-            PublishCollection.ShowPublishDialog(wx.GetApp().mainFrame,
-                                                view=self.itsView,
-                                                collection=collection,
-                                                filterKindPath=filterKindPath)
+                # Is there a better way to get from Kind to dotted classname?
+                klass = sidebar.filterKind.classes['python']
+                for className in (
+                    'osaf.pim.CalendarEventMixin',
+                    'osaf.pim.TaskMixin',
+                    'osaf.pim.mail.MailMessageMixin'
+                ):
+                    if klass is schema.importString(className):
+                        filterClassName = className
+                        break
+
+            mainFrame = wx.GetApp().mainFrame
+            PublishCollection.ShowPublishDialog(mainFrame,
+                view=self.itsView,
+                collection=collection,
+                filterClassName=filterClassName)
 
     def onShareSidebarCollectionEventUpdateUI (self, event):
         """
@@ -808,12 +819,20 @@ class MainView(View):
         if collection is not None:
 
             sidebar = Block.findBlockByName("Sidebar")
-            if sidebar.filterKind is None:
-                filterKindPath = []
-            else:
-                filterKindPath = [str(sidebar.filterKind.itsPath)]
-            collName = sharing.getFilteredCollectionDisplayName(collection,
-                                                                filterKindPath)
+            filterClasses = []
+            if sidebar.filterKind is not None:
+                # Is there a better way to get from Kind to dotted classname?
+                klass = sidebar.filterKind.classes['python']
+                for className in (
+                    'osaf.pim.CalendarEventMixin',
+                    'osaf.pim.TaskMixin',
+                    'osaf.pim.mail.MailMessageMixin'
+                ):
+                    if klass is schema.importString(className):
+                        filterClasses.append(className)
+            collName = \
+                sharing.getFilteredCollectionDisplayName(collection,
+                    filterClasses)
 
             menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collName}
         else:
@@ -872,12 +891,20 @@ class MainView(View):
         if collection is not None:
 
             sidebar = Block.findBlockByName("Sidebar")
-            if sidebar.filterKind is None:
-                filterKindPath = []
-            else:
-                filterKindPath = [str(sidebar.filterKind.itsPath)]
-            collName = sharing.getFilteredCollectionDisplayName(collection,
-                                                                filterKindPath)
+            filterClasses = []
+            if sidebar.filterKind is not None:
+                # Is there a better way to get from Kind to dotted classname?
+                klass = sidebar.filterKind.classes['python']
+                for className in (
+                    'osaf.pim.CalendarEventMixin',
+                    'osaf.pim.TaskMixin',
+                    'osaf.pim.mail.MailMessageMixin'
+                ):
+                    if klass is schema.importString(className):
+                        filterClasses.append(className)
+            collName = \
+                sharing.getFilteredCollectionDisplayName(collection,
+                    filterClasses)
 
             menuTitle = _(u'Sync "%(collectionName)s"') % {'collectionName': collName}
             if sharing.isShared(collection):

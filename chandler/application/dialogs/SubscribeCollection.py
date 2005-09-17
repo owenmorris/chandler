@@ -92,19 +92,20 @@ class SubscribeDialog(wx.Dialog):
                 # user cancelled out of account dialog
                 return
 
+            collection.setColorIfAbsent()
             share = sharing.getShare(collection)
 
             mainView = Globals.views[0]
             mainView.postEventByName("AddToSidebarWithoutCopyingAndSelectFirst", {'items':[collection]})
 
             event = 'ApplicationBarAll'
-            if share.filterKinds and len(share.filterKinds) == 1:
-                filterKind = share.filterKinds[0]
-                if filterKind == '//parcels/osaf/pim/calendar/CalendarEventMixin':
+            if share.filterClasses and len(share.filterClasses) == 1:
+                filterClass = share.filterClasses[0]
+                if filterClass == 'osaf.pim.CalendarEventMixin':
                     event = 'ApplicationBarEvent'
-                elif filterKind == '//parcels/osaf/pim/tasks/TaskMixin':
+                elif filterClass == 'osaf.pim.TaskMixin':
                     event = 'ApplicationBarTask'
-                elif filterKind == '//parcels/osaf/pim/mail/MailMessageMixin':
+                elif filterClass == 'osaf.pim.mail.MailMessageMixin':
                     event = 'ApplicationBarMail'
 
             mainView.postEventByName(event, {})
@@ -116,11 +117,11 @@ class SubscribeDialog(wx.Dialog):
         except sharing.NotFound, err:
             self.__showStatus(_(u"That collection was not found"))
         except sharing.SharingError, err:
+            logger.exception("Error during subscribe for %s" % url)
             self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
-            logger.exception("Error during subscribe for %s" % url)
         except Exception, e:
-            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
             logger.exception("Error during subscribe for %s" % url)
+            self.__showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
     def OnTyping(self, evt):
         self.__hideStatus()
