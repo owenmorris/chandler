@@ -434,38 +434,6 @@ class PublishCollectionDialog(wx.Dialog):
             key = lambda x: x.displayName.lower()
         )
 
-    def _getExistingFiles(self):
-        account = self.currentAccount
-        host = account.host
-        port = account.port
-        username = account.username
-        password = account.password
-        useSSL = account.useSSL
-        sharePath = account.path.strip(u"/")
-
-        handle = sharing.ChandlerServerHandle(host, port=port, username=username,
-                   password=password, useSSL=useSSL, repositoryView=self.view)
-
-        if len(sharePath) > 0:
-            sharePath = u"/%s/" % (sharePath)
-        else:
-            sharePath = u"/"
-
-        existing = []
-
-        parent = handle.getResource(sharePath)
-        skipLen = len(sharePath)
-        for resource in handle.blockUntil(parent.getAllChildren):
-            path = resource.path[skipLen:]
-            path = path.strip(u"/")
-            if path:
-                path = urllib.unquote_plus(path).decode('utf-8')
-                existing.append(path)
-
-        # @@@ [grant] Localized sort?
-        existing.sort()
-        return existing
-
 def ShowPublishDialog(parent, view=None, collection=None, filterKindPath=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'PublishCollection_wdr.xrc')
