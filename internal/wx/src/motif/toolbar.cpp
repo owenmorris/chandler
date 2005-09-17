@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 13.12.99 by VZ during toolbar classes reorganization
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp,v 1.43 2005/07/28 22:07:40 VZ Exp $
+// RCS-ID:      $Id: toolbar.cpp,v 1.44 2005/09/17 21:01:39 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -276,8 +276,6 @@ bool wxToolBar::Realize()
 
     int buttonHeight = 0, buttonWidth = 0;
 
-    int currentSpacing = 0;
-
     Widget button;
     Pixmap pixmap, insensPixmap;
     wxBitmap bmp, insensBmp;
@@ -470,7 +468,6 @@ bool wxToolBar::Realize()
                 XtAddEventHandler (button, EnterWindowMask | LeaveWindowMask,
                         False, wxToolButtonPopupCallback, (XtPointer) this);
 
-                currentSpacing = 0;
                 break;
         }
 

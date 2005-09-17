@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp,v 1.65 2005/07/31 09:42:12 MBN Exp $
+// RCS-ID:      $Id: dcclient.cpp,v 1.66 2005/09/17 22:01:58 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ wxWindowDC::wxWindowDC( wxWindow *window )
 
 wxWindowDC::~wxWindowDC()
 {
-    if (m_gc && (m_oldFont != (WXFont) 0) && ((long) m_oldFont != -1))
+    if (m_gc && m_oldFont)
     {
         XSetFont ((Display*) m_display, (GC) m_gc, (Font) m_oldFont);
 
@@ -1415,7 +1415,7 @@ void wxWindowDC::SetFont( const wxFont &font )
 
     if (!m_font.Ok())
     {
-        if ((m_oldFont != (WXFont) 0) && ((wxCoord) m_oldFont != -1))
+        if (m_oldFont)
         {
             XSetFont ((Display*) m_display, (GC) m_gc, (Font) m_oldFont);
 

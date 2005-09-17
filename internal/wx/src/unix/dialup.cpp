@@ -327,46 +327,46 @@ wxDialUpManagerImpl::Dial(const wxString &isp,
                           const wxString & WXUNUSED(password),
                           bool async)
 {
-   if(m_IsOnline == Net_Connected)
+    if(m_IsOnline == Net_Connected)
         return false;
-   m_ISPname = isp;
-   wxString cmd;
-   if(m_ConnectCommand.Find(wxT("%s")))
-      cmd.Printf(m_ConnectCommand,m_ISPname.c_str());
-   else
-      cmd = m_ConnectCommand;
+    m_ISPname = isp;
+    wxString cmd;
+    if(m_ConnectCommand.Find(wxT("%s")))
+        cmd.Printf(m_ConnectCommand,m_ISPname.c_str());
+    else
+        cmd = m_ConnectCommand;
 
-   if ( async )
-   {
-      m_DialProcess = new wxDialProcess(this);
+    if ( async )
+    {
+        m_DialProcess = new wxDialProcess(this);
         m_DialPId = (int)wxExecute(cmd, false, m_DialProcess);
-      if(m_DialPId == 0)
-      {
-         delete m_DialProcess;
-         m_DialProcess = NULL;
+        if(m_DialPId == 0)
+        {
+            delete m_DialProcess;
+            m_DialProcess = NULL;
             return false;
-      }
-      else
+        }
+        else
             return true;
-   }
-   else
+    }
+    else
         return wxExecute(cmd, /* sync */ true) == 0;
 }
 
 bool wxDialUpManagerImpl::HangUp()
 {
-   if(m_IsOnline == Net_No)
+    if(m_IsOnline == Net_No)
         return false;
-   if(IsDialing())
-   {
-      wxLogError(_("Already dialling ISP."));
+    if(IsDialing())
+    {
+        wxLogError(_("Already dialling ISP."));
         return false;
-   }
-   wxString cmd;
-   if(m_HangUpCommand.Find(wxT("%s")))
-      cmd.Printf(m_HangUpCommand,m_ISPname.c_str(), m_DialProcess);
-   else
-      cmd = m_HangUpCommand;
+    }
+    wxString cmd;
+    if(m_HangUpCommand.Find(wxT("%s")))
+        cmd.Printf(m_HangUpCommand,m_ISPname.c_str(), m_DialProcess);
+    else
+        cmd = m_HangUpCommand;
     return wxExecute(cmd, /* sync */ true) == 0;
 }
 
@@ -640,10 +640,10 @@ int
 wxDialUpManagerImpl::CheckIfconfig()
 {
 #ifdef __VMS
-       m_CanUseIfconfig = 0;
-        return -1;
+    m_CanUseIfconfig = 0;
+    return -1;
 #else
-   // assume that the test doesn't work
+    // assume that the test doesn't work
     int netDevice = NetDevice_Unknown;
 
     // first time check for ifconfig location
@@ -697,7 +697,7 @@ wxDialUpManagerImpl::CheckIfconfig()
             #pragma warning "No ifconfig information for this OS."
         #endif
 
-       m_CanUseIfconfig = 0;
+        m_CanUseIfconfig = 0;
         return -1;
 #endif
        cmd << wxT(" >") << tmpfile <<  wxT('\'');
@@ -766,6 +766,8 @@ wxDialUpManagerImpl::NetConnection wxDialUpManagerImpl::CheckPing()
 #ifdef __VMS
         if (wxFileExists( wxT("SYS$SYSTEM:TCPIP$PING.EXE") ))
             m_PingPath = wxT("$SYS$SYSTEM:TCPIP$PING");
+#elif defined(__SGI__)
+        m_PingPath = _T("/usr/etc/ping"); 
 #else
         if (wxFileExists( wxT("/bin/ping") ))
             m_PingPath = wxT("/bin/ping");
@@ -784,16 +786,16 @@ wxDialUpManagerImpl::NetConnection wxDialUpManagerImpl::CheckPing()
        return Net_Unknown;
     }
 
-   wxLogNull ln; // suppress all error messages
-   wxASSERT(m_PingPath.length());
-   wxString cmd;
-   cmd << m_PingPath << wxT(' ');
+    wxLogNull ln; // suppress all error messages
+    wxASSERT(m_PingPath.length());
+    wxString cmd;
+    cmd << m_PingPath << wxT(' ');
 #if defined(__SOLARIS__) || defined (__SUNOS__)
-   // nothing to add to ping command
-#elif defined(__LINUX__) || defined (__BSD__) || defined( __VMS )
-   cmd << wxT("-c 1 "); // only ping once
+    // nothing to add to ping command
+#elif defined(__LINUX__) || defined (__BSD__) || defined(__VMS) || defined(__SGI__)
+    cmd << wxT("-c 1 "); // only ping once
 #elif defined(__HPUX__)
-   cmd << wxT("64 1 "); // only ping once (need also specify the packet size)
+    cmd << wxT("64 1 "); // only ping once (need also specify the packet size)
 #else
     #if defined(__GNUG__)
         #warning "No Ping information for this OS."
@@ -801,14 +803,14 @@ wxDialUpManagerImpl::NetConnection wxDialUpManagerImpl::CheckPing()
         #pragma warning "No Ping information for this OS."
     #endif
 
-   m_CanUsePing = 0;
-   return Net_Unknown;
+    m_CanUsePing = 0;
+    return Net_Unknown;
 #endif
-   cmd << m_BeaconHost;
+    cmd << m_BeaconHost;
     if(wxExecute(cmd, true /* sync */) == 0)
-      return Net_Connected;
-   else
-      return Net_No;
+        return Net_Connected;
+    else
+        return Net_No;
 }
 
 /* static */

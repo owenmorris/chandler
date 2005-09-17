@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: scrolbar.cpp,v 1.24 2005/01/18 15:06:31 KH Exp $
+// RCS-ID:      $Id: scrolbar.cpp,v 1.25 2005/09/17 22:00:32 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -130,7 +130,7 @@ static void wxScrollBarCallback(Widget widget, XtPointer clientData,
                                 XmScaleCallbackStruct *cbs)
 {
     wxScrollBar *scrollBar = (wxScrollBar*)wxGetWindowFromTable(widget);
-    wxOrientation orientation = (wxOrientation)(int)clientData;
+    wxOrientation orientation = (wxOrientation)wxPtrToUInt(clientData);
     wxEventType eventType = wxEVT_NULL;
 
     switch (cbs->reason)

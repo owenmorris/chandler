@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     01.11.02
-// RCS-ID:      $Id: evtloop.cpp,v 1.17 2005/08/24 17:36:00 VZ Exp $
+// RCS-ID:      $Id: evtloop.cpp,v 1.18 2005/09/17 21:01:39 VZ Exp $
 // Copyright:   (c) 2002 Mattia Barbon
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -387,7 +387,6 @@ bool wxDoEventLoopIteration( wxEventLoop& evtLoop )
 #include <sys/time.h>
 #include <unistd.h>
 
-static XtInputId inputId;
 static int idleFds[2] = { -1, -1 };
 
 class wxIdlePipeModule : public wxModule
@@ -478,11 +477,11 @@ bool wxAddIdleCallback()
         return false;
     
     // install input handler for wxWakeUpIdle
-    inputId = XtAppAddInput( (XtAppContext) wxTheApp->GetAppContext(),
-                             idleFds[0],
-                             (XtPointer)XtInputReadMask,
-                             wxInputCallback,
-                             NULL );
+    XtAppAddInput((XtAppContext) wxTheApp->GetAppContext(),
+                  idleFds[0],
+                  (XtPointer)XtInputReadMask,
+                  wxInputCallback,
+                  NULL);
 
     return true;
 }

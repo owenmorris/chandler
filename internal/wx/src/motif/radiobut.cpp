@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     17/09/98
-// RCS-ID:      $Id: radiobut.cpp,v 1.30 2005/06/19 19:11:20 MBN Exp $
+// RCS-ID:      $Id: radiobut.cpp,v 1.31 2005/09/17 21:01:22 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:   	wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ bool wxRadioButton::Create(wxWindow *parent, wxWindowID id,
 
     //copied from mac/radiobut.cpp (from here till "return true;")
     m_cycle = this ;
-  
+
     if (HasFlag(wxRB_GROUP))
     {
         AddInCycle( NULL ) ;
@@ -181,23 +181,20 @@ void wxRadioButtonCallback (Widget w, XtPointer clientData,
 
 wxRadioButton* wxRadioButton::AddInCycle(wxRadioButton *cycle)
 {
-    wxRadioButton* next;
-    wxRadioButton* current;
-	
     if (cycle == NULL)
     {
         m_cycle = this;
-        return this;
     }
     else
     {
-        current = cycle;
-        while ((next = current->m_cycle) != cycle) 
+        wxRadioButton* current = cycle;
+        while ( current->m_cycle != cycle )
             current = current->m_cycle;
         m_cycle = cycle;
         current->m_cycle = this;
-        return cycle;
     }
+
+    return cycle;
 }
 
 wxRadioButton* wxRadioButton::ClearSelections()
