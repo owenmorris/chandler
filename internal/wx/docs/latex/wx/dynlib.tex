@@ -4,7 +4,7 @@
 %% Author:      Vadim Zeitlin
 %% Modified by:
 %% Created:     14.01.02 (extracted from dllload.tex)
-%% RCS-ID:      $Id: dynlib.tex,v 1.17 2005/08/28 16:25:42 VZ Exp $
+%% RCS-ID:      $Id: dynlib.tex,v 1.18 2005/09/17 12:53:06 JS Exp $
 %% Copyright:   (c) Vadim Zeitlin
 %% License:     wxWindows license
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,14 +89,6 @@ The possible values for \arg{cat} are:
 Detaches this object from its library handle, i.e. the object will not unload
 the library any longer in its destructor but it is now the callers
 responsibility to do this using \helpref{Unload}{wxdynamiclibraryunload}.
-
-
-\membersection{wxDynamicLibrary::GetProgramHandle}\label{wxdynamiclibrarygetprogramhandle}
-
-\func{static wxDllType}{GetProgramHandle}{\void}
-
-Return a valid handle for the main program itself or \texttt{NULL} if symbols
-from the main program can't be loaded on this platform.
 
 
 \membersection{wxDynamicLibrary::GetSymbol}\label{wxdynamiclibrarygetsymbol}
