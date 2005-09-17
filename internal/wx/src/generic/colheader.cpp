@@ -1297,6 +1297,8 @@ bool					bResultV;
 
 		if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
 			boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
+
+		bResultV = ((boundsR->width > 0) && (boundsR->height > 0));
 	}
 	else
 	{
@@ -1373,12 +1375,14 @@ void wxColumnHeader::SetBitmapRef(
 wxColumnHeaderItem		*itemRef;
 wxRect					boundsR;
 
-	itemRef = GetItemRef( itemIndex );
-	if (itemRef != NULL)
+	if (GetItemBounds( itemIndex, &boundsR ))
 	{
-		GetItemBounds( itemIndex, &boundsR );
-		itemRef->SetBitmapRef( bitmapRef, &boundsR );
-		RefreshItem( itemIndex, true );
+		itemRef = GetItemRef( itemIndex );
+		if (itemRef != NULL)
+		{
+			itemRef->SetBitmapRef( bitmapRef, &boundsR );
+			RefreshItem( itemIndex, true );
+		}
 	}
 }
 
@@ -1632,6 +1636,7 @@ long		resultV, i;
 				// on Mac (and perhaps other platforms) this limitation doesn't apply
 				dc.DestroyClippingRegion();
 			}
+
 	}
 
 #if defined(__WXMSW__)
@@ -1689,6 +1694,8 @@ long		resultV, i;
 				// with the tenuous justification of "balance" with the generic version
 				dc.DestroyClippingRegion();
 			}
+//			else
+//				wxLogDebug( wxT("wxColumnHeader::Draw - GetItemBounds failed") );
 	}
 #endif
 
