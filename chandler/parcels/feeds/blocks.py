@@ -14,6 +14,7 @@ import channels
 from i18n import OSAFMessageFactory as _
 from osaf import messages 
 from application import schema
+from osaf.framework.types.DocumentTypes import SizeType, RectType
 
 logger = logging.getLogger(__name__)
 
@@ -137,8 +138,8 @@ def installParcel(parcel, oldVersion=None):
         return detail.StaticRedirectAttributeLabel.update(
             parcel, name, title=title,
             characterStyle = blocks.LabelStyle, stretchFactor = 0.0,
-            textAlignmentEnum = "Right", minimumSize = blocks.SizeType(60, 24),
-            border = blocks.RectType(0, 0, 0, 5),
+            textAlignmentEnum = "Right", minimumSize = SizeType(60, 24),
+            border = RectType(0, 0, 0, 5),
         )
 
     # Shortcut for creating a detail-view attribute editor
@@ -153,7 +154,7 @@ def installParcel(parcel, oldVersion=None):
     def pair(name, **kw):
         return detail.DetailSynchronizedLabeledTextAttributeBlock.update(
             parcel, name, stretchFactor = 0.0,
-            border = blocks.RectType(5, 0, 0, 5), **kw
+            border = RectType(5, 0, 0, 5), **kw
         )
 
     detail.DetailTrunkSubtree.update(parcel, "ChannelSubtree",
@@ -167,8 +168,8 @@ def installParcel(parcel, oldVersion=None):
 
             FeedItemDetail.update(parcel, "ItemBodyArea",
                 blockName = "articletext",
-                size = blocks.SizeType(100,50),
-                minimumSize = blocks.SizeType(100,50),
+                size = SizeType(100,50),
+                minimumSize = SizeType(100,50),
             ),
 
             # URL
@@ -186,7 +187,7 @@ def installParcel(parcel, oldVersion=None):
                         #
                         # colorStyle = blocks.ColorStyle.update(
                         #     parcel, "LinkColor",
-                        #     foregroundColor = blocks.ColorType(0,0,255,255),
+                        #     foregroundColor = ColorType(0,0,255,255),
                         # ),
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Left",

@@ -6,6 +6,7 @@ import scripts as Scripts
 from i18n import OSAFMessageFactory as _
 from osaf import pim
 from osaf import messages
+from osaf.framework.types.DocumentTypes import ColorType
 
 
 def installParcel(parcel, oldVersion=None):
@@ -234,8 +235,6 @@ def MakeCollections(parcel):
         DifferenceCollection, InclusionExclusionCollection, KindCollection,
         UnionCollection
     )
-
-    from osaf.framework.blocks import ColorType
 
     TrashCollection = \
         ListCollection.update(parcel, 'TrashCollection',

@@ -1,5 +1,6 @@
 from Photos import PhotoMixin, Photo
 from application import schema
+from osaf.framework.types.DocumentTypes import RectType
 
 def installParcel(parcel, old_version=None):
 
@@ -14,7 +15,7 @@ def installParcel(parcel, old_version=None):
                 viewAttribute = "photoBody",
                 position = 0.86,
                 stretchFactor = 1.0,
-                border = blocks.RectType(2.0, 2.0, 2.0, 2.0),
+                border = RectType(2.0, 2.0, 2.0, 2.0),
                 presentationStyle = blocks.PresentationStyle.update(
                     parcel, "photo_image_presentation",
                     format = "Image"

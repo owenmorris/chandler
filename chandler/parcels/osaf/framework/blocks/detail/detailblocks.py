@@ -2,6 +2,7 @@ from Detail import *
 from osaf.framework.blocks import *
 import osaf.pim
 from i18n import OSAFMessageFactory as _
+from osaf.framework.types.DocumentTypes import SizeType, RectType
 
 #
 # A few public utilities: any detail view client can use these to help

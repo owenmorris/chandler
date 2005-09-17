@@ -10,7 +10,7 @@ import application.Globals as Globals
 from application import schema
 import wx
 import logging
-from DocumentTypes import ColorType
+from osaf.framework.types.DocumentTypes import ColorType
 
 logger = logging.getLogger(__name__)
 

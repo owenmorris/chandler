@@ -1,5 +1,3 @@
-from DocumentTypes import RectType, ColorType, SizeType, PositionType
-
 from Styles import CharacterStyle, ColorStyle, Style
 from Block import Block as __Block
 
@@ -123,8 +121,3 @@ def installParcel(parcel, oldName=None):
     )
 
     CharacterStyle.update(parcel, "SummaryRowStyle", fontFamily="DefaultUIFont")
-
-    ColorStyle.update(parcel, "WhiteBackground",
-        backgroundColor = ColorType(255,255,255,0)
-    )
-

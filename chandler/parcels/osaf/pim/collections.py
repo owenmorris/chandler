@@ -10,6 +10,7 @@ from repository.item.Item import Item
 from chandlerdb.item.ItemError import NoSuchIndexError
 from osaf.pim import items
 import logging, os, re
+from osaf.framework.types.DocumentTypes import ColorType
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class AbstractCollection(items.ContentItem):
     settles on pje's external attribute mechanism
     """
     renameable              = schema.One(schema.Boolean)
-    color                   = schema.One(schema.Anything)
+    color                   = schema.One(ColorType)
     iconName                = schema.One(schema.String)
     iconNameHasKindVariant  = schema.One(schema.Boolean, defaultValue = False)
     colorizeIcon            = schema.One(schema.Boolean, defaultValue = True)
@@ -121,7 +122,6 @@ class AbstractCollection(items.ContentItem):
 
     def setColorIfAbsent (self):
         if not hasattr (self, 'color'):
-            from osaf.framework.blocks import ColorType
             import osaf.framework.blocks.calendar.CalendarCanvas as CalendarCanvas
             import wx
             rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (CalendarCanvas.ColorInfo.getNextHue(), 0.5, 1.0))

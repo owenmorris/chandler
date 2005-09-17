@@ -3,6 +3,7 @@ from AmazonBlocks import AmazonController, ImageBlock
 
 from application import schema
 from i18n import OSAFMessageFactory as _
+from osaf.framework.types.DocumentTypes import SizeType, RectType
 
 def installParcel(parcel, version=None):
 
@@ -54,8 +55,8 @@ def installParcel(parcel, version=None):
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
-                        minimumSize = blocks.SizeType(70, 24),
-                        border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
+                        minimumSize = SizeType(70, 24),
+                        border = RectType(0.0, 0.0, 0.0, 5.0),
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel, "AuthorAttribute",
@@ -68,8 +69,8 @@ def installParcel(parcel, version=None):
             ),
             ImageBlock.update(parcel, "image",
                 blockName = "product image",
-                size = blocks.SizeType(100,50),
-                minimumSize = blocks.SizeType(100,50),
+                size = SizeType(100,50),
+                minimumSize = SizeType(100,50),
             ),
         ],
     )

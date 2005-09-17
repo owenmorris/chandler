@@ -1,4 +1,5 @@
 from osaf.framework.blocks import *
+from osaf.framework.types.DocumentTypes import SizeType, ColorType, RectType
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
 from osaf.views.main.SideBar import *

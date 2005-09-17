@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 __parcel__ = "osaf.framework.blocks"
 
 from Block import Block, RectangularChild, wxRectangularChild
-from DocumentTypes import PositionType
+from osaf.framework.types.DocumentTypes import PositionType
 import DragAndDrop
 from MenusAndToolbars import Toolbar as Toolbar
 from chandlerdb.util.uuid import UUID

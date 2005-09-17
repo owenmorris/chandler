@@ -21,7 +21,7 @@ from application.dialogs import RecurrenceDialog
 from osaf.framework.blocks import DragAndDrop
 from osaf.framework.blocks import Block
 from osaf.framework.blocks import ContainerBlocks
-from osaf.framework.blocks import Styles, ColorType
+from osaf.framework.blocks import Styles
 from osaf.framework.blocks import Sendability
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.calendar import CollectionCanvas

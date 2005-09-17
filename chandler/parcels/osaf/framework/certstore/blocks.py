@@ -8,6 +8,7 @@ Certificate store blocks
 
 from osaf.framework.blocks import Block
 from osaf.framework.blocks.detail import Detail
+from osaf.framework.types.DocumentTypes import SizeType, RectType
 
 class _CertificateViewController(Block.Block):
     def onCertificateViewBlockEvent(self, event):
@@ -119,8 +120,8 @@ def installParcel(parcel, oldVersion=None):
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
-                        minimumSize = blocks.SizeType(70, 24),
-                        border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
+                        minimumSize = SizeType(70, 24),
+                        border = RectType(0.0, 0.0, 0.0, 5.0),
                     ),
                     detail.StaticRedirectAttribute.update(
                         parcel, "TypeAttribute",
@@ -143,8 +144,8 @@ def installParcel(parcel, oldVersion=None):
                         characterStyle = blocks.LabelStyle,
                         stretchFactor = 0.0,
                         textAlignmentEnum = "Right",
-                        minimumSize = blocks.SizeType(70, 24),
-                        border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
+                        minimumSize = SizeType(70, 24),
+                        border = RectType(0.0, 0.0, 0.0, 5.0),
                     ),
                     _EditIntegerAttribute.update(
                         parcel, "TrustAttribute",
@@ -153,7 +154,7 @@ def installParcel(parcel, oldVersion=None):
                         characterStyle = blocks.TextStyle,
                         readOnly = False,
                         textAlignmentEnum = "Left",
-                        minimumSize = blocks.SizeType(50, 24),
+                        minimumSize = SizeType(50, 24),
                     ),
                 ]                    
             ),
@@ -175,8 +176,8 @@ def installParcel(parcel, oldVersion=None):
                                 characterStyle = blocks.LabelStyle,
                                 stretchFactor = 0.0,
                                 textAlignmentEnum = "Right",
-                                minimumSize = blocks.SizeType(70, 24),
-                                border = blocks.RectType(0.0, 0.0, 0.0, 5.0),
+                                minimumSize = SizeType(70, 24),
+                                border = RectType(0.0, 0.0, 0.0, 5.0),
                             ),
                         ],
                     ),

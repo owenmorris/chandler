@@ -13,7 +13,6 @@ from osaf.pim import AbstractCollection
 import wx
 import logging
 import hotshot
-from DocumentTypes import SizeType, RectType, PositionType, ColorType
 from i18n import OSAFMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -796,6 +795,8 @@ class alignmentEnumType(schema.Enumeration):
 
 class RectangularChild (Block):
 
+    from osaf.framework.types.DocumentTypes import SizeType, RectType
+
     size = schema.One(SizeType, initialValue = SizeType(0, 0))
     minimumSize = schema.One(SizeType, initialValue = SizeType(-1, -1))
     border = schema.One(RectType, initialValue = RectType(0.0, 0.0, 0.0, 0.0))
@@ -964,6 +965,7 @@ class ChoiceEvent(BlockEvent):
     choice = schema.One(schema.String, required = True)
 
 class ColorEvent(BlockEvent):
+    from osaf.framework.types.DocumentTypes import ColorType
     color = schema.One(ColorType, required = True)
 
 class KindParameterizedEvent(BlockEvent):
