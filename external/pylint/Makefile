@@ -33,7 +33,7 @@ sources: sources-common sources-optik pylint-$(VERSION).tar.gz
 
 pylint-$(VERSION)-expanded: pylint-$(VERSION).tar.gz
 	tar xvzf pylint-$(VERSION).tar.gz
-	chmod u+w -R pylint-$(VERSION)
+	chmod -R u+w pylint-$(VERSION)
 	touch pylint-$(VERSION)-expanded
 
 expand-common:

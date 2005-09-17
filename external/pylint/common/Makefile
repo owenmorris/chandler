@@ -22,7 +22,7 @@ sources: common-$(VERSION).tar.gz
 
 common-$(VERSION)-expanded: common-$(VERSION).tar.gz
 	tar xvzf common-$(VERSION).tar.gz
-	chmod u+w -R common-$(VERSION)
+	chmod -R u+w common-$(VERSION)
 	touch common-$(VERSION)-expanded
 
 expand: common-$(VERSION)-expanded
