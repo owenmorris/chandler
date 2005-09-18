@@ -7,6 +7,7 @@ import application.Globals as Globals
 import application.schema as schema
 import osaf.pim as pim
 import osaf.framework.blocks.Block as Block
+import osaf.framework.types.DocumentTypes as DocumentTypes
 from repository.item.Item import Item as Item
 from datetime import datetime
 import logging
@@ -27,11 +28,28 @@ def installParcel(parcel, oldVersion=None):
 
     # UI Elements:
     # -----------
+    hotkeyArea = detail.makeArea(parcel, 'HotkeyArea',
+                            position=0.6,
+                            childrenBlocks=[
+                                detail.makeLabel(parcel, _(u'Hotkey'), borderTop=4),
+                                detail.makeSpacer(parcel, width=6),
+                                detail.makeEditor(parcel, 'EditFKey',
+                                           viewAttribute=u'fkey',
+                                           stretchFactor=0.0,
+                                           minimumSize=DocumentTypes.SizeType(16,-1)),
+                                detail.makeSpacer(parcel, width=60),
+                                ]).install(parcel)
 
-    # XXX TEMPORARILY MOVED XXX
-    # the TestMenu stuff wend to osaf.views.main for the moment,
-    # because it caused a circular dependency
-
+    testCheckboxArea = detail.makeArea(parcel, 'TestCheckboxArea',
+                            position=0.7,
+                            childrenBlocks=[
+                                detail.makeLabel(parcel, _(u'test'), borderTop=4),
+                                detail.makeSpacer(parcel, width=6),
+                                detail.makeEditor(parcel, 'EditTest',
+                                           viewAttribute=u'test',
+                                           stretchFactor=0.0,
+                                           minimumSize=DocumentTypes.SizeType(16,-1))
+                                ]).install(parcel)
 
     # Block Subtree for the Detail View of a Script
     # ------------
@@ -40,6 +58,8 @@ def installParcel(parcel, oldVersion=None):
                                      rootBlocks=[
                                          detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
                                          detail.HeadlineArea,
+                                         hotkeyArea,
+                                         testCheckboxArea,
                                          detail.makeSpacer(parcel, height=7, position=0.8).install(parcel),
                                          detail.NotesBlock
                                          ])
@@ -65,24 +85,14 @@ def run_script(scriptText, fileName=u""):
         builtIns[attr] = globals()[attr]
 
     # now run that script in our predefined scope
-    try:
-        exec scriptCode in builtIns
-    except Exception:
-        exception_message('Error in script:')
-        raise
-
-def exception_message(message):
-    import sys, traceback
-    type, value, stack = sys.exc_info()
-    formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
-    message += "\nHere are the bottom 5 frames of the stack:\n%s" % formattedBacktrace
-    logger.exception( message )
-    return message
+    exec scriptCode in builtIns
 
 class Script(pim.ContentItem):
     """ Persistent Script Item, to be executed. """
     schema.kindInfo(displayName=_(u"Script"), displayAttribute="displayName")
     lastRan = schema.One(schema.DateTime, displayName = _(u"last ran"))
+    fkey = schema.One(schema.String, initialValue = '')
+    test = schema.One(schema.Boolean, initialValue = False)
 
     # redirections
 
@@ -120,42 +130,30 @@ def hotkey_script(event, view):
     """
     keycode = event.GetKeyCode()
     # for now, we just allow function keys to be hot keys.
-    if keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24:
+    if (keycode >= wx.WXK_F1 and keycode <= wx.WXK_F24
+            and not event.AltDown()
+            and not event.CmdDown()
+            and not event.ControlDown()
+            and not event.MetaDown()
+            and not event.ShiftDown()):
         # try to find the corresponding Script
-        #XXX: [i18n] Does this value need to be localized?
-        targetScriptNameStart = "Script F%s" % str(keycode-wx.WXK_F1+1)
+        targetFKey = _(u"F%(FunctionKeyNumber)s") % {'FunctionKeyNumber':unicode(keycode-wx.WXK_F1+1)}
 
         # maybe we have an existing script?
-        script = _findScriptStartingWith(targetScriptNameStart, view)
-        if script:
+        script = _findHotKeyScript(targetFKey, view)
+        if script:          
             wx.CallAfter(script.execute)
             return True
 
     # not a hot key
     return False
 
-def _findScriptStartingWith(targetScriptNameStart, view):
+def _findHotKeyScript(targetFKey, view):
     # find a script that starts with the given name
     for aScript in Script.iterItems(view):
-        if _startsWithScriptNumber(aScript.displayName, targetScriptNameStart):
+        if aScript.fkey == targetFKey:          
             return aScript
     return None
-
-def _startsWithScriptNumber(candidateString, numberedStringToMatch):
-    # returns True if the candidate starts with the
-    # numberedStringToMatch.  Checks that the candidate
-    # isn't really a larger number by checking for 
-    # following digits.
-    if candidateString.startswith(numberedStringToMatch):
-        # make sure it's not a longer number than we're looking for
-        try:
-            nextString = candidateString[len(numberedStringToMatch)]
-        except IndexError:
-            return True
-        if nextString.isdigit():
-            return False
-        return True
-    return False
 
 def run_startup_script(view):
     script = None
@@ -163,8 +161,7 @@ def run_startup_script(view):
     if Globals.options.testScripts:
         try:
             for aScript in Script.iterItems(view):
-                #XXX: [i18n] If this value is localized then the lookup will fail
-                if aScript.displayName.lower().startswith(u"test"):
+                if aScript.test:
                     aScript.execute(fileName=fileName)
         finally:
             # run the cleanup script
@@ -247,10 +244,7 @@ class BlockProxy(object):
 
     def focus(self):
         block = getattr(self.app_ns, self.proxy)
-        if block and block.widget:
-            block.widget.SetFocus()
-        else:
-            logger.warning("Can't focus on block", getattr(block, 'blockName', ''), block)
+        block.widget.SetFocus()
 
 class RootProxy(BlockProxy):
     """ 
@@ -269,10 +263,12 @@ class RootProxy(BlockProxy):
     are rendered and unrendered.  The best BlockEvent is the one copied
     into the soup and attached to rendered blocks that were also copied.
     """
-    def post_script_event(self, eventName, event, argDict={}, timing=None, **keys):
+    def post_script_event(self, eventName, event, argDict=None, timing=None, **keys):
         # Post the supplied event, keeping track of the timing if requested.
         # Also, call Yield() on the application, so it gets some time during
         #   script execution.
+        if argDict is None:
+            argDict = {}
         try:
             argDict.update(keys)
         except AttributeError:
@@ -295,7 +291,7 @@ class RootProxy(BlockProxy):
     # that invoke that event.
     # All other attributes are redirected to the root view.
     def __getattr__(self, attr):
-        def scripted_blockEvent(argDict={}, **keys):
+        def scripted_blockEvent(argDict=None, **keys):
             # merge the named parameters, into the dictionary positional arg
             return self.post_script_event(attr, best, argDict, timing=self.timing, **keys)
         best = Block.Block.findBlockEventByName(attr)
@@ -449,7 +445,7 @@ class User(object):
         wx.Window_FindFocus().Navigate(flags)
 
     @classmethod
-    def emulate_click(self, block, x=None, y=None, double=False):
+    def emulate_click(cls, block, x=None, y=None, double=False):
         """ Simulates left mouse click on the given block or widget """
         try:
             widget =  block.widget
@@ -481,7 +477,7 @@ class User(object):
         wx.GetApp().Yield()
 
     @classmethod
-    def emulate_return(self, block=None):
+    def emulate_return(cls, block=None):
         """ Simulates a return-key event in the given block """
         try:
             if block :
@@ -521,7 +517,7 @@ class User(object):
             return True
 
     @classmethod
-    def emulate_sidebarClick(self, sidebar, cellName, double=False):
+    def emulate_sidebarClick(cls, sidebar, cellName, double=False):
         ''' Process a left click on the given cell in the given sidebar'''
         # for All, In, Out, Trash collection find by item rather than itemName
         chandler_collections = {"All":schema.ns('osaf.app', Globals.mainViewRoot).allCollection,
@@ -541,7 +537,7 @@ class User(object):
             # events processing
             gw = sidebar.widget.GetGridWindow()
             # +3 work around for the sidebar bug
-            self.emulate_click(gw, x=cellRect.GetX()+3, y=cellRect.GetY()+3, double=double)
+            cls.emulate_click(gw, x=cellRect.GetX()+3, y=cellRect.GetY()+3, double=double)
             return True
         else:
             return False

@@ -598,36 +598,6 @@ class MainView(View):
 
         view.refresh()
 
-    def LogTheException(self, message):
-        type, value, stack = sys.exc_info()
-        formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
-        message += "\nHere are the bottom 5 frames of the stack:\n%s" % formattedBacktrace
-        logger.exception( message )
-
-    def ReloadPythonImports(self):
-        """
-        Try to reload all the modules that are reloadable.
-        """
-        # scan all the modules in sys.modules
-        for aModule in sys.modules.values():
-            # filter out ones that have no file (like None)
-            try:
-                modulePath = aModule.__file__
-            except AttributeError:
-                pass
-            else:
-                # filter modules that don't accept reloading
-                try:
-                    canReload = aModule.AcceptsReload
-                except AttributeError:
-                    pass
-                else:
-                    try:
-                        if canReload:
-                            reload(aModule)
-                    except Exception:
-                        self.LogTheException("Exception during reload of Python code.")
-
     def onReloadParcelsEvent(self, event, traceItem = None):
         """
         Reloads the parcels and UI by deleting the UI elements and
@@ -644,13 +614,7 @@ class MainView(View):
         theApp = wx.GetApp()
         theApp.UnRenderMainView ()
 
-        # reload the python code now
-        self.ReloadPythonImports()
-
-        try:
-            application.Parcel.Manager.get(self.itsView).loadParcels()
-        except Exception:
-            self.LogTheException("Error scanning parcels.")
+        application.Parcel.Manager.get(self.itsView).loadParcels()
 
         theApp.LoadMainViewRoot (delete=True)
         theApp.RenderMainView ()
@@ -746,6 +710,29 @@ class MainView(View):
         else:
             menuTitle = u'Run a Script\tCtrl+S'
         event.arguments ['Text'] = menuTitle
+
+    def onAddScriptsToSidebarEvent(self, event):
+        sidebar = Block.findBlockByName ("Sidebar").contents
+        scriptsSet = schema.ns('osaf.app', self.itsView).scriptsCollection
+        # if already present, just select it
+        if scriptsSet in sidebar:
+            self.postEventByName('RequestSelectSidebarItem', {'item': scriptsSet})
+        else:
+            self.postEventByName('AddToSidebarWithoutCopyingAndSelectFirst',
+                             {'items': [scriptsSet]})
+        # go to the All application, so we can view the scripts
+        self.postEventByName ('ApplicationBarAll', { })
+
+    def onAddScriptsToSidebarEventUpdateUI(self, event):
+        # Triggered from "Tests | Add Scripts to Sidebar"
+        sidebar = Block.findBlockByName ("Sidebar").contents
+        scriptsSet = schema.ns('osaf.app', self.itsView).scriptsCollection
+        if scriptsSet in sidebar:
+            menuTitle = _(u'Show Scripts')
+        else:
+            menuTitle = _(u'Add Scripts to Sidebar')
+        event.arguments ['Text'] = menuTitle
+        event.arguments ['Enable'] = True
 
     def onShowPyShellEvent(self, event):
         # Test menu item

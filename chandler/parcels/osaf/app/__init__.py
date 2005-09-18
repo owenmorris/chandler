@@ -7,6 +7,7 @@ from i18n import OSAFMessageFactory as _
 from osaf import pim
 from osaf import messages
 from osaf.framework.types.DocumentTypes import ColorType
+import osaf.framework.scripting as scripting
 import wx
 
 
@@ -188,36 +189,42 @@ The Chandler Team""")
     Scripts.  These files are located in our Scripts parcel.
     """
     # Script to create a new user script item
-    scripting.Script.update(parcel, _(u"Script F1 - Create a New Script"),
+    scripting.Script.update(parcel, _(u"F1 - Create a New Script"),
+                            fkey=_(u"F1"),
                             creator = osafDev,
                             bodyString=scripting.script_file("NewScript.py", Scripts.__file__)
                             )
 
     # Block Inspector
-    scripting.Script.update(parcel, _(u"Script F2 - Block under cursor"),
+    scripting.Script.update(parcel, _(u"F2 - Block under cursor"),
+                            fkey=_(u"F2"),
                             creator = osafDev,
                             bodyString=scripting.script_file("BlockInspector.py", Scripts.__file__)
                             )
 
     # Item Inspector
-    scripting.Script.update(parcel, _(u"Script F3 - Item selected"),
+    scripting.Script.update(parcel, _(u"F3 - Item selected"),
+                            fkey=_(u"F3"),
                             creator = osafDev,
                             bodyString=scripting.script_file("ItemInspector.py", Scripts.__file__)
                             )
 
     # Browse selected item
-    scripting.Script.update(parcel, _(u"Script F4 - Browse selected item"),
+    scripting.Script.update(parcel, _(u"F4 - Browse selected item"),
+                            fkey=_(u"F4"),
                             creator = osafDev,
                             bodyString=scripting.script_file("BrowseSelected.py", Scripts.__file__)
                             )
 
     # Scripts whose name starts with "test" can all be run through a command-line option
     scripting.Script.update(parcel, _(u"Test - Reload Parcels"),
+                            test=True,
                             creator = osafDev,
                             bodyString=scripting.script_file("ReloadParcels.py", Scripts.__file__)
                             )
 
     scripting.Script.update(parcel, _(u"Test - Event timing example"),
+                            test=True,
                             creator = osafDev,
                             bodyString=scripting.script_file("EventTiming.py", Scripts.__file__)
                             )
@@ -240,7 +247,6 @@ def MakeCollections(parcel):
     def GetColorForHue (hue):
         rgb = wx.Image.HSVtoRGB (wx.Image_HSVValue (hue / 360.0, 0.5, 1.0))
         return ColorType (rgb.red, rgb.green, rgb.blue, 255)
-
 
     collectionColors = CollectionColors.update(parcel, 'collectionColors',
                                                colors = [GetColorForHue (210),
@@ -340,6 +346,20 @@ def MakeCollections(parcel):
         color = collectionColors.nextColor(),
         colorizeIcon = False
     ).setup(source=outSource, trash=TrashCollection)
+
+    # The "Scripts" collection
+    scriptsCollection = KindCollection.update(parcel, 'scripts')
+    scriptsCollection.kind = scripting.Script.getKind(parcel.itsView)
+
+    InclusionExclusionCollection.update(parcel, 'scriptsCollection',
+        displayName = _(u"Scripts"),
+        renameable = False,
+        private = False,
+        iconName="Script",
+        dontDisplayAsCalendar=True,
+        color = ColorType(255, 968, 255, 255), #light violet
+        colorizeIcon = False
+         ).setup(source=scriptsCollection)
 
     # The Sidebar collection
     ListCollection.update(parcel, 'sidebarCollection',

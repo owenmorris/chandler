@@ -49,21 +49,7 @@ class LaunchChandlerTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             sys.argv = chandlerArgs
     
             # Launch Chandler
-            didLaunch = False
-            message = "OK"
-            try:
-                Chandler.main()
-                didLaunch = True
-    
-            # Catch exceptions that come all the way out, e.g. parcel.xml issues.
-            except Exception, exception:
-                type, value, stack = sys.exc_info()
-                formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))
-                message = ("Chandler encountered an unexpected problem which caused this unit test to fail.\n" + \
-                          "Here are the bottom 5 frames of the stack:\n%s") % formattedBacktrace
-    
-            # fail the test if we did not launch
-            self.assert_(didLaunch, message)
+            Chandler.main()
     
             # @@@DLD - split off a timer task to kill chandler in case it never came back.
 

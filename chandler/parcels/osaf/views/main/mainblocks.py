@@ -93,6 +93,11 @@ def make_mainview(parcel):
         BlockEvent.template('RunSelectedScript',
             dispatchEnum='SendToBlockByName',
             dispatchToBlockName='MainView').install(parcel)
+    # Event to put "Scripts" in the Sidebar
+    AddScriptsToSidebarEvent = \
+        BlockEvent.template('AddScriptsToSidebar',
+            dispatchEnum='SendToBlockByName',
+            dispatchToBlockName='MainView').install(parcel)
     # from //parcels/osaf/views/main
     BackupRepositoryEvent = \
         BlockEvent.template('BackupRepository',
@@ -744,6 +749,10 @@ def make_mainview(parcel):
                                 title=u'Run a Script',
                                 accel=u'Ctrl+S',
                                 helpString=u'Run the CPIA Script from the Detail View'),
+                            MenuItem.template("AddScriptsSetItem",
+                                event = AddScriptsToSidebarEvent,
+                                title = u"Add Scripts to Sidebar",
+                                helpString=u'Add Scripts to the Sidebar'),
                             MenuItem.template('WxTestHarnessItem',
                                 event=WxTestHarnessEvent,
                                 title=u'Wx Test Harness',
@@ -960,42 +969,6 @@ def make_mainview(parcel):
                                       views=[mainview],
                                       childrenBlocks=[MainTPB])
 
-    # XXX TEMPORARY XXX
-    # some scripting things here - moved from osaf.framework.scripting
-    # because it was causing a circular dependency
-
-    # keeping this, even though it refers to this parcel,
-    # because this code will eventuall end up somewhere else
-    main   = schema.ns('osaf.views.main', parcel)
-
-    # "Scripts" Set
-    scripts = pim.KindCollection.update(parcel, "scriptsSet")
-    scripts.kind = scripting.Script.getKind(parcel.itsView)
-
-    scriptsSet = pim.InclusionExclusionCollection.update(parcel, "scriptsInclusionExclusionCollection",
-         displayName = _(u"Scripts"),
-         renameable = False,
-         private = False
-         ).setup(source=scripts)
-
-    # Event to put "Scripts" in the Sidebar
-    addScriptsEvent = ModifyContentsEvent.update(parcel, "AddScriptsCollectionEvent",
-                                                        blockName = "AddScriptsCollectionEvent",
-                                                        dispatchEnum = "SendToBlockByName",
-                                                        dispatchToBlockName = "Sidebar",
-                                                        methodName = "onModifyContentsEvent",
-                                                        items = [scriptsSet], 
-                                                        selectFirstItem=True,
-                                                        copyItems=True,
-                                                        commitAfterDispatch = True
-                                                        )
-    # Menu item to put "Scripts" in the Sidebar
-    MenuItem.template("AddScriptsCollectionMenu",
-                           title = u"Add Scripts to Sidebar",
-                           event = addScriptsEvent,
-                           parentBlock = main.TestMenu
-                           ).install(parcel)
-    
 
     # Add certstore UI
     schema.synchronize(parcel.itsView, "osaf.framework.certstore.blocks")
