@@ -100,7 +100,8 @@ def makeEditor(parcel, name, viewAttribute, border=None,
     try:
         resyncEvent = parcel['Resynchronize']
     except KeyError:
-        resyncEvent = schema.ns(__name__, parcel.itsView).Resynchronize
+        detailParcelPath = '.'.join(__name__.split('.')[:-1])
+        resyncEvent = schema.ns(detailParcelPath, parcel.itsView).Resynchronize
         
     ae = baseClass.template(name, viewAttribute=viewAttribute,
                             characterStyle=characterStyle or blocks.TextStyle,
