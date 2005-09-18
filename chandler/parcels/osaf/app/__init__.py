@@ -357,7 +357,7 @@ def MakeCollections(parcel):
         private = False,
         iconName="Script",
         dontDisplayAsCalendar=True,
-        color = ColorType(255, 968, 255, 255), #light violet
+        color = collectionColors.nextColor(),
         colorizeIcon = False
          ).setup(source=scriptsCollection)
 
