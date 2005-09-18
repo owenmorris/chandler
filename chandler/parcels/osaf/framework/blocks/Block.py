@@ -820,101 +820,74 @@ class RectangularChild (Block):
     Otherwise we let the event continue to bubble up the container
         hierarchy.
     """
-    def onCopyEventUpdateUI (self, event):
-        return self._GenericEditUpdateUI (event, 'CanCopy')
+    def onCopyEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanCopy')
 
-    def onCopyEvent (self, event):
-        return self._GenericEditEvent('Copy', changesData=False)
+    def onCopyEvent(self, event):
+        return self._GenericEditEvent(event, 'Copy', changesData=False)
 
-    def onCutEventUpdateUI (self, event):
-        return self._GenericEditUpdateUI (event, 'CanCut')
+    def onCutEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanCut')
 
-    def onCutEvent (self, event):
-        return self._GenericEditEvent ('Cut')
+    def onCutEvent(self, event):
+        return self._GenericEditEvent(event, 'Cut')
 
-    def onPasteEventUpdateUI (self, event):
-        return self._GenericEditUpdateUI (event, 'CanPaste')
+    def onPasteEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanPaste')
 
-    def onPasteEvent (self, event):
-        return self._GenericEditEvent ('Paste')
+    def onPasteEvent(self, event):
+        return self._GenericEditEvent(event, 'Paste')
 
-    def onClearEventUpdateUI (self, event):
-        return self._GenericEditUpdateUI (event, 'CanClear')
+    def onClearEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanClear')
     
     def onClearEvent(self, event):
-        return self._GenericEditEvent('Clear')
+        return self._GenericEditEvent(event, 'Clear')
     
     def onSelectAllEventUpdateUI(self, event):
         return self._GenericEditUpdateUI(event, 'CanSelectAll')
 
     def onSelectAllEvent(self, event):
-        return self._GenericEditEvent('SelectAll', changesData=False)
+        return self._GenericEditEvent(event, 'SelectAll', changesData=False)
         
-    def onRedoEventUpdateUI (self, event):
-        return self._GenericEditUpdateUI (event, 'CanRedo')
+    def onRedoEventUpdateUI(self, event):
+        return self._GenericEditUpdateUI(event, 'CanRedo')
 
-    def onRedoEvent (self, event):
-        return self._GenericEditEvent ('Redo')
+    def onRedoEvent(self, event):
+        return self._GenericEditEvent(event, 'Redo')
 
-    def onUndoEventUpdateUI (self, event):
+    def onUndoEventUpdateUI(self, event):
         return self._GenericEditUpdateUI(event, 'CanUndo')
     
-        # @@@ BJS: I've commented out this old implementation,
-        # which customized the Undo enabling to change the text
-        # between "Undo Command" and "Can't Undo" to match the
-        # enabledness. This mechanism has two problems:
-        # - It adds unnecessary complication (why don't all menu items
-        # change their text to "Can't Whatever" when we disable them?)
-        # - It's wrong when it says "Command", because this method
-        # also gets used when enabling undo for text edits. Adding an
-        # even-more-complicated mechanism to allow delegation of the 
-        # noun is even more unnecessary. <end rant> ;-)
-        ## enable "Undo" menu item
-        #try:
-            #canUndo = self.widget.CanUndo()
-        #except AttributeError:
-            ## don't know, so BubbleUp            
-            #event.arguments['continueBubbleUp'] = True
-            #return
-        #event.arguments ['Enable'] = canUndo
-        #if canUndo:
-            #event.arguments ['Text'] = _(u"Undo Command\tCtrl+Z")
-        #else:
-            #event.arguments ['Text'] = _(u"Can't Undo\tCtrl+Z")
+    def onUndoEvent(self, event):
+        return self._GenericEditEvent(event, 'Undo')
 
-    def onUndoEvent (self, event):
-        return self._GenericEditEvent ('Undo')
-
-    def _GenericEditUpdateUI (self, event, methodName):
+    def _GenericEditUpdateUI(self, event, methodName):
         try:
             # get the method bound to the widget
             method = getattr (self.widget, methodName)
         except AttributeError:
             # don't know, so BubbleUp
             event.arguments['continueBubbleUp'] = True
-            return
-        canDo = method()
-        # We know if we can, so enable or disable menu item
-        event.arguments ['Enable'] = canDo
+        else:
+            # We know if we can, so enable or disable menu item
+            event.arguments['Enable'] = method()
 
-    def _GenericEditEvent (self, methodName, changesData=True):
+    def _GenericEditEvent(self, event, methodName, changesData=True):
         try:
             method = getattr (self.widget, methodName)
         except AttributeError:
             # don't know, so BubbleUp
             event.arguments['continueBubbleUp'] = True
-            return
-        result = method()
-        if changesData:
-            # notify that data has changed, if we can
-            try:
+        else:
+            result = method()
+            if changesData:
+                # notify that data has changed, if we can
                 # use type() to skip repository lookup and get an unbound method
-                method = type(self).OnDataChanged
-            except AttributeError:
-                pass
-            else:
-                method(self)
-        return result
+                method = getattr(type(self), 'OnDataChanged', None)
+                if method is not None:
+                    method(self)
+            return result
 
 class dispatchEnumType(schema.Enumeration):
     values = (
